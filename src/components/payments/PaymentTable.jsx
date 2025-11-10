@@ -88,6 +88,7 @@ export default function PaymentTable({ payments, isLoading, onEdit, onStatusChan
                   <TableHead>Jugador</TableHead>
                   <TableHead>Tipo</TableHead>
                   <TableHead>Período</TableHead>
+                  <TableHead>Temporada</TableHead>
                   <TableHead>Cantidad</TableHead>
                   <TableHead>Método</TableHead>
                   <TableHead>Justificante</TableHead>
@@ -109,7 +110,10 @@ export default function PaymentTable({ payments, isLoading, onEdit, onStatusChan
                         </Badge>
                       </TableCell>
                       <TableCell className="text-sm">
-                        {payment.mes} {payment.año}
+                        {payment.mes}
+                      </TableCell>
+                      <TableCell className="text-sm font-medium text-slate-700">
+                        {payment.temporada || payment.año}
                       </TableCell>
                       <TableCell className="font-semibold">
                         {payment.cantidad}€

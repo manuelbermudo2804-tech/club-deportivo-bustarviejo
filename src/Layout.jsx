@@ -16,6 +16,20 @@ import {
   SidebarTrigger,
 } from "@/components/ui/sidebar";
 
+// Función para obtener la temporada actual
+const getCurrentSeason = () => {
+  const now = new Date();
+  const currentYear = now.getFullYear();
+  const currentMonth = now.getMonth() + 1; // 1-12
+  
+  // Si estamos entre enero y agosto, la temporada comenzó el año anterior
+  if (currentMonth <= 8) {
+    return `${currentYear - 1}/${currentYear}`;
+  }
+  // Si estamos entre septiembre y diciembre, la temporada comienza este año
+  return `${currentYear}/${currentYear + 1}`;
+};
+
 const navigationItems = [
   {
     title: "Inicio",
@@ -41,6 +55,7 @@ const navigationItems = [
 
 export default function Layout({ children, currentPageName }) {
   const location = useLocation();
+  const currentSeason = getCurrentSeason();
 
   return (
     <SidebarProvider>
@@ -86,7 +101,7 @@ export default function Layout({ children, currentPageName }) {
 
           <SidebarFooter className="border-t border-slate-200/60 p-4 bg-slate-50/50">
             <div className="text-center text-xs text-slate-500">
-              <p className="font-medium">Temporada 2024/25</p>
+              <p className="font-medium">Temporada {currentSeason}</p>
               <p className="text-slate-400 mt-1">© CF Bustarviejo</p>
             </div>
           </SidebarFooter>

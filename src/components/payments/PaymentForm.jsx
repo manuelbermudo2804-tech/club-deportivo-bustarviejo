@@ -10,14 +10,41 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Loader2, Upload, FileText, X } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
+// Función para obtener la temporada actual
+const getCurrentSeason = () => {
+  const now = new Date();
+  const currentYear = now.getFullYear();
+  const currentMonth = now.getMonth() + 1; // 1-12
+  
+  // Si estamos entre enero y agosto, la temporada comenzó el año anterior
+  if (currentMonth <= 8) {
+    return `${currentYear - 1}-${currentYear}`;
+  }
+  // Si estamos entre septiembre y diciembre, la temporada comienza este año
+  return `${currentYear}-${currentYear + 1}`;
+};
+
+// Generar lista de temporadas (actual + próximas)
+const getSeasonOptions = () => {
+  const now = new Date();
+  const currentYear = now.getFullYear();
+  const seasons = [];
+  
+  for (let i = -1; i <= 3; i++) {
+    const startYear = currentYear + i;
+    seasons.push(`${startYear}-${startYear + 1}`);
+  }
+  
+  return seasons;
+};
+
 export default function PaymentForm({ payment, players, onSubmit, onCancel, isSubmitting }) {
-  const currentYear = new Date().getFullYear();
   const [formData, setFormData] = useState(payment || {
     jugador_id: "",
     jugador_nombre: "",
     tipo_pago: "Único",
     mes: "Septiembre",
-    año: currentYear,
+    temporada: getCurrentSeason(),
     cantidad: 90,
     estado: "Pendiente",
     metodo_pago: "",
@@ -87,6 +114,7 @@ export default function PaymentForm({ payment, players, onSubmit, onCancel, isSu
   };
 
   const months = ["Septiembre", "Noviembre", "Diciembre"];
+  const seasonOptions = getSeasonOptions();
 
   return (
     <motion.div
@@ -173,16 +201,23 @@ export default function PaymentForm({ payment, players, onSubmit, onCancel, isSu
               )}
 
               <div className="space-y-2">
-                <Label htmlFor="año">Año *</Label>
-                <Input
-                  id="año"
-                  type="number"
-                  value={formData.año}
-                  onChange={(e) => handleChange("año", parseInt(e.target.value))}
+                <Label htmlFor="temporada">Temporada *</Label>
+                <Select
+                  value={formData.temporada}
+                  onValueChange={(value) => handleChange("temporada", value)}
                   required
-                  min="2020"
-                  max="2030"
-                />
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecciona temporada" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {seasonOptions.map((season) => (
+                      <SelectItem key={season} value={season}>
+                        {season}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
 
               <div className="space-y-2">
