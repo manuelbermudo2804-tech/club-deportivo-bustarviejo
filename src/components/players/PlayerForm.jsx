@@ -26,7 +26,6 @@ export default function PlayerForm({
     fecha_nacimiento: "",
     dni: "",
     telefono: "",
-    email: "",
     email_padre: parentEmail || "",
     direccion: "",
     categoria: "",
@@ -188,33 +187,26 @@ export default function PlayerForm({
                 />
               </div>
 
-              {/* Email */}
-              <div className="space-y-2">
-                <Label>Email</Label>
-                <Input
-                  type="email"
-                  placeholder="Email del jugador"
-                  value={currentPlayer.email}
-                  onChange={(e) => setCurrentPlayer({ ...currentPlayer, email: e.target.value })}
-                />
-              </div>
-
-              {/* Email Padre */}
-              <div className="space-y-2">
+              {/* Email Padre/Tutor */}
+              <div className="space-y-2 md:col-span-2">
                 <Label className="flex items-center gap-2">
-                  Email Padre/Tutor
+                  Email Padre/Tutor *
                   {isParent && <Lock className="w-3 h-3 text-orange-600" />}
                 </Label>
                 <Input
                   type="email"
-                  placeholder="Email del padre/tutor"
+                  placeholder="Email del padre/tutor para notificaciones"
                   value={currentPlayer.email_padre}
                   onChange={(e) => setCurrentPlayer({ ...currentPlayer, email_padre: e.target.value })}
                   disabled={isParent}
                   className={isParent ? 'bg-slate-100 cursor-not-allowed' : ''}
+                  required
                 />
                 {isParent && (
                   <p className="text-xs text-slate-500">Este es tu email registrado y no puede ser modificado</p>
+                )}
+                {!isParent && (
+                  <p className="text-xs text-slate-500">Este email se usará para notificaciones de pagos, anuncios y acceso al chat</p>
                 )}
               </div>
 
