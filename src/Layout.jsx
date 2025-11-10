@@ -59,7 +59,7 @@ function ClosedSeasonScreen({ user, isAdmin }) {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-red-500 via-red-600 to-red-700 flex items-center justify-center p-6">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-black to-green-950 flex items-center justify-center p-6">
       <div className="max-w-2xl w-full">
         <Card className="border-none shadow-2xl bg-white/95 backdrop-blur-sm">
           <CardContent className="p-12 text-center space-y-6">
@@ -79,18 +79,18 @@ function ClosedSeasonScreen({ user, isAdmin }) {
               <h1 className="text-4xl md:text-5xl font-bold text-slate-900">
                 🔒 Cierre de Temporada
               </h1>
-              <p className="text-2xl text-red-600 font-semibold">
+              <p className="text-2xl text-orange-600 font-semibold">
                 CF Bustarviejo
               </p>
             </div>
 
             {/* Mensaje principal */}
-            <div className="bg-gradient-to-r from-red-50 to-red-100 rounded-2xl p-8 space-y-4 border-2 border-red-200">
+            <div className="bg-gradient-to-r from-orange-50 to-orange-100 rounded-2xl p-8 space-y-4 border-2 border-orange-200">
               <p className="text-xl text-slate-800 leading-relaxed">
-                La aplicación está cerrada durante el mes de <strong className="text-red-700">Mayo</strong> por cierre de temporada.
+                La aplicación está cerrada durante el mes de <strong className="text-orange-700">Mayo</strong> por cierre de temporada.
               </p>
               <p className="text-lg text-slate-700">
-                Estamos preparando todo para las <strong className="text-red-700">inscripciones de Junio</strong> y la nueva temporada que comenzará en <strong className="text-red-700">Septiembre</strong>.
+                Estamos preparando todo para las <strong className="text-orange-700">inscripciones de Junio</strong> y la nueva temporada que comenzará en <strong className="text-green-700">Septiembre</strong>.
               </p>
             </div>
 
@@ -101,22 +101,22 @@ function ClosedSeasonScreen({ user, isAdmin }) {
 
             {/* Información importante */}
             <div className="space-y-3 pt-4">
-              <div className="bg-blue-50 border-2 border-blue-200 rounded-xl p-6">
-                <p className="text-xl font-bold text-blue-900 mb-3">
+              <div className="bg-gradient-to-r from-slate-900 to-black border-2 border-green-500 rounded-xl p-6">
+                <p className="text-xl font-bold text-orange-500 mb-3">
                   📅 Calendario Importante
                 </p>
                 <div className="text-left space-y-2">
-                  <p className="text-slate-700">
-                    <strong className="text-red-700">Mayo:</strong> Cierre de temporada (aplicación cerrada)
+                  <p className="text-white">
+                    <strong className="text-orange-400">Mayo:</strong> Cierre de temporada (aplicación cerrada)
                   </p>
-                  <p className="text-slate-700">
-                    <strong className="text-green-700">Junio:</strong> Inscripciones abiertas + Tienda abierta
+                  <p className="text-white">
+                    <strong className="text-green-400">Junio:</strong> Inscripciones abiertas + Tienda abierta
                   </p>
-                  <p className="text-slate-700">
-                    <strong className="text-orange-700">Julio-Agosto:</strong> Vacaciones de verano
+                  <p className="text-white">
+                    <strong className="text-orange-400">Julio-Agosto:</strong> Vacaciones de verano
                   </p>
-                  <p className="text-slate-700">
-                    <strong className="text-blue-700">Septiembre:</strong> Inicio de la nueva temporada
+                  <p className="text-white">
+                    <strong className="text-green-400">Septiembre:</strong> Inicio de la nueva temporada
                   </p>
                 </div>
               </div>
@@ -129,7 +129,7 @@ function ClosedSeasonScreen({ user, isAdmin }) {
                   <p className="font-medium text-slate-900">{user.full_name}</p>
                   <p>{user.email}</p>
                   {isAdmin && (
-                    <Badge className="mt-2 bg-red-600">
+                    <Badge className="mt-2 bg-orange-600">
                       Administrador
                     </Badge>
                   )}
@@ -153,13 +153,13 @@ function ClosedSeasonScreen({ user, isAdmin }) {
               <div className="space-y-1">
                 <a 
                   href="mailto:C.D.BUSTARVIEJO@HOTMAIL.ES"
-                  className="text-sm text-red-600 hover:text-red-700 block font-medium"
+                  className="text-sm text-orange-600 hover:text-orange-700 block font-medium"
                 >
                   C.D.BUSTARVIEJO@HOTMAIL.ES
                 </a>
                 <a 
                   href="mailto:CDBUSTARVIEJO@GMAIL.COM"
-                  className="text-sm text-red-600 hover:text-red-700 block font-medium"
+                  className="text-sm text-orange-600 hover:text-orange-700 block font-medium"
                 >
                   CDBUSTARVIEJO@GMAIL.COM
                 </a>
@@ -179,7 +179,7 @@ function InscriptionPeriodScreen({ user, isAdmin }) {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-500 via-green-600 to-green-700 flex items-center justify-center p-6">
+    <div className="min-h-screen bg-gradient-to-br from-green-600 via-green-700 to-green-900 flex items-center justify-center p-6">
       <div className="max-w-3xl w-full">
         <Card className="border-none shadow-2xl bg-white/95 backdrop-blur-sm">
           <CardContent className="p-12 text-center space-y-6">
@@ -199,18 +199,18 @@ function InscriptionPeriodScreen({ user, isAdmin }) {
               <h1 className="text-4xl md:text-5xl font-bold text-slate-900">
                 📝 Periodo de Inscripciones
               </h1>
-              <p className="text-2xl text-green-600 font-semibold">
+              <p className="text-2xl text-green-700 font-semibold">
                 CF Bustarviejo - Mes de Junio
               </p>
             </div>
 
             {/* Mensaje principal */}
-            <div className="bg-gradient-to-r from-green-50 to-green-100 rounded-2xl p-8 space-y-4 border-2 border-green-200">
+            <div className="bg-gradient-to-r from-green-50 to-green-100 rounded-2xl p-8 space-y-4 border-2 border-green-300">
               <p className="text-xl text-slate-800 leading-relaxed">
                 ¡Bienvenidos al periodo de <strong className="text-green-700">inscripciones de Junio</strong>!
               </p>
               <p className="text-lg text-slate-700">
-                Durante este mes puedes <strong className="text-green-700">registrar a tus jugadores</strong> y <strong className="text-green-700">pedir equipación en la tienda</strong> para la próxima temporada que comenzará en <strong className="text-green-700">Septiembre</strong>.
+                Durante este mes puedes <strong className="text-green-700">registrar a tus jugadores</strong> y <strong className="text-orange-600">pedir equipación en la tienda</strong> para la próxima temporada que comenzará en <strong className="text-green-700">Septiembre</strong>.
               </p>
             </div>
 
@@ -222,8 +222,8 @@ function InscriptionPeriodScreen({ user, isAdmin }) {
             {/* Acceso disponible */}
             <div className="grid md:grid-cols-2 gap-4">
               {/* Inscripciones */}
-              <div className="bg-blue-50 border-2 border-blue-200 rounded-xl p-6">
-                <p className="text-lg font-bold text-blue-900 mb-3">
+              <div className="bg-gradient-to-br from-green-50 to-green-100 border-2 border-green-300 rounded-xl p-6">
+                <p className="text-lg font-bold text-green-900 mb-3">
                   📋 Inscripciones
                 </p>
                 <div className="text-left space-y-2 text-sm">
@@ -240,7 +240,7 @@ function InscriptionPeriodScreen({ user, isAdmin }) {
               </div>
 
               {/* Tienda */}
-              <div className="bg-orange-50 border-2 border-orange-200 rounded-xl p-6">
+              <div className="bg-gradient-to-br from-orange-50 to-orange-100 border-2 border-orange-300 rounded-xl p-6">
                 <p className="text-lg font-bold text-orange-900 mb-3">
                   🛍️ Tienda
                 </p>
@@ -277,7 +277,7 @@ function InscriptionPeriodScreen({ user, isAdmin }) {
             {/* Botones de acceso */}
             <div className="grid md:grid-cols-2 gap-4 pt-4">
               <Link to={isAdmin ? createPageUrl("Players") : createPageUrl("ParentPlayers")} className="w-full">
-                <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-6 text-lg shadow-xl">
+                <Button className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-6 text-lg shadow-xl">
                   <Users className="w-5 h-5 mr-2" />
                   {isAdmin ? "Gestionar Jugadores" : "Mis Jugadores"}
                 </Button>
@@ -353,7 +353,7 @@ function VacationPeriodScreen({ user, isAdmin }) {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-orange-500 via-orange-600 to-orange-700 flex items-center justify-center p-6">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-black to-green-950 flex items-center justify-center p-6">
       <div className="max-w-2xl w-full">
         <Card className="border-none shadow-2xl bg-white/95 backdrop-blur-sm">
           <CardContent className="p-12 text-center space-y-6">
@@ -379,12 +379,12 @@ function VacationPeriodScreen({ user, isAdmin }) {
             </div>
 
             {/* Mensaje principal */}
-            <div className="bg-gradient-to-r from-orange-50 to-orange-100 rounded-2xl p-8 space-y-4 border-2 border-orange-200">
+            <div className="bg-gradient-to-r from-orange-50 to-green-50 rounded-2xl p-8 space-y-4 border-2 border-orange-200">
               <p className="text-xl text-slate-800 leading-relaxed">
                 La aplicación del club está cerrada durante los meses de <strong className="text-orange-700">Julio y Agosto</strong>.
               </p>
               <p className="text-lg text-slate-700">
-                Estamos de vacaciones. La aplicación volverá a estar disponible el <strong className="text-orange-700">1 de Septiembre</strong> con el inicio de la nueva temporada.
+                Estamos de vacaciones. La aplicación volverá a estar disponible el <strong className="text-green-700">1 de Septiembre</strong> con el inicio de la nueva temporada.
               </p>
             </div>
 
@@ -463,9 +463,9 @@ function RestrictedAccessScreen({ user, restriction }) {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-red-500 via-red-600 to-red-700 flex items-center justify-center p-6">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-black to-slate-900 flex items-center justify-center p-6">
       <div className="max-w-2xl w-full">
-        <Card className="border-none shadow-2xl bg-white/95 backdrop-blur-sm">
+        <Card className="border-none shadow-2xl bg-white/95 backdrop-blur-sm border-2 border-orange-500">
           <CardContent className="p-12 text-center space-y-6">
             {/* Logo del Club */}
             <div className="flex justify-center mb-6">
@@ -483,15 +483,15 @@ function RestrictedAccessScreen({ user, restriction }) {
               <h1 className="text-4xl md:text-5xl font-bold text-slate-900">
                 Acceso Restringido
               </h1>
-              <p className="text-2xl text-red-600 font-semibold">
+              <p className="text-2xl text-orange-600 font-semibold">
                 CF Bustarviejo
               </p>
             </div>
 
             {/* Mensaje principal */}
-            <div className="bg-gradient-to-r from-red-50 to-red-100 rounded-2xl p-8 space-y-4 border-2 border-red-200">
+            <div className="bg-gradient-to-r from-orange-50 to-orange-100 rounded-2xl p-8 space-y-4 border-2 border-orange-300">
               <p className="text-xl text-slate-800 leading-relaxed">
-                Tu acceso a la aplicación ha sido <strong className="text-red-700">restringido</strong>.
+                Tu acceso a la aplicación ha sido <strong className="text-orange-700">restringido</strong>.
               </p>
               {restriction?.motivo_restriccion && (
                 <div className="bg-white rounded-lg p-4">
@@ -544,13 +544,13 @@ function RestrictedAccessScreen({ user, restriction }) {
               <div className="space-y-1">
                 <a 
                   href="mailto:C.D.BUSTARVIEJO@HOTMAIL.ES"
-                  className="text-sm text-red-600 hover:text-red-700 block font-medium"
+                  className="text-sm text-orange-600 hover:text-orange-700 block font-medium"
                 >
                   C.D.BUSTARVIEJO@HOTMAIL.ES
                 </a>
                 <a 
                   href="mailto:CDBUSTARVIEJO@GMAIL.COM"
-                  className="text-sm text-red-600 hover:text-red-700 block font-medium"
+                  className="text-sm text-orange-600 hover:text-orange-700 block font-medium"
                 >
                   CDBUSTARVIEJO@GMAIL.COM
                 </a>
@@ -788,12 +788,12 @@ export default function Layout({ children, currentPageName }) {
 
   return (
     <SidebarProvider>
-      <div className="min-h-screen flex w-full bg-gradient-to-br from-slate-50 via-white to-orange-50">
-        <Sidebar className="border-r border-slate-200/60 backdrop-blur-sm">
-          <SidebarHeader className="border-b border-slate-200/60 p-6 bg-gradient-to-r from-orange-600 to-orange-700">
+      <div className="min-h-screen flex w-full bg-gradient-to-br from-slate-50 via-green-50/20 to-orange-50/30">
+        <Sidebar className="border-r-2 border-orange-600/20 backdrop-blur-sm bg-gradient-to-b from-slate-900 via-black to-slate-900">
+          <SidebarHeader className="border-b-2 border-green-500 p-6 bg-gradient-to-r from-orange-600 via-orange-700 to-orange-600">
             <div className="flex flex-col gap-2">
               <div className="flex items-center gap-3">
-                <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center shadow-lg p-1">
+                <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center shadow-xl p-1 ring-2 ring-green-500">
                   <img 
                     src={CLUB_LOGO_URL} 
                     alt="CF Bustarviejo"
@@ -802,7 +802,7 @@ export default function Layout({ children, currentPageName }) {
                 </div>
                 <div className="text-white">
                   <h2 className="font-bold text-lg leading-tight">CF Bustarviejo</h2>
-                  <p className="text-xs text-orange-100">
+                  <p className="text-xs text-green-200">
                     {isAdmin ? "Panel Administrador" : "Panel Padre/Tutor"}
                   </p>
                 </div>
@@ -810,7 +810,7 @@ export default function Layout({ children, currentPageName }) {
             </div>
           </SidebarHeader>
           
-          <SidebarContent className="p-3">
+          <SidebarContent className="p-3 bg-gradient-to-b from-slate-900 to-black">
             <SidebarGroup>
               <SidebarGroupContent>
                 <SidebarMenu>
@@ -818,8 +818,8 @@ export default function Layout({ children, currentPageName }) {
                     <SidebarMenuItem key={item.title}>
                       <SidebarMenuButton 
                         asChild 
-                        className={`hover:bg-orange-50 hover:text-orange-700 transition-all duration-200 rounded-xl mb-1 ${
-                          location.pathname === item.url ? 'bg-orange-100 text-orange-700 shadow-sm' : ''
+                        className={`hover:bg-gradient-to-r hover:from-orange-600 hover:to-orange-700 hover:text-white transition-all duration-200 rounded-xl mb-1 text-slate-300 ${
+                          location.pathname === item.url ? 'bg-gradient-to-r from-orange-600 to-orange-700 text-white shadow-lg shadow-orange-600/50 border-l-4 border-green-500' : ''
                         }`}
                       >
                         <Link to={item.url} className="flex items-center gap-3 px-4 py-3 relative">
@@ -828,12 +828,12 @@ export default function Layout({ children, currentPageName }) {
                           {item.badge && (
                             <div className="ml-auto flex items-center gap-1">
                               {item.urgentBadge && (
-                                <Badge className="bg-red-500 text-white h-6 min-w-6 flex items-center justify-center px-2 animate-pulse shadow-lg shadow-red-500/50">
+                                <Badge className="bg-red-500 text-white h-6 min-w-6 flex items-center justify-center px-2 animate-pulse shadow-lg shadow-red-500/50 ring-2 ring-green-400">
                                   🔴 {item.badge}
                                 </Badge>
                               )}
                               {!item.urgentBadge && (
-                                <Badge className="bg-orange-500 text-white h-6 min-w-6 flex items-center justify-center px-2 shadow-md">
+                                <Badge className="bg-green-500 text-white h-6 min-w-6 flex items-center justify-center px-2 shadow-md ring-2 ring-orange-400">
                                   {item.badge}
                                 </Badge>
                               )}
@@ -848,22 +848,22 @@ export default function Layout({ children, currentPageName }) {
             </SidebarGroup>
           </SidebarContent>
 
-          <SidebarFooter className="border-t border-slate-200/60 p-4 bg-slate-50/50 space-y-3">
+          <SidebarFooter className="border-t-2 border-green-500 p-4 bg-gradient-to-b from-slate-900 to-black space-y-3">
             {/* Contact Section */}
-            <div className="px-2 py-3 bg-white rounded-lg border border-slate-200 shadow-sm">
+            <div className="px-2 py-3 bg-gradient-to-r from-slate-800 to-black rounded-lg border-2 border-orange-500 shadow-lg">
               <div className="flex items-start gap-2">
-                <Mail className="w-4 h-4 text-orange-600 mt-0.5 flex-shrink-0" />
+                <Mail className="w-4 h-4 text-orange-500 mt-0.5 flex-shrink-0" />
                 <div className="flex-1 min-w-0">
-                  <p className="text-xs font-medium text-slate-700 mb-1">Contacto</p>
+                  <p className="text-xs font-medium text-green-400 mb-1">Contacto</p>
                   <a 
                     href="mailto:C.D.BUSTARVIEJO@HOTMAIL.ES"
-                    className="text-xs text-orange-600 hover:text-orange-700 break-all block mb-1"
+                    className="text-xs text-orange-400 hover:text-orange-300 break-all block mb-1"
                   >
                     C.D.BUSTARVIEJO@HOTMAIL.ES
                   </a>
                   <a 
                     href="mailto:CDBUSTARVIEJO@GMAIL.COM"
-                    className="text-xs text-orange-600 hover:text-orange-700 break-all block"
+                    className="text-xs text-orange-400 hover:text-orange-300 break-all block"
                   >
                     CDBUSTARVIEJO@GMAIL.COM
                   </a>
@@ -873,31 +873,31 @@ export default function Layout({ children, currentPageName }) {
 
             {user && (
               <div className="text-center text-xs">
-                <p className="font-medium text-slate-700">{user.full_name}</p>
-                <p className="text-slate-500">{user.email}</p>
+                <p className="font-medium text-white">{user.full_name}</p>
+                <p className="text-green-400">{user.email}</p>
               </div>
             )}
             <Button
               variant="outline"
               size="sm"
               onClick={handleLogout}
-              className="w-full hover:bg-red-50 hover:text-red-600 hover:border-red-300"
+              className="w-full bg-orange-600 hover:bg-orange-700 text-white border-2 border-green-500 shadow-lg hover:shadow-xl transition-all"
             >
               <LogOut className="w-4 h-4 mr-2" />
               Cerrar Sesión
             </Button>
-            <div className="text-center text-xs text-slate-500 pt-2 border-t border-slate-200">
+            <div className="text-center text-xs text-green-400 pt-2 border-t-2 border-green-500">
               <p className="font-medium">Temporada {currentSeason}</p>
-              <p className="text-slate-400 mt-1">© CF Bustarviejo</p>
+              <p className="text-orange-400 mt-1">© CF Bustarviejo</p>
             </div>
           </SidebarFooter>
         </Sidebar>
 
         <main className="flex-1 flex flex-col overflow-hidden">
-          <header className="bg-white/80 backdrop-blur-md border-b border-slate-200/60 px-6 py-4 lg:hidden">
+          <header className="bg-gradient-to-r from-slate-900 via-black to-slate-900 border-b-2 border-orange-600 px-6 py-4 lg:hidden shadow-lg">
             <div className="flex items-center justify-between gap-4">
               <div className="flex items-center gap-4">
-                <SidebarTrigger className="hover:bg-slate-100 p-2 rounded-lg transition-colors duration-200">
+                <SidebarTrigger className="hover:bg-orange-600 p-2 rounded-lg transition-colors duration-200 text-white">
                   <Menu className="w-5 h-5" />
                 </SidebarTrigger>
                 <div className="flex items-center gap-2">
@@ -906,19 +906,19 @@ export default function Layout({ children, currentPageName }) {
                     alt="CF Bustarviejo"
                     className="w-8 h-8 object-contain"
                   />
-                  <h1 className="text-xl font-bold text-orange-700">CF Bustarviejo</h1>
+                  <h1 className="text-xl font-bold text-orange-500">CF Bustarviejo</h1>
                 </div>
               </div>
               {(unreadMessagesCount > 0 || urgentMessagesCount > 0) && (
                 <Link to={createPageUrl(isAdmin ? "AdminChat" : "ParentChat")}>
                   <div className="relative">
-                    <MessageCircle className="w-6 h-6 text-orange-600" />
+                    <MessageCircle className="w-6 h-6 text-orange-500" />
                     {urgentMessagesCount > 0 ? (
-                      <Badge className="absolute -top-2 -right-2 bg-red-500 text-white h-5 min-w-5 flex items-center justify-center px-1.5 text-xs animate-pulse shadow-lg shadow-red-500/50">
+                      <Badge className="absolute -top-2 -right-2 bg-red-500 text-white h-5 min-w-5 flex items-center justify-center px-1.5 text-xs animate-pulse shadow-lg shadow-red-500/50 ring-2 ring-green-400">
                         🔴 {unreadMessagesCount}
                       </Badge>
                     ) : (
-                      <Badge className="absolute -top-2 -right-2 bg-orange-500 text-white h-5 min-w-5 flex items-center justify-center px-1.5 text-xs shadow-md">
+                      <Badge className="absolute -top-2 -right-2 bg-green-500 text-white h-5 min-w-5 flex items-center justify-center px-1.5 text-xs shadow-md ring-2 ring-orange-400">
                         {unreadMessagesCount}
                       </Badge>
                     )}
