@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { createPageUrl } from "@/utils";
@@ -27,21 +26,265 @@ const getCurrentSeason = () => {
   const currentYear = now.getFullYear();
   const currentMonth = now.getMonth() + 1;
   
-  if (currentMonth <= 8) {
-    return `${currentYear - 1}/${currentYear}`;
+  // Si estamos entre septiembre y diciembre, la temporada es año_actual/año_siguiente
+  if (currentMonth >= 9) {
+    return `${currentYear}/${currentYear + 1}`;
   }
-  return `${currentYear}/${currentYear + 1}`;
+  // Si estamos entre enero y agosto, la temporada es año_anterior/año_actual
+  return `${currentYear - 1}/${currentYear}`;
 };
 
-// Verificar si estamos en periodo de cierre (Julio/Agosto)
-const isClosedPeriod = () => {
+// Verificar el periodo del año
+const getPeriodType = () => {
   const now = new Date();
-  const currentMonth = now.getMonth() + 1; // 1 = enero, 7 = julio, 8 = agosto
-  return currentMonth === 7 || currentMonth === 8;
+  const currentMonth = now.getMonth() + 1; // 1 = enero, 5 = mayo, 6 = junio, etc.
+  
+  if (currentMonth === 5) {
+    return "closed"; // Mayo: Cierre de temporada
+  } else if (currentMonth === 6) {
+    return "inscriptions"; // Junio: Periodo de inscripciones
+  } else if (currentMonth === 7 || currentMonth === 8) {
+    return "vacation"; // Julio-Agosto: Vacaciones
+  }
+  return "active"; // Septiembre-Abril: Temporada activa
 };
 
-// Pantalla de cierre de temporada
+// Pantalla de cierre de temporada (Mayo)
 function ClosedSeasonScreen({ user, isAdmin }) {
+  const handleLogout = () => {
+    base44.auth.logout();
+  };
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-red-500 via-red-600 to-red-700 flex items-center justify-center p-6">
+      <div className="max-w-2xl w-full">
+        <Card className="border-none shadow-2xl bg-white/95 backdrop-blur-sm">
+          <CardContent className="p-12 text-center space-y-6">
+            {/* Logo */}
+            <div className="flex justify-center mb-6">
+              <div className="w-24 h-24 bg-gradient-to-br from-red-500 to-red-700 rounded-3xl flex items-center justify-center shadow-xl">
+                <span className="text-5xl font-bold text-white">CF</span>
+              </div>
+            </div>
+
+            {/* Título */}
+            <div className="space-y-3">
+              <h1 className="text-4xl md:text-5xl font-bold text-slate-900">
+                🔒 Cierre de Temporada
+              </h1>
+              <p className="text-2xl text-red-600 font-semibold">
+                CF Bustarviejo
+              </p>
+            </div>
+
+            {/* Mensaje principal */}
+            <div className="bg-gradient-to-r from-red-50 to-red-100 rounded-2xl p-8 space-y-4 border-2 border-red-200">
+              <p className="text-xl text-slate-800 leading-relaxed">
+                La aplicación está cerrada durante el mes de <strong className="text-red-700">Mayo</strong> por cierre de temporada.
+              </p>
+              <p className="text-lg text-slate-700">
+                Estamos preparando todo para las <strong className="text-red-700">inscripciones de Junio</strong> y la nueva temporada que comenzará en <strong className="text-red-700">Septiembre</strong>.
+              </p>
+            </div>
+
+            {/* Icono decorativo */}
+            <div className="text-8xl">
+              📋
+            </div>
+
+            {/* Información importante */}
+            <div className="space-y-3 pt-4">
+              <div className="bg-blue-50 border-2 border-blue-200 rounded-xl p-6">
+                <p className="text-xl font-bold text-blue-900 mb-3">
+                  📅 Calendario Importante
+                </p>
+                <div className="text-left space-y-2">
+                  <p className="text-slate-700">
+                    <strong className="text-red-700">Mayo:</strong> Cierre de temporada (aplicación cerrada)
+                  </p>
+                  <p className="text-slate-700">
+                    <strong className="text-green-700">Junio:</strong> Inscripciones abiertas para nuevos jugadores
+                  </p>
+                  <p className="text-slate-700">
+                    <strong className="text-orange-700">Julio-Agosto:</strong> Vacaciones de verano
+                  </p>
+                  <p className="text-slate-700">
+                    <strong className="text-blue-700">Septiembre:</strong> Inicio de la nueva temporada
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Información de usuario y logout */}
+            {user && (
+              <div className="pt-6 border-t-2 border-slate-200 space-y-3">
+                <div className="text-sm text-slate-600">
+                  <p className="font-medium text-slate-900">{user.full_name}</p>
+                  <p>{user.email}</p>
+                  {isAdmin && (
+                    <Badge className="mt-2 bg-red-600">
+                      Administrador
+                    </Badge>
+                  )}
+                </div>
+                <Button
+                  onClick={handleLogout}
+                  variant="outline"
+                  className="hover:bg-slate-100"
+                >
+                  <LogOut className="w-4 h-4 mr-2" />
+                  Cerrar Sesión
+                </Button>
+              </div>
+            )}
+
+            {/* Contacto */}
+            <div className="pt-6 border-t-2 border-slate-200">
+              <p className="text-sm text-slate-600 mb-2">
+                Para cualquier consulta:
+              </p>
+              <div className="space-y-1">
+                <a 
+                  href="mailto:C.D.BUSTARVIEJO@HOTMAIL.ES"
+                  className="text-sm text-red-600 hover:text-red-700 block font-medium"
+                >
+                  C.D.BUSTARVIEJO@HOTMAIL.ES
+                </a>
+                <a 
+                  href="mailto:CDBUSTARVIEJO@GMAIL.COM"
+                  className="text-sm text-red-600 hover:text-red-700 block font-medium"
+                >
+                  CDBUSTARVIEJO@GMAIL.COM
+                </a>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
+}
+
+// Pantalla de inscripciones (Junio)
+function InscriptionPeriodScreen({ user, isAdmin }) {
+  const handleLogout = () => {
+    base44.auth.logout();
+  };
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-green-500 via-green-600 to-green-700 flex items-center justify-center p-6">
+      <div className="max-w-2xl w-full">
+        <Card className="border-none shadow-2xl bg-white/95 backdrop-blur-sm">
+          <CardContent className="p-12 text-center space-y-6">
+            {/* Logo */}
+            <div className="flex justify-center mb-6">
+              <div className="w-24 h-24 bg-gradient-to-br from-green-500 to-green-700 rounded-3xl flex items-center justify-center shadow-xl">
+                <span className="text-5xl font-bold text-white">CF</span>
+              </div>
+            </div>
+
+            {/* Título */}
+            <div className="space-y-3">
+              <h1 className="text-4xl md:text-5xl font-bold text-slate-900">
+                📝 Periodo de Inscripciones
+              </h1>
+              <p className="text-2xl text-green-600 font-semibold">
+                CF Bustarviejo
+              </p>
+            </div>
+
+            {/* Mensaje principal */}
+            <div className="bg-gradient-to-r from-green-50 to-green-100 rounded-2xl p-8 space-y-4 border-2 border-green-200">
+              <p className="text-xl text-slate-800 leading-relaxed">
+                ¡Bienvenidos al periodo de <strong className="text-green-700">inscripciones de Junio</strong>!
+              </p>
+              <p className="text-lg text-slate-700">
+                Durante este mes puedes <strong className="text-green-700">registrar a tus jugadores</strong> para la próxima temporada que comenzará en <strong className="text-green-700">Septiembre</strong>.
+              </p>
+            </div>
+
+            {/* Icono decorativo */}
+            <div className="text-8xl animate-bounce">
+              ✍️
+            </div>
+
+            {/* Acceso limitado */}
+            <div className="bg-blue-50 border-2 border-blue-200 rounded-xl p-6">
+              <p className="text-lg font-bold text-blue-900 mb-3">
+                ℹ️ Funcionalidad Disponible
+              </p>
+              <div className="text-left space-y-2 text-sm">
+                <p className="text-slate-700">
+                  ✅ <strong>Registro de nuevos jugadores</strong>
+                </p>
+                <p className="text-slate-700">
+                  ✅ <strong>Actualización de datos de jugadores</strong>
+                </p>
+                <p className="text-slate-500">
+                  ⏸️ Las demás funciones estarán disponibles en Septiembre
+                </p>
+              </div>
+            </div>
+
+            {/* Botón de acceso */}
+            <Link to={isAdmin ? createPageUrl("Players") : createPageUrl("ParentPlayers")}>
+              <Button className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-6 text-lg shadow-xl">
+                {isAdmin ? "Gestionar Jugadores" : "Registrar/Editar Jugadores"}
+              </Button>
+            </Link>
+
+            {/* Información de usuario y logout */}
+            {user && (
+              <div className="pt-6 border-t-2 border-slate-200 space-y-3">
+                <div className="text-sm text-slate-600">
+                  <p className="font-medium text-slate-900">{user.full_name}</p>
+                  <p>{user.email}</p>
+                  {isAdmin && (
+                    <Badge className="mt-2 bg-green-600">
+                      Administrador
+                    </Badge>
+                  )}
+                </div>
+                <Button
+                  onClick={handleLogout}
+                  variant="outline"
+                  className="hover:bg-slate-100"
+                >
+                  <LogOut className="w-4 h-4 mr-2" />
+                  Cerrar Sesión
+                </Button>
+              </div>
+            )}
+
+            {/* Contacto */}
+            <div className="pt-6 border-t-2 border-slate-200">
+              <p className="text-sm text-slate-600 mb-2">
+                ¿Necesitas ayuda con las inscripciones?
+              </p>
+              <div className="space-y-1">
+                <a 
+                  href="mailto:C.D.BUSTARVIEJO@HOTMAIL.ES"
+                  className="text-sm text-green-600 hover:text-green-700 block font-medium"
+                >
+                  C.D.BUSTARVIEJO@HOTMAIL.ES
+                </a>
+                <a 
+                  href="mailto:CDBUSTARVIEJO@GMAIL.COM"
+                  className="text-sm text-green-600 hover:text-green-700 block font-medium"
+                >
+                  CDBUSTARVIEJO@GMAIL.COM
+                </a>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
+}
+
+// Pantalla de vacaciones (Julio-Agosto)
+function VacationPeriodScreen({ user, isAdmin }) {
   const handleLogout = () => {
     base44.auth.logout();
   };
@@ -74,7 +317,7 @@ function ClosedSeasonScreen({ user, isAdmin }) {
                 La aplicación del club está cerrada durante los meses de <strong className="text-orange-700">Julio y Agosto</strong>.
               </p>
               <p className="text-lg text-slate-700">
-                Estamos preparando todo para la nueva temporada que comenzará el <strong className="text-orange-700">1 de Septiembre</strong>.
+                Estamos de vacaciones. La aplicación volverá a estar disponible el <strong className="text-orange-700">1 de Septiembre</strong> con el inicio de la nueva temporada.
               </p>
             </div>
 
@@ -122,7 +365,7 @@ function ClosedSeasonScreen({ user, isAdmin }) {
             {/* Contacto */}
             <div className="pt-6 border-t-2 border-slate-200">
               <p className="text-sm text-slate-600 mb-2">
-                Para cualquier consulta urgente:
+                Para consultas urgentes:
               </p>
               <div className="space-y-1">
                 <a 
@@ -256,8 +499,7 @@ export default function Layout({ children, currentPageName }) {
   const [isAdmin, setIsAdmin] = useState(false);
   const [unreadMessagesCount, setUnreadMessagesCount] = useState(0);
   const [urgentMessagesCount, setUrgentMessagesCount] = useState(0);
-  const [showClosedScreen, setShowClosedScreen] = useState(false);
-  const [showRestrictedScreen, setShowRestrictedScreen] = useState(false);
+  const [showSpecialScreen, setShowSpecialScreen] = useState(null);
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -268,14 +510,20 @@ export default function Layout({ children, currentPageName }) {
         
         // Verificar si el acceso está restringido
         if (currentUser.acceso_activo === false && currentUser.role !== "admin") {
-          setShowRestrictedScreen(true);
+          setShowSpecialScreen("restricted");
           return;
         }
         
-        // Verificar si debemos mostrar pantalla de cierre
-        // Los administradores pueden acceder siempre
-        if (isClosedPeriod() && currentUser.role !== "admin") {
-          setShowClosedScreen(true);
+        // Verificar el periodo del año (solo afecta a no-admins)
+        if (currentUser.role !== "admin") {
+          const period = getPeriodType();
+          if (period === "closed") {
+            setShowSpecialScreen("closed");
+          } else if (period === "inscriptions") {
+            setShowSpecialScreen("inscriptions");
+          } else if (period === "vacation") {
+            setShowSpecialScreen("vacation");
+          }
         }
       } catch (error) {
         console.error("Error fetching user:", error);
@@ -332,19 +580,23 @@ export default function Layout({ children, currentPageName }) {
     };
 
     checkUnreadMessages();
-    const interval = setInterval(checkUnreadMessages, 5000); // Actualizar cada 5 segundos
+    const interval = setInterval(checkUnreadMessages, 5000);
     
     return () => clearInterval(interval);
   }, [user, isAdmin]);
 
-  // Mostrar pantalla de acceso restringido si aplica
-  if (showRestrictedScreen && user) {
+  // Mostrar pantalla especial según el caso
+  if (showSpecialScreen === "restricted") {
     return <RestrictedAccessScreen user={user} restriction={user} />;
   }
-
-  // Mostrar pantalla de cierre si estamos en julio/agosto y no es admin
-  if (showClosedScreen) {
+  if (showSpecialScreen === "closed") {
     return <ClosedSeasonScreen user={user} isAdmin={isAdmin} />;
+  }
+  if (showSpecialScreen === "inscriptions") {
+    return <InscriptionPeriodScreen user={user} isAdmin={isAdmin} />;
+  }
+  if (showSpecialScreen === "vacation") {
+    return <VacationPeriodScreen user={user} isAdmin={isAdmin} />;
   }
 
   const adminNavigationItems = [
@@ -384,7 +636,7 @@ export default function Layout({ children, currentPageName }) {
       icon: ShoppingBag,
     },
     {
-      title: "Pedidos", // Added new item
+      title: "Pedidos",
       url: createPageUrl("OrderManagement"),
       icon: ShoppingBag,
     },
@@ -444,7 +696,7 @@ export default function Layout({ children, currentPageName }) {
       icon: ShoppingBag,
     },
     {
-      title: "Mis Pedidos", // Added new item
+      title: "Mis Pedidos",
       url: createPageUrl("ParentOrders"),
       icon: ShoppingBag,
     },
@@ -575,7 +827,6 @@ export default function Layout({ children, currentPageName }) {
                 </SidebarTrigger>
                 <h1 className="text-xl font-bold text-orange-700">CF Bustarviejo</h1>
               </div>
-              {/* Badge de notificaciones en el header móvil */}
               {(unreadMessagesCount > 0 || urgentMessagesCount > 0) && (
                 <Link to={createPageUrl(isAdmin ? "AdminChat" : "ParentChat")}>
                   <div className="relative">
