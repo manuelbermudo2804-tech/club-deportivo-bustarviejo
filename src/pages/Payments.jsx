@@ -1,10 +1,10 @@
-
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
+import { Plus, X } from "lucide-react";
 import { AnimatePresence } from "framer-motion";
+import { Badge } from "@/components/ui/badge";
 
 import PaymentForm from "../components/payments/PaymentForm";
 import PaymentTable from "../components/payments/PaymentTable";
@@ -13,8 +13,18 @@ import PaymentStats from "../components/payments/PaymentStats";
 export default function Payments() {
   const [showForm, setShowForm] = useState(false);
   const [editingPayment, setEditingPayment] = useState(null);
+  const [playerFilter, setPlayerFilter] = useState(null);
   
   const queryClient = useQueryClient();
+
+  // Leer parámetro de URL para filtrar por jugador
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const jugadorId = urlParams.get('jugador_id');
+    if (jugadorId) {
+      setPlayerFilter(jugadorId);
+    }
+  }, []);
 
   const { data: payments, isLoading } = useQuery({
     queryKey: ['payments'],
@@ -67,12 +77,39 @@ export default function Payments() {
     updatePaymentMutation.mutate({ id: payment.id, paymentData: updatedData });
   };
 
+  // Filtrar pagos por jugador si hay filtro activo
+  const filteredPayments = playerFilter 
+    ? payments.filter(p => p.jugador_id === playerFilter)
+    : payments;
+
+  const filteredPlayer = playerFilter 
+    ? players.find(p => p.id === playerFilter)
+    : null;
+
   return (
     <div className="p-6 lg:p-8 space-y-6">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <h1 className="text-3xl font-bold text-slate-900">Pagos</h1>
           <p className="text-slate-600 mt-1">Control de cuotas y pagos</p>
+          {filteredPlayer && (
+            <div className="flex items-center gap-2 mt-3">
+              <Badge className="bg-orange-100 text-orange-700 text-sm py-1">
+                Filtrando por: {filteredPlayer.nombre}
+              </Badge>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  setPlayerFilter(null);
+                  window.history.pushState({}, '', window.location.pathname);
+                }}
+                className="h-7 px-2 hover:bg-slate-100"
+              >
+                <X className="w-4 h-4" />
+              </Button>
+            </div>
+          )}
         </div>
         <Button
           onClick={() => {
@@ -86,7 +123,7 @@ export default function Payments() {
         </Button>
       </div>
 
-      <PaymentStats payments={payments} />
+      <PaymentStats payments={filteredPayments} />
 
       <AnimatePresence>
         {showForm && (
@@ -104,7 +141,7 @@ export default function Payments() {
       </AnimatePresence>
 
       <PaymentTable
-        payments={payments}
+        payments={filteredPayments}
         isLoading={isLoading}
         onEdit={handleEdit}
         onStatusChange={handleStatusChange}

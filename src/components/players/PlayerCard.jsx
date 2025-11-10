@@ -1,10 +1,11 @@
-
 import React from "react";
 import { motion } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Pencil, Mail, Phone, MapPin, User } from "lucide-react";
+import { Pencil, Mail, Phone, MapPin, User, CreditCard } from "lucide-react";
+import { Link } from "react-router-dom";
+import { createPageUrl } from "@/utils";
 
 export default function PlayerCard({ player, onEdit }) {
   const categoryColors = {
@@ -98,14 +99,25 @@ export default function PlayerCard({ player, onEdit }) {
             )}
           </div>
 
-          <Button
-            onClick={() => onEdit(player)}
-            variant="outline"
-            className="w-full hover:bg-orange-50 hover:text-orange-700 hover:border-orange-300"
-          >
-            <Pencil className="w-4 h-4 mr-2" />
-            Editar Ficha
-          </Button>
+          <div className="flex gap-2">
+            <Button
+              onClick={() => onEdit(player)}
+              variant="outline"
+              className="flex-1 hover:bg-orange-50 hover:text-orange-700 hover:border-orange-300"
+            >
+              <Pencil className="w-4 h-4 mr-2" />
+              Editar
+            </Button>
+            <Link to={createPageUrl("Payments") + `?jugador_id=${player.id}`} className="flex-1">
+              <Button
+                variant="outline"
+                className="w-full hover:bg-slate-900 hover:text-white hover:border-slate-900"
+              >
+                <CreditCard className="w-4 h-4 mr-2" />
+                Pagos
+              </Button>
+            </Link>
+          </div>
         </CardContent>
       </Card>
     </motion.div>
