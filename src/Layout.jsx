@@ -17,8 +17,6 @@ import {
   SidebarTrigger,
 } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
-import LanguageSelector from "@/components/LanguageSelector";
-import { getTranslation, isRTL } from "@/utils/i18n";
 
 // Función para obtener la temporada actual
 const getCurrentSeason = () => {
@@ -37,7 +35,6 @@ export default function Layout({ children, currentPageName }) {
   const currentSeason = getCurrentSeason();
   const [user, setUser] = useState(null);
   const [isAdmin, setIsAdmin] = useState(false);
-  const [language, setLanguage] = useState('es');
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -45,17 +42,6 @@ export default function Layout({ children, currentPageName }) {
         const currentUser = await base44.auth.me();
         setUser(currentUser);
         setIsAdmin(currentUser.role === "admin");
-        
-        // Load saved language preference
-        const savedLang = localStorage.getItem('app_language') || 'es';
-        setLanguage(savedLang);
-        
-        // Apply RTL if Arabic
-        if (isRTL(savedLang)) {
-          document.documentElement.dir = 'rtl';
-        } else {
-          document.documentElement.dir = 'ltr';
-        }
       } catch (error) {
         console.error("Error fetching user:", error);
       }
@@ -63,56 +49,39 @@ export default function Layout({ children, currentPageName }) {
     fetchUser();
   }, []);
 
-  const handleLanguageChange = (newLang) => {
-    setLanguage(newLang);
-    localStorage.setItem('app_language', newLang);
-    
-    // Update text direction for RTL languages
-    if (isRTL(newLang)) {
-      document.documentElement.dir = 'rtl';
-    } else {
-      document.documentElement.dir = 'ltr';
-    }
-    
-    // Reload page to apply language changes
-    window.location.reload();
-  };
-
-  const t = (key) => getTranslation(language, key);
-
   const adminNavigationItems = [
     {
-      title: t('nav_home'),
+      title: "Inicio",
       url: createPageUrl("Home"),
       icon: Home,
     },
     {
-      title: t('nav_players'),
+      title: "Jugadores",
       url: createPageUrl("Players"),
       icon: Users,
     },
     {
-      title: t('nav_calendar'),
+      title: "Calendario",
       url: createPageUrl("Calendar"),
       icon: Calendar,
     },
     {
-      title: t('nav_announcements'),
+      title: "Anuncios",
       url: createPageUrl("Announcements"),
       icon: Megaphone,
     },
     {
-      title: t('nav_payments'),
+      title: "Pagos",
       url: createPageUrl("Payments"),
       icon: CreditCard,
     },
     {
-      title: t('nav_reminders'),
+      title: "Recordatorios",
       url: createPageUrl("Reminders"),
       icon: Bell,
     },
     {
-      title: t('nav_store'),
+      title: "Tienda",
       url: createPageUrl("Store"),
       icon: ShoppingBag,
     },
@@ -120,27 +89,27 @@ export default function Layout({ children, currentPageName }) {
 
   const parentNavigationItems = [
     {
-      title: t('nav_home'),
+      title: "Inicio",
       url: createPageUrl("ParentDashboard"),
       icon: Home,
     },
     {
-      title: t('nav_my_players'),
+      title: "Mis Jugadores",
       url: createPageUrl("ParentPlayers"),
       icon: Users,
     },
     {
-      title: t('nav_calendar'),
+      title: "Calendario",
       url: createPageUrl("Calendar"),
       icon: Calendar,
     },
     {
-      title: t('nav_announcements'),
+      title: "Anuncios",
       url: createPageUrl("Announcements"),
       icon: Megaphone,
     },
     {
-      title: t('nav_my_payments'),
+      title: "Mis Pagos",
       url: createPageUrl("ParentPayments"),
       icon: CreditCard,
     },
@@ -154,7 +123,7 @@ export default function Layout({ children, currentPageName }) {
 
   return (
     <SidebarProvider>
-      <div className={`min-h-screen flex w-full bg-gradient-to-br from-slate-50 via-white to-orange-50 ${isRTL(language) ? 'rtl' : 'ltr'}`}>
+      <div className="min-h-screen flex w-full bg-gradient-to-br from-slate-50 via-white to-orange-50">
         <Sidebar className="border-r border-slate-200/60 backdrop-blur-sm">
           <SidebarHeader className="border-b border-slate-200/60 p-6 bg-gradient-to-r from-orange-600 to-orange-700">
             <div className="flex flex-col gap-2">
@@ -165,7 +134,7 @@ export default function Layout({ children, currentPageName }) {
                 <div className="text-white">
                   <h2 className="font-bold text-lg leading-tight">CF Bustarviejo</h2>
                   <p className="text-xs text-orange-100">
-                    {isAdmin ? t('role_admin') : t('role_parent')}
+                    {isAdmin ? "Panel Administrador" : "Panel Padre/Tutor"}
                   </p>
                 </div>
               </div>
@@ -197,13 +166,6 @@ export default function Layout({ children, currentPageName }) {
           </SidebarContent>
 
           <SidebarFooter className="border-t border-slate-200/60 p-4 bg-slate-50/50 space-y-3">
-            <div className="px-2">
-              <LanguageSelector 
-                currentLang={language} 
-                onLanguageChange={handleLanguageChange} 
-              />
-            </div>
-            
             {/* Contact Section */}
             <div className="px-2 py-3 bg-white rounded-lg border border-slate-200 shadow-sm">
               <div className="flex items-start gap-2">
@@ -233,10 +195,10 @@ export default function Layout({ children, currentPageName }) {
               className="w-full hover:bg-red-50 hover:text-red-600 hover:border-red-300"
             >
               <LogOut className="w-4 h-4 mr-2" />
-              {t('nav_logout')}
+              Cerrar Sesión
             </Button>
             <div className="text-center text-xs text-slate-500 pt-2 border-t border-slate-200">
-              <p className="font-medium">{t('season')} {currentSeason}</p>
+              <p className="font-medium">Temporada {currentSeason}</p>
               <p className="text-slate-400 mt-1">© CF Bustarviejo</p>
             </div>
           </SidebarFooter>
@@ -250,12 +212,6 @@ export default function Layout({ children, currentPageName }) {
                   <Menu className="w-5 h-5" />
                 </SidebarTrigger>
                 <h1 className="text-xl font-bold text-orange-700">CF Bustarviejo</h1>
-              </div>
-              <div className="block sm:hidden">
-                <LanguageSelector 
-                  currentLang={language} 
-                  onLanguageChange={handleLanguageChange} 
-                />
               </div>
             </div>
           </header>
