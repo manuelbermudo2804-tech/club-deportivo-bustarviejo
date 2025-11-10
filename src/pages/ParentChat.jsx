@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { MessageCircle, Send, Users, Clock, AlertCircle, AlertTriangle, Bell } from "lucide-react";
+import { MessageCircle, Send, Users, Clock, AlertCircle, AlertTriangle, Info } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { toast } from "sonner";
 import { format } from "date-fns";
@@ -40,7 +40,7 @@ export default function ParentChat() {
     initialData: [],
   });
 
-  const { data: messages } = useQuery({
+  const { data: messages, isLoading: loadingMessages } = useQuery({
     queryKey: ['chatMessages'],
     queryFn: () => base44.entities.ChatMessage.list('-created_date'),
     initialData: [],
@@ -166,7 +166,8 @@ export default function ParentChat() {
   };
 
   const deporteEmojis = {
-    "Fútbol": "⚽",
+    "Fútbol Masculino": "⚽",
+    "Fútbol Femenino": "⚽",
     "Baloncesto": "🏀"
   };
 
@@ -205,7 +206,7 @@ export default function ParentChat() {
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold text-slate-900">Chat del Grupo</h1>
-          <p className="text-slate-600 mt-1">Comunícate con otros padres y el club</p>
+          <p className="text-slate-600 mt-1">Comunícate con el club</p>
         </div>
         <div className="flex gap-2">
           {totalUrgent > 0 && (
@@ -288,19 +289,26 @@ export default function ParentChat() {
             <div className="flex items-center gap-3">
               <Users className="w-5 h-5 text-orange-600" />
               <div>
-                <CardTitle className="text-lg">Grupo de {selectedGroup?.deporte || "Deporte"} - {selectedGroup?.categoria || "Categoría"}</CardTitle>
-                <p className="text-sm text-slate-500">Chat grupal con padres y administración</p>
+                <CardTitle className="text-lg">
+                  {selectedGroup?.deporte || "Deporte"} - {selectedGroup?.categoria || "Categoría"}
+                </CardTitle>
+                <p className="text-sm text-slate-500">Chat grupal</p>
               </div>
             </div>
           </div>
         </CardHeader>
 
         <ScrollArea className="flex-1 p-6">
-          {!selectedGroup || selectedGroup.messages.length === 0 ? (
+          {loadingMessages ? (
+            <div className="text-center py-12">
+              <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-orange-600 border-r-transparent"></div>
+              <p className="text-slate-500 mt-4">Cargando mensajes...</p>
+            </div>
+          ) : !selectedGroup || selectedGroup.messages.length === 0 ? (
             <div className="text-center py-12">
               <MessageCircle className="w-16 h-16 text-slate-300 mx-auto mb-4" />
               <p className="text-slate-500 text-lg mb-2">No hay mensajes aún en este grupo</p>
-              <p className="text-slate-400 text-sm">Sé el primero en escribir</p>
+              <p className="text-slate-400 text-sm">Los mensajes aparecerán aquí</p>
             </div>
           ) : (
             <div className="space-y-4">
@@ -318,7 +326,7 @@ export default function ParentChat() {
                   } rounded-2xl px-4 py-3 shadow-sm`}>
                     <div className="flex items-center gap-2 mb-1">
                       <p className="text-xs font-medium opacity-70">
-                        {msg.tipo === "admin_a_grupo" ? "👤 Administración" : msg.remitente_nombre || "Usuario"}
+                        {msg.tipo === "admin_a_grupo" ? "👤 Club" : msg.remitente_nombre || "Usuario"}
                       </p>
                       {msg.tipo === "admin_a_grupo" && msg.prioridad && msg.prioridad !== "Normal" && (
                         <Badge className="bg-white/30 text-white text-xs px-2 py-0 flex items-center gap-1">
@@ -327,22 +335,14 @@ export default function ParentChat() {
                         </Badge>
                       )}
                     </div>
-                    <p className="text-sm">{msg.mensaje}</p>
-                    <div className="flex items-center justify-between mt-2">
-                      <p className={`text-xs ${
-                        ((msg.tipo === "padre_a_grupo" && msg.remitente_email === currentUser?.email) || msg.tipo === "admin_a_grupo")
-                          ? 'text-white/70' 
-                          : 'text-slate-500'
-                      }`}>
-                        {format(new Date(msg.created_date), "HH:mm - d 'de' MMM", { locale: es })}
-                      </p>
-                      {msg.tipo === "admin_a_grupo" && msg.notificacion_enviada && (
-                        <Badge className="bg-white/20 text-white text-xs px-2 py-0 ml-2 flex items-center gap-1">
-                          <Bell className="w-3 h-3" />
-                          Notificado
-                        </Badge>
-                      )}
-                    </div>
+                    <p className="text-sm whitespace-pre-wrap">{msg.mensaje}</p>
+                    <p className={`text-xs mt-2 ${
+                      ((msg.tipo === "padre_a_grupo" && msg.remitente_email === currentUser?.email) || msg.tipo === "admin_a_grupo")
+                        ? 'text-white/70' 
+                        : 'text-slate-500'
+                    }`}>
+                      {format(new Date(msg.created_date), "HH:mm - d 'de' MMM", { locale: es })}
+                    </p>
                   </div>
                 </div>
               ))}
@@ -352,24 +352,16 @@ export default function ParentChat() {
 
         <CardContent className="border-t border-slate-100 p-4">
           {!isWithinBusinessHours() && (
-            <div className="mb-3 p-4 bg-orange-50 border-l-4 border-orange-500 rounded-lg">
-              <div className="flex items-start gap-3">
-                <Clock className="w-5 h-5 text-orange-600 mt-0.5" />
-                <div>
-                  <p className="font-medium text-orange-900 mb-1">Chat Fuera de Horario</p>
-                  <p className="text-sm text-orange-800">
-                    Disculpa, el chat está disponible de <strong>10:00 a 20:00</strong>.
-                  </p>
-                  <p className="text-sm text-orange-700 mt-1">
-                    Podrás enviar mensajes cuando el horario esté disponible.
-                  </p>
-                </div>
-              </div>
+            <div className="mb-3 p-3 bg-orange-50 border-l-4 border-orange-500 rounded">
+              <p className="text-sm text-orange-800 flex items-center gap-2">
+                <Clock className="w-4 h-4" />
+                Chat disponible de 10:00 a 20:00
+              </p>
             </div>
           )}
           <div className="flex gap-3">
             <Textarea
-              placeholder={isWithinBusinessHours() ? "Escribe tu mensaje al grupo..." : "El chat estará disponible de 10:00 a 20:00"}
+              placeholder={isWithinBusinessHours() ? "Escribe tu mensaje..." : "Chat disponible de 10:00 a 20:00"}
               value={messageText}
               onChange={(e) => setMessageText(e.target.value)}
               disabled={!isWithinBusinessHours()}
@@ -391,26 +383,21 @@ export default function ParentChat() {
             </Button>
           </div>
           <p className="text-xs text-slate-500 mt-2">
-            Presiona Enter para enviar • Horario: 10:00 - 20:00
+            Presiona Enter para enviar
           </p>
         </CardContent>
       </Card>
 
-      {/* Info Card */}
+      {/* Info Card - Simplificada */}
       <Card className="border-none shadow-lg bg-blue-50 border-l-4 border-blue-500">
         <CardContent className="p-4">
           <div className="flex items-start gap-3">
-            <MessageCircle className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
+            <Info className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
             <div className="flex-1">
-              <p className="font-medium text-slate-900 mb-1">ℹ️ Sobre el Chat Grupal:</p>
-              <ul className="text-sm text-slate-700 space-y-1">
-                <li>• Este chat es para el grupo de <strong>{selectedGroup?.deporte || "Deporte"} - {selectedGroup?.categoria || "Categoría"}</strong></li>
-                <li>• Todos los padres de esta categoría pueden ver y participar</li>
-                <li>• La administración también participa para resolver dudas</li>
-                <li>• Los mensajes <strong className="text-orange-700">Importantes</strong> y <strong className="text-red-700">Urgentes</strong> se notifican por email 📧</li>
-                <li>• Horario: <strong>10:00 a 20:00</strong></li>
-                <li>• Mantén un ambiente respetuoso y constructivo</li>
-              </ul>
+              <p className="text-sm text-slate-700">
+                <strong>Chat grupal:</strong> Todos los padres de {selectedGroup?.deporte} - {selectedGroup?.categoria} pueden participar • 
+                Horario: 10:00-20:00 • Los mensajes importantes se notifican por email
+              </p>
             </div>
           </div>
         </CardContent>
