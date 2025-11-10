@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { createPageUrl } from "@/utils";
@@ -174,9 +175,15 @@ export default function Layout({ children, currentPageName }) {
                   <p className="text-xs font-medium text-slate-700 mb-1">Contacto</p>
                   <a 
                     href="mailto:C.D.BUSTARVIEJO@HOTMAIL.ES"
-                    className="text-xs text-orange-600 hover:text-orange-700 break-all block"
+                    className="text-xs text-orange-600 hover:text-orange-700 break-all block mb-1"
                   >
                     C.D.BUSTARVIEJO@HOTMAIL.ES
+                  </a>
+                  <a 
+                    href="mailto:CDBUSTARVIEJO@GMAIL.COM"
+                    className="text-xs text-orange-600 hover:text-orange-700 break-all block"
+                  >
+                    CDBUSTARVIEJO@GMAIL.COM
                   </a>
                 </div>
               </div>
