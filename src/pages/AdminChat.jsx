@@ -5,8 +5,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
-import { MessageCircle, Send, Search, Users, Clock } from "lucide-react";
+import { MessageCircle, Send, Search, Users, Clock, AlertTriangle, AlertCircle, Bell } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
@@ -14,6 +15,7 @@ import { es } from "date-fns/locale";
 export default function AdminChat() {
   const [selectedGroup, setSelectedGroup] = useState(null);
   const [messageText, setMessageText] = useState("");
+  const [messagePriority, setMessagePriority] = useState("Normal");
   const [searchTerm, setSearchTerm] = useState("");
   const [currentUser, setCurrentUser] = useState(null);
 
@@ -41,10 +43,55 @@ export default function AdminChat() {
   });
 
   const sendMessageMutation = useMutation({
-    mutationFn: (messageData) => base44.entities.ChatMessage.create(messageData),
+    mutationFn: async (messageData) => {
+      const newMessage = await base44.entities.ChatMessage.create(messageData);
+      
+      // Enviar notificaciones por email a los padres del grupo
+      if (messageData.prioridad === "Urgente" || messageData.prioridad === "Importante") {
+        const groupPlayers = players.filter(p => 
+          p.deporte === messageData.deporte && 
+          p.categoria === messageData.categoria &&
+          p.email_padre
+        );
+        
+        const uniqueEmails = [...new Set(groupPlayers.map(p => p.email_padre))];
+        
+        for (const email of uniqueEmails) {
+          try {
+            await base44.integrations.Core.SendEmail({
+              to: email,
+              subject: `[${messageData.prioridad}] Nuevo mensaje en ${messageData.deporte} - ${messageData.categoria}`,
+              body: `
+                <h2>📬 Nuevo mensaje ${messageData.prioridad === "Urgente" ? "🔴 URGENTE" : "⚠️ IMPORTANTE"}</h2>
+                <p><strong>Grupo:</strong> ${messageData.deporte} - ${messageData.categoria}</p>
+                <p><strong>De:</strong> ${messageData.remitente_nombre}</p>
+                <p><strong>Mensaje:</strong></p>
+                <p style="background-color: #f3f4f6; padding: 15px; border-radius: 8px;">
+                  ${messageData.mensaje}
+                </p>
+                <p style="margin-top: 20px;">
+                  <a href="${window.location.origin}" style="background-color: #ea580c; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">
+                    Ver en la aplicación
+                  </a>
+                </p>
+                <hr style="margin-top: 20px;">
+                <p style="color: #666; font-size: 12px;">
+                  Este mensaje se envió desde el chat del grupo de CF Bustarviejo.
+                </p>
+              `
+            });
+          } catch (error) {
+            console.error("Error sending email:", error);
+          }
+        }
+      }
+      
+      return newMessage;
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['chatMessages'] });
       setMessageText("");
+      setMessagePriority("Normal");
       toast.success("Mensaje enviado al grupo");
     },
   });
@@ -66,7 +113,7 @@ export default function AdminChat() {
   // Crear grupos automáticamente basándose en los jugadores registrados
   const allGroups = {};
   players.forEach(player => {
-    if (!player.deporte || !player.categoria) return; // Skip players without sport/category
+    if (!player.deporte || !player.categoria) return;
     
     const groupId = `${player.deporte}_${player.categoria}`;
     if (!allGroups[groupId]) {
@@ -76,6 +123,7 @@ export default function AdminChat() {
         categoria: player.categoria,
         messages: [],
         unreadCount: 0,
+        urgentCount: 0,
         lastMessage: null,
         playerCount: 0
       };
@@ -85,13 +133,16 @@ export default function AdminChat() {
 
   // Agregar mensajes a los grupos
   messages.forEach(msg => {
-    if (!msg.deporte || !msg.categoria) return; // Skip messages without sport/category
+    if (!msg.deporte || !msg.categoria) return;
     
     const groupId = msg.grupo_id || `${msg.deporte}_${msg.categoria}`;
     if (allGroups[groupId]) {
       allGroups[groupId].messages.push(msg);
       if (!msg.leido && msg.tipo === "padre_a_grupo") {
         allGroups[groupId].unreadCount++;
+        if (msg.prioridad === "Urgente") {
+          allGroups[groupId].urgentCount++;
+        }
       }
       if (!allGroups[groupId].lastMessage || 
           new Date(msg.created_date) > new Date(allGroups[groupId].lastMessage.created_date)) {
@@ -124,11 +175,13 @@ export default function AdminChat() {
       remitente_email: currentUser.email,
       remitente_nombre: currentUser.full_name,
       mensaje: messageText,
+      prioridad: messagePriority,
       tipo: "admin_a_grupo",
       deporte: selectedGroup.deporte,
       categoria: selectedGroup.categoria,
       grupo_id: selectedGroup.id,
-      leido: false
+      leido: false,
+      notificacion_enviada: messagePriority !== "Normal"
     });
   };
 
@@ -147,10 +200,23 @@ export default function AdminChat() {
   };
 
   const totalUnread = groupsList.reduce((sum, group) => sum + group.unreadCount, 0);
+  const totalUrgent = groupsList.reduce((sum, group) => sum + group.urgentCount, 0);
 
   const deporteEmojis = {
     "Fútbol": "⚽",
     "Baloncesto": "🏀"
+  };
+
+  const priorityColors = {
+    "Normal": "bg-slate-100 text-slate-700",
+    "Importante": "bg-orange-100 text-orange-700 border-l-4 border-orange-500",
+    "Urgente": "bg-red-100 text-red-700 border-l-4 border-red-500"
+  };
+
+  const priorityIcons = {
+    "Normal": null,
+    "Importante": <AlertTriangle className="w-4 h-4" />,
+    "Urgente": <AlertCircle className="w-4 h-4" />
   };
 
   return (
@@ -160,11 +226,18 @@ export default function AdminChat() {
           <h1 className="text-3xl font-bold text-slate-900">Chat por Grupos</h1>
           <p className="text-slate-600 mt-1">Comunicación por deporte y categoría</p>
         </div>
-        {totalUnread > 0 && (
-          <Badge className="bg-red-500 text-white text-lg px-4 py-2">
-            {totalUnread} sin leer
-          </Badge>
-        )}
+        <div className="flex gap-2">
+          {totalUrgent > 0 && (
+            <Badge className="bg-red-500 text-white text-lg px-4 py-2">
+              🔴 {totalUrgent} urgente{totalUrgent !== 1 ? 's' : ''}
+            </Badge>
+          )}
+          {totalUnread > 0 && (
+            <Badge className="bg-orange-500 text-white text-lg px-4 py-2">
+              {totalUnread} sin leer
+            </Badge>
+          )}
+        </div>
       </div>
 
       {/* Horario de Atención */}
@@ -177,7 +250,7 @@ export default function AdminChat() {
                 {isWithinBusinessHours() ? '🟢 Chat Activo' : '🟠 Fuera de Horario'}
               </p>
               <p className="text-sm text-slate-600">
-                Horario de atención: 10:00 - 20:00
+                Horario de atención: 10:00 - 20:00 • Notificaciones automáticas para mensajes Importantes/Urgentes
               </p>
             </div>
           </div>
@@ -244,6 +317,11 @@ export default function AdminChat() {
                               {format(new Date(group.lastMessage.created_date), 'HH:mm')}
                             </p>
                           )}
+                          {group.urgentCount > 0 && (
+                            <Badge className="bg-red-600 text-white h-5 min-w-5 flex items-center justify-center px-2 text-xs">
+                              🔴 {group.urgentCount}
+                            </Badge>
+                          )}
                           {group.unreadCount > 0 && (
                             <Badge className="bg-orange-600 text-white h-5 min-w-5 flex items-center justify-center px-2 text-xs">
                               {group.unreadCount}
@@ -304,17 +382,35 @@ export default function AdminChat() {
                           <div className={`max-w-[70%] ${
                             msg.tipo === "admin_a_grupo" 
                               ? 'bg-orange-600 text-white' 
-                              : 'bg-slate-100 text-slate-900'
+                              : priorityColors[msg.prioridad || "Normal"]
                           } rounded-2xl px-4 py-3 shadow-sm`}>
-                            <p className="text-xs font-medium mb-1 opacity-70">
-                              {msg.remitente_nombre || "Usuario"}
-                            </p>
+                            <div className="flex items-center gap-2 mb-1">
+                              <p className="text-xs font-medium opacity-70">
+                                {msg.remitente_nombre || "Usuario"}
+                              </p>
+                              {msg.prioridad && msg.prioridad !== "Normal" && msg.tipo === "padre_a_grupo" && (
+                                <Badge className={`${
+                                  msg.prioridad === "Urgente" ? "bg-red-600" : "bg-orange-600"
+                                } text-white text-xs px-2 py-0`}>
+                                  {priorityIcons[msg.prioridad]}
+                                  <span className="ml-1">{msg.prioridad}</span>
+                                </Badge>
+                              )}
+                            </div>
                             <p className="text-sm">{msg.mensaje}</p>
-                            <p className={`text-xs mt-2 ${
-                              msg.tipo === "admin_a_grupo" ? 'text-orange-200' : 'text-slate-500'
-                            }`}>
-                              {format(new Date(msg.created_date), "HH:mm - d 'de' MMM", { locale: es })}
-                            </p>
+                            <div className="flex items-center justify-between mt-2">
+                              <p className={`text-xs ${
+                                msg.tipo === "admin_a_grupo" ? 'text-orange-200' : 'text-slate-500'
+                              }`}>
+                                {format(new Date(msg.created_date), "HH:mm - d 'de' MMM", { locale: es })}
+                              </p>
+                              {msg.tipo === "admin_a_grupo" && msg.prioridad && msg.prioridad !== "Normal" && (
+                                <Badge className="bg-white/20 text-white text-xs px-2 py-0 ml-2">
+                                  <Bell className="w-3 h-3 mr-1" />
+                                  Notificado
+                                </Badge>
+                              )}
+                            </div>
                           </div>
                         </div>
                       ))}
@@ -331,6 +427,30 @@ export default function AdminChat() {
                     </p>
                   </div>
                 )}
+                
+                {/* Selector de Prioridad */}
+                <div className="mb-3">
+                  <label className="text-sm font-medium text-slate-700 mb-2 block">
+                    Prioridad del mensaje:
+                  </label>
+                  <Select value={messagePriority} onValueChange={setMessagePriority}>
+                    <SelectTrigger className="w-full">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Normal">
+                        📝 Normal
+                      </SelectItem>
+                      <SelectItem value="Importante">
+                        ⚠️ Importante (notifica por email)
+                      </SelectItem>
+                      <SelectItem value="Urgente">
+                        🔴 Urgente (notifica por email)
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
                 <div className="flex gap-3">
                   <Textarea
                     placeholder={isWithinBusinessHours() ? "Escribe tu mensaje al grupo..." : "Chat disponible de 10:00 a 20:00"}
@@ -354,6 +474,9 @@ export default function AdminChat() {
                     <Send className="w-5 h-5" />
                   </Button>
                 </div>
+                <p className="text-xs text-slate-500 mt-2">
+                  Los mensajes Importantes/Urgentes enviarán notificación por email automáticamente
+                </p>
               </CardContent>
             </>
           )}

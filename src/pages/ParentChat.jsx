@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { MessageCircle, Send, Users, Clock, AlertCircle } from "lucide-react";
+import { MessageCircle, Send, Users, Clock, AlertCircle, AlertTriangle, Bell } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { toast } from "sonner";
 import { format } from "date-fns";
@@ -52,7 +52,7 @@ export default function ParentChat() {
     if (players.length > 0) {
       const groups = {};
       players.forEach(player => {
-        if (!player.deporte || !player.categoria) return; // Skip players without sport/category
+        if (!player.deporte || !player.categoria) return;
         
         const groupId = `${player.deporte}_${player.categoria}`;
         if (!groups[groupId]) {
@@ -61,20 +61,24 @@ export default function ParentChat() {
             deporte: player.deporte,
             categoria: player.categoria,
             messages: [],
-            unreadCount: 0
+            unreadCount: 0,
+            urgentCount: 0
           };
         }
       });
 
       // Agregar mensajes a los grupos
       messages.forEach(msg => {
-        if (!msg.deporte || !msg.categoria) return; // Skip messages without sport/category
+        if (!msg.deporte || !msg.categoria) return;
         
         const groupId = msg.grupo_id || `${msg.deporte}_${msg.categoria}`;
         if (groups[groupId]) {
           groups[groupId].messages.push(msg);
           if (!msg.leido && msg.tipo === "admin_a_grupo") {
             groups[groupId].unreadCount++;
+            if (msg.prioridad === "Urgente") {
+              groups[groupId].urgentCount++;
+            }
           }
         }
       });
@@ -87,16 +91,11 @@ export default function ParentChat() {
       const groupsList = Object.values(groups);
       setMyGroups(groupsList);
       
-      // Seleccionar el primer grupo si no hay ninguno seleccionado
       if (groupsList.length > 0 && !selectedGroup) {
         setSelectedGroup(groupsList[0]);
-      }
-      // Si el grupo seleccionado ya no existe (por ejemplo, se eliminó un jugador), seleccionar el primero
-      else if (selectedGroup && !groupsList.find(g => g.id === selectedGroup.id)) {
+      } else if (selectedGroup && !groupsList.find(g => g.id === selectedGroup.id)) {
         setSelectedGroup(groupsList[0]);
-      }
-      // Actualizar el grupo seleccionado con los nuevos mensajes
-      else if (selectedGroup) {
+      } else if (selectedGroup) {
         const updatedGroup = groupsList.find(g => g.id === selectedGroup.id);
         if (updatedGroup) {
           setSelectedGroup(updatedGroup);
@@ -157,6 +156,7 @@ export default function ParentChat() {
       remitente_email: currentUser.email,
       remitente_nombre: currentUser.full_name,
       mensaje: messageText,
+      prioridad: "Normal",
       tipo: "padre_a_grupo",
       deporte: selectedGroup.deporte,
       categoria: selectedGroup.categoria,
@@ -168,6 +168,18 @@ export default function ParentChat() {
   const deporteEmojis = {
     "Fútbol": "⚽",
     "Baloncesto": "🏀"
+  };
+
+  const priorityColors = {
+    "Normal": "bg-blue-600",
+    "Importante": "bg-orange-600",
+    "Urgente": "bg-red-600"
+  };
+
+  const priorityIcons = {
+    "Normal": null,
+    "Importante": <AlertTriangle className="w-3 h-3" />,
+    "Urgente": <AlertCircle className="w-3 h-3" />
   };
 
   if (myGroups.length === 0) {
@@ -185,11 +197,28 @@ export default function ParentChat() {
     );
   }
 
+  const totalUnread = myGroups.reduce((sum, group) => sum + group.unreadCount, 0);
+  const totalUrgent = myGroups.reduce((sum, group) => sum + group.urgentCount, 0);
+
   return (
     <div className="p-6 lg:p-8 space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold text-slate-900">Chat del Grupo</h1>
-        <p className="text-slate-600 mt-1">Comunícate con otros padres y el club</p>
+      <div className="flex justify-between items-center">
+        <div>
+          <h1 className="text-3xl font-bold text-slate-900">Chat del Grupo</h1>
+          <p className="text-slate-600 mt-1">Comunícate con otros padres y el club</p>
+        </div>
+        <div className="flex gap-2">
+          {totalUrgent > 0 && (
+            <Badge className="bg-red-500 text-white text-lg px-4 py-2">
+              🔴 {totalUrgent} urgente{totalUrgent !== 1 ? 's' : ''}
+            </Badge>
+          )}
+          {totalUnread > 0 && (
+            <Badge className="bg-orange-500 text-white text-lg px-4 py-2">
+              {totalUnread} sin leer
+            </Badge>
+          )}
+        </div>
       </div>
 
       {/* Horario de Atención */}
@@ -222,8 +251,13 @@ export default function ParentChat() {
               <TabsTrigger key={group.id} value={group.id} className="relative">
                 <span className="mr-2">{deporteEmojis[group.deporte] || "⚽"}</span>
                 {group.categoria}
+                {group.urgentCount > 0 && (
+                  <Badge className="ml-2 bg-red-600 text-white h-5 min-w-5 flex items-center justify-center px-1.5 text-xs">
+                    🔴 {group.urgentCount}
+                  </Badge>
+                )}
                 {group.unreadCount > 0 && (
-                  <Badge className="ml-2 bg-red-500 text-white h-5 min-w-5 flex items-center justify-center px-1.5 text-xs">
+                  <Badge className="ml-2 bg-orange-500 text-white h-5 min-w-5 flex items-center justify-center px-1.5 text-xs">
                     {group.unreadCount}
                   </Badge>
                 )}
@@ -279,20 +313,36 @@ export default function ParentChat() {
                     msg.tipo === "padre_a_grupo" && msg.remitente_email === currentUser?.email
                       ? 'bg-orange-600 text-white' 
                       : msg.tipo === "admin_a_grupo"
-                      ? 'bg-blue-600 text-white'
+                      ? `${priorityColors[msg.prioridad || "Normal"]} text-white`
                       : 'bg-slate-100 text-slate-900'
                   } rounded-2xl px-4 py-3 shadow-sm`}>
-                    <p className="text-xs font-medium mb-1 opacity-70">
-                      {msg.tipo === "admin_a_grupo" ? "👤 Administración" : msg.remitente_nombre || "Usuario"}
-                    </p>
+                    <div className="flex items-center gap-2 mb-1">
+                      <p className="text-xs font-medium opacity-70">
+                        {msg.tipo === "admin_a_grupo" ? "👤 Administración" : msg.remitente_nombre || "Usuario"}
+                      </p>
+                      {msg.tipo === "admin_a_grupo" && msg.prioridad && msg.prioridad !== "Normal" && (
+                        <Badge className="bg-white/30 text-white text-xs px-2 py-0 flex items-center gap-1">
+                          {priorityIcons[msg.prioridad]}
+                          <span>{msg.prioridad}</span>
+                        </Badge>
+                      )}
+                    </div>
                     <p className="text-sm">{msg.mensaje}</p>
-                    <p className={`text-xs mt-2 ${
-                      (msg.tipo === "padre_a_grupo" && msg.remitente_email === currentUser?.email) || msg.tipo === "admin_a_grupo"
-                        ? 'text-white/70' 
-                        : 'text-slate-500'
-                    }`}>
-                      {format(new Date(msg.created_date), "HH:mm - d 'de' MMM", { locale: es })}
-                    </p>
+                    <div className="flex items-center justify-between mt-2">
+                      <p className={`text-xs ${
+                        ((msg.tipo === "padre_a_grupo" && msg.remitente_email === currentUser?.email) || msg.tipo === "admin_a_grupo")
+                          ? 'text-white/70' 
+                          : 'text-slate-500'
+                      }`}>
+                        {format(new Date(msg.created_date), "HH:mm - d 'de' MMM", { locale: es })}
+                      </p>
+                      {msg.tipo === "admin_a_grupo" && msg.notificacion_enviada && (
+                        <Badge className="bg-white/20 text-white text-xs px-2 py-0 ml-2 flex items-center gap-1">
+                          <Bell className="w-3 h-3" />
+                          Notificado
+                        </Badge>
+                      )}
+                    </div>
                   </div>
                 </div>
               ))}
@@ -357,6 +407,7 @@ export default function ParentChat() {
                 <li>• Este chat es para el grupo de <strong>{selectedGroup?.deporte || "Deporte"} - {selectedGroup?.categoria || "Categoría"}</strong></li>
                 <li>• Todos los padres de esta categoría pueden ver y participar</li>
                 <li>• La administración también participa para resolver dudas</li>
+                <li>• Los mensajes <strong className="text-orange-700">Importantes</strong> y <strong className="text-red-700">Urgentes</strong> se notifican por email 📧</li>
                 <li>• Horario: <strong>10:00 a 20:00</strong></li>
                 <li>• Mantén un ambiente respetuoso y constructivo</li>
               </ul>
