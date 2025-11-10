@@ -6,6 +6,7 @@ import Reminders from './pages/Reminders';
 import ParentDashboard from './pages/ParentDashboard';
 import ParentPayments from './pages/ParentPayments';
 import ParentPlayers from './pages/ParentPlayers';
+import Calendar from './pages/Calendar';
 import Layout from './Layout.jsx';
 
 
@@ -18,6 +19,7 @@ export const PAGES = {
     "ParentDashboard": ParentDashboard,
     "ParentPayments": ParentPayments,
     "ParentPlayers": ParentPlayers,
+    "Calendar": Calendar,
 }
 
 export const pagesConfig = {

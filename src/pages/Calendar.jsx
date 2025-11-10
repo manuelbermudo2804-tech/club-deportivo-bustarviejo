@@ -1,0 +1,221 @@
+import React, { useState, useEffect } from "react";
+import { base44 } from "@/api/base44Client";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { Button } from "@/components/ui/button";
+import { Plus, Calendar as CalendarIcon } from "lucide-react";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { AnimatePresence } from "framer-motion";
+
+import EventForm from "../components/calendar/EventForm";
+import EventCard from "../components/calendar/EventCard";
+
+export default function Calendar() {
+  const [showForm, setShowForm] = useState(false);
+  const [editingEvent, setEditingEvent] = useState(null);
+  const [typeFilter, setTypeFilter] = useState("all");
+  const [sportFilter, setSportFilter] = useState("all");
+  const [isAdmin, setIsAdmin] = useState(false);
+  
+  const queryClient = useQueryClient();
+
+  useEffect(() => {
+    const checkAdmin = async () => {
+      try {
+        const user = await base44.auth.me();
+        setIsAdmin(user.role === "admin");
+      } catch (error) {
+        setIsAdmin(false);
+      }
+    };
+    checkAdmin();
+  }, []);
+
+  const { data: events, isLoading } = useQuery({
+    queryKey: ['events'],
+    queryFn: () => base44.entities.Event.list('-fecha'),
+    initialData: [],
+  });
+
+  const createEventMutation = useMutation({
+    mutationFn: (eventData) => base44.entities.Event.create(eventData),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['events'] });
+      setShowForm(false);
+      setEditingEvent(null);
+    },
+  });
+
+  const updateEventMutation = useMutation({
+    mutationFn: ({ id, eventData }) => base44.entities.Event.update(id, eventData),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['events'] });
+      setShowForm(false);
+      setEditingEvent(null);
+    },
+  });
+
+  const handleSubmit = async (eventData) => {
+    if (editingEvent) {
+      updateEventMutation.mutate({ id: editingEvent.id, eventData });
+    } else {
+      createEventMutation.mutate(eventData);
+    }
+  };
+
+  const handleEdit = (event) => {
+    setEditingEvent(event);
+    setShowForm(true);
+  };
+
+  // Filtrar eventos publicados (o todos si es admin)
+  const visibleEvents = events.filter(event => isAdmin || event.publicado);
+
+  // Aplicar filtros
+  const filteredEvents = visibleEvents.filter(event => {
+    const matchesType = typeFilter === "all" || event.tipo === typeFilter;
+    const matchesSport = sportFilter === "all" || event.deporte === sportFilter || event.deporte === "Ambos";
+    return matchesType && matchesSport;
+  });
+
+  // Separar eventos próximos y pasados
+  const today = new Date().toISOString().split('T')[0];
+  const upcomingEvents = filteredEvents.filter(e => e.fecha >= today).sort((a, b) => a.fecha.localeCompare(b.fecha));
+  const pastEvents = filteredEvents.filter(e => e.fecha < today).sort((a, b) => b.fecha.localeCompare(a.fecha));
+
+  const eventTypes = ["all", "Partido", "Entrenamiento", "Reunión", "Torneo", "Inicio Temporada", "Otro"];
+
+  return (
+    <div className="p-6 lg:p-8 space-y-6">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div>
+          <h1 className="text-3xl font-bold text-slate-900">Calendario de Eventos</h1>
+          <p className="text-slate-600 mt-1">Próximos partidos, entrenamientos y actividades</p>
+        </div>
+        {isAdmin && (
+          <Button
+            onClick={() => {
+              setEditingEvent(null);
+              setShowForm(!showForm);
+            }}
+            className="bg-orange-600 hover:bg-orange-700 shadow-lg"
+          >
+            <Plus className="w-5 h-5 mr-2" />
+            Nuevo Evento
+          </Button>
+        )}
+      </div>
+
+      <AnimatePresence>
+        {showForm && isAdmin && (
+          <EventForm
+            event={editingEvent}
+            onSubmit={handleSubmit}
+            onCancel={() => {
+              setShowForm(false);
+              setEditingEvent(null);
+            }}
+            isSubmitting={createEventMutation.isPending || updateEventMutation.isPending}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* Filtros */}
+      <div className="space-y-4">
+        <div className="flex flex-wrap gap-3">
+          <Button
+            variant={sportFilter === "all" ? "default" : "outline"}
+            onClick={() => setSportFilter("all")}
+            className={sportFilter === "all" ? "bg-orange-600 hover:bg-orange-700" : ""}
+          >
+            🏃 Todos
+          </Button>
+          <Button
+            variant={sportFilter === "Fútbol" ? "default" : "outline"}
+            onClick={() => setSportFilter("Fútbol")}
+            className={sportFilter === "Fútbol" ? "bg-green-600 hover:bg-green-700" : ""}
+          >
+            ⚽ Fútbol
+          </Button>
+          <Button
+            variant={sportFilter === "Baloncesto" ? "default" : "outline"}
+            onClick={() => setSportFilter("Baloncesto")}
+            className={sportFilter === "Baloncesto" ? "bg-orange-600 hover:bg-orange-700" : ""}
+          >
+            🏀 Baloncesto
+          </Button>
+        </div>
+
+        <Tabs value={typeFilter} onValueChange={setTypeFilter}>
+          <TabsList className="bg-white shadow-sm">
+            {eventTypes.map((type) => (
+              <TabsTrigger
+                key={type}
+                value={type}
+                className="data-[state=active]:bg-orange-100 data-[state=active]:text-orange-700"
+              >
+                {type === "all" ? "Todos" : type}
+              </TabsTrigger>
+            ))}
+          </TabsList>
+        </Tabs>
+      </div>
+
+      {isLoading ? (
+        <div className="text-center py-12">
+          <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-orange-600 border-r-transparent"></div>
+        </div>
+      ) : (
+        <>
+          {/* Próximos Eventos */}
+          <div className="space-y-4">
+            <h2 className="text-2xl font-bold text-slate-900 flex items-center gap-2">
+              <CalendarIcon className="w-6 h-6 text-orange-600" />
+              Próximos Eventos ({upcomingEvents.length})
+            </h2>
+            {upcomingEvents.length === 0 ? (
+              <div className="text-center py-12 bg-white rounded-xl shadow-lg">
+                <div className="text-6xl mb-4">📅</div>
+                <p className="text-slate-500 text-lg">No hay eventos próximos programados</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <AnimatePresence>
+                  {upcomingEvents.map((event) => (
+                    <EventCard
+                      key={event.id}
+                      event={event}
+                      onEdit={handleEdit}
+                      isAdmin={isAdmin}
+                    />
+                  ))}
+                </AnimatePresence>
+              </div>
+            )}
+          </div>
+
+          {/* Eventos Pasados */}
+          {pastEvents.length > 0 && (
+            <div className="space-y-4 pt-8 border-t border-slate-200">
+              <h2 className="text-2xl font-bold text-slate-500 flex items-center gap-2">
+                <CalendarIcon className="w-6 h-6" />
+                Eventos Pasados ({pastEvents.length})
+              </h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 opacity-60">
+                <AnimatePresence>
+                  {pastEvents.slice(0, 6).map((event) => (
+                    <EventCard
+                      key={event.id}
+                      event={event}
+                      onEdit={handleEdit}
+                      isAdmin={isAdmin}
+                    />
+                  ))}
+                </AnimatePresence>
+              </div>
+            </div>
+          )}
+        </>
+      )}
+    </div>
+  );
+}
