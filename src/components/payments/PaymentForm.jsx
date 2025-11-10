@@ -1,14 +1,14 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { base44 } from "@/api/base44Client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Loader2, Upload, FileText, X } from "lucide-react";
-import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Label } from "@/components/ui/label";
+import { Upload, X, Loader2 } from "lucide-react";
+import { toast } from "sonner";
+import { base44 } from "@/api/base44Client";
 
 // Función para obtener la temporada actual
 const getCurrentSeason = () => {
@@ -16,63 +16,67 @@ const getCurrentSeason = () => {
   const currentYear = now.getFullYear();
   const currentMonth = now.getMonth() + 1;
   
+  // Si estamos entre enero y agosto, la temporada es año anterior/año actual
   if (currentMonth <= 8) {
-    return `${currentYear - 1}-${currentYear}`;
+    return `${currentYear - 1}/${currentYear}`;
   }
-  return `${currentYear}-${currentYear + 1}`;
+  // Si estamos entre septiembre y diciembre, la temporada es año actual/año siguiente
+  return `${currentYear}/${currentYear + 1}`;
 };
 
-// Generar lista de temporadas
-const getSeasonOptions = () => {
-  const now = new Date();
-  const currentYear = now.getFullYear();
+// Generar opciones de temporadas
+const generateSeasonOptions = () => {
+  const currentYear = new Date().getFullYear();
   const seasons = [];
-  
-  for (let i = -1; i <= 3; i++) {
-    const startYear = currentYear + i;
-    seasons.push(`${startYear}-${startYear + 1}`);
+  for (let i = -1; i <= 2; i++) {
+    const year = currentYear + i;
+    seasons.push(`${year}/${year + 1}`);
   }
-  
   return seasons;
 };
 
-// Función para generar recordatorios automáticos
-const generateReminders = async (payment, playerEmail) => {
-  const mesMap = {
-    "Septiembre": 9,
-    "Noviembre": 11,
-    "Diciembre": 12
+// Función para crear recordatorios automáticos
+const createReminders = async (payment, playerEmail) => {
+  if (!playerEmail) return;
+  
+  const currentYear = new Date().getFullYear();
+  const seasonStartYear = parseInt(payment.temporada.split('/')[0]);
+  
+  // Mapeo de meses a números y fechas de vencimiento
+  const monthMap = {
+    'Junio': { month: 6, day: 30, year: seasonStartYear },
+    'Septiembre': { month: 9, day: 30, year: seasonStartYear },
+    'Diciembre': { month: 12, day: 30, year: seasonStartYear }
   };
   
-  const month = mesMap[payment.mes];
-  const year = parseInt(payment.temporada.split('-')[0]); // Primer año de la temporada
+  const paymentMonth = monthMap[payment.mes];
+  if (!paymentMonth) return;
   
-  // Fecha de vencimiento: día 30 del mes
-  const vencimiento = new Date(year, month - 1, 30);
+  const dueDate = new Date(paymentMonth.year, paymentMonth.month - 1, paymentMonth.day);
   
-  // 7 días antes del vencimiento
-  const sieteAntes = new Date(vencimiento);
-  sieteAntes.setDate(vencimiento.getDate() - 7);
+  // Recordatorio 7 días antes
+  const reminder7Days = new Date(dueDate);
+  reminder7Days.setDate(reminder7Days.getDate() - 7);
   
-  // Día del vencimiento
-  const diaVencimiento = new Date(vencimiento);
+  // Recordatorio el día de vencimiento
+  const reminderDueDay = new Date(dueDate);
   
-  // 3 días después del vencimiento
-  const tresDespues = new Date(vencimiento);
-  tresDespues.setDate(vencimiento.getDate() + 3);
+  // Recordatorio después del vencimiento
+  const reminderAfterDue = new Date(dueDate);
+  reminderAfterDue.setDate(reminderAfterDue.getDate() + 7);
   
-  const recordatorios = [
+  const reminders = [
     {
       pago_id: payment.id,
       jugador_id: payment.jugador_id,
       jugador_nombre: payment.jugador_nombre,
       email_padre: playerEmail,
       tipo_recordatorio: "7 días antes",
-      fecha_envio: sieteAntes.toISOString().split('T')[0],
-      enviado: false,
+      fecha_envio: reminder7Days.toISOString().split('T')[0],
       mes_pago: payment.mes,
       temporada: payment.temporada,
-      cantidad: payment.cantidad
+      cantidad: payment.cantidad,
+      enviado: false
     },
     {
       pago_id: payment.id,
@@ -80,11 +84,11 @@ const generateReminders = async (payment, playerEmail) => {
       jugador_nombre: payment.jugador_nombre,
       email_padre: playerEmail,
       tipo_recordatorio: "Día de vencimiento",
-      fecha_envio: diaVencimiento.toISOString().split('T')[0],
-      enviado: false,
+      fecha_envio: reminderDueDay.toISOString().split('T')[0],
       mes_pago: payment.mes,
       temporada: payment.temporada,
-      cantidad: payment.cantidad
+      cantidad: payment.cantidad,
+      enviado: false
     },
     {
       pago_id: payment.id,
@@ -92,56 +96,59 @@ const generateReminders = async (payment, playerEmail) => {
       jugador_nombre: payment.jugador_nombre,
       email_padre: playerEmail,
       tipo_recordatorio: "Después del vencimiento",
-      fecha_envio: tresDespues.toISOString().split('T')[0],
-      enviado: false,
+      fecha_envio: reminderAfterDue.toISOString().split('T')[0],
       mes_pago: payment.mes,
       temporada: payment.temporada,
-      cantidad: payment.cantidad
+      cantidad: payment.cantidad,
+      enviado: false
     }
   ];
   
-  // Crear los recordatorios en la base de datos
-  for (const recordatorio of recordatorios) {
-    await base44.entities.Reminder.create(recordatorio);
+  for (const reminder of reminders) {
+    try {
+      await base44.entities.Reminder.create(reminder);
+    } catch (error) {
+      console.error("Error creating reminder:", error);
+    }
   }
 };
 
 export default function PaymentForm({ payment, players, onSubmit, onCancel, isSubmitting }) {
-  const [formData, setFormData] = useState(payment || {
+  const currentSeason = getCurrentSeason();
+  const [currentPayment, setCurrentPayment] = useState(payment || {
     jugador_id: "",
     jugador_nombre: "",
     tipo_pago: "Único",
-    mes: "Septiembre",
-    temporada: getCurrentSeason(),
-    cantidad: 90,
+    mes: "Junio",
+    temporada: currentSeason,
+    cantidad: 0,
     estado: "Pendiente",
-    metodo_pago: "",
+    metodo_pago: "Bizum",
     justificante_url: "",
     fecha_pago: "",
     notas: ""
   });
 
   const [uploadingFile, setUploadingFile] = useState(false);
+  const [selectedPlayer, setSelectedPlayer] = useState(null);
 
-  const handleChange = (field, value) => {
-    let updates = { [field]: value };
-    
-    if (field === "jugador_id") {
-      const selectedPlayer = players.find(p => p.id === value);
-      if (selectedPlayer) {
-        updates.jugador_nombre = selectedPlayer.nombre;
-      }
+  useEffect(() => {
+    if (currentPayment.jugador_id) {
+      const player = players.find(p => p.id === currentPayment.jugador_id);
+      setSelectedPlayer(player);
     }
+  }, [currentPayment.jugador_id, players]);
 
-    if (field === "tipo_pago") {
-      if (value === "Único") {
-        updates.cantidad = 90;
-      } else if (value === "Tres meses") {
-        updates.cantidad = 30;
-      }
+  const handlePlayerChange = (playerId) => {
+    const player = players.find(p => p.id === playerId);
+    if (player) {
+      setSelectedPlayer(player);
+      setCurrentPayment({
+        ...currentPayment,
+        jugador_id: player.id,
+        jugador_nombre: player.nombre
+      });
     }
-    
-    setFormData(prev => ({ ...prev, ...updates }));
   };
 
   const handleFileUpload = async (e) => {
@@ -150,47 +157,72 @@ export default function PaymentForm({ payment, players, onSubmit, onCancel, isSu
 
     setUploadingFile(true);
     try {
-      const { file_url } = await base44.integrations.Core.UploadFile({ file });
-      handleChange("justificante_url", file_url);
+      const response = await base44.integrations.Core.UploadFile({ file });
+      setCurrentPayment({
+        ...currentPayment,
+        justificante_url: response.file_url
+      });
+      toast.success("Archivo subido correctamente");
     } catch (error) {
       console.error("Error uploading file:", error);
+      toast.error("Error al subir el archivo");
+    } finally {
+      setUploadingFile(false);
     }
-    setUploadingFile(false);
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    // Si es pago en tres meses y no es una edición, crear 3 pagos con recordatorios
-    if (formData.tipo_pago === "Tres meses" && !payment) {
-      const mesesPago = ["Septiembre", "Noviembre", "Diciembre"];
-      const selectedPlayer = players.find(p => p.id === formData.jugador_id);
-      const playerEmail = selectedPlayer?.email_padre || selectedPlayer?.email;
+    if (!currentPayment.jugador_id) {
+      toast.error("Selecciona un jugador");
+      return;
+    }
+
+    // Si es tipo "Tres meses", crear tres pagos
+    if (currentPayment.tipo_pago === "Tres meses") {
+      const months = ["Junio", "Septiembre", "Diciembre"];
+      const cantidadPorMes = currentPayment.cantidad;
       
-      for (const mes of mesesPago) {
-        const pagoData = {
-          ...formData,
+      for (const mes of months) {
+        const paymentData = {
+          ...currentPayment,
           mes: mes,
-          cantidad: 30
+          cantidad: cantidadPorMes
         };
         
-        // Crear el pago
-        const nuevoPago = await base44.entities.Payment.create(pagoData);
-        
-        // Generar recordatorios automáticos si hay email
-        if (playerEmail && nuevoPago.id) {
-          await generateReminders({ ...nuevoPago, id: nuevoPago.id }, playerEmail);
+        try {
+          const createdPayment = await base44.entities.Payment.create(paymentData);
+          
+          // Crear recordatorios para este pago
+          if (selectedPlayer?.email_padre) {
+            await createReminders(createdPayment, selectedPlayer.email_padre);
+          }
+        } catch (error) {
+          console.error(`Error creating payment for ${mes}:`, error);
+          toast.error(`Error al crear el pago de ${mes}`);
         }
       }
       
-      onSubmit(null);
+      toast.success("Pagos de los tres meses creados correctamente");
+      onCancel();
     } else {
-      onSubmit(formData);
+      // Pago único
+      try {
+        const createdPayment = await base44.entities.Payment.create(currentPayment);
+        
+        // Crear recordatorios
+        if (selectedPlayer?.email_padre) {
+          await createReminders(createdPayment, selectedPlayer.email_padre);
+        }
+        
+        onSubmit(currentPayment);
+      } catch (error) {
+        console.error("Error creating payment:", error);
+        toast.error("Error al crear el pago");
+      }
     }
   };
-
-  const months = ["Septiembre", "Noviembre", "Diciembre"];
-  const seasonOptions = getSeasonOptions();
 
   return (
     <motion.div
@@ -198,7 +230,7 @@ export default function PaymentForm({ payment, players, onSubmit, onCancel, isSu
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -20 }}
     >
-      <Card className="border-none shadow-xl bg-white">
+      <Card className="border-none shadow-xl bg-white/90 backdrop-blur-sm">
         <CardHeader className="border-b border-slate-100">
           <CardTitle className="text-2xl">
             {payment ? "Editar Pago" : "Registrar Nuevo Pago"}
@@ -206,118 +238,138 @@ export default function PaymentForm({ payment, players, onSubmit, onCancel, isSu
         </CardHeader>
         <CardContent className="pt-6">
           <form onSubmit={handleSubmit} className="space-y-6">
-            {formData.tipo_pago === "Tres meses" && !payment && (
-              <Alert className="bg-orange-50 border-orange-200">
-                <AlertDescription className="text-orange-800">
-                  Se crearán automáticamente 3 pagos de 30€ para los meses de Septiembre, Noviembre y Diciembre, con recordatorios automáticos por email.
-                </AlertDescription>
-              </Alert>
-            )}
-
-            <div className="grid md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Selector de Jugador */}
               <div className="space-y-2">
-                <Label htmlFor="jugador_id">Jugador *</Label>
+                <Label htmlFor="jugador">Jugador *</Label>
                 <Select
-                  value={formData.jugador_id}
-                  onValueChange={(value) => handleChange("jugador_id", value)}
+                  value={currentPayment.jugador_id}
+                  onValueChange={handlePlayerChange}
                   required
-                  disabled={!!payment}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Selecciona jugador" />
+                    <SelectValue placeholder="Selecciona un jugador" />
                   </SelectTrigger>
                   <SelectContent>
-                    {players.filter(p => p.activo).map((player) => (
-                      <SelectItem key={player.id} value={player.id}>
-                        {player.nombre} - {player.categoria}
-                      </SelectItem>
-                    ))}
+                    {players
+                      .filter(p => p.activo)
+                      .map(player => (
+                        <SelectItem key={player.id} value={player.id}>
+                          {player.nombre} - {player.categoria}
+                        </SelectItem>
+                      ))}
                   </SelectContent>
                 </Select>
               </div>
 
+              {/* Tipo de Pago */}
               <div className="space-y-2">
                 <Label htmlFor="tipo_pago">Tipo de Pago *</Label>
                 <Select
-                  value={formData.tipo_pago}
-                  onValueChange={(value) => handleChange("tipo_pago", value)}
+                  value={currentPayment.tipo_pago}
+                  onValueChange={(value) => setCurrentPayment({...currentPayment, tipo_pago: value})}
                   required
-                  disabled={!!payment}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Selecciona tipo" />
+                    <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="Único">Pago Único (90€)</SelectItem>
-                    <SelectItem value="Tres meses">Tres Meses (30€ x 3)</SelectItem>
+                    <SelectItem value="Único">Pago Único</SelectItem>
+                    <SelectItem value="Tres meses">Tres Pagos (Junio, Sept, Dic)</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
 
-              {(formData.tipo_pago === "Único" || payment) && (
+              {/* Mes */}
+              {currentPayment.tipo_pago !== "Tres meses" && (
                 <div className="space-y-2">
-                  <Label htmlFor="mes">Mes *</Label>
+                  <Label htmlFor="mes">Mes del Pago *</Label>
                   <Select
-                    value={formData.mes}
-                    onValueChange={(value) => handleChange("mes", value)}
+                    value={currentPayment.mes}
+                    onValueChange={(value) => setCurrentPayment({...currentPayment, mes: value})}
                     required
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder="Selecciona mes" />
+                      <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      {months.map((month) => (
-                        <SelectItem key={month} value={month}>
-                          {month}
-                        </SelectItem>
-                      ))}
+                      <SelectItem value="Junio">Junio</SelectItem>
+                      <SelectItem value="Septiembre">Septiembre</SelectItem>
+                      <SelectItem value="Diciembre">Diciembre</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
               )}
 
+              {/* Temporada */}
               <div className="space-y-2">
                 <Label htmlFor="temporada">Temporada *</Label>
                 <Select
-                  value={formData.temporada}
-                  onValueChange={(value) => handleChange("temporada", value)}
+                  value={currentPayment.temporada}
+                  onValueChange={(value) => setCurrentPayment({...currentPayment, temporada: value})}
                   required
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Selecciona temporada" />
+                    <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    {seasonOptions.map((season) => (
+                    {generateSeasonOptions().map(season => (
                       <SelectItem key={season} value={season}>
-                        {season}
+                        Temporada {season}
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               </div>
 
+              {/* Cantidad */}
               <div className="space-y-2">
-                <Label htmlFor="cantidad">Cantidad (€) *</Label>
+                <Label htmlFor="cantidad">
+                  Cantidad (€) *
+                  {currentPayment.tipo_pago === "Tres meses" && (
+                    <span className="text-xs text-slate-500 ml-2">
+                      (cantidad por cada mes)
+                    </span>
+                  )}
+                </Label>
                 <Input
-                  id="cantidad"
                   type="number"
                   step="0.01"
-                  value={formData.cantidad}
-                  onChange={(e) => handleChange("cantidad", parseFloat(e.target.value))}
+                  value={currentPayment.cantidad}
+                  onChange={(e) => setCurrentPayment({...currentPayment, cantidad: parseFloat(e.target.value) || 0})}
                   required
-                  min="0"
-                  disabled={!payment}
+                  placeholder="Ej: 50.00"
                 />
               </div>
 
+              {/* Estado */}
+              <div className="space-y-2">
+                <Label htmlFor="estado">Estado *</Label>
+                <Select
+                  value={currentPayment.estado}
+                  onValueChange={(value) => setCurrentPayment({...currentPayment, estado: value})}
+                  required
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Pendiente">Pendiente</SelectItem>
+                    <SelectItem value="En revisión">En Revisión</SelectItem>
+                    <SelectItem value="Pagado">Pagado</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Método de Pago */}
               <div className="space-y-2">
                 <Label htmlFor="metodo_pago">Método de Pago</Label>
                 <Select
-                  value={formData.metodo_pago}
-                  onValueChange={(value) => handleChange("metodo_pago", value)}
+                  value={currentPayment.metodo_pago}
+                  onValueChange={(value) => setCurrentPayment({...currentPayment, metodo_pago: value})}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Selecciona método" />
+                    <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="Bizum">Bizum</SelectItem>
@@ -326,91 +378,84 @@ export default function PaymentForm({ payment, players, onSubmit, onCancel, isSu
                 </Select>
               </div>
 
+              {/* Fecha de Pago */}
               <div className="space-y-2">
                 <Label htmlFor="fecha_pago">Fecha de Pago</Label>
                 <Input
-                  id="fecha_pago"
                   type="date"
-                  value={formData.fecha_pago}
-                  onChange={(e) => handleChange("fecha_pago", e.target.value)}
+                  value={currentPayment.fecha_pago}
+                  onChange={(e) => setCurrentPayment({...currentPayment, fecha_pago: e.target.value})}
                 />
               </div>
             </div>
 
+            {/* Justificante */}
             <div className="space-y-2">
-              <Label>Justificante de Pago</Label>
-              <div className="flex items-center gap-3">
-                {formData.justificante_url ? (
-                  <div className="flex items-center gap-2 flex-1">
-                    <a 
-                      href={formData.justificante_url} 
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                      className="flex items-center gap-2 px-4 py-2 bg-slate-100 rounded-lg hover:bg-slate-200 transition-colors flex-1"
-                    >
-                      <FileText className="w-4 h-4 text-slate-600" />
-                      <span className="text-sm text-slate-700 truncate">Ver justificante</span>
-                    </a>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => handleChange("justificante_url", "")}
-                    >
-                      <X className="w-4 h-4" />
-                    </Button>
-                  </div>
-                ) : (
-                  <>
-                    <input
-                      type="file"
-                      accept="image/*,.pdf"
-                      onChange={handleFileUpload}
-                      className="hidden"
-                      id="justificante-upload"
-                      disabled={uploadingFile}
-                    />
-                    <label htmlFor="justificante-upload" className="flex-1">
-                      <Button
-                        type="button"
-                        variant="outline"
-                        disabled={uploadingFile}
-                        className="w-full"
-                        onClick={() => document.getElementById('justificante-upload').click()}
-                      >
-                        {uploadingFile ? (
-                          <>
-                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                            Subiendo...
-                          </>
-                        ) : (
-                          <>
-                            <Upload className="w-4 h-4 mr-2" />
-                            Subir Justificante
-                          </>
-                        )}
-                      </Button>
-                    </label>
-                  </>
+              <Label htmlFor="justificante">Justificante de Pago</Label>
+              <div className="flex gap-3">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => document.getElementById('file-upload').click()}
+                  disabled={uploadingFile}
+                  className="flex-1"
+                >
+                  {uploadingFile ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Subiendo...
+                    </>
+                  ) : (
+                    <>
+                      <Upload className="w-4 h-4 mr-2" />
+                      {currentPayment.justificante_url ? "Cambiar archivo" : "Subir archivo"}
+                    </>
+                  )}
+                </Button>
+                {currentPayment.justificante_url && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setCurrentPayment({...currentPayment, justificante_url: ""})}
+                  >
+                    <X className="w-4 h-4" />
+                  </Button>
                 )}
               </div>
-              <p className="text-xs text-slate-500">
-                Sube una imagen o PDF del comprobante de pago (Bizum o transferencia)
-              </p>
+              <input
+                id="file-upload"
+                type="file"
+                accept="image/*,.pdf"
+                onChange={handleFileUpload}
+                className="hidden"
+              />
+              {currentPayment.justificante_url && (
+                <p className="text-sm text-green-600">✓ Archivo subido correctamente</p>
+              )}
             </div>
 
+            {/* Notas */}
             <div className="space-y-2">
-              <Label htmlFor="notas">Notas</Label>
+              <Label htmlFor="notas">Notas Adicionales</Label>
               <Textarea
-                id="notas"
-                value={formData.notas}
-                onChange={(e) => handleChange("notas", e.target.value)}
-                placeholder="Observaciones sobre el pago..."
+                value={currentPayment.notas}
+                onChange={(e) => setCurrentPayment({...currentPayment, notas: e.target.value})}
+                placeholder="Añade cualquier información adicional..."
                 rows={3}
               />
             </div>
 
-            <div className="flex justify-end gap-3 pt-4">
+            {/* Info sobre tipo de pago */}
+            {currentPayment.tipo_pago === "Tres meses" && (
+              <div className="bg-blue-50 border-l-4 border-blue-500 p-4 rounded">
+                <p className="text-sm text-blue-800">
+                  ℹ️ Se crearán 3 pagos automáticamente para los meses de <strong>Junio, Septiembre y Diciembre</strong> con la cantidad especificada para cada uno.
+                </p>
+              </div>
+            )}
+
+            {/* Botones */}
+            <div className="flex justify-end gap-3 pt-4 border-t border-slate-100">
               <Button
                 type="button"
                 variant="outline"
@@ -421,8 +466,8 @@ export default function PaymentForm({ payment, players, onSubmit, onCancel, isSu
               </Button>
               <Button
                 type="submit"
-                disabled={isSubmitting || uploadingFile}
                 className="bg-orange-600 hover:bg-orange-700"
+                disabled={isSubmitting}
               >
                 {isSubmitting ? (
                   <>
@@ -430,7 +475,7 @@ export default function PaymentForm({ payment, players, onSubmit, onCancel, isSu
                     Guardando...
                   </>
                 ) : (
-                  payment ? "Actualizar" : "Registrar Pago"
+                  payment ? "Actualizar Pago" : "Registrar Pago"
                 )}
               </Button>
             </div>
