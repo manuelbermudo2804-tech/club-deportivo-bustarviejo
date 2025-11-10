@@ -1,20 +1,20 @@
 import React, { useState } from "react";
-import { motion } from "framer-motion";
 import { base44 } from "@/api/base44Client";
+import { motion } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
-import { Upload, X, Loader2 } from "lucide-react";
+import { Upload, Loader2 } from "lucide-react";
 
 export default function PlayerForm({ player, onSubmit, onCancel, isSubmitting }) {
-  const [formData, setFormData] = useState(player || {
+  const [currentPlayer, setCurrentPlayer] = useState(player || {
     nombre: "",
     foto_url: "",
-    deporte: "Fútbol",
+    deporte: "Fútbol Masculino",
     fecha_nacimiento: "",
     dni: "",
     telefono: "",
@@ -28,29 +28,26 @@ export default function PlayerForm({ player, onSubmit, onCancel, isSubmitting })
     observaciones: ""
   });
 
-  const [uploadingPhoto, setUploadingPhoto] = useState(false);
-
-  const handleChange = (field, value) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
-  };
+  const [uploading, setUploading] = useState(false);
 
   const handlePhotoUpload = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    setUploadingPhoto(true);
+    setUploading(true);
     try {
       const { file_url } = await base44.integrations.Core.UploadFile({ file });
-      handleChange("foto_url", file_url);
+      setCurrentPlayer({ ...currentPlayer, foto_url: file_url });
     } catch (error) {
       console.error("Error uploading photo:", error);
+    } finally {
+      setUploading(false);
     }
-    setUploadingPhoto(false);
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    onSubmit(formData);
+    onSubmit(currentPlayer);
   };
 
   return (
@@ -59,171 +56,50 @@ export default function PlayerForm({ player, onSubmit, onCancel, isSubmitting })
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -20 }}
     >
-      <Card className="border-none shadow-xl bg-white">
+      <Card className="border-none shadow-xl bg-white/95 backdrop-blur-sm">
         <CardHeader className="border-b border-slate-100">
-          <CardTitle className="text-2xl">
+          <CardTitle className="text-2xl text-slate-900">
             {player ? "Editar Jugador" : "Nuevo Jugador"}
           </CardTitle>
         </CardHeader>
         <CardContent className="pt-6">
           <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="flex flex-col items-center gap-4">
-              <div className="relative">
-                {formData.foto_url ? (
-                  <div className="relative">
-                    <img
-                      src={formData.foto_url}
-                      alt="Foto del jugador"
-                      className="w-32 h-32 rounded-full object-cover border-4 border-orange-100"
-                    />
-                    <Button
-                      type="button"
-                      variant="destructive"
-                      size="icon"
-                      className="absolute -top-2 -right-2 rounded-full h-8 w-8"
-                      onClick={() => handleChange("foto_url", "")}
-                    >
-                      <X className="w-4 h-4" />
-                    </Button>
-                  </div>
-                ) : (
-                  <div className="w-32 h-32 rounded-full bg-slate-100 flex items-center justify-center border-4 border-dashed border-slate-300">
-                    <Upload className="w-8 h-8 text-slate-400" />
-                  </div>
-                )}
-              </div>
-              <div>
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={handlePhotoUpload}
-                  className="hidden"
-                  id="photo-upload"
-                  disabled={uploadingPhoto}
-                />
-                <label htmlFor="photo-upload">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    disabled={uploadingPhoto}
-                    onClick={() => document.getElementById('photo-upload').click()}
-                  >
-                    {uploadingPhoto ? (
-                      <>
-                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                        Subiendo...
-                      </>
-                    ) : (
-                      <>
-                        <Upload className="w-4 h-4 mr-2" />
-                        Subir Foto
-                      </>
-                    )}
-                  </Button>
-                </label>
-              </div>
-            </div>
-
-            <div className="grid md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Nombre */}
               <div className="space-y-2">
-                <Label htmlFor="nombre">Nombre Completo *</Label>
+                <Label>Nombre Completo *</Label>
                 <Input
-                  id="nombre"
-                  value={formData.nombre}
-                  onChange={(e) => handleChange("nombre", e.target.value)}
+                  placeholder="Nombre del jugador"
+                  value={currentPlayer.nombre}
+                  onChange={(e) => setCurrentPlayer({ ...currentPlayer, nombre: e.target.value })}
                   required
-                  placeholder="Nombre y apellidos"
                 />
               </div>
 
+              {/* Deporte */}
               <div className="space-y-2">
-                <Label htmlFor="deporte">Deporte *</Label>
+                <Label>Deporte *</Label>
                 <Select
-                  value={formData.deporte}
-                  onValueChange={(value) => handleChange("deporte", value)}
-                  required
+                  value={currentPlayer.deporte}
+                  onValueChange={(value) => setCurrentPlayer({ ...currentPlayer, deporte: value })}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Selecciona deporte" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="Fútbol">⚽ Fútbol</SelectItem>
+                    <SelectItem value="Fútbol Masculino">⚽ Fútbol Masculino</SelectItem>
+                    <SelectItem value="Fútbol Femenino">⚽ Fútbol Femenino</SelectItem>
                     <SelectItem value="Baloncesto">🏀 Baloncesto</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
 
+              {/* Categoría */}
               <div className="space-y-2">
-                <Label htmlFor="fecha_nacimiento">Fecha de Nacimiento</Label>
-                <Input
-                  id="fecha_nacimiento"
-                  type="date"
-                  value={formData.fecha_nacimiento}
-                  onChange={(e) => handleChange("fecha_nacimiento", e.target.value)}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="dni">DNI</Label>
-                <Input
-                  id="dni"
-                  value={formData.dni}
-                  onChange={(e) => handleChange("dni", e.target.value)}
-                  placeholder="12345678X"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="telefono">Teléfono</Label>
-                <Input
-                  id="telefono"
-                  value={formData.telefono}
-                  onChange={(e) => handleChange("telefono", e.target.value)}
-                  placeholder="+34 600 000 000"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="email">Email del Jugador</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={formData.email}
-                  onChange={(e) => handleChange("email", e.target.value)}
-                  placeholder="email@ejemplo.com"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="email_padre">Email del Padre/Tutor *</Label>
-                <Input
-                  id="email_padre"
-                  type="email"
-                  value={formData.email_padre}
-                  onChange={(e) => handleChange("email_padre", e.target.value)}
-                  placeholder="padre@ejemplo.com"
-                  required
-                />
-                <p className="text-xs text-slate-500">
-                  Se usará para enviar recordatorios de pago
-                </p>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="direccion">Dirección</Label>
-                <Input
-                  id="direccion"
-                  value={formData.direccion}
-                  onChange={(e) => handleChange("direccion", e.target.value)}
-                  placeholder="Dirección completa"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="categoria">Categoría *</Label>
+                <Label>Categoría *</Label>
                 <Select
-                  value={formData.categoria}
-                  onValueChange={(value) => handleChange("categoria", value)}
+                  value={currentPlayer.categoria}
+                  onValueChange={(value) => setCurrentPlayer({ ...currentPlayer, categoria: value })}
                   required
                 >
                   <SelectTrigger>
@@ -241,11 +117,64 @@ export default function PlayerForm({ player, onSubmit, onCancel, isSubmitting })
                 </Select>
               </div>
 
+              {/* Fecha de Nacimiento */}
               <div className="space-y-2">
-                <Label htmlFor="posicion">Posición</Label>
+                <Label>Fecha de Nacimiento</Label>
+                <Input
+                  type="date"
+                  value={currentPlayer.fecha_nacimiento}
+                  onChange={(e) => setCurrentPlayer({ ...currentPlayer, fecha_nacimiento: e.target.value })}
+                />
+              </div>
+
+              {/* DNI */}
+              <div className="space-y-2">
+                <Label>DNI</Label>
+                <Input
+                  placeholder="DNI del jugador"
+                  value={currentPlayer.dni}
+                  onChange={(e) => setCurrentPlayer({ ...currentPlayer, dni: e.target.value })}
+                />
+              </div>
+
+              {/* Teléfono */}
+              <div className="space-y-2">
+                <Label>Teléfono</Label>
+                <Input
+                  placeholder="Teléfono de contacto"
+                  value={currentPlayer.telefono}
+                  onChange={(e) => setCurrentPlayer({ ...currentPlayer, telefono: e.target.value })}
+                />
+              </div>
+
+              {/* Email */}
+              <div className="space-y-2">
+                <Label>Email</Label>
+                <Input
+                  type="email"
+                  placeholder="Email del jugador"
+                  value={currentPlayer.email}
+                  onChange={(e) => setCurrentPlayer({ ...currentPlayer, email: e.target.value })}
+                />
+              </div>
+
+              {/* Email Padre */}
+              <div className="space-y-2">
+                <Label>Email Padre/Tutor</Label>
+                <Input
+                  type="email"
+                  placeholder="Email del padre/tutor"
+                  value={currentPlayer.email_padre}
+                  onChange={(e) => setCurrentPlayer({ ...currentPlayer, email_padre: e.target.value })}
+                />
+              </div>
+
+              {/* Posición */}
+              <div className="space-y-2">
+                <Label>Posición</Label>
                 <Select
-                  value={formData.posicion}
-                  onValueChange={(value) => handleChange("posicion", value)}
+                  value={currentPlayer.posicion}
+                  onValueChange={(value) => setCurrentPlayer({ ...currentPlayer, posicion: value })}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Selecciona posición" />
@@ -259,41 +188,98 @@ export default function PlayerForm({ player, onSubmit, onCancel, isSubmitting })
                 </Select>
               </div>
 
+              {/* Número de Camiseta */}
               <div className="space-y-2">
-                <Label htmlFor="numero_camiseta">Número de Camiseta</Label>
+                <Label>Número de Camiseta</Label>
                 <Input
-                  id="numero_camiseta"
                   type="number"
-                  value={formData.numero_camiseta}
-                  onChange={(e) => handleChange("numero_camiseta", parseInt(e.target.value))}
-                  placeholder="1-99"
-                  min="1"
-                  max="99"
+                  placeholder="Ej: 10"
+                  value={currentPlayer.numero_camiseta}
+                  onChange={(e) => setCurrentPlayer({ ...currentPlayer, numero_camiseta: e.target.value })}
                 />
-              </div>
-
-              <div className="flex items-center space-x-2">
-                <Switch
-                  id="activo"
-                  checked={formData.activo}
-                  onCheckedChange={(checked) => handleChange("activo", checked)}
-                />
-                <Label htmlFor="activo">Jugador Activo</Label>
               </div>
             </div>
 
+            {/* Dirección */}
             <div className="space-y-2">
-              <Label htmlFor="observaciones">Observaciones</Label>
+              <Label>Dirección</Label>
+              <Input
+                placeholder="Dirección completa"
+                value={currentPlayer.direccion}
+                onChange={(e) => setCurrentPlayer({ ...currentPlayer, direccion: e.target.value })}
+              />
+            </div>
+
+            {/* Foto */}
+            <div className="space-y-2">
+              <Label>Foto del Jugador</Label>
+              <div className="flex items-center gap-4">
+                {currentPlayer.foto_url && (
+                  <img
+                    src={currentPlayer.foto_url}
+                    alt="Foto del jugador"
+                    className="w-20 h-20 rounded-lg object-cover border-2 border-slate-200"
+                  />
+                )}
+                <div className="flex-1">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handlePhotoUpload}
+                    className="hidden"
+                    id="photo-upload"
+                    disabled={uploading}
+                  />
+                  <label htmlFor="photo-upload">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      disabled={uploading}
+                      onClick={() => document.getElementById('photo-upload').click()}
+                      className="w-full"
+                    >
+                      {uploading ? (
+                        <>
+                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                          Subiendo...
+                        </>
+                      ) : (
+                        <>
+                          <Upload className="w-4 h-4 mr-2" />
+                          {currentPlayer.foto_url ? "Cambiar Foto" : "Subir Foto"}
+                        </>
+                      )}
+                    </Button>
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            {/* Observaciones */}
+            <div className="space-y-2">
+              <Label>Observaciones</Label>
               <Textarea
-                id="observaciones"
-                value={formData.observaciones}
-                onChange={(e) => handleChange("observaciones", e.target.value)}
                 placeholder="Notas adicionales sobre el jugador..."
+                value={currentPlayer.observaciones}
+                onChange={(e) => setCurrentPlayer({ ...currentPlayer, observaciones: e.target.value })}
                 rows={3}
               />
             </div>
 
-            <div className="flex justify-end gap-3 pt-4">
+            {/* Activo */}
+            <div className="flex items-center justify-between p-4 rounded-lg bg-slate-50">
+              <div>
+                <Label className="text-base font-medium">Jugador Activo</Label>
+                <p className="text-sm text-slate-500">¿El jugador está actualmente en el club?</p>
+              </div>
+              <Switch
+                checked={currentPlayer.activo}
+                onCheckedChange={(checked) => setCurrentPlayer({ ...currentPlayer, activo: checked })}
+              />
+            </div>
+
+            {/* Botones */}
+            <div className="flex justify-end gap-3 pt-4 border-t border-slate-100">
               <Button
                 type="button"
                 variant="outline"
@@ -304,8 +290,8 @@ export default function PlayerForm({ player, onSubmit, onCancel, isSubmitting })
               </Button>
               <Button
                 type="submit"
-                disabled={isSubmitting}
                 className="bg-orange-600 hover:bg-orange-700"
+                disabled={isSubmitting}
               >
                 {isSubmitting ? (
                   <>
@@ -313,7 +299,7 @@ export default function PlayerForm({ player, onSubmit, onCancel, isSubmitting })
                     Guardando...
                   </>
                 ) : (
-                  player ? "Actualizar" : "Crear Jugador"
+                  player ? "Actualizar Jugador" : "Crear Jugador"
                 )}
               </Button>
             </div>
