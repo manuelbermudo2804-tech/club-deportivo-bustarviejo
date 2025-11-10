@@ -24,6 +24,7 @@ export default function ParentChat() {
     const fetchUser = async () => {
       const user = await base44.auth.me();
       setCurrentUser(user);
+      console.log("👤 Usuario actual:", user.email);
     };
     fetchUser();
   }, []);
@@ -32,9 +33,14 @@ export default function ParentChat() {
     queryKey: ['myPlayers', currentUser?.email],
     queryFn: async () => {
       const allPlayers = await base44.entities.Player.list();
-      return allPlayers.filter(p => 
-        p.email_padre === currentUser?.email
-      );
+      console.log("📋 TODOS los jugadores:", allPlayers);
+      const filtered = allPlayers.filter(p => {
+        const match = p.email_padre === currentUser?.email;
+        console.log(`🔍 Jugador: ${p.nombre} | email_padre: ${p.email_padre} | Match: ${match}`);
+        return match;
+      });
+      console.log("✅ MIS jugadores filtrados:", filtered);
+      return filtered;
     },
     enabled: !!currentUser?.email,
     initialData: [],
@@ -42,19 +48,33 @@ export default function ParentChat() {
 
   const { data: allMessages, isLoading: loadingMessages } = useQuery({
     queryKey: ['chatMessages'],
-    queryFn: () => base44.entities.ChatMessage.list('-created_date'),
+    queryFn: async () => {
+      const messages = await base44.entities.ChatMessage.list('-created_date');
+      console.log("💬 TODOS los mensajes:", messages);
+      return messages;
+    },
     initialData: [],
     refetchInterval: 5000,
   });
 
   // Crear grupos automáticamente basándose en mis jugadores
   useEffect(() => {
+    console.log("🔄 RECALCULANDO GRUPOS...");
+    console.log("📊 Estado actual:");
+    console.log("  - Usuario:", currentUser?.email);
+    console.log("  - Jugadores:", players.length);
+    console.log("  - Mensajes totales:", allMessages.length);
+    
     if (players.length > 0) {
       const groups = {};
       players.forEach(player => {
-        if (!player.deporte || !player.categoria) return;
+        if (!player.deporte || !player.categoria) {
+          console.log("⚠️ Jugador sin deporte/categoría:", player.nombre);
+          return;
+        }
         
         const groupId = `${player.deporte}_${player.categoria}`;
+        console.log(`📁 Creando grupo: ${groupId} para ${player.nombre}`);
         
         if (!groups[groupId]) {
           groups[groupId] = {
@@ -68,14 +88,21 @@ export default function ParentChat() {
         }
       });
 
+      console.log("📦 Grupos creados:", Object.keys(groups));
+
       // Agregar TODOS los mensajes del grupo
       allMessages.forEach(msg => {
-        if (!msg.deporte || !msg.categoria) return;
+        if (!msg.deporte || !msg.categoria) {
+          console.log("⚠️ Mensaje sin deporte/categoría:", msg.id);
+          return;
+        }
         
         const groupId = msg.grupo_id || `${msg.deporte}_${msg.categoria}`;
+        console.log(`💬 Procesando mensaje: "${msg.mensaje}" para grupo: ${groupId}`);
         
         if (groups[groupId]) {
           groups[groupId].messages.push(msg);
+          console.log(`  ✅ Agregado al grupo ${groupId}`);
           
           // Solo contar no leídos para badges
           if (!msg.leido && msg.tipo === "admin_a_grupo") {
@@ -84,28 +111,37 @@ export default function ParentChat() {
               groups[groupId].urgentCount++;
             }
           }
+        } else {
+          console.log(`  ❌ Grupo ${groupId} NO EXISTE en mis grupos`);
         }
       });
 
       // Ordenar mensajes por fecha
       Object.values(groups).forEach(group => {
         group.messages.sort((a, b) => new Date(a.created_date) - new Date(b.created_date));
+        console.log(`📊 Grupo ${group.id} tiene ${group.messages.length} mensajes`);
       });
 
       const groupsList = Object.values(groups);
+      console.log("✅ GRUPOS FINALES:", groupsList.map(g => `${g.id} (${g.messages.length} msgs)`));
+      
       setMyGroups(groupsList);
       
       if (groupsList.length > 0 && !selectedGroup) {
+        console.log("🎯 Seleccionando primer grupo:", groupsList[0].id);
         setSelectedGroup(groupsList[0]);
       } else if (selectedGroup && !groupsList.find(g => g.id === selectedGroup.id)) {
+        console.log("🔄 Grupo seleccionado ya no existe, cambiando...");
         setSelectedGroup(groupsList[0]);
       } else if (selectedGroup) {
         const updatedGroup = groupsList.find(g => g.id === selectedGroup.id);
         if (updatedGroup) {
+          console.log("🔄 Actualizando grupo seleccionado:", updatedGroup.id);
           setSelectedGroup(updatedGroup);
         }
       }
     } else {
+      console.log("❌ NO HAY JUGADORES para crear grupos");
       setMyGroups([]);
       setSelectedGroup(null);
     }
@@ -187,15 +223,33 @@ export default function ParentChat() {
     "Urgente": <AlertCircle className="w-3 h-3" />
   };
 
-  if (myGroups.length === 0) {
+  if (myGroups.length === 0 && !loadingMessages) {
     return (
       <div className="p-6 lg:p-8 space-y-6">
         <h1 className="text-3xl font-bold text-slate-900">Chat del Club</h1>
+        
+        {/* DEBUG PANEL */}
+        <Card className="border-4 border-red-500 bg-red-50">
+          <CardContent className="p-4">
+            <p className="text-sm font-mono text-red-900">
+              <strong>🔍 DEBUG:</strong><br/>
+              Usuario actual: {currentUser?.email || "No cargado"}<br/>
+              Jugadores totales: {players?.length || 0}<br/>
+              Mensajes totales: {allMessages?.length || 0}<br/>
+              Grupos creados: {myGroups.length}<br/>
+              <br/>
+              <strong>MIS JUGADORES:</strong><br/>
+              {players?.map(p => `- ${p.nombre} (${p.deporte} - ${p.categoria}) email_padre: ${p.email_padre}`).join('\n') || 'Ninguno'}
+            </p>
+          </CardContent>
+        </Card>
+        
         <Card className="border-none shadow-lg">
           <CardContent className="flex flex-col items-center justify-center py-12">
             <AlertCircle className="w-16 h-16 text-orange-400 mb-4" />
             <p className="text-slate-600 text-lg mb-2">No tienes jugadores registrados</p>
             <p className="text-slate-500 text-sm">Registra a tus jugadores para acceder al chat del grupo</p>
+            <p className="text-xs text-slate-400 mt-4">Abre la consola del navegador (F12) para ver los logs de diagnóstico</p>
           </CardContent>
         </Card>
       </div>
@@ -225,6 +279,23 @@ export default function ParentChat() {
           )}
         </div>
       </div>
+
+      {/* DEBUG PANEL - CUANDO HAY GRUPOS */}
+      <Card className="border-4 border-green-500 bg-green-50">
+        <CardContent className="p-4">
+          <p className="text-sm font-mono text-green-900">
+            <strong>✅ DEBUG - GRUPOS ACTIVOS:</strong><br/>
+            Usuario: {currentUser?.email}<br/>
+            Jugadores: {players?.length}<br/>
+            Grupos: {myGroups.length}<br/>
+            Grupo seleccionado: {selectedGroup?.id}<br/>
+            Mensajes en grupo: {selectedGroup?.messages?.length || 0}<br/>
+            <br/>
+            <strong>GRUPOS:</strong><br/>
+            {myGroups.map(g => `- ${g.id} (${g.messages.length} mensajes)`).join('\n')}
+          </p>
+        </CardContent>
+      </Card>
 
       {/* Horario de Atención */}
       <Card className={`border-none shadow-lg ${isWithinBusinessHours() ? 'bg-green-50 border-green-200' : 'bg-orange-50 border-orange-200'}`}>
@@ -287,7 +358,7 @@ export default function ParentChat() {
       )}
 
       {/* Chat */}
-      <Card className="border-none shadow-lg h-[calc(100vh-450px)] flex flex-col">
+      <Card className="border-none shadow-lg h-[calc(100vh-550px)] flex flex-col">
         <CardHeader className="border-b border-slate-100">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
@@ -296,7 +367,7 @@ export default function ParentChat() {
                 <CardTitle className="text-lg">
                   {selectedGroup?.deporte || "Deporte"} - {selectedGroup?.categoria || "Categoría"}
                 </CardTitle>
-                <p className="text-sm text-slate-500">Chat grupal</p>
+                <p className="text-sm text-slate-500">Chat grupal ({selectedGroup?.messages?.length || 0} mensajes)</p>
               </div>
             </div>
           </div>
@@ -387,12 +458,12 @@ export default function ParentChat() {
             </Button>
           </div>
           <p className="text-xs text-slate-500 mt-2">
-            Presiona Enter para enviar
+            Presiona Enter para enviar • Abre consola (F12) para ver logs de diagnóstico
           </p>
         </CardContent>
       </Card>
 
-      {/* Info Card - Simplificada */}
+      {/* Info Card */}
       <Card className="border-none shadow-lg bg-blue-50 border-l-4 border-blue-500">
         <CardContent className="p-4">
           <div className="flex items-start gap-3">
