@@ -1,10 +1,10 @@
-
 import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
+import { Plus, Info } from "lucide-react";
 import { AnimatePresence } from "framer-motion";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 import PlayerCard from "../components/players/PlayerCard";
 import PlayerForm from "../components/players/PlayerForm";
@@ -34,18 +34,35 @@ export default function ParentPlayers() {
   });
 
   const createPlayerMutation = useMutation({
-    mutationFn: (playerData) => base44.entities.Player.create(playerData),
+    mutationFn: (playerData) => {
+      // Asegurar que el padre no pueda crear jugadores sin su email
+      const dataWithParentEmail = {
+        ...playerData,
+        email_padre: user?.email || playerData.email_padre
+      };
+      return base44.entities.Player.create(dataWithParentEmail);
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['myPlayers'] });
+      queryClient.invalidateQueries({ queryKey: ['players'] });
       setShowForm(false);
       setEditingPlayer(null);
     },
   });
 
   const updatePlayerMutation = useMutation({
-    mutationFn: ({ id, playerData }) => base44.entities.Player.update(id, playerData),
+    mutationFn: ({ id, playerData }) => {
+      // Proteger campos críticos para padres
+      const safeData = {
+        ...playerData,
+        // El padre no puede cambiar el email_padre asociado
+        email_padre: editingPlayer?.email_padre || user?.email,
+      };
+      return base44.entities.Player.update(id, safeData);
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['myPlayers'] });
+      queryClient.invalidateQueries({ queryKey: ['players'] });
       setShowForm(false);
       setEditingPlayer(null);
     },
@@ -64,7 +81,8 @@ export default function ParentPlayers() {
     setShowForm(true);
   };
 
-  const futbolPlayers = players.filter(p => p.deporte === "Fútbol");
+  const futbolMasculinoPlayers = players.filter(p => p.deporte === "Fútbol Masculino");
+  const futbolFemeninoPlayers = players.filter(p => p.deporte === "Fútbol Femenino");
   const baloncestoPlayers = players.filter(p => p.deporte === "Baloncesto");
 
   return (
@@ -86,6 +104,19 @@ export default function ParentPlayers() {
         </Button>
       </div>
 
+      {/* Advertencia de protección de datos */}
+      <Alert className="bg-blue-50 border-blue-200">
+        <Info className="h-4 w-4 text-blue-600" />
+        <AlertDescription className="text-blue-800 ml-6">
+          <strong>Protección de datos:</strong> Puedes editar la información de contacto y detalles de tus jugadores. 
+          Los campos críticos como <strong>deporte y categoría</strong> solo pueden ser modificados por el administrador durante el inicio de temporada.
+          <br />
+          <span className="text-xs text-blue-600 mt-1 block">
+            ⚠️ No es posible eliminar jugadores. Si necesitas dar de baja a un jugador, contacta con el administrador.
+          </span>
+        </AlertDescription>
+      </Alert>
+
       {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="bg-white rounded-xl shadow-lg p-6 border-l-4 border-orange-500">
@@ -98,11 +129,13 @@ export default function ParentPlayers() {
           </div>
         </div>
 
-        <div className="bg-white rounded-xl shadow-lg p-6 border-l-4 border-green-500">
+        <div className="bg-white rounded-xl shadow-lg p-6 border-l-4 border-blue-500">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-slate-600 mb-1">Fútbol</p>
-              <p className="text-3xl font-bold text-green-700">{futbolPlayers.length}</p>
+              <p className="text-3xl font-bold text-blue-700">
+                {futbolMasculinoPlayers.length + futbolFemeninoPlayers.length}
+              </p>
             </div>
             <span className="text-4xl">⚽</span>
           </div>
@@ -129,6 +162,8 @@ export default function ParentPlayers() {
               setEditingPlayer(null);
             }}
             isSubmitting={createPlayerMutation.isPending || updatePlayerMutation.isPending}
+            isParent={true}
+            parentEmail={user?.email}
           />
         )}
       </AnimatePresence>
@@ -145,16 +180,42 @@ export default function ParentPlayers() {
         </div>
       ) : (
         <>
-          {/* Jugadores de Fútbol */}
-          {futbolPlayers.length > 0 && (
+          {/* Jugadores de Fútbol Masculino */}
+          {futbolMasculinoPlayers.length > 0 && (
             <div className="space-y-4">
               <h2 className="text-2xl font-bold text-slate-900 flex items-center gap-2">
-                <span>⚽</span> Fútbol
+                <span>⚽</span> Fútbol Masculino
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                 <AnimatePresence>
-                  {futbolPlayers.map((player) => (
-                    <PlayerCard key={player.id} player={player} onEdit={handleEdit} />
+                  {futbolMasculinoPlayers.map((player) => (
+                    <PlayerCard 
+                      key={player.id} 
+                      player={player} 
+                      onEdit={handleEdit}
+                      isParent={true}
+                    />
+                  ))}
+                </AnimatePresence>
+              </div>
+            </div>
+          )}
+
+          {/* Jugadores de Fútbol Femenino */}
+          {futbolFemeninoPlayers.length > 0 && (
+            <div className="space-y-4">
+              <h2 className="text-2xl font-bold text-slate-900 flex items-center gap-2">
+                <span>⚽</span> Fútbol Femenino
+              </h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                <AnimatePresence>
+                  {futbolFemeninoPlayers.map((player) => (
+                    <PlayerCard 
+                      key={player.id} 
+                      player={player} 
+                      onEdit={handleEdit}
+                      isParent={true}
+                    />
                   ))}
                 </AnimatePresence>
               </div>
@@ -170,7 +231,12 @@ export default function ParentPlayers() {
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                 <AnimatePresence>
                   {baloncestoPlayers.map((player) => (
-                    <PlayerCard key={player.id} player={player} onEdit={handleEdit} />
+                    <PlayerCard 
+                      key={player.id} 
+                      player={player} 
+                      onEdit={handleEdit}
+                      isParent={true}
+                    />
                   ))}
                 </AnimatePresence>
               </div>

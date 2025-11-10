@@ -8,9 +8,17 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
-import { Upload, Loader2 } from "lucide-react";
+import { Upload, Loader2, Lock, AlertTriangle } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
-export default function PlayerForm({ player, onSubmit, onCancel, isSubmitting }) {
+export default function PlayerForm({ 
+  player, 
+  onSubmit, 
+  onCancel, 
+  isSubmitting,
+  isParent = false,
+  parentEmail = null 
+}) {
   const [currentPlayer, setCurrentPlayer] = useState(player || {
     nombre: "",
     foto_url: "",
@@ -19,7 +27,7 @@ export default function PlayerForm({ player, onSubmit, onCancel, isSubmitting })
     dni: "",
     telefono: "",
     email: "",
-    email_padre: "",
+    email_padre: parentEmail || "",
     direccion: "",
     categoria: "",
     posicion: "",
@@ -50,6 +58,15 @@ export default function PlayerForm({ player, onSubmit, onCancel, isSubmitting })
     onSubmit(currentPlayer);
   };
 
+  // Determinar si un campo debe ser de solo lectura para padres
+  const isFieldReadOnly = (fieldName) => {
+    if (!isParent) return false;
+    
+    // Durante la temporada, los padres no pueden cambiar estos campos críticos
+    const criticalFields = ['deporte', 'categoria', 'activo'];
+    return player && criticalFields.includes(fieldName);
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0, y: -20 }}
@@ -59,8 +76,18 @@ export default function PlayerForm({ player, onSubmit, onCancel, isSubmitting })
       <Card className="border-none shadow-xl bg-white/95 backdrop-blur-sm">
         <CardHeader className="border-b border-slate-100">
           <CardTitle className="text-2xl text-slate-900">
-            {player ? "Editar Jugador" : "Nuevo Jugador"}
+            {player ? (isParent ? "Ver/Editar Jugador" : "Editar Jugador") : "Nuevo Jugador"}
           </CardTitle>
+          {isParent && player && (
+            <Alert className="mt-4 bg-blue-50 border-blue-200">
+              <Lock className="h-4 w-4 text-blue-600" />
+              <AlertDescription className="text-blue-800 ml-6 text-sm">
+                <strong>Modo edición limitada:</strong> Los campos de <strong>Deporte</strong>, <strong>Categoría</strong> y <strong>Estado</strong> están protegidos.
+                <br />
+                <span className="text-xs">Solo el administrador puede modificarlos durante el inicio de temporada.</span>
+              </AlertDescription>
+            </Alert>
+          )}
         </CardHeader>
         <CardContent className="pt-6">
           <form onSubmit={handleSubmit} className="space-y-6">
@@ -78,12 +105,16 @@ export default function PlayerForm({ player, onSubmit, onCancel, isSubmitting })
 
               {/* Deporte */}
               <div className="space-y-2">
-                <Label>Deporte *</Label>
+                <Label className="flex items-center gap-2">
+                  Deporte *
+                  {isFieldReadOnly('deporte') && <Lock className="w-3 h-3 text-orange-600" />}
+                </Label>
                 <Select
                   value={currentPlayer.deporte}
                   onValueChange={(value) => setCurrentPlayer({ ...currentPlayer, deporte: value })}
+                  disabled={isFieldReadOnly('deporte')}
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className={isFieldReadOnly('deporte') ? 'bg-slate-100 cursor-not-allowed' : ''}>
                     <SelectValue placeholder="Selecciona deporte" />
                   </SelectTrigger>
                   <SelectContent>
@@ -92,17 +123,24 @@ export default function PlayerForm({ player, onSubmit, onCancel, isSubmitting })
                     <SelectItem value="Baloncesto">🏀 Baloncesto</SelectItem>
                   </SelectContent>
                 </Select>
+                {isFieldReadOnly('deporte') && (
+                  <p className="text-xs text-orange-600">Campo protegido - Contacta al administrador para cambios</p>
+                )}
               </div>
 
               {/* Categoría */}
               <div className="space-y-2">
-                <Label>Categoría *</Label>
+                <Label className="flex items-center gap-2">
+                  Categoría *
+                  {isFieldReadOnly('categoria') && <Lock className="w-3 h-3 text-orange-600" />}
+                </Label>
                 <Select
                   value={currentPlayer.categoria}
                   onValueChange={(value) => setCurrentPlayer({ ...currentPlayer, categoria: value })}
+                  disabled={isFieldReadOnly('categoria')}
                   required
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className={isFieldReadOnly('categoria') ? 'bg-slate-100 cursor-not-allowed' : ''}>
                     <SelectValue placeholder="Selecciona categoría" />
                   </SelectTrigger>
                   <SelectContent>
@@ -115,6 +153,9 @@ export default function PlayerForm({ player, onSubmit, onCancel, isSubmitting })
                     <SelectItem value="Senior">Senior</SelectItem>
                   </SelectContent>
                 </Select>
+                {isFieldReadOnly('categoria') && (
+                  <p className="text-xs text-orange-600">Campo protegido - Contacta al administrador para cambios</p>
+                )}
               </div>
 
               {/* Fecha de Nacimiento */}
@@ -160,13 +201,21 @@ export default function PlayerForm({ player, onSubmit, onCancel, isSubmitting })
 
               {/* Email Padre */}
               <div className="space-y-2">
-                <Label>Email Padre/Tutor</Label>
+                <Label className="flex items-center gap-2">
+                  Email Padre/Tutor
+                  {isParent && <Lock className="w-3 h-3 text-orange-600" />}
+                </Label>
                 <Input
                   type="email"
                   placeholder="Email del padre/tutor"
                   value={currentPlayer.email_padre}
                   onChange={(e) => setCurrentPlayer({ ...currentPlayer, email_padre: e.target.value })}
+                  disabled={isParent}
+                  className={isParent ? 'bg-slate-100 cursor-not-allowed' : ''}
                 />
+                {isParent && (
+                  <p className="text-xs text-slate-500">Este es tu email registrado y no puede ser modificado</p>
+                )}
               </div>
 
               {/* Posición */}
@@ -266,17 +315,34 @@ export default function PlayerForm({ player, onSubmit, onCancel, isSubmitting })
               />
             </div>
 
-            {/* Activo */}
-            <div className="flex items-center justify-between p-4 rounded-lg bg-slate-50">
-              <div>
-                <Label className="text-base font-medium">Jugador Activo</Label>
-                <p className="text-sm text-slate-500">¿El jugador está actualmente en el club?</p>
+            {/* Activo - Solo visible para admin o si está creando */}
+            {(!isParent || !player) && (
+              <div className="flex items-center justify-between p-4 rounded-lg bg-slate-50">
+                <div>
+                  <Label className="text-base font-medium flex items-center gap-2">
+                    Jugador Activo
+                    {isFieldReadOnly('activo') && <Lock className="w-4 h-4 text-orange-600" />}
+                  </Label>
+                  <p className="text-sm text-slate-500">¿El jugador está actualmente en el club?</p>
+                </div>
+                <Switch
+                  checked={currentPlayer.activo}
+                  onCheckedChange={(checked) => setCurrentPlayer({ ...currentPlayer, activo: checked })}
+                  disabled={isFieldReadOnly('activo')}
+                />
               </div>
-              <Switch
-                checked={currentPlayer.activo}
-                onCheckedChange={(checked) => setCurrentPlayer({ ...currentPlayer, activo: checked })}
-              />
-            </div>
+            )}
+
+            {/* Advertencia para padres sobre eliminación */}
+            {isParent && player && (
+              <Alert className="bg-orange-50 border-orange-200">
+                <AlertTriangle className="h-4 w-4 text-orange-600" />
+                <AlertDescription className="text-orange-800 ml-6 text-sm">
+                  <strong>Importante:</strong> No es posible eliminar jugadores desde el panel de padres.
+                  Si necesitas dar de baja a un jugador, por favor contacta con el administrador del club.
+                </AlertDescription>
+              </Alert>
+            )}
 
             {/* Botones */}
             <div className="flex justify-end gap-3 pt-4 border-t border-slate-100">

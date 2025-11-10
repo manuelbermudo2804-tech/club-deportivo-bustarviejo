@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Pencil, CreditCard, Mail, Phone, User } from "lucide-react";
+import { Pencil, CreditCard, Mail, Phone, User, Eye } from "lucide-react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 
@@ -36,7 +36,7 @@ const sportIcons = {
   "Baloncesto": "🏀"
 };
 
-export default function PlayerCard({ player, onEdit }) {
+export default function PlayerCard({ player, onEdit, isParent = false, readOnly = false }) {
   return (
     <motion.div
       initial={{ opacity: 0, scale: 0.95 }}
@@ -113,15 +113,27 @@ export default function PlayerCard({ player, onEdit }) {
           )}
 
           <div className="flex gap-2 pt-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => onEdit(player)}
-              className="flex-1 hover:bg-orange-50 hover:text-orange-700"
-            >
-              <Pencil className="w-4 h-4 mr-1" />
-              Editar
-            </Button>
+            {readOnly ? (
+              <Button
+                variant="outline"
+                size="sm"
+                className="flex-1 hover:bg-slate-50"
+                disabled
+              >
+                <Eye className="w-4 h-4 mr-1" />
+                Solo Lectura
+              </Button>
+            ) : (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => onEdit(player)}
+                className="flex-1 hover:bg-orange-50 hover:text-orange-700"
+              >
+                <Pencil className="w-4 h-4 mr-1" />
+                {isParent ? "Ver/Editar" : "Editar"}
+              </Button>
+            )}
             <Link to={`${createPageUrl("Payments")}?jugador_id=${player.id}`} className="flex-1">
               <Button
                 variant="outline"
