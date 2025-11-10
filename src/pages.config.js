@@ -7,6 +7,7 @@ import ParentDashboard from './pages/ParentDashboard';
 import ParentPayments from './pages/ParentPayments';
 import ParentPlayers from './pages/ParentPlayers';
 import Calendar from './pages/Calendar';
+import Announcements from './pages/Announcements';
 import Layout from './Layout.jsx';
 
 
@@ -20,6 +21,7 @@ export const PAGES = {
     "ParentPayments": ParentPayments,
     "ParentPlayers": ParentPlayers,
     "Calendar": Calendar,
+    "Announcements": Announcements,
 }
 
 export const pagesConfig = {

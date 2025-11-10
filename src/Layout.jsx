@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { base44 } from "@/api/base44Client";
-import { Home, Users, CreditCard, ShoppingBag, Menu, Bell, LogOut, Calendar } from "lucide-react";
+import { Home, Users, CreditCard, ShoppingBag, Menu, Bell, LogOut, Calendar, Megaphone } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -47,6 +47,11 @@ const adminNavigationItems = [
     icon: Calendar,
   },
   {
+    title: "Anuncios",
+    url: createPageUrl("Announcements"),
+    icon: Megaphone,
+  },
+  {
     title: "Pagos",
     url: createPageUrl("Payments"),
     icon: CreditCard,
@@ -78,6 +83,11 @@ const parentNavigationItems = [
     title: "Calendario",
     url: createPageUrl("Calendar"),
     icon: Calendar,
+  },
+  {
+    title: "Anuncios",
+    url: createPageUrl("Announcements"),
+    icon: Megaphone,
   },
   {
     title: "Mis Pagos",
