@@ -10,7 +10,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export default function ParentChat() {
   const [messageText, setMessageText] = useState("");
@@ -40,23 +40,16 @@ export default function ParentChat() {
     initialData: [],
   });
 
-  const { data: messages, refetch } = useQuery({
-    queryKey: ['myGroupMessages', currentUser?.email],
-    queryFn: async () => {
-      const allMessages = await base44.entities.ChatMessage.list('-created_date');
-      // Filtrar mensajes de los grupos de mis jugadores
-      const myGroupIds = myGroups.map(g => g.id);
-      return allMessages.filter(msg => myGroupIds.includes(msg.grupo_id))
-        .sort((a, b) => new Date(a.created_date) - new Date(b.created_date));
-    },
-    enabled: !!currentUser?.email && myGroups.length > 0,
+  const { data: messages } = useQuery({
+    queryKey: ['chatMessages'],
+    queryFn: () => base44.entities.ChatMessage.list('-created_date'),
     initialData: [],
     refetchInterval: 5000,
   });
 
+  // Crear grupos automáticamente basándose en mis jugadores
   useEffect(() => {
     if (players.length > 0) {
-      // Obtener grupos únicos de mis jugadores
       const groups = {};
       players.forEach(player => {
         const groupId = `${player.deporte}_${player.categoria}`;
@@ -64,22 +57,57 @@ export default function ParentChat() {
           groups[groupId] = {
             id: groupId,
             deporte: player.deporte,
-            categoria: player.categoria
+            categoria: player.categoria,
+            messages: [],
+            unreadCount: 0
           };
         }
       });
+
+      // Agregar mensajes a los grupos
+      messages.forEach(msg => {
+        const groupId = msg.grupo_id || `${msg.deporte}_${msg.categoria}`;
+        if (groups[groupId]) {
+          groups[groupId].messages.push(msg);
+          if (!msg.leido && msg.tipo === "admin_a_grupo") {
+            groups[groupId].unreadCount++;
+          }
+        }
+      });
+
+      // Ordenar mensajes por fecha
+      Object.values(groups).forEach(group => {
+        group.messages.sort((a, b) => new Date(a.created_date) - new Date(b.created_date));
+      });
+
       const groupsList = Object.values(groups);
       setMyGroups(groupsList);
+      
+      // Seleccionar el primer grupo si no hay ninguno seleccionado
       if (groupsList.length > 0 && !selectedGroup) {
         setSelectedGroup(groupsList[0]);
       }
+      // Si el grupo seleccionado ya no existe (por ejemplo, se eliminó un jugador), seleccionar el primero
+      else if (selectedGroup && !groupsList.find(g => g.id === selectedGroup.id)) {
+        setSelectedGroup(groupsList[0]);
+      }
+      // Actualizar el grupo seleccionado con los nuevos mensajes
+      else if (selectedGroup) {
+        const updatedGroup = groupsList.find(g => g.id === selectedGroup.id);
+        if (updatedGroup) {
+          setSelectedGroup(updatedGroup);
+        }
+      }
+    } else {
+      setMyGroups([]);
+      setSelectedGroup(null);
     }
-  }, [players]);
+  }, [players, messages]);
 
   const sendMessageMutation = useMutation({
     mutationFn: (messageData) => base44.entities.ChatMessage.create(messageData),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['myGroupMessages'] });
+      queryClient.invalidateQueries({ queryKey: ['chatMessages'] });
       setMessageText("");
       toast.success("Mensaje enviado al grupo");
     },
@@ -88,7 +116,7 @@ export default function ParentChat() {
   const markAsReadMutation = useMutation({
     mutationFn: ({ id, messageData }) => base44.entities.ChatMessage.update(id, messageData),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['myGroupMessages'] });
+      queryClient.invalidateQueries({ queryKey: ['chatMessages'] });
     },
   });
 
@@ -101,9 +129,9 @@ export default function ParentChat() {
 
   useEffect(() => {
     // Marcar mensajes del admin como leídos en el grupo seleccionado
-    if (messages && currentUser && selectedGroup) {
-      messages.forEach(msg => {
-        if (!msg.leido && msg.tipo === "admin_a_grupo" && msg.grupo_id === selectedGroup.id) {
+    if (selectedGroup && currentUser) {
+      selectedGroup.messages.forEach(msg => {
+        if (!msg.leido && msg.tipo === "admin_a_grupo") {
           markAsReadMutation.mutate({
             id: msg.id,
             messageData: { ...msg, leido: true }
@@ -111,7 +139,7 @@ export default function ParentChat() {
         }
       });
     }
-  }, [messages, currentUser, selectedGroup]);
+  }, [selectedGroup?.id, currentUser]);
 
   const handleSendMessage = () => {
     if (!messageText.trim() || !currentUser || !selectedGroup) return;
@@ -131,14 +159,6 @@ export default function ParentChat() {
       grupo_id: selectedGroup.id,
       leido: false
     });
-  };
-
-  const groupMessages = messages.filter(msg => msg.grupo_id === selectedGroup?.id);
-
-  const getUnreadCount = (groupId) => {
-    return messages.filter(msg => 
-      !msg.leido && msg.tipo === "admin_a_grupo" && msg.grupo_id === groupId
-    ).length;
   };
 
   const deporteEmojis = {
@@ -198,9 +218,9 @@ export default function ParentChat() {
               <TabsTrigger key={group.id} value={group.id} className="relative">
                 <span className="mr-2">{deporteEmojis[group.deporte]}</span>
                 {group.categoria}
-                {getUnreadCount(group.id) > 0 && (
+                {group.unreadCount > 0 && (
                   <Badge className="ml-2 bg-red-500 text-white h-5 min-w-5 flex items-center justify-center px-1.5 text-xs">
-                    {getUnreadCount(group.id)}
+                    {group.unreadCount}
                   </Badge>
                 )}
               </TabsTrigger>
@@ -238,15 +258,15 @@ export default function ParentChat() {
         </CardHeader>
 
         <ScrollArea className="flex-1 p-6">
-          {groupMessages.length === 0 ? (
+          {selectedGroup?.messages.length === 0 ? (
             <div className="text-center py-12">
               <MessageCircle className="w-16 h-16 text-slate-300 mx-auto mb-4" />
-              <p className="text-slate-500 text-lg mb-2">No hay mensajes aún</p>
-              <p className="text-slate-400 text-sm">Sé el primero en escribir en el grupo</p>
+              <p className="text-slate-500 text-lg mb-2">No hay mensajes aún en este grupo</p>
+              <p className="text-slate-400 text-sm">Sé el primero en escribir</p>
             </div>
           ) : (
             <div className="space-y-4">
-              {groupMessages.map((msg) => (
+              {selectedGroup.messages.map((msg) => (
                 <div
                   key={msg.id}
                   className={`flex ${msg.tipo === "padre_a_grupo" && msg.remitente_email === currentUser?.email ? 'justify-end' : 'justify-start'}`}
@@ -287,7 +307,7 @@ export default function ParentChat() {
                     Disculpa, el chat está disponible de <strong>10:00 a 20:00</strong>.
                   </p>
                   <p className="text-sm text-orange-700 mt-1">
-                    Puedes escribir tu mensaje y enviarlo cuando el chat esté disponible.
+                    Podrás enviar mensajes cuando el horario esté disponible.
                   </p>
                 </div>
               </div>

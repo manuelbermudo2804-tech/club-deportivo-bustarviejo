@@ -27,11 +27,17 @@ export default function AdminChat() {
     fetchUser();
   }, []);
 
-  const { data: messages, refetch: refetchMessages } = useQuery({
+  const { data: messages } = useQuery({
     queryKey: ['chatMessages'],
     queryFn: () => base44.entities.ChatMessage.list('-created_date'),
     initialData: [],
     refetchInterval: 5000,
+  });
+
+  const { data: players } = useQuery({
+    queryKey: ['players'],
+    queryFn: () => base44.entities.Player.list(),
+    initialData: [],
   });
 
   const sendMessageMutation = useMutation({
@@ -57,31 +63,41 @@ export default function AdminChat() {
     return hour >= 10 && hour < 20;
   };
 
-  // Agrupar mensajes por deporte y categoría
-  const groups = {};
-  messages.forEach(msg => {
-    const groupId = msg.grupo_id || `${msg.deporte}_${msg.categoria}`;
-    if (!groups[groupId]) {
-      groups[groupId] = {
+  // Crear grupos automáticamente basándose en los jugadores registrados
+  const allGroups = {};
+  players.forEach(player => {
+    const groupId = `${player.deporte}_${player.categoria}`;
+    if (!allGroups[groupId]) {
+      allGroups[groupId] = {
         id: groupId,
-        deporte: msg.deporte,
-        categoria: msg.categoria,
+        deporte: player.deporte,
+        categoria: player.categoria,
         messages: [],
         unreadCount: 0,
-        lastMessage: null
+        lastMessage: null,
+        playerCount: 0
       };
     }
-    groups[groupId].messages.push(msg);
-    if (!msg.leido && msg.tipo === "padre_a_grupo") {
-      groups[groupId].unreadCount++;
-    }
-    if (!groups[groupId].lastMessage || 
-        new Date(msg.created_date) > new Date(groups[groupId].lastMessage.created_date)) {
-      groups[groupId].lastMessage = msg;
+    allGroups[groupId].playerCount++;
+  });
+
+  // Agregar mensajes a los grupos
+  messages.forEach(msg => {
+    const groupId = msg.grupo_id || `${msg.deporte}_${msg.categoria}`;
+    if (allGroups[groupId]) {
+      allGroups[groupId].messages.push(msg);
+      if (!msg.leido && msg.tipo === "padre_a_grupo") {
+        allGroups[groupId].unreadCount++;
+      }
+      if (!allGroups[groupId].lastMessage || 
+          new Date(msg.created_date) > new Date(allGroups[groupId].lastMessage.created_date)) {
+        allGroups[groupId].lastMessage = msg;
+      }
     }
   });
 
-  const groupsList = Object.values(groups).sort((a, b) => {
+  const groupsList = Object.values(allGroups).sort((a, b) => {
+    if (!a.lastMessage && !b.lastMessage) return 0;
     if (!a.lastMessage) return 1;
     if (!b.lastMessage) return -1;
     return new Date(b.lastMessage.created_date) - new Date(a.lastMessage.created_date);
@@ -170,7 +186,7 @@ export default function AdminChat() {
           <CardHeader className="border-b border-slate-100">
             <CardTitle className="text-lg flex items-center gap-2">
               <Users className="w-5 h-5 text-orange-600" />
-              Grupos de Chat
+              Grupos de Chat ({groupsList.length})
             </CardTitle>
             <div className="relative mt-3">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400" />
@@ -187,7 +203,7 @@ export default function AdminChat() {
               {filteredGroups.length === 0 ? (
                 <div className="text-center py-12">
                   <MessageCircle className="w-12 h-12 text-slate-300 mx-auto mb-3" />
-                  <p className="text-slate-500">No hay grupos</p>
+                  <p className="text-slate-500">No hay grupos con jugadores</p>
                 </div>
               ) : (
                 <div className="divide-y divide-slate-100">
@@ -207,6 +223,9 @@ export default function AdminChat() {
                           <div className="flex-1 min-w-0">
                             <p className="font-bold text-slate-900">{group.deporte}</p>
                             <p className="text-sm text-slate-600">{group.categoria}</p>
+                            <p className="text-xs text-slate-500 mt-1">
+                              {group.playerCount} jugador{group.playerCount !== 1 ? 'es' : ''}
+                            </p>
                             {group.lastMessage && (
                               <p className="text-xs text-slate-500 truncate mt-1">
                                 {group.lastMessage.mensaje}
@@ -254,38 +273,48 @@ export default function AdminChat() {
                   </div>
                   <div>
                     <CardTitle className="text-lg">{selectedGroup.deporte} - {selectedGroup.categoria}</CardTitle>
-                    <p className="text-sm text-slate-500">Grupo de chat</p>
+                    <p className="text-sm text-slate-500">
+                      {selectedGroup.playerCount} jugador{selectedGroup.playerCount !== 1 ? 'es' : ''} en este grupo
+                    </p>
                   </div>
                 </div>
               </CardHeader>
 
               <ScrollArea className="flex-1 p-6">
-                <div className="space-y-4">
-                  {selectedGroup.messages
-                    .sort((a, b) => new Date(a.created_date) - new Date(b.created_date))
-                    .map((msg) => (
-                      <div
-                        key={msg.id}
-                        className={`flex ${msg.tipo === "admin_a_grupo" ? 'justify-end' : 'justify-start'}`}
-                      >
-                        <div className={`max-w-[70%] ${
-                          msg.tipo === "admin_a_grupo" 
-                            ? 'bg-orange-600 text-white' 
-                            : 'bg-slate-100 text-slate-900'
-                        } rounded-2xl px-4 py-3 shadow-sm`}>
-                          <p className="text-xs font-medium mb-1 opacity-70">
-                            {msg.remitente_nombre}
-                          </p>
-                          <p className="text-sm">{msg.mensaje}</p>
-                          <p className={`text-xs mt-2 ${
-                            msg.tipo === "admin_a_grupo" ? 'text-orange-200' : 'text-slate-500'
-                          }`}>
-                            {format(new Date(msg.created_date), "HH:mm - d 'de' MMM", { locale: es })}
-                          </p>
+                {selectedGroup.messages.length === 0 ? (
+                  <div className="text-center py-12">
+                    <MessageCircle className="w-16 h-16 text-slate-300 mx-auto mb-4" />
+                    <p className="text-slate-500 text-lg mb-2">No hay mensajes aún</p>
+                    <p className="text-slate-400 text-sm">Sé el primero en escribir en este grupo</p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {selectedGroup.messages
+                      .sort((a, b) => new Date(a.created_date) - new Date(b.created_date))
+                      .map((msg) => (
+                        <div
+                          key={msg.id}
+                          className={`flex ${msg.tipo === "admin_a_grupo" ? 'justify-end' : 'justify-start'}`}
+                        >
+                          <div className={`max-w-[70%] ${
+                            msg.tipo === "admin_a_grupo" 
+                              ? 'bg-orange-600 text-white' 
+                              : 'bg-slate-100 text-slate-900'
+                          } rounded-2xl px-4 py-3 shadow-sm`}>
+                            <p className="text-xs font-medium mb-1 opacity-70">
+                              {msg.remitente_nombre}
+                            </p>
+                            <p className="text-sm">{msg.mensaje}</p>
+                            <p className={`text-xs mt-2 ${
+                              msg.tipo === "admin_a_grupo" ? 'text-orange-200' : 'text-slate-500'
+                            }`}>
+                              {format(new Date(msg.created_date), "HH:mm - d 'de' MMM", { locale: es })}
+                            </p>
+                          </div>
                         </div>
-                      </div>
-                    ))}
-                </div>
+                      ))}
+                  </div>
+                )}
               </ScrollArea>
 
               <CardContent className="border-t border-slate-100 p-4">
