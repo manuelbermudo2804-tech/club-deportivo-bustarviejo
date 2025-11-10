@@ -52,6 +52,8 @@ export default function ParentChat() {
     if (players.length > 0) {
       const groups = {};
       players.forEach(player => {
+        if (!player.deporte || !player.categoria) return; // Skip players without sport/category
+        
         const groupId = `${player.deporte}_${player.categoria}`;
         if (!groups[groupId]) {
           groups[groupId] = {
@@ -66,6 +68,8 @@ export default function ParentChat() {
 
       // Agregar mensajes a los grupos
       messages.forEach(msg => {
+        if (!msg.deporte || !msg.categoria) return; // Skip messages without sport/category
+        
         const groupId = msg.grupo_id || `${msg.deporte}_${msg.categoria}`;
         if (groups[groupId]) {
           groups[groupId].messages.push(msg);
@@ -216,7 +220,7 @@ export default function ParentChat() {
           <TabsList className="bg-white border">
             {myGroups.map(group => (
               <TabsTrigger key={group.id} value={group.id} className="relative">
-                <span className="mr-2">{deporteEmojis[group.deporte]}</span>
+                <span className="mr-2">{deporteEmojis[group.deporte] || "⚽"}</span>
                 {group.categoria}
                 {group.unreadCount > 0 && (
                   <Badge className="ml-2 bg-red-500 text-white h-5 min-w-5 flex items-center justify-center px-1.5 text-xs">
@@ -232,11 +236,11 @@ export default function ParentChat() {
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
               <div className="w-12 h-12 bg-gradient-to-br from-orange-400 to-orange-600 rounded-xl flex items-center justify-center text-2xl">
-                {deporteEmojis[selectedGroup?.deporte]}
+                {deporteEmojis[selectedGroup?.deporte] || "⚽"}
               </div>
               <div>
-                <p className="font-bold text-slate-900">{selectedGroup?.deporte}</p>
-                <p className="text-sm text-slate-600">{selectedGroup?.categoria}</p>
+                <p className="font-bold text-slate-900">{selectedGroup?.deporte || "Deporte"}</p>
+                <p className="text-sm text-slate-600">{selectedGroup?.categoria || "Categoría"}</p>
               </div>
             </div>
           </CardContent>
@@ -250,7 +254,7 @@ export default function ParentChat() {
             <div className="flex items-center gap-3">
               <Users className="w-5 h-5 text-orange-600" />
               <div>
-                <CardTitle className="text-lg">Grupo de {selectedGroup?.deporte} - {selectedGroup?.categoria}</CardTitle>
+                <CardTitle className="text-lg">Grupo de {selectedGroup?.deporte || "Deporte"} - {selectedGroup?.categoria || "Categoría"}</CardTitle>
                 <p className="text-sm text-slate-500">Chat grupal con padres y administración</p>
               </div>
             </div>
@@ -258,7 +262,7 @@ export default function ParentChat() {
         </CardHeader>
 
         <ScrollArea className="flex-1 p-6">
-          {selectedGroup?.messages.length === 0 ? (
+          {!selectedGroup || selectedGroup.messages.length === 0 ? (
             <div className="text-center py-12">
               <MessageCircle className="w-16 h-16 text-slate-300 mx-auto mb-4" />
               <p className="text-slate-500 text-lg mb-2">No hay mensajes aún en este grupo</p>
@@ -279,7 +283,7 @@ export default function ParentChat() {
                       : 'bg-slate-100 text-slate-900'
                   } rounded-2xl px-4 py-3 shadow-sm`}>
                     <p className="text-xs font-medium mb-1 opacity-70">
-                      {msg.tipo === "admin_a_grupo" ? "👤 Administración" : msg.remitente_nombre}
+                      {msg.tipo === "admin_a_grupo" ? "👤 Administración" : msg.remitente_nombre || "Usuario"}
                     </p>
                     <p className="text-sm">{msg.mensaje}</p>
                     <p className={`text-xs mt-2 ${
@@ -350,7 +354,7 @@ export default function ParentChat() {
             <div className="flex-1">
               <p className="font-medium text-slate-900 mb-1">ℹ️ Sobre el Chat Grupal:</p>
               <ul className="text-sm text-slate-700 space-y-1">
-                <li>• Este chat es para el grupo de <strong>{selectedGroup?.deporte} - {selectedGroup?.categoria}</strong></li>
+                <li>• Este chat es para el grupo de <strong>{selectedGroup?.deporte || "Deporte"} - {selectedGroup?.categoria || "Categoría"}</strong></li>
                 <li>• Todos los padres de esta categoría pueden ver y participar</li>
                 <li>• La administración también participa para resolver dudas</li>
                 <li>• Horario: <strong>10:00 a 20:00</strong></li>

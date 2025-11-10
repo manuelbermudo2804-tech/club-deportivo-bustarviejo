@@ -66,6 +66,8 @@ export default function AdminChat() {
   // Crear grupos automáticamente basándose en los jugadores registrados
   const allGroups = {};
   players.forEach(player => {
+    if (!player.deporte || !player.categoria) return; // Skip players without sport/category
+    
     const groupId = `${player.deporte}_${player.categoria}`;
     if (!allGroups[groupId]) {
       allGroups[groupId] = {
@@ -83,6 +85,8 @@ export default function AdminChat() {
 
   // Agregar mensajes a los grupos
   messages.forEach(msg => {
+    if (!msg.deporte || !msg.categoria) return; // Skip messages without sport/category
+    
     const groupId = msg.grupo_id || `${msg.deporte}_${msg.categoria}`;
     if (allGroups[groupId]) {
       allGroups[groupId].messages.push(msg);
@@ -104,8 +108,8 @@ export default function AdminChat() {
   });
 
   const filteredGroups = groupsList.filter(group =>
-    group.deporte.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    group.categoria.toLowerCase().includes(searchTerm.toLowerCase())
+    (group.deporte || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (group.categoria || "").toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const handleSendMessage = () => {
@@ -204,6 +208,7 @@ export default function AdminChat() {
                 <div className="text-center py-12">
                   <MessageCircle className="w-12 h-12 text-slate-300 mx-auto mb-3" />
                   <p className="text-slate-500">No hay grupos con jugadores</p>
+                  <p className="text-xs text-slate-400 mt-2">Los grupos se crean automáticamente al registrar jugadores</p>
                 </div>
               ) : (
                 <div className="divide-y divide-slate-100">
@@ -218,7 +223,7 @@ export default function AdminChat() {
                       <div className="flex items-start justify-between gap-3">
                         <div className="flex items-center gap-3 flex-1 min-w-0">
                           <div className="w-12 h-12 bg-gradient-to-br from-orange-400 to-orange-600 rounded-xl flex items-center justify-center flex-shrink-0 text-2xl">
-                            {deporteEmojis[group.deporte]}
+                            {deporteEmojis[group.deporte] || "⚽"}
                           </div>
                           <div className="flex-1 min-w-0">
                             <p className="font-bold text-slate-900">{group.deporte}</p>
@@ -269,7 +274,7 @@ export default function AdminChat() {
               <CardHeader className="border-b border-slate-100">
                 <div className="flex items-center gap-3">
                   <div className="w-12 h-12 bg-gradient-to-br from-orange-400 to-orange-600 rounded-xl flex items-center justify-center text-2xl">
-                    {deporteEmojis[selectedGroup.deporte]}
+                    {deporteEmojis[selectedGroup.deporte] || "⚽"}
                   </div>
                   <div>
                     <CardTitle className="text-lg">{selectedGroup.deporte} - {selectedGroup.categoria}</CardTitle>
@@ -302,7 +307,7 @@ export default function AdminChat() {
                               : 'bg-slate-100 text-slate-900'
                           } rounded-2xl px-4 py-3 shadow-sm`}>
                             <p className="text-xs font-medium mb-1 opacity-70">
-                              {msg.remitente_nombre}
+                              {msg.remitente_nombre || "Usuario"}
                             </p>
                             <p className="text-sm">{msg.mensaje}</p>
                             <p className={`text-xs mt-2 ${
