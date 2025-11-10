@@ -35,11 +35,10 @@ const generateSeasonOptions = () => {
   return seasons;
 };
 
-// Función para crear recordatorios automáticos
-const createReminders = async (payment, playerEmail) => {
+// Función para crear recordatorio único - 15 días antes del vencimiento
+const createReminder = async (payment, playerEmail) => {
   if (!playerEmail) return;
   
-  const currentYear = new Date().getFullYear();
   const seasonStartYear = parseInt(payment.temporada.split('/')[0]);
   
   // Mapeo de meses a números y fechas de vencimiento
@@ -54,62 +53,27 @@ const createReminders = async (payment, playerEmail) => {
   
   const dueDate = new Date(paymentMonth.year, paymentMonth.month - 1, paymentMonth.day);
   
-  // Recordatorio 7 días antes
-  const reminder7Days = new Date(dueDate);
-  reminder7Days.setDate(reminder7Days.getDate() - 7);
+  // Recordatorio 15 días antes del vencimiento
+  const reminder15Days = new Date(dueDate);
+  reminder15Days.setDate(reminder15Days.getDate() - 15);
   
-  // Recordatorio el día de vencimiento
-  const reminderDueDay = new Date(dueDate);
+  const reminder = {
+    pago_id: payment.id,
+    jugador_id: payment.jugador_id,
+    jugador_nombre: payment.jugador_nombre,
+    email_padre: playerEmail,
+    tipo_recordatorio: "15 días antes",
+    fecha_envio: reminder15Days.toISOString().split('T')[0],
+    mes_pago: payment.mes,
+    temporada: payment.temporada,
+    cantidad: payment.cantidad,
+    enviado: false
+  };
   
-  // Recordatorio después del vencimiento
-  const reminderAfterDue = new Date(dueDate);
-  reminderAfterDue.setDate(reminderAfterDue.getDate() + 7);
-  
-  const reminders = [
-    {
-      pago_id: payment.id,
-      jugador_id: payment.jugador_id,
-      jugador_nombre: payment.jugador_nombre,
-      email_padre: playerEmail,
-      tipo_recordatorio: "7 días antes",
-      fecha_envio: reminder7Days.toISOString().split('T')[0],
-      mes_pago: payment.mes,
-      temporada: payment.temporada,
-      cantidad: payment.cantidad,
-      enviado: false
-    },
-    {
-      pago_id: payment.id,
-      jugador_id: payment.jugador_id,
-      jugador_nombre: payment.jugador_nombre,
-      email_padre: playerEmail,
-      tipo_recordatorio: "Día de vencimiento",
-      fecha_envio: reminderDueDay.toISOString().split('T')[0],
-      mes_pago: payment.mes,
-      temporada: payment.temporada,
-      cantidad: payment.cantidad,
-      enviado: false
-    },
-    {
-      pago_id: payment.id,
-      jugador_id: payment.jugador_id,
-      jugador_nombre: payment.jugador_nombre,
-      email_padre: playerEmail,
-      tipo_recordatorio: "Después del vencimiento",
-      fecha_envio: reminderAfterDue.toISOString().split('T')[0],
-      mes_pago: payment.mes,
-      temporada: payment.temporada,
-      cantidad: payment.cantidad,
-      enviado: false
-    }
-  ];
-  
-  for (const reminder of reminders) {
-    try {
-      await base44.entities.Reminder.create(reminder);
-    } catch (error) {
-      console.error("Error creating reminder:", error);
-    }
+  try {
+    await base44.entities.Reminder.create(reminder);
+  } catch (error) {
+    console.error("Error creating reminder:", error);
   }
 };
 
@@ -194,9 +158,9 @@ export default function PaymentForm({ payment, players, onSubmit, onCancel, isSu
         try {
           const createdPayment = await base44.entities.Payment.create(paymentData);
           
-          // Crear recordatorios para este pago
+          // Crear recordatorio para este pago (15 días antes)
           if (selectedPlayer?.email_padre) {
-            await createReminders(createdPayment, selectedPlayer.email_padre);
+            await createReminder(createdPayment, selectedPlayer.email_padre);
           }
         } catch (error) {
           console.error(`Error creating payment for ${mes}:`, error);
@@ -211,9 +175,9 @@ export default function PaymentForm({ payment, players, onSubmit, onCancel, isSu
       try {
         const createdPayment = await base44.entities.Payment.create(currentPayment);
         
-        // Crear recordatorios
+        // Crear recordatorio (15 días antes)
         if (selectedPlayer?.email_padre) {
-          await createReminders(createdPayment, selectedPlayer.email_padre);
+          await createReminder(createdPayment, selectedPlayer.email_padre);
         }
         
         onSubmit(currentPayment);
@@ -445,11 +409,26 @@ export default function PaymentForm({ payment, players, onSubmit, onCancel, isSu
               />
             </div>
 
-            {/* Info sobre tipo de pago */}
+            {/* Info sobre tipo de pago y recordatorios */}
             {currentPayment.tipo_pago === "Tres meses" && (
-              <div className="bg-blue-50 border-l-4 border-blue-500 p-4 rounded">
-                <p className="text-sm text-blue-800">
-                  ℹ️ Se crearán 3 pagos automáticamente para los meses de <strong>Junio, Septiembre y Diciembre</strong> con la cantidad especificada para cada uno.
+              <div className="space-y-3">
+                <div className="bg-blue-50 border-l-4 border-blue-500 p-4 rounded">
+                  <p className="text-sm text-blue-800">
+                    ℹ️ Se crearán 3 pagos automáticamente para los meses de <strong>Junio, Septiembre y Diciembre</strong> con la cantidad especificada para cada uno.
+                  </p>
+                </div>
+                <div className="bg-orange-50 border-l-4 border-orange-500 p-4 rounded">
+                  <p className="text-sm text-orange-800">
+                    📧 Se enviará un recordatorio automático <strong>15 días antes</strong> de cada vencimiento (15 de Junio, 15 de Septiembre, 15 de Diciembre).
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {currentPayment.tipo_pago === "Único" && (
+              <div className="bg-orange-50 border-l-4 border-orange-500 p-4 rounded">
+                <p className="text-sm text-orange-800">
+                  📧 Se enviará un recordatorio automático <strong>15 días antes del vencimiento</strong> del pago.
                 </p>
               </div>
             )}
