@@ -38,16 +38,19 @@ export default function PaymentTable({ payments, isLoading, onEdit, onStatusChan
   const statusConfig = {
     "Pendiente": {
       icon: Clock,
-      color: "bg-amber-100 text-amber-700 border-amber-200",
-      iconColor: "text-amber-600"
+      emoji: "🔴",
+      color: "bg-red-100 text-red-700 border-red-200",
+      iconColor: "text-red-600"
     },
     "En revisión": {
       icon: AlertTriangle,
-      color: "bg-blue-100 text-blue-700 border-blue-200",
-      iconColor: "text-blue-600"
+      emoji: "🟠",
+      color: "bg-orange-100 text-orange-700 border-orange-200",
+      iconColor: "text-orange-600"
     },
     "Pagado": {
       icon: CheckCircle2,
+      emoji: "🟢",
       color: "bg-green-100 text-green-700 border-green-200",
       iconColor: "text-green-600"
     }
@@ -145,28 +148,28 @@ export default function PaymentTable({ payments, isLoading, onEdit, onStatusChan
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
                               <button className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full border text-xs font-medium ${status.color} hover:opacity-80 transition-opacity`}>
-                                <StatusIcon className={`w-3 h-3 ${status.iconColor}`} />
+                                <span>{status.emoji}</span>
                                 {payment.estado}
                               </button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
                               <DropdownMenuItem onClick={() => onStatusChange(payment, "Pendiente")}>
-                                <Clock className="w-4 h-4 mr-2 text-amber-600" />
+                                <span className="mr-2">🔴</span>
                                 Pendiente
                               </DropdownMenuItem>
                               <DropdownMenuItem onClick={() => onStatusChange(payment, "En revisión")}>
-                                <AlertTriangle className="w-4 h-4 mr-2 text-blue-600" />
+                                <span className="mr-2">🟠</span>
                                 En revisión
                               </DropdownMenuItem>
                               <DropdownMenuItem onClick={() => onStatusChange(payment, "Pagado")}>
-                                <CheckCircle2 className="w-4 h-4 mr-2 text-green-600" />
+                                <span className="mr-2">🟢</span>
                                 Pagado
                               </DropdownMenuItem>
                             </DropdownMenuContent>
                           </DropdownMenu>
                         ) : (
                           <Badge className={status.color}>
-                            <StatusIcon className={`w-3 h-3 mr-1 ${status.iconColor}`} />
+                            <span className="mr-1">{status.emoji}</span>
                             {payment.estado}
                           </Badge>
                         )}

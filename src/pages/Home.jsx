@@ -1,3 +1,4 @@
+
 import React from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
@@ -70,6 +71,13 @@ export default function Home() {
   const recentPayments = payments
     .sort((a, b) => new Date(b.created_date) - new Date(a.created_date))
     .slice(0, 5);
+
+  const statusEmojis = {
+    "Pagado": "🟢",
+    "En revisión": "🟠",
+    "Pendiente": "🔴",
+    "Atrasado": "🔴" // Added for existing 'Atrasado' state
+  };
 
   return (
     <div className="p-6 lg:p-8 space-y-8">
@@ -182,17 +190,15 @@ export default function Home() {
                     className="flex items-center justify-between p-4 rounded-xl bg-slate-50 hover:bg-slate-100 transition-colors"
                   >
                     <div className="flex items-center gap-3">
-                      {payment.estado === "Pagado" ? (
-                        <CheckCircle2 className="w-5 h-5 text-orange-500" />
-                      ) : (
-                        <AlertCircle className="w-5 h-5 text-red-500" />
-                      )}
+                      <span className="text-2xl">
+                        {statusEmojis[payment.estado] || "🔴"}
+                      </span>
                       <div>
                         <p className="font-medium text-slate-900">
                           {payment.jugador_nombre}
                         </p>
                         <p className="text-sm text-slate-500">
-                          {payment.mes} {payment.año}
+                          {payment.mes} {payment.temporada || payment.año}
                         </p>
                       </div>
                     </div>
@@ -202,10 +208,10 @@ export default function Home() {
                       </p>
                       <p className={`text-xs ${
                         payment.estado === "Pagado" 
-                          ? "text-orange-600" 
-                          : payment.estado === "Atrasado"
-                          ? "text-red-600"
-                          : "text-amber-600"
+                          ? "text-green-600" 
+                          : payment.estado === "En revisión"
+                          ? "text-orange-600"
+                          : "text-red-600" // Covers "Pendiente" and "Atrasado"
                       }`}>
                         {payment.estado}
                       </p>

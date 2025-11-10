@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -118,6 +119,12 @@ CF Bustarviejo
   const pendingCount = reminders.filter(r => !r.enviado).length;
   const todayDate = new Date().toISOString().split('T')[0];
   const dueToday = reminders.filter(r => !r.enviado && r.fecha_envio <= todayDate).length;
+
+  const statusEmojis = {
+    "Pagado": "🟢",
+    "En revisión": "🟠",
+    "Pendiente": "🔴"
+  };
 
   return (
     <div className="p-6 lg:p-8 space-y-6">
@@ -253,12 +260,18 @@ CF Bustarviejo
                           )}
                         </TableCell>
                         <TableCell>
-                          {isPaid ? (
-                            <Badge className="bg-green-100 text-green-700">
-                              Pagado
+                          {payment ? (
+                            <Badge className={
+                              payment.estado === "Pagado" ? "bg-green-100 text-green-700" :
+                              payment.estado === "En revisión" ? "bg-orange-100 text-orange-700" :
+                              "bg-red-100 text-red-700"
+                            }>
+                              <span className="mr-1">{statusEmojis[payment.estado]}</span>
+                              {payment.estado}
                             </Badge>
                           ) : (
-                            <Badge className="bg-amber-100 text-amber-700">
+                            <Badge className="bg-red-100 text-red-700">
+                              <span className="mr-1">🔴</span>
                               Pendiente
                             </Badge>
                           )}
