@@ -384,6 +384,11 @@ export default function Layout({ children, currentPageName }) {
       icon: ShoppingBag,
     },
     {
+      title: "Pedidos", // Added new item
+      url: createPageUrl("OrderManagement"),
+      icon: ShoppingBag,
+    },
+    {
       title: "Chat Grupos",
       url: createPageUrl("AdminChat"),
       icon: MessageCircle,
@@ -432,6 +437,16 @@ export default function Layout({ children, currentPageName }) {
       title: "Mis Pagos",
       url: createPageUrl("ParentPayments"),
       icon: CreditCard,
+    },
+    {
+      title: "Tienda",
+      url: createPageUrl("Store"),
+      icon: ShoppingBag,
+    },
+    {
+      title: "Mis Pedidos", // Added new item
+      url: createPageUrl("ParentOrders"),
+      icon: ShoppingBag,
     },
     {
       title: "Chat Grupo",

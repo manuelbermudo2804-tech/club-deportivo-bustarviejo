@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { motion } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
@@ -14,7 +13,7 @@ import {
 } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
-export default function ProductCard({ product, onEdit, onAddToCart }) {
+export default function ProductCard({ product, onEdit, onAddToCart, isAdmin = false }) {
   const [showSizeDialog, setShowSizeDialog] = useState(false);
   const [selectedSize, setSelectedSize] = useState("");
 
@@ -105,14 +104,16 @@ export default function ProductCard({ product, onEdit, onAddToCart }) {
                 <ShoppingCart className="w-4 h-4 mr-2" />
                 Añadir
               </Button>
-              <Button
-                onClick={() => onEdit(product)}
-                variant="outline"
-                size="icon"
-                className="hover:bg-slate-100"
-              >
-                <Pencil className="w-4 h-4" />
-              </Button>
+              {isAdmin && onEdit && (
+                <Button
+                  onClick={() => onEdit(product)}
+                  variant="outline"
+                  size="icon"
+                  className="hover:bg-slate-100"
+                >
+                  <Pencil className="w-4 h-4" />
+                </Button>
+              )}
             </div>
           </CardContent>
         </Card>
