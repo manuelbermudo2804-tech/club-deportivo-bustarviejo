@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { base44 } from "@/api/base44Client";
-import { Home, Users, CreditCard, ShoppingBag, Menu, Bell, LogOut, Calendar, Megaphone } from "lucide-react";
+import { Home, Users, CreditCard, ShoppingBag, Menu, Bell, LogOut, Calendar, Megaphone, Mail } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -203,6 +203,23 @@ export default function Layout({ children, currentPageName }) {
                 onLanguageChange={handleLanguageChange} 
               />
             </div>
+            
+            {/* Contact Section */}
+            <div className="px-2 py-3 bg-white rounded-lg border border-slate-200 shadow-sm">
+              <div className="flex items-start gap-2">
+                <Mail className="w-4 h-4 text-orange-600 mt-0.5 flex-shrink-0" />
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs font-medium text-slate-700 mb-1">Contacto</p>
+                  <a 
+                    href="mailto:C.D.BUSTARVIEJO@HOTMAIL.ES"
+                    className="text-xs text-orange-600 hover:text-orange-700 break-all block"
+                  >
+                    C.D.BUSTARVIEJO@HOTMAIL.ES
+                  </a>
+                </div>
+              </div>
+            </div>
+
             {user && (
               <div className="text-center text-xs">
                 <p className="font-medium text-slate-700">{user.full_name}</p>
