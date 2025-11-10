@@ -40,7 +40,7 @@ export default function ParentChat() {
     initialData: [],
   });
 
-  const { data: messages, isLoading: loadingMessages } = useQuery({
+  const { data: allMessages, isLoading: loadingMessages } = useQuery({
     queryKey: ['chatMessages'],
     queryFn: () => base44.entities.ChatMessage.list('-created_date'),
     initialData: [],
@@ -49,12 +49,18 @@ export default function ParentChat() {
 
   // Crear grupos automáticamente basándose en mis jugadores
   useEffect(() => {
+    console.log("🔍 DEBUG - Current User:", currentUser?.email);
+    console.log("🔍 DEBUG - My Players:", players);
+    console.log("🔍 DEBUG - All Messages:", allMessages);
+    
     if (players.length > 0) {
       const groups = {};
       players.forEach(player => {
         if (!player.deporte || !player.categoria) return;
         
         const groupId = `${player.deporte}_${player.categoria}`;
+        console.log("📁 Creating/Checking Group:", groupId);
+        
         if (!groups[groupId]) {
           groups[groupId] = {
             id: groupId,
@@ -67,25 +73,33 @@ export default function ParentChat() {
         }
       });
 
-      // Agregar mensajes a los grupos
-      messages.forEach(msg => {
+      // Agregar TODOS los mensajes del grupo (sin filtrar por leído)
+      allMessages.forEach(msg => {
         if (!msg.deporte || !msg.categoria) return;
         
         const groupId = msg.grupo_id || `${msg.deporte}_${msg.categoria}`;
+        console.log("💬 Message Group ID:", groupId, "| Message:", msg.mensaje);
+        
         if (groups[groupId]) {
           groups[groupId].messages.push(msg);
+          console.log("✅ Added message to group:", groupId);
+          
+          // Solo contar no leídos para badges
           if (!msg.leido && msg.tipo === "admin_a_grupo") {
             groups[groupId].unreadCount++;
             if (msg.prioridad === "Urgente") {
               groups[groupId].urgentCount++;
             }
           }
+        } else {
+          console.log("❌ Group not found for message:", groupId);
         }
       });
 
       // Ordenar mensajes por fecha
       Object.values(groups).forEach(group => {
         group.messages.sort((a, b) => new Date(a.created_date) - new Date(b.created_date));
+        console.log(`📊 Group ${group.id} has ${group.messages.length} messages`);
       });
 
       const groupsList = Object.values(groups);
@@ -105,7 +119,7 @@ export default function ParentChat() {
       setMyGroups([]);
       setSelectedGroup(null);
     }
-  }, [players, messages]);
+  }, [players, allMessages, currentUser]);
 
   const sendMessageMutation = useMutation({
     mutationFn: (messageData) => base44.entities.ChatMessage.create(messageData),
@@ -241,6 +255,21 @@ export default function ParentChat() {
         </CardContent>
       </Card>
 
+      {/* DEBUG INFO - Remove after testing */}
+      <Card className="border-2 border-purple-500 bg-purple-50">
+        <CardContent className="p-4">
+          <p className="text-xs font-mono">
+            <strong>🔍 DEBUG:</strong><br/>
+            Usuario: {currentUser?.email}<br/>
+            Jugadores: {players.length}<br/>
+            Grupos: {myGroups.length}<br/>
+            Grupo Seleccionado: {selectedGroup?.id}<br/>
+            Mensajes en grupo: {selectedGroup?.messages?.length || 0}<br/>
+            Total mensajes: {allMessages.length}
+          </p>
+        </CardContent>
+      </Card>
+
       {/* Tabs para Múltiples Grupos */}
       {myGroups.length > 1 ? (
         <Tabs value={selectedGroup?.id} onValueChange={(value) => {
@@ -283,7 +312,7 @@ export default function ParentChat() {
       )}
 
       {/* Chat */}
-      <Card className="border-none shadow-lg h-[calc(100vh-450px)] flex flex-col">
+      <Card className="border-none shadow-lg h-[calc(100vh-550px)] flex flex-col">
         <CardHeader className="border-b border-slate-100">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
@@ -292,7 +321,7 @@ export default function ParentChat() {
                 <CardTitle className="text-lg">
                   {selectedGroup?.deporte || "Deporte"} - {selectedGroup?.categoria || "Categoría"}
                 </CardTitle>
-                <p className="text-sm text-slate-500">Chat grupal</p>
+                <p className="text-sm text-slate-500">Chat grupal ({selectedGroup?.messages?.length || 0} mensajes)</p>
               </div>
             </div>
           </div>
