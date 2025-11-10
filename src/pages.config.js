@@ -10,6 +10,8 @@ import Calendar from './pages/Calendar';
 import Announcements from './pages/Announcements';
 import SeasonManagement from './pages/SeasonManagement';
 import PaymentHistory from './pages/PaymentHistory';
+import AdminChat from './pages/AdminChat';
+import ParentChat from './pages/ParentChat';
 import Layout from './Layout.jsx';
 
 
@@ -26,6 +28,8 @@ export const PAGES = {
     "Announcements": Announcements,
     "SeasonManagement": SeasonManagement,
     "PaymentHistory": PaymentHistory,
+    "AdminChat": AdminChat,
+    "ParentChat": ParentChat,
 }
 
 export const pagesConfig = {

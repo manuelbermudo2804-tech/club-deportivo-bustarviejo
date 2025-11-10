@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { base44 } from "@/api/base44Client";
-import { Home, Users, CreditCard, ShoppingBag, Menu, Bell, LogOut, Calendar, Megaphone, Mail, Archive, Settings } from "lucide-react";
+import { Home, Users, CreditCard, ShoppingBag, Menu, Bell, LogOut, Calendar, Megaphone, Mail, Archive, Settings, MessageCircle } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -17,6 +17,7 @@ import {
   SidebarTrigger,
 } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 
 // Función para obtener la temporada actual
 const getCurrentSeason = () => {
@@ -35,6 +36,7 @@ export default function Layout({ children, currentPageName }) {
   const currentSeason = getCurrentSeason();
   const [user, setUser] = useState(null);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [unreadMessagesCount, setUnreadMessagesCount] = useState(0);
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -48,6 +50,41 @@ export default function Layout({ children, currentPageName }) {
     };
     fetchUser();
   }, []);
+
+  // Verificar mensajes no leídos
+  useEffect(() => {
+    const checkUnreadMessages = async () => {
+      if (!user) return;
+      
+      try {
+        const allMessages = await base44.entities.ChatMessage.list();
+        let unread = 0;
+        
+        if (isAdmin) {
+          // Para admin: contar mensajes de padres no leídos
+          unread = allMessages.filter(msg => 
+            !msg.leido && msg.tipo === "padre_a_admin"
+          ).length;
+        } else {
+          // Para padres: contar mensajes del admin no leídos
+          unread = allMessages.filter(msg => 
+            !msg.leido && 
+            msg.tipo === "admin_a_padre" && 
+            msg.destinatario_email === user.email
+          ).length;
+        }
+        
+        setUnreadMessagesCount(unread);
+      } catch (error) {
+        console.error("Error checking unread messages:", error);
+      }
+    };
+
+    checkUnreadMessages();
+    const interval = setInterval(checkUnreadMessages, 10000); // Actualizar cada 10 segundos
+    
+    return () => clearInterval(interval);
+  }, [user, isAdmin]);
 
   const adminNavigationItems = [
     {
@@ -86,6 +123,12 @@ export default function Layout({ children, currentPageName }) {
       icon: ShoppingBag,
     },
     {
+      title: "Chat",
+      url: createPageUrl("AdminChat"),
+      icon: MessageCircle,
+      badge: unreadMessagesCount > 0 ? unreadMessagesCount : null,
+    },
+    {
       title: "Histórico",
       url: createPageUrl("PaymentHistory"),
       icon: Archive,
@@ -122,6 +165,12 @@ export default function Layout({ children, currentPageName }) {
       title: "Mis Pagos",
       url: createPageUrl("ParentPayments"),
       icon: CreditCard,
+    },
+    {
+      title: "Chat",
+      url: createPageUrl("ParentChat"),
+      icon: MessageCircle,
+      badge: unreadMessagesCount > 0 ? unreadMessagesCount : null,
     },
   ];
 
@@ -163,9 +212,14 @@ export default function Layout({ children, currentPageName }) {
                           location.pathname === item.url ? 'bg-orange-100 text-orange-700 shadow-sm' : ''
                         }`}
                       >
-                        <Link to={item.url} className="flex items-center gap-3 px-4 py-3">
+                        <Link to={item.url} className="flex items-center gap-3 px-4 py-3 relative">
                           <item.icon className="w-5 h-5" />
                           <span className="font-medium">{item.title}</span>
+                          {item.badge && (
+                            <Badge className="ml-auto bg-red-500 text-white h-5 min-w-5 flex items-center justify-center px-1.5">
+                              {item.badge}
+                            </Badge>
+                          )}
                         </Link>
                       </SidebarMenuButton>
                     </SidebarMenuItem>
