@@ -63,14 +63,20 @@ export default function Layout({ children, currentPageName }) {
         if (isAdmin) {
           // Para admin: contar mensajes de padres no leídos
           unread = allMessages.filter(msg => 
-            !msg.leido && msg.tipo === "padre_a_admin"
+            !msg.leido && msg.tipo === "padre_a_grupo"
           ).length;
         } else {
-          // Para padres: contar mensajes del admin no leídos
+          // Para padres: obtener grupos de sus jugadores y contar mensajes del admin no leídos
+          const allPlayers = await base44.entities.Player.list();
+          const myPlayers = allPlayers.filter(p => 
+            p.email_padre === user.email || p.email === user.email
+          );
+          const myGroupIds = myPlayers.map(p => `${p.deporte}_${p.categoria}`);
+          
           unread = allMessages.filter(msg => 
             !msg.leido && 
-            msg.tipo === "admin_a_padre" && 
-            msg.destinatario_email === user.email
+            msg.tipo === "admin_a_grupo" && 
+            myGroupIds.includes(msg.grupo_id)
           ).length;
         }
         
@@ -81,7 +87,7 @@ export default function Layout({ children, currentPageName }) {
     };
 
     checkUnreadMessages();
-    const interval = setInterval(checkUnreadMessages, 10000); // Actualizar cada 10 segundos
+    const interval = setInterval(checkUnreadMessages, 10000);
     
     return () => clearInterval(interval);
   }, [user, isAdmin]);
@@ -123,7 +129,7 @@ export default function Layout({ children, currentPageName }) {
       icon: ShoppingBag,
     },
     {
-      title: "Chat",
+      title: "Chat Grupos",
       url: createPageUrl("AdminChat"),
       icon: MessageCircle,
       badge: unreadMessagesCount > 0 ? unreadMessagesCount : null,
@@ -167,7 +173,7 @@ export default function Layout({ children, currentPageName }) {
       icon: CreditCard,
     },
     {
-      title: "Chat",
+      title: "Chat Grupo",
       url: createPageUrl("ParentChat"),
       icon: MessageCircle,
       badge: unreadMessagesCount > 0 ? unreadMessagesCount : null,
