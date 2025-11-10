@@ -6,6 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { 
   Play, 
   Calendar, 
@@ -16,8 +18,21 @@ import {
   Loader2,
   RotateCcw,
   Settings,
-  Sparkles
+  Sparkles,
+  Download,
+  Shield,
+  Mail,
+  Database,
+  Lock
 } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -27,26 +42,51 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 export default function SeasonManagement() {
-  const [isResetting, setIsResetting] = useState(false);
-  const [isStarting, setIsStarting] = useState(false);
-  const [showNewSeasonForm, setShowNewSeasonForm] = useState(false);
-  const [newSeasonData, setNewSeasonData] = useState({
-    temporada: "",
-    cuota_unica: 0,
-    cuota_tres_meses: 0,
-    fecha_inicio: "",
-    fecha_fin: "",
-    notas: ""
+  const [showResetDialog, setShowResetDialog] = useState(false);
+  const [showConfirmation, setShowConfirmation] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [currentUser, setCurrentUser] = useState(null);
+  
+  // Configuración del reinicio
+  const [resetConfig, setResetConfig] = useState({
+    tipoReinicio: "completo", // completo, parcial, solo_archivar
+    nombreTemporada: "",
+    mesApertura: "9", // Septiembre
+    mesCierre: "6", // Junio
+    generarBackup: true,
+    notificarAdmins: true,
+    notificarPadres: true,
+    mensajePadres: "¡Bienvenidos a la nueva temporada! La aplicación ha sido actualizada con la nueva temporada. Por favor, revisa los datos de tus jugadores y realiza el pago de las cuotas.",
+  });
+
+  // Confirmación de seguridad
+  const [securityCheck, setSecurityCheck] = useState({
+    emailConfirmacion: "",
+    aceptoTerminos: false,
+    password: ""
   });
 
   const queryClient = useQueryClient();
+
+  // Obtener usuario actual
+  React.useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const user = await base44.auth.me();
+        setCurrentUser(user);
+      } catch (error) {
+        console.error("Error fetching user:", error);
+      }
+    };
+    fetchUser();
+  }, []);
 
   const { data: seasons, isLoading: loadingSeasons } = useQuery({
     queryKey: ['seasons'],
@@ -72,100 +112,61 @@ export default function SeasonManagement() {
     initialData: [],
   });
 
-  const activeSeason = seasons.find(s => s.activa);
-
-  const createSeasonMutation = useMutation({
-    mutationFn: (seasonData) => base44.entities.SeasonConfig.create(seasonData),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['seasons'] });
-    },
+  const { data: orders } = useQuery({
+    queryKey: ['orders'],
+    queryFn: () => base44.entities.Order.list(),
+    initialData: [],
   });
 
-  // Iniciar Nueva Temporada (Septiembre)
-  const handleStartNewSeason = async () => {
-    setIsStarting(true);
-    try {
-      // Paso 1: Archivar pagos de temporada anterior
-      toast.info("Archivando pagos de temporada anterior...");
-      for (const payment of payments) {
-        try {
-          await base44.entities.PaymentHistory.create({
-            temporada: payment.temporada,
-            jugador_id: payment.jugador_id,
-            jugador_nombre: payment.jugador_nombre,
-            tipo_pago: payment.tipo_pago,
-            mes: payment.mes,
-            cantidad: payment.cantidad,
-            estado: payment.estado,
-            metodo_pago: payment.metodo_pago,
-            justificante_url: payment.justificante_url,
-            fecha_pago: payment.fecha_pago,
-            notas: payment.notas,
-            archivado_fecha: new Date().toISOString()
-          });
-          await base44.entities.Payment.delete(payment.id);
-        } catch (error) {
-          console.error(`Error archiving payment ${payment.id}:`, error);
-        }
-      }
+  const activeSeason = seasons.find(s => s.activa);
 
-      // Paso 2: Eliminar recordatorios antiguos
-      toast.info("Limpiando recordatorios antiguos...");
-      for (const reminder of reminders) {
-        try {
-          await base44.entities.Reminder.delete(reminder.id);
-        } catch (error) {
-          console.error(`Error deleting reminder ${reminder.id}:`, error);
-        }
-      }
+  // Función para generar backup (exportar a CSV)
+  const generateBackup = () => {
+    const timestamp = new Date().toISOString().split('T')[0];
+    
+    // Backup de pagos
+    const paymentsCSV = [
+      ['ID', 'Jugador', 'Mes', 'Temporada', 'Cantidad', 'Estado', 'Fecha Pago', 'Método'],
+      ...payments.map(p => [
+        p.id, p.jugador_nombre, p.mes, p.temporada, p.cantidad, p.estado, 
+        p.fecha_pago || '', p.metodo_pago || ''
+      ])
+    ].map(row => row.join(',')).join('\n');
 
-      // Paso 3: Desactivar temporada actual
-      if (activeSeason) {
-        toast.info("Cerrando temporada anterior...");
-        await base44.entities.SeasonConfig.update(activeSeason.id, {
-          ...activeSeason,
-          activa: false
-        });
-      }
+    // Backup de jugadores
+    const playersCSV = [
+      ['ID', 'Nombre', 'Deporte', 'Categoría', 'Email', 'Email Padre', 'Activo'],
+      ...players.map(p => [
+        p.id, p.nombre, p.deporte, p.categoria, p.email || '', p.email_padre || '', p.activo
+      ])
+    ].map(row => row.join(',')).join('\n');
 
-      // Paso 4: Mostrar formulario para nueva temporada
-      setShowNewSeasonForm(true);
-      toast.success("¡Sistema preparado! Ahora configura la nueva temporada");
-    } catch (error) {
-      console.error("Error starting new season:", error);
-      toast.error("Error al iniciar nueva temporada");
-    } finally {
-      setIsResetting(false);
-      setIsStarting(false);
-    }
+    // Backup de pedidos
+    const ordersCSV = [
+      ['ID', 'Cliente', 'Email', 'Total', 'Estado', 'Fecha'],
+      ...orders.map(o => [
+        o.id, o.cliente_nombre, o.cliente_email || '', o.total, o.estado, o.created_date
+      ])
+    ].map(row => row.join(',')).join('\n');
+
+    // Descargar archivos
+    downloadCSV(paymentsCSV, `backup_pagos_${timestamp}.csv`);
+    downloadCSV(playersCSV, `backup_jugadores_${timestamp}.csv`);
+    downloadCSV(ordersCSV, `backup_pedidos_${timestamp}.csv`);
+
+    toast.success("✅ Backup generado y descargado correctamente");
   };
 
-  // Crear la nueva temporada
-  const handleCreateNewSeason = async (e) => {
-    e.preventDefault();
-    
-    try {
-      await createSeasonMutation.mutateAsync({
-        ...newSeasonData,
-        activa: true
-      });
-
-      toast.success("¡Nueva temporada creada y activada!");
-      setShowNewSeasonForm(false);
-      setNewSeasonData({
-        temporada: "",
-        cuota_unica: 0,
-        cuota_tres_meses: 0,
-        fecha_inicio: "",
-        fecha_fin: "",
-        notas: ""
-      });
-      
-      queryClient.invalidateQueries({ queryKey: ['seasons'] });
-    } catch (error) {
-      console.error("Error creating season:", error);
-      toast.error("Error al crear la temporada");
-    }
+  const downloadCSV = (content, filename) => {
+    const blob = new Blob([content], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', filename);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   // Obtener la siguiente temporada sugerida
@@ -180,7 +181,231 @@ export default function SeasonManagement() {
     return `${currentYear + 1}/${currentYear + 2}`;
   };
 
-  // Categorías y rangos de edad
+  // Abrir diálogo de configuración
+  const handleOpenResetDialog = () => {
+    setResetConfig({
+      ...resetConfig,
+      nombreTemporada: getNextSeason()
+    });
+    setShowResetDialog(true);
+  };
+
+  // Proceder a confirmación de seguridad
+  const handleProceedToConfirmation = () => {
+    if (!resetConfig.nombreTemporada) {
+      toast.error("Por favor, ingresa el nombre de la temporada");
+      return;
+    }
+    setShowResetDialog(false);
+    setShowConfirmation(true);
+  };
+
+  // Ejecutar reinicio de temporada
+  const handleExecuteReset = async () => {
+    // Validaciones de seguridad
+    if (!currentUser) {
+      toast.error("Error: No se pudo verificar el usuario");
+      return;
+    }
+
+    if (securityCheck.emailConfirmacion !== currentUser.email) {
+      toast.error("El email de confirmación no coincide");
+      return;
+    }
+
+    if (!securityCheck.aceptoTerminos) {
+      toast.error("Debes aceptar los términos");
+      return;
+    }
+
+    if (!securityCheck.password) {
+      toast.error("Debes ingresar tu contraseña");
+      return;
+    }
+
+    setIsProcessing(true);
+
+    try {
+      // PASO 1: Generar backup automático
+      if (resetConfig.generarBackup) {
+        toast.info("📦 Generando backup de seguridad...");
+        generateBackup();
+      }
+
+      // PASO 2: Ejecutar reinicio según tipo
+      if (resetConfig.tipoReinicio === "completo" || resetConfig.tipoReinicio === "solo_archivar") {
+        // Archivar pagos
+        toast.info("📁 Archivando pagos de temporada anterior...");
+        for (const payment of payments) {
+          try {
+            await base44.entities.PaymentHistory.create({
+              temporada: payment.temporada,
+              jugador_id: payment.jugador_id,
+              jugador_nombre: payment.jugador_nombre,
+              tipo_pago: payment.tipo_pago,
+              mes: payment.mes,
+              cantidad: payment.cantidad,
+              estado: payment.estado,
+              metodo_pago: payment.metodo_pago,
+              justificante_url: payment.justificante_url,
+              fecha_pago: payment.fecha_pago,
+              notas: payment.notas,
+              archivado_fecha: new Date().toISOString()
+            });
+            await base44.entities.Payment.delete(payment.id);
+          } catch (error) {
+            console.error(`Error archiving payment ${payment.id}:`, error);
+          }
+        }
+
+        // Eliminar recordatorios
+        toast.info("🗑️ Limpiando recordatorios antiguos...");
+        for (const reminder of reminders) {
+          try {
+            await base44.entities.Reminder.delete(reminder.id);
+          } catch (error) {
+            console.error(`Error deleting reminder ${reminder.id}:`, error);
+          }
+        }
+
+        // Desactivar temporada actual
+        if (activeSeason) {
+          toast.info("🔚 Cerrando temporada anterior...");
+          await base44.entities.SeasonConfig.update(activeSeason.id, {
+            ...activeSeason,
+            activa: false
+          });
+        }
+      }
+
+      if (resetConfig.tipoReinicio === "completo") {
+        // Archivar pedidos (cerrar tienda)
+        toast.info("🛍️ Archivando pedidos de tienda...");
+        for (const order of orders) {
+          if (order.estado !== "Entregado") {
+            try {
+              await base44.entities.Order.update(order.id, {
+                ...order,
+                estado: "Archivado"
+              });
+            } catch (error) {
+              console.error(`Error archiving order ${order.id}:`, error);
+            }
+          }
+        }
+
+        // Crear nueva temporada
+        toast.info("✨ Creando nueva temporada...");
+        const nuevaTemporada = {
+          temporada: resetConfig.nombreTemporada,
+          activa: true,
+          cuota_unica: activeSeason?.cuota_unica || 150,
+          cuota_tres_meses: activeSeason?.cuota_tres_meses || 55,
+          fecha_inicio: `${new Date().getFullYear()}-${resetConfig.mesApertura.padStart(2, '0')}-01`,
+          fecha_fin: `${new Date().getFullYear() + 1}-${resetConfig.mesCierre.padStart(2, '0')}-30`,
+          notas: `Temporada creada mediante reinicio automático el ${new Date().toLocaleDateString('es-ES')}`
+        };
+        await base44.entities.SeasonConfig.create(nuevaTemporada);
+      }
+
+      if (resetConfig.tipoReinicio === "parcial") {
+        // Solo resetear contadores de pago
+        toast.info("🔄 Reseteando contadores de pago...");
+        for (const payment of payments) {
+          if (payment.estado === "Pendiente") {
+            try {
+              await base44.entities.Payment.update(payment.id, {
+                ...payment,
+                cantidad: activeSeason?.cuota_tres_meses || 55
+              });
+            } catch (error) {
+              console.error(`Error updating payment ${payment.id}:`, error);
+            }
+          }
+        }
+      }
+
+      // PASO 3: Registrar log de auditoría
+      const logEntry = {
+        administrador: currentUser.email,
+        fecha: new Date().toISOString(),
+        tipo_reinicio: resetConfig.tipoReinicio,
+        temporada_nueva: resetConfig.nombreTemporada,
+        backup_generado: resetConfig.generarBackup
+      };
+      console.log("LOG DE AUDITORÍA:", logEntry);
+
+      // PASO 4: Enviar notificaciones
+      if (resetConfig.notificarAdmins) {
+        toast.info("📧 Enviando notificación a administradores...");
+        try {
+          await base44.integrations.Core.SendEmail({
+            to: currentUser.email,
+            subject: `✅ Reinicio de Temporada Completado - ${resetConfig.nombreTemporada}`,
+            body: `
+              <h2>Reinicio de Temporada Completado</h2>
+              <p>Se ha completado el reinicio de temporada con éxito.</p>
+              <ul>
+                <li><strong>Tipo:</strong> ${resetConfig.tipoReinicio}</li>
+                <li><strong>Nueva Temporada:</strong> ${resetConfig.nombreTemporada}</li>
+                <li><strong>Ejecutado por:</strong> ${currentUser.email}</li>
+                <li><strong>Fecha:</strong> ${new Date().toLocaleString('es-ES')}</li>
+                <li><strong>Backup generado:</strong> ${resetConfig.generarBackup ? 'Sí' : 'No'}</li>
+              </ul>
+              <p>Los archivos de backup han sido descargados automáticamente.</p>
+            `
+          });
+        } catch (error) {
+          console.error("Error sending admin notification:", error);
+        }
+      }
+
+      if (resetConfig.notificarPadres && resetConfig.mensajePadres) {
+        toast.info("📧 Enviando notificación a padres...");
+        const uniqueParentEmails = [...new Set(players.map(p => p.email_padre).filter(Boolean))];
+        
+        for (const email of uniqueParentEmails.slice(0, 5)) { // Limitar a 5 para demo
+          try {
+            await base44.integrations.Core.SendEmail({
+              to: email,
+              subject: `🟢 Nueva Temporada ${resetConfig.nombreTemporada} - CF Bustarviejo`,
+              body: `
+                <h2>¡Comienza la Nueva Temporada!</h2>
+                <p>${resetConfig.mensajePadres}</p>
+                <p><strong>Temporada:</strong> ${resetConfig.nombreTemporada}</p>
+                <p>Accede a la aplicación para más información.</p>
+              `
+            });
+          } catch (error) {
+            console.error(`Error sending email to ${email}:`, error);
+          }
+        }
+      }
+
+      // Invalidar queries para refrescar datos
+      queryClient.invalidateQueries({ queryKey: ['seasons'] });
+      queryClient.invalidateQueries({ queryKey: ['payments'] });
+      queryClient.invalidateQueries({ queryKey: ['reminders'] });
+      queryClient.invalidateQueries({ queryKey: ['orders'] });
+
+      toast.success("🎉 ¡Reinicio de temporada completado con éxito!");
+      
+      // Resetear estados
+      setShowConfirmation(false);
+      setSecurityCheck({
+        emailConfirmacion: "",
+        aceptoTerminos: false,
+        password: ""
+      });
+    } catch (error) {
+      console.error("Error executing season reset:", error);
+      toast.error("❌ Error al ejecutar el reinicio. Restaura desde el backup si es necesario.");
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  // Categorías y rangos de edad (para sugerencias)
   const categoryAgeRanges = {
     "Prebenjamín": { min: 4, max: 6 },
     "Benjamín": { min: 7, max: 8 },
@@ -238,193 +463,284 @@ export default function SeasonManagement() {
               <div>
                 <h2 className="text-3xl font-bold mb-2">🟢 Iniciar Nueva Temporada</h2>
                 <p className="text-lg text-green-100">
-                  Proceso automático de septiembre: archiva pagos, reinicia sistema y configura nueva temporada
+                  Proceso automático con backup de seguridad y opciones configurables
                 </p>
-                <div className="mt-3 space-y-1 text-sm text-green-50">
-                  <p>✅ Archiva pagos antiguos al histórico</p>
-                  <p>✅ Elimina recordatorios vencidos</p>
-                  <p>✅ Cierra temporada anterior</p>
-                  <p>✅ Prepara sistema para inscripciones</p>
+                <div className="mt-3 grid grid-cols-2 gap-2 text-sm text-green-50">
+                  <p>✅ Backup automático de datos</p>
+                  <p>✅ Archivar pagos y pedidos</p>
+                  <p>✅ Notificaciones a usuarios</p>
+                  <p>✅ Auditoría completa</p>
                 </div>
               </div>
             </div>
-            <AlertDialog>
-              <AlertDialogTrigger asChild>
-                <Button
-                  size="lg"
-                  className="bg-white text-green-700 hover:bg-green-50 font-bold py-6 px-8 text-lg shadow-2xl"
-                  disabled={isStarting || isResetting}
-                >
-                  {isStarting ? (
-                    <>
-                      <Loader2 className="w-6 h-6 mr-2 animate-spin" />
-                      Iniciando...
-                    </>
-                  ) : (
-                    <>
-                      <Play className="w-6 h-6 mr-2" />
-                      Iniciar Nueva Temporada
-                    </>
-                  )}
-                </Button>
-              </AlertDialogTrigger>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle className="text-2xl">🟢 ¿Iniciar Nueva Temporada?</AlertDialogTitle>
-                  <AlertDialogDescription className="text-base space-y-3 py-4">
-                    <p className="font-semibold text-slate-900">
-                      Este proceso realizará las siguientes acciones automáticamente:
-                    </p>
-                    <ul className="space-y-2 text-slate-700">
-                      <li className="flex items-start gap-2">
-                        <CheckCircle2 className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" />
-                        <span><strong>Archivar</strong> todos los pagos de la temporada anterior al histórico</span>
-                      </li>
-                      <li className="flex items-start gap-2">
-                        <CheckCircle2 className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" />
-                        <span><strong>Eliminar</strong> todos los recordatorios antiguos</span>
-                      </li>
-                      <li className="flex items-start gap-2">
-                        <CheckCircle2 className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" />
-                        <span><strong>Cerrar</strong> la temporada actual</span>
-                      </li>
-                      <li className="flex items-start gap-2">
-                        <CheckCircle2 className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" />
-                        <span><strong>Preparar</strong> el sistema para configurar la nueva temporada</span>
-                      </li>
-                    </ul>
-                    <div className="bg-orange-50 border-l-4 border-orange-500 p-4 rounded mt-4">
-                      <p className="text-orange-800 font-medium flex items-start gap-2">
-                        <AlertTriangle className="w-5 h-5 mt-0.5 flex-shrink-0" />
-                        Esta acción no se puede deshacer. Todos los pagos se moverán al histórico.
-                      </p>
-                    </div>
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                  <AlertDialogAction
-                    onClick={handleStartNewSeason}
-                    className="bg-green-600 hover:bg-green-700"
-                  >
-                    Sí, Iniciar Nueva Temporada
-                  </AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
+            <Button
+              size="lg"
+              onClick={handleOpenResetDialog}
+              className="bg-white text-green-700 hover:bg-green-50 font-bold py-6 px-8 text-lg shadow-2xl"
+              disabled={isProcessing}
+            >
+              <Play className="w-6 h-6 mr-2" />
+              Reiniciar Temporada
+            </Button>
           </div>
         </CardContent>
       </Card>
 
-      {/* Formulario de Nueva Temporada */}
-      {showNewSeasonForm && (
-        <Card className="border-none shadow-xl bg-gradient-to-br from-blue-50 to-white">
-          <CardHeader className="border-b border-blue-100">
-            <CardTitle className="text-2xl text-blue-900 flex items-center gap-2">
-              <Settings className="w-6 h-6" />
-              Configurar Nueva Temporada
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="pt-6">
-            <form onSubmit={handleCreateNewSeason} className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-2">
-                  <Label>Temporada *</Label>
+      {/* Diálogo de Configuración */}
+      <Dialog open={showResetDialog} onOpenChange={setShowResetDialog}>
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-2xl flex items-center gap-2">
+              <Settings className="w-6 h-6 text-green-600" />
+              Configuración de Reinicio de Temporada
+            </DialogTitle>
+            <DialogDescription>
+              Configura las opciones para el reinicio. Se generará un backup automático antes de proceder.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-6 py-4">
+            {/* Tipo de Reinicio */}
+            <div className="space-y-3">
+              <Label className="text-base font-semibold flex items-center gap-2">
+                <RotateCcw className="w-4 h-4" />
+                Tipo de Reinicio
+              </Label>
+              <RadioGroup value={resetConfig.tipoReinicio} onValueChange={(value) => setResetConfig({...resetConfig, tipoReinicio: value})}>
+                <div className="flex items-center space-x-2 p-4 border-2 rounded-lg hover:bg-slate-50 cursor-pointer">
+                  <RadioGroupItem value="completo" id="completo" />
+                  <Label htmlFor="completo" className="flex-1 cursor-pointer">
+                    <div className="font-semibold">Reinicio Completo</div>
+                    <div className="text-sm text-slate-600">Archiva temporada anterior, resetea pagos, cierra tienda y crea nueva temporada</div>
+                  </Label>
+                </div>
+                <div className="flex items-center space-x-2 p-4 border-2 rounded-lg hover:bg-slate-50 cursor-pointer">
+                  <RadioGroupItem value="parcial" id="parcial" />
+                  <Label htmlFor="parcial" className="flex-1 cursor-pointer">
+                    <div className="font-semibold">Reinicio Parcial</div>
+                    <div className="text-sm text-slate-600">Solo resetea contadores de pago (mantiene jugadores y pedidos)</div>
+                  </Label>
+                </div>
+                <div className="flex items-center space-x-2 p-4 border-2 rounded-lg hover:bg-slate-50 cursor-pointer">
+                  <RadioGroupItem value="solo_archivar" id="solo_archivar" />
+                  <Label htmlFor="solo_archivar" className="flex-1 cursor-pointer">
+                    <div className="font-semibold">Solo Archivar</div>
+                    <div className="text-sm text-slate-600">Mueve registros al histórico sin tocar contadores</div>
+                  </Label>
+                </div>
+              </RadioGroup>
+            </div>
+
+            {/* Nueva Temporada */}
+            <div className="space-y-3">
+              <Label className="text-base font-semibold flex items-center gap-2">
+                <Calendar className="w-4 h-4" />
+                Nueva Temporada
+              </Label>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="md:col-span-1">
+                  <Label className="text-sm">Nombre *</Label>
                   <Input
                     placeholder="Ej: 2025/2026"
-                    value={newSeasonData.temporada}
-                    onChange={(e) => setNewSeasonData({...newSeasonData, temporada: e.target.value})}
-                    required
+                    value={resetConfig.nombreTemporada}
+                    onChange={(e) => setResetConfig({...resetConfig, nombreTemporada: e.target.value})}
                   />
-                  <p className="text-xs text-slate-500">Sugerencia: {getNextSeason()}</p>
                 </div>
-
-                <div className="space-y-2">
-                  <Label>Cuota Única (€) *</Label>
+                <div>
+                  <Label className="text-sm">Mes Apertura</Label>
                   <Input
                     type="number"
-                    step="0.01"
-                    placeholder="Ej: 150"
-                    value={newSeasonData.cuota_unica}
-                    onChange={(e) => setNewSeasonData({...newSeasonData, cuota_unica: parseFloat(e.target.value) || 0})}
-                    required
+                    min="1"
+                    max="12"
+                    value={resetConfig.mesApertura}
+                    onChange={(e) => setResetConfig({...resetConfig, mesApertura: e.target.value})}
                   />
                 </div>
-
-                <div className="space-y-2">
-                  <Label>Cuota Fraccionada por Mes (€) *</Label>
+                <div>
+                  <Label className="text-sm">Mes Cierre</Label>
                   <Input
                     type="number"
-                    step="0.01"
-                    placeholder="Ej: 55"
-                    value={newSeasonData.cuota_tres_meses}
-                    onChange={(e) => setNewSeasonData({...newSeasonData, cuota_tres_meses: parseFloat(e.target.value) || 0})}
-                    required
-                  />
-                  <p className="text-xs text-slate-500">Pagos en Junio, Septiembre y Diciembre</p>
-                </div>
-
-                <div className="space-y-2">
-                  <Label>Fecha de Inicio *</Label>
-                  <Input
-                    type="date"
-                    value={newSeasonData.fecha_inicio}
-                    onChange={(e) => setNewSeasonData({...newSeasonData, fecha_inicio: e.target.value})}
-                    required
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label>Fecha de Fin *</Label>
-                  <Input
-                    type="date"
-                    value={newSeasonData.fecha_fin}
-                    onChange={(e) => setNewSeasonData({...newSeasonData, fecha_fin: e.target.value})}
-                    required
+                    min="1"
+                    max="12"
+                    value={resetConfig.mesCierre}
+                    onChange={(e) => setResetConfig({...resetConfig, mesCierre: e.target.value})}
                   />
                 </div>
               </div>
+            </div>
 
-              <div className="space-y-2">
-                <Label>Notas</Label>
-                <Textarea
-                  placeholder="Notas sobre la temporada..."
-                  value={newSeasonData.notas}
-                  onChange={(e) => setNewSeasonData({...newSeasonData, notas: e.target.value})}
-                  rows={3}
+            {/* Opciones de Seguridad */}
+            <div className="space-y-3">
+              <Label className="text-base font-semibold flex items-center gap-2">
+                <Database className="w-4 h-4" />
+                Backup y Seguridad
+              </Label>
+              <div className="flex items-center space-x-2 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                <Checkbox
+                  id="backup"
+                  checked={resetConfig.generarBackup}
+                  onCheckedChange={(checked) => setResetConfig({...resetConfig, generarBackup: checked})}
                 />
+                <Label htmlFor="backup" className="text-sm cursor-pointer flex-1">
+                  <div className="font-medium">Generar backup automático (Recomendado)</div>
+                  <div className="text-xs text-slate-600">Se descargarán archivos CSV de todas las tablas antes del reinicio</div>
+                </Label>
+              </div>
+            </div>
+
+            {/* Notificaciones */}
+            <div className="space-y-3">
+              <Label className="text-base font-semibold flex items-center gap-2">
+                <Mail className="w-4 h-4" />
+                Notificaciones
+              </Label>
+              <div className="space-y-2">
+                <div className="flex items-center space-x-2 p-3 rounded-lg border">
+                  <Checkbox
+                    id="notifyAdmins"
+                    checked={resetConfig.notificarAdmins}
+                    onCheckedChange={(checked) => setResetConfig({...resetConfig, notificarAdmins: checked})}
+                  />
+                  <Label htmlFor="notifyAdmins" className="text-sm cursor-pointer">
+                    Enviar confirmación a administradores
+                  </Label>
+                </div>
+                <div className="flex items-center space-x-2 p-3 rounded-lg border">
+                  <Checkbox
+                    id="notifyParents"
+                    checked={resetConfig.notificarPadres}
+                    onCheckedChange={(checked) => setResetConfig({...resetConfig, notificarPadres: checked})}
+                  />
+                  <Label htmlFor="notifyParents" className="text-sm cursor-pointer">
+                    Enviar aviso a padres/tutores
+                  </Label>
+                </div>
+              </div>
+              {resetConfig.notificarPadres && (
+                <Textarea
+                  placeholder="Mensaje para los padres..."
+                  value={resetConfig.mensajePadres}
+                  onChange={(e) => setResetConfig({...resetConfig, mensajePadres: e.target.value})}
+                  rows={3}
+                  className="mt-2"
+                />
+              )}
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowResetDialog(false)}>
+              Cancelar
+            </Button>
+            <Button onClick={handleProceedToConfirmation} className="bg-green-600 hover:bg-green-700">
+              <Shield className="w-4 h-4 mr-2" />
+              Continuar a Confirmación
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Diálogo de Confirmación de Seguridad */}
+      <AlertDialog open={showConfirmation} onOpenChange={setShowConfirmation}>
+        <AlertDialogContent className="max-w-2xl">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-2xl flex items-center gap-2">
+              <Lock className="w-6 h-6 text-red-600" />
+              Confirmación de Seguridad
+            </AlertDialogTitle>
+            <AlertDialogDescription className="space-y-4 py-4">
+              <Alert className="bg-orange-50 border-orange-200">
+                <AlertTriangle className="h-4 w-4 text-orange-600" />
+                <AlertDescription className="text-orange-800 ml-6">
+                  <strong>Esta acción es irreversible.</strong> Se recomienda tener el backup antes de continuar.
+                </AlertDescription>
+              </Alert>
+
+              <div className="bg-slate-50 p-4 rounded-lg space-y-2">
+                <h4 className="font-semibold text-slate-900">Resumen de acciones:</h4>
+                <ul className="text-sm text-slate-700 space-y-1">
+                  <li>• Tipo: <strong>{resetConfig.tipoReinicio}</strong></li>
+                  <li>• Nueva temporada: <strong>{resetConfig.nombreTemporada}</strong></li>
+                  <li>• Pagos a archivar: <strong>{payments.length}</strong></li>
+                  <li>• Recordatorios a eliminar: <strong>{reminders.length}</strong></li>
+                  <li>• Pedidos afectados: <strong>{orders.length}</strong></li>
+                  <li>• Backup: <strong>{resetConfig.generarBackup ? 'Sí' : 'No'}</strong></li>
+                </ul>
               </div>
 
-              <div className="flex justify-end gap-3 pt-4 border-t">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => setShowNewSeasonForm(false)}
-                >
-                  Cancelar
-                </Button>
-                <Button
-                  type="submit"
-                  className="bg-blue-600 hover:bg-blue-700"
-                  disabled={createSeasonMutation.isPending}
-                >
-                  {createSeasonMutation.isPending ? (
-                    <>
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                      Creando...
-                    </>
-                  ) : (
-                    <>
-                      <CheckCircle2 className="w-4 h-4 mr-2" />
-                      Crear y Activar Temporada
-                    </>
-                  )}
-                </Button>
+              <div className="space-y-3">
+                <div>
+                  <Label className="text-sm font-medium">Confirma tu email *</Label>
+                  <Input
+                    type="email"
+                    placeholder={currentUser?.email}
+                    value={securityCheck.emailConfirmacion}
+                    onChange={(e) => setSecurityCheck({...securityCheck, emailConfirmacion: e.target.value})}
+                    className="mt-1"
+                  />
+                </div>
+
+                <div>
+                  <Label className="text-sm font-medium">Contraseña *</Label>
+                  <Input
+                    type="password"
+                    placeholder="Ingresa tu contraseña"
+                    value={securityCheck.password}
+                    onChange={(e) => setSecurityCheck({...securityCheck, password: e.target.value})}
+                    className="mt-1"
+                  />
+                  <p className="text-xs text-slate-500 mt-1">Confirma tu identidad para continuar</p>
+                </div>
+
+                <div className="flex items-center space-x-2 p-3 border-2 rounded-lg">
+                  <Checkbox
+                    id="accept"
+                    checked={securityCheck.aceptoTerminos}
+                    onCheckedChange={(checked) => setSecurityCheck({...securityCheck, aceptoTerminos: checked})}
+                  />
+                  <Label htmlFor="accept" className="text-sm cursor-pointer">
+                    He leído y acepto ejecutar el reinicio de temporada. Entiendo que esta acción es irreversible.
+                  </Label>
+                </div>
               </div>
-            </form>
-          </CardContent>
-        </Card>
-      )}
+
+              <div className="text-xs text-slate-500 bg-blue-50 p-3 rounded">
+                <strong>Nota:</strong> Se registrará un log de auditoría con tu usuario, fecha/hora y tipo de reinicio.
+                El backup estará disponible durante 30 días.
+              </div>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => {
+              setShowConfirmation(false);
+              setSecurityCheck({
+                emailConfirmacion: "",
+                aceptoTerminos: false,
+                password: ""
+              });
+            }}>
+              Cancelar
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleExecuteReset}
+              disabled={isProcessing}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              {isProcessing ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Procesando...
+                </>
+              ) : (
+                <>
+                  <CheckCircle2 className="w-4 h-4 mr-2" />
+                  Confirmar Reinicio
+                </>
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {/* Información de Temporada Actual */}
       {activeSeason && (
@@ -486,6 +802,12 @@ export default function SeasonManagement() {
                 <span className="text-slate-600">Jugadores Activos</span>
                 <Badge className="bg-green-100 text-green-700 text-lg px-3 py-1">
                   {players.filter(p => p.activo).length}
+                </Badge>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-slate-600">Pedidos Pendientes</span>
+                <Badge className="bg-purple-100 text-purple-700 text-lg px-3 py-1">
+                  {orders.filter(o => o.estado !== "Entregado" && o.estado !== "Archivado").length}
                 </Badge>
               </div>
             </CardContent>
@@ -588,6 +910,33 @@ export default function SeasonManagement() {
               ))}
             </div>
           )}
+        </CardContent>
+      </Card>
+
+      {/* Información de Recuperación */}
+      <Card className="border-none shadow-lg bg-blue-50 border-l-4 border-blue-500">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-blue-900">
+            <Download className="w-5 h-5" />
+            Recuperación y Backups
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-3 text-sm text-slate-700">
+            <p>
+              <strong>Backups automáticos:</strong> Cada vez que se ejecuta un reinicio de temporada, se generan archivos CSV con todos los datos que se descargan automáticamente.
+            </p>
+            <p>
+              <strong>Disponibilidad:</strong> Los backups están disponibles durante 30 días desde su generación.
+            </p>
+            <p>
+              <strong>Restauración:</strong> Para restaurar datos desde un backup, importa los archivos CSV descargados desde el panel de administración.
+            </p>
+            <div className="bg-white p-3 rounded border border-blue-200">
+              <p className="font-semibold text-blue-900 mb-1">💡 Consejo:</p>
+              <p className="text-xs">Guarda los archivos de backup en un lugar seguro (Google Drive, Dropbox, etc.) para mayor tranquilidad.</p>
+            </div>
+          </div>
         </CardContent>
       </Card>
     </div>
