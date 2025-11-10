@@ -5,7 +5,7 @@ import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Users, CreditCard, ShoppingBag, TrendingUp, AlertCircle, CheckCircle2 } from "lucide-react";
+import { Users, CreditCard, ShoppingBag, TrendingUp, AlertCircle, CheckCircle2, Heart } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 
 export default function Home() {
@@ -81,6 +81,37 @@ export default function Home() {
           Gestión integral del CF Bustarviejo
         </p>
       </div>
+
+      {/* Historia del Club */}
+      <Card className="border-none shadow-lg bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white overflow-hidden relative">
+        <div className="absolute top-0 right-0 w-64 h-64 bg-orange-500 rounded-full blur-3xl opacity-20"></div>
+        <div className="absolute bottom-0 left-0 w-64 h-64 bg-orange-600 rounded-full blur-3xl opacity-10"></div>
+        <CardHeader className="relative z-10">
+          <CardTitle className="text-3xl font-bold flex items-center gap-3">
+            <Heart className="w-8 h-8 text-orange-500" />
+            Nuestra Historia
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="relative z-10 space-y-4">
+          <p className="text-lg leading-relaxed text-slate-100">
+            El <span className="font-semibold text-orange-400">Club Deportivo Bustarviejo</span> nació en <span className="font-semibold text-orange-400">1989</span> con una idea clara: colaborar en el aprendizaje de cada uno de sus miembros a partir de la práctica deportiva en el entorno de nuestro municipio, el pequeño pueblo de la Sierra de Madrid, Bustarviejo.
+          </p>
+          <p className="text-lg leading-relaxed text-slate-100">
+            A día de hoy el club sigue en la misma línea que hace 31 años, la de lograr que el fútbol, el baloncesto, el paddle, o el deporte que sea, resulte ser una actividad integradora, un deporte que eduque a los más pequeños, ayudados por el ejemplo que los más mayores les ofrecen, haciendo que cada final de temporada, madres, padres y resto de miembros se puedan sentir orgullosas de cada participante en las diferentes disciplinas.
+          </p>
+          <p className="text-lg leading-relaxed text-slate-100">
+            <span className="font-semibold text-orange-400">Nuestro auténtico objetivo</span> es el formar personas que, el día de mañana, entenderán el deporte como un mundo repleto de valores. Por esto y más, os animamos a que subáis a conocernos, probéis en las categorías del club, os animéis a participar en las actividades ofrecidas y, sobre todo, os animéis a echar una mano, pues <span className="font-semibold text-orange-400">un club sin familias, no es un club</span>.
+          </p>
+          <div className="pt-4 border-t border-slate-700">
+            <p className="text-lg leading-relaxed text-slate-200 italic">
+              Ya solo queda que, desde aquí, y en nombre de toda la Junta Directiva, os agradezcamos cada granito de arena que aportáis al Club, ya que esto, sin ti, no sería lo mismo.
+            </p>
+            <p className="text-xl font-bold text-orange-400 mt-4">
+              Un fuerte abrazo. 💛🖤
+            </p>
+          </div>
+        </CardContent>
+      </Card>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {stats.map((stat, index) => {
