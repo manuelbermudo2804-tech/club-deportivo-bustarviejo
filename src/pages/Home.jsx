@@ -9,6 +9,8 @@ import { Button } from "@/components/ui/button";
 import { Users, CreditCard, ShoppingBag, TrendingUp, AlertCircle, CheckCircle2, Heart, Smartphone, Trophy } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 
+import SocialLinks from "../components/SocialLinks";
+
 export default function Home() {
   const { data: players, isLoading: loadingPlayers } = useQuery({
     queryKey: ['players'],
@@ -79,6 +81,13 @@ export default function Home() {
     "Atrasado": "🔴"
   };
 
+  const colorClasses = {
+    orange: "bg-orange-500 text-orange-500",
+    red: "bg-red-500 text-red-500",
+    slate: "bg-slate-800 text-slate-800",
+    amber: "bg-amber-500 text-amber-500"
+  };
+
   return (
     <div className="p-6 lg:p-8 space-y-8">
       <div>
@@ -138,6 +147,9 @@ export default function Home() {
         </CardContent>
       </Card>
 
+      {/* Redes Sociales */}
+      <SocialLinks />
+
       {/* Historia del Club */}
       <Card className="border-none shadow-lg bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white overflow-hidden relative">
         <div className="absolute top-0 right-0 w-64 h-64 bg-orange-500 rounded-full blur-3xl opacity-20"></div>
@@ -170,45 +182,36 @@ export default function Home() {
       </Card>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {stats.map((stat, index) => {
-          const colorClasses = {
-            orange: "bg-orange-500 text-orange-500",
-            red: "bg-red-500 text-red-500",
-            slate: "bg-slate-800 text-slate-800",
-            amber: "bg-amber-500 text-amber-500"
-          };
-
-          return (
-            <Card key={index} className="border-none shadow-lg hover:shadow-xl transition-all duration-300 bg-white/80 backdrop-blur-sm">
-              <CardHeader className="pb-3">
-                <div className="flex items-center justify-between">
-                  <CardTitle className="text-sm font-medium text-slate-600">
-                    {stat.title}
-                  </CardTitle>
-                  <div className={`p-2 rounded-xl ${colorClasses[stat.color].split(' ')[0]} bg-opacity-10`}>
-                    <stat.icon className={`w-5 h-5 ${colorClasses[stat.color].split(' ')[1]}`} />
-                  </div>
+        {stats.map((stat, index) => (
+          <Card key={index} className="border-none shadow-lg hover:shadow-xl transition-all duration-300 bg-white/80 backdrop-blur-sm">
+            <CardHeader className="pb-3">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-sm font-medium text-slate-600">
+                  {stat.title}
+                </CardTitle>
+                <div className={`p-2 rounded-xl ${colorClasses[stat.color].split(' ')[0]} bg-opacity-10`}>
+                  <stat.icon className={`w-5 h-5 ${colorClasses[stat.color].split(' ')[1]}`} />
                 </div>
-              </CardHeader>
-              <CardContent>
-                {loadingPlayers || loadingPayments || loadingProducts ? (
-                  <Skeleton className="h-10 w-20" />
-                ) : (
-                  <>
-                    <div className="text-3xl font-bold text-slate-900 mb-3">
-                      {stat.value}
-                    </div>
-                    <Link to={stat.link}>
-                      <Button variant="ghost" size="sm" className="text-xs hover:bg-slate-100">
-                        {stat.linkText} →
-                      </Button>
-                    </Link>
-                  </>
-                )}
-              </CardContent>
-            </Card>
-          );
-        })}
+              </div>
+            </CardHeader>
+            <CardContent>
+              {loadingPlayers || loadingPayments || loadingProducts ? (
+                <Skeleton className="h-10 w-20" />
+              ) : (
+                <>
+                  <div className="text-3xl font-bold text-slate-900 mb-3">
+                    {stat.value}
+                  </div>
+                  <Link to={stat.link}>
+                    <Button variant="ghost" size="sm" className="text-xs hover:bg-slate-100">
+                      {stat.linkText} →
+                    </Button>
+                  </Link>
+                </>
+              )}
+            </CardContent>
+          </Card>
+        ))}
       </div>
 
       <div className="grid lg:grid-cols-2 gap-6">
@@ -259,7 +262,7 @@ export default function Home() {
                           ? "text-green-600" 
                           : payment.estado === "En revisión"
                           ? "text-orange-600"
-                          : "text-red-600" // Covers "Pendiente" and "Atrasado"
+                          : "text-red-600"
                       }`}>
                         {payment.estado}
                       </p>

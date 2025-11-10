@@ -11,6 +11,7 @@ import { CreditCard, Calendar, CheckCircle2, AlertTriangle, Clock, User, Users, 
 import { Skeleton } from "@/components/ui/skeleton";
 
 import ContactCard from "../components/ContactCard";
+import SocialLinks from "../components/SocialLinks";
 
 export default function ParentDashboard() {
   const { data: user } = useQuery({
@@ -157,6 +158,9 @@ export default function ParentDashboard() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Redes Sociales */}
+      <SocialLinks />
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">

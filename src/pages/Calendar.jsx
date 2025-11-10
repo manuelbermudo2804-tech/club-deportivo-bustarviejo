@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -9,6 +10,7 @@ import { AnimatePresence } from "framer-motion";
 
 import EventForm from "../components/calendar/EventForm";
 import EventCard from "../components/calendar/EventCard";
+import SocialLinks from "../components/SocialLinks";
 
 export default function Calendar() {
   const [showForm, setShowForm] = useState(false);
@@ -136,6 +138,9 @@ export default function Calendar() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Redes Sociales */}
+      <SocialLinks />
 
       <AnimatePresence>
         {showForm && isAdmin && (
