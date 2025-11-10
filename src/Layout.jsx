@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { createPageUrl } from "@/utils";
@@ -76,7 +77,7 @@ function ClosedSeasonScreen({ user, isAdmin }) {
 
             {/* Título */}
             <div className="space-y-3">
-              <h1 className="text-4xl md:text-5xl font-bold text-slate-900">
+              <h1 className="text-4xl md::text-5xl font-bold text-slate-900">
                 🔒 Cierre de Temporada
               </h1>
               <p className="text-2xl text-orange-600 font-semibold">
@@ -787,7 +788,7 @@ export default function Layout({ children, currentPageName }) {
   };
 
   return (
-    <SidebarProvider>
+    <SidebarProvider defaultOpen={true}>
       <div className="min-h-screen flex w-full bg-gradient-to-br from-slate-50 via-green-50/20 to-orange-50/30">
         <Sidebar className="border-r-2 border-orange-600/20 backdrop-blur-sm bg-gradient-to-b from-slate-900 via-black to-slate-900">
           <SidebarHeader className="border-b-2 border-green-500 p-6 bg-gradient-to-r from-orange-600 via-orange-700 to-orange-600">
