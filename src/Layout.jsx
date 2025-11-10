@@ -1,7 +1,8 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { Home, Users, CreditCard, ShoppingBag, Menu, Bell } from "lucide-react";
+import { base44 } from "@/api/base44Client";
+import { Home, Users, CreditCard, ShoppingBag, Menu, Bell, LogOut } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -15,6 +16,7 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from "@/components/ui/sidebar";
+import { Button } from "@/components/ui/button";
 
 // Función para obtener la temporada actual
 const getCurrentSeason = () => {
@@ -28,7 +30,7 @@ const getCurrentSeason = () => {
   return `${currentYear}/${currentYear + 1}`;
 };
 
-const navigationItems = [
+const adminNavigationItems = [
   {
     title: "Inicio",
     url: createPageUrl("Home"),
@@ -56,9 +58,43 @@ const navigationItems = [
   },
 ];
 
+const parentNavigationItems = [
+  {
+    title: "Inicio",
+    url: createPageUrl("ParentDashboard"),
+    icon: Home,
+  },
+  {
+    title: "Mis Pagos",
+    url: createPageUrl("ParentPayments"),
+    icon: CreditCard,
+  },
+];
+
 export default function Layout({ children, currentPageName }) {
   const location = useLocation();
   const currentSeason = getCurrentSeason();
+  const [user, setUser] = useState(null);
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const currentUser = await base44.auth.me();
+        setUser(currentUser);
+        setIsAdmin(currentUser.role === "admin");
+      } catch (error) {
+        console.error("Error fetching user:", error);
+      }
+    };
+    fetchUser();
+  }, []);
+
+  const navigationItems = isAdmin ? adminNavigationItems : parentNavigationItems;
+
+  const handleLogout = () => {
+    base44.auth.logout();
+  };
 
   return (
     <SidebarProvider>
@@ -72,7 +108,9 @@ export default function Layout({ children, currentPageName }) {
                 </div>
                 <div className="text-white">
                   <h2 className="font-bold text-lg leading-tight">CF Bustarviejo</h2>
-                  <p className="text-xs text-orange-100">Club de Fútbol</p>
+                  <p className="text-xs text-orange-100">
+                    {isAdmin ? "Panel Administrador" : "Panel Padre/Tutor"}
+                  </p>
                 </div>
               </div>
             </div>
@@ -102,8 +140,23 @@ export default function Layout({ children, currentPageName }) {
             </SidebarGroup>
           </SidebarContent>
 
-          <SidebarFooter className="border-t border-slate-200/60 p-4 bg-slate-50/50">
-            <div className="text-center text-xs text-slate-500">
+          <SidebarFooter className="border-t border-slate-200/60 p-4 bg-slate-50/50 space-y-3">
+            {user && (
+              <div className="text-center text-xs">
+                <p className="font-medium text-slate-700">{user.full_name}</p>
+                <p className="text-slate-500">{user.email}</p>
+              </div>
+            )}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleLogout}
+              className="w-full hover:bg-red-50 hover:text-red-600 hover:border-red-300"
+            >
+              <LogOut className="w-4 h-4 mr-2" />
+              Cerrar Sesión
+            </Button>
+            <div className="text-center text-xs text-slate-500 pt-2 border-t border-slate-200">
               <p className="font-medium">Temporada {currentSeason}</p>
               <p className="text-slate-400 mt-1">© CF Bustarviejo</p>
             </div>

@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -14,6 +15,7 @@ export default function Payments() {
   const [showForm, setShowForm] = useState(false);
   const [editingPayment, setEditingPayment] = useState(null);
   const [playerFilter, setPlayerFilter] = useState(null);
+  const [isAdmin, setIsAdmin] = useState(false);
   
   const queryClient = useQueryClient();
 
@@ -24,6 +26,20 @@ export default function Payments() {
     if (jugadorId) {
       setPlayerFilter(jugadorId);
     }
+  }, []);
+
+  // Check if user is admin
+  useEffect(() => {
+    const checkAdmin = async () => {
+      try {
+        const user = await base44.auth.me();
+        setIsAdmin(user.role === "admin");
+      } catch (error) {
+        console.error("Error checking admin status:", error);
+        setIsAdmin(false);
+      }
+    };
+    checkAdmin();
   }, []);
 
   const { data: payments, isLoading } = useQuery({
@@ -70,6 +86,11 @@ export default function Payments() {
   };
 
   const handleStatusChange = (payment, newStatus) => {
+    if (!isAdmin) {
+      // Solo admins pueden cambiar estados
+      console.warn("Only administrators can change payment status.");
+      return; 
+    }
     const updatedData = { ...payment, estado: newStatus };
     if (newStatus === "Pagado" && !payment.fecha_pago) {
       updatedData.fecha_pago = new Date().toISOString().split('T')[0];
@@ -111,39 +132,43 @@ export default function Payments() {
             </div>
           )}
         </div>
-        <Button
-          onClick={() => {
-            setEditingPayment(null);
-            setShowForm(!showForm);
-          }}
-          className="bg-orange-600 hover:bg-orange-700 shadow-lg"
-        >
-          <Plus className="w-5 h-5 mr-2" />
-          Registrar Pago
-        </Button>
+        {isAdmin && (
+          <Button
+            onClick={() => {
+              setEditingPayment(null);
+              setShowForm(!showForm);
+            }}
+            className="bg-orange-600 hover:bg-orange-700 shadow-lg"
+          >
+            <Plus className="w-5 h-5 mr-2" />
+            Registrar Pago
+          </Button>
+        )}
       </div>
 
       <PaymentStats payments={filteredPayments} />
 
-      <AnimatePresence>
-        {showForm && (
-          <PaymentForm
-            payment={editingPayment}
-            players={players}
-            onSubmit={handleSubmit}
-            onCancel={() => {
-              setShowForm(false);
-              setEditingPayment(null);
-            }}
-            isSubmitting={createPaymentMutation.isPending || updatePaymentMutation.isPending}
-          />
-        )}
-      </AnimatePresence>
+      {isAdmin && (
+        <AnimatePresence>
+          {showForm && (
+            <PaymentForm
+              payment={editingPayment}
+              players={players}
+              onSubmit={handleSubmit}
+              onCancel={() => {
+                setShowForm(false);
+                setEditingPayment(null);
+              }}
+              isSubmitting={createPaymentMutation.isPending || updatePaymentMutation.isPending}
+            />
+          )}
+        </AnimatePresence>
+      )}
 
       <PaymentTable
         payments={filteredPayments}
         isLoading={isLoading}
-        onEdit={handleEdit}
+        onEdit={isAdmin ? handleEdit : undefined}
         onStatusChange={handleStatusChange}
       />
     </div>
