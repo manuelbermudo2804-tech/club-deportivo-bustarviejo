@@ -1,11 +1,10 @@
-
 import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Bell, Send, CheckCircle2, Calendar, Mail, Loader2 } from "lucide-react";
+import { Bell, Send, CheckCircle2, Calendar, Mail, Loader2, RefreshCw } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
 import { format } from "date-fns";
@@ -15,6 +14,7 @@ import { toast } from "sonner";
 export default function RemindersPage() {
   const queryClient = useQueryClient();
   const [sendingReminder, setSendingReminder] = useState(null);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   const { data: reminders, isLoading } = useQuery({
     queryKey: ['reminders'],
@@ -27,6 +27,14 @@ export default function RemindersPage() {
     queryFn: () => base44.entities.Payment.list(),
     initialData: [],
   });
+
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
+    await queryClient.invalidateQueries({ queryKey: ['reminders'] });
+    await queryClient.invalidateQueries({ queryKey: ['payments'] });
+    toast.success("Datos actualizados");
+    setIsRefreshing(false);
+  };
 
   const sendReminderEmail = async (reminder) => {
     if (!reminder.email_padre) {
@@ -133,14 +141,25 @@ CF Bustarviejo
           <h1 className="text-3xl font-bold text-slate-900">Recordatorios de Pago</h1>
           <p className="text-slate-600 mt-1">Gestión automática de notificaciones</p>
         </div>
-        <Button
-          onClick={sendAllPending}
-          disabled={dueToday === 0}
-          className="bg-orange-600 hover:bg-orange-700 shadow-lg"
-        >
-          <Send className="w-5 h-5 mr-2" />
-          Enviar Pendientes ({dueToday})
-        </Button>
+        <div className="flex gap-3">
+          <Button
+            onClick={handleRefresh}
+            disabled={isRefreshing}
+            variant="outline"
+            className="shadow-lg"
+          >
+            <RefreshCw className={`w-5 h-5 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
+            Actualizar
+          </Button>
+          <Button
+            onClick={sendAllPending}
+            disabled={dueToday === 0}
+            className="bg-orange-600 hover:bg-orange-700 shadow-lg"
+          >
+            <Send className="w-5 h-5 mr-2" />
+            Enviar Pendientes ({dueToday})
+          </Button>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -212,7 +231,9 @@ CF Bustarviejo
             </div>
           ) : reminders.length === 0 ? (
             <div className="text-center py-12">
-              <p className="text-slate-500">No hay recordatorios registrados</p>
+              <Bell className="w-16 h-16 text-slate-300 mx-auto mb-4" />
+              <p className="text-slate-500 text-lg mb-2">No hay recordatorios registrados</p>
+              <p className="text-slate-400 text-sm">Los recordatorios se generan automáticamente con los pagos</p>
             </div>
           ) : (
             <div className="overflow-x-auto">
