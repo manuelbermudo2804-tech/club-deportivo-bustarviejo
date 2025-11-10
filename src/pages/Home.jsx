@@ -90,6 +90,23 @@ export default function Home() {
         </p>
       </div>
 
+      {/* Mensaje de Bienvenida Temporada */}
+      <Card className="border-none shadow-xl bg-gradient-to-r from-orange-500 via-orange-600 to-orange-700 text-white overflow-hidden relative">
+        <div className="absolute top-0 right-0 w-64 h-64 bg-white rounded-full blur-3xl opacity-10"></div>
+        <div className="absolute bottom-0 left-0 w-48 h-48 bg-slate-900 rounded-full blur-3xl opacity-20"></div>
+        <CardContent className="relative z-10 py-8 px-6">
+          <div className="text-center space-y-3">
+            <h2 className="text-3xl font-bold">¡Bienvenidos al Club Deportivo Bustarviejo!</h2>
+            <p className="text-xl text-orange-50">
+              Comienza la temporada 2025/26, llena de ilusión, deporte y compañerismo.
+            </p>
+            <p className="text-lg text-orange-100">
+              Gracias por formar parte de nuestra familia deportiva. 💪⚽🏀
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Historia del Club */}
       <Card className="border-none shadow-lg bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white overflow-hidden relative">
         <div className="absolute top-0 right-0 w-64 h-64 bg-orange-500 rounded-full blur-3xl opacity-20"></div>
