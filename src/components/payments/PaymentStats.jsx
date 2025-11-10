@@ -1,7 +1,6 @@
-
 import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { CheckCircle2, Clock, AlertCircle, TrendingUp } from "lucide-react";
+import { CheckCircle2, Clock, AlertTriangle, TrendingUp } from "lucide-react";
 
 export default function PaymentStats({ payments }) {
   const totalPaid = payments
@@ -12,8 +11,8 @@ export default function PaymentStats({ payments }) {
     .filter(p => p.estado === "Pendiente")
     .reduce((sum, p) => sum + (p.cantidad || 0), 0);
 
-  const totalOverdue = payments
-    .filter(p => p.estado === "Atrasado")
+  const totalInReview = payments
+    .filter(p => p.estado === "En revisión")
     .reduce((sum, p) => sum + (p.cantidad || 0), 0);
 
   const stats = [
@@ -30,14 +29,14 @@ export default function PaymentStats({ payments }) {
       color: "amber"
     },
     {
-      title: "Pagos Atrasados",
-      value: `${totalOverdue.toFixed(2)}€`,
-      icon: AlertCircle,
-      color: "red"
+      title: "En Revisión",
+      value: `${totalInReview.toFixed(2)}€`,
+      icon: AlertTriangle,
+      color: "blue"
     },
     {
       title: "Total Registrado",
-      value: `${(totalPaid + totalPending + totalOverdue).toFixed(2)}€`,
+      value: `${(totalPaid + totalPending + totalInReview).toFixed(2)}€`,
       icon: TrendingUp,
       color: "slate"
     }
@@ -46,7 +45,7 @@ export default function PaymentStats({ payments }) {
   const colorClasses = {
     orange: "bg-orange-500 text-orange-500",
     amber: "bg-amber-500 text-amber-500",
-    red: "bg-red-500 text-red-500",
+    blue: "bg-blue-500 text-blue-500",
     slate: "bg-slate-800 text-slate-800"
   };
 
