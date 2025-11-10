@@ -1,47 +1,34 @@
 import React, { useState } from "react";
 import { motion } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 import { Loader2 } from "lucide-react";
 
 export default function EventForm({ event, onSubmit, onCancel, isSubmitting }) {
   const [formData, setFormData] = useState(event || {
     titulo: "",
     descripcion: "",
-    tipo: "Otro",
-    deporte: "Ambos",
+    tipo: "Partido",
+    deporte: "Todos",
     categoria: "Todas",
     fecha: "",
     hora: "",
     ubicacion: "",
     rival: "",
-    local_visitante: "",
+    local_visitante: "Local",
     importante: false,
     color: "orange",
     publicado: true
   });
 
-  const handleChange = (field, value) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
-  };
-
   const handleSubmit = (e) => {
     e.preventDefault();
     onSubmit(formData);
-  };
-
-  const typeIcons = {
-    "Partido": "⚽",
-    "Entrenamiento": "🏃",
-    "Reunión": "👥",
-    "Torneo": "🏆",
-    "Inicio Temporada": "🎯",
-    "Otro": "📅"
   };
 
   return (
@@ -50,53 +37,42 @@ export default function EventForm({ event, onSubmit, onCancel, isSubmitting }) {
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -20 }}
     >
-      <Card className="border-none shadow-xl bg-white">
+      <Card className="border-none shadow-lg bg-white">
         <CardHeader className="border-b border-slate-100">
-          <CardTitle className="text-2xl">
+          <CardTitle className="text-xl">
             {event ? "Editar Evento" : "Nuevo Evento"}
           </CardTitle>
         </CardHeader>
         <CardContent className="pt-6">
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="grid md:grid-cols-2 gap-6">
-              <div className="space-y-2 md:col-span-2">
-                <Label htmlFor="titulo">Título del Evento *</Label>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="titulo">Título *</Label>
                 <Input
                   id="titulo"
+                  placeholder="Título del evento"
                   value={formData.titulo}
-                  onChange={(e) => handleChange("titulo", e.target.value)}
+                  onChange={(e) => setFormData({...formData, titulo: e.target.value})}
                   required
-                  placeholder="Ej: Partido contra CD Villamanta"
-                />
-              </div>
-
-              <div className="space-y-2 md:col-span-2">
-                <Label htmlFor="descripcion">Descripción</Label>
-                <Textarea
-                  id="descripcion"
-                  value={formData.descripcion}
-                  onChange={(e) => handleChange("descripcion", e.target.value)}
-                  placeholder="Detalles adicionales del evento..."
-                  rows={3}
                 />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="tipo">Tipo de Evento *</Label>
+                <Label htmlFor="tipo">Tipo *</Label>
                 <Select
                   value={formData.tipo}
-                  onValueChange={(value) => handleChange("tipo", value)}
-                  required
+                  onValueChange={(value) => setFormData({...formData, tipo: value})}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Selecciona tipo" />
+                    <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    {Object.entries(typeIcons).map(([tipo, icon]) => (
-                      <SelectItem key={tipo} value={tipo}>
-                        {icon} {tipo}
-                      </SelectItem>
-                    ))}
+                    <SelectItem value="Partido">Partido</SelectItem>
+                    <SelectItem value="Entrenamiento">Entrenamiento</SelectItem>
+                    <SelectItem value="Reunión">Reunión</SelectItem>
+                    <SelectItem value="Torneo">Torneo</SelectItem>
+                    <SelectItem value="Inicio Temporada">Inicio Temporada</SelectItem>
+                    <SelectItem value="Otro">Otro</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -105,15 +81,16 @@ export default function EventForm({ event, onSubmit, onCancel, isSubmitting }) {
                 <Label htmlFor="deporte">Deporte</Label>
                 <Select
                   value={formData.deporte}
-                  onValueChange={(value) => handleChange("deporte", value)}
+                  onValueChange={(value) => setFormData({...formData, deporte: value})}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Selecciona deporte" />
+                    <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="Ambos">🏃 Ambos deportes</SelectItem>
+                    <SelectItem value="Todos">Todos</SelectItem>
                     <SelectItem value="Fútbol">⚽ Fútbol</SelectItem>
                     <SelectItem value="Baloncesto">🏀 Baloncesto</SelectItem>
+                    <SelectItem value="Paddle">🎾 Paddle</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -122,13 +99,13 @@ export default function EventForm({ event, onSubmit, onCancel, isSubmitting }) {
                 <Label htmlFor="categoria">Categoría</Label>
                 <Select
                   value={formData.categoria}
-                  onValueChange={(value) => handleChange("categoria", value)}
+                  onValueChange={(value) => setFormData({...formData, categoria: value})}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Selecciona categoría" />
+                    <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="Todas">Todas las categorías</SelectItem>
+                    <SelectItem value="Todas">Todas</SelectItem>
                     <SelectItem value="Prebenjamín">Prebenjamín</SelectItem>
                     <SelectItem value="Benjamín">Benjamín</SelectItem>
                     <SelectItem value="Alevín">Alevín</SelectItem>
@@ -146,7 +123,7 @@ export default function EventForm({ event, onSubmit, onCancel, isSubmitting }) {
                   id="fecha"
                   type="date"
                   value={formData.fecha}
-                  onChange={(e) => handleChange("fecha", e.target.value)}
+                  onChange={(e) => setFormData({...formData, fecha: e.target.value})}
                   required
                 />
               </div>
@@ -157,8 +134,7 @@ export default function EventForm({ event, onSubmit, onCancel, isSubmitting }) {
                   id="hora"
                   type="time"
                   value={formData.hora}
-                  onChange={(e) => handleChange("hora", e.target.value)}
-                  placeholder="10:00"
+                  onChange={(e) => setFormData({...formData, hora: e.target.value})}
                 />
               </div>
 
@@ -166,50 +142,63 @@ export default function EventForm({ event, onSubmit, onCancel, isSubmitting }) {
                 <Label htmlFor="ubicacion">Ubicación</Label>
                 <Input
                   id="ubicacion"
+                  placeholder="Lugar del evento"
                   value={formData.ubicacion}
-                  onChange={(e) => handleChange("ubicacion", e.target.value)}
-                  placeholder="Ej: Campo Municipal de Bustarviejo"
+                  onChange={(e) => setFormData({...formData, ubicacion: e.target.value})}
                 />
               </div>
+            </div>
 
-              {formData.tipo === "Partido" && (
-                <>
-                  <div className="space-y-2">
-                    <Label htmlFor="rival">Equipo Rival</Label>
-                    <Input
-                      id="rival"
-                      value={formData.rival}
-                      onChange={(e) => handleChange("rival", e.target.value)}
-                      placeholder="Ej: CD Villamanta"
-                    />
-                  </div>
+            <div className="space-y-2">
+              <Label htmlFor="descripcion">Descripción</Label>
+              <Textarea
+                id="descripcion"
+                placeholder="Descripción detallada del evento"
+                value={formData.descripcion}
+                onChange={(e) => setFormData({...formData, descripcion: e.target.value})}
+                className="h-24"
+              />
+            </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="local_visitante">Local/Visitante</Label>
-                    <Select
-                      value={formData.local_visitante}
-                      onValueChange={(value) => handleChange("local_visitante", value)}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecciona" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="Local">🏠 Local</SelectItem>
-                        <SelectItem value="Visitante">✈️ Visitante</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </>
-              )}
+            {formData.tipo === "Partido" && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 bg-slate-50 rounded-lg">
+                <div className="space-y-2">
+                  <Label htmlFor="rival">Equipo Rival</Label>
+                  <Input
+                    id="rival"
+                    placeholder="Nombre del rival"
+                    value={formData.rival}
+                    onChange={(e) => setFormData({...formData, rival: e.target.value})}
+                  />
+                </div>
 
+                <div className="space-y-2">
+                  <Label htmlFor="local_visitante">Local/Visitante</Label>
+                  <Select
+                    value={formData.local_visitante}
+                    onValueChange={(value) => setFormData({...formData, local_visitante: value})}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Local">🏠 Local</SelectItem>
+                      <SelectItem value="Visitante">✈️ Visitante</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            )}
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="color">Color en Calendario</Label>
+                <Label htmlFor="color">Color</Label>
                 <Select
                   value={formData.color}
-                  onValueChange={(value) => handleChange("color", value)}
+                  onValueChange={(value) => setFormData({...formData, color: value})}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Selecciona color" />
+                    <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="orange">🟠 Naranja</SelectItem>
@@ -222,26 +211,32 @@ export default function EventForm({ event, onSubmit, onCancel, isSubmitting }) {
                 </Select>
               </div>
 
-              <div className="flex items-center space-x-2">
-                <Switch
-                  id="importante"
-                  checked={formData.importante}
-                  onCheckedChange={(checked) => handleChange("importante", checked)}
-                />
-                <Label htmlFor="importante">⭐ Evento Destacado</Label>
-              </div>
+              <div className="space-y-4 pt-6">
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="importante" className="cursor-pointer">
+                    ⭐ Evento Importante
+                  </Label>
+                  <Switch
+                    id="importante"
+                    checked={formData.importante}
+                    onCheckedChange={(checked) => setFormData({...formData, importante: checked})}
+                  />
+                </div>
 
-              <div className="flex items-center space-x-2">
-                <Switch
-                  id="publicado"
-                  checked={formData.publicado}
-                  onCheckedChange={(checked) => handleChange("publicado", checked)}
-                />
-                <Label htmlFor="publicado">Publicado</Label>
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="publicado" className="cursor-pointer">
+                    👁️ Publicar Evento
+                  </Label>
+                  <Switch
+                    id="publicado"
+                    checked={formData.publicado}
+                    onCheckedChange={(checked) => setFormData({...formData, publicado: checked})}
+                  />
+                </div>
               </div>
             </div>
 
-            <div className="flex justify-end gap-3 pt-4">
+            <div className="flex justify-end gap-3 pt-4 border-t border-slate-100">
               <Button
                 type="button"
                 variant="outline"
@@ -252,8 +247,8 @@ export default function EventForm({ event, onSubmit, onCancel, isSubmitting }) {
               </Button>
               <Button
                 type="submit"
-                disabled={isSubmitting}
                 className="bg-orange-600 hover:bg-orange-700"
+                disabled={isSubmitting}
               >
                 {isSubmitting ? (
                   <>
@@ -261,7 +256,7 @@ export default function EventForm({ event, onSubmit, onCancel, isSubmitting }) {
                     Guardando...
                   </>
                 ) : (
-                  event ? "Actualizar Evento" : "Crear Evento"
+                  event ? "Actualizar" : "Crear Evento"
                 )}
               </Button>
             </div>

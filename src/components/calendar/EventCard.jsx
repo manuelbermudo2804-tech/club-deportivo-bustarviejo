@@ -29,7 +29,8 @@ export default function EventCard({ event, onEdit, isAdmin }) {
   const sportIcons = {
     "Fútbol": "⚽",
     "Baloncesto": "🏀",
-    "Ambos": "🏃"
+    "Paddle": "🎾",
+    "Todos": "🏃"
   };
 
   return (

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -70,17 +69,14 @@ export default function Calendar() {
     setShowForm(true);
   };
 
-  // Filtrar eventos publicados (o todos si es admin)
   const visibleEvents = events.filter(event => isAdmin || event.publicado);
 
-  // Aplicar filtros
   const filteredEvents = visibleEvents.filter(event => {
     const matchesType = typeFilter === "all" || event.tipo === typeFilter;
-    const matchesSport = sportFilter === "all" || event.deporte === sportFilter || event.deporte === "Ambos";
+    const matchesSport = sportFilter === "all" || event.deporte === sportFilter || event.deporte === "Todos";
     return matchesType && matchesSport;
   });
 
-  // Separar eventos próximos y pasados
   const today = new Date().toISOString().split('T')[0];
   const upcomingEvents = filteredEvents.filter(e => e.fecha >= today).sort((a, b) => a.fecha.localeCompare(b.fecha));
   const pastEvents = filteredEvents.filter(e => e.fecha < today).sort((a, b) => b.fecha.localeCompare(a.fecha));
@@ -156,7 +152,7 @@ export default function Calendar() {
         )}
       </AnimatePresence>
 
-      {/* Filtros */}
+      {/* Filtros por Deporte */}
       <div className="space-y-4">
         <div className="flex flex-wrap gap-3">
           <Button
@@ -179,6 +175,13 @@ export default function Calendar() {
             className={sportFilter === "Baloncesto" ? "bg-orange-600 hover:bg-orange-700" : ""}
           >
             🏀 Baloncesto
+          </Button>
+          <Button
+            variant={sportFilter === "Paddle" ? "default" : "outline"}
+            onClick={() => setSportFilter("Paddle")}
+            className={sportFilter === "Paddle" ? "bg-purple-600 hover:bg-purple-700" : ""}
+          >
+            🎾 Paddle
           </Button>
         </div>
 
