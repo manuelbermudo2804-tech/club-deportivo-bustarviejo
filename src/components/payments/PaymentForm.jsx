@@ -86,7 +86,7 @@ export default function PaymentForm({ payment, players, onSubmit, onCancel, isSu
     }
   };
 
-  const months = ["Septiembre", "Octubre", "Noviembre", "Diciembre", "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto"];
+  const months = ["Septiembre", "Noviembre", "Diciembre"];
 
   return (
     <motion.div
