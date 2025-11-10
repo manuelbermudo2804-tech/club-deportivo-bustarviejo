@@ -37,6 +37,7 @@ export default function Layout({ children, currentPageName }) {
   const [user, setUser] = useState(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [unreadMessagesCount, setUnreadMessagesCount] = useState(0);
+  const [urgentMessagesCount, setUrgentMessagesCount] = useState(0);
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -59,12 +60,18 @@ export default function Layout({ children, currentPageName }) {
       try {
         const allMessages = await base44.entities.ChatMessage.list();
         let unread = 0;
+        let urgent = 0;
         
         if (isAdmin) {
           // Para admin: contar mensajes de padres no leídos
-          unread = allMessages.filter(msg => 
-            !msg.leido && msg.tipo === "padre_a_grupo"
-          ).length;
+          allMessages.forEach(msg => {
+            if (!msg.leido && msg.tipo === "padre_a_grupo") {
+              unread++;
+              if (msg.prioridad === "Urgente") {
+                urgent++;
+              }
+            }
+          });
         } else {
           // Para padres: obtener grupos de sus jugadores y contar mensajes del admin no leídos
           const allPlayers = await base44.entities.Player.list();
@@ -73,21 +80,27 @@ export default function Layout({ children, currentPageName }) {
           );
           const myGroupIds = myPlayers.map(p => `${p.deporte}_${p.categoria}`);
           
-          unread = allMessages.filter(msg => 
-            !msg.leido && 
-            msg.tipo === "admin_a_grupo" && 
-            myGroupIds.includes(msg.grupo_id)
-          ).length;
+          allMessages.forEach(msg => {
+            if (!msg.leido && 
+                msg.tipo === "admin_a_grupo" && 
+                myGroupIds.includes(msg.grupo_id)) {
+              unread++;
+              if (msg.prioridad === "Urgente") {
+                urgent++;
+              }
+            }
+          });
         }
         
         setUnreadMessagesCount(unread);
+        setUrgentMessagesCount(urgent);
       } catch (error) {
         console.error("Error checking unread messages:", error);
       }
     };
 
     checkUnreadMessages();
-    const interval = setInterval(checkUnreadMessages, 10000);
+    const interval = setInterval(checkUnreadMessages, 5000); // Actualizar cada 5 segundos
     
     return () => clearInterval(interval);
   }, [user, isAdmin]);
@@ -133,6 +146,7 @@ export default function Layout({ children, currentPageName }) {
       url: createPageUrl("AdminChat"),
       icon: MessageCircle,
       badge: unreadMessagesCount > 0 ? unreadMessagesCount : null,
+      urgentBadge: urgentMessagesCount > 0,
     },
     {
       title: "Histórico",
@@ -177,6 +191,7 @@ export default function Layout({ children, currentPageName }) {
       url: createPageUrl("ParentChat"),
       icon: MessageCircle,
       badge: unreadMessagesCount > 0 ? unreadMessagesCount : null,
+      urgentBadge: urgentMessagesCount > 0,
     },
   ];
 
@@ -222,9 +237,18 @@ export default function Layout({ children, currentPageName }) {
                           <item.icon className="w-5 h-5" />
                           <span className="font-medium">{item.title}</span>
                           {item.badge && (
-                            <Badge className="ml-auto bg-red-500 text-white h-5 min-w-5 flex items-center justify-center px-1.5">
-                              {item.badge}
-                            </Badge>
+                            <div className="ml-auto flex items-center gap-1">
+                              {item.urgentBadge && (
+                                <Badge className="bg-red-500 text-white h-6 min-w-6 flex items-center justify-center px-2 animate-pulse shadow-lg shadow-red-500/50">
+                                  🔴 {item.badge}
+                                </Badge>
+                              )}
+                              {!item.urgentBadge && (
+                                <Badge className="bg-orange-500 text-white h-6 min-w-6 flex items-center justify-center px-2 shadow-md">
+                                  {item.badge}
+                                </Badge>
+                              )}
+                            </div>
                           )}
                         </Link>
                       </SidebarMenuButton>
@@ -289,6 +313,23 @@ export default function Layout({ children, currentPageName }) {
                 </SidebarTrigger>
                 <h1 className="text-xl font-bold text-orange-700">CF Bustarviejo</h1>
               </div>
+              {/* Badge de notificaciones en el header móvil */}
+              {(unreadMessagesCount > 0 || urgentMessagesCount > 0) && (
+                <Link to={createPageUrl(isAdmin ? "AdminChat" : "ParentChat")}>
+                  <div className="relative">
+                    <MessageCircle className="w-6 h-6 text-orange-600" />
+                    {urgentMessagesCount > 0 ? (
+                      <Badge className="absolute -top-2 -right-2 bg-red-500 text-white h-5 min-w-5 flex items-center justify-center px-1.5 text-xs animate-pulse shadow-lg shadow-red-500/50">
+                        🔴 {unreadMessagesCount}
+                      </Badge>
+                    ) : (
+                      <Badge className="absolute -top-2 -right-2 bg-orange-500 text-white h-5 min-w-5 flex items-center justify-center px-1.5 text-xs shadow-md">
+                        {unreadMessagesCount}
+                      </Badge>
+                    )}
+                  </div>
+                </Link>
+              )}
             </div>
           </header>
 
