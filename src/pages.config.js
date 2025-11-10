@@ -2,6 +2,7 @@ import Home from './pages/Home';
 import Players from './pages/Players';
 import Payments from './pages/Payments';
 import Store from './pages/Store';
+import Reminders from './pages/Reminders';
 import Layout from './Layout.jsx';
 
 
@@ -10,6 +11,7 @@ export const PAGES = {
     "Players": Players,
     "Payments": Payments,
     "Store": Store,
+    "Reminders": Reminders,
 }
 
 export const pagesConfig = {

@@ -1,7 +1,7 @@
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { Home, Users, CreditCard, ShoppingBag, Menu } from "lucide-react";
+import { Home, Users, CreditCard, ShoppingBag, Menu, Bell } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -20,13 +20,11 @@ import {
 const getCurrentSeason = () => {
   const now = new Date();
   const currentYear = now.getFullYear();
-  const currentMonth = now.getMonth() + 1; // 1-12
+  const currentMonth = now.getMonth() + 1;
   
-  // Si estamos entre enero y agosto, la temporada comenzó el año anterior
   if (currentMonth <= 8) {
     return `${currentYear - 1}/${currentYear}`;
   }
-  // Si estamos entre septiembre y diciembre, la temporada comienza este año
   return `${currentYear}/${currentYear + 1}`;
 };
 
@@ -45,6 +43,11 @@ const navigationItems = [
     title: "Pagos",
     url: createPageUrl("Payments"),
     icon: CreditCard,
+  },
+  {
+    title: "Recordatorios",
+    url: createPageUrl("Reminders"),
+    icon: Bell,
   },
   {
     title: "Tienda",

@@ -19,6 +19,7 @@ export default function PlayerForm({ player, onSubmit, onCancel, isSubmitting })
     dni: "",
     telefono: "",
     email: "",
+    email_padre: "", // Added new field
     direccion: "",
     categoria: "",
     posicion: "",
@@ -166,7 +167,7 @@ export default function PlayerForm({ player, onSubmit, onCancel, isSubmitting })
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
+                <Label htmlFor="email">Email del Jugador</Label>
                 <Input
                   id="email"
                   type="email"
@@ -174,6 +175,21 @@ export default function PlayerForm({ player, onSubmit, onCancel, isSubmitting })
                   onChange={(e) => handleChange("email", e.target.value)}
                   placeholder="email@ejemplo.com"
                 />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="email_padre">Email del Padre/Tutor *</Label>
+                <Input
+                  id="email_padre"
+                  type="email"
+                  value={formData.email_padre}
+                  onChange={(e) => handleChange("email_padre", e.target.value)}
+                  placeholder="padre@ejemplo.com"
+                  required
+                />
+                <p className="text-xs text-slate-500">
+                  Se usará para enviar recordatorios de pago
+                </p>
               </div>
 
               <div className="space-y-2">

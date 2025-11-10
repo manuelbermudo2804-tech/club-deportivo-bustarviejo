@@ -14,17 +14,15 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 const getCurrentSeason = () => {
   const now = new Date();
   const currentYear = now.getFullYear();
-  const currentMonth = now.getMonth() + 1; // 1-12
+  const currentMonth = now.getMonth() + 1;
   
-  // Si estamos entre enero y agosto, la temporada comenzó el año anterior
   if (currentMonth <= 8) {
     return `${currentYear - 1}-${currentYear}`;
   }
-  // Si estamos entre septiembre y diciembre, la temporada comienza este año
   return `${currentYear}-${currentYear + 1}`;
 };
 
-// Generar lista de temporadas (actual + próximas)
+// Generar lista de temporadas
 const getSeasonOptions = () => {
   const now = new Date();
   const currentYear = now.getFullYear();
@@ -36,6 +34,76 @@ const getSeasonOptions = () => {
   }
   
   return seasons;
+};
+
+// Función para generar recordatorios automáticos
+const generateReminders = async (payment, playerEmail) => {
+  const mesMap = {
+    "Septiembre": 9,
+    "Noviembre": 11,
+    "Diciembre": 12
+  };
+  
+  const month = mesMap[payment.mes];
+  const year = parseInt(payment.temporada.split('-')[0]); // Primer año de la temporada
+  
+  // Fecha de vencimiento: día 30 del mes
+  const vencimiento = new Date(year, month - 1, 30);
+  
+  // 7 días antes del vencimiento
+  const sieteAntes = new Date(vencimiento);
+  sieteAntes.setDate(vencimiento.getDate() - 7);
+  
+  // Día del vencimiento
+  const diaVencimiento = new Date(vencimiento);
+  
+  // 3 días después del vencimiento
+  const tresDespues = new Date(vencimiento);
+  tresDespues.setDate(vencimiento.getDate() + 3);
+  
+  const recordatorios = [
+    {
+      pago_id: payment.id,
+      jugador_id: payment.jugador_id,
+      jugador_nombre: payment.jugador_nombre,
+      email_padre: playerEmail,
+      tipo_recordatorio: "7 días antes",
+      fecha_envio: sieteAntes.toISOString().split('T')[0],
+      enviado: false,
+      mes_pago: payment.mes,
+      temporada: payment.temporada,
+      cantidad: payment.cantidad
+    },
+    {
+      pago_id: payment.id,
+      jugador_id: payment.jugador_id,
+      jugador_nombre: payment.jugador_nombre,
+      email_padre: playerEmail,
+      tipo_recordatorio: "Día de vencimiento",
+      fecha_envio: diaVencimiento.toISOString().split('T')[0],
+      enviado: false,
+      mes_pago: payment.mes,
+      temporada: payment.temporada,
+      cantidad: payment.cantidad
+    },
+    {
+      pago_id: payment.id,
+      jugador_id: payment.jugador_id,
+      jugador_nombre: payment.jugador_nombre,
+      email_padre: playerEmail,
+      tipo_recordatorio: "Después del vencimiento",
+      fecha_envio: tresDespues.toISOString().split('T')[0],
+      enviado: false,
+      mes_pago: payment.mes,
+      temporada: payment.temporada,
+      cantidad: payment.cantidad
+    }
+  ];
+  
+  // Crear los recordatorios en la base de datos
+  for (const recordatorio of recordatorios) {
+    await base44.entities.Reminder.create(recordatorio);
+  }
 };
 
 export default function PaymentForm({ payment, players, onSubmit, onCancel, isSubmitting }) {
@@ -65,7 +133,6 @@ export default function PaymentForm({ payment, players, onSubmit, onCancel, isSu
       }
     }
 
-    // Actualizar cantidad según tipo de pago
     if (field === "tipo_pago") {
       if (value === "Único") {
         updates.cantidad = 90;
@@ -94,20 +161,29 @@ export default function PaymentForm({ payment, players, onSubmit, onCancel, isSu
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    // Si es pago en tres meses y no es una edición, crear 3 pagos
+    // Si es pago en tres meses y no es una edición, crear 3 pagos con recordatorios
     if (formData.tipo_pago === "Tres meses" && !payment) {
       const mesesPago = ["Septiembre", "Noviembre", "Diciembre"];
-      const pagos = mesesPago.map(mes => ({
-        ...formData,
-        mes: mes,
-        cantidad: 30
-      }));
+      const selectedPlayer = players.find(p => p.id === formData.jugador_id);
+      const playerEmail = selectedPlayer?.email_padre || selectedPlayer?.email;
       
-      // Crear los 3 pagos
-      for (const pago of pagos) {
-        await base44.entities.Payment.create(pago);
+      for (const mes of mesesPago) {
+        const pagoData = {
+          ...formData,
+          mes: mes,
+          cantidad: 30
+        };
+        
+        // Crear el pago
+        const nuevoPago = await base44.entities.Payment.create(pagoData);
+        
+        // Generar recordatorios automáticos si hay email
+        if (playerEmail && nuevoPago.id) {
+          await generateReminders({ ...nuevoPago, id: nuevoPago.id }, playerEmail);
+        }
       }
-      onSubmit(null); // Indicar que se completó sin pasar datos específicos
+      
+      onSubmit(null);
     } else {
       onSubmit(formData);
     }
@@ -133,7 +209,7 @@ export default function PaymentForm({ payment, players, onSubmit, onCancel, isSu
             {formData.tipo_pago === "Tres meses" && !payment && (
               <Alert className="bg-orange-50 border-orange-200">
                 <AlertDescription className="text-orange-800">
-                  Se crearán automáticamente 3 pagos de 30€ para los meses de Septiembre, Noviembre y Diciembre.
+                  Se crearán automáticamente 3 pagos de 30€ para los meses de Septiembre, Noviembre y Diciembre, con recordatorios automáticos por email.
                 </AlertDescription>
               </Alert>
             )}
