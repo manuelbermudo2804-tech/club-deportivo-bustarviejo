@@ -8,6 +8,8 @@ import ParentPayments from './pages/ParentPayments';
 import ParentPlayers from './pages/ParentPlayers';
 import Calendar from './pages/Calendar';
 import Announcements from './pages/Announcements';
+import SeasonManagement from './pages/SeasonManagement';
+import PaymentHistory from './pages/PaymentHistory';
 import Layout from './Layout.jsx';
 
 
@@ -22,6 +24,8 @@ export const PAGES = {
     "ParentPlayers": ParentPlayers,
     "Calendar": Calendar,
     "Announcements": Announcements,
+    "SeasonManagement": SeasonManagement,
+    "PaymentHistory": PaymentHistory,
 }
 
 export const pagesConfig = {
