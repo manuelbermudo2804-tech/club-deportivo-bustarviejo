@@ -1,6 +1,6 @@
 import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Mail, Phone, MapPin } from "lucide-react";
+import { Mail } from "lucide-react";
 
 export default function ContactCard() {
   return (
@@ -16,12 +16,18 @@ export default function ContactCard() {
           <div className="flex items-start gap-3">
             <Mail className="w-5 h-5 mt-0.5 flex-shrink-0" />
             <div>
-              <p className="text-sm font-medium text-orange-100 mb-1">Email</p>
+              <p className="text-sm font-medium text-orange-100 mb-1">Email Principal</p>
               <a 
                 href="mailto:C.D.BUSTARVIEJO@HOTMAIL.ES"
-                className="text-white hover:text-orange-100 transition-colors font-medium text-lg break-all"
+                className="text-white hover:text-orange-100 transition-colors font-medium text-lg break-all block mb-2"
               >
                 C.D.BUSTARVIEJO@HOTMAIL.ES
+              </a>
+              <a 
+                href="mailto:CDBUSTARVIEJO@GMAIL.COM"
+                className="text-white hover:text-orange-100 transition-colors font-medium text-lg break-all block"
+              >
+                CDBUSTARVIEJO@GMAIL.COM
               </a>
             </div>
           </div>
