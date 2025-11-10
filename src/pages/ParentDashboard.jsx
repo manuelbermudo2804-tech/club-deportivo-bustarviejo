@@ -7,7 +7,7 @@ import { createPageUrl } from "@/utils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { CreditCard, Calendar, CheckCircle2, AlertTriangle, Clock, User, Users } from "lucide-react";
+import { CreditCard, Calendar, CheckCircle2, AlertTriangle, Clock, User, Users, Smartphone, Trophy } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 
 import ContactCard from "../components/ContactCard";
@@ -123,6 +123,37 @@ export default function ParentDashboard() {
             <p className="text-lg text-orange-100">
               Gracias por formar parte de nuestra familia deportiva. 💪⚽🏀
             </p>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* MatchApp Card */}
+      <Card className="border-none shadow-xl bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 text-white overflow-hidden relative">
+        <div className="absolute top-0 right-0 w-64 h-64 bg-orange-500 rounded-full blur-3xl opacity-20"></div>
+        <CardContent className="relative z-10 py-6 px-6">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+            <div className="flex items-center gap-4">
+              <div className="w-16 h-16 bg-orange-500 rounded-2xl flex items-center justify-center shadow-lg">
+                <Trophy className="w-8 h-8 text-white" />
+              </div>
+              <div>
+                <h3 className="text-2xl font-bold mb-1">Horarios y Resultados</h3>
+                <p className="text-slate-300 flex items-center gap-2">
+                  <Smartphone className="w-4 h-4" />
+                  Descarga MatchApp en tu móvil
+                </p>
+              </div>
+            </div>
+            <a 
+              href="https://matchapp.online/club/cfbustarviejo"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="w-full md:w-auto"
+            >
+              <Button className="w-full md:w-auto bg-orange-600 hover:bg-orange-700 text-white font-bold py-6 px-8 text-lg shadow-xl">
+                Abrir MatchApp
+              </Button>
+            </a>
           </div>
         </CardContent>
       </Card>
