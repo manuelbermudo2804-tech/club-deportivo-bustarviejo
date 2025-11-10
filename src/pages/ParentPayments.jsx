@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -11,6 +12,8 @@ import { Upload, FileText, Loader2, Search, X } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { toast } from "sonner";
+
+import ContactCard from "../components/ContactCard";
 
 export default function ParentPayments() {
   const [uploadingPaymentId, setUploadingPaymentId] = useState(null);
@@ -259,6 +262,8 @@ export default function ParentPayments() {
           )}
         </CardContent>
       </Card>
+
+      <ContactCard />
 
       {/* Instrucciones */}
       <Card className="border-none shadow-lg bg-orange-50 border-orange-200">

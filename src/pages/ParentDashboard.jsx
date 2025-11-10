@@ -1,3 +1,4 @@
+
 import React from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
@@ -8,6 +9,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { CreditCard, Calendar, CheckCircle2, AlertTriangle, Clock, User, Users } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
+
+import ContactCard from "../components/ContactCard";
 
 export default function ParentDashboard() {
   const { data: user } = useQuery({
@@ -100,10 +103,10 @@ export default function ParentDashboard() {
     <div className="p-6 lg:p-8 space-y-8">
       <div>
         <h1 className="text-4xl font-bold text-slate-900 mb-2">
-          Bienvenido, {user?.full_name || 'Padre/Tutor'}
+          Bienvenido al Panel de Padres
         </h1>
         <p className="text-slate-600 text-lg">
-          Panel de seguimiento de pagos y jugadores
+          Gestión de tus jugadores y pagos
         </p>
       </div>
 
@@ -134,103 +137,106 @@ export default function ParentDashboard() {
         ))}
       </div>
 
-      {/* Mis Jugadores por Deporte */}
-      <div className="grid md:grid-cols-2 gap-6">
-        {/* Fútbol */}
-        <Card className="border-none shadow-lg bg-gradient-to-br from-green-50 to-white">
-          <CardHeader className="border-b border-green-100">
-            <CardTitle className="flex items-center gap-2 text-xl">
-              <span className="text-3xl">⚽</span>
-              Fútbol
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="pt-6">
-            {loadingPlayers ? (
-              <Skeleton className="h-20 w-full" />
-            ) : futbolPlayers.length === 0 ? (
-              <p className="text-center text-slate-500 py-4">
-                No hay jugadores de fútbol
-              </p>
-            ) : (
-              <div className="space-y-3">
-                {futbolPlayers.map((player) => (
-                  <div
-                    key={player.id}
-                    className="p-3 rounded-lg bg-white border border-green-100 hover:shadow-md transition-shadow"
-                  >
-                    <div className="flex items-center gap-3">
-                      {player.foto_url ? (
-                        <img
-                          src={player.foto_url}
-                          alt={player.nombre}
-                          className="w-12 h-12 rounded-full object-cover border-2 border-green-200"
-                        />
-                      ) : (
-                        <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center">
-                          <User className="w-6 h-6 text-green-700" />
+      <div className="grid lg:grid-cols-2 gap-6">
+        {/* Mis Jugadores por Deporte */}
+        <div className="grid md:grid-cols-2 gap-6">
+          {/* Fútbol */}
+          <Card className="border-none shadow-lg bg-gradient-to-br from-green-50 to-white">
+            <CardHeader className="border-b border-green-100">
+              <CardTitle className="flex items-center gap-2 text-xl">
+                <span className="text-3xl">⚽</span>
+                Fútbol
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="pt-6">
+              {loadingPlayers ? (
+                <Skeleton className="h-20 w-full" />
+              ) : futbolPlayers.length === 0 ? (
+                <p className="text-center text-slate-500 py-4">
+                  No hay jugadores de fútbol
+                </p>
+              ) : (
+                <div className="space-y-3">
+                  {futbolPlayers.map((player) => (
+                    <div
+                      key={player.id}
+                      className="p-3 rounded-lg bg-white border border-green-100 hover:shadow-md transition-shadow"
+                    >
+                      <div className="flex items-center gap-3">
+                        {player.foto_url ? (
+                          <img
+                            src={player.foto_url}
+                            alt={player.nombre}
+                            className="w-12 h-12 rounded-full object-cover border-2 border-green-200"
+                          />
+                        ) : (
+                          <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center">
+                            <User className="w-6 h-6 text-green-700" />
+                          </div>
+                        )}
+                        <div>
+                          <h3 className="font-bold text-slate-900">{player.nombre}</h3>
+                          <Badge className="bg-green-100 text-green-700 text-xs">
+                            {player.categoria}
+                          </Badge>
                         </div>
-                      )}
-                      <div>
-                        <h3 className="font-bold text-slate-900">{player.nombre}</h3>
-                        <Badge className="bg-green-100 text-green-700 text-xs">
-                          {player.categoria}
-                        </Badge>
                       </div>
                     </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
 
-        {/* Baloncesto */}
-        <Card className="border-none shadow-lg bg-gradient-to-br from-orange-50 to-white">
-          <CardHeader className="border-b border-orange-100">
-            <CardTitle className="flex items-center gap-2 text-xl">
-              <span className="text-3xl">🏀</span>
-              Baloncesto
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="pt-6">
-            {loadingPlayers ? (
-              <Skeleton className="h-20 w-full" />
-            ) : baloncestoPlayers.length === 0 ? (
-              <p className="text-center text-slate-500 py-4">
-                No hay jugadores de baloncesto
-              </p>
-            ) : (
-              <div className="space-y-3">
-                {baloncestoPlayers.map((player) => (
-                  <div
-                    key={player.id}
-                    className="p-3 rounded-lg bg-white border border-orange-100 hover:shadow-md transition-shadow"
-                  >
-                    <div className="flex items-center gap-3">
-                      {player.foto_url ? (
-                        <img
-                          src={player.foto_url}
-                          alt={player.nombre}
-                          className="w-12 h-12 rounded-full object-cover border-2 border-orange-200"
-                        />
-                      ) : (
-                        <div className="w-12 h-12 rounded-full bg-orange-100 flex items-center justify-center">
-                          <User className="w-6 h-6 text-orange-700" />
+          {/* Baloncesto */}
+          <Card className="border-none shadow-lg bg-gradient-to-br from-orange-50 to-white">
+            <CardHeader className="border-b border-orange-100">
+              <CardTitle className="flex items-center gap-2 text-xl">
+                <span className="text-3xl">🏀</span>
+                Baloncesto
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="pt-6">
+              {loadingPlayers ? (
+                <Skeleton className="h-20 w-full" />
+              ) : baloncestoPlayers.length === 0 ? (
+                <p className="text-center text-slate-500 py-4">
+                  No hay jugadores de baloncesto
+                </p>
+              ) : (
+                <div className="space-y-3">
+                  {baloncestoPlayers.map((player) => (
+                    <div
+                      key={player.id}
+                      className="p-3 rounded-lg bg-white border border-orange-100 hover:shadow-md transition-shadow"
+                    >
+                      <div className="flex items-center gap-3">
+                        {player.foto_url ? (
+                          <img
+                            src={player.foto_url}
+                            alt={player.nombre}
+                            className="w-12 h-12 rounded-full object-cover border-2 border-orange-200"
+                          />
+                        ) : (
+                          <div className="w-12 h-12 rounded-full bg-orange-100 flex items-center justify-center">
+                            <User className="w-6 h-6 text-orange-700" />
+                          </div>
+                        )}
+                        <div>
+                          <h3 className="font-bold text-slate-900">{player.nombre}</h3>
+                          <Badge className="bg-orange-100 text-orange-700 text-xs">
+                            {player.categoria}
+                          </Badge>
                         </div>
-                      )}
-                      <div>
-                        <h3 className="font-bold text-slate-900">{player.nombre}</h3>
-                        <Badge className="bg-orange-100 text-orange-700 text-xs">
-                          {player.categoria}
-                        </Badge>
                       </div>
                     </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+        <ContactCard />
       </div>
 
       <div className="grid lg:grid-cols-2 gap-6">

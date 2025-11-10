@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -7,6 +8,7 @@ import { AnimatePresence } from "framer-motion";
 
 import PlayerCard from "../components/players/PlayerCard";
 import PlayerForm from "../components/players/PlayerForm";
+import ContactCard from "../components/ContactCard";
 
 export default function ParentPlayers() {
   const [showForm, setShowForm] = useState(false);
@@ -176,6 +178,8 @@ export default function ParentPlayers() {
           )}
         </>
       )}
+
+      <ContactCard />
     </div>
   );
 }
