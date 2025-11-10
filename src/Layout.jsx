@@ -42,7 +42,7 @@ const getPeriodType = () => {
   if (currentMonth === 5) {
     return "closed"; // Mayo: Cierre de temporada
   } else if (currentMonth === 6) {
-    return "inscriptions"; // Junio: Periodo de inscripciones
+    return "inscriptions"; // Junio: Periodo de inscripciones + Tienda
   } else if (currentMonth === 7 || currentMonth === 8) {
     return "vacation"; // Julio-Agosto: Vacaciones
   }
@@ -103,7 +103,7 @@ function ClosedSeasonScreen({ user, isAdmin }) {
                     <strong className="text-red-700">Mayo:</strong> Cierre de temporada (aplicación cerrada)
                   </p>
                   <p className="text-slate-700">
-                    <strong className="text-green-700">Junio:</strong> Inscripciones abiertas para nuevos jugadores
+                    <strong className="text-green-700">Junio:</strong> Inscripciones abiertas + Tienda abierta
                   </p>
                   <p className="text-slate-700">
                     <strong className="text-orange-700">Julio-Agosto:</strong> Vacaciones de verano
@@ -173,7 +173,7 @@ function InscriptionPeriodScreen({ user, isAdmin }) {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-500 via-green-600 to-green-700 flex items-center justify-center p-6">
-      <div className="max-w-2xl w-full">
+      <div className="max-w-3xl w-full">
         <Card className="border-none shadow-2xl bg-white/95 backdrop-blur-sm">
           <CardContent className="p-12 text-center space-y-6">
             {/* Logo */}
@@ -189,7 +189,7 @@ function InscriptionPeriodScreen({ user, isAdmin }) {
                 📝 Periodo de Inscripciones
               </h1>
               <p className="text-2xl text-green-600 font-semibold">
-                CF Bustarviejo
+                CF Bustarviejo - Mes de Junio
               </p>
             </div>
 
@@ -199,7 +199,7 @@ function InscriptionPeriodScreen({ user, isAdmin }) {
                 ¡Bienvenidos al periodo de <strong className="text-green-700">inscripciones de Junio</strong>!
               </p>
               <p className="text-lg text-slate-700">
-                Durante este mes puedes <strong className="text-green-700">registrar a tus jugadores</strong> para la próxima temporada que comenzará en <strong className="text-green-700">Septiembre</strong>.
+                Durante este mes puedes <strong className="text-green-700">registrar a tus jugadores</strong> y <strong className="text-green-700">pedir equipación en la tienda</strong> para la próxima temporada que comenzará en <strong className="text-green-700">Septiembre</strong>.
               </p>
             </div>
 
@@ -208,30 +208,82 @@ function InscriptionPeriodScreen({ user, isAdmin }) {
               ✍️
             </div>
 
-            {/* Acceso limitado */}
-            <div className="bg-blue-50 border-2 border-blue-200 rounded-xl p-6">
-              <p className="text-lg font-bold text-blue-900 mb-3">
-                ℹ️ Funcionalidad Disponible
+            {/* Acceso disponible */}
+            <div className="grid md:grid-cols-2 gap-4">
+              {/* Inscripciones */}
+              <div className="bg-blue-50 border-2 border-blue-200 rounded-xl p-6">
+                <p className="text-lg font-bold text-blue-900 mb-3">
+                  📋 Inscripciones
+                </p>
+                <div className="text-left space-y-2 text-sm">
+                  <p className="text-slate-700">
+                    ✅ <strong>Registro de nuevos jugadores</strong>
+                  </p>
+                  <p className="text-slate-700">
+                    ✅ <strong>Actualización de datos</strong>
+                  </p>
+                  <p className="text-slate-700">
+                    ✅ <strong>Fotos y documentación</strong>
+                  </p>
+                </div>
+              </div>
+
+              {/* Tienda */}
+              <div className="bg-orange-50 border-2 border-orange-200 rounded-xl p-6">
+                <p className="text-lg font-bold text-orange-900 mb-3">
+                  🛍️ Tienda
+                </p>
+                <div className="text-left space-y-2 text-sm">
+                  <p className="text-slate-700">
+                    ✅ <strong>Equipaciones disponibles</strong>
+                  </p>
+                  <p className="text-slate-700">
+                    ✅ <strong>Chandals y accesorios</strong>
+                  </p>
+                  <p className="text-slate-700">
+                    ✅ <strong>Pedidos para la nueva temporada</strong>
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Aviso importante de la tienda */}
+            <div className="bg-gradient-to-r from-orange-50 to-orange-100 rounded-2xl p-6 space-y-3 border-2 border-orange-300">
+              <p className="text-xl font-bold text-orange-900 flex items-center justify-center gap-2">
+                🛍️ ¡Tienda Abierta en Junio!
               </p>
-              <div className="text-left space-y-2 text-sm">
-                <p className="text-slate-700">
-                  ✅ <strong>Registro de nuevos jugadores</strong>
-                </p>
-                <p className="text-slate-700">
-                  ✅ <strong>Actualización de datos de jugadores</strong>
-                </p>
-                <p className="text-slate-500">
-                  ⏸️ Las demás funciones estarán disponibles en Septiembre
+              <p className="text-slate-700 leading-relaxed">
+                <strong className="text-orange-700">Aprovecha este mes</strong> para pedir la equipación de tus jugadores para la próxima temporada. La tienda estará cerrada durante Julio y Agosto.
+              </p>
+              <div className="bg-white rounded-lg p-4 text-left">
+                <p className="text-sm text-slate-600 mb-2">📍 <strong>Recogida:</strong></p>
+                <p className="text-sm text-slate-700">
+                  Los pedidos se entregarán en las instalaciones del club durante la primera semana de Septiembre.
                 </p>
               </div>
             </div>
 
-            {/* Botón de acceso */}
-            <Link to={isAdmin ? createPageUrl("Players") : createPageUrl("ParentPlayers")}>
-              <Button className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-6 text-lg shadow-xl">
-                {isAdmin ? "Gestionar Jugadores" : "Registrar/Editar Jugadores"}
-              </Button>
-            </Link>
+            {/* Botones de acceso */}
+            <div className="grid md:grid-cols-2 gap-4 pt-4">
+              <Link to={isAdmin ? createPageUrl("Players") : createPageUrl("ParentPlayers")} className="w-full">
+                <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-6 text-lg shadow-xl">
+                  <Users className="w-5 h-5 mr-2" />
+                  {isAdmin ? "Gestionar Jugadores" : "Mis Jugadores"}
+                </Button>
+              </Link>
+              
+              <Link to={createPageUrl("Store")} className="w-full">
+                <Button className="w-full bg-orange-600 hover:bg-orange-700 text-white font-bold py-6 text-lg shadow-xl">
+                  <ShoppingBag className="w-5 h-5 mr-2" />
+                  Tienda del Club
+                </Button>
+              </Link>
+            </div>
+
+            {/* Recordatorio */}
+            <div className="bg-slate-50 rounded-lg p-4 text-sm text-slate-600">
+              <p>⏸️ <strong>Resto de funciones</strong> (pagos, calendario, etc.) estarán disponibles en <strong>Septiembre</strong> con el inicio de la temporada.</p>
+            </div>
 
             {/* Información de usuario y logout */}
             {user && (
@@ -259,7 +311,7 @@ function InscriptionPeriodScreen({ user, isAdmin }) {
             {/* Contacto */}
             <div className="pt-6 border-t-2 border-slate-200">
               <p className="text-sm text-slate-600 mb-2">
-                ¿Necesitas ayuda con las inscripciones?
+                ¿Necesitas ayuda?
               </p>
               <div className="space-y-1">
                 <a 
