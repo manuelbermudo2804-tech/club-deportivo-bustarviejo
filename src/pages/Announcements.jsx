@@ -36,16 +36,16 @@ export default function Announcements() {
           
           if (myPlayers.length > 0) {
             // Determine sports
-            const hasFutbol = myPlayers.some(p => p.deporte === "Fútbol");
+            const hasFutbolMasculino = myPlayers.some(p => p.deporte === "Fútbol Masculino");
+            const hasFutbolFemenino = myPlayers.some(p => p.deporte === "Fútbol Femenino");
             const hasBaloncesto = myPlayers.some(p => p.deporte === "Baloncesto");
             
-            if (hasFutbol && hasBaloncesto) {
-              setUserSport("Ambos");
-            } else if (hasFutbol) {
-              setUserSport("Fútbol");
-            } else if (hasBaloncesto) {
-              setUserSport("Baloncesto");
-            }
+            const sports = [];
+            if (hasFutbolMasculino) sports.push("Fútbol Masculino");
+            if (hasFutbolFemenino) sports.push("Fútbol Femenino");
+            if (hasBaloncesto) sports.push("Baloncesto");
+            
+            setUserSport(sports);
             
             // Get all categories
             const categories = [...new Set(myPlayers.map(p => p.categoria))];
@@ -89,6 +89,10 @@ export default function Announcements() {
       setEditingAnnouncement(null);
       toast.success("Anuncio publicado correctamente");
     },
+    onError: (error) => {
+      console.error("Error creating announcement:", error);
+      toast.error("Error al publicar el anuncio");
+    }
   });
 
   const updateAnnouncementMutation = useMutation({
@@ -108,9 +112,14 @@ export default function Announcements() {
       
       if (data.destinatarios_tipo === "Todos") {
         recipients = players.map(p => p.email_padre || p.email).filter(Boolean);
-      } else if (data.destinatarios_tipo === "Fútbol") {
+      } else if (data.destinatarios_tipo === "Fútbol Masculino") {
         recipients = players
-          .filter(p => p.deporte === "Fútbol")
+          .filter(p => p.deporte === "Fútbol Masculino")
+          .map(p => p.email_padre || p.email)
+          .filter(Boolean);
+      } else if (data.destinatarios_tipo === "Fútbol Femenino") {
+        recipients = players
+          .filter(p => p.deporte === "Fútbol Femenino")
           .map(p => p.email_padre || p.email)
           .filter(Boolean);
       } else if (data.destinatarios_tipo === "Baloncesto") {
@@ -128,23 +137,66 @@ export default function Announcements() {
       // Remove duplicates
       recipients = [...new Set(recipients)];
 
-      // Send email to each recipient
-      for (const email of recipients) {
-        await base44.integrations.Core.SendEmail({
-          from_name: "CF Bustarviejo",
-          to: email,
-          subject: `[${announcement.prioridad}] ${announcement.titulo}`,
-          body: `
-${announcement.contenido}
+      if (recipients.length === 0) {
+        toast.warning("No hay destinatarios con email para este anuncio");
+        return;
+      }
 
----
-CF Bustarviejo
-Temporada ${new Date().getFullYear()}/${new Date().getFullYear() + 1}
-          `
-        });
+      toast.info(`Enviando emails a ${recipients.length} destinatarios...`);
+
+      // Send email to each recipient
+      let successCount = 0;
+      let errorCount = 0;
+
+      for (const email of recipients) {
+        try {
+          await base44.integrations.Core.SendEmail({
+            from_name: "CF Bustarviejo",
+            to: email,
+            subject: `${announcement.prioridad === "Urgente" ? "🔴 URGENTE" : announcement.prioridad === "Importante" ? "⚠️ IMPORTANTE" : "📢"} - ${announcement.titulo}`,
+            body: `
+<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+  <div style="background: linear-gradient(135deg, #f97316 0%, #ea580c 100%); padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
+    <h1 style="color: white; margin: 0; font-size: 28px;">CF Bustarviejo</h1>
+    <p style="color: #fed7aa; margin: 10px 0 0 0;">Club de Fútbol y Baloncesto</p>
+  </div>
+  
+  <div style="background: white; padding: 30px; border-radius: 0 0 10px 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+    <div style="background: ${announcement.prioridad === "Urgente" ? "#fecaca" : announcement.prioridad === "Importante" ? "#fed7aa" : "#dbeafe"}; 
+                border-left: 4px solid ${announcement.prioridad === "Urgente" ? "#dc2626" : announcement.prioridad === "Importante" ? "#ea580c" : "#3b82f6"}; 
+                padding: 15px; 
+                margin-bottom: 20px;
+                border-radius: 5px;">
+      <p style="margin: 0; font-weight: bold; color: ${announcement.prioridad === "Urgente" ? "#7f1d1d" : announcement.prioridad === "Importante" ? "#7c2d12" : "#1e3a8a"};">
+        ${announcement.prioridad === "Urgente" ? "🔴 ANUNCIO URGENTE" : announcement.prioridad === "Importante" ? "⚠️ ANUNCIO IMPORTANTE" : "📢 ANUNCIO"}
+      </p>
+    </div>
+    
+    <h2 style="color: #1e293b; margin-top: 0;">${announcement.titulo}</h2>
+    
+    <div style="color: #475569; line-height: 1.6; white-space: pre-wrap;">
+${announcement.contenido}
+    </div>
+    
+    <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 30px 0;">
+    
+    <div style="text-align: center; color: #64748b; font-size: 14px;">
+      <p style="margin: 5px 0;"><strong>CF Bustarviejo</strong></p>
+      <p style="margin: 5px 0;">Temporada ${new Date().getFullYear()}/${new Date().getFullYear() + 1}</p>
+      <p style="margin: 5px 0;">📧 C.D.BUSTARVIEJO@HOTMAIL.ES | CDBUSTARVIEJO@GMAIL.COM</p>
+    </div>
+  </div>
+</div>
+            `
+          });
+          successCount++;
+        } catch (error) {
+          console.error(`Error sending email to ${email}:`, error);
+          errorCount++;
+        }
         
         // Small delay between emails
-        await new Promise(resolve => setTimeout(resolve, 200));
+        await new Promise(resolve => setTimeout(resolve, 300));
       }
 
       // Mark as email sent
@@ -153,10 +205,14 @@ Temporada ${new Date().getFullYear()}/${new Date().getFullYear() + 1}
         email_enviado: true
       });
 
-      toast.success(`Emails enviados a ${recipients.length} destinatarios`);
+      if (successCount > 0) {
+        toast.success(`✅ Emails enviados correctamente a ${successCount} destinatarios${errorCount > 0 ? ` (${errorCount} fallidos)` : ""}`);
+      } else {
+        toast.error("❌ Error al enviar todos los emails");
+      }
     } catch (error) {
       console.error("Error sending emails:", error);
-      toast.error("Error al enviar algunos emails");
+      toast.error("Error al enviar los emails");
     }
   };
 
@@ -184,12 +240,16 @@ Temporada ${new Date().getFullYear()}/${new Date().getFullYear() + 1}
     // Check if announcement is relevant to user
     if (announcement.destinatarios_tipo === "Todos") return true;
     
-    if (announcement.destinatarios_tipo === "Fútbol") {
-      return userSport === "Fútbol" || userSport === "Ambos";
+    if (announcement.destinatarios_tipo === "Fútbol Masculino") {
+      return userSport?.includes("Fútbol Masculino");
+    }
+    
+    if (announcement.destinatarios_tipo === "Fútbol Femenino") {
+      return userSport?.includes("Fútbol Femenino");
     }
     
     if (announcement.destinatarios_tipo === "Baloncesto") {
-      return userSport === "Baloncesto" || userSport === "Ambos";
+      return userSport?.includes("Baloncesto");
     }
     
     if (announcement.destinatarios_tipo === "Categoría Específica") {
