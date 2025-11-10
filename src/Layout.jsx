@@ -65,6 +65,11 @@ const parentNavigationItems = [
     icon: Home,
   },
   {
+    title: "Mis Jugadores",
+    url: createPageUrl("ParentPlayers"),
+    icon: Users,
+  },
+  {
     title: "Mis Pagos",
     url: createPageUrl("ParentPayments"),
     icon: CreditCard,

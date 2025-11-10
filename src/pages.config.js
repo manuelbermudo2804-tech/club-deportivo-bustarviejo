@@ -5,6 +5,7 @@ import Store from './pages/Store';
 import Reminders from './pages/Reminders';
 import ParentDashboard from './pages/ParentDashboard';
 import ParentPayments from './pages/ParentPayments';
+import ParentPlayers from './pages/ParentPlayers';
 import Layout from './Layout.jsx';
 
 
@@ -16,6 +17,7 @@ export const PAGES = {
     "Reminders": Reminders,
     "ParentDashboard": ParentDashboard,
     "ParentPayments": ParentPayments,
+    "ParentPlayers": ParentPlayers,
 }
 
 export const pagesConfig = {
