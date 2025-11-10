@@ -23,7 +23,7 @@ export default function ParentDashboard() {
     queryKey: ['myPlayers', user?.email],
     queryFn: async () => {
       const allPlayers = await base44.entities.Player.list();
-      return allPlayers.filter(p => 
+      return allPlayers.filter(p =>
         p.email_padre === user?.email || p.email === user?.email
       );
     },
@@ -48,7 +48,8 @@ export default function ParentDashboard() {
   const totalPaid = paidPayments.reduce((sum, p) => sum + (p.cantidad || 0), 0);
 
   // Contar por deporte
-  const futbolPlayers = players.filter(p => p.deporte === "Fútbol");
+  const futbolMasculinoPlayers = players.filter(p => p.deporte === "Fútbol Masculino");
+  const futbolFemeninoPlayers = players.filter(p => p.deporte === "Fútbol Femenino");
   const baloncestoPlayers = players.filter(p => p.deporte === "Baloncesto");
 
   // Próximos vencimientos (pagos pendientes)
@@ -145,7 +146,7 @@ export default function ParentDashboard() {
                 </p>
               </div>
             </div>
-            <a 
+            <a
               href="https://matchapp.online/club/cfbustarviejo"
               target="_blank"
               rel="noopener noreferrer"
@@ -192,43 +193,43 @@ export default function ParentDashboard() {
       <div className="grid lg:grid-cols-2 gap-6">
         {/* Mis Jugadores por Deporte */}
         <div className="grid md:grid-cols-2 gap-6">
-          {/* Fútbol */}
-          <Card className="border-none shadow-lg bg-gradient-to-br from-green-50 to-white">
-            <CardHeader className="border-b border-green-100">
+          {/* Fútbol Masculino */}
+          <Card className="border-none shadow-lg bg-gradient-to-br from-blue-50 to-white">
+            <CardHeader className="border-b border-blue-100">
               <CardTitle className="flex items-center gap-2 text-xl">
                 <span className="text-3xl">⚽</span>
-                Fútbol
+                Fútbol Masculino
               </CardTitle>
             </CardHeader>
             <CardContent className="pt-6">
               {loadingPlayers ? (
                 <Skeleton className="h-20 w-full" />
-              ) : futbolPlayers.length === 0 ? (
+              ) : futbolMasculinoPlayers.length === 0 ? (
                 <p className="text-center text-slate-500 py-4">
-                  No hay jugadores de fútbol
+                  No hay jugadores
                 </p>
               ) : (
                 <div className="space-y-3">
-                  {futbolPlayers.map((player) => (
+                  {futbolMasculinoPlayers.map((player) => (
                     <div
                       key={player.id}
-                      className="p-3 rounded-lg bg-white border border-green-100 hover:shadow-md transition-shadow"
+                      className="p-3 rounded-lg bg-white border border-blue-100 hover:shadow-md transition-shadow"
                     >
                       <div className="flex items-center gap-3">
                         {player.foto_url ? (
                           <img
                             src={player.foto_url}
                             alt={player.nombre}
-                            className="w-12 h-12 rounded-full object-cover border-2 border-green-200"
+                            className="w-12 h-12 rounded-full object-cover border-2 border-blue-200"
                           />
                         ) : (
-                          <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center">
-                            <User className="w-6 h-6 text-green-700" />
+                          <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center">
+                            <User className="w-6 h-6 text-blue-700" />
                           </div>
                         )}
                         <div>
                           <h3 className="font-bold text-slate-900">{player.nombre}</h3>
-                          <Badge className="bg-green-100 text-green-700 text-xs">
+                          <Badge className="bg-blue-100 text-blue-700 text-xs">
                             {player.categoria}
                           </Badge>
                         </div>
@@ -240,43 +241,43 @@ export default function ParentDashboard() {
             </CardContent>
           </Card>
 
-          {/* Baloncesto */}
-          <Card className="border-none shadow-lg bg-gradient-to-br from-orange-50 to-white">
-            <CardHeader className="border-b border-orange-100">
+          {/* Fútbol Femenino */}
+          <Card className="border-none shadow-lg bg-gradient-to-br from-pink-50 to-white">
+            <CardHeader className="border-b border-pink-100">
               <CardTitle className="flex items-center gap-2 text-xl">
-                <span className="text-3xl">🏀</span>
-                Baloncesto
+                <span className="text-3xl">⚽</span>
+                Fútbol Femenino
               </CardTitle>
             </CardHeader>
             <CardContent className="pt-6">
               {loadingPlayers ? (
                 <Skeleton className="h-20 w-full" />
-              ) : baloncestoPlayers.length === 0 ? (
+              ) : futbolFemeninoPlayers.length === 0 ? (
                 <p className="text-center text-slate-500 py-4">
-                  No hay jugadores de baloncesto
+                  No hay jugadoras
                 </p>
               ) : (
                 <div className="space-y-3">
-                  {baloncestoPlayers.map((player) => (
+                  {futbolFemeninoPlayers.map((player) => (
                     <div
                       key={player.id}
-                      className="p-3 rounded-lg bg-white border border-orange-100 hover:shadow-md transition-shadow"
+                      className="p-3 rounded-lg bg-white border border-pink-100 hover:shadow-md transition-shadow"
                     >
                       <div className="flex items-center gap-3">
                         {player.foto_url ? (
                           <img
                             src={player.foto_url}
                             alt={player.nombre}
-                            className="w-12 h-12 rounded-full object-cover border-2 border-orange-200"
+                            className="w-12 h-12 rounded-full object-cover border-2 border-pink-200"
                           />
                         ) : (
-                          <div className="w-12 h-12 rounded-full bg-orange-100 flex items-center justify-center">
-                            <User className="w-6 h-6 text-orange-700" />
+                          <div className="w-12 h-12 rounded-full bg-pink-100 flex items-center justify-center">
+                            <User className="w-6 h-6 text-pink-700" />
                           </div>
                         )}
                         <div>
                           <h3 className="font-bold text-slate-900">{player.nombre}</h3>
-                          <Badge className="bg-orange-100 text-orange-700 text-xs">
+                          <Badge className="bg-pink-100 text-pink-700 text-xs">
                             {player.categoria}
                           </Badge>
                         </div>
@@ -288,8 +289,59 @@ export default function ParentDashboard() {
             </CardContent>
           </Card>
         </div>
-        <ContactCard />
+
+        {/* Baloncesto - Takes the other half of the lg:grid-cols-2 */}
+        <Card className="border-none shadow-lg bg-gradient-to-br from-orange-50 to-white">
+          <CardHeader className="border-b border-orange-100">
+            <CardTitle className="flex items-center gap-2 text-xl">
+              <span className="text-3xl">🏀</span>
+              Baloncesto
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="pt-6">
+            {loadingPlayers ? (
+              <Skeleton className="h-20 w-full" />
+            ) : baloncestoPlayers.length === 0 ? (
+              <p className="text-center text-slate-500 py-4">
+                No hay jugadores de baloncesto
+              </p>
+            ) : (
+              <div className="grid md:grid-cols-2 gap-3">
+                {baloncestoPlayers.map((player) => (
+                  <div
+                    key={player.id}
+                    className="p-3 rounded-lg bg-white border border-orange-100 hover:shadow-md transition-shadow"
+                  >
+                    <div className="flex items-center gap-3">
+                      {player.foto_url ? (
+                        <img
+                          src={player.foto_url}
+                          alt={player.nombre}
+                          className="w-12 h-12 rounded-full object-cover border-2 border-orange-200"
+                        />
+                      ) : (
+                        <div className="w-12 h-12 rounded-full bg-orange-100 flex items-center justify-center">
+                          <User className="w-6 h-6 text-orange-700" />
+                        </div>
+                      )}
+                      <div>
+                        <h3 className="font-bold text-slate-900">{player.nombre}</h3>
+                        <Badge className="bg-orange-100 text-orange-700 text-xs">
+                          {player.categoria}
+                        </Badge>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
       </div>
+
+      {/* ContactCard was implicitly removed from its previous position next to the player cards
+          as per the provided outline. If it needs to be elsewhere, it should be specified. */}
+
 
       <div className="grid lg:grid-cols-2 gap-6">
         {/* Próximos Vencimientos */}
@@ -385,8 +437,8 @@ export default function ParentDashboard() {
                         {payment.cantidad}€
                       </p>
                       <p className={`text-xs ${
-                        payment.estado === "Pagado" 
-                          ? "text-green-600" 
+                        payment.estado === "Pagado"
+                          ? "text-green-600"
                           : payment.estado === "En revisión"
                           ? "text-orange-600"
                           : "text-red-600"
@@ -401,6 +453,9 @@ export default function ParentDashboard() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Contact Card - Placing it here as it was removed from its previous spot by the outline's changes */}
+      <ContactCard />
 
       {/* Accesos Rápidos */}
       <Card className="border-none shadow-lg bg-gradient-to-br from-orange-500 to-orange-700 text-white">

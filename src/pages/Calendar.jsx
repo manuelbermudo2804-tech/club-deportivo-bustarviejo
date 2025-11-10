@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -163,11 +164,18 @@ export default function Calendar() {
             🏃 Todos
           </Button>
           <Button
-            variant={sportFilter === "Fútbol" ? "default" : "outline"}
-            onClick={() => setSportFilter("Fútbol")}
-            className={sportFilter === "Fútbol" ? "bg-green-600 hover:bg-green-700" : ""}
+            variant={sportFilter === "Fútbol Masculino" ? "default" : "outline"}
+            onClick={() => setSportFilter("Fútbol Masculino")}
+            className={sportFilter === "Fútbol Masculino" ? "bg-blue-600 hover:bg-blue-700" : ""}
           >
-            ⚽ Fútbol
+            ⚽ Fútbol Masculino
+          </Button>
+          <Button
+            variant={sportFilter === "Fútbol Femenino" ? "default" : "outline"}
+            onClick={() => setSportFilter("Fútbol Femenino")}
+            className={sportFilter === "Fútbol Femenino" ? "bg-pink-600 hover:bg-pink-700" : ""}
+          >
+            ⚽ Fútbol Femenino
           </Button>
           <Button
             variant={sportFilter === "Baloncesto" ? "default" : "outline"}

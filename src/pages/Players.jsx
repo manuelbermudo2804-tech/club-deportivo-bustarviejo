@@ -67,7 +67,8 @@ export default function Players() {
   const categories = ["all", "Prebenjamín", "Benjamín", "Alevín", "Infantil", "Cadete", "Juvenil", "Senior"];
 
   // Contar jugadores por deporte
-  const futbolCount = players.filter(p => p.deporte === "Fútbol").length;
+  const futbolMasculinoCount = players.filter(p => p.deporte === "Fútbol Masculino").length;
+  const futbolFemeninoCount = players.filter(p => p.deporte === "Fútbol Femenino").length;
   const baloncestoCount = players.filter(p => p.deporte === "Baloncesto").length;
 
   return (
@@ -113,11 +114,18 @@ export default function Players() {
           Todos ({players.length})
         </Button>
         <Button
-          variant={sportFilter === "Fútbol" ? "default" : "outline"}
-          onClick={() => setSportFilter("Fútbol")}
-          className={sportFilter === "Fútbol" ? "bg-green-600 hover:bg-green-700" : ""}
+          variant={sportFilter === "Fútbol Masculino" ? "default" : "outline"}
+          onClick={() => setSportFilter("Fútbol Masculino")}
+          className={sportFilter === "Fútbol Masculino" ? "bg-blue-600 hover:bg-blue-700" : ""}
         >
-          ⚽ Fútbol ({futbolCount})
+          ⚽ Fútbol Masculino ({futbolMasculinoCount})
+        </Button>
+        <Button
+          variant={sportFilter === "Fútbol Femenino" ? "default" : "outline"}
+          onClick={() => setSportFilter("Fútbol Femenino")}
+          className={sportFilter === "Fútbol Femenino" ? "bg-pink-600 hover:bg-pink-700" : ""}
+        >
+          ⚽ Fútbol Femenino ({futbolFemeninoCount})
         </Button>
         <Button
           variant={sportFilter === "Baloncesto" ? "default" : "outline"}
