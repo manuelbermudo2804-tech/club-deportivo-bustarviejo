@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Card, CardContent } from "@/components/ui/card";
 
 // Función para obtener la temporada actual
 const getCurrentSeason = () => {
@@ -31,6 +32,119 @@ const getCurrentSeason = () => {
   return `${currentYear}/${currentYear + 1}`;
 };
 
+// Verificar si estamos en periodo de cierre (Julio/Agosto)
+const isClosedPeriod = () => {
+  const now = new Date();
+  const currentMonth = now.getMonth() + 1; // 1 = enero, 7 = julio, 8 = agosto
+  return currentMonth === 7 || currentMonth === 8;
+};
+
+// Pantalla de cierre de temporada
+function ClosedSeasonScreen({ user, isAdmin }) {
+  const handleLogout = () => {
+    base44.auth.logout();
+  };
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-orange-500 via-orange-600 to-orange-700 flex items-center justify-center p-6">
+      <div className="max-w-2xl w-full">
+        <Card className="border-none shadow-2xl bg-white/95 backdrop-blur-sm">
+          <CardContent className="p-12 text-center space-y-6">
+            {/* Logo */}
+            <div className="flex justify-center mb-6">
+              <div className="w-24 h-24 bg-gradient-to-br from-orange-500 to-orange-700 rounded-3xl flex items-center justify-center shadow-xl">
+                <span className="text-5xl font-bold text-white">CF</span>
+              </div>
+            </div>
+
+            {/* Título */}
+            <div className="space-y-3">
+              <h1 className="text-4xl md:text-5xl font-bold text-slate-900">
+                🏖️ Vacaciones de Verano
+              </h1>
+              <p className="text-2xl text-orange-600 font-semibold">
+                CF Bustarviejo
+              </p>
+            </div>
+
+            {/* Mensaje principal */}
+            <div className="bg-gradient-to-r from-orange-50 to-orange-100 rounded-2xl p-8 space-y-4 border-2 border-orange-200">
+              <p className="text-xl text-slate-800 leading-relaxed">
+                La aplicación del club está cerrada durante los meses de <strong className="text-orange-700">Julio y Agosto</strong>.
+              </p>
+              <p className="text-lg text-slate-700">
+                Estamos preparando todo para la nueva temporada que comenzará el <strong className="text-orange-700">1 de Septiembre</strong>.
+              </p>
+            </div>
+
+            {/* Icono decorativo */}
+            <div className="text-8xl animate-bounce">
+              ☀️
+            </div>
+
+            {/* Mensaje de despedida */}
+            <div className="space-y-3 pt-4">
+              <p className="text-2xl font-bold text-slate-900">
+                ¡Disfruta del verano!
+              </p>
+              <p className="text-lg text-slate-600">
+                Nos vemos en septiembre con muchas ganas e ilusión para la nueva temporada
+              </p>
+              <p className="text-3xl mt-4">
+                ⚽ 🏀 💪
+              </p>
+            </div>
+
+            {/* Información de usuario y logout */}
+            {user && (
+              <div className="pt-6 border-t-2 border-slate-200 space-y-3">
+                <div className="text-sm text-slate-600">
+                  <p className="font-medium text-slate-900">{user.full_name}</p>
+                  <p>{user.email}</p>
+                  {isAdmin && (
+                    <Badge className="mt-2 bg-orange-600">
+                      Administrador
+                    </Badge>
+                  )}
+                </div>
+                <Button
+                  onClick={handleLogout}
+                  variant="outline"
+                  className="hover:bg-slate-100"
+                >
+                  <LogOut className="w-4 h-4 mr-2" />
+                  Cerrar Sesión
+                </Button>
+              </div>
+            )}
+
+            {/* Contacto */}
+            <div className="pt-6 border-t-2 border-slate-200">
+              <p className="text-sm text-slate-600 mb-2">
+                Para cualquier consulta urgente:
+              </p>
+              <div className="space-y-1">
+                <a 
+                  href="mailto:C.D.BUSTARVIEJO@HOTMAIL.ES"
+                  className="text-sm text-orange-600 hover:text-orange-700 block font-medium"
+                >
+                  C.D.BUSTARVIEJO@HOTMAIL.ES
+                </a>
+                <a 
+                  href="mailto:CDBUSTARVIEJO@GMAIL.COM"
+                  className="text-sm text-orange-600 hover:text-orange-700 block font-medium"
+                >
+                  CDBUSTARVIEJO@GMAIL.COM
+                </a>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
+}
+
 export default function Layout({ children, currentPageName }) {
   const location = useLocation();
   const currentSeason = getCurrentSeason();
@@ -38,6 +152,7 @@ export default function Layout({ children, currentPageName }) {
   const [isAdmin, setIsAdmin] = useState(false);
   const [unreadMessagesCount, setUnreadMessagesCount] = useState(0);
   const [urgentMessagesCount, setUrgentMessagesCount] = useState(0);
+  const [showClosedScreen, setShowClosedScreen] = useState(false);
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -45,6 +160,12 @@ export default function Layout({ children, currentPageName }) {
         const currentUser = await base44.auth.me();
         setUser(currentUser);
         setIsAdmin(currentUser.role === "admin");
+        
+        // Verificar si debemos mostrar pantalla de cierre
+        // Los administradores pueden acceder siempre
+        if (isClosedPeriod() && currentUser.role !== "admin") {
+          setShowClosedScreen(true);
+        }
       } catch (error) {
         console.error("Error fetching user:", error);
       }
@@ -104,6 +225,11 @@ export default function Layout({ children, currentPageName }) {
     
     return () => clearInterval(interval);
   }, [user, isAdmin]);
+
+  // Mostrar pantalla de cierre si estamos en julio/agosto y no es admin
+  if (showClosedScreen) {
+    return <ClosedSeasonScreen user={user} isAdmin={isAdmin} />;
+  }
 
   const adminNavigationItems = [
     {
