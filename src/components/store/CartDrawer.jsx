@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -183,7 +184,7 @@ export default function CartDrawer({ cart, isOpen, onClose, onRemove, onUpdateQu
         <div className="border-t pt-4 space-y-4">
           <div className="flex justify-between items-center text-lg font-bold">
             <span>Total:</span>
-            <span className="text-emerald-600">{total.toFixed(2)}€</span>
+            <span className="text-orange-600">{total.toFixed(2)}€</span>
           </div>
           
           {!showCheckout ? (
@@ -191,7 +192,7 @@ export default function CartDrawer({ cart, isOpen, onClose, onRemove, onUpdateQu
               <Button
                 onClick={handleCheckout}
                 disabled={cart.length === 0}
-                className="w-full bg-emerald-600 hover:bg-emerald-700"
+                className="w-full bg-orange-600 hover:bg-orange-700"
               >
                 Proceder al Pedido
               </Button>
@@ -210,7 +211,7 @@ export default function CartDrawer({ cart, isOpen, onClose, onRemove, onUpdateQu
               <Button
                 onClick={handleConfirmOrder}
                 disabled={createOrderMutation.isPending}
-                className="w-full bg-emerald-600 hover:bg-emerald-700"
+                className="w-full bg-orange-600 hover:bg-orange-700"
               >
                 {createOrderMutation.isPending ? "Procesando..." : "Confirmar Pedido"}
               </Button>

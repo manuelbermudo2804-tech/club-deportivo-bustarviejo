@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { motion } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -193,7 +194,7 @@ export default function PaymentForm({ payment, players, onSubmit, onCancel, isSu
               <Button
                 type="submit"
                 disabled={isSubmitting}
-                className="bg-emerald-600 hover:bg-emerald-700"
+                className="bg-orange-600 hover:bg-orange-700"
               >
                 {isSubmitting ? (
                   <>

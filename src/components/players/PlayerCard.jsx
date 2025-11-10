@@ -1,3 +1,4 @@
+
 import React from "react";
 import { motion } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
@@ -31,7 +32,7 @@ export default function PlayerCard({ player, onEdit }) {
       transition={{ duration: 0.2 }}
     >
       <Card className="overflow-hidden hover:shadow-xl transition-all duration-300 border-none shadow-lg bg-white">
-        <div className="relative h-48 bg-gradient-to-br from-emerald-500 to-emerald-700">
+        <div className="relative h-48 bg-gradient-to-br from-orange-500 to-orange-700">
           {player.foto_url ? (
             <img
               src={player.foto_url}
@@ -44,8 +45,8 @@ export default function PlayerCard({ player, onEdit }) {
             </div>
           )}
           {player.numero_camiseta && (
-            <div className="absolute top-3 right-3 bg-white rounded-full w-12 h-12 flex items-center justify-center shadow-lg">
-              <span className="text-xl font-bold text-emerald-700">
+            <div className="absolute top-3 right-3 bg-slate-900 rounded-full w-12 h-12 flex items-center justify-center shadow-lg">
+              <span className="text-xl font-bold text-orange-500">
                 {player.numero_camiseta}
               </span>
             </div>
@@ -100,7 +101,7 @@ export default function PlayerCard({ player, onEdit }) {
           <Button
             onClick={() => onEdit(player)}
             variant="outline"
-            className="w-full hover:bg-emerald-50 hover:text-emerald-700 hover:border-emerald-300"
+            className="w-full hover:bg-orange-50 hover:text-orange-700 hover:border-orange-300"
           >
             <Pencil className="w-4 h-4 mr-2" />
             Editar Ficha

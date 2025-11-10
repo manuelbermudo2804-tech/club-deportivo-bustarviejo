@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { motion } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
@@ -76,7 +77,7 @@ export default function ProductCard({ product, onEdit, onAddToCart }) {
             </div>
 
             <div className="flex items-center justify-between">
-              <span className="text-2xl font-bold text-emerald-600">
+              <span className="text-2xl font-bold text-orange-600">
                 {product.precio}€
               </span>
               <Badge variant="outline" className="text-slate-600">
@@ -99,7 +100,7 @@ export default function ProductCard({ product, onEdit, onAddToCart }) {
               <Button
                 onClick={handleAddToCart}
                 disabled={product.stock === 0}
-                className="flex-1 bg-emerald-600 hover:bg-emerald-700"
+                className="flex-1 bg-orange-600 hover:bg-orange-700"
               >
                 <ShoppingCart className="w-4 h-4 mr-2" />
                 Añadir
@@ -143,7 +144,7 @@ export default function ProductCard({ product, onEdit, onAddToCart }) {
             <Button
               onClick={confirmAddToCart}
               disabled={!selectedSize}
-              className="bg-emerald-600 hover:bg-emerald-700"
+              className="bg-orange-600 hover:bg-orange-700"
             >
               Añadir al Carrito
             </Button>

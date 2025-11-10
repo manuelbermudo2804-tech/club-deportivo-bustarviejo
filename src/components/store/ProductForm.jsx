@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { motion } from "framer-motion";
 import { base44 } from "@/api/base44Client";
@@ -254,7 +255,7 @@ export default function ProductForm({ product, onSubmit, onCancel, isSubmitting 
               <Button
                 type="submit"
                 disabled={isSubmitting}
-                className="bg-emerald-600 hover:bg-emerald-700"
+                className="bg-orange-600 hover:bg-orange-700"
               >
                 {isSubmitting ? (
                   <>

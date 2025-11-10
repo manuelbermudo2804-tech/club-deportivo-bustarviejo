@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -75,7 +76,7 @@ export default function Players() {
             setEditingPlayer(null);
             setShowForm(!showForm);
           }}
-          className="bg-emerald-600 hover:bg-emerald-700 shadow-lg"
+          className="bg-orange-600 hover:bg-orange-700 shadow-lg"
         >
           <Plus className="w-5 h-5 mr-2" />
           Nuevo Jugador
@@ -109,7 +110,7 @@ export default function Players() {
         <Tabs value={categoryFilter} onValueChange={setCategoryFilter} className="w-full md:w-auto">
           <TabsList className="bg-white shadow-sm">
             {categories.map((cat) => (
-              <TabsTrigger key={cat} value={cat} className="data-[state=active]:bg-emerald-100 data-[state=active]:text-emerald-700">
+              <TabsTrigger key={cat} value={cat} className="data-[state=active]:bg-orange-100 data-[state=active]:text-orange-700">
                 {cat === "all" ? "Todas" : cat}
               </TabsTrigger>
             ))}
@@ -119,7 +120,7 @@ export default function Players() {
 
       {isLoading ? (
         <div className="text-center py-12">
-          <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-emerald-600 border-r-transparent"></div>
+          <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-orange-600 border-r-transparent"></div>
         </div>
       ) : filteredPlayers.length === 0 ? (
         <div className="text-center py-12">

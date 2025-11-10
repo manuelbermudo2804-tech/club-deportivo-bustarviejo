@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -21,8 +22,8 @@ export default function PaymentTable({ payments, isLoading, onEdit, onStatusChan
   );
 
   const statusColors = {
-    "Pagado": "bg-emerald-100 text-emerald-700 border-emerald-200",
-    "Pendiente": "bg-orange-100 text-orange-700 border-orange-200",
+    "Pagado": "bg-orange-100 text-orange-700 border-orange-200",
+    "Pendiente": "bg-amber-100 text-amber-700 border-amber-200",
     "Atrasado": "bg-red-100 text-red-700 border-red-200"
   };
 
@@ -120,7 +121,7 @@ export default function PaymentTable({ payments, isLoading, onEdit, onStatusChan
                         variant="ghost"
                         size="icon"
                         onClick={() => onEdit(payment)}
-                        className="hover:bg-emerald-50 hover:text-emerald-700"
+                        className="hover:bg-orange-50 hover:text-orange-700"
                       >
                         <Pencil className="w-4 h-4" />
                       </Button>

@@ -44,17 +44,17 @@ export default function Layout({ children, currentPageName }) {
 
   return (
     <SidebarProvider>
-      <div className="min-h-screen flex w-full bg-gradient-to-br from-slate-50 via-white to-emerald-50">
+      <div className="min-h-screen flex w-full bg-gradient-to-br from-slate-50 via-white to-orange-50">
         <Sidebar className="border-r border-slate-200/60 backdrop-blur-sm">
-          <SidebarHeader className="border-b border-slate-200/60 p-6 bg-gradient-to-r from-emerald-600 to-emerald-700">
+          <SidebarHeader className="border-b border-slate-200/60 p-6 bg-gradient-to-r from-orange-600 to-orange-700">
             <div className="flex flex-col gap-2">
               <div className="flex items-center gap-3">
-                <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center shadow-lg">
-                  <span className="text-2xl font-bold text-emerald-600">CF</span>
+                <div className="w-12 h-12 bg-slate-900 rounded-xl flex items-center justify-center shadow-lg">
+                  <span className="text-2xl font-bold text-orange-500">CF</span>
                 </div>
                 <div className="text-white">
                   <h2 className="font-bold text-lg leading-tight">CF Bustarviejo</h2>
-                  <p className="text-xs text-emerald-100">Club de Fútbol</p>
+                  <p className="text-xs text-orange-100">Club de Fútbol</p>
                 </div>
               </div>
             </div>
@@ -68,8 +68,8 @@ export default function Layout({ children, currentPageName }) {
                     <SidebarMenuItem key={item.title}>
                       <SidebarMenuButton 
                         asChild 
-                        className={`hover:bg-emerald-50 hover:text-emerald-700 transition-all duration-200 rounded-xl mb-1 ${
-                          location.pathname === item.url ? 'bg-emerald-100 text-emerald-700 shadow-sm' : ''
+                        className={`hover:bg-orange-50 hover:text-orange-700 transition-all duration-200 rounded-xl mb-1 ${
+                          location.pathname === item.url ? 'bg-orange-100 text-orange-700 shadow-sm' : ''
                         }`}
                       >
                         <Link to={item.url} className="flex items-center gap-3 px-4 py-3">
@@ -98,7 +98,7 @@ export default function Layout({ children, currentPageName }) {
               <SidebarTrigger className="hover:bg-slate-100 p-2 rounded-lg transition-colors duration-200">
                 <Menu className="w-5 h-5" />
               </SidebarTrigger>
-              <h1 className="text-xl font-bold text-emerald-700">CF Bustarviejo</h1>
+              <h1 className="text-xl font-bold text-orange-700">CF Bustarviejo</h1>
             </div>
           </header>
 

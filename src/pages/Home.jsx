@@ -37,7 +37,7 @@ export default function Home() {
       title: "Jugadores Activos",
       value: activePlayers,
       icon: Users,
-      color: "emerald",
+      color: "orange",
       link: createPageUrl("Players"),
       linkText: "Ver jugadores"
     },
@@ -45,7 +45,7 @@ export default function Home() {
       title: "Pagos Pendientes",
       value: pendingPayments,
       icon: AlertCircle,
-      color: "orange",
+      color: "red",
       link: createPageUrl("Payments"),
       linkText: "Gestionar pagos"
     },
@@ -53,7 +53,7 @@ export default function Home() {
       title: "Ingresos del Mes",
       value: `${totalRevenue}€`,
       icon: TrendingUp,
-      color: "blue",
+      color: "slate",
       link: createPageUrl("Payments"),
       linkText: "Ver detalles"
     },
@@ -61,7 +61,7 @@ export default function Home() {
       title: "Productos Disponibles",
       value: activeProducts,
       icon: ShoppingBag,
-      color: "purple",
+      color: "amber",
       link: createPageUrl("Store"),
       linkText: "Ver tienda"
     }
@@ -85,10 +85,10 @@ export default function Home() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {stats.map((stat, index) => {
           const colorClasses = {
-            emerald: "bg-emerald-500 text-emerald-500",
             orange: "bg-orange-500 text-orange-500",
-            blue: "bg-blue-500 text-blue-500",
-            purple: "bg-purple-500 text-purple-500"
+            red: "bg-red-500 text-red-500",
+            slate: "bg-slate-800 text-slate-800",
+            amber: "bg-amber-500 text-amber-500"
           };
 
           return (
@@ -128,7 +128,7 @@ export default function Home() {
         <Card className="border-none shadow-lg bg-white/80 backdrop-blur-sm">
           <CardHeader className="border-b border-slate-100">
             <CardTitle className="flex items-center gap-2 text-xl">
-              <CreditCard className="w-5 h-5 text-emerald-600" />
+              <CreditCard className="w-5 h-5 text-orange-600" />
               Últimos Pagos Registrados
             </CardTitle>
           </CardHeader>
@@ -152,9 +152,9 @@ export default function Home() {
                   >
                     <div className="flex items-center gap-3">
                       {payment.estado === "Pagado" ? (
-                        <CheckCircle2 className="w-5 h-5 text-emerald-500" />
+                        <CheckCircle2 className="w-5 h-5 text-orange-500" />
                       ) : (
-                        <AlertCircle className="w-5 h-5 text-orange-500" />
+                        <AlertCircle className="w-5 h-5 text-red-500" />
                       )}
                       <div>
                         <p className="font-medium text-slate-900">
@@ -171,10 +171,10 @@ export default function Home() {
                       </p>
                       <p className={`text-xs ${
                         payment.estado === "Pagado" 
-                          ? "text-emerald-600" 
+                          ? "text-orange-600" 
                           : payment.estado === "Atrasado"
                           ? "text-red-600"
-                          : "text-orange-600"
+                          : "text-amber-600"
                       }`}>
                         {payment.estado}
                       </p>
@@ -186,25 +186,25 @@ export default function Home() {
           </CardContent>
         </Card>
 
-        <Card className="border-none shadow-lg bg-gradient-to-br from-emerald-500 to-emerald-700 text-white">
+        <Card className="border-none shadow-lg bg-gradient-to-br from-orange-500 to-orange-700 text-white">
           <CardHeader>
             <CardTitle className="text-2xl">Accesos Rápidos</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             <Link to={createPageUrl("Players")}>
-              <Button className="w-full bg-white text-emerald-700 hover:bg-emerald-50 font-medium shadow-md py-6 text-base">
+              <Button className="w-full bg-slate-900 text-white hover:bg-slate-800 font-medium shadow-md py-6 text-base">
                 <Users className="w-5 h-5 mr-2" />
                 Registrar Nuevo Jugador
               </Button>
             </Link>
             <Link to={createPageUrl("Payments")}>
-              <Button className="w-full bg-white/90 text-emerald-700 hover:bg-white font-medium shadow-md py-6 text-base">
+              <Button className="w-full bg-white/90 text-orange-700 hover:bg-white font-medium shadow-md py-6 text-base">
                 <CreditCard className="w-5 h-5 mr-2" />
                 Registrar Pago
               </Button>
             </Link>
             <Link to={createPageUrl("Store")}>
-              <Button className="w-full bg-white/80 text-emerald-700 hover:bg-white/90 font-medium shadow-md py-6 text-base">
+              <Button className="w-full bg-white/80 text-orange-700 hover:bg-white/90 font-medium shadow-md py-6 text-base">
                 <ShoppingBag className="w-5 h-5 mr-2" />
                 Gestionar Tienda
               </Button>

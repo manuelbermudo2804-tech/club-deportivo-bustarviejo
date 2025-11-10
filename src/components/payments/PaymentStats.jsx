@@ -1,3 +1,4 @@
+
 import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { CheckCircle2, Clock, AlertCircle, TrendingUp } from "lucide-react";
@@ -20,13 +21,13 @@ export default function PaymentStats({ payments }) {
       title: "Total Cobrado",
       value: `${totalPaid.toFixed(2)}€`,
       icon: CheckCircle2,
-      color: "emerald"
+      color: "orange"
     },
     {
       title: "Pendiente de Cobro",
       value: `${totalPending.toFixed(2)}€`,
       icon: Clock,
-      color: "orange"
+      color: "amber"
     },
     {
       title: "Pagos Atrasados",
@@ -38,15 +39,15 @@ export default function PaymentStats({ payments }) {
       title: "Total Registrado",
       value: `${(totalPaid + totalPending + totalOverdue).toFixed(2)}€`,
       icon: TrendingUp,
-      color: "blue"
+      color: "slate"
     }
   ];
 
   const colorClasses = {
-    emerald: "bg-emerald-500 text-emerald-500",
     orange: "bg-orange-500 text-orange-500",
+    amber: "bg-amber-500 text-amber-500",
     red: "bg-red-500 text-red-500",
-    blue: "bg-blue-500 text-blue-500"
+    slate: "bg-slate-800 text-slate-800"
   };
 
   return (

@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { motion } from "framer-motion";
 import { base44 } from "@/api/base44Client";
@@ -72,7 +73,7 @@ export default function PlayerForm({ player, onSubmit, onCancel, isSubmitting })
                     <img
                       src={formData.foto_url}
                       alt="Foto del jugador"
-                      className="w-32 h-32 rounded-full object-cover border-4 border-emerald-100"
+                      className="w-32 h-32 rounded-full object-cover border-4 border-orange-100"
                     />
                     <Button
                       type="button"
@@ -271,7 +272,7 @@ export default function PlayerForm({ player, onSubmit, onCancel, isSubmitting })
               <Button
                 type="submit"
                 disabled={isSubmitting}
-                className="bg-emerald-600 hover:bg-emerald-700"
+                className="bg-orange-600 hover:bg-orange-700"
               >
                 {isSubmitting ? (
                   <>
