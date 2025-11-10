@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { base44 } from "@/api/base44Client";
-import { Home, Users, CreditCard, ShoppingBag, Menu, Bell, LogOut, Calendar, Megaphone, Mail, Trophy } from "lucide-react";
+import { Home, Users, CreditCard, ShoppingBag, Menu, Bell, LogOut, Calendar, Megaphone, Mail } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -66,12 +66,6 @@ export default function Layout({ children, currentPageName }) {
       icon: Calendar,
     },
     {
-      title: "Horarios y Resultados",
-      url: "https://matchapp.online/club/cfbustarviejo",
-      icon: Trophy,
-      external: true,
-    },
-    {
       title: "Anuncios",
       url: createPageUrl("Announcements"),
       icon: Megaphone,
@@ -108,12 +102,6 @@ export default function Layout({ children, currentPageName }) {
       title: "Calendario",
       url: createPageUrl("Calendar"),
       icon: Calendar,
-    },
-    {
-      title: "Horarios y Resultados",
-      url: "https://matchapp.online/club/cfbustarviejo",
-      icon: Trophy,
-      external: true,
     },
     {
       title: "Anuncios",
@@ -162,20 +150,13 @@ export default function Layout({ children, currentPageName }) {
                       <SidebarMenuButton 
                         asChild 
                         className={`hover:bg-orange-50 hover:text-orange-700 transition-all duration-200 rounded-xl mb-1 ${
-                          !item.external && location.pathname === item.url ? 'bg-orange-100 text-orange-700 shadow-sm' : ''
+                          location.pathname === item.url ? 'bg-orange-100 text-orange-700 shadow-sm' : ''
                         }`}
                       >
-                        {item.external ? (
-                          <a href={item.url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 px-4 py-3">
-                            <item.icon className="w-5 h-5" />
-                            <span className="font-medium">{item.title}</span>
-                          </a>
-                        ) : (
-                          <Link to={item.url} className="flex items-center gap-3 px-4 py-3">
-                            <item.icon className="w-5 h-5" />
-                            <span className="font-medium">{item.title}</span>
-                          </Link>
-                        )}
+                        <Link to={item.url} className="flex items-center gap-3 px-4 py-3">
+                          <item.icon className="w-5 h-5" />
+                          <span className="font-medium">{item.title}</span>
+                        </Link>
                       </SidebarMenuButton>
                     </SidebarMenuItem>
                   ))}
