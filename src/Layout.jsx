@@ -20,6 +20,9 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 
+// URL del escudo del club
+const CLUB_LOGO_URL = "https://www.cdbustarviejo.com/uploads/2/4/0/4/2404974/logo-cd-bustarviejo-cuadrado-xpeq_orig.png";
+
 // Función para obtener la temporada actual
 const getCurrentSeason = () => {
   const now = new Date();
@@ -60,10 +63,14 @@ function ClosedSeasonScreen({ user, isAdmin }) {
       <div className="max-w-2xl w-full">
         <Card className="border-none shadow-2xl bg-white/95 backdrop-blur-sm">
           <CardContent className="p-12 text-center space-y-6">
-            {/* Logo */}
+            {/* Logo del Club */}
             <div className="flex justify-center mb-6">
-              <div className="w-24 h-24 bg-gradient-to-br from-red-500 to-red-700 rounded-3xl flex items-center justify-center shadow-xl">
-                <span className="text-5xl font-bold text-white">CF</span>
+              <div className="relative">
+                <img 
+                  src={CLUB_LOGO_URL} 
+                  alt="CD Bustarviejo"
+                  className="w-32 h-32 object-contain drop-shadow-2xl"
+                />
               </div>
             </div>
 
@@ -176,10 +183,14 @@ function InscriptionPeriodScreen({ user, isAdmin }) {
       <div className="max-w-3xl w-full">
         <Card className="border-none shadow-2xl bg-white/95 backdrop-blur-sm">
           <CardContent className="p-12 text-center space-y-6">
-            {/* Logo */}
+            {/* Logo del Club */}
             <div className="flex justify-center mb-6">
-              <div className="w-24 h-24 bg-gradient-to-br from-green-500 to-green-700 rounded-3xl flex items-center justify-center shadow-xl">
-                <span className="text-5xl font-bold text-white">CF</span>
+              <div className="relative">
+                <img 
+                  src={CLUB_LOGO_URL} 
+                  alt="CD Bustarviejo"
+                  className="w-32 h-32 object-contain drop-shadow-2xl"
+                />
               </div>
             </div>
 
@@ -346,10 +357,14 @@ function VacationPeriodScreen({ user, isAdmin }) {
       <div className="max-w-2xl w-full">
         <Card className="border-none shadow-2xl bg-white/95 backdrop-blur-sm">
           <CardContent className="p-12 text-center space-y-6">
-            {/* Logo */}
+            {/* Logo del Club */}
             <div className="flex justify-center mb-6">
-              <div className="w-24 h-24 bg-gradient-to-br from-orange-500 to-orange-700 rounded-3xl flex items-center justify-center shadow-xl">
-                <span className="text-5xl font-bold text-white">CF</span>
+              <div className="relative">
+                <img 
+                  src={CLUB_LOGO_URL} 
+                  alt="CD Bustarviejo"
+                  className="w-32 h-32 object-contain drop-shadow-2xl"
+                />
               </div>
             </div>
 
@@ -452,10 +467,14 @@ function RestrictedAccessScreen({ user, restriction }) {
       <div className="max-w-2xl w-full">
         <Card className="border-none shadow-2xl bg-white/95 backdrop-blur-sm">
           <CardContent className="p-12 text-center space-y-6">
-            {/* Logo */}
+            {/* Logo del Club */}
             <div className="flex justify-center mb-6">
-              <div className="w-24 h-24 bg-gradient-to-br from-red-500 to-red-700 rounded-3xl flex items-center justify-center shadow-xl">
-                <span className="text-5xl">🚫</span>
+              <div className="relative">
+                <img 
+                  src={CLUB_LOGO_URL} 
+                  alt="CD Bustarviejo"
+                  className="w-32 h-32 object-contain drop-shadow-2xl opacity-50"
+                />
               </div>
             </div>
 
@@ -774,8 +793,12 @@ export default function Layout({ children, currentPageName }) {
           <SidebarHeader className="border-b border-slate-200/60 p-6 bg-gradient-to-r from-orange-600 to-orange-700">
             <div className="flex flex-col gap-2">
               <div className="flex items-center gap-3">
-                <div className="w-12 h-12 bg-slate-900 rounded-xl flex items-center justify-center shadow-lg">
-                  <span className="text-2xl font-bold text-orange-500">CF</span>
+                <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center shadow-lg p-1">
+                  <img 
+                    src={CLUB_LOGO_URL} 
+                    alt="CF Bustarviejo"
+                    className="w-full h-full object-contain"
+                  />
                 </div>
                 <div className="text-white">
                   <h2 className="font-bold text-lg leading-tight">CF Bustarviejo</h2>
@@ -877,7 +900,14 @@ export default function Layout({ children, currentPageName }) {
                 <SidebarTrigger className="hover:bg-slate-100 p-2 rounded-lg transition-colors duration-200">
                   <Menu className="w-5 h-5" />
                 </SidebarTrigger>
-                <h1 className="text-xl font-bold text-orange-700">CF Bustarviejo</h1>
+                <div className="flex items-center gap-2">
+                  <img 
+                    src={CLUB_LOGO_URL} 
+                    alt="CF Bustarviejo"
+                    className="w-8 h-8 object-contain"
+                  />
+                  <h1 className="text-xl font-bold text-orange-700">CF Bustarviejo</h1>
+                </div>
               </div>
               {(unreadMessagesCount > 0 || urgentMessagesCount > 0) && (
                 <Link to={createPageUrl(isAdmin ? "AdminChat" : "ParentChat")}>
