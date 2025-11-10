@@ -6,7 +6,6 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { MessageCircle, Send, Users, Clock, AlertCircle, AlertTriangle, Info } from "lucide-react";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
@@ -47,9 +46,9 @@ export default function ParentChat() {
     refetchInterval: 5000,
   });
 
-  // Crear grupos automáticamente basándose en mis jugadores
+  // Crear grupos y asignar mensajes
   useEffect(() => {
-    if (players.length > 0 && allMessages.length > 0) {
+    if (players.length > 0) {
       const groups = {};
       
       // Crear grupos basados en jugadores
@@ -74,12 +73,12 @@ export default function ParentChat() {
       allMessages.forEach(msg => {
         if (!msg.deporte || !msg.categoria) return;
         
-        const groupId = msg.grupo_id || `${msg.deporte}_${msg.categoria}`;
+        const groupId = `${msg.deporte}_${msg.categoria}`;
         
         if (groups[groupId]) {
           groups[groupId].messages.push(msg);
           
-          // Contar no leídos
+          // Contar no leídos de admin
           if (!msg.leido && msg.tipo === "admin_a_grupo") {
             groups[groupId].unreadCount++;
             if (msg.prioridad === "Urgente") {
@@ -105,14 +104,9 @@ export default function ParentChat() {
           const updatedGroup = groupsList.find(g => g.id === selectedGroup.id);
           if (updatedGroup) {
             setSelectedGroup(updatedGroup);
-          } else {
-            setSelectedGroup(groupsList[0]);
           }
         }
       }
-    } else if (players.length === 0) {
-      setMyGroups([]);
-      setSelectedGroup(null);
     }
   }, [players, allMessages]);
 
@@ -121,7 +115,7 @@ export default function ParentChat() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['chatMessages'] });
       setMessageText("");
-      toast.success("Mensaje enviado al grupo");
+      toast.success("Mensaje enviado");
     },
   });
 
@@ -132,7 +126,6 @@ export default function ParentChat() {
     },
   });
 
-  // Verificar horario de atención
   const isWithinBusinessHours = () => {
     const now = new Date();
     const hour = now.getHours();
@@ -140,7 +133,6 @@ export default function ParentChat() {
   };
 
   useEffect(() => {
-    // Marcar mensajes del admin como leídos
     if (selectedGroup && currentUser) {
       selectedGroup.messages.forEach(msg => {
         if (!msg.leido && msg.tipo === "admin_a_grupo") {
@@ -157,7 +149,7 @@ export default function ParentChat() {
     if (!messageText.trim() || !currentUser || !selectedGroup) return;
 
     if (!isWithinBusinessHours()) {
-      toast.error("El chat está disponible de 10:00 a 20:00");
+      toast.error("Chat disponible de 10:00 a 20:00");
       return;
     }
 
@@ -180,24 +172,12 @@ export default function ParentChat() {
     "Baloncesto": "🏀"
   };
 
-  const priorityColors = {
-    "Normal": "bg-blue-600",
-    "Importante": "bg-orange-600",
-    "Urgente": "bg-red-600"
-  };
-
-  const priorityIcons = {
-    "Normal": null,
-    "Importante": <AlertTriangle className="w-3 h-3" />,
-    "Urgente": <AlertCircle className="w-3 h-3" />
-  };
-
   if (loadingMessages) {
     return (
       <div className="p-6 lg:p-8 flex items-center justify-center min-h-screen">
         <div className="text-center">
           <div className="inline-block h-12 w-12 animate-spin rounded-full border-4 border-solid border-orange-600 border-r-transparent mb-4"></div>
-          <p className="text-slate-600">Cargando chat...</p>
+          <p className="text-slate-600">Cargando...</p>
         </div>
       </div>
     );
@@ -211,7 +191,7 @@ export default function ParentChat() {
           <CardContent className="flex flex-col items-center justify-center py-12">
             <AlertCircle className="w-16 h-16 text-orange-400 mb-4" />
             <p className="text-slate-600 text-lg mb-2">No tienes jugadores registrados</p>
-            <p className="text-slate-500 text-sm">Registra a tus jugadores para acceder al chat del grupo</p>
+            <p className="text-slate-500 text-sm">Registra a tus jugadores para acceder al chat</p>
           </CardContent>
         </Card>
       </div>
@@ -219,7 +199,6 @@ export default function ParentChat() {
   }
 
   const totalUnread = myGroups.reduce((sum, group) => sum + group.unreadCount, 0);
-  const totalUrgent = myGroups.reduce((sum, group) => sum + group.urgentCount, 0);
 
   return (
     <div className="p-6 lg:p-8 space-y-6">
@@ -228,22 +207,14 @@ export default function ParentChat() {
           <h1 className="text-3xl font-bold text-slate-900">Chat del Grupo</h1>
           <p className="text-slate-600 mt-1">Comunícate con el club</p>
         </div>
-        <div className="flex gap-2">
-          {totalUrgent > 0 && (
-            <Badge className="bg-red-500 text-white text-lg px-4 py-2">
-              🔴 {totalUrgent}
-            </Badge>
-          )}
-          {totalUnread > 0 && (
-            <Badge className="bg-orange-500 text-white text-lg px-4 py-2">
-              {totalUnread}
-            </Badge>
-          )}
-        </div>
+        {totalUnread > 0 && (
+          <Badge className="bg-orange-500 text-white text-lg px-4 py-2">
+            {totalUnread} nuevos
+          </Badge>
+        )}
       </div>
 
-      {/* Horario de Atención */}
-      <Card className={`border-none shadow-lg ${isWithinBusinessHours() ? 'bg-green-50 border-green-200' : 'bg-orange-50 border-orange-200'}`}>
+      <Card className={`border-none shadow-lg ${isWithinBusinessHours() ? 'bg-green-50' : 'bg-orange-50'}`}>
         <CardContent className="p-4">
           <div className="flex items-center gap-3">
             <Clock className={`w-5 h-5 ${isWithinBusinessHours() ? 'text-green-600' : 'text-orange-600'}`} />
@@ -259,7 +230,6 @@ export default function ParentChat() {
         </CardContent>
       </Card>
 
-      {/* Tabs para Múltiples Grupos */}
       {myGroups.length > 1 ? (
         <Tabs value={selectedGroup?.id} onValueChange={(value) => {
           const group = myGroups.find(g => g.id === value);
@@ -271,7 +241,7 @@ export default function ParentChat() {
                 <span className="mr-2">{deporteEmojis[group.deporte]}</span>
                 {group.categoria}
                 {group.unreadCount > 0 && (
-                  <Badge className="ml-2 bg-orange-500 text-white h-5 min-w-5 px-1.5 text-xs">
+                  <Badge className="ml-2 bg-orange-500 text-white h-5 px-1.5 text-xs">
                     {group.unreadCount}
                   </Badge>
                 )}
@@ -283,7 +253,7 @@ export default function ParentChat() {
         <Card className="border-none shadow-lg bg-gradient-to-r from-orange-50 to-white">
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
-              <div className="w-12 h-12 bg-gradient-to-br from-orange-400 to-orange-600 rounded-xl flex items-center justify-center text-2xl">
+              <div className="w-12 h-12 bg-orange-600 rounded-xl flex items-center justify-center text-2xl">
                 {deporteEmojis[selectedGroup.deporte]}
               </div>
               <div>
@@ -295,63 +265,59 @@ export default function ParentChat() {
         </Card>
       )}
 
-      {/* Chat */}
       <Card className="border-none shadow-lg">
         <CardHeader className="border-b border-slate-100">
           <div className="flex items-center gap-3">
             <Users className="w-5 h-5 text-orange-600" />
             <div>
               <CardTitle className="text-lg">
-                Grupo de {selectedGroup?.deporte} - {selectedGroup?.categoria}
+                {selectedGroup?.deporte} - {selectedGroup?.categoria}
               </CardTitle>
-              <p className="text-sm text-slate-500">Chat grupal con padres y administración</p>
+              <p className="text-sm text-slate-500">
+                {selectedGroup?.messages?.length || 0} mensajes
+              </p>
             </div>
           </div>
         </CardHeader>
 
-        <div className="min-h-[400px] max-h-[600px] overflow-y-auto p-6">
+        <div className="p-6 space-y-4 min-h-[400px] max-h-[600px] overflow-y-auto">
           {!selectedGroup || selectedGroup.messages.length === 0 ? (
             <div className="text-center py-12">
               <MessageCircle className="w-16 h-16 text-slate-300 mx-auto mb-4" />
-              <p className="text-slate-500 text-lg mb-2">No hay mensajes aún</p>
+              <p className="text-slate-500 text-lg mb-2">No hay mensajes</p>
               <p className="text-slate-400 text-sm">Sé el primero en escribir</p>
             </div>
           ) : (
-            <div className="space-y-4">
-              {selectedGroup.messages.map((msg) => (
-                <div
-                  key={msg.id}
-                  className={`flex ${msg.tipo === "padre_a_grupo" && msg.remitente_email === currentUser?.email ? 'justify-end' : 'justify-start'}`}
-                >
-                  <div className={`max-w-[85%] ${
-                    msg.tipo === "padre_a_grupo" && msg.remitente_email === currentUser?.email
-                      ? 'bg-orange-600 text-white' 
-                      : msg.tipo === "admin_a_grupo"
-                      ? `${priorityColors[msg.prioridad || "Normal"]} text-white`
-                      : 'bg-slate-100 text-slate-900'
-                  } rounded-2xl px-4 py-3 shadow-sm`}>
-                    <div className="flex items-center gap-2 mb-1">
-                      <p className="text-xs font-medium opacity-70">
-                        {msg.tipo === "admin_a_grupo" ? "👤 Club" : msg.remitente_nombre || "Usuario"}
-                      </p>
-                      {msg.tipo === "admin_a_grupo" && msg.prioridad && msg.prioridad !== "Normal" && (
-                        <Badge className="bg-white/30 text-white text-xs px-2 py-0">
-                          {msg.prioridad}
-                        </Badge>
-                      )}
-                    </div>
-                    <p className="text-sm whitespace-pre-wrap">{msg.mensaje}</p>
-                    <p className={`text-xs mt-2 ${
-                      ((msg.tipo === "padre_a_grupo" && msg.remitente_email === currentUser?.email) || msg.tipo === "admin_a_grupo")
-                        ? 'text-white/70' 
-                        : 'text-slate-500'
-                    }`}>
-                      {format(new Date(msg.created_date), "HH:mm - d MMM", { locale: es })}
-                    </p>
-                  </div>
+            selectedGroup.messages.map((msg) => (
+              <div
+                key={msg.id}
+                className={`flex ${
+                  msg.tipo === "padre_a_grupo" && msg.remitente_email === currentUser?.email
+                    ? 'justify-end' 
+                    : 'justify-start'
+                }`}
+              >
+                <div className={`max-w-[85%] rounded-2xl px-4 py-3 shadow-sm ${
+                  msg.tipo === "padre_a_grupo" && msg.remitente_email === currentUser?.email
+                    ? 'bg-orange-600 text-white' 
+                    : msg.tipo === "admin_a_grupo"
+                    ? 'bg-blue-600 text-white'
+                    : 'bg-slate-100 text-slate-900'
+                }`}>
+                  <p className="text-xs font-medium opacity-70 mb-1">
+                    {msg.tipo === "admin_a_grupo" ? "👤 Club" : msg.remitente_nombre}
+                  </p>
+                  <p className="text-sm whitespace-pre-wrap">{msg.mensaje}</p>
+                  <p className={`text-xs mt-2 ${
+                    msg.tipo === "padre_a_grupo" && msg.remitente_email === currentUser?.email || msg.tipo === "admin_a_grupo"
+                      ? 'text-white/70' 
+                      : 'text-slate-500'
+                  }`}>
+                    {format(new Date(msg.created_date), "HH:mm", { locale: es })}
+                  </p>
                 </div>
-              ))}
-            </div>
+              </div>
+            ))
           )}
         </div>
 
@@ -359,14 +325,13 @@ export default function ParentChat() {
           {!isWithinBusinessHours() && (
             <div className="mb-3 p-3 bg-orange-50 border-l-4 border-orange-500 rounded">
               <p className="text-sm text-orange-800">
-                <Clock className="w-4 h-4 inline mr-2" />
                 Chat disponible de 10:00 a 20:00
               </p>
             </div>
           )}
           <div className="flex gap-3">
             <Textarea
-              placeholder={isWithinBusinessHours() ? "Escribe tu mensaje al grupo..." : "Chat disponible de 10:00 a 20:00"}
+              placeholder={isWithinBusinessHours() ? "Escribe tu mensaje..." : "Chat disponible de 10:00 a 20:00"}
               value={messageText}
               onChange={(e) => setMessageText(e.target.value)}
               disabled={!isWithinBusinessHours()}
@@ -376,31 +341,26 @@ export default function ParentChat() {
                   handleSendMessage();
                 }
               }}
-              className="resize-none"
-              rows={3}
+              rows={2}
             />
             <Button
               onClick={handleSendMessage}
-              disabled={!messageText.trim() || sendMessageMutation.isPending || !isWithinBusinessHours()}
+              disabled={!messageText.trim() || !isWithinBusinessHours()}
               className="bg-orange-600 hover:bg-orange-700"
             >
               <Send className="w-5 h-5" />
             </Button>
           </div>
-          <p className="text-xs text-slate-500 mt-2">
-            Presiona Enter para enviar
-          </p>
         </CardContent>
       </Card>
 
-      {/* Info Card */}
-      <Card className="border-none shadow-lg bg-blue-50 border-l-4 border-blue-500">
+      <Card className="border-none shadow-lg bg-blue-50">
         <CardContent className="p-4">
           <div className="flex items-start gap-3">
             <Info className="w-5 h-5 text-blue-600 mt-0.5" />
             <p className="text-sm text-slate-700">
-              <strong>Chat grupal:</strong> Todos los padres de {selectedGroup?.deporte} - {selectedGroup?.categoria} pueden participar. 
-              Horario: 10:00-20:00. Los mensajes importantes se notifican por email.
+              <strong>Chat grupal:</strong> Todos los padres de {selectedGroup?.deporte} - {selectedGroup?.categoria} participan. 
+              Horario: 10:00-20:00.
             </p>
           </div>
         </CardContent>
