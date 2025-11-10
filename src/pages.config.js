@@ -12,6 +12,7 @@ import SeasonManagement from './pages/SeasonManagement';
 import PaymentHistory from './pages/PaymentHistory';
 import AdminChat from './pages/AdminChat';
 import ParentChat from './pages/ParentChat';
+import UserManagement from './pages/UserManagement';
 import Layout from './Layout.jsx';
 
 
@@ -30,6 +31,7 @@ export const PAGES = {
     "PaymentHistory": PaymentHistory,
     "AdminChat": AdminChat,
     "ParentChat": ParentChat,
+    "UserManagement": UserManagement,
 }
 
 export const pagesConfig = {

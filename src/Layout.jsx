@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { createPageUrl } from "@/utils";
@@ -145,6 +146,109 @@ function ClosedSeasonScreen({ user, isAdmin }) {
   );
 }
 
+// Pantalla de acceso restringido
+function RestrictedAccessScreen({ user, restriction }) {
+  const handleLogout = () => {
+    base44.auth.logout();
+  };
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-red-500 via-red-600 to-red-700 flex items-center justify-center p-6">
+      <div className="max-w-2xl w-full">
+        <Card className="border-none shadow-2xl bg-white/95 backdrop-blur-sm">
+          <CardContent className="p-12 text-center space-y-6">
+            {/* Logo */}
+            <div className="flex justify-center mb-6">
+              <div className="w-24 h-24 bg-gradient-to-br from-red-500 to-red-700 rounded-3xl flex items-center justify-center shadow-xl">
+                <span className="text-5xl">🚫</span>
+              </div>
+            </div>
+
+            {/* Título */}
+            <div className="space-y-3">
+              <h1 className="text-4xl md:text-5xl font-bold text-slate-900">
+                Acceso Restringido
+              </h1>
+              <p className="text-2xl text-red-600 font-semibold">
+                CF Bustarviejo
+              </p>
+            </div>
+
+            {/* Mensaje principal */}
+            <div className="bg-gradient-to-r from-red-50 to-red-100 rounded-2xl p-8 space-y-4 border-2 border-red-200">
+              <p className="text-xl text-slate-800 leading-relaxed">
+                Tu acceso a la aplicación ha sido <strong className="text-red-700">restringido</strong>.
+              </p>
+              {restriction?.motivo_restriccion && (
+                <div className="bg-white rounded-lg p-4">
+                  <p className="text-sm text-slate-600 mb-1">Motivo:</p>
+                  <p className="text-lg text-slate-900 font-medium">
+                    {restriction.motivo_restriccion}
+                  </p>
+                </div>
+              )}
+            </div>
+
+            {/* Icono */}
+            <div className="text-8xl">
+              😔
+            </div>
+
+            {/* Información de contacto */}
+            <div className="space-y-3 pt-4">
+              <p className="text-xl font-bold text-slate-900">
+                ¿Necesitas ayuda?
+              </p>
+              <p className="text-lg text-slate-600">
+                Si crees que esto es un error o deseas más información, por favor contacta con el club
+              </p>
+            </div>
+
+            {/* Información de usuario y logout */}
+            {user && (
+              <div className="pt-6 border-t-2 border-slate-200 space-y-3">
+                <div className="text-sm text-slate-600">
+                  <p className="font-medium text-slate-900">{user.full_name}</p>
+                  <p>{user.email}</p>
+                </div>
+                <Button
+                  onClick={handleLogout}
+                  variant="outline"
+                  className="hover:bg-slate-100"
+                >
+                  <LogOut className="w-4 h-4 mr-2" />
+                  Cerrar Sesión
+                </Button>
+              </div>
+            )}
+
+            {/* Contacto */}
+            <div className="pt-6 border-t-2 border-slate-200">
+              <p className="text-sm text-slate-600 mb-2">
+                Contacto del club:
+              </p>
+              <div className="space-y-1">
+                <a 
+                  href="mailto:C.D.BUSTARVIEJO@HOTMAIL.ES"
+                  className="text-sm text-red-600 hover:text-red-700 block font-medium"
+                >
+                  C.D.BUSTARVIEJO@HOTMAIL.ES
+                </a>
+                <a 
+                  href="mailto:CDBUSTARVIEJO@GMAIL.COM"
+                  className="text-sm text-red-600 hover:text-red-700 block font-medium"
+                >
+                  CDBUSTARVIEJO@GMAIL.COM
+                </a>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
+}
+
 export default function Layout({ children, currentPageName }) {
   const location = useLocation();
   const currentSeason = getCurrentSeason();
@@ -153,6 +257,7 @@ export default function Layout({ children, currentPageName }) {
   const [unreadMessagesCount, setUnreadMessagesCount] = useState(0);
   const [urgentMessagesCount, setUrgentMessagesCount] = useState(0);
   const [showClosedScreen, setShowClosedScreen] = useState(false);
+  const [showRestrictedScreen, setShowRestrictedScreen] = useState(false);
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -160,6 +265,12 @@ export default function Layout({ children, currentPageName }) {
         const currentUser = await base44.auth.me();
         setUser(currentUser);
         setIsAdmin(currentUser.role === "admin");
+        
+        // Verificar si el acceso está restringido
+        if (currentUser.acceso_activo === false && currentUser.role !== "admin") {
+          setShowRestrictedScreen(true);
+          return;
+        }
         
         // Verificar si debemos mostrar pantalla de cierre
         // Los administradores pueden acceder siempre
@@ -226,6 +337,11 @@ export default function Layout({ children, currentPageName }) {
     return () => clearInterval(interval);
   }, [user, isAdmin]);
 
+  // Mostrar pantalla de acceso restringido si aplica
+  if (showRestrictedScreen && user) {
+    return <RestrictedAccessScreen user={user} restriction={user} />;
+  }
+
   // Mostrar pantalla de cierre si estamos en julio/agosto y no es admin
   if (showClosedScreen) {
     return <ClosedSeasonScreen user={user} isAdmin={isAdmin} />;
@@ -283,6 +399,11 @@ export default function Layout({ children, currentPageName }) {
       title: "Temporadas",
       url: createPageUrl("SeasonManagement"),
       icon: Settings,
+    },
+    {
+      title: "Usuarios",
+      url: createPageUrl("UserManagement"),
+      icon: Users,
     },
   ];
 
