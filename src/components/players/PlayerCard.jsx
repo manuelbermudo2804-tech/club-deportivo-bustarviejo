@@ -25,6 +25,16 @@ export default function PlayerCard({ player, onEdit }) {
     "Delantero": "bg-orange-100 text-orange-700"
   };
 
+  const sportIcons = {
+    "Fútbol": "⚽",
+    "Baloncesto": "🏀"
+  };
+
+  const sportColors = {
+    "Fútbol": "bg-green-100 text-green-700",
+    "Baloncesto": "bg-orange-100 text-orange-700"
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -56,6 +66,13 @@ export default function PlayerCard({ player, onEdit }) {
             <div className="absolute top-3 left-3">
               <Badge variant="secondary" className="bg-slate-800 text-white">
                 Inactivo
+              </Badge>
+            </div>
+          )}
+          {player.deporte && (
+            <div className="absolute bottom-3 left-3">
+              <Badge className={`${sportColors[player.deporte] || "bg-slate-100 text-slate-700"} text-base`}>
+                {sportIcons[player.deporte]} {player.deporte}
               </Badge>
             </div>
           )}

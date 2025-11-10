@@ -1,12 +1,12 @@
-
 import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Plus, Search, Filter } from "lucide-react";
+import { Plus, Search } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AnimatePresence } from "framer-motion";
+import { Badge } from "@/components/ui/badge";
 
 import PlayerCard from "../components/players/PlayerCard";
 import PlayerForm from "../components/players/PlayerForm";
@@ -16,6 +16,7 @@ export default function Players() {
   const [editingPlayer, setEditingPlayer] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("all");
+  const [sportFilter, setSportFilter] = useState("all");
   
   const queryClient = useQueryClient();
 
@@ -59,10 +60,15 @@ export default function Players() {
   const filteredPlayers = players.filter(player => {
     const matchesSearch = player.nombre?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCategory = categoryFilter === "all" || player.categoria === categoryFilter;
-    return matchesSearch && matchesCategory;
+    const matchesSport = sportFilter === "all" || player.deporte === sportFilter;
+    return matchesSearch && matchesCategory && matchesSport;
   });
 
   const categories = ["all", "Prebenjamín", "Benjamín", "Alevín", "Infantil", "Cadete", "Juvenil", "Senior"];
+
+  // Contar jugadores por deporte
+  const futbolCount = players.filter(p => p.deporte === "Fútbol").length;
+  const baloncestoCount = players.filter(p => p.deporte === "Baloncesto").length;
 
   return (
     <div className="p-6 lg:p-8 space-y-6">
@@ -96,6 +102,31 @@ export default function Players() {
           />
         )}
       </AnimatePresence>
+
+      {/* Filtro por Deporte */}
+      <div className="flex flex-wrap gap-3">
+        <Button
+          variant={sportFilter === "all" ? "default" : "outline"}
+          onClick={() => setSportFilter("all")}
+          className={sportFilter === "all" ? "bg-orange-600 hover:bg-orange-700" : ""}
+        >
+          Todos ({players.length})
+        </Button>
+        <Button
+          variant={sportFilter === "Fútbol" ? "default" : "outline"}
+          onClick={() => setSportFilter("Fútbol")}
+          className={sportFilter === "Fútbol" ? "bg-green-600 hover:bg-green-700" : ""}
+        >
+          ⚽ Fútbol ({futbolCount})
+        </Button>
+        <Button
+          variant={sportFilter === "Baloncesto" ? "default" : "outline"}
+          onClick={() => setSportFilter("Baloncesto")}
+          className={sportFilter === "Baloncesto" ? "bg-orange-600 hover:bg-orange-700" : ""}
+        >
+          🏀 Baloncesto ({baloncestoCount})
+        </Button>
+      </div>
 
       <div className="flex flex-col md:flex-row gap-4">
         <div className="relative flex-1">

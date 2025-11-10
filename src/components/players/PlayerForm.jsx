@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { motion } from "framer-motion";
 import { base44 } from "@/api/base44Client";
@@ -15,11 +14,12 @@ export default function PlayerForm({ player, onSubmit, onCancel, isSubmitting })
   const [formData, setFormData] = useState(player || {
     nombre: "",
     foto_url: "",
+    deporte: "Fútbol",
     fecha_nacimiento: "",
     dni: "",
     telefono: "",
     email: "",
-    email_padre: "", // Added new field
+    email_padre: "",
     direccion: "",
     categoria: "",
     posicion: "",
@@ -134,6 +134,23 @@ export default function PlayerForm({ player, onSubmit, onCancel, isSubmitting })
                   required
                   placeholder="Nombre y apellidos"
                 />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="deporte">Deporte *</Label>
+                <Select
+                  value={formData.deporte}
+                  onValueChange={(value) => handleChange("deporte", value)}
+                  required
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecciona deporte" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Fútbol">⚽ Fútbol</SelectItem>
+                    <SelectItem value="Baloncesto">🏀 Baloncesto</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
 
               <div className="space-y-2">
