@@ -1,16 +1,16 @@
-
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Plus, Calendar as CalendarIcon, Smartphone, Trophy } from "lucide-react";
+import { Plus, Calendar as CalendarIcon, Trophy } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AnimatePresence } from "framer-motion";
 
 import EventForm from "../components/calendar/EventForm";
 import EventCard from "../components/calendar/EventCard";
 import SocialLinks from "../components/SocialLinks";
+import MatchAppLink from "../components/MatchAppLink";
 
 export default function Calendar() {
   const [showForm, setShowForm] = useState(false);
@@ -116,22 +116,12 @@ export default function Calendar() {
               </div>
               <div>
                 <h3 className="text-2xl font-bold mb-1">Horarios y Resultados</h3>
-                <p className="text-slate-300 flex items-center gap-2">
-                  <Smartphone className="w-4 h-4" />
-                  Descarga MatchApp en tu móvil
+                <p className="text-slate-300 text-sm">
+                  📱 Descarga MatchApp • Ver partidos en directo
                 </p>
               </div>
             </div>
-            <a 
-              href="https://matchapp.online/club/cfbustarviejo"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="w-full md:w-auto"
-            >
-              <Button className="w-full md:w-auto bg-orange-600 hover:bg-orange-700 text-white font-bold py-6 px-8 text-lg shadow-xl">
-                Abrir MatchApp
-              </Button>
-            </a>
+            <MatchAppLink className="w-full md:w-auto py-6 px-8 text-lg" />
           </div>
         </CardContent>
       </Card>
