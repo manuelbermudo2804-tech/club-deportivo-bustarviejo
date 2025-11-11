@@ -1,6 +1,6 @@
 import React from "react";
 import { Button } from "@/components/ui/button";
-import { Smartphone, Download } from "lucide-react";
+import { Smartphone, ExternalLink } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -14,17 +14,19 @@ export default function MatchAppLink({ className = "" }) {
 
   const handleMatchAppClick = (e) => {
     e.preventDefault();
+    e.stopPropagation();
     
-    const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
-    const isAndroid = /Android/i.test(navigator.userAgent);
+    const userAgent = navigator.userAgent || navigator.vendor || window.opera;
+    const isIOS = /iPhone|iPad|iPod/i.test(userAgent);
+    const isAndroid = /Android/i.test(userAgent);
     
     if (isIOS) {
-      // iOS: Ir directamente a App Store
-      window.location.href = "https://apps.apple.com/es/app/matchapp/id907431871";
+      // iOS: Abrir App Store en nueva pestaña
+      window.open("https://apps.apple.com/es/app/matchapp/id907431871", "_blank");
       
     } else if (isAndroid) {
-      // Android: Ir directamente a Google Play
-      window.location.href = "https://play.google.com/store/apps/details?id=com.justteamup.matchapp";
+      // Android: Abrir Google Play en nueva pestaña
+      window.open("https://play.google.com/store/apps/details?id=com.justteamup.matchapp", "_blank");
       
     } else {
       // Desktop: Mostrar diálogo con opciones
@@ -38,8 +40,8 @@ export default function MatchAppLink({ className = "" }) {
         onClick={handleMatchAppClick}
         className={`bg-orange-600 hover:bg-orange-700 text-white font-bold shadow-xl ${className}`}
       >
-        <Smartphone className="w-5 h-5 mr-2" />
-        Descargar MatchApp
+        <ExternalLink className="w-5 h-5 mr-2" />
+        📱 Ver en MatchApp
       </Button>
 
       <Dialog open={showDesktopDialog} onOpenChange={setShowDesktopDialog}>
