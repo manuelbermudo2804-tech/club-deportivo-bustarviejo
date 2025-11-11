@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { MessageCircle, Send, Users, Clock, AlertCircle, AlertTriangle, Info } from "lucide-react";
+import { MessageCircle, Send, Users, Clock, AlertCircle, Info } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
@@ -174,7 +174,7 @@ export default function ParentChat() {
 
   if (loadingMessages) {
     return (
-      <div className="p-6 lg:p-8 flex items-center justify-center min-h-screen">
+      <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
           <div className="inline-block h-12 w-12 animate-spin rounded-full border-4 border-solid border-orange-600 border-r-transparent mb-4"></div>
           <p className="text-slate-600">Cargando...</p>
@@ -201,170 +201,154 @@ export default function ParentChat() {
   const totalUnread = myGroups.reduce((sum, group) => sum + group.unreadCount, 0);
 
   return (
-    <div className="p-6 lg:p-8 space-y-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold text-slate-900">Chat del Grupo</h1>
-          <p className="text-slate-600 mt-1">Comunícate con el club</p>
+    <div className="h-screen flex flex-col bg-slate-50">
+      {/* Header - Fixed */}
+      <div className="flex-none p-4 lg:p-6 bg-white border-b border-slate-200">
+        <div className="flex justify-between items-center mb-3">
+          <div>
+            <h1 className="text-2xl lg:text-3xl font-bold text-slate-900">Chat del Grupo</h1>
+            <p className="text-slate-600 text-sm mt-1">Comunícate con el club</p>
+          </div>
+          {totalUnread > 0 && (
+            <Badge className="bg-orange-500 text-white px-3 py-1">
+              {totalUnread}
+            </Badge>
+          )}
         </div>
-        {totalUnread > 0 && (
-          <Badge className="bg-orange-500 text-white text-lg px-4 py-2">
-            {totalUnread} nuevos
-          </Badge>
+
+        {/* Horario */}
+        <div className={`p-3 rounded-lg ${isWithinBusinessHours() ? 'bg-green-50' : 'bg-orange-50'}`}>
+          <div className="flex items-center gap-2">
+            <Clock className={`w-4 h-4 ${isWithinBusinessHours() ? 'text-green-600' : 'text-orange-600'}`} />
+            <p className="text-sm font-medium text-slate-900">
+              {isWithinBusinessHours() ? '🟢 Chat Activo' : '🟠 Fuera de Horario'}
+            </p>
+            <span className="text-xs text-slate-600 ml-auto">10:00 - 20:00</span>
+          </div>
+        </div>
+
+        {/* Tabs o Grupo único */}
+        <div className="mt-3">
+          {myGroups.length > 1 ? (
+            <Tabs value={selectedGroup?.id} onValueChange={(value) => {
+              const group = myGroups.find(g => g.id === value);
+              setSelectedGroup(group);
+            }}>
+              <TabsList className="bg-white border w-full">
+                {myGroups.map(group => (
+                  <TabsTrigger key={group.id} value={group.id} className="flex-1">
+                    <span className="mr-1">{deporteEmojis[group.deporte]}</span>
+                    <span className="hidden sm:inline">{group.categoria}</span>
+                    <span className="sm:hidden">{group.categoria.substring(0, 3)}</span>
+                    {group.unreadCount > 0 && (
+                      <Badge className="ml-1 bg-orange-500 text-white h-4 px-1 text-xs">
+                        {group.unreadCount}
+                      </Badge>
+                    )}
+                  </TabsTrigger>
+                ))}
+              </TabsList>
+            </Tabs>
+          ) : selectedGroup && (
+            <div className="bg-gradient-to-r from-orange-50 to-white p-3 rounded-lg border border-orange-200">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-orange-600 rounded-lg flex items-center justify-center text-xl">
+                  {deporteEmojis[selectedGroup.deporte]}
+                </div>
+                <div>
+                  <p className="font-bold text-slate-900">{selectedGroup.deporte}</p>
+                  <p className="text-xs text-slate-600">{selectedGroup.categoria}</p>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Chat Messages - Scrollable */}
+      <div className="flex-1 overflow-y-auto p-4 lg:p-6 space-y-3">
+        {!selectedGroup || selectedGroup.messages.length === 0 ? (
+          <div className="text-center py-12">
+            <MessageCircle className="w-16 h-16 text-slate-300 mx-auto mb-4" />
+            <p className="text-slate-500 text-lg mb-2">No hay mensajes</p>
+            <p className="text-slate-400 text-sm">Sé el primero en escribir</p>
+          </div>
+        ) : (
+          selectedGroup.messages.map((msg) => (
+            <div
+              key={msg.id}
+              className={`flex ${
+                msg.tipo === "padre_a_grupo" && msg.remitente_email === currentUser?.email
+                  ? 'justify-end' 
+                  : 'justify-start'
+              }`}
+            >
+              <div className={`max-w-[85%] rounded-2xl px-4 py-3 shadow-sm ${
+                msg.tipo === "padre_a_grupo" && msg.remitente_email === currentUser?.email
+                  ? 'bg-orange-600 text-white' 
+                  : msg.tipo === "admin_a_grupo"
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-slate-100 text-slate-900'
+              }`}>
+                <p className="text-xs font-medium opacity-70 mb-1">
+                  {msg.tipo === "admin_a_grupo" ? "👤 Club" : msg.remitente_nombre}
+                </p>
+                <p className="text-sm whitespace-pre-wrap break-words">{msg.mensaje}</p>
+                <p className={`text-xs mt-2 ${
+                  msg.tipo === "padre_a_grupo" && msg.remitente_email === currentUser?.email || msg.tipo === "admin_a_grupo"
+                    ? 'text-white/70' 
+                    : 'text-slate-500'
+                }`}>
+                  {format(new Date(msg.created_date), "HH:mm", { locale: es })}
+                </p>
+              </div>
+            </div>
+          ))
         )}
       </div>
 
-      <Card className={`border-none shadow-lg ${isWithinBusinessHours() ? 'bg-green-50' : 'bg-orange-50'}`}>
-        <CardContent className="p-4">
-          <div className="flex items-center gap-3">
-            <Clock className={`w-5 h-5 ${isWithinBusinessHours() ? 'text-green-600' : 'text-orange-600'}`} />
-            <div>
-              <p className="font-medium text-slate-900">
-                {isWithinBusinessHours() ? '🟢 Chat Activo' : '🟠 Fuera de Horario'}
-              </p>
-              <p className="text-sm text-slate-600">
-                Horario: 10:00 - 20:00
-              </p>
-            </div>
+      {/* Input Area - Fixed at bottom */}
+      <div className="flex-none bg-white border-t border-slate-200 p-4">
+        {!isWithinBusinessHours() && (
+          <div className="mb-3 p-2 bg-orange-50 border-l-4 border-orange-500 rounded text-sm text-orange-800">
+            Chat disponible de 10:00 a 20:00
           </div>
-        </CardContent>
-      </Card>
-
-      {myGroups.length > 1 ? (
-        <Tabs value={selectedGroup?.id} onValueChange={(value) => {
-          const group = myGroups.find(g => g.id === value);
-          setSelectedGroup(group);
-        }}>
-          <TabsList className="bg-white border">
-            {myGroups.map(group => (
-              <TabsTrigger key={group.id} value={group.id}>
-                <span className="mr-2">{deporteEmojis[group.deporte]}</span>
-                {group.categoria}
-                {group.unreadCount > 0 && (
-                  <Badge className="ml-2 bg-orange-500 text-white h-5 px-1.5 text-xs">
-                    {group.unreadCount}
-                  </Badge>
-                )}
-              </TabsTrigger>
-            ))}
-          </TabsList>
-        </Tabs>
-      ) : selectedGroup && (
-        <Card className="border-none shadow-lg bg-gradient-to-r from-orange-50 to-white">
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="w-12 h-12 bg-orange-600 rounded-xl flex items-center justify-center text-2xl">
-                {deporteEmojis[selectedGroup.deporte]}
-              </div>
-              <div>
-                <p className="font-bold text-slate-900">{selectedGroup.deporte}</p>
-                <p className="text-sm text-slate-600">{selectedGroup.categoria}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      <Card className="border-none shadow-lg">
-        <CardHeader className="border-b border-slate-100">
-          <div className="flex items-center gap-3">
-            <Users className="w-5 h-5 text-orange-600" />
-            <div>
-              <CardTitle className="text-lg">
-                {selectedGroup?.deporte} - {selectedGroup?.categoria}
-              </CardTitle>
-              <p className="text-sm text-slate-500">
-                {selectedGroup?.messages?.length || 0} mensajes
-              </p>
-            </div>
-          </div>
-        </CardHeader>
-
-        <div className="p-6 space-y-4 min-h-[400px] max-h-[600px] overflow-y-auto">
-          {!selectedGroup || selectedGroup.messages.length === 0 ? (
-            <div className="text-center py-12">
-              <MessageCircle className="w-16 h-16 text-slate-300 mx-auto mb-4" />
-              <p className="text-slate-500 text-lg mb-2">No hay mensajes</p>
-              <p className="text-slate-400 text-sm">Sé el primero en escribir</p>
-            </div>
-          ) : (
-            selectedGroup.messages.map((msg) => (
-              <div
-                key={msg.id}
-                className={`flex ${
-                  msg.tipo === "padre_a_grupo" && msg.remitente_email === currentUser?.email
-                    ? 'justify-end' 
-                    : 'justify-start'
-                }`}
-              >
-                <div className={`max-w-[85%] rounded-2xl px-4 py-3 shadow-sm ${
-                  msg.tipo === "padre_a_grupo" && msg.remitente_email === currentUser?.email
-                    ? 'bg-orange-600 text-white' 
-                    : msg.tipo === "admin_a_grupo"
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-slate-100 text-slate-900'
-                }`}>
-                  <p className="text-xs font-medium opacity-70 mb-1">
-                    {msg.tipo === "admin_a_grupo" ? "👤 Club" : msg.remitente_nombre}
-                  </p>
-                  <p className="text-sm whitespace-pre-wrap">{msg.mensaje}</p>
-                  <p className={`text-xs mt-2 ${
-                    msg.tipo === "padre_a_grupo" && msg.remitente_email === currentUser?.email || msg.tipo === "admin_a_grupo"
-                      ? 'text-white/70' 
-                      : 'text-slate-500'
-                  }`}>
-                    {format(new Date(msg.created_date), "HH:mm", { locale: es })}
-                  </p>
-                </div>
-              </div>
-            ))
-          )}
+        )}
+        <div className="flex gap-2">
+          <Textarea
+            placeholder={isWithinBusinessHours() ? "Escribe tu mensaje..." : "Chat disponible de 10:00 a 20:00"}
+            value={messageText}
+            onChange={(e) => setMessageText(e.target.value)}
+            disabled={!isWithinBusinessHours()}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                handleSendMessage();
+              }
+            }}
+            rows={2}
+            className="resize-none"
+          />
+          <Button
+            onClick={handleSendMessage}
+            disabled={!messageText.trim() || !isWithinBusinessHours()}
+            className="bg-orange-600 hover:bg-orange-700 h-auto"
+          >
+            <Send className="w-5 h-5" />
+          </Button>
         </div>
+      </div>
 
-        <CardContent className="border-t border-slate-100 p-4">
-          {!isWithinBusinessHours() && (
-            <div className="mb-3 p-3 bg-orange-50 border-l-4 border-orange-500 rounded">
-              <p className="text-sm text-orange-800">
-                Chat disponible de 10:00 a 20:00
-              </p>
-            </div>
-          )}
-          <div className="flex gap-3">
-            <Textarea
-              placeholder={isWithinBusinessHours() ? "Escribe tu mensaje..." : "Chat disponible de 10:00 a 20:00"}
-              value={messageText}
-              onChange={(e) => setMessageText(e.target.value)}
-              disabled={!isWithinBusinessHours()}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' && !e.shiftKey) {
-                  e.preventDefault();
-                  handleSendMessage();
-                }
-              }}
-              rows={2}
-            />
-            <Button
-              onClick={handleSendMessage}
-              disabled={!messageText.trim() || !isWithinBusinessHours()}
-              className="bg-orange-600 hover:bg-orange-700"
-            >
-              <Send className="w-5 h-5" />
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-
-      <Card className="border-none shadow-lg bg-blue-50">
-        <CardContent className="p-4">
-          <div className="flex items-start gap-3">
-            <Info className="w-5 h-5 text-blue-600 mt-0.5" />
-            <p className="text-sm text-slate-700">
-              <strong>Chat grupal:</strong> Todos los padres de {selectedGroup?.deporte} - {selectedGroup?.categoria} participan. 
-              Horario: 10:00-20:00.
-            </p>
-          </div>
-        </CardContent>
-      </Card>
+      {/* Info Footer - Optional on mobile */}
+      <div className="flex-none bg-blue-50 border-t border-blue-200 p-3 hidden lg:block">
+        <div className="flex items-start gap-2">
+          <Info className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" />
+          <p className="text-xs text-slate-700">
+            <strong>Chat grupal:</strong> Todos los padres de {selectedGroup?.deporte} - {selectedGroup?.categoria} participan. 
+            Horario: 10:00-20:00.
+          </p>
+        </div>
+      </div>
     </div>
   );
 }
