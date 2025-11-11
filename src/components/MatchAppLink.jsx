@@ -16,17 +16,22 @@ export default function MatchAppLink({ className = "" }) {
     e.preventDefault();
     e.stopPropagation();
     
+    // Añadir timestamp para evitar caché
+    const timestamp = new Date().getTime();
+    
     const userAgent = navigator.userAgent || navigator.vendor || window.opera;
     const isIOS = /iPhone|iPad|iPod/i.test(userAgent);
     const isAndroid = /Android/i.test(userAgent);
     
     if (isIOS) {
-      // iOS: Abrir App Store en nueva pestaña
-      window.open("https://apps.apple.com/es/app/matchapp/id907431871", "_blank");
+      // iOS: Abrir App Store con parámetro anti-caché
+      const url = `https://apps.apple.com/es/app/matchapp/id907431871?t=${timestamp}`;
+      window.open(url, "_blank", "noopener,noreferrer");
       
     } else if (isAndroid) {
-      // Android: Abrir Google Play en nueva pestaña
-      window.open("https://play.google.com/store/apps/details?id=com.justteamup.matchapp", "_blank");
+      // Android: Abrir Google Play con parámetro anti-caché
+      const url = `https://play.google.com/store/apps/details?id=com.justteamup.matchapp&t=${timestamp}`;
+      window.open(url, "_blank", "noopener,noreferrer");
       
     } else {
       // Desktop: Mostrar diálogo con opciones
@@ -41,7 +46,7 @@ export default function MatchAppLink({ className = "" }) {
         className={`bg-orange-600 hover:bg-orange-700 text-white font-bold shadow-xl ${className}`}
       >
         <ExternalLink className="w-5 h-5 mr-2" />
-        📱 Ver en MatchApp
+        🏆 Ir a MatchApp
       </Button>
 
       <Dialog open={showDesktopDialog} onOpenChange={setShowDesktopDialog}>
