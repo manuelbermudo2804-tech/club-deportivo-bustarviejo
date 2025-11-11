@@ -1,3 +1,4 @@
+
 import React from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
@@ -11,7 +12,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 import ContactCard from "../components/ContactCard";
 import SocialLinks from "../components/SocialLinks";
-import MatchAppLink from "../components/MatchAppLink";
+import MatchAppButton from "../components/MatchAppButton";
 
 export default function ParentDashboard() {
   const { data: user } = useQuery({
@@ -145,7 +146,7 @@ export default function ParentDashboard() {
                 </p>
               </div>
             </div>
-            <MatchAppLink className="w-full md:w-auto py-6 px-8 text-lg" />
+            <MatchAppButton className="w-full md:w-auto py-6 px-8 text-lg" />
           </div>
         </CardContent>
       </Card>

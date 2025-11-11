@@ -9,7 +9,7 @@ import { Users, CreditCard, ShoppingBag, TrendingUp, AlertCircle, Heart, Trophy 
 import { Skeleton } from "@/components/ui/skeleton";
 
 import SocialLinks from "../components/SocialLinks";
-import MatchAppLink from "../components/MatchAppLink";
+import MatchAppButton from "../components/MatchAppButton";
 
 export default function Home() {
   const { data: players, isLoading: loadingPlayers } = useQuery({
@@ -132,7 +132,7 @@ export default function Home() {
                 </p>
               </div>
             </div>
-            <MatchAppLink className="w-full md:w-auto py-6 px-8 text-lg" />
+            <MatchAppButton className="w-full md:w-auto py-6 px-8 text-lg" />
           </div>
         </CardContent>
       </Card>
