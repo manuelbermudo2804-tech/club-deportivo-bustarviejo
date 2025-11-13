@@ -4,6 +4,9 @@ import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { Users, Calendar, Megaphone, Image, Clock, MessageCircle, Trophy, User as UserIcon } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+
+import MatchAppLink from "../components/MatchAppLink";
 
 const CLUB_LOGO_URL = "https://www.cdbustarviejo.com/uploads/2/4/0/4/2404974/logo-cd-bustarviejo-cuadrado-xpeq_orig.png";
 
@@ -110,6 +113,29 @@ export default function PlayerDashboard() {
             )}
           </div>
         </div>
+      </div>
+
+      {/* MatchApp Card */}
+      <div className="px-4 lg:px-8 pb-6">
+        <Card className="border-none shadow-xl bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 text-white overflow-hidden relative">
+          <div className="absolute top-0 right-0 w-64 h-64 bg-orange-500 rounded-full blur-3xl opacity-20"></div>
+          <CardContent className="relative z-10 py-6 px-6">
+            <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+              <div className="flex items-center gap-4">
+                <div className="w-16 h-16 bg-orange-500 rounded-2xl flex items-center justify-center shadow-lg">
+                  <Trophy className="w-8 h-8 text-white" />
+                </div>
+                <div>
+                  <h3 className="text-2xl font-bold mb-1">Horarios y Resultados</h3>
+                  <p className="text-slate-300 text-sm">
+                    📱 Descarga MatchApp • Ver partidos en directo
+                  </p>
+                </div>
+              </div>
+              <MatchAppLink className="w-full md:w-auto py-6 px-8 text-lg" />
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Menu Grid */}
