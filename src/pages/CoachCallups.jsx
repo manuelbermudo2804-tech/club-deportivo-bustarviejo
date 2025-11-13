@@ -56,10 +56,11 @@ export default function CoachCallups() {
     fetchUser();
   }, []);
 
-  // Close form and clear editing when category changes
+  // Close form and clear editing when category changes (but NOT when editing a callup)
   useEffect(() => {
-    setShowForm(false);
-    setEditingCallup(null);
+    if (!editingCallup) {
+      setShowForm(false);
+    }
   }, [selectedCategory]);
 
   const { data: callups, isLoading } = useQuery({
@@ -238,6 +239,7 @@ Email alternativo: CDBUSTARVIEJO@GMAIL.COM
   };
 
   const handleEdit = (callup) => {
+    console.log("Editing callup:", callup); // Debug
     setEditingCallup(callup);
     setShowForm(true);
   };
@@ -246,6 +248,16 @@ Email alternativo: CDBUSTARVIEJO@GMAIL.COM
     if (window.confirm(`¿Eliminar la convocatoria "${callup.titulo}"?\n\nEsta acción no se puede deshacer.`)) {
       deleteCallupMutation.mutate(callup.id);
     }
+  };
+
+  const handleCancel = () => {
+    setShowForm(false);
+    setEditingCallup(null);
+  };
+
+  const handleNewCallup = () => {
+    setEditingCallup(null);
+    setShowForm(true);
   };
 
   // Filter callups for coach's categories
@@ -303,10 +315,7 @@ Email alternativo: CDBUSTARVIEJO@GMAIL.COM
           </p>
         </div>
         <Button
-          onClick={() => {
-            setEditingCallup(null);
-            setShowForm(!showForm);
-          }}
+          onClick={handleNewCallup}
           className="bg-orange-600 hover:bg-orange-700 shadow-lg"
           disabled={selectedCategory === "all"}
         >
@@ -387,19 +396,17 @@ Email alternativo: CDBUSTARVIEJO@GMAIL.COM
         </Card>
       </div>
 
-      <AnimatePresence>
+      <AnimatePresence mode="wait">
         {showForm && canShowForm && (
           <CallupForm
+            key={editingCallup?.id || 'new'}
             callup={editingCallup}
             players={players}
             coachName={user.full_name}
             coachEmail={user.email}
             category={effectiveCategory}
             onSubmit={handleSubmit}
-            onCancel={() => {
-              setShowForm(false);
-              setEditingCallup(null);
-            }}
+            onCancel={handleCancel}
             isSubmitting={createCallupMutation.isPending || updateCallupMutation.isPending}
           />
         )}
@@ -452,7 +459,7 @@ Email alternativo: CDBUSTARVIEJO@GMAIL.COM
         <div className="text-center py-12 bg-white rounded-xl shadow-lg">
           <div className="text-6xl mb-4">🏆</div>
           <p className="text-slate-500 text-lg mb-4">No hay convocatorias creadas</p>
-          <Button onClick={() => setShowForm(true)} className="bg-orange-600 hover:bg-orange-700" disabled={selectedCategory === "all"}>
+          <Button onClick={handleNewCallup} className="bg-orange-600 hover:bg-orange-700" disabled={selectedCategory === "all"}>
             <Plus className="w-4 h-4 mr-2" />
             Crear Primera Convocatoria
           </Button>

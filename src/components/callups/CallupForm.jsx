@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -12,7 +12,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Loader2, AlertCircle, Users, Send, Sparkles, MapPin } from "lucide-react";
 
 export default function CallupForm({ callup, players, coachName, coachEmail, category, onSubmit, onCancel, isSubmitting }) {
-  const [currentCallup, setCurrentCallup] = useState(callup || {
+  const getInitialState = () => ({
     titulo: "",
     categoria: category,
     tipo: "Partido",
@@ -32,9 +32,21 @@ export default function CallupForm({ callup, players, coachName, coachEmail, cat
     cerrada: false
   });
 
+  const [currentCallup, setCurrentCallup] = useState(callup || getInitialState());
   const [selectedPlayers, setSelectedPlayers] = useState(
     callup?.jugadores_convocados?.map(j => j.jugador_id) || []
   );
+
+  // Reset form when callup changes (editing different callup or creating new one)
+  useEffect(() => {
+    if (callup) {
+      setCurrentCallup(callup);
+      setSelectedPlayers(callup.jugadores_convocados?.map(j => j.jugador_id) || []);
+    } else {
+      setCurrentCallup(getInitialState());
+      setSelectedPlayers([]);
+    }
+  }, [callup?.id, category]);
 
   const handlePlayerToggle = (player) => {
     setSelectedPlayers(prev => {
@@ -100,7 +112,7 @@ export default function CallupForm({ callup, players, coachName, coachEmail, cat
             <Alert className="bg-blue-50 border-blue-300">
               <AlertCircle className="h-4 w-4 text-blue-600" />
               <AlertDescription className="text-blue-800 text-sm">
-                <strong>Categoría:</strong> {category} • <strong>Jugadores disponibles:</strong> {players.length}
+                <strong>Categoría:</strong> {currentCallup.categoria} • <strong>Jugadores disponibles:</strong> {players.length}
               </AlertDescription>
             </Alert>
 
@@ -140,7 +152,7 @@ export default function CallupForm({ callup, players, coachName, coachEmail, cat
                 <Label>Equipo Rival</Label>
                 <Input
                   placeholder="Nombre del rival"
-                  value={currentCallup.rival}
+                  value={currentCallup.rival || ""}
                   onChange={(e) => setCurrentCallup({ ...currentCallup, rival: e.target.value })}
                 />
               </div>
@@ -172,7 +184,7 @@ export default function CallupForm({ callup, players, coachName, coachEmail, cat
                 <Label>Hora de Concentración</Label>
                 <Input
                   type="time"
-                  value={currentCallup.hora_concentracion}
+                  value={currentCallup.hora_concentracion || ""}
                   onChange={(e) => setCurrentCallup({ ...currentCallup, hora_concentracion: e.target.value })}
                 />
               </div>
@@ -214,7 +226,7 @@ export default function CallupForm({ callup, players, coachName, coachEmail, cat
                 <Input
                   type="url"
                   placeholder="https://maps.google.com/..."
-                  value={currentCallup.enlace_ubicacion}
+                  value={currentCallup.enlace_ubicacion || ""}
                   onChange={(e) => setCurrentCallup({ ...currentCallup, enlace_ubicacion: e.target.value })}
                 />
                 <p className="text-xs text-slate-500">
@@ -228,7 +240,7 @@ export default function CallupForm({ callup, players, coachName, coachEmail, cat
               <Label>Instrucciones Adicionales</Label>
               <Textarea
                 placeholder="Equipación, material necesario, otras indicaciones..."
-                value={currentCallup.descripcion}
+                value={currentCallup.descripcion || ""}
                 onChange={(e) => setCurrentCallup({ ...currentCallup, descripcion: e.target.value })}
                 rows={3}
               />
