@@ -18,12 +18,6 @@ export default function ContactCard() {
             <div>
               <p className="text-sm font-medium text-orange-100 mb-1">Email Principal</p>
               <a 
-                href="mailto:C.D.BUSTARVIEJO@HOTMAIL.ES"
-                className="text-white hover:text-orange-100 transition-colors font-medium text-lg break-all block mb-2"
-              >
-                C.D.BUSTARVIEJO@HOTMAIL.ES
-              </a>
-              <a 
                 href="mailto:CDBUSTARVIEJO@GMAIL.COM"
                 className="text-white hover:text-orange-100 transition-colors font-medium text-lg break-all block"
               >
