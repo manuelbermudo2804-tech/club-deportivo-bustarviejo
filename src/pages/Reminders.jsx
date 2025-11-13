@@ -4,7 +4,8 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Bell, Send, CheckCircle2, Calendar, Mail, Loader2, RefreshCw } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Bell, Send, CheckCircle2, Calendar, Mail, Loader2, RefreshCw, AlertCircle } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
 import { format } from "date-fns";
@@ -53,27 +54,63 @@ export default function RemindersPage() {
         return;
       }
 
-      const subject = `Recordatorio de Pago - CF Bustarviejo - ${reminder.mes_pago}`;
-      const body = `
+      // Verificar si tiene justificante subido
+      const hasJustificante = payment?.justificante_url;
+
+      const subject = hasJustificante 
+        ? `⚠️ URGENTE: Pago en Revisión - CF Bustarviejo - ${reminder.mes_pago}`
+        : `🔴 RECORDATORIO URGENTE: Pago Pendiente - CF Bustarviejo - ${reminder.mes_pago}`;
+
+      const body = hasJustificante ? `
 Estimada familia de ${reminder.jugador_nombre},
 
-Le recordamos que tiene pendiente el pago correspondiente a:
+⚠️ RECORDATORIO IMPORTANTE ⚠️
 
+Su pago correspondiente a ${reminder.mes_pago} está EN REVISIÓN.
+Hemos recibido su justificante pero aún está pendiente de verificación.
+
+• Jugador: ${reminder.jugador_nombre}
 • Mes: ${reminder.mes_pago}
 • Temporada: ${reminder.temporada}
 • Cantidad: ${reminder.cantidad}€
-• Vencimiento: Día 30 de ${reminder.mes_pago}
+• Estado: En Revisión
+• Fecha límite: 15 de ${reminder.mes_pago}
 
-Puede realizar el pago mediante:
-- Bizum al número del club
-- Transferencia bancaria a nuestra cuenta
-
-Por favor, no olvide subir el justificante de pago en la aplicación.
+Si tiene alguna duda sobre el estado de su pago, por favor contacte con nosotros.
 
 Gracias por su colaboración.
 
 Atentamente,
 CF Bustarviejo
+📧 C.D.BUSTARVIEJO@HOTMAIL.ES | CDBUSTARVIEJO@GMAIL.COM
+      ` : `
+Estimada familia de ${reminder.jugador_nombre},
+
+🔴 RECORDATORIO URGENTE 🔴
+
+Le recordamos que tiene pendiente el pago correspondiente a:
+
+• Jugador: ${reminder.jugador_nombre}
+• Mes: ${reminder.mes_pago}
+• Temporada: ${reminder.temporada}
+• Cantidad: ${reminder.cantidad}€
+• FECHA LÍMITE: 15 de ${reminder.mes_pago}
+• Estado: PENDIENTE - Sin justificante cargado
+
+⚠️ Es importante que realice el pago Y suba el justificante en la aplicación lo antes posible.
+
+Puede realizar el pago mediante:
+- Transferencia bancaria a nuestra cuenta
+
+⚡ IMPORTANTE: Debe subir el justificante de pago en la aplicación para que podamos verificarlo.
+
+Acceda a la app → Mis Pagos → Busque el pago de ${reminder.mes_pago} → Suba el justificante
+
+Gracias por su colaboración.
+
+Atentamente,
+CF Bustarviejo
+📧 C.D.BUSTARVIEJO@HOTMAIL.ES | CDBUSTARVIEJO@GMAIL.COM
       `;
 
       await base44.integrations.Core.SendEmail({
@@ -83,15 +120,18 @@ CF Bustarviejo
         body: body
       });
 
-      // Marcar recordatorio como enviado
+      // Incrementar número de envíos y actualizar última fecha
+      const numeroEnvio = (reminder.numero_envio || 0) + 1;
       await base44.entities.Reminder.update(reminder.id, {
         ...reminder,
+        numero_envio: numeroEnvio,
+        ultimo_envio: new Date().toISOString(),
         enviado: true,
-        fecha_enviado: new Date().toISOString()
+        fecha_enviado: reminder.fecha_enviado || new Date().toISOString()
       });
 
       queryClient.invalidateQueries({ queryKey: ['reminders'] });
-      toast.success("Recordatorio enviado correctamente");
+      toast.success(`Recordatorio enviado (envío #${numeroEnvio})`);
     } catch (error) {
       console.error("Error sending reminder:", error);
       toast.error("Error al enviar el recordatorio");
@@ -102,11 +142,13 @@ CF Bustarviejo
 
   const sendAllPending = async () => {
     const today = new Date().toISOString().split('T')[0];
-    const pendingReminders = reminders.filter(r => 
-      !r.enviado && 
-      r.fecha_envio <= today &&
-      r.email_padre
-    );
+    
+    // Enviar a todos los que NO tienen justificante o están en revisión
+    const pendingReminders = reminders.filter(r => {
+      const payment = payments.find(p => p.id === r.pago_id);
+      const isPendingOrInReview = !payment || payment.estado !== "Pagado";
+      return r.email_padre && isPendingOrInReview;
+    });
 
     if (pendingReminders.length === 0) {
       toast.info("No hay recordatorios pendientes para enviar");
@@ -124,9 +166,23 @@ CF Bustarviejo
     toast.success("Todos los recordatorios han sido enviados");
   };
 
-  const pendingCount = reminders.filter(r => !r.enviado).length;
+  // Calcular estadísticas considerando el justificante
+  const paymentsWithoutJustificante = reminders.filter(r => {
+    const payment = payments.find(p => p.id === r.pago_id);
+    return !payment?.justificante_url && payment?.estado !== "Pagado";
+  }).length;
+
+  const paymentsInReview = reminders.filter(r => {
+    const payment = payments.find(p => p.id === r.pago_id);
+    return payment?.estado === "En revisión";
+  }).length;
+
+  const paidPayments = reminders.filter(r => {
+    const payment = payments.find(p => p.id === r.pago_id);
+    return payment?.estado === "Pagado";
+  }).length;
+
   const todayDate = new Date().toISOString().split('T')[0];
-  const dueToday = reminders.filter(r => !r.enviado && r.fecha_envio <= todayDate).length;
 
   const statusEmojis = {
     "Pagado": "🟢",
@@ -139,7 +195,7 @@ CF Bustarviejo
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <h1 className="text-3xl font-bold text-slate-900">Recordatorios de Pago</h1>
-          <p className="text-slate-600 mt-1">Gestión automática de notificaciones</p>
+          <p className="text-slate-600 mt-1">Sistema de notificaciones automáticas y manuales</p>
         </div>
         <div className="flex gap-3">
           <Button
@@ -153,31 +209,48 @@ CF Bustarviejo
           </Button>
           <Button
             onClick={sendAllPending}
-            disabled={dueToday === 0}
+            disabled={paymentsWithoutJustificante + paymentsInReview === 0}
             className="bg-orange-600 hover:bg-orange-700 shadow-lg"
           >
             <Send className="w-5 h-5 mr-2" />
-            Enviar Pendientes ({dueToday})
+            Enviar a Todos Pendientes
           </Button>
         </div>
       </div>
+
+      {/* Alerta de Información */}
+      <Alert className="bg-blue-50 border-blue-300 border-2">
+        <AlertCircle className="h-5 w-5 text-blue-600" />
+        <AlertDescription className="text-blue-900">
+          <strong>📅 Fechas Límite de Pago: Día 15 de cada mes</strong>
+          <div className="mt-2 space-y-1 text-sm">
+            <p>• <strong>Junio:</strong> Primer pago (pago único o 1er plazo) - Límite: 15 de Junio</p>
+            <p>• <strong>Septiembre:</strong> Segundo pago (solo 3 meses) - Límite: 15 de Septiembre</p>
+            <p>• <strong>Diciembre:</strong> Tercer pago (solo 3 meses) - Límite: 15 de Diciembre</p>
+          </div>
+          <p className="mt-3 text-sm">
+            💡 <strong>Los recordatorios se pueden enviar TODOS LOS DÍAS</strong> hasta que el padre/tutor suba el justificante de pago.
+          </p>
+        </AlertDescription>
+      </Alert>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <Card className="border-none shadow-lg bg-white">
           <CardHeader className="pb-3">
             <div className="flex items-center justify-between">
               <CardTitle className="text-sm font-medium text-slate-600">
-                Recordatorios Pendientes
+                Sin Justificante
               </CardTitle>
-              <div className="p-2 rounded-xl bg-amber-500 bg-opacity-10">
-                <Bell className="w-5 h-5 text-amber-500" />
+              <div className="p-2 rounded-xl bg-red-500 bg-opacity-10">
+                <Bell className="w-5 h-5 text-red-500" />
               </div>
             </div>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-slate-900">
-              {pendingCount}
+            <div className="text-2xl font-bold text-red-600">
+              {paymentsWithoutJustificante}
             </div>
+            <p className="text-xs text-slate-500 mt-1">🔴 Urgente - Sin justificante cargado</p>
           </CardContent>
         </Card>
 
@@ -185,7 +258,7 @@ CF Bustarviejo
           <CardHeader className="pb-3">
             <div className="flex items-center justify-between">
               <CardTitle className="text-sm font-medium text-slate-600">
-                Para Enviar Hoy
+                En Revisión
               </CardTitle>
               <div className="p-2 rounded-xl bg-orange-500 bg-opacity-10">
                 <Calendar className="w-5 h-5 text-orange-500" />
@@ -193,9 +266,10 @@ CF Bustarviejo
             </div>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-slate-900">
-              {dueToday}
+            <div className="text-2xl font-bold text-orange-600">
+              {paymentsInReview}
             </div>
+            <p className="text-xs text-slate-500 mt-1">🟠 Justificante recibido, pendiente verificar</p>
           </CardContent>
         </Card>
 
@@ -203,7 +277,7 @@ CF Bustarviejo
           <CardHeader className="pb-3">
             <div className="flex items-center justify-between">
               <CardTitle className="text-sm font-medium text-slate-600">
-                Enviados
+                Pagados Confirmados
               </CardTitle>
               <div className="p-2 rounded-xl bg-green-500 bg-opacity-10">
                 <CheckCircle2 className="w-5 h-5 text-green-500" />
@@ -211,9 +285,10 @@ CF Bustarviejo
             </div>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-slate-900">
-              {reminders.filter(r => r.enviado).length}
+            <div className="text-2xl font-bold text-green-600">
+              {paidPayments}
             </div>
+            <p className="text-xs text-slate-500 mt-1">🟢 Pagos verificados y confirmados</p>
           </CardContent>
         </Card>
       </div>
@@ -241,12 +316,12 @@ CF Bustarviejo
                 <TableHeader>
                   <TableRow>
                     <TableHead>Jugador</TableHead>
-                    <TableHead>Tipo</TableHead>
                     <TableHead>Período</TableHead>
-                    <TableHead>Fecha Envío</TableHead>
+                    <TableHead>Fecha Límite</TableHead>
                     <TableHead>Email</TableHead>
+                    <TableHead>Justificante</TableHead>
                     <TableHead>Estado Pago</TableHead>
-                    <TableHead>Estado</TableHead>
+                    <TableHead>Envíos</TableHead>
                     <TableHead className="text-right">Acciones</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -254,21 +329,24 @@ CF Bustarviejo
                   {reminders.map((reminder) => {
                     const payment = payments.find(p => p.id === reminder.pago_id);
                     const isPaid = payment?.estado === "Pagado";
-                    const isPast = reminder.fecha_envio < todayDate;
+                    const hasJustificante = payment?.justificante_url;
+                    const isOverdue = new Date() > new Date(`2025-${reminder.mes_pago === 'Junio' ? '06' : reminder.mes_pago === 'Septiembre' ? '09' : '12'}-15`);
 
                     return (
-                      <TableRow key={reminder.id} className="hover:bg-slate-50">
+                      <TableRow key={reminder.id} className={`hover:bg-slate-50 ${isPaid ? 'opacity-60' : ''}`}>
                         <TableCell className="font-medium">{reminder.jugador_nombre}</TableCell>
-                        <TableCell>
-                          <Badge variant="outline" className="text-xs">
-                            {reminder.tipo_recordatorio}
-                          </Badge>
-                        </TableCell>
                         <TableCell className="text-sm">
                           {reminder.mes_pago} - {reminder.cantidad}€
                         </TableCell>
                         <TableCell className="text-sm">
-                          {format(new Date(reminder.fecha_envio + 'T00:00:00'), 'dd MMM yyyy', { locale: es })}
+                          <div className="flex items-center gap-1">
+                            <span>15 de {reminder.mes_pago}</span>
+                            {isOverdue && !isPaid && (
+                              <Badge className="bg-red-100 text-red-700 text-xs">
+                                Vencido
+                              </Badge>
+                            )}
+                          </div>
                         </TableCell>
                         <TableCell>
                           {reminder.email_padre ? (
@@ -278,6 +356,17 @@ CF Bustarviejo
                             </div>
                           ) : (
                             <span className="text-xs text-slate-400">Sin email</span>
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          {hasJustificante ? (
+                            <Badge className="bg-blue-100 text-blue-700 text-xs">
+                              ✅ Subido
+                            </Badge>
+                          ) : (
+                            <Badge className="bg-red-100 text-red-700 text-xs">
+                              ❌ Sin subir
+                            </Badge>
                           )}
                         </TableCell>
                         <TableCell>
@@ -298,33 +387,36 @@ CF Bustarviejo
                           )}
                         </TableCell>
                         <TableCell>
-                          {reminder.enviado ? (
-                            <Badge className="bg-green-100 text-green-700">
-                              <CheckCircle2 className="w-3 h-3 mr-1" />
-                              Enviado
-                            </Badge>
-                          ) : isPast ? (
-                            <Badge className="bg-red-100 text-red-700">
-                              Atrasado
-                            </Badge>
-                          ) : (
-                            <Badge className="bg-blue-100 text-blue-700">
-                              Programado
-                            </Badge>
-                          )}
+                          <div className="text-sm">
+                            {reminder.numero_envio ? (
+                              <div>
+                                <Badge variant="outline" className="text-xs">
+                                  {reminder.numero_envio} {reminder.numero_envio === 1 ? 'envío' : 'envíos'}
+                                </Badge>
+                                {reminder.ultimo_envio && (
+                                  <p className="text-xs text-slate-500 mt-1">
+                                    Último: {format(new Date(reminder.ultimo_envio), 'dd/MM', { locale: es })}
+                                  </p>
+                                )}
+                              </div>
+                            ) : (
+                              <span className="text-xs text-slate-400">Sin envíos</span>
+                            )}
+                          </div>
                         </TableCell>
                         <TableCell className="text-right">
-                          {!reminder.enviado && !isPaid && reminder.email_padre && (
+                          {!isPaid && reminder.email_padre && (
                             <Button
                               variant="ghost"
                               size="sm"
                               onClick={() => sendReminderEmail(reminder)}
                               disabled={sendingReminder === reminder.id}
+                              title={hasJustificante ? "Enviar recordatorio (justificante en revisión)" : "Enviar recordatorio urgente (sin justificante)"}
                             >
                               {sendingReminder === reminder.id ? (
                                 <Loader2 className="w-4 h-4 animate-spin" />
                               ) : (
-                                <Send className="w-4 h-4" />
+                                <Send className={`w-4 h-4 ${!hasJustificante ? 'text-red-600' : 'text-orange-600'}`} />
                               )}
                             </Button>
                           )}
