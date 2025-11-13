@@ -2,16 +2,25 @@ import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
-import { Plus, ShoppingBag } from "lucide-react";
+import { Plus, ShoppingBag, AlertCircle } from "lucide-react";
 import { AnimatePresence } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { toast } from "sonner";
 
 import ClothingOrderForm from "../components/clothing/ClothingOrderForm";
 import ContactCard from "../components/ContactCard";
 
+// Verificar si estamos en periodo de pedidos (Junio-Julio)
+const isOrderPeriodActive = () => {
+  const currentMonth = new Date().getMonth() + 1; // 1 = enero, 6 = junio, 7 = julio
+  return currentMonth === 6 || currentMonth === 7;
+};
+
 export default function ClothingOrders() {
   const [showForm, setShowForm] = useState(false);
+  const orderPeriodActive = isOrderPeriodActive();
   
   const queryClient = useQueryClient();
 
@@ -86,12 +95,26 @@ export default function ClothingOrders() {
         <Button
           onClick={() => setShowForm(!showForm)}
           className="bg-orange-600 hover:bg-orange-700 shadow-lg"
-          disabled={players.length === 0}
+          disabled={players.length === 0 || !orderPeriodActive}
         >
           <Plus className="w-5 h-5 mr-2" />
           Nuevo Pedido
         </Button>
       </div>
+
+      {/* Alerta si no es periodo de pedidos */}
+      {!orderPeriodActive && (
+        <Alert className="bg-orange-50 border-orange-300 border-2">
+          <AlertCircle className="h-5 w-5 text-orange-600" />
+          <AlertDescription className="text-orange-900">
+            <strong>⚠️ Periodo de pedidos cerrado</strong>
+            <p className="mt-2">
+              Los pedidos de equipación solo están disponibles durante <strong>Junio y Julio</strong>.
+              Los pedidos ya realizados se pueden consultar aquí, pero no se pueden crear nuevos pedidos fuera de este periodo.
+            </p>
+          </AlertDescription>
+        </Alert>
+      )}
 
       {players.length === 0 && (
         <Card className="border-none shadow-lg bg-orange-50 border-orange-200">
@@ -104,7 +127,7 @@ export default function ClothingOrders() {
       )}
 
       <AnimatePresence>
-        {showForm && (
+        {showForm && orderPeriodActive && (
           <ClothingOrderForm
             players={players}
             onSubmit={handleSubmit}
@@ -151,7 +174,11 @@ export default function ClothingOrders() {
             <div className="text-center py-12">
               <ShoppingBag className="w-16 h-16 text-slate-300 mx-auto mb-4" />
               <p className="text-slate-500">No tienes pedidos registrados</p>
-              <p className="text-sm text-slate-400 mt-2">Haz clic en "Nuevo Pedido" para solicitar equipación</p>
+              {orderPeriodActive ? (
+                <p className="text-sm text-slate-400 mt-2">Haz clic en "Nuevo Pedido" para solicitar equipación</p>
+              ) : (
+                <p className="text-sm text-orange-600 mt-2">Los pedidos solo se pueden realizar en Junio y Julio</p>
+              )}
             </div>
           ) : (
             <div className="space-y-4">
