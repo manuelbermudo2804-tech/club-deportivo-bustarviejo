@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -53,9 +54,35 @@ export default function ParentChat() {
   });
 
   const sendMessageMutation = useMutation({
-    mutationFn: (messageData) => base44.entities.ChatMessage.create(messageData),
+    mutationFn: async (messageData) => {
+      const newMessage = await base44.entities.ChatMessage.create(messageData);
+      
+      // Si hay imágenes adjuntas, crear álbum en la galería
+      const imageAttachments = messageData.archivos_adjuntos.filter(att => att.tipo === "imagen");
+      if (imageAttachments.length > 0) {
+        const albumData = {
+          titulo: `Chat - ${messageData.deporte} (${format(new Date(), "d MMM yyyy", { locale: es })})`,
+          descripcion: messageData.mensaje || "Fotos del chat",
+          fecha_evento: new Date().toISOString().split('T')[0],
+          categoria: messageData.deporte,
+          tipo_evento: "Otro",
+          fotos: imageAttachments.map(img => ({
+            url: img.url,
+            descripcion: messageData.mensaje || "",
+            jugadores_etiquetados: []
+          })),
+          visible_para_padres: true,
+          destacado: false
+        };
+        
+        await base44.entities.PhotoGallery.create(albumData);
+      }
+      
+      return newMessage;
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['chatMessages'] });
+      queryClient.invalidateQueries({ queryKey: ['photoGallery'] });
       setMessageContent("");
       setAttachments([]);
     },

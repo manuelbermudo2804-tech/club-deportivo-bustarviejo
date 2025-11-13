@@ -22,7 +22,6 @@ import AdminGallery from './pages/AdminGallery';
 import ParentGallery from './pages/ParentGallery';
 import AdminAttendance from './pages/AdminAttendance';
 import ParentAttendance from './pages/ParentAttendance';
-import HealthTips from './pages/HealthTips';
 import Layout from './Layout.jsx';
 
 
@@ -51,7 +50,6 @@ export const PAGES = {
     "ParentGallery": ParentGallery,
     "AdminAttendance": AdminAttendance,
     "ParentAttendance": ParentAttendance,
-    "HealthTips": HealthTips,
 }
 
 export const pagesConfig = {
