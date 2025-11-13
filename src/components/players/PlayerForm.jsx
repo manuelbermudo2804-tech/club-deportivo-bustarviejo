@@ -9,12 +9,60 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Switch } from "@/components/ui/switch";
-import { Upload, X, Loader2, AlertCircle, Lock, Users, Shield, Camera, UserCheck, UserX } from "lucide-react";
+import { Upload, X, Loader2, AlertCircle, Lock, Users, Shield, Camera, UserCheck, UserX, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 import { base44 } from "@/api/base44Client";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
-export default function PlayerForm({ player, onSubmit, onCancel, isSubmitting, isParent = false }) {
+// Función para obtener las categorías con años dinámicos
+const getCategoriesWithYears = () => {
+  const currentYear = new Date().getFullYear();
+  const currentMonth = new Date().getMonth() + 1;
+  
+  // Si estamos entre enero y agosto, usamos el año anterior como base
+  const baseYear = currentMonth <= 8 ? currentYear - 1 : currentYear;
+  
+  return [
+    {
+      value: "Fútbol Pre-Benjamín (Mixto)",
+      label: `⚽ Fútbol Pre-Benjamín (Mixto) - ${baseYear - 6}/${baseYear - 7}`
+    },
+    {
+      value: "Fútbol Benjamín (Mixto)",
+      label: `⚽ Fútbol Benjamín (Mixto) - ${baseYear - 8}/${baseYear - 9}`
+    },
+    {
+      value: "Fútbol Alevín (Mixto)",
+      label: `⚽ Fútbol Alevín (Mixto) - ${baseYear - 10}/${baseYear - 11}`
+    },
+    {
+      value: "Fútbol Infantil (Mixto)",
+      label: `⚽ Fútbol Infantil (Mixto) - ${baseYear - 12}/${baseYear - 13}`
+    },
+    {
+      value: "Fútbol Cadete",
+      label: `⚽ Fútbol Cadete - ${baseYear - 14}/${baseYear - 15}`
+    },
+    {
+      value: "Fútbol Juvenil",
+      label: `⚽ Fútbol Juvenil - ${baseYear - 16}/${baseYear - 17}/${baseYear - 18}`
+    },
+    {
+      value: "Fútbol Aficionado",
+      label: `⚽ Fútbol Aficionado - ${baseYear - 19} y anteriores`
+    },
+    {
+      value: "Fútbol Femenino",
+      label: "⚽ Fútbol Femenino"
+    },
+    {
+      value: "Baloncesto (Mixto)",
+      label: "🏀 Baloncesto (Mixto)"
+    }
+  ];
+};
+
+export default function PlayerForm({ player, onSubmit, onCancel, isSubmitting, isParent = false, allPlayers = [] }) {
   const formRef = useRef(null);
   
   const [currentPlayer, setCurrentPlayer] = useState(player || {
@@ -37,6 +85,9 @@ export default function PlayerForm({ player, onSubmit, onCancel, isSubmitting, i
 
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
+  const [selectedPreviousPlayer, setSelectedPreviousPlayer] = useState(null);
+
+  const categories = getCategoriesWithYears();
 
   // Scroll al formulario cuando se monta
   useEffect(() => {
@@ -66,6 +117,23 @@ export default function PlayerForm({ player, onSubmit, onCancel, isSubmitting, i
     };
     fetchUser();
   }, [isParent, player]);
+
+  // Manejar la selección de jugador previo para renovación
+  const handlePreviousPlayerSelect = (playerId) => {
+    const selectedPlayer = allPlayers.find(p => p.id === playerId);
+    if (selectedPlayer) {
+      setSelectedPreviousPlayer(selectedPlayer);
+      // Rellenar el formulario con los datos del jugador anterior
+      setCurrentPlayer({
+        ...selectedPlayer,
+        tipo_inscripcion: "Renovación",
+        activo: true, // Marcar como activo por defecto en la renovación
+        // Mantener las autorizaciones originales
+        acepta_politica_privacidad: selectedPlayer.acepta_politica_privacidad || false,
+        autorizacion_fotografia: selectedPlayer.autorizacion_fotografia || ""
+      });
+    }
+  };
 
   const handlePhotoUpload = async (e) => {
     const file = e.target.files?.[0];
@@ -103,12 +171,20 @@ export default function PlayerForm({ player, onSubmit, onCancel, isSubmitting, i
     }
 
     // Añadir fecha de aceptación si no está editando
-    if (!player) {
+    if (!player && !currentPlayer.fecha_aceptacion_privacidad) {
       currentPlayer.fecha_aceptacion_privacidad = new Date().toISOString();
     }
 
     onSubmit(currentPlayer);
   };
+
+  // Filtrar jugadores disponibles para renovación (solo del usuario actual)
+  const availablePlayersForRenewal = allPlayers.filter(p => {
+    if (isParent && currentUser) {
+      return p.email_padre === currentUser.email || p.email === currentUser.email;
+    }
+    return true;
+  });
 
   return (
     <motion.div
@@ -155,32 +231,94 @@ export default function PlayerForm({ player, onSubmit, onCancel, isSubmitting, i
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Tipo de Inscripción - Solo para nuevos jugadores */}
             {!player && (
-              <div className="space-y-4 border-2 border-blue-200 rounded-lg p-6 bg-blue-50">
-                <div className="flex items-center gap-2 mb-4">
-                  <AlertCircle className="w-6 h-6 text-blue-600" />
-                  <h3 className="text-lg font-bold text-blue-900">¿Se trata de una nueva inscripción o una renovación? *</h3>
+              <>
+                <div className="space-y-4 border-2 border-blue-200 rounded-lg p-6 bg-blue-50">
+                  <div className="flex items-center gap-2 mb-4">
+                    <AlertCircle className="w-6 h-6 text-blue-600" />
+                    <h3 className="text-lg font-bold text-blue-900">¿Se trata de una nueva inscripción o una renovación? *</h3>
+                  </div>
+                  
+                  <RadioGroup
+                    value={currentPlayer.tipo_inscripcion}
+                    onValueChange={(value) => {
+                      setCurrentPlayer({...currentPlayer, tipo_inscripcion: value});
+                      if (value === "Nueva Inscripción") {
+                        setSelectedPreviousPlayer(null);
+                      }
+                    }}
+                    className="space-y-3"
+                    required
+                  >
+                    <div className="flex items-center space-x-3 p-4 bg-white rounded-lg border-2 border-blue-200 hover:bg-blue-50 transition-colors">
+                      <RadioGroupItem value="Nueva Inscripción" id="nueva-inscripcion" />
+                      <Label htmlFor="nueva-inscripcion" className="font-semibold cursor-pointer flex-1">
+                        Nueva Inscripción
+                      </Label>
+                    </div>
+                    <div className="flex items-center space-x-3 p-4 bg-white rounded-lg border-2 border-blue-200 hover:bg-blue-50 transition-colors">
+                      <RadioGroupItem value="Renovación" id="renovacion" />
+                      <Label htmlFor="renovacion" className="font-semibold cursor-pointer flex-1 flex items-center gap-2">
+                        <RefreshCw className="w-4 h-4" />
+                        Renovación
+                      </Label>
+                    </div>
+                  </RadioGroup>
                 </div>
-                
-                <RadioGroup
-                  value={currentPlayer.tipo_inscripcion}
-                  onValueChange={(value) => setCurrentPlayer({...currentPlayer, tipo_inscripcion: value})}
-                  className="space-y-3"
-                  required
-                >
-                  <div className="flex items-center space-x-3 p-4 bg-white rounded-lg border-2 border-blue-200 hover:bg-blue-50 transition-colors">
-                    <RadioGroupItem value="Nueva Inscripción" id="nueva-inscripcion" />
-                    <Label htmlFor="nueva-inscripcion" className="font-semibold cursor-pointer flex-1">
-                      Nueva Inscripción
-                    </Label>
+
+                {/* Selector de Jugador Previo - Solo si es Renovación */}
+                {currentPlayer.tipo_inscripcion === "Renovación" && (
+                  <div className="space-y-4 border-2 border-green-200 rounded-lg p-6 bg-green-50">
+                    <div className="flex items-center gap-2 mb-4">
+                      <RefreshCw className="w-6 h-6 text-green-600" />
+                      <h3 className="text-lg font-bold text-green-900">Selecciona el jugador a renovar *</h3>
+                    </div>
+                    
+                    <Alert className="bg-white border-green-200">
+                      <AlertCircle className="h-4 w-4 text-green-600" />
+                      <AlertDescription className="text-green-800 text-sm">
+                        Selecciona un jugador de temporadas anteriores para renovar su inscripción. Sus datos se rellenarán automáticamente y podrás modificar la categoría si ha cambiado de edad.
+                      </AlertDescription>
+                    </Alert>
+
+                    <Select
+                      value={selectedPreviousPlayer?.id}
+                      onValueChange={handlePreviousPlayerSelect}
+                      required
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecciona un jugador..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {availablePlayersForRenewal.length === 0 ? (
+                          <SelectItem value="none" disabled>
+                            No hay jugadores disponibles para renovar
+                          </SelectItem>
+                        ) : (
+                          availablePlayersForRenewal.map(p => (
+                            <SelectItem key={p.id} value={p.id}>
+                              {p.nombre} - {p.deporte} {!p.activo && "(Inactivo)"}
+                            </SelectItem>
+                          ))
+                        )}
+                      </SelectContent>
+                    </Select>
+
+                    {selectedPreviousPlayer && (
+                      <div className="bg-white rounded-lg p-4 border-2 border-green-300">
+                        <p className="text-sm text-green-900 mb-2">
+                          <strong>✅ Jugador seleccionado:</strong>
+                        </p>
+                        <p className="text-sm text-slate-700">
+                          {selectedPreviousPlayer.nombre} - {selectedPreviousPlayer.deporte}
+                        </p>
+                        <p className="text-xs text-slate-600 mt-2">
+                          Los datos se han cargado automáticamente. Puedes modificar la categoría si es necesario.
+                        </p>
+                      </div>
+                    )}
                   </div>
-                  <div className="flex items-center space-x-3 p-4 bg-white rounded-lg border-2 border-blue-200 hover:bg-blue-50 transition-colors">
-                    <RadioGroupItem value="Renovación" id="renovacion" />
-                    <Label htmlFor="renovacion" className="font-semibold cursor-pointer flex-1">
-                      Renovación
-                    </Label>
-                  </div>
-                </RadioGroup>
-              </div>
+                )}
+              </>
             )}
 
             {/* Foto del Jugador */}
@@ -251,38 +389,21 @@ export default function PlayerForm({ player, onSubmit, onCancel, isSubmitting, i
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="Fútbol Pre-Benjamín (Mixto)">
-                    ⚽ Fútbol Pre-Benjamín (Mixto) - 2019/2018
-                  </SelectItem>
-                  <SelectItem value="Fútbol Benjamín (Mixto)">
-                    ⚽ Fútbol Benjamín (Mixto) - 2017/2016
-                  </SelectItem>
-                  <SelectItem value="Fútbol Alevín (Mixto)">
-                    ⚽ Fútbol Alevín (Mixto) - 2015/2014
-                  </SelectItem>
-                  <SelectItem value="Fútbol Infantil (Mixto)">
-                    ⚽ Fútbol Infantil (Mixto) - 2013/2012
-                  </SelectItem>
-                  <SelectItem value="Fútbol Cadete">
-                    ⚽ Fútbol Cadete - 2011/2010
-                  </SelectItem>
-                  <SelectItem value="Fútbol Juvenil">
-                    ⚽ Fútbol Juvenil - 2009/2008/2007
-                  </SelectItem>
-                  <SelectItem value="Fútbol Aficionado">
-                    ⚽ Fútbol Aficionado - 2006 y anteriores
-                  </SelectItem>
-                  <SelectItem value="Fútbol Femenino">
-                    ⚽ Fútbol Femenino
-                  </SelectItem>
-                  <SelectItem value="Baloncesto (Mixto)">
-                    🏀 Baloncesto (Mixto)
-                  </SelectItem>
+                  {categories.map(cat => (
+                    <SelectItem key={cat.value} value={cat.value}>
+                      {cat.label}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
               {isParent && player && (
                 <p className="text-xs text-slate-500 flex items-center gap-1">
                   <Lock className="w-3 h-3" /> Solo el administrador puede modificar este campo
+                </p>
+              )}
+              {currentPlayer.tipo_inscripcion === "Renovación" && !player && (
+                <p className="text-xs text-green-600 flex items-center gap-1">
+                  <RefreshCw className="w-3 h-3" /> Puedes cambiar la categoría si el jugador ha subido de edad
                 </p>
               )}
             </div>
@@ -575,6 +696,9 @@ export default function PlayerForm({ player, onSubmit, onCancel, isSubmitting, i
                   <li>Los campos marcados con * son obligatorios</li>
                   <li>Ambos progenitores recibirán todas las notificaciones por email</li>
                   <li>Para acceder a la app, cada uno debe registrarse con su email respectivo</li>
+                  {!player && currentPlayer.tipo_inscripcion === "Renovación" && (
+                    <li className="font-semibold text-green-700">En renovación puedes cambiar la categoría si el jugador ha subido de edad</li>
+                  )}
                   {!player && (
                     <li className="font-semibold text-red-700">Debes aceptar las autorizaciones de protección de datos para continuar</li>
                   )}

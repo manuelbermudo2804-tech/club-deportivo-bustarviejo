@@ -1,112 +1,81 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { X, Upload, FileText, Loader2, AlertCircle } from "lucide-react";
-import { base44 } from "@/api/base44Client";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
+import { Upload, X, Loader2, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
+import { base44 } from "@/api/base44Client";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
-// Obtener temporada actual
+// Función para obtener la temporada actual
 const getCurrentSeason = () => {
   const now = new Date();
   const currentYear = now.getFullYear();
   const currentMonth = now.getMonth() + 1;
   
-  if (currentMonth >= 9) {
-    return `${currentYear}/${currentYear + 1}`;
+  if (currentMonth <= 8) {
+    return `${currentYear - 1}/${currentYear}`;
   }
-  return `${currentYear - 1}/${currentYear}`;
-};
-
-// Generar opciones de temporadas
-const generateSeasonOptions = () => {
-  const current = new Date().getFullYear();
-  const seasons = [];
-  for (let i = -1; i <= 2; i++) {
-    const year = current + i;
-    seasons.push(`${year}/${year + 1}`);
-  }
-  return seasons;
+  return `${currentYear}/${currentYear + 1}`;
 };
 
 export default function ParentPaymentForm({ players, onSubmit, onCancel, isSubmitting }) {
-  const formRef = useRef(null);
-  
-  const [paymentData, setPaymentData] = useState({
+  const currentSeason = getCurrentSeason();
+  const [currentPayment, setCurrentPayment] = useState({
     jugador_id: "",
     jugador_nombre: "",
     tipo_pago: "Único",
-    mes: "Septiembre",
-    temporada: getCurrentSeason(),
+    mes: "Junio",
+    temporada: currentSeason,
     cantidad: 0,
     estado: "En revisión",
-    metodo_pago: "Bizum",
-    fecha_pago: new Date().toISOString().split('T')[0],
+    metodo_pago: "Transferencia",
     justificante_url: "",
+    fecha_pago: new Date().toISOString().split('T')[0],
     notas: ""
   });
 
   const [uploadingFile, setUploadingFile] = useState(false);
-  const [fileName, setFileName] = useState("");
+  const [selectedPlayer, setSelectedPlayer] = useState(null);
 
-  // Scroll al formulario cuando se monta
   useEffect(() => {
-    if (formRef.current) {
-      formRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    if (currentPayment.jugador_id) {
+      const player = players.find(p => p.id === currentPayment.jugador_id);
+      setSelectedPlayer(player);
     }
-  }, []);
+  }, [currentPayment.jugador_id, players]);
 
-  // Actualizar cantidad según tipo de pago
-  useEffect(() => {
-    const fetchSeasonConfig = async () => {
-      try {
-        const configs = await base44.entities.SeasonConfig.list();
-        const activeConfig = configs.find(c => c.activa === true);
-        
-        if (activeConfig) {
-          const amount = paymentData.tipo_pago === "Único" 
-            ? activeConfig.cuota_unica 
-            : activeConfig.cuota_tres_meses;
-          
-          setPaymentData(prev => ({ ...prev, cantidad: amount }));
-        }
-      } catch (error) {
-        console.error("Error fetching season config:", error);
-      }
-    };
-
-    fetchSeasonConfig();
-  }, [paymentData.tipo_pago]);
-
-  // Actualizar nombre del jugador cuando se selecciona
-  const handlePlayerChange = (jugadorId) => {
-    const player = players.find(p => p.id === jugadorId);
-    setPaymentData({
-      ...paymentData,
-      jugador_id: jugadorId,
-      jugador_nombre: player ? player.nombre : ""
-    });
+  const handlePlayerChange = (playerId) => {
+    const player = players.find(p => p.id === playerId);
+    if (player) {
+      setSelectedPlayer(player);
+      setCurrentPayment({
+        ...currentPayment,
+        jugador_id: player.id,
+        jugador_nombre: player.nombre
+      });
+    }
   };
 
-  // Subir archivo
   const handleFileUpload = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
     setUploadingFile(true);
-    setFileName(file.name);
-
     try {
-      const { file_url } = await base44.integrations.Core.UploadFile({ file });
-      setPaymentData({ ...paymentData, justificante_url: file_url });
+      const response = await base44.integrations.Core.UploadFile({ file });
+      setCurrentPayment({
+        ...currentPayment,
+        justificante_url: response.file_url
+      });
       toast.success("Justificante subido correctamente");
     } catch (error) {
-      toast.error("Error al subir el archivo");
       console.error("Error uploading file:", error);
+      toast.error("Error al subir el justificante");
     } finally {
       setUploadingFile(false);
     }
@@ -115,287 +84,223 @@ export default function ParentPaymentForm({ players, onSubmit, onCancel, isSubmi
   const handleSubmit = (e) => {
     e.preventDefault();
     
-    if (!paymentData.jugador_id) {
+    if (!currentPayment.jugador_id) {
       toast.error("Selecciona un jugador");
       return;
     }
 
-    if (!paymentData.justificante_url) {
-      toast.error("Debes subir el justificante de pago");
+    if (!currentPayment.justificante_url) {
+      toast.error("Debes subir el justificante de pago (transferencia bancaria)");
       return;
     }
 
-    onSubmit(paymentData);
+    if (!currentPayment.cantidad || currentPayment.cantidad <= 0) {
+      toast.error("Introduce la cantidad pagada");
+      return;
+    }
+
+    onSubmit(currentPayment);
   };
 
   return (
     <motion.div
-      ref={formRef}
       initial={{ opacity: 0, y: -20 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -20 }}
     >
-      <Card className="border-none shadow-xl bg-gradient-to-br from-white to-orange-50">
-        <CardHeader className="border-b border-orange-100">
-          <div className="flex items-center justify-between">
-            <CardTitle className="text-2xl text-slate-900">Registrar Nuevo Pago</CardTitle>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={onCancel}
-              className="hover:bg-orange-100"
-            >
-              <X className="w-5 h-5" />
-            </Button>
-          </div>
+      <Card className="border-none shadow-xl bg-white/90 backdrop-blur-sm">
+        <CardHeader className="border-b border-slate-100">
+          <CardTitle className="text-2xl">Registrar Pago</CardTitle>
         </CardHeader>
         <CardContent className="pt-6">
+          <Alert className="mb-6 bg-blue-50 border-blue-200">
+            <AlertCircle className="h-4 w-4 text-blue-600" />
+            <AlertDescription className="text-blue-800">
+              <strong>Importante:</strong> Debes subir el justificante de la transferencia bancaria para que el pago pueda ser verificado por el administrador.
+            </AlertDescription>
+          </Alert>
+
           <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Selección de Jugador */}
-            <div className="space-y-2">
-              <Label htmlFor="jugador">Jugador *</Label>
-              <Select
-                value={paymentData.jugador_id}
-                onValueChange={handlePlayerChange}
-                required
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecciona un jugador" />
-                </SelectTrigger>
-                <SelectContent>
-                  {players.map((player) => (
-                    <SelectItem key={player.id} value={player.id}>
-                      {player.nombre} - {player.categoria} ({player.deporte})
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Selector de Jugador */}
+              <div className="space-y-2">
+                <Label htmlFor="jugador">Jugador *</Label>
+                <Select
+                  value={currentPayment.jugador_id}
+                  onValueChange={handlePlayerChange}
+                  required
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecciona un jugador" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {players
+                      .filter(p => p.activo)
+                      .map(player => (
+                        <SelectItem key={player.id} value={player.id}>
+                          {player.nombre} - {player.deporte}
+                        </SelectItem>
+                      ))}
+                  </SelectContent>
+                </Select>
+              </div>
 
-            {/* Tipo de Pago */}
-            <div className="space-y-2">
-              <Label htmlFor="tipo_pago">Tipo de Pago *</Label>
-              <Select
-                value={paymentData.tipo_pago}
-                onValueChange={(value) => setPaymentData({ ...paymentData, tipo_pago: value })}
-                required
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Único">Pago Único</SelectItem>
-                  <SelectItem value="Tres meses">Tres Meses (Septiembre, Diciembre, Marzo)</SelectItem>
-                </SelectContent>
-              </Select>
-              {paymentData.tipo_pago === "Tres meses" && (
-                <p className="text-xs text-slate-600 bg-blue-50 rounded p-2 border border-blue-200">
-                  💡 Al elegir "Tres meses", estás registrando el primer pago de tres cuotas. Las siguientes cuotas se crearán automáticamente.
-                </p>
+              {/* Tipo de Pago */}
+              <div className="space-y-2">
+                <Label htmlFor="tipo_pago">Tipo de Pago *</Label>
+                <Select
+                  value={currentPayment.tipo_pago}
+                  onValueChange={(value) => setCurrentPayment({...currentPayment, tipo_pago: value})}
+                  required
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Único">Pago Único</SelectItem>
+                    <SelectItem value="Tres meses">Tres Pagos (Junio, Sept, Dic)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Mes */}
+              {currentPayment.tipo_pago !== "Tres meses" && (
+                <div className="space-y-2">
+                  <Label htmlFor="mes">Mes del Pago *</Label>
+                  <Select
+                    value={currentPayment.mes}
+                    onValueChange={(value) => setCurrentPayment({...currentPayment, mes: value})}
+                    required
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Junio">Junio</SelectItem>
+                      <SelectItem value="Septiembre">Septiembre</SelectItem>
+                      <SelectItem value="Diciembre">Diciembre</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               )}
-            </div>
-
-            {/* Mes del Pago - SOLO para pago único */}
-            {paymentData.tipo_pago === "Único" && (
-              <div className="space-y-2">
-                <Label htmlFor="mes">Mes del Pago *</Label>
-                <Select
-                  value={paymentData.mes}
-                  onValueChange={(value) => setPaymentData({ ...paymentData, mes: value })}
-                  required
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Septiembre">Septiembre</SelectItem>
-                    <SelectItem value="Diciembre">Diciembre</SelectItem>
-                    <SelectItem value="Marzo">Marzo</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
-
-            <div className="grid grid-cols-2 gap-4">
-              {/* Temporada */}
-              <div className="space-y-2">
-                <Label htmlFor="temporada">Temporada *</Label>
-                <Select
-                  value={paymentData.temporada}
-                  onValueChange={(value) => setPaymentData({ ...paymentData, temporada: value })}
-                  required
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {generateSeasonOptions().map((season) => (
-                      <SelectItem key={season} value={season}>
-                        {season}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
 
               {/* Cantidad */}
               <div className="space-y-2">
-                <Label htmlFor="cantidad">Cantidad (€) *</Label>
+                <Label htmlFor="cantidad">
+                  Cantidad Pagada (€) *
+                  {currentPayment.tipo_pago === "Tres meses" && (
+                    <span className="text-xs text-slate-500 ml-2">
+                      (por cada mes)
+                    </span>
+                  )}
+                </Label>
                 <Input
                   type="number"
-                  min="0"
                   step="0.01"
-                  value={paymentData.cantidad}
-                  onChange={(e) => setPaymentData({ ...paymentData, cantidad: parseFloat(e.target.value) })}
+                  value={currentPayment.cantidad}
+                  onChange={(e) => setCurrentPayment({...currentPayment, cantidad: parseFloat(e.target.value) || 0})}
                   required
-                  className="font-bold"
+                  placeholder="Ej: 50.00"
+                />
+              </div>
+
+              {/* Fecha de Pago */}
+              <div className="space-y-2">
+                <Label htmlFor="fecha_pago">Fecha del Pago *</Label>
+                <Input
+                  type="date"
+                  value={currentPayment.fecha_pago}
+                  onChange={(e) => setCurrentPayment({...currentPayment, fecha_pago: e.target.value})}
+                  required
                 />
               </div>
             </div>
 
-            {/* Método de Pago */}
-            <div className="space-y-2">
-              <Label htmlFor="metodo_pago">Método de Pago *</Label>
-              <Select
-                value={paymentData.metodo_pago}
-                onValueChange={(value) => setPaymentData({ ...paymentData, metodo_pago: value })}
-                required
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Bizum">Bizum</SelectItem>
-                  <SelectItem value="Transferencia">Transferencia Bancaria</SelectItem>
-                </SelectContent>
-              </Select>
+            {/* Método de Pago - Solo Transferencia */}
+            <div className="bg-orange-50 border-2 border-orange-300 rounded-lg p-4">
+              <p className="text-sm font-semibold text-orange-900 mb-2">
+                💳 Método de Pago: Transferencia Bancaria
+              </p>
+              <p className="text-xs text-orange-800">
+                Realiza el pago mediante transferencia bancaria y sube el justificante aquí. El administrador verificará el pago.
+              </p>
             </div>
 
-            {/* Fecha de Pago */}
+            {/* Justificante - OBLIGATORIO */}
             <div className="space-y-2">
-              <Label htmlFor="fecha_pago">Fecha de Pago *</Label>
-              <Input
-                type="date"
-                value={paymentData.fecha_pago}
-                onChange={(e) => setPaymentData({ ...paymentData, fecha_pago: e.target.value })}
-                required
-              />
-            </div>
-
-            {/* Subir Justificante */}
-            <div className="space-y-2">
-              <Label htmlFor="justificante">Justificante de Pago *</Label>
-              <div className="border-2 border-dashed border-orange-300 rounded-lg p-6 text-center bg-orange-50/50">
-                {paymentData.justificante_url ? (
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-center gap-2 text-green-600">
-                      <FileText className="w-8 h-8" />
-                      <span className="font-medium">Justificante subido correctamente</span>
-                    </div>
-                    {fileName && (
-                      <p className="text-sm text-slate-600">{fileName}</p>
-                    )}
-                    <a
-                      href={paymentData.justificante_url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-block text-orange-600 hover:text-orange-700 text-sm underline"
-                    >
-                      Ver justificante
-                    </a>
-                    <div>
-                      <input
-                        type="file"
-                        accept="image/*,.pdf"
-                        onChange={handleFileUpload}
-                        className="hidden"
-                        id="change-file"
-                        disabled={uploadingFile}
-                      />
-                      <label htmlFor="change-file">
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="sm"
-                          disabled={uploadingFile}
-                          onClick={() => document.getElementById('change-file').click()}
-                        >
-                          Cambiar archivo
-                        </Button>
-                      </label>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="space-y-3">
-                    <Upload className="w-12 h-12 text-orange-500 mx-auto" />
-                    <div>
-                      <p className="text-slate-700 font-medium mb-1">
-                        Sube el justificante de tu pago
-                      </p>
-                      <p className="text-sm text-slate-500">
-                        Captura de Bizum o comprobante de transferencia (JPG, PNG o PDF)
-                      </p>
-                    </div>
-                    <input
-                      type="file"
-                      accept="image/*,.pdf"
-                      onChange={handleFileUpload}
-                      className="hidden"
-                      id="upload-file"
-                      disabled={uploadingFile}
-                    />
-                    <label htmlFor="upload-file">
-                      <Button
-                        type="button"
-                        variant="outline"
-                        disabled={uploadingFile}
-                        onClick={() => document.getElementById('upload-file').click()}
-                        className="border-orange-300 hover:bg-orange-100"
-                      >
-                        {uploadingFile ? (
-                          <>
-                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                            Subiendo...
-                          </>
-                        ) : (
-                          <>
-                            <Upload className="w-4 h-4 mr-2" />
-                            Seleccionar archivo
-                          </>
-                        )}
-                      </Button>
-                    </label>
-                  </div>
+              <Label htmlFor="justificante" className="text-base font-semibold">
+                Justificante de Transferencia * (Obligatorio)
+              </Label>
+              <div className="flex gap-3">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => document.getElementById('file-upload').click()}
+                  disabled={uploadingFile}
+                  className="flex-1"
+                >
+                  {uploadingFile ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Subiendo...
+                    </>
+                  ) : (
+                    <>
+                      <Upload className="w-4 h-4 mr-2" />
+                      {currentPayment.justificante_url ? "Cambiar justificante" : "Subir justificante"}
+                    </>
+                  )}
+                </Button>
+                {currentPayment.justificante_url && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setCurrentPayment({...currentPayment, justificante_url: ""})}
+                  >
+                    <X className="w-4 h-4" />
+                  </Button>
                 )}
               </div>
+              <input
+                id="file-upload"
+                type="file"
+                accept="image/*,.pdf"
+                onChange={handleFileUpload}
+                className="hidden"
+              />
+              {currentPayment.justificante_url ? (
+                <p className="text-sm text-green-600 font-medium">✓ Justificante subido correctamente</p>
+              ) : (
+                <p className="text-sm text-red-600 font-medium">⚠️ Debes subir el justificante para continuar</p>
+              )}
             </div>
 
             {/* Notas */}
             <div className="space-y-2">
-              <Label htmlFor="notas">Notas adicionales (opcional)</Label>
+              <Label htmlFor="notas">Notas Adicionales (opcional)</Label>
               <Textarea
-                placeholder="Añade cualquier información adicional sobre el pago..."
-                value={paymentData.notas}
-                onChange={(e) => setPaymentData({ ...paymentData, notas: e.target.value })}
+                value={currentPayment.notas}
+                onChange={(e) => setCurrentPayment({...currentPayment, notas: e.target.value})}
+                placeholder="Información adicional sobre el pago..."
                 rows={3}
               />
             </div>
 
-            {/* Información importante */}
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 flex items-start gap-3">
-              <AlertCircle className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
-              <div className="text-sm text-blue-900">
-                <p className="font-medium mb-1">📋 Importante:</p>
-                <ul className="list-disc list-inside space-y-1 text-blue-800">
-                  <li>El estado del pago será <strong>"En revisión"</strong> hasta que el administrador lo verifique</li>
-                  <li>Asegúrate de subir un justificante claro y legible</li>
-                  <li>Recibirás una notificación cuando el pago sea verificado</li>
+            {/* Info importante */}
+            <Alert className="bg-blue-50 border-blue-200">
+              <AlertCircle className="h-4 w-4 text-blue-600" />
+              <AlertDescription className="text-blue-800 text-sm">
+                <strong>ℹ️ Información:</strong>
+                <ul className="list-disc list-inside mt-2 space-y-1">
+                  <li>El pago quedará en estado "En Revisión" hasta que el administrador lo verifique</li>
+                  <li>Recibirás una notificación cuando el pago sea confirmado</li>
+                  <li>El justificante debe mostrar claramente la transferencia realizada</li>
                 </ul>
-              </div>
-            </div>
+              </AlertDescription>
+            </Alert>
 
             {/* Botones */}
-            <div className="flex justify-end gap-3 pt-4 border-t border-orange-100">
+            <div className="flex justify-end gap-3 pt-4 border-t border-slate-100">
               <Button
                 type="button"
                 variant="outline"
@@ -406,8 +311,8 @@ export default function ParentPaymentForm({ players, onSubmit, onCancel, isSubmi
               </Button>
               <Button
                 type="submit"
-                disabled={isSubmitting || uploadingFile || !paymentData.justificante_url}
                 className="bg-orange-600 hover:bg-orange-700"
+                disabled={isSubmitting || !currentPayment.justificante_url}
               >
                 {isSubmitting ? (
                   <>

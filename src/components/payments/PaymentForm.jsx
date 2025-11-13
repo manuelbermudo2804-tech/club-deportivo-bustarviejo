@@ -87,7 +87,7 @@ export default function PaymentForm({ payment, players, onSubmit, onCancel, isSu
     temporada: currentSeason,
     cantidad: 0,
     estado: "Pendiente",
-    metodo_pago: "Bizum",
+    metodo_pago: "Transferencia",
     justificante_url: "",
     fecha_pago: "",
     notas: ""
@@ -219,7 +219,7 @@ export default function PaymentForm({ payment, players, onSubmit, onCancel, isSu
                       .filter(p => p.activo)
                       .map(player => (
                         <SelectItem key={player.id} value={player.id}>
-                          {player.nombre} - {player.categoria}
+                          {player.nombre} - {player.deporte}
                         </SelectItem>
                       ))}
                   </SelectContent>
@@ -325,23 +325,6 @@ export default function PaymentForm({ payment, players, onSubmit, onCancel, isSu
                 </Select>
               </div>
 
-              {/* Método de Pago */}
-              <div className="space-y-2">
-                <Label htmlFor="metodo_pago">Método de Pago</Label>
-                <Select
-                  value={currentPayment.metodo_pago}
-                  onValueChange={(value) => setCurrentPayment({...currentPayment, metodo_pago: value})}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Bizum">Bizum</SelectItem>
-                    <SelectItem value="Transferencia">Transferencia</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
               {/* Fecha de Pago */}
               <div className="space-y-2">
                 <Label htmlFor="fecha_pago">Fecha de Pago</Label>
@@ -351,6 +334,16 @@ export default function PaymentForm({ payment, players, onSubmit, onCancel, isSu
                   onChange={(e) => setCurrentPayment({...currentPayment, fecha_pago: e.target.value})}
                 />
               </div>
+            </div>
+
+            {/* Método de Pago - Solo Transferencia */}
+            <div className="bg-blue-50 border-l-4 border-blue-500 p-4 rounded">
+              <p className="text-sm text-blue-800">
+                <strong>💳 Método de Pago:</strong> Transferencia Bancaria
+              </p>
+              <p className="text-xs text-blue-700 mt-1">
+                Los padres deben realizar el pago mediante transferencia bancaria y subir el justificante.
+              </p>
             </div>
 
             {/* Justificante */}
