@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -8,16 +7,17 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Upload, FileText, Loader2, Search, X } from "lucide-react";
-import { format } from "date-fns";
-import { es } from "date-fns/locale";
+import { Upload, FileText, Loader2, Search, Plus, X } from "lucide-react";
 import { toast } from "sonner";
+import { AnimatePresence } from "framer-motion";
 
 import ContactCard from "../components/ContactCard";
+import ParentPaymentForm from "../components/payments/ParentPaymentForm";
 
 export default function ParentPayments() {
   const [uploadingPaymentId, setUploadingPaymentId] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
+  const [showForm, setShowForm] = useState(false);
   const queryClient = useQueryClient();
 
   const { data: user } = useQuery({
@@ -46,6 +46,18 @@ export default function ParentPayments() {
     },
     enabled: players.length > 0,
     initialData: [],
+  });
+
+  const createPaymentMutation = useMutation({
+    mutationFn: (paymentData) => base44.entities.Payment.create(paymentData),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['myPayments'] });
+      setShowForm(false);
+      toast.success("Pago registrado correctamente");
+    },
+    onError: () => {
+      toast.error("Error al registrar el pago");
+    }
   });
 
   const uploadJustificanteMutation = useMutation({
@@ -77,6 +89,10 @@ export default function ParentPayments() {
     uploadJustificanteMutation.mutate({ paymentId, file });
   };
 
+  const handleSubmitPayment = async (paymentData) => {
+    createPaymentMutation.mutate(paymentData);
+  };
+
   const filteredPayments = payments.filter(payment =>
     payment.jugador_nombre?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     payment.mes?.toLowerCase().includes(searchTerm.toLowerCase())
@@ -94,9 +110,18 @@ export default function ParentPayments() {
 
   return (
     <div className="p-6 lg:p-8 space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold text-slate-900">Mis Pagos</h1>
-        <p className="text-slate-600 mt-1">Gestiona tus cuotas y justificantes</p>
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div>
+          <h1 className="text-3xl font-bold text-slate-900">Mis Pagos</h1>
+          <p className="text-slate-600 mt-1">Gestiona tus cuotas y justificantes</p>
+        </div>
+        <Button
+          onClick={() => setShowForm(!showForm)}
+          className="bg-orange-600 hover:bg-orange-700 shadow-lg"
+        >
+          <Plus className="w-5 h-5 mr-2" />
+          Registrar Pago
+        </Button>
       </div>
 
       {/* Stats */}
@@ -138,6 +163,18 @@ export default function ParentPayments() {
         </Card>
       </div>
 
+      {/* Payment Form */}
+      <AnimatePresence>
+        {showForm && (
+          <ParentPaymentForm
+            players={players}
+            onSubmit={handleSubmitPayment}
+            onCancel={() => setShowForm(false)}
+            isSubmitting={createPaymentMutation.isPending}
+          />
+        )}
+      </AnimatePresence>
+
       {/* Payments Table */}
       <Card className="border-none shadow-lg bg-white">
         <CardHeader className="border-b border-slate-100">
@@ -163,7 +200,8 @@ export default function ParentPayments() {
             </div>
           ) : filteredPayments.length === 0 ? (
             <div className="text-center py-12">
-              <p className="text-slate-500">No se encontraron pagos</p>
+              <p className="text-slate-500">No hay pagos registrados</p>
+              <p className="text-sm text-slate-400 mt-2">Haz clic en "Registrar Pago" para añadir uno nuevo</p>
             </div>
           ) : (
             <div className="overflow-x-auto">
@@ -271,11 +309,12 @@ export default function ParentPayments() {
           <CardTitle className="text-lg text-orange-900">ℹ️ Instrucciones</CardTitle>
         </CardHeader>
         <CardContent className="space-y-3 text-sm text-slate-700">
+          <p>• <strong>Registrar un pago:</strong> Haz clic en el botón "Registrar Pago", selecciona el jugador, tipo de pago y sube el justificante</p>
           <p>• <strong>Pagos Pendientes (🔴):</strong> Sube el justificante de pago (Bizum o transferencia) haciendo clic en "Subir"</p>
           <p>• <strong>En Revisión (🟠):</strong> El administrador está verificando tu pago</p>
           <p>• <strong>Pagado (🟢):</strong> El pago ha sido confirmado por el administrador</p>
           <p className="pt-2 border-t border-orange-200">
-            <strong>Importante:</strong> Sube el justificante lo antes posible para que tu pago pueda ser verificado.
+            <strong>Importante:</strong> Sube el justificante junto con el registro del pago para que pueda ser verificado más rápidamente.
           </p>
         </CardContent>
       </Card>
