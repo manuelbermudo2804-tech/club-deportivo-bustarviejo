@@ -39,8 +39,13 @@ export default function ClothingOrders() {
 
   // Filtrar jugadores del usuario
   const players = allPlayers.filter(p => {
-    const isMyPlayer = p.email_padre === user?.email || p.email_tutor_2 === user?.email;
-    const isActive = p.activo === true || p.activo === undefined; // Si activo no está definido, asumir activo
+    const userEmail = user?.email?.toLowerCase().trim();
+    const emailPadre = p.email_padre?.toLowerCase().trim();
+    const emailTutor2 = p.email_tutor_2?.toLowerCase().trim();
+    
+    const isMyPlayer = emailPadre === userEmail || emailTutor2 === userEmail;
+    const isActive = p.activo === true || p.activo === undefined;
+    
     return isMyPlayer && isActive;
   });
 
@@ -112,22 +117,56 @@ export default function ClothingOrders() {
           <CardHeader>
             <CardTitle className="text-sm text-blue-900">🔧 Info de Debug (temporal)</CardTitle>
           </CardHeader>
-          <CardContent className="text-xs space-y-2">
-            <p><strong>Email usuario:</strong> {user.email}</p>
-            <p><strong>Total jugadores en BD:</strong> {allPlayers.length}</p>
-            <p><strong>Jugadores filtrados para ti:</strong> {players.length}</p>
+          <CardContent className="text-xs space-y-3">
+            <div className="bg-white p-3 rounded border-2 border-blue-300">
+              <p className="font-bold text-blue-900 mb-2">📧 TU INFORMACIÓN:</p>
+              <p><strong>Email usuario logueado:</strong> "{user.email}"</p>
+              <p className="text-green-700"><strong>Email normalizado:</strong> "{user.email?.toLowerCase().trim()}"</p>
+            </div>
+            
+            <div className="bg-white p-3 rounded border-2 border-green-300">
+              <p className="font-bold text-green-900 mb-2">📊 ESTADÍSTICAS:</p>
+              <p><strong>Total jugadores en BD:</strong> {allPlayers.length}</p>
+              <p><strong>Jugadores filtrados para ti:</strong> {players.length}</p>
+              <p><strong>Periodo activo:</strong> {orderPeriodActive ? '✅ SÍ' : '❌ NO'}</p>
+              <p><strong>Botón habilitado:</strong> {players.length > 0 ? '✅ SÍ' : '❌ NO'}</p>
+            </div>
+
+            {allPlayers.length > 0 && (
+              <div className="bg-white p-3 rounded border-2 border-orange-300">
+                <p className="font-bold text-orange-900 mb-2">👥 TODOS LOS JUGADORES (primeros 5):</p>
+                <div className="space-y-2 max-h-64 overflow-y-auto">
+                  {allPlayers.slice(0, 5).map(p => (
+                    <div key={p.id} className="text-xs p-2 bg-slate-50 rounded border">
+                      <p><strong>Nombre:</strong> {p.nombre}</p>
+                      <p><strong>Email padre:</strong> "{p.email_padre}"</p>
+                      <p><strong>Email tutor 2:</strong> "{p.email_tutor_2 || 'N/A'}"</p>
+                      <p><strong>Activo:</strong> {p.activo === true ? '✅ true' : p.activo === false ? '❌ false' : '⚠️ undefined'}</p>
+                      <p className="text-purple-700">
+                        <strong>¿Es tuyo?</strong> {
+                          (p.email_padre?.toLowerCase().trim() === user.email?.toLowerCase().trim() || 
+                           p.email_tutor_2?.toLowerCase().trim() === user.email?.toLowerCase().trim()) 
+                          ? '✅ SÍ' : '❌ NO'
+                        }
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
             {players.length > 0 && (
-              <div>
-                <strong>Tus jugadores:</strong>
-                <ul className="list-disc list-inside ml-4">
+              <div className="bg-white p-3 rounded border-2 border-green-300">
+                <p className="font-bold text-green-900 mb-2">✅ TUS JUGADORES FILTRADOS:</p>
+                <ul className="list-disc list-inside ml-2 space-y-1">
                   {players.map(p => (
-                    <li key={p.id}>{p.nombre} - {p.deporte} - Activo: {p.activo ? 'Sí' : 'No'}</li>
+                    <li key={p.id} className="text-green-800">
+                      {p.nombre} - {p.deporte} - Activo: {p.activo ? '✅' : '❌'}
+                    </li>
                   ))}
                 </ul>
               </div>
             )}
-            <p><strong>Periodo activo:</strong> {orderPeriodActive ? '✅ SÍ' : '❌ NO'}</p>
-            <p><strong>Botón habilitado:</strong> {players.length > 0 ? '✅ SÍ' : '❌ NO'}</p>
           </CardContent>
         </Card>
       )}
@@ -153,7 +192,7 @@ export default function ClothingOrders() {
               ⚠️ <strong>No tienes jugadores activos registrados.</strong> Debes registrar al menos un jugador antes de hacer un pedido de equipación.
             </p>
             <p className="text-sm text-orange-700 mt-2">
-              Verifica en "Mis Jugadores" que tus jugadores estén marcados como activos.
+              Verifica en "Mis Jugadores" que tus jugadores estén marcados como activos y que el email coincida.
             </p>
           </CardContent>
         </Card>
