@@ -10,7 +10,7 @@ import { Upload, X, Loader2, AlertCircle, Info } from "lucide-react";
 import { toast } from "sonner";
 import { base44 } from "@/api/base44Client";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { getCuotasPorCategoria, getImportePorCategoriaYMes, FECHAS_VENCIMIENTO } from "@/utils/paymentAmounts";
+import { getCuotasPorCategoria, getImportePorCategoriaYMes, FECHAS_VENCIMIENTO } from "./paymentAmounts";
 
 // Función para obtener la temporada actual
 const getCurrentSeason = () => {
