@@ -7,7 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Upload, X, Loader2, AlertCircle, ShoppingBag, Info } from "lucide-react";
+import { Upload, X, Loader2, AlertCircle, ShoppingBag, Info, Ruler } from "lucide-react";
 import { toast } from "sonner";
 import { base44 } from "@/api/base44Client";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -218,6 +218,73 @@ export default function ClothingOrderForm({ players, onSubmit, onCancel, isSubmi
             </AlertDescription>
           </Alert>
 
+          {/* GUÍA DE TALLAS - NUEVO */}
+          <Card className="mb-6 border-2 border-green-500 bg-gradient-to-br from-green-50 to-green-100">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-lg text-green-900 flex items-center gap-2">
+                <Ruler className="w-5 h-5" />
+                📏 Guía de Tallas
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <div className="bg-white rounded-lg p-4 border-2 border-green-300">
+                <h4 className="font-bold text-green-900 mb-3">Tallas Infantiles (con edad aproximada):</h4>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-2 text-sm">
+                  <div className="bg-green-50 p-2 rounded">
+                    <strong>6XS:</strong> 4-5 años
+                  </div>
+                  <div className="bg-green-50 p-2 rounded">
+                    <strong>5XS:</strong> 5-6 años
+                  </div>
+                  <div className="bg-green-50 p-2 rounded">
+                    <strong>4XS:</strong> 7-8 años
+                  </div>
+                  <div className="bg-green-50 p-2 rounded">
+                    <strong>3XS:</strong> 9-10 años
+                  </div>
+                  <div className="bg-green-50 p-2 rounded">
+                    <strong>2XS:</strong> 11-12 años
+                  </div>
+                  <div className="bg-green-50 p-2 rounded">
+                    <strong>XS:</strong> 12-14 años
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-white rounded-lg p-4 border-2 border-green-300">
+                <h4 className="font-bold text-green-900 mb-3">Tallas Adulto:</h4>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-2 text-sm">
+                  <div className="bg-green-50 p-2 rounded">
+                    <strong>S:</strong> Pequeña
+                  </div>
+                  <div className="bg-green-50 p-2 rounded">
+                    <strong>M:</strong> Mediana
+                  </div>
+                  <div className="bg-green-50 p-2 rounded">
+                    <strong>L:</strong> Grande
+                  </div>
+                  <div className="bg-green-50 p-2 rounded">
+                    <strong>XL:</strong> Extra Grande
+                  </div>
+                  <div className="bg-green-50 p-2 rounded">
+                    <strong>XXL:</strong> 2X Grande
+                  </div>
+                  <div className="bg-green-50 p-2 rounded">
+                    <strong>3XL:</strong> 3X Grande
+                  </div>
+                </div>
+              </div>
+
+              <Alert className="bg-orange-50 border-orange-300">
+                <Info className="h-4 w-4 text-orange-600" />
+                <AlertDescription className="text-orange-800 text-sm">
+                  <strong>💡 Consejo:</strong> Las edades son aproximadas. Si tienes dudas sobre la talla, 
+                  consulta con el club antes de hacer el pedido en <strong>CDBUSTARVIEJO@GMAIL.COM</strong>
+                </AlertDescription>
+              </Alert>
+            </CardContent>
+          </Card>
+
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Selector de Jugador */}
             <div className="space-y-2">
@@ -352,9 +419,6 @@ export default function ClothingOrderForm({ players, onSubmit, onCancel, isSubmi
                             ))}
                           </SelectContent>
                         </Select>
-                        <p className="text-xs text-slate-500">
-                          Consulta la guía de tallas en la información del producto
-                        </p>
                       </div>
                     )}
                   </div>
