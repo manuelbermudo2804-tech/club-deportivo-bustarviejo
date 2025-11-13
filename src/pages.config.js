@@ -18,6 +18,11 @@ import ParentOrders from './pages/ParentOrders';
 import ClothingOrders from './pages/ClothingOrders';
 import TrainingSchedules from './pages/TrainingSchedules';
 import ParentTrainingSchedules from './pages/ParentTrainingSchedules';
+import AdminGallery from './pages/AdminGallery';
+import ParentGallery from './pages/ParentGallery';
+import AdminAttendance from './pages/AdminAttendance';
+import ParentAttendance from './pages/ParentAttendance';
+import HealthTips from './pages/HealthTips';
 import Layout from './Layout.jsx';
 
 
@@ -42,6 +47,11 @@ export const PAGES = {
     "ClothingOrders": ClothingOrders,
     "TrainingSchedules": TrainingSchedules,
     "ParentTrainingSchedules": ParentTrainingSchedules,
+    "AdminGallery": AdminGallery,
+    "ParentGallery": ParentGallery,
+    "AdminAttendance": AdminAttendance,
+    "ParentAttendance": ParentAttendance,
+    "HealthTips": HealthTips,
 }
 
 export const pagesConfig = {
