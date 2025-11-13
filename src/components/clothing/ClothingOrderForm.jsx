@@ -57,7 +57,9 @@ export default function ClothingOrderForm({ players, onSubmit, onCancel, isSubmi
     chaqueta_partidos: false,
     chaqueta_talla: "",
     pack_entrenamiento: false,
-    pack_talla: "",
+    pack_camiseta_talla: "",
+    pack_pantalon_talla: "",
+    pack_sudadera_talla: "",
     precio_total: 0,
     metodo_pago: "Transferencia",
     justificante_url: "",
@@ -143,9 +145,19 @@ export default function ClothingOrderForm({ players, onSubmit, onCancel, isSubmi
       return;
     }
 
-    if (orderData.pack_entrenamiento && !orderData.pack_talla) {
-      toast.error("Selecciona la talla del pack de entrenamiento");
-      return;
+    if (orderData.pack_entrenamiento) {
+      if (!orderData.pack_camiseta_talla) {
+        toast.error("Selecciona la talla de la camiseta");
+        return;
+      }
+      if (!orderData.pack_pantalon_talla) {
+        toast.error("Selecciona la talla del pantalón");
+        return;
+      }
+      if (!orderData.pack_sudadera_talla) {
+        toast.error("Selecciona la talla de la sudadera");
+        return;
+      }
     }
 
     if (!orderData.justificante_url) {
@@ -167,7 +179,14 @@ export default function ClothingOrderForm({ players, onSubmit, onCancel, isSubmi
           <hr>
           <h3>Productos Solicitados:</h3>
           ${orderData.chaqueta_partidos ? `<p>✅ <strong>Chaqueta de Partidos:</strong> ${orderData.chaqueta_talla} - ${PRECIO_CHAQUETA}€</p>` : ''}
-          ${orderData.pack_entrenamiento ? `<p>✅ <strong>Pack de Entrenamiento (Camiseta + Pantalón + Sudadera):</strong> ${orderData.pack_talla} - ${PRECIO_PACK_ENTRENAMIENTO}€</p>` : ''}
+          ${orderData.pack_entrenamiento ? `
+            <p>✅ <strong>Pack de Entrenamiento - ${PRECIO_PACK_ENTRENAMIENTO}€</strong></p>
+            <ul>
+              <li>Camiseta: ${orderData.pack_camiseta_talla}</li>
+              <li>Pantalón: ${orderData.pack_pantalon_talla}</li>
+              <li>Sudadera: ${orderData.pack_sudadera_talla}</li>
+            </ul>
+          ` : ''}
           <hr>
           <p><strong>Precio Total:</strong> ${orderData.precio_total}€</p>
           <p><strong>Concepto Pago:</strong> ${orderData.concepto_pago}</p>
@@ -218,7 +237,7 @@ export default function ClothingOrderForm({ players, onSubmit, onCancel, isSubmi
             </AlertDescription>
           </Alert>
 
-          {/* GUÍA DE TALLAS - NUEVO */}
+          {/* GUÍA DE TALLAS */}
           <Card className="mb-6 border-2 border-green-500 bg-gradient-to-br from-green-50 to-green-100">
             <CardHeader className="pb-3">
               <CardTitle className="text-lg text-green-900 flex items-center gap-2">
@@ -387,7 +406,13 @@ export default function ClothingOrderForm({ players, onSubmit, onCancel, isSubmi
                         id="pack"
                         checked={orderData.pack_entrenamiento}
                         onCheckedChange={(checked) => 
-                          setOrderData({...orderData, pack_entrenamiento: checked, pack_talla: ""})
+                          setOrderData({
+                            ...orderData, 
+                            pack_entrenamiento: checked, 
+                            pack_camiseta_talla: "",
+                            pack_pantalon_talla: "",
+                            pack_sudadera_talla: ""
+                          })
                         }
                       />
                       <label htmlFor="pack" className="font-semibold cursor-pointer flex-1">
@@ -397,28 +422,80 @@ export default function ClothingOrderForm({ players, onSubmit, onCancel, isSubmi
                     <Alert className="ml-7 bg-blue-50 border-blue-200">
                       <Info className="h-4 w-4 text-blue-600" />
                       <AlertDescription className="text-blue-800 text-sm">
-                        <strong>El pack incluye:</strong> Camiseta + Pantalón + Sudadera
+                        <strong>El pack incluye:</strong> Camiseta + Pantalón + Sudadera<br/>
+                        <span className="text-xs">Puedes elegir tallas diferentes para cada prenda</span>
                       </AlertDescription>
                     </Alert>
                     {orderData.pack_entrenamiento && (
-                      <div className="ml-7 space-y-2">
-                        <Label htmlFor="pack_talla">Talla del Pack *</Label>
-                        <Select
-                          value={orderData.pack_talla}
-                          onValueChange={(value) => setOrderData({...orderData, pack_talla: value})}
-                          required={orderData.pack_entrenamiento}
-                        >
-                          <SelectTrigger>
-                            <SelectValue placeholder="Selecciona una talla..." />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {TALLAS.map(talla => (
-                              <SelectItem key={talla} value={talla}>
-                                {talla}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
+                      <div className="ml-7 space-y-4">
+                        {/* Talla Camiseta */}
+                        <div className="space-y-2 bg-slate-50 p-3 rounded-lg">
+                          <Label htmlFor="pack_camiseta_talla" className="flex items-center gap-2">
+                            👕 Talla de la Camiseta *
+                          </Label>
+                          <Select
+                            value={orderData.pack_camiseta_talla}
+                            onValueChange={(value) => setOrderData({...orderData, pack_camiseta_talla: value})}
+                            required={orderData.pack_entrenamiento}
+                          >
+                            <SelectTrigger>
+                              <SelectValue placeholder="Selecciona talla para camiseta..." />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {TALLAS.map(talla => (
+                                <SelectItem key={talla} value={talla}>
+                                  {talla}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+
+                        {/* Talla Pantalón */}
+                        <div className="space-y-2 bg-slate-50 p-3 rounded-lg">
+                          <Label htmlFor="pack_pantalon_talla" className="flex items-center gap-2">
+                            👖 Talla del Pantalón *
+                          </Label>
+                          <Select
+                            value={orderData.pack_pantalon_talla}
+                            onValueChange={(value) => setOrderData({...orderData, pack_pantalon_talla: value})}
+                            required={orderData.pack_entrenamiento}
+                          >
+                            <SelectTrigger>
+                              <SelectValue placeholder="Selecciona talla para pantalón..." />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {TALLAS.map(talla => (
+                                <SelectItem key={talla} value={talla}>
+                                  {talla}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+
+                        {/* Talla Sudadera */}
+                        <div className="space-y-2 bg-slate-50 p-3 rounded-lg">
+                          <Label htmlFor="pack_sudadera_talla" className="flex items-center gap-2">
+                            🧥 Talla de la Sudadera *
+                          </Label>
+                          <Select
+                            value={orderData.pack_sudadera_talla}
+                            onValueChange={(value) => setOrderData({...orderData, pack_sudadera_talla: value})}
+                            required={orderData.pack_entrenamiento}
+                          >
+                            <SelectTrigger>
+                              <SelectValue placeholder="Selecciona talla para sudadera..." />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {TALLAS.map(talla => (
+                                <SelectItem key={talla} value={talla}>
+                                  {talla}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
                       </div>
                     )}
                   </div>
