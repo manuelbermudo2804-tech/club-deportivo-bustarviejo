@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -36,7 +35,7 @@ export default function AdminChat() {
     fetchUser();
   }, []);
 
-  const { data: messages, refetch: refetchMessages } = useQuery({
+  const { data: messages } = useQuery({
     queryKey: ['chatMessages'],
     queryFn: () => base44.entities.ChatMessage.list('-created_date'),
     initialData: [],
@@ -70,7 +69,7 @@ export default function AdminChat() {
               <p><strong>De:</strong> ${messageData.remitente_nombre}</p>
               <p><strong>Mensaje:</strong></p>
               <p>${messageData.mensaje}</p>
-              ${attachments.length > 0 ? `<p><strong>Archivos adjuntos:</strong> ${attachments.length}</p>` : ''}
+              ${messageData.archivos_adjuntos && messageData.archivos_adjuntos.length > 0 ? `<p><strong>Archivos adjuntos:</strong> ${messageData.archivos_adjuntos.length}</p>` : ''}
               <br>
               <p>Accede a la aplicación para ver el mensaje completo y responder.</p>
             `
@@ -103,7 +102,6 @@ export default function AdminChat() {
     },
   });
 
-  // Verificar horario de atención
   const isBusinessHours = () => {
     const now = new Date();
     const hour = now.getHours();
@@ -259,7 +257,6 @@ export default function AdminChat() {
         </p>
       </div>
 
-      {/* Business Hours Status */}
       <div className="px-6 pt-4">
         <Alert className={isBusinessHours() ? "bg-green-50 border-green-300" : "bg-orange-50 border-orange-300"}>
           <Clock className={`h-4 w-4 ${isBusinessHours() ? "text-green-600" : "text-orange-600"}`} />
@@ -274,7 +271,6 @@ export default function AdminChat() {
       </div>
 
       <div className="flex-1 flex overflow-hidden">
-        {/* Groups List */}
         <div className="w-80 bg-white border-r border-slate-200 flex flex-col">
           <div className="p-4 border-b border-slate-200">
             <div className="relative">
@@ -336,11 +332,9 @@ export default function AdminChat() {
           </div>
         </div>
 
-        {/* Chat Window */}
         <div className="flex-1 flex flex-col bg-slate-50">
           {selectedGroup ? (
             <>
-              {/* Chat Header */}
               <div className="bg-white border-b border-slate-200 p-4">
                 <div className="flex items-center gap-3">
                   <span className="text-2xl">{sportEmojis[selectedGroup.deporte] || "⚽"}</span>
@@ -355,7 +349,6 @@ export default function AdminChat() {
                 </div>
               </div>
 
-              {/* Messages */}
               <div className="flex-1 overflow-y-auto p-4 space-y-4">
                 {selectedGroup.messages.length === 0 ? (
                   <div className="text-center py-12">
@@ -364,60 +357,51 @@ export default function AdminChat() {
                     <p className="text-slate-400 text-sm">Sé el primero en escribir en este grupo</p>
                   </div>
                 ) : (
-                  selectedGroup.messages
-                    .sort((a, b) => new Date(a.created_date) - new Date(b.created_date))
-                    .map((msg) => (
-                      <div
-                        key={msg.id}
-                        className={`flex ${msg.tipo === "admin_a_grupo" ? 'justify-end' : 'justify-start'}`}
-                      >
+                  <>
+                    {selectedGroup.messages
+                      .sort((a, b) => new Date(a.created_date) - new Date(b.created_date))
+                      .map((msg) => (
                         <div
-                          className={`max-w-md p-3 rounded-lg ${
-                            msg.tipo === "admin_a_grupo"
-                              ? 'bg-orange-600 text-white'
-                              : 'bg-white border border-slate-200'
-                          }`}
+                          key={msg.id}
+                          className={`flex ${msg.tipo === "admin_a_grupo" ? 'justify-end' : 'justify-start'}`}
                         >
-                          <div className="flex items-center gap-2 mb-1">
-                            <span className={`text-xs font-semibold ${msg.tipo === "admin_a_grupo" ? 'text-white/80' : 'text-slate-800'}`}>
-                              {msg.remitente_nombre}
-                            </span>
-                            {msg.prioridad && msg.prioridad !== "Normal" && (
-                              <span className={priorityColors[msg.prioridad]}>
-                                {priorityIcons[msg.prioridad]} {msg.prioridad}
+                          <div
+                            className={`max-w-md p-3 rounded-lg ${
+                              msg.tipo === "admin_a_grupo"
+                                ? 'bg-orange-600 text-white'
+                                : 'bg-white border border-slate-200'
+                            }`}
+                          >
+                            <div className="flex items-center gap-2 mb-1">
+                              <span className={`text-xs font-semibold ${msg.tipo === "admin_a_grupo" ? 'text-white/80' : 'text-slate-800'}`}>
+                                {msg.remitente_nombre}
                               </span>
+                              {msg.prioridad && msg.prioridad !== "Normal" && (
+                                <span className={priorityColors[msg.prioridad]}>
+                                  {priorityIcons[msg.prioridad]}
+                                </span>
+                              )}
+                            </div>
+                            <p className="text-sm whitespace-pre-wrap">{msg.mensaje}</p>
+                            
+                            {msg.archivos_adjuntos && msg.archivos_adjuntos.length > 0 && (
+                              <MessageAttachments attachments={msg.archivos_adjuntos} />
                             )}
-                          </div>
-                          <p className="text-sm whitespace-pre-wrap">{msg.mensaje}</p>
-                          
-                          {/* Attachments */}
-                          {msg.archivos_adjuntos && msg.archivos_adjuntos.length > 0 && (
-                            <MessageAttachments attachments={msg.archivos_adjuntos} />
-                          )}
-                          
-                          <div className="flex items-center justify-between mt-2">
-                            <p className={`text-xs ${
+                            
+                            <p className={`text-xs mt-2 ${
                               msg.tipo === "admin_a_grupo" ? 'text-orange-100' : 'text-slate-500'
                             }`}>
                               {format(new Date(msg.created_date), "HH:mm - d 'de' MMM", { locale: es })}
                             </p>
-                            {msg.tipo === "admin_a_grupo" && msg.prioridad && msg.prioridad !== "Normal" && (
-                              <Badge className="bg-white/20 text-white text-xs px-2 py-0 ml-2">
-                                <Bell className="w-3 h-3 mr-1" />
-                                Notificado
-                              </Badge>
-                            )}
                           </div>
                         </div>
-                      </div>
-                    ))}
-                  <div ref={messagesEndRef} />
+                      ))}
+                    <div ref={messagesEndRef} />
+                  </>
                 )}
               </div>
 
-              {/* Input Area */}
               <div className="bg-white border-t border-slate-200 p-4">
-                {/* Preview attachments */}
                 {attachments.length > 0 && (
                   <div className="mb-3 flex flex-wrap gap-2">
                     {attachments.map((att, index) => (
