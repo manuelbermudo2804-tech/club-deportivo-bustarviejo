@@ -599,6 +599,7 @@ export default function Layout({ children, currentPageName }) {
     { title: "Calendario", url: createPageUrl("Calendar"), icon: Calendar },
     { title: "Anuncios", url: createPageUrl("Announcements"), icon: Megaphone },
     { title: "Galería", url: createPageUrl("AdminGallery"), icon: Image },
+    { title: "Convocatorias", url: createPageUrl("CoachCallups"), icon: Bell },
     { title: "Pagos", url: createPageUrl("Payments"), icon: CreditCard },
     { title: "Recordatorios", url: createPageUrl("Reminders"), icon: Bell },
     { title: "Pedidos", url: createPageUrl("ClothingOrders"), icon: ShoppingBag },
@@ -638,8 +639,8 @@ export default function Layout({ children, currentPageName }) {
 
   let navigationItems = isAdmin ? adminNavigationItems : isPlayer ? playerNavigationItems : parentNavigationItems;
   
-  // Add coach items if user is a coach
-  if (isCoach && !isAdmin) {
+  // Add coach items if user is a coach (but not admin, since admin already has it)
+  if (isCoach && !isAdmin && !isPlayer) {
     navigationItems = [...navigationItems, ...coachNavigationItems];
   }
 
