@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -47,6 +47,16 @@ export default function ParentPayments() {
     enabled: players.length > 0,
     initialData: [],
   });
+
+  // Detectar si viene de un jugador específico (desde el botón Pagos del PlayerCard)
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const jugadorId = urlParams.get('jugador_id');
+    if (jugadorId) {
+      // Abrir el formulario automáticamente
+      setShowForm(true);
+    }
+  }, []);
 
   const createPaymentMutation = useMutation({
     mutationFn: (paymentData) => base44.entities.Payment.create(paymentData),

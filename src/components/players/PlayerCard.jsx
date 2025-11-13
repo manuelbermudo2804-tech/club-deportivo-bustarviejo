@@ -37,6 +37,9 @@ const sportIcons = {
 };
 
 export default function PlayerCard({ player, onEdit, isParent = false, readOnly = false }) {
+  // Determinar la página de pagos según si es padre o admin
+  const paymentsPage = isParent ? "ParentPayments" : "Payments";
+  
   return (
     <motion.div
       initial={{ opacity: 0, scale: 0.95 }}
@@ -134,7 +137,7 @@ export default function PlayerCard({ player, onEdit, isParent = false, readOnly 
                 {isParent ? "Ver/Editar" : "Editar"}
               </Button>
             )}
-            <Link to={`${createPageUrl("Payments")}?jugador_id=${player.id}`} className="flex-1">
+            <Link to={`${createPageUrl(paymentsPage)}?jugador_id=${player.id}`} className="flex-1">
               <Button
                 variant="outline"
                 size="sm"
