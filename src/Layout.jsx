@@ -3,7 +3,7 @@ import React, { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { base44 } from "@/api/base44Client";
-import { Home, Users, CreditCard, ShoppingBag, Menu, Bell, LogOut, Calendar, Megaphone, Mail, Archive, Settings, MessageCircle, Clock } from "lucide-react";
+import { Home, Users, CreditCard, ShoppingBag, Menu, Bell, LogOut, Calendar, Megaphone, Mail, Archive, Settings, MessageCircle, Clock, Image, CheckSquare, Apple } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -673,6 +673,11 @@ export default function Layout({ children, currentPageName }) {
       icon: Clock,
     },
     {
+      title: "Asistencia",
+      url: createPageUrl("AdminAttendance"),
+      icon: CheckSquare,
+    },
+    {
       title: "Calendario",
       url: createPageUrl("Calendar"),
       icon: Calendar,
@@ -681,6 +686,16 @@ export default function Layout({ children, currentPageName }) {
       title: "Anuncios",
       url: createPageUrl("Announcements"),
       icon: Megaphone,
+    },
+    {
+      title: "Galería Fotos",
+      url: createPageUrl("AdminGallery"),
+      icon: Image,
+    },
+    {
+      title: "Consejos Salud",
+      url: createPageUrl("HealthTips"),
+      icon: Apple,
     },
     {
       title: "Pagos",
@@ -738,6 +753,11 @@ export default function Layout({ children, currentPageName }) {
       icon: Clock,
     },
     {
+      title: "Mi Asistencia",
+      url: createPageUrl("ParentAttendance"),
+      icon: CheckSquare,
+    },
+    {
       title: "Calendario",
       url: createPageUrl("Calendar"),
       icon: Calendar,
@@ -746,6 +766,16 @@ export default function Layout({ children, currentPageName }) {
       title: "Anuncios",
       url: createPageUrl("Announcements"),
       icon: Megaphone,
+    },
+    {
+      title: "Galería Fotos",
+      url: createPageUrl("ParentGallery"),
+      icon: Image,
+    },
+    {
+      title: "Consejos Salud",
+      url: createPageUrl("HealthTips"),
+      icon: Apple,
     },
     {
       title: "Mis Pagos",
