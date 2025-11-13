@@ -73,14 +73,28 @@ export default function ParentChat() {
     },
   });
 
-  // Función para normalizar el deporte
+  // Función para normalizar y limpiar el deporte
   const normalizeDeporte = (deporte) => {
     if (!deporte) return null;
-    return deporte.trim();
+    
+    // Eliminar espacios extra
+    let normalized = deporte.trim();
+    
+    // Eliminar "_undefined" si existe
+    normalized = normalized.replace(/_undefined$/, '');
+    
+    // Eliminar guion bajo final si quedó
+    normalized = normalized.replace(/_$/, '');
+    
+    return normalized;
   };
 
   // Usar deporte completo como grupo (normalizado y único)
-  const uniqueDeportes = [...new Set(players.map(p => normalizeDeporte(p.deporte)).filter(Boolean))];
+  const uniqueDeportes = [...new Set(
+    players
+      .map(p => normalizeDeporte(p.deporte))
+      .filter(Boolean)
+  )];
   
   const myGroups = uniqueDeportes.map(deporteNormalizado => {
     const groupMessages = messages.filter(msg => {

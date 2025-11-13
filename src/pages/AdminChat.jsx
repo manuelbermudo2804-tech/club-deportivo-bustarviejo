@@ -106,10 +106,20 @@ export default function AdminChat() {
     return hour >= 10 && hour < 20;
   };
 
-  // Función para normalizar el deporte (eliminar espacios extra, etc)
+  // Función para normalizar y limpiar el deporte/grupo_id
   const normalizeDeporte = (deporte) => {
     if (!deporte) return null;
-    return deporte.trim();
+    
+    // Eliminar espacios extra
+    let normalized = deporte.trim();
+    
+    // Eliminar "_undefined" si existe
+    normalized = normalized.replace(/_undefined$/, '');
+    
+    // Eliminar guion bajo final si quedó
+    normalized = normalized.replace(/_$/, '');
+    
+    return normalized;
   };
 
   // Create groups from players - usando deporte como identificador único
@@ -134,13 +144,15 @@ export default function AdminChat() {
     groups[deporteNormalizado].players.push(player);
   });
 
-  // Luego agregar mensajes a los grupos existentes
+  // Luego agregar mensajes a los grupos existentes o crear grupos si tienen mensajes pero no jugadores
   messages.forEach(msg => {
-    const deporteNormalizado = normalizeDeporte(msg.grupo_id || msg.deporte);
+    // Intentar obtener deporte desde grupo_id o deporte
+    let deporteRaw = msg.grupo_id || msg.deporte;
+    const deporteNormalizado = normalizeDeporte(deporteRaw);
     
     if (!deporteNormalizado) return;
     
-    // Solo crear grupo si no existe Y tiene mensajes (evitar duplicados)
+    // Solo crear grupo si no existe
     if (!groups[deporteNormalizado]) {
       groups[deporteNormalizado] = {
         id: deporteNormalizado,
