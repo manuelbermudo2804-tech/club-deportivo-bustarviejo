@@ -122,77 +122,103 @@ export default function RemindersPage() {
 
       const hasJustificante = payment?.justificante_url;
       
-      // Urgencia según tipo de recordatorio
-      const urgencyLevel = {
-        "15 días antes": "📅 RECORDATORIO",
-        "7 días antes": "⚠️ IMPORTANTE",
-        "3 días antes": "🔴 URGENTE",
-        "1 día después": "🚨 PAGO VENCIDO"
+      // Determinar nivel de urgencia de forma profesional
+      const urgencyText = {
+        "15 días antes": "Recordatorio",
+        "7 días antes": "Recordatorio importante",
+        "3 días antes": "Recordatorio urgente",
+        "1 día después": "Pago vencido - Accion requerida"
       };
-
-      const subject = hasJustificante 
-        ? `${urgencyLevel[reminder.tipo_recordatorio]}: Pago en Revisión - CF Bustarviejo - ${reminder.mes_pago}`
-        : `${urgencyLevel[reminder.tipo_recordatorio]}: Pago Pendiente - CF Bustarviejo - ${reminder.mes_pago}`;
 
       const daysText = {
         "15 días antes": "15 días",
         "7 días antes": "7 días",
         "3 días antes": "3 días",
-        "1 día después": "VENCIDO AYER"
+        "1 día después": "Fecha límite superada"
       };
+
+      const subject = hasJustificante 
+        ? `${urgencyText[reminder.tipo_recordatorio]} - Pago en revisión - CF Bustarviejo`
+        : `${urgencyText[reminder.tipo_recordatorio]} de pago - CF Bustarviejo`;
 
       const body = hasJustificante ? `
 Estimada familia de ${reminder.jugador_nombre},
 
-${urgencyLevel[reminder.tipo_recordatorio]}
+Le informamos que su pago correspondiente al mes de ${reminder.mes_pago} se encuentra en estado de revisión.
 
-Su pago correspondiente a ${reminder.mes_pago} está EN REVISIÓN.
-Hemos recibido su justificante pero aún está pendiente de verificación.
+Hemos recibido correctamente su justificante de pago y nuestro equipo administrativo está procediendo con su verificación. Le confirmaremos la validación del pago en breve.
 
-• Jugador: ${reminder.jugador_nombre}
-• Mes: ${reminder.mes_pago}
-• Temporada: ${reminder.temporada}
-• Cantidad: ${reminder.cantidad}€
-• Estado: En Revisión
-• Fecha límite: 15 de ${reminder.mes_pago}
-${reminder.tipo_recordatorio !== "1 día después" ? `• Tiempo restante: ${daysText[reminder.tipo_recordatorio]}` : '• ⚠️ FECHA LÍMITE SUPERADA'}
+Detalles del pago:
+════════════════════════════════════════
+Jugador: ${reminder.jugador_nombre}
+Mes: ${reminder.mes_pago}
+Temporada: ${reminder.temporada}
+Importe: ${reminder.cantidad} euros
+Estado actual: En revisión
+Fecha límite: 15 de ${reminder.mes_pago}
+${reminder.tipo_recordatorio !== "1 día después" ? `Tiempo restante: ${daysText[reminder.tipo_recordatorio]}` : 'Estado: Fecha límite superada'}
+════════════════════════════════════════
 
-Si tiene alguna duda sobre el estado de su pago, por favor contacte con nosotros.
+Si tiene alguna consulta sobre el estado de su pago, no dude en contactar con nosotros a través de los medios indicados al final de este mensaje.
 
-Gracias por su colaboración.
+Agradecemos su colaboración.
+
 
 Atentamente,
-CF Bustarviejo
-📧 C.D.BUSTARVIEJO@HOTMAIL.ES | CDBUSTARVIEJO@GMAIL.COM
+
+Club de Fútbol Bustarviejo
+Equipo de Administración
+
+════════════════════════════════════════
+Datos de contacto:
+════════════════════════════════════════
+Email: C.D.BUSTARVIEJO@HOTMAIL.ES
+Email alternativo: CDBUSTARVIEJO@GMAIL.COM
+Ubicación: Bustarviejo, Madrid
+
+Temporada ${reminder.temporada}
       ` : `
 Estimada familia de ${reminder.jugador_nombre},
 
-${urgencyLevel[reminder.tipo_recordatorio]}
+Le recordamos que tiene pendiente el pago de la inscripción correspondiente al mes de ${reminder.mes_pago}.
 
-Le recordamos que tiene pendiente el pago correspondiente a:
+Detalles del pago:
+════════════════════════════════════════
+Jugador: ${reminder.jugador_nombre}
+Mes: ${reminder.mes_pago}
+Temporada: ${reminder.temporada}
+Importe: ${reminder.cantidad} euros
+Fecha límite: 15 de ${reminder.mes_pago}
+${reminder.tipo_recordatorio !== "1 día después" ? `Tiempo restante: ${daysText[reminder.tipo_recordatorio]}` : 'Estado: Fecha límite superada'}
+Estado: Pendiente de justificante
+════════════════════════════════════════
 
-• Jugador: ${reminder.jugador_nombre}
-• Mes: ${reminder.mes_pago}
-• Temporada: ${reminder.temporada}
-• Cantidad: ${reminder.cantidad}€
-• FECHA LÍMITE: 15 de ${reminder.mes_pago}
-${reminder.tipo_recordatorio !== "1 día después" ? `• Tiempo restante: ${daysText[reminder.tipo_recordatorio]}` : '• 🚨 FECHA LÍMITE SUPERADA - PAGO VENCIDO'}
-• Estado: PENDIENTE - Sin justificante cargado
+Instrucciones para completar el pago:
+────────────────────────────────────────
+1. Realice el pago mediante transferencia bancaria a la cuenta del club
+2. Acceda a la aplicación del club
+3. Navegue a la sección "Mis Pagos"
+4. Localice el pago correspondiente a ${reminder.mes_pago}
+5. Suba el justificante de pago (foto o PDF del comprobante)
 
-⚠️ Es importante que realice el pago Y suba el justificante en la aplicación lo antes posible.
+Es importante completar ambos pasos (pago y justificante) para que podamos procesar correctamente su inscripción.
 
-Puede realizar el pago mediante:
-- Transferencia bancaria a nuestra cuenta
+Si ya ha realizado el pago, por favor suba el justificante en la aplicación lo antes posible para que podamos verificarlo.
 
-⚡ IMPORTANTE: Debe subir el justificante de pago en la aplicación para que podamos verificarlo.
-
-Acceda a la app → Mis Pagos → Busque el pago de ${reminder.mes_pago} → Suba el justificante
-
-Gracias por su colaboración.
 
 Atentamente,
-CF Bustarviejo
-📧 C.D.BUSTARVIEJO@HOTMAIL.ES | CDBUSTARVIEJO@GMAIL.COM
+
+Club de Fútbol Bustarviejo
+Equipo de Administración
+
+════════════════════════════════════════
+Datos de contacto:
+════════════════════════════════════════
+Email: C.D.BUSTARVIEJO@HOTMAIL.ES
+Email alternativo: CDBUSTARVIEJO@GMAIL.COM
+Ubicación: Bustarviejo, Madrid
+
+Temporada ${reminder.temporada}
       `;
 
       await base44.integrations.Core.SendEmail({
@@ -388,6 +414,10 @@ CF Bustarviejo
                   <li>• <strong>1 día después:</strong> Vencimiento</li>
                 </ul>
               </div>
+            </div>
+            <div className="bg-green-50 rounded-lg p-3 border border-green-300 mt-3">
+              <p className="font-bold text-green-900 mb-1">✅ Emails optimizados anti-spam:</p>
+              <p className="text-xs text-green-800">Los emails han sido rediseñados con formato profesional, sin exceso de mayúsculas ni emojis, para evitar filtros de spam.</p>
             </div>
             <p className="mt-3 text-xs text-slate-600">
               💡 Haz clic en "Generar Automáticos" para crear todos los recordatorios de pagos pendientes. Luego "Enviar de Hoy" para procesar los de hoy.
