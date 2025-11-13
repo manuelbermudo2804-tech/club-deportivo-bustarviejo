@@ -3,7 +3,7 @@ import React, { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { base44 } from "@/api/base44Client";
-import { Home, Users, CreditCard, ShoppingBag, Menu, Bell, LogOut, Calendar, Megaphone, Mail, Archive, Settings, MessageCircle, Clock, Image, X, User as UserIcon } from "lucide-react";
+import { Home, Users, CreditCard, ShoppingBag, Menu, Bell, LogOut, Calendar, Megaphone, Mail, Archive, Settings, MessageCircle, Clock, Image, X, User as UserIcon, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
@@ -475,6 +475,7 @@ export default function Layout({ children, currentPageName }) {
   const [isAdmin, setIsAdmin] = useState(false);
   const [isPlayer, setIsPlayer] = useState(false);
   const [isCoach, setIsCoach] = useState(false);
+  const [hasPlayers, setHasPlayers] = useState(false);
   const [unreadMessagesCount, setUnreadMessagesCount] = useState(0);
   const [urgentMessagesCount, setUrgentMessagesCount] = useState(0);
   const [showSpecialScreen, setShowSpecialScreen] = useState(null);
@@ -488,6 +489,16 @@ export default function Layout({ children, currentPageName }) {
         setIsAdmin(currentUser.role === "admin");
         setIsPlayer(currentUser.role === "jugador");
         setIsCoach(currentUser.es_entrenador === true);
+        
+        // Check if admin has players (to show ParentCallups)
+        if (currentUser.role === "admin") {
+          const allPlayers = await base44.entities.Player.list();
+          const myPlayers = allPlayers.filter(p => 
+            p.email_padre === currentUser.email || 
+            p.email_tutor_2 === currentUser.email
+          );
+          setHasPlayers(myPlayers.length > 0);
+        }
         
         if (currentUser.acceso_activo === false && currentUser.role !== "admin") {
           setShowSpecialScreen("restricted");
@@ -599,7 +610,8 @@ export default function Layout({ children, currentPageName }) {
     { title: "Calendario", url: createPageUrl("Calendar"), icon: Calendar },
     { title: "Anuncios", url: createPageUrl("Announcements"), icon: Megaphone },
     { title: "Galería", url: createPageUrl("AdminGallery"), icon: Image },
-    { title: "Convocatorias", url: createPageUrl("CoachCallups"), icon: Bell },
+    { title: "🎓 Gestionar Convocatorias", url: createPageUrl("CoachCallups"), icon: Bell },
+    ...(hasPlayers ? [{ title: "✅ Mis Convocatorias", url: createPageUrl("ParentCallups"), icon: CheckCircle2 }] : []),
     { title: "Pagos", url: createPageUrl("Payments"), icon: CreditCard },
     { title: "Recordatorios", url: createPageUrl("Reminders"), icon: Bell },
     { title: "Pedidos", url: createPageUrl("ClothingOrders"), icon: ShoppingBag },
