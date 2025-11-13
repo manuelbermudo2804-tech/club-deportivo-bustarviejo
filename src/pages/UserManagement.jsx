@@ -214,13 +214,17 @@ export default function UserManagement() {
 
     const isSettingAsCoach = !selectedUser.es_entrenador;
 
+    // IMPORTANT: Only update coach-specific fields, preserve all other user data
+    const updateData = {
+      ...selectedUser, // Preserve ALL existing user data
+      es_entrenador: isSettingAsCoach,
+      categorias_entrena: isSettingAsCoach ? coachData.categorias_entrena : [],
+      telefono_entrenador: isSettingAsCoach ? (coachData.telefono_entrenador || null) : null
+    };
+
     updateUserMutation.mutate({
       userId: selectedUser.id,
-      userData: {
-        es_entrenador: isSettingAsCoach,
-        categorias_entrena: isSettingAsCoach ? coachData.categorias_entrena : [],
-        telefono_entrenador: isSettingAsCoach ? coachData.telefono_entrenador : null
-      }
+      userData: updateData
     });
   };
 
