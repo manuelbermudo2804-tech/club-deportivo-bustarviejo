@@ -53,9 +53,7 @@ export default function AdminChat() {
       const newMessage = await base44.entities.ChatMessage.create(messageData);
       
       if (messageData.prioridad === "Importante" || messageData.prioridad === "Urgente") {
-        const groupPlayers = players.filter(p => 
-          `${p.deporte}_${p.categoria}` === messageData.grupo_id
-        );
+        const groupPlayers = players.filter(p => p.deporte === messageData.deporte);
         
         const parentEmails = [...new Set(groupPlayers.map(p => p.email_padre).filter(Boolean))];
         
@@ -65,7 +63,7 @@ export default function AdminChat() {
             subject: `[${messageData.prioridad === "Urgente" ? "🔴 URGENTE" : "⚠️ IMPORTANTE"}] Mensaje del Club - ${messageData.deporte}`,
             body: `
               <h2>Mensaje ${messageData.prioridad} del Club</h2>
-              <p><strong>Grupo:</strong> ${messageData.deporte} - ${messageData.categoria}</p>
+              <p><strong>Grupo:</strong> ${messageData.deporte}</p>
               <p><strong>De:</strong> ${messageData.remitente_nombre}</p>
               <p><strong>Mensaje:</strong></p>
               <p>${messageData.mensaje}</p>
@@ -108,16 +106,15 @@ export default function AdminChat() {
     return hour >= 10 && hour < 20;
   };
 
-  // Create groups from players
+  // Create groups from players - usando deporte como identificador único
   const groups = {};
   players.forEach(player => {
-    if (!player.deporte || !player.categoria) return;
-    const groupId = `${player.deporte}_${player.categoria}`;
+    if (!player.deporte) return;
+    const groupId = player.deporte; // Usamos el deporte completo como ID
     if (!groups[groupId]) {
       groups[groupId] = {
         id: groupId,
         deporte: player.deporte,
-        categoria: player.categoria,
         players: [],
         messages: [],
         unreadCount: 0,
@@ -128,22 +125,15 @@ export default function AdminChat() {
     groups[groupId].players.push(player);
   });
 
-  // Add messages to groups - CORREGIDO para mostrar todos los mensajes
+  // Add messages to groups
   messages.forEach(msg => {
-    // Intentar obtener el grupo_id de varias formas
-    let groupId = msg.grupo_id;
+    let groupId = msg.grupo_id || msg.deporte;
     
-    // Si no existe grupo_id, construirlo desde deporte y categoria
-    if (!groupId && msg.deporte && msg.categoria) {
-      groupId = `${msg.deporte}_${msg.categoria}`;
-    }
-    
-    // Si el grupo no existe, crearlo (esto maneja mensajes de grupos que ya no tienen jugadores)
-    if (groupId && !groups[groupId] && msg.deporte && msg.categoria) {
+    // Si el grupo no existe, crearlo
+    if (groupId && !groups[groupId]) {
       groups[groupId] = {
         id: groupId,
-        deporte: msg.deporte,
-        categoria: msg.categoria,
+        deporte: msg.deporte || groupId,
         players: [],
         messages: [],
         unreadCount: 0,
@@ -177,8 +167,7 @@ export default function AdminChat() {
     });
 
   const filteredGroups = sortedGroups.filter(group =>
-    (group.deporte || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (group.categoria || "").toLowerCase().includes(searchTerm.toLowerCase())
+    (group.deporte || "").toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const handleSendMessage = () => {
@@ -200,7 +189,7 @@ export default function AdminChat() {
       prioridad: priority,
       tipo: "admin_a_grupo",
       deporte: selectedGroup.deporte,
-      categoria: selectedGroup.categoria,
+      categoria: "",
       grupo_id: selectedGroup.id,
       leido: false,
       archivos_adjuntos: attachments
@@ -233,9 +222,6 @@ export default function AdminChat() {
   const totalUrgent = sortedGroups.reduce((sum, g) => sum + g.urgentCount, 0);
 
   const sportEmojis = {
-    "Fútbol": "⚽",
-    "Fútbol Masculino": "⚽",
-    "Fútbol Femenino": "⚽",
     "Fútbol Pre-Benjamín (Mixto)": "⚽",
     "Fútbol Benjamín (Mixto)": "⚽",
     "Fútbol Alevín (Mixto)": "⚽",
@@ -243,7 +229,7 @@ export default function AdminChat() {
     "Fútbol Cadete": "⚽",
     "Fútbol Juvenil": "⚽",
     "Fútbol Aficionado": "⚽",
-    "Baloncesto": "🏀",
+    "Fútbol Femenino": "⚽",
     "Baloncesto (Mixto)": "🏀"
   };
 
@@ -284,7 +270,7 @@ export default function AdminChat() {
           </div>
         </div>
         <p className="text-orange-100 text-sm">
-          Comunícate con los grupos de padres por deporte y categoría
+          Comunícate con los grupos de padres por categoría
         </p>
       </div>
 
@@ -319,7 +305,7 @@ export default function AdminChat() {
             {filteredGroups.length === 0 ? (
               <div className="text-center py-12 px-4">
                 <AlertCircle className="w-12 h-12 text-slate-300 mx-auto mb-3" />
-                <p className="text-slate-500">No hay grupos con jugadores</p>
+                <p className="text-slate-500">No hay grupos disponibles</p>
                 <p className="text-xs text-slate-400 mt-2">Los grupos se crean automáticamente al registrar jugadores</p>
               </div>
             ) : (
@@ -337,9 +323,8 @@ export default function AdminChat() {
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-1">
                         <span className="text-lg">{sportEmojis[group.deporte] || "⚽"}</span>
-                        <h3 className="font-semibold text-slate-900">{group.categoria}</h3>
+                        <h3 className="font-semibold text-slate-900 text-sm">{group.deporte}</h3>
                       </div>
-                      <p className="text-xs text-slate-600">{group.deporte}</p>
                       <p className="text-xs text-slate-500 mt-1">
                         {group.players.length} jugador{group.players.length !== 1 ? 'es' : ''}
                         {group.messages.length > 0 && ` • ${group.messages.length} mensaje${group.messages.length !== 1 ? 's' : ''}`}
@@ -372,7 +357,7 @@ export default function AdminChat() {
                   <span className="text-2xl">{sportEmojis[selectedGroup.deporte] || "⚽"}</span>
                   <div>
                     <h2 className="font-bold text-lg text-slate-900">
-                      {selectedGroup.deporte} - {selectedGroup.categoria}
+                      {selectedGroup.deporte}
                     </h2>
                     <p className="text-sm text-slate-600">
                       {selectedGroup.players.length} jugador{selectedGroup.players.length !== 1 ? 'es' : ''} en este grupo

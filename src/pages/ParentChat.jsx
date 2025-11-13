@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -10,6 +9,8 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Send, Clock } from "lucide-react";
 import { toast } from "sonner";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { format } from "date-fns";
+import { es } from "date-fns/locale";
 
 import FileAttachmentButton from "../components/chat/FileAttachmentButton";
 import MessageAttachments from "../components/chat/MessageAttachments";
@@ -43,7 +44,7 @@ export default function ParentChat() {
     queryKey: ['myPlayers', user?.email],
     queryFn: async () => {
       const allPlayers = await base44.entities.Player.list();
-      return allPlayers.filter(p =>
+      return allPlayers.filter(p => 
         p.email_padre === user?.email || p.email_tutor_2 === user?.email
       );
     },
@@ -62,7 +63,7 @@ export default function ParentChat() {
 
   const markAsReadMutation = useMutation({
     mutationFn: async (messageIds) => {
-      const updatePromises = messageIds.map(id =>
+      const updatePromises = messageIds.map(id => 
         base44.entities.ChatMessage.update(id, { leido: true })
       );
       await Promise.all(updatePromises);
@@ -72,22 +73,23 @@ export default function ParentChat() {
     },
   });
 
-  const myGroupIds = [...new Set(players.map(p => `${p.deporte}_${p.categoria}`))];
-
+  // Usar deporte completo como grupo
+  const myGroupIds = [...new Set(players.map(p => p.deporte))];
+  
   const myGroups = myGroupIds.map(groupId => {
-    const [deporte, categoria] = groupId.split('_');
-    const groupMessages = messages.filter(msg => msg.grupo_id === groupId);
-    const unreadCount = groupMessages.filter(msg =>
+    const groupMessages = messages.filter(msg => 
+      msg.grupo_id === groupId || msg.deporte === groupId
+    );
+    const unreadCount = groupMessages.filter(msg => 
       !msg.leido && msg.tipo === "admin_a_grupo"
     ).length;
     const urgentCount = groupMessages.filter(msg =>
       !msg.leido && msg.tipo === "admin_a_grupo" && msg.prioridad === "Urgente"
     ).length;
-
+    
     return {
       id: groupId,
-      deporte,
-      categoria,
+      deporte: groupId,
       messages: groupMessages,
       unreadCount,
       urgentCount
@@ -98,7 +100,7 @@ export default function ParentChat() {
     if (myGroups.length > 0 && !selectedTab) {
       setSelectedTab(myGroups[0].id);
     }
-  }, [myGroups.length, selectedTab]);
+  }, [myGroups.length]);
 
   useEffect(() => {
     if (selectedTab) {
@@ -107,13 +109,13 @@ export default function ParentChat() {
         const unreadMessageIds = group.messages
           .filter(msg => !msg.leido && msg.tipo === "admin_a_grupo")
           .map(msg => msg.id);
-
+        
         if (unreadMessageIds.length > 0) {
           markAsReadMutation.mutate(unreadMessageIds);
         }
       }
     }
-  }, [selectedTab, messages, myGroups, markAsReadMutation]);
+  }, [selectedTab]);
 
   const isBusinessHours = () => {
     const now = new Date();
@@ -133,16 +135,14 @@ export default function ParentChat() {
       return;
     }
 
-    const [deporte, categoria] = selectedTab.split('_');
-
     const messageData = {
       remitente_email: user.email,
       remitente_nombre: user.full_name || "Padre/Tutor",
       mensaje: messageContent || "(Archivo adjunto)",
       prioridad: "Normal",
       tipo: "padre_a_grupo",
-      deporte,
-      categoria,
+      deporte: selectedTab,
+      categoria: "",
       grupo_id: selectedTab,
       leido: false,
       archivos_adjuntos: attachments
@@ -172,9 +172,15 @@ export default function ParentChat() {
   };
 
   const sportEmojis = {
-    "Fútbol Masculino": "⚽",
+    "Fútbol Pre-Benjamín (Mixto)": "⚽",
+    "Fútbol Benjamín (Mixto)": "⚽",
+    "Fútbol Alevín (Mixto)": "⚽",
+    "Fútbol Infantil (Mixto)": "⚽",
+    "Fútbol Cadete": "⚽",
+    "Fútbol Juvenil": "⚽",
+    "Fútbol Aficionado": "⚽",
     "Fútbol Femenino": "⚽",
-    "Baloncesto": "🏀"
+    "Baloncesto (Mixto)": "🏀"
   };
 
   useEffect(() => {
@@ -224,7 +230,6 @@ export default function ParentChat() {
 
   return (
     <div className="h-screen flex flex-col bg-gradient-to-br from-slate-50 to-slate-100">
-      {/* Header */}
       <div className="bg-gradient-to-r from-orange-600 to-orange-700 text-white p-6 shadow-lg">
         <div className="flex items-center justify-between mb-2">
           <h1 className="text-2xl font-bold">Chat del Grupo</h1>
@@ -246,7 +251,6 @@ export default function ParentChat() {
         </p>
       </div>
 
-      {/* Business Hours Status */}
       <div className="px-6 pt-4">
         <Alert className={isBusinessHours() ? "bg-green-50 border-green-300" : "bg-orange-50 border-orange-300"}>
           <Clock className={`h-4 w-4 ${isBusinessHours() ? "text-green-600" : "text-orange-600"}`} />
@@ -260,7 +264,6 @@ export default function ParentChat() {
         </Alert>
       </div>
 
-      {/* Chat Content */}
       <div className="flex-1 overflow-hidden p-6">
         <Card className="h-full flex flex-col">
           <Tabs value={selectedTab} onValueChange={setSelectedTab} className="h-full flex flex-col">
@@ -272,10 +275,9 @@ export default function ParentChat() {
                   className="relative data-[state=active]:bg-white data-[state=active]:border-b-2 data-[state=active]:border-orange-600 rounded-none px-6 py-4"
                 >
                   <div className="flex items-center gap-2">
-                    <span className="text-xl">{sportEmojis[group.deporte]}</span>
+                    <span className="text-xl">{sportEmojis[group.deporte] || "⚽"}</span>
                     <div className="text-left">
-                      <div className="font-semibold">{group.categoria}</div>
-                      <div className="text-xs text-slate-600">{group.deporte}</div>
+                      <div className="font-semibold text-sm">{group.deporte}</div>
                     </div>
                     {group.urgentCount > 0 && (
                       <Badge className="ml-2 bg-red-500 text-white text-xs animate-pulse">
@@ -294,7 +296,6 @@ export default function ParentChat() {
 
             {myGroups.map(group => (
               <TabsContent key={group.id} value={group.id} className="flex-1 flex flex-col mt-0 overflow-hidden">
-                {/* Messages */}
                 <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-slate-50">
                   {group.messages
                     .sort((a, b) => new Date(a.created_date) - new Date(b.created_date))
@@ -321,19 +322,13 @@ export default function ParentChat() {
                             )}
                           </div>
                           <p className="text-sm whitespace-pre-wrap">{msg.mensaje}</p>
-
-                          {/* Attachments */}
+                          
                           {msg.archivos_adjuntos && msg.archivos_adjuntos.length > 0 && (
                             <MessageAttachments attachments={msg.archivos_adjuntos} />
                           )}
-
+                          
                           <p className={`text-xs mt-1 ${msg.tipo === "padre_a_grupo" ? 'text-green-100' : 'text-slate-500'}`}>
-                            {new Date(msg.created_date).toLocaleString('es-ES', {
-                              day: '2-digit',
-                              month: '2-digit',
-                              hour: '2-digit',
-                              minute: '2-digit'
-                            })}
+                            {format(new Date(msg.created_date), "HH:mm - d 'de' MMM", { locale: es })}
                           </p>
                         </div>
                       </div>
@@ -341,9 +336,7 @@ export default function ParentChat() {
                   <div ref={messagesEndRef} />
                 </div>
 
-                {/* Input Area */}
                 <div className="border-t border-slate-200 p-4 bg-white">
-                  {/* Preview attachments */}
                   {attachments.length > 0 && (
                     <div className="mb-3 flex flex-wrap gap-2">
                       {attachments.map((att, index) => (
@@ -365,7 +358,7 @@ export default function ParentChat() {
                       onFileUploaded={handleFileUploaded}
                       disabled={!isBusinessHours() || sendMessageMutation.isPending}
                     />
-
+                    
                     <Textarea
                       value={messageContent}
                       onChange={(e) => setMessageContent(e.target.value)}
