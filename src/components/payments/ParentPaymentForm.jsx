@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -34,6 +34,8 @@ const generateSeasonOptions = () => {
 };
 
 export default function ParentPaymentForm({ players, onSubmit, onCancel, isSubmitting }) {
+  const formRef = useRef(null);
+  
   const [paymentData, setPaymentData] = useState({
     jugador_id: "",
     jugador_nombre: "",
@@ -50,6 +52,13 @@ export default function ParentPaymentForm({ players, onSubmit, onCancel, isSubmi
 
   const [uploadingFile, setUploadingFile] = useState(false);
   const [fileName, setFileName] = useState("");
+
+  // Scroll al formulario cuando se monta
+  useEffect(() => {
+    if (formRef.current) {
+      formRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }, []);
 
   // Actualizar cantidad según tipo de pago
   useEffect(() => {
@@ -121,6 +130,7 @@ export default function ParentPaymentForm({ players, onSubmit, onCancel, isSubmi
 
   return (
     <motion.div
+      ref={formRef}
       initial={{ opacity: 0, y: -20 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -20 }}
