@@ -474,6 +474,7 @@ export default function Layout({ children, currentPageName }) {
   const [user, setUser] = useState(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [isPlayer, setIsPlayer] = useState(false);
+  const [isCoach, setIsCoach] = useState(false);
   const [unreadMessagesCount, setUnreadMessagesCount] = useState(0);
   const [urgentMessagesCount, setUrgentMessagesCount] = useState(0);
   const [showSpecialScreen, setShowSpecialScreen] = useState(null);
@@ -486,6 +487,7 @@ export default function Layout({ children, currentPageName }) {
         setUser(currentUser);
         setIsAdmin(currentUser.role === "admin");
         setIsPlayer(currentUser.role === "jugador");
+        setIsCoach(currentUser.es_entrenador === true);
         
         if (currentUser.acceso_activo === false && currentUser.role !== "admin") {
           setShowSpecialScreen("restricted");
@@ -606,6 +608,10 @@ export default function Layout({ children, currentPageName }) {
     { title: "Usuarios", url: createPageUrl("UserManagement"), icon: Users },
   ];
 
+  const coachNavigationItems = [
+    { title: "🏆 Convocatorias", url: createPageUrl("CoachCallups"), icon: Bell },
+  ];
+
   const parentNavigationItems = [
     { title: "Inicio", url: createPageUrl("ParentDashboard"), icon: Home },
     { title: "Jugadores", url: createPageUrl("ParentPlayers"), icon: Users },
@@ -613,6 +619,7 @@ export default function Layout({ children, currentPageName }) {
     { title: "Calendario", url: createPageUrl("Calendar"), icon: Calendar },
     { title: "Anuncios", url: createPageUrl("Announcements"), icon: Megaphone },
     { title: "Galería", url: createPageUrl("ParentGallery"), icon: Image },
+    { title: "🏆 Convocatorias", url: createPageUrl("ParentCallups"), icon: Bell },
     { title: "Pagos", url: createPageUrl("ParentPayments"), icon: CreditCard },
     { title: "Pedidos", url: createPageUrl("ClothingOrders"), icon: ShoppingBag },
     { title: "Chat", url: createPageUrl("ParentChat"), icon: MessageCircle, badge: unreadMessagesCount > 0 ? unreadMessagesCount : null, urgentBadge: urgentMessagesCount > 0 },
@@ -625,10 +632,16 @@ export default function Layout({ children, currentPageName }) {
     { title: "Calendario", url: createPageUrl("Calendar"), icon: Calendar },
     { title: "Anuncios", url: createPageUrl("Announcements"), icon: Megaphone },
     { title: "Galería", url: createPageUrl("PlayerGallery"), icon: Image },
+    { title: "🏆 Convocatorias", url: createPageUrl("PlayerCallups"), icon: Bell },
     { title: "Chat Equipo", url: createPageUrl("PlayerChat"), icon: MessageCircle, badge: unreadMessagesCount > 0 ? unreadMessagesCount : null, urgentBadge: urgentMessagesCount > 0 },
   ];
 
-  const navigationItems = isAdmin ? adminNavigationItems : isPlayer ? playerNavigationItems : parentNavigationItems;
+  let navigationItems = isAdmin ? adminNavigationItems : isPlayer ? playerNavigationItems : parentNavigationItems;
+  
+  // Add coach items if user is a coach
+  if (isCoach && !isAdmin) {
+    navigationItems = [...navigationItems, ...coachNavigationItems];
+  }
 
   const handleLogout = () => {
     base44.auth.logout();
@@ -649,7 +662,7 @@ export default function Layout({ children, currentPageName }) {
               <div className="text-white">
                 <h1 className="font-bold text-lg leading-tight">CD Bustarviejo</h1>
                 <p className="text-xs text-orange-100">
-                  {isAdmin ? "Admin" : isPlayer ? "Jugador" : "Familia"}
+                  {isAdmin ? "Admin" : isPlayer ? "Jugador" : isCoach ? "Entrenador" : "Familia"}
                 </p>
               </div>
             </div>
@@ -705,7 +718,7 @@ export default function Layout({ children, currentPageName }) {
               <div className="text-white">
                 <h2 className="font-bold text-xl">CD Bustarviejo</h2>
                 <p className="text-xs text-green-400">
-                  {isAdmin ? "Panel Admin" : isPlayer ? "Panel Jugador" : "Panel Familia"}
+                  {isAdmin ? "Panel Admin" : isPlayer ? "Panel Jugador" : isCoach ? "Panel Entrenador" : "Panel Familia"}
                 </p>
               </div>
             </div>
@@ -750,6 +763,11 @@ export default function Layout({ children, currentPageName }) {
               <div className="text-center text-xs text-white mb-4">
                 <p className="font-medium">{user.full_name}</p>
                 <p className="text-green-400 text-xs">{user.email}</p>
+                {isCoach && !isAdmin && (
+                  <Badge className="mt-2 bg-blue-600 text-white text-xs">
+                    🎓 Entrenador
+                  </Badge>
+                )}
               </div>
             )}
 
