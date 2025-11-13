@@ -22,6 +22,9 @@ import AdminGallery from './pages/AdminGallery';
 import ParentGallery from './pages/ParentGallery';
 import PlayerDashboard from './pages/PlayerDashboard';
 import PlayerProfile from './pages/PlayerProfile';
+import PlayerChat from './pages/PlayerChat';
+import PlayerSchedules from './pages/PlayerSchedules';
+import PlayerGallery from './pages/PlayerGallery';
 import Layout from './Layout.jsx';
 
 
@@ -50,6 +53,9 @@ export const PAGES = {
     "ParentGallery": ParentGallery,
     "PlayerDashboard": PlayerDashboard,
     "PlayerProfile": PlayerProfile,
+    "PlayerChat": PlayerChat,
+    "PlayerSchedules": PlayerSchedules,
+    "PlayerGallery": PlayerGallery,
 }
 
 export const pagesConfig = {
