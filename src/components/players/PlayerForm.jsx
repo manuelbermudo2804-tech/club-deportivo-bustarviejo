@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
-import { Upload, X, Loader2, AlertCircle, Lock } from "lucide-react";
+import { Upload, X, Loader2, AlertCircle, Lock, Users } from "lucide-react";
 import { toast } from "sonner";
 import { base44 } from "@/api/base44Client";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -21,6 +21,8 @@ export default function PlayerForm({ player, onSubmit, onCancel, isSubmitting, i
     fecha_nacimiento: "",
     telefono: "",
     email_padre: "",
+    telefono_tutor_2: "",
+    email_tutor_2: "",
     direccion: "",
     activo: true,
     observaciones: ""
@@ -230,51 +232,16 @@ export default function PlayerForm({ player, onSubmit, onCancel, isSubmitting, i
               )}
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Email Padres */}
-              <div className="space-y-2">
-                <Label htmlFor="email_padre">Correo Electrónico Padres *</Label>
-                <Input
-                  id="email_padre"
-                  type="email"
-                  value={currentPlayer.email_padre}
-                  onChange={(e) => setCurrentPlayer({...currentPlayer, email_padre: e.target.value})}
-                  required
-                  placeholder="padre@ejemplo.com"
-                  disabled={isParent}
-                  className={isParent ? "bg-slate-100" : ""}
-                />
-                {isParent && (
-                  <p className="text-xs text-slate-500 flex items-center gap-1">
-                    <Lock className="w-3 h-3" /> Este es tu email y no puede ser modificado
-                  </p>
-                )}
-              </div>
-
-              {/* Teléfono Padres */}
-              <div className="space-y-2">
-                <Label htmlFor="telefono">Teléfono Padres *</Label>
-                <Input
-                  id="telefono"
-                  type="tel"
-                  value={currentPlayer.telefono}
-                  onChange={(e) => setCurrentPlayer({...currentPlayer, telefono: e.target.value})}
-                  required
-                  placeholder="600123456"
-                />
-              </div>
-
-              {/* Fecha de Nacimiento */}
-              <div className="space-y-2">
-                <Label htmlFor="fecha_nacimiento">Fecha de Nacimiento *</Label>
-                <Input
-                  id="fecha_nacimiento"
-                  type="date"
-                  value={currentPlayer.fecha_nacimiento}
-                  onChange={(e) => setCurrentPlayer({...currentPlayer, fecha_nacimiento: e.target.value})}
-                  required
-                />
-              </div>
+            {/* Fecha de Nacimiento */}
+            <div className="space-y-2">
+              <Label htmlFor="fecha_nacimiento">Fecha de Nacimiento *</Label>
+              <Input
+                id="fecha_nacimiento"
+                type="date"
+                value={currentPlayer.fecha_nacimiento}
+                onChange={(e) => setCurrentPlayer({...currentPlayer, fecha_nacimiento: e.target.value})}
+                required
+              />
             </div>
 
             {/* Dirección */}
@@ -287,6 +254,104 @@ export default function PlayerForm({ player, onSubmit, onCancel, isSubmitting, i
                 placeholder="Calle, número, ciudad..."
                 required
               />
+            </div>
+
+            {/* Sección Primer Progenitor/Tutor */}
+            <div className="space-y-4 border-t border-slate-200 pt-6">
+              <div className="flex items-center gap-2 mb-4">
+                <Users className="w-5 h-5 text-orange-600" />
+                <h3 className="text-lg font-semibold text-slate-900">Primer Progenitor/Tutor (Cuenta Principal)</h3>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Email Primer Progenitor */}
+                <div className="space-y-2">
+                  <Label htmlFor="email_padre">Correo Electrónico *</Label>
+                  <Input
+                    id="email_padre"
+                    type="email"
+                    value={currentPlayer.email_padre}
+                    onChange={(e) => setCurrentPlayer({...currentPlayer, email_padre: e.target.value})}
+                    required
+                    placeholder="padre@ejemplo.com"
+                    disabled={isParent}
+                    className={isParent ? "bg-slate-100" : ""}
+                  />
+                  {isParent && (
+                    <p className="text-xs text-slate-500 flex items-center gap-1">
+                      <Lock className="w-3 h-3" /> Este es tu email y no puede ser modificado
+                    </p>
+                  )}
+                  {!isParent && (
+                    <p className="text-xs text-slate-500">
+                      Este email tendrá acceso completo a la app (chat, pagos, jugadores)
+                    </p>
+                  )}
+                </div>
+
+                {/* Teléfono Primer Progenitor */}
+                <div className="space-y-2">
+                  <Label htmlFor="telefono">Teléfono *</Label>
+                  <Input
+                    id="telefono"
+                    type="tel"
+                    value={currentPlayer.telefono}
+                    onChange={(e) => setCurrentPlayer({...currentPlayer, telefono: e.target.value})}
+                    required
+                    placeholder="600123456"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Sección Segundo Progenitor/Tutor */}
+            <div className="space-y-4 border-t border-slate-200 pt-6">
+              <div className="flex items-center gap-2 mb-4">
+                <Users className="w-5 h-5 text-slate-600" />
+                <h3 className="text-lg font-semibold text-slate-900">Segundo Progenitor/Tutor (Opcional)</h3>
+              </div>
+              
+              <Alert className="bg-blue-50 border-blue-200 mb-4">
+                <AlertCircle className="h-4 w-4 text-blue-600" />
+                <AlertDescription className="text-blue-800 text-sm">
+                  <strong>💡 Nuevo:</strong> Si añades un segundo email, esa persona también podrá:
+                  <ul className="list-disc list-inside mt-2 space-y-1">
+                    <li>Recibir todas las notificaciones (pagos, anuncios, recordatorios)</li>
+                    <li>Acceder a la app creando su propia cuenta con ese email</li>
+                    <li>Ver y gestionar los jugadores asociados</li>
+                    <li>Participar en el chat del grupo</li>
+                  </ul>
+                </AlertDescription>
+              </Alert>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Email Segundo Progenitor */}
+                <div className="space-y-2">
+                  <Label htmlFor="email_tutor_2">Correo Electrónico</Label>
+                  <Input
+                    id="email_tutor_2"
+                    type="email"
+                    value={currentPlayer.email_tutor_2}
+                    onChange={(e) => setCurrentPlayer({...currentPlayer, email_tutor_2: e.target.value})}
+                    placeholder="madre@ejemplo.com"
+                  />
+                  <p className="text-xs text-slate-500">
+                    También tendrá acceso completo a la información del jugador
+                  </p>
+                </div>
+
+                {/* Teléfono Segundo Progenitor */}
+                <div className="space-y-2">
+                  <Label htmlFor="telefono_tutor_2">Teléfono</Label>
+                  <Input
+                    id="telefono_tutor_2"
+                    type="tel"
+                    value={currentPlayer.telefono_tutor_2}
+                    onChange={(e) => setCurrentPlayer({...currentPlayer, telefono_tutor_2: e.target.value})}
+                    placeholder="600654321"
+                  />
+                </div>
+              </div>
             </div>
 
             {/* Observaciones */}
@@ -302,14 +367,15 @@ export default function PlayerForm({ player, onSubmit, onCancel, isSubmitting, i
             </div>
 
             {/* Información importante */}
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 flex items-start gap-3">
-              <AlertCircle className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
-              <div className="text-sm text-blue-900">
-                <p className="font-medium mb-1">📋 Información:</p>
-                <ul className="list-disc list-inside space-y-1 text-blue-800">
-                  <li>Todos los campos marcados con * son obligatorios</li>
-                  <li>El correo electrónico se usará para notificaciones y acceso al chat del grupo</li>
-                  <li>Asegúrate de que la fecha de nacimiento sea correcta según la categoría</li>
+            <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 flex items-start gap-3">
+              <AlertCircle className="w-5 h-5 text-orange-600 mt-0.5 flex-shrink-0" />
+              <div className="text-sm text-orange-900">
+                <p className="font-medium mb-1">📋 Información Importante:</p>
+                <ul className="list-disc list-inside space-y-1 text-orange-800">
+                  <li>Los campos marcados con * son obligatorios</li>
+                  <li>Ambos progenitores recibirán todas las notificaciones por email</li>
+                  <li>Para acceder a la app, cada uno debe registrarse con su email respectivo</li>
+                  <li>El segundo progenitor verá los mismos jugadores asociados a su email</li>
                 </ul>
               </div>
             </div>
