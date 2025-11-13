@@ -26,16 +26,23 @@ export default function ParentPlayers() {
     queryFn: async () => {
       const allPlayers = await base44.entities.Player.list();
       return allPlayers.filter(p => 
-        p.email_padre === user?.email || p.email === user?.email
+        p.email_padre === user?.email || p.email_tutor_2 === user?.email
       );
     },
     enabled: !!user?.email,
     initialData: [],
   });
 
+  const { data: allPlayers } = useQuery({
+    queryKey: ['allPlayersForRenewal'],
+    queryFn: async () => {
+      return await base44.entities.Player.list();
+    },
+    initialData: [],
+  });
+
   const createPlayerMutation = useMutation({
     mutationFn: (playerData) => {
-      // Asegurar que el padre no pueda crear jugadores sin su email
       const dataWithParentEmail = {
         ...playerData,
         email_padre: user?.email || playerData.email_padre
@@ -45,6 +52,7 @@ export default function ParentPlayers() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['myPlayers'] });
       queryClient.invalidateQueries({ queryKey: ['players'] });
+      queryClient.invalidateQueries({ queryKey: ['allPlayersForRenewal'] });
       setShowForm(false);
       setEditingPlayer(null);
     },
@@ -52,10 +60,8 @@ export default function ParentPlayers() {
 
   const updatePlayerMutation = useMutation({
     mutationFn: ({ id, playerData }) => {
-      // Proteger campos críticos para padres
       const safeData = {
         ...playerData,
-        // El padre no puede cambiar el email_padre asociado
         email_padre: editingPlayer?.email_padre || user?.email,
       };
       return base44.entities.Player.update(id, safeData);
@@ -81,9 +87,12 @@ export default function ParentPlayers() {
     setShowForm(true);
   };
 
-  const futbolMasculinoPlayers = players.filter(p => p.deporte === "Fútbol Masculino");
+  // Filtrar jugadores por deporte usando las nuevas categorías
+  const futbolPlayers = players.filter(p => 
+    p.deporte?.includes("Fútbol") && !p.deporte?.includes("Femenino")
+  );
   const futbolFemeninoPlayers = players.filter(p => p.deporte === "Fútbol Femenino");
-  const baloncestoPlayers = players.filter(p => p.deporte === "Baloncesto");
+  const baloncestoPlayers = players.filter(p => p.deporte?.includes("Baloncesto"));
 
   return (
     <div className="p-6 lg:p-8 space-y-6">
@@ -134,7 +143,7 @@ export default function ParentPlayers() {
             <div>
               <p className="text-sm text-slate-600 mb-1">Fútbol</p>
               <p className="text-3xl font-bold text-blue-700">
-                {futbolMasculinoPlayers.length + futbolFemeninoPlayers.length}
+                {futbolPlayers.length + futbolFemeninoPlayers.length}
               </p>
             </div>
             <span className="text-4xl">⚽</span>
@@ -156,6 +165,7 @@ export default function ParentPlayers() {
         {showForm && (
           <PlayerForm
             player={editingPlayer}
+            allPlayers={allPlayers}
             onSubmit={handleSubmit}
             onCancel={() => {
               setShowForm(false);
@@ -180,15 +190,15 @@ export default function ParentPlayers() {
         </div>
       ) : (
         <>
-          {/* Jugadores de Fútbol Masculino */}
-          {futbolMasculinoPlayers.length > 0 && (
+          {/* Jugadores de Fútbol */}
+          {futbolPlayers.length > 0 && (
             <div className="space-y-4">
               <h2 className="text-2xl font-bold text-slate-900 flex items-center gap-2">
-                <span>⚽</span> Fútbol Masculino
+                <span>⚽</span> Fútbol
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                 <AnimatePresence>
-                  {futbolMasculinoPlayers.map((player) => (
+                  {futbolPlayers.map((player) => (
                     <PlayerCard 
                       key={player.id} 
                       player={player} 

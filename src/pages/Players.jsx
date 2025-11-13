@@ -6,7 +6,6 @@ import { Input } from "@/components/ui/input";
 import { Plus, Search } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AnimatePresence } from "framer-motion";
-import { Badge } from "@/components/ui/badge";
 
 import PlayerCard from "../components/players/PlayerCard";
 import PlayerForm from "../components/players/PlayerForm";
@@ -15,7 +14,6 @@ export default function Players() {
   const [showForm, setShowForm] = useState(false);
   const [editingPlayer, setEditingPlayer] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
-  const [categoryFilter, setCategoryFilter] = useState("all");
   const [sportFilter, setSportFilter] = useState("all");
   
   const queryClient = useQueryClient();
@@ -59,17 +57,15 @@ export default function Players() {
 
   const filteredPlayers = players.filter(player => {
     const matchesSearch = player.nombre?.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory = categoryFilter === "all" || player.categoria === categoryFilter;
     const matchesSport = sportFilter === "all" || player.deporte === sportFilter;
-    return matchesSearch && matchesCategory && matchesSport;
+    return matchesSearch && matchesSport;
   });
 
-  const categories = ["all", "Prebenjamín", "Benjamín", "Alevín", "Infantil", "Cadete", "Juvenil", "Senior"];
-
-  // Contar jugadores por deporte
-  const futbolMasculinoCount = players.filter(p => p.deporte === "Fútbol Masculino").length;
+  // Contar jugadores por categorías
+  const allCount = players.length;
+  const futbolCount = players.filter(p => p.deporte?.includes("Fútbol") && !p.deporte?.includes("Femenino")).length;
   const futbolFemeninoCount = players.filter(p => p.deporte === "Fútbol Femenino").length;
-  const baloncestoCount = players.filter(p => p.deporte === "Baloncesto").length;
+  const baloncestoCount = players.filter(p => p.deporte?.includes("Baloncesto")).length;
 
   return (
     <div className="p-6 lg:p-8 space-y-6">
@@ -94,6 +90,7 @@ export default function Players() {
         {showForm && (
           <PlayerForm
             player={editingPlayer}
+            allPlayers={players}
             onSubmit={handleSubmit}
             onCancel={() => {
               setShowForm(false);
@@ -111,14 +108,14 @@ export default function Players() {
           onClick={() => setSportFilter("all")}
           className={sportFilter === "all" ? "bg-orange-600 hover:bg-orange-700" : ""}
         >
-          Todos ({players.length})
+          Todos ({allCount})
         </Button>
         <Button
-          variant={sportFilter === "Fútbol Masculino" ? "default" : "outline"}
-          onClick={() => setSportFilter("Fútbol Masculino")}
-          className={sportFilter === "Fútbol Masculino" ? "bg-blue-600 hover:bg-blue-700" : ""}
+          variant={sportFilter === "Fútbol" ? "default" : "outline"}
+          onClick={() => setSportFilter("Fútbol")}
+          className={sportFilter === "Fútbol" ? "bg-blue-600 hover:bg-blue-700" : ""}
         >
-          ⚽ Fútbol Masculino ({futbolMasculinoCount})
+          ⚽ Fútbol ({futbolCount})
         </Button>
         <Button
           variant={sportFilter === "Fútbol Femenino" ? "default" : "outline"}
@@ -136,25 +133,14 @@ export default function Players() {
         </Button>
       </div>
 
-      <div className="flex flex-col md:flex-row gap-4">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-slate-400" />
-          <Input
-            placeholder="Buscar jugador..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10 bg-white shadow-sm"
-          />
-        </div>
-        <Tabs value={categoryFilter} onValueChange={setCategoryFilter} className="w-full md:w-auto">
-          <TabsList className="bg-white shadow-sm">
-            {categories.map((cat) => (
-              <TabsTrigger key={cat} value={cat} className="data-[state=active]:bg-orange-100 data-[state=active]:text-orange-700">
-                {cat === "all" ? "Todas" : cat}
-              </TabsTrigger>
-            ))}
-          </TabsList>
-        </Tabs>
+      <div className="relative flex-1">
+        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-slate-400" />
+        <Input
+          placeholder="Buscar jugador..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="pl-10 bg-white shadow-sm"
+        />
       </div>
 
       {isLoading ? (
