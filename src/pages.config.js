@@ -25,6 +25,7 @@ import PlayerProfile from './pages/PlayerProfile';
 import PlayerChat from './pages/PlayerChat';
 import PlayerSchedules from './pages/PlayerSchedules';
 import PlayerGallery from './pages/PlayerGallery';
+import CoachCallups from './pages/CoachCallups';
 import Layout from './Layout.jsx';
 
 
@@ -56,6 +57,7 @@ export const PAGES = {
     "PlayerChat": PlayerChat,
     "PlayerSchedules": PlayerSchedules,
     "PlayerGallery": PlayerGallery,
+    "CoachCallups": CoachCallups,
 }
 
 export const pagesConfig = {
