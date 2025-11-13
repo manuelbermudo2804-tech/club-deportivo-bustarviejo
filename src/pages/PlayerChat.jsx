@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -39,6 +40,16 @@ export default function PlayerChat() {
     queryFn: () => base44.entities.ChatMessage.list('-created_date'),
     initialData: [],
     refetchInterval: 3000,
+  });
+
+  const { data: teamPlayers } = useQuery({
+    queryKey: ['teamPlayers', player?.deporte],
+    queryFn: async () => {
+      const allPlayers = await base44.entities.Player.list();
+      return allPlayers.filter(p => p.deporte === player?.deporte && p.activo);
+    },
+    enabled: !!player?.deporte,
+    initialData: [],
   });
 
   const sendMessageMutation = useMutation({
@@ -131,20 +142,24 @@ export default function PlayerChat() {
   return (
     <div className="h-screen flex flex-col bg-white">
       {/* Header del Chat */}
-      <div className="bg-gradient-to-r from-orange-600 to-orange-700 p-4 text-white flex items-center gap-3 shadow-md">
-        <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
-          <span className="text-xl">{sportEmojis[player.deporte]}</span>
+      <div className="bg-gradient-to-r from-orange-600 to-orange-700 p-4 text-white shadow-md">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
+            <span className="text-xl">{sportEmojis[player.deporte]}</span>
+          </div>
+          <div className="flex-1">
+            <h2 className="font-bold text-base">{player.deporte}</h2>
+            <p className="text-xs text-orange-100">
+              {teamPlayers.length} compañero{teamPlayers.length !== 1 ? 's' : ''} en el equipo
+            </p>
+          </div>
+          {!isBusinessHours() && (
+            <Badge className="bg-white/20 text-white text-xs">
+              <Clock className="w-3 h-3 mr-1" />
+              Fuera de horario
+            </Badge>
+          )}
         </div>
-        <div className="flex-1">
-          <h2 className="font-bold text-base">{player.deporte}</h2>
-          <p className="text-xs text-orange-100">Chat del equipo</p>
-        </div>
-        {!isBusinessHours() && (
-          <Badge className="bg-white/20 text-white text-xs">
-            <Clock className="w-3 h-3 mr-1" />
-            Fuera de horario
-          </Badge>
-        )}
       </div>
 
       {/* Mensajes */}
@@ -168,6 +183,7 @@ export default function PlayerChat() {
             .map((msg) => {
               const isMyMessage = msg.remitente_email === user.email;
               const isAdmin = msg.tipo === "admin_a_grupo";
+              const isJugador = msg.tipo === "jugador_a_equipo";
               
               return (
                 <div
@@ -180,13 +196,17 @@ export default function PlayerChat() {
                         ? 'bg-gradient-to-r from-green-600 to-green-700 text-white rounded-br-none'
                         : isAdmin 
                         ? 'bg-gradient-to-r from-orange-600 to-orange-700 text-white rounded-bl-none'
+                        : isJugador
+                        ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-bl-none'
                         : 'bg-white text-slate-900 rounded-bl-none'
                     }`}
                   >
                     <div className="px-3 py-2">
                       <div className="flex items-center gap-2 mb-1">
-                        <span className={`text-xs font-semibold ${isMyMessage ? 'text-green-100' : isAdmin ? 'text-orange-100' : 'text-orange-700'}`}>
-                          {isAdmin ? '🎓 ' : ''}{msg.remitente_nombre}
+                        <span className={`text-xs font-semibold ${
+                          isMyMessage ? 'text-green-100' : isAdmin ? 'text-orange-100' : isJugador ? 'text-blue-100' : 'text-orange-700'
+                        }`}>
+                          {isAdmin ? '🎓 ' : isJugador ? '⚽ ' : '👨‍👩‍👧 '}{msg.remitente_nombre}
                         </span>
                         {msg.prioridad !== "Normal" && (
                           <span className="text-xs">{msg.prioridad === "Urgente" ? "🔴" : "⚠️"}</span>
@@ -201,7 +221,7 @@ export default function PlayerChat() {
                       )}
                       
                       <div className="flex items-center justify-end gap-1 mt-1">
-                        <span className={`text-[10px] ${isMyMessage ? 'text-green-100' : isAdmin ? 'text-orange-100' : 'text-slate-500'}`}>
+                        <span className={`text-[10px] ${isMyMessage ? 'text-green-100' : isAdmin ? 'text-orange-100' : isJugador ? 'text-blue-100' : 'text-slate-500'}`}>
                           {format(new Date(msg.created_date), "HH:mm")}
                         </span>
                       </div>

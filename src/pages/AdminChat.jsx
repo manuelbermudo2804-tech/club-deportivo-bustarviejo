@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -202,6 +203,7 @@ export default function AdminChat() {
     if (!groups[deporteNormalizado].messages.find(m => m.id === msg.id)) {
       groups[deporteNormalizado].messages.push(msg);
       
+      // Only count unread for parent-to-group messages
       if (!msg.leido && msg.tipo === "padre_a_grupo") {
         groups[deporteNormalizado].unreadCount++;
         if (msg.prioridad === "Urgente") {
@@ -264,6 +266,7 @@ export default function AdminChat() {
   const handleSelectGroup = (group) => {
     setSelectedGroup(group);
     setSendToAll(false);
+    // Mark as read only messages of type "padre_a_grupo" when admin selects the group
     const unreadMessageIds = group.messages
       .filter(msg => !msg.leido && msg.tipo === "padre_a_grupo")
       .map(msg => msg.id);
@@ -299,8 +302,9 @@ export default function AdminChat() {
 
   // Calcular si un mensaje ha sido leído por alguien
   const getReadStatus = (msg) => {
+    // This status is only for messages sent by the admin (admin_a_grupo)
+    // and checks if at least one parent has read it.
     if (msg.tipo !== "admin_a_grupo") return null;
-    // Si tiene leido: true significa que al menos un padre lo leyó
     return msg.leido ? "read" : "sent";
   };
 
@@ -532,23 +536,30 @@ export default function AdminChat() {
                   .sort((a, b) => new Date(a.created_date) - new Date(b.created_date))
                   .map((msg) => {
                     const readStatus = getReadStatus(msg);
+                    const isJugador = msg.tipo === "jugador_a_equipo";
+                    const isPadre = msg.tipo === "padre_a_grupo";
+                    const isAdmin = msg.tipo === "admin_a_grupo";
                     
                     return (
                       <div
                         key={msg.id}
-                        className={`flex ${msg.tipo === "admin_a_grupo" ? 'justify-end' : 'justify-start'} mb-1`}
+                        className={`flex ${isAdmin ? 'justify-end' : 'justify-start'} mb-1`}
                       >
                         <div
                           className={`max-w-[65%] rounded-lg shadow-sm ${
-                            msg.tipo === "admin_a_grupo"
+                            isAdmin
                               ? 'bg-gradient-to-r from-green-600 to-green-700 text-white rounded-br-none'
+                              : isJugador
+                              ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-bl-none'
                               : 'bg-white text-slate-900 rounded-bl-none'
                           }`}
                         >
                           <div className="px-3 py-2">
                             <div className="flex items-center gap-2 mb-1">
-                              <span className={`text-xs font-semibold ${msg.tipo === "admin_a_grupo" ? 'text-green-100' : 'text-orange-700'}`}>
-                                {msg.remitente_nombre}
+                              <span className={`text-xs font-semibold ${
+                                isAdmin ? 'text-green-100' : isJugador ? 'text-blue-100' : 'text-orange-700'
+                              }`}>
+                                {isAdmin ? '🎓 ' : isJugador ? '⚽ ' : '👨‍👩‍👧 '}{msg.remitente_nombre}
                               </span>
                               {msg.prioridad !== "Normal" && (
                                 <span className="text-xs">{msg.prioridad === "Urgente" ? "🔴" : "⚠️"}</span>
@@ -563,10 +574,10 @@ export default function AdminChat() {
                             )}
                             
                             <div className="flex items-center justify-end gap-1 mt-1">
-                              <span className={`text-[10px] ${msg.tipo === "admin_a_grupo" ? 'text-green-100' : 'text-slate-500'}`}>
+                              <span className={`text-[10px] ${isAdmin ? 'text-green-100' : isJugador ? 'text-blue-100' : 'text-slate-500'}`}>
                                 {format(new Date(msg.created_date), "HH:mm")}
                               </span>
-                              {msg.tipo === "admin_a_grupo" && (
+                              {isAdmin && (
                                 <span className="ml-1">
                                   {readStatus === "read" ? (
                                     <CheckCheck className="w-3 h-3 text-blue-400" />
