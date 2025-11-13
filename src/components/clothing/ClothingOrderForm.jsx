@@ -7,7 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Upload, X, Loader2, AlertCircle, ShoppingBag } from "lucide-react";
+import { Upload, X, Loader2, AlertCircle, ShoppingBag, Info } from "lucide-react";
 import { toast } from "sonner";
 import { base44 } from "@/api/base44Client";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -28,9 +28,9 @@ const TALLAS = [
   "Talla 3XL"
 ];
 
-// Precios (ajustar según necesidad)
+// Precios
 const PRECIO_CHAQUETA = 35;
-const PRECIO_PACK_ENTRENAMIENTO = 45;
+const PRECIO_PACK_ENTRENAMIENTO = 41; // Pack completo (camiseta + pantalón + sudadera)
 
 // Función para obtener la temporada actual
 const getCurrentSeason = () => {
@@ -157,17 +157,17 @@ export default function ClothingOrderForm({ players, onSubmit, onCancel, isSubmi
     try {
       await base44.integrations.Core.SendEmail({
         to: "CDBUSTARVIEJO@GMAIL.COM",
-        subject: `Nuevo Pedido de Ropa - ${orderData.jugador_nombre}`,
+        subject: `Nuevo Pedido de Equipación - ${orderData.jugador_nombre}`,
         body: `
-          <h2>Nuevo Pedido de Ropa Recibido</h2>
+          <h2>Nuevo Pedido de Equipación Recibido</h2>
           <p><strong>Jugador:</strong> ${orderData.jugador_nombre}</p>
           <p><strong>Categoría:</strong> ${orderData.jugador_categoria}</p>
           <p><strong>Email Padre/Tutor:</strong> ${orderData.email_padre}</p>
           <p><strong>Teléfono:</strong> ${orderData.telefono}</p>
           <hr>
           <h3>Productos Solicitados:</h3>
-          ${orderData.chaqueta_partidos ? `<p>✅ <strong>Chaqueta de Partidos:</strong> ${orderData.chaqueta_talla}</p>` : ''}
-          ${orderData.pack_entrenamiento ? `<p>✅ <strong>Pack de Entrenamiento:</strong> ${orderData.pack_talla}</p>` : ''}
+          ${orderData.chaqueta_partidos ? `<p>✅ <strong>Chaqueta de Partidos:</strong> ${orderData.chaqueta_talla} - ${PRECIO_CHAQUETA}€</p>` : ''}
+          ${orderData.pack_entrenamiento ? `<p>✅ <strong>Pack de Entrenamiento (Camiseta + Pantalón + Sudadera):</strong> ${orderData.pack_talla} - ${PRECIO_PACK_ENTRENAMIENTO}€</p>` : ''}
           <hr>
           <p><strong>Precio Total:</strong> ${orderData.precio_total}€</p>
           <p><strong>Concepto Pago:</strong> ${orderData.concepto_pago}</p>
@@ -266,7 +266,7 @@ export default function ClothingOrderForm({ players, onSubmit, onCancel, isSubmi
 
                   {/* Chaqueta de Partidos */}
                   {canOrderJacket ? (
-                    <div className="space-y-3 bg-white rounded-lg p-4">
+                    <div className="space-y-3 bg-white rounded-lg p-4 border-2 border-slate-200">
                       <div className="flex items-center space-x-3">
                         <Checkbox
                           id="chaqueta"
@@ -279,6 +279,9 @@ export default function ClothingOrderForm({ players, onSubmit, onCancel, isSubmi
                           Chaqueta de Partidos - {PRECIO_CHAQUETA}€
                         </label>
                       </div>
+                      <p className="text-sm text-slate-600 ml-7">
+                        Chaqueta oficial para los partidos
+                      </p>
                       {orderData.chaqueta_partidos && (
                         <div className="ml-7 space-y-2">
                           <Label htmlFor="chaqueta_talla">Talla de la Chaqueta *</Label>
@@ -311,7 +314,7 @@ export default function ClothingOrderForm({ players, onSubmit, onCancel, isSubmi
                   )}
 
                   {/* Pack de Entrenamiento */}
-                  <div className="space-y-3 bg-white rounded-lg p-4">
+                  <div className="space-y-3 bg-white rounded-lg p-4 border-2 border-slate-200">
                     <div className="flex items-center space-x-3">
                       <Checkbox
                         id="pack"
@@ -324,6 +327,12 @@ export default function ClothingOrderForm({ players, onSubmit, onCancel, isSubmi
                         Pack de Entrenamiento - {PRECIO_PACK_ENTRENAMIENTO}€
                       </label>
                     </div>
+                    <Alert className="ml-7 bg-blue-50 border-blue-200">
+                      <Info className="h-4 w-4 text-blue-600" />
+                      <AlertDescription className="text-blue-800 text-sm">
+                        <strong>El pack incluye:</strong> Camiseta + Pantalón + Sudadera
+                      </AlertDescription>
+                    </Alert>
                     {orderData.pack_entrenamiento && (
                       <div className="ml-7 space-y-2">
                         <Label htmlFor="pack_talla">Talla del Pack *</Label>
@@ -343,6 +352,9 @@ export default function ClothingOrderForm({ players, onSubmit, onCancel, isSubmi
                             ))}
                           </SelectContent>
                         </Select>
+                        <p className="text-xs text-slate-500">
+                          Consulta la guía de tallas en la información del producto
+                        </p>
                       </div>
                     )}
                   </div>
@@ -363,6 +375,14 @@ export default function ClothingOrderForm({ players, onSubmit, onCancel, isSubmi
                     <div className="space-y-4 border-2 border-blue-200 rounded-lg p-6 bg-blue-50">
                       <h3 className="text-lg font-bold text-blue-900">Información de Pago</h3>
                       
+                      <Alert className="bg-white border-blue-300">
+                        <AlertCircle className="h-4 w-4 text-blue-600" />
+                        <AlertDescription className="text-blue-800 text-sm">
+                          <strong>💳 Método de pago:</strong> Transferencia Bancaria<br/>
+                          <strong>📧 Los pedidos se envían a:</strong> CDBUSTARVIEJO@GMAIL.COM
+                        </AlertDescription>
+                      </Alert>
+
                       {/* Concepto */}
                       <div className="space-y-2">
                         <Label htmlFor="concepto">Concepto de la Transferencia *</Label>
@@ -371,10 +391,10 @@ export default function ClothingOrderForm({ players, onSubmit, onCancel, isSubmi
                           value={orderData.concepto_pago}
                           onChange={(e) => setOrderData({...orderData, concepto_pago: e.target.value})}
                           required
-                          className="font-mono text-sm"
+                          className="font-mono text-sm bg-white"
                         />
                         <p className="text-xs text-blue-600">
-                          Usa este concepto exacto en tu transferencia
+                          ⚠️ Usa este concepto exacto en tu transferencia
                         </p>
                       </div>
 
@@ -387,6 +407,7 @@ export default function ClothingOrderForm({ players, onSubmit, onCancel, isSubmi
                           value={orderData.fecha_pago}
                           onChange={(e) => setOrderData({...orderData, fecha_pago: e.target.value})}
                           required
+                          className="bg-white"
                         />
                       </div>
                     </div>

@@ -15,6 +15,7 @@ import ParentChat from './pages/ParentChat';
 import UserManagement from './pages/UserManagement';
 import OrderManagement from './pages/OrderManagement';
 import ParentOrders from './pages/ParentOrders';
+import ClothingOrders from './pages/ClothingOrders';
 import Layout from './Layout.jsx';
 
 
@@ -36,6 +37,7 @@ export const PAGES = {
     "UserManagement": UserManagement,
     "OrderManagement": OrderManagement,
     "ParentOrders": ParentOrders,
+    "ClothingOrders": ClothingOrders,
 }
 
 export const pagesConfig = {
