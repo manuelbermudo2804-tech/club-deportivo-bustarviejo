@@ -13,9 +13,11 @@ import ClothingOrderForm from "../components/clothing/ClothingOrderForm";
 import ContactCard from "../components/ContactCard";
 
 // Verificar si estamos en periodo de pedidos (Junio-Julio)
+// TEMPORAL: Siempre activo para pruebas
 const isOrderPeriodActive = () => {
-  const currentMonth = new Date().getMonth() + 1; // 1 = enero, 6 = junio, 7 = julio
-  return currentMonth === 6 || currentMonth === 7;
+  return true; // 🔧 TEMPORAL - Cambiar después de probar
+  // const currentMonth = new Date().getMonth() + 1;
+  // return currentMonth === 6 || currentMonth === 7;
 };
 
 export default function ClothingOrders() {
