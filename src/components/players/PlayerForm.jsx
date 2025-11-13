@@ -17,15 +17,11 @@ export default function PlayerForm({ player, onSubmit, onCancel, isSubmitting, i
   const [currentPlayer, setCurrentPlayer] = useState(player || {
     nombre: "",
     foto_url: "",
-    deporte: "Fútbol Masculino",
+    deporte: "Fútbol Pre-Benjamín (Mixto)",
     fecha_nacimiento: "",
-    dni: "",
     telefono: "",
     email_padre: "",
     direccion: "",
-    categoria: "",
-    posicion: "",
-    numero_camiseta: "",
     activo: true,
     observaciones: ""
   });
@@ -124,7 +120,7 @@ export default function PlayerForm({ player, onSubmit, onCancel, isSubmitting, i
             <Alert className="mb-6 bg-orange-50 border-orange-200">
               <Lock className="h-4 w-4 text-orange-600" />
               <AlertDescription className="text-orange-800">
-                <strong>Modo edición limitado:</strong> Algunos campos no pueden ser modificados. Contacta al administrador si necesitas cambiar deporte, categoría o email.
+                <strong>Modo edición limitado:</strong> Algunos campos no pueden ser modificados. Contacta al administrador si necesitas cambios importantes.
               </AlertDescription>
             </Alert>
           )}
@@ -172,82 +168,72 @@ export default function PlayerForm({ player, onSubmit, onCancel, isSubmitting, i
               <p className="text-sm text-slate-600">Haz clic en el icono para subir una foto</p>
             </div>
 
+            {/* Nombre y Apellidos */}
+            <div className="space-y-2">
+              <Label htmlFor="nombre">Nombre y Apellidos del Jugador *</Label>
+              <Input
+                id="nombre"
+                value={currentPlayer.nombre}
+                onChange={(e) => setCurrentPlayer({...currentPlayer, nombre: e.target.value})}
+                required
+                placeholder="Ej: Juan García López"
+                className="text-lg"
+              />
+            </div>
+
+            {/* Categoría/Deporte */}
+            <div className="space-y-2">
+              <Label htmlFor="deporte">Categoría y Deporte *</Label>
+              <Select
+                value={currentPlayer.deporte}
+                onValueChange={(value) => setCurrentPlayer({...currentPlayer, deporte: value})}
+                required
+                disabled={isParent && player}
+              >
+                <SelectTrigger className={isParent && player ? "bg-slate-100" : ""}>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Fútbol Pre-Benjamín (Mixto)">
+                    ⚽ Fútbol Pre-Benjamín (Mixto) - 2019/2018
+                  </SelectItem>
+                  <SelectItem value="Fútbol Benjamín (Mixto)">
+                    ⚽ Fútbol Benjamín (Mixto) - 2017/2016
+                  </SelectItem>
+                  <SelectItem value="Fútbol Alevín (Mixto)">
+                    ⚽ Fútbol Alevín (Mixto) - 2015/2014
+                  </SelectItem>
+                  <SelectItem value="Fútbol Infantil (Mixto)">
+                    ⚽ Fútbol Infantil (Mixto) - 2013/2012
+                  </SelectItem>
+                  <SelectItem value="Fútbol Cadete">
+                    ⚽ Fútbol Cadete - 2011/2010
+                  </SelectItem>
+                  <SelectItem value="Fútbol Juvenil">
+                    ⚽ Fútbol Juvenil - 2009/2008/2007
+                  </SelectItem>
+                  <SelectItem value="Fútbol Aficionado">
+                    ⚽ Fútbol Aficionado - 2006 y anteriores
+                  </SelectItem>
+                  <SelectItem value="Fútbol Femenino">
+                    ⚽ Fútbol Femenino
+                  </SelectItem>
+                  <SelectItem value="Baloncesto (Mixto)">
+                    🏀 Baloncesto (Mixto)
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+              {isParent && player && (
+                <p className="text-xs text-slate-500 flex items-center gap-1">
+                  <Lock className="w-3 h-3" /> Solo el administrador puede modificar este campo
+                </p>
+              )}
+            </div>
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Nombre */}
+              {/* Email Padres */}
               <div className="space-y-2">
-                <Label htmlFor="nombre">Nombre Completo *</Label>
-                <Input
-                  id="nombre"
-                  value={currentPlayer.nombre}
-                  onChange={(e) => setCurrentPlayer({...currentPlayer, nombre: e.target.value})}
-                  required
-                  placeholder="Ej: Juan García López"
-                />
-              </div>
-
-              {/* Deporte */}
-              <div className="space-y-2">
-                <Label htmlFor="deporte">Deporte *</Label>
-                <Select
-                  value={currentPlayer.deporte}
-                  onValueChange={(value) => setCurrentPlayer({...currentPlayer, deporte: value})}
-                  required
-                  disabled={isParent && player}
-                >
-                  <SelectTrigger className={isParent && player ? "bg-slate-100" : ""}>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Fútbol Masculino">Fútbol Masculino ⚽</SelectItem>
-                    <SelectItem value="Fútbol Femenino">Fútbol Femenino ⚽</SelectItem>
-                    <SelectItem value="Baloncesto">Baloncesto 🏀</SelectItem>
-                  </SelectContent>
-                </Select>
-                {isParent && player && (
-                  <p className="text-xs text-slate-500 flex items-center gap-1">
-                    <Lock className="w-3 h-3" /> Solo el administrador puede modificar este campo
-                  </p>
-                )}
-              </div>
-
-              {/* Fecha de Nacimiento */}
-              <div className="space-y-2">
-                <Label htmlFor="fecha_nacimiento">Fecha de Nacimiento *</Label>
-                <Input
-                  id="fecha_nacimiento"
-                  type="date"
-                  value={currentPlayer.fecha_nacimiento}
-                  onChange={(e) => setCurrentPlayer({...currentPlayer, fecha_nacimiento: e.target.value})}
-                  required
-                />
-              </div>
-
-              {/* DNI */}
-              <div className="space-y-2">
-                <Label htmlFor="dni">DNI</Label>
-                <Input
-                  id="dni"
-                  value={currentPlayer.dni}
-                  onChange={(e) => setCurrentPlayer({...currentPlayer, dni: e.target.value})}
-                  placeholder="12345678A"
-                />
-              </div>
-
-              {/* Teléfono */}
-              <div className="space-y-2">
-                <Label htmlFor="telefono">Teléfono</Label>
-                <Input
-                  id="telefono"
-                  type="tel"
-                  value={currentPlayer.telefono}
-                  onChange={(e) => setCurrentPlayer({...currentPlayer, telefono: e.target.value})}
-                  placeholder="600123456"
-                />
-              </div>
-
-              {/* Email Padre */}
-              <div className="space-y-2">
-                <Label htmlFor="email_padre">Email del Padre/Tutor *</Label>
+                <Label htmlFor="email_padre">Correo Electrónico Padres *</Label>
                 <Input
                   id="email_padre"
                   type="email"
@@ -265,83 +251,47 @@ export default function PlayerForm({ player, onSubmit, onCancel, isSubmitting, i
                 )}
               </div>
 
-              {/* Categoría */}
+              {/* Teléfono Padres */}
               <div className="space-y-2">
-                <Label htmlFor="categoria">Categoría *</Label>
-                <Select
-                  value={currentPlayer.categoria}
-                  onValueChange={(value) => setCurrentPlayer({...currentPlayer, categoria: value})}
-                  required
-                  disabled={isParent && player}
-                >
-                  <SelectTrigger className={isParent && player ? "bg-slate-100" : ""}>
-                    <SelectValue placeholder="Selecciona categoría" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Prebenjamín">Prebenjamín</SelectItem>
-                    <SelectItem value="Benjamín">Benjamín</SelectItem>
-                    <SelectItem value="Alevín">Alevín</SelectItem>
-                    <SelectItem value="Infantil">Infantil</SelectItem>
-                    <SelectItem value="Cadete">Cadete</SelectItem>
-                    <SelectItem value="Juvenil">Juvenil</SelectItem>
-                    <SelectItem value="Senior">Senior</SelectItem>
-                  </SelectContent>
-                </Select>
-                {isParent && player && (
-                  <p className="text-xs text-slate-500 flex items-center gap-1">
-                    <Lock className="w-3 h-3" /> Solo el administrador puede modificar este campo
-                  </p>
-                )}
-              </div>
-
-              {/* Posición */}
-              <div className="space-y-2">
-                <Label htmlFor="posicion">Posición</Label>
-                <Select
-                  value={currentPlayer.posicion}
-                  onValueChange={(value) => setCurrentPlayer({...currentPlayer, posicion: value})}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecciona posición" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Portero">Portero</SelectItem>
-                    <SelectItem value="Defensa">Defensa</SelectItem>
-                    <SelectItem value="Centrocampista">Centrocampista</SelectItem>
-                    <SelectItem value="Delantero">Delantero</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {/* Número de Camiseta */}
-              <div className="space-y-2">
-                <Label htmlFor="numero_camiseta">Número de Camiseta</Label>
+                <Label htmlFor="telefono">Teléfono Padres *</Label>
                 <Input
-                  id="numero_camiseta"
-                  type="number"
-                  value={currentPlayer.numero_camiseta}
-                  onChange={(e) => setCurrentPlayer({...currentPlayer, numero_camiseta: parseInt(e.target.value) || ""})}
-                  placeholder="10"
-                  min="1"
-                  max="99"
+                  id="telefono"
+                  type="tel"
+                  value={currentPlayer.telefono}
+                  onChange={(e) => setCurrentPlayer({...currentPlayer, telefono: e.target.value})}
+                  required
+                  placeholder="600123456"
+                />
+              </div>
+
+              {/* Fecha de Nacimiento */}
+              <div className="space-y-2">
+                <Label htmlFor="fecha_nacimiento">Fecha de Nacimiento *</Label>
+                <Input
+                  id="fecha_nacimiento"
+                  type="date"
+                  value={currentPlayer.fecha_nacimiento}
+                  onChange={(e) => setCurrentPlayer({...currentPlayer, fecha_nacimiento: e.target.value})}
+                  required
                 />
               </div>
             </div>
 
             {/* Dirección */}
             <div className="space-y-2">
-              <Label htmlFor="direccion">Dirección</Label>
+              <Label htmlFor="direccion">Dirección *</Label>
               <Input
                 id="direccion"
                 value={currentPlayer.direccion}
                 onChange={(e) => setCurrentPlayer({...currentPlayer, direccion: e.target.value})}
                 placeholder="Calle, número, ciudad..."
+                required
               />
             </div>
 
             {/* Observaciones */}
             <div className="space-y-2">
-              <Label htmlFor="observaciones">Observaciones</Label>
+              <Label htmlFor="observaciones">Observaciones (opcional)</Label>
               <Textarea
                 id="observaciones"
                 value={currentPlayer.observaciones}
@@ -349,6 +299,19 @@ export default function PlayerForm({ player, onSubmit, onCancel, isSubmitting, i
                 placeholder="Notas adicionales sobre el jugador..."
                 rows={3}
               />
+            </div>
+
+            {/* Información importante */}
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 flex items-start gap-3">
+              <AlertCircle className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
+              <div className="text-sm text-blue-900">
+                <p className="font-medium mb-1">📋 Información:</p>
+                <ul className="list-disc list-inside space-y-1 text-blue-800">
+                  <li>Todos los campos marcados con * son obligatorios</li>
+                  <li>El correo electrónico se usará para notificaciones y acceso al chat del grupo</li>
+                  <li>Asegúrate de que la fecha de nacimiento sea correcta según la categoría</li>
+                </ul>
+              </div>
             </div>
 
             {/* Botones */}
