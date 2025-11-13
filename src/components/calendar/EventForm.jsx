@@ -7,7 +7,8 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
-import { Loader2 } from "lucide-react";
+import { Loader2, AlertCircle } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 export default function EventForm({ event, onSubmit, onCancel, isSubmitting }) {
   const [currentEvent, setCurrentEvent] = useState(event || {
@@ -17,13 +18,16 @@ export default function EventForm({ event, onSubmit, onCancel, isSubmitting }) {
     deporte: "Todos",
     categoria: "Todas",
     fecha: "",
+    fecha_fin: "",
     hora: "",
     ubicacion: "",
     rival: "",
     local_visitante: "Local",
     importante: false,
     color: "orange",
-    publicado: true
+    publicado: true,
+    es_automatico: false,
+    notificado: false
   });
 
   const handleSubmit = (e) => {
@@ -45,6 +49,15 @@ export default function EventForm({ event, onSubmit, onCancel, isSubmitting }) {
         </CardHeader>
         <CardContent className="pt-6">
           <form onSubmit={handleSubmit} className="space-y-6">
+            {currentEvent.es_automatico && (
+              <Alert className="bg-blue-50 border-blue-200">
+                <AlertCircle className="h-4 w-4 text-blue-600" />
+                <AlertDescription className="text-blue-800">
+                  <strong>📅 Evento del Calendario Anual:</strong> Este evento fue creado automáticamente del calendario de gestión del club.
+                </AlertDescription>
+              </Alert>
+            )}
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Título */}
               <div className="space-y-2 md:col-span-2">
@@ -73,6 +86,12 @@ export default function EventForm({ event, onSubmit, onCancel, isSubmitting }) {
                     <SelectItem value="Reunión">Reunión</SelectItem>
                     <SelectItem value="Torneo">Torneo</SelectItem>
                     <SelectItem value="Inicio Temporada">Inicio Temporada</SelectItem>
+                    <SelectItem value="Gestión Club">Gestión Club</SelectItem>
+                    <SelectItem value="Pago">Pago</SelectItem>
+                    <SelectItem value="Inscripción">Inscripción</SelectItem>
+                    <SelectItem value="Pedido Ropa">Pedido Ropa</SelectItem>
+                    <SelectItem value="Fiesta Club">Fiesta Club</SelectItem>
+                    <SelectItem value="Fin Temporada">Fin Temporada</SelectItem>
                     <SelectItem value="Otro">Otro</SelectItem>
                   </SelectContent>
                 </Select>
@@ -142,15 +161,26 @@ export default function EventForm({ event, onSubmit, onCancel, isSubmitting }) {
                 </Select>
               </div>
 
-              {/* Fecha */}
+              {/* Fecha Inicio */}
               <div className="space-y-2">
-                <Label>Fecha *</Label>
+                <Label>Fecha Inicio *</Label>
                 <Input
                   type="date"
                   value={currentEvent.fecha}
                   onChange={(e) => setCurrentEvent({ ...currentEvent, fecha: e.target.value })}
                   required
                 />
+              </div>
+
+              {/* Fecha Fin (opcional) */}
+              <div className="space-y-2">
+                <Label>Fecha Fin (opcional)</Label>
+                <Input
+                  type="date"
+                  value={currentEvent.fecha_fin}
+                  onChange={(e) => setCurrentEvent({ ...currentEvent, fecha_fin: e.target.value })}
+                />
+                <p className="text-xs text-slate-500">Para eventos de varios días (ej: "Primera semana de...")</p>
               </div>
 
               {/* Hora */}
@@ -164,7 +194,7 @@ export default function EventForm({ event, onSubmit, onCancel, isSubmitting }) {
               </div>
 
               {/* Ubicación */}
-              <div className="space-y-2 md:col-span-2">
+              <div className="space-y-2">
                 <Label>Ubicación</Label>
                 <Input
                   placeholder="Campo municipal, pabellón, etc."
@@ -228,17 +258,31 @@ export default function EventForm({ event, onSubmit, onCancel, isSubmitting }) {
                 />
               </div>
 
-              <div className="flex items-center justify-between p-4 rounded-lg bg-slate-50">
+              <div className="flex items-center justify-between p-4 rounded-lg bg-green-50 border-2 border-green-200">
                 <div>
                   <Label className="text-base font-medium">Publicado</Label>
-                  <p className="text-sm text-slate-500">¿Visible para todos?</p>
+                  <p className="text-sm text-green-700">
+                    {currentEvent.publicado 
+                      ? "✅ Visible para todos (se notificará a los usuarios)" 
+                      : "⏸️ Borrador (solo visible para admins)"}
+                  </p>
                 </div>
                 <Switch
                   checked={currentEvent.publicado}
                   onCheckedChange={(checked) => setCurrentEvent({ ...currentEvent, publicado: checked })}
+                  className="data-[state=checked]:bg-green-600"
                 />
               </div>
             </div>
+
+            {currentEvent.publicado && (
+              <Alert className="bg-blue-50 border-blue-200">
+                <Bell className="h-4 w-4 text-blue-600" />
+                <AlertDescription className="text-blue-800">
+                  <strong>🔔 Notificación:</strong> Al publicar este evento, aparecerá un badge en el icono de la app para avisar a los usuarios.
+                </AlertDescription>
+              </Alert>
+            )}
 
             {/* Botones */}
             <div className="flex justify-end gap-3 pt-4 border-t border-slate-100">
