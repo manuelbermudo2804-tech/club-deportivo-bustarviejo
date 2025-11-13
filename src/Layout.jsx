@@ -609,10 +609,6 @@ export default function Layout({ children, currentPageName }) {
     { title: "Usuarios", url: createPageUrl("UserManagement"), icon: Users },
   ];
 
-  const coachNavigationItems = [
-    { title: "🏆 Convocatorias", url: createPageUrl("CoachCallups"), icon: Bell },
-  ];
-
   const parentNavigationItems = [
     { title: "Inicio", url: createPageUrl("ParentDashboard"), icon: Home },
     { title: "Jugadores", url: createPageUrl("ParentPlayers"), icon: Users },
@@ -639,9 +635,17 @@ export default function Layout({ children, currentPageName }) {
 
   let navigationItems = isAdmin ? adminNavigationItems : isPlayer ? playerNavigationItems : parentNavigationItems;
   
-  // Add coach items if user is a coach (but not admin, since admin already has it)
+  // Add coach callups for coaches (who are NOT admin and NOT players)
   if (isCoach && !isAdmin && !isPlayer) {
-    navigationItems = [...navigationItems, ...coachNavigationItems];
+    // Add coach convocatorias after the parent callups
+    const callupIndex = navigationItems.findIndex(item => item.url === createPageUrl("ParentCallups"));
+    if (callupIndex !== -1) {
+      navigationItems = [
+        ...navigationItems.slice(0, callupIndex + 1),
+        { title: "🎓 Gestionar Convocatorias", url: createPageUrl("CoachCallups"), icon: Bell },
+        ...navigationItems.slice(callupIndex + 1)
+      ];
+    }
   }
 
   const handleLogout = () => {
