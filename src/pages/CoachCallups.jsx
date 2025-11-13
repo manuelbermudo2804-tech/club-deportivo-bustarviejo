@@ -56,6 +56,12 @@ export default function CoachCallups() {
     fetchUser();
   }, []);
 
+  // Close form and clear editing when category changes
+  useEffect(() => {
+    setShowForm(false);
+    setEditingCallup(null);
+  }, [selectedCategory]);
+
   const { data: callups, isLoading } = useQuery({
     queryKey: ['convocatorias'],
     queryFn: () => base44.entities.Convocatoria.list('-fecha_partido'),
@@ -68,14 +74,16 @@ export default function CoachCallups() {
     initialData: [],
   });
 
-  // Filter players by selected category
+  // Filter players by selected category (or editing callup's category)
   const players = allPlayers.filter(p => {
-    if (selectedCategory === "all") {
+    const targetCategory = editingCallup?.categoria || selectedCategory;
+    
+    if (targetCategory === "all") {
       // If "all" is selected, show players from all coach's categories
       return coachCategories.includes(p.deporte) && p.activo;
     }
     // Otherwise, show players from the specific selected category
-    return p.deporte === selectedCategory && p.activo;
+    return p.deporte === targetCategory && p.activo;
   });
 
   const createCallupMutation = useMutation({
@@ -277,6 +285,10 @@ Email alternativo: CDBUSTARVIEJO@GMAIL.COM
     );
   }
 
+  // Determine the effective category for the form
+  const effectiveCategory = editingCallup?.categoria || selectedCategory;
+  const canShowForm = effectiveCategory !== "all";
+
   return (
     <div className="p-6 lg:p-8 space-y-6">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
@@ -327,7 +339,7 @@ Email alternativo: CDBUSTARVIEJO@GMAIL.COM
                 </Select>
               </div>
             </div>
-            {selectedCategory === "all" && (
+            {selectedCategory === "all" && !editingCallup && (
               <p className="text-sm text-blue-700 mt-2">
                 💡 Para crear una convocatoria, selecciona primero una categoría específica
               </p>
@@ -376,13 +388,13 @@ Email alternativo: CDBUSTARVIEJO@GMAIL.COM
       </div>
 
       <AnimatePresence>
-        {showForm && selectedCategory !== "all" && (
+        {showForm && canShowForm && (
           <CallupForm
             callup={editingCallup}
             players={players}
             coachName={user.full_name}
             coachEmail={user.email}
-            category={selectedCategory}
+            category={effectiveCategory}
             onSubmit={handleSubmit}
             onCancel={() => {
               setShowForm(false);
