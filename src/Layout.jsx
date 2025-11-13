@@ -3,7 +3,7 @@ import React, { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { base44 } from "@/api/base44Client";
-import { Home, Users, CreditCard, ShoppingBag, Menu, Bell, LogOut, Calendar, Megaphone, Mail, Archive, Settings, MessageCircle, Clock, Image, X } from "lucide-react";
+import { Home, Users, CreditCard, ShoppingBag, Menu, Bell, LogOut, Calendar, Megaphone, Mail, Archive, Settings, MessageCircle, Clock, Image, X, User as UserIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
@@ -473,6 +473,7 @@ export default function Layout({ children, currentPageName }) {
   const currentSeason = getCurrentSeason();
   const [user, setUser] = useState(null);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [isPlayer, setIsPlayer] = useState(false);
   const [unreadMessagesCount, setUnreadMessagesCount] = useState(0);
   const [urgentMessagesCount, setUrgentMessagesCount] = useState(0);
   const [showSpecialScreen, setShowSpecialScreen] = useState(null);
@@ -484,13 +485,14 @@ export default function Layout({ children, currentPageName }) {
         const currentUser = await base44.auth.me();
         setUser(currentUser);
         setIsAdmin(currentUser.role === "admin");
+        setIsPlayer(currentUser.role === "jugador");
         
         if (currentUser.acceso_activo === false && currentUser.role !== "admin") {
           setShowSpecialScreen("restricted");
           return;
         }
         
-        if (currentUser.role !== "admin") {
+        if (currentUser.role !== "admin" && currentUser.role !== "jugador") {
           const period = getPeriodType();
           if (period === "closed") {
             setShowSpecialScreen("closed");
@@ -518,24 +520,42 @@ export default function Layout({ children, currentPageName }) {
         
         if (isAdmin) {
           allMessages.forEach(msg => {
-            if (!msg.leido && msg.tipo === "padre_a_grupo") {
+            if (!msg.leido && (msg.tipo === "padre_a_grupo" || msg.tipo === "jugador_a_equipo")) {
               unread++;
               if (msg.prioridad === "Urgente") {
                 urgent++;
               }
             }
           });
-        } else {
+        } else if (isPlayer) {
+          const allPlayers = await base44.entities.Player.list();
+          const myPlayer = allPlayers.find(p => p.email === user.email); // Assuming user.email links to player email for 'jugador' role
+          
+          if (myPlayer) {
+            allMessages.forEach(msg => {
+              if (!msg.leido && 
+                  msg.tipo === "admin_a_grupo" && 
+                  (msg.grupo_id === myPlayer.deporte || msg.deporte === myPlayer.deporte)) {
+                unread++;
+                if (msg.prioridad === "Urgente") {
+                  urgent++;
+                }
+              }
+            });
+          }
+        } else { // Parent role
           const allPlayers = await base44.entities.Player.list();
           const myPlayers = allPlayers.filter(p => 
-            p.email_padre === user.email || p.email === user.email
+            p.email_padre === user.email || p.email_tutor_2 === user.email
           );
-          const myGroupIds = myPlayers.map(p => `${p.deporte}_${p.categoria}`);
+          // Group IDs could be specific like "Futbol_Alevin" or just "Futbol". 
+          // The outline specifies `p.deporte` and `msg.grupo_id || msg.deporte`
+          const myGroupSports = [...new Set(myPlayers.map(p => p.deporte))];
           
           allMessages.forEach(msg => {
             if (!msg.leido && 
                 msg.tipo === "admin_a_grupo" && 
-                myGroupIds.includes(msg.grupo_id)) {
+                myGroupSports.includes(msg.grupo_id || msg.deporte)) {
               unread++;
               if (msg.prioridad === "Urgente") {
                 urgent++;
@@ -555,7 +575,7 @@ export default function Layout({ children, currentPageName }) {
     const interval = setInterval(checkUnreadMessages, 5000);
     
     return () => clearInterval(interval);
-  }, [user, isAdmin]);
+  }, [user, isAdmin, isPlayer]);
 
   if (showSpecialScreen === "restricted") {
     return <RestrictedAccessScreen user={user} restriction={user} />;
@@ -598,7 +618,17 @@ export default function Layout({ children, currentPageName }) {
     { title: "Chat", url: createPageUrl("ParentChat"), icon: MessageCircle, badge: unreadMessagesCount > 0 ? unreadMessagesCount : null, urgentBadge: urgentMessagesCount > 0 },
   ];
 
-  const navigationItems = isAdmin ? adminNavigationItems : parentNavigationItems;
+  const playerNavigationItems = [
+    { title: "Inicio", url: createPageUrl("PlayerDashboard"), icon: Home },
+    { title: "Mi Perfil", url: createPageUrl("PlayerProfile"), icon: UserIcon },
+    { title: "Horarios", url: createPageUrl("PlayerSchedules"), icon: Clock },
+    { title: "Calendario", url: createPageUrl("Calendar"), icon: Calendar },
+    { title: "Anuncios", url: createPageUrl("Announcements"), icon: Megaphone },
+    { title: "Galería", url: createPageUrl("PlayerGallery"), icon: Image },
+    { title: "Chat Equipo", url: createPageUrl("PlayerChat"), icon: MessageCircle, badge: unreadMessagesCount > 0 ? unreadMessagesCount : null, urgentBadge: urgentMessagesCount > 0 },
+  ];
+
+  const navigationItems = isAdmin ? adminNavigationItems : isPlayer ? playerNavigationItems : parentNavigationItems;
 
   const handleLogout = () => {
     base44.auth.logout();
@@ -618,7 +648,9 @@ export default function Layout({ children, currentPageName }) {
               <img src={CLUB_LOGO_URL} alt="CD Bustarviejo" className="w-10 h-10 rounded-xl shadow-lg" />
               <div className="text-white">
                 <h1 className="font-bold text-lg leading-tight">CD Bustarviejo</h1>
-                <p className="text-xs text-orange-100">{isAdmin ? "Admin" : "Familia"}</p>
+                <p className="text-xs text-orange-100">
+                  {isAdmin ? "Admin" : isPlayer ? "Jugador" : "Familia"}
+                </p>
               </div>
             </div>
             <button
@@ -672,7 +704,9 @@ export default function Layout({ children, currentPageName }) {
               <img src={CLUB_LOGO_URL} alt="CD Bustarviejo" className="w-14 h-14 rounded-2xl shadow-xl ring-4 ring-green-500/50" />
               <div className="text-white">
                 <h2 className="font-bold text-xl">CD Bustarviejo</h2>
-                <p className="text-xs text-green-400">{isAdmin ? "Panel Admin" : "Panel Familia"}</p>
+                <p className="text-xs text-green-400">
+                  {isAdmin ? "Panel Admin" : isPlayer ? "Panel Jugador" : "Panel Familia"}
+                </p>
               </div>
             </div>
           </div>
