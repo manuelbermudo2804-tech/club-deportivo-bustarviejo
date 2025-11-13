@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Send, Clock, MessageCircle } from "lucide-react";
+import { Send, Clock } from "lucide-react";
 import { toast } from "sonner";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { format } from "date-fns";
@@ -210,9 +210,6 @@ export default function ParentChat() {
   const totalUnread = myGroups.reduce((sum, g) => sum + g.unreadCount, 0);
   const totalUrgent = myGroups.reduce((sum, g) => sum + g.urgentCount, 0);
 
-  // WhatsApp URL
-  const whatsappURL = base44.agents.getWhatsAppConnectURL('club_chat');
-
   if (loadingPlayers || loadingMessages) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -272,7 +269,7 @@ export default function ParentChat() {
         </p>
       </div>
 
-      <div className="px-6 pt-4 space-y-3">
+      <div className="px-6 pt-4">
         <Alert className={isBusinessHours() ? "bg-green-50 border-green-300" : "bg-orange-50 border-orange-300"}>
           <Clock className={`h-4 w-4 ${isBusinessHours() ? "text-green-600" : "text-orange-600"}`} />
           <AlertDescription className={isBusinessHours() ? "text-green-800" : "text-orange-800"}>
@@ -281,26 +278,6 @@ export default function ParentChat() {
             ) : (
               <span>⏸️ <strong>Fuera de horario</strong> - Solo puedes enviar mensajes entre las 10:00 y las 20:00</span>
             )}
-          </AlertDescription>
-        </Alert>
-
-        {/* WhatsApp Integration Alert */}
-        <Alert className="bg-green-50 border-green-300">
-          <MessageCircle className="h-4 w-4 text-green-600" />
-          <AlertDescription className="text-green-800">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-              <span>
-                📱 <strong>Recibe notificaciones instantáneas</strong> - Conecta tu WhatsApp y recibe alertas del club en tiempo real
-              </span>
-              <a 
-                href={whatsappURL}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm font-medium whitespace-nowrap text-center"
-              >
-                💬 Conectar WhatsApp
-              </a>
-            </div>
           </AlertDescription>
         </Alert>
       </div>

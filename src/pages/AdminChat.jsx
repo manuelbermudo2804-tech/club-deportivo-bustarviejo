@@ -7,7 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Send, Search, Clock, AlertTriangle, AlertCircle, Bell, MessageCircle } from "lucide-react";
+import { Send, Search, Clock, AlertTriangle, AlertCircle, Bell } from "lucide-react";
 import { toast } from "sonner";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { format } from "date-fns";
@@ -143,7 +143,7 @@ ${messageData.mensaje}
                     <!-- Info Box -->
                     <div style="background-color: #fef3c7; border-left: 4px solid #f59e0b; padding: 15px; border-radius: 4px; margin-top: 20px;">
                       <p style="margin: 0; color: #92400e; font-size: 13px; line-height: 1.5;">
-                        💡 <strong>Tip:</strong> Puedes responder directamente desde la aplicación o conectar WhatsApp para recibir notificaciones instantáneas.
+                        💡 <strong>Tip:</strong> Puedes responder directamente desde la aplicación accediendo al chat de tu grupo.
                       </p>
                     </div>
                   </div>
@@ -360,9 +360,6 @@ ${messageData.mensaje}
     }
   }, [selectedGroup?.messages]);
 
-  // WhatsApp URL
-  const whatsappURL = base44.agents.getWhatsAppConnectURL('club_chat');
-
   return (
     <div className="h-screen flex flex-col bg-gradient-to-br from-slate-50 to-slate-100">
       <div className="bg-gradient-to-r from-orange-600 to-orange-700 text-white p-6 shadow-lg">
@@ -386,7 +383,7 @@ ${messageData.mensaje}
         </p>
       </div>
 
-      <div className="px-6 pt-4 space-y-3">
+      <div className="px-6 pt-4">
         <Alert className={isBusinessHours() ? "bg-green-50 border-green-300" : "bg-orange-50 border-orange-300"}>
           <Clock className={`h-4 w-4 ${isBusinessHours() ? "text-green-600" : "text-orange-600"}`} />
           <AlertDescription className={isBusinessHours() ? "text-green-800" : "text-orange-800"}>
@@ -395,26 +392,6 @@ ${messageData.mensaje}
             ) : (
               <span>⏸️ <strong>Fuera de horario</strong> - Solo puedes enviar mensajes entre las 10:00 y las 20:00</span>
             )}
-          </AlertDescription>
-        </Alert>
-
-        {/* WhatsApp Integration Alert */}
-        <Alert className="bg-green-50 border-green-300">
-          <MessageCircle className="h-4 w-4 text-green-600" />
-          <AlertDescription className="text-green-800">
-            <div className="flex items-center justify-between">
-              <span>
-                📱 <strong>Nuevo:</strong> Los padres pueden conectar WhatsApp para recibir notificaciones instantáneas
-              </span>
-              <a 
-                href={whatsappURL}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="ml-4 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm font-medium whitespace-nowrap"
-              >
-                Conectar WhatsApp
-              </a>
-            </div>
           </AlertDescription>
         </Alert>
       </div>
