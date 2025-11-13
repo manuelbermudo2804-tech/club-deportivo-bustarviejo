@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -9,6 +10,13 @@ import { AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 import CallupForm from "../components/callups/CallupForm";
 import CallupCard from "../components/callups/CallupCard";
@@ -17,7 +25,8 @@ export default function CoachCallups() {
   const [showForm, setShowForm] = useState(false);
   const [editingCallup, setEditingCallup] = useState(null);
   const [user, setUser] = useState(null);
-  const [coachCategory, setCoachCategory] = useState(null);
+  const [coachCategories, setCoachCategories] = useState([]);
+  const [selectedCategory, setSelectedCategory] = useState("all");
   
   const queryClient = useQueryClient();
 
@@ -27,13 +36,20 @@ export default function CoachCallups() {
         const currentUser = await base44.auth.me();
         setUser(currentUser);
         
-        // Check if user is coach
-        if (!currentUser.es_entrenador) {
+        // Check if user is coach or admin
+        if (!currentUser.es_entrenador && currentUser.role !== "admin") {
           toast.error("No tienes permisos de entrenador");
           return;
         }
         
-        setCoachCategory(currentUser.categoria_entrena);
+        // Get coach categories
+        const categories = currentUser.categorias_entrena || [];
+        setCoachCategories(categories);
+        
+        // If only one category, select it by default
+        if (categories.length === 1) {
+          setSelectedCategory(categories[0]);
+        }
       } catch (error) {
         console.error("Error fetching user:", error);
       }
@@ -42,20 +58,25 @@ export default function CoachCallups() {
   }, []);
 
   const { data: callups, isLoading } = useQuery({
-    queryKey: ['convocatorias', coachCategory],
+    queryKey: ['convocatorias'],
     queryFn: () => base44.entities.Convocatoria.list('-fecha_partido'),
     initialData: [],
-    enabled: !!coachCategory,
   });
 
-  const { data: players } = useQuery({
-    queryKey: ['players', coachCategory],
-    queryFn: async () => {
-      const allPlayers = await base44.entities.Player.list();
-      return allPlayers.filter(p => p.deporte === coachCategory && p.activo);
-    },
+  const { data: allPlayers } = useQuery({
+    queryKey: ['players'],
+    queryFn: () => base44.entities.Player.list(),
     initialData: [],
-    enabled: !!coachCategory,
+  });
+
+  // Filter players by selected category
+  const players = allPlayers.filter(p => {
+    if (selectedCategory === "all") {
+      // If "all" is selected, show players from all coach's categories
+      return coachCategories.includes(p.deporte) && p.activo;
+    }
+    // Otherwise, show players from the specific selected category
+    return p.deporte === selectedCategory && p.activo;
   });
 
   const createCallupMutation = useMutation({
@@ -219,8 +240,14 @@ Email alternativo: CDBUSTARVIEJO@GMAIL.COM
     }
   };
 
-  // Filter callups for coach's category
-  const myCallups = callups.filter(c => c.categoria === coachCategory);
+  // Filter callups for coach's categories
+  const myCallups = callups.filter(c => {
+    if (user?.role === "admin") return true; // Admins see all callups
+    if (selectedCategory === "all") {
+      return coachCategories.includes(c.categoria); // Coaches see all their categories
+    }
+    return c.categoria === selectedCategory; // Coaches see specific selected category
+  });
   
   // Separate upcoming and past
   const today = new Date().toISOString().split('T')[0];
@@ -236,7 +263,7 @@ Email alternativo: CDBUSTARVIEJO@GMAIL.COM
     return acc + c.jugadores_convocados.filter(j => j.confirmacion === "pendiente").length;
   }, 0);
 
-  if (!user || !user.es_entrenador) {
+  if (!user || (!user.es_entrenador && user.role !== "admin")) {
     return (
       <div className="flex items-center justify-center min-h-screen p-6">
         <Card className="border-red-200 bg-red-50">
@@ -258,7 +285,9 @@ Email alternativo: CDBUSTARVIEJO@GMAIL.COM
             🏆 Convocatorias
           </h1>
           <p className="text-slate-600 mt-1">
-            Gestiona las convocatorias de tu equipo: {coachCategory}
+            {user.role === "admin" 
+              ? "Gestiona todas las convocatorias del club" 
+              : `Gestiona las convocatorias de tus equipos`}
           </p>
         </div>
         <Button
@@ -267,11 +296,45 @@ Email alternativo: CDBUSTARVIEJO@GMAIL.COM
             setShowForm(!showForm);
           }}
           className="bg-orange-600 hover:bg-orange-700 shadow-lg"
+          disabled={selectedCategory === "all"}
         >
           <Plus className="w-5 h-5 mr-2" />
           Nueva Convocatoria
         </Button>
       </div>
+
+      {/* Category selector for coaches with multiple categories */}
+      {coachCategories.length > 1 && user.role !== "admin" && (
+        <Card className="border-2 border-blue-300 bg-blue-50">
+          <CardContent className="pt-6">
+            <div className="flex items-center gap-4">
+              <div className="flex-1">
+                <label className="text-sm font-medium text-blue-900 mb-2 block">
+                  Selecciona una categoría para gestionar:
+                </label>
+                <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+                  <SelectTrigger className="bg-white">
+                    <SelectValue placeholder="Selecciona una categoría" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">📊 Ver todas las categorías</SelectItem>
+                    {coachCategories.map(cat => (
+                      <SelectItem key={cat} value={cat}>
+                        {cat.includes("Fútbol") ? "⚽" : "🏀"} {cat}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            {selectedCategory === "all" && (
+              <p className="text-sm text-blue-700 mt-2">
+                💡 Para crear una convocatoria, selecciona primero una categoría específica
+              </p>
+            )}
+          </CardContent>
+        </Card>
+      )}
 
       {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -313,13 +376,13 @@ Email alternativo: CDBUSTARVIEJO@GMAIL.COM
       </div>
 
       <AnimatePresence>
-        {showForm && (
+        {showForm && selectedCategory !== "all" && (
           <CallupForm
             callup={editingCallup}
             players={players}
             coachName={user.full_name}
             coachEmail={user.email}
-            category={coachCategory}
+            category={selectedCategory}
             onSubmit={handleSubmit}
             onCancel={() => {
               setShowForm(false);
@@ -372,10 +435,15 @@ Email alternativo: CDBUSTARVIEJO@GMAIL.COM
         <div className="text-center py-12 bg-white rounded-xl shadow-lg">
           <div className="text-6xl mb-4">🏆</div>
           <p className="text-slate-500 text-lg mb-4">No hay convocatorias creadas</p>
-          <Button onClick={() => setShowForm(true)} className="bg-orange-600 hover:bg-orange-700">
+          <Button onClick={() => setShowForm(true)} className="bg-orange-600 hover:bg-orange-700" disabled={selectedCategory === "all"}>
             <Plus className="w-4 h-4 mr-2" />
             Crear Primera Convocatoria
           </Button>
+          {selectedCategory === "all" && coachCategories.length > 1 && (
+            <p className="text-sm text-slate-500 mt-2">
+              Selecciona una categoría para crear una convocatoria.
+            </p>
+          )}
         </div>
       )}
     </div>

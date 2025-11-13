@@ -22,7 +22,8 @@ import {
   Trash2,
   Eye,
   EyeOff,
-  User
+  User,
+  Check
 } from "lucide-react";
 import {
   Dialog,
@@ -58,7 +59,7 @@ export default function UserManagement() {
   const [selectedRole, setSelectedRole] = useState("user");
   const [selectedPlayerId, setSelectedPlayerId] = useState("");
   const [coachData, setCoachData] = useState({
-    categoria_entrena: "",
+    categorias_entrena: [],
     telefono_entrenador: ""
   });
 
@@ -90,34 +91,10 @@ export default function UserManagement() {
       setShowCoachDialog(false);
       setSelectedUser(null);
       setRestrictionData({ motivo_restriccion: "", notas_admin: "" });
-      setCoachData({ categoria_entrena: "", telefono_entrenador: "" });
+      setCoachData({ categorias_entrena: [], telefono_entrenador: "" });
       toast.success("Usuario actualizado correctamente");
     },
   });
-
-  const handleCoachToggle = (user) => {
-    setSelectedUser(user);
-    setCoachData({
-      categoria_entrena: user.categoria_entrena || "",
-      telefono_entrenador: user.telefono_entrenador || ""
-    });
-    setShowCoachDialog(true);
-  };
-
-  const handleConfirmCoach = async () => {
-    if (!selectedUser) return;
-
-    const isSettingAsCoach = !selectedUser.es_entrenador;
-
-    updateUserMutation.mutate({
-      userId: selectedUser.id,
-      userData: {
-        es_entrenador: isSettingAsCoach,
-        categoria_entrena: isSettingAsCoach ? coachData.categoria_entrena : null,
-        telefono_entrenador: isSettingAsCoach ? coachData.telefono_entrenador : null
-      }
-    });
-  };
 
   const handleRestrictAccess = async (user) => {
     setSelectedUser(user);
@@ -220,6 +197,47 @@ export default function UserManagement() {
     updateUserMutation.mutate({
       userId: selectedUser.id,
       userData: updateData
+    });
+  };
+
+  const handleCoachToggle = (user) => {
+    setSelectedUser(user);
+    setCoachData({
+      categorias_entrena: user.categorias_entrena || [],
+      telefono_entrenador: user.telefono_entrenador || ""
+    });
+    setShowCoachDialog(true);
+  };
+
+  const handleConfirmCoach = async () => {
+    if (!selectedUser) return;
+
+    const isSettingAsCoach = !selectedUser.es_entrenador;
+
+    updateUserMutation.mutate({
+      userId: selectedUser.id,
+      userData: {
+        es_entrenador: isSettingAsCoach,
+        categorias_entrena: isSettingAsCoach ? coachData.categorias_entrena : [],
+        telefono_entrenador: isSettingAsCoach ? coachData.telefono_entrenador : null
+      }
+    });
+  };
+
+  const toggleCategory = (category) => {
+    setCoachData(prev => {
+      const current = prev.categorias_entrena || [];
+      if (current.includes(category)) {
+        return {
+          ...prev,
+          categorias_entrena: current.filter(c => c !== category)
+        };
+      } else {
+        return {
+          ...prev,
+          categorias_entrena: [...current, category]
+        };
+      }
     });
   };
 
@@ -465,9 +483,9 @@ export default function UserManagement() {
                           <span>{user.email}</span>
                         </div>
 
-                        {isCoach && (
+                        {isCoach && user.categorias_entrena && user.categorias_entrena.length > 0 && (
                           <div className="text-sm text-blue-700 bg-blue-100 rounded p-2 mb-2">
-                            <strong>🏃 Entrena:</strong> {user.categoria_entrena}
+                            <strong>🏃 Entrena:</strong> {user.categorias_entrena.join(", ")}
                             {user.telefono_entrenador && ` • 📱 ${user.telefono_entrenador}`}
                           </div>
                         )}
@@ -580,7 +598,7 @@ export default function UserManagement() {
 
       {/* Diálogo de Entrenador */}
       <Dialog open={showCoachDialog} onOpenChange={setShowCoachDialog}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="text-2xl flex items-center gap-2">
               <Users className="w-6 h-6 text-blue-600" />
@@ -599,26 +617,54 @@ export default function UserManagement() {
             {!selectedUser?.es_entrenador && (
               <>
                 <div className="space-y-2">
-                  <Label htmlFor="coach-category-select">Categoría que Entrena *</Label>
-                  <Select
-                    value={coachData.categoria_entrena}
-                    onValueChange={(value) => setCoachData({...coachData, categoria_entrena: value})}
-                  >
-                    <SelectTrigger id="coach-category-select">
-                      <SelectValue placeholder="Selecciona la categoría" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="Fútbol Pre-Benjamín (Mixto)">⚽ Fútbol Pre-Benjamín (Mixto)</SelectItem>
-                      <SelectItem value="Fútbol Benjamín (Mixto)">⚽ Fútbol Benjamín (Mixto)</SelectItem>
-                      <SelectItem value="Fútbol Alevín (Mixto)">⚽ Fútbol Alevín (Mixto)</SelectItem>
-                      <SelectItem value="Fútbol Infantil (Mixto)">⚽ Fútbol Infantil (Mixto)</SelectItem>
-                      <SelectItem value="Fútbol Cadete">⚽ Fútbol Cadete</SelectItem>
-                      <SelectItem value="Fútbol Juvenil">⚽ Fútbol Juvenil</SelectItem>
-                      <SelectItem value="Fútbol Aficionado">⚽ Fútbol Aficionado</SelectItem>
-                      <SelectItem value="Fútbol Femenino">⚽ Fútbol Femenino</SelectItem>
-                      <SelectItem value="Baloncesto (Mixto)">🏀 Baloncesto (Mixto)</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <Label>Categorías que Entrena (selecciona una o varias) *</Label>
+                  <div className="grid grid-cols-1 gap-2 max-h-64 overflow-y-auto border-2 border-slate-200 rounded-lg p-3">
+                    {[
+                      "Fútbol Pre-Benjamín (Mixto)",
+                      "Fútbol Benjamín (Mixto)",
+                      "Fútbol Alevín (Mixto)",
+                      "Fútbol Infantil (Mixto)",
+                      "Fútbol Cadete",
+                      "Fútbol Juvenil",
+                      "Fútbol Aficionado",
+                      "Fútbol Femenino",
+                      "Baloncesto (Mixto)"
+                    ].map(category => (
+                      <div
+                        key={category}
+                        onClick={() => toggleCategory(category)}
+                        className={`p-3 rounded-lg border-2 cursor-pointer transition-all ${
+                          coachData.categorias_entrena?.includes(category)
+                            ? 'bg-blue-100 border-blue-500 shadow-sm'
+                            : 'bg-white border-slate-200 hover:border-blue-300'
+                        }`}
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className={`w-5 h-5 rounded border-2 flex items-center justify-center ${
+                            coachData.categorias_entrena?.includes(category)
+                              ? 'bg-blue-600 border-blue-600'
+                              : 'border-slate-300'
+                          }`}>
+                            {coachData.categorias_entrena?.includes(category) && (
+                              <Check className="w-4 h-4 text-white" />
+                            )}
+                          </div>
+                          <span className={`font-medium ${
+                            coachData.categorias_entrena?.includes(category)
+                              ? 'text-blue-900'
+                              : 'text-slate-700'
+                          }`}>
+                            {category.includes("Fútbol") ? "⚽" : "🏀"} {category}
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  {coachData.categorias_entrena?.length > 0 && (
+                    <p className="text-sm text-blue-700 font-medium">
+                      ✅ {coachData.categorias_entrena.length} categoría{coachData.categorias_entrena.length !== 1 ? 's' : ''} seleccionada{coachData.categorias_entrena.length !== 1 ? 's' : ''}
+                    </p>
+                  )}
                 </div>
 
                 <div className="space-y-2">
@@ -643,7 +689,7 @@ export default function UserManagement() {
                 <li>✅ Gestionar jugadores convocados</li>
                 <li>✅ Ver confirmaciones de asistencia</li>
                 <li>✅ Enviar notificaciones automáticas</li>
-                <li>✅ Acceso a su categoría específica</li>
+                <li>✅ Acceso a todas sus categorías asignadas</li>
               </ul>
             </div>
           </div>
@@ -654,14 +700,14 @@ export default function UserManagement() {
               onClick={() => {
                 setShowCoachDialog(false);
                 setSelectedUser(null);
-                setCoachData({ categoria_entrena: "", telefono_entrenador: "" });
+                setCoachData({ categorias_entrena: [], telefono_entrenador: "" });
               }}
             >
               Cancelar
             </Button>
             <Button
               onClick={handleConfirmCoach}
-              disabled={updateUserMutation.isPending || (!selectedUser?.es_entrenador && !coachData.categoria_entrena)}
+              disabled={updateUserMutation.isPending || (!selectedUser?.es_entrenador && (!coachData.categorias_entrena || coachData.categorias_entrena.length === 0))}
               className={selectedUser?.es_entrenador ? "bg-red-600 hover:bg-red-700" : "bg-blue-600 hover:bg-blue-700"}
             >
               {updateUserMutation.isPending ? (
