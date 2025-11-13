@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -9,7 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Switch } from "@/components/ui/switch";
-import { Upload, X, Loader2, AlertCircle, Lock, Users, Shield, Camera, UserCheck, UserX, RefreshCw } from "lucide-react";
+import { Upload, X, Loader2, AlertCircle, Lock, Users, Shield, Camera, UserCheck, UserX, RefreshCw, User as UserIcon } from "lucide-react"; // Added UserIcon
 import { toast } from "sonner";
 import { base44 } from "@/api/base44Client";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -75,6 +76,9 @@ export default function PlayerForm({ player, onSubmit, onCancel, isSubmitting, i
     email_padre: "",
     telefono_tutor_2: "",
     email_tutor_2: "",
+    email_jugador: "", // New field
+    acceso_jugador_autorizado: false, // New field
+    fecha_autorizacion_jugador: null, // New field, not passed in 'player' but needed for state logic
     direccion: "",
     activo: true,
     observaciones: "",
@@ -130,7 +134,9 @@ export default function PlayerForm({ player, onSubmit, onCancel, isSubmitting, i
         activo: true, // Marcar como activo por defecto en la renovación
         // Mantener las autorizaciones originales
         acepta_politica_privacidad: selectedPlayer.acepta_politica_privacidad || false,
-        autorizacion_fotografia: selectedPlayer.autorizacion_fotografia || ""
+        autorizacion_fotografia: selectedPlayer.autorizacion_fotografia || "",
+        acceso_jugador_autorizado: selectedPlayer.acceso_jugador_autorizado || false,
+        email_jugador: selectedPlayer.email_jugador || ""
       });
     }
   };
@@ -170,10 +176,27 @@ export default function PlayerForm({ player, onSubmit, onCancel, isSubmitting, i
       return;
     }
 
+    // Validación para el email del jugador si el acceso está autorizado
+    if (currentPlayer.acceso_jugador_autorizado && !currentPlayer.email_jugador) {
+        toast.error("Debes proporcionar el email del jugador si has autorizado su acceso a la app.");
+        return;
+    }
+
     // Añadir fecha de aceptación si no está editando
     if (!player && !currentPlayer.fecha_aceptacion_privacidad) {
       currentPlayer.fecha_aceptacion_privacidad = new Date().toISOString();
     }
+
+    // Si se autorizó el acceso del jugador y no tiene fecha, guardar fecha
+    if (currentPlayer.acceso_jugador_autorizado && !currentPlayer.fecha_autorizacion_jugador) {
+        currentPlayer.fecha_autorizacion_jugador = new Date().toISOString();
+    }
+    // Si se desautoriza el acceso del jugador, limpiar fecha y email
+    if (!currentPlayer.acceso_jugador_autorizado && currentPlayer.fecha_autorizacion_jugador) {
+        currentPlayer.fecha_autorizacion_jugador = null;
+        currentPlayer.email_jugador = ""; // Clear email if access is revoked
+    }
+
 
     onSubmit(currentPlayer);
   };
@@ -571,6 +594,62 @@ export default function PlayerForm({ player, onSubmit, onCancel, isSubmitting, i
               </div>
             </div>
 
+            {/* NUEVA SECCIÓN: Acceso del Jugador */}
+            <div className="space-y-4 border-2 border-purple-200 rounded-lg p-6 bg-purple-50">
+              <div className="flex items-center gap-2 mb-4">
+                <UserIcon className="w-6 h-6 text-purple-600" />
+                <h3 className="text-lg font-bold text-purple-900">Acceso del Jugador a la App (Opcional)</h3>
+              </div>
+              
+              <Alert className="bg-white border-purple-200">
+                <AlertCircle className="h-4 w-4 text-purple-600" />
+                <AlertDescription className="text-purple-800 text-sm">
+                  <strong>📱 Nuevo:</strong> Los jugadores pueden tener su propia cuenta con acceso limitado:
+                  <ul className="list-disc list-inside mt-2 space-y-1">
+                    <li><strong>✅ Pueden ver:</strong> Su perfil, horarios, calendario, anuncios, galería y chat del equipo</li>
+                    <li><strong>❌ NO pueden:</strong> Gestionar pagos, pedidos ni ver datos de otros jugadores</li>
+                    <li><strong>🔐 Requiere:</strong> Email del jugador y autorización de los padres</li>
+                  </ul>
+                </AlertDescription>
+              </Alert>
+
+              {/* Switch de Autorización */}
+              <div className="flex items-center justify-between p-4 bg-white rounded-lg border-2 border-purple-200">
+                <div className="flex-1">
+                  <Label htmlFor="acceso-jugador" className="font-semibold text-slate-900 cursor-pointer">
+                    Autorizar acceso del jugador a la app
+                  </Label>
+                  <p className="text-xs text-slate-600 mt-1">
+                    El jugador podrá iniciar sesión con su propio email
+                  </p>
+                </div>
+                <Switch
+                  id="acceso-jugador"
+                  checked={currentPlayer.acceso_jugador_autorizado}
+                  onCheckedChange={(checked) => setCurrentPlayer({...currentPlayer, acceso_jugador_autorizado: checked})}
+                  className="data-[state=checked]:bg-purple-600"
+                />
+              </div>
+
+              {/* Email del Jugador - Solo si está autorizado */}
+              {currentPlayer.acceso_jugador_autorizado && (
+                <div className="space-y-2 mt-4">
+                  <Label htmlFor="email_jugador">Email del Jugador *</Label>
+                  <Input
+                    id="email_jugador"
+                    type="email"
+                    value={currentPlayer.email_jugador}
+                    onChange={(e) => setCurrentPlayer({...currentPlayer, email_jugador: e.target.value})}
+                    placeholder="jugador@ejemplo.com"
+                    required={currentPlayer.acceso_jugador_autorizado}
+                  />
+                  <p className="text-xs text-purple-600">
+                    ⚠️ El jugador deberá crear su cuenta con este email para acceder a la app
+                  </p>
+                </div>
+              )}
+            </div>
+
             {/* Observaciones */}
             <div className="space-y-2">
               <Label htmlFor="observaciones">Observaciones (opcional)</Label>
@@ -696,6 +775,7 @@ export default function PlayerForm({ player, onSubmit, onCancel, isSubmitting, i
                   <li>Los campos marcados con * son obligatorios</li>
                   <li>Ambos progenitores recibirán todas las notificaciones por email</li>
                   <li>Para acceder a la app, cada uno debe registrarse con su email respectivo</li>
+                  <li className="font-semibold text-purple-700">Los jugadores pueden tener su propia cuenta con acceso limitado</li>
                   {!player && currentPlayer.tipo_inscripcion === "Renovación" && (
                     <li className="font-semibold text-green-700">En renovación puedes cambiar la categoría si el jugador ha subido de edad</li>
                   )}
@@ -722,7 +802,10 @@ export default function PlayerForm({ player, onSubmit, onCancel, isSubmitting, i
               <Button
                 type="submit"
                 className="bg-orange-600 hover:bg-orange-700"
-                disabled={isSubmitting || (!player && (!currentPlayer.acepta_politica_privacidad || !currentPlayer.autorizacion_fotografia))}
+                disabled={isSubmitting || 
+                            (!player && (!currentPlayer.acepta_politica_privacidad || !currentPlayer.autorizacion_fotografia)) ||
+                            (currentPlayer.acceso_jugador_autorizado && !currentPlayer.email_jugador)
+                          }
               >
                 {isSubmitting ? (
                   <>

@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -20,7 +21,8 @@ import {
   Ban,
   Trash2,
   Eye,
-  EyeOff
+  EyeOff,
+  User
 } from "lucide-react";
 import {
   Dialog,
@@ -46,11 +48,14 @@ export default function UserManagement() {
   const [selectedUser, setSelectedUser] = useState(null);
   const [showRestrictDialog, setShowRestrictDialog] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [showRoleDialog, setShowRoleDialog] = useState(false);
   const [showDeleted, setShowDeleted] = useState(false);
   const [restrictionData, setRestrictionData] = useState({
     motivo_restriccion: "",
     notas_admin: ""
   });
+  const [selectedRole, setSelectedRole] = useState("user");
+  const [selectedPlayerId, setSelectedPlayerId] = useState("");
 
   const queryClient = useQueryClient();
 
@@ -76,6 +81,7 @@ export default function UserManagement() {
       queryClient.invalidateQueries({ queryKey: ['allUsers'] });
       setShowRestrictDialog(false);
       setShowDeleteDialog(false);
+      setShowRoleDialog(false);
       setSelectedUser(null);
       setRestrictionData({ motivo_restriccion: "", notas_admin: "" });
       toast.success("Usuario actualizado correctamente");
@@ -130,8 +136,8 @@ export default function UserManagement() {
     try {
       await base44.integrations.Core.SendEmail({
         to: user.email,
-        subject: isRestricting 
-          ? "Acceso Restringido - CF Bustarviejo" 
+        subject: isRestricting
+          ? "Acceso Restringido - CF Bustarviejo"
           : "Acceso Restaurado - CF Bustarviejo",
         body: isRestricting ? `
           <h2>Acceso Restringido</h2>
@@ -156,14 +162,44 @@ export default function UserManagement() {
     }
   };
 
+  const handleChangeRole = (user) => {
+    setSelectedUser(user);
+    setSelectedRole(user.role || "user");
+    setSelectedPlayerId(user.jugador_id || "");
+    setShowRoleDialog(true);
+  };
+
+  const handleConfirmRoleChange = async () => {
+    if (!selectedUser) return;
+
+    const updateData = {
+      role: selectedRole
+    };
+
+    if (selectedRole === "jugador") {
+      if (!selectedPlayerId) {
+        toast.error("Por favor, selecciona un jugador para vincular.");
+        return;
+      }
+      updateData.jugador_id = selectedPlayerId;
+    } else {
+      updateData.jugador_id = null;
+    }
+
+    updateUserMutation.mutate({
+      userId: selectedUser.id,
+      userData: updateData
+    });
+  };
+
   // Filtrar usuarios (ocultar eliminados por defecto)
   const filteredUsers = users.filter(user => {
     // Filtrar eliminados
     if (!showDeleted && user.eliminado === true) {
       return false;
     }
-    
-    const matchesSearch = 
+
+    const matchesSearch =
       user.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       user.email?.toLowerCase().includes(searchTerm.toLowerCase());
     return matchesSearch;
@@ -176,45 +212,30 @@ export default function UserManagement() {
 
   // Estadísticas (sin contar eliminados)
   const activeUsersWithoutDeleted = users.filter(u => u.eliminado !== true);
-  const activeUsers = activeUsersWithoutDeleted.filter(u => u.acceso_activo !== false && u.role !== "admin");
+  const activeUsers = activeUsersWithoutDeleted.filter(u => u.acceso_activo !== false && u.role === "user");
   const restrictedUsers = activeUsersWithoutDeleted.filter(u => u.acceso_activo === false);
   const admins = activeUsersWithoutDeleted.filter(u => u.role === "admin");
   const deletedUsers = users.filter(u => u.eliminado === true);
-  const parentsWithNoActivePlayers = activeUsersWithoutDeleted.filter(u => {
-    if (u.role === "admin") return false;
-    const userPlayers = getUserPlayers(u.email);
-    return userPlayers.length === 0 || userPlayers.every(p => !p.activo);
-  });
+  const jugadores = activeUsersWithoutDeleted.filter(u => u.role === "jugador");
+
 
   return (
     <div className="p-6 lg:p-8 space-y-6">
       <div>
         <h1 className="text-3xl font-bold text-slate-900">Gestión de Usuarios</h1>
-        <p className="text-slate-600 mt-1">Control de acceso y permisos de la aplicación</p>
+        <p className="text-slate-600 mt-1">Control de acceso, roles y permisos</p>
       </div>
 
       {/* Estadísticas */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
         <Card className="border-none shadow-lg">
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-slate-600 mb-1">Usuarios Activos</p>
+                <p className="text-sm text-slate-600 mb-1">Padres Activos</p>
                 <p className="text-3xl font-bold text-green-600">{activeUsers.length}</p>
               </div>
               <UserCheck className="w-12 h-12 text-green-500 opacity-20" />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="border-none shadow-lg">
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-slate-600 mb-1">Acceso Restringido</p>
-                <p className="text-3xl font-bold text-red-600">{restrictedUsers.length}</p>
-              </div>
-              <UserX className="w-12 h-12 text-red-500 opacity-20" />
             </div>
           </CardContent>
         </Card>
@@ -227,6 +248,30 @@ export default function UserManagement() {
                 <p className="text-3xl font-bold text-orange-600">{admins.length}</p>
               </div>
               <Shield className="w-12 h-12 text-orange-500 opacity-20" />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="border-none shadow-lg border-2 border-purple-200">
+          <CardContent className="pt-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-slate-600 mb-1">Jugadores</p>
+                <p className="text-3xl font-bold text-purple-600">{jugadores.length}</p>
+              </div>
+              <User className="w-12 h-12 text-purple-500 opacity-20" />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="border-none shadow-lg">
+          <CardContent className="pt-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-slate-600 mb-1">Restringidos</p>
+                <p className="text-3xl font-bold text-red-600">{restrictedUsers.length}</p>
+              </div>
+              <UserX className="w-12 h-12 text-red-500 opacity-20" />
             </div>
           </CardContent>
         </Card>
@@ -283,11 +328,11 @@ export default function UserManagement() {
               <div className="flex-1">
                 <h3 className="font-bold text-blue-900 mb-2">ℹ️ Sobre los usuarios "eliminados"</h3>
                 <p className="text-sm text-blue-800 mb-3">
-                  Los usuarios marcados como "eliminados" <strong>no pueden iniciar sesión</strong> y <strong>no aparecen en las listas</strong>, 
+                  Los usuarios marcados como "eliminados" <strong>no pueden iniciar sesión</strong> y <strong>no aparecen en las listas</strong>,
                   pero sus datos permanecen en el sistema. Es como si estuvieran borrados.
                 </p>
                 <p className="text-sm text-blue-800">
-                  <strong>Para eliminarlos definitivamente del sistema:</strong> Usa el botón de Feedback en el sidebar y solicita 
+                  <strong>Para eliminarlos definitivamente del sistema:</strong> Usa el botón de Feedback en el sidebar y solicita
                   al equipo de Base44 que elimine estos usuarios. Ellos tienen acceso al sistema de autenticación y pueden borrarlos permanentemente.
                 </p>
               </div>
@@ -323,6 +368,7 @@ export default function UserManagement() {
                 const activePlayers = userPlayers.filter(p => p.activo);
                 const hasRestriction = user.acceso_activo === false;
                 const isDeleted = user.eliminado === true;
+                const linkedPlayer = user.jugador_id ? players.find(p => p.id === user.jugador_id) : null;
 
                 return (
                   <div
@@ -337,10 +383,16 @@ export default function UserManagement() {
                   >
                     <div className="flex items-start justify-between gap-4">
                       <div className="flex-1">
-                        <div className="flex items-center gap-3 mb-2">
+                        <div className="flex items-center gap-3 mb-2 flex-wrap">
                           <h3 className="font-bold text-lg text-slate-900">{user.full_name}</h3>
-                          <Badge className={user.role === "admin" ? "bg-orange-600" : "bg-slate-600"}>
-                            {user.role === "admin" ? "Administrador" : "Padre/Tutor"}
+                          <Badge className={
+                            user.role === "admin"
+                              ? "bg-orange-600"
+                              : user.role === "jugador"
+                              ? "bg-purple-600"
+                              : "bg-slate-600"
+                          }>
+                            {user.role === "admin" ? "🎓 Administrador" : user.role === "jugador" ? "⚽ Jugador" : "👨‍👩‍👧 Padre/Tutor"}
                           </Badge>
                           {isDeleted && (
                             <Badge className="bg-slate-700 text-white">
@@ -351,12 +403,7 @@ export default function UserManagement() {
                           {!isDeleted && hasRestriction && (
                             <Badge className="bg-red-600 text-white">
                               <Ban className="w-3 h-3 mr-1" />
-                              Acceso Restringido
-                            </Badge>
-                          )}
-                          {!isDeleted && !hasRestriction && activePlayers.length === 0 && user.role !== "admin" && (
-                            <Badge className="bg-amber-100 text-amber-700">
-                              Sin jugadores activos
+                              Restringido
                             </Badge>
                           )}
                         </div>
@@ -366,7 +413,13 @@ export default function UserManagement() {
                           <span>{user.email}</span>
                         </div>
 
-                        {userPlayers.length > 0 && (
+                        {user.role === "jugador" && linkedPlayer && (
+                          <div className="text-sm text-purple-700 bg-purple-50 rounded p-2 mb-2">
+                            <strong>Jugador vinculado:</strong> {linkedPlayer.nombre} - {linkedPlayer.deporte}
+                          </div>
+                        )}
+
+                        {userPlayers.length > 0 && user.role !== "jugador" && (
                           <div className="text-sm text-slate-600 mb-2">
                             <span className="font-medium">Jugadores:</span>{" "}
                             {userPlayers.map(p => p.nombre).join(", ")}
@@ -409,6 +462,15 @@ export default function UserManagement() {
                         <div className="flex flex-col gap-2">
                           <Button
                             size="sm"
+                            variant="outline"
+                            onClick={() => handleChangeRole(user)}
+                            className="bg-purple-50 hover:bg-purple-100 border-purple-300"
+                          >
+                            <Shield className="w-4 h-4 mr-1" />
+                            Cambiar Rol
+                          </Button>
+                          <Button
+                            size="sm"
                             variant={hasRestriction ? "default" : "destructive"}
                             onClick={() => handleRestrictAccess(user)}
                             className={hasRestriction ? "bg-green-600 hover:bg-green-700" : ""}
@@ -424,14 +486,6 @@ export default function UserManagement() {
                                 Restringir
                               </>
                             )}
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => sendAccessNotification(user, !hasRestriction)}
-                          >
-                            <Mail className="w-4 h-4 mr-1" />
-                            Notificar
                           </Button>
                           <Button
                             size="sm"
@@ -486,12 +540,12 @@ export default function UserManagement() {
           <div className="space-y-4 py-4">
             {selectedUser?.acceso_activo !== false && (
               <div className="space-y-2">
-                <Label>Motivo de la Restricción</Label>
+                <Label htmlFor="restriction-reason-select">Motivo de la Restricción</Label>
                 <Select
                   value={restrictionData.motivo_restriccion}
                   onValueChange={(value) => setRestrictionData({...restrictionData, motivo_restriccion: value})}
                 >
-                  <SelectTrigger>
+                  <SelectTrigger id="restriction-reason-select">
                     <SelectValue placeholder="Selecciona un motivo" />
                   </SelectTrigger>
                   <SelectContent>
@@ -516,8 +570,9 @@ export default function UserManagement() {
             )}
 
             <div className="space-y-2">
-              <Label>Notas del Administrador (opcional)</Label>
+              <Label htmlFor="admin-notes-textarea">Notas del Administrador (opcional)</Label>
               <Textarea
+                id="admin-notes-textarea"
                 placeholder="Añade notas internas sobre este usuario..."
                 value={restrictionData.notas_admin}
                 onChange={(e) => setRestrictionData({...restrictionData, notas_admin: e.target.value})}
@@ -647,6 +702,132 @@ export default function UserManagement() {
                 <>
                   <Trash2 className="w-4 h-4 mr-2" />
                   Sí, Marcar como Eliminado
+                </>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Diálogo de Cambio de Rol */}
+      <Dialog open={showRoleDialog} onOpenChange={setShowRoleDialog}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="text-2xl flex items-center gap-2">
+              <Shield className="w-6 h-6 text-purple-600" />
+              Cambiar Rol de Usuario
+            </DialogTitle>
+            <DialogDescription>
+              Cambiar el rol de <strong>{selectedUser?.full_name}</strong> ({selectedUser?.email})
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="user-role-select">Rol del Usuario</Label>
+              <Select value={selectedRole} onValueChange={setSelectedRole}>
+                <SelectTrigger id="user-role-select">
+                  <SelectValue placeholder="Selecciona un rol" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="user">👨‍👩‍👧 Padre/Tutor (acceso completo)</SelectItem>
+                  <SelectItem value="jugador">⚽ Jugador (acceso limitado)</SelectItem>
+                  <SelectItem value="admin">🎓 Administrador (gestión total)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {selectedRole === "jugador" && (
+              <div className="space-y-2">
+                <Label htmlFor="player-link-select">Vincular a Jugador *</Label>
+                <Select value={selectedPlayerId} onValueChange={setSelectedPlayerId}>
+                  <SelectTrigger id="player-link-select">
+                    <SelectValue placeholder="Selecciona el jugador..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {players
+                      .filter(p => p.acceso_jugador_autorizado && p.email_jugador === selectedUser?.email)
+                      .map(p => (
+                        <SelectItem key={p.id} value={p.id}>
+                          {p.nombre} - {p.deporte}
+                        </SelectItem>
+                      ))}
+                    {players.filter(p => p.acceso_jugador_autorizado && p.email_jugador === selectedUser?.email).length === 0 && (
+                      <div className="p-2 text-sm text-gray-500">
+                        No hay jugadores autorizados para este usuario con el email {selectedUser?.email}.
+                      </div>
+                    )}
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-purple-600">
+                  Solo se muestran jugadores autorizados con este email.
+                  Asegúrate de que el jugador tenga el email correcto y 'acceso_jugador_autorizado' activado.
+                </p>
+              </div>
+            )}
+
+            <div className={`rounded-lg p-4 ${
+              selectedRole === "admin"
+                ? "bg-orange-50 border-2 border-orange-300"
+                : selectedRole === "jugador"
+                ? "bg-purple-50 border-2 border-purple-300"
+                : "bg-blue-50 border-2 border-blue-300"
+            }`}>
+              <p className="text-sm font-bold mb-2">
+                {selectedRole === "admin" && "🎓 Administrador - Acceso Total"}
+                {selectedRole === "jugador" && "⚽ Jugador - Acceso Limitado"}
+                {selectedRole === "user" && "👨‍👩‍👧 Padre/Tutor - Acceso Completo"}
+              </p>
+              <ul className="text-xs space-y-1">
+                {selectedRole === "admin" && (
+                  <>
+                    <li>✅ Gestión de jugadores, pagos, pedidos, usuarios</li>
+                    <li>✅ Control total de la aplicación</li>
+                  </>
+                )}
+                {selectedRole === "jugador" && (
+                  <>
+                    <li>✅ Ver su perfil, horarios, calendario, anuncios, galería</li>
+                    <li>✅ Chat con equipo y entrenadores</li>
+                    <li>❌ NO puede: gestionar pagos, pedidos ni otros jugadores</li>
+                  </>
+                )}
+                {selectedRole === "user" && (
+                  <>
+                    <li>✅ Gestión de sus jugadores</li>
+                    <li>✅ Pagos, pedidos, chat, calendario, etc.</li>
+                  </>
+                )}
+              </ul>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setShowRoleDialog(false);
+                setSelectedUser(null);
+                setSelectedRole("user");
+                setSelectedPlayerId("");
+              }}
+            >
+              Cancelar
+            </Button>
+            <Button
+              onClick={handleConfirmRoleChange}
+              disabled={updateUserMutation.isPending || (selectedRole === "jugador" && !selectedPlayerId)}
+              className="bg-purple-600 hover:bg-purple-700"
+            >
+              {updateUserMutation.isPending ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Procesando...
+                </>
+              ) : (
+                <>
+                  <Shield className="w-4 h-4 mr-2" />
+                  Confirmar Cambio de Rol
                 </>
               )}
             </Button>
