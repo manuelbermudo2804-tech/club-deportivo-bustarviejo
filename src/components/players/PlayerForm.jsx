@@ -8,7 +8,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Upload, X, Loader2, AlertCircle, Lock, Users, Shield, Camera } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
+import { Upload, X, Loader2, AlertCircle, Lock, Users, Shield, Camera, UserCheck, UserX } from "lucide-react";
 import { toast } from "sonner";
 import { base44 } from "@/api/base44Client";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -20,6 +21,7 @@ export default function PlayerForm({ player, onSubmit, onCancel, isSubmitting, i
     nombre: "",
     foto_url: "",
     deporte: "Fútbol Pre-Benjamín (Mixto)",
+    tipo_inscripcion: "Nueva Inscripción",
     fecha_nacimiento: "",
     telefono: "",
     email_padre: "",
@@ -88,14 +90,14 @@ export default function PlayerForm({ player, onSubmit, onCancel, isSubmitting, i
   const handleSubmit = (e) => {
     e.preventDefault();
     
-    // Validación de política de privacidad
-    if (!currentPlayer.acepta_politica_privacidad) {
+    // Validación de política de privacidad (solo para nuevos jugadores)
+    if (!player && !currentPlayer.acepta_politica_privacidad) {
       toast.error("Debes aceptar la política de privacidad para continuar");
       return;
     }
 
-    // Validación de autorización de fotografías
-    if (!currentPlayer.autorizacion_fotografia) {
+    // Validación de autorización de fotografías (solo para nuevos jugadores)
+    if (!player && !currentPlayer.autorizacion_fotografia) {
       toast.error("Debes seleccionar una opción para la autorización de fotografías");
       return;
     }
@@ -151,6 +153,36 @@ export default function PlayerForm({ player, onSubmit, onCancel, isSubmitting, i
           )}
 
           <form onSubmit={handleSubmit} className="space-y-6">
+            {/* Tipo de Inscripción - Solo para nuevos jugadores */}
+            {!player && (
+              <div className="space-y-4 border-2 border-blue-200 rounded-lg p-6 bg-blue-50">
+                <div className="flex items-center gap-2 mb-4">
+                  <AlertCircle className="w-6 h-6 text-blue-600" />
+                  <h3 className="text-lg font-bold text-blue-900">¿Se trata de una nueva inscripción o una renovación? *</h3>
+                </div>
+                
+                <RadioGroup
+                  value={currentPlayer.tipo_inscripcion}
+                  onValueChange={(value) => setCurrentPlayer({...currentPlayer, tipo_inscripcion: value})}
+                  className="space-y-3"
+                  required
+                >
+                  <div className="flex items-center space-x-3 p-4 bg-white rounded-lg border-2 border-blue-200 hover:bg-blue-50 transition-colors">
+                    <RadioGroupItem value="Nueva Inscripción" id="nueva-inscripcion" />
+                    <Label htmlFor="nueva-inscripcion" className="font-semibold cursor-pointer flex-1">
+                      Nueva Inscripción
+                    </Label>
+                  </div>
+                  <div className="flex items-center space-x-3 p-4 bg-white rounded-lg border-2 border-blue-200 hover:bg-blue-50 transition-colors">
+                    <RadioGroupItem value="Renovación" id="renovacion" />
+                    <Label htmlFor="renovacion" className="font-semibold cursor-pointer flex-1">
+                      Renovación
+                    </Label>
+                  </div>
+                </RadioGroup>
+              </div>
+            )}
+
             {/* Foto del Jugador */}
             <div className="flex flex-col items-center space-y-4">
               <div className="relative">
@@ -278,6 +310,47 @@ export default function PlayerForm({ player, onSubmit, onCancel, isSubmitting, i
                 required
               />
             </div>
+
+            {/* Estado del Jugador - Solo visible al editar */}
+            {player && (
+              <div className="space-y-4 border-2 border-slate-200 rounded-lg p-6 bg-slate-50">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    {currentPlayer.activo ? (
+                      <UserCheck className="w-6 h-6 text-green-600" />
+                    ) : (
+                      <UserX className="w-6 h-6 text-red-600" />
+                    )}
+                    <div>
+                      <h3 className="text-lg font-bold text-slate-900">
+                        Estado del Jugador en el Club
+                      </h3>
+                      <p className="text-sm text-slate-600">
+                        {currentPlayer.activo 
+                          ? "El jugador está activo en el club" 
+                          : "El jugador NO está activo en el club"}
+                      </p>
+                    </div>
+                  </div>
+                  <Switch
+                    checked={currentPlayer.activo}
+                    onCheckedChange={(checked) => setCurrentPlayer({...currentPlayer, activo: checked})}
+                    className="data-[state=checked]:bg-green-600"
+                  />
+                </div>
+                
+                <Alert className={currentPlayer.activo ? "bg-green-50 border-green-200" : "bg-red-50 border-red-200"}>
+                  <AlertCircle className={`h-4 w-4 ${currentPlayer.activo ? "text-green-600" : "text-red-600"}`} />
+                  <AlertDescription className={currentPlayer.activo ? "text-green-800" : "text-red-800"}>
+                    {currentPlayer.activo ? (
+                      <span>✅ Este jugador aparecerá en las listas activas y podrá participar en todas las actividades del club.</span>
+                    ) : (
+                      <span>⚠️ Este jugador NO aparecerá en las listas activas. Úsalo si el jugador se da de baja o no continúa en la nueva temporada.</span>
+                    )}
+                  </AlertDescription>
+                </Alert>
+              </div>
+            )}
 
             {/* Sección Primer Progenitor/Tutor */}
             <div className="space-y-4 border-t border-slate-200 pt-6">
@@ -504,6 +577,9 @@ export default function PlayerForm({ player, onSubmit, onCancel, isSubmitting, i
                   <li>Para acceder a la app, cada uno debe registrarse con su email respectivo</li>
                   {!player && (
                     <li className="font-semibold text-red-700">Debes aceptar las autorizaciones de protección de datos para continuar</li>
+                  )}
+                  {player && (
+                    <li className="font-semibold text-green-700">Puedes cambiar el estado "Activo" del jugador si se da de baja o no continúa en la nueva temporada</li>
                   )}
                 </ul>
               </div>
