@@ -81,7 +81,15 @@ export default function UserManagement() {
 
   const updateUserMutation = useMutation({
     mutationFn: async ({ userId, userData }) => {
-      return await base44.entities.User.update(userId, userData);
+      // Clean the data - remove null/undefined values
+      const cleanData = Object.entries(userData).reduce((acc, [key, value]) => {
+        if (value !== null && value !== undefined) {
+          acc[key] = value;
+        }
+        return acc;
+      }, {});
+      
+      return await base44.entities.User.update(userId, cleanData);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['allUsers'] });
@@ -140,36 +148,6 @@ export default function UserManagement() {
     });
   };
 
-  const sendAccessNotification = async (user, isRestricting) => {
-    try {
-      await base44.integrations.Core.SendEmail({
-        to: user.email,
-        subject: isRestricting
-          ? "Acceso Restringido - CF Bustarviejo"
-          : "Acceso Restaurado - CF Bustarviejo",
-        body: isRestricting ? `
-          <h2>Acceso Restringido</h2>
-          <p>Estimado/a ${user.full_name},</p>
-          <p>Te informamos que tu acceso a la aplicación del CF Bustarviejo ha sido restringido.</p>
-          ${restrictionData.motivo_restriccion ? `<p><strong>Motivo:</strong> ${restrictionData.motivo_restriccion}</p>` : ''}
-          <p>Si tienes alguna duda, por favor contacta con la administración del club.</p>
-          <hr>
-          <p style="font-size: 12px; color: #666;">CF Bustarviejo</p>
-        ` : `
-          <h2>Acceso Restaurado</h2>
-          <p>Estimado/a ${user.full_name},</p>
-          <p>Te informamos que tu acceso a la aplicación del CF Bustarviejo ha sido restaurado.</p>
-          <p>Ya puedes acceder nuevamente a la aplicación.</p>
-          <hr>
-          <p style="font-size: 12px; color: #666;">CF Bustarviejo</p>
-        `
-      });
-      toast.success("Notificación enviada por email");
-    } catch (error) {
-      console.error("Error sending notification:", error);
-    }
-  };
-
   const handleChangeRole = (user) => {
     setSelectedUser(user);
     setSelectedRole(user.role || "user");
@@ -214,12 +192,20 @@ export default function UserManagement() {
 
     const isSettingAsCoach = !selectedUser.es_entrenador;
 
-    // Only send the fields we're actually updating
+    // Build minimal update object
     const updateData = {
-      es_entrenador: isSettingAsCoach,
-      categorias_entrena: isSettingAsCoach ? coachData.categorias_entrena : [],
-      telefono_entrenador: isSettingAsCoach ? coachData.telefono_entrenador : null
+      es_entrenador: isSettingAsCoach
     };
+    
+    if (isSettingAsCoach) {
+      updateData.categorias_entrena = coachData.categorias_entrena;
+      if (coachData.telefono_entrenador) {
+        updateData.telefono_entrenador = coachData.telefono_entrenador;
+      }
+    } else {
+      updateData.categorias_entrena = [];
+      updateData.telefono_entrenador = null;
+    }
 
     updateUserMutation.mutate({
       userId: selectedUser.id,
