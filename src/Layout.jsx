@@ -1,9 +1,8 @@
-
 import React, { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { base44 } from "@/api/base44Client";
-import { Home, Users, CreditCard, ShoppingBag, Menu, Bell, LogOut, Calendar, Megaphone, Mail, Archive, Settings, MessageCircle, Clock, Image, CheckSquare } from "lucide-react";
+import { Home, Users, CreditCard, ShoppingBag, Menu, Bell, LogOut, Calendar, Megaphone, Mail, Archive, Settings, MessageCircle, Clock, Image } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -64,7 +63,6 @@ function ClosedSeasonScreen({ user, isAdmin }) {
       <div className="max-w-2xl w-full">
         <Card className="border-none shadow-2xl bg-white/95 backdrop-blur-sm">
           <CardContent className="p-12 text-center space-y-6">
-            {/* Logo del Club */}
             <div className="flex justify-center mb-6">
               <div className="relative">
                 <img 
@@ -74,8 +72,6 @@ function ClosedSeasonScreen({ user, isAdmin }) {
                 />
               </div>
             </div>
-
-            {/* Título */}
             <div className="space-y-3">
               <h1 className="text-4xl md::text-5xl font-bold text-slate-900">
                 🔒 Cierre de Temporada
@@ -84,8 +80,6 @@ function ClosedSeasonScreen({ user, isAdmin }) {
                 CD Bustarviejo
               </p>
             </div>
-
-            {/* Mensaje principal */}
             <div className="bg-gradient-to-r from-orange-50 to-orange-100 rounded-2xl p-8 space-y-4 border-2 border-orange-200">
               <p className="text-xl text-slate-800 leading-relaxed">
                 La aplicación está cerrada durante el mes de <strong className="text-orange-700">Mayo</strong> por cierre de temporada.
@@ -94,13 +88,9 @@ function ClosedSeasonScreen({ user, isAdmin }) {
                 Estamos preparando todo para las <strong className="text-orange-700">inscripciones de Junio</strong> y la nueva temporada que comenzará en <strong className="text-green-700">Septiembre</strong>.
               </p>
             </div>
-
-            {/* Icono decorativo */}
             <div className="text-8xl">
               📋
             </div>
-
-            {/* Información importante */}
             <div className="space-y-3 pt-4">
               <div className="bg-gradient-to-r from-slate-900 to-black border-2 border-green-500 rounded-xl p-6">
                 <p className="text-xl font-bold text-orange-500 mb-3">
@@ -122,8 +112,6 @@ function ClosedSeasonScreen({ user, isAdmin }) {
                 </div>
               </div>
             </div>
-
-            {/* Información de usuario y logout */}
             {user && (
               <div className="pt-6 border-t-2 border-slate-200 space-y-3">
                 <div className="text-sm text-slate-600">
@@ -145,8 +133,6 @@ function ClosedSeasonScreen({ user, isAdmin }) {
                 </Button>
               </div>
             )}
-
-            {/* Contacto */}
             <div className="pt-6 border-t-2 border-slate-200">
               <p className="text-sm text-slate-600 mb-2">
                 Para cualquier consulta:
@@ -184,7 +170,6 @@ function InscriptionPeriodScreen({ user, isAdmin }) {
       <div className="max-w-3xl w-full">
         <Card className="border-none shadow-2xl bg-white/95 backdrop-blur-sm">
           <CardContent className="p-12 text-center space-y-6">
-            {/* Logo del Club */}
             <div className="flex justify-center mb-6">
               <div className="relative">
                 <img 
@@ -194,8 +179,6 @@ function InscriptionPeriodScreen({ user, isAdmin }) {
                 />
               </div>
             </div>
-
-            {/* Título */}
             <div className="space-y-3">
               <h1 className="text-4xl md:text-5xl font-bold text-slate-900">
                 📝 Periodo de Inscripciones
@@ -204,8 +187,6 @@ function InscriptionPeriodScreen({ user, isAdmin }) {
                 CD Bustarviejo - Junio y Julio
               </p>
             </div>
-
-            {/* Mensaje principal */}
             <div className="bg-gradient-to-r from-green-50 to-green-100 rounded-2xl p-8 space-y-4 border-2 border-green-300">
               <p className="text-xl text-slate-800 leading-relaxed">
                 ¡Bienvenidos al periodo de <strong className="text-green-700">inscripciones de Junio y Julio</strong>!
@@ -214,15 +195,10 @@ function InscriptionPeriodScreen({ user, isAdmin }) {
                 Durante estos meses puedes <strong className="text-green-700">registrar a tus jugadores</strong> y <strong className="text-orange-600">pedir equipación</strong> para la próxima temporada que comenzará en <strong className="text-green-700">Septiembre</strong>.
               </p>
             </div>
-
-            {/* Icono decorativo */}
             <div className="text-8xl animate-bounce">
               ✍️
             </div>
-
-            {/* Acceso disponible */}
             <div className="grid md:grid-cols-2 gap-4">
-              {/* Inscripciones */}
               <div className="bg-gradient-to-br from-green-50 to-green-100 border-2 border-green-300 rounded-xl p-6">
                 <p className="text-lg font-bold text-green-900 mb-3">
                   📋 Inscripciones
@@ -239,8 +215,6 @@ function InscriptionPeriodScreen({ user, isAdmin }) {
                   </p>
                 </div>
               </div>
-
-              {/* Pedidos de Equipación */}
               <div className="bg-gradient-to-br from-orange-50 to-orange-100 border-2 border-orange-300 rounded-xl p-6">
                 <p className="text-lg font-bold text-orange-900 mb-3">
                   🛍️ Equipación
@@ -258,8 +232,6 @@ function InscriptionPeriodScreen({ user, isAdmin }) {
                 </div>
               </div>
             </div>
-
-            {/* Aviso importante de pedidos */}
             <div className="bg-gradient-to-r from-orange-50 to-orange-100 rounded-2xl p-6 space-y-3 border-2 border-orange-300">
               <p className="text-xl font-bold text-orange-900 flex items-center justify-center gap-2">
                 🛍️ Pedidos de Equipación
@@ -275,8 +247,6 @@ function InscriptionPeriodScreen({ user, isAdmin }) {
                 </p>
               </div>
             </div>
-
-            {/* Botones de acceso */}
             <div className="grid md:grid-cols-2 gap-4 pt-4">
               <Link to={isAdmin ? createPageUrl("Players") : createPageUrl("ParentPlayers")} className="w-full">
                 <Button className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-6 text-lg shadow-xl">
@@ -292,13 +262,9 @@ function InscriptionPeriodScreen({ user, isAdmin }) {
                 </Button>
               </Link>
             </div>
-
-            {/* Recordatorio */}
             <div className="bg-slate-50 rounded-lg p-4 text-sm text-slate-600">
               <p>⏸️ <strong>Resto de funciones</strong> (pagos cuotas, calendario, etc.) estarán disponibles en <strong>Septiembre</strong> con el inicio de la temporada.</p>
             </div>
-
-            {/* Información de usuario y logout */}
             {user && (
               <div className="pt-6 border-t-2 border-slate-200 space-y-3">
                 <div className="text-sm text-slate-600">
@@ -320,8 +286,6 @@ function InscriptionPeriodScreen({ user, isAdmin }) {
                 </Button>
               </div>
             )}
-
-            {/* Contacto */}
             <div className="pt-6 border-t-2 border-slate-200">
               <p className="text-sm text-slate-600 mb-2">
                 ¿Necesitas ayuda?
@@ -351,7 +315,6 @@ function VacationPeriodScreen({ user, isAdmin }) {
       <div className="max-w-2xl w-full">
         <Card className="border-none shadow-2xl bg-white/95 backdrop-blur-sm">
           <CardContent className="p-12 text-center space-y-6">
-            {/* Logo del Club */}
             <div className="flex justify-center mb-6">
               <div className="relative">
                 <img 
@@ -361,8 +324,6 @@ function VacationPeriodScreen({ user, isAdmin }) {
                 />
               </div>
             </div>
-
-            {/* Título */}
             <div className="space-y-3">
               <h1 className="text-4xl md:text-5xl font-bold text-slate-900">
                 🏖️ Vacaciones de Verano
@@ -371,8 +332,6 @@ function VacationPeriodScreen({ user, isAdmin }) {
                 CD Bustarviejo
               </p>
             </div>
-
-            {/* Mensaje principal */}
             <div className="bg-gradient-to-r from-orange-50 to-green-50 rounded-2xl p-8 space-y-4 border-2 border-orange-200">
               <p className="text-xl text-slate-800 leading-relaxed">
                 La aplicación del club está cerrada durante el mes de <strong className="text-orange-700">Agosto</strong>.
@@ -381,13 +340,9 @@ function VacationPeriodScreen({ user, isAdmin }) {
                 Estamos de vacaciones. La aplicación volverá a estar disponible el <strong className="text-green-700">1 de Septiembre</strong> con el inicio de la nueva temporada.
               </p>
             </div>
-
-            {/* Icono decorativo */}
             <div className="text-8xl animate-bounce">
               ☀️
             </div>
-
-            {/* Mensaje de despedida */}
             <div className="space-y-3 pt-4">
               <p className="text-2xl font-bold text-slate-900">
                 ¡Disfruta del verano!
@@ -399,8 +354,6 @@ function VacationPeriodScreen({ user, isAdmin }) {
                 ⚽ 🏀 💪
               </p>
             </div>
-
-            {/* Información de usuario y logout */}
             {user && (
               <div className="pt-6 border-t-2 border-slate-200 space-y-3">
                 <div className="text-sm text-slate-600">
@@ -422,8 +375,6 @@ function VacationPeriodScreen({ user, isAdmin }) {
                 </Button>
               </div>
             )}
-
-            {/* Contacto */}
             <div className="pt-6 border-t-2 border-slate-200">
               <p className="text-sm text-slate-600 mb-2">
                 Para consultas urgentes:
@@ -453,7 +404,6 @@ function RestrictedAccessScreen({ user, restriction }) {
       <div className="max-w-2xl w-full">
         <Card className="border-none shadow-2xl bg-white/95 backdrop-blur-sm border-2 border-orange-500">
           <CardContent className="p-12 text-center space-y-6">
-            {/* Logo del Club */}
             <div className="flex justify-center mb-6">
               <div className="relative">
                 <img 
@@ -463,8 +413,6 @@ function RestrictedAccessScreen({ user, restriction }) {
                 />
               </div>
             </div>
-
-            {/* Título */}
             <div className="space-y-3">
               <h1 className="text-4xl md:text-5xl font-bold text-slate-900">
                 Acceso Restringido
@@ -473,8 +421,6 @@ function RestrictedAccessScreen({ user, restriction }) {
                 CD Bustarviejo
               </p>
             </div>
-
-            {/* Mensaje principal */}
             <div className="bg-gradient-to-r from-orange-50 to-orange-100 rounded-2xl p-8 space-y-4 border-2 border-orange-300">
               <p className="text-xl text-slate-800 leading-relaxed">
                 Tu acceso a la aplicación ha sido <strong className="text-orange-700">restringido</strong>.
@@ -488,13 +434,9 @@ function RestrictedAccessScreen({ user, restriction }) {
                 </div>
               )}
             </div>
-
-            {/* Icono */}
             <div className="text-8xl">
               😔
             </div>
-
-            {/* Información de contacto */}
             <div className="space-y-3 pt-4">
               <p className="text-xl font-bold text-slate-900">
                 ¿Necesitas ayuda?
@@ -503,8 +445,6 @@ function RestrictedAccessScreen({ user, restriction }) {
                 Si crees que esto es un error o deseas más información, por favor contacta con el club
               </p>
             </div>
-
-            {/* Información de usuario y logout */}
             {user && (
               <div className="pt-6 border-t-2 border-slate-200 space-y-3">
                 <div className="text-sm text-slate-600">
@@ -521,8 +461,6 @@ function RestrictedAccessScreen({ user, restriction }) {
                 </Button>
               </div>
             )}
-
-            {/* Contacto */}
             <div className="pt-6 border-t-2 border-slate-200">
               <p className="text-sm text-slate-600 mb-2">
                 Contacto del club:
@@ -673,11 +611,6 @@ export default function Layout({ children, currentPageName }) {
       icon: Clock,
     },
     {
-      title: "Asistencia",
-      url: createPageUrl("AdminAttendance"),
-      icon: CheckSquare,
-    },
-    {
       title: "Calendario",
       url: createPageUrl("Calendar"),
       icon: Calendar,
@@ -746,11 +679,6 @@ export default function Layout({ children, currentPageName }) {
       title: "Horarios Entrenamientos",
       url: createPageUrl("ParentTrainingSchedules"),
       icon: Clock,
-    },
-    {
-      title: "Mi Asistencia",
-      url: createPageUrl("ParentAttendance"),
-      icon: CheckSquare,
     },
     {
       title: "Calendario",
