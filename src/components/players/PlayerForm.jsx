@@ -6,7 +6,9 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
-import { Upload, X, Loader2, AlertCircle, Lock, Users } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Upload, X, Loader2, AlertCircle, Lock, Users, Shield, Camera } from "lucide-react";
 import { toast } from "sonner";
 import { base44 } from "@/api/base44Client";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -25,7 +27,10 @@ export default function PlayerForm({ player, onSubmit, onCancel, isSubmitting, i
     email_tutor_2: "",
     direccion: "",
     activo: true,
-    observaciones: ""
+    observaciones: "",
+    acepta_politica_privacidad: false,
+    fecha_aceptacion_privacidad: null,
+    autorizacion_fotografia: ""
   });
 
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
@@ -82,6 +87,24 @@ export default function PlayerForm({ player, onSubmit, onCancel, isSubmitting, i
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    
+    // Validación de política de privacidad
+    if (!currentPlayer.acepta_politica_privacidad) {
+      toast.error("Debes aceptar la política de privacidad para continuar");
+      return;
+    }
+
+    // Validación de autorización de fotografías
+    if (!currentPlayer.autorizacion_fotografia) {
+      toast.error("Debes seleccionar una opción para la autorización de fotografías");
+      return;
+    }
+
+    // Añadir fecha de aceptación si no está editando
+    if (!player) {
+      currentPlayer.fecha_aceptacion_privacidad = new Date().toISOString();
+    }
+
     onSubmit(currentPlayer);
   };
 
@@ -366,16 +389,122 @@ export default function PlayerForm({ player, onSubmit, onCancel, isSubmitting, i
               />
             </div>
 
+            {/* AUTORIZACIONES - Solo para nuevos jugadores */}
+            {!player && (
+              <>
+                {/* Autorización Tratamiento de Datos */}
+                <div className="space-y-4 border-2 border-red-200 rounded-lg p-6 bg-red-50">
+                  <div className="flex items-center gap-2 mb-4">
+                    <Shield className="w-6 h-6 text-red-600" />
+                    <h3 className="text-lg font-bold text-red-900">AUTORIZACIÓN PARA TRATAMIENTO DE DATOS *</h3>
+                  </div>
+                  
+                  <div className="bg-white rounded-lg p-4 text-sm text-slate-800 space-y-3 max-h-64 overflow-y-auto border border-red-200">
+                    <p>
+                      Autorizo a que <strong>CLUB DEPORTIVO BUSTARVIEJO</strong> conserve en ficheros informáticos y/o en cualquier otro soporte físico los datos personales que le han sido proporcionados de forma voluntaria, y a tratar esa información con el objeto que le han sido facilitados, es decir, para la administración y gestión. Así mismo, el firmante declara conocer y aceptar las normas generales de funcionamiento del CLUB DEPORTIVO.
+                    </p>
+                    <p>
+                      Autorizo al Club Deportivo Bustarviejo a que me envíen información relevante para el desarrollo de las actividades, ofertas y noticias relacionadas con la actividad de dicho club en forma de correo ordinario, correo electrónico, whatsapp o envío sms.
+                    </p>
+                    <p>
+                      Por su parte, CLUB DEPORTIVO BUSTARVIEJO informa que podrá solicitar el contenido exacto de su información personal y podrá ejercer los derechos de rectificación, anulación o modificación que pudiera corresponderle, así como modificar esta autorización en cualquier sentido. Para ello puede ponerse en contacto con la directiva del Club en:
+                    </p>
+                    <p className="font-semibold text-center">
+                      <a href="mailto:cdbustarviejo@gmail.com" className="text-orange-600 hover:text-orange-700">
+                        cdbustarviejo@gmail.com
+                      </a>
+                    </p>
+                  </div>
+
+                  <div className="flex items-start gap-3 p-4 bg-white rounded-lg border-2 border-red-300">
+                    <Checkbox
+                      id="acepta_politica"
+                      checked={currentPlayer.acepta_politica_privacidad}
+                      onCheckedChange={(checked) => setCurrentPlayer({...currentPlayer, acepta_politica_privacidad: checked})}
+                      className="mt-1"
+                    />
+                    <label
+                      htmlFor="acepta_politica"
+                      className="text-sm font-semibold text-slate-900 cursor-pointer leading-tight"
+                    >
+                      HE LEÍDO Y ACEPTO LA POLÍTICA DE PRIVACIDAD DEL CLUB
+                    </label>
+                  </div>
+
+                  {!currentPlayer.acepta_politica_privacidad && (
+                    <Alert className="bg-red-100 border-red-300">
+                      <AlertCircle className="h-4 w-4 text-red-600" />
+                      <AlertDescription className="text-red-800 text-sm">
+                        <strong>⚠️ Obligatorio:</strong> Debes aceptar la política de privacidad para poder registrar al jugador.
+                      </AlertDescription>
+                    </Alert>
+                  )}
+                </div>
+
+                {/* Autorización Fotografías/Videos */}
+                <div className="space-y-4 border-2 border-orange-200 rounded-lg p-6 bg-orange-50">
+                  <div className="flex items-center gap-2 mb-4">
+                    <Camera className="w-6 h-6 text-orange-600" />
+                    <h3 className="text-lg font-bold text-orange-900">AUTORIZACIÓN PARA FOTOGRAFÍAS/VIDEOS *</h3>
+                  </div>
+                  
+                  <div className="bg-white rounded-lg p-4 text-sm text-slate-800 space-y-3 max-h-64 overflow-y-auto border border-orange-200">
+                    <p>
+                      <strong>AUTORIZO</strong> al CLUB DEPORTIVO BUSTARVIEJO a tomar fotografías y/o videos del jugador/a en las diferentes actividades organizadas o a las que acuda el Club, tales como competiciones, entrenamientos, eventos o encuentros deportivos; así mismo, AUTORIZA al Club a publicar dichas imágenes, en las que aparezca individualmente o en grupo, en la página Web del Club, en las cuentas oficiales del Club en Redes Sociales, en carteles publicitarios y en folletos informativos.
+                    </p>
+                    <p>
+                      Por su parte, CLUB DEPORTIVO BUSTARVIEJO informa que podrá modificar esta autorización en cualquier momento. Para ello puede ponerse en contacto en la dirección de mail:
+                    </p>
+                    <p className="font-semibold text-center">
+                      <a href="mailto:cdbustarviejo@gmail.com" className="text-orange-600 hover:text-orange-700">
+                        cdbustarviejo@gmail.com
+                      </a>
+                    </p>
+                  </div>
+
+                  <RadioGroup
+                    value={currentPlayer.autorizacion_fotografia}
+                    onValueChange={(value) => setCurrentPlayer({...currentPlayer, autorizacion_fotografia: value})}
+                    className="space-y-3"
+                  >
+                    <div className="flex items-center space-x-3 p-4 bg-white rounded-lg border-2 border-orange-200 hover:bg-orange-50 transition-colors">
+                      <RadioGroupItem value="SI AUTORIZO" id="si-autorizo" />
+                      <Label htmlFor="si-autorizo" className="font-semibold cursor-pointer flex-1">
+                        SI AUTORIZO
+                      </Label>
+                    </div>
+                    <div className="flex items-center space-x-3 p-4 bg-white rounded-lg border-2 border-orange-200 hover:bg-orange-50 transition-colors">
+                      <RadioGroupItem value="NO AUTORIZO" id="no-autorizo" />
+                      <Label htmlFor="no-autorizo" className="font-semibold cursor-pointer flex-1">
+                        NO AUTORIZO
+                      </Label>
+                    </div>
+                  </RadioGroup>
+
+                  {!currentPlayer.autorizacion_fotografia && (
+                    <Alert className="bg-orange-100 border-orange-300">
+                      <AlertCircle className="h-4 w-4 text-orange-600" />
+                      <AlertDescription className="text-orange-800 text-sm">
+                        <strong>⚠️ Obligatorio:</strong> Debes seleccionar una opción para poder registrar al jugador.
+                      </AlertDescription>
+                    </Alert>
+                  )}
+                </div>
+              </>
+            )}
+
             {/* Información importante */}
-            <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 flex items-start gap-3">
-              <AlertCircle className="w-5 h-5 text-orange-600 mt-0.5 flex-shrink-0" />
-              <div className="text-sm text-orange-900">
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 flex items-start gap-3">
+              <AlertCircle className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
+              <div className="text-sm text-blue-900">
                 <p className="font-medium mb-1">📋 Información Importante:</p>
-                <ul className="list-disc list-inside space-y-1 text-orange-800">
+                <ul className="list-disc list-inside space-y-1 text-blue-800">
                   <li>Los campos marcados con * son obligatorios</li>
                   <li>Ambos progenitores recibirán todas las notificaciones por email</li>
                   <li>Para acceder a la app, cada uno debe registrarse con su email respectivo</li>
-                  <li>El segundo progenitor verá los mismos jugadores asociados a su email</li>
+                  {!player && (
+                    <li className="font-semibold text-red-700">Debes aceptar las autorizaciones de protección de datos para continuar</li>
+                  )}
                 </ul>
               </div>
             </div>
@@ -393,7 +522,7 @@ export default function PlayerForm({ player, onSubmit, onCancel, isSubmitting, i
               <Button
                 type="submit"
                 className="bg-orange-600 hover:bg-orange-700"
-                disabled={isSubmitting}
+                disabled={isSubmitting || (!player && (!currentPlayer.acepta_politica_privacidad || !currentPlayer.autorizacion_fotografia))}
               >
                 {isSubmitting ? (
                   <>
