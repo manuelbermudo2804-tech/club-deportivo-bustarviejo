@@ -1,21 +1,16 @@
-
 import React, { useState, useEffect, useRef } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Send, Clock } from "lucide-react";
+import { Send, Clock, AlertCircle, X } from "lucide-react";
 import { toast } from "sonner";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 
 import FileAttachmentButton from "../components/chat/FileAttachmentButton";
 import MessageAttachments from "../components/chat/MessageAttachments";
-import ContactCard from "../components/ContactCard";
 
 export default function ParentChat() {
   const [messageContent, setMessageContent] = useState("");
@@ -23,7 +18,6 @@ export default function ParentChat() {
   const [attachments, setAttachments] = useState([]);
   const messagesEndRef = useRef(null);
   const queryClient = useQueryClient();
-
   const [user, setUser] = useState(null);
 
   useEffect(() => {
@@ -57,7 +51,6 @@ export default function ParentChat() {
     mutationFn: async (messageData) => {
       const newMessage = await base44.entities.ChatMessage.create(messageData);
       
-      // Si hay imágenes adjuntas, crear álbum en la galería
       const imageAttachments = messageData.archivos_adjuntos.filter(att => att.tipo === "imagen");
       if (imageAttachments.length > 0) {
         const albumData = {
@@ -85,6 +78,7 @@ export default function ParentChat() {
       queryClient.invalidateQueries({ queryKey: ['photoGallery'] });
       setMessageContent("");
       setAttachments([]);
+      toast.success("Mensaje enviado");
     },
   });
 
@@ -100,22 +94,16 @@ export default function ParentChat() {
     },
   });
 
-  // Función para normalizar y limpiar el deporte
   const normalizeDeporte = (deporte) => {
     if (!deporte) return null;
-    
     let normalized = deporte.trim();
     normalized = normalized.replace(/_undefined$/, '');
     normalized = normalized.replace(/_$/, '');
-    
     return normalized;
   };
 
-  // Usar deporte completo como grupo (normalizado y único)
   const uniqueDeportes = [...new Set(
-    players
-      .map(p => normalizeDeporte(p.deporte))
-      .filter(Boolean)
+    players.map(p => normalizeDeporte(p.deporte)).filter(Boolean)
   )];
   
   const myGroups = uniqueDeportes.map(deporteNormalizado => {
@@ -171,12 +159,12 @@ export default function ParentChat() {
   const handleSendMessage = () => {
     if (!user || !selectedTab) return;
     if (!messageContent.trim() && attachments.length === 0) {
-      toast.error("Escribe un mensaje o adjunta un archivo");
+      toast.error("Escribe un mensaje");
       return;
     }
 
     if (!isBusinessHours()) {
-      toast.error("Solo puedes enviar mensajes entre las 10:00 y las 20:00");
+      toast.error("Solo entre 10:00 y 20:00");
       return;
     }
 
@@ -204,18 +192,6 @@ export default function ParentChat() {
     setAttachments(prev => prev.filter((_, i) => i !== index));
   };
 
-  const priorityColors = {
-    "Normal": "text-slate-600",
-    "Importante": "text-orange-600",
-    "Urgente": "text-red-600"
-  };
-
-  const priorityIcons = {
-    "Normal": "",
-    "Importante": "⚠️",
-    "Urgente": "🔴"
-  };
-
   const sportEmojis = {
     "Fútbol Pre-Benjamín (Mixto)": "⚽",
     "Fútbol Benjamín (Mixto)": "⚽",
@@ -229,13 +205,8 @@ export default function ParentChat() {
   };
 
   useEffect(() => {
-    if (messagesEndRef.current) {
-      messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
-    }
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [selectedTab, messages]);
-
-  const totalUnread = myGroups.reduce((sum, g) => sum + g.unreadCount, 0);
-  const totalUrgent = myGroups.reduce((sum, g) => sum + g.urgentCount, 0);
 
   if (loadingPlayers || loadingMessages) {
     return (
@@ -248,193 +219,183 @@ export default function ParentChat() {
     );
   }
 
-  if (players.length === 0) {
-    return (
-      <div className="p-6 lg:p-8">
-        <Card>
-          <CardContent className="py-12 text-center">
-            <p className="text-slate-500 text-lg">No tienes jugadores registrados</p>
-            <p className="text-sm text-slate-400 mt-2">Registra un jugador para acceder al chat del grupo</p>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
   if (myGroups.length === 0) {
     return (
-      <div className="p-6 lg:p-8">
-        <Card>
-          <CardContent className="py-12 text-center">
-            <p className="text-slate-500 text-lg">No hay grupos disponibles</p>
-          </CardContent>
-        </Card>
+      <div className="flex items-center justify-center min-h-screen p-6">
+        <div className="text-center">
+          <AlertCircle className="w-16 h-16 text-slate-300 mx-auto mb-4" />
+          <p className="text-slate-500 text-lg">No hay grupos disponibles</p>
+          <p className="text-sm text-slate-400 mt-2">Registra un jugador para acceder al chat</p>
+        </div>
       </div>
     );
   }
 
+  const currentGroup = myGroups.find(g => g.id === selectedTab);
+
   return (
-    <div className="h-screen flex flex-col bg-gradient-to-br from-slate-50 to-slate-100">
-      <div className="bg-gradient-to-r from-orange-600 to-orange-700 text-white p-6 shadow-lg">
-        <div className="flex items-center justify-between mb-2">
-          <h1 className="text-2xl font-bold">Chat del Grupo</h1>
-          <div className="flex gap-2">
-            {totalUrgent > 0 && (
-              <Badge className="bg-red-500 text-white shadow-lg animate-pulse">
-                🔴 {totalUrgent} Urgentes
-              </Badge>
-            )}
-            {totalUnread > 0 && (
-              <Badge className="bg-white text-orange-700 shadow-lg">
-                {totalUnread} No leídos
-              </Badge>
-            )}
+    <div className="h-screen flex flex-col bg-white">
+      {/* Tabs de Grupos */}
+      {myGroups.length > 1 && (
+        <div className="bg-white border-b overflow-x-auto">
+          <div className="flex">
+            {myGroups.map(group => (
+              <button
+                key={group.id}
+                onClick={() => setSelectedTab(group.id)}
+                className={`px-6 py-3 text-sm font-semibold flex items-center gap-2 border-b-2 transition-all flex-shrink-0 ${
+                  selectedTab === group.id
+                    ? 'border-orange-600 text-orange-600 bg-orange-50'
+                    : 'border-transparent text-slate-600 hover:bg-slate-50'
+                }`}
+              >
+                <span>{sportEmojis[group.deporte]}</span>
+                <span>{group.deporte}</span>
+                {group.unreadCount > 0 && (
+                  <Badge className="bg-orange-600 text-white text-xs h-5 min-w-5 rounded-full">
+                    {group.unreadCount}
+                  </Badge>
+                )}
+              </button>
+            ))}
           </div>
         </div>
-        <p className="text-orange-100 text-sm">
-          Comunícate con el club sobre tus jugadores
-        </p>
-      </div>
+      )}
 
-      <div className="px-6 pt-4">
-        <Alert className={isBusinessHours() ? "bg-green-50 border-green-300" : "bg-orange-50 border-orange-300"}>
-          <Clock className={`h-4 w-4 ${isBusinessHours() ? "text-green-600" : "text-orange-600"}`} />
-          <AlertDescription className={isBusinessHours() ? "text-green-800" : "text-orange-800"}>
-            {isBusinessHours() ? (
-              <span>✅ <strong>Horario activo</strong> - Puedes enviar mensajes (10:00 - 20:00)</span>
-            ) : (
-              <span>⏸️ <strong>Fuera de horario</strong> - Solo puedes enviar mensajes entre las 10:00 y las 20:00</span>
-            )}
-          </AlertDescription>
-        </Alert>
-      </div>
+      {/* Header del Chat */}
+      {currentGroup && (
+        <div className="bg-gradient-to-r from-orange-600 to-orange-700 p-4 text-white flex items-center gap-3 shadow-md">
+          <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
+            <span className="text-xl">{sportEmojis[currentGroup.deporte]}</span>
+          </div>
+          <div className="flex-1">
+            <h2 className="font-bold text-base">{currentGroup.deporte}</h2>
+            <p className="text-xs text-orange-100">Chat del grupo</p>
+          </div>
+          {!isBusinessHours() && (
+            <Badge className="bg-white/20 text-white text-xs">
+              <Clock className="w-3 h-3 mr-1" />
+              Fuera de horario
+            </Badge>
+          )}
+        </div>
+      )}
 
-      <div className="flex-1 overflow-hidden p-6">
-        <Card className="h-full flex flex-col">
-          <Tabs value={selectedTab} onValueChange={setSelectedTab} className="h-full flex flex-col">
-            <TabsList className="w-full justify-start border-b rounded-none bg-slate-50 p-0 h-auto">
-              {myGroups.map(group => (
-                <TabsTrigger
-                  key={group.id}
-                  value={group.id}
-                  className="relative data-[state=active]:bg-white data-[state=active]:border-b-2 data-[state=active]:border-orange-600 rounded-none px-6 py-4"
+      {/* Mensajes */}
+      <div 
+        className="flex-1 overflow-y-auto p-4 space-y-2"
+        style={{
+          backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23d4c5b9' fill-opacity='0.1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
+          backgroundColor: '#e5ddd5'
+        }}
+      >
+        {currentGroup?.messages.length === 0 ? (
+          <div className="flex items-center justify-center h-full">
+            <div className="text-center text-slate-500">
+              <AlertCircle className="w-12 h-12 mx-auto mb-2 opacity-50" />
+              <p className="text-sm">No hay mensajes</p>
+            </div>
+          </div>
+        ) : (
+          currentGroup?.messages
+            .sort((a, b) => new Date(a.created_date) - new Date(b.created_date))
+            .map((msg) => (
+              <div
+                key={msg.id}
+                className={`flex ${msg.tipo === "padre_a_grupo" ? 'justify-end' : 'justify-start'} mb-1`}
+              >
+                <div
+                  className={`max-w-[75%] rounded-lg shadow-sm ${
+                    msg.tipo === "padre_a_grupo"
+                      ? 'bg-gradient-to-r from-green-600 to-green-700 text-white rounded-br-none'
+                      : 'bg-white text-slate-900 rounded-bl-none'
+                  }`}
                 >
-                  <div className="flex items-center gap-2">
-                    <span className="text-xl">{sportEmojis[group.deporte] || "⚽"}</span>
-                    <div className="text-left">
-                      <div className="font-semibold text-sm">{group.deporte}</div>
+                  <div className="px-3 py-2">
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className={`text-xs font-semibold ${msg.tipo === "padre_a_grupo" ? 'text-green-100' : 'text-orange-700'}`}>
+                        {msg.remitente_nombre}
+                      </span>
+                      {msg.prioridad !== "Normal" && (
+                        <span className="text-xs">{msg.prioridad === "Urgente" ? "🔴" : "⚠️"}</span>
+                      )}
                     </div>
-                    {group.urgentCount > 0 && (
-                      <Badge className="ml-2 bg-red-500 text-white text-xs animate-pulse">
-                        🔴 {group.urgentCount}
-                      </Badge>
-                    )}
-                    {group.unreadCount > 0 && !group.urgentCount && (
-                      <Badge className="ml-2 bg-green-500 text-white text-xs">
-                        {group.unreadCount}
-                      </Badge>
-                    )}
-                  </div>
-                </TabsTrigger>
-              ))}
-            </TabsList>
-
-            {myGroups.map(group => (
-              <TabsContent key={group.id} value={group.id} className="flex-1 flex flex-col mt-0 overflow-hidden">
-                <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-slate-50">
-                  {group.messages
-                    .sort((a, b) => new Date(a.created_date) - new Date(b.created_date))
-                    .map((msg) => (
-                      <div
-                        key={msg.id}
-                        className={`flex ${msg.tipo === "padre_a_grupo" ? 'justify-end' : 'justify-start'}`}
-                      >
-                        <div
-                          className={`max-w-md p-3 rounded-lg ${
-                            msg.tipo === "padre_a_grupo"
-                              ? 'bg-green-600 text-white'
-                              : 'bg-white border border-slate-200'
-                          }`}
-                        >
-                          <div className="flex items-center gap-2 mb-1">
-                            <span className="text-xs font-semibold">
-                              {msg.remitente_nombre}
-                            </span>
-                            {msg.prioridad !== "Normal" && (
-                              <span className={priorityColors[msg.prioridad]}>
-                                {priorityIcons[msg.prioridad]}
-                              </span>
-                            )}
-                          </div>
-                          <p className="text-sm whitespace-pre-wrap">{msg.mensaje}</p>
-                          
-                          {msg.archivos_adjuntos && msg.archivos_adjuntos.length > 0 && (
-                            <MessageAttachments attachments={msg.archivos_adjuntos} />
-                          )}
-                          
-                          <p className={`text-xs mt-1 ${msg.tipo === "padre_a_grupo" ? 'text-green-100' : 'text-slate-500'}`}>
-                            {format(new Date(msg.created_date), "HH:mm - d 'de' MMM", { locale: es })}
-                          </p>
-                        </div>
-                      </div>
-                    ))}
-                  <div ref={messagesEndRef} />
-                </div>
-
-                <div className="border-t border-slate-200 p-4 bg-white">
-                  {attachments.length > 0 && (
-                    <div className="mb-3 flex flex-wrap gap-2">
-                      {attachments.map((att, index) => (
-                        <div key={index} className="bg-slate-100 rounded px-3 py-2 text-sm flex items-center gap-2">
-                          <span className="truncate max-w-xs">{att.nombre}</span>
-                          <button
-                            onClick={() => handleRemoveAttachment(index)}
-                            className="text-red-600 hover:text-red-700"
-                          >
-                            ×
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-
-                  <div className="flex gap-2">
-                    <FileAttachmentButton
-                      onFileUploaded={handleFileUploaded}
-                      disabled={!isBusinessHours() || sendMessageMutation.isPending}
-                    />
+                    <p className="text-sm leading-relaxed break-words">{msg.mensaje}</p>
                     
-                    <Textarea
-                      value={messageContent}
-                      onChange={(e) => setMessageContent(e.target.value)}
-                      placeholder="Escribe tu mensaje al club..."
-                      className="flex-1 min-h-[80px]"
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter' && !e.shiftKey) {
-                          e.preventDefault();
-                          handleSendMessage();
-                        }
-                      }}
-                      disabled={!isBusinessHours()}
-                    />
-                    <Button
-                      onClick={handleSendMessage}
-                      disabled={(!messageContent.trim() && attachments.length === 0) || sendMessageMutation.isPending || !isBusinessHours()}
-                      className="bg-orange-600 hover:bg-orange-700"
-                    >
-                      <Send className="w-5 h-5" />
-                    </Button>
+                    {msg.archivos_adjuntos?.length > 0 && (
+                      <div className="mt-2">
+                        <MessageAttachments attachments={msg.archivos_adjuntos} />
+                      </div>
+                    )}
+                    
+                    <div className="flex items-center justify-end gap-1 mt-1">
+                      <span className={`text-[10px] ${msg.tipo === "padre_a_grupo" ? 'text-green-100' : 'text-slate-500'}`}>
+                        {format(new Date(msg.created_date), "HH:mm")}
+                      </span>
+                    </div>
                   </div>
                 </div>
-              </TabsContent>
-            ))}
-          </Tabs>
-        </Card>
+              </div>
+            ))
+        )}
+        <div ref={messagesEndRef} />
       </div>
 
-      <div className="px-6 pb-6">
-        <ContactCard />
+      {/* Input Area */}
+      <div className="bg-white border-t p-3">
+        {/* Attachments Preview */}
+        {attachments.length > 0 && (
+          <div className="mb-2 flex flex-wrap gap-2">
+            {attachments.map((att, index) => (
+              <div key={index} className="bg-slate-100 rounded-lg px-3 py-1.5 text-sm flex items-center gap-2">
+                <span className="text-xs truncate max-w-[150px]">{att.nombre}</span>
+                <button
+                  onClick={() => handleRemoveAttachment(index)}
+                  className="text-slate-500 hover:text-red-600"
+                >
+                  <X className="w-3 h-3" />
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Message Input */}
+        <div className="flex gap-2 items-end">
+          <FileAttachmentButton
+            onFileUploaded={handleFileUploaded}
+            disabled={!isBusinessHours() || sendMessageMutation.isPending}
+          />
+          
+          <Input
+            value={messageContent}
+            onChange={(e) => setMessageContent(e.target.value)}
+            placeholder={isBusinessHours() ? "Escribe un mensaje..." : "Horario: 10:00 - 20:00"}
+            className="flex-1 rounded-full"
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                handleSendMessage();
+              }
+            }}
+            disabled={!isBusinessHours()}
+          />
+          
+          <Button
+            onClick={handleSendMessage}
+            disabled={(!messageContent.trim() && attachments.length === 0) || sendMessageMutation.isPending || !isBusinessHours()}
+            className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 rounded-full w-10 h-10 p-0 flex items-center justify-center shadow-lg"
+          >
+            <Send className="w-4 h-4" />
+          </Button>
+        </div>
       </div>
     </div>
   );
+}
+
+function isBusinessHours() {
+  const now = new Date();
+  const hour = now.getHours();
+  return hour >= 10 && hour < 20;
 }
