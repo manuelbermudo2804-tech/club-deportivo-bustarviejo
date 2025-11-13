@@ -692,16 +692,7 @@ export default function Layout({ children, currentPageName }) {
       url: createPageUrl("ClothingOrders"),
       icon: ShoppingBag,
     },
-    {
-      title: "Tienda",
-      url: createPageUrl("Store"),
-      icon: ShoppingBag,
-    },
-    {
-      title: "Pedidos Tienda",
-      url: createPageUrl("OrderManagement"),
-      icon: ShoppingBag,
-    },
+    // Removed "Tienda" and "Pedidos Tienda"
     {
       title: "Chat Grupos",
       url: createPageUrl("AdminChat"),
@@ -757,16 +748,7 @@ export default function Layout({ children, currentPageName }) {
       url: createPageUrl("ClothingOrders"),
       icon: ShoppingBag,
     },
-    {
-      title: "Tienda",
-      url: createPageUrl("Store"),
-      icon: ShoppingBag,
-    },
-    {
-      title: "Mis Pedidos Tienda",
-      url: createPageUrl("ParentOrders"),
-      icon: ShoppingBag,
-    },
+    // Removed "Tienda" and "Mis Pedidos Tienda"
     {
       title: "Chat Grupo",
       url: createPageUrl("ParentChat"),
