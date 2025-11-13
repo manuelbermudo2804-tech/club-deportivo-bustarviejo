@@ -1,353 +1,401 @@
-import React, { useState, useEffect } from "react";
+
+import React, { useState, useEffect, useRef } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { MessageCircle, Send, Users, Clock, AlertCircle, Info } from "lucide-react";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Send, Clock } from "lucide-react";
 import { toast } from "sonner";
-import { format } from "date-fns";
-import { es } from "date-fns/locale";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+
+import FileAttachmentButton from "../components/chat/FileAttachmentButton";
+import MessageAttachments from "../components/chat/MessageAttachments";
+import ContactCard from "../components/ContactCard";
 
 export default function ParentChat() {
-  const [messageText, setMessageText] = useState("");
-  const [currentUser, setCurrentUser] = useState(null);
-  const [myGroups, setMyGroups] = useState([]);
-  const [selectedGroup, setSelectedGroup] = useState(null);
-
+  const [messageContent, setMessageContent] = useState("");
+  const [selectedTab, setSelectedTab] = useState(null);
+  const [attachments, setAttachments] = useState([]);
+  const messagesEndRef = useRef(null);
   const queryClient = useQueryClient();
+
+  const [user, setUser] = useState(null);
 
   useEffect(() => {
     const fetchUser = async () => {
-      const user = await base44.auth.me();
-      setCurrentUser(user);
+      const currentUser = await base44.auth.me();
+      setUser(currentUser);
     };
     fetchUser();
   }, []);
 
-  const { data: players } = useQuery({
-    queryKey: ['myPlayers', currentUser?.email],
-    queryFn: async () => {
-      const allPlayers = await base44.entities.Player.list();
-      return allPlayers.filter(p => 
-        p.email_padre === currentUser?.email
-      );
-    },
-    enabled: !!currentUser?.email,
-    initialData: [],
-  });
-
-  const { data: allMessages, isLoading: loadingMessages } = useQuery({
+  const { data: messages, isLoading: loadingMessages } = useQuery({
     queryKey: ['chatMessages'],
     queryFn: () => base44.entities.ChatMessage.list('-created_date'),
     initialData: [],
-    refetchInterval: 5000,
+    refetchInterval: 3000,
   });
 
-  // Crear grupos y asignar mensajes
-  useEffect(() => {
-    if (players.length > 0) {
-      const groups = {};
-      
-      // Crear grupos basados en jugadores
-      players.forEach(player => {
-        if (!player.deporte || !player.categoria) return;
-        
-        const groupId = `${player.deporte}_${player.categoria}`;
-        
-        if (!groups[groupId]) {
-          groups[groupId] = {
-            id: groupId,
-            deporte: player.deporte,
-            categoria: player.categoria,
-            messages: [],
-            unreadCount: 0,
-            urgentCount: 0
-          };
-        }
-      });
-
-      // Agregar TODOS los mensajes del grupo
-      allMessages.forEach(msg => {
-        if (!msg.deporte || !msg.categoria) return;
-        
-        const groupId = `${msg.deporte}_${msg.categoria}`;
-        
-        if (groups[groupId]) {
-          groups[groupId].messages.push(msg);
-          
-          // Contar no leídos de admin
-          if (!msg.leido && msg.tipo === "admin_a_grupo") {
-            groups[groupId].unreadCount++;
-            if (msg.prioridad === "Urgente") {
-              groups[groupId].urgentCount++;
-            }
-          }
-        }
-      });
-
-      // Ordenar mensajes por fecha
-      Object.values(groups).forEach(group => {
-        group.messages.sort((a, b) => new Date(a.created_date) - new Date(b.created_date));
-      });
-
-      const groupsList = Object.values(groups);
-      setMyGroups(groupsList);
-      
-      // Seleccionar grupo
-      if (groupsList.length > 0) {
-        if (!selectedGroup) {
-          setSelectedGroup(groupsList[0]);
-        } else {
-          const updatedGroup = groupsList.find(g => g.id === selectedGroup.id);
-          if (updatedGroup) {
-            setSelectedGroup(updatedGroup);
-          }
-        }
-      }
-    }
-  }, [players, allMessages]);
+  const { data: players, isLoading: loadingPlayers } = useQuery({
+    queryKey: ['myPlayers', user?.email],
+    queryFn: async () => {
+      const allPlayers = await base44.entities.Player.list();
+      return allPlayers.filter(p =>
+        p.email_padre === user?.email || p.email_tutor_2 === user?.email
+      );
+    },
+    enabled: !!user?.email,
+    initialData: [],
+  });
 
   const sendMessageMutation = useMutation({
     mutationFn: (messageData) => base44.entities.ChatMessage.create(messageData),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['chatMessages'] });
-      setMessageText("");
-      toast.success("Mensaje enviado");
+      setMessageContent("");
+      setAttachments([]);
     },
   });
 
   const markAsReadMutation = useMutation({
-    mutationFn: ({ id, messageData }) => base44.entities.ChatMessage.update(id, messageData),
+    mutationFn: async (messageIds) => {
+      const updatePromises = messageIds.map(id =>
+        base44.entities.ChatMessage.update(id, { leido: true })
+      );
+      await Promise.all(updatePromises);
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['chatMessages'] });
     },
   });
 
-  const isWithinBusinessHours = () => {
+  const myGroupIds = [...new Set(players.map(p => `${p.deporte}_${p.categoria}`))];
+
+  const myGroups = myGroupIds.map(groupId => {
+    const [deporte, categoria] = groupId.split('_');
+    const groupMessages = messages.filter(msg => msg.grupo_id === groupId);
+    const unreadCount = groupMessages.filter(msg =>
+      !msg.leido && msg.tipo === "admin_a_grupo"
+    ).length;
+    const urgentCount = groupMessages.filter(msg =>
+      !msg.leido && msg.tipo === "admin_a_grupo" && msg.prioridad === "Urgente"
+    ).length;
+
+    return {
+      id: groupId,
+      deporte,
+      categoria,
+      messages: groupMessages,
+      unreadCount,
+      urgentCount
+    };
+  });
+
+  useEffect(() => {
+    if (myGroups.length > 0 && !selectedTab) {
+      setSelectedTab(myGroups[0].id);
+    }
+  }, [myGroups.length, selectedTab]);
+
+  useEffect(() => {
+    if (selectedTab) {
+      const group = myGroups.find(g => g.id === selectedTab);
+      if (group) {
+        const unreadMessageIds = group.messages
+          .filter(msg => !msg.leido && msg.tipo === "admin_a_grupo")
+          .map(msg => msg.id);
+
+        if (unreadMessageIds.length > 0) {
+          markAsReadMutation.mutate(unreadMessageIds);
+        }
+      }
+    }
+  }, [selectedTab, messages, myGroups, markAsReadMutation]);
+
+  const isBusinessHours = () => {
     const now = new Date();
     const hour = now.getHours();
     return hour >= 10 && hour < 20;
   };
 
-  useEffect(() => {
-    if (selectedGroup && currentUser) {
-      selectedGroup.messages.forEach(msg => {
-        if (!msg.leido && msg.tipo === "admin_a_grupo") {
-          markAsReadMutation.mutate({
-            id: msg.id,
-            messageData: { ...msg, leido: true }
-          });
-        }
-      });
-    }
-  }, [selectedGroup?.id]);
-
   const handleSendMessage = () => {
-    if (!messageText.trim() || !currentUser || !selectedGroup) return;
-
-    if (!isWithinBusinessHours()) {
-      toast.error("Chat disponible de 10:00 a 20:00");
+    if (!user || !selectedTab) return;
+    if (!messageContent.trim() && attachments.length === 0) {
+      toast.error("Escribe un mensaje o adjunta un archivo");
       return;
     }
 
-    sendMessageMutation.mutate({
-      remitente_email: currentUser.email,
-      remitente_nombre: currentUser.full_name,
-      mensaje: messageText,
+    if (!isBusinessHours()) {
+      toast.error("Solo puedes enviar mensajes entre las 10:00 y las 20:00");
+      return;
+    }
+
+    const [deporte, categoria] = selectedTab.split('_');
+
+    const messageData = {
+      remitente_email: user.email,
+      remitente_nombre: user.full_name || "Padre/Tutor",
+      mensaje: messageContent || "(Archivo adjunto)",
       prioridad: "Normal",
       tipo: "padre_a_grupo",
-      deporte: selectedGroup.deporte,
-      categoria: selectedGroup.categoria,
-      grupo_id: selectedGroup.id,
-      leido: false
-    });
+      deporte,
+      categoria,
+      grupo_id: selectedTab,
+      leido: false,
+      archivos_adjuntos: attachments
+    };
+
+    sendMessageMutation.mutate(messageData);
   };
 
-  const deporteEmojis = {
+  const handleFileUploaded = (attachment) => {
+    setAttachments(prev => [...prev, attachment]);
+  };
+
+  const handleRemoveAttachment = (index) => {
+    setAttachments(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const priorityColors = {
+    "Normal": "text-slate-600",
+    "Importante": "text-orange-600",
+    "Urgente": "text-red-600"
+  };
+
+  const priorityIcons = {
+    "Normal": "",
+    "Importante": "⚠️",
+    "Urgente": "🔴"
+  };
+
+  const sportEmojis = {
     "Fútbol Masculino": "⚽",
     "Fútbol Femenino": "⚽",
     "Baloncesto": "🏀"
   };
 
-  if (loadingMessages) {
+  useEffect(() => {
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [selectedTab, messages]);
+
+  const totalUnread = myGroups.reduce((sum, g) => sum + g.unreadCount, 0);
+  const totalUrgent = myGroups.reduce((sum, g) => sum + g.urgentCount, 0);
+
+  if (loadingPlayers || loadingMessages) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
-          <div className="inline-block h-12 w-12 animate-spin rounded-full border-4 border-solid border-orange-600 border-r-transparent mb-4"></div>
-          <p className="text-slate-600">Cargando...</p>
+          <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-orange-600 border-r-transparent mb-4"></div>
+          <p className="text-slate-600">Cargando chat...</p>
         </div>
       </div>
     );
   }
 
-  if (myGroups.length === 0 && players.length === 0) {
+  if (players.length === 0) {
     return (
-      <div className="p-6 lg:p-8 space-y-6">
-        <h1 className="text-3xl font-bold text-slate-900">Chat del Club</h1>
-        <Card className="border-none shadow-lg">
-          <CardContent className="flex flex-col items-center justify-center py-12">
-            <AlertCircle className="w-16 h-16 text-orange-400 mb-4" />
-            <p className="text-slate-600 text-lg mb-2">No tienes jugadores registrados</p>
-            <p className="text-slate-500 text-sm">Registra a tus jugadores para acceder al chat</p>
+      <div className="p-6 lg:p-8">
+        <Card>
+          <CardContent className="py-12 text-center">
+            <p className="text-slate-500 text-lg">No tienes jugadores registrados</p>
+            <p className="text-sm text-slate-400 mt-2">Registra un jugador para acceder al chat del grupo</p>
           </CardContent>
         </Card>
       </div>
     );
   }
 
-  const totalUnread = myGroups.reduce((sum, group) => sum + group.unreadCount, 0);
+  if (myGroups.length === 0) {
+    return (
+      <div className="p-6 lg:p-8">
+        <Card>
+          <CardContent className="py-12 text-center">
+            <p className="text-slate-500 text-lg">No hay grupos disponibles</p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
-    <div className="h-screen flex flex-col bg-slate-50">
-      {/* Header - Fixed */}
-      <div className="flex-none p-4 lg:p-6 bg-white border-b border-slate-200">
-        <div className="flex justify-between items-center mb-3">
-          <div>
-            <h1 className="text-2xl lg:text-3xl font-bold text-slate-900">Chat del Grupo</h1>
-            <p className="text-slate-600 text-sm mt-1">Comunícate con el club</p>
-          </div>
-          {totalUnread > 0 && (
-            <Badge className="bg-orange-500 text-white px-3 py-1">
-              {totalUnread}
-            </Badge>
-          )}
-        </div>
-
-        {/* Horario */}
-        <div className={`p-3 rounded-lg ${isWithinBusinessHours() ? 'bg-green-50' : 'bg-orange-50'}`}>
-          <div className="flex items-center gap-2">
-            <Clock className={`w-4 h-4 ${isWithinBusinessHours() ? 'text-green-600' : 'text-orange-600'}`} />
-            <p className="text-sm font-medium text-slate-900">
-              {isWithinBusinessHours() ? '🟢 Chat Activo' : '🟠 Fuera de Horario'}
-            </p>
-            <span className="text-xs text-slate-600 ml-auto">10:00 - 20:00</span>
+    <div className="h-screen flex flex-col bg-gradient-to-br from-slate-50 to-slate-100">
+      {/* Header */}
+      <div className="bg-gradient-to-r from-orange-600 to-orange-700 text-white p-6 shadow-lg">
+        <div className="flex items-center justify-between mb-2">
+          <h1 className="text-2xl font-bold">Chat del Grupo</h1>
+          <div className="flex gap-2">
+            {totalUrgent > 0 && (
+              <Badge className="bg-red-500 text-white shadow-lg animate-pulse">
+                🔴 {totalUrgent} Urgentes
+              </Badge>
+            )}
+            {totalUnread > 0 && (
+              <Badge className="bg-white text-orange-700 shadow-lg">
+                {totalUnread} No leídos
+              </Badge>
+            )}
           </div>
         </div>
+        <p className="text-orange-100 text-sm">
+          Comunícate con el club sobre tus jugadores
+        </p>
+      </div>
 
-        {/* Tabs o Grupo único */}
-        <div className="mt-3">
-          {myGroups.length > 1 ? (
-            <Tabs value={selectedGroup?.id} onValueChange={(value) => {
-              const group = myGroups.find(g => g.id === value);
-              setSelectedGroup(group);
-            }}>
-              <TabsList className="bg-white border w-full">
-                {myGroups.map(group => (
-                  <TabsTrigger key={group.id} value={group.id} className="flex-1">
-                    <span className="mr-1">{deporteEmojis[group.deporte]}</span>
-                    <span className="hidden sm:inline">{group.categoria}</span>
-                    <span className="sm:hidden">{group.categoria.substring(0, 3)}</span>
-                    {group.unreadCount > 0 && (
-                      <Badge className="ml-1 bg-orange-500 text-white h-4 px-1 text-xs">
+      {/* Business Hours Status */}
+      <div className="px-6 pt-4">
+        <Alert className={isBusinessHours() ? "bg-green-50 border-green-300" : "bg-orange-50 border-orange-300"}>
+          <Clock className={`h-4 w-4 ${isBusinessHours() ? "text-green-600" : "text-orange-600"}`} />
+          <AlertDescription className={isBusinessHours() ? "text-green-800" : "text-orange-800"}>
+            {isBusinessHours() ? (
+              <span>✅ <strong>Horario activo</strong> - Puedes enviar mensajes (10:00 - 20:00)</span>
+            ) : (
+              <span>⏸️ <strong>Fuera de horario</strong> - Solo puedes enviar mensajes entre las 10:00 y las 20:00</span>
+            )}
+          </AlertDescription>
+        </Alert>
+      </div>
+
+      {/* Chat Content */}
+      <div className="flex-1 overflow-hidden p-6">
+        <Card className="h-full flex flex-col">
+          <Tabs value={selectedTab} onValueChange={setSelectedTab} className="h-full flex flex-col">
+            <TabsList className="w-full justify-start border-b rounded-none bg-slate-50 p-0 h-auto">
+              {myGroups.map(group => (
+                <TabsTrigger
+                  key={group.id}
+                  value={group.id}
+                  className="relative data-[state=active]:bg-white data-[state=active]:border-b-2 data-[state=active]:border-orange-600 rounded-none px-6 py-4"
+                >
+                  <div className="flex items-center gap-2">
+                    <span className="text-xl">{sportEmojis[group.deporte]}</span>
+                    <div className="text-left">
+                      <div className="font-semibold">{group.categoria}</div>
+                      <div className="text-xs text-slate-600">{group.deporte}</div>
+                    </div>
+                    {group.urgentCount > 0 && (
+                      <Badge className="ml-2 bg-red-500 text-white text-xs animate-pulse">
+                        🔴 {group.urgentCount}
+                      </Badge>
+                    )}
+                    {group.unreadCount > 0 && !group.urgentCount && (
+                      <Badge className="ml-2 bg-green-500 text-white text-xs">
                         {group.unreadCount}
                       </Badge>
                     )}
-                  </TabsTrigger>
-                ))}
-              </TabsList>
-            </Tabs>
-          ) : selectedGroup && (
-            <div className="bg-gradient-to-r from-orange-50 to-white p-3 rounded-lg border border-orange-200">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-orange-600 rounded-lg flex items-center justify-center text-xl">
-                  {deporteEmojis[selectedGroup.deporte]}
+                  </div>
+                </TabsTrigger>
+              ))}
+            </TabsList>
+
+            {myGroups.map(group => (
+              <TabsContent key={group.id} value={group.id} className="flex-1 flex flex-col mt-0 overflow-hidden">
+                {/* Messages */}
+                <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-slate-50">
+                  {group.messages
+                    .sort((a, b) => new Date(a.created_date) - new Date(b.created_date))
+                    .map((msg) => (
+                      <div
+                        key={msg.id}
+                        className={`flex ${msg.tipo === "padre_a_grupo" ? 'justify-end' : 'justify-start'}`}
+                      >
+                        <div
+                          className={`max-w-md p-3 rounded-lg ${
+                            msg.tipo === "padre_a_grupo"
+                              ? 'bg-green-600 text-white'
+                              : 'bg-white border border-slate-200'
+                          }`}
+                        >
+                          <div className="flex items-center gap-2 mb-1">
+                            <span className="text-xs font-semibold">
+                              {msg.remitente_nombre}
+                            </span>
+                            {msg.prioridad !== "Normal" && (
+                              <span className={priorityColors[msg.prioridad]}>
+                                {priorityIcons[msg.prioridad]}
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-sm whitespace-pre-wrap">{msg.mensaje}</p>
+
+                          {/* Attachments */}
+                          {msg.archivos_adjuntos && msg.archivos_adjuntos.length > 0 && (
+                            <MessageAttachments attachments={msg.archivos_adjuntos} />
+                          )}
+
+                          <p className={`text-xs mt-1 ${msg.tipo === "padre_a_grupo" ? 'text-green-100' : 'text-slate-500'}`}>
+                            {new Date(msg.created_date).toLocaleString('es-ES', {
+                              day: '2-digit',
+                              month: '2-digit',
+                              hour: '2-digit',
+                              minute: '2-digit'
+                            })}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                  <div ref={messagesEndRef} />
                 </div>
-                <div>
-                  <p className="font-bold text-slate-900">{selectedGroup.deporte}</p>
-                  <p className="text-xs text-slate-600">{selectedGroup.categoria}</p>
+
+                {/* Input Area */}
+                <div className="border-t border-slate-200 p-4 bg-white">
+                  {/* Preview attachments */}
+                  {attachments.length > 0 && (
+                    <div className="mb-3 flex flex-wrap gap-2">
+                      {attachments.map((att, index) => (
+                        <div key={index} className="bg-slate-100 rounded px-3 py-2 text-sm flex items-center gap-2">
+                          <span className="truncate max-w-xs">{att.nombre}</span>
+                          <button
+                            onClick={() => handleRemoveAttachment(index)}
+                            className="text-red-600 hover:text-red-700"
+                          >
+                            ×
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  <div className="flex gap-2">
+                    <FileAttachmentButton
+                      onFileUploaded={handleFileUploaded}
+                      disabled={!isBusinessHours() || sendMessageMutation.isPending}
+                    />
+
+                    <Textarea
+                      value={messageContent}
+                      onChange={(e) => setMessageContent(e.target.value)}
+                      placeholder="Escribe tu mensaje al club..."
+                      className="flex-1 min-h-[80px]"
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' && !e.shiftKey) {
+                          e.preventDefault();
+                          handleSendMessage();
+                        }
+                      }}
+                      disabled={!isBusinessHours()}
+                    />
+                    <Button
+                      onClick={handleSendMessage}
+                      disabled={(!messageContent.trim() && attachments.length === 0) || sendMessageMutation.isPending || !isBusinessHours()}
+                      className="bg-orange-600 hover:bg-orange-700"
+                    >
+                      <Send className="w-5 h-5" />
+                    </Button>
+                  </div>
                 </div>
-              </div>
-            </div>
-          )}
-        </div>
+              </TabsContent>
+            ))}
+          </Tabs>
+        </Card>
       </div>
 
-      {/* Chat Messages - Scrollable */}
-      <div className="flex-1 overflow-y-auto p-4 lg:p-6 space-y-3">
-        {!selectedGroup || selectedGroup.messages.length === 0 ? (
-          <div className="text-center py-12">
-            <MessageCircle className="w-16 h-16 text-slate-300 mx-auto mb-4" />
-            <p className="text-slate-500 text-lg mb-2">No hay mensajes</p>
-            <p className="text-slate-400 text-sm">Sé el primero en escribir</p>
-          </div>
-        ) : (
-          selectedGroup.messages.map((msg) => (
-            <div
-              key={msg.id}
-              className={`flex ${
-                msg.tipo === "padre_a_grupo" && msg.remitente_email === currentUser?.email
-                  ? 'justify-end' 
-                  : 'justify-start'
-              }`}
-            >
-              <div className={`max-w-[85%] rounded-2xl px-4 py-3 shadow-sm ${
-                msg.tipo === "padre_a_grupo" && msg.remitente_email === currentUser?.email
-                  ? 'bg-orange-600 text-white' 
-                  : msg.tipo === "admin_a_grupo"
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-slate-100 text-slate-900'
-              }`}>
-                <p className="text-xs font-medium opacity-70 mb-1">
-                  {msg.tipo === "admin_a_grupo" ? "👤 Club" : msg.remitente_nombre}
-                </p>
-                <p className="text-sm whitespace-pre-wrap break-words">{msg.mensaje}</p>
-                <p className={`text-xs mt-2 ${
-                  msg.tipo === "padre_a_grupo" && msg.remitente_email === currentUser?.email || msg.tipo === "admin_a_grupo"
-                    ? 'text-white/70' 
-                    : 'text-slate-500'
-                }`}>
-                  {format(new Date(msg.created_date), "HH:mm", { locale: es })}
-                </p>
-              </div>
-            </div>
-          ))
-        )}
-      </div>
-
-      {/* Input Area - Fixed at bottom */}
-      <div className="flex-none bg-white border-t border-slate-200 p-4">
-        {!isWithinBusinessHours() && (
-          <div className="mb-3 p-2 bg-orange-50 border-l-4 border-orange-500 rounded text-sm text-orange-800">
-            Chat disponible de 10:00 a 20:00
-          </div>
-        )}
-        <div className="flex gap-2">
-          <Textarea
-            placeholder={isWithinBusinessHours() ? "Escribe tu mensaje..." : "Chat disponible de 10:00 a 20:00"}
-            value={messageText}
-            onChange={(e) => setMessageText(e.target.value)}
-            disabled={!isWithinBusinessHours()}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                handleSendMessage();
-              }
-            }}
-            rows={2}
-            className="resize-none"
-          />
-          <Button
-            onClick={handleSendMessage}
-            disabled={!messageText.trim() || !isWithinBusinessHours()}
-            className="bg-orange-600 hover:bg-orange-700 h-auto"
-          >
-            <Send className="w-5 h-5" />
-          </Button>
-        </div>
-      </div>
-
-      {/* Info Footer - Optional on mobile */}
-      <div className="flex-none bg-blue-50 border-t border-blue-200 p-3 hidden lg:block">
-        <div className="flex items-start gap-2">
-          <Info className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" />
-          <p className="text-xs text-slate-700">
-            <strong>Chat grupal:</strong> Todos los padres de {selectedGroup?.deporte} - {selectedGroup?.categoria} participan. 
-            Horario: 10:00-20:00.
-          </p>
-        </div>
+      <div className="px-6 pb-6">
+        <ContactCard />
       </div>
     </div>
   );
