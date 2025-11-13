@@ -8,6 +8,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 
+import NotificationBadge from "./components/NotificationBadge";
+
 const CLUB_LOGO_URL = "https://www.cdbustarviejo.com/uploads/2/4/0/4/2404974/logo-cd-bustarviejo-cuadrado-xpeq_orig.png";
 
 const getCurrentSeason = () => {
@@ -603,131 +605,137 @@ export default function Layout({ children, currentPageName }) {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
-      {/* Header móvil */}
-      <header className="lg:hidden fixed top-0 left-0 right-0 z-50 bg-gradient-to-r from-orange-600 to-orange-700 shadow-lg">
-        <div className="flex items-center justify-between p-4">
-          <div className="flex items-center gap-3">
-            <img src={CLUB_LOGO_URL} alt="CD Bustarviejo" className="w-10 h-10 rounded-xl shadow-lg" />
-            <div className="text-white">
-              <h1 className="font-bold text-lg leading-tight">CD Bustarviejo</h1>
-              <p className="text-xs text-orange-100">{isAdmin ? "Admin" : "Familia"}</p>
+    <>
+      {/* Componente para actualizar badges de notificación */}
+      <NotificationBadge />
+      
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
+        
+        {/* Header móvil */}
+        <header className="lg:hidden fixed top-0 left-0 right-0 z-50 bg-gradient-to-r from-orange-600 to-orange-700 shadow-lg">
+          <div className="flex items-center justify-between p-4">
+            <div className="flex items-center gap-3">
+              <img src={CLUB_LOGO_URL} alt="CD Bustarviejo" className="w-10 h-10 rounded-xl shadow-lg" />
+              <div className="text-white">
+                <h1 className="font-bold text-lg leading-tight">CD Bustarviejo</h1>
+                <p className="text-xs text-orange-100">{isAdmin ? "Admin" : "Familia"}</p>
+              </div>
             </div>
-          </div>
-          <button
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="p-2 text-white hover:bg-white/20 rounded-xl transition-colors"
-          >
-            {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-          </button>
-        </div>
-      </header>
-
-      {/* Menú móvil */}
-      {mobileMenuOpen && (
-        <div className="lg:hidden fixed inset-0 z-40 bg-slate-900/95 backdrop-blur-sm pt-20">
-          <div className="h-full overflow-y-auto p-4 space-y-2">
-            {navigationItems.map((item) => (
-              <Link
-                key={item.title}
-                to={item.url}
-                onClick={() => setMobileMenuOpen(false)}
-                className={`flex items-center gap-4 p-4 rounded-2xl transition-all ${
-                  location.pathname === item.url
-                    ? 'bg-gradient-to-r from-orange-600 to-orange-700 text-white shadow-lg'
-                    : 'bg-white/10 text-white hover:bg-white/20'
-                }`}
-              >
-                <item.icon className="w-6 h-6" />
-                <span className="font-semibold text-lg">{item.title}</span>
-                {item.badge && (
-                  <Badge className={`ml-auto ${item.urgentBadge ? 'bg-red-500 animate-pulse' : 'bg-green-500'}`}>
-                    {item.badge}
-                  </Badge>
-                )}
-              </Link>
-            ))}
             <button
-              onClick={handleLogout}
-              className="w-full flex items-center gap-4 p-4 rounded-2xl bg-red-500/20 text-white hover:bg-red-500/30 transition-all mt-6"
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className="p-2 text-white hover:bg-white/20 rounded-xl transition-colors"
             >
-              <LogOut className="w-6 h-6" />
-              <span className="font-semibold text-lg">Cerrar Sesión</span>
+              {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
             </button>
           </div>
-        </div>
-      )}
+        </header>
 
-      {/* Navegación desktop */}
-      <nav className="hidden lg:block fixed left-0 top-0 bottom-0 w-72 bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900 shadow-2xl overflow-y-auto">
-        <div className="p-6 border-b border-green-500/30">
-          <div className="flex items-center gap-3 mb-6">
-            <img src={CLUB_LOGO_URL} alt="CD Bustarviejo" className="w-14 h-14 rounded-2xl shadow-xl ring-4 ring-green-500/50" />
-            <div className="text-white">
-              <h2 className="font-bold text-xl">CD Bustarviejo</h2>
-              <p className="text-xs text-green-400">{isAdmin ? "Panel Admin" : "Panel Familia"}</p>
+        {/* Menú móvil */}
+        {mobileMenuOpen && (
+          <div className="lg:hidden fixed inset-0 z-40 bg-slate-900/95 backdrop-blur-sm pt-20">
+            <div className="h-full overflow-y-auto p-4 space-y-2">
+              {navigationItems.map((item) => (
+                <Link
+                  key={item.title}
+                  to={item.url}
+                  onClick={() => setMobileMenuOpen(false)}
+                  className={`flex items-center gap-4 p-4 rounded-2xl transition-all ${
+                    location.pathname === item.url
+                      ? 'bg-gradient-to-r from-orange-600 to-orange-700 text-white shadow-lg'
+                      : 'bg-white/10 text-white hover:bg-white/20'
+                  }`}
+                >
+                  <item.icon className="w-6 h-6" />
+                  <span className="font-semibold text-lg">{item.title}</span>
+                  {item.badge && (
+                    <Badge className={`ml-auto ${item.urgentBadge ? 'bg-red-500 animate-pulse' : 'bg-green-500'}`}>
+                      {item.badge}
+                    </Badge>
+                  )}
+                </Link>
+              ))}
+              <button
+                onClick={handleLogout}
+                className="w-full flex items-center gap-4 p-4 rounded-2xl bg-red-500/20 text-white hover:bg-red-500/30 transition-all mt-6"
+              >
+                <LogOut className="w-6 h-6" />
+                <span className="font-semibold text-lg">Cerrar Sesión</span>
+              </button>
             </div>
           </div>
-        </div>
+        )}
 
-        <div className="p-4 space-y-2">
-          {navigationItems.map((item) => (
-            <Link
-              key={item.title}
-              to={item.url}
-              className={`flex items-center gap-4 p-4 rounded-2xl transition-all group ${
-                location.pathname === item.url
-                  ? 'bg-gradient-to-r from-orange-600 to-orange-700 text-white shadow-lg shadow-orange-600/50'
-                  : 'text-slate-300 hover:bg-white/10 hover:text-white'
-              }`}
-            >
-              <item.icon className="w-5 h-5" />
-              <span className="font-semibold flex-1">{item.title}</span>
-              {item.badge && (
-                <Badge className={`${item.urgentBadge ? 'bg-red-500 text-white animate-pulse ring-2 ring-green-400' : 'bg-green-500 text-white'}`}>
-                  {item.urgentBadge && '🔴'} {item.badge}
-                </Badge>
-              )}
-            </Link>
-          ))}
-        </div>
-
-        <div className="p-6 mt-auto border-t border-green-500/30">
-          <div className="bg-gradient-to-r from-slate-800 to-black rounded-2xl p-4 mb-4 border-2 border-orange-500/50">
-            <div className="flex items-start gap-2">
-              <Mail className="w-4 h-4 text-orange-500 mt-0.5 flex-shrink-0" />
-              <div className="flex-1 min-w-0">
-                <p className="text-xs font-medium text-green-400 mb-1">Contacto</p>
-                <a href="mailto:CDBUSTARVIEJO@GMAIL.COM" className="text-xs text-orange-400 hover:text-orange-300 break-all block">
-                  CDBUSTARVIEJO@GMAIL.COM
-                </a>
+        {/* Navegación desktop */}
+        <nav className="hidden lg:block fixed left-0 top-0 bottom-0 w-72 bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900 shadow-2xl overflow-y-auto">
+          <div className="p-6 border-b border-green-500/30">
+            <div className="flex items-center gap-3 mb-6">
+              <img src={CLUB_LOGO_URL} alt="CD Bustarviejo" className="w-14 h-14 rounded-2xl shadow-xl ring-4 ring-green-500/50" />
+              <div className="text-white">
+                <h2 className="font-bold text-xl">CD Bustarviejo</h2>
+                <p className="text-xs text-green-400">{isAdmin ? "Panel Admin" : "Panel Familia"}</p>
               </div>
             </div>
           </div>
 
-          {user && (
-            <div className="text-center text-xs text-white mb-4">
-              <p className="font-medium">{user.full_name}</p>
-              <p className="text-green-400 text-xs">{user.email}</p>
-            </div>
-          )}
-
-          <Button onClick={handleLogout} className="w-full bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-semibold py-3 rounded-xl shadow-lg">
-            <LogOut className="w-4 h-4 mr-2" />
-            Cerrar Sesión
-          </Button>
-
-          <div className="text-center text-xs text-green-400 mt-4 pt-4 border-t border-green-500/30">
-            <p className="font-medium">Temporada {currentSeason}</p>
-            <p className="text-orange-400 mt-1">© CD Bustarviejo</p>
+          <div className="p-4 space-y-2">
+            {navigationItems.map((item) => (
+              <Link
+                key={item.title}
+                to={item.url}
+                className={`flex items-center gap-4 p-4 rounded-2xl transition-all group ${
+                  location.pathname === item.url
+                    ? 'bg-gradient-to-r from-orange-600 to-orange-700 text-white shadow-lg shadow-orange-600/50'
+                    : 'text-slate-300 hover:bg-white/10 hover:text-white'
+                }`}
+              >
+                <item.icon className="w-5 h-5" />
+                <span className="font-semibold flex-1">{item.title}</span>
+                {item.badge && (
+                  <Badge className={`${item.urgentBadge ? 'bg-red-500 text-white animate-pulse ring-2 ring-green-400' : 'bg-green-500 text-white'}`}>
+                    {item.urgentBadge && '🔴'} {item.badge}
+                  </Badge>
+                )}
+              </Link>
+            ))}
           </div>
-        </div>
-      </nav>
 
-      {/* Contenido principal */}
-      <main className="lg:ml-72 min-h-screen pt-20 lg:pt-0">
-        {children}
-      </main>
-    </div>
+          <div className="p-6 mt-auto border-t border-green-500/30">
+            <div className="bg-gradient-to-r from-slate-800 to-black rounded-2xl p-4 mb-4 border-2 border-orange-500/50">
+              <div className="flex items-start gap-2">
+                <Mail className="w-4 h-4 text-orange-500 mt-0.5 flex-shrink-0" />
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs font-medium text-green-400 mb-1">Contacto</p>
+                  <a href="mailto:CDBUSTARVIEJO@GMAIL.COM" className="text-xs text-orange-400 hover:text-orange-300 break-all block">
+                    CDBUSTARVIEJO@GMAIL.COM
+                  </a>
+                </div>
+              </div>
+            </div>
+
+            {user && (
+              <div className="text-center text-xs text-white mb-4">
+                <p className="font-medium">{user.full_name}</p>
+                <p className="text-green-400 text-xs">{user.email}</p>
+              </div>
+            )}
+
+            <Button onClick={handleLogout} className="w-full bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-semibold py-3 rounded-xl shadow-lg">
+              <LogOut className="w-4 h-4 mr-2" />
+              Cerrar Sesión
+            </Button>
+
+            <div className="text-center text-xs text-green-400 mt-4 pt-4 border-t border-green-500/30">
+              <p className="font-medium">Temporada {currentSeason}</p>
+              <p className="text-orange-400 mt-1">© CD Bustarviejo</p>
+            </div>
+          </div>
+        </nav>
+
+        {/* Contenido principal */}
+        <main className="lg:ml-72 min-h-screen pt-20 lg:pt-0">
+          {children}
+        </main>
+      </div>
+    </>
   );
 }
