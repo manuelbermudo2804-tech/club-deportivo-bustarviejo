@@ -73,23 +73,32 @@ export default function ParentChat() {
     },
   });
 
-  // Usar deporte completo como grupo
-  const myGroupIds = [...new Set(players.map(p => p.deporte))];
+  // Función para normalizar el deporte
+  const normalizeDeporte = (deporte) => {
+    if (!deporte) return null;
+    return deporte.trim();
+  };
+
+  // Usar deporte completo como grupo (normalizado y único)
+  const uniqueDeportes = [...new Set(players.map(p => normalizeDeporte(p.deporte)).filter(Boolean))];
   
-  const myGroups = myGroupIds.map(groupId => {
-    const groupMessages = messages.filter(msg => 
-      msg.grupo_id === groupId || msg.deporte === groupId
-    );
+  const myGroups = uniqueDeportes.map(deporteNormalizado => {
+    const groupMessages = messages.filter(msg => {
+      const msgDeporte = normalizeDeporte(msg.grupo_id || msg.deporte);
+      return msgDeporte === deporteNormalizado;
+    });
+    
     const unreadCount = groupMessages.filter(msg => 
       !msg.leido && msg.tipo === "admin_a_grupo"
     ).length;
+    
     const urgentCount = groupMessages.filter(msg =>
       !msg.leido && msg.tipo === "admin_a_grupo" && msg.prioridad === "Urgente"
     ).length;
     
     return {
-      id: groupId,
-      deporte: groupId,
+      id: deporteNormalizado,
+      deporte: deporteNormalizado,
       messages: groupMessages,
       unreadCount,
       urgentCount

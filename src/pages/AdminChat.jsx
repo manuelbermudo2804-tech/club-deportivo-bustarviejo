@@ -106,15 +106,24 @@ export default function AdminChat() {
     return hour >= 10 && hour < 20;
   };
 
+  // Función para normalizar el deporte (eliminar espacios extra, etc)
+  const normalizeDeporte = (deporte) => {
+    if (!deporte) return null;
+    return deporte.trim();
+  };
+
   // Create groups from players - usando deporte como identificador único
   const groups = {};
+  
+  // Primero crear grupos desde jugadores activos
   players.forEach(player => {
-    if (!player.deporte) return;
-    const groupId = player.deporte; // Usamos el deporte completo como ID
-    if (!groups[groupId]) {
-      groups[groupId] = {
-        id: groupId,
-        deporte: player.deporte,
+    const deporteNormalizado = normalizeDeporte(player.deporte);
+    if (!deporteNormalizado) return;
+    
+    if (!groups[deporteNormalizado]) {
+      groups[deporteNormalizado] = {
+        id: deporteNormalizado,
+        deporte: deporteNormalizado,
         players: [],
         messages: [],
         unreadCount: 0,
@@ -122,18 +131,20 @@ export default function AdminChat() {
         lastMessageDate: null
       };
     }
-    groups[groupId].players.push(player);
+    groups[deporteNormalizado].players.push(player);
   });
 
-  // Add messages to groups
+  // Luego agregar mensajes a los grupos existentes
   messages.forEach(msg => {
-    let groupId = msg.grupo_id || msg.deporte;
+    const deporteNormalizado = normalizeDeporte(msg.grupo_id || msg.deporte);
     
-    // Si el grupo no existe, crearlo
-    if (groupId && !groups[groupId]) {
-      groups[groupId] = {
-        id: groupId,
-        deporte: msg.deporte || groupId,
+    if (!deporteNormalizado) return;
+    
+    // Solo crear grupo si no existe Y tiene mensajes (evitar duplicados)
+    if (!groups[deporteNormalizado]) {
+      groups[deporteNormalizado] = {
+        id: deporteNormalizado,
+        deporte: deporteNormalizado,
         players: [],
         messages: [],
         unreadCount: 0,
@@ -142,18 +153,20 @@ export default function AdminChat() {
       };
     }
     
-    // Agregar mensaje al grupo
-    if (groupId && groups[groupId]) {
-      groups[groupId].messages.push(msg);
+    // Agregar mensaje al grupo (evitar duplicados)
+    if (!groups[deporteNormalizado].messages.find(m => m.id === msg.id)) {
+      groups[deporteNormalizado].messages.push(msg);
+      
       if (!msg.leido && msg.tipo === "padre_a_grupo") {
-        groups[groupId].unreadCount++;
+        groups[deporteNormalizado].unreadCount++;
         if (msg.prioridad === "Urgente") {
-          groups[groupId].urgentCount++;
+          groups[deporteNormalizado].urgentCount++;
         }
       }
+      
       const msgDate = new Date(msg.created_date);
-      if (!groups[groupId].lastMessageDate || msgDate > groups[groupId].lastMessageDate) {
-        groups[groupId].lastMessageDate = msgDate;
+      if (!groups[deporteNormalizado].lastMessageDate || msgDate > groups[deporteNormalizado].lastMessageDate) {
+        groups[deporteNormalizado].lastMessageDate = msgDate;
       }
     }
   });
