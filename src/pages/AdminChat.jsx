@@ -108,6 +108,7 @@ export default function AdminChat() {
     return hour >= 10 && hour < 20;
   };
 
+  // Create groups from players
   const groups = {};
   players.forEach(player => {
     if (!player.deporte || !player.categoria) return;
@@ -127,10 +128,32 @@ export default function AdminChat() {
     groups[groupId].players.push(player);
   });
 
+  // Add messages to groups - CORREGIDO para mostrar todos los mensajes
   messages.forEach(msg => {
-    if (!msg.deporte || !msg.categoria) return;
-    const groupId = msg.grupo_id || `${msg.deporte}_${msg.categoria}`;
-    if (groups[groupId]) {
+    // Intentar obtener el grupo_id de varias formas
+    let groupId = msg.grupo_id;
+    
+    // Si no existe grupo_id, construirlo desde deporte y categoria
+    if (!groupId && msg.deporte && msg.categoria) {
+      groupId = `${msg.deporte}_${msg.categoria}`;
+    }
+    
+    // Si el grupo no existe, crearlo (esto maneja mensajes de grupos que ya no tienen jugadores)
+    if (groupId && !groups[groupId] && msg.deporte && msg.categoria) {
+      groups[groupId] = {
+        id: groupId,
+        deporte: msg.deporte,
+        categoria: msg.categoria,
+        players: [],
+        messages: [],
+        unreadCount: 0,
+        urgentCount: 0,
+        lastMessageDate: null
+      };
+    }
+    
+    // Agregar mensaje al grupo
+    if (groupId && groups[groupId]) {
       groups[groupId].messages.push(msg);
       if (!msg.leido && msg.tipo === "padre_a_grupo") {
         groups[groupId].unreadCount++;
@@ -213,7 +236,15 @@ export default function AdminChat() {
     "Fútbol": "⚽",
     "Fútbol Masculino": "⚽",
     "Fútbol Femenino": "⚽",
-    "Baloncesto": "🏀"
+    "Fútbol Pre-Benjamín (Mixto)": "⚽",
+    "Fútbol Benjamín (Mixto)": "⚽",
+    "Fútbol Alevín (Mixto)": "⚽",
+    "Fútbol Infantil (Mixto)": "⚽",
+    "Fútbol Cadete": "⚽",
+    "Fútbol Juvenil": "⚽",
+    "Fútbol Aficionado": "⚽",
+    "Baloncesto": "🏀",
+    "Baloncesto (Mixto)": "🏀"
   };
 
   const priorityColors = {
@@ -311,6 +342,7 @@ export default function AdminChat() {
                       <p className="text-xs text-slate-600">{group.deporte}</p>
                       <p className="text-xs text-slate-500 mt-1">
                         {group.players.length} jugador{group.players.length !== 1 ? 'es' : ''}
+                        {group.messages.length > 0 && ` • ${group.messages.length} mensaje${group.messages.length !== 1 ? 's' : ''}`}
                       </p>
                     </div>
                     <div className="flex flex-col items-end gap-1">
