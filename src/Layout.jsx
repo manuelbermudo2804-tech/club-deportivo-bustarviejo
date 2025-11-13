@@ -45,10 +45,10 @@ const getPeriodType = () => {
   
   if (currentMonth === 5) {
     return "closed"; // Mayo: Cierre de temporada
-  } else if (currentMonth === 6) {
-    return "inscriptions"; // Junio: Periodo de inscripciones + Tienda
-  } else if (currentMonth === 7 || currentMonth === 8) {
-    return "vacation"; // Julio-Agosto: Vacaciones
+  } else if (currentMonth === 6 || currentMonth === 7) {
+    return "inscriptions"; // Junio-Julio: Periodo de inscripciones + Pedidos de ropa
+  } else if (currentMonth === 8) {
+    return "vacation"; // Agosto: Vacaciones
   }
   return "active"; // Septiembre-Abril: Temporada activa
 };
@@ -111,10 +111,10 @@ function ClosedSeasonScreen({ user, isAdmin }) {
                     <strong className="text-orange-400">Mayo:</strong> Cierre de temporada (aplicación cerrada)
                   </p>
                   <p className="text-white">
-                    <strong className="text-green-400">Junio:</strong> Inscripciones abiertas + Tienda abierta
+                    <strong className="text-green-400">Junio-Julio:</strong> Inscripciones abiertas + Pedidos de ropa
                   </p>
                   <p className="text-white">
-                    <strong className="text-orange-400">Julio-Agosto:</strong> Vacaciones de verano
+                    <strong className="text-orange-400">Agosto:</strong> Vacaciones de verano
                   </p>
                   <p className="text-white">
                     <strong className="text-green-400">Septiembre:</strong> Inicio de la nueva temporada
@@ -173,7 +173,7 @@ function ClosedSeasonScreen({ user, isAdmin }) {
   );
 }
 
-// Pantalla de inscripciones (Junio)
+// Pantalla de inscripciones (Junio-Julio)
 function InscriptionPeriodScreen({ user, isAdmin }) {
   const handleLogout = () => {
     base44.auth.logout();
@@ -201,17 +201,17 @@ function InscriptionPeriodScreen({ user, isAdmin }) {
                 📝 Periodo de Inscripciones
               </h1>
               <p className="text-2xl text-green-700 font-semibold">
-                CF Bustarviejo - Mes de Junio
+                CF Bustarviejo - Junio y Julio
               </p>
             </div>
 
             {/* Mensaje principal */}
             <div className="bg-gradient-to-r from-green-50 to-green-100 rounded-2xl p-8 space-y-4 border-2 border-green-300">
               <p className="text-xl text-slate-800 leading-relaxed">
-                ¡Bienvenidos al periodo de <strong className="text-green-700">inscripciones de Junio</strong>!
+                ¡Bienvenidos al periodo de <strong className="text-green-700">inscripciones de Junio y Julio</strong>!
               </p>
               <p className="text-lg text-slate-700">
-                Durante este mes puedes <strong className="text-green-700">registrar a tus jugadores</strong> y <strong className="text-orange-600">pedir equipación en la tienda</strong> para la próxima temporada que comenzará en <strong className="text-green-700">Septiembre</strong>.
+                Durante estos meses puedes <strong className="text-green-700">registrar a tus jugadores</strong> y <strong className="text-orange-600">pedir equipación</strong> para la próxima temporada que comenzará en <strong className="text-green-700">Septiembre</strong>.
               </p>
             </div>
 
@@ -232,40 +232,41 @@ function InscriptionPeriodScreen({ user, isAdmin }) {
                     ✅ <strong>Registro de nuevos jugadores</strong>
                   </p>
                   <p className="text-slate-700">
-                    ✅ <strong>Actualización de datos</strong>
+                    ✅ <strong>Renovación de jugadores</strong>
                   </p>
                   <p className="text-slate-700">
-                    ✅ <strong>Fotos y documentación</strong>
+                    ✅ <strong>Actualización de datos</strong>
                   </p>
                 </div>
               </div>
 
-              {/* Tienda */}
+              {/* Pedidos de Equipación */}
               <div className="bg-gradient-to-br from-orange-50 to-orange-100 border-2 border-orange-300 rounded-xl p-6">
                 <p className="text-lg font-bold text-orange-900 mb-3">
-                  🛍️ Tienda
+                  🛍️ Equipación
                 </p>
                 <div className="text-left space-y-2 text-sm">
                   <p className="text-slate-700">
-                    ✅ <strong>Equipaciones disponibles</strong>
+                    ✅ <strong>Chaqueta de partidos</strong>
                   </p>
                   <p className="text-slate-700">
-                    ✅ <strong>Chandals y accesorios</strong>
+                    ✅ <strong>Pack de entrenamiento</strong>
                   </p>
                   <p className="text-slate-700">
-                    ✅ <strong>Pedidos para la nueva temporada</strong>
+                    ✅ <strong>Pedidos para septiembre</strong>
                   </p>
                 </div>
               </div>
             </div>
 
-            {/* Aviso importante de la tienda */}
+            {/* Aviso importante de pedidos */}
             <div className="bg-gradient-to-r from-orange-50 to-orange-100 rounded-2xl p-6 space-y-3 border-2 border-orange-300">
               <p className="text-xl font-bold text-orange-900 flex items-center justify-center gap-2">
-                🛍️ ¡Tienda Abierta en Junio!
+                🛍️ Pedidos de Equipación
               </p>
               <p className="text-slate-700 leading-relaxed">
-                <strong className="text-orange-700">Aprovecha este mes</strong> para pedir la equipación de tus jugadores para la próxima temporada. La tienda estará cerrada durante Julio y Agosto.
+                <strong className="text-orange-700">Aprovecha Junio y Julio</strong> para pedir la equipación de tus jugadores. 
+                Los pedidos se cerrarán en Agosto.
               </p>
               <div className="bg-white rounded-lg p-4 text-left">
                 <p className="text-sm text-slate-600 mb-2">📍 <strong>Recogida:</strong></p>
@@ -284,17 +285,17 @@ function InscriptionPeriodScreen({ user, isAdmin }) {
                 </Button>
               </Link>
               
-              <Link to={createPageUrl("Store")} className="w-full">
+              <Link to={createPageUrl("ClothingOrders")} className="w-full">
                 <Button className="w-full bg-orange-600 hover:bg-orange-700 text-white font-bold py-6 text-lg shadow-xl">
                   <ShoppingBag className="w-5 h-5 mr-2" />
-                  Tienda del Club
+                  Pedidos de Equipación
                 </Button>
               </Link>
             </div>
 
             {/* Recordatorio */}
             <div className="bg-slate-50 rounded-lg p-4 text-sm text-slate-600">
-              <p>⏸️ <strong>Resto de funciones</strong> (pagos, calendario, etc.) estarán disponibles en <strong>Septiembre</strong> con el inicio de la temporada.</p>
+              <p>⏸️ <strong>Resto de funciones</strong> (pagos cuotas, calendario, etc.) estarán disponibles en <strong>Septiembre</strong> con el inicio de la temporada.</p>
             </div>
 
             {/* Información de usuario y logout */}
@@ -325,20 +326,12 @@ function InscriptionPeriodScreen({ user, isAdmin }) {
               <p className="text-sm text-slate-600 mb-2">
                 ¿Necesitas ayuda?
               </p>
-              <div className="space-y-1">
-                <a 
-                  href="mailto:C.D.BUSTARVIEJO@HOTMAIL.ES"
-                  className="text-sm text-green-600 hover:text-green-700 block font-medium"
-                >
-                  C.D.BUSTARVIEJO@HOTMAIL.ES
-                </a>
-                <a 
-                  href="mailto:CDBUSTARVIEJO@GMAIL.COM"
-                  className="text-sm text-green-600 hover:text-green-700 block font-medium"
-                >
-                  CDBUSTARVIEJO@GMAIL.COM
-                </a>
-              </div>
+              <a 
+                href="mailto:CDBUSTARVIEJO@GMAIL.COM"
+                className="text-sm text-green-600 hover:text-green-700 block font-medium"
+              >
+                CDBUSTARVIEJO@GMAIL.COM
+              </a>
             </div>
           </CardContent>
         </Card>
@@ -347,7 +340,7 @@ function InscriptionPeriodScreen({ user, isAdmin }) {
   );
 }
 
-// Pantalla de vacaciones (Julio-Agosto)
+// Pantalla de vacaciones (Agosto)
 function VacationPeriodScreen({ user, isAdmin }) {
   const handleLogout = () => {
     base44.auth.logout();
@@ -382,7 +375,7 @@ function VacationPeriodScreen({ user, isAdmin }) {
             {/* Mensaje principal */}
             <div className="bg-gradient-to-r from-orange-50 to-green-50 rounded-2xl p-8 space-y-4 border-2 border-orange-200">
               <p className="text-xl text-slate-800 leading-relaxed">
-                La aplicación del club está cerrada durante los meses de <strong className="text-orange-700">Julio y Agosto</strong>.
+                La aplicación del club está cerrada durante el mes de <strong className="text-orange-700">Agosto</strong>.
               </p>
               <p className="text-lg text-slate-700">
                 Estamos de vacaciones. La aplicación volverá a estar disponible el <strong className="text-green-700">1 de Septiembre</strong> con el inicio de la nueva temporada.
@@ -435,20 +428,12 @@ function VacationPeriodScreen({ user, isAdmin }) {
               <p className="text-sm text-slate-600 mb-2">
                 Para consultas urgentes:
               </p>
-              <div className="space-y-1">
-                <a 
-                  href="mailto:C.D.BUSTARVIEJO@HOTMAIL.ES"
-                  className="text-sm text-orange-600 hover:text-orange-700 block font-medium"
-                >
-                  C.D.BUSTARVIEJO@HOTMAIL.ES
-                </a>
-                <a 
-                  href="mailto:CDBUSTARVIEJO@GMAIL.COM"
-                  className="text-sm text-orange-600 hover:text-orange-700 block font-medium"
-                >
-                  CDBUSTARVIEJO@GMAIL.COM
-                </a>
-              </div>
+              <a 
+                href="mailto:CDBUSTARVIEJO@GMAIL.COM"
+                className="text-sm text-orange-600 hover:text-orange-700 block font-medium"
+              >
+                CDBUSTARVIEJO@GMAIL.COM
+              </a>
             </div>
           </CardContent>
         </Card>
@@ -703,12 +688,17 @@ export default function Layout({ children, currentPageName }) {
       icon: Bell,
     },
     {
+      title: "Pedidos Ropa",
+      url: createPageUrl("ClothingOrders"),
+      icon: ShoppingBag,
+    },
+    {
       title: "Tienda",
       url: createPageUrl("Store"),
       icon: ShoppingBag,
     },
     {
-      title: "Pedidos",
+      title: "Pedidos Tienda",
       url: createPageUrl("OrderManagement"),
       icon: ShoppingBag,
     },
@@ -763,12 +753,17 @@ export default function Layout({ children, currentPageName }) {
       icon: CreditCard,
     },
     {
+      title: "Pedidos Equipación",
+      url: createPageUrl("ClothingOrders"),
+      icon: ShoppingBag,
+    },
+    {
       title: "Tienda",
       url: createPageUrl("Store"),
       icon: ShoppingBag,
     },
     {
-      title: "Mis Pedidos",
+      title: "Mis Pedidos Tienda",
       url: createPageUrl("ParentOrders"),
       icon: ShoppingBag,
     },
@@ -856,12 +851,6 @@ export default function Layout({ children, currentPageName }) {
                 <Mail className="w-4 h-4 text-orange-500 mt-0.5 flex-shrink-0" />
                 <div className="flex-1 min-w-0">
                   <p className="text-xs font-medium text-green-400 mb-1">Contacto</p>
-                  <a 
-                    href="mailto:C.D.BUSTARVIEJO@HOTMAIL.ES"
-                    className="text-xs text-orange-400 hover:text-orange-300 break-all block mb-1"
-                  >
-                    C.D.BUSTARVIEJO@HOTMAIL.ES
-                  </a>
                   <a 
                     href="mailto:CDBUSTARVIEJO@GMAIL.COM"
                     className="text-xs text-orange-400 hover:text-orange-300 break-all block"
