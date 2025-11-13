@@ -2,9 +2,10 @@ import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
-import { Plus, Megaphone } from "lucide-react";
+import { Plus, Megaphone, Pin } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AnimatePresence } from "framer-motion";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { toast } from "sonner";
 
 import AnnouncementForm from "../components/announcements/AnnouncementForm";
@@ -148,46 +149,56 @@ export default function Announcements() {
       let successCount = 0;
       let errorCount = 0;
 
+      const priorityEmoji = {
+        "Urgente": "🚨",
+        "Importante": "⚠️",
+        "Normal": "📢"
+      };
+
+      const subject = `${priorityEmoji[announcement.prioridad]} ${announcement.titulo} - CF Bustarviejo`;
+
+      const body = `
+Estimadas familias,
+
+${announcement.contenido}
+
+════════════════════════════════════════
+Información del anuncio:
+════════════════════════════════════════
+Prioridad: ${announcement.prioridad}
+Destinatarios: ${announcement.destinatarios_tipo}
+Publicado: ${new Date(announcement.fecha_publicacion).toLocaleDateString('es-ES', { 
+  day: 'numeric', 
+  month: 'long', 
+  year: 'numeric',
+  hour: '2-digit',
+  minute: '2-digit'
+})}
+${announcement.fecha_expiracion ? `Válido hasta: ${new Date(announcement.fecha_expiracion).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' })}` : ''}
+
+Para más información, acceda a la aplicación del club.
+
+
+Atentamente,
+
+Club de Fútbol Bustarviejo
+Equipo de Administración
+
+════════════════════════════════════════
+Datos de contacto:
+════════════════════════════════════════
+Email: C.D.BUSTARVIEJO@HOTMAIL.ES
+Email alternativo: CDBUSTARVIEJO@GMAIL.COM
+Ubicación: Bustarviejo, Madrid
+      `;
+
       for (const email of recipients) {
         try {
           await base44.integrations.Core.SendEmail({
             from_name: "CF Bustarviejo",
             to: email,
-            subject: `${announcement.prioridad === "Urgente" ? "🔴 URGENTE" : announcement.prioridad === "Importante" ? "⚠️ IMPORTANTE" : "📢"} - ${announcement.titulo}`,
-            body: `
-<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-  <div style="background: linear-gradient(135deg, #f97316 0%, #ea580c 100%); padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
-    <h1 style="color: white; margin: 0; font-size: 28px;">CF Bustarviejo</h1>
-    <p style="color: #fed7aa; margin: 10px 0 0 0;">Club de Fútbol y Baloncesto</p>
-  </div>
-  
-  <div style="background: white; padding: 30px; border-radius: 0 0 10px 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
-    <div style="background: ${announcement.prioridad === "Urgente" ? "#fecaca" : announcement.prioridad === "Importante" ? "#fed7aa" : "#dbeafe"}; 
-                border-left: 4px solid ${announcement.prioridad === "Urgente" ? "#dc2626" : announcement.prioridad === "Importante" ? "#ea580c" : "#3b82f6"}; 
-                padding: 15px; 
-                margin-bottom: 20px;
-                border-radius: 5px;">
-      <p style="margin: 0; font-weight: bold; color: ${announcement.prioridad === "Urgente" ? "#7f1d1d" : announcement.prioridad === "Importante" ? "#7c2d12" : "#1e3a8a"};">
-        ${announcement.prioridad === "Urgente" ? "🔴 ANUNCIO URGENTE" : announcement.prioridad === "Importante" ? "⚠️ ANUNCIO IMPORTANTE" : "📢 ANUNCIO"}
-      </p>
-    </div>
-    
-    <h2 style="color: #1e293b; margin-top: 0;">${announcement.titulo}</h2>
-    
-    <div style="color: #475569; line-height: 1.6; white-space: pre-wrap;">
-${announcement.contenido}
-    </div>
-    
-    <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 30px 0;">
-    
-    <div style="text-align: center; color: #64748b; font-size: 14px;">
-      <p style="margin: 5px 0;"><strong>CF Bustarviejo</strong></p>
-      <p style="margin: 5px 0;">Temporada ${new Date().getFullYear()}/${new Date().getFullYear() + 1}</p>
-      <p style="margin: 5px 0;">📧 C.D.BUSTARVIEJO@HOTMAIL.ES | CDBUSTARVIEJO@GMAIL.COM</p>
-    </div>
-  </div>
-</div>
-            `
+            subject: subject,
+            body: body
           });
           successCount++;
         } catch (error) {
@@ -229,13 +240,23 @@ ${announcement.contenido}
     setShowForm(true);
   };
 
-  // Filter announcements based on user role
+  // Filter announcements based on user role and expiration
   const visibleAnnouncements = announcements.filter(announcement => {
-    // Admins see all
+    // Admins see all (including expired for management)
     if (isAdmin) return true;
     
     // Parents only see published
     if (!announcement.publicado) return false;
+    
+    // Filter expired announcements (for parents)
+    if (announcement.fecha_expiracion) {
+      const expirationDate = new Date(announcement.fecha_expiracion);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      expirationDate.setHours(0, 0, 0, 0);
+      
+      if (expirationDate < today) return false;
+    }
     
     // Check if announcement is relevant to user
     if (announcement.destinatarios_tipo === "Todos") return true;
@@ -264,8 +285,16 @@ ${announcement.contenido}
     ? visibleAnnouncements 
     : visibleAnnouncements.filter(a => a.prioridad === priorityFilter);
 
+  // Sort: Pinned first, then by date
+  const sortedAnnouncements = [...filteredAnnouncements].sort((a, b) => {
+    if (a.destacado && !b.destacado) return -1;
+    if (!a.destacado && b.destacado) return 1;
+    return new Date(b.fecha_publicacion) - new Date(a.fecha_publicacion);
+  });
+
   const urgentCount = visibleAnnouncements.filter(a => a.prioridad === "Urgente").length;
   const importantCount = visibleAnnouncements.filter(a => a.prioridad === "Importante").length;
+  const pinnedCount = visibleAnnouncements.filter(a => a.destacado).length;
 
   return (
     <div className="p-6 lg:p-8 space-y-6">
@@ -276,7 +305,7 @@ ${announcement.contenido}
             Anuncios y Comunicados
           </h1>
           <p className="text-slate-600 mt-1">
-            {isAdmin ? "Envía noticias y avisos a las familias" : "Mantente informado de las novedades del club"}
+            {isAdmin ? "Publica comunicados oficiales importantes" : "Información importante del club"}
           </p>
         </div>
         {isAdmin && (
@@ -292,6 +321,25 @@ ${announcement.contenido}
           </Button>
         )}
       </div>
+
+      {/* Info Alert */}
+      {!isAdmin && (
+        <Alert className="bg-blue-50 border-blue-300">
+          <Megaphone className="h-5 w-5 text-blue-600" />
+          <AlertDescription className="text-blue-900">
+            <strong>Anuncios importantes:</strong> Aquí encontrarás comunicados oficiales, cambios de horarios, cancelaciones y otra información crítica del club.
+          </AlertDescription>
+        </Alert>
+      )}
+
+      {pinnedCount > 0 && (
+        <Alert className="bg-yellow-50 border-yellow-300">
+          <Pin className="h-5 w-5 text-yellow-600" />
+          <AlertDescription className="text-yellow-900">
+            <strong>{pinnedCount} anuncio{pinnedCount !== 1 ? 's' : ''} anclado{pinnedCount !== 1 ? 's' : ''}:</strong> Información importante fijada al inicio
+          </AlertDescription>
+        </Alert>
+      )}
 
       <AnimatePresence>
         {showForm && isAdmin && (
@@ -331,7 +379,7 @@ ${announcement.contenido}
         <div className="text-center py-12">
           <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-orange-600 border-r-transparent"></div>
         </div>
-      ) : filteredAnnouncements.length === 0 ? (
+      ) : sortedAnnouncements.length === 0 ? (
         <div className="text-center py-12 bg-white rounded-xl shadow-lg">
           <div className="text-6xl mb-4">📢</div>
           <p className="text-slate-500 text-lg">No hay anuncios {priorityFilter !== "all" ? `de prioridad ${priorityFilter}` : ""}</p>
@@ -339,7 +387,7 @@ ${announcement.contenido}
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           <AnimatePresence>
-            {filteredAnnouncements.map((announcement) => (
+            {sortedAnnouncements.map((announcement) => (
               <AnnouncementCard
                 key={announcement.id}
                 announcement={announcement}
