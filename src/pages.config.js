@@ -20,6 +20,8 @@ import TrainingSchedules from './pages/TrainingSchedules';
 import ParentTrainingSchedules from './pages/ParentTrainingSchedules';
 import AdminGallery from './pages/AdminGallery';
 import ParentGallery from './pages/ParentGallery';
+import PlayerDashboard from './pages/PlayerDashboard';
+import PlayerProfile from './pages/PlayerProfile';
 import Layout from './Layout.jsx';
 
 
@@ -46,6 +48,8 @@ export const PAGES = {
     "ParentTrainingSchedules": ParentTrainingSchedules,
     "AdminGallery": AdminGallery,
     "ParentGallery": ParentGallery,
+    "PlayerDashboard": PlayerDashboard,
+    "PlayerProfile": PlayerProfile,
 }
 
 export const pagesConfig = {
