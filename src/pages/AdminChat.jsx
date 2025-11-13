@@ -5,10 +5,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Send, Search, Clock, AlertCircle, Paperclip, X } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
+import { Send, Search, Clock, AlertCircle, X, Users, Check, CheckCheck } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 import FileAttachmentButton from "../components/chat/FileAttachmentButton";
 import MessageAttachments from "../components/chat/MessageAttachments";
@@ -19,6 +22,7 @@ export default function AdminChat() {
   const [priority, setPriority] = useState("Normal");
   const [searchTerm, setSearchTerm] = useState("");
   const [attachments, setAttachments] = useState([]);
+  const [sendToAll, setSendToAll] = useState(false);
   const messagesEndRef = useRef(null);
   const queryClient = useQueryClient();
   const [user, setUser] = useState(null);
@@ -46,45 +50,79 @@ export default function AdminChat() {
 
   const sendMessageMutation = useMutation({
     mutationFn: async (messageData) => {
-      const newMessage = await base44.entities.ChatMessage.create(messageData);
-      
-      const imageAttachments = messageData.archivos_adjuntos.filter(att => att.tipo === "imagen");
-      if (imageAttachments.length > 0) {
-        const albumData = {
-          titulo: `Chat - ${messageData.deporte} (${format(new Date(), "d MMM yyyy", { locale: es })})`,
-          descripcion: messageData.mensaje || "Fotos del chat",
-          fecha_evento: new Date().toISOString().split('T')[0],
-          categoria: messageData.deporte,
-          tipo_evento: "Otro",
-          fotos: imageAttachments.map(img => ({
-            url: img.url,
-            descripcion: img.nombre || messageData.mensaje || "",
-            jugadores_etiquetados: []
-          })),
-          visible_para_padres: true,
-          destacado: false
-        };
+      // Si sendToAll es true, enviar a todos los grupos
+      if (messageData.sendToAll) {
+        const allGroups = Object.keys(groups);
+        const promises = allGroups.map(grupoId => {
+          return base44.entities.ChatMessage.create({
+            ...messageData,
+            deporte: grupoId,
+            grupo_id: grupoId,
+            sendToAll: undefined // remover este campo antes de crear
+          });
+        });
         
-        await base44.entities.PhotoGallery.create(albumData);
+        const newMessages = await Promise.all(promises);
+        
+        // Enviar emails si es prioritario
+        if (messageData.prioridad === "Importante" || messageData.prioridad === "Urgente") {
+          const allParentEmails = [...new Set(players.map(p => p.email_padre).filter(Boolean))];
+          const priorityEmoji = messageData.prioridad === "Urgente" ? "🔴" : "⚠️";
+          
+          const emailPromises = allParentEmails.map(email => 
+            base44.integrations.Core.SendEmail({
+              to: email,
+              subject: `${priorityEmoji} [${messageData.prioridad.toUpperCase()}] CD Bustarviejo - Anuncio General`,
+              body: `Anuncio ${messageData.prioridad.toLowerCase()} del club para todos los grupos.\n\n${messageData.mensaje}\n\nAccede a la app para ver más detalles.`
+            }).catch(err => console.error("Error sending email:", err))
+          );
+          
+          await Promise.all(emailPromises);
+        }
+        
+        return newMessages;
+      } else {
+        // Envío normal a un solo grupo
+        const newMessage = await base44.entities.ChatMessage.create(messageData);
+        
+        const imageAttachments = messageData.archivos_adjuntos.filter(att => att.tipo === "imagen");
+        if (imageAttachments.length > 0) {
+          const albumData = {
+            titulo: `Chat - ${messageData.deporte} (${format(new Date(), "d MMM yyyy", { locale: es })})`,
+            descripcion: messageData.mensaje || "Fotos del chat",
+            fecha_evento: new Date().toISOString().split('T')[0],
+            categoria: messageData.deporte,
+            tipo_evento: "Otro",
+            fotos: imageAttachments.map(img => ({
+              url: img.url,
+              descripcion: img.nombre || messageData.mensaje || "",
+              jugadores_etiquetados: []
+            })),
+            visible_para_padres: true,
+            destacado: false
+          };
+          
+          await base44.entities.PhotoGallery.create(albumData);
+        }
+        
+        if (messageData.prioridad === "Importante" || messageData.prioridad === "Urgente") {
+          const groupPlayers = players.filter(p => p.deporte === messageData.deporte);
+          const parentEmails = [...new Set(groupPlayers.map(p => p.email_padre).filter(Boolean))];
+          const priorityEmoji = messageData.prioridad === "Urgente" ? "🔴" : "⚠️";
+          
+          const emailPromises = parentEmails.map(email => 
+            base44.integrations.Core.SendEmail({
+              to: email,
+              subject: `${priorityEmoji} [${messageData.prioridad.toUpperCase()}] CD Bustarviejo - ${messageData.deporte}`,
+              body: `Nuevo mensaje ${messageData.prioridad.toLowerCase()} del club.\n\n${messageData.mensaje}\n\nAccede a la app para ver más detalles.`
+            }).catch(err => console.error("Error sending email:", err))
+          );
+          
+          await Promise.all(emailPromises);
+        }
+        
+        return newMessage;
       }
-      
-      if (messageData.prioridad === "Importante" || messageData.prioridad === "Urgente") {
-        const groupPlayers = players.filter(p => p.deporte === messageData.deporte);
-        const parentEmails = [...new Set(groupPlayers.map(p => p.email_padre).filter(Boolean))];
-        const priorityEmoji = messageData.prioridad === "Urgente" ? "🔴" : "⚠️";
-        
-        const emailPromises = parentEmails.map(email => 
-          base44.integrations.Core.SendEmail({
-            to: email,
-            subject: `${priorityEmoji} [${messageData.prioridad.toUpperCase()}] CD Bustarviejo - ${messageData.deporte}`,
-            body: `Nuevo mensaje ${messageData.prioridad.toLowerCase()} del club.\n\n${messageData.mensaje}\n\nAccede a la app para ver más detalles.`
-          }).catch(err => console.error("Error sending email:", err))
-        );
-        
-        await Promise.all(emailPromises);
-      }
-      
-      return newMessage;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['chatMessages'] });
@@ -92,7 +130,8 @@ export default function AdminChat() {
       setMessageContent("");
       setAttachments([]);
       setPriority("Normal");
-      toast.success("Mensaje enviado");
+      setSendToAll(false);
+      toast.success(sendToAll ? "Anuncio enviado a todos los grupos" : "Mensaje enviado");
     },
   });
 
@@ -189,7 +228,7 @@ export default function AdminChat() {
   );
 
   const handleSendMessage = () => {
-    if (!user || !selectedGroup) return;
+    if (!user) return;
     if (!messageContent.trim() && attachments.length === 0) {
       toast.error("Escribe un mensaje");
       return;
@@ -200,17 +239,23 @@ export default function AdminChat() {
       return;
     }
 
+    if (!sendToAll && !selectedGroup) {
+      toast.error("Selecciona un grupo");
+      return;
+    }
+
     const messageData = {
       remitente_email: user.email,
       remitente_nombre: user.full_name || "Administrador",
       mensaje: messageContent.trim() || "(Archivo adjunto)",
       prioridad: priority,
       tipo: "admin_a_grupo",
-      deporte: selectedGroup.deporte,
+      deporte: sendToAll ? "Todos" : selectedGroup.deporte,
       categoria: "",
-      grupo_id: selectedGroup.id,
+      grupo_id: sendToAll ? "todos" : selectedGroup.id,
       leido: false,
-      archivos_adjuntos: attachments
+      archivos_adjuntos: attachments,
+      sendToAll: sendToAll
     };
 
     sendMessageMutation.mutate(messageData);
@@ -218,6 +263,7 @@ export default function AdminChat() {
 
   const handleSelectGroup = (group) => {
     setSelectedGroup(group);
+    setSendToAll(false);
     const unreadMessageIds = group.messages
       .filter(msg => !msg.leido && msg.tipo === "padre_a_grupo")
       .map(msg => msg.id);
@@ -251,6 +297,13 @@ export default function AdminChat() {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [selectedGroup?.messages]);
 
+  // Calcular si un mensaje ha sido leído por alguien
+  const getReadStatus = (msg) => {
+    if (msg.tipo !== "admin_a_grupo") return null;
+    // Si tiene leido: true significa que al menos un padre lo leyó
+    return msg.leido ? "read" : "sent";
+  };
+
   return (
     <div className="h-screen flex bg-white">
       {/* Lista de Grupos - Estilo WhatsApp */}
@@ -274,6 +327,31 @@ export default function AdminChat() {
           </div>
         </div>
 
+        {/* Opción: Enviar a Todos */}
+        <div
+          onClick={() => {
+            setSendToAll(true);
+            setSelectedGroup(null);
+          }}
+          className={`p-4 border-b cursor-pointer transition-all ${
+            sendToAll ? 'bg-orange-50' : 'hover:bg-slate-50'
+          }`}
+        >
+          <div className="flex gap-3">
+            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-green-600 to-green-700 flex items-center justify-center flex-shrink-0 shadow-md">
+              <Users className="w-6 h-6 text-white" />
+            </div>
+            <div className="flex-1">
+              <h3 className="font-bold text-slate-900 text-sm mb-1">
+                📢 Anuncio a Todos los Grupos
+              </h3>
+              <p className="text-xs text-slate-500">
+                Enviar mensaje a todos los grupos a la vez
+              </p>
+            </div>
+          </div>
+        </div>
+
         {/* Lista de Grupos */}
         <div className="flex-1 overflow-y-auto">
           {filteredGroups.map(group => {
@@ -286,18 +364,16 @@ export default function AdminChat() {
                 key={group.id}
                 onClick={() => handleSelectGroup(group)}
                 className={`p-4 border-b cursor-pointer transition-all ${
-                  selectedGroup?.id === group.id
+                  selectedGroup?.id === group.id && !sendToAll
                     ? 'bg-orange-50'
                     : 'hover:bg-slate-50'
                 }`}
               >
                 <div className="flex gap-3">
-                  {/* Avatar */}
                   <div className="w-12 h-12 rounded-full bg-gradient-to-br from-orange-600 to-orange-700 flex items-center justify-center flex-shrink-0 shadow-md">
                     <span className="text-2xl">{sportEmojis[group.deporte] || "⚽"}</span>
                   </div>
                   
-                  {/* Info */}
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between mb-1">
                       <h3 className="font-bold text-slate-900 text-sm truncate">
@@ -329,7 +405,94 @@ export default function AdminChat() {
 
       {/* Área de Chat */}
       <div className="flex-1 flex flex-col bg-[#e5ddd5] hidden md:flex">
-        {selectedGroup ? (
+        {sendToAll ? (
+          <>
+            {/* Header - Anuncio General */}
+            <div className="bg-gradient-to-r from-green-600 to-green-700 p-4 text-white flex items-center gap-3 shadow-md">
+              <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
+                <Users className="w-6 h-6" />
+              </div>
+              <div className="flex-1">
+                <h2 className="font-bold text-base">📢 Anuncio a Todos los Grupos</h2>
+                <p className="text-xs text-green-100">
+                  Enviar a {Object.keys(groups).length} grupos • {players.length} jugadores
+                </p>
+              </div>
+            </div>
+
+            {/* Info */}
+            <div className="p-4">
+              <Alert className="bg-blue-50 border-blue-300">
+                <AlertCircle className="h-4 w-4 text-blue-600" />
+                <AlertDescription className="text-blue-800 text-sm">
+                  <strong>Modo Anuncio:</strong> Tu mensaje se enviará a todos los grupos del club. 
+                  Todos los padres recibirán la notificación.
+                </AlertDescription>
+              </Alert>
+            </div>
+
+            {/* Espacio vacío */}
+            <div className="flex-1" />
+
+            {/* Input Area */}
+            <div className="bg-white border-t p-3">
+              {attachments.length > 0 && (
+                <div className="mb-2 flex flex-wrap gap-2">
+                  {attachments.map((att, index) => (
+                    <div key={index} className="bg-slate-100 rounded-lg px-3 py-1.5 text-sm flex items-center gap-2">
+                      <span className="text-xs truncate max-w-[150px]">{att.nombre}</span>
+                      <button onClick={() => handleRemoveAttachment(index)} className="text-slate-500 hover:text-red-600">
+                        <X className="w-3 h-3" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              <div className="mb-2">
+                <Select value={priority} onValueChange={setPriority}>
+                  <SelectTrigger className="w-full h-9 text-sm">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Normal">📝 Normal</SelectItem>
+                    <SelectItem value="Importante">⚠️ Importante (Email)</SelectItem>
+                    <SelectItem value="Urgente">🔴 Urgente (Email)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="flex gap-2 items-end">
+                <FileAttachmentButton
+                  onFileUploaded={handleFileUploaded}
+                  disabled={!isBusinessHours() || sendMessageMutation.isPending}
+                />
+                
+                <Input
+                  value={messageContent}
+                  onChange={(e) => setMessageContent(e.target.value)}
+                  placeholder="Escribe tu anuncio..."
+                  className="flex-1 rounded-full"
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                      e.preventDefault();
+                      handleSendMessage();
+                    }
+                  }}
+                  disabled={!isBusinessHours()}
+                />
+                
+                <Button
+                  onClick={handleSendMessage}
+                  disabled={(!messageContent.trim() && attachments.length === 0) || sendMessageMutation.isPending || !isBusinessHours()}
+                  className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 rounded-full w-10 h-10 p-0 flex items-center justify-center shadow-lg"
+                >
+                  <Send className="w-4 h-4" />
+                </Button>
+              </div>
+            </div>
+          </>
+        ) : selectedGroup ? (
           <>
             {/* Header del Chat */}
             <div className="bg-gradient-to-r from-orange-600 to-orange-700 p-4 text-white flex items-center gap-3 shadow-md">
@@ -367,60 +530,69 @@ export default function AdminChat() {
               ) : (
                 selectedGroup.messages
                   .sort((a, b) => new Date(a.created_date) - new Date(b.created_date))
-                  .map((msg) => (
-                    <div
-                      key={msg.id}
-                      className={`flex ${msg.tipo === "admin_a_grupo" ? 'justify-end' : 'justify-start'} mb-1`}
-                    >
+                  .map((msg) => {
+                    const readStatus = getReadStatus(msg);
+                    
+                    return (
                       <div
-                        className={`max-w-[65%] rounded-lg shadow-sm ${
-                          msg.tipo === "admin_a_grupo"
-                            ? 'bg-gradient-to-r from-green-600 to-green-700 text-white rounded-br-none'
-                            : 'bg-white text-slate-900 rounded-bl-none'
-                        }`}
+                        key={msg.id}
+                        className={`flex ${msg.tipo === "admin_a_grupo" ? 'justify-end' : 'justify-start'} mb-1`}
                       >
-                        <div className="px-3 py-2">
-                          <div className="flex items-center gap-2 mb-1">
-                            <span className={`text-xs font-semibold ${msg.tipo === "admin_a_grupo" ? 'text-green-100' : 'text-orange-700'}`}>
-                              {msg.remitente_nombre}
-                            </span>
-                            {msg.prioridad !== "Normal" && (
-                              <span className="text-xs">{msg.prioridad === "Urgente" ? "🔴" : "⚠️"}</span>
-                            )}
-                          </div>
-                          <p className="text-sm leading-relaxed break-words">{msg.mensaje}</p>
-                          
-                          {msg.archivos_adjuntos?.length > 0 && (
-                            <div className="mt-2">
-                              <MessageAttachments attachments={msg.archivos_adjuntos} />
+                        <div
+                          className={`max-w-[65%] rounded-lg shadow-sm ${
+                            msg.tipo === "admin_a_grupo"
+                              ? 'bg-gradient-to-r from-green-600 to-green-700 text-white rounded-br-none'
+                              : 'bg-white text-slate-900 rounded-bl-none'
+                          }`}
+                        >
+                          <div className="px-3 py-2">
+                            <div className="flex items-center gap-2 mb-1">
+                              <span className={`text-xs font-semibold ${msg.tipo === "admin_a_grupo" ? 'text-green-100' : 'text-orange-700'}`}>
+                                {msg.remitente_nombre}
+                              </span>
+                              {msg.prioridad !== "Normal" && (
+                                <span className="text-xs">{msg.prioridad === "Urgente" ? "🔴" : "⚠️"}</span>
+                              )}
                             </div>
-                          )}
-                          
-                          <div className="flex items-center justify-end gap-1 mt-1">
-                            <span className={`text-[10px] ${msg.tipo === "admin_a_grupo" ? 'text-green-100' : 'text-slate-500'}`}>
-                              {format(new Date(msg.created_date), "HH:mm")}
-                            </span>
+                            <p className="text-sm leading-relaxed break-words">{msg.mensaje}</p>
+                            
+                            {msg.archivos_adjuntos?.length > 0 && (
+                              <div className="mt-2">
+                                <MessageAttachments attachments={msg.archivos_adjuntos} />
+                              </div>
+                            )}
+                            
+                            <div className="flex items-center justify-end gap-1 mt-1">
+                              <span className={`text-[10px] ${msg.tipo === "admin_a_grupo" ? 'text-green-100' : 'text-slate-500'}`}>
+                                {format(new Date(msg.created_date), "HH:mm")}
+                              </span>
+                              {msg.tipo === "admin_a_grupo" && (
+                                <span className="ml-1">
+                                  {readStatus === "read" ? (
+                                    <CheckCheck className="w-3 h-3 text-blue-400" />
+                                  ) : (
+                                    <Check className="w-3 h-3 text-green-200" />
+                                  )}
+                                </span>
+                              )}
+                            </div>
                           </div>
                         </div>
                       </div>
-                    </div>
-                  ))
+                    );
+                  })
               )}
               <div ref={messagesEndRef} />
             </div>
 
             {/* Input Area */}
             <div className="bg-white border-t p-3">
-              {/* Attachments Preview */}
               {attachments.length > 0 && (
                 <div className="mb-2 flex flex-wrap gap-2">
                   {attachments.map((att, index) => (
                     <div key={index} className="bg-slate-100 rounded-lg px-3 py-1.5 text-sm flex items-center gap-2">
                       <span className="text-xs truncate max-w-[150px]">{att.nombre}</span>
-                      <button
-                        onClick={() => handleRemoveAttachment(index)}
-                        className="text-slate-500 hover:text-red-600"
-                      >
+                      <button onClick={() => handleRemoveAttachment(index)} className="text-slate-500 hover:text-red-600">
                         <X className="w-3 h-3" />
                       </button>
                     </div>
@@ -428,7 +600,6 @@ export default function AdminChat() {
                 </div>
               )}
 
-              {/* Priority Selector */}
               <div className="mb-2">
                 <Select value={priority} onValueChange={setPriority}>
                   <SelectTrigger className="w-full h-9 text-sm">
@@ -436,13 +607,12 @@ export default function AdminChat() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="Normal">📝 Normal</SelectItem>
-                    <SelectItem value="Importante">⚠️ Importante</SelectItem>
-                    <SelectItem value="Urgente">🔴 Urgente</SelectItem>
+                    <SelectItem value="Importante">⚠️ Importante (Email)</SelectItem>
+                    <SelectItem value="Urgente">🔴 Urgente (Email)</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
 
-              {/* Message Input */}
               <div className="flex gap-2 items-end">
                 <FileAttachmentButton
                   onFileUploaded={handleFileUploaded}
@@ -478,7 +648,7 @@ export default function AdminChat() {
             <div className="text-center text-slate-500">
               <AlertCircle className="w-16 h-16 mx-auto mb-4 opacity-30" />
               <p className="text-lg mb-1">Selecciona un grupo</p>
-              <p className="text-sm opacity-70">Elige un grupo para empezar a chatear</p>
+              <p className="text-sm opacity-70">O usa "Anuncio a Todos" para enviar a todos</p>
             </div>
           </div>
         )}
