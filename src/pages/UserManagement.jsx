@@ -49,6 +49,7 @@ export default function UserManagement() {
   const [showRestrictDialog, setShowRestrictDialog] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showRoleDialog, setShowRoleDialog] = useState(false);
+  const [showCoachDialog, setShowCoachDialog] = useState(false);
   const [showDeleted, setShowDeleted] = useState(false);
   const [restrictionData, setRestrictionData] = useState({
     motivo_restriccion: "",
@@ -56,6 +57,10 @@ export default function UserManagement() {
   });
   const [selectedRole, setSelectedRole] = useState("user");
   const [selectedPlayerId, setSelectedPlayerId] = useState("");
+  const [coachData, setCoachData] = useState({
+    categoria_entrena: "",
+    telefono_entrenador: ""
+  });
 
   const queryClient = useQueryClient();
 
@@ -82,11 +87,37 @@ export default function UserManagement() {
       setShowRestrictDialog(false);
       setShowDeleteDialog(false);
       setShowRoleDialog(false);
+      setShowCoachDialog(false);
       setSelectedUser(null);
       setRestrictionData({ motivo_restriccion: "", notas_admin: "" });
+      setCoachData({ categoria_entrena: "", telefono_entrenador: "" });
       toast.success("Usuario actualizado correctamente");
     },
   });
+
+  const handleCoachToggle = (user) => {
+    setSelectedUser(user);
+    setCoachData({
+      categoria_entrena: user.categoria_entrena || "",
+      telefono_entrenador: user.telefono_entrenador || ""
+    });
+    setShowCoachDialog(true);
+  };
+
+  const handleConfirmCoach = async () => {
+    if (!selectedUser) return;
+
+    const isSettingAsCoach = !selectedUser.es_entrenador;
+
+    updateUserMutation.mutate({
+      userId: selectedUser.id,
+      userData: {
+        es_entrenador: isSettingAsCoach,
+        categoria_entrena: isSettingAsCoach ? coachData.categoria_entrena : null,
+        telefono_entrenador: isSettingAsCoach ? coachData.telefono_entrenador : null
+      }
+    });
+  };
 
   const handleRestrictAccess = async (user) => {
     setSelectedUser(user);
@@ -217,17 +248,18 @@ export default function UserManagement() {
   const admins = activeUsersWithoutDeleted.filter(u => u.role === "admin");
   const deletedUsers = users.filter(u => u.eliminado === true);
   const jugadores = activeUsersWithoutDeleted.filter(u => u.role === "jugador");
+  const entrenadores = activeUsersWithoutDeleted.filter(u => u.es_entrenador === true);
 
 
   return (
     <div className="p-6 lg:p-8 space-y-6">
       <div>
         <h1 className="text-3xl font-bold text-slate-900">Gestión de Usuarios</h1>
-        <p className="text-slate-600 mt-1">Control de acceso, roles y permisos</p>
+        <p className="text-slate-600 mt-1">Control de acceso, roles, permisos y entrenadores</p>
       </div>
 
       {/* Estadísticas */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-6">
         <Card className="border-none shadow-lg">
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
@@ -260,6 +292,18 @@ export default function UserManagement() {
                 <p className="text-3xl font-bold text-purple-600">{jugadores.length}</p>
               </div>
               <User className="w-12 h-12 text-purple-500 opacity-20" />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="border-none shadow-lg border-2 border-blue-200 bg-blue-50">
+          <CardContent className="pt-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-slate-600 mb-1">🎓 Entrenadores</p>
+                <p className="text-3xl font-bold text-blue-600">{entrenadores.length}</p>
+              </div>
+              <Users className="w-12 h-12 text-blue-500 opacity-20" />
             </div>
           </CardContent>
         </Card>
@@ -369,6 +413,7 @@ export default function UserManagement() {
                 const hasRestriction = user.acceso_activo === false;
                 const isDeleted = user.eliminado === true;
                 const linkedPlayer = user.jugador_id ? players.find(p => p.id === user.jugador_id) : null;
+                const isCoach = user.es_entrenador === true;
 
                 return (
                   <div
@@ -378,6 +423,8 @@ export default function UserManagement() {
                         ? 'bg-slate-100 border-slate-400 opacity-75'
                         : hasRestriction
                         ? 'bg-red-50 border-red-200'
+                        : isCoach
+                        ? 'bg-blue-50 border-blue-300'
                         : 'bg-white border-slate-200 hover:border-orange-300'
                     }`}
                   >
@@ -394,6 +441,11 @@ export default function UserManagement() {
                           }>
                             {user.role === "admin" ? "🎓 Administrador" : user.role === "jugador" ? "⚽ Jugador" : "👨‍👩‍👧 Padre/Tutor"}
                           </Badge>
+                          {isCoach && (
+                            <Badge className="bg-blue-600 text-white">
+                              🏃 Entrenador
+                            </Badge>
+                          )}
                           {isDeleted && (
                             <Badge className="bg-slate-700 text-white">
                               <Trash2 className="w-3 h-3 mr-1" />
@@ -412,6 +464,13 @@ export default function UserManagement() {
                           <Mail className="w-4 h-4" />
                           <span>{user.email}</span>
                         </div>
+
+                        {isCoach && (
+                          <div className="text-sm text-blue-700 bg-blue-100 rounded p-2 mb-2">
+                            <strong>🏃 Entrena:</strong> {user.categoria_entrena}
+                            {user.telefono_entrenador && ` • 📱 ${user.telefono_entrenador}`}
+                          </div>
+                        )}
 
                         {user.role === "jugador" && linkedPlayer && (
                           <div className="text-sm text-purple-700 bg-purple-50 rounded p-2 mb-2">
@@ -458,44 +517,56 @@ export default function UserManagement() {
                         )}
                       </div>
 
-                      {user.role !== "admin" && !isDeleted && (
+                      {!isDeleted && (
                         <div className="flex flex-col gap-2">
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => handleChangeRole(user)}
-                            className="bg-purple-50 hover:bg-purple-100 border-purple-300"
-                          >
-                            <Shield className="w-4 h-4 mr-1" />
-                            Cambiar Rol
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant={hasRestriction ? "default" : "destructive"}
-                            onClick={() => handleRestrictAccess(user)}
-                            className={hasRestriction ? "bg-green-600 hover:bg-green-700" : ""}
-                          >
-                            {hasRestriction ? (
-                              <>
-                                <CheckCircle2 className="w-4 h-4 mr-1" />
-                                Restaurar
-                              </>
-                            ) : (
-                              <>
-                                <Ban className="w-4 h-4 mr-1" />
-                                Restringir
-                              </>
-                            )}
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="destructive"
-                            onClick={() => handleDeleteUser(user)}
-                            className="bg-slate-700 hover:bg-slate-800"
-                          >
-                            <Trash2 className="w-4 h-4 mr-1" />
-                            Eliminar
-                          </Button>
+                          {user.role !== "admin" && (
+                            <>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => handleCoachToggle(user)}
+                                className={isCoach ? "bg-blue-100 hover:bg-blue-200 border-blue-400" : "bg-blue-50 hover:bg-blue-100 border-blue-300"}
+                              >
+                                {isCoach ? "✅ Entrenador" : "🎓 Marcar Entrenador"}
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => handleChangeRole(user)}
+                                className="bg-purple-50 hover:bg-purple-100 border-purple-300"
+                              >
+                                <Shield className="w-4 h-4 mr-1" />
+                                Cambiar Rol
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant={hasRestriction ? "default" : "destructive"}
+                                onClick={() => handleRestrictAccess(user)}
+                                className={hasRestriction ? "bg-green-600 hover:bg-green-700" : ""}
+                              >
+                                {hasRestriction ? (
+                                  <>
+                                    <CheckCircle2 className="w-4 h-4 mr-1" />
+                                    Restaurar
+                                  </>
+                                ) : (
+                                  <>
+                                    <Ban className="w-4 h-4 mr-1" />
+                                    Restringir
+                                  </>
+                                )}
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="destructive"
+                                onClick={() => handleDeleteUser(user)}
+                                className="bg-slate-700 hover:bg-slate-800"
+                              >
+                                <Trash2 className="w-4 h-4 mr-1" />
+                                Eliminar
+                              </Button>
+                            </>
+                          )}
                         </div>
                       )}
                     </div>
@@ -506,6 +577,107 @@ export default function UserManagement() {
           )}
         </CardContent>
       </Card>
+
+      {/* Diálogo de Entrenador */}
+      <Dialog open={showCoachDialog} onOpenChange={setShowCoachDialog}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="text-2xl flex items-center gap-2">
+              <Users className="w-6 h-6 text-blue-600" />
+              {selectedUser?.es_entrenador ? "Quitar Rol de Entrenador" : "Asignar como Entrenador"}
+            </DialogTitle>
+            <DialogDescription>
+              {selectedUser?.es_entrenador ? (
+                <>Quitar permisos de entrenador a <strong>{selectedUser?.full_name}</strong></>
+              ) : (
+                <>Asignar permisos de entrenador a <strong>{selectedUser?.full_name}</strong></>
+              )}
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 py-4">
+            {!selectedUser?.es_entrenador && (
+              <>
+                <div className="space-y-2">
+                  <Label htmlFor="coach-category-select">Categoría que Entrena *</Label>
+                  <Select
+                    value={coachData.categoria_entrena}
+                    onValueChange={(value) => setCoachData({...coachData, categoria_entrena: value})}
+                  >
+                    <SelectTrigger id="coach-category-select">
+                      <SelectValue placeholder="Selecciona la categoría" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Fútbol Pre-Benjamín (Mixto)">⚽ Fútbol Pre-Benjamín (Mixto)</SelectItem>
+                      <SelectItem value="Fútbol Benjamín (Mixto)">⚽ Fútbol Benjamín (Mixto)</SelectItem>
+                      <SelectItem value="Fútbol Alevín (Mixto)">⚽ Fútbol Alevín (Mixto)</SelectItem>
+                      <SelectItem value="Fútbol Infantil (Mixto)">⚽ Fútbol Infantil (Mixto)</SelectItem>
+                      <SelectItem value="Fútbol Cadete">⚽ Fútbol Cadete</SelectItem>
+                      <SelectItem value="Fútbol Juvenil">⚽ Fútbol Juvenil</SelectItem>
+                      <SelectItem value="Fútbol Aficionado">⚽ Fútbol Aficionado</SelectItem>
+                      <SelectItem value="Fútbol Femenino">⚽ Fútbol Femenino</SelectItem>
+                      <SelectItem value="Baloncesto (Mixto)">🏀 Baloncesto (Mixto)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="coach-phone-input">Teléfono de Contacto (opcional)</Label>
+                  <Input
+                    id="coach-phone-input"
+                    type="tel"
+                    placeholder="Ej: 666 123 456"
+                    value={coachData.telefono_entrenador}
+                    onChange={(e) => setCoachData({...coachData, telefono_entrenador: e.target.value})}
+                  />
+                </div>
+              </>
+            )}
+
+            <div className="bg-blue-50 border-2 border-blue-300 rounded-lg p-4">
+              <p className="text-sm text-blue-900 font-bold mb-2">
+                🎓 Permisos de Entrenador:
+              </p>
+              <ul className="text-sm text-blue-800 space-y-1">
+                <li>✅ Crear convocatorias para partidos/entrenamientos</li>
+                <li>✅ Gestionar jugadores convocados</li>
+                <li>✅ Ver confirmaciones de asistencia</li>
+                <li>✅ Enviar notificaciones automáticas</li>
+                <li>✅ Acceso a su categoría específica</li>
+              </ul>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setShowCoachDialog(false);
+                setSelectedUser(null);
+                setCoachData({ categoria_entrena: "", telefono_entrenador: "" });
+              }}
+            >
+              Cancelar
+            </Button>
+            <Button
+              onClick={handleConfirmCoach}
+              disabled={updateUserMutation.isPending || (!selectedUser?.es_entrenador && !coachData.categoria_entrena)}
+              className={selectedUser?.es_entrenador ? "bg-red-600 hover:bg-red-700" : "bg-blue-600 hover:bg-blue-700"}
+            >
+              {updateUserMutation.isPending ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Procesando...
+                </>
+              ) : selectedUser?.es_entrenador ? (
+                "Quitar Rol de Entrenador"
+              ) : (
+                "Confirmar Entrenador"
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Diálogo de Restricción */}
       <Dialog open={showRestrictDialog} onOpenChange={setShowRestrictDialog}>
