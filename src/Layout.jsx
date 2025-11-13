@@ -3,7 +3,7 @@ import React, { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { base44 } from "@/api/base44Client";
-import { Home, Users, CreditCard, ShoppingBag, Menu, Bell, LogOut, Calendar, Megaphone, Mail, Archive, Settings, MessageCircle, Clock, Image, X, User as UserIcon, CheckCircle2 } from "lucide-react";
+import { Home, Users, CreditCard, ShoppingBag, Menu, Bell, LogOut, Calendar, Megaphone, Mail, Archive, Settings, MessageCircle, Clock, Image, X, User as UserIcon, CheckCircle2, ClipboardCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
@@ -490,8 +490,8 @@ export default function Layout({ children, currentPageName }) {
         setIsPlayer(currentUser.role === "jugador");
         setIsCoach(currentUser.es_entrenador === true);
         
-        // Check if admin has players (to show ParentCallups)
-        if (currentUser.role === "admin") {
+        // Check if admin/coach has players (to show ParentCallups)
+        if (currentUser.role === "admin" || currentUser.es_entrenador) {
           const allPlayers = await base44.entities.Player.list();
           const myPlayers = allPlayers.filter(p => 
             p.email_padre === currentUser.email || 
@@ -542,7 +542,7 @@ export default function Layout({ children, currentPageName }) {
           });
         } else if (isPlayer) {
           const allPlayers = await base44.entities.Player.list();
-          const myPlayer = allPlayers.find(p => p.email === user.email); // Assuming user.email links to player email for 'jugador' role
+          const myPlayer = allPlayers.find(p => p.email === user.email);
           
           if (myPlayer) {
             allMessages.forEach(msg => {
@@ -562,7 +562,7 @@ export default function Layout({ children, currentPageName }) {
             p.email_padre === user.email || p.email_tutor_2 === user.email
           );
           // Group IDs could be specific like "Futbol_Alevin" or just "Futbol". 
-          // The outline specifies `p.deporte` and `msg.grupo_id || msg.deporte`
+          // The outline specified `p.deporte` and `msg.grupo_id || msg.deporte`
           const myGroupSports = [...new Set(myPlayers.map(p => p.deporte))];
           
           allMessages.forEach(msg => {
@@ -610,8 +610,8 @@ export default function Layout({ children, currentPageName }) {
     { title: "Calendario", url: createPageUrl("Calendar"), icon: Calendar },
     { title: "Anuncios", url: createPageUrl("Announcements"), icon: Megaphone },
     { title: "Galería", url: createPageUrl("AdminGallery"), icon: Image },
-    { title: "🎓 Gestionar Convocatorias", url: createPageUrl("CoachCallups"), icon: Bell },
-    ...(hasPlayers ? [{ title: "✅ Mis Convocatorias", url: createPageUrl("ParentCallups"), icon: CheckCircle2 }] : []),
+    { title: "🎓 Crear Convocatorias", url: createPageUrl("CoachCallups"), icon: Bell },
+    ...(hasPlayers ? [{ title: "👨‍👩‍👧 Confirmar Mis Hijos", url: createPageUrl("ParentCallups"), icon: ClipboardCheck }] : []),
     { title: "Pagos", url: createPageUrl("Payments"), icon: CreditCard },
     { title: "Recordatorios", url: createPageUrl("Reminders"), icon: Bell },
     { title: "Pedidos", url: createPageUrl("ClothingOrders"), icon: ShoppingBag },
@@ -649,15 +649,22 @@ export default function Layout({ children, currentPageName }) {
   
   // Add coach callups for coaches (who are NOT admin and NOT players)
   if (isCoach && !isAdmin && !isPlayer) {
-    // Add coach convocatorias after the parent callups
-    const callupIndex = navigationItems.findIndex(item => item.url === createPageUrl("ParentCallups"));
-    if (callupIndex !== -1) {
-      navigationItems = [
-        ...navigationItems.slice(0, callupIndex + 1),
-        { title: "🎓 Gestionar Convocatorias", url: createPageUrl("CoachCallups"), icon: Bell },
-        ...navigationItems.slice(callupIndex + 1)
-      ];
+    let finalCoachNavItems = [];
+    const coachCallupsItem = { title: "🎓 Crear Convocatorias", url: createPageUrl("CoachCallups"), icon: Bell };
+    const parentCallupsItemForCoach = { title: "👨‍👩‍👧 Confirmar Mis Hijos", url: createPageUrl("ParentCallups"), icon: ClipboardCheck };
+
+    for (const item of parentNavigationItems) {
+      if (item.url === createPageUrl("ParentCallups")) {
+        // Replace or augment the generic ParentCallups item from parentNavigationItems
+        finalCoachNavItems.push(coachCallupsItem); // Coaches always get to create convocatorias
+        if (hasPlayers) {
+          finalCoachNavItems.push(parentCallupsItemForCoach); // If coach also has players, they get to confirm their kids
+        }
+      } else {
+        finalCoachNavItems.push(item); // Keep other parent navigation items
+      }
     }
+    navigationItems = finalCoachNavItems;
   }
 
   const handleLogout = () => {
