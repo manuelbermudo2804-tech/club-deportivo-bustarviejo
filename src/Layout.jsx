@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { createPageUrl } from "@/utils";
@@ -81,7 +80,7 @@ function ClosedSeasonScreen({ user, isAdmin }) {
                 🔒 Cierre de Temporada
               </h1>
               <p className="text-2xl text-orange-600 font-semibold">
-                CF Bustarviejo
+                CD Bustarviejo
               </p>
             </div>
 
@@ -201,7 +200,7 @@ function InscriptionPeriodScreen({ user, isAdmin }) {
                 📝 Periodo de Inscripciones
               </h1>
               <p className="text-2xl text-green-700 font-semibold">
-                CF Bustarviejo - Junio y Julio
+                CD Bustarviejo - Junio y Julio
               </p>
             </div>
 
@@ -368,7 +367,7 @@ function VacationPeriodScreen({ user, isAdmin }) {
                 🏖️ Vacaciones de Verano
               </h1>
               <p className="text-2xl text-orange-600 font-semibold">
-                CF Bustarviejo
+                CD Bustarviejo
               </p>
             </div>
 
@@ -470,7 +469,7 @@ function RestrictedAccessScreen({ user, restriction }) {
                 Acceso Restringido
               </h1>
               <p className="text-2xl text-orange-600 font-semibold">
-                CF Bustarviejo
+                CD Bustarviejo
               </p>
             </div>
 
@@ -692,7 +691,6 @@ export default function Layout({ children, currentPageName }) {
       url: createPageUrl("ClothingOrders"),
       icon: ShoppingBag,
     },
-    // Removed "Tienda" and "Pedidos Tienda"
     {
       title: "Chat Grupos",
       url: createPageUrl("AdminChat"),
@@ -748,7 +746,6 @@ export default function Layout({ children, currentPageName }) {
       url: createPageUrl("ClothingOrders"),
       icon: ShoppingBag,
     },
-    // Removed "Tienda" and "Mis Pedidos Tienda"
     {
       title: "Chat Grupo",
       url: createPageUrl("ParentChat"),
@@ -774,12 +771,12 @@ export default function Layout({ children, currentPageName }) {
                 <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center shadow-xl p-1 ring-2 ring-green-500">
                   <img 
                     src={CLUB_LOGO_URL} 
-                    alt="CF Bustarviejo"
+                    alt="CD Bustarviejo"
                     className="w-full h-full object-contain"
                   />
                 </div>
                 <div className="text-white">
-                  <h2 className="font-bold text-lg leading-tight">CF Bustarviejo</h2>
+                  <h2 className="font-bold text-lg leading-tight">CD Bustarviejo</h2>
                   <p className="text-xs text-green-200">
                     {isAdmin ? "Panel Administrador" : "Panel Padre/Tutor"}
                   </p>
@@ -860,7 +857,7 @@ export default function Layout({ children, currentPageName }) {
             </Button>
             <div className="text-center text-xs text-green-400 pt-2 border-t-2 border-green-500">
               <p className="font-medium">Temporada {currentSeason}</p>
-              <p className="text-orange-400 mt-1">© CF Bustarviejo</p>
+              <p className="text-orange-400 mt-1">© CD Bustarviejo</p>
             </div>
           </SidebarFooter>
         </Sidebar>
@@ -875,10 +872,10 @@ export default function Layout({ children, currentPageName }) {
                 <div className="flex items-center gap-2">
                   <img 
                     src={CLUB_LOGO_URL} 
-                    alt="CF Bustarviejo"
+                    alt="CD Bustarviejo"
                     className="w-8 h-8 object-contain"
                   />
-                  <h1 className="text-xl font-bold text-orange-500">CF Bustarviejo</h1>
+                  <h1 className="text-xl font-bold text-orange-500">CD Bustarviejo</h1>
                 </div>
               </div>
               {(unreadMessagesCount > 0 || urgentMessagesCount > 0) && (
