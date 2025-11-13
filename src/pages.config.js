@@ -16,6 +16,8 @@ import UserManagement from './pages/UserManagement';
 import OrderManagement from './pages/OrderManagement';
 import ParentOrders from './pages/ParentOrders';
 import ClothingOrders from './pages/ClothingOrders';
+import TrainingSchedules from './pages/TrainingSchedules';
+import ParentTrainingSchedules from './pages/ParentTrainingSchedules';
 import Layout from './Layout.jsx';
 
 
@@ -38,6 +40,8 @@ export const PAGES = {
     "OrderManagement": OrderManagement,
     "ParentOrders": ParentOrders,
     "ClothingOrders": ClothingOrders,
+    "TrainingSchedules": TrainingSchedules,
+    "ParentTrainingSchedules": ParentTrainingSchedules,
 }
 
 export const pagesConfig = {
