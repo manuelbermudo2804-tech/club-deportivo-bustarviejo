@@ -8,7 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Loader2, Mail, Pin, Clock, AlertCircle, Sparkles } from "lucide-react";
+import { Loader2, Mail, Pin, Clock, AlertCircle, Sparkles, MessageCircle, Zap } from "lucide-react";
 
 export default function AnnouncementForm({ announcement, onSubmit, onCancel, isSubmitting }) {
   const [currentAnnouncement, setCurrentAnnouncement] = useState(announcement || {
@@ -16,12 +16,13 @@ export default function AnnouncementForm({ announcement, onSubmit, onCancel, isS
     contenido: "",
     prioridad: "Normal",
     destinatarios_tipo: "Todos",
-    categoria_destino: "",
     publicado: true,
     destacado: false,
     fecha_expiracion: "",
     enviar_email: false,
     email_enviado: false,
+    enviar_chat: false,
+    chat_enviado: false,
     fecha_publicacion: new Date().toISOString()
   });
 
@@ -102,38 +103,19 @@ export default function AnnouncementForm({ announcement, onSubmit, onCancel, isS
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="Todos">Todos</SelectItem>
-                    <SelectItem value="Fútbol Masculino">⚽ Fútbol Masculino</SelectItem>
+                    <SelectItem value="Todos">🏃 Todos los grupos</SelectItem>
+                    <SelectItem value="Fútbol Pre-Benjamín (Mixto)">⚽ Fútbol Pre-Benjamín (Mixto)</SelectItem>
+                    <SelectItem value="Fútbol Benjamín (Mixto)">⚽ Fútbol Benjamín (Mixto)</SelectItem>
+                    <SelectItem value="Fútbol Alevín (Mixto)">⚽ Fútbol Alevín (Mixto)</SelectItem>
+                    <SelectItem value="Fútbol Infantil (Mixto)">⚽ Fútbol Infantil (Mixto)</SelectItem>
+                    <SelectItem value="Fútbol Cadete">⚽ Fútbol Cadete</SelectItem>
+                    <SelectItem value="Fútbol Juvenil">⚽ Fútbol Juvenil</SelectItem>
+                    <SelectItem value="Fútbol Aficionado">⚽ Fútbol Aficionado</SelectItem>
                     <SelectItem value="Fútbol Femenino">⚽ Fútbol Femenino</SelectItem>
-                    <SelectItem value="Baloncesto">🏀 Baloncesto</SelectItem>
-                    <SelectItem value="Categoría Específica">Categoría Específica</SelectItem>
+                    <SelectItem value="Baloncesto (Mixto)">🏀 Baloncesto (Mixto)</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
-
-              {/* Categoría específica */}
-              {currentAnnouncement.destinatarios_tipo === "Categoría Específica" && (
-                <div className="space-y-2 md:col-span-2">
-                  <Label>Categoría *</Label>
-                  <Select
-                    value={currentAnnouncement.categoria_destino}
-                    onValueChange={(value) => setCurrentAnnouncement({ ...currentAnnouncement, categoria_destino: value })}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecciona categoría" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="Prebenjamín">Prebenjamín</SelectItem>
-                      <SelectItem value="Benjamín">Benjamín</SelectItem>
-                      <SelectItem value="Alevín">Alevín</SelectItem>
-                      <SelectItem value="Infantil">Infantil</SelectItem>
-                      <SelectItem value="Cadete">Cadete</SelectItem>
-                      <SelectItem value="Juvenil">Juvenil</SelectItem>
-                      <SelectItem value="Senior">Senior</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              )}
 
               {/* Fecha de expiración */}
               <div className="space-y-2">
@@ -221,13 +203,54 @@ export default function AnnouncementForm({ announcement, onSubmit, onCancel, isS
                   className="data-[state=checked]:bg-blue-600"
                 />
               </div>
+
+              {/* Enviar a Chat */}
+              <div className="flex items-center justify-between p-4 rounded-lg bg-gradient-to-r from-purple-50 to-pink-50 border-2 border-purple-300">
+                <div className="flex items-center gap-3">
+                  <MessageCircle className="w-5 h-5 text-purple-700" />
+                  <div>
+                    <Label className="text-base font-medium text-purple-900 flex items-center gap-2">
+                      Enviar a chats de grupos
+                      <Zap className="w-4 h-4 text-yellow-600" />
+                    </Label>
+                    <p className="text-sm text-purple-700">
+                      Notificación inmediata en los chats correspondientes
+                    </p>
+                  </div>
+                </div>
+                <Switch
+                  checked={currentAnnouncement.enviar_chat}
+                  onCheckedChange={(checked) => setCurrentAnnouncement({ ...currentAnnouncement, enviar_chat: checked })}
+                  className="data-[state=checked]:bg-purple-600"
+                />
+              </div>
             </div>
 
+            {/* Alertas informativas */}
             {currentAnnouncement.enviar_email && (
               <Alert className="bg-blue-50 border-blue-200">
                 <Mail className="h-4 w-4 text-blue-600" />
                 <AlertDescription className="text-blue-800 text-sm">
                   <strong>Envío de email:</strong> Se enviará un email a todos los destinatarios seleccionados con el contenido del anuncio.
+                </AlertDescription>
+              </Alert>
+            )}
+
+            {currentAnnouncement.enviar_chat && (
+              <Alert className="bg-purple-50 border-purple-300">
+                <MessageCircle className="h-4 w-4 text-purple-600" />
+                <AlertDescription className="text-purple-900 text-sm">
+                  <strong>💬 Envío al chat:</strong> El anuncio se publicará automáticamente en el chat del grupo seleccionado para notificación inmediata.
+                  {currentAnnouncement.destinatarios_tipo === "Todos" && (
+                    <span className="block mt-1 font-semibold">
+                      ⚡ Se enviará a TODOS los grupos del club
+                    </span>
+                  )}
+                  {currentAnnouncement.destinatarios_tipo !== "Todos" && (
+                    <span className="block mt-1 font-semibold">
+                      📍 Chat: {currentAnnouncement.destinatarios_tipo}
+                    </span>
+                  )}
                 </AlertDescription>
               </Alert>
             )}

@@ -16,8 +16,7 @@ export default function Announcements() {
   const [editingAnnouncement, setEditingAnnouncement] = useState(null);
   const [priorityFilter, setPriorityFilter] = useState("all");
   const [isAdmin, setIsAdmin] = useState(false);
-  const [userSport, setUserSport] = useState(null);
-  const [userCategory, setUserCategory] = useState(null);
+  const [userSports, setUserSports] = useState([]);
   
   const queryClient = useQueryClient();
 
@@ -36,21 +35,9 @@ export default function Announcements() {
           );
           
           if (myPlayers.length > 0) {
-            // Determine sports
-            const hasFutbolMasculino = myPlayers.some(p => p.deporte === "Fútbol Masculino");
-            const hasFutbolFemenino = myPlayers.some(p => p.deporte === "Fútbol Femenino");
-            const hasBaloncesto = myPlayers.some(p => p.deporte === "Baloncesto");
-            
-            const sports = [];
-            if (hasFutbolMasculino) sports.push("Fútbol Masculino");
-            if (hasFutbolFemenino) sports.push("Fútbol Femenino");
-            if (hasBaloncesto) sports.push("Baloncesto");
-            
-            setUserSport(sports);
-            
-            // Get all categories
-            const categories = [...new Set(myPlayers.map(p => p.categoria))];
-            setUserCategory(categories);
+            // Get unique sports/categories (deporte field contains the full category)
+            const sports = [...new Set(myPlayers.map(p => p.deporte).filter(Boolean))];
+            setUserSports(sports);
           }
         }
       } catch (error) {
@@ -82,10 +69,16 @@ export default function Announcements() {
         await sendAnnouncementEmails(announcement, announcementData);
       }
       
+      // If chat should be sent
+      if (announcementData.enviar_chat && !announcementData.chat_enviado) {
+        await sendAnnouncementToChats(announcement, announcementData);
+      }
+      
       return announcement;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['announcements'] });
+      queryClient.invalidateQueries({ queryKey: ['chatMessages'] });
       setShowForm(false);
       setEditingAnnouncement(null);
       toast.success("Anuncio publicado correctamente");
@@ -113,24 +106,10 @@ export default function Announcements() {
       
       if (data.destinatarios_tipo === "Todos") {
         recipients = players.map(p => p.email_padre || p.email).filter(Boolean);
-      } else if (data.destinatarios_tipo === "Fútbol Masculino") {
+      } else {
+        // Specific category - filter by exact deporte match
         recipients = players
-          .filter(p => p.deporte === "Fútbol Masculino")
-          .map(p => p.email_padre || p.email)
-          .filter(Boolean);
-      } else if (data.destinatarios_tipo === "Fútbol Femenino") {
-        recipients = players
-          .filter(p => p.deporte === "Fútbol Femenino")
-          .map(p => p.email_padre || p.email)
-          .filter(Boolean);
-      } else if (data.destinatarios_tipo === "Baloncesto") {
-        recipients = players
-          .filter(p => p.deporte === "Baloncesto")
-          .map(p => p.email_padre || p.email)
-          .filter(Boolean);
-      } else if (data.destinatarios_tipo === "Categoría Específica") {
-        recipients = players
-          .filter(p => p.categoria === data.categoria_destino)
+          .filter(p => p.deporte === data.destinatarios_tipo)
           .map(p => p.email_padre || p.email)
           .filter(Boolean);
       }
@@ -227,6 +206,73 @@ Ubicación: Bustarviejo, Madrid
     }
   };
 
+  const sendAnnouncementToChats = async (announcement, data) => {
+    try {
+      // Determine which groups to send to
+      let targetGroups = [];
+      
+      if (data.destinatarios_tipo === "Todos") {
+        // Get all unique sports from players
+        const allSports = [...new Set(players.map(p => p.deporte).filter(Boolean))];
+        targetGroups = allSports;
+      } else {
+        // Specific category
+        targetGroups = [data.destinatarios_tipo];
+      }
+
+      if (targetGroups.length === 0) {
+        toast.warning("No hay grupos disponibles para enviar el mensaje");
+        return;
+      }
+
+      const priorityEmoji = {
+        "Urgente": "🚨",
+        "Importante": "⚠️",
+        "Normal": "📢"
+      };
+
+      const mensaje = `${priorityEmoji[announcement.prioridad]} ANUNCIO ${announcement.prioridad.toUpperCase()}\n\n📌 ${announcement.titulo}\n\n${announcement.contenido}\n\n${announcement.fecha_expiracion ? `⏰ Válido hasta: ${new Date(announcement.fecha_expiracion).toLocaleDateString('es-ES', { day: 'numeric', month: 'long' })}` : ''}`;
+
+      let sentCount = 0;
+
+      for (const grupo of targetGroups) {
+        try {
+          await base44.entities.ChatMessage.create({
+            remitente_email: "admin@cdbustarviejo.com",
+            remitente_nombre: "Administración CF Bustarviejo",
+            mensaje: mensaje,
+            prioridad: announcement.prioridad,
+            tipo: "admin_a_grupo",
+            deporte: grupo,
+            categoria: "",
+            grupo_id: grupo,
+            leido: false,
+            archivos_adjuntos: []
+          });
+          sentCount++;
+          await new Promise(resolve => setTimeout(resolve, 200));
+        } catch (error) {
+          console.error(`Error sending to chat ${grupo}:`, error);
+        }
+      }
+
+      // Mark as chat sent
+      await base44.entities.Announcement.update(announcement.id, {
+        ...announcement,
+        chat_enviado: true
+      });
+
+      if (sentCount > 0) {
+        toast.success(`💬 Anuncio enviado a ${sentCount} chat${sentCount !== 1 ? 's' : ''} de grupo`);
+      } else {
+        toast.error("Error al enviar a los chats");
+      }
+    } catch (error) {
+      console.error("Error sending to chats:", error);
+      toast.error("Error al enviar a los chats");
+    }
+  };
+
   const handleSubmit = async (announcementData) => {
     if (editingAnnouncement) {
       updateAnnouncementMutation.mutate({ id: editingAnnouncement.id, announcementData });
@@ -261,23 +307,8 @@ Ubicación: Bustarviejo, Madrid
     // Check if announcement is relevant to user
     if (announcement.destinatarios_tipo === "Todos") return true;
     
-    if (announcement.destinatarios_tipo === "Fútbol Masculino") {
-      return userSport?.includes("Fútbol Masculino");
-    }
-    
-    if (announcement.destinatarios_tipo === "Fútbol Femenino") {
-      return userSport?.includes("Fútbol Femenino");
-    }
-    
-    if (announcement.destinatarios_tipo === "Baloncesto") {
-      return userSport?.includes("Baloncesto");
-    }
-    
-    if (announcement.destinatarios_tipo === "Categoría Específica") {
-      return userCategory?.includes(announcement.categoria_destino);
-    }
-    
-    return false;
+    // Check if user's sport matches the announcement target
+    return userSports.includes(announcement.destinatarios_tipo);
   });
 
   // Apply priority filter
