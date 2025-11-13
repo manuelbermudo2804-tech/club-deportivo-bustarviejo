@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Check, X, HelpCircle, Clock, MapPin, Calendar, AlertCircle, Trophy } from "lucide-react";
+import { Check, X, HelpCircle, Clock, MapPin, Calendar, AlertCircle, Trophy, ExternalLink } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import { toast } from "sonner";
 import { format } from "date-fns";
@@ -43,10 +43,12 @@ export default function ParentCallups() {
         const allPlayers = await base44.entities.Player.list();
         const players = allPlayers.filter(p => 
           p.email_padre === currentUser.email || 
-          p.email_tutor_2 === currentUser.email ||
-          p.email === currentUser.email
+          p.email_tutor_2 === currentUser.email
         );
         setMyPlayers(players);
+        
+        console.log("Current user email:", currentUser.email);
+        console.log("My players found:", players.length, players);
       } catch (error) {
         console.error("Error fetching user:", error);
       }
@@ -58,7 +60,7 @@ export default function ParentCallups() {
     queryKey: ['convocatorias'],
     queryFn: () => base44.entities.Convocatoria.list('-fecha_partido'),
     initialData: [],
-    refetchInterval: 10000, // Refresh every 10 seconds
+    refetchInterval: 10000,
   });
 
   const updateCallupMutation = useMutation({
@@ -76,6 +78,7 @@ export default function ParentCallups() {
   });
 
   const handleConfirm = (callup, player) => {
+    console.log("Opening confirmation for:", callup.titulo, player.nombre);
     setSelectedCallup(callup);
     setSelectedPlayer(player);
     
@@ -115,10 +118,21 @@ export default function ParentCallups() {
 
   // Filter callups for my players
   const myPlayerIds = myPlayers.map(p => p.id);
-  const relevantCallups = allCallups.filter(callup => 
-    callup.publicada && 
-    callup.jugadores_convocados.some(j => myPlayerIds.includes(j.jugador_id))
-  );
+  console.log("My player IDs:", myPlayerIds);
+  
+  const relevantCallups = allCallups.filter(callup => {
+    if (!callup.publicada) return false;
+    
+    // Check if any of my players are in this callup
+    const hasMyPlayers = callup.jugadores_convocados.some(j => {
+      const isMyPlayer = myPlayerIds.includes(j.jugador_id);
+      return isMyPlayer;
+    });
+    
+    return hasMyPlayers;
+  });
+  
+  console.log("Relevant callups found:", relevantCallups.length, relevantCallups);
 
   // Separate upcoming and past
   const today = new Date().toISOString().split('T')[0];
@@ -137,6 +151,17 @@ export default function ParentCallups() {
     pendiente: { icon: Clock, color: "text-slate-600", bg: "bg-slate-50", border: "border-slate-300", label: "Sin confirmar" }
   };
 
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-orange-600 border-r-transparent mb-4"></div>
+          <p className="text-slate-600">Cargando convocatorias...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="p-6 lg:p-8 space-y-6">
       <div>
@@ -146,6 +171,23 @@ export default function ParentCallups() {
         </h1>
         <p className="text-slate-600 mt-1">Confirma la asistencia de tus jugadores</p>
       </div>
+
+      {/* Debug info */}
+      {myPlayers.length === 0 && (
+        <Card className="border-2 border-yellow-300 bg-yellow-50">
+          <CardContent className="pt-6">
+            <div className="flex items-start gap-3">
+              <AlertCircle className="w-6 h-6 text-yellow-600 flex-shrink-0 mt-1" />
+              <div>
+                <h3 className="font-bold text-yellow-900 mb-1">No se encontraron jugadores</h3>
+                <p className="text-sm text-yellow-800">
+                  No hay jugadores registrados con tu email. Verifica que hayas registrado jugadores desde la sección "Jugadores".
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Pending confirmations alert */}
       {upcomingCallups.some(c => getMyPlayersInCallup(c).some(j => j.confirmacion === "pendiente")) && (
@@ -184,7 +226,7 @@ export default function ParentCallups() {
                       <CardHeader className="bg-gradient-to-r from-orange-600 to-orange-700 text-white">
                         <div className="flex items-start justify-between">
                           <div className="flex-1">
-                            <div className="flex items-center gap-2 mb-2">
+                            <div className="flex items-center gap-2 mb-2 flex-wrap">
                               <Badge className="bg-white/20 text-white text-xs">
                                 {callup.tipo}
                               </Badge>
@@ -222,14 +264,29 @@ export default function ParentCallups() {
                             )}
                           </div>
 
-                          <div className="flex items-center gap-2 text-slate-700">
-                            <MapPin className="w-4 h-4 text-orange-600" />
-                            <span>{callup.ubicacion}</span>
-                            {callup.local_visitante && (
-                              <Badge variant="outline" className="text-xs">
-                                {callup.local_visitante}
-                              </Badge>
-                            )}
+                          <div className="flex items-start gap-2 text-slate-700">
+                            <MapPin className="w-4 h-4 text-orange-600 mt-0.5 flex-shrink-0" />
+                            <div className="flex-1">
+                              <span>{callup.ubicacion}</span>
+                              {callup.local_visitante && (
+                                <Badge variant="outline" className="text-xs ml-2">
+                                  {callup.local_visitante}
+                                </Badge>
+                              )}
+                              {callup.enlace_ubicacion && (
+                                <div className="mt-1">
+                                  <a 
+                                    href={callup.enlace_ubicacion}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-xs text-blue-600 hover:text-blue-700 flex items-center gap-1 hover:underline"
+                                  >
+                                    <ExternalLink className="w-3 h-3" />
+                                    Ver en Google Maps
+                                  </a>
+                                </div>
+                              )}
+                            </div>
                           </div>
                         </div>
 
@@ -304,6 +361,11 @@ export default function ParentCallups() {
         <div className="text-center py-12 bg-white rounded-xl shadow-lg">
           <div className="text-6xl mb-4">🏆</div>
           <p className="text-slate-500 text-lg">No hay convocatorias próximas</p>
+          {myPlayers.length > 0 && (
+            <p className="text-sm text-slate-400 mt-2">
+              Cuando el entrenador publique una convocatoria, aparecerá aquí
+            </p>
+          )}
         </div>
       )}
 
@@ -321,6 +383,9 @@ export default function ParentCallups() {
                   <p className="text-sm text-slate-600">
                     {format(new Date(callup.fecha_partido), "d 'de' MMMM", { locale: es })} • {callup.hora_partido}
                   </p>
+                  <div className="mt-2 text-xs text-slate-500">
+                    {getMyPlayersInCallup(callup).map(j => j.jugador_nombre).join(", ")}
+                  </div>
                 </CardContent>
               </Card>
             ))}
