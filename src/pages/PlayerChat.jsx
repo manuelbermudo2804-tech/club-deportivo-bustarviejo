@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -134,10 +133,16 @@ export default function PlayerChat() {
     );
   }
 
-  // Filtrar mensajes de mi equipo
-  const teamMessages = messages.filter(msg => 
-    (msg.grupo_id === player.deporte || msg.deporte === player.deporte)
-  );
+  // Filtrar mensajes: solo del entrenador (admin) y de jugadores del equipo
+  // NO mostrar mensajes de padres (padre_a_grupo)
+  const teamMessages = messages.filter(msg => {
+    const isMyTeam = (msg.grupo_id === player.deporte || msg.deporte === player.deporte);
+    const isFromAdmin = msg.tipo === "admin_a_grupo";
+    const isFromPlayer = msg.tipo === "jugador_a_equipo";
+    
+    // Solo mostrar mensajes del admin o de otros jugadores, NO de padres
+    return isMyTeam && (isFromAdmin || isFromPlayer);
+  });
 
   return (
     <div className="h-screen flex flex-col bg-white">
@@ -150,7 +155,7 @@ export default function PlayerChat() {
           <div className="flex-1">
             <h2 className="font-bold text-base">{player.deporte}</h2>
             <p className="text-xs text-orange-100">
-              {teamPlayers.length} compañero{teamPlayers.length !== 1 ? 's' : ''} en el equipo
+              Chat con entrenador y {teamPlayers.length - 1} compañero{teamPlayers.length - 1 !== 1 ? 's' : ''}
             </p>
           </div>
           {!isBusinessHours() && (
@@ -174,7 +179,8 @@ export default function PlayerChat() {
           <div className="flex items-center justify-center h-full">
             <div className="text-center text-slate-500">
               <AlertCircle className="w-12 h-12 mx-auto mb-2 opacity-50" />
-              <p className="text-sm">No hay mensajes en el equipo</p>
+              <p className="text-sm">No hay mensajes todavía</p>
+              <p className="text-xs mt-2 text-slate-400">Aquí verás mensajes de tu entrenador y compañeros</p>
             </div>
           </div>
         ) : (
@@ -196,17 +202,15 @@ export default function PlayerChat() {
                         ? 'bg-gradient-to-r from-green-600 to-green-700 text-white rounded-br-none'
                         : isAdmin 
                         ? 'bg-gradient-to-r from-orange-600 to-orange-700 text-white rounded-bl-none'
-                        : isJugador
-                        ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-bl-none'
-                        : 'bg-white text-slate-900 rounded-bl-none'
+                        : 'bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-bl-none'
                     }`}
                   >
                     <div className="px-3 py-2">
                       <div className="flex items-center gap-2 mb-1">
                         <span className={`text-xs font-semibold ${
-                          isMyMessage ? 'text-green-100' : isAdmin ? 'text-orange-100' : isJugador ? 'text-blue-100' : 'text-orange-700'
+                          isMyMessage ? 'text-green-100' : isAdmin ? 'text-orange-100' : 'text-blue-100'
                         }`}>
-                          {isAdmin ? '🎓 ' : isJugador ? '⚽ ' : '👨‍👩‍👧 '}{msg.remitente_nombre}
+                          {isAdmin ? '🎓 ' : '⚽ '}{msg.remitente_nombre}
                         </span>
                         {msg.prioridad !== "Normal" && (
                           <span className="text-xs">{msg.prioridad === "Urgente" ? "🔴" : "⚠️"}</span>
@@ -221,7 +225,7 @@ export default function PlayerChat() {
                       )}
                       
                       <div className="flex items-center justify-end gap-1 mt-1">
-                        <span className={`text-[10px] ${isMyMessage ? 'text-green-100' : isAdmin ? 'text-orange-100' : isJugador ? 'text-blue-100' : 'text-slate-500'}`}>
+                        <span className={`text-[10px] ${isMyMessage ? 'text-green-100' : isAdmin ? 'text-orange-100' : 'text-blue-100'}`}>
                           {format(new Date(msg.created_date), "HH:mm")}
                         </span>
                       </div>
@@ -280,7 +284,7 @@ export default function PlayerChat() {
 
         <div className="mt-2 text-center">
           <p className="text-xs text-slate-500">
-            💬 Chatea con tu equipo y entrenadores
+            💬 Chatea con tu entrenador y compañeros de equipo
           </p>
         </div>
       </div>
