@@ -668,7 +668,7 @@ export default function Layout({ children, currentPageName }) {
       icon: Users,
     },
     {
-      title: "Horarios",
+      title: "Horarios Entrenamientos",
       url: createPageUrl("TrainingSchedules"),
       icon: Clock,
     },
@@ -733,7 +733,7 @@ export default function Layout({ children, currentPageName }) {
       icon: Users,
     },
     {
-      title: "Horarios",
+      title: "Horarios Entrenamientos",
       url: createPageUrl("ParentTrainingSchedules"),
       icon: Clock,
     },
