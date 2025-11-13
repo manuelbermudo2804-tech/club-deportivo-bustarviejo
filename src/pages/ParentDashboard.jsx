@@ -1,18 +1,11 @@
-
 import React from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { CreditCard, Calendar, CheckCircle2, AlertTriangle, Clock, User, Users } from "lucide-react";
-import { Skeleton } from "@/components/ui/skeleton";
+import { Users, CreditCard, ShoppingBag, Calendar, Megaphone, Image, Clock, MessageCircle } from "lucide-react";
 
-import ContactCard from "../components/ContactCard";
-import SocialLinks from "../components/SocialLinks";
-import MatchAppButton from "../components/MatchAppButton";
+const CLUB_LOGO_URL = "https://www.cdbustarviejo.com/uploads/2/4/0/4/2404974/logo-cd-bustarviejo-cuadrado-xpeq_orig.png";
 
 export default function ParentDashboard() {
   const { data: user } = useQuery({
@@ -43,433 +36,184 @@ export default function ParentDashboard() {
     initialData: [],
   });
 
-  const pendingPayments = payments.filter(p => p.estado === "Pendiente");
-  const inReviewPayments = payments.filter(p => p.estado === "En revisión");
-  const paidPayments = payments.filter(p => p.estado === "Pagado");
-  const totalPaid = paidPayments.reduce((sum, p) => sum + (p.cantidad || 0), 0);
+  const { data: messages } = useQuery({
+    queryKey: ['chatMessages'],
+    queryFn: () => base44.entities.ChatMessage.list(),
+    initialData: [],
+  });
 
-  // Contar por deporte
-  const futbolMasculinoPlayers = players.filter(p => p.deporte === "Fútbol Masculino");
-  const futbolFemeninoPlayers = players.filter(p => p.deporte === "Fútbol Femenino");
-  const baloncestoPlayers = players.filter(p => p.deporte === "Baloncesto");
+  const pendingPayments = payments.filter(p => p.estado === "Pendiente").length;
+  const unreadMessages = messages.filter(m => !m.leido && m.tipo === "admin_a_grupo").length;
 
-  // Próximos vencimientos (pagos pendientes)
-  const upcomingPayments = payments
-    .filter(p => p.estado === "Pendiente")
-    .sort((a, b) => {
-      const monthOrder = { "Septiembre": 1, "Noviembre": 2, "Diciembre": 3 };
-      return (monthOrder[a.mes] || 0) - (monthOrder[b.mes] || 0);
-    })
-    .slice(0, 5);
-
-  const statusEmojis = {
-    "Pagado": "🟢",
-    "En revisión": "🟠",
-    "Pendiente": "🔴"
-  };
-
-  const stats = [
+  const menuItems = [
     {
       title: "Mis Jugadores",
-      value: players.length,
-      icon: User,
-      color: "orange"
+      icon: Users,
+      url: createPageUrl("ParentPlayers"),
+      gradient: "from-orange-600 to-orange-700",
+      badge: players.length,
+      badgeLabel: "registrados"
     },
     {
-      title: "Pagos Pendientes",
-      value: pendingPayments.length,
+      title: "Horarios",
       icon: Clock,
-      color: "red"
+      url: createPageUrl("ParentTrainingSchedules"),
+      gradient: "from-green-600 to-green-700",
     },
     {
-      title: "En Revisión",
-      value: inReviewPayments.length,
-      icon: AlertTriangle,
-      color: "amber"
+      title: "Calendario",
+      icon: Calendar,
+      url: createPageUrl("Calendar"),
+      gradient: "from-blue-600 to-blue-700",
     },
     {
-      title: "Total Pagado",
-      value: `${totalPaid}€`,
-      icon: CheckCircle2,
-      color: "green"
-    }
+      title: "Anuncios",
+      icon: Megaphone,
+      url: createPageUrl("Announcements"),
+      gradient: "from-purple-600 to-purple-700",
+    },
+    {
+      title: "Galería",
+      icon: Image,
+      url: createPageUrl("ParentGallery"),
+      gradient: "from-pink-600 to-pink-700",
+    },
+    {
+      title: "Chat Grupo",
+      icon: MessageCircle,
+      url: createPageUrl("ParentChat"),
+      gradient: "from-indigo-600 to-indigo-700",
+      badge: unreadMessages,
+      badgeLabel: "nuevos"
+    },
+    {
+      title: "Mis Pagos",
+      icon: CreditCard,
+      url: createPageUrl("ParentPayments"),
+      gradient: "from-orange-600 to-red-700",
+      badge: pendingPayments,
+      badgeLabel: "pendientes"
+    },
+    {
+      title: "Pedidos",
+      icon: ShoppingBag,
+      url: createPageUrl("ClothingOrders"),
+      gradient: "from-teal-600 to-teal-700",
+    },
   ];
 
-  const colorClasses = {
-    orange: "bg-orange-500 text-orange-500",
-    red: "bg-red-500 text-red-500",
-    amber: "bg-amber-500 text-amber-500",
-    green: "bg-green-500 text-green-500"
-  };
-
   return (
-    <div className="p-6 lg:p-8 space-y-8">
-      <div>
-        <h1 className="text-4xl font-bold text-slate-900 mb-2">
-          Bienvenido al Panel de Padres
-        </h1>
-        <p className="text-slate-600 text-lg">
-          Gestión de tus jugadores y pagos
-        </p>
-      </div>
-
-      {/* Mensaje de Bienvenida Temporada */}
-      <Card className="border-none shadow-xl bg-gradient-to-r from-orange-500 via-orange-600 to-orange-700 text-white overflow-hidden relative">
-        <div className="absolute top-0 right-0 w-64 h-64 bg-white rounded-full blur-3xl opacity-10"></div>
-        <div className="absolute bottom-0 left-0 w-48 h-48 bg-slate-900 rounded-full blur-3xl opacity-20"></div>
-        <CardContent className="relative z-10 py-8 px-6">
-          <div className="text-center space-y-3">
-            <h2 className="text-3xl font-bold">¡Bienvenidos al Club Deportivo Bustarviejo!</h2>
-            <p className="text-xl text-orange-50">
-              Comienza la temporada 2025/26, llena de ilusión, deporte y compañerismo.
-            </p>
-            <p className="text-lg text-orange-100">
-              Gracias por formar parte de nuestra familia deportiva. 💪⚽🏀
-            </p>
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-black">
+      {/* Header */}
+      <div className="bg-gradient-to-r from-orange-600 to-orange-700 p-6 lg:p-8 shadow-2xl">
+        <div className="flex items-center justify-center gap-4 mb-4">
+          <img src={CLUB_LOGO_URL} alt="CD Bustarviejo" className="w-16 h-16 lg:w-20 lg:h-20 rounded-2xl shadow-2xl ring-4 ring-white/50" />
+          <div className="text-white text-center">
+            <h1 className="text-3xl lg:text-4xl font-bold">CD Bustarviejo</h1>
+            <p className="text-orange-100 text-sm lg:text-base">Panel de Familia</p>
           </div>
-        </CardContent>
-      </Card>
-
-      {/* MatchApp Card */}
-      <Card className="border-none shadow-xl bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 text-white overflow-hidden relative">
-        <div className="absolute top-0 right-0 w-64 h-64 bg-orange-500 rounded-full blur-3xl opacity-20"></div>
-        <CardContent className="relative z-10 py-6 px-6">
-          <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-            <div className="flex items-center gap-4">
-              <div className="w-16 h-16 bg-orange-500 rounded-2xl flex items-center justify-center shadow-lg">
-                <Calendar className="w-8 h-8 text-white" />
-              </div>
-              <div>
-                <h3 className="text-2xl font-bold mb-1">Horarios y Resultados</h3>
-                <p className="text-slate-300 text-sm">
-                  📱 Descarga MatchApp • Ver partidos en directo
-                </p>
-              </div>
-            </div>
-            <MatchAppButton className="w-full md:w-auto py-6 px-8 text-lg" />
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Redes Sociales */}
-      <SocialLinks />
-
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {stats.map((stat, index) => (
-          <Card key={index} className="border-none shadow-lg hover:shadow-xl transition-all duration-300 bg-white/80 backdrop-blur-sm">
-            <CardHeader className="pb-3">
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-sm font-medium text-slate-600">
-                  {stat.title}
-                </CardTitle>
-                <div className={`p-2 rounded-xl ${colorClasses[stat.color].split(' ')[0]} bg-opacity-10`}>
-                  <stat.icon className={`w-5 h-5 ${colorClasses[stat.color].split(' ')[1]}`} />
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent>
-              {loadingPlayers || loadingPayments ? (
-                <Skeleton className="h-10 w-20" />
-              ) : (
-                <div className="text-3xl font-bold text-slate-900">
-                  {stat.value}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-
-      <div className="grid lg:grid-cols-2 gap-6">
-        {/* Mis Jugadores por Deporte */}
-        <div className="grid md:grid-cols-2 gap-6">
-          {/* Fútbol Masculino */}
-          <Card className="border-none shadow-lg bg-gradient-to-br from-blue-50 to-white">
-            <CardHeader className="border-b border-blue-100">
-              <CardTitle className="flex items-center gap-2 text-xl">
-                <span className="text-3xl">⚽</span>
-                Fútbol Masculino
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="pt-6">
-              {loadingPlayers ? (
-                <Skeleton className="h-20 w-full" />
-              ) : futbolMasculinoPlayers.length === 0 ? (
-                <p className="text-center text-slate-500 py-4">
-                  No hay jugadores
-                </p>
-              ) : (
-                <div className="space-y-3">
-                  {futbolMasculinoPlayers.map((player) => (
-                    <div
-                      key={player.id}
-                      className="p-3 rounded-lg bg-white border border-blue-100 hover:shadow-md transition-shadow"
-                    >
-                      <div className="flex items-center gap-3">
-                        {player.foto_url ? (
-                          <img
-                            src={player.foto_url}
-                            alt={player.nombre}
-                            className="w-12 h-12 rounded-full object-cover border-2 border-blue-200"
-                          />
-                        ) : (
-                          <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center">
-                            <User className="w-6 h-6 text-blue-700" />
-                          </div>
-                        )}
-                        <div>
-                          <h3 className="font-bold text-slate-900">{player.nombre}</h3>
-                          <Badge className="bg-blue-100 text-blue-700 text-xs">
-                            {player.categoria}
-                          </Badge>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* Fútbol Femenino */}
-          <Card className="border-none shadow-lg bg-gradient-to-br from-pink-50 to-white">
-            <CardHeader className="border-b border-pink-100">
-              <CardTitle className="flex items-center gap-2 text-xl">
-                <span className="text-3xl">⚽</span>
-                Fútbol Femenino
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="pt-6">
-              {loadingPlayers ? (
-                <Skeleton className="h-20 w-full" />
-              ) : futbolFemeninoPlayers.length === 0 ? (
-                <p className="text-center text-slate-500 py-4">
-                  No hay jugadoras
-                </p>
-              ) : (
-                <div className="space-y-3">
-                  {futbolFemeninoPlayers.map((player) => (
-                    <div
-                      key={player.id}
-                      className="p-3 rounded-lg bg-white border border-pink-100 hover:shadow-md transition-shadow"
-                    >
-                      <div className="flex items-center gap-3">
-                        {player.foto_url ? (
-                          <img
-                            src={player.foto_url}
-                            alt={player.nombre}
-                            className="w-12 h-12 rounded-full object-cover border-2 border-pink-200"
-                          />
-                        ) : (
-                          <div className="w-12 h-12 rounded-full bg-pink-100 flex items-center justify-center">
-                            <User className="w-6 h-6 text-pink-700" />
-                          </div>
-                        )}
-                        <div>
-                          <h3 className="font-bold text-slate-900">{player.nombre}</h3>
-                          <Badge className="bg-pink-100 text-pink-700 text-xs">
-                            {player.categoria}
-                          </Badge>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
         </div>
-
-        {/* Baloncesto - Takes the other half of the lg:grid-cols-2 */}
-        <Card className="border-none shadow-lg bg-gradient-to-br from-orange-50 to-white">
-          <CardHeader className="border-b border-orange-100">
-            <CardTitle className="flex items-center gap-2 text-xl">
-              <span className="text-3xl">🏀</span>
-              Baloncesto
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="pt-6">
-            {loadingPlayers ? (
-              <Skeleton className="h-20 w-full" />
-            ) : baloncestoPlayers.length === 0 ? (
-              <p className="text-center text-slate-500 py-4">
-                No hay jugadores de baloncesto
-              </p>
-            ) : (
-              <div className="grid md:grid-cols-2 gap-3">
-                {baloncestoPlayers.map((player) => (
-                  <div
-                    key={player.id}
-                    className="p-3 rounded-lg bg-white border border-orange-100 hover:shadow-md transition-shadow"
-                  >
-                    <div className="flex items-center gap-3">
-                      {player.foto_url ? (
-                        <img
-                          src={player.foto_url}
-                          alt={player.nombre}
-                          className="w-12 h-12 rounded-full object-cover border-2 border-orange-200"
-                        />
-                      ) : (
-                        <div className="w-12 h-12 rounded-full bg-orange-100 flex items-center justify-center">
-                          <User className="w-6 h-6 text-orange-700" />
-                        </div>
-                      )}
-                      <div>
-                        <h3 className="font-bold text-slate-900">{player.nombre}</h3>
-                        <Badge className="bg-orange-100 text-orange-700 text-xs">
-                          {player.categoria}
-                        </Badge>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
       </div>
 
-      <div className="grid lg:grid-cols-2 gap-6">
-        {/* Próximos Vencimientos */}
-        <Card className="border-none shadow-lg bg-white/80 backdrop-blur-sm">
-          <CardHeader className="border-b border-slate-100">
-            <CardTitle className="flex items-center gap-2 text-xl">
-              <Calendar className="w-5 h-5 text-red-600" />
-              Próximos Vencimientos
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="pt-6">
-            {loadingPayments ? (
-              <div className="space-y-3">
-                {[...Array(3)].map((_, i) => (
-                  <Skeleton key={i} className="h-16 w-full" />
-                ))}
-              </div>
-            ) : upcomingPayments.length === 0 ? (
-              <p className="text-center text-slate-500 py-8">
-                No hay pagos pendientes 🎉
-              </p>
-            ) : (
-              <div className="space-y-3">
-                {upcomingPayments.map((payment) => (
-                  <div
-                    key={payment.id}
-                    className="flex items-center justify-between p-4 rounded-xl bg-red-50 border border-red-100"
-                  >
-                    <div className="flex items-center gap-3">
-                      <span className="text-2xl">🔴</span>
-                      <div>
-                        <p className="font-medium text-slate-900">
-                          {payment.jugador_nombre}
-                        </p>
-                        <p className="text-sm text-slate-600">
-                          Vencimiento: {payment.mes} 30
-                        </p>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <p className="font-bold text-red-700 text-lg">
-                        {payment.cantidad}€
-                      </p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Historial de Pagos Recientes */}
-        <Card className="border-none shadow-lg bg-white/80 backdrop-blur-sm">
-          <CardHeader className="border-b border-slate-100">
-            <CardTitle className="flex items-center gap-2 text-xl">
-              <CreditCard className="w-5 h-5 text-orange-600" />
-              Historial de Pagos
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="pt-6">
-            {loadingPayments ? (
-              <div className="space-y-3">
-                {[...Array(5)].map((_, i) => (
-                  <Skeleton key={i} className="h-16 w-full" />
-                ))}
-              </div>
-            ) : payments.length === 0 ? (
-              <p className="text-center text-slate-500 py-8">
-                No hay pagos registrados
-              </p>
-            ) : (
-              <div className="space-y-3 max-h-96 overflow-y-auto">
-                {payments.slice(0, 10).map((payment) => (
-                  <div
-                    key={payment.id}
-                    className="flex items-center justify-between p-4 rounded-xl bg-slate-50 hover:bg-slate-100 transition-colors"
-                  >
-                    <div className="flex items-center gap-3">
-                      <span className="text-2xl">
-                        {statusEmojis[payment.estado] || "🔴"}
-                      </span>
-                      <div>
-                        <p className="font-medium text-slate-900">
-                          {payment.jugador_nombre}
-                        </p>
-                        <p className="text-sm text-slate-500">
-                          {payment.mes} {payment.temporada}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <p className="font-semibold text-slate-900">
-                        {payment.cantidad}€
-                      </p>
-                      <p className={`text-xs ${
-                        payment.estado === "Pagado"
-                          ? "text-green-600"
-                          : payment.estado === "En revisión"
-                          ? "text-orange-600"
-                          : "text-red-600"
-                      }`}>
-                        {payment.estado}
-                      </p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Contact Card */}
-      <ContactCard />
-
-      {/* Accesos Rápidos */}
-      <Card className="border-none shadow-lg bg-gradient-to-br from-orange-500 to-orange-700 text-white">
-        <CardHeader>
-          <CardTitle className="text-2xl">Accesos Rápidos</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          <Link to={createPageUrl("ParentPlayers")}>
-            <Button className="w-full bg-slate-900 text-white hover:bg-slate-800 font-medium shadow-md py-6 text-base">
-              <Users className="w-5 h-5 mr-2" />
-              Gestionar Mis Jugadores
-            </Button>
-          </Link>
-          <Link to={createPageUrl("ParentPayments")}>
-            <Button className="w-full bg-white/90 text-orange-700 hover:bg-white font-medium shadow-md py-6 text-base">
-              <CreditCard className="w-5 h-5 mr-2" />
-              Ver Mis Pagos
-            </Button>
-          </Link>
-          <div className="bg-white/20 backdrop-blur-sm rounded-xl p-4 mt-4">
-            <h3 className="font-bold text-lg mb-2">💡 Recordatorio</h3>
-            <p className="text-white/90 text-sm">
-              No olvides subir los justificantes de pago para que sean verificados por el administrador
+      {/* Banner Welcome */}
+      <div className="px-4 lg:px-8 py-6">
+        <div className="bg-gradient-to-r from-green-600 to-green-700 rounded-3xl p-6 lg:p-8 shadow-2xl relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-48 h-48 bg-white rounded-full blur-3xl opacity-10"></div>
+          <div className="relative z-10 text-white text-center">
+            <h2 className="text-2xl lg:text-3xl font-bold mb-2">
+              ¡Hola {user?.full_name?.split(' ')[0] || 'Familia'}! 👋
+            </h2>
+            <p className="text-green-100 text-sm lg:text-base">
+              Gestiona todo lo relacionado con tus jugadores en un solo lugar
             </p>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
+
+      {/* Menu Grid */}
+      <div className="px-4 lg:px-8 pb-8">
+        <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 lg:gap-6">
+          {menuItems.map((item, index) => (
+            <Link key={index} to={item.url} className="group">
+              <div className="relative bg-slate-800 rounded-3xl overflow-hidden shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105 active:scale-95 border-2 border-slate-700 hover:border-orange-500">
+                {/* Background Image Effect */}
+                <div className="absolute inset-0 bg-gradient-to-br from-slate-700/50 to-black/80 opacity-60"></div>
+                
+                {/* Gradient Corner */}
+                <div className={`absolute bottom-0 right-0 w-32 h-32 bg-gradient-to-tl ${item.gradient} opacity-30 blur-2xl`}></div>
+                <div className={`absolute top-0 left-0 w-24 h-24 bg-gradient-to-br ${item.gradient} opacity-20 blur-xl`}></div>
+                
+                {/* Content */}
+                <div className="relative z-10 p-6 lg:p-8 flex flex-col items-center justify-center min-h-[180px] lg:min-h-[200px]">
+                  {/* Icon */}
+                  <div className={`w-16 h-16 lg:w-20 lg:h-20 rounded-2xl bg-gradient-to-br ${item.gradient} flex items-center justify-center mb-4 shadow-2xl group-hover:scale-110 transition-transform duration-300`}>
+                    <item.icon className="w-8 h-8 lg:w-10 lg:h-10 text-white" />
+                  </div>
+                  
+                  {/* Title */}
+                  <h3 className="text-white font-bold text-center text-base lg:text-lg mb-2">
+                    {item.title}
+                  </h3>
+                  
+                  {/* Badge */}
+                  {item.badge !== undefined && item.badge > 0 && (
+                    <div className="bg-white/20 backdrop-blur-sm px-3 py-1 rounded-full">
+                      <p className="text-white text-xs font-semibold">
+                        {item.badge} {item.badgeLabel}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </Link>
+          ))}
+        </div>
+      </div>
+
+      {/* Stats Footer */}
+      <div className="px-4 lg:px-8 pb-8">
+        <div className="bg-slate-800 rounded-3xl p-6 shadow-2xl border-2 border-slate-700">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="text-center">
+              <div className="text-3xl lg:text-4xl font-bold text-orange-500 mb-1">
+                {players.length}
+              </div>
+              <div className="text-slate-400 text-xs lg:text-sm">Mis Jugadores</div>
+            </div>
+            <div className="text-center">
+              <div className="text-3xl lg:text-4xl font-bold text-red-500 mb-1">
+                {pendingPayments}
+              </div>
+              <div className="text-slate-400 text-xs lg:text-sm">Pagos Pendientes</div>
+            </div>
+            <div className="text-center">
+              <div className="text-3xl lg:text-4xl font-bold text-green-500 mb-1">
+                {payments.filter(p => p.estado === "Pagado").length}
+              </div>
+              <div className="text-slate-400 text-xs lg:text-sm">Pagos Realizados</div>
+            </div>
+            <div className="text-center">
+              <div className="text-3xl lg:text-4xl font-bold text-blue-500 mb-1">
+                {unreadMessages}
+              </div>
+              <div className="text-slate-400 text-xs lg:text-sm">Mensajes Nuevos</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Contact Section */}
+      <div className="px-4 lg:px-8 pb-8">
+        <div className="bg-gradient-to-r from-orange-600 to-orange-700 rounded-3xl p-6 shadow-2xl text-white text-center">
+          <h3 className="text-xl font-bold mb-2">¿Necesitas ayuda?</h3>
+          <p className="text-orange-100 mb-4">Contacta con el club</p>
+          <div className="space-y-2">
+            <a href="mailto:CDBUSTARVIEJO@GMAIL.COM" className="block text-white font-semibold hover:text-orange-100 transition-colors">
+              📧 CDBUSTARVIEJO@GMAIL.COM
+            </a>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
