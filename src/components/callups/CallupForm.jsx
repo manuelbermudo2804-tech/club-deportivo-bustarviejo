@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Switch } from "@/components/ui/switch";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Loader2, AlertCircle, Users, Send, Sparkles } from "lucide-react";
+import { Loader2, AlertCircle, Users, Send, Sparkles, MapPin } from "lucide-react";
 
 export default function CallupForm({ callup, players, coachName, coachEmail, category, onSubmit, onCancel, isSubmitting }) {
   const [currentCallup, setCurrentCallup] = useState(callup || {
@@ -21,6 +21,7 @@ export default function CallupForm({ callup, players, coachName, coachEmail, cat
     hora_partido: "",
     hora_concentracion: "",
     ubicacion: "",
+    enlace_ubicacion: "",
     local_visitante: "Local",
     descripcion: "",
     jugadores_convocados: [],
@@ -202,6 +203,23 @@ export default function CallupForm({ callup, players, coachName, coachEmail, cat
                   onChange={(e) => setCurrentCallup({ ...currentCallup, ubicacion: e.target.value })}
                   required
                 />
+              </div>
+
+              {/* Enlace Google Maps */}
+              <div className="space-y-2 md:col-span-2">
+                <Label className="flex items-center gap-2">
+                  <MapPin className="w-4 h-4 text-orange-600" />
+                  Enlace de Google Maps (opcional)
+                </Label>
+                <Input
+                  type="url"
+                  placeholder="https://maps.google.com/..."
+                  value={currentCallup.enlace_ubicacion}
+                  onChange={(e) => setCurrentCallup({ ...currentCallup, enlace_ubicacion: e.target.value })}
+                />
+                <p className="text-xs text-slate-500">
+                  💡 Copia el enlace desde Google Maps para que los padres puedan ver la ubicación exacta
+                </p>
               </div>
             </div>
 

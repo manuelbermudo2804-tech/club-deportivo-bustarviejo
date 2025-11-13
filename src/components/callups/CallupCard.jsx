@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Edit, Trash2, MapPin, Clock, Users, Check, X, HelpCircle, Calendar } from "lucide-react";
+import { Edit, Trash2, MapPin, Clock, Users, Check, X, HelpCircle, Calendar, ExternalLink } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 
@@ -17,14 +17,23 @@ export default function CallupCard({ callup, onEdit, onDelete, isCoach }) {
     ? Math.round((confirmed / callup.jugadores_convocados.length) * 100) 
     : 0;
 
+  // Check if the match date has passed
+  const today = new Date().toISOString().split('T')[0];
+  const isPast = callup.fecha_partido < today;
+  const canDelete = isPast || callup.cerrada;
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -20 }}
     >
-      <Card className="border-2 border-orange-200 shadow-lg hover:shadow-xl transition-all duration-300">
-        <CardHeader className="bg-gradient-to-r from-orange-600 to-orange-700 text-white pb-4">
+      <Card className={`border-2 shadow-lg hover:shadow-xl transition-all duration-300 ${
+        canDelete ? 'border-slate-300 opacity-75' : 'border-orange-200'
+      }`}>
+        <CardHeader className={`text-white pb-4 ${
+          canDelete ? 'bg-gradient-to-r from-slate-600 to-slate-700' : 'bg-gradient-to-r from-orange-600 to-orange-700'
+        }`}>
           <div className="flex items-start justify-between">
             <div className="flex-1">
               <div className="flex items-center gap-2 mb-2">
@@ -36,12 +45,17 @@ export default function CallupCard({ callup, onEdit, onDelete, isCoach }) {
                 ) : (
                   <Badge className="bg-slate-500 text-white text-xs">Borrador</Badge>
                 )}
+                {canDelete && (
+                  <Badge className="bg-red-500 text-white text-xs">Pasada</Badge>
+                )}
               </div>
               <CardTitle className="text-xl leading-tight">
                 {callup.titulo}
               </CardTitle>
               {callup.rival && (
-                <p className="text-orange-100 text-sm mt-1">vs {callup.rival}</p>
+                <p className={`text-sm mt-1 ${canDelete ? 'text-slate-200' : 'text-orange-100'}`}>
+                  vs {callup.rival}
+                </p>
               )}
             </div>
           </div>
@@ -67,14 +81,29 @@ export default function CallupCard({ callup, onEdit, onDelete, isCoach }) {
               )}
             </div>
 
-            <div className="flex items-center gap-2 text-slate-700">
-              <MapPin className="w-4 h-4 text-orange-600" />
-              <span>{callup.ubicacion}</span>
-              {callup.local_visitante && (
-                <Badge variant="outline" className="text-xs">
-                  {callup.local_visitante}
-                </Badge>
-              )}
+            <div className="flex items-start gap-2 text-slate-700">
+              <MapPin className="w-4 h-4 text-orange-600 mt-0.5 flex-shrink-0" />
+              <div className="flex-1">
+                <span>{callup.ubicacion}</span>
+                {callup.local_visitante && (
+                  <Badge variant="outline" className="text-xs ml-2">
+                    {callup.local_visitante}
+                  </Badge>
+                )}
+                {callup.enlace_ubicacion && (
+                  <div className="mt-1">
+                    <a 
+                      href={callup.enlace_ubicacion}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-xs text-blue-600 hover:text-blue-700 flex items-center gap-1 hover:underline"
+                    >
+                      <ExternalLink className="w-3 h-3" />
+                      Ver en Google Maps
+                    </a>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
 
@@ -139,23 +168,28 @@ export default function CallupCard({ callup, onEdit, onDelete, isCoach }) {
           {/* Actions */}
           {isCoach && (
             <div className="flex gap-2 pt-2">
-              <Button
-                onClick={() => onEdit(callup)}
-                variant="outline"
-                size="sm"
-                className="flex-1"
-              >
-                <Edit className="w-4 h-4 mr-2" />
-                Editar
-              </Button>
-              <Button
-                onClick={() => onDelete(callup)}
-                variant="outline"
-                size="sm"
-                className="text-red-600 hover:text-red-700 hover:bg-red-50"
-              >
-                <Trash2 className="w-4 h-4" />
-              </Button>
+              {!canDelete && (
+                <Button
+                  onClick={() => onEdit(callup)}
+                  variant="outline"
+                  size="sm"
+                  className="flex-1"
+                >
+                  <Edit className="w-4 h-4 mr-2" />
+                  Editar
+                </Button>
+              )}
+              {canDelete && (
+                <Button
+                  onClick={() => onDelete(callup)}
+                  variant="destructive"
+                  size="sm"
+                  className="flex-1 bg-red-600 hover:bg-red-700"
+                >
+                  <Trash2 className="w-4 h-4 mr-2" />
+                  Eliminar Convocatoria
+                </Button>
+              )}
             </div>
           )}
         </CardContent>

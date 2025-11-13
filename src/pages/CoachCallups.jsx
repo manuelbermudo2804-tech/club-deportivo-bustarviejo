@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -152,6 +151,7 @@ Categoría: ${callup.categoria}
 ⏰ Hora del partido: ${callup.hora_partido}
 ${callup.hora_concentracion ? `🕐 Hora de concentración: ${callup.hora_concentracion}` : ''}
 📍 Ubicación: ${callup.ubicacion}
+${callup.enlace_ubicacion ? `🗺️ Google Maps: ${callup.enlace_ubicacion}` : ''}
 ${callup.local_visitante ? `🏟️ ${callup.local_visitante}` : ''}
 
 ${callup.descripcion ? `\nInstrucciones:\n${callup.descripcion}` : ''}
@@ -193,7 +193,7 @@ Email alternativo: CDBUSTARVIEJO@GMAIL.COM
       await Promise.all(emailPromises);
       
       // Send to chat
-      const mensaje = `🏆 NUEVA CONVOCATORIA\n\n📌 ${callup.titulo}\n${callup.rival ? `🆚 ${callup.rival}\n` : ''}\n📅 ${format(new Date(callup.fecha_partido), "EEEE d 'de' MMMM", { locale: es })}\n⏰ ${callup.hora_partido}\n📍 ${callup.ubicacion}\n\n⚠️ CONFIRMA TU ASISTENCIA en la app\n\n👨‍🏫 ${callup.entrenador_nombre}`;
+      const mensaje = `🏆 NUEVA CONVOCATORIA\n\n📌 ${callup.titulo}\n${callup.rival ? `🆚 ${callup.rival}\n` : ''}\n📅 ${format(new Date(callup.fecha_partido), "EEEE d 'de' MMMM", { locale: es })}\n⏰ ${callup.hora_partido}\n📍 ${callup.ubicacion}${callup.enlace_ubicacion ? `\n🗺️ ${callup.enlace_ubicacion}` : ''}\n\n⚠️ CONFIRMA TU ASISTENCIA en la app\n\n👨‍🏫 ${callup.entrenador_nombre}`;
       
       await base44.entities.ChatMessage.create({
         remitente_email: user.email,
@@ -235,7 +235,7 @@ Email alternativo: CDBUSTARVIEJO@GMAIL.COM
   };
 
   const handleDelete = (callup) => {
-    if (window.confirm(`¿Eliminar la convocatoria "${callup.titulo}"?`)) {
+    if (window.confirm(`¿Eliminar la convocatoria "${callup.titulo}"?\n\nEsta acción no se puede deshacer.`)) {
       deleteCallupMutation.mutate(callup.id);
     }
   };
@@ -416,9 +416,14 @@ Email alternativo: CDBUSTARVIEJO@GMAIL.COM
       {/* Past Callups */}
       {pastCallups.length > 0 && (
         <div className="space-y-4 pt-8 border-t">
-          <h2 className="text-2xl font-bold text-slate-500">Convocatorias Pasadas</h2>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 opacity-60">
-            {pastCallups.slice(0, 4).map((callup) => (
+          <div className="flex items-center justify-between">
+            <h2 className="text-2xl font-bold text-slate-500">Convocatorias Pasadas</h2>
+            <Badge className="bg-slate-500 text-white">
+              Puedes eliminar las convocatorias antiguas
+            </Badge>
+          </div>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {pastCallups.slice(0, 6).map((callup) => (
               <CallupCard
                 key={callup.id}
                 callup={callup}
