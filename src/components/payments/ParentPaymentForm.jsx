@@ -43,22 +43,6 @@ export default function ParentPaymentForm({ players, onSubmit, onCancel, isSubmi
   const [uploadingFile, setUploadingFile] = useState(false);
   const [selectedPlayer, setSelectedPlayer] = useState(null);
 
-  // Actualizar la cantidad automáticamente cuando cambie el jugador, mes o tipo de pago
-  useEffect(() => {
-    if (selectedPlayer) {
-      const cuotas = getCuotasPorCategoria(selectedPlayer.deporte);
-      
-      if (currentPayment.tipo_pago === "Único") {
-        // Para pago único, usar el total de la temporada
-        setCurrentPayment(prev => ({ ...prev, cantidad: cuotas.total }));
-      } else {
-        // Para tres meses, calcular según el mes específico seleccionado
-        const importe = getImportePorCategoriaYMes(selectedPlayer.deporte, currentPayment.mes);
-        setCurrentPayment(prev => ({ ...prev, cantidad: importe }));
-      }
-    }
-  }, [selectedPlayer, currentPayment.mes, currentPayment.tipo_pago]);
-
   useEffect(() => {
     if (currentPayment.jugador_id) {
       const player = players.find(p => p.id === currentPayment.jugador_id);
@@ -66,16 +50,36 @@ export default function ParentPaymentForm({ players, onSubmit, onCancel, isSubmi
     }
   }, [currentPayment.jugador_id, players]);
 
+  // Calcular cantidad cuando cambie jugador, tipo de pago o mes
+  useEffect(() => {
+    if (!selectedPlayer) return;
+    
+    const cuotas = getCuotasPorCategoria(selectedPlayer.deporte);
+    
+    let nuevaCantidad = 0;
+    if (currentPayment.tipo_pago === "Único") {
+      nuevaCantidad = cuotas.total;
+    } else {
+      // Tres meses - obtener importe según el mes
+      nuevaCantidad = getImportePorCategoriaYMes(selectedPlayer.deporte, currentPayment.mes);
+    }
+    
+    setCurrentPayment(prev => ({ ...prev, cantidad: nuevaCantidad }));
+  }, [selectedPlayer, currentPayment.tipo_pago, currentPayment.mes]);
+
   const handlePlayerChange = (playerId) => {
     const player = players.find(p => p.id === playerId);
     if (player) {
-      setSelectedPlayer(player);
       const cuotas = getCuotasPorCategoria(player.deporte);
+      const cantidad = currentPayment.tipo_pago === "Único" 
+        ? cuotas.total 
+        : getImportePorCategoriaYMes(player.deporte, currentPayment.mes);
+      
       setCurrentPayment({
         ...currentPayment,
         jugador_id: player.id,
         jugador_nombre: player.nombre,
-        cantidad: currentPayment.tipo_pago === "Único" ? cuotas.total : getImportePorCategoriaYMes(player.deporte, currentPayment.mes)
+        cantidad: cantidad
       });
     }
   };
@@ -83,15 +87,35 @@ export default function ParentPaymentForm({ players, onSubmit, onCancel, isSubmi
   const handleTipoPagoChange = (value) => {
     if (selectedPlayer) {
       const cuotas = getCuotasPorCategoria(selectedPlayer.deporte);
+      const cantidad = value === "Único" 
+        ? cuotas.total 
+        : getImportePorCategoriaYMes(selectedPlayer.deporte, currentPayment.mes);
+      
       setCurrentPayment({
         ...currentPayment,
         tipo_pago: value,
-        cantidad: value === "Único" ? cuotas.total : getImportePorCategoriaYMes(selectedPlayer.deporte, currentPayment.mes)
+        cantidad: cantidad
       });
     } else {
       setCurrentPayment({
         ...currentPayment,
         tipo_pago: value
+      });
+    }
+  };
+
+  const handleMesChange = (value) => {
+    if (selectedPlayer && currentPayment.tipo_pago !== "Único") {
+      const cantidad = getImportePorCategoriaYMes(selectedPlayer.deporte, value);
+      setCurrentPayment({
+        ...currentPayment,
+        mes: value,
+        cantidad: cantidad
+      });
+    } else {
+      setCurrentPayment({
+        ...currentPayment,
+        mes: value
       });
     }
   };
@@ -210,7 +234,7 @@ export default function ParentPaymentForm({ players, onSubmit, onCancel, isSubmi
                 </Label>
                 <Select
                   value={currentPayment.mes}
-                  onValueChange={(value) => setCurrentPayment({...currentPayment, mes: value})}
+                  onValueChange={handleMesChange}
                   required
                   disabled={currentPayment.tipo_pago === "Único"}
                 >
