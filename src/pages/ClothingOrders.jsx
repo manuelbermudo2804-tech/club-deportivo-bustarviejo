@@ -31,16 +31,17 @@ export default function ClothingOrders() {
     queryFn: () => base44.auth.me(),
   });
 
-  const { data: players } = useQuery({
-    queryKey: ['myPlayers', user?.email],
-    queryFn: async () => {
-      const allPlayers = await base44.entities.Player.list();
-      return allPlayers.filter(p => 
-        (p.email_padre === user?.email || p.email_tutor_2 === user?.email) && p.activo
-      );
-    },
-    enabled: !!user?.email,
+  const { data: allPlayers, isLoading: loadingAllPlayers } = useQuery({
+    queryKey: ['allPlayersForClothing'],
+    queryFn: () => base44.entities.Player.list(),
     initialData: [],
+  });
+
+  // Filtrar jugadores del usuario
+  const players = allPlayers.filter(p => {
+    const isMyPlayer = p.email_padre === user?.email || p.email_tutor_2 === user?.email;
+    const isActive = p.activo === true || p.activo === undefined; // Si activo no está definido, asumir activo
+    return isMyPlayer && isActive;
   });
 
   const { data: orders, isLoading } = useQuery({
@@ -57,6 +58,7 @@ export default function ClothingOrders() {
     mutationFn: (orderData) => base44.entities.ClothingOrder.create(orderData),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['myClothingOrders'] });
+      queryClient.invalidateQueries({ queryKey: ['allPlayersForClothing'] });
       setShowForm(false);
       toast.success("Pedido registrado correctamente");
     },
@@ -97,12 +99,38 @@ export default function ClothingOrders() {
         <Button
           onClick={() => setShowForm(!showForm)}
           className="bg-orange-600 hover:bg-orange-700 shadow-lg"
-          disabled={players.length === 0 || !orderPeriodActive}
+          disabled={players.length === 0}
         >
           <Plus className="w-5 h-5 mr-2" />
           Nuevo Pedido
         </Button>
       </div>
+
+      {/* DEBUG INFO - TEMPORAL */}
+      {user && (
+        <Card className="border-2 border-blue-500 bg-blue-50">
+          <CardHeader>
+            <CardTitle className="text-sm text-blue-900">🔧 Info de Debug (temporal)</CardTitle>
+          </CardHeader>
+          <CardContent className="text-xs space-y-2">
+            <p><strong>Email usuario:</strong> {user.email}</p>
+            <p><strong>Total jugadores en BD:</strong> {allPlayers.length}</p>
+            <p><strong>Jugadores filtrados para ti:</strong> {players.length}</p>
+            {players.length > 0 && (
+              <div>
+                <strong>Tus jugadores:</strong>
+                <ul className="list-disc list-inside ml-4">
+                  {players.map(p => (
+                    <li key={p.id}>{p.nombre} - {p.deporte} - Activo: {p.activo ? 'Sí' : 'No'}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+            <p><strong>Periodo activo:</strong> {orderPeriodActive ? '✅ SÍ' : '❌ NO'}</p>
+            <p><strong>Botón habilitado:</strong> {players.length > 0 ? '✅ SÍ' : '❌ NO'}</p>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Alerta si no es periodo de pedidos */}
       {!orderPeriodActive && (
@@ -124,12 +152,15 @@ export default function ClothingOrders() {
             <p className="text-orange-800">
               ⚠️ <strong>No tienes jugadores activos registrados.</strong> Debes registrar al menos un jugador antes de hacer un pedido de equipación.
             </p>
+            <p className="text-sm text-orange-700 mt-2">
+              Verifica en "Mis Jugadores" que tus jugadores estén marcados como activos.
+            </p>
           </CardContent>
         </Card>
       )}
 
       <AnimatePresence>
-        {showForm && orderPeriodActive && (
+        {showForm && (
           <ClothingOrderForm
             players={players}
             onSubmit={handleSubmit}
