@@ -24,6 +24,12 @@ export default function Players() {
     initialData: [],
   });
 
+  const { data: schedules } = useQuery({
+    queryKey: ['trainingSchedules'],
+    queryFn: () => base44.entities.TrainingSchedule.list(),
+    initialData: [],
+  });
+
   const createPlayerMutation = useMutation({
     mutationFn: (playerData) => base44.entities.Player.create(playerData),
     onSuccess: () => {
@@ -155,7 +161,12 @@ export default function Players() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           <AnimatePresence>
             {filteredPlayers.map((player) => (
-              <PlayerCard key={player.id} player={player} onEdit={handleEdit} />
+              <PlayerCard 
+                key={player.id} 
+                player={player} 
+                onEdit={handleEdit}
+                schedules={schedules}
+              />
             ))}
           </AnimatePresence>
         </div>

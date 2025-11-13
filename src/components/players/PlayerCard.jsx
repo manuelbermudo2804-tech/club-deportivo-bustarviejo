@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Pencil, CreditCard, Mail, Phone, User, Eye } from "lucide-react";
+import { Pencil, CreditCard, Mail, Phone, User, Eye, Clock } from "lucide-react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 
@@ -36,9 +36,22 @@ const sportIcons = {
   "Baloncesto": "🏀"
 };
 
-export default function PlayerCard({ player, onEdit, isParent = false, readOnly = false }) {
+const DIAS_ORDEN = {
+  "Lunes": 1,
+  "Martes": 2,
+  "Miércoles": 3,
+  "Jueves": 4,
+  "Viernes": 5
+};
+
+export default function PlayerCard({ player, onEdit, isParent = false, readOnly = false, schedules = [] }) {
   // Determinar la página de pagos según si es padre o admin
   const paymentsPage = isParent ? "ParentPayments" : "Payments";
+  
+  // Filtrar horarios del jugador según su categoría/deporte
+  const playerSchedules = schedules
+    .filter(s => s.categoria === player.deporte && s.activo)
+    .sort((a, b) => DIAS_ORDEN[a.dia_semana] - DIAS_ORDEN[b.dia_semana]);
   
   return (
     <motion.div
@@ -97,6 +110,24 @@ export default function PlayerCard({ player, onEdit, isParent = false, readOnly 
               )}
             </div>
           </div>
+
+          {/* Horarios de Entrenamientos */}
+          {playerSchedules.length > 0 && (
+            <div className="bg-gradient-to-r from-green-50 to-green-100 border-2 border-green-300 rounded-lg p-3 space-y-2">
+              <div className="flex items-center gap-2 mb-2">
+                <Clock className="w-4 h-4 text-green-700" />
+                <p className="text-xs font-bold text-green-900">Horarios de Entrenamiento:</p>
+              </div>
+              <div className="space-y-1">
+                {playerSchedules.map((schedule, idx) => (
+                  <div key={idx} className="flex items-center justify-between text-xs bg-white rounded px-2 py-1 border border-green-200">
+                    <span className="font-semibold text-green-800">{schedule.dia_semana}</span>
+                    <span className="text-slate-700">{schedule.hora_inicio} - {schedule.hora_fin}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           {(player.email || player.telefono) && (
             <div className="space-y-1 text-sm text-slate-600">

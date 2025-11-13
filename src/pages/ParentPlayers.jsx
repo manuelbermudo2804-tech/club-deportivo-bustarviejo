@@ -41,6 +41,12 @@ export default function ParentPlayers() {
     initialData: [],
   });
 
+  const { data: schedules } = useQuery({
+    queryKey: ['trainingSchedules'],
+    queryFn: () => base44.entities.TrainingSchedule.list(),
+    initialData: [],
+  });
+
   const createPlayerMutation = useMutation({
     mutationFn: (playerData) => {
       const dataWithParentEmail = {
@@ -204,6 +210,7 @@ export default function ParentPlayers() {
                       player={player} 
                       onEdit={handleEdit}
                       isParent={true}
+                      schedules={schedules}
                     />
                   ))}
                 </AnimatePresence>
@@ -225,6 +232,7 @@ export default function ParentPlayers() {
                       player={player} 
                       onEdit={handleEdit}
                       isParent={true}
+                      schedules={schedules}
                     />
                   ))}
                 </AnimatePresence>
@@ -246,6 +254,7 @@ export default function ParentPlayers() {
                       player={player} 
                       onEdit={handleEdit}
                       isParent={true}
+                      schedules={schedules}
                     />
                   ))}
                 </AnimatePresence>
