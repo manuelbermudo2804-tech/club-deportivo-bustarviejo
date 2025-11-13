@@ -7,7 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Send, Search, Clock, AlertTriangle, AlertCircle, Bell } from "lucide-react";
+import { Send, Search, Clock, AlertTriangle, AlertCircle, Bell, MessageCircle } from "lucide-react";
 import { toast } from "sonner";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { format } from "date-fns";
@@ -57,19 +57,113 @@ export default function AdminChat() {
         
         const parentEmails = [...new Set(groupPlayers.map(p => p.email_padre).filter(Boolean))];
         
+        const priorityEmoji = messageData.prioridad === "Urgente" ? "🔴" : "⚠️";
+        const priorityColor = messageData.prioridad === "Urgente" ? "#dc2626" : "#ea580c";
+        
         const emailPromises = parentEmails.map(email => 
           base44.integrations.Core.SendEmail({
             to: email,
-            subject: `[${messageData.prioridad === "Urgente" ? "🔴 URGENTE" : "⚠️ IMPORTANTE"}] Mensaje del Club - ${messageData.deporte}`,
+            subject: `${priorityEmoji} [${messageData.prioridad.toUpperCase()}] Mensaje del CD Bustarviejo - ${messageData.deporte}`,
             body: `
-              <h2>Mensaje ${messageData.prioridad} del Club</h2>
-              <p><strong>Grupo:</strong> ${messageData.deporte}</p>
-              <p><strong>De:</strong> ${messageData.remitente_nombre}</p>
-              <p><strong>Mensaje:</strong></p>
-              <p>${messageData.mensaje}</p>
-              ${messageData.archivos_adjuntos && messageData.archivos_adjuntos.length > 0 ? `<p><strong>Archivos adjuntos:</strong> ${messageData.archivos_adjuntos.length}</p>` : ''}
-              <br>
-              <p>Accede a la aplicación para ver el mensaje completo y responder.</p>
+              <!DOCTYPE html>
+              <html>
+              <head>
+                <meta charset="UTF-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+              </head>
+              <body style="margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f3f4f6;">
+                <div style="max-width: 600px; margin: 0 auto; background-color: white; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+                  
+                  <!-- Header -->
+                  <div style="background: linear-gradient(135deg, #ea580c 0%, #f97316 100%); padding: 30px 20px; text-align: center;">
+                    <h1 style="margin: 0; color: white; font-size: 24px; font-weight: bold;">
+                      ${priorityEmoji} Mensaje ${messageData.prioridad}
+                    </h1>
+                    <p style="margin: 10px 0 0 0; color: rgba(255,255,255,0.9); font-size: 14px;">
+                      CD Bustarviejo
+                    </p>
+                  </div>
+
+                  <!-- Priority Banner -->
+                  <div style="background-color: ${priorityColor}; color: white; padding: 15px 20px; text-align: center;">
+                    <strong style="font-size: 16px;">
+                      ${messageData.prioridad === "Urgente" ? "⚠️ ATENCIÓN INMEDIATA REQUERIDA" : "📢 MENSAJE IMPORTANTE"}
+                    </strong>
+                  </div>
+
+                  <!-- Content -->
+                  <div style="padding: 30px 20px;">
+                    <!-- Group Info -->
+                    <div style="background-color: #f9fafb; border-left: 4px solid #ea580c; padding: 15px; margin-bottom: 20px; border-radius: 4px;">
+                      <p style="margin: 0; color: #6b7280; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;">
+                        GRUPO
+                      </p>
+                      <p style="margin: 5px 0 0 0; color: #111827; font-size: 16px; font-weight: 600;">
+                        ⚽ ${messageData.deporte}
+                      </p>
+                    </div>
+
+                    <!-- Message -->
+                    <div style="margin-bottom: 25px;">
+                      <p style="margin: 0 0 10px 0; color: #6b7280; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;">
+                        MENSAJE
+                      </p>
+                      <div style="background-color: #f9fafb; padding: 20px; border-radius: 8px; border: 1px solid #e5e7eb;">
+                        <p style="margin: 0; color: #111827; font-size: 15px; line-height: 1.6; white-space: pre-wrap;">
+${messageData.mensaje}
+                        </p>
+                      </div>
+                    </div>
+
+                    ${messageData.archivos_adjuntos && messageData.archivos_adjuntos.length > 0 ? `
+                    <!-- Attachments -->
+                    <div style="margin-bottom: 25px;">
+                      <p style="margin: 0 0 10px 0; color: #6b7280; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;">
+                        📎 ARCHIVOS ADJUNTOS
+                      </p>
+                      <div style="background-color: #eff6ff; padding: 15px; border-radius: 8px; border: 1px solid #bfdbfe;">
+                        <p style="margin: 0; color: #1e40af; font-size: 14px;">
+                          ${messageData.archivos_adjuntos.length} archivo${messageData.archivos_adjuntos.length !== 1 ? 's' : ''} adjunto${messageData.archivos_adjuntos.length !== 1 ? 's' : ''}
+                        </p>
+                        <p style="margin: 5px 0 0 0; color: #60a5fa; font-size: 12px;">
+                          Accede a la aplicación para ver los archivos
+                        </p>
+                      </div>
+                    </div>
+                    ` : ''}
+
+                    <!-- CTA Button -->
+                    <div style="text-align: center; margin: 30px 0;">
+                      <a href="https://tu-app.base44.com" 
+                         style="display: inline-block; background: linear-gradient(135deg, #ea580c 0%, #f97316 100%); color: white; text-decoration: none; padding: 15px 40px; border-radius: 8px; font-weight: 600; font-size: 16px; box-shadow: 0 4px 6px rgba(234, 88, 12, 0.3);">
+                        📱 Ver en la Aplicación
+                      </a>
+                    </div>
+
+                    <!-- Info Box -->
+                    <div style="background-color: #fef3c7; border-left: 4px solid #f59e0b; padding: 15px; border-radius: 4px; margin-top: 20px;">
+                      <p style="margin: 0; color: #92400e; font-size: 13px; line-height: 1.5;">
+                        💡 <strong>Tip:</strong> Puedes responder directamente desde la aplicación o conectar WhatsApp para recibir notificaciones instantáneas.
+                      </p>
+                    </div>
+                  </div>
+
+                  <!-- Footer -->
+                  <div style="background-color: #111827; color: white; padding: 20px; text-align: center;">
+                    <p style="margin: 0 0 10px 0; font-size: 14px; font-weight: 600;">
+                      CD Bustarviejo
+                    </p>
+                    <p style="margin: 0; color: #9ca3af; font-size: 12px;">
+                      📧 CDBUSTARVIEJO@GMAIL.COM
+                    </p>
+                    <p style="margin: 10px 0 0 0; color: #6b7280; font-size: 11px;">
+                      © ${new Date().getFullYear()} CD Bustarviejo. Todos los derechos reservados.
+                    </p>
+                  </div>
+
+                </div>
+              </body>
+              </html>
             `
           }).catch(err => console.error("Error sending email:", err))
         );
@@ -110,13 +204,8 @@ export default function AdminChat() {
   const normalizeDeporte = (deporte) => {
     if (!deporte) return null;
     
-    // Eliminar espacios extra
     let normalized = deporte.trim();
-    
-    // Eliminar "_undefined" si existe
     normalized = normalized.replace(/_undefined$/, '');
-    
-    // Eliminar guion bajo final si quedó
     normalized = normalized.replace(/_$/, '');
     
     return normalized;
@@ -125,7 +214,6 @@ export default function AdminChat() {
   // Create groups from players - usando deporte como identificador único
   const groups = {};
   
-  // Primero crear grupos desde jugadores activos
   players.forEach(player => {
     const deporteNormalizado = normalizeDeporte(player.deporte);
     if (!deporteNormalizado) return;
@@ -144,15 +232,12 @@ export default function AdminChat() {
     groups[deporteNormalizado].players.push(player);
   });
 
-  // Luego agregar mensajes a los grupos existentes o crear grupos si tienen mensajes pero no jugadores
   messages.forEach(msg => {
-    // Intentar obtener deporte desde grupo_id o deporte
     let deporteRaw = msg.grupo_id || msg.deporte;
     const deporteNormalizado = normalizeDeporte(deporteRaw);
     
     if (!deporteNormalizado) return;
     
-    // Solo crear grupo si no existe
     if (!groups[deporteNormalizado]) {
       groups[deporteNormalizado] = {
         id: deporteNormalizado,
@@ -165,7 +250,6 @@ export default function AdminChat() {
       };
     }
     
-    // Agregar mensaje al grupo (evitar duplicados)
     if (!groups[deporteNormalizado].messages.find(m => m.id === msg.id)) {
       groups[deporteNormalizado].messages.push(msg);
       
@@ -276,6 +360,9 @@ export default function AdminChat() {
     }
   }, [selectedGroup?.messages]);
 
+  // WhatsApp URL
+  const whatsappURL = base44.agents.getWhatsAppConnectURL('club_chat');
+
   return (
     <div className="h-screen flex flex-col bg-gradient-to-br from-slate-50 to-slate-100">
       <div className="bg-gradient-to-r from-orange-600 to-orange-700 text-white p-6 shadow-lg">
@@ -299,7 +386,7 @@ export default function AdminChat() {
         </p>
       </div>
 
-      <div className="px-6 pt-4">
+      <div className="px-6 pt-4 space-y-3">
         <Alert className={isBusinessHours() ? "bg-green-50 border-green-300" : "bg-orange-50 border-orange-300"}>
           <Clock className={`h-4 w-4 ${isBusinessHours() ? "text-green-600" : "text-orange-600"}`} />
           <AlertDescription className={isBusinessHours() ? "text-green-800" : "text-orange-800"}>
@@ -308,6 +395,26 @@ export default function AdminChat() {
             ) : (
               <span>⏸️ <strong>Fuera de horario</strong> - Solo puedes enviar mensajes entre las 10:00 y las 20:00</span>
             )}
+          </AlertDescription>
+        </Alert>
+
+        {/* WhatsApp Integration Alert */}
+        <Alert className="bg-green-50 border-green-300">
+          <MessageCircle className="h-4 w-4 text-green-600" />
+          <AlertDescription className="text-green-800">
+            <div className="flex items-center justify-between">
+              <span>
+                📱 <strong>Nuevo:</strong> Los padres pueden conectar WhatsApp para recibir notificaciones instantáneas
+              </span>
+              <a 
+                href={whatsappURL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="ml-4 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm font-medium whitespace-nowrap"
+              >
+                Conectar WhatsApp
+              </a>
+            </div>
           </AlertDescription>
         </Alert>
       </div>
