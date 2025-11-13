@@ -185,24 +185,26 @@ export default function ParentPaymentForm({ players, onSubmit, onCancel, isSubmi
               )}
             </div>
 
-            {/* Mes del Pago */}
-            <div className="space-y-2">
-              <Label htmlFor="mes">Mes del Pago *</Label>
-              <Select
-                value={paymentData.mes}
-                onValueChange={(value) => setPaymentData({ ...paymentData, mes: value })}
-                required
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Septiembre">Septiembre</SelectItem>
-                  <SelectItem value="Diciembre">Diciembre</SelectItem>
-                  <SelectItem value="Marzo">Marzo</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+            {/* Mes del Pago - SOLO para pago único */}
+            {paymentData.tipo_pago === "Único" && (
+              <div className="space-y-2">
+                <Label htmlFor="mes">Mes del Pago *</Label>
+                <Select
+                  value={paymentData.mes}
+                  onValueChange={(value) => setPaymentData({ ...paymentData, mes: value })}
+                  required
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Septiembre">Septiembre</SelectItem>
+                    <SelectItem value="Diciembre">Diciembre</SelectItem>
+                    <SelectItem value="Marzo">Marzo</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
 
             <div className="grid grid-cols-2 gap-4">
               {/* Temporada */}
