@@ -6,10 +6,11 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
-import { Upload, X, Loader2, AlertCircle } from "lucide-react";
+import { Upload, X, Loader2, AlertCircle, Info } from "lucide-react";
 import { toast } from "sonner";
 import { base44 } from "@/api/base44Client";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { getCuotasPorCategoria, getImportePorCategoriaYMes, FECHAS_VENCIMIENTO } from "@/utils/paymentAmounts";
 
 // Función para obtener la temporada actual
 const getCurrentSeason = () => {
@@ -42,6 +43,14 @@ export default function ParentPaymentForm({ players, onSubmit, onCancel, isSubmi
   const [uploadingFile, setUploadingFile] = useState(false);
   const [selectedPlayer, setSelectedPlayer] = useState(null);
 
+  // Actualizar la cantidad automáticamente cuando cambie el jugador o el mes
+  useEffect(() => {
+    if (selectedPlayer && currentPayment.tipo_pago !== "Tres meses") {
+      const importe = getImportePorCategoriaYMes(selectedPlayer.deporte, currentPayment.mes);
+      setCurrentPayment(prev => ({ ...prev, cantidad: importe }));
+    }
+  }, [selectedPlayer, currentPayment.mes, currentPayment.tipo_pago]);
+
   useEffect(() => {
     if (currentPayment.jugador_id) {
       const player = players.find(p => p.id === currentPayment.jugador_id);
@@ -53,10 +62,28 @@ export default function ParentPaymentForm({ players, onSubmit, onCancel, isSubmi
     const player = players.find(p => p.id === playerId);
     if (player) {
       setSelectedPlayer(player);
+      const cuotas = getCuotasPorCategoria(player.deporte);
       setCurrentPayment({
         ...currentPayment,
         jugador_id: player.id,
-        jugador_nombre: player.nombre
+        jugador_nombre: player.nombre,
+        cantidad: currentPayment.tipo_pago === "Único" ? cuotas.total : cuotas.inscripcion
+      });
+    }
+  };
+
+  const handleTipoPagoChange = (value) => {
+    if (selectedPlayer) {
+      const cuotas = getCuotasPorCategoria(selectedPlayer.deporte);
+      setCurrentPayment({
+        ...currentPayment,
+        tipo_pago: value,
+        cantidad: value === "Único" ? cuotas.total : cuotas.inscripcion
+      });
+    } else {
+      setCurrentPayment({
+        ...currentPayment,
+        tipo_pago: value
       });
     }
   };
@@ -101,6 +128,9 @@ export default function ParentPaymentForm({ players, onSubmit, onCancel, isSubmi
 
     onSubmit(currentPayment);
   };
+
+  // Obtener cuotas del jugador seleccionado
+  const cuotas = selectedPlayer ? getCuotasPorCategoria(selectedPlayer.deporte) : null;
 
   return (
     <motion.div
@@ -150,15 +180,15 @@ export default function ParentPaymentForm({ players, onSubmit, onCancel, isSubmi
                 <Label htmlFor="tipo_pago">Tipo de Pago *</Label>
                 <Select
                   value={currentPayment.tipo_pago}
-                  onValueChange={(value) => setCurrentPayment({...currentPayment, tipo_pago: value})}
+                  onValueChange={handleTipoPagoChange}
                   required
                 >
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="Único">Pago Único</SelectItem>
-                    <SelectItem value="Tres meses">Tres Pagos (Junio, Sept, Dic)</SelectItem>
+                    <SelectItem value="Único">Pago Único (Total Temporada)</SelectItem>
+                    <SelectItem value="Tres meses">Tres Pagos (Jun, Sep, Dic)</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -176,9 +206,9 @@ export default function ParentPaymentForm({ players, onSubmit, onCancel, isSubmi
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="Junio">Junio</SelectItem>
-                      <SelectItem value="Septiembre">Septiembre</SelectItem>
-                      <SelectItem value="Diciembre">Diciembre</SelectItem>
+                      <SelectItem value="Junio">Inscripción (Junio)</SelectItem>
+                      <SelectItem value="Septiembre">Segunda Cuota (Septiembre)</SelectItem>
+                      <SelectItem value="Diciembre">Tercera Cuota (Diciembre)</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -188,11 +218,6 @@ export default function ParentPaymentForm({ players, onSubmit, onCancel, isSubmi
               <div className="space-y-2">
                 <Label htmlFor="cantidad">
                   Cantidad Pagada (€) *
-                  {currentPayment.tipo_pago === "Tres meses" && (
-                    <span className="text-xs text-slate-500 ml-2">
-                      (por cada mes)
-                    </span>
-                  )}
                 </Label>
                 <Input
                   type="number"
@@ -201,7 +226,14 @@ export default function ParentPaymentForm({ players, onSubmit, onCancel, isSubmi
                   onChange={(e) => setCurrentPayment({...currentPayment, cantidad: parseFloat(e.target.value) || 0})}
                   required
                   placeholder="Ej: 50.00"
+                  className="font-bold text-lg"
                 />
+                {selectedPlayer && currentPayment.tipo_pago !== "Tres meses" && (
+                  <p className="text-xs text-green-600">
+                    ✓ Importe oficial: {getImportePorCategoriaYMes(selectedPlayer.deporte, currentPayment.mes)}€ 
+                    (vence el {FECHAS_VENCIMIENTO[currentPayment.mes]})
+                  </p>
+                )}
               </div>
 
               {/* Fecha de Pago */}
@@ -215,6 +247,24 @@ export default function ParentPaymentForm({ players, onSubmit, onCancel, isSubmi
                 />
               </div>
             </div>
+
+            {/* Información de cuotas del jugador */}
+            {cuotas && (
+              <Alert className="bg-green-50 border-green-300">
+                <Info className="h-4 w-4 text-green-600" />
+                <AlertDescription className="text-green-800">
+                  <strong>📊 Cuotas para {selectedPlayer?.deporte}:</strong>
+                  <div className="mt-2 space-y-1 text-sm">
+                    <p>• <strong>Inscripción (hasta 30 junio):</strong> {cuotas.inscripcion}€</p>
+                    <p>• <strong>Segunda Cuota (hasta 15 sept):</strong> {cuotas.segunda}€</p>
+                    <p>• <strong>Tercera Cuota (hasta 15 dic):</strong> {cuotas.tercera}€</p>
+                    <p className="pt-2 border-t border-green-300 mt-2">
+                      <strong>Total Temporada:</strong> {cuotas.total}€
+                    </p>
+                  </div>
+                </AlertDescription>
+              </Alert>
+            )}
 
             {/* Método de Pago - Solo Transferencia */}
             <div className="bg-orange-50 border-2 border-orange-300 rounded-lg p-4">
