@@ -3,7 +3,8 @@ import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Clock, MapPin, Calendar, Info } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Clock, MapPin, Calendar, Info, ExternalLink } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
 import ContactCard from "../components/ContactCard";
@@ -15,6 +16,8 @@ const DIAS_ORDEN = {
   "Jueves": 4,
   "Viernes": 5
 };
+
+const UBICACION_MAPS_URL = "https://www.google.com/maps/place/Campo+de+F%C3%BAtbol+Municipal+Bustarviejo/@40.8569444,-3.7230556,17z";
 
 export default function ParentTrainingSchedules() {
   const { data: user } = useQuery({
@@ -70,6 +73,32 @@ export default function ParentTrainingSchedules() {
         <p className="text-slate-600 mt-1">Consulta los horarios de entrenamientos de tus jugadores</p>
       </div>
 
+      {/* Ubicación del Campo */}
+      <Card className="border-none shadow-lg bg-gradient-to-r from-green-50 to-green-100 border-2 border-green-300">
+        <CardContent className="pt-6">
+          <div className="flex flex-col md:flex-row items-start md:items-center gap-4">
+            <div className="flex items-start gap-3 flex-1">
+              <MapPin className="w-6 h-6 text-green-700 mt-1" />
+              <div>
+                <p className="text-sm text-green-800 mb-1">📍 Ubicación de Entrenamientos:</p>
+                <p className="text-lg font-bold text-green-900">Campo Municipal de Bustarviejo</p>
+                <p className="text-sm text-green-700 mt-1">Todos los entrenamientos se realizan en esta ubicación</p>
+              </div>
+            </div>
+            <a
+              href={UBICACION_MAPS_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <Button className="bg-green-600 hover:bg-green-700 shadow-lg">
+                <ExternalLink className="w-4 h-4 mr-2" />
+                Ver en Google Maps
+              </Button>
+            </a>
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Info Alert */}
       <Alert className="bg-blue-50 border-blue-200">
         <Info className="h-4 w-4 text-blue-600" />
@@ -80,14 +109,14 @@ export default function ParentTrainingSchedules() {
 
       {/* Players Summary */}
       {players.length > 0 && (
-        <Card className="border-none shadow-lg bg-gradient-to-r from-green-50 to-green-100 border-2 border-green-300">
+        <Card className="border-none shadow-lg bg-gradient-to-r from-orange-50 to-orange-100 border-2 border-orange-300">
           <CardHeader>
-            <CardTitle className="text-lg text-green-900">Tus Jugadores</CardTitle>
+            <CardTitle className="text-lg text-orange-900">Tus Jugadores</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="flex flex-wrap gap-2">
               {players.map(player => (
-                <Badge key={player.id} className="bg-green-600 text-white">
+                <Badge key={player.id} className="bg-orange-600 text-white">
                   {player.nombre} - {player.deporte}
                 </Badge>
               ))}
@@ -147,7 +176,7 @@ export default function ParentTrainingSchedules() {
                     {schedulesByCategory[categoria].map(schedule => (
                       <div
                         key={schedule.id}
-                        className="border-2 border-slate-200 rounded-lg p-4 bg-slate-50 hover:border-orange-300 transition-all"
+                        className="border-2 border-orange-200 rounded-lg p-4 bg-gradient-to-br from-white to-orange-50 hover:shadow-md transition-all"
                       >
                         <div className="flex items-center gap-2 mb-3">
                           <Badge className="bg-orange-600 text-white">
@@ -155,24 +184,26 @@ export default function ParentTrainingSchedules() {
                           </Badge>
                         </div>
 
-                        <div className="space-y-2 text-sm">
+                        <div className="space-y-3 text-sm">
                           <div className="flex items-center gap-2 text-slate-700">
-                            <Clock className="w-4 h-4 text-orange-600" />
-                            <span className="font-semibold">
+                            <Clock className="w-5 h-5 text-orange-600" />
+                            <span className="font-bold text-lg">
                               {schedule.hora_inicio} - {schedule.hora_fin}
                             </span>
                           </div>
 
-                          {schedule.ubicacion && (
-                            <div className="flex items-center gap-2 text-slate-600">
-                              <MapPin className="w-4 h-4 text-green-600" />
-                              <span>{schedule.ubicacion}</span>
+                          <div className="flex items-start gap-2 text-slate-600 bg-green-50 rounded-lg p-2 border border-green-200">
+                            <MapPin className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" />
+                            <div className="flex-1">
+                              <span className="text-xs font-medium">{schedule.ubicacion}</span>
                             </div>
-                          )}
+                          </div>
 
                           {schedule.notas && (
-                            <div className="mt-2 pt-2 border-t border-slate-200">
-                              <p className="text-xs text-slate-600 italic">{schedule.notas}</p>
+                            <div className="mt-2 pt-2 border-t border-orange-200 bg-blue-50 rounded-lg p-2">
+                              <p className="text-xs text-blue-800">
+                                <strong>📝 Nota:</strong> {schedule.notas}
+                              </p>
                             </div>
                           )}
                         </div>

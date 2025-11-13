@@ -7,7 +7,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { X, Loader2 } from "lucide-react";
+import { X, Loader2, MapPin } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 const CATEGORIAS = [
   "Fútbol Pre-Benjamín (Mixto)",
@@ -22,6 +23,10 @@ const CATEGORIAS = [
 ];
 
 const DIAS_SEMANA = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes"];
+
+// Ubicación fija del Campo Municipal
+const UBICACION_CAMPO = "Campo Municipal de Bustarviejo";
+const UBICACION_MAPS_URL = "https://www.google.com/maps/place/Campo+de+F%C3%BAtbol+Municipal+Bustarviejo/@40.8569444,-3.7230556,17z";
 
 // Función para obtener la temporada actual
 const getCurrentSeason = () => {
@@ -41,7 +46,7 @@ export default function TrainingScheduleForm({ schedule, onSubmit, onCancel, isS
     dia_semana: "",
     hora_inicio: "",
     hora_fin: "",
-    ubicacion: "",
+    ubicacion: UBICACION_CAMPO,
     notas: "",
     temporada: getCurrentSeason(),
     activo: true
@@ -49,7 +54,12 @@ export default function TrainingScheduleForm({ schedule, onSubmit, onCancel, isS
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    onSubmit(currentSchedule);
+    // Asegurar que la ubicación sea siempre el Campo Municipal
+    const dataToSubmit = {
+      ...currentSchedule,
+      ubicacion: UBICACION_CAMPO
+    };
+    onSubmit(dataToSubmit);
   };
 
   return (
@@ -75,6 +85,21 @@ export default function TrainingScheduleForm({ schedule, onSubmit, onCancel, isS
           </div>
         </CardHeader>
         <CardContent className="pt-6">
+          <Alert className="mb-6 bg-green-50 border-green-200">
+            <MapPin className="h-4 w-4 text-green-600" />
+            <AlertDescription className="text-green-800">
+              <strong>📍 Ubicación fija:</strong> Todos los entrenamientos se realizan en el{" "}
+              <a 
+                href={UBICACION_MAPS_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-semibold text-green-700 hover:text-green-900 underline"
+              >
+                Campo Municipal de Bustarviejo
+              </a>
+            </AlertDescription>
+          </Alert>
+
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Categoría */}
@@ -138,16 +163,6 @@ export default function TrainingScheduleForm({ schedule, onSubmit, onCancel, isS
                   value={currentSchedule.hora_fin}
                   onChange={(e) => setCurrentSchedule({...currentSchedule, hora_fin: e.target.value})}
                   required
-                />
-              </div>
-
-              {/* Ubicación */}
-              <div className="space-y-2 md:col-span-2">
-                <Label htmlFor="ubicacion">Ubicación</Label>
-                <Input
-                  value={currentSchedule.ubicacion}
-                  onChange={(e) => setCurrentSchedule({...currentSchedule, ubicacion: e.target.value})}
-                  placeholder="Ej: Campo Municipal, Polideportivo..."
                 />
               </div>
 
