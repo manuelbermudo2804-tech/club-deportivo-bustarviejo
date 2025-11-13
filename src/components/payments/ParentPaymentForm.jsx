@@ -43,11 +43,24 @@ export default function ParentPaymentForm({ players, onSubmit, onCancel, isSubmi
   const [uploadingFile, setUploadingFile] = useState(false);
   const [selectedPlayer, setSelectedPlayer] = useState(null);
 
-  // Actualizar la cantidad automáticamente cuando cambie el jugador o el mes
+  // Actualizar la cantidad automáticamente cuando cambie el jugador, mes o tipo de pago
   useEffect(() => {
-    if (selectedPlayer && currentPayment.tipo_pago !== "Tres meses") {
-      const importe = getImportePorCategoriaYMes(selectedPlayer.deporte, currentPayment.mes);
-      setCurrentPayment(prev => ({ ...prev, cantidad: importe }));
+    if (selectedPlayer) {
+      const cuotas = getCuotasPorCategoria(selectedPlayer.deporte);
+      
+      if (currentPayment.tipo_pago === "Tres meses") {
+        // Para tres meses, usar la primera cuota (inscripción)
+        setCurrentPayment(prev => ({ ...prev, cantidad: cuotas.inscripcion }));
+      } else {
+        // Para pago único, usar el total de la temporada
+        if (currentPayment.tipo_pago === "Único") {
+          setCurrentPayment(prev => ({ ...prev, cantidad: cuotas.total }));
+        } else {
+          // Para un mes específico, calcular según el mes
+          const importe = getImportePorCategoriaYMes(selectedPlayer.deporte, currentPayment.mes);
+          setCurrentPayment(prev => ({ ...prev, cantidad: importe }));
+        }
+      }
     }
   }, [selectedPlayer, currentPayment.mes, currentPayment.tipo_pago]);
 
@@ -193,7 +206,7 @@ export default function ParentPaymentForm({ players, onSubmit, onCancel, isSubmi
                 </Select>
               </div>
 
-              {/* Mes */}
+              {/* Mes - Solo si NO es Tres meses */}
               {currentPayment.tipo_pago !== "Tres meses" && (
                 <div className="space-y-2">
                   <Label htmlFor="mes">Mes del Pago *</Label>
@@ -218,6 +231,11 @@ export default function ParentPaymentForm({ players, onSubmit, onCancel, isSubmi
               <div className="space-y-2">
                 <Label htmlFor="cantidad">
                   Cantidad Pagada (€) *
+                  {currentPayment.tipo_pago === "Tres meses" && (
+                    <span className="text-xs text-slate-500 ml-2">
+                      (por cada mes)
+                    </span>
+                  )}
                 </Label>
                 <Input
                   type="number"
@@ -228,7 +246,17 @@ export default function ParentPaymentForm({ players, onSubmit, onCancel, isSubmi
                   placeholder="Ej: 50.00"
                   className="font-bold text-lg"
                 />
-                {selectedPlayer && currentPayment.tipo_pago !== "Tres meses" && (
+                {selectedPlayer && currentPayment.tipo_pago === "Único" && (
+                  <p className="text-xs text-green-600">
+                    ✓ Total temporada oficial: {cuotas?.total}€
+                  </p>
+                )}
+                {selectedPlayer && currentPayment.tipo_pago === "Tres meses" && (
+                  <p className="text-xs text-green-600">
+                    ✓ Importe por cuota (esta es la inscripción): {cuotas?.inscripcion}€
+                  </p>
+                )}
+                {selectedPlayer && currentPayment.tipo_pago !== "Tres meses" && currentPayment.tipo_pago !== "Único" && (
                   <p className="text-xs text-green-600">
                     ✓ Importe oficial: {getImportePorCategoriaYMes(selectedPlayer.deporte, currentPayment.mes)}€ 
                     (vence el {FECHAS_VENCIMIENTO[currentPayment.mes]})
@@ -345,6 +373,11 @@ export default function ParentPaymentForm({ players, onSubmit, onCancel, isSubmi
                   <li>El pago quedará en estado "En Revisión" hasta que el administrador lo verifique</li>
                   <li>Recibirás una notificación cuando el pago sea confirmado</li>
                   <li>El justificante debe mostrar claramente la transferencia realizada</li>
+                  {currentPayment.tipo_pago === "Tres meses" && (
+                    <li className="font-semibold text-orange-600">
+                      Al seleccionar "Tres Pagos", solo registras UNA cuota por vez. Repite este proceso en Septiembre y Diciembre.
+                    </li>
+                  )}
                 </ul>
               </AlertDescription>
             </Alert>
