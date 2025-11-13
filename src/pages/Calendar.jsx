@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tantml:react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Plus, Calendar as CalendarIcon, Trophy } from "lucide-react";
+import { Plus, Calendar as CalendarIcon, Trophy, Bell } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AnimatePresence } from "framer-motion";
+import { toast } from "sonner";
 
 import EventForm from "../components/calendar/EventForm";
 import EventCard from "../components/calendar/EventCard";
@@ -40,7 +41,16 @@ export default function Calendar() {
   });
 
   const createEventMutation = useMutation({
-    mutationFn: (eventData) => base44.entities.Event.create(eventData),
+    mutationFn: async (eventData) => {
+      const newEvent = await base44.entities.Event.create(eventData);
+      
+      // Si es admin y está publicado, marcar como notificado después de crear
+      if (eventData.publicado) {
+        toast.success("✅ Evento creado y publicado. Los usuarios recibirán notificación.");
+      }
+      
+      return newEvent;
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['events'] });
       setShowForm(false);
@@ -49,13 +59,54 @@ export default function Calendar() {
   });
 
   const updateEventMutation = useMutation({
-    mutationFn: ({ id, eventData }) => base44.entities.Event.update(id, eventData),
+    mutationFn: async ({ id, eventData }) => {
+      const updatedEvent = await base44.entities.Event.update(id, eventData);
+      
+      // Si cambió de no publicado a publicado, notificar
+      const originalEvent = events.find(e => e.id === id);
+      if (!originalEvent?.publicado && eventData.publicado) {
+        toast.success("✅ Evento publicado. Los usuarios recibirán notificación.");
+      }
+      
+      return updatedEvent;
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['events'] });
       setShowForm(false);
       setEditingEvent(null);
     },
   });
+
+  // Mark events as notified when users view them
+  const markEventsAsNotified = useMutation({
+    mutationFn: async () => {
+      const newEvents = events.filter(e => e.publicado && !e.notificado && e.created_date);
+      const oneDayAgo = new Date();
+      oneDayAgo.setDate(oneDayAgo.getDate() - 1);
+      
+      const recentNewEvents = newEvents.filter(e => {
+        const created = new Date(e.created_date);
+        return created > oneDayAgo;
+      });
+      
+      if (recentNewEvents.length > 0) {
+        const updatePromises = recentNewEvents.map(e => 
+          base44.entities.Event.update(e.id, { ...e, notificado: true })
+        );
+        await Promise.all(updatePromises);
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['events'] });
+    },
+  });
+
+  // Mark events as notified when page loads
+  useEffect(() => {
+    if (events.length > 0 && !isAdmin) {
+      markEventsAsNotified.mutate();
+    }
+  }, [events.length]);
 
   const handleSubmit = async (eventData) => {
     if (editingEvent) {
@@ -82,13 +133,44 @@ export default function Calendar() {
   const upcomingEvents = filteredEvents.filter(e => e.fecha >= today).sort((a, b) => a.fecha.localeCompare(b.fecha));
   const pastEvents = filteredEvents.filter(e => e.fecha < today).sort((a, b) => b.fecha.localeCompare(a.fecha));
 
-  const eventTypes = ["all", "Partido", "Entrenamiento", "Reunión", "Torneo", "Inicio Temporada", "Otro"];
+  const eventTypes = [
+    "all",
+    "Partido",
+    "Entrenamiento",
+    "Reunión",
+    "Torneo",
+    "Inicio Temporada",
+    "Gestión Club",
+    "Pago",
+    "Inscripción",
+    "Pedido Ropa",
+    "Fiesta Club",
+    "Fin Temporada",
+    "Otro"
+  ];
+
+  // Count new events for badge
+  const newEventsCount = events.filter(e => {
+    if (!e.publicado || e.notificado || !e.created_date) return false;
+    const oneDayAgo = new Date();
+    oneDayAgo.setDate(oneDayAgo.getDate() - 1);
+    const created = new Date(e.created_date);
+    return created > oneDayAgo;
+  }).length;
 
   return (
     <div className="p-6 lg:p-8 space-y-6">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-slate-900">Calendario de Eventos</h1>
+          <div className="flex items-center gap-3">
+            <h1 className="text-3xl font-bold text-slate-900">Calendario de Eventos</h1>
+            {newEventsCount > 0 && !isAdmin && (
+              <Badge className="bg-red-500 text-white animate-pulse">
+                <Bell className="w-3 h-3 mr-1" />
+                {newEventsCount} nuevo{newEventsCount !== 1 ? 's' : ''}
+              </Badge>
+            )}
+          </div>
           <p className="text-slate-600 mt-1">Próximos partidos, entrenamientos y actividades</p>
         </div>
         {isAdmin && (
@@ -184,7 +266,7 @@ export default function Calendar() {
         </div>
 
         <Tabs value={typeFilter} onValueChange={setTypeFilter}>
-          <TabsList className="bg-white shadow-sm">
+          <TabsList className="bg-white shadow-sm flex-wrap h-auto">
             {eventTypes.map((type) => (
               <TabsTrigger
                 key={type}
