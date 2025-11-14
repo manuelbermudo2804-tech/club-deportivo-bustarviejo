@@ -91,92 +91,122 @@ export default function Home() {
     return pending;
   };
 
-  const menuItems = [
-    {
-      title: "Jugadores",
-      icon: Users,
-      url: createPageUrl("Players"),
-      gradient: "from-orange-600 to-orange-700",
-      badge: activePlayers,
-      badgeLabel: "activos"
-    },
-    {
-      title: "Horarios",
-      icon: Clock,
-      url: createPageUrl("TrainingSchedules"),
-      gradient: "from-green-600 to-green-700",
-    },
-    {
-      title: "Calendario",
-      icon: Calendar,
-      url: createPageUrl("Calendar"),
-      gradient: "from-blue-600 to-blue-700",
-    },
-    {
-      title: "Anuncios",
-      icon: Megaphone,
-      url: createPageUrl("Announcements"),
-      gradient: "from-purple-600 to-purple-700",
-    },
-    {
-      title: "Galería",
-      icon: Image,
-      url: createPageUrl("AdminGallery"),
-      gradient: "from-pink-600 to-pink-700",
-    },
-    {
-      title: "🎓 Crear Convocatorias",
-      icon: Bell,
-      url: createPageUrl("CoachCallups"),
-      gradient: "from-yellow-600 to-yellow-700",
-    },
-    // Add "Convocatorias" button if admin/coach has players
-    ...(hasPlayers ? [{
-      title: "👨‍👩‍👧 Mis Convocatorias",
-      icon: ClipboardCheck,
-      url: createPageUrl("ParentCallups"),
-      gradient: "from-green-600 to-green-700",
-      badge: pendingCallupsCount(),
-      badgeLabel: "pendientes"
-    }] : []),
-    // ADMIN: Chat Grupos -> AdminChat
-    // COACH: Chat Equipos -> CoachChat
-    {
-      title: isAdmin ? "Chat Grupos" : "🎓 Chat Equipos",
-      icon: MessageCircle,
-      url: isAdmin ? createPageUrl("AdminChat") : createPageUrl("CoachChat"),
-      gradient: "from-indigo-600 to-indigo-700",
-      badge: unreadMessages,
-      badgeLabel: "nuevos"
-    },
-    {
-      title: "Pagos",
-      icon: CreditCard,
-      url: createPageUrl("Payments"),
-      gradient: "from-orange-600 to-red-700",
-      badge: pendingPayments,
-      badgeLabel: "pendientes"
-    },
-    {
-      title: "Recordatorios",
-      icon: Bell,
-      url: createPageUrl("Reminders"),
-      gradient: "from-red-600 to-orange-700",
-    },
-    {
-      title: "Pedidos Ropa",
-      icon: ShoppingBag,
-      url: createPageUrl("ClothingOrders"),
-      gradient: "from-teal-600 to-teal-700",
-    },
+  // Build menuItems based on role
+  const buildMenuItems = () => {
+    const items = [
+      {
+        title: "Jugadores",
+        icon: Users,
+        url: createPageUrl("Players"),
+        gradient: "from-orange-600 to-orange-700",
+        badge: activePlayers,
+        badgeLabel: "activos"
+      },
+      {
+        title: "Horarios",
+        icon: Clock,
+        url: createPageUrl("TrainingSchedules"),
+        gradient: "from-green-600 to-green-700",
+      },
+      {
+        title: "Calendario",
+        icon: Calendar,
+        url: createPageUrl("Calendar"),
+        gradient: "from-blue-600 to-blue-700",
+      },
+      {
+        title: "Anuncios",
+        icon: Megaphone,
+        url: createPageUrl("Announcements"),
+        gradient: "from-purple-600 to-purple-700",
+      },
+      {
+        title: "Galería",
+        icon: Image,
+        url: createPageUrl("AdminGallery"),
+        gradient: "from-pink-600 to-pink-700",
+      },
+      {
+        title: "🎓 Crear Convocatorias",
+        icon: Bell,
+        url: createPageUrl("CoachCallups"),
+        gradient: "from-yellow-600 to-yellow-700",
+      }
+    ];
+
+    // Add "Mis Convocatorias" if admin/coach has players
+    if (hasPlayers) {
+      items.push({
+        title: "👨‍👩‍👧 Mis Convocatorias",
+        icon: ClipboardCheck,
+        url: createPageUrl("ParentCallups"),
+        gradient: "from-green-600 to-green-700",
+        badge: pendingCallupsCount(),
+        badgeLabel: "pendientes"
+      });
+    }
+
+    // Add CHAT button based on role
+    if (isAdmin) {
+      // Admin sees "Chat Grupos" -> AdminChat
+      items.push({
+        title: "Chat Grupos",
+        icon: MessageCircle,
+        url: createPageUrl("AdminChat"),
+        gradient: "from-indigo-600 to-indigo-700",
+        badge: unreadMessages,
+        badgeLabel: "nuevos"
+      });
+    } else if (isCoach) {
+      // Coach (non-admin) sees "🎓 Chat Equipos" -> CoachChat
+      items.push({
+        title: "🎓 Chat Equipos",
+        icon: MessageCircle,
+        url: createPageUrl("CoachChat"),
+        gradient: "from-blue-600 to-blue-700",
+        badge: unreadMessages,
+        badgeLabel: "nuevos"
+      });
+    }
+
+    // Add remaining items
+    items.push(
+      {
+        title: "Pagos",
+        icon: CreditCard,
+        url: createPageUrl("Payments"),
+        gradient: "from-orange-600 to-red-700",
+        badge: pendingPayments,
+        badgeLabel: "pendientes"
+      },
+      {
+        title: "Recordatorios",
+        icon: Bell,
+        url: createPageUrl("Reminders"),
+        gradient: "from-red-600 to-orange-700",
+      },
+      {
+        title: "Pedidos Ropa",
+        icon: ShoppingBag,
+        url: createPageUrl("ClothingOrders"),
+        gradient: "from-teal-600 to-teal-700",
+      }
+    );
+
     // Add Configuration ONLY for admins (not coaches)
-    ...(isAdmin ? [{
-      title: "Configuración",
-      icon: Settings,
-      url: createPageUrl("SeasonManagement"),
-      gradient: "from-slate-600 to-slate-700",
-    }] : [])
-  ];
+    if (isAdmin) {
+      items.push({
+        title: "Configuración",
+        icon: Settings,
+        url: createPageUrl("SeasonManagement"),
+        gradient: "from-slate-600 to-slate-700",
+      });
+    }
+
+    return items;
+  };
+
+  const menuItems = buildMenuItems();
 
   // Determine panel title based on role
   const getPanelTitle = () => {
