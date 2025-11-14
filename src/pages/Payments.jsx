@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useLocation } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -25,6 +25,7 @@ export default function Payments() {
   const [isCoach, setIsCoach] = useState(false);
   const [myPlayers, setMyPlayers] = useState([]);
 
+  const formRef = useRef(null);
   const queryClient = useQueryClient();
 
   useEffect(() => {
@@ -62,6 +63,9 @@ export default function Payments() {
     if (autoRegister && (isAdmin || (isCoach && myPlayers.length > 0))) {
       setShowForm(true);
       window.history.replaceState({}, '', window.location.pathname);
+      setTimeout(() => {
+        formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 100);
     }
   }, [autoRegister, isAdmin, isCoach, myPlayers.length]);
 
@@ -183,6 +187,11 @@ export default function Payments() {
               onClick={() => {
                 setEditingPayment(null);
                 setShowForm(!showForm);
+                if (!showForm) {
+                  setTimeout(() => {
+                    formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                  }, 100);
+                }
               }}
               className="bg-orange-600 hover:bg-orange-700 shadow-lg"
             >
@@ -195,21 +204,23 @@ export default function Payments() {
 
       <PaymentStats payments={filteredPayments} />
 
-      <AnimatePresence>
-        {showForm && canRegisterPayments && (
-          <PaymentForm
-            payment={editingPayment}
-            players={isAdmin ? players : myPlayers}
-            onSubmit={handleSubmit}
-            onCancel={() => {
-              setShowForm(false);
-              setEditingPayment(null);
-            }}
-            isSubmitting={createPaymentMutation.isPending || updatePaymentMutation.isPending}
-            isAdmin={isAdmin}
-          />
-        )}
-      </AnimatePresence>
+      <div ref={formRef}>
+        <AnimatePresence>
+          {showForm && canRegisterPayments && (
+            <PaymentForm
+              payment={editingPayment}
+              players={isAdmin ? players : myPlayers}
+              onSubmit={handleSubmit}
+              onCancel={() => {
+                setShowForm(false);
+                setEditingPayment(null);
+              }}
+              isSubmitting={createPaymentMutation.isPending || updatePaymentMutation.isPending}
+              isAdmin={isAdmin}
+            />
+          )}
+        </AnimatePresence>
+      </div>
 
       <PaymentTable
         payments={filteredPayments}
