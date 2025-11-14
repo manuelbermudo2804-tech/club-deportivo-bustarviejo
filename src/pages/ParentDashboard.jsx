@@ -21,7 +21,7 @@ export default function ParentDashboard() {
     queryFn: async () => {
       const allPlayers = await base44.entities.Player.list();
       return allPlayers.filter(p =>
-        p.email_padre === user?.email || p.email === user?.email
+        p.email_padre === user?.email || p.email_tutor_2 === user?.email
       );
     },
     enabled: !!user?.email,
@@ -52,7 +52,13 @@ export default function ParentDashboard() {
   });
 
   const pendingPayments = payments.filter(p => p.estado === "Pendiente").length;
-  const unreadMessages = messages.filter(m => !m.leido && m.tipo === "admin_a_grupo").length;
+  
+  const myGroupSports = [...new Set(players.map(p => p.deporte))];
+  const unreadMessages = messages.filter(m => 
+    !m.leido && 
+    m.tipo === "admin_a_grupo" && 
+    myGroupSports.includes(m.grupo_id || m.deporte)
+  ).length;
 
   // Calculate pending callups
   const pendingCallupsCount = () => {
