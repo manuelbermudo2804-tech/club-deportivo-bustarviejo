@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef, useMemo } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -238,9 +239,8 @@ export default function CoachChat() {
       return;
     }
     
-    console.log("📊 DEBUG - Enviando mensaje:");
-    console.log("Current Group:", currentGroup);
-    console.log("Tipo de grupo:", currentGroup?.tipo);
+    // DEBUG - Mostrar en toast
+    toast.info(`DEBUG: Grupo tipo "${currentGroup?.tipo}" - Enviando como "${currentGroup?.tipo === 'entrenador' ? 'admin_a_grupo' : 'padre_a_grupo'}"`, { duration: 5000 });
     
     const messageData = {
       remitente_email: user.email,
