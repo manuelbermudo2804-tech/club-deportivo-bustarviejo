@@ -68,8 +68,8 @@ export default function CoachChat() {
         await base44.entities.PhotoGallery.create(albumData);
       }
 
-      // Enviar emails si es prioritario
-      if (messageData.prioridad === "Importante" || messageData.prioridad === "Urgente") {
+      // Enviar emails si es prioritario Y es mensaje como entrenador
+      if ((messageData.prioridad === "Importante" || messageData.prioridad === "Urgente") && messageData.tipo === "admin_a_grupo") {
         const groupPlayers = allPlayers.filter(p => p.deporte === messageData.deporte);
         const parentEmails = [...new Set(groupPlayers.map(p => p.email_padre).filter(Boolean))];
         const priorityEmoji = messageData.prioridad === "Urgente" ? "🔴" : "⚠️";
@@ -489,27 +489,27 @@ export default function CoachChat() {
               <div ref={messagesEndRef} />
             </div>
 
-            {/* Input Area - Solo si es un grupo que entrena */}
-            {currentGroup.tipo === 'entrenador' && (
-              <div className="bg-white border-t p-3">
-                {/* Attachments Preview */}
-                {attachments.length > 0 && (
-                  <div className="mb-2 flex flex-wrap gap-2">
-                    {attachments.map((att, index) => (
-                      <div key={index} className="bg-slate-100 rounded-lg px-3 py-1.5 text-sm flex items-center gap-2">
-                        <span className="text-xs truncate max-w-[150px]">{att.nombre}</span>
-                        <button
-                          onClick={() => handleRemoveAttachment(index)}
-                          className="text-slate-500 hover:text-red-600"
-                        >
-                          <X className="w-3 h-3" />
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                )}
+            {/* Input Area - Ahora disponible para AMBOS tipos de grupos */}
+            <div className="bg-white border-t p-3">
+              {/* Attachments Preview */}
+              {attachments.length > 0 && (
+                <div className="mb-2 flex flex-wrap gap-2">
+                  {attachments.map((att, index) => (
+                    <div key={index} className="bg-slate-100 rounded-lg px-3 py-1.5 text-sm flex items-center gap-2">
+                      <span className="text-xs truncate max-w-[150px]">{att.nombre}</span>
+                      <button
+                        onClick={() => handleRemoveAttachment(index)}
+                        className="text-slate-500 hover:text-red-600"
+                      >
+                        <X className="w-3 h-3" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
 
-                {/* Priority Selector */}
+              {/* Priority Selector - Solo para grupos que entrena */}
+              {currentGroup.tipo === 'entrenador' && (
                 <div className="mb-2">
                   <Select value={priority} onValueChange={setPriority}>
                     <SelectTrigger className="w-full h-9 text-sm">
@@ -522,47 +522,45 @@ export default function CoachChat() {
                     </SelectContent>
                   </Select>
                 </div>
+              )}
 
-                {/* Message Input */}
-                <div className="flex gap-2 items-end">
-                  <FileAttachmentButton
-                    onFileUploaded={handleFileUploaded}
-                    disabled={!isBusinessHours() || sendMessageMutation.isPending}
-                  />
-                  
-                  <Input
-                    value={messageContent}
-                    onChange={(e) => setMessageContent(e.target.value)}
-                    placeholder={isBusinessHours() ? "Escribe un mensaje..." : "Horario: 10:00 - 20:00"}
-                    className="flex-1 rounded-full"
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' && !e.shiftKey) {
-                        e.preventDefault();
-                        handleSendMessage();
-                      }
-                    }}
-                    disabled={!isBusinessHours()}
-                  />
-                  
-                  <Button
-                    onClick={handleSendMessage}
-                    disabled={(!messageContent.trim() && attachments.length === 0) || sendMessageMutation.isPending || !isBusinessHours()}
-                    className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 rounded-full w-10 h-10 p-0 flex items-center justify-center shadow-lg"
-                  >
-                    <Send className="w-4 h-4" />
-                  </Button>
-                </div>
+              {/* Message Input */}
+              <div className="flex gap-2 items-end">
+                <FileAttachmentButton
+                  onFileUploaded={handleFileUploaded}
+                  disabled={!isBusinessHours() || sendMessageMutation.isPending}
+                />
+                
+                <Input
+                  value={messageContent}
+                  onChange={(e) => setMessageContent(e.target.value)}
+                  placeholder={isBusinessHours() ? "Escribe un mensaje..." : "Horario: 10:00 - 20:00"}
+                  className="flex-1 rounded-full"
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                      e.preventDefault();
+                      handleSendMessage();
+                    }
+                  }}
+                  disabled={!isBusinessHours()}
+                />
+                
+                <Button
+                  onClick={handleSendMessage}
+                  disabled={(!messageContent.trim() && attachments.length === 0) || sendMessageMutation.isPending || !isBusinessHours()}
+                  className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 rounded-full w-10 h-10 p-0 flex items-center justify-center shadow-lg"
+                >
+                  <Send className="w-4 h-4" />
+                </Button>
               </div>
-            )}
 
-            {/* Read-only message for parent groups */}
-            {currentGroup.tipo === 'hijo' && (
-              <div className="bg-slate-100 border-t p-4 text-center">
-                <p className="text-sm text-slate-600">
-                  👨‍👩‍👧 Este es el chat de tus hijos. Solo puedes leer los mensajes.
+              {/* Info message for parent groups */}
+              {currentGroup.tipo === 'hijo' && (
+                <p className="text-xs text-slate-500 mt-2 text-center">
+                  👨‍👩‍👧 Escribiendo como padre en el chat de tus hijos
                 </p>
-              </div>
-            )}
+              )}
+            </div>
           </>
         ) : (
           <div className="flex-1 flex items-center justify-center bg-[#e5ddd5]">
