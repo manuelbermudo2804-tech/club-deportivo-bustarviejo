@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef, useMemo } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -19,6 +20,7 @@ export default function CoachChat() {
   const [attachments, setAttachments] = useState([]);
   const [priority, setPriority] = useState("Normal");
   const [searchTerm, setSearchTerm] = useState("");
+  const [debugInfo, setDebugInfo] = useState(null);
   const messagesEndRef = useRef(null);
   const queryClient = useQueryClient();
   const [user, setUser] = useState(null);
@@ -228,7 +230,6 @@ export default function CoachChat() {
 
   const handleSendMessage = () => {
     if (!user || !selectedTab) {
-      alert("ERROR: No hay usuario o tab seleccionado");
       return;
     }
     if (!messageContent.trim() && attachments.length === 0) {
@@ -241,10 +242,12 @@ export default function CoachChat() {
       return;
     }
     
-    // ALERT SIEMPRE VISIBLE
+    // MOSTRAR DEBUG EN PANTALLA
     const tipoGrupo = currentGroup?.tipo || "UNDEFINED";
-    const tipoMensaje = tipoGrupo === 'entrenador' ? "admin_a_grupo (AZUL)" : "padre_a_grupo (MORADO)";
-    alert(`🔍 DEBUG:\n\nTipo de grupo: ${tipoGrupo}\nTipo de mensaje: ${tipoMensaje}\n\nSi eres entrenador debería ser AZUL, si es hijo MORADO`);
+    const tipoMensaje = tipoGrupo === 'entrenador' ? "admin_a_grupo" : "padre_a_grupo";
+    setDebugInfo({ tipoGrupo, tipoMensaje });
+    
+    setTimeout(() => setDebugInfo(null), 5000);
     
     const messageData = {
       remitente_email: user.email,
@@ -311,6 +314,21 @@ export default function CoachChat() {
 
   return (
     <div className="h-screen flex flex-col md:flex-row bg-white">
+      
+      {/* DEBUG BANNER - SUPER VISIBLE */}
+      {debugInfo && (
+        <div className="fixed top-0 left-0 right-0 z-[9999] bg-gradient-to-r from-yellow-500 to-orange-500 text-white p-6 text-center shadow-2xl border-b-4 border-red-600">
+          <h2 className="text-2xl font-bold mb-2">🔍 DEBUG INFORMACIÓN</h2>
+          <p className="text-lg">Tipo de grupo: <strong className="text-3xl">{debugInfo.tipoGrupo}</strong></p>
+          <p className="text-lg">Tipo de mensaje: <strong className="text-3xl">{debugInfo.tipoMensaje}</strong></p>
+          <p className="text-sm mt-2">
+            {debugInfo.tipoGrupo === 'entrenador' 
+              ? '✅ Debería ser AZUL (admin_a_grupo)' 
+              : '✅ Debería ser MORADO (padre_a_grupo)'}
+          </p>
+        </div>
+      )}
+
       <div className={`w-full md:w-96 bg-white border-r border-slate-200 flex flex-col ${selectedTab ? 'hidden md:flex' : 'flex'}`}>
         <div className="bg-gradient-to-r from-blue-600 to-blue-700 p-4 text-white">
           <h1 className="text-xl font-bold mb-1">🎓 Chats Entrenador</h1>
