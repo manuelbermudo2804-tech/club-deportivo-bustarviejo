@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -27,17 +26,17 @@ export default function PlayerChat() {
       setUser(currentUser);
       
       const allPlayers = await base44.entities.Player.list();
-      const myPlayer = allPlayers.find(p => p.email === currentUser.email);
+      const myPlayer = allPlayers.find(p => p.email_jugador === currentUser.email);
       setPlayer(myPlayer);
     };
     fetchUser();
   }, []);
 
-  const { data: messages, isLoading: loadingMessages, refetch: refetchMessages } = useQuery({
+  const { data: messages, isLoading: loadingMessages } = useQuery({
     queryKey: ['chatMessages'],
     queryFn: () => base44.entities.ChatMessage.list('-created_date'),
     initialData: [],
-    refetchInterval: 3000,
+    refetchInterval: 2000,
   });
 
   const { data: teamPlayers } = useQuery({
@@ -76,10 +75,10 @@ export default function PlayerChat() {
       
       return newMessage;
     },
-    onSuccess: async () => {
+    onSuccess: () => {
       setMessageContent("");
       setAttachments([]);
-      await refetchMessages();
+      queryClient.invalidateQueries({ queryKey: ['chatMessages'] });
       toast.success("Mensaje enviado");
     },
   });
@@ -112,7 +111,7 @@ export default function PlayerChat() {
   });
 
   useEffect(() => {
-    if (filteredMessages.length > 0 && user) { // Ensure user is available for email comparison
+    if (filteredMessages.length > 0 && user) {
       const unreadMessageIds = filteredMessages
         .filter(msg => !msg.leido && msg.tipo === "admin_a_grupo" && msg.remitente_email !== user.email)
         .map(msg => msg.id);
@@ -121,7 +120,7 @@ export default function PlayerChat() {
         markAsReadMutation.mutate(unreadMessageIds);
       }
     }
-  }, [filteredMessages.length, user]); // Added user to dependencies
+  }, [filteredMessages.length, user]);
 
   const isBusinessHours = () => {
     const now = new Date();
@@ -247,7 +246,7 @@ export default function PlayerChat() {
                         ? 'bg-gradient-to-r from-green-600 to-green-700 text-white rounded-bl-none'
                         : isJugador
                         ? 'bg-gradient-to-r from-orange-600 to-orange-700 text-white rounded-bl-none'
-                        : 'bg-white text-slate-900 rounded-bl-none' // Fallback for other message types
+                        : 'bg-white text-slate-900 rounded-bl-none'
                     }`}
                   >
                     <div className="px-3 py-2">

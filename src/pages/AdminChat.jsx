@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -6,9 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Label } from "@/components/ui/label";
-import { Send, Search, Clock, AlertCircle, X, Users, Check, CheckCheck } from "lucide-react";
+import { Send, Search, Clock, AlertCircle, X, Users, Check, CheckCheck, ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
@@ -24,6 +21,7 @@ export default function AdminChat() {
   const [searchTerm, setSearchTerm] = useState("");
   const [attachments, setAttachments] = useState([]);
   const [sendToAll, setSendToAll] = useState(false);
+  const [showChat, setShowChat] = useState(false);
   const messagesEndRef = useRef(null);
   const queryClient = useQueryClient();
   const [user, setUser] = useState(null);
@@ -36,11 +34,11 @@ export default function AdminChat() {
     fetchUser();
   }, []);
 
-  const { data: messages, refetch: refetchMessages } = useQuery({
+  const { data: messages } = useQuery({
     queryKey: ['chatMessages'],
     queryFn: () => base44.entities.ChatMessage.list('-created_date'),
     initialData: [],
-    refetchInterval: 3000,
+    refetchInterval: 2000,
   });
 
   const { data: players } = useQuery({
@@ -51,7 +49,6 @@ export default function AdminChat() {
 
   const sendMessageMutation = useMutation({
     mutationFn: async (messageData) => {
-      // Si sendToAll es true, enviar a todos los grupos
       if (messageData.sendToAll) {
         const allGroups = Object.keys(groups);
         const promises = allGroups.map(grupoId => {
@@ -59,13 +56,12 @@ export default function AdminChat() {
             ...messageData,
             deporte: grupoId,
             grupo_id: grupoId,
-            sendToAll: undefined // remover este campo antes de crear
+            sendToAll: undefined
           });
         });
         
         const newMessages = await Promise.all(promises);
         
-        // Enviar emails si es prioritario
         if (messageData.prioridad === "Importante" || messageData.prioridad === "Urgente") {
           const allParentEmails = [...new Set(players.map(p => p.email_padre).filter(Boolean))];
           const priorityEmoji = messageData.prioridad === "Urgente" ? "🔴" : "⚠️";
@@ -83,7 +79,6 @@ export default function AdminChat() {
         
         return newMessages;
       } else {
-        // Envío normal a un solo grupo
         const newMessage = await base44.entities.ChatMessage.create(messageData);
         
         const imageAttachments = messageData.archivos_adjuntos.filter(att => att.tipo === "imagen");
@@ -125,13 +120,13 @@ export default function AdminChat() {
         return newMessage;
       }
     },
-    onSuccess: async () => {
+    onSuccess: () => {
       setMessageContent("");
       setAttachments([]);
       setPriority("Normal");
       setSendToAll(false);
-      await refetchMessages(); // Changed from queryClient.invalidateQueries
-      queryClient.invalidateQueries({ queryKey: ['photoGallery'] }); // Preserve existing functionality
+      queryClient.invalidateQueries({ queryKey: ['chatMessages'] });
+      queryClient.invalidateQueries({ queryKey: ['photoGallery'] });
       toast.success(sendToAll ? "Anuncio enviado a todos los grupos" : "Mensaje enviado");
     },
   });
@@ -203,7 +198,6 @@ export default function AdminChat() {
     if (!groups[deporteNormalizado].messages.find(m => m.id === msg.id)) {
       groups[deporteNormalizado].messages.push(msg);
       
-      // Only count unread for parent-to-group messages
       if (!msg.leido && msg.tipo === "padre_a_grupo") {
         groups[deporteNormalizado].unreadCount++;
         if (msg.prioridad === "Urgente") {
@@ -266,7 +260,7 @@ export default function AdminChat() {
   const handleSelectGroup = (group) => {
     setSelectedGroup(group);
     setSendToAll(false);
-    // Mark as read only messages of type "padre_a_grupo" when admin selects the group
+    setShowChat(true);
     const unreadMessageIds = group.messages
       .filter(msg => !msg.leido && msg.tipo === "padre_a_grupo")
       .map(msg => msg.id);
@@ -300,25 +294,20 @@ export default function AdminChat() {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [selectedGroup?.messages]);
 
-  // Calcular si un mensaje ha sido leído por alguien
   const getReadStatus = (msg) => {
-    // This status is only for messages sent by the admin (admin_a_grupo)
-    // and checks if at least one parent has read it.
     if (msg.tipo !== "admin_a_grupo") return null;
     return msg.leido ? "read" : "sent";
   };
 
   return (
-    <div className="h-screen flex bg-white">
-      {/* Lista de Grupos - Estilo WhatsApp */}
-      <div className="w-full md:w-96 bg-white border-r border-slate-200 flex flex-col">
-        {/* Header */}
+    <div className="h-screen flex flex-col md:flex-row bg-white">
+      {/* Lista de Grupos */}
+      <div className={`${showChat ? 'hidden md:flex' : 'flex'} w-full md:w-96 bg-white border-r border-slate-200 flex-col`}>
         <div className="bg-gradient-to-r from-orange-600 to-orange-700 p-4 text-white">
           <h1 className="text-xl font-bold mb-1">Chats</h1>
           <p className="text-xs text-orange-100">Chat de grupos del club</p>
         </div>
 
-        {/* Search */}
         <div className="p-3 bg-slate-50 border-b">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
@@ -331,11 +320,11 @@ export default function AdminChat() {
           </div>
         </div>
 
-        {/* Opción: Enviar a Todos */}
         <div
           onClick={() => {
             setSendToAll(true);
             setSelectedGroup(null);
+            setShowChat(true);
           }}
           className={`p-4 border-b cursor-pointer transition-all ${
             sendToAll ? 'bg-orange-50' : 'hover:bg-slate-50'
@@ -356,7 +345,6 @@ export default function AdminChat() {
           </div>
         </div>
 
-        {/* Lista de Grupos */}
         <div className="flex-1 overflow-y-auto">
           {filteredGroups.map(group => {
             const lastMsg = group.messages.sort((a, b) => 
@@ -408,11 +396,16 @@ export default function AdminChat() {
       </div>
 
       {/* Área de Chat */}
-      <div className="flex-1 flex flex-col bg-[#e5ddd5] hidden md:flex">
+      <div className={`${showChat ? 'flex' : 'hidden md:flex'} flex-1 flex-col bg-[#e5ddd5]`}>
         {sendToAll ? (
           <>
-            {/* Header - Anuncio General */}
             <div className="bg-gradient-to-r from-green-600 to-green-700 p-4 text-white flex items-center gap-3 shadow-md">
+              <button
+                onClick={() => setShowChat(false)}
+                className="md:hidden text-white"
+              >
+                <ArrowLeft className="w-6 h-6" />
+              </button>
               <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
                 <Users className="w-6 h-6" />
               </div>
@@ -424,7 +417,6 @@ export default function AdminChat() {
               </div>
             </div>
 
-            {/* Info */}
             <div className="p-4">
               <Alert className="bg-blue-50 border-blue-300">
                 <AlertCircle className="h-4 w-4 text-blue-600" />
@@ -435,10 +427,8 @@ export default function AdminChat() {
               </Alert>
             </div>
 
-            {/* Espacio vacío */}
             <div className="flex-1" />
 
-            {/* Input Area */}
             <div className="bg-white border-t p-3">
               {attachments.length > 0 && (
                 <div className="mb-2 flex flex-wrap gap-2">
@@ -498,8 +488,13 @@ export default function AdminChat() {
           </>
         ) : selectedGroup ? (
           <>
-            {/* Header del Chat */}
             <div className="bg-gradient-to-r from-orange-600 to-orange-700 p-4 text-white flex items-center gap-3 shadow-md">
+              <button
+                onClick={() => setShowChat(false)}
+                className="md:hidden text-white"
+              >
+                <ArrowLeft className="w-6 h-6" />
+              </button>
               <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
                 <span className="text-xl">{sportEmojis[selectedGroup.deporte]}</span>
               </div>
@@ -517,11 +512,11 @@ export default function AdminChat() {
               )}
             </div>
 
-            {/* Mensajes */}
             <div 
               className="flex-1 overflow-y-auto p-4 space-y-2"
               style={{
-                backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23d4c5b9' fill-opacity='0.1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`
+                backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23d4c5b9' fill-opacity='0.1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
+                backgroundColor: '#e5ddd5'
               }}
             >
               {selectedGroup.messages.length === 0 ? (
@@ -596,7 +591,6 @@ export default function AdminChat() {
               <div ref={messagesEndRef} />
             </div>
 
-            {/* Input Area */}
             <div className="bg-white border-t p-3">
               {attachments.length > 0 && (
                 <div className="mb-2 flex flex-wrap gap-2">
