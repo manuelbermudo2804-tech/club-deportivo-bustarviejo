@@ -28,11 +28,11 @@ export default function ParentChat() {
     fetchUser();
   }, []);
 
-  const { data: messages, isLoading: loadingMessages, refetch: refetchMessages } = useQuery({
+  const { data: messages, isLoading: loadingMessages } = useQuery({
     queryKey: ['chatMessages'],
     queryFn: () => base44.entities.ChatMessage.list('-created_date'),
     initialData: [],
-    refetchInterval: 3000,
+    refetchInterval: 2000,
   });
 
   const { data: players, isLoading: loadingPlayers } = useQuery({
@@ -73,10 +73,9 @@ export default function ParentChat() {
       
       return newMessage;
     },
-    onSuccess: async () => {
+    onSuccess: () => {
       setMessageContent("");
       setAttachments([]);
-      await refetchMessages();
       queryClient.invalidateQueries({ queryKey: ['chatMessages'] });
       toast.success("Mensaje enviado");
     },
@@ -343,7 +342,6 @@ export default function ParentChat() {
 
       {/* Input Area */}
       <div className="bg-white border-t p-3">
-        {/* Attachments Preview */}
         {attachments.length > 0 && (
           <div className="mb-2 flex flex-wrap gap-2">
             {attachments.map((att, index) => (
@@ -360,7 +358,6 @@ export default function ParentChat() {
           </div>
         )}
 
-        {/* Message Input */}
         <div className="flex gap-2 items-end">
           <FileAttachmentButton
             onFileUploaded={handleFileUploaded}
