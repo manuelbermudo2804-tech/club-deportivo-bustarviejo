@@ -36,9 +36,12 @@ export default function CallupCard({ callup, onEdit, onDelete, isCoach }) {
         }`}>
           <div className="flex items-start justify-between">
             <div className="flex-1">
-              <div className="flex items-center gap-2 mb-2">
+              <div className="flex items-center gap-2 mb-2 flex-wrap">
                 <Badge className="bg-white/20 text-white text-xs">
                   {callup.tipo}
+                </Badge>
+                <Badge className="bg-white/30 text-white text-xs font-semibold">
+                  {callup.categoria}
                 </Badge>
                 {callup.publicada ? (
                   <Badge className="bg-green-500 text-white text-xs">Publicada</Badge>
