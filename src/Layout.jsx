@@ -3,7 +3,7 @@ import React, { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { base44 } from "@/api/base44Client";
-import { Home, Users, CreditCard, ShoppingBag, Menu, Bell, LogOut, Calendar, Megaphone, Mail, Archive, Settings, MessageCircle, Clock, Image, X, User as UserIcon, CheckCircle2, ClipboardCheck } from "lucide-react";
+import { Home, Users, CreditCard, ShoppingBag, Menu, Bell, LogOut, Calendar, Megaphone, Mail, Archive, Settings, MessageCircle, Clock, Image, X, User as UserIcon, CheckCircle2, ClipboardCheck, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
@@ -11,6 +11,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import NotificationBadge from "./components/NotificationBadge";
 import SessionManager from "./components/SessionManager";
 import GlobalSearch from "./components/GlobalSearch";
+import ThemeToggle from "./components/ThemeToggle"; // Added import
 
 const CLUB_LOGO_URL = "https://www.cdbustarviejo.com/uploads/2/4/0/4/2404974/logo-cd-bustarviejo-cuadrado-xpeq_orig.png";
 
@@ -715,6 +716,7 @@ export default function Layout({ children, currentPageName }) {
     { title: "Galería", url: createPageUrl("AdminGallery"), icon: Image },
     { title: "🎓 Crear Convocatorias", url: createPageUrl("CoachCallups"), icon: Bell },
     ...(hasPlayers ? [{ title: "👨‍👩‍👧 Confirmar Mis Hijos", url: createPageUrl("ParentCallups"), icon: ClipboardCheck, badge: pendingCallupsCount > 0 ? pendingCallupsCount : null }] : []),
+    { title: "Evaluaciones", url: createPageUrl("PlayerEvaluations"), icon: Star }, // Added item
     { title: "Pagos", url: createPageUrl("Payments"), icon: CreditCard },
     { title: "Recordatorios", url: createPageUrl("Reminders"), icon: Bell },
     { title: "Pedidos Ropa", url: createPageUrl("ClothingOrders"), icon: ShoppingBag },
@@ -729,6 +731,7 @@ export default function Layout({ children, currentPageName }) {
     { title: "Mis Hijos", url: createPageUrl("Players"), icon: Users },
     { title: "🎓 Plantillas", url: createPageUrl("TeamRosters"), icon: Users },
     { title: "✅ Asistencia", url: createPageUrl("CoachAttendance"), icon: CheckCircle2 },
+    { title: "⭐ Evaluaciones", url: createPageUrl("PlayerEvaluations"), icon: Star }, // Added item
     { title: "Horarios", url: createPageUrl("TrainingSchedules"), icon: Clock },
     { title: "Calendario", url: createPageUrl("Calendar"), icon: Calendar },
     { title: "Anuncios", url: createPageUrl("Announcements"), icon: Megaphone },
@@ -855,10 +858,15 @@ export default function Layout({ children, currentPageName }) {
               </div>
             </div>
             
-            {/* Global Search for desktop */}
-            {user && (
-              <GlobalSearch isAdmin={isAdmin} isCoach={isCoach} />
-            )}
+            <div className="flex items-center gap-2 mb-4"> {/* New div wrapping GlobalSearch and ThemeToggle */}
+                {/* Global Search for desktop */}
+                {user && (
+                  <div className="flex-1"> {/* Wrapped GlobalSearch in flex-1 div */}
+                    <GlobalSearch isAdmin={isAdmin} isCoach={isCoach} />
+                  </div>
+                )}
+                <ThemeToggle /> {/* Added ThemeToggle */}
+              </div>
           </div>
 
           <div className="p-4 space-y-2">
