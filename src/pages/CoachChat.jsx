@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef, useMemo } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -462,30 +463,44 @@ export default function CoachChat() {
                   .sort((a, b) => new Date(a.created_date) - new Date(b.created_date))
                   .map((msg) => {
                     const isMyMessage = msg.remitente_email === user?.email;
-                    const isOtherAdmin = msg.tipo === "admin_a_grupo" && msg.remitente_email !== user?.email;
+                    
+                    // NUEVA LÓGICA: Determinar color basado en tipo de mensaje Y tipo de grupo
+                    let messageColor = 'bg-white text-slate-900 rounded-bl-none'; // Default para mensajes de otros
+                    
+                    if (isMyMessage) {
+                      // Es mi mensaje
+                      if (msg.tipo === "admin_a_grupo") {
+                        // Soy entrenador escribiendo en grupo de entrenador -> AZUL
+                        messageColor = 'bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-br-none';
+                      } else if (msg.tipo === "padre_a_grupo") {
+                        // Soy padre escribiendo en grupo de hijo -> MORADO
+                        messageColor = 'bg-gradient-to-r from-purple-600 to-purple-700 text-white rounded-br-none';
+                      }
+                    } else {
+                      // Mensaje de otro usuario
+                      if (msg.tipo === "admin_a_grupo") {
+                        // Otro entrenador/admin -> VERDE
+                        messageColor = 'bg-gradient-to-r from-green-600 to-green-700 text-white rounded-bl-none';
+                      } else {
+                        // Padre -> BLANCO
+                        messageColor = 'bg-white text-slate-900 rounded-bl-none';
+                      }
+                    }
                     
                     return (
                       <div key={msg.id} className={`flex ${isMyMessage ? 'justify-end' : 'justify-start'} mb-1`}>
-                        <div className={`max-w-[75%] rounded-lg shadow-sm ${
-                          isMyMessage && currentGroup.tipo === 'entrenador'
-                            ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-br-none'
-                            : isMyMessage && currentGroup.tipo === 'hijo'
-                            ? 'bg-gradient-to-r from-purple-600 to-purple-700 text-white rounded-br-none'
-                            : isOtherAdmin
-                            ? 'bg-gradient-to-r from-green-600 to-green-700 text-white rounded-bl-none'
-                            : 'bg-white text-slate-900 rounded-bl-none'
-                        }`}>
+                        <div className={`max-w-[75%] rounded-lg shadow-sm ${messageColor}`}>
                           <div className="px-3 py-2">
                             <div className="flex items-center gap-2 mb-1">
                               <span className={`text-xs font-semibold ${
-                                isMyMessage && currentGroup.tipo === 'entrenador' ? 'text-blue-100' 
-                                : isMyMessage && currentGroup.tipo === 'hijo' ? 'text-purple-100'
-                                : isOtherAdmin ? 'text-green-100' 
+                                isMyMessage && msg.tipo === "admin_a_grupo" ? 'text-blue-100' 
+                                : isMyMessage && msg.tipo === "padre_a_grupo" ? 'text-purple-100'
+                                : msg.tipo === "admin_a_grupo" ? 'text-green-100' 
                                 : 'text-orange-700'
                               }`}>
-                                {isMyMessage && currentGroup.tipo === 'entrenador' ? '🎓 ' 
-                                  : isMyMessage && currentGroup.tipo === 'hijo' ? '👨‍👩‍👧 '
-                                  : isOtherAdmin ? '📢 ' 
+                                {isMyMessage && msg.tipo === "admin_a_grupo" ? '🎓 ' 
+                                  : isMyMessage && msg.tipo === "padre_a_grupo" ? '👨‍👩‍👧 '
+                                  : msg.tipo === "admin_a_grupo" ? '📢 ' 
                                   : '👨‍👩‍👧 '}{msg.remitente_nombre}
                               </span>
                               {msg.prioridad !== "Normal" && (
@@ -502,9 +517,9 @@ export default function CoachChat() {
                             
                             <div className="flex items-center justify-end gap-1 mt-1">
                               <span className={`text-[10px] ${
-                                isMyMessage && currentGroup.tipo === 'entrenador' ? 'text-blue-100'
-                                : isMyMessage && currentGroup.tipo === 'hijo' ? 'text-purple-100'
-                                : isOtherAdmin ? 'text-green-100' 
+                                isMyMessage && msg.tipo === "admin_a_grupo" ? 'text-blue-100'
+                                : isMyMessage && msg.tipo === "padre_a_grupo" ? 'text-purple-100'
+                                : msg.tipo === "admin_a_grupo" ? 'text-green-100' 
                                 : 'text-slate-500'
                               }`}>
                                 {format(new Date(msg.created_date), "HH:mm")}
