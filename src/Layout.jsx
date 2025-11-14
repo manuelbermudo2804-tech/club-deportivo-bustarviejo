@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { createPageUrl } from "@/utils";
@@ -9,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 
 import NotificationBadge from "./components/NotificationBadge";
-import SessionManager from "./components/SessionManager"; // Added import
+import SessionManager from "./components/SessionManager";
 
 const CLUB_LOGO_URL = "https://www.cdbustarviejo.com/uploads/2/4/0/4/2404974/logo-cd-bustarviejo-cuadrado-xpeq_orig.png";
 
@@ -40,7 +39,6 @@ const getPeriodType = () => {
 
 function ClosedSeasonScreen({ user, isAdmin }) {
   const handleLogout = () => {
-    localStorage.removeItem("current_user_id"); // Added localStorage cleanup
     base44.auth.logout();
   };
 
@@ -147,7 +145,6 @@ function ClosedSeasonScreen({ user, isAdmin }) {
 
 function InscriptionPeriodScreen({ user, isAdmin }) {
   const handleLogout = () => {
-    localStorage.removeItem("current_user_id"); // Added localStorage cleanup
     base44.auth.logout();
   };
 
@@ -292,7 +289,6 @@ function InscriptionPeriodScreen({ user, isAdmin }) {
 
 function VacationPeriodScreen({ user, isAdmin }) {
   const handleLogout = () => {
-    localStorage.removeItem("current_user_id"); // Added localStorage cleanup
     base44.auth.logout();
   };
 
@@ -381,7 +377,6 @@ function VacationPeriodScreen({ user, isAdmin }) {
 
 function RestrictedAccessScreen({ user, restriction }) {
   const handleLogout = () => {
-    localStorage.removeItem("current_user_id"); // Added localStorage cleanup
     base44.auth.logout();
   };
 
@@ -667,7 +662,7 @@ export default function Layout({ children, currentPageName }) {
     };
 
     checkPendingCallups();
-    const interval = setInterval(checkPendingCallups, 10000); // Check every 10 seconds
+    const interval = setInterval(checkPendingCallups, 10000);
     
     return () => clearInterval(interval);
   }, [user, isAdmin, isPlayer, hasPlayers]);
@@ -742,13 +737,12 @@ export default function Layout({ children, currentPageName }) {
   }
 
   const handleLogout = () => {
-    localStorage.removeItem("current_user_id"); // Added localStorage cleanup
     base44.auth.logout();
   };
 
   return (
     <>
-      <SessionManager /> {/* Added SessionManager component */}
+      <SessionManager />
       <NotificationBadge />
       
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">

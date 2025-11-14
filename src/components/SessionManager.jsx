@@ -1,62 +1,28 @@
-import { useEffect, useRef } from "react";
-import { useQueryClient } from "@tanstack/react-query";
-import { base44 } from "@/api/base44Client";
+import { useEffect } from "react";
 
 export default function SessionManager() {
-  const queryClient = useQueryClient();
-  const isCheckingRef = useRef(false);
-  const hasReloadedRef = useRef(false);
-
   useEffect(() => {
-    const checkSession = async () => {
-      // Evitar múltiples verificaciones simultáneas
-      if (isCheckingRef.current || hasReloadedRef.current) return;
+    // Al cargar la app, limpiar cualquier dato viejo de sesiones anteriores
+    const cleanupOldSessions = () => {
+      // Solo limpiamos cosas específicas que podrían causar conflictos
+      // NO tocamos el localStorage del auth que maneja Base44
+      const itemsToCheck = [
+        'react-query-cache',
+        'lastVisitedPage',
+        'tempData'
+      ];
       
-      isCheckingRef.current = true;
-      
-      try {
-        const currentUser = await base44.auth.me();
-        const storedUserId = localStorage.getItem("current_user_id");
-        
-        // Si hay un usuario diferente al almacenado, limpiar todo y recargar UNA SOLA VEZ
-        if (storedUserId && storedUserId !== currentUser.id) {
-          console.log("🔄 Cambio de usuario detectado, actualizando...");
-          
-          // Marcar que vamos a recargar
-          hasReloadedRef.current = true;
-          
-          // Limpiar cache de React Query
-          queryClient.clear();
-          
-          // Actualizar el ID de usuario
-          localStorage.setItem("current_user_id", currentUser.id);
-          
-          // Esperar un momento y recargar
-          setTimeout(() => {
-            window.location.reload();
-          }, 100);
-        } else if (!storedUserId) {
-          // Primera vez que se carga, guardar el usuario
-          localStorage.setItem("current_user_id", currentUser.id);
+      itemsToCheck.forEach(item => {
+        try {
+          localStorage.removeItem(item);
+        } catch (e) {
+          // Ignorar errores silenciosamente
         }
-      } catch (error) {
-        // Si no hay usuario autenticado, limpiar
-        localStorage.removeItem("current_user_id");
-      } finally {
-        isCheckingRef.current = false;
-      }
+      });
     };
 
-    // Verificar al cargar la página
-    checkSession();
-    
-    // Verificar cada 5 segundos (menos agresivo)
-    const interval = setInterval(checkSession, 5000);
-    
-    return () => {
-      clearInterval(interval);
-    };
-  }, [queryClient]);
+    cleanupOldSessions();
+  }, []);
 
   return null;
 }
