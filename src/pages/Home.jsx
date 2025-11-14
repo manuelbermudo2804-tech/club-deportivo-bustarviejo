@@ -19,7 +19,7 @@ export default function Home() {
         const currentUser = await base44.auth.me();
         setUser(currentUser);
         setIsAdmin(currentUser.role === "admin");
-        setIsCoach(currentUser.es_entrenador === true && currentUser.role !== "admin");
+        setIsCoach(currentUser.es_entrenador === true); // CAMBIADO: Ya no excluimos admins
 
         // Check if admin/coach has players
         if (currentUser.role === "admin" || currentUser.es_entrenador) {
