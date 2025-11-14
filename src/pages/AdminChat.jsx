@@ -36,7 +36,7 @@ export default function AdminChat() {
     fetchUser();
   }, []);
 
-  const { data: messages } = useQuery({
+  const { data: messages, refetch: refetchMessages } = useQuery({
     queryKey: ['chatMessages'],
     queryFn: () => base44.entities.ChatMessage.list('-created_date'),
     initialData: [],
@@ -125,13 +125,13 @@ export default function AdminChat() {
         return newMessage;
       }
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['chatMessages'] });
-      queryClient.invalidateQueries({ queryKey: ['photoGallery'] });
+    onSuccess: async () => {
       setMessageContent("");
       setAttachments([]);
       setPriority("Normal");
       setSendToAll(false);
+      await refetchMessages(); // Changed from queryClient.invalidateQueries
+      queryClient.invalidateQueries({ queryKey: ['photoGallery'] }); // Preserve existing functionality
       toast.success(sendToAll ? "Anuncio enviado a todos los grupos" : "Mensaje enviado");
     },
   });

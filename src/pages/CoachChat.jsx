@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -31,7 +32,7 @@ export default function CoachChat() {
     fetchUser();
   }, []);
 
-  const { data: messages, isLoading: loadingMessages } = useQuery({
+  const { data: messages, isLoading: loadingMessages, refetch: refetchMessages } = useQuery({
     queryKey: ['chatMessages'],
     queryFn: () => base44.entities.ChatMessage.list('-created_date'),
     initialData: [],
@@ -68,7 +69,6 @@ export default function CoachChat() {
         await base44.entities.PhotoGallery.create(albumData);
       }
 
-      // Enviar emails si es prioritario Y es mensaje como entrenador
       if ((messageData.prioridad === "Importante" || messageData.prioridad === "Urgente") && messageData.tipo === "admin_a_grupo") {
         const groupPlayers = allPlayers.filter(p => p.deporte === messageData.deporte);
         const parentEmails = [...new Set(groupPlayers.map(p => p.email_padre).filter(Boolean))];
@@ -87,12 +87,11 @@ export default function CoachChat() {
       
       return newMessage;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['chatMessages'] });
-      queryClient.invalidateQueries({ queryKey: ['photoGallery'] });
+    onSuccess: async () => {
       setMessageContent("");
       setAttachments([]);
       setPriority("Normal");
+      await refetchMessages(); // Changed from queryClient.invalidateQueries
       toast.success("Mensaje enviado");
     },
   });
@@ -117,14 +116,12 @@ export default function CoachChat() {
     return normalized;
   };
 
-  // Get groups that coach has access to
   const getCoachGroups = () => {
     if (!user) return [];
     
     const groups = [];
     const categoriesCoached = user.categorias_entrena || [];
     
-    // 1. Grupos que entrena el coach
     categoriesCoached.forEach(categoria => {
       const deporteNormalizado = normalizeDeporte(categoria);
       if (deporteNormalizado) {
@@ -152,7 +149,6 @@ export default function CoachChat() {
       }
     });
     
-    // 2. Grupos de sus hijos (si tiene)
     const myKids = allPlayers.filter(p => 
       p.email_padre === user.email || p.email_tutor_2 === user.email
     );
@@ -189,7 +185,6 @@ export default function CoachChat() {
 
   const myGroups = getCoachGroups();
 
-  // Filter groups by search
   const filteredGroups = myGroups.filter(group =>
     group.deporte.toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -204,7 +199,6 @@ export default function CoachChat() {
     if (selectedTab) {
       const group = myGroups.find(g => g.id === selectedTab);
       if (group) {
-        // Mark as read depending on group type
         const unreadMessageIds = group.messages
           .filter(msg => {
             if (group.tipo === 'entrenador') {
@@ -489,9 +483,8 @@ export default function CoachChat() {
               <div ref={messagesEndRef} />
             </div>
 
-            {/* Input Area - Ahora disponible para AMBOS tipos de grupos */}
+            {/* Input Area - Disponible para TODOS los grupos */}
             <div className="bg-white border-t p-3">
-              {/* Attachments Preview */}
               {attachments.length > 0 && (
                 <div className="mb-2 flex flex-wrap gap-2">
                   {attachments.map((att, index) => (
@@ -508,7 +501,6 @@ export default function CoachChat() {
                 </div>
               )}
 
-              {/* Priority Selector - Solo para grupos que entrena */}
               {currentGroup.tipo === 'entrenador' && (
                 <div className="mb-2">
                   <Select value={priority} onValueChange={setPriority}>
@@ -524,7 +516,6 @@ export default function CoachChat() {
                 </div>
               )}
 
-              {/* Message Input */}
               <div className="flex gap-2 items-end">
                 <FileAttachmentButton
                   onFileUploaded={handleFileUploaded}
@@ -554,7 +545,6 @@ export default function CoachChat() {
                 </Button>
               </div>
 
-              {/* Info message for parent groups */}
               {currentGroup.tipo === 'hijo' && (
                 <p className="text-xs text-slate-500 mt-2 text-center">
                   👨‍👩‍👧 Escribiendo como padre en el chat de tus hijos
