@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -23,8 +23,23 @@ const UBICACION_MAPS_URL = "https://www.google.com/maps/place/Campo+de+F%C3%BAtb
 export default function TrainingSchedules() {
   const [showForm, setShowForm] = useState(false);
   const [editingSchedule, setEditingSchedule] = useState(null);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [isCoach, setIsCoach] = useState(false);
   
   const queryClient = useQueryClient();
+
+  useEffect(() => {
+    const checkPermissions = async () => {
+      try {
+        const user = await base44.auth.me();
+        setIsAdmin(user.role === "admin");
+        setIsCoach(user.es_entrenador === true);
+      } catch (error) {
+        console.error("Error checking permissions:", error);
+      }
+    };
+    checkPermissions();
+  }, []);
 
   const { data: schedules, isLoading } = useQuery({
     queryKey: ['trainingSchedules'],
@@ -93,23 +108,30 @@ export default function TrainingSchedules() {
     schedulesByCategory[categoria].sort((a, b) => DIAS_ORDEN[a.dia_semana] - DIAS_ORDEN[b.dia_semana]);
   });
 
+  // Check if user can edit (only admin or coach)
+  const canEdit = isAdmin || isCoach;
+
   return (
     <div className="p-6 lg:p-8 space-y-6">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <h1 className="text-3xl font-bold text-slate-900">Horarios de Entrenamientos</h1>
-          <p className="text-slate-600 mt-1">Gestiona los horarios de entrenamientos por categoría</p>
+          <p className="text-slate-600 mt-1">
+            {canEdit ? "Gestiona los horarios de entrenamientos por categoría" : "Consulta los horarios de entrenamientos"}
+          </p>
         </div>
-        <Button
-          onClick={() => {
-            setEditingSchedule(null);
-            setShowForm(!showForm);
-          }}
-          className="bg-orange-600 hover:bg-orange-700 shadow-lg"
-        >
-          <Plus className="w-5 h-5 mr-2" />
-          Nuevo Horario
-        </Button>
+        {canEdit && (
+          <Button
+            onClick={() => {
+              setEditingSchedule(null);
+              setShowForm(!showForm);
+            }}
+            className="bg-orange-600 hover:bg-orange-700 shadow-lg"
+          >
+            <Plus className="w-5 h-5 mr-2" />
+            Nuevo Horario
+          </Button>
+        )}
       </div>
 
       {/* Ubicación del Campo */}
@@ -180,7 +202,7 @@ export default function TrainingSchedules() {
 
       {/* Form */}
       <AnimatePresence>
-        {showForm && (
+        {showForm && canEdit && (
           <TrainingScheduleForm
             schedule={editingSchedule}
             onSubmit={handleSubmit}
@@ -203,7 +225,9 @@ export default function TrainingSchedules() {
           <CardContent className="py-12 text-center">
             <Clock className="w-16 h-16 text-slate-300 mx-auto mb-4" />
             <p className="text-slate-500 text-lg">No hay horarios registrados</p>
-            <p className="text-sm text-slate-400 mt-2">Haz clic en "Nuevo Horario" para añadir uno</p>
+            {canEdit && (
+              <p className="text-sm text-slate-400 mt-2">Haz clic en "Nuevo Horario" para añadir uno</p>
+            )}
           </CardContent>
         </Card>
       ) : (
@@ -234,24 +258,26 @@ export default function TrainingSchedules() {
                             </Badge>
                           )}
                         </div>
-                        <div className="flex gap-1">
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            onClick={() => handleEdit(schedule)}
-                            className="h-8 w-8 p-0"
-                          >
-                            ✏️
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            onClick={() => handleDelete(schedule)}
-                            className="h-8 w-8 p-0 text-red-600 hover:text-red-700"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </Button>
-                        </div>
+                        {canEdit && (
+                          <div className="flex gap-1">
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => handleEdit(schedule)}
+                              className="h-8 w-8 p-0"
+                            >
+                              ✏️
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => handleDelete(schedule)}
+                              className="h-8 w-8 p-0 text-red-600 hover:text-red-700"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          </div>
+                        )}
                       </div>
 
                       <div className="space-y-2 text-sm">
