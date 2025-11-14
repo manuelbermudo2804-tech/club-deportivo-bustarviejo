@@ -17,6 +17,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import ExportButton from "../components/ExportButton";
 
 import CallupForm from "../components/callups/CallupForm";
 import CallupCard from "../components/callups/CallupCard";
@@ -27,7 +29,8 @@ export default function CoachCallups() {
   const [user, setUser] = useState(null);
   const [coachCategories, setCoachCategories] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState("");
-  
+  const [statusFilter, setStatusFilter] = useState("all");
+
   const queryClient = useQueryClient();
 
   useEffect(() => {
@@ -282,6 +285,27 @@ Email alternativo: CDBUSTARVIEJO@GMAIL.COM
   const today = new Date().toISOString().split('T')[0];
   const upcomingCallups = myCallups.filter(c => c.fecha_partido >= today && !c.cerrada);
 
+  // Filter by status
+  const filteredByStatus = statusFilter === "all" 
+    ? upcomingCallups 
+    : upcomingCallups.filter(c => c.publicada === (statusFilter === "published"));
+
+  const prepareExportData = () => {
+    return filteredByStatus.map(c => ({
+      Titulo: c.titulo,
+      Tipo: c.tipo,
+      Categoria: c.categoria,
+      Fecha: c.fecha_partido,
+      Hora: c.hora_partido,
+      Ubicacion: c.ubicacion,
+      Rival: c.rival || '-',
+      Convocados: c.jugadores_convocados.length,
+      Confirmados: c.jugadores_convocados.filter(j => j.confirmacion === "asistire").length,
+      Pendientes: c.jugadores_convocados.filter(j => j.confirmacion === "pendiente").length,
+      Estado: c.publicada ? 'Publicada' : 'Borrador'
+    }));
+  };
+
   // Calculate stats
   const totalConfirmed = upcomingCallups.reduce((acc, c) => {
     return acc + c.jugadores_convocados.filter(j => j.confirmacion === "asistire").length;
@@ -321,14 +345,22 @@ Email alternativo: CDBUSTARVIEJO@GMAIL.COM
               : `Gestiona las convocatorias de tus equipos`}
           </p>
         </div>
-        <Button
-          onClick={handleNewCallup}
-          className="bg-orange-600 hover:bg-orange-700 shadow-lg"
-          disabled={!canCreateCallup}
-        >
-          <Plus className="w-5 h-5 mr-2" />
-          Nueva Convocatoria
-        </Button>
+        <div className="flex gap-2">
+          {filteredByStatus.length > 0 && (
+            <ExportButton 
+              data={prepareExportData()} 
+              filename={`convocatorias_${selectedCategory.replace(/\s+/g, '_')}`}
+            />
+          )}
+          <Button
+            onClick={handleNewCallup}
+            className="bg-orange-600 hover:bg-orange-700 shadow-lg"
+            disabled={!canCreateCallup}
+          >
+            <Plus className="w-5 h-5 mr-2" />
+            Nueva Convocatoria
+          </Button>
+        </div>
       </div>
 
       {/* Category selector for coaches with multiple categories */}
@@ -403,6 +435,14 @@ Email alternativo: CDBUSTARVIEJO@GMAIL.COM
         </Card>
       </div>
 
+      <Tabs value={statusFilter} onValueChange={setStatusFilter} className="mt-4">
+        <TabsList>
+          <TabsTrigger value="all">Todas</TabsTrigger>
+          <TabsTrigger value="published">Publicadas</TabsTrigger>
+          <TabsTrigger value="draft">Borradores</TabsTrigger>
+        </TabsList>
+      </Tabs>
+
       <AnimatePresence mode="wait">
         {showForm && canCreateCallup && (
           <CallupForm
@@ -420,12 +460,12 @@ Email alternativo: CDBUSTARVIEJO@GMAIL.COM
       </AnimatePresence>
 
       {/* Upcoming Callups */}
-      {upcomingCallups.length > 0 ? (
+      {filteredByStatus.length > 0 ? (
         <div className="space-y-4">
           <h2 className="text-2xl font-bold text-slate-900">Próximas Convocatorias</h2>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <AnimatePresence>
-              {upcomingCallups.map((callup) => (
+              {filteredByStatus.map((callup) => (
                 <CallupCard
                   key={callup.id}
                   callup={callup}
@@ -440,7 +480,7 @@ Email alternativo: CDBUSTARVIEJO@GMAIL.COM
       ) : (
         <div className="text-center py-12 bg-white rounded-xl shadow-lg">
           <div className="text-6xl mb-4">🏆</div>
-          <p className="text-slate-500 text-lg mb-4">No hay convocatorias próximas</p>
+          <p className="text-slate-500 text-lg mb-4">No hay convocatorias {statusFilter === "published" ? "publicadas" : statusFilter === "draft" ? "borradores" : "próximas"}</p>
           <Button onClick={handleNewCallup} className="bg-orange-600 hover:bg-orange-700" disabled={!canCreateCallup}>
             <Plus className="w-4 h-4 mr-2" />
             Crear Primera Convocatoria

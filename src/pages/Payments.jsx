@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import PaymentForm from "../components/payments/PaymentForm";
 import PaymentTable from "../components/payments/PaymentTable";
 import PaymentStats from "../components/payments/PaymentStats";
+import ExportButton from "../components/ExportButton";
 
 export default function Payments() {
   const location = useLocation(); // Hook to get current URL location
@@ -133,6 +134,20 @@ export default function Payments() {
     ? players.find(p => p.id === playerFilter)
     : null;
 
+  const prepareExportData = () => {
+    return filteredPayments.map(p => ({
+      Jugador: p.jugador_nombre,
+      Tipo: p.tipo_pago,
+      Mes: p.mes,
+      Temporada: p.temporada,
+      Cantidad: `${p.cantidad}€`,
+      Estado: p.estado,
+      Metodo: p.metodo_pago,
+      'Fecha Pago': p.fecha_pago || '-',
+      'Tiene Justificante': p.justificante_url ? 'Sí' : 'No'
+    }));
+  };
+
   return (
     <div className="p-6 lg:p-8 space-y-6">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
@@ -141,7 +156,7 @@ export default function Payments() {
           <p className="text-slate-600 mt-1">
             {isAdmin ? "Gestión de pagos y cobros de temporada" : isCoach ? "Pagos de mis hijos" : "Gestión de pagos"}
           </p>
-          {filteredPlayer && ( // Only show filter badge if a specific player is selected
+          {filteredPlayer && (
             <div className="flex items-center gap-2 mt-3">
               <Badge className="bg-orange-100 text-orange-700 text-sm py-1">
                 Filtrando por: {filteredPlayer.nombre}
@@ -150,8 +165,7 @@ export default function Payments() {
                 variant="ghost"
                 size="sm"
                 onClick={() => {
-                  setPlayerFilter("all"); // Reset player filter to "all"
-                  // Remove jugador_id from URL if present
+                  setPlayerFilter("all");
                   window.history.pushState({}, '', window.location.pathname);
                 }}
                 className="h-7 px-2 hover:bg-slate-100"
@@ -161,18 +175,26 @@ export default function Payments() {
             </div>
           )}
         </div>
-        {canRegisterPayments && ( // Only show "Registrar Pago" button if user can register payments
-          <Button
-            onClick={() => {
-              setEditingPayment(null);
-              setShowForm(!showForm);
-            }}
-            className="bg-orange-600 hover:bg-orange-700 shadow-lg"
-          >
-            <Plus className="w-5 h-5 mr-2" />
-            Registrar Pago
-          </Button>
-        )}
+        <div className="flex gap-2">
+          {(isAdmin || isCoach) && filteredPayments.length > 0 && (
+            <ExportButton
+              data={prepareExportData()}
+              filename="pagos_club"
+            />
+          )}
+          {canRegisterPayments && (
+            <Button
+              onClick={() => {
+                setEditingPayment(null);
+                setShowForm(!showForm);
+              }}
+              className="bg-orange-600 hover:bg-orange-700 shadow-lg"
+            >
+              <Plus className="w-5 h-5 mr-2" />
+              Registrar Pago
+            </Button>
+          )}
+        </div>
       </div>
 
       <PaymentStats payments={filteredPayments} />
