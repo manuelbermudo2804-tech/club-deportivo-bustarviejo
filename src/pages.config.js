@@ -30,6 +30,7 @@ import ParentCallups from './pages/ParentCallups';
 import PlayerCallups from './pages/PlayerCallups';
 import CoachChat from './pages/CoachChat';
 import TeamRosters from './pages/TeamRosters';
+import CoachAttendance from './pages/CoachAttendance';
 import Layout from './Layout.jsx';
 
 
@@ -66,6 +67,7 @@ export const PAGES = {
     "PlayerCallups": PlayerCallups,
     "CoachChat": CoachChat,
     "TeamRosters": TeamRosters,
+    "CoachAttendance": CoachAttendance,
 }
 
 export const pagesConfig = {

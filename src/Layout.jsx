@@ -727,6 +727,7 @@ export default function Layout({ children, currentPageName }) {
     { title: "Inicio", url: createPageUrl("Home"), icon: Home },
     { title: "Mis Hijos", url: createPageUrl("Players"), icon: Users },
     { title: "🎓 Plantillas", url: createPageUrl("TeamRosters"), icon: Users },
+    { title: "✅ Asistencia", url: createPageUrl("CoachAttendance"), icon: CheckCircle2 },
     { title: "Horarios", url: createPageUrl("TrainingSchedules"), icon: Clock },
     { title: "Calendario", url: createPageUrl("Calendar"), icon: Calendar },
     { title: "Anuncios", url: createPageUrl("Announcements"), icon: Megaphone },
