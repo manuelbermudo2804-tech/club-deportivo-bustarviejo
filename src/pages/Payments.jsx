@@ -16,6 +16,7 @@ export default function Payments() {
   const location = useLocation();
   const urlParams = new URLSearchParams(location.search);
   const jugadorIdFromUrl = urlParams.get('jugador_id');
+  const autoRegister = urlParams.get('register') === 'true';
 
   const [showForm, setShowForm] = useState(false);
   const [editingPayment, setEditingPayment] = useState(null);
@@ -56,6 +57,13 @@ export default function Payments() {
     };
     checkUserRoleAndPlayers();
   }, []);
+
+  useEffect(() => {
+    if (autoRegister && (isAdmin || (isCoach && myPlayers.length > 0))) {
+      setShowForm(true);
+      window.history.replaceState({}, '', window.location.pathname);
+    }
+  }, [autoRegister, isAdmin, isCoach, myPlayers.length]);
 
   const { data: payments, isLoading } = useQuery({
     queryKey: ['payments'],

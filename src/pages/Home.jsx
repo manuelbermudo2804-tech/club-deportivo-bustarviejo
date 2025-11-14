@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
@@ -169,7 +170,7 @@ export default function Home() {
       {
         title: "Pagos",
         icon: CreditCard,
-        url: createPageUrl("Payments"),
+        url: isCoach && hasPlayers ? createPageUrl("Payments") + "?register=true" : createPageUrl("Payments"),
         gradient: "from-orange-600 to-red-700",
         badge: pendingPayments,
         badgeLabel: "pendientes"
