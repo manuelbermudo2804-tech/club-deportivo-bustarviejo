@@ -12,6 +12,7 @@ import NotificationBadge from "./components/NotificationBadge";
 import SessionManager from "./components/SessionManager";
 import GlobalSearch from "./components/GlobalSearch";
 import ThemeToggle from "./components/ThemeToggle"; // Added import
+import NotificationCenter from "./components/NotificationCenter";
 
 const CLUB_LOGO_URL = "https://www.cdbustarviejo.com/uploads/2/4/0/4/2404974/logo-cd-bustarviejo-cuadrado-xpeq_orig.png";
 
@@ -801,12 +802,15 @@ export default function Layout({ children, currentPageName }) {
                 </p>
               </div>
             </div>
-            <button
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="p-2 text-white hover:bg-white/20 rounded-xl transition-colors"
-            >
-              {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-            </button>
+            <div className="flex items-center gap-2">
+              {!isAdmin && !isCoach && <NotificationCenter />}
+              <button
+                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                className="p-2 text-white hover:bg-white/20 rounded-xl transition-colors"
+              >
+                {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+              </button>
+            </div>
           </div>
         </header>
 
@@ -865,6 +869,7 @@ export default function Layout({ children, currentPageName }) {
                     <GlobalSearch isAdmin={isAdmin} isCoach={isCoach} />
                   </div>
                 )}
+                {!isAdmin && !isCoach && <NotificationCenter />}
                 <ThemeToggle /> {/* Added ThemeToggle */}
               </div>
           </div>

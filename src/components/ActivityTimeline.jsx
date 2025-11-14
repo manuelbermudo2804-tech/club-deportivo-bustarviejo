@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
-import { Users, CreditCard, Bell, Calendar, MessageCircle, UserPlus, CheckCircle2 } from "lucide-react";
+import { Users, CreditCard, Bell, Calendar, MessageCircle, UserPlus, CheckCircle2, Clock } from "lucide-react";
 
 export default function ActivityTimeline({ activities }) {
   const getActivityIcon = (type) => {

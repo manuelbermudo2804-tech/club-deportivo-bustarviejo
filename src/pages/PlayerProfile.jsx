@@ -3,8 +3,11 @@ import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { User, Calendar, MapPin, Phone, Mail, Trophy, Clock } from "lucide-react";
+import { User, Calendar, MapPin, Phone, Mail, Trophy, Clock, TrendingUp, Target, Award } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar } from "recharts";
+import { format } from "date-fns";
+import { es } from "date-fns/locale";
 
 export default function PlayerProfile() {
   const { data: user } = useQuery({
@@ -13,12 +16,12 @@ export default function PlayerProfile() {
   });
 
   const { data: player, isLoading } = useQuery({
-    queryKey: ['myPlayerProfile', user?.jugador_id],
+    queryKey: ['myPlayerProfile', user?.email],
     queryFn: async () => {
       const allPlayers = await base44.entities.Player.list();
-      return allPlayers.find(p => p.id === user?.jugador_id) || null;
+      return allPlayers.find(p => p.email_jugador === user?.email) || null;
     },
-    enabled: !!user?.jugador_id,
+    enabled: !!user?.email,
   });
 
   const { data: schedules } = useQuery({
@@ -27,6 +30,99 @@ export default function PlayerProfile() {
     enabled: !!player?.deporte,
     select: (data) => data.filter(s => s.categoria === player?.deporte && s.activo),
   });
+
+  const { data: attendances } = useQuery({
+    queryKey: ['attendances'],
+    queryFn: () => base44.entities.Attendance.list(),
+    initialData: [],
+  });
+
+  const { data: evaluations } = useQuery({
+    queryKey: ['evaluations'],
+    queryFn: () => base44.entities.PlayerEvaluation.list('-fecha_evaluacion'),
+    initialData: [],
+  });
+
+  const { data: callups } = useQuery({
+    queryKey: ['callups'],
+    queryFn: () => base44.entities.Convocatoria.list('-fecha_partido'),
+    initialData: [],
+  });
+
+  const myEvaluations = player ? evaluations.filter(e => 
+    e.jugador_id === player.id && e.visible_para_padres
+  ) : [];
+
+  const myAttendances = player ? attendances.filter(att => 
+    att.asistencias.some(a => a.jugador_id === player.id)
+  ) : [];
+
+  const myCallups = player ? callups.filter(c => 
+    c.jugadores_convocados?.some(j => j.jugador_id === player.id)
+  ) : [];
+
+  // Calculate attendance stats
+  let presente = 0, ausente = 0, justificado = 0;
+  myAttendances.forEach(att => {
+    const record = att.asistencias.find(a => a.jugador_id === player?.id);
+    if (record) {
+      if (record.estado === "presente") presente++;
+      else if (record.estado === "ausente") ausente++;
+      else if (record.estado === "justificado") justificado++;
+    }
+  });
+
+  const totalAttendances = presente + ausente + justificado;
+  const attendancePercentage = totalAttendances > 0 ? ((presente / totalAttendances) * 100).toFixed(0) : 0;
+
+  // Evaluation trends
+  const evaluationTrend = myEvaluations.slice(0, 6).reverse().map(e => ({
+    fecha: format(new Date(e.fecha_evaluacion), "dd/MM", { locale: es }),
+    Promedio: ((e.tecnica + e.tactica + e.fisica + e.actitud + e.trabajo_equipo) / 5).toFixed(1),
+    Técnica: e.tecnica,
+    Táctica: e.tactica,
+    Física: e.fisica,
+    Actitud: e.actitud,
+    Equipo: e.trabajo_equipo
+  }));
+
+  // Latest evaluation radar
+  const latestEval = myEvaluations[0];
+  const radarData = latestEval ? [
+    { skill: "Técnica", value: latestEval.tecnica },
+    { skill: "Táctica", value: latestEval.tactica },
+    { skill: "Física", value: latestEval.fisica },
+    { skill: "Actitud", value: latestEval.actitud },
+    { skill: "Equipo", value: latestEval.trabajo_equipo }
+  ] : [];
+
+  // Monthly attendance data
+  const monthlyAttendance = {};
+  myAttendances.forEach(att => {
+    const month = att.fecha.substring(0, 7);
+    if (!monthlyAttendance[month]) {
+      monthlyAttendance[month] = { presente: 0, ausente: 0, justificado: 0 };
+    }
+    const record = att.asistencias.find(a => a.jugador_id === player?.id);
+    if (record) {
+      if (record.estado === "presente") monthlyAttendance[month].presente++;
+      else if (record.estado === "ausente") monthlyAttendance[month].ausente++;
+      else if (record.estado === "justificado") monthlyAttendance[month].justificado++;
+    }
+  });
+
+  const attendanceChartData = Object.keys(monthlyAttendance).slice(-6).map(month => ({
+    mes: month.substring(5),
+    Presente: monthlyAttendance[month].presente,
+    Ausente: monthlyAttendance[month].ausente,
+    Justificado: monthlyAttendance[month].justificado
+  }));
+
+  // Callup stats
+  const confirmedCallups = myCallups.filter(c => {
+    const myConfirmation = c.jugadores_convocados?.find(j => j.jugador_id === player?.id);
+    return myConfirmation?.confirmacion === "asistire";
+  }).length;
 
   const sportEmojis = {
     "Fútbol Pre-Benjamín (Mixto)": "⚽",
@@ -68,7 +164,7 @@ export default function PlayerProfile() {
     <div className="p-6 lg:p-8 space-y-6">
       <div>
         <h1 className="text-3xl font-bold text-slate-900">Mi Perfil</h1>
-        <p className="text-slate-600 mt-1">Información de tu ficha de jugador</p>
+        <p className="text-slate-600 mt-1">Estadísticas y progreso</p>
       </div>
 
       {/* Card Principal */}
@@ -121,45 +217,109 @@ export default function PlayerProfile() {
                 <p className="font-semibold text-slate-900">{player.tipo_inscripcion}</p>
               </div>
             </div>
-
-            {player.telefono && (
-              <div className="flex items-center gap-3 p-4 bg-slate-50 rounded-xl">
-                <Phone className="w-5 h-5 text-orange-600" />
-                <div>
-                  <p className="text-xs text-slate-500">Teléfono de Contacto</p>
-                  <p className="font-semibold text-slate-900">{player.telefono}</p>
-                </div>
-              </div>
-            )}
-
-            {player.email_jugador && (
-              <div className="flex items-center gap-3 p-4 bg-slate-50 rounded-xl">
-                <Mail className="w-5 h-5 text-orange-600" />
-                <div>
-                  <p className="text-xs text-slate-500">Mi Email</p>
-                  <p className="font-semibold text-slate-900 text-sm">{player.email_jugador}</p>
-                </div>
-              </div>
-            )}
           </div>
-
-          {player.direccion && (
-            <div className="flex items-start gap-3 p-4 bg-slate-50 rounded-xl">
-              <MapPin className="w-5 h-5 text-orange-600 mt-0.5" />
-              <div className="flex-1">
-                <p className="text-xs text-slate-500 mb-1">Dirección</p>
-                <p className="font-semibold text-slate-900">{player.direccion}</p>
-              </div>
-            </div>
-          )}
-
-          {player.observaciones && (
-            <div className="p-4 bg-blue-50 border-l-4 border-blue-500 rounded-lg">
-              <p className="text-sm text-slate-700">{player.observaciones}</p>
-            </div>
-          )}
         </CardContent>
       </Card>
+
+      {/* Stats Cards */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <Card className="border-none shadow-lg bg-gradient-to-br from-green-50 to-green-100">
+          <CardContent className="p-6">
+            <TrendingUp className="w-8 h-8 text-green-600 mb-2" />
+            <div className="text-3xl font-bold text-green-900">{attendancePercentage}%</div>
+            <div className="text-sm text-green-700">Asistencia</div>
+          </CardContent>
+        </Card>
+
+        <Card className="border-none shadow-lg bg-gradient-to-br from-blue-50 to-blue-100">
+          <CardContent className="p-6">
+            <Target className="w-8 h-8 text-blue-600 mb-2" />
+            <div className="text-3xl font-bold text-blue-900">{presente}</div>
+            <div className="text-sm text-blue-700">Entrenamientos</div>
+          </CardContent>
+        </Card>
+
+        <Card className="border-none shadow-lg bg-gradient-to-br from-purple-50 to-purple-100">
+          <CardContent className="p-6">
+            <Award className="w-8 h-8 text-purple-600 mb-2" />
+            <div className="text-3xl font-bold text-purple-900">{myEvaluations.length}</div>
+            <div className="text-sm text-purple-700">Evaluaciones</div>
+          </CardContent>
+        </Card>
+
+        <Card className="border-none shadow-lg bg-gradient-to-br from-orange-50 to-orange-100">
+          <CardContent className="p-6">
+            <Trophy className="w-8 h-8 text-orange-600 mb-2" />
+            <div className="text-3xl font-bold text-orange-900">{confirmedCallups}</div>
+            <div className="text-sm text-orange-700">Convocatorias</div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Charts */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Evaluation Trend */}
+        {evaluationTrend.length > 0 && (
+          <Card className="border-none shadow-xl">
+            <CardHeader>
+              <CardTitle className="text-lg">📈 Evolución de Evaluaciones</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ResponsiveContainer width="100%" height={250}>
+                <LineChart data={evaluationTrend}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="fecha" style={{ fontSize: '12px' }} />
+                  <YAxis domain={[0, 5]} style={{ fontSize: '12px' }} />
+                  <Tooltip />
+                  <Line type="monotone" dataKey="Promedio" stroke="#f97316" strokeWidth={3} />
+                </LineChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Radar Chart - Latest Evaluation */}
+        {radarData.length > 0 && (
+          <Card className="border-none shadow-xl">
+            <CardHeader>
+              <CardTitle className="text-lg">⭐ Última Evaluación</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ResponsiveContainer width="100%" height={250}>
+                <RadarChart data={radarData}>
+                  <PolarGrid />
+                  <PolarAngleAxis dataKey="skill" style={{ fontSize: '12px' }} />
+                  <PolarRadiusAxis domain={[0, 5]} style={{ fontSize: '10px' }} />
+                  <Radar name="Habilidades" dataKey="value" stroke="#f97316" fill="#f97316" fillOpacity={0.6} />
+                  <Tooltip />
+                </RadarChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
+        )}
+      </div>
+
+      {/* Attendance Chart */}
+      {attendanceChartData.length > 0 && (
+        <Card className="border-none shadow-xl">
+          <CardHeader>
+            <CardTitle className="text-lg">📊 Asistencia Mensual</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart data={attendanceChartData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="mes" />
+                <YAxis />
+                <Tooltip />
+                <Bar dataKey="Presente" fill="#16a34a" />
+                <Bar dataKey="Ausente" fill="#dc2626" />
+                <Bar dataKey="Justificado" fill="#3b82f6" />
+              </BarChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Horarios de Entrenamiento */}
       {schedules && schedules.length > 0 && (
@@ -197,19 +357,6 @@ export default function PlayerProfile() {
           </CardContent>
         </Card>
       )}
-
-      {/* Info Card */}
-      <Card className="border-none shadow-lg bg-gradient-to-br from-green-50 to-green-100 border-2 border-green-200">
-        <CardContent className="pt-6">
-          <div className="text-center">
-            <Trophy className="w-12 h-12 text-green-600 mx-auto mb-3" />
-            <p className="text-sm text-green-800 leading-relaxed">
-              <strong>¡Sigue trabajando duro!</strong><br />
-              Cada entrenamiento te acerca más a tus objetivos. 💪⚽
-            </p>
-          </div>
-        </CardContent>
-      </Card>
     </div>
   );
 }
