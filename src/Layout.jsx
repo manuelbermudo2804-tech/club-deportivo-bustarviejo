@@ -494,6 +494,7 @@ export default function Layout({ children, currentPageName }) {
         setIsCoach(currentUser.es_entrenador === true);
         
         // Check if admin/coach has players (to show ParentCallups)
+        // This is for admins/coaches who are also parents and need to confirm callups for their kids
         if (currentUser.role === "admin" || currentUser.es_entrenador) {
           const allPlayers = await base44.entities.Player.list();
           const myPlayers = allPlayers.filter(p => 
@@ -520,7 +521,7 @@ export default function Layout({ children, currentPageName }) {
           }
         }
 
-        // REDIRECT PARENTS TO THEIR DASHBOARD IF THEY'RE ON HOME PAGE
+        // REDIRECT ONLY PARENTS (not coaches, not admins, not players) TO THEIR DASHBOARD IF THEY'RE ON HOME PAGE
         if (currentUser.role !== "admin" && currentUser.role !== "jugador" && !currentUser.es_entrenador && location.pathname === createPageUrl("Home")) {
           navigate(createPageUrl("ParentDashboard"), { replace: true });
         }
@@ -540,7 +541,7 @@ export default function Layout({ children, currentPageName }) {
         let unread = 0;
         let urgent = 0;
         
-        if (isAdmin) {
+        if (isAdmin || isCoach) { // Admins and Coaches can see messages sent by parents/players to groups
           allMessages.forEach(msg => {
             if (!msg.leido && (msg.tipo === "padre_a_grupo" || msg.tipo === "jugador_a_equipo")) {
               unread++;
@@ -551,7 +552,7 @@ export default function Layout({ children, currentPageName }) {
           });
         } else if (isPlayer) {
           const allPlayers = await base44.entities.Player.list();
-          const myPlayer = allPlayers.find(p => p.email === user.email);
+          const myPlayer = allPlayers.find(p => p.email_jugador === user.email);
           
           if (myPlayer) {
             allMessages.forEach(msg => {
@@ -565,7 +566,7 @@ export default function Layout({ children, currentPageName }) {
               }
             });
           }
-        } else {
+        } else { // Parents
           const allPlayers = await base44.entities.Player.list();
           const myPlayers = allPlayers.filter(p => 
             p.email_padre === user.email || p.email_tutor_2 === user.email
@@ -595,7 +596,7 @@ export default function Layout({ children, currentPageName }) {
     const interval = setInterval(checkUnreadMessages, 5000);
     
     return () => clearInterval(interval);
-  }, [user, isAdmin, isPlayer]);
+  }, [user, isAdmin, isPlayer, isCoach]); // Added isCoach to dependencies
 
   useEffect(() => {
     const checkPendingCallups = async () => {
@@ -623,7 +624,7 @@ export default function Layout({ children, currentPageName }) {
               }
             });
           }
-        } else if (!isAdmin) {
+        } else if (!isAdmin && !isCoach) { // Only for parents (not admins, not coaches)
           const allPlayers = await base44.entities.Player.list();
           const myPlayers = allPlayers.filter(p => 
             p.email_padre === user.email || 
@@ -642,7 +643,7 @@ export default function Layout({ children, currentPageName }) {
               });
             }
           });
-        } else if (isAdmin && hasPlayers) {
+        } else if ((isAdmin || isCoach) && hasPlayers) { // Admins or Coaches who also have players associated
           const allPlayers = await base44.entities.Player.list();
           const myPlayers = allPlayers.filter(p => 
             p.email_padre === user.email || 
@@ -673,7 +674,7 @@ export default function Layout({ children, currentPageName }) {
     const interval = setInterval(checkPendingCallups, 10000);
     
     return () => clearInterval(interval);
-  }, [user, isAdmin, isPlayer, hasPlayers]);
+  }, [user, isAdmin, isPlayer, isCoach, hasPlayers]); // Added isCoach to dependencies
 
   if (showSpecialScreen === "restricted") {
     return <RestrictedAccessScreen user={user} restriction={user} />;
@@ -699,7 +700,7 @@ export default function Layout({ children, currentPageName }) {
     ...(hasPlayers ? [{ title: "👨‍👩‍👧 Confirmar Mis Hijos", url: createPageUrl("ParentCallups"), icon: ClipboardCheck, badge: pendingCallupsCount > 0 ? pendingCallupsCount : null }] : []),
     { title: "Pagos", url: createPageUrl("Payments"), icon: CreditCard },
     { title: "Recordatorios", url: createPageUrl("Reminders"), icon: Bell },
-    { title: "Pedidos", url: createPageUrl("ClothingOrders"), icon: ShoppingBag },
+    { title: "Pedidos Ropa", url: createPageUrl("ClothingOrders"), icon: ShoppingBag },
     { title: "Chat", url: createPageUrl("AdminChat"), icon: MessageCircle, badge: unreadMessagesCount > 0 ? unreadMessagesCount : null, urgentBadge: urgentMessagesCount > 0 },
     { title: "Histórico", url: createPageUrl("PaymentHistory"), icon: Archive },
     { title: "Temporadas", url: createPageUrl("SeasonManagement"), icon: Settings },
@@ -717,7 +718,7 @@ export default function Layout({ children, currentPageName }) {
     ...(hasPlayers ? [{ title: "👨‍👩‍👧 Confirmar Mis Hijos", url: createPageUrl("ParentCallups"), icon: ClipboardCheck, badge: pendingCallupsCount > 0 ? pendingCallupsCount : null }] : []),
     { title: "Pagos", url: createPageUrl("Payments"), icon: CreditCard },
     { title: "Recordatorios", url: createPageUrl("Reminders"), icon: Bell },
-    { title: "Pedidos", url: createPageUrl("ClothingOrders"), icon: ShoppingBag },
+    { title: "Pedidos Ropa", url: createPageUrl("ClothingOrders"), icon: ShoppingBag },
     { title: "Chat", url: createPageUrl("AdminChat"), icon: MessageCircle, badge: unreadMessagesCount > 0 ? unreadMessagesCount : null, urgentBadge: urgentMessagesCount > 0 },
     // NO Configuración para entrenadores
   ];
@@ -731,7 +732,7 @@ export default function Layout({ children, currentPageName }) {
     { title: "Galería", url: createPageUrl("ParentGallery"), icon: Image },
     { title: "🏆 Convocatorias", url: createPageUrl("ParentCallups"), icon: Bell, badge: pendingCallupsCount > 0 ? pendingCallupsCount : null, urgentBadge: pendingCallupsCount > 0 },
     { title: "Pagos", url: createPageUrl("ParentPayments"), icon: CreditCard },
-    { title: "Pedidos", url: createPageUrl("ClothingOrders"), icon: ShoppingBag },
+    { title: "Pedidos Ropa", url: createPageUrl("ClothingOrders"), icon: ShoppingBag },
     { title: "Chat", url: createPageUrl("ParentChat"), icon: MessageCircle, badge: unreadMessagesCount > 0 ? unreadMessagesCount : null, urgentBadge: urgentMessagesCount > 0 },
     // NO Configuración para familias
   ];

@@ -71,6 +71,14 @@ export default function PlayerDashboard() {
       gradient: "from-orange-600 to-orange-700",
     },
     {
+      title: "🏆 Convocatorias",
+      icon: ClipboardCheck,
+      url: createPageUrl("PlayerCallups"),
+      gradient: "from-yellow-600 to-yellow-700",
+      badge: pendingCallupsCount(),
+      badgeLabel: "pendientes"
+    },
+    {
       title: "Horarios",
       icon: Clock,
       url: createPageUrl("PlayerSchedules"),
@@ -93,14 +101,6 @@ export default function PlayerDashboard() {
       icon: Image,
       url: createPageUrl("PlayerGallery"),
       gradient: "from-pink-600 to-pink-700",
-    },
-    {
-      title: "🏆 Convocatorias",
-      icon: ClipboardCheck,
-      url: createPageUrl("PlayerCallups"),
-      gradient: "from-yellow-600 to-yellow-700",
-      badge: pendingCallupsCount(),
-      badgeLabel: "pendientes"
     },
     {
       title: "Chat Equipo",

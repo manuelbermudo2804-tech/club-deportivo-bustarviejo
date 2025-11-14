@@ -133,7 +133,7 @@ export default function ParentDashboard() {
       badgeLabel: "pendientes"
     },
     {
-      title: "Pedidos",
+      title: "Pedidos Ropa",
       icon: ShoppingBag,
       url: createPageUrl("ClothingOrders"),
       gradient: "from-teal-600 to-teal-700",
