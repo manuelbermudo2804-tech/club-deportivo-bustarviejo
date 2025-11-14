@@ -197,11 +197,12 @@ export default function CoachChat() {
     return myGroups.find(g => g.id === selectedTab);
   }, [myGroups, selectedTab]);
 
-  useEffect(() => {
-    if (filteredGroups.length > 0 && !selectedTab) {
-      setSelectedTab(filteredGroups[0].id);
-    }
-  }, [filteredGroups.length, selectedTab]);
+  // NO AUTO-SELECT in mobile - let users choose
+  // useEffect(() => {
+  //   if (filteredGroups.length > 0 && !selectedTab) {
+  //     setSelectedTab(filteredGroups[0].id);
+  //   }
+  // }, [filteredGroups.length, selectedTab]);
 
   useEffect(() => {
     if (selectedTab && currentGroup) {
