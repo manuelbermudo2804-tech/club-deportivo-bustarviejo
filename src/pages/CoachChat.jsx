@@ -197,7 +197,7 @@ export default function CoachChat() {
     if (filteredGroups.length > 0 && !selectedTab) {
       setSelectedTab(filteredGroups[0].id);
     }
-  }, [filteredGroups.length, selectedTab]); // Added selectedTab to dependency array
+  }, [filteredGroups.length, selectedTab]);
 
   useEffect(() => {
     if (selectedTab) {
@@ -218,7 +218,7 @@ export default function CoachChat() {
         }
       }
     }
-  }, [selectedTab, myGroups, markAsReadMutation]); // Added myGroups and markAsReadMutation to dependency array
+  }, [selectedTab, myGroups, markAsReadMutation]);
 
   const isBusinessHours = () => {
     const now = new Date();
@@ -443,8 +443,8 @@ export default function CoachChat() {
                   .sort((a, b) => new Date(a.created_date) - new Date(b.created_date))
                   .map((msg) => {
                     const isMyMessage = msg.remitente_email === user?.email;
-                    const isAdmin = msg.tipo === "admin_a_grupo";
-                    // const isPadre = msg.tipo === "padre_a_grupo"; // This variable is not used
+                    const isAdmin = msg.tipo === "admin_a_grupo" && !isMyMessage;
+                    const isPadre = msg.tipo === "padre_a_grupo";
                     
                     return (
                       <div
@@ -453,8 +453,10 @@ export default function CoachChat() {
                       >
                         <div
                           className={`max-w-[75%] rounded-lg shadow-sm ${
-                            isMyMessage
+                            isMyMessage && currentGroup.tipo === 'entrenador'
                               ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-br-none'
+                              : isMyMessage && currentGroup.tipo === 'hijo'
+                              ? 'bg-gradient-to-r from-purple-600 to-purple-700 text-white rounded-br-none'
                               : isAdmin
                               ? 'bg-gradient-to-r from-green-600 to-green-700 text-white rounded-bl-none'
                               : 'bg-white text-slate-900 rounded-bl-none'
@@ -463,9 +465,15 @@ export default function CoachChat() {
                           <div className="px-3 py-2">
                             <div className="flex items-center gap-2 mb-1">
                               <span className={`text-xs font-semibold ${
-                                isMyMessage ? 'text-blue-100' : isAdmin ? 'text-green-100' : 'text-orange-700'
+                                isMyMessage && currentGroup.tipo === 'entrenador' ? 'text-blue-100' 
+                                : isMyMessage && currentGroup.tipo === 'hijo' ? 'text-purple-100'
+                                : isAdmin ? 'text-green-100' 
+                                : 'text-orange-700'
                               }`}>
-                                {isMyMessage ? '🎓 ' : isAdmin ? '📢 ' : '👨‍👩‍👧 '}{msg.remitente_nombre}
+                                {isMyMessage && currentGroup.tipo === 'entrenador' ? '🎓 ' 
+                                  : isMyMessage && currentGroup.tipo === 'hijo' ? '👨‍👩‍👧 '
+                                  : isAdmin ? '📢 ' 
+                                  : '👨‍👩‍👧 '}{msg.remitente_nombre}
                               </span>
                               {msg.prioridad !== "Normal" && (
                                 <span className="text-xs">{msg.prioridad === "Urgente" ? "🔴" : "⚠️"}</span>
@@ -481,7 +489,10 @@ export default function CoachChat() {
                             
                             <div className="flex items-center justify-end gap-1 mt-1">
                               <span className={`text-[10px] ${
-                                isMyMessage ? 'text-blue-100' : isAdmin ? 'text-green-100' : 'text-slate-500'
+                                isMyMessage && currentGroup.tipo === 'entrenador' ? 'text-blue-100'
+                                : isMyMessage && currentGroup.tipo === 'hijo' ? 'text-purple-100'
+                                : isAdmin ? 'text-green-100' 
+                                : 'text-slate-500'
                               }`}>
                                 {format(new Date(msg.created_date), "HH:mm")}
                               </span>
