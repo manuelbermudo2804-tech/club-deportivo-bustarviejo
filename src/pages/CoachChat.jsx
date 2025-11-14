@@ -91,6 +91,7 @@ export default function CoachChat() {
       setAttachments([]);
       setPriority("Normal");
       await refetchMessages();
+      queryClient.invalidateQueries({ queryKey: ['chatMessages'] });
       toast.success("Mensaje enviado");
     },
   });
@@ -299,17 +300,18 @@ export default function CoachChat() {
   }
 
   const currentGroup = myGroups.find(g => g.id === selectedTab);
-  const businessHours = isBusinessHours();
 
   return (
-    <div className="h-screen flex bg-white">
+    <div className="h-screen flex flex-col md:flex-row bg-white">
       {/* Lista de Grupos - Sidebar */}
       <div className={`w-full md:w-96 bg-white border-r border-slate-200 flex flex-col ${selectedTab ? 'hidden md:flex' : 'flex'}`}>
+        {/* Header */}
         <div className="bg-gradient-to-r from-blue-600 to-blue-700 p-4 text-white">
           <h1 className="text-xl font-bold mb-1">🎓 Chats Entrenador</h1>
           <p className="text-xs text-blue-100">Tus equipos y grupos familiares</p>
         </div>
 
+        {/* Search */}
         <div className="p-3 bg-slate-50 border-b">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
@@ -322,6 +324,7 @@ export default function CoachChat() {
           </div>
         </div>
 
+        {/* Lista de Grupos */}
         <div className="flex-1 overflow-y-auto">
           {filteredGroups.map(group => {
             const lastMsg = group.messages.sort((a, b) => 
@@ -382,10 +385,11 @@ export default function CoachChat() {
       </div>
 
       {/* Área de Chat */}
-      <div className={`flex-1 flex flex-col ${!selectedTab ? 'hidden md:flex' : 'flex'}`}>
+      <div className={`flex-1 flex flex-col ${!selectedTab ? 'hidden md:flex' : 'flex'} min-h-0`}>
         {currentGroup ? (
           <>
-            <div className={`p-4 text-white flex items-center gap-3 shadow-md ${
+            {/* Header del Chat */}
+            <div className={`p-4 text-white flex items-center gap-3 shadow-md flex-shrink-0 ${
               currentGroup.tipo === 'entrenador'
                 ? 'bg-gradient-to-r from-blue-600 to-blue-700'
                 : 'bg-gradient-to-r from-orange-600 to-orange-700'
@@ -405,14 +409,15 @@ export default function CoachChat() {
                   {currentGroup.tipo === 'entrenador' ? '🎓 Entrenas este equipo' : '👨‍👩‍👧 Chat de tus hijos'}
                 </p>
               </div>
-              {!businessHours && (
-                <Badge className="bg-white/20 text-white text-xs hidden md:flex items-center">
+              {!isBusinessHours() && (
+                <Badge className="bg-white/20 text-white text-xs">
                   <Clock className="w-3 h-3 mr-1" />
                   Fuera de horario
                 </Badge>
               )}
             </div>
 
+            {/* Mensajes */}
             <div 
               className="flex-1 overflow-y-auto p-4 space-y-2"
               style={{
@@ -484,7 +489,8 @@ export default function CoachChat() {
               <div ref={messagesEndRef} />
             </div>
 
-            <div className="bg-white border-t p-3">
+            {/* Input Area */}
+            <div className="bg-white border-t p-3 flex-shrink-0">
               {attachments.length > 0 && (
                 <div className="mb-2 flex flex-wrap gap-2">
                   {attachments.map((att, index) => (
@@ -516,25 +522,16 @@ export default function CoachChat() {
                 </div>
               )}
 
-              {!businessHours && (
-                <div className="mb-2 bg-orange-50 border border-orange-200 rounded-lg p-2 text-center">
-                  <p className="text-xs text-orange-700">
-                    <Clock className="w-3 h-3 inline mr-1" />
-                    Horario de chat: 10:00 - 20:00
-                  </p>
-                </div>
-              )}
-
               <div className="flex gap-2 items-end">
                 <FileAttachmentButton
                   onFileUploaded={handleFileUploaded}
-                  disabled={!businessHours || sendMessageMutation.isPending}
+                  disabled={!isBusinessHours() || sendMessageMutation.isPending}
                 />
                 
                 <Input
                   value={messageContent}
                   onChange={(e) => setMessageContent(e.target.value)}
-                  placeholder={businessHours ? "Escribe un mensaje..." : "Horario: 10:00 - 20:00"}
+                  placeholder={isBusinessHours() ? "Escribe un mensaje..." : "Horario: 10:00 - 20:00"}
                   className="flex-1 rounded-full"
                   onKeyDown={(e) => {
                     if (e.key === 'Enter' && !e.shiftKey) {
@@ -542,13 +539,13 @@ export default function CoachChat() {
                       handleSendMessage();
                     }
                   }}
-                  disabled={!businessHours}
+                  disabled={!isBusinessHours()}
                 />
                 
                 <Button
                   onClick={handleSendMessage}
-                  disabled={(!messageContent.trim() && attachments.length === 0) || sendMessageMutation.isPending || !businessHours}
-                  className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 rounded-full w-10 h-10 p-0 flex items-center justify-center shadow-lg"
+                  disabled={(!messageContent.trim() && attachments.length === 0) || sendMessageMutation.isPending || !isBusinessHours()}
+                  className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 rounded-full w-10 h-10 p-0 flex items-center justify-center shadow-lg flex-shrink-0"
                 >
                   <Send className="w-4 h-4" />
                 </Button>
