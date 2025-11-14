@@ -82,64 +82,41 @@ export default function PlayerDashboard() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-black">
       {/* Header */}
-      <div className="bg-gradient-to-r from-orange-600 to-orange-700 p-6 lg:p-8 shadow-2xl">
-        <div className="flex items-center justify-center gap-4 mb-4">
-          <img src={CLUB_LOGO_URL} alt="CD Bustarviejo" className="w-16 h-16 lg:w-20 lg:h-20 rounded-2xl shadow-2xl ring-4 ring-white/50" />
+      <div className="bg-gradient-to-r from-orange-600 to-orange-700 p-4 lg:p-6 shadow-2xl">
+        <div className="flex items-center justify-center gap-3">
+          <img src={CLUB_LOGO_URL} alt="CD Bustarviejo" className="w-12 h-12 lg:w-16 lg:h-16 rounded-2xl shadow-2xl ring-4 ring-white/50" />
           <div className="text-white text-center">
-            <h1 className="text-3xl lg:text-4xl font-bold">CD Bustarviejo</h1>
-            <p className="text-orange-100 text-sm lg:text-base">Panel de Jugador</p>
-          </div>
-        </div>
-      </div>
-
-      {/* Banner Welcome */}
-      <div className="px-4 lg:px-8 py-6">
-        <div className="bg-gradient-to-r from-green-600 to-green-700 rounded-3xl p-6 lg:p-8 shadow-2xl relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-48 h-48 bg-white rounded-full blur-3xl opacity-10"></div>
-          <div className="relative z-10 text-white text-center">
-            <h2 className="text-2xl lg:text-3xl font-bold mb-2">
-              ¡Hola {player?.nombre?.split(' ')[0] || user?.full_name?.split(' ')[0] || 'Jugador'}! 👋
-            </h2>
-            <p className="text-green-100 text-sm lg:text-base">
-              {player?.deporte || 'Bienvenido al club'}
-            </p>
-            {player && (
-              <div className="mt-4 flex items-center justify-center gap-2">
-                <Trophy className="w-5 h-5 text-yellow-300" />
-                <p className="text-green-100 text-sm">
-                  ¡Sigue entrenando y dando lo mejor de ti! 💪⚽
-                </p>
-              </div>
-            )}
+            <h1 className="text-2xl lg:text-3xl font-bold">CD Bustarviejo</h1>
+            <p className="text-orange-100 text-xs lg:text-sm">Panel de Jugador</p>
           </div>
         </div>
       </div>
 
       {/* MatchApp Card */}
-      <div className="px-4 lg:px-8 pb-6">
+      <div className="px-4 lg:px-8 pt-6 pb-4">
         <Card className="border-none shadow-xl bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 text-white overflow-hidden relative">
           <div className="absolute top-0 right-0 w-64 h-64 bg-orange-500 rounded-full blur-3xl opacity-20"></div>
-          <CardContent className="relative z-10 py-6 px-6">
-            <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-              <div className="flex items-center gap-4">
-                <div className="w-16 h-16 bg-orange-500 rounded-2xl flex items-center justify-center shadow-lg">
-                  <Trophy className="w-8 h-8 text-white" />
+          <CardContent className="relative z-10 py-4 px-4 lg:py-6 lg:px-6">
+            <div className="flex flex-col md:flex-row items-center justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 lg:w-16 lg:h-16 bg-orange-500 rounded-2xl flex items-center justify-center shadow-lg">
+                  <Trophy className="w-6 h-6 lg:w-8 lg:h-8 text-white" />
                 </div>
                 <div>
-                  <h3 className="text-2xl font-bold mb-1">Horarios y Resultados</h3>
-                  <p className="text-slate-300 text-sm">
+                  <h3 className="text-lg lg:text-2xl font-bold mb-1">Horarios y Resultados</h3>
+                  <p className="text-slate-300 text-xs lg:text-sm">
                     📱 Descarga MatchApp • Ver partidos en directo
                   </p>
                 </div>
               </div>
-              <MatchAppLink className="w-full md:w-auto py-6 px-8 text-lg" />
+              <MatchAppLink className="w-full md:w-auto py-3 lg:py-4 px-6 lg:px-8 text-sm lg:text-base" />
             </div>
           </CardContent>
         </Card>
       </div>
 
       {/* Menu Grid */}
-      <div className="px-4 lg:px-8 pb-8">
+      <div className="px-4 lg:px-8 py-4">
         <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6">
           {menuItems.map((item, index) => (
             <Link key={index} to={item.url} className="group">
