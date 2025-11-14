@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef, useMemo } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -32,7 +31,7 @@ export default function CoachChat() {
     fetchUser();
   }, []);
 
-  const { data: messages, isLoading: loadingMessages, refetch: refetchMessages } = useQuery({
+  const { data: messages, refetch: refetchMessages } = useQuery({
     queryKey: ['chatMessages'],
     queryFn: () => base44.entities.ChatMessage.list('-created_date'),
     initialData: [],
@@ -193,6 +192,10 @@ export default function CoachChat() {
     );
   }, [myGroups, searchTerm]);
 
+  const currentGroup = useMemo(() => {
+    return myGroups.find(g => g.id === selectedTab);
+  }, [myGroups, selectedTab]);
+
   useEffect(() => {
     if (filteredGroups.length > 0 && !selectedTab) {
       setSelectedTab(filteredGroups[0].id);
@@ -200,25 +203,22 @@ export default function CoachChat() {
   }, [filteredGroups.length, selectedTab]);
 
   useEffect(() => {
-    if (selectedTab) {
-      const group = myGroups.find(g => g.id === selectedTab);
-      if (group) {
-        const unreadMessageIds = group.messages
-          .filter(msg => {
-            if (group.tipo === 'entrenador') {
-              return !msg.leido && msg.tipo === "padre_a_grupo";
-            } else {
-              return !msg.leido && msg.tipo === "admin_a_grupo";
-            }
-          })
-          .map(msg => msg.id);
-        
-        if (unreadMessageIds.length > 0) {
-          markAsReadMutation.mutate(unreadMessageIds);
-        }
+    if (selectedTab && currentGroup) {
+      const unreadMessageIds = currentGroup.messages
+        .filter(msg => {
+          if (currentGroup.tipo === 'entrenador') {
+            return !msg.leido && msg.tipo === "padre_a_grupo";
+          } else {
+            return !msg.leido && msg.tipo === "admin_a_grupo";
+          }
+        })
+        .map(msg => msg.id);
+      
+      if (unreadMessageIds.length > 0) {
+        markAsReadMutation.mutate(unreadMessageIds);
       }
     }
-  }, [selectedTab, myGroups, markAsReadMutation]);
+  }, [selectedTab, currentGroup?.messages?.length]);
 
   const isBusinessHours = () => {
     const now = new Date();
@@ -237,8 +237,6 @@ export default function CoachChat() {
       toast.error("Solo entre 10:00 y 20:00");
       return;
     }
-
-    const currentGroup = myGroups.find(g => g.id === selectedTab);
     
     const messageData = {
       remitente_email: user.email,
@@ -278,9 +276,9 @@ export default function CoachChat() {
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [selectedTab, messages]);
+  }, [currentGroup?.messages]);
 
-  if (loadingPlayers || loadingMessages) {
+  if (loadingPlayers || !user) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
@@ -303,21 +301,15 @@ export default function CoachChat() {
     );
   }
 
-  const currentGroup = useMemo(() => {
-    return myGroups.find(g => g.id === selectedTab);
-  }, [myGroups, selectedTab]);
-
   return (
     <div className="h-screen flex flex-col md:flex-row bg-white">
-      {/* Lista de Grupos - Sidebar */}
+      {/* Lista de Grupos */}
       <div className={`w-full md:w-96 bg-white border-r border-slate-200 flex flex-col ${selectedTab ? 'hidden md:flex' : 'flex'}`}>
-        {/* Header */}
         <div className="bg-gradient-to-r from-blue-600 to-blue-700 p-4 text-white">
           <h1 className="text-xl font-bold mb-1">🎓 Chats Entrenador</h1>
           <p className="text-xs text-blue-100">Tus equipos y grupos familiares</p>
         </div>
 
-        {/* Search */}
         <div className="p-3 bg-slate-50 border-b">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
@@ -330,7 +322,6 @@ export default function CoachChat() {
           </div>
         </div>
 
-        {/* Lista de Grupos */}
         <div className="flex-1 overflow-y-auto">
           {filteredGroups.map(group => {
             const lastMsg = group.messages.sort((a, b) => 
@@ -342,9 +333,7 @@ export default function CoachChat() {
                 key={group.id}
                 onClick={() => setSelectedTab(group.id)}
                 className={`p-4 border-b cursor-pointer transition-all ${
-                  selectedTab === group.id
-                    ? 'bg-blue-50'
-                    : 'hover:bg-slate-50'
+                  selectedTab === group.id ? 'bg-blue-50' : 'hover:bg-slate-50'
                 }`}
               >
                 <div className="flex gap-3">
@@ -377,7 +366,7 @@ export default function CoachChat() {
                         </p>
                       </div>
                       {group.unreadCount > 0 && (
-                        <Badge className="bg-blue-600 text-white text-xs h-5 min-w-5 rounded-full flex items-center justify-center">
+                        <Badge className="bg-blue-600 text-white text-xs h-5 min-w-5 rounded-full">
                           {group.unreadCount}
                         </Badge>
                       )}
@@ -394,16 +383,12 @@ export default function CoachChat() {
       <div className={`flex-1 flex flex-col ${!selectedTab ? 'hidden md:flex' : 'flex'} min-h-0`}>
         {currentGroup ? (
           <>
-            {/* Header del Chat */}
             <div className={`p-4 text-white flex items-center gap-3 shadow-md flex-shrink-0 ${
               currentGroup.tipo === 'entrenador'
                 ? 'bg-gradient-to-r from-blue-600 to-blue-700'
                 : 'bg-gradient-to-r from-orange-600 to-orange-700'
             }`}>
-              <button
-                onClick={() => setSelectedTab(null)}
-                className="md:hidden p-2 hover:bg-white/20 rounded-lg"
-              >
+              <button onClick={() => setSelectedTab(null)} className="md:hidden p-2 hover:bg-white/20 rounded-lg">
                 <ArrowLeft className="w-5 h-5" />
               </button>
               <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
@@ -423,11 +408,10 @@ export default function CoachChat() {
               )}
             </div>
 
-            {/* Mensajes */}
             <div 
               className="flex-1 overflow-y-auto p-4 space-y-2"
               style={{
-                backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23d4c5b9' fill-opacity='0.1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
+                backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23d4c5b9' fill-opacity='0.1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
                 backgroundColor: '#e5ddd5'
               }}
             >
@@ -443,36 +427,30 @@ export default function CoachChat() {
                   .sort((a, b) => new Date(a.created_date) - new Date(b.created_date))
                   .map((msg) => {
                     const isMyMessage = msg.remitente_email === user?.email;
-                    const isAdmin = msg.tipo === "admin_a_grupo" && !isMyMessage;
-                    const isPadre = msg.tipo === "padre_a_grupo";
+                    const isOtherAdmin = msg.tipo === "admin_a_grupo" && msg.remitente_email !== user?.email;
                     
                     return (
-                      <div
-                        key={msg.id}
-                        className={`flex ${isMyMessage ? 'justify-end' : 'justify-start'} mb-1`}
-                      >
-                        <div
-                          className={`max-w-[75%] rounded-lg shadow-sm ${
-                            isMyMessage && currentGroup.tipo === 'entrenador'
-                              ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-br-none'
-                              : isMyMessage && currentGroup.tipo === 'hijo'
-                              ? 'bg-gradient-to-r from-purple-600 to-purple-700 text-white rounded-br-none'
-                              : isAdmin
-                              ? 'bg-gradient-to-r from-green-600 to-green-700 text-white rounded-bl-none'
-                              : 'bg-white text-slate-900 rounded-bl-none'
-                          }`}
-                        >
+                      <div key={msg.id} className={`flex ${isMyMessage ? 'justify-end' : 'justify-start'} mb-1`}>
+                        <div className={`max-w-[75%] rounded-lg shadow-sm ${
+                          isMyMessage && currentGroup.tipo === 'entrenador'
+                            ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-br-none'
+                            : isMyMessage && currentGroup.tipo === 'hijo'
+                            ? 'bg-gradient-to-r from-purple-600 to-purple-700 text-white rounded-br-none'
+                            : isOtherAdmin
+                            ? 'bg-gradient-to-r from-green-600 to-green-700 text-white rounded-bl-none'
+                            : 'bg-white text-slate-900 rounded-bl-none'
+                        }`}>
                           <div className="px-3 py-2">
                             <div className="flex items-center gap-2 mb-1">
                               <span className={`text-xs font-semibold ${
                                 isMyMessage && currentGroup.tipo === 'entrenador' ? 'text-blue-100' 
                                 : isMyMessage && currentGroup.tipo === 'hijo' ? 'text-purple-100'
-                                : isAdmin ? 'text-green-100' 
+                                : isOtherAdmin ? 'text-green-100' 
                                 : 'text-orange-700'
                               }`}>
                                 {isMyMessage && currentGroup.tipo === 'entrenador' ? '🎓 ' 
                                   : isMyMessage && currentGroup.tipo === 'hijo' ? '👨‍👩‍👧 '
-                                  : isAdmin ? '📢 ' 
+                                  : isOtherAdmin ? '📢 ' 
                                   : '👨‍👩‍👧 '}{msg.remitente_nombre}
                               </span>
                               {msg.prioridad !== "Normal" && (
@@ -491,7 +469,7 @@ export default function CoachChat() {
                               <span className={`text-[10px] ${
                                 isMyMessage && currentGroup.tipo === 'entrenador' ? 'text-blue-100'
                                 : isMyMessage && currentGroup.tipo === 'hijo' ? 'text-purple-100'
-                                : isAdmin ? 'text-green-100' 
+                                : isOtherAdmin ? 'text-green-100' 
                                 : 'text-slate-500'
                               }`}>
                                 {format(new Date(msg.created_date), "HH:mm")}
@@ -506,17 +484,13 @@ export default function CoachChat() {
               <div ref={messagesEndRef} />
             </div>
 
-            {/* Input Area */}
             <div className="bg-white border-t p-3 flex-shrink-0">
               {attachments.length > 0 && (
                 <div className="mb-2 flex flex-wrap gap-2">
                   {attachments.map((att, index) => (
                     <div key={index} className="bg-slate-100 rounded-lg px-3 py-1.5 text-sm flex items-center gap-2">
                       <span className="text-xs truncate max-w-[150px]">{att.nombre}</span>
-                      <button
-                        onClick={() => handleRemoveAttachment(index)}
-                        className="text-slate-500 hover:text-red-600"
-                      >
+                      <button onClick={() => handleRemoveAttachment(index)} className="text-slate-500 hover:text-red-600">
                         <X className="w-3 h-3" />
                       </button>
                     </div>
@@ -562,7 +536,11 @@ export default function CoachChat() {
                 <Button
                   onClick={handleSendMessage}
                   disabled={(!messageContent.trim() && attachments.length === 0) || sendMessageMutation.isPending || !isBusinessHours()}
-                  className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 rounded-full w-10 h-10 p-0 flex items-center justify-center shadow-lg flex-shrink-0"
+                  className={`rounded-full w-10 h-10 p-0 flex items-center justify-center shadow-lg flex-shrink-0 ${
+                    currentGroup.tipo === 'entrenador'
+                      ? 'bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800'
+                      : 'bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800'
+                  }`}
                 >
                   <Send className="w-4 h-4" />
                 </Button>
