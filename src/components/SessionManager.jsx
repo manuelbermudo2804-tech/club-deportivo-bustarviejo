@@ -1,47 +1,61 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 
 export default function SessionManager() {
   const queryClient = useQueryClient();
+  const isCheckingRef = useRef(false);
+  const hasReloadedRef = useRef(false);
 
   useEffect(() => {
     const checkSession = async () => {
+      // Evitar múltiples verificaciones simultáneas
+      if (isCheckingRef.current || hasReloadedRef.current) return;
+      
+      isCheckingRef.current = true;
+      
       try {
         const currentUser = await base44.auth.me();
         const storedUserId = localStorage.getItem("current_user_id");
         
-        // Si hay un usuario diferente al almacenado, limpiar todo y recargar
+        // Si hay un usuario diferente al almacenado, limpiar todo y recargar UNA SOLA VEZ
         if (storedUserId && storedUserId !== currentUser.id) {
-          console.log("Detected user change, clearing cache and reloading...");
+          console.log("🔄 Cambio de usuario detectado, actualizando...");
           
-          // Limpiar localStorage
-          localStorage.clear();
+          // Marcar que vamos a recargar
+          hasReloadedRef.current = true;
           
-          // Limpiar todo el cache de React Query
+          // Limpiar cache de React Query
           queryClient.clear();
           
-          // Guardar el nuevo usuario
+          // Actualizar el ID de usuario
           localStorage.setItem("current_user_id", currentUser.id);
           
-          // Forzar recarga completa de la página
-          window.location.reload();
+          // Esperar un momento y recargar
+          setTimeout(() => {
+            window.location.reload();
+          }, 100);
         } else if (!storedUserId) {
           // Primera vez que se carga, guardar el usuario
           localStorage.setItem("current_user_id", currentUser.id);
         }
       } catch (error) {
-        // Si no hay usuario autenticado, limpiar todo
+        // Si no hay usuario autenticado, limpiar
         localStorage.removeItem("current_user_id");
+      } finally {
+        isCheckingRef.current = false;
       }
     };
 
+    // Verificar al cargar la página
     checkSession();
     
-    // Verificar cada 3 segundos si cambió el usuario
-    const interval = setInterval(checkSession, 3000);
+    // Verificar cada 5 segundos (menos agresivo)
+    const interval = setInterval(checkSession, 5000);
     
-    return () => clearInterval(interval);
+    return () => {
+      clearInterval(interval);
+    };
   }, [queryClient]);
 
   return null;
