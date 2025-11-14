@@ -24,6 +24,22 @@ export default function CoachChat() {
   const queryClient = useQueryClient();
   const [user, setUser] = useState(null);
 
+  // Prevent browser back button from interfering
+  useEffect(() => {
+    const handlePopState = (e) => {
+      if (selectedTab) {
+        e.preventDefault();
+        setSelectedTab(null);
+        // Push a new state to history to prevent immediate re-triggering of popstate
+        // if the user presses back again right after this logic
+        window.history.pushState(null, '', window.location.href);
+      }
+    };
+    
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, [selectedTab]);
+
   useEffect(() => {
     const fetchUser = async () => {
       const currentUser = await base44.auth.me();
@@ -400,13 +416,14 @@ export default function CoachChat() {
                   e.preventDefault();
                   e.stopPropagation();
                   setSelectedTab(null);
+                  return false;
                 }} 
-                className="md:hidden p-2 hover:bg-white/20 rounded-lg transition-colors"
+                className="md:hidden p-2 hover:bg-white/20 rounded-lg transition-colors flex-shrink-0"
                 type="button"
               >
                 <ArrowLeft className="w-5 h-5" />
               </button>
-              <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
+              <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center flex-shrink-0">
                 <span className="text-xl">{currentGroup.tipo === 'entrenador' ? '🎓' : sportEmojis[currentGroup.deporte]}</span>
               </div>
               <div className="flex-1">
