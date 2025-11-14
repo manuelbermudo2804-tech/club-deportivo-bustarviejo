@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef, useMemo } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -434,82 +435,108 @@ export default function CoachChat() {
                   </div>
                 </div>
               ) : (
-                currentGroup.messages
-                  .sort((a, b) => new Date(a.created_date) - new Date(b.created_date))
-                  .map((msg) => {
-                    const isMyMessage = msg.remitente_email === user?.email;
-                    
-                    // Log cada mensaje para debug
-                    console.log(`📨 Mensaje de ${msg.remitente_nombre}:`, {
-                      tipo: msg.tipo,
-                      esMio: isMyMessage,
-                      email: msg.remitente_email
-                    });
-                    
-                    // LÓGICA SIMPLE: Si es mío y estoy en grupo de entrenador -> AZUL
-                    const esGrupoEntrenador = currentGroup.tipo === 'entrenador';
-                    let messageColor;
-                    
-                    if (isMyMessage) {
-                      if (esGrupoEntrenador) {
-                        // SOY ENTRENADOR -> AZUL
-                        messageColor = 'bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-br-none';
+                <>
+                  {/* DEBUG INFO - MOSTRAR EMAIL DEL USUARIO ACTUAL */}
+                  <div className="bg-yellow-400 border-4 border-black rounded-lg p-4 mb-4 text-center">
+                    <p className="text-2xl font-black mb-2">🔍 TU EMAIL ACTUAL:</p>
+                    <p className="text-3xl bg-black text-white px-4 py-2 rounded font-mono break-all">
+                      {user?.email || "NO DEFINIDO"}
+                    </p>
+                  </div>
+                  
+                  {currentGroup.messages
+                    .sort((a, b) => new Date(a.created_date) - new Date(b.created_date))
+                    .map((msg) => {
+                      const isMyMessage = msg.remitente_email === user?.email;
+                      
+                      // Log cada mensaje para debug
+                      console.log(`📨 Mensaje de ${msg.remitente_nombre}:`, {
+                        tipo: msg.tipo,
+                        esMio: isMyMessage,
+                        email_mensaje: msg.remitente_email,
+                        email_usuario: user?.email,
+                        coincide: msg.remitente_email === user?.email
+                      });
+                      
+                      // LÓGICA SIMPLE: Si es mío y estoy en grupo de entrenador -> AZUL
+                      const esGrupoEntrenador = currentGroup.tipo === 'entrenador';
+                      let messageColor;
+                      
+                      if (isMyMessage) {
+                        if (esGrupoEntrenador) {
+                          // SOY ENTRENADOR -> AZUL
+                          messageColor = 'bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-br-none';
+                        } else {
+                          // SOY PADRE -> MORADO
+                          messageColor = 'bg-gradient-to-r from-purple-600 to-purple-700 text-white rounded-br-none';
+                        }
                       } else {
-                        // SOY PADRE -> MORADO
-                        messageColor = 'bg-gradient-to-r from-purple-600 to-purple-700 text-white rounded-br-none';
+                        // Mensaje de otro
+                        if (msg.tipo === "admin_a_grupo") {
+                          messageColor = 'bg-gradient-to-r from-green-600 to-green-700 text-white rounded-bl-none';
+                        } else {
+                          messageColor = 'bg-white text-slate-900 rounded-bl-none';
+                        }
                       }
-                    } else {
-                      // Mensaje de otro
-                      if (msg.tipo === "admin_a_grupo") {
-                        messageColor = 'bg-gradient-to-r from-green-600 to-green-700 text-white rounded-bl-none';
-                      } else {
-                        messageColor = 'bg-white text-slate-900 rounded-bl-none';
-                      }
-                    }
-                    
-                    return (
-                      <div key={msg.id} className={`flex ${isMyMessage ? 'justify-end' : 'justify-start'} mb-1`}>
-                        <div className={`max-w-[75%] rounded-lg shadow-sm ${messageColor}`}>
-                          <div className="px-3 py-2">
-                            <div className="flex items-center gap-2 mb-1">
-                              <span className={`text-xs font-semibold ${
-                                messageColor.includes('blue') ? 'text-blue-100' 
-                                : messageColor.includes('purple') ? 'text-purple-100'
-                                : messageColor.includes('green') ? 'text-green-100' 
-                                : 'text-orange-700'
-                              }`}>
-                                {isMyMessage && esGrupoEntrenador ? '🎓 ' 
-                                  : isMyMessage && !esGrupoEntrenador ? '👨‍👩‍👧 '
-                                  : msg.tipo === "admin_a_grupo" ? '📢 ' 
-                                  : '👨‍👩‍👧 '}{msg.remitente_nombre}
-                              </span>
-                              {msg.prioridad !== "Normal" && (
-                                <span className="text-xs">{msg.prioridad === "Urgente" ? "🔴" : "⚠️"}</span>
-                              )}
-                            </div>
-                            <p className="text-sm leading-relaxed break-words">{msg.mensaje}</p>
-                            
-                            {msg.archivos_adjuntos?.length > 0 && (
-                              <div className="mt-2">
-                                <MessageAttachments attachments={msg.archivos_adjuntos} />
+                      
+                      return (
+                        <div key={msg.id}>
+                          {/* DEBUG CARD PARA CADA MENSAJE */}
+                          <div className="bg-orange-400 border-2 border-orange-800 rounded p-3 mb-2 text-sm">
+                            <p className="font-bold text-lg mb-2">📧 MENSAJE DEBUG:</p>
+                            <p><strong>Remitente:</strong> {msg.remitente_nombre}</p>
+                            <p><strong>Email del mensaje:</strong> <span className="bg-black text-white px-2 py-1 rounded font-mono text-xs break-all">{msg.remitente_email}</span></p>
+                            <p><strong>Tu email:</strong> <span className="bg-black text-white px-2 py-1 rounded font-mono text-xs break-all">{user?.email}</span></p>
+                            <p className="text-xl font-black mt-2">
+                              {isMyMessage ? '✅ ES TU MENSAJE' : '❌ NO ES TU MENSAJE'}
+                            </p>
+                            <p><strong>Color esperado:</strong> {isMyMessage && esGrupoEntrenador ? 'AZUL' : isMyMessage ? 'MORADO' : msg.tipo === "admin_a_grupo" ? 'VERDE' : 'BLANCO'}</p>
+                          </div>
+                          
+                          <div className={`flex ${isMyMessage ? 'justify-end' : 'justify-start'} mb-1`}>
+                            <div className={`max-w-[75%] rounded-lg shadow-sm ${messageColor}`}>
+                              <div className="px-3 py-2">
+                                <div className="flex items-center gap-2 mb-1">
+                                  <span className={`text-xs font-semibold ${
+                                    messageColor.includes('blue') ? 'text-blue-100' 
+                                    : messageColor.includes('purple') ? 'text-purple-100'
+                                    : messageColor.includes('green') ? 'text-green-100' 
+                                    : 'text-orange-700'
+                                  }`}>
+                                    {isMyMessage && esGrupoEntrenador ? '🎓 ' 
+                                      : isMyMessage && !esGrupoEntrenador ? '👨‍👩‍👧 '
+                                      : msg.tipo === "admin_a_grupo" ? '📢 ' 
+                                      : '👨‍👩‍👧 '}{msg.remitente_nombre}
+                                  </span>
+                                  {msg.prioridad !== "Normal" && (
+                                    <span className="text-xs">{msg.prioridad === "Urgente" ? "🔴" : "⚠️"}</span>
+                                  )}
+                                </div>
+                                <p className="text-sm leading-relaxed break-words">{msg.mensaje}</p>
+                                
+                                {msg.archivos_adjuntos?.length > 0 && (
+                                  <div className="mt-2">
+                                    <MessageAttachments attachments={msg.archivos_adjuntos} />
+                                  </div>
+                                )}
+                                
+                                <div className="flex items-center justify-end gap-1 mt-1">
+                                  <span className={`text-[10px] ${
+                                    messageColor.includes('blue') ? 'text-blue-100'
+                                    : messageColor.includes('purple') ? 'text-purple-100'
+                                    : messageColor.includes('green') ? 'text-green-100' 
+                                    : 'text-slate-500'
+                                  }`}>
+                                    {format(new Date(msg.created_date), "HH:mm")}
+                                  </span>
+                                </div>
                               </div>
-                            )}
-                            
-                            <div className="flex items-center justify-end gap-1 mt-1">
-                              <span className={`text-[10px] ${
-                                messageColor.includes('blue') ? 'text-blue-100'
-                                : messageColor.includes('purple') ? 'text-purple-100'
-                                : messageColor.includes('green') ? 'text-green-100' 
-                                : 'text-slate-500'
-                              }`}>
-                                {format(new Date(msg.created_date), "HH:mm")}
-                              </span>
                             </div>
                           </div>
                         </div>
-                      </div>
-                    );
-                  })
+                      );
+                    })}
+                </>
               )}
               <div ref={messagesEndRef} />
             </div>
