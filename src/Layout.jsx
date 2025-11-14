@@ -541,12 +541,28 @@ export default function Layout({ children, currentPageName }) {
         let unread = 0;
         let urgent = 0;
         
-        if (isAdmin || isCoach) { // Admins and Coaches can see messages sent by parents/players to groups
+        if (isAdmin) {
+          // Admin: count parent messages
           allMessages.forEach(msg => {
             if (!msg.leido && (msg.tipo === "padre_a_grupo" || msg.tipo === "jugador_a_equipo")) {
               unread++;
               if (msg.prioridad === "Urgente") {
                 urgent++;
+              }
+            }
+          });
+        } else if (isCoach) {
+          // Coach: count parent messages from coached teams
+          const categoriesCoached = user.categorias_entrena || [];
+          allMessages.forEach(msg => {
+            if (!msg.leido && msg.tipo === "padre_a_grupo") {
+              // Check if message is from a coached team
+              const msgDeporte = msg.grupo_id || msg.deporte;
+              if (categoriesCoached.includes(msgDeporte)) {
+                unread++;
+                if (msg.prioridad === "Urgente") {
+                  urgent++;
+                }
               }
             }
           });
@@ -719,7 +735,7 @@ export default function Layout({ children, currentPageName }) {
     { title: "Pagos", url: createPageUrl("Payments"), icon: CreditCard },
     { title: "Recordatorios", url: createPageUrl("Reminders"), icon: Bell },
     { title: "Pedidos Ropa", url: createPageUrl("ClothingOrders"), icon: ShoppingBag },
-    { title: "Chat", url: createPageUrl("AdminChat"), icon: MessageCircle, badge: unreadMessagesCount > 0 ? unreadMessagesCount : null, urgentBadge: urgentMessagesCount > 0 },
+    { title: "🎓 Chat Equipos", url: createPageUrl("CoachChat"), icon: MessageCircle, badge: unreadMessagesCount > 0 ? unreadMessagesCount : null, urgentBadge: urgentMessagesCount > 0 },
     // NO Configuración para entrenadores
   ];
 
