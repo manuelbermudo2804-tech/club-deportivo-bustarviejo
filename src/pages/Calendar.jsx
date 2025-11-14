@@ -4,15 +4,13 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Calendar as CalendarIcon, Trophy, Bell } from "lucide-react";
+import { Plus, Calendar as CalendarIcon, Bell } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
 
 import EventForm from "../components/calendar/EventForm";
 import EventCard from "../components/calendar/EventCard";
-import SocialLinks from "../components/SocialLinks";
-import MatchAppLink from "../components/MatchAppLink";
 
 export default function Calendar() {
   const [showForm, setShowForm] = useState(false);
@@ -45,9 +43,8 @@ export default function Calendar() {
     mutationFn: async (eventData) => {
       const newEvent = await base44.entities.Event.create(eventData);
       
-      // Si es admin y está publicado, marcar como notificado después de crear
       if (eventData.publicado) {
-        toast.success("✅ Evento creado y publicado. Los usuarios recibirán notificación.");
+        toast.success("✅ Evento creado y publicado");
       }
       
       return newEvent;
@@ -63,10 +60,9 @@ export default function Calendar() {
     mutationFn: async ({ id, eventData }) => {
       const updatedEvent = await base44.entities.Event.update(id, eventData);
       
-      // Si cambió de no publicado a publicado, notificar
       const originalEvent = events.find(e => e.id === id);
       if (!originalEvent?.publicado && eventData.publicado) {
-        toast.success("✅ Evento publicado. Los usuarios recibirán notificación.");
+        toast.success("✅ Evento publicado");
       }
       
       return updatedEvent;
@@ -78,7 +74,6 @@ export default function Calendar() {
     },
   });
 
-  // Mark events as notified when users view them
   const markEventsAsNotified = useMutation({
     mutationFn: async () => {
       const newEvents = events.filter(e => e.publicado && !e.notificado && e.created_date);
@@ -102,7 +97,6 @@ export default function Calendar() {
     },
   });
 
-  // Mark events as notified when page loads
   useEffect(() => {
     if (events.length > 0 && !isAdmin) {
       markEventsAsNotified.mutate();
@@ -140,17 +134,9 @@ export default function Calendar() {
     "Entrenamiento",
     "Reunión",
     "Torneo",
-    "Inicio Temporada",
-    "Gestión Club",
-    "Pago",
-    "Inscripción",
-    "Pedido Ropa",
-    "Fiesta Club",
-    "Fin Temporada",
     "Otro"
   ];
 
-  // Count new events for badge
   const newEventsCount = events.filter(e => {
     if (!e.publicado || e.notificado || !e.created_date) return false;
     const oneDayAgo = new Date();
@@ -160,19 +146,19 @@ export default function Calendar() {
   }).length;
 
   return (
-    <div className="p-6 lg:p-8 space-y-6">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+    <div className="p-4 lg:p-6 space-y-4">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3">
         <div>
-          <div className="flex items-center gap-3">
-            <h1 className="text-3xl font-bold text-slate-900">Calendario de Eventos</h1>
+          <div className="flex items-center gap-2">
+            <h1 className="text-2xl lg:text-3xl font-bold text-slate-900">Calendario</h1>
             {newEventsCount > 0 && !isAdmin && (
-              <Badge className="bg-red-500 text-white animate-pulse">
+              <Badge className="bg-red-500 text-white text-xs">
                 <Bell className="w-3 h-3 mr-1" />
-                {newEventsCount} nuevo{newEventsCount !== 1 ? 's' : ''}
+                {newEventsCount}
               </Badge>
             )}
           </div>
-          <p className="text-slate-600 mt-1">Próximos partidos, entrenamientos y actividades</p>
+          <p className="text-slate-600 mt-1 text-sm">Eventos y partidos</p>
         </div>
         {isAdmin && (
           <Button
@@ -180,37 +166,13 @@ export default function Calendar() {
               setEditingEvent(null);
               setShowForm(!showForm);
             }}
-            className="bg-orange-600 hover:bg-orange-700 shadow-lg"
+            className="bg-orange-600 hover:bg-orange-700"
           >
-            <Plus className="w-5 h-5 mr-2" />
-            Nuevo Evento
+            <Plus className="w-4 h-4 mr-2" />
+            Nuevo
           </Button>
         )}
       </div>
-
-      {/* MatchApp Card */}
-      <Card className="border-none shadow-xl bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 text-white overflow-hidden relative">
-        <div className="absolute top-0 right-0 w-64 h-64 bg-orange-500 rounded-full blur-3xl opacity-20"></div>
-        <CardContent className="relative z-10 py-6 px-6">
-          <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-            <div className="flex items-center gap-4">
-              <div className="w-16 h-16 bg-orange-500 rounded-2xl flex items-center justify-center shadow-lg">
-                <Trophy className="w-8 h-8 text-white" />
-              </div>
-              <div>
-                <h3 className="text-2xl font-bold mb-1">Horarios y Resultados</h3>
-                <p className="text-slate-300 text-sm">
-                  📱 Descarga MatchApp • Ver partidos en directo
-                </p>
-              </div>
-            </div>
-            <MatchAppLink className="w-full md:w-auto py-6 px-8 text-lg" />
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Redes Sociales */}
-      <SocialLinks />
 
       <AnimatePresence>
         {showForm && isAdmin && (
@@ -226,53 +188,50 @@ export default function Calendar() {
         )}
       </AnimatePresence>
 
-      {/* Filtros por Deporte */}
-      <div className="space-y-4">
-        <div className="flex flex-wrap gap-3">
+      {/* Filtros compactos */}
+      <div className="space-y-3">
+        <div className="flex flex-wrap gap-2">
           <Button
+            size="sm"
             variant={sportFilter === "all" ? "default" : "outline"}
             onClick={() => setSportFilter("all")}
-            className={sportFilter === "all" ? "bg-orange-600 hover:bg-orange-700" : ""}
+            className={sportFilter === "all" ? "bg-orange-600 hover:bg-orange-700 h-8 text-xs" : "h-8 text-xs"}
           >
             🏃 Todos
           </Button>
           <Button
+            size="sm"
             variant={sportFilter === "Fútbol Masculino" ? "default" : "outline"}
             onClick={() => setSportFilter("Fútbol Masculino")}
-            className={sportFilter === "Fútbol Masculino" ? "bg-blue-600 hover:bg-blue-700" : ""}
+            className={sportFilter === "Fútbol Masculino" ? "bg-blue-600 hover:bg-blue-700 h-8 text-xs" : "h-8 text-xs"}
           >
-            ⚽ Fútbol Masculino
+            ⚽ Fútbol M
           </Button>
           <Button
+            size="sm"
             variant={sportFilter === "Fútbol Femenino" ? "default" : "outline"}
             onClick={() => setSportFilter("Fútbol Femenino")}
-            className={sportFilter === "Fútbol Femenino" ? "bg-pink-600 hover:bg-pink-700" : ""}
+            className={sportFilter === "Fútbol Femenino" ? "bg-pink-600 hover:bg-pink-700 h-8 text-xs" : "h-8 text-xs"}
           >
-            ⚽ Fútbol Femenino
+            ⚽ Fútbol F
           </Button>
           <Button
+            size="sm"
             variant={sportFilter === "Baloncesto" ? "default" : "outline"}
             onClick={() => setSportFilter("Baloncesto")}
-            className={sportFilter === "Baloncesto" ? "bg-orange-600 hover:bg-orange-700" : ""}
+            className={sportFilter === "Baloncesto" ? "bg-orange-600 hover:bg-orange-700 h-8 text-xs" : "h-8 text-xs"}
           >
-            🏀 Baloncesto
-          </Button>
-          <Button
-            variant={sportFilter === "Paddle" ? "default" : "outline"}
-            onClick={() => setSportFilter("Paddle")}
-            className={sportFilter === "Paddle" ? "bg-purple-600 hover:bg-purple-700" : ""}
-          >
-            🎾 Paddle
+            🏀 Basket
           </Button>
         </div>
 
         <Tabs value={typeFilter} onValueChange={setTypeFilter}>
-          <TabsList className="bg-white shadow-sm flex-wrap h-auto">
+          <TabsList className="bg-white shadow-sm flex-wrap h-auto p-1">
             {eventTypes.map((type) => (
               <TabsTrigger
                 key={type}
                 value={type}
-                className="data-[state=active]:bg-orange-100 data-[state=active]:text-orange-700"
+                className="data-[state=active]:bg-orange-100 data-[state=active]:text-orange-700 text-xs px-2 py-1"
               >
                 {type === "all" ? "Todos" : type}
               </TabsTrigger>
@@ -288,18 +247,18 @@ export default function Calendar() {
       ) : (
         <>
           {/* Próximos Eventos */}
-          <div className="space-y-4">
-            <h2 className="text-2xl font-bold text-slate-900 flex items-center gap-2">
-              <CalendarIcon className="w-6 h-6 text-orange-600" />
-              Próximos Eventos ({upcomingEvents.length})
+          <div className="space-y-3">
+            <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+              <CalendarIcon className="w-5 h-5 text-orange-600" />
+              Próximos ({upcomingEvents.length})
             </h2>
             {upcomingEvents.length === 0 ? (
-              <div className="text-center py-12 bg-white rounded-xl shadow-lg">
-                <div className="text-6xl mb-4">📅</div>
-                <p className="text-slate-500 text-lg">No hay eventos próximos programados</p>
+              <div className="text-center py-8 bg-white rounded-xl shadow-md">
+                <div className="text-4xl mb-2">📅</div>
+                <p className="text-slate-500 text-sm">No hay eventos próximos</p>
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
                 <AnimatePresence>
                   {upcomingEvents.map((event) => (
                     <EventCard
@@ -316,14 +275,14 @@ export default function Calendar() {
 
           {/* Eventos Pasados */}
           {pastEvents.length > 0 && (
-            <div className="space-y-4 pt-8 border-t border-slate-200">
-              <h2 className="text-2xl font-bold text-slate-500 flex items-center gap-2">
-                <CalendarIcon className="w-6 h-6" />
-                Eventos Pasados ({pastEvents.length})
+            <div className="space-y-3 pt-4 border-t border-slate-200">
+              <h2 className="text-lg font-bold text-slate-500 flex items-center gap-2">
+                <CalendarIcon className="w-5 h-5" />
+                Pasados ({pastEvents.length})
               </h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 opacity-60">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 opacity-60">
                 <AnimatePresence>
-                  {pastEvents.slice(0, 6).map((event) => (
+                  {pastEvents.slice(0, 4).map((event) => (
                     <EventCard
                       key={event.id}
                       event={event}

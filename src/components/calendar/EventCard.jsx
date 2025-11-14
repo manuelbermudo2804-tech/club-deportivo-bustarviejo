@@ -18,50 +18,40 @@ export default function EventCard({ event, onEdit, isAdmin }) {
   };
 
   const colorClasses = {
-    orange: "from-orange-500 to-orange-700 border-orange-200",
-    blue: "from-blue-500 to-blue-700 border-blue-200",
-    green: "from-green-500 to-green-700 border-green-200",
-    red: "from-red-500 to-red-700 border-red-200",
-    purple: "from-purple-500 to-purple-700 border-purple-200",
-    yellow: "from-yellow-500 to-yellow-700 border-yellow-200"
-  };
-
-  const sportIcons = {
-    "Fútbol": "⚽",
-    "Baloncesto": "🏀",
-    "Paddle": "🎾",
-    "Todos": "🏃"
+    orange: "from-orange-500 to-orange-600",
+    blue: "from-blue-500 to-blue-600",
+    green: "from-green-500 to-green-600",
+    red: "from-red-500 to-red-600",
+    purple: "from-purple-500 to-purple-600",
+    yellow: "from-yellow-500 to-yellow-600"
   };
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
+      initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, scale: 0.9 }}
+      exit={{ opacity: 0, scale: 0.95 }}
       transition={{ duration: 0.2 }}
     >
-      <Card className="overflow-hidden hover:shadow-xl transition-all duration-300 border-2 shadow-lg bg-white">
-        <div className={`h-3 bg-gradient-to-r ${colorClasses[event.color]}`}></div>
+      <Card className="overflow-hidden hover:shadow-lg transition-all duration-200 border shadow-md bg-white">
+        <div className={`h-2 bg-gradient-to-r ${colorClasses[event.color]}`}></div>
         
-        <CardContent className="p-5 space-y-4">
-          <div className="flex items-start justify-between gap-3">
+        <CardContent className="p-3 space-y-2">
+          <div className="flex items-start justify-between gap-2">
             <div className="flex-1">
-              <div className="flex items-center gap-2 mb-2">
-                <span className="text-3xl">{typeIcons[event.tipo] || "📅"}</span>
-                {event.importante && <Star className="w-5 h-5 text-yellow-500 fill-yellow-500" />}
+              <div className="flex items-center gap-1 mb-1">
+                <span className="text-xl">{typeIcons[event.tipo] || "📅"}</span>
+                {event.importante && <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />}
               </div>
-              <h3 className="text-xl font-bold text-slate-900 mb-2">
+              <h3 className="text-base font-bold text-slate-900 mb-1 leading-tight">
                 {event.titulo}
               </h3>
-              <div className="flex flex-wrap gap-2">
-                <Badge variant="outline" className="text-xs">
+              <div className="flex flex-wrap gap-1">
+                <Badge variant="outline" className="text-[10px] px-1.5 py-0">
                   {event.tipo}
                 </Badge>
-                <Badge variant="outline" className="text-xs">
-                  {sportIcons[event.deporte]} {event.deporte}
-                </Badge>
                 {event.categoria !== "Todas" && (
-                  <Badge variant="outline" className="text-xs">
+                  <Badge variant="outline" className="text-[10px] px-1.5 py-0">
                     {event.categoria}
                   </Badge>
                 )}
@@ -72,51 +62,51 @@ export default function EventCard({ event, onEdit, isAdmin }) {
                 onClick={() => onEdit(event)}
                 variant="ghost"
                 size="icon"
-                className="hover:bg-orange-50"
+                className="hover:bg-orange-50 h-7 w-7"
               >
-                <Pencil className="w-4 h-4" />
+                <Pencil className="w-3 h-3" />
               </Button>
             )}
           </div>
 
           {event.descripcion && (
-            <p className="text-sm text-slate-600 line-clamp-2">
+            <p className="text-xs text-slate-600 line-clamp-2">
               {event.descripcion}
             </p>
           )}
 
-          <div className="space-y-2 text-sm border-t border-slate-100 pt-4">
-            <div className="flex items-center gap-2 text-slate-700">
-              <Calendar className="w-4 h-4 text-orange-600" />
+          <div className="space-y-1 text-xs border-t border-slate-100 pt-2">
+            <div className="flex items-center gap-1.5 text-slate-700">
+              <Calendar className="w-3 h-3 text-orange-600 flex-shrink-0" />
               <span className="font-medium">
-                {format(new Date(event.fecha + 'T00:00:00'), "EEEE, d 'de' MMMM 'de' yyyy", { locale: es })}
+                {format(new Date(event.fecha + 'T00:00:00'), "dd MMM yyyy", { locale: es })}
               </span>
             </div>
             
             {event.hora && (
-              <div className="flex items-center gap-2 text-slate-600">
-                <Clock className="w-4 h-4 text-orange-600" />
+              <div className="flex items-center gap-1.5 text-slate-600">
+                <Clock className="w-3 h-3 text-orange-600 flex-shrink-0" />
                 <span>{event.hora}</span>
               </div>
             )}
 
             {event.ubicacion && (
-              <div className="flex items-center gap-2 text-slate-600">
-                <MapPin className="w-4 h-4 text-orange-600" />
-                <span>{event.ubicacion}</span>
+              <div className="flex items-center gap-1.5 text-slate-600">
+                <MapPin className="w-3 h-3 text-orange-600 flex-shrink-0" />
+                <span className="truncate">{event.ubicacion}</span>
               </div>
             )}
 
             {event.tipo === "Partido" && event.rival && (
-              <div className="mt-3 p-3 bg-slate-50 rounded-lg">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-xs text-slate-500 mb-1">Rival</p>
-                    <p className="font-bold text-slate-900">{event.rival}</p>
+              <div className="mt-2 p-2 bg-slate-50 rounded-lg">
+                <div className="flex items-center justify-between gap-2">
+                  <div className="min-w-0 flex-1">
+                    <p className="text-[10px] text-slate-500 mb-0.5">Rival</p>
+                    <p className="font-bold text-slate-900 text-xs truncate">{event.rival}</p>
                   </div>
                   {event.local_visitante && (
-                    <Badge className={event.local_visitante === "Local" ? "bg-green-100 text-green-700" : "bg-blue-100 text-blue-700"}>
-                      {event.local_visitante === "Local" ? "🏠" : "✈️"} {event.local_visitante}
+                    <Badge className={`${event.local_visitante === "Local" ? "bg-green-100 text-green-700" : "bg-blue-100 text-blue-700"} text-[10px] px-1.5 py-0`}>
+                      {event.local_visitante === "Local" ? "🏠" : "✈️"}
                     </Badge>
                   )}
                 </div>
