@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef, useMemo } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -8,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Send, Clock, AlertCircle, X, Search, ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
-import { format } = "date-fns";
+import { format } from "date-fns";
 import { es } from "date-fns/locale";
 
 import FileAttachmentButton from "../components/chat/FileAttachmentButton";
@@ -435,18 +434,6 @@ export default function CoachChat() {
                   .map((msg) => {
                     const isMyMessage = msg.remitente_email === user?.email;
                     const isOtherAdmin = msg.tipo === "admin_a_grupo" && msg.remitente_email !== user?.email;
-                    
-                    // DEBUG
-                    if (isMyMessage) {
-                      console.log("🔍 DEBUG Mensaje:", {
-                        mensaje: msg.mensaje.substring(0, 20),
-                        isMyMessage,
-                        currentGroupTipo: currentGroup.tipo,
-                        msgTipo: msg.tipo,
-                        isOtherAdmin,
-                        email: msg.remitente_email
-                      });
-                    }
                     
                     return (
                       <div key={msg.id} className={`flex ${isMyMessage ? 'justify-end' : 'justify-start'} mb-1`}>
