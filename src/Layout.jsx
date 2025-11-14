@@ -10,6 +10,7 @@ import { Card, CardContent } from "@/components/ui/card";
 
 import NotificationBadge from "./components/NotificationBadge";
 import SessionManager from "./components/SessionManager";
+import GlobalSearch from "./components/GlobalSearch";
 
 const CLUB_LOGO_URL = "https://www.cdbustarviejo.com/uploads/2/4/0/4/2404974/logo-cd-bustarviejo-cuadrado-xpeq_orig.png";
 
@@ -612,7 +613,7 @@ export default function Layout({ children, currentPageName }) {
     const interval = setInterval(checkUnreadMessages, 5000);
     
     return () => clearInterval(interval);
-  }, [user, isAdmin, isPlayer, isCoach]); // Added isCoach to dependencies
+  }, [user, isAdmin, isPlayer, isCoach]);
 
   useEffect(() => {
     const checkPendingCallups = async () => {
@@ -690,7 +691,7 @@ export default function Layout({ children, currentPageName }) {
     const interval = setInterval(checkPendingCallups, 10000);
     
     return () => clearInterval(interval);
-  }, [user, isAdmin, isPlayer, isCoach, hasPlayers]); // Added isCoach to dependencies
+  }, [user, isAdmin, isPlayer, isCoach, hasPlayers]);
 
   if (showSpecialScreen === "restricted") {
     return <RestrictedAccessScreen user={user} restriction={user} />;
@@ -853,6 +854,11 @@ export default function Layout({ children, currentPageName }) {
                 </p>
               </div>
             </div>
+            
+            {/* Global Search for desktop */}
+            {user && (
+              <GlobalSearch isAdmin={isAdmin} isCoach={isCoach} />
+            )}
           </div>
 
           <div className="p-4 space-y-2">
