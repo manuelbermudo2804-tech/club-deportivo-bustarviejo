@@ -396,8 +396,13 @@ export default function CoachChat() {
                 : 'bg-gradient-to-r from-orange-600 to-orange-700'
             }`}>
               <button 
-                onClick={() => setSelectedTab(null)} 
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setSelectedTab(null);
+                }} 
                 className="md:hidden p-2 hover:bg-white/20 rounded-lg transition-colors"
+                type="button"
               >
                 <ArrowLeft className="w-5 h-5" />
               </button>
