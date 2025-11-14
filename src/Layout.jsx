@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
@@ -733,10 +732,8 @@ export default function Layout({ children, currentPageName }) {
     { title: "🎓 Crear Convocatorias", url: createPageUrl("CoachCallups"), icon: Bell },
     ...(hasPlayers ? [{ title: "👨‍👩‍👧 Confirmar Mis Hijos", url: createPageUrl("ParentCallups"), icon: ClipboardCheck, badge: pendingCallupsCount > 0 ? pendingCallupsCount : null }] : []),
     { title: "Pagos", url: createPageUrl("Payments"), icon: CreditCard },
-    { title: "Recordatorios", url: createPageUrl("Reminders"), icon: Bell },
     { title: "Pedidos Ropa", url: createPageUrl("ClothingOrders"), icon: ShoppingBag },
     { title: "🎓 Chat Equipos", url: createPageUrl("CoachChat"), icon: MessageCircle, badge: unreadMessagesCount > 0 ? unreadMessagesCount : null, urgentBadge: urgentMessagesCount > 0 },
-    // NO Configuración para entrenadores
   ];
 
   const parentNavigationItems = [
@@ -750,7 +747,6 @@ export default function Layout({ children, currentPageName }) {
     { title: "Pagos", url: createPageUrl("ParentPayments"), icon: CreditCard },
     { title: "Pedidos Ropa", url: createPageUrl("ClothingOrders"), icon: ShoppingBag },
     { title: "Chat", url: createPageUrl("ParentChat"), icon: MessageCircle, badge: unreadMessagesCount > 0 ? unreadMessagesCount : null, urgentBadge: urgentMessagesCount > 0 },
-    // NO Configuración para familias
   ];
 
   const playerNavigationItems = [
@@ -762,7 +758,6 @@ export default function Layout({ children, currentPageName }) {
     { title: "Galería", url: createPageUrl("PlayerGallery"), icon: Image },
     { title: "🏆 Convocatorias", url: createPageUrl("PlayerCallups"), icon: Bell, badge: pendingCallupsCount > 0 ? pendingCallupsCount : null, urgentBadge: pendingCallupsCount > 0 },
     { title: "Chat Equipo", url: createPageUrl("PlayerChat"), icon: MessageCircle, badge: unreadMessagesCount > 0 ? unreadMessagesCount : null, urgentBadge: urgentMessagesCount > 0 },
-    // NO Configuración para jugadores
   ];
 
   let navigationItems;

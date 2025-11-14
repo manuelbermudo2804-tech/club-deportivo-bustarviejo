@@ -157,20 +157,25 @@ export default function Home() {
         gradient: "from-orange-600 to-red-700",
         badge: pendingPayments,
         badgeLabel: "pendientes"
-      },
-      {
+      }
+    );
+
+    // Add Recordatorios ONLY for admins
+    if (isAdmin) {
+      items.push({
         title: "Recordatorios",
         icon: Bell,
         url: createPageUrl("Reminders"),
         gradient: "from-red-600 to-orange-700",
-      },
-      {
-        title: "Pedidos Ropa",
-        icon: ShoppingBag,
-        url: createPageUrl("ClothingOrders"),
-        gradient: "from-teal-600 to-teal-700",
-      }
-    );
+      });
+    }
+
+    items.push({
+      title: "Pedidos Ropa",
+      icon: ShoppingBag,
+      url: createPageUrl("ClothingOrders"),
+      gradient: "from-teal-600 to-teal-700",
+    });
 
     // Add CHAT button DIFFERENTLY for Admin vs Coach
     if (isAdmin) {
