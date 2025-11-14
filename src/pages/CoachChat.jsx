@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef, useMemo } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -242,12 +241,24 @@ export default function CoachChat() {
       return;
     }
     
-    // MOSTRAR DEBUG EN PANTALLA
+    // MOSTRAR DEBUG EN PANTALLA Y TOAST
     const tipoGrupo = currentGroup?.tipo || "UNDEFINED";
     const tipoMensaje = tipoGrupo === 'entrenador' ? "admin_a_grupo" : "padre_a_grupo";
     setDebugInfo({ tipoGrupo, tipoMensaje });
     
-    setTimeout(() => setDebugInfo(null), 5000);
+    // TOAST GIGANTE
+    toast.success(`🔍 DEBUG: Grupo=${tipoGrupo} | Mensaje=${tipoMensaje}`, {
+      duration: 8000,
+      style: {
+        fontSize: '18px',
+        fontWeight: 'bold',
+        background: '#FF6B00',
+        color: 'white',
+        padding: '20px'
+      }
+    });
+    
+    setTimeout(() => setDebugInfo(null), 8000);
     
     const messageData = {
       remitente_email: user.email,
@@ -313,15 +324,15 @@ export default function CoachChat() {
   }
 
   return (
-    <div className="h-screen flex flex-col md:flex-row bg-white">
+    <div className="h-screen flex flex-col md:flex-row bg-white relative">
       
       {/* DEBUG BANNER - SUPER VISIBLE */}
       {debugInfo && (
-        <div className="fixed top-0 left-0 right-0 z-[9999] bg-gradient-to-r from-yellow-500 to-orange-500 text-white p-6 text-center shadow-2xl border-b-4 border-red-600">
-          <h2 className="text-2xl font-bold mb-2">🔍 DEBUG INFORMACIÓN</h2>
-          <p className="text-lg">Tipo de grupo: <strong className="text-3xl">{debugInfo.tipoGrupo}</strong></p>
-          <p className="text-lg">Tipo de mensaje: <strong className="text-3xl">{debugInfo.tipoMensaje}</strong></p>
-          <p className="text-sm mt-2">
+        <div className="fixed top-0 left-0 right-0 z-[9999] bg-gradient-to-r from-yellow-400 via-orange-500 to-red-500 text-white p-8 text-center shadow-2xl border-b-8 border-black animate-pulse">
+          <h2 className="text-4xl font-black mb-3 drop-shadow-lg">🔍 DEBUG INFORMACIÓN</h2>
+          <p className="text-2xl mb-2">Tipo de grupo: <strong className="text-5xl bg-black px-4 py-1 rounded">{debugInfo.tipoGrupo}</strong></p>
+          <p className="text-2xl mb-2">Tipo de mensaje: <strong className="text-5xl bg-black px-4 py-1 rounded">{debugInfo.tipoMensaje}</strong></p>
+          <p className="text-xl mt-3 font-bold">
             {debugInfo.tipoGrupo === 'entrenador' 
               ? '✅ Debería ser AZUL (admin_a_grupo)' 
               : '✅ Debería ser MORADO (padre_a_grupo)'}
