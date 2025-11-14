@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -6,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Send, Clock, AlertCircle, X, Search } from "lucide-react";
+import { Send, Clock, AlertCircle, X, Search, ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
@@ -91,7 +90,7 @@ export default function CoachChat() {
       setMessageContent("");
       setAttachments([]);
       setPriority("Normal");
-      await refetchMessages(); // Changed from queryClient.invalidateQueries
+      await refetchMessages();
       toast.success("Mensaje enviado");
     },
   });
@@ -304,7 +303,7 @@ export default function CoachChat() {
   return (
     <div className="h-screen flex bg-white">
       {/* Lista de Grupos - Sidebar */}
-      <div className="w-full md:w-96 bg-white border-r border-slate-200 flex flex-col">
+      <div className={`w-full md:w-96 bg-white border-r border-slate-200 flex flex-col ${selectedTab ? 'hidden md:flex' : 'flex'}`}>
         {/* Header */}
         <div className="bg-gradient-to-r from-blue-600 to-blue-700 p-4 text-white">
           <h1 className="text-xl font-bold mb-1">🎓 Chats Entrenador</h1>
@@ -385,7 +384,7 @@ export default function CoachChat() {
       </div>
 
       {/* Área de Chat */}
-      <div className="flex-1 flex flex-col hidden md:flex">
+      <div className={`flex-1 flex flex-col ${!selectedTab ? 'hidden md:flex' : 'flex'}`}>
         {currentGroup ? (
           <>
             {/* Header del Chat */}
@@ -394,6 +393,12 @@ export default function CoachChat() {
                 ? 'bg-gradient-to-r from-blue-600 to-blue-700'
                 : 'bg-gradient-to-r from-orange-600 to-orange-700'
             }`}>
+              <button
+                onClick={() => setSelectedTab(null)}
+                className="md:hidden p-2 hover:bg-white/20 rounded-lg"
+              >
+                <ArrowLeft className="w-5 h-5" />
+              </button>
               <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
                 <span className="text-xl">{currentGroup.tipo === 'entrenador' ? '🎓' : sportEmojis[currentGroup.deporte]}</span>
               </div>
@@ -483,7 +488,7 @@ export default function CoachChat() {
               <div ref={messagesEndRef} />
             </div>
 
-            {/* Input Area - Disponible para TODOS los grupos */}
+            {/* Input Area */}
             <div className="bg-white border-t p-3">
               {attachments.length > 0 && (
                 <div className="mb-2 flex flex-wrap gap-2">
