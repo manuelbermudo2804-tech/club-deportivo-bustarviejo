@@ -48,7 +48,7 @@ export default function Home() {
   const pendingPayments = payments.filter(p => p.estado === "Pendiente").length;
   const unreadMessages = messages.filter(m => !m.leido && m.tipo === "padre_a_grupo").length;
 
-  const baseMenuItems = [
+  const menuItems = [
     {
       title: "Jugadores",
       icon: Users,
@@ -109,20 +109,14 @@ export default function Home() {
       url: createPageUrl("ClothingOrders"),
       gradient: "from-teal-600 to-teal-700",
     },
+    // Add Configuration ONLY for admins (not coaches)
+    ...(isAdmin ? [{
+      title: "Configuración",
+      icon: Settings,
+      url: createPageUrl("SeasonManagement"),
+      gradient: "from-slate-600 to-slate-700",
+    }] : [])
   ];
-
-  // Add Configuration only for admins
-  const menuItems = isAdmin 
-    ? [
-        ...baseMenuItems,
-        {
-          title: "Configuración",
-          icon: Settings,
-          url: createPageUrl("SeasonManagement"),
-          gradient: "from-slate-600 to-slate-700",
-        }
-      ]
-    : baseMenuItems;
 
   // Determine panel title based on role
   const getPanelTitle = () => {
