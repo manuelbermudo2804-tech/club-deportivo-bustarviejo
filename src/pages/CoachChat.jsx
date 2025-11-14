@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Send, Clock, AlertCircle, X, Search, ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
-import { format } from "date-fns";
+import { format } = "date-fns";
 import { es } from "date-fns/locale";
 
 import FileAttachmentButton from "../components/chat/FileAttachmentButton";
@@ -228,7 +228,10 @@ export default function CoachChat() {
   };
 
   const handleSendMessage = () => {
-    if (!user || !selectedTab) return;
+    if (!user || !selectedTab) {
+      alert("ERROR: No hay usuario o tab seleccionado");
+      return;
+    }
     if (!messageContent.trim() && attachments.length === 0) {
       toast.error("Escribe un mensaje");
       return;
@@ -239,8 +242,10 @@ export default function CoachChat() {
       return;
     }
     
-    // DEBUG - Mostrar en toast
-    toast.info(`DEBUG: Grupo tipo "${currentGroup?.tipo}" - Enviando como "${currentGroup?.tipo === 'entrenador' ? 'admin_a_grupo' : 'padre_a_grupo'}"`, { duration: 5000 });
+    // ALERT SIEMPRE VISIBLE
+    const tipoGrupo = currentGroup?.tipo || "UNDEFINED";
+    const tipoMensaje = tipoGrupo === 'entrenador' ? "admin_a_grupo (AZUL)" : "padre_a_grupo (MORADO)";
+    alert(`🔍 DEBUG:\n\nTipo de grupo: ${tipoGrupo}\nTipo de mensaje: ${tipoMensaje}\n\nSi eres entrenador debería ser AZUL, si es hijo MORADO`);
     
     const messageData = {
       remitente_email: user.email,
@@ -254,8 +259,6 @@ export default function CoachChat() {
       leido: false,
       archivos_adjuntos: attachments
     };
-    
-    console.log("Tipo de mensaje enviado:", messageData.tipo);
 
     sendMessageMutation.mutate(messageData);
   };
