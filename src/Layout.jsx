@@ -551,7 +551,7 @@ export default function Layout({ children, currentPageName }) {
           });
         } else if (isPlayer) {
           const allPlayers = await base44.entities.Player.list();
-          const myPlayer = allPlayers.find(p => p.email === user.email); // Updated from email_jugador to email based on outline
+          const myPlayer = allPlayers.find(p => p.email === user.email);
           
           if (myPlayer) {
             allMessages.forEach(msg => {
@@ -566,7 +566,6 @@ export default function Layout({ children, currentPageName }) {
             });
           }
         } else {
-          // This covers both parents and coaches (when not admin/player)
           const allPlayers = await base44.entities.Player.list();
           const myPlayers = allPlayers.filter(p => 
             p.email_padre === user.email || p.email_tutor_2 === user.email
@@ -624,7 +623,7 @@ export default function Layout({ children, currentPageName }) {
               }
             });
           }
-        } else if (!isAdmin) { // This handles parents and coaches (when not admin)
+        } else if (!isAdmin) {
           const allPlayers = await base44.entities.Player.list();
           const myPlayers = allPlayers.filter(p => 
             p.email_padre === user.email || 
@@ -643,7 +642,7 @@ export default function Layout({ children, currentPageName }) {
               });
             }
           });
-        } else if (isAdmin && hasPlayers) { // Admin who also has players (as parent)
+        } else if (isAdmin && hasPlayers) {
           const allPlayers = await base44.entities.Player.list();
           const myPlayers = allPlayers.filter(p => 
             p.email_padre === user.email || 
