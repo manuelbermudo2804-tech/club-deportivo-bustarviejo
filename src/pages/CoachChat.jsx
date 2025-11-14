@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef, useMemo } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -306,15 +307,16 @@ export default function CoachChat() {
   }
 
   return (
-    <div className="h-screen flex flex-col md:flex-row bg-white relative">
+    <div className="h-screen flex bg-white">
       
+      {/* Lista de Grupos */}
       <div className={`w-full md:w-96 bg-white border-r border-slate-200 flex flex-col ${selectedTab ? 'hidden md:flex' : 'flex'}`}>
-        <div className="bg-gradient-to-r from-blue-600 to-blue-700 p-4 text-white">
+        <div className="bg-gradient-to-r from-blue-600 to-blue-700 p-4 text-white flex-shrink-0">
           <h1 className="text-xl font-bold mb-1">🎓 Chats Entrenador</h1>
           <p className="text-xs text-blue-100">Tus equipos y grupos familiares</p>
         </div>
 
-        <div className="p-3 bg-slate-50 border-b">
+        <div className="p-3 bg-slate-50 border-b flex-shrink-0">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
             <Input
@@ -383,7 +385,8 @@ export default function CoachChat() {
         </div>
       </div>
 
-      <div className={`flex-1 flex flex-col ${!selectedTab ? 'hidden md:flex' : 'flex'} min-h-0`}>
+      {/* Área de Chat */}
+      <div className={`flex-1 flex flex-col ${!selectedTab ? 'hidden md:flex' : 'flex'}`}>
         {currentGroup ? (
           <>
             <div className={`p-4 text-white flex items-center gap-3 shadow-md flex-shrink-0 ${
@@ -391,7 +394,10 @@ export default function CoachChat() {
                 ? 'bg-gradient-to-r from-blue-600 to-blue-700'
                 : 'bg-gradient-to-r from-orange-600 to-orange-700'
             }`}>
-              <button onClick={() => setSelectedTab(null)} className="md:hidden p-2 hover:bg-white/20 rounded-lg">
+              <button 
+                onClick={() => setSelectedTab(null)} 
+                className="md:hidden p-2 hover:bg-white/20 rounded-lg transition-colors"
+              >
                 <ArrowLeft className="w-5 h-5" />
               </button>
               <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
@@ -404,7 +410,7 @@ export default function CoachChat() {
                 </p>
               </div>
               {!isBusinessHours() && (
-                <Badge className="bg-white/20 text-white text-xs">
+                <Badge className="bg-white/20 text-white text-xs hidden md:flex">
                   <Clock className="w-3 h-3 mr-1" />
                   Fuera de horario
                 </Badge>
@@ -575,7 +581,7 @@ export default function CoachChat() {
             </div>
           </>
         ) : (
-          <div className="flex-1 flex items-center justify-center bg-[#e5ddd5]">
+          <div className="flex-1 flex items-center justify-center bg-[#e5ddd5] hidden md:flex">
             <div className="text-center text-slate-500">
               <AlertCircle className="w-16 h-16 mx-auto mb-4 opacity-30" />
               <p className="text-lg mb-1">Selecciona un grupo</p>
