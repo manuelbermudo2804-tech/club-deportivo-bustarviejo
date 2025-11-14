@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -30,7 +31,7 @@ export default function ParentPayments() {
     queryFn: async () => {
       const allPlayers = await base44.entities.Player.list();
       return allPlayers.filter(p => 
-        p.email_padre === user?.email || p.email === user?.email
+        p.email_padre === user?.email || p.email_tutor_2 === user?.email
       );
     },
     enabled: !!user?.email,
