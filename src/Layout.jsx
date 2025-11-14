@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { createPageUrl } from "@/utils";
@@ -698,6 +699,20 @@ export default function Layout({ children, currentPageName }) {
     { title: "Usuarios", url: createPageUrl("UserManagement"), icon: Users },
   ];
 
+  const coachNavigationItems = [
+    { title: "Inicio", url: createPageUrl("Home"), icon: Home },
+    { title: "Jugadores", url: createPageUrl("ParentPlayers"), icon: Users },
+    { title: "Horarios", url: createPageUrl("ParentTrainingSchedules"), icon: Clock },
+    { title: "Calendario", url: createPageUrl("Calendar"), icon: Calendar },
+    { title: "Anuncios", url: createPageUrl("Announcements"), icon: Megaphone },
+    { title: "Galería", url: createPageUrl("ParentGallery"), icon: Image },
+    { title: "🎓 Crear Convocatorias", url: createPageUrl("CoachCallups"), icon: Bell },
+    { title: "🏆 Convocatorias", url: createPageUrl("ParentCallups"), icon: Bell, badge: pendingCallupsCount > 0 ? pendingCallupsCount : null, urgentBadge: pendingCallupsCount > 0 },
+    { title: "Pagos", url: createPageUrl("ParentPayments"), icon: CreditCard },
+    { title: "Pedidos", url: createPageUrl("ClothingOrders"), icon: ShoppingBag },
+    { title: "Chat", url: createPageUrl("ParentChat"), icon: MessageCircle, badge: unreadMessagesCount > 0 ? unreadMessagesCount : null, urgentBadge: urgentMessagesCount > 0 },
+  ];
+
   const parentNavigationItems = [
     { title: "Inicio", url: createPageUrl("ParentDashboard"), icon: Home },
     { title: "Jugadores", url: createPageUrl("ParentPlayers"), icon: Users },
@@ -722,18 +737,16 @@ export default function Layout({ children, currentPageName }) {
     { title: "Chat Equipo", url: createPageUrl("PlayerChat"), icon: MessageCircle, badge: unreadMessagesCount > 0 ? unreadMessagesCount : null, urgentBadge: urgentMessagesCount > 0 },
   ];
 
-  let navigationItems = isAdmin ? adminNavigationItems : isPlayer ? playerNavigationItems : parentNavigationItems;
-  
-  // Add coach callups for coaches (who are NOT admin and NOT players)
-  if (isCoach && !isAdmin && !isPlayer) {
-    const callupIndex = navigationItems.findIndex(item => item.url === createPageUrl("ParentCallups"));
-    if (callupIndex !== -1) {
-      navigationItems = [
-        ...navigationItems.slice(0, callupIndex + 1),
-        { title: "🎓 Crear Convocatorias", url: createPageUrl("CoachCallups"), icon: Bell },
-        ...(hasPlayers ? [{ title: "👨‍👩‍👧 Confirmar Mis Hijos", url: createPageUrl("ParentCallups"), icon: ClipboardCheck, badge: pendingCallupsCount > 0 ? pendingCallupsCount : null, urgentBadge: pendingCallupsCount > 0 }] : navigationItems.slice(callupIndex + 1))
-      ];
-    }
+  // Determine navigation items based on user role
+  let navigationItems;
+  if (isAdmin) {
+    navigationItems = adminNavigationItems;
+  } else if (isPlayer) {
+    navigationItems = playerNavigationItems;
+  } else if (isCoach) {
+    navigationItems = coachNavigationItems;
+  } else {
+    navigationItems = parentNavigationItems;
   }
 
   const handleLogout = () => {
