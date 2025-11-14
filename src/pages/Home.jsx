@@ -19,7 +19,7 @@ export default function Home() {
         const currentUser = await base44.auth.me();
         setUser(currentUser);
         setIsAdmin(currentUser.role === "admin");
-        setIsCoach(currentUser.es_entrenador === true); // CAMBIADO: Ya no excluimos admins
+        setIsCoach(currentUser.es_entrenador === true);
 
         // Check if admin/coach has players
         if (currentUser.role === "admin" || currentUser.es_entrenador) {
@@ -63,6 +63,8 @@ export default function Home() {
 
   const activePlayers = players.filter(p => p.activo).length;
   const pendingPayments = payments.filter(p => p.estado === "Pendiente").length;
+  
+  // Unread messages: para entrenadores, contar padre_a_grupo; para admins sin es_entrenador, también padre_a_grupo
   const unreadMessages = messages.filter(m => !m.leido && m.tipo === "padre_a_grupo").length;
 
   // Calculate pending callups for user's players
@@ -140,9 +142,9 @@ export default function Home() {
       badgeLabel: "pendientes"
     }] : []),
     {
-      title: isCoach ? "🎓 Chat Equipos" : "Chat Grupos",
+      title: "🎓 Chat Equipos",
       icon: MessageCircle,
-      url: isCoach ? createPageUrl("CoachChat") : createPageUrl("AdminChat"),
+      url: createPageUrl("CoachChat"),
       gradient: "from-indigo-600 to-indigo-700",
       badge: unreadMessages,
       badgeLabel: "nuevos"
