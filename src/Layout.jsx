@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { createPageUrl } from "@/utils";
@@ -8,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 
 import NotificationBadge from "./components/NotificationBadge";
+import SessionManager from "./components/SessionManager"; // Added import
 
 const CLUB_LOGO_URL = "https://www.cdbustarviejo.com/uploads/2/4/0/4/2404974/logo-cd-bustarviejo-cuadrado-xpeq_orig.png";
 
@@ -38,6 +40,7 @@ const getPeriodType = () => {
 
 function ClosedSeasonScreen({ user, isAdmin }) {
   const handleLogout = () => {
+    localStorage.removeItem("current_user_id"); // Added localStorage cleanup
     base44.auth.logout();
   };
 
@@ -144,6 +147,7 @@ function ClosedSeasonScreen({ user, isAdmin }) {
 
 function InscriptionPeriodScreen({ user, isAdmin }) {
   const handleLogout = () => {
+    localStorage.removeItem("current_user_id"); // Added localStorage cleanup
     base44.auth.logout();
   };
 
@@ -288,6 +292,7 @@ function InscriptionPeriodScreen({ user, isAdmin }) {
 
 function VacationPeriodScreen({ user, isAdmin }) {
   const handleLogout = () => {
+    localStorage.removeItem("current_user_id"); // Added localStorage cleanup
     base44.auth.logout();
   };
 
@@ -376,6 +381,7 @@ function VacationPeriodScreen({ user, isAdmin }) {
 
 function RestrictedAccessScreen({ user, restriction }) {
   const handleLogout = () => {
+    localStorage.removeItem("current_user_id"); // Added localStorage cleanup
     base44.auth.logout();
   };
 
@@ -599,7 +605,6 @@ export default function Layout({ children, currentPageName }) {
         let pending = 0;
         
         if (isPlayer) {
-          // Para jugadores: contar convocatorias futuras publicadas sin confirmar
           const allPlayers = await base44.entities.Player.list();
           const myPlayer = allPlayers.find(p => p.email_jugador === user.email);
           
@@ -616,7 +621,6 @@ export default function Layout({ children, currentPageName }) {
             });
           }
         } else if (!isAdmin) {
-          // Para padres: contar convocatorias futuras publicadas sin confirmar de sus hijos
           const allPlayers = await base44.entities.Player.list();
           const myPlayers = allPlayers.filter(p => 
             p.email_padre === user.email || 
@@ -636,7 +640,6 @@ export default function Layout({ children, currentPageName }) {
             }
           });
         } else if (isAdmin && hasPlayers) {
-          // Para admins con hijos: igual que padres
           const allPlayers = await base44.entities.Player.list();
           const myPlayers = allPlayers.filter(p => 
             p.email_padre === user.email || 
@@ -733,17 +736,19 @@ export default function Layout({ children, currentPageName }) {
       navigationItems = [
         ...navigationItems.slice(0, callupIndex + 1),
         { title: "🎓 Crear Convocatorias", url: createPageUrl("CoachCallups"), icon: Bell },
-        ...(hasPlayers ? [{ title: "👨‍👩‍👧 Confirmar Mis Hijos", url: createPageUrl("ParentCallups"), icon: ClipboardCheck, badge: pendingCallupsCount > 0 ? pendingCallupsCount : null, urgentBadge: pendingCallupsCount > 0 }] : [navigationItems.slice(callupIndex + 1)])
+        ...(hasPlayers ? [{ title: "👨‍👩‍👧 Confirmar Mis Hijos", url: createPageUrl("ParentCallups"), icon: ClipboardCheck, badge: pendingCallupsCount > 0 ? pendingCallupsCount : null, urgentBadge: pendingCallupsCount > 0 }] : navigationItems.slice(callupIndex + 1))
       ];
     }
   }
 
   const handleLogout = () => {
+    localStorage.removeItem("current_user_id"); // Added localStorage cleanup
     base44.auth.logout();
   };
 
   return (
     <>
+      <SessionManager /> {/* Added SessionManager component */}
       <NotificationBadge />
       
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
