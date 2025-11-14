@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -34,11 +35,11 @@ export default function AdminChat() {
     fetchUser();
   }, []);
 
-  const { data: messages } = useQuery({
+  const { data: messages, refetch: refetchMessages } = useQuery({
     queryKey: ['chatMessages'],
     queryFn: () => base44.entities.ChatMessage.list('-created_date'),
     initialData: [],
-    refetchInterval: 2000,
+    refetchInterval: 3000,
   });
 
   const { data: players } = useQuery({
@@ -120,11 +121,12 @@ export default function AdminChat() {
         return newMessage;
       }
     },
-    onSuccess: () => {
+    onSuccess: async () => {
       setMessageContent("");
       setAttachments([]);
       setPriority("Normal");
       setSendToAll(false);
+      await refetchMessages(); // Add this line
       queryClient.invalidateQueries({ queryKey: ['chatMessages'] });
       queryClient.invalidateQueries({ queryKey: ['photoGallery'] });
       toast.success(sendToAll ? "Anuncio enviado a todos los grupos" : "Mensaje enviado");

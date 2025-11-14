@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -32,11 +33,11 @@ export default function PlayerChat() {
     fetchUser();
   }, []);
 
-  const { data: messages, isLoading: loadingMessages } = useQuery({
+  const { data: messages, isLoading: loadingMessages, refetch: refetchMessages } = useQuery({
     queryKey: ['chatMessages'],
     queryFn: () => base44.entities.ChatMessage.list('-created_date'),
     initialData: [],
-    refetchInterval: 2000,
+    refetchInterval: 3000,
   });
 
   const { data: teamPlayers } = useQuery({
@@ -75,9 +76,10 @@ export default function PlayerChat() {
       
       return newMessage;
     },
-    onSuccess: () => {
+    onSuccess: async () => {
       setMessageContent("");
       setAttachments([]);
+      await refetchMessages(); // Changed here
       queryClient.invalidateQueries({ queryKey: ['chatMessages'] });
       toast.success("Mensaje enviado");
     },

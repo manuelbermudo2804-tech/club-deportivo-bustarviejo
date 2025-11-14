@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -29,11 +30,11 @@ export default function ParentChat() {
     fetchUser();
   }, []);
 
-  const { data: messages, isLoading: loadingMessages } = useQuery({
+  const { data: messages, isLoading: loadingMessages, refetch: refetchMessages } = useQuery({
     queryKey: ['chatMessages'],
     queryFn: () => base44.entities.ChatMessage.list('-created_date'),
     initialData: [],
-    refetchInterval: 2000,
+    refetchInterval: 3000,
   });
 
   const { data: players, isLoading: loadingPlayers } = useQuery({
@@ -74,9 +75,10 @@ export default function ParentChat() {
       
       return newMessage;
     },
-    onSuccess: () => {
+    onSuccess: async () => {
       setMessageContent("");
       setAttachments([]);
+      await refetchMessages(); // Changed here
       queryClient.invalidateQueries({ queryKey: ['chatMessages'] });
       toast.success("Mensaje enviado");
     },
@@ -133,7 +135,7 @@ export default function ParentChat() {
     if (myGroups.length > 0 && !selectedTab) {
       setSelectedTab(myGroups[0].id);
     }
-  }, [myGroups.length]);
+  }, [myGroups.length, selectedTab]);
 
   useEffect(() => {
     if (selectedTab) {
@@ -148,7 +150,7 @@ export default function ParentChat() {
         }
       }
     }
-  }, [selectedTab]);
+  }, [selectedTab, myGroups, markAsReadMutation]);
 
   const isBusinessHours = () => {
     const now = new Date();
@@ -211,7 +213,7 @@ export default function ParentChat() {
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [selectedTab, messages]);
+  }, [selectedTab, messages, currentGroup]); // Added currentGroup to dependencies to ensure scroll on new messages
 
   if (loadingPlayers || loadingMessages) {
     return (
