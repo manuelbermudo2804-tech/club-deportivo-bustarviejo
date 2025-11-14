@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -108,8 +109,8 @@ export default function TrainingSchedules() {
     schedulesByCategory[categoria].sort((a, b) => DIAS_ORDEN[a.dia_semana] - DIAS_ORDEN[b.dia_semana]);
   });
 
-  // Check if user can edit (only admin or coach)
-  const canEdit = isAdmin || isCoach;
+  // Check if user can edit (only admin)
+  const canEdit = isAdmin;
 
   return (
     <div className="p-6 lg:p-8 space-y-6">
