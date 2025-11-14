@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -248,7 +249,6 @@ Email alternativo: CDBUSTARVIEJO@GMAIL.COM
   };
 
   const handleEdit = (callup) => {
-    console.log("Editing callup:", callup);
     setEditingCallup(callup);
     setShowForm(true);
   };
@@ -431,7 +431,7 @@ Email alternativo: CDBUSTARVIEJO@GMAIL.COM
                   callup={callup}
                   onEdit={handleEdit}
                   onDelete={handleDelete}
-                  isCoach={true}
+                  isCoach={user?.es_entrenador || user?.role === "admin"}
                 />
               ))}
             </AnimatePresence>
