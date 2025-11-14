@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Search, Users, Calendar } from "lucide-react";
 
-import PlayerCard from "../components/players/PlayerCard";
+import RosterPlayerCard from "../components/players/RosterPlayerCard";
 
 export default function TeamRosters() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -33,12 +33,6 @@ export default function TeamRosters() {
     initialData: [],
   });
 
-  const { data: schedules } = useQuery({
-    queryKey: ['trainingSchedules'],
-    queryFn: () => base44.entities.TrainingSchedule.list(),
-    initialData: [],
-  });
-
   const filteredPlayers = players.filter(player => {
     const matchesSearch = player.nombre?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCategory = selectedCategory === "all" || player.deporte === selectedCategory;
@@ -61,48 +55,48 @@ export default function TeamRosters() {
   }
 
   return (
-    <div className="p-6 lg:p-8 space-y-6">
+    <div className="p-4 lg:p-8 space-y-4 lg:space-y-6">
       <div>
-        <h1 className="text-3xl font-bold text-slate-900">🎓 Plantillas de Equipos</h1>
-        <p className="text-slate-600 mt-1">Jugadores de los equipos que entrenas</p>
+        <h1 className="text-2xl lg:text-3xl font-bold text-slate-900">🎓 Plantillas</h1>
+        <p className="text-slate-600 mt-1 text-sm lg:text-base">Jugadores de tus equipos</p>
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 lg:gap-6">
         <Card className="border-none shadow-lg bg-white">
-          <CardContent className="pt-6">
+          <CardContent className="pt-4 lg:pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-slate-600 mb-1">Equipos</p>
-                <p className="text-3xl font-bold text-blue-600">{coachCategories.length}</p>
+                <p className="text-xs lg:text-sm text-slate-600 mb-1">Equipos</p>
+                <p className="text-2xl lg:text-3xl font-bold text-blue-600">{coachCategories.length}</p>
               </div>
-              <Users className="w-12 h-12 text-blue-500 opacity-20" />
+              <Users className="w-8 h-8 lg:w-12 lg:h-12 text-blue-500 opacity-20" />
             </div>
           </CardContent>
         </Card>
 
         <Card className="border-none shadow-lg bg-white">
-          <CardContent className="pt-6">
+          <CardContent className="pt-4 lg:pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-slate-600 mb-1">Jugadores Activos</p>
-                <p className="text-3xl font-bold text-green-600">{activePlayers}</p>
+                <p className="text-xs lg:text-sm text-slate-600 mb-1">Jugadores</p>
+                <p className="text-2xl lg:text-3xl font-bold text-green-600">{activePlayers}</p>
               </div>
-              <Users className="w-12 h-12 text-green-500 opacity-20" />
+              <Users className="w-8 h-8 lg:w-12 lg:h-12 text-green-500 opacity-20" />
             </div>
           </CardContent>
         </Card>
 
-        <Card className="border-none shadow-lg bg-white">
-          <CardContent className="pt-6">
+        <Card className="border-none shadow-lg bg-white col-span-2 lg:col-span-1">
+          <CardContent className="pt-4 lg:pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-slate-600 mb-1">Categoría Seleccionada</p>
-                <p className="text-lg font-bold text-orange-600">
+                <p className="text-xs lg:text-sm text-slate-600 mb-1">Categoría</p>
+                <p className="text-sm lg:text-lg font-bold text-orange-600 truncate">
                   {selectedCategory === "all" ? "Todas" : selectedCategory.split(" ")[1]}
                 </p>
               </div>
-              <Calendar className="w-12 h-12 text-orange-500 opacity-20" />
+              <Calendar className="w-8 h-8 lg:w-12 lg:h-12 text-orange-500 opacity-20" />
             </div>
           </CardContent>
         </Card>
@@ -110,27 +104,27 @@ export default function TeamRosters() {
 
       {/* Search and Filters */}
       <Card className="border-none shadow-lg bg-white">
-        <CardContent className="pt-6 space-y-4">
+        <CardContent className="pt-4 lg:pt-6 space-y-3 lg:space-y-4">
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-slate-400" />
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 lg:w-5 lg:h-5 text-slate-400" />
             <Input
               placeholder="Buscar jugador..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
+              className="pl-9 lg:pl-10 text-sm lg:text-base"
             />
           </div>
 
           <div className="flex flex-wrap gap-2">
             <Badge
               onClick={() => setSelectedCategory("all")}
-              className={`cursor-pointer px-4 py-2 ${
+              className={`cursor-pointer px-3 py-1 text-xs lg:text-sm ${
                 selectedCategory === "all"
                   ? "bg-blue-600 text-white"
                   : "bg-slate-100 text-slate-700 hover:bg-slate-200"
               }`}
             >
-              Todos los equipos ({players.filter(p => coachCategories.includes(p.deporte) && p.activo).length})
+              Todos ({players.filter(p => coachCategories.includes(p.deporte) && p.activo).length})
             </Badge>
             {coachCategories.map((categoria) => {
               const count = players.filter(p => p.deporte === categoria && p.activo).length;
@@ -138,7 +132,7 @@ export default function TeamRosters() {
                 <Badge
                   key={categoria}
                   onClick={() => setSelectedCategory(categoria)}
-                  className={`cursor-pointer px-4 py-2 ${
+                  className={`cursor-pointer px-3 py-1 text-xs lg:text-sm ${
                     selectedCategory === categoria
                       ? "bg-blue-600 text-white"
                       : "bg-slate-100 text-slate-700 hover:bg-slate-200"
@@ -165,15 +159,9 @@ export default function TeamRosters() {
           </CardContent>
         </Card>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 lg:gap-4">
           {filteredPlayers.map((player) => (
-            <PlayerCard
-              key={player.id}
-              player={player}
-              schedules={schedules.filter(s => s.categoria === player.deporte)}
-              onEdit={null}
-              isCoachView={true}
-            />
+            <RosterPlayerCard key={player.id} player={player} />
           ))}
         </div>
       )}
