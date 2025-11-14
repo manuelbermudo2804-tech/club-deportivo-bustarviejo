@@ -19,7 +19,7 @@ export default function Home() {
         const currentUser = await base44.auth.me();
         setUser(currentUser);
         setIsAdmin(currentUser.role === "admin");
-        setIsCoach(currentUser.es_entrenador === true);
+        setIsCoach(currentUser.es_entrenador === true && currentUser.role !== "admin");
 
         // Check if admin/coach has players
         if (currentUser.role === "admin" || currentUser.es_entrenador) {
@@ -139,6 +139,16 @@ export default function Home() {
       badge: pendingCallupsCount(),
       badgeLabel: "pendientes"
     }] : []),
+    // ADMIN: Chat Grupos -> AdminChat
+    // COACH: Chat Equipos -> CoachChat
+    {
+      title: isAdmin ? "Chat Grupos" : "🎓 Chat Equipos",
+      icon: MessageCircle,
+      url: isAdmin ? createPageUrl("AdminChat") : createPageUrl("CoachChat"),
+      gradient: "from-indigo-600 to-indigo-700",
+      badge: unreadMessages,
+      badgeLabel: "nuevos"
+    },
     {
       title: "Pagos",
       icon: CreditCard,
