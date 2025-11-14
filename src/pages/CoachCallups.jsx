@@ -25,7 +25,7 @@ export default function CoachCallups() {
   const [editingCallup, setEditingCallup] = useState(null);
   const [user, setUser] = useState(null);
   const [coachCategories, setCoachCategories] = useState([]);
-  const [selectedCategory, setSelectedCategory] = useState("all");
+  const [selectedCategory, setSelectedCategory] = useState("");
   
   const queryClient = useQueryClient();
 
@@ -45,9 +45,15 @@ export default function CoachCallups() {
         const categories = currentUser.categorias_entrena || [];
         setCoachCategories(categories);
         
-        // If only one category, select it by default
-        if (categories.length === 1) {
+        // If admin, set to "admin" mode (can create for any category)
+        if (currentUser.role === "admin") {
+          setSelectedCategory("admin");
+        } else if (categories.length === 1) {
+          // If only one category, select it by default
           setSelectedCategory(categories[0]);
+        } else if (categories.length > 1) {
+          // Multiple categories, default to "all" for viewing
+          setSelectedCategory("all");
         }
       } catch (error) {
         console.error("Error fetching user:", error);
@@ -79,8 +85,11 @@ export default function CoachCallups() {
   const players = allPlayers.filter(p => {
     const targetCategory = editingCallup?.categoria || selectedCategory;
     
-    if (targetCategory === "all") {
-      // If "all" is selected, show players from all coach's categories
+    if (targetCategory === "all" || targetCategory === "admin") {
+      // If "all" or "admin" is selected, show players from all coach's categories (or all players for admin)
+      if (user?.role === "admin") {
+        return p.activo; // Admins can see all active players
+      }
       return coachCategories.includes(p.deporte) && p.activo;
     }
     // Otherwise, show players from the specific selected category
@@ -239,7 +248,7 @@ Email alternativo: CDBUSTARVIEJO@GMAIL.COM
   };
 
   const handleEdit = (callup) => {
-    console.log("Editing callup:", callup); // Debug
+    console.log("Editing callup:", callup);
     setEditingCallup(callup);
     setShowForm(true);
   };
@@ -297,9 +306,8 @@ Email alternativo: CDBUSTARVIEJO@GMAIL.COM
     );
   }
 
-  // Determine the effective category for the form
-  const effectiveCategory = editingCallup?.categoria || selectedCategory;
-  const canShowForm = effectiveCategory !== "all";
+  // Determine if user can create callups
+  const canCreateCallup = user?.role === "admin" || (selectedCategory && selectedCategory !== "all");
 
   return (
     <div className="p-6 lg:p-8 space-y-6">
@@ -317,7 +325,7 @@ Email alternativo: CDBUSTARVIEJO@GMAIL.COM
         <Button
           onClick={handleNewCallup}
           className="bg-orange-600 hover:bg-orange-700 shadow-lg"
-          disabled={selectedCategory === "all"}
+          disabled={!canCreateCallup}
         >
           <Plus className="w-5 h-5 mr-2" />
           Nueva Convocatoria
@@ -397,14 +405,14 @@ Email alternativo: CDBUSTARVIEJO@GMAIL.COM
       </div>
 
       <AnimatePresence mode="wait">
-        {showForm && canShowForm && (
+        {showForm && canCreateCallup && (
           <CallupForm
             key={editingCallup?.id || 'new'}
             callup={editingCallup}
             players={players}
             coachName={user.full_name}
             coachEmail={user.email}
-            category={effectiveCategory}
+            category={editingCallup?.categoria || selectedCategory}
             onSubmit={handleSubmit}
             onCancel={handleCancel}
             isSubmitting={createCallupMutation.isPending || updateCallupMutation.isPending}
@@ -459,7 +467,7 @@ Email alternativo: CDBUSTARVIEJO@GMAIL.COM
         <div className="text-center py-12 bg-white rounded-xl shadow-lg">
           <div className="text-6xl mb-4">🏆</div>
           <p className="text-slate-500 text-lg mb-4">No hay convocatorias creadas</p>
-          <Button onClick={handleNewCallup} className="bg-orange-600 hover:bg-orange-700" disabled={selectedCategory === "all"}>
+          <Button onClick={handleNewCallup} className="bg-orange-600 hover:bg-orange-700" disabled={!canCreateCallup}>
             <Plus className="w-4 h-4 mr-2" />
             Crear Primera Convocatoria
           </Button>
