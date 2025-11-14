@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Calendar, CheckCircle2, XCircle, Clock, User } from "lucide-react";
+import { Calendar, CheckCircle2, XCircle, Clock, User, Save, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
@@ -15,6 +15,8 @@ export default function CoachAttendance() {
   const [selectedCategory, setSelectedCategory] = useState("");
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
   const [attendanceData, setAttendanceData] = useState({});
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [lastSavedData, setLastSavedData] = useState({});
   
   const queryClient = useQueryClient();
 
@@ -56,8 +58,13 @@ export default function CoachAttendance() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['attendances'] });
-      toast.success("Asistencia guardada");
+      setHasUnsavedChanges(false);
+      setLastSavedData(attendanceData);
+      toast.success("✅ Asistencia guardada correctamente");
     },
+    onError: () => {
+      toast.error("❌ Error al guardar la asistencia");
+    }
   });
 
   const categoryPlayers = players.filter(p => 
@@ -76,16 +83,24 @@ export default function CoachAttendance() {
         data[a.jugador_id] = a.estado;
       });
       setAttendanceData(data);
+      setLastSavedData(data);
+      setHasUnsavedChanges(false);
     } else {
       setAttendanceData({});
+      setLastSavedData({});
+      setHasUnsavedChanges(false);
     }
   }, [selectedCategory, selectedDate, attendances]);
 
   const handleAttendanceChange = (playerId, status) => {
-    setAttendanceData(prev => ({
-      ...prev,
-      [playerId]: status
-    }));
+    setAttendanceData(prev => {
+      const newData = {
+        ...prev,
+        [playerId]: status
+      };
+      setHasUnsavedChanges(true);
+      return newData;
+    });
   };
 
   const handleSave = () => {
@@ -129,12 +144,35 @@ export default function CoachAttendance() {
     );
   }
 
+  const existing = attendances.find(a => 
+    a.categoria === selectedCategory && 
+    a.fecha === selectedDate
+  );
+
   return (
     <div className="p-4 lg:p-6 space-y-4">
-      <div>
-        <h1 className="text-2xl lg:text-3xl font-bold text-slate-900">✅ Control de Asistencia</h1>
-        <p className="text-slate-600 mt-1 text-sm">Registra la asistencia de tus entrenamientos</p>
+      <div className="flex items-start justify-between">
+        <div>
+          <h1 className="text-2xl lg:text-3xl font-bold text-slate-900">✅ Control de Asistencia</h1>
+          <p className="text-slate-600 mt-1 text-sm">Registra la asistencia de tus entrenamientos</p>
+        </div>
+        {existing && (
+          <Badge className="bg-green-100 text-green-700 border-green-300">
+            ✅ Guardado {format(new Date(existing.updated_date), "dd/MM HH:mm")}
+          </Badge>
+        )}
       </div>
+
+      {hasUnsavedChanges && (
+        <Card className="border-2 border-orange-500 bg-orange-50">
+          <CardContent className="py-3 px-4">
+            <div className="flex items-center gap-2 text-orange-900">
+              <AlertCircle className="w-5 h-5" />
+              <span className="text-sm font-medium">Tienes cambios sin guardar</span>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
         {Object.entries(statusConfig).map(([status, config]) => {
@@ -198,9 +236,17 @@ export default function CoachAttendance() {
               <CardTitle className="text-base">
                 {categoryPlayers.length} Jugadores
               </CardTitle>
-              <Button onClick={handleSave} className="bg-green-600 hover:bg-green-700 h-8 text-sm">
-                <CheckCircle2 className="w-4 h-4 mr-1" />
-                Guardar
+              <Button 
+                onClick={handleSave} 
+                disabled={!hasUnsavedChanges || saveAttendanceMutation.isPending}
+                className={`h-8 text-sm transition-all ${
+                  hasUnsavedChanges 
+                    ? 'bg-orange-600 hover:bg-orange-700 animate-pulse' 
+                    : 'bg-green-600 hover:bg-green-700'
+                }`}
+              >
+                <Save className="w-4 h-4 mr-1" />
+                {saveAttendanceMutation.isPending ? 'Guardando...' : hasUnsavedChanges ? 'Guardar Cambios' : 'Guardado'}
               </Button>
             </div>
           </CardHeader>
@@ -228,9 +274,10 @@ export default function CoachAttendance() {
                           onClick={() => handleAttendanceChange(player.id, status)}
                           className={`p-2 rounded-lg transition-all ${
                             isSelected 
-                              ? `${config.bg} ${config.color} ring-2 ring-offset-1 ring-${config.color.split('-')[1]}-400` 
-                              : 'bg-white hover:bg-slate-100 text-slate-400'
+                              ? `${config.bg} ${config.color} ring-2 ring-offset-1 ring-${config.color.split('-')[1]}-400 scale-110` 
+                              : 'bg-white hover:bg-slate-100 text-slate-400 hover:scale-105'
                           }`}
+                          title={config.label}
                         >
                           <Icon className="w-4 h-4" />
                         </button>
