@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
@@ -15,10 +15,23 @@ export default function Players() {
   const [editingPlayer, setEditingPlayer] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [sportFilter, setSportFilter] = useState("all");
+  const [user, setUser] = useState(null);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [isCoach, setIsCoach] = useState(false);
   
   const queryClient = useQueryClient();
 
-  const { data: players, isLoading } = useQuery({
+  useEffect(() => {
+    const fetchUser = async () => {
+      const currentUser = await base44.auth.me();
+      setUser(currentUser);
+      setIsAdmin(currentUser.role === "admin");
+      setIsCoach(currentUser.es_entrenador === true && currentUser.role !== "admin");
+    };
+    fetchUser();
+  }, []);
+
+  const { data: allPlayers, isLoading } = useQuery({
     queryKey: ['players'],
     queryFn: () => base44.entities.Player.list('-created_date'),
     initialData: [],
@@ -29,6 +42,14 @@ export default function Players() {
     queryFn: () => base44.entities.TrainingSchedule.list(),
     initialData: [],
   });
+
+  // Filter players based on role
+  const players = isAdmin 
+    ? allPlayers 
+    : allPlayers.filter(p => 
+        p.email_padre === user?.email || 
+        p.email_tutor_2 === user?.email
+      );
 
   const createPlayerMutation = useMutation({
     mutationFn: (playerData) => base44.entities.Player.create(playerData),
@@ -77,26 +98,32 @@ export default function Players() {
     <div className="p-6 lg:p-8 space-y-6">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-slate-900">Jugadores</h1>
-          <p className="text-slate-600 mt-1">Gestión de fichas y plantilla</p>
+          <h1 className="text-3xl font-bold text-slate-900">
+            {isAdmin ? "Jugadores" : isCoach ? "Mis Hijos" : "Mis Jugadores"}
+          </h1>
+          <p className="text-slate-600 mt-1">
+            {isAdmin ? "Gestión de fichas y plantilla" : "Jugadores registrados a tu nombre"}
+          </p>
         </div>
-        <Button
-          onClick={() => {
-            setEditingPlayer(null);
-            setShowForm(!showForm);
-          }}
-          className="bg-orange-600 hover:bg-orange-700 shadow-lg"
-        >
-          <Plus className="w-5 h-5 mr-2" />
-          Nuevo Jugador
-        </Button>
+        {isAdmin && (
+          <Button
+            onClick={() => {
+              setEditingPlayer(null);
+              setShowForm(!showForm);
+            }}
+            className="bg-orange-600 hover:bg-orange-700 shadow-lg"
+          >
+            <Plus className="w-5 h-5 mr-2" />
+            Nuevo Jugador
+          </Button>
+        )}
       </div>
 
       <AnimatePresence>
         {showForm && (
           <PlayerForm
             player={editingPlayer}
-            allPlayers={players}
+            allPlayers={allPlayers}
             onSubmit={handleSubmit}
             onCancel={() => {
               setShowForm(false);
@@ -164,7 +191,7 @@ export default function Players() {
               <PlayerCard 
                 key={player.id} 
                 player={player} 
-                onEdit={handleEdit}
+                onEdit={isAdmin ? handleEdit : null}
                 schedules={schedules}
               />
             ))}

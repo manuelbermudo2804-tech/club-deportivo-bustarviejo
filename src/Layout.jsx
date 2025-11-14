@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
@@ -724,7 +725,8 @@ export default function Layout({ children, currentPageName }) {
 
   const coachNavigationItems = [
     { title: "Inicio", url: createPageUrl("Home"), icon: Home },
-    { title: "Jugadores", url: createPageUrl("Players"), icon: Users },
+    { title: "Mis Hijos", url: createPageUrl("Players"), icon: Users },
+    { title: "🎓 Plantillas", url: createPageUrl("TeamRosters"), icon: Users },
     { title: "Horarios", url: createPageUrl("TrainingSchedules"), icon: Clock },
     { title: "Calendario", url: createPageUrl("Calendar"), icon: Calendar },
     { title: "Anuncios", url: createPageUrl("Announcements"), icon: Megaphone },
@@ -757,7 +759,7 @@ export default function Layout({ children, currentPageName }) {
     { title: "Anuncios", url: createPageUrl("Announcements"), icon: Megaphone },
     { title: "Galería", url: createPageUrl("PlayerGallery"), icon: Image },
     { title: "🏆 Convocatorias", url: createPageUrl("PlayerCallups"), icon: Bell, badge: pendingCallupsCount > 0 ? pendingCallupsCount : null, urgentBadge: pendingCallupsCount > 0 },
-    { title: "Chat Equipo", url: createPageUrl("PlayerChat"), icon: MessageCircle, badge: unreadMessagesCount > 0 ? unreadMessagesCount : null, urgentBadge: urgentMessagesCount > 0 },
+    { title: "Chat Equipo", url: createPageUrl("PlayerChat"), icon: MessageCircle, badge: unreadMessagesCount > 0 ? unreadMessagesCount : null, urgentBadge: unreadMessagesCount > 0 },
   ];
 
   let navigationItems;
