@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
@@ -8,6 +8,24 @@ import { Users, CreditCard, ShoppingBag, Calendar, Megaphone, Image, Clock, Mess
 const CLUB_LOGO_URL = "https://www.cdbustarviejo.com/uploads/2/4/0/4/2404974/logo-cd-bustarviejo-cuadrado-xpeq_orig.png";
 
 export default function Home() {
+  const [user, setUser] = useState(null);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [isCoach, setIsCoach] = useState(false);
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const currentUser = await base44.auth.me();
+        setUser(currentUser);
+        setIsAdmin(currentUser.role === "admin");
+        setIsCoach(currentUser.es_entrenador === true && currentUser.role !== "admin");
+      } catch (error) {
+        console.error("Error fetching user:", error);
+      }
+    };
+    fetchUser();
+  }, []);
+
   const { data: players, isLoading: loadingPlayers } = useQuery({
     queryKey: ['players'],
     queryFn: () => base44.entities.Player.list(),
@@ -99,6 +117,13 @@ export default function Home() {
     },
   ];
 
+  // Determine panel title based on role
+  const getPanelTitle = () => {
+    if (isAdmin) return "Panel de Administración";
+    if (isCoach) return "Panel de Entrenadores";
+    return "Panel de Gestión";
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-black">
       {/* Header */}
@@ -107,7 +132,7 @@ export default function Home() {
           <img src={CLUB_LOGO_URL} alt="CD Bustarviejo" className="w-12 h-12 lg:w-16 lg:h-16 rounded-2xl shadow-2xl ring-4 ring-white/50" />
           <div className="text-white text-center">
             <h1 className="text-2xl lg:text-3xl font-bold">CD Bustarviejo</h1>
-            <p className="text-orange-100 text-xs lg:text-sm">Panel de Administración</p>
+            <p className="text-orange-100 text-xs lg:text-sm">{getPanelTitle()}</p>
           </div>
         </div>
       </div>
