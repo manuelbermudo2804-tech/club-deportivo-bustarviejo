@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Users, Check, X, Clock, AlertCircle, Trash2 } from "lucide-react";
+import { Plus, Users, Check, X, Clock, AlertCircle } from "lucide-react";
 import { AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
 import { format } from "date-fns";
@@ -278,10 +278,9 @@ Email alternativo: CDBUSTARVIEJO@GMAIL.COM
     return c.categoria === selectedCategory; // Coaches see specific selected category
   });
   
-  // Separate upcoming and past
+  // Separate upcoming ONLY - past callups are hidden
   const today = new Date().toISOString().split('T')[0];
   const upcomingCallups = myCallups.filter(c => c.fecha_partido >= today && !c.cerrada);
-  const pastCallups = myCallups.filter(c => c.fecha_partido < today || c.cerrada);
 
   // Calculate stats
   const totalConfirmed = upcomingCallups.reduce((acc, c) => {
@@ -421,7 +420,7 @@ Email alternativo: CDBUSTARVIEJO@GMAIL.COM
       </AnimatePresence>
 
       {/* Upcoming Callups */}
-      {upcomingCallups.length > 0 && (
+      {upcomingCallups.length > 0 ? (
         <div className="space-y-4">
           <h2 className="text-2xl font-bold text-slate-900">Próximas Convocatorias</h2>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -438,35 +437,10 @@ Email alternativo: CDBUSTARVIEJO@GMAIL.COM
             </AnimatePresence>
           </div>
         </div>
-      )}
-
-      {/* Past Callups */}
-      {pastCallups.length > 0 && (
-        <div className="space-y-4 pt-8 border-t">
-          <div className="flex items-center justify-between">
-            <h2 className="text-2xl font-bold text-slate-500">Convocatorias Pasadas</h2>
-            <Badge className="bg-slate-500 text-white">
-              Puedes eliminar las convocatorias antiguas
-            </Badge>
-          </div>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {pastCallups.slice(0, 6).map((callup) => (
-              <CallupCard
-                key={callup.id}
-                callup={callup}
-                onEdit={handleEdit}
-                onDelete={handleDelete}
-                isCoach={true}
-              />
-            ))}
-          </div>
-        </div>
-      )}
-
-      {myCallups.length === 0 && !isLoading && (
+      ) : (
         <div className="text-center py-12 bg-white rounded-xl shadow-lg">
           <div className="text-6xl mb-4">🏆</div>
-          <p className="text-slate-500 text-lg mb-4">No hay convocatorias creadas</p>
+          <p className="text-slate-500 text-lg mb-4">No hay convocatorias próximas</p>
           <Button onClick={handleNewCallup} className="bg-orange-600 hover:bg-orange-700" disabled={!canCreateCallup}>
             <Plus className="w-4 h-4 mr-2" />
             Crear Primera Convocatoria
