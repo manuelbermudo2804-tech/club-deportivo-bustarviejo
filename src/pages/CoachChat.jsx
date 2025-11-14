@@ -464,66 +464,62 @@ export default function CoachChat() {
                   .map((msg) => {
                     const isMyMessage = msg.remitente_email === user?.email;
                     
-                    // NUEVA LÓGICA: Determinar color basado en tipo de mensaje Y tipo de grupo
-                    let messageColor = 'bg-white text-slate-900 rounded-bl-none'; // Default para mensajes de otros
-                    
-                    if (isMyMessage) {
-                      // Es mi mensaje
-                      if (msg.tipo === "admin_a_grupo") {
-                        // Soy entrenador escribiendo en grupo de entrenador -> AZUL
-                        messageColor = 'bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-br-none';
-                      } else if (msg.tipo === "padre_a_grupo") {
-                        // Soy padre escribiendo en grupo de hijo -> MORADO
-                        messageColor = 'bg-gradient-to-r from-purple-600 to-purple-700 text-white rounded-br-none';
-                      }
-                    } else {
-                      // Mensaje de otro usuario
-                      if (msg.tipo === "admin_a_grupo") {
-                        // Otro entrenador/admin -> VERDE
-                        messageColor = 'bg-gradient-to-r from-green-600 to-green-700 text-white rounded-bl-none';
-                      } else {
-                        // Padre -> BLANCO
-                        messageColor = 'bg-white text-slate-900 rounded-bl-none';
-                      }
-                    }
-                    
                     return (
-                      <div key={msg.id} className={`flex ${isMyMessage ? 'justify-end' : 'justify-start'} mb-1`}>
-                        <div className={`max-w-[75%] rounded-lg shadow-sm ${messageColor}`}>
-                          <div className="px-3 py-2">
-                            <div className="flex items-center gap-2 mb-1">
-                              <span className={`text-xs font-semibold ${
-                                isMyMessage && msg.tipo === "admin_a_grupo" ? 'text-blue-100' 
-                                : isMyMessage && msg.tipo === "padre_a_grupo" ? 'text-purple-100'
-                                : msg.tipo === "admin_a_grupo" ? 'text-green-100' 
-                                : 'text-orange-700'
-                              }`}>
-                                {isMyMessage && msg.tipo === "admin_a_grupo" ? '🎓 ' 
-                                  : isMyMessage && msg.tipo === "padre_a_grupo" ? '👨‍👩‍👧 '
-                                  : msg.tipo === "admin_a_grupo" ? '📢 ' 
-                                  : '👨‍👩‍👧 '}{msg.remitente_nombre}
-                              </span>
-                              {msg.prioridad !== "Normal" && (
-                                <span className="text-xs">{msg.prioridad === "Urgente" ? "🔴" : "⚠️"}</span>
-                              )}
-                            </div>
-                            <p className="text-sm leading-relaxed break-words">{msg.mensaje}</p>
-                            
-                            {msg.archivos_adjuntos?.length > 0 && (
-                              <div className="mt-2">
-                                <MessageAttachments attachments={msg.archivos_adjuntos} />
+                      <div key={msg.id}>
+                        {/* DEBUG INFO CARD - MOSTRAR DATOS REALES DEL MENSAJE */}
+                        <div className="bg-yellow-100 border-2 border-yellow-500 rounded p-2 mb-1 text-xs">
+                          <p><strong>📧 Email:</strong> {msg.remitente_email}</p>
+                          <p><strong>👤 Nombre:</strong> {msg.remitente_nombre}</p>
+                          <p><strong>📝 Tipo:</strong> <span className="bg-black text-white px-2 py-1 rounded font-bold">{msg.tipo || "UNDEFINED"}</span></p>
+                          <p><strong>✉️ Mensaje:</strong> {msg.mensaje.substring(0, 30)}...</p>
+                          <p><strong>🔍 Es mío:</strong> {isMyMessage ? "SÍ" : "NO"}</p>
+                        </div>
+                        
+                        <div className={`flex ${isMyMessage ? 'justify-end' : 'justify-start'} mb-1`}>
+                          <div className={`max-w-[75%] rounded-lg shadow-sm ${
+                            isMyMessage && msg.tipo === "admin_a_grupo"
+                              ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-br-none'
+                              : isMyMessage && msg.tipo === "padre_a_grupo"
+                              ? 'bg-gradient-to-r from-purple-600 to-purple-700 text-white rounded-br-none'
+                              : msg.tipo === "admin_a_grupo"
+                              ? 'bg-gradient-to-r from-green-600 to-green-700 text-white rounded-bl-none'
+                              : 'bg-white text-slate-900 rounded-bl-none'
+                          }`}>
+                            <div className="px-3 py-2">
+                              <div className="flex items-center gap-2 mb-1">
+                                <span className={`text-xs font-semibold ${
+                                  isMyMessage && msg.tipo === "admin_a_grupo" ? 'text-blue-100' 
+                                  : isMyMessage && msg.tipo === "padre_a_grupo" ? 'text-purple-100'
+                                  : msg.tipo === "admin_a_grupo" ? 'text-green-100' 
+                                  : 'text-orange-700'
+                                }`}>
+                                  {isMyMessage && msg.tipo === "admin_a_grupo" ? '🎓 ' 
+                                    : isMyMessage && msg.tipo === "padre_a_grupo" ? '👨‍👩‍👧 '
+                                    : msg.tipo === "admin_a_grupo" ? '📢 ' 
+                                    : '👨‍👩‍👧 '}{msg.remitente_nombre}
+                                </span>
+                                {msg.prioridad !== "Normal" && (
+                                  <span className="text-xs">{msg.prioridad === "Urgente" ? "🔴" : "⚠️"}</span>
+                                )}
                               </div>
-                            )}
-                            
-                            <div className="flex items-center justify-end gap-1 mt-1">
-                              <span className={`text-[10px] ${
-                                isMyMessage && msg.tipo === "admin_a_grupo" ? 'text-blue-100'
-                                : isMyMessage && msg.tipo === "padre_a_grupo" ? 'text-purple-100'
-                                : msg.tipo === "admin_a_grupo" ? 'text-green-100' 
-                                : 'text-slate-500'
-                              }`}>
-                                {format(new Date(msg.created_date), "HH:mm")}
-                              </span>
+                              <p className="text-sm leading-relaxed break-words">{msg.mensaje}</p>
+                              
+                              {msg.archivos_adjuntos?.length > 0 && (
+                                <div className="mt-2">
+                                  <MessageAttachments attachments={msg.archivos_adjuntos} />
+                                </div>
+                              )}
+                              
+                              <div className="flex items-center justify-end gap-1 mt-1">
+                                <span className={`text-[10px] ${
+                                  isMyMessage && msg.tipo === "admin_a_grupo" ? 'text-blue-100'
+                                  : isMyMessage && msg.tipo === "padre_a_grupo" ? 'text-purple-100'
+                                  : msg.tipo === "admin_a_grupo" ? 'text-green-100' 
+                                  : 'text-slate-500'
+                                }`}>
+                                  {format(new Date(msg.created_date), "HH:mm")}
+                                </span>
+                              </div>
                             </div>
                           </div>
                         </div>
