@@ -719,6 +719,7 @@ export default function Layout({ children, currentPageName }) {
     { title: "Recordatorios", url: createPageUrl("Reminders"), icon: Bell },
     { title: "Pedidos", url: createPageUrl("ClothingOrders"), icon: ShoppingBag },
     { title: "Chat", url: createPageUrl("AdminChat"), icon: MessageCircle, badge: unreadMessagesCount > 0 ? unreadMessagesCount : null, urgentBadge: urgentMessagesCount > 0 },
+    // NO Configuración para entrenadores
   ];
 
   const parentNavigationItems = [
@@ -732,6 +733,7 @@ export default function Layout({ children, currentPageName }) {
     { title: "Pagos", url: createPageUrl("ParentPayments"), icon: CreditCard },
     { title: "Pedidos", url: createPageUrl("ClothingOrders"), icon: ShoppingBag },
     { title: "Chat", url: createPageUrl("ParentChat"), icon: MessageCircle, badge: unreadMessagesCount > 0 ? unreadMessagesCount : null, urgentBadge: urgentMessagesCount > 0 },
+    // NO Configuración para familias
   ];
 
   const playerNavigationItems = [
@@ -743,6 +745,7 @@ export default function Layout({ children, currentPageName }) {
     { title: "Galería", url: createPageUrl("PlayerGallery"), icon: Image },
     { title: "🏆 Convocatorias", url: createPageUrl("PlayerCallups"), icon: Bell, badge: pendingCallupsCount > 0 ? pendingCallupsCount : null, urgentBadge: pendingCallupsCount > 0 },
     { title: "Chat Equipo", url: createPageUrl("PlayerChat"), icon: MessageCircle, badge: unreadMessagesCount > 0 ? unreadMessagesCount : null, urgentBadge: urgentMessagesCount > 0 },
+    // NO Configuración para jugadores
   ];
 
   let navigationItems;
