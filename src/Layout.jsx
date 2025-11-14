@@ -717,7 +717,7 @@ export default function Layout({ children, currentPageName }) {
     { title: "Pagos", url: createPageUrl("Payments"), icon: CreditCard },
     { title: "Recordatorios", url: createPageUrl("Reminders"), icon: Bell },
     { title: "Pedidos Ropa", url: createPageUrl("ClothingOrders"), icon: ShoppingBag },
-    { title: "Chat", url: createPageUrl("AdminChat"), icon: MessageCircle, badge: unreadMessagesCount > 0 ? unreadMessagesCount : null, urgentBadge: urgentMessagesCount > 0 },
+    { title: "Chat Grupos", url: createPageUrl("AdminChat"), icon: MessageCircle, badge: unreadMessagesCount > 0 ? unreadMessagesCount : null, urgentBadge: urgentMessagesCount > 0 },
     { title: "Histórico", url: createPageUrl("PaymentHistory"), icon: Archive },
     { title: "Temporadas", url: createPageUrl("SeasonManagement"), icon: Settings },
     { title: "Usuarios", url: createPageUrl("UserManagement"), icon: Users },
