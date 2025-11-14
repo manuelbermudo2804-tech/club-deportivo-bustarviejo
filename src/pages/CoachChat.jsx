@@ -27,6 +27,11 @@ export default function CoachChat() {
     const fetchUser = async () => {
       const currentUser = await base44.auth.me();
       setUser(currentUser);
+      console.log("🔵 USUARIO LOGUEADO:", {
+        email: currentUser.email,
+        nombre: currentUser.full_name,
+        categorias_entrena: currentUser.categorias_entrena
+      });
     };
     fetchUser();
   }, []);
@@ -46,7 +51,9 @@ export default function CoachChat() {
 
   const sendMessageMutation = useMutation({
     mutationFn: async (messageData) => {
+      console.log("📤 ENVIANDO MENSAJE:", messageData);
       const newMessage = await base44.entities.ChatMessage.create(messageData);
+      console.log("✅ MENSAJE CREADO:", newMessage);
       
       const imageAttachments = messageData.archivos_adjuntos.filter(att => att.tipo === "imagen");
       if (imageAttachments.length > 0) {
@@ -121,6 +128,8 @@ export default function CoachChat() {
     const groups = [];
     const categoriesCoached = user.categorias_entrena || [];
     
+    console.log("🎓 CATEGORÍAS QUE ENTRENAS:", categoriesCoached);
+    
     categoriesCoached.forEach(categoria => {
       const deporteNormalizado = normalizeDeporte(categoria);
       if (deporteNormalizado) {
@@ -152,6 +161,8 @@ export default function CoachChat() {
       p.email_padre === user.email || p.email_tutor_2 === user.email
     );
     
+    console.log("👨‍👩‍👧 MIS HIJOS:", myKids.map(k => k.nombre));
+    
     myKids.forEach(kid => {
       const deporteNormalizado = normalizeDeporte(kid.deporte);
       if (deporteNormalizado && !groups.find(g => g.id === deporteNormalizado)) {
@@ -179,6 +190,8 @@ export default function CoachChat() {
       }
     });
     
+    console.log("📊 GRUPOS TOTALES:", groups.map(g => ({ deporte: g.deporte, tipo: g.tipo })));
+    
     return groups;
   };
 
@@ -204,6 +217,12 @@ export default function CoachChat() {
 
   useEffect(() => {
     if (selectedTab && currentGroup) {
+      console.log("🔵 GRUPO ACTUAL:", {
+        deporte: currentGroup.deporte,
+        tipo: currentGroup.tipo,
+        mensajes: currentGroup.messages.length
+      });
+      
       const unreadMessageIds = currentGroup.messages
         .filter(msg => {
           if (currentGroup.tipo === 'entrenador') {
@@ -241,6 +260,8 @@ export default function CoachChat() {
     }
     
     const tipoMensaje = currentGroup?.tipo === 'entrenador' ? "admin_a_grupo" : "padre_a_grupo";
+    
+    console.log("🔵 ENVIANDO COMO:", tipoMensaje, "| GRUPO:", currentGroup?.tipo);
     
     const messageData = {
       remitente_email: user.email,
@@ -431,6 +452,15 @@ export default function CoachChat() {
                   .map((msg) => {
                     const isMyMessage = msg.remitente_email === user?.email;
                     const esGrupoEntrenador = currentGroup.tipo === 'entrenador';
+                    
+                    console.log(`📨 Mensaje de "${msg.remitente_nombre}":`, {
+                      email_mensaje: msg.remitente_email,
+                      email_usuario: user?.email,
+                      esMio: isMyMessage,
+                      tipoGrupo: currentGroup.tipo,
+                      esGrupoEntrenador: esGrupoEntrenador,
+                      colorEsperado: isMyMessage && esGrupoEntrenador ? "AZUL" : isMyMessage ? "MORADO" : msg.tipo === "admin_a_grupo" ? "VERDE" : "BLANCO"
+                    });
                     
                     // LÓGICA SIMPLE DE COLORES
                     let messageColor;
