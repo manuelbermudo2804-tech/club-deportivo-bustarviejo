@@ -3,7 +3,7 @@ import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { Users, CreditCard, ShoppingBag, Calendar, Megaphone, Image, Clock, MessageCircle, Bell, Settings } from "lucide-react";
+import { Users, CreditCard, ShoppingBag, Calendar, Megaphone, Image, Clock, MessageCircle, Bell, Settings, ClipboardCheck } from "lucide-react";
 
 const CLUB_LOGO_URL = "https://www.cdbustarviejo.com/uploads/2/4/0/4/2404974/logo-cd-bustarviejo-cuadrado-xpeq_orig.png";
 
@@ -11,6 +11,7 @@ export default function Home() {
   const [user, setUser] = useState(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [isCoach, setIsCoach] = useState(false);
+  const [hasPlayers, setHasPlayers] = useState(false);
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -19,6 +20,16 @@ export default function Home() {
         setUser(currentUser);
         setIsAdmin(currentUser.role === "admin");
         setIsCoach(currentUser.es_entrenador === true && currentUser.role !== "admin");
+
+        // Check if admin/coach has players
+        if (currentUser.role === "admin" || currentUser.es_entrenador) {
+          const allPlayers = await base44.entities.Player.list();
+          const myPlayers = allPlayers.filter(p => 
+            p.email_padre === currentUser.email || 
+            p.email_tutor_2 === currentUser.email
+          );
+          setHasPlayers(myPlayers.length > 0);
+        }
       } catch (error) {
         console.error("Error fetching user:", error);
       }
@@ -44,9 +55,41 @@ export default function Home() {
     initialData: [],
   });
 
+  const { data: callups } = useQuery({
+    queryKey: ['callups'],
+    queryFn: () => base44.entities.Convocatoria.list(),
+    initialData: [],
+  });
+
   const activePlayers = players.filter(p => p.activo).length;
   const pendingPayments = payments.filter(p => p.estado === "Pendiente").length;
   const unreadMessages = messages.filter(m => !m.leido && m.tipo === "padre_a_grupo").length;
+
+  // Calculate pending callups for user's players
+  const pendingCallupsCount = () => {
+    if (!user || !hasPlayers) return 0;
+    
+    const myPlayers = players.filter(p => 
+      p.email_padre === user.email || 
+      p.email_tutor_2 === user.email
+    );
+    
+    const today = new Date().toISOString().split('T')[0];
+    let pending = 0;
+    
+    callups.forEach(callup => {
+      if (callup.publicada && callup.fecha_partido >= today && !callup.cerrada) {
+        callup.jugadores_convocados?.forEach(jugador => {
+          const isMyPlayer = myPlayers.some(p => p.id === jugador.jugador_id);
+          if (isMyPlayer && jugador.confirmacion === "pendiente") {
+            pending++;
+          }
+        });
+      }
+    });
+    
+    return pending;
+  };
 
   const menuItems = [
     {
@@ -82,6 +125,21 @@ export default function Home() {
       gradient: "from-pink-600 to-pink-700",
     },
     {
+      title: "🎓 Crear Convocatorias",
+      icon: Bell,
+      url: createPageUrl("CoachCallups"),
+      gradient: "from-yellow-600 to-yellow-700",
+    },
+    // Add "Convocatorias" button if admin/coach has players
+    ...(hasPlayers ? [{
+      title: "👨‍👩‍👧 Mis Convocatorias",
+      icon: ClipboardCheck,
+      url: createPageUrl("ParentCallups"),
+      gradient: "from-green-600 to-green-700",
+      badge: pendingCallupsCount(),
+      badgeLabel: "pendientes"
+    }] : []),
+    {
       title: "Chat Grupos",
       icon: MessageCircle,
       url: createPageUrl("AdminChat"),
@@ -101,7 +159,7 @@ export default function Home() {
       title: "Recordatorios",
       icon: Bell,
       url: createPageUrl("Reminders"),
-      gradient: "from-yellow-600 to-orange-700",
+      gradient: "from-red-600 to-orange-700",
     },
     {
       title: "Pedidos Ropa",

@@ -3,7 +3,7 @@ import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { Users, Calendar, Megaphone, Image, Clock, MessageCircle, Trophy, User as UserIcon } from "lucide-react";
+import { Users, Calendar, Megaphone, Image, Clock, MessageCircle, Trophy, User as UserIcon, ClipboardCheck } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 
 import MatchAppLink from "../components/MatchAppLink";
@@ -32,11 +32,36 @@ export default function PlayerDashboard() {
     initialData: [],
   });
 
+  const { data: callups } = useQuery({
+    queryKey: ['callups'],
+    queryFn: () => base44.entities.Convocatoria.list(),
+    initialData: [],
+  });
+
   const unreadMessages = messages.filter(m => 
     !m.leido && 
     m.tipo === "admin_a_grupo" && 
     (m.deporte === player?.deporte || m.grupo_id === player?.deporte)
   ).length;
+
+  // Calculate pending callups
+  const pendingCallupsCount = () => {
+    if (!player) return 0;
+    
+    const today = new Date().toISOString().split('T')[0];
+    let pending = 0;
+    
+    callups.forEach(callup => {
+      if (callup.publicada && callup.fecha_partido >= today && !callup.cerrada) {
+        const myConfirmation = callup.jugadores_convocados?.find(j => j.jugador_id === player.id);
+        if (myConfirmation && myConfirmation.confirmacion === "pendiente") {
+          pending++;
+        }
+      }
+    });
+    
+    return pending;
+  };
 
   const menuItems = [
     {
@@ -68,6 +93,14 @@ export default function PlayerDashboard() {
       icon: Image,
       url: createPageUrl("PlayerGallery"),
       gradient: "from-pink-600 to-pink-700",
+    },
+    {
+      title: "🏆 Convocatorias",
+      icon: ClipboardCheck,
+      url: createPageUrl("PlayerCallups"),
+      gradient: "from-yellow-600 to-yellow-700",
+      badge: pendingCallupsCount(),
+      badgeLabel: "pendientes"
     },
     {
       title: "Chat Equipo",

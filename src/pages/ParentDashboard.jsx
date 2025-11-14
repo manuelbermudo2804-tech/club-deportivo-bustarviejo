@@ -3,7 +3,7 @@ import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { Users, CreditCard, ShoppingBag, Calendar, Megaphone, Image, Clock, MessageCircle, Trophy } from "lucide-react";
+import { Users, CreditCard, ShoppingBag, Calendar, Megaphone, Image, Clock, MessageCircle, Trophy, ClipboardCheck } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 
 import MatchAppLink from "../components/MatchAppLink";
@@ -45,8 +45,35 @@ export default function ParentDashboard() {
     initialData: [],
   });
 
+  const { data: callups } = useQuery({
+    queryKey: ['callups'],
+    queryFn: () => base44.entities.Convocatoria.list(),
+    initialData: [],
+  });
+
   const pendingPayments = payments.filter(p => p.estado === "Pendiente").length;
   const unreadMessages = messages.filter(m => !m.leido && m.tipo === "admin_a_grupo").length;
+
+  // Calculate pending callups
+  const pendingCallupsCount = () => {
+    if (!user || players.length === 0) return 0;
+    
+    const today = new Date().toISOString().split('T')[0];
+    let pending = 0;
+    
+    callups.forEach(callup => {
+      if (callup.publicada && callup.fecha_partido >= today && !callup.cerrada) {
+        callup.jugadores_convocados?.forEach(jugador => {
+          const isMyPlayer = players.some(p => p.id === jugador.jugador_id);
+          if (isMyPlayer && jugador.confirmacion === "pendiente") {
+            pending++;
+          }
+        });
+      }
+    });
+    
+    return pending;
+  };
 
   const menuItems = [
     {
@@ -80,6 +107,14 @@ export default function ParentDashboard() {
       icon: Image,
       url: createPageUrl("ParentGallery"),
       gradient: "from-pink-600 to-pink-700",
+    },
+    {
+      title: "🏆 Convocatorias",
+      icon: ClipboardCheck,
+      url: createPageUrl("ParentCallups"),
+      gradient: "from-yellow-600 to-yellow-700",
+      badge: pendingCallupsCount(),
+      badgeLabel: "pendientes"
     },
     {
       title: "Chat Grupo",
