@@ -112,7 +112,7 @@ export default function Payments() {
     updatePaymentMutation.mutate({ id: payment.id, paymentData: updatedData });
   };
 
-  const canRegisterPayments = isAdmin;
+  const canRegisterPayments = isAdmin || (isCoach && myPlayers.length > 0);
 
   const filteredPayments = (playerFilter && playerFilter !== "all")
     ? payments.filter(p => p.jugador_id === playerFilter)
@@ -142,7 +142,7 @@ export default function Payments() {
         <div>
           <h1 className="text-3xl font-bold text-slate-900">Pagos y Cuotas</h1>
           <p className="text-slate-600 mt-1">
-            {isAdmin ? "Gestión de pagos y cobros de temporada" : "Consulta de pagos"}
+            {isAdmin ? "Gestión de pagos y cobros de temporada" : isCoach && myPlayers.length > 0 ? "Pagos de mis hijos" : "Consulta de pagos"}
           </p>
           {filteredPlayer && (
             <div className="flex items-center gap-2 mt-3">
@@ -164,7 +164,7 @@ export default function Payments() {
           )}
         </div>
         <div className="flex gap-2">
-          {isAdmin && filteredPayments.length > 0 && (
+          {(isAdmin || (isCoach && myPlayers.length > 0)) && filteredPayments.length > 0 && (
             <ExportButton
               data={prepareExportData()}
               filename="pagos_club"
@@ -191,7 +191,7 @@ export default function Payments() {
         {showForm && canRegisterPayments && (
           <PaymentForm
             payment={editingPayment}
-            players={players}
+            players={isAdmin ? players : myPlayers}
             onSubmit={handleSubmit}
             onCancel={() => {
               setShowForm(false);
