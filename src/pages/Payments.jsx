@@ -1,6 +1,5 @@
-
 import React, { useState, useEffect } from "react";
-import { useLocation } from "react-router-dom"; // Added useLocation import
+import { useLocation } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
@@ -14,40 +13,33 @@ import PaymentStats from "../components/payments/PaymentStats";
 import ExportButton from "../components/ExportButton";
 
 export default function Payments() {
-  const location = useLocation(); // Hook to get current URL location
+  const location = useLocation();
   const urlParams = new URLSearchParams(location.search);
   const jugadorIdFromUrl = urlParams.get('jugador_id');
 
   const [showForm, setShowForm] = useState(false);
   const [editingPayment, setEditingPayment] = useState(null);
-  const [playerFilter, setPlayerFilter] = useState(jugadorIdFromUrl || "all"); // Initialize playerFilter from URL or "all"
+  const [playerFilter, setPlayerFilter] = useState(jugadorIdFromUrl || "all");
   const [isAdmin, setIsAdmin] = useState(false);
-  const [isCoach, setIsCoach] = useState(false); // New state for coach role
-  const [myPlayers, setMyPlayers] = useState([]); // New state for players associated with coach/admin
+  const [isCoach, setIsCoach] = useState(false);
+  const [myPlayers, setMyPlayers] = useState([]);
 
   const queryClient = useQueryClient();
 
-  // Removed old useEffect for URL param as it's handled by useLocation and useState init
-
-  // Check user role (admin/coach) and fetch associated players
   useEffect(() => {
     const checkUserRoleAndPlayers = async () => {
       try {
         const user = await base44.auth.me();
         const adminCheck = user.role === "admin";
-        // A coach is someone who is not an admin but has es_entrenador = true
         const coachCheck = user.es_entrenador === true && !adminCheck;
 
         setIsAdmin(adminCheck);
         setIsCoach(coachCheck);
 
-        // If admin or coach, get their relevant players
         if (adminCheck) {
-          // Admins can see and manage all players
           const allPlayers = await base44.entities.Player.list();
           setMyPlayers(allPlayers);
         } else if (coachCheck) {
-          // Coaches can only see and manage players associated with their email
           const allPlayers = await base44.entities.Player.list();
           const userPlayers = allPlayers.filter(p =>
             p.email_padre === user.email ||
@@ -63,7 +55,7 @@ export default function Payments() {
       }
     };
     checkUserRoleAndPlayers();
-  }, []); // Run once on component mount
+  }, []);
 
   const { data: payments, isLoading } = useQuery({
     queryKey: ['payments'],
@@ -110,7 +102,6 @@ export default function Payments() {
 
   const handleStatusChange = (payment, newStatus) => {
     if (!isAdmin) {
-      // Solo admins pueden cambiar estados
       console.warn("Only administrators can change payment status.");
       return;
     }
@@ -121,15 +112,12 @@ export default function Payments() {
     updatePaymentMutation.mutate({ id: payment.id, paymentData: updatedData });
   };
 
-  // Determine if the current user can register payments
-  const canRegisterPayments = isAdmin || (isCoach && myPlayers.length > 0);
+  const canRegisterPayments = isAdmin;
 
-  // Filter payments by player if a filter is active (not "all")
   const filteredPayments = (playerFilter && playerFilter !== "all")
     ? payments.filter(p => p.jugador_id === playerFilter)
     : payments;
 
-  // Find the player object for the active filter, if any
   const filteredPlayer = (playerFilter && playerFilter !== "all")
     ? players.find(p => p.id === playerFilter)
     : null;
@@ -154,7 +142,7 @@ export default function Payments() {
         <div>
           <h1 className="text-3xl font-bold text-slate-900">Pagos y Cuotas</h1>
           <p className="text-slate-600 mt-1">
-            {isAdmin ? "Gestión de pagos y cobros de temporada" : isCoach ? "Pagos de mis hijos" : "Gestión de pagos"}
+            {isAdmin ? "Gestión de pagos y cobros de temporada" : "Consulta de pagos"}
           </p>
           {filteredPlayer && (
             <div className="flex items-center gap-2 mt-3">
@@ -176,7 +164,7 @@ export default function Payments() {
           )}
         </div>
         <div className="flex gap-2">
-          {(isAdmin || isCoach) && filteredPayments.length > 0 && (
+          {isAdmin && filteredPayments.length > 0 && (
             <ExportButton
               data={prepareExportData()}
               filename="pagos_club"
@@ -200,31 +188,31 @@ export default function Payments() {
       <PaymentStats payments={filteredPayments} />
 
       <AnimatePresence>
-        {showForm && canRegisterPayments && ( // Only show form if it's toggled and user can register payments
+        {showForm && canRegisterPayments && (
           <PaymentForm
             payment={editingPayment}
-            players={isAdmin ? players : myPlayers} // Provide all players for admin, filtered players for coach
+            players={players}
             onSubmit={handleSubmit}
             onCancel={() => {
               setShowForm(false);
               setEditingPayment(null);
             }}
             isSubmitting={createPaymentMutation.isPending || updatePaymentMutation.isPending}
-            isAdmin={isAdmin} // Pass isAdmin prop to form
+            isAdmin={isAdmin}
           />
         )}
       </AnimatePresence>
 
       <PaymentTable
         payments={filteredPayments}
-        players={players} // Pass all players for mapping player names in table
+        players={players}
         isLoading={isLoading}
-        onEdit={canRegisterPayments ? handleEdit : null} // Allow edit only if user can register payments
-        onStatusChange={isAdmin ? handleStatusChange : null} // Allow status change only for admins
-        playerFilter={playerFilter} // Pass current player filter state
-        setPlayerFilter={setPlayerFilter} // Pass function to update player filter
-        selectedPlayer={filteredPlayer} // Pass the selected player object
-        isAdmin={isAdmin} // Pass isAdmin prop to table
+        onEdit={canRegisterPayments ? handleEdit : null}
+        onStatusChange={isAdmin ? handleStatusChange : null}
+        playerFilter={playerFilter}
+        setPlayerFilter={setPlayerFilter}
+        selectedPlayer={filteredPlayer}
+        isAdmin={isAdmin}
       />
     </div>
   );
