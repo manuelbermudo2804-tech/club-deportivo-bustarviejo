@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
@@ -7,7 +7,6 @@ import { Badge } from "@/components/ui/badge";
 import { Send, Clock, AlertCircle, X } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
-import { es } from "date-fns/locale";
 
 import FileAttachmentButton from "../components/chat/FileAttachmentButton";
 import MessageAttachments from "../components/chat/MessageAttachments";
@@ -54,7 +53,7 @@ export default function ParentChat() {
       const imageAttachments = messageData.archivos_adjuntos.filter(att => att.tipo === "imagen");
       if (imageAttachments.length > 0) {
         const albumData = {
-          titulo: `Chat - ${messageData.deporte} (${format(new Date(), "d MMM yyyy", { locale: es })})`,
+          titulo: `Chat - ${messageData.deporte} (${format(new Date(), "d MMM yyyy")})`,
           descripcion: messageData.mensaje || "Fotos del chat",
           fecha_evento: new Date().toISOString().split('T')[0],
           categoria: messageData.deporte,
@@ -101,32 +100,38 @@ export default function ParentChat() {
     return normalized;
   };
 
-  const uniqueDeportes = [...new Set(
-    players.map(p => normalizeDeporte(p.deporte)).filter(Boolean)
-  )];
-  
-  const myGroups = uniqueDeportes.map(deporteNormalizado => {
-    const groupMessages = messages.filter(msg => {
-      const msgDeporte = normalizeDeporte(msg.grupo_id || msg.deporte);
-      return msgDeporte === deporteNormalizado;
+  const myGroups = useMemo(() => {
+    const uniqueDeportes = [...new Set(
+      players.map(p => normalizeDeporte(p.deporte)).filter(Boolean)
+    )];
+    
+    return uniqueDeportes.map(deporteNormalizado => {
+      const groupMessages = messages.filter(msg => {
+        const msgDeporte = normalizeDeporte(msg.grupo_id || msg.deporte);
+        return msgDeporte === deporteNormalizado;
+      });
+      
+      const unreadCount = groupMessages.filter(msg => 
+        !msg.leido && msg.tipo === "admin_a_grupo"
+      ).length;
+      
+      const urgentCount = groupMessages.filter(msg =>
+        !msg.leido && msg.tipo === "admin_a_grupo" && msg.prioridad === "Urgente"
+      ).length;
+      
+      return {
+        id: deporteNormalizado,
+        deporte: deporteNormalizado,
+        messages: groupMessages,
+        unreadCount,
+        urgentCount
+      };
     });
-    
-    const unreadCount = groupMessages.filter(msg => 
-      !msg.leido && msg.tipo === "admin_a_grupo"
-    ).length;
-    
-    const urgentCount = groupMessages.filter(msg =>
-      !msg.leido && msg.tipo === "admin_a_grupo" && msg.prioridad === "Urgente"
-    ).length;
-    
-    return {
-      id: deporteNormalizado,
-      deporte: deporteNormalizado,
-      messages: groupMessages,
-      unreadCount,
-      urgentCount
-    };
-  });
+  }, [messages, players]);
+
+  const currentGroup = useMemo(() => {
+    return myGroups.find(g => g.id === selectedTab);
+  }, [myGroups, selectedTab]);
 
   useEffect(() => {
     if (myGroups.length > 0 && !selectedTab) {
@@ -135,19 +140,16 @@ export default function ParentChat() {
   }, [myGroups.length]);
 
   useEffect(() => {
-    if (selectedTab) {
-      const group = myGroups.find(g => g.id === selectedTab);
-      if (group) {
-        const unreadMessageIds = group.messages
-          .filter(msg => !msg.leido && msg.tipo === "admin_a_grupo")
-          .map(msg => msg.id);
-        
-        if (unreadMessageIds.length > 0) {
-          markAsReadMutation.mutate(unreadMessageIds);
-        }
+    if (selectedTab && currentGroup) {
+      const unreadMessageIds = currentGroup.messages
+        .filter(msg => !msg.leido && msg.tipo === "admin_a_grupo")
+        .map(msg => msg.id);
+      
+      if (unreadMessageIds.length > 0) {
+        markAsReadMutation.mutate(unreadMessageIds);
       }
     }
-  }, [selectedTab]);
+  }, [selectedTab, currentGroup?.messages?.length]);
 
   const isBusinessHours = () => {
     const now = new Date();
@@ -205,7 +207,7 @@ export default function ParentChat() {
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [selectedTab, messages]);
+  }, [currentGroup?.messages]);
 
   if (loadingPlayers || loadingMessages) {
     return (
@@ -230,11 +232,8 @@ export default function ParentChat() {
     );
   }
 
-  const currentGroup = myGroups.find(g => g.id === selectedTab);
-
   return (
     <div className="h-screen flex flex-col bg-white">
-      {/* Tabs de Grupos */}
       {myGroups.length > 1 && (
         <div className="bg-white border-b overflow-x-auto">
           <div className="flex">
@@ -261,7 +260,6 @@ export default function ParentChat() {
         </div>
       )}
 
-      {/* Header del Chat */}
       {currentGroup && (
         <div className="bg-gradient-to-r from-orange-600 to-orange-700 p-4 text-white flex items-center gap-3 shadow-md">
           <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
@@ -280,7 +278,6 @@ export default function ParentChat() {
         </div>
       )}
 
-      {/* Mensajes */}
       <div 
         className="flex-1 overflow-y-auto p-4 space-y-2"
         style={{
@@ -340,7 +337,6 @@ export default function ParentChat() {
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Input Area */}
       <div className="bg-white border-t p-3">
         {attachments.length > 0 && (
           <div className="mb-2 flex flex-wrap gap-2">

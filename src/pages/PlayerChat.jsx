@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
@@ -7,7 +7,6 @@ import { Badge } from "@/components/ui/badge";
 import { Send, Clock, AlertCircle, X } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
-import { es } from "date-fns/locale";
 
 import FileAttachmentButton from "../components/chat/FileAttachmentButton";
 import MessageAttachments from "../components/chat/MessageAttachments";
@@ -56,7 +55,7 @@ export default function PlayerChat() {
       const imageAttachments = messageData.archivos_adjuntos.filter(att => att.tipo === "imagen");
       if (imageAttachments.length > 0) {
         const albumData = {
-          titulo: `Chat - ${messageData.deporte} (${format(new Date(), "d MMM yyyy", { locale: es })})`,
+          titulo: `Chat - ${messageData.deporte} (${format(new Date(), "d MMM yyyy")})`,
           descripcion: messageData.mensaje || "Fotos del chat",
           fecha_evento: new Date().toISOString().split('T')[0],
           categoria: messageData.deporte,
@@ -103,12 +102,14 @@ export default function PlayerChat() {
     return normalized;
   };
 
-  const filteredMessages = messages.filter(msg => {
-    if (!player) return false;
-    const msgDeporte = normalizeDeporte(msg.grupo_id || msg.deporte);
-    const playerDeporte = normalizeDeporte(player.deporte);
-    return msgDeporte === playerDeporte;
-  });
+  const filteredMessages = useMemo(() => {
+    if (!player) return [];
+    return messages.filter(msg => {
+      const msgDeporte = normalizeDeporte(msg.grupo_id || msg.deporte);
+      const playerDeporte = normalizeDeporte(player.deporte);
+      return msgDeporte === playerDeporte;
+    });
+  }, [messages, player]);
 
   useEffect(() => {
     if (filteredMessages.length > 0 && user) {

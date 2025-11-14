@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useRef } from "react";
+
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
@@ -182,17 +183,21 @@ export default function CoachChat() {
     return groups;
   };
 
-  const myGroups = getCoachGroups();
+  const myGroups = useMemo(() => {
+    return getCoachGroups();
+  }, [messages, allPlayers, user]);
 
-  const filteredGroups = myGroups.filter(group =>
-    group.deporte.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredGroups = useMemo(() => {
+    return myGroups.filter(group =>
+      group.deporte.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }, [myGroups, searchTerm]);
 
   useEffect(() => {
     if (filteredGroups.length > 0 && !selectedTab) {
       setSelectedTab(filteredGroups[0].id);
     }
-  }, [filteredGroups.length]);
+  }, [filteredGroups.length, selectedTab]); // Added selectedTab to dependency array
 
   useEffect(() => {
     if (selectedTab) {
@@ -213,7 +218,7 @@ export default function CoachChat() {
         }
       }
     }
-  }, [selectedTab]);
+  }, [selectedTab, myGroups, markAsReadMutation]); // Added myGroups and markAsReadMutation to dependency array
 
   const isBusinessHours = () => {
     const now = new Date();
@@ -298,7 +303,9 @@ export default function CoachChat() {
     );
   }
 
-  const currentGroup = myGroups.find(g => g.id === selectedTab);
+  const currentGroup = useMemo(() => {
+    return myGroups.find(g => g.id === selectedTab);
+  }, [myGroups, selectedTab]);
 
   return (
     <div className="h-screen flex flex-col md:flex-row bg-white">
@@ -420,7 +427,7 @@ export default function CoachChat() {
             <div 
               className="flex-1 overflow-y-auto p-4 space-y-2"
               style={{
-                backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23d4c5b9' fill-opacity='0.1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
+                backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23d4c5b9' fill-opacity='0.1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
                 backgroundColor: '#e5ddd5'
               }}
             >
@@ -437,7 +444,7 @@ export default function CoachChat() {
                   .map((msg) => {
                     const isMyMessage = msg.remitente_email === user?.email;
                     const isAdmin = msg.tipo === "admin_a_grupo";
-                    const isPadre = msg.tipo === "padre_a_grupo";
+                    // const isPadre = msg.tipo === "padre_a_grupo"; // This variable is not used
                     
                     return (
                       <div

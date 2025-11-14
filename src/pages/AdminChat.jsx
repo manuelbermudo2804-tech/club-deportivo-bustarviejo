@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
@@ -155,71 +155,83 @@ export default function AdminChat() {
     return normalized;
   };
 
-  const groups = {};
-  
-  players.forEach(player => {
-    const deporteNormalizado = normalizeDeporte(player.deporte);
-    if (!deporteNormalizado) return;
+  const groups = useMemo(() => {
+    const groupsMap = {};
     
-    if (!groups[deporteNormalizado]) {
-      groups[deporteNormalizado] = {
-        id: deporteNormalizado,
-        deporte: deporteNormalizado,
-        players: [],
-        messages: [],
-        unreadCount: 0,
-        urgentCount: 0,
-        lastMessageDate: null
-      };
-    }
-    groups[deporteNormalizado].players.push(player);
-  });
-
-  messages.forEach(msg => {
-    let deporteRaw = msg.grupo_id || msg.deporte;
-    const deporteNormalizado = normalizeDeporte(deporteRaw);
-    
-    if (!deporteNormalizado) return;
-    
-    if (!groups[deporteNormalizado]) {
-      groups[deporteNormalizado] = {
-        id: deporteNormalizado,
-        deporte: deporteNormalizado,
-        players: [],
-        messages: [],
-        unreadCount: 0,
-        urgentCount: 0,
-        lastMessageDate: null
-      };
-    }
-    
-    if (!groups[deporteNormalizado].messages.find(m => m.id === msg.id)) {
-      groups[deporteNormalizado].messages.push(msg);
+    players.forEach(player => {
+      const deporteNormalizado = normalizeDeporte(player.deporte);
+      if (!deporteNormalizado) return;
       
-      if (!msg.leido && msg.tipo === "padre_a_grupo") {
-        groups[deporteNormalizado].unreadCount++;
-        if (msg.prioridad === "Urgente") {
-          groups[deporteNormalizado].urgentCount++;
+      if (!groupsMap[deporteNormalizado]) {
+        groupsMap[deporteNormalizado] = {
+          id: deporteNormalizado,
+          deporte: deporteNormalizado,
+          players: [],
+          messages: [],
+          unreadCount: 0,
+          urgentCount: 0,
+          lastMessageDate: null
+        };
+      }
+      groupsMap[deporteNormalizado].players.push(player);
+    });
+
+    messages.forEach(msg => {
+      let deporteRaw = msg.grupo_id || msg.deporte;
+      const deporteNormalizado = normalizeDeporte(deporteRaw);
+      
+      if (!deporteNormalizado) return;
+      
+      if (!groupsMap[deporteNormalizado]) {
+        groupsMap[deporteNormalizado] = {
+          id: deporteNormalizado,
+          deporte: deporteNormalizado,
+          players: [],
+          messages: [],
+          unreadCount: 0,
+          urgentCount: 0,
+          lastMessageDate: null
+        };
+      }
+      
+      if (!groupsMap[deporteNormalizado].messages.find(m => m.id === msg.id)) {
+        groupsMap[deporteNormalizado].messages.push(msg);
+        
+        if (!msg.leido && msg.tipo === "padre_a_grupo") {
+          groupsMap[deporteNormalizado].unreadCount++;
+          if (msg.prioridad === "Urgente") {
+            groupsMap[deporteNormalizado].urgentCount++;
+          }
+        }
+        
+        const msgDate = new Date(msg.created_date);
+        if (!groupsMap[deporteNormalizado].lastMessageDate || msgDate > groupsMap[deporteNormalizado].lastMessageDate) {
+          groupsMap[deporteNormalizado].lastMessageDate = msgDate;
         }
       }
-      
-      const msgDate = new Date(msg.created_date);
-      if (!groups[deporteNormalizado].lastMessageDate || msgDate > groups[deporteNormalizado].lastMessageDate) {
-        groups[deporteNormalizado].lastMessageDate = msgDate;
-      }
-    }
-  });
+    });
 
-  const sortedGroups = Object.values(groups).sort((a, b) => {
-    if (!a.lastMessageDate && !b.lastMessageDate) return 0;
-    if (!a.lastMessageDate) return 1;
-    if (!b.lastMessageDate) return -1;
-    return b.lastMessageDate.getTime() - a.lastMessageDate.getTime();
-  });
+    return groupsMap;
+  }, [messages, players]);
 
-  const filteredGroups = sortedGroups.filter(group =>
-    (group.deporte || "").toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const sortedGroups = useMemo(() => {
+    return Object.values(groups).sort((a, b) => {
+      if (!a.lastMessageDate && !b.lastMessageDate) return 0;
+      if (!a.lastMessageDate) return 1;
+      if (!b.lastMessageDate) return -1;
+      return b.lastMessageDate.getTime() - a.lastMessageDate.getTime();
+    });
+  }, [groups]);
+
+  const filteredGroups = useMemo(() => {
+    return sortedGroups.filter(group =>
+      (group.deporte || "").toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }, [sortedGroups, searchTerm]);
+
+  const currentGroup = useMemo(() => {
+    return selectedGroup ? groups[selectedGroup] : null;
+  }, [selectedGroup, groups]);
 
   const handleSendMessage = () => {
     if (!user) return;
@@ -244,9 +256,9 @@ export default function AdminChat() {
       mensaje: messageContent.trim() || "(Archivo adjunto)",
       prioridad: priority,
       tipo: "admin_a_grupo",
-      deporte: sendToAll ? "Todos" : selectedGroup.deporte,
+      deporte: sendToAll ? "Todos" : selectedGroup,
       categoria: "",
-      grupo_id: sendToAll ? "todos" : selectedGroup.id,
+      grupo_id: sendToAll ? "todos" : selectedGroup,
       leido: false,
       archivos_adjuntos: attachments,
       sendToAll: sendToAll
@@ -256,7 +268,7 @@ export default function AdminChat() {
   };
 
   const handleSelectGroup = (group) => {
-    setSelectedGroup(group);
+    setSelectedGroup(group.id);
     setSendToAll(false);
     const unreadMessageIds = group.messages
       .filter(msg => !msg.leido && msg.tipo === "padre_a_grupo")
@@ -289,7 +301,7 @@ export default function AdminChat() {
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [selectedGroup?.messages]);
+  }, [currentGroup?.messages]);
 
   const getReadStatus = (msg) => {
     if (msg.tipo !== "admin_a_grupo") return null;
@@ -300,13 +312,11 @@ export default function AdminChat() {
     <div className="h-screen flex bg-white">
       {/* Lista de Grupos - Estilo WhatsApp */}
       <div className="w-full md:w-96 bg-white border-r border-slate-200 flex flex-col">
-        {/* Header */}
         <div className="bg-gradient-to-r from-orange-600 to-orange-700 p-4 text-white">
           <h1 className="text-xl font-bold mb-1">Chats</h1>
           <p className="text-xs text-orange-100">Chat de grupos del club</p>
         </div>
 
-        {/* Search */}
         <div className="p-3 bg-slate-50 border-b">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
@@ -319,7 +329,6 @@ export default function AdminChat() {
           </div>
         </div>
 
-        {/* Opción: Enviar a Todos */}
         <div
           onClick={() => {
             setSendToAll(true);
@@ -344,7 +353,6 @@ export default function AdminChat() {
           </div>
         </div>
 
-        {/* Lista de Grupos */}
         <div className="flex-1 overflow-y-auto">
           {filteredGroups.map(group => {
             const lastMsg = group.messages.sort((a, b) => 
@@ -356,7 +364,7 @@ export default function AdminChat() {
                 key={group.id}
                 onClick={() => handleSelectGroup(group)}
                 className={`p-4 border-b cursor-pointer transition-all ${
-                  selectedGroup?.id === group.id && !sendToAll
+                  selectedGroup === group.id && !sendToAll
                     ? 'bg-orange-50'
                     : 'hover:bg-slate-50'
                 }`}
@@ -399,7 +407,6 @@ export default function AdminChat() {
       <div className="flex-1 flex flex-col bg-[#e5ddd5] hidden md:flex">
         {sendToAll ? (
           <>
-            {/* Header - Anuncio General */}
             <div className="bg-gradient-to-r from-green-600 to-green-700 p-4 text-white flex items-center gap-3 shadow-md">
               <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
                 <Users className="w-6 h-6" />
@@ -412,7 +419,6 @@ export default function AdminChat() {
               </div>
             </div>
 
-            {/* Info */}
             <div className="p-4">
               <Alert className="bg-blue-50 border-blue-300">
                 <AlertCircle className="h-4 w-4 text-blue-600" />
@@ -423,10 +429,8 @@ export default function AdminChat() {
               </Alert>
             </div>
 
-            {/* Espacio vacío */}
             <div className="flex-1" />
 
-            {/* Input Area */}
             <div className="bg-white border-t p-3">
               {attachments.length > 0 && (
                 <div className="mb-2 flex flex-wrap gap-2">
@@ -484,17 +488,16 @@ export default function AdminChat() {
               </div>
             </div>
           </>
-        ) : selectedGroup ? (
+        ) : currentGroup ? (
           <>
-            {/* Header del Chat */}
             <div className="bg-gradient-to-r from-orange-600 to-orange-700 p-4 text-white flex items-center gap-3 shadow-md">
               <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
-                <span className="text-xl">{sportEmojis[selectedGroup.deporte]}</span>
+                <span className="text-xl">{sportEmojis[currentGroup.deporte]}</span>
               </div>
               <div className="flex-1">
-                <h2 className="font-bold text-base">{selectedGroup.deporte}</h2>
+                <h2 className="font-bold text-base">{currentGroup.deporte}</h2>
                 <p className="text-xs text-orange-100">
-                  {selectedGroup.players.length} jugador{selectedGroup.players.length !== 1 ? 'es' : ''}
+                  {currentGroup.players.length} jugador{currentGroup.players.length !== 1 ? 'es' : ''}
                 </p>
               </div>
               {!isBusinessHours() && (
@@ -505,14 +508,13 @@ export default function AdminChat() {
               )}
             </div>
 
-            {/* Mensajes */}
             <div 
               className="flex-1 overflow-y-auto p-4 space-y-2"
               style={{
                 backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23d4c5b9' fill-opacity='0.1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`
               }}
             >
-              {selectedGroup.messages.length === 0 ? (
+              {currentGroup.messages.length === 0 ? (
                 <div className="flex items-center justify-center h-full">
                   <div className="text-center text-slate-500">
                     <AlertCircle className="w-12 h-12 mx-auto mb-2 opacity-50" />
@@ -520,7 +522,7 @@ export default function AdminChat() {
                   </div>
                 </div>
               ) : (
-                selectedGroup.messages
+                currentGroup.messages
                   .sort((a, b) => new Date(a.created_date) - new Date(b.created_date))
                   .map((msg) => {
                     const readStatus = getReadStatus(msg);
@@ -584,7 +586,6 @@ export default function AdminChat() {
               <div ref={messagesEndRef} />
             </div>
 
-            {/* Input Area */}
             <div className="bg-white border-t p-3">
               {attachments.length > 0 && (
                 <div className="mb-2 flex flex-wrap gap-2">
