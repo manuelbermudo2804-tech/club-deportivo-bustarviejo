@@ -238,6 +238,10 @@ export default function CoachChat() {
       return;
     }
     
+    console.log("📊 DEBUG - Enviando mensaje:");
+    console.log("Current Group:", currentGroup);
+    console.log("Tipo de grupo:", currentGroup?.tipo);
+    
     const messageData = {
       remitente_email: user.email,
       remitente_nombre: user.full_name || "Entrenador",
@@ -250,6 +254,8 @@ export default function CoachChat() {
       leido: false,
       archivos_adjuntos: attachments
     };
+    
+    console.log("Tipo de mensaje enviado:", messageData.tipo);
 
     sendMessageMutation.mutate(messageData);
   };
@@ -303,7 +309,6 @@ export default function CoachChat() {
 
   return (
     <div className="h-screen flex flex-col md:flex-row bg-white">
-      {/* Lista de Grupos */}
       <div className={`w-full md:w-96 bg-white border-r border-slate-200 flex flex-col ${selectedTab ? 'hidden md:flex' : 'flex'}`}>
         <div className="bg-gradient-to-r from-blue-600 to-blue-700 p-4 text-white">
           <h1 className="text-xl font-bold mb-1">🎓 Chats Entrenador</h1>
@@ -379,7 +384,6 @@ export default function CoachChat() {
         </div>
       </div>
 
-      {/* Área de Chat */}
       <div className={`flex-1 flex flex-col ${!selectedTab ? 'hidden md:flex' : 'flex'} min-h-0`}>
         {currentGroup ? (
           <>
@@ -428,6 +432,18 @@ export default function CoachChat() {
                   .map((msg) => {
                     const isMyMessage = msg.remitente_email === user?.email;
                     const isOtherAdmin = msg.tipo === "admin_a_grupo" && msg.remitente_email !== user?.email;
+                    
+                    // DEBUG
+                    if (isMyMessage) {
+                      console.log("🔍 DEBUG Mensaje:", {
+                        mensaje: msg.mensaje.substring(0, 20),
+                        isMyMessage,
+                        currentGroupTipo: currentGroup.tipo,
+                        msgTipo: msg.tipo,
+                        isOtherAdmin,
+                        email: msg.remitente_email
+                      });
+                    }
                     
                     return (
                       <div key={msg.id} className={`flex ${isMyMessage ? 'justify-end' : 'justify-start'} mb-1`}>
