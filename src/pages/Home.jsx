@@ -140,9 +140,9 @@ export default function Home() {
       badgeLabel: "pendientes"
     }] : []),
     {
-      title: "Chat Grupos",
+      title: isCoach ? "🎓 Chat Equipos" : "Chat Grupos",
       icon: MessageCircle,
-      url: createPageUrl("AdminChat"),
+      url: isCoach ? createPageUrl("CoachChat") : createPageUrl("AdminChat"),
       gradient: "from-indigo-600 to-indigo-700",
       badge: unreadMessages,
       badgeLabel: "nuevos"
