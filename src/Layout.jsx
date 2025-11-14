@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { createPageUrl } from "@/utils";
@@ -478,6 +477,7 @@ export default function Layout({ children, currentPageName }) {
   const [hasPlayers, setHasPlayers] = useState(false);
   const [unreadMessagesCount, setUnreadMessagesCount] = useState(0);
   const [urgentMessagesCount, setUrgentMessagesCount] = useState(0);
+  const [pendingCallupsCount, setPendingCallupsCount] = useState(0);
   const [showSpecialScreen, setShowSpecialScreen] = useState(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -556,13 +556,11 @@ export default function Layout({ children, currentPageName }) {
               }
             });
           }
-        } else { // Parent role
+        } else {
           const allPlayers = await base44.entities.Player.list();
           const myPlayers = allPlayers.filter(p => 
             p.email_padre === user.email || p.email_tutor_2 === user.email
           );
-          // Group IDs could be specific like "Futbol_Alevin" or just "Futbol". 
-          // The outline specified `p.deporte` and `msg.grupo_id || msg.deporte`
           const myGroupSports = [...new Set(myPlayers.map(p => p.deporte))];
           
           allMessages.forEach(msg => {
@@ -590,6 +588,87 @@ export default function Layout({ children, currentPageName }) {
     return () => clearInterval(interval);
   }, [user, isAdmin, isPlayer]);
 
+  useEffect(() => {
+    const checkPendingCallups = async () => {
+      if (!user) return;
+      
+      try {
+        const allCallups = await base44.entities.Convocatoria.list();
+        const today = new Date().toISOString().split('T')[0];
+        
+        let pending = 0;
+        
+        if (isPlayer) {
+          // Para jugadores: contar convocatorias futuras publicadas sin confirmar
+          const allPlayers = await base44.entities.Player.list();
+          const myPlayer = allPlayers.find(p => p.email_jugador === user.email);
+          
+          if (myPlayer) {
+            allCallups.forEach(callup => {
+              if (callup.publicada && 
+                  callup.fecha_partido >= today && 
+                  !callup.cerrada) {
+                const myConfirmation = callup.jugadores_convocados?.find(j => j.jugador_id === myPlayer.id);
+                if (myConfirmation && myConfirmation.confirmacion === "pendiente") {
+                  pending++;
+                }
+              }
+            });
+          }
+        } else if (!isAdmin) {
+          // Para padres: contar convocatorias futuras publicadas sin confirmar de sus hijos
+          const allPlayers = await base44.entities.Player.list();
+          const myPlayers = allPlayers.filter(p => 
+            p.email_padre === user.email || 
+            p.email_tutor_2 === user.email
+          );
+          
+          allCallups.forEach(callup => {
+            if (callup.publicada && 
+                callup.fecha_partido >= today && 
+                !callup.cerrada) {
+              callup.jugadores_convocados?.forEach(jugador => {
+                const isMyPlayer = myPlayers.some(p => p.id === jugador.jugador_id);
+                if (isMyPlayer && jugador.confirmacion === "pendiente") {
+                  pending++;
+                }
+              });
+            }
+          });
+        } else if (isAdmin && hasPlayers) {
+          // Para admins con hijos: igual que padres
+          const allPlayers = await base44.entities.Player.list();
+          const myPlayers = allPlayers.filter(p => 
+            p.email_padre === user.email || 
+            p.email_tutor_2 === user.email
+          );
+          
+          allCallups.forEach(callup => {
+            if (callup.publicada && 
+                callup.fecha_partido >= today && 
+                !callup.cerrada) {
+              callup.jugadores_convocados?.forEach(jugador => {
+                const isMyPlayer = myPlayers.some(p => p.id === jugador.jugador_id);
+                if (isMyPlayer && jugador.confirmacion === "pendiente") {
+                  pending++;
+                }
+              });
+            }
+          });
+        }
+        
+        setPendingCallupsCount(pending);
+      } catch (error) {
+        console.error("Error checking pending callups:", error);
+      }
+    };
+
+    checkPendingCallups();
+    const interval = setInterval(checkPendingCallups, 10000); // Check every 10 seconds
+    
+    return () => clearInterval(interval);
+  }, [user, isAdmin, isPlayer, hasPlayers]);
+
   if (showSpecialScreen === "restricted") {
     return <RestrictedAccessScreen user={user} restriction={user} />;
   }
@@ -611,7 +690,7 @@ export default function Layout({ children, currentPageName }) {
     { title: "Anuncios", url: createPageUrl("Announcements"), icon: Megaphone },
     { title: "Galería", url: createPageUrl("AdminGallery"), icon: Image },
     { title: "🎓 Crear Convocatorias", url: createPageUrl("CoachCallups"), icon: Bell },
-    ...(hasPlayers ? [{ title: "👨‍👩‍👧 Confirmar Mis Hijos", url: createPageUrl("ParentCallups"), icon: ClipboardCheck }] : []),
+    ...(hasPlayers ? [{ title: "👨‍👩‍👧 Confirmar Mis Hijos", url: createPageUrl("ParentCallups"), icon: ClipboardCheck, badge: pendingCallupsCount > 0 ? pendingCallupsCount : null }] : []),
     { title: "Pagos", url: createPageUrl("Payments"), icon: CreditCard },
     { title: "Recordatorios", url: createPageUrl("Reminders"), icon: Bell },
     { title: "Pedidos", url: createPageUrl("ClothingOrders"), icon: ShoppingBag },
@@ -628,7 +707,7 @@ export default function Layout({ children, currentPageName }) {
     { title: "Calendario", url: createPageUrl("Calendar"), icon: Calendar },
     { title: "Anuncios", url: createPageUrl("Announcements"), icon: Megaphone },
     { title: "Galería", url: createPageUrl("ParentGallery"), icon: Image },
-    { title: "🏆 Convocatorias", url: createPageUrl("ParentCallups"), icon: Bell },
+    { title: "🏆 Convocatorias", url: createPageUrl("ParentCallups"), icon: Bell, badge: pendingCallupsCount > 0 ? pendingCallupsCount : null, urgentBadge: pendingCallupsCount > 0 },
     { title: "Pagos", url: createPageUrl("ParentPayments"), icon: CreditCard },
     { title: "Pedidos", url: createPageUrl("ClothingOrders"), icon: ShoppingBag },
     { title: "Chat", url: createPageUrl("ParentChat"), icon: MessageCircle, badge: unreadMessagesCount > 0 ? unreadMessagesCount : null, urgentBadge: urgentMessagesCount > 0 },
@@ -641,7 +720,7 @@ export default function Layout({ children, currentPageName }) {
     { title: "Calendario", url: createPageUrl("Calendar"), icon: Calendar },
     { title: "Anuncios", url: createPageUrl("Announcements"), icon: Megaphone },
     { title: "Galería", url: createPageUrl("PlayerGallery"), icon: Image },
-    { title: "🏆 Convocatorias", url: createPageUrl("PlayerCallups"), icon: Bell },
+    { title: "🏆 Convocatorias", url: createPageUrl("PlayerCallups"), icon: Bell, badge: pendingCallupsCount > 0 ? pendingCallupsCount : null, urgentBadge: pendingCallupsCount > 0 },
     { title: "Chat Equipo", url: createPageUrl("PlayerChat"), icon: MessageCircle, badge: unreadMessagesCount > 0 ? unreadMessagesCount : null, urgentBadge: urgentMessagesCount > 0 },
   ];
 
@@ -649,22 +728,14 @@ export default function Layout({ children, currentPageName }) {
   
   // Add coach callups for coaches (who are NOT admin and NOT players)
   if (isCoach && !isAdmin && !isPlayer) {
-    let finalCoachNavItems = [];
-    const coachCallupsItem = { title: "🎓 Crear Convocatorias", url: createPageUrl("CoachCallups"), icon: Bell };
-    const parentCallupsItemForCoach = { title: "👨‍👩‍👧 Confirmar Mis Hijos", url: createPageUrl("ParentCallups"), icon: ClipboardCheck };
-
-    for (const item of parentNavigationItems) {
-      if (item.url === createPageUrl("ParentCallups")) {
-        // Replace or augment the generic ParentCallups item from parentNavigationItems
-        finalCoachNavItems.push(coachCallupsItem); // Coaches always get to create convocatorias
-        if (hasPlayers) {
-          finalCoachNavItems.push(parentCallupsItemForCoach); // If coach also has players, they get to confirm their kids
-        }
-      } else {
-        finalCoachNavItems.push(item); // Keep other parent navigation items
-      }
+    const callupIndex = navigationItems.findIndex(item => item.url === createPageUrl("ParentCallups"));
+    if (callupIndex !== -1) {
+      navigationItems = [
+        ...navigationItems.slice(0, callupIndex + 1),
+        { title: "🎓 Crear Convocatorias", url: createPageUrl("CoachCallups"), icon: Bell },
+        ...(hasPlayers ? [{ title: "👨‍👩‍👧 Confirmar Mis Hijos", url: createPageUrl("ParentCallups"), icon: ClipboardCheck, badge: pendingCallupsCount > 0 ? pendingCallupsCount : null, urgentBadge: pendingCallupsCount > 0 }] : [navigationItems.slice(callupIndex + 1)])
+      ];
     }
-    navigationItems = finalCoachNavItems;
   }
 
   const handleLogout = () => {
@@ -673,7 +744,6 @@ export default function Layout({ children, currentPageName }) {
 
   return (
     <>
-      {/* Componente para actualizar badges de notificación */}
       <NotificationBadge />
       
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
