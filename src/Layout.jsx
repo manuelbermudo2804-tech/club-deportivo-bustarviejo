@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { base44 } from "@/api/base44Client";
 import { Home, Users, CreditCard, ShoppingBag, Menu, Bell, LogOut, Calendar, Megaphone, Mail, Archive, Settings, MessageCircle, Clock, Image, X, User as UserIcon, CheckCircle2, ClipboardCheck } from "lucide-react";
@@ -471,6 +471,7 @@ function RestrictedAccessScreen({ user, restriction }) {
 
 export default function Layout({ children, currentPageName }) {
   const location = useLocation();
+  const navigate = useNavigate();
   const currentSeason = getCurrentSeason();
   const [user, setUser] = useState(null);
   const [isAdmin, setIsAdmin] = useState(false);
@@ -518,12 +519,17 @@ export default function Layout({ children, currentPageName }) {
             setShowSpecialScreen("vacation");
           }
         }
+
+        // REDIRECT PARENTS TO THEIR DASHBOARD IF THEY'RE ON HOME PAGE
+        if (currentUser.role !== "admin" && currentUser.role !== "jugador" && !currentUser.es_entrenador && location.pathname === createPageUrl("Home")) {
+          navigate(createPageUrl("ParentDashboard"), { replace: true });
+        }
       } catch (error) {
         console.error("Error fetching user:", error);
       }
     };
     fetchUser();
-  }, []);
+  }, [location.pathname, navigate]);
 
   useEffect(() => {
     const checkUnreadMessages = async () => {
@@ -545,7 +551,7 @@ export default function Layout({ children, currentPageName }) {
           });
         } else if (isPlayer) {
           const allPlayers = await base44.entities.Player.list();
-          const myPlayer = allPlayers.find(p => p.email_jugador === user.email); // Fixed to use email_jugador
+          const myPlayer = allPlayers.find(p => p.email === user.email); // Updated from email_jugador to email based on outline
           
           if (myPlayer) {
             allMessages.forEach(msg => {
@@ -604,7 +610,7 @@ export default function Layout({ children, currentPageName }) {
         
         if (isPlayer) {
           const allPlayers = await base44.entities.Player.list();
-          const myPlayer = allPlayers.find(p => p.email_jugador === user.email); // Fixed to use email_jugador
+          const myPlayer = allPlayers.find(p => p.email_jugador === user.email);
           
           if (myPlayer) {
             allCallups.forEach(callup => {
