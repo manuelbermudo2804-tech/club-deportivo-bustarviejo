@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -39,7 +40,7 @@ export default function ParentChat() {
     queryKey: ['myPlayers', user?.email],
     queryFn: async () => {
       const allPlayers = await base44.entities.Player.list();
-      return allPlayers.filter(p => 
+      return allPlayers.filter(p =>
         p.email_padre === user?.email || p.email_tutor_2 === user?.email
       );
     },
@@ -50,7 +51,7 @@ export default function ParentChat() {
   const sendMessageMutation = useMutation({
     mutationFn: async (messageData) => {
       const newMessage = await base44.entities.ChatMessage.create(messageData);
-      
+
       const imageAttachments = messageData.archivos_adjuntos.filter(att => att.tipo === "imagen");
       if (imageAttachments.length > 0) {
         const albumData = {
@@ -67,24 +68,26 @@ export default function ParentChat() {
           visible_para_padres: true,
           destacado: false
         };
-        
+
         await base44.entities.PhotoGallery.create(albumData);
       }
-      
+
       return newMessage;
     },
-    onSuccess: async () => {
+    onSuccess: (newMessage) => {
+      queryClient.setQueryData(['chatMessages'], (oldMessages) => {
+        return [newMessage, ...(oldMessages || [])];
+      });
+
       setMessageContent("");
       setAttachments([]);
-      await refetchMessages();
-      queryClient.invalidateQueries({ queryKey: ['chatMessages'] });
       toast.success("Mensaje enviado");
     },
   });
 
   const markAsReadMutation = useMutation({
     mutationFn: async (messageIds) => {
-      const updatePromises = messageIds.map(id => 
+      const updatePromises = messageIds.map(id =>
         base44.entities.ChatMessage.update(id, { leido: true })
       );
       await Promise.all(updatePromises);
@@ -105,21 +108,21 @@ export default function ParentChat() {
   const uniqueDeportes = [...new Set(
     players.map(p => normalizeDeporte(p.deporte)).filter(Boolean)
   )];
-  
+
   const myGroups = uniqueDeportes.map(deporteNormalizado => {
     const groupMessages = messages.filter(msg => {
       const msgDeporte = normalizeDeporte(msg.grupo_id || msg.deporte);
       return msgDeporte === deporteNormalizado;
     });
-    
-    const unreadCount = groupMessages.filter(msg => 
+
+    const unreadCount = groupMessages.filter(msg =>
       !msg.leido && msg.tipo === "admin_a_grupo"
     ).length;
-    
+
     const urgentCount = groupMessages.filter(msg =>
       !msg.leido && msg.tipo === "admin_a_grupo" && msg.prioridad === "Urgente"
     ).length;
-    
+
     return {
       id: deporteNormalizado,
       deporte: deporteNormalizado,
@@ -142,7 +145,7 @@ export default function ParentChat() {
         const unreadMessageIds = group.messages
           .filter(msg => !msg.leido && msg.tipo === "admin_a_grupo")
           .map(msg => msg.id);
-        
+
         if (unreadMessageIds.length > 0) {
           markAsReadMutation.mutate(unreadMessageIds);
         }
@@ -282,7 +285,7 @@ export default function ParentChat() {
       )}
 
       {/* Mensajes */}
-      <div 
+      <div
         className="flex-1 overflow-y-auto p-4 space-y-2"
         style={{
           backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23d4c5b9' fill-opacity='0.1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
@@ -321,13 +324,13 @@ export default function ParentChat() {
                       )}
                     </div>
                     <p className="text-sm leading-relaxed break-words">{msg.mensaje}</p>
-                    
+
                     {msg.archivos_adjuntos?.length > 0 && (
                       <div className="mt-2">
                         <MessageAttachments attachments={msg.archivos_adjuntos} />
                       </div>
                     )}
-                    
+
                     <div className="flex items-center justify-end gap-1 mt-1">
                       <span className={`text-[10px] ${msg.tipo === "padre_a_grupo" ? 'text-green-100' : 'text-slate-500'}`}>
                         {format(new Date(msg.created_date), "HH:mm")}
@@ -364,7 +367,7 @@ export default function ParentChat() {
             onFileUploaded={handleFileUploaded}
             disabled={!isBusinessHours() || sendMessageMutation.isPending}
           />
-          
+
           <Input
             value={messageContent}
             onChange={(e) => setMessageContent(e.target.value)}
@@ -378,7 +381,7 @@ export default function ParentChat() {
             }}
             disabled={!isBusinessHours()}
           />
-          
+
           <Button
             onClick={handleSendMessage}
             disabled={(!messageContent.trim() && attachments.length === 0) || sendMessageMutation.isPending || !isBusinessHours()}
@@ -390,10 +393,4 @@ export default function ParentChat() {
       </div>
     </div>
   );
-}
-
-function isBusinessHours() {
-  const now = new Date();
-  const hour = now.getHours();
-  return hour >= 10 && hour < 20;
 }
