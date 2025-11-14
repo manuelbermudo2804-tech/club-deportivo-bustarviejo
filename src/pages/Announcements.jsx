@@ -1,11 +1,11 @@
+
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
-import { Plus, Megaphone, Pin } from "lucide-react";
+import { Plus, Megaphone } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AnimatePresence } from "framer-motion";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 import { toast } from "sonner";
 
 import AnnouncementForm from "../components/announcements/AnnouncementForm";
@@ -81,7 +81,7 @@ export default function Announcements() {
       queryClient.invalidateQueries({ queryKey: ['chatMessages'] });
       setShowForm(false);
       setEditingAnnouncement(null);
-      toast.success("Anuncio publicado correctamente");
+      toast.success("Anuncio publicado");
     },
     onError: (error) => {
       console.error("Error creating announcement:", error);
@@ -95,8 +95,12 @@ export default function Announcements() {
       queryClient.invalidateQueries({ queryKey: ['announcements'] });
       setShowForm(false);
       setEditingAnnouncement(null);
-      toast.success("Anuncio actualizado correctamente");
+      toast.success("Anuncio actualizado");
     },
+    onError: (error) => {
+      console.error("Error updating announcement:", error);
+      toast.error("Error al actualizar el anuncio");
+    }
   });
 
   const sendAnnouncementEmails = async (announcement, data) => {
@@ -325,19 +329,16 @@ Ubicación: Bustarviejo, Madrid
 
   const urgentCount = visibleAnnouncements.filter(a => a.prioridad === "Urgente").length;
   const importantCount = visibleAnnouncements.filter(a => a.prioridad === "Importante").length;
-  const pinnedCount = visibleAnnouncements.filter(a => a.destacado).length;
 
   return (
-    <div className="p-6 lg:p-8 space-y-6">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+    <div className="p-4 lg:p-6 space-y-4">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3">
         <div>
-          <h1 className="text-3xl font-bold text-slate-900 flex items-center gap-3">
-            <Megaphone className="w-8 h-8 text-orange-600" />
-            Anuncios y Comunicados
+          <h1 className="text-2xl lg:text-3xl font-bold text-slate-900 flex items-center gap-2">
+            <Megaphone className="w-6 h-6 text-orange-600" />
+            Anuncios
           </h1>
-          <p className="text-slate-600 mt-1">
-            {isAdmin ? "Publica comunicados oficiales importantes" : "Información importante del club"}
-          </p>
+          <p className="text-slate-600 mt-1 text-sm">Comunicados del club</p>
         </div>
         {isAdmin && (
           <Button
@@ -345,32 +346,13 @@ Ubicación: Bustarviejo, Madrid
               setEditingAnnouncement(null);
               setShowForm(!showForm);
             }}
-            className="bg-orange-600 hover:bg-orange-700 shadow-lg"
+            className="bg-orange-600 hover:bg-orange-700"
           >
-            <Plus className="w-5 h-5 mr-2" />
-            Nuevo Anuncio
+            <Plus className="w-4 h-4 mr-2" />
+            Nuevo
           </Button>
         )}
       </div>
-
-      {/* Info Alert */}
-      {!isAdmin && (
-        <Alert className="bg-blue-50 border-blue-300">
-          <Megaphone className="h-5 w-5 text-blue-600" />
-          <AlertDescription className="text-blue-900">
-            <strong>Anuncios importantes:</strong> Aquí encontrarás comunicados oficiales, cambios de horarios, cancelaciones y otra información crítica del club.
-          </AlertDescription>
-        </Alert>
-      )}
-
-      {pinnedCount > 0 && (
-        <Alert className="bg-yellow-50 border-yellow-300">
-          <Pin className="h-5 w-5 text-yellow-600" />
-          <AlertDescription className="text-yellow-900">
-            <strong>{pinnedCount} anuncio{pinnedCount !== 1 ? 's' : ''} anclado{pinnedCount !== 1 ? 's' : ''}:</strong> Información importante fijada al inicio
-          </AlertDescription>
-        </Alert>
-      )}
 
       <AnimatePresence>
         {showForm && isAdmin && (
@@ -386,37 +368,34 @@ Ubicación: Bustarviejo, Madrid
         )}
       </AnimatePresence>
 
-      {/* Priority Filter */}
-      <div className="flex items-center gap-3">
-        <Tabs value={priorityFilter} onValueChange={setPriorityFilter}>
-          <TabsList className="bg-white shadow-sm">
-            <TabsTrigger value="all" className="data-[state=active]:bg-orange-100 data-[state=active]:text-orange-700">
-              Todos
-            </TabsTrigger>
-            <TabsTrigger value="Urgente" className="data-[state=active]:bg-red-100 data-[state=active]:text-red-700">
-              🚨 Urgente {urgentCount > 0 && `(${urgentCount})`}
-            </TabsTrigger>
-            <TabsTrigger value="Importante" className="data-[state=active]:bg-orange-100 data-[state=active]:text-orange-700">
-              ⚠️ Importante {importantCount > 0 && `(${importantCount})`}
-            </TabsTrigger>
-            <TabsTrigger value="Normal" className="data-[state=active]:bg-blue-100 data-[state=active]:text-blue-700">
-              ℹ️ Normal
-            </TabsTrigger>
-          </TabsList>
-        </Tabs>
-      </div>
+      <Tabs value={priorityFilter} onValueChange={setPriorityFilter}>
+        <TabsList className="bg-white shadow-sm flex-wrap h-auto p-1">
+          <TabsTrigger value="all" className="data-[state=active]:bg-orange-100 data-[state=active]:text-orange-700 text-xs px-2 py-1">
+            Todos
+          </TabsTrigger>
+          <TabsTrigger value="Urgente" className="data-[state=active]:bg-red-100 data-[state=active]:text-red-700 text-xs px-2 py-1">
+            🚨 Urgente {urgentCount > 0 && `(${urgentCount})`}
+          </TabsTrigger>
+          <TabsTrigger value="Importante" className="data-[state=active]:bg-orange-100 data-[state=active]:text-orange-700 text-xs px-2 py-1">
+            ⚠️ Importante {importantCount > 0 && `(${importantCount})`}
+          </TabsTrigger>
+          <TabsTrigger value="Normal" className="data-[state=active]:bg-blue-100 data-[state=active]:text-blue-700 text-xs px-2 py-1">
+            ℹ️ Normal
+          </TabsTrigger>
+        </TabsList>
+      </Tabs>
 
       {isLoading ? (
         <div className="text-center py-12">
           <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-orange-600 border-r-transparent"></div>
         </div>
       ) : sortedAnnouncements.length === 0 ? (
-        <div className="text-center py-12 bg-white rounded-xl shadow-lg">
-          <div className="text-6xl mb-4">📢</div>
-          <p className="text-slate-500 text-lg">No hay anuncios {priorityFilter !== "all" ? `de prioridad ${priorityFilter}` : ""}</p>
+        <div className="text-center py-8 bg-white rounded-xl shadow-md">
+          <div className="text-4xl mb-2">📢</div>
+          <p className="text-slate-500 text-sm">No hay anuncios</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
           <AnimatePresence>
             {sortedAnnouncements.map((announcement) => (
               <AnnouncementCard

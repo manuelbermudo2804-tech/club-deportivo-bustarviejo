@@ -3,7 +3,7 @@ import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Plus, Search, Eye } from "lucide-react";
+import { Plus, Search } from "lucide-react";
 import { AnimatePresence } from "framer-motion";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
@@ -74,21 +74,21 @@ export default function AdminGallery() {
   ];
 
   return (
-    <div className="p-6 lg:p-8 space-y-6">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+    <div className="p-4 lg:p-6 space-y-4">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3">
         <div>
-          <h1 className="text-3xl font-bold text-slate-900">📸 Galería de Fotos</h1>
-          <p className="text-slate-600 mt-1">Gestiona los álbumes del club</p>
+          <h1 className="text-2xl lg:text-3xl font-bold text-slate-900">📸 Galería</h1>
+          <p className="text-slate-600 mt-1 text-sm">Álbumes del club</p>
         </div>
         <Button
           onClick={() => {
             setEditingAlbum(null);
             setShowForm(!showForm);
           }}
-          className="bg-orange-600 hover:bg-orange-700 shadow-lg"
+          className="bg-orange-600 hover:bg-orange-700"
         >
-          <Plus className="w-5 h-5 mr-2" />
-          Nuevo Álbum
+          <Plus className="w-4 h-4 mr-2" />
+          Nuevo
         </Button>
       </div>
 
@@ -106,12 +106,11 @@ export default function AdminGallery() {
         )}
       </AnimatePresence>
 
-      {/* Filtro por Categoría */}
       <Tabs value={categoryFilter} onValueChange={setCategoryFilter}>
-        <TabsList className="flex flex-wrap h-auto">
-          <TabsTrigger value="all">Todas</TabsTrigger>
+        <TabsList className="flex flex-wrap h-auto p-1">
+          <TabsTrigger value="all" className="text-xs px-2 py-1">Todas</TabsTrigger>
           {categories.map(cat => (
-            <TabsTrigger key={cat} value={cat} className="text-xs">
+            <TabsTrigger key={cat} value={cat} className="text-[10px] px-2 py-1">
               {cat.includes("Baloncesto") ? "🏀" : "⚽"} {cat.split(" ")[1]}
             </TabsTrigger>
           ))}
@@ -119,12 +118,12 @@ export default function AdminGallery() {
       </Tabs>
 
       <div className="relative">
-        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-slate-400" />
+        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400" />
         <Input
-          placeholder="Buscar álbum..."
+          placeholder="Buscar..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          className="pl-10 bg-white shadow-sm"
+          className="pl-9 bg-white shadow-sm text-sm"
         />
       </div>
 
@@ -133,11 +132,11 @@ export default function AdminGallery() {
           <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-orange-600 border-r-transparent"></div>
         </div>
       ) : filteredAlbums.length === 0 ? (
-        <div className="text-center py-12">
-          <p className="text-slate-500">No se encontraron álbumes</p>
+        <div className="text-center py-8">
+          <p className="text-slate-500 text-sm">No hay álbumes</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
           <AnimatePresence>
             {filteredAlbums.map((album) => (
               <GalleryAlbum 
