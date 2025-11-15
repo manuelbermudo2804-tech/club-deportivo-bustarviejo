@@ -37,6 +37,10 @@ import PaymentsDashboard from './pages/PaymentsDashboard';
 import Certificates from './pages/Certificates';
 import PlayerCards from './pages/PlayerCards';
 import Surveys from './pages/Surveys';
+import AdminStats from './pages/AdminStats';
+import MatchResults from './pages/MatchResults';
+import MedicalRecords from './pages/MedicalRecords';
+import DirectMessages from './pages/DirectMessages';
 import Layout from './Layout.jsx';
 
 
@@ -80,6 +84,10 @@ export const PAGES = {
     "Certificates": Certificates,
     "PlayerCards": PlayerCards,
     "Surveys": Surveys,
+    "AdminStats": AdminStats,
+    "MatchResults": MatchResults,
+    "MedicalRecords": MedicalRecords,
+    "DirectMessages": DirectMessages,
 }
 
 export const pagesConfig = {
