@@ -1,20 +1,11 @@
-/**
- * Obtiene los próximos partidos desde fuentes externas (RFFM, calendarios de federaciones)
- * 
- * @param {Object} params
- * @param {string} params.categoria - Categoría del equipo
- * @param {string} params.temporada - Temporada (ej: "2024-2025")
- * @param {number} params.dias_adelante - Días hacia adelante (por defecto 30)
- * @param {string} params.source - Fuente: "rffm" o "url" (opcional)
- * @param {string} params.url - URL personalizada (opcional)
- * 
- * @returns {Object} { success: boolean, matches: Array }
- */
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.4';
 
-export default async function getUpcomingMatches({ categoria, temporada, dias_adelante = 30, source = "rffm", url }, context) {
-  const { integrations } = context;
-  
+Deno.serve(async (req) => {
   try {
+    const base44 = createClientFromRequest(req);
+    
+    const { categoria, temporada, dias_adelante = 30, source = "rffm", url } = await req.json();
+    
     let matches = [];
     
     const fechaLimite = new Date();
@@ -22,11 +13,10 @@ export default async function getUpcomingMatches({ categoria, temporada, dias_ad
     const fechaLimiteStr = fechaLimite.toISOString().split('T')[0];
     
     if (source === "url" && url) {
-      // URL personalizada
       const response = await fetch(url);
       const html = await response.text();
       
-      const extracted = await integrations.Core.InvokeLLM({
+      const extracted = await base44.integrations.Core.InvokeLLM({
         prompt: `
           Extrae los próximos partidos del CD Bustarviejo desde esta página:
           
@@ -66,8 +56,7 @@ export default async function getUpcomingMatches({ categoria, temporada, dias_ad
       matches = extracted.partidos || [];
       
     } else {
-      // Búsqueda automática (RFFM)
-      const extracted = await integrations.Core.InvokeLLM({
+      const extracted = await base44.integrations.Core.InvokeLLM({
         prompt: `
           Busca el calendario de próximos partidos del CD Bustarviejo en la categoría ${categoria} para la temporada ${temporada}.
           
@@ -108,13 +97,12 @@ export default async function getUpcomingMatches({ categoria, temporada, dias_ad
       matches = extracted.partidos || [];
     }
     
-    // Filtrar solo partidos futuros y ordenar por fecha
     const today = new Date().toISOString().split('T')[0];
     matches = matches
       .filter(m => m.fecha && m.fecha >= today && m.fecha <= fechaLimiteStr)
       .sort((a, b) => a.fecha.localeCompare(b.fecha));
     
-    return {
+    return Response.json({
       success: true,
       matches: matches.map(m => ({
         ...m,
@@ -126,13 +114,13 @@ export default async function getUpcomingMatches({ categoria, temporada, dias_ad
       total: matches.length,
       categoria: categoria,
       temporada: temporada
-    };
+    });
     
   } catch (error) {
-    return {
+    return Response.json({
       success: false,
       matches: [],
       error: error.message
-    };
+    }, { status: 500 });
   }
-}
+});

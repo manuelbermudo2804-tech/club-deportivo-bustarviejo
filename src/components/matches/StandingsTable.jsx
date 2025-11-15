@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { RefreshCw, Trophy, TrendingUp, TrendingDown } from "lucide-react";
+import { RefreshCw, Trophy } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 
 export default function StandingsTable({ categoria }) {
@@ -16,17 +16,17 @@ export default function StandingsTable({ categoria }) {
     setError(null);
     
     try {
-      const result = await base44.functions.getStandings({
+      const { data } = await base44.functions.invoke('getStandings', {
         categoria,
         temporada: "2024-2025",
         source: "rffm"
       });
       
-      if (result.success) {
-        setStandings(result.standings);
-        setMetadata(result.metadata);
+      if (data.success) {
+        setStandings(data.standings);
+        setMetadata(data.metadata);
       } else {
-        setError(result.error || "No se pudo cargar la clasificación");
+        setError(data.error || "No se pudo cargar la clasificación");
       }
     } catch (err) {
       setError("Error al cargar clasificación: " + err.message);

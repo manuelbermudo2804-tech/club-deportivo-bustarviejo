@@ -18,7 +18,6 @@ export default function UpcomingMatches({ callups }) {
 
   const today = new Date().toISOString().split('T')[0];
   
-  // Convocatorias internas (partidos ya programados en el sistema)
   const internalMatches = callups
     .filter(c => 
       c.publicada && 
@@ -38,18 +37,18 @@ export default function UpcomingMatches({ callups }) {
     setError(null);
     
     try {
-      const result = await base44.functions.getUpcomingMatches({
+      const { data } = await base44.functions.invoke('getUpcomingMatches', {
         categoria: selectedCategory,
         temporada: "2024-2025",
         dias_adelante: 60,
         source: "rffm"
       });
       
-      if (result.success) {
-        setExternalMatches(result.matches);
+      if (data.success) {
+        setExternalMatches(data.matches);
         setShowExternal(true);
       } else {
-        setError(result.error || "No se pudieron cargar los partidos");
+        setError(data.error || "No se pudieron cargar los partidos");
       }
     } catch (err) {
       setError("Error: " + err.message);
@@ -97,7 +96,6 @@ export default function UpcomingMatches({ callups }) {
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
-          {/* Importar desde RFFM */}
           {!showExternal && (
             <Alert className="bg-blue-50 border-blue-200">
               <AlertDescription>
@@ -143,7 +141,6 @@ export default function UpcomingMatches({ callups }) {
             </Alert>
           )}
 
-          {/* Lista de partidos */}
           {displayMatches.length === 0 && !loading ? (
             <div className="text-center py-8">
               <Calendar className="w-12 h-12 text-slate-300 mx-auto mb-3" />

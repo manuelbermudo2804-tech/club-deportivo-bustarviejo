@@ -1,28 +1,19 @@
-/**
- * Obtiene la clasificación de la liga desde fuentes externas
- * 
- * @param {Object} params
- * @param {string} params.categoria - Categoría del equipo
- * @param {string} params.temporada - Temporada (ej: "2024-2025")
- * @param {string} params.source - Fuente: "rffm" o "url" (opcional)
- * @param {string} params.url - URL personalizada para scraping (opcional)
- * 
- * @returns {Object} { success: boolean, standings: Array, metadata: Object }
- */
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.4';
 
-export default async function getStandings({ categoria, temporada, source = "rffm", url }, context) {
-  const { integrations } = context;
-  
+Deno.serve(async (req) => {
   try {
+    const base44 = createClientFromRequest(req);
+    
+    const { categoria, temporada, source = "rffm", url } = await req.json();
+    
     let standings = [];
     let metadata = {};
     
     if (source === "url" && url) {
-      // URL personalizada
       const response = await fetch(url);
       const html = await response.text();
       
-      const extracted = await integrations.Core.InvokeLLM({
+      const extracted = await base44.integrations.Core.InvokeLLM({
         prompt: `
           Extrae la tabla de clasificación de esta página web:
           
@@ -76,10 +67,9 @@ export default async function getStandings({ categoria, temporada, source = "rff
       };
       
     } else {
-      // Búsqueda automática en internet (RFFM u otras fuentes)
       const searchQuery = `CD Bustarviejo ${categoria} clasificación tabla ${temporada}`;
       
-      const extracted = await integrations.Core.InvokeLLM({
+      const extracted = await base44.integrations.Core.InvokeLLM({
         prompt: `
           Busca la tabla de clasificación actual del CD Bustarviejo en la categoría ${categoria} para la temporada ${temporada}.
           
@@ -124,15 +114,13 @@ export default async function getStandings({ categoria, temporada, source = "rff
       };
     }
     
-    // Ordenar por posición
     standings.sort((a, b) => a.posicion - b.posicion);
     
-    // Encontrar posición del CD Bustarviejo
     const cdBustaIndex = standings.findIndex(team => 
       team.equipo.toLowerCase().includes('bustarviejo')
     );
     
-    return {
+    return Response.json({
       success: true,
       standings: standings,
       metadata: {
@@ -143,14 +131,14 @@ export default async function getStandings({ categoria, temporada, source = "rff
         temporada: temporada,
         fecha_consulta: new Date().toISOString()
       }
-    };
+    });
     
   } catch (error) {
-    return {
+    return Response.json({
       success: false,
       standings: [],
       metadata: {},
       error: error.message
-    };
+    }, { status: 500 });
   }
-}
+});
