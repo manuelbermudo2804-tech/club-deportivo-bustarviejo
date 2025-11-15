@@ -2,9 +2,10 @@ import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
-import { Users, TrendingUp, Award, Target, Calendar, CheckCircle2 } from "lucide-react";
+import { TrendingUp, Users, CheckCircle2, XCircle, CreditCard, Star, Calendar, Target } from "lucide-react";
+import { BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar } from "recharts";
 
 export default function ClubStats() {
   const [selectedCategory, setSelectedCategory] = useState("all");
@@ -39,307 +40,350 @@ export default function ClubStats() {
     initialData: [],
   });
 
-  // Players by category
-  const playersByCategory = () => {
-    const categoryData = {};
-    players.forEach(p => {
-      if (p.activo) {
-        categoryData[p.deporte] = (categoryData[p.deporte] || 0) + 1;
-      }
-    });
-    
-    return Object.keys(categoryData).map(c => ({
-      name: c.length > 20 ? c.substring(0, 20) + '...' : c,
-      value: categoryData[c],
-      fullName: c
-    }));
-  };
+  // Filter by category
+  const filteredPlayers = selectedCategory === "all" 
+    ? players 
+    : players.filter(p => p.deporte === selectedCategory);
 
-  // Payment status by category
-  const paymentsByCategory = () => {
-    const categoryData = {};
-    players.forEach(player => {
-      if (!categoryData[player.deporte]) {
-        categoryData[player.deporte] = { pagado: 0, pendiente: 0, revision: 0, total: 0 };
-      }
-      
-      const playerPayments = payments.filter(p => p.jugador_id === player.id);
-      playerPayments.forEach(p => {
-        categoryData[player.deporte].total++;
-        if (p.estado === "Pagado") categoryData[player.deporte].pagado++;
-        else if (p.estado === "En revisión") categoryData[player.deporte].revision++;
-        else categoryData[player.deporte].pendiente++;
-      });
-    });
-    
-    return Object.keys(categoryData).map(c => ({
-      categoria: c.length > 15 ? c.substring(0, 15) + '...' : c,
-      Pagado: categoryData[c].pagado,
-      Pendiente: categoryData[c].pendiente,
-      Revisión: categoryData[c].revision
-    }));
-  };
+  const categories = [...new Set(players.map(p => p.deporte))];
 
-  // Attendance statistics
-  const attendanceStats = () => {
-    const categoryData = {};
-    attendances.forEach(att => {
-      if (!categoryData[att.categoria]) {
-        categoryData[att.categoria] = { presente: 0, ausente: 0, justificado: 0 };
+  // Players stats
+  const activePlayers = filteredPlayers.filter(p => p.activo).length;
+  const inactivePlayers = filteredPlayers.filter(p => !p.activo).length;
+
+  // Payment stats by category
+  const paymentsByCategory = {};
+  payments.forEach(p => {
+    const player = players.find(pl => pl.id === p.jugador_id);
+    if (player && (selectedCategory === "all" || player.deporte === selectedCategory)) {
+      const cat = player.deporte;
+      if (!paymentsByCategory[cat]) {
+        paymentsByCategory[cat] = { Pagado: 0, Pendiente: 0, EnRevision: 0, total: 0 };
       }
-      
+      paymentsByCategory[cat].total++;
+      if (p.estado === "Pagado") paymentsByCategory[cat].Pagado++;
+      else if (p.estado === "Pendiente") paymentsByCategory[cat].Pendiente++;
+      else paymentsByCategory[cat].EnRevision++;
+    }
+  });
+
+  const paymentCategoryData = Object.keys(paymentsByCategory).map(cat => ({
+    categoria: cat.replace("Fútbol ", "").replace(" (Mixto)", ""),
+    Pagado: paymentsByCategory[cat].Pagado,
+    Pendiente: paymentsByCategory[cat].Pendiente,
+    "En Revisión": paymentsByCategory[cat].EnRevision
+  }));
+
+  // Attendance stats by category
+  const attendanceByCategory = {};
+  attendances.forEach(att => {
+    if (selectedCategory === "all" || att.categoria === selectedCategory) {
+      const cat = att.categoria;
+      if (!attendanceByCategory[cat]) {
+        attendanceByCategory[cat] = { presente: 0, ausente: 0, total: 0 };
+      }
       att.asistencias.forEach(a => {
-        if (a.estado === "presente") categoryData[att.categoria].presente++;
-        else if (a.estado === "ausente") categoryData[att.categoria].ausente++;
-        else if (a.estado === "justificado") categoryData[att.categoria].justificado++;
+        attendanceByCategory[cat].total++;
+        if (a.estado === "presente") attendanceByCategory[cat].presente++;
+        else if (a.estado === "ausente") attendanceByCategory[cat].ausente++;
       });
-    });
-    
-    return Object.keys(categoryData).map(c => {
-      const total = categoryData[c].presente + categoryData[c].ausente + categoryData[c].justificado;
-      const percentage = total > 0 ? ((categoryData[c].presente / total) * 100).toFixed(0) : 0;
-      return {
-        categoria: c.length > 15 ? c.substring(0, 15) + '...' : c,
-        Presente: categoryData[c].presente,
-        Ausente: categoryData[c].ausente,
-        Justificado: categoryData[c].justificado,
-        Porcentaje: parseInt(percentage)
-      };
-    });
-  };
+    }
+  });
 
-  // Evaluation averages by category
-  const evaluationAverages = () => {
-    const categoryData = {};
-    evaluations.forEach(e => {
-      if (!categoryData[e.categoria]) {
-        categoryData[e.categoria] = { sum: 0, count: 0 };
+  const attendanceCategoryData = Object.keys(attendanceByCategory).map(cat => {
+    const stats = attendanceByCategory[cat];
+    const percentage = stats.total > 0 ? ((stats.presente / stats.total) * 100).toFixed(1) : 0;
+    return {
+      categoria: cat.replace("Fútbol ", "").replace(" (Mixto)", ""),
+      Asistencia: parseFloat(percentage),
+      Presente: stats.presente,
+      Ausente: stats.ausente
+    };
+  });
+
+  // Evaluation stats
+  const evalsByCategory = {};
+  evaluations.forEach(e => {
+    if (selectedCategory === "all" || e.categoria === selectedCategory) {
+      const cat = e.categoria;
+      if (!evalsByCategory[cat]) {
+        evalsByCategory[cat] = { count: 0, tecnica: 0, tactica: 0, fisica: 0, actitud: 0, equipo: 0 };
       }
-      const avg = (e.tecnica + e.tactica + e.fisica + e.actitud + e.trabajo_equipo) / 5;
-      categoryData[e.categoria].sum += avg;
-      categoryData[e.categoria].count++;
-    });
-    
-    return Object.keys(categoryData).map(c => ({
-      categoria: c.length > 15 ? c.substring(0, 15) + '...' : c,
-      Promedio: (categoryData[c].sum / categoryData[c].count).toFixed(1)
-    }));
-  };
+      evalsByCategory[cat].count++;
+      evalsByCategory[cat].tecnica += e.tecnica;
+      evalsByCategory[cat].tactica += e.tactica;
+      evalsByCategory[cat].fisica += e.fisica;
+      evalsByCategory[cat].actitud += e.actitud;
+      evalsByCategory[cat].equipo += e.trabajo_equipo;
+    }
+  });
+
+  const evalCategoryData = Object.keys(evalsByCategory).map(cat => {
+    const stats = evalsByCategory[cat];
+    return {
+      categoria: cat.replace("Fútbol ", "").replace(" (Mixto)", ""),
+      Técnica: (stats.tecnica / stats.count).toFixed(1),
+      Táctica: (stats.tactica / stats.count).toFixed(1),
+      Física: (stats.fisica / stats.count).toFixed(1),
+      Actitud: (stats.actitud / stats.count).toFixed(1),
+      Equipo: (stats.equipo / stats.count).toFixed(1)
+    };
+  });
+
+  // Overall evaluation radar
+  const overallEvalStats = evaluations.length > 0 ? {
+    tecnica: evaluations.reduce((sum, e) => sum + e.tecnica, 0) / evaluations.length,
+    tactica: evaluations.reduce((sum, e) => sum + e.tactica, 0) / evaluations.length,
+    fisica: evaluations.reduce((sum, e) => sum + e.fisica, 0) / evaluations.length,
+    actitud: evaluations.reduce((sum, e) => sum + e.actitud, 0) / evaluations.length,
+    equipo: evaluations.reduce((sum, e) => sum + e.trabajo_equipo, 0) / evaluations.length
+  } : null;
+
+  const radarData = overallEvalStats ? [
+    { skill: "Técnica", value: parseFloat(overallEvalStats.tecnica.toFixed(1)) },
+    { skill: "Táctica", value: parseFloat(overallEvalStats.tactica.toFixed(1)) },
+    { skill: "Física", value: parseFloat(overallEvalStats.fisica.toFixed(1)) },
+    { skill: "Actitud", value: parseFloat(overallEvalStats.actitud.toFixed(1)) },
+    { skill: "Equipo", value: parseFloat(overallEvalStats.equipo.toFixed(1)) }
+  ] : [];
 
   // Monthly trends
-  const monthlyTrends = () => {
-    const monthlyData = {};
-    
-    players.forEach(p => {
-      const month = p.created_date?.substring(0, 7);
-      if (month) {
-        if (!monthlyData[month]) monthlyData[month] = { jugadores: 0, pagos: 0 };
-        monthlyData[month].jugadores++;
-      }
-    });
-    
-    payments.forEach(p => {
-      const month = p.created_date?.substring(0, 7);
-      if (month && p.estado === "Pagado") {
-        if (!monthlyData[month]) monthlyData[month] = { jugadores: 0, pagos: 0 };
-        monthlyData[month].pagos++;
-      }
-    });
-    
-    return Object.keys(monthlyData).slice(-6).map(m => ({
-      mes: m.substring(5),
-      Jugadores: monthlyData[m].jugadores,
-      Pagos: monthlyData[m].pagos
-    }));
-  };
+  const monthlyData = {};
+  const last6Months = [];
+  const now = new Date();
+  for (let i = 5; i >= 0; i--) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    const key = d.toISOString().substring(0, 7);
+    last6Months.push(key);
+    monthlyData[key] = { players: 0, payments: 0, evaluations: 0, attendances: 0 };
+  }
 
-  const COLORS = ['#f97316', '#3b82f6', '#10b981', '#8b5cf6', '#ec4899', '#f59e0b', '#06b6d4', '#ef4444'];
+  players.forEach(p => {
+    if (p.created_date && (selectedCategory === "all" || p.deporte === selectedCategory)) {
+      const month = p.created_date.substring(0, 7);
+      if (monthlyData[month]) monthlyData[month].players++;
+    }
+  });
 
-  const totalPlayers = players.filter(p => p.activo).length;
-  const totalPayments = payments.length;
-  const paidPayments = payments.filter(p => p.estado === "Pagado").length;
-  const avgAttendance = attendanceStats().reduce((sum, cat) => sum + cat.Porcentaje, 0) / (attendanceStats().length || 1);
-  const avgEvaluation = evaluationAverages().reduce((sum, cat) => sum + parseFloat(cat.Promedio), 0) / (evaluationAverages().length || 1);
+  payments.forEach(p => {
+    if (p.created_date) {
+      const player = players.find(pl => pl.id === p.jugador_id);
+      if (player && (selectedCategory === "all" || player.deporte === selectedCategory)) {
+        const month = p.created_date.substring(0, 7);
+        if (monthlyData[month] && p.estado === "Pagado") monthlyData[month].payments++;
+      }
+    }
+  });
+
+  evaluations.forEach(e => {
+    if (e.created_date && (selectedCategory === "all" || e.categoria === selectedCategory)) {
+      const month = e.created_date.substring(0, 7);
+      if (monthlyData[month]) monthlyData[month].evaluations++;
+    }
+  });
+
+  attendances.forEach(a => {
+    if (a.created_date && (selectedCategory === "all" || a.categoria === selectedCategory)) {
+      const month = a.created_date.substring(0, 7);
+      if (monthlyData[month]) monthlyData[month].attendances++;
+    }
+  });
+
+  const trendData = last6Months.map(month => ({
+    mes: month.substring(5),
+    Jugadores: monthlyData[month].players,
+    Pagos: monthlyData[month].payments,
+    Evaluaciones: monthlyData[month].evaluations,
+    Asistencias: monthlyData[month].attendances
+  }));
+
+  const COLORS = ['#f97316', '#16a34a', '#3b82f6', '#a855f7', '#f59e0b', '#ef4444'];
+
+  const totalPaid = payments.filter(p => p.estado === "Pagado").length;
+  const totalPending = payments.filter(p => p.estado === "Pendiente").length;
+  const totalInReview = payments.filter(p => p.estado === "En revisión").length;
 
   return (
     <div className="p-6 space-y-6">
       <div>
         <h1 className="text-3xl font-bold text-slate-900">📊 Estadísticas del Club</h1>
-        <p className="text-slate-600 mt-1">Análisis completo de datos y rendimiento</p>
+        <p className="text-slate-600 mt-1">Análisis y métricas generales</p>
       </div>
 
+      {/* Category Filter */}
+      <Tabs value={selectedCategory} onValueChange={setSelectedCategory}>
+        <TabsList className="bg-white shadow-sm">
+          <TabsTrigger value="all">Todas las Categorías</TabsTrigger>
+          {categories.map(cat => (
+            <TabsTrigger key={cat} value={cat}>
+              {cat.replace("Fútbol ", "").replace(" (Mixto)", "")}
+            </TabsTrigger>
+          ))}
+        </TabsList>
+      </Tabs>
+
       {/* Overview Stats */}
-      <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <Card className="border-none shadow-lg bg-gradient-to-br from-orange-50 to-orange-100">
-          <CardContent className="p-4 lg:p-6">
-            <Users className="w-6 h-6 lg:w-8 lg:h-8 text-orange-600 mb-2" />
-            <div className="text-2xl lg:text-3xl font-bold text-orange-900">{totalPlayers}</div>
-            <div className="text-xs lg:text-sm text-orange-700">Jugadores</div>
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-orange-700 font-medium">Jugadores</p>
+                <p className="text-3xl font-bold text-orange-900">{activePlayers}</p>
+                <p className="text-xs text-orange-600">Activos</p>
+              </div>
+              <Users className="w-12 h-12 text-orange-600 opacity-50" />
+            </div>
           </CardContent>
         </Card>
 
         <Card className="border-none shadow-lg bg-gradient-to-br from-green-50 to-green-100">
-          <CardContent className="p-4 lg:p-6">
-            <CheckCircle2 className="w-6 h-6 lg:w-8 lg:h-8 text-green-600 mb-2" />
-            <div className="text-2xl lg:text-3xl font-bold text-green-900">{paidPayments}</div>
-            <div className="text-xs lg:text-sm text-green-700">Pagos</div>
-          </CardContent>
-        </Card>
-
-        <Card className="border-none shadow-lg bg-gradient-to-br from-blue-50 to-blue-100">
-          <CardContent className="p-4 lg:p-6">
-            <TrendingUp className="w-6 h-6 lg:w-8 lg:h-8 text-blue-600 mb-2" />
-            <div className="text-2xl lg:text-3xl font-bold text-blue-900">{avgAttendance.toFixed(0)}%</div>
-            <div className="text-xs lg:text-sm text-blue-700">Asistencia</div>
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-green-700 font-medium">Pagos OK</p>
+                <p className="text-3xl font-bold text-green-900">{totalPaid}</p>
+                <p className="text-xs text-green-600">Completados</p>
+              </div>
+              <CheckCircle2 className="w-12 h-12 text-green-600 opacity-50" />
+            </div>
           </CardContent>
         </Card>
 
         <Card className="border-none shadow-lg bg-gradient-to-br from-purple-50 to-purple-100">
-          <CardContent className="p-4 lg:p-6">
-            <Award className="w-6 h-6 lg:w-8 lg:h-8 text-purple-600 mb-2" />
-            <div className="text-2xl lg:text-3xl font-bold text-purple-900">{avgEvaluation.toFixed(1)}</div>
-            <div className="text-xs lg:text-sm text-purple-700">Evaluación</div>
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-purple-700 font-medium">Evaluaciones</p>
+                <p className="text-3xl font-bold text-purple-900">{evaluations.length}</p>
+                <p className="text-xs text-purple-600">Totales</p>
+              </div>
+              <Star className="w-12 h-12 text-purple-600 opacity-50" />
+            </div>
           </CardContent>
         </Card>
 
-        <Card className="border-none shadow-lg bg-gradient-to-br from-indigo-50 to-indigo-100">
-          <CardContent className="p-4 lg:p-6">
-            <Calendar className="w-6 h-6 lg:w-8 lg:h-8 text-indigo-600 mb-2" />
-            <div className="text-2xl lg:text-3xl font-bold text-indigo-900">{callups.length}</div>
-            <div className="text-xs lg:text-sm text-indigo-700">Convocatorias</div>
+        <Card className="border-none shadow-lg bg-gradient-to-br from-blue-50 to-blue-100">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-blue-700 font-medium">Asistencias</p>
+                <p className="text-3xl font-bold text-blue-900">{attendances.length}</p>
+                <p className="text-xs text-blue-600">Registradas</p>
+              </div>
+              <CheckCircle2 className="w-12 h-12 text-blue-600 opacity-50" />
+            </div>
           </CardContent>
         </Card>
       </div>
 
-      <Tabs defaultValue="players" className="w-full">
-        <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="players">Jugadores</TabsTrigger>
-          <TabsTrigger value="payments">Pagos</TabsTrigger>
-          <TabsTrigger value="attendance">Asistencia</TabsTrigger>
-          <TabsTrigger value="evaluations">Evaluaciones</TabsTrigger>
-        </TabsList>
+      {/* Charts */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Payment by Category */}
+        <Card className="border-none shadow-xl">
+          <CardHeader>
+            <CardTitle className="text-lg">💰 Pagos por Categoría</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart data={paymentCategoryData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="categoria" style={{ fontSize: '11px' }} angle={-45} textAnchor="end" height={80} />
+                <YAxis style={{ fontSize: '12px' }} />
+                <Tooltip />
+                <Legend />
+                <Bar dataKey="Pagado" fill="#16a34a" />
+                <Bar dataKey="Pendiente" fill="#f97316" />
+                <Bar dataKey="En Revisión" fill="#3b82f6" />
+              </BarChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
 
-        <TabsContent value="players" className="space-y-6 mt-6">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <Card className="border-none shadow-xl">
-              <CardHeader>
-                <CardTitle className="text-lg">Jugadores por Categoría</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ResponsiveContainer width="100%" height={300}>
-                  <PieChart>
-                    <Pie
-                      data={playersByCategory()}
-                      cx="50%"
-                      cy="50%"
-                      labelLine={false}
-                      label={(entry) => `${entry.value}`}
-                      outerRadius={80}
-                      fill="#8884d8"
-                      dataKey="value"
-                    >
-                      {playersByCategory().map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                      ))}
-                    </Pie>
-                    <Tooltip />
-                  </PieChart>
-                </ResponsiveContainer>
-                <div className="grid grid-cols-2 gap-2 mt-4">
-                  {playersByCategory().map((item, idx) => (
-                    <div key={idx} className="flex items-center gap-2 text-xs">
-                      <div className="w-3 h-3 rounded-full" style={{ backgroundColor: COLORS[idx % COLORS.length] }} />
-                      <span className="text-slate-600">{item.name}</span>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
+        {/* Attendance by Category */}
+        <Card className="border-none shadow-xl">
+          <CardHeader>
+            <CardTitle className="text-lg">✅ Asistencia por Categoría</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart data={attendanceCategoryData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="categoria" style={{ fontSize: '11px' }} angle={-45} textAnchor="end" height={80} />
+                <YAxis style={{ fontSize: '12px' }} />
+                <Tooltip />
+                <Bar dataKey="Asistencia" fill="#16a34a" />
+              </BarChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
 
-            <Card className="border-none shadow-xl">
-              <CardHeader>
-                <CardTitle className="text-lg">Tendencia Mensual</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ResponsiveContainer width="100%" height={300}>
-                  <LineChart data={monthlyTrends()}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="mes" />
-                    <YAxis />
-                    <Tooltip />
-                    <Legend />
-                    <Line type="monotone" dataKey="Jugadores" stroke="#f97316" strokeWidth={2} />
-                    <Line type="monotone" dataKey="Pagos" stroke="#10b981" strokeWidth={2} />
-                  </LineChart>
-                </ResponsiveContainer>
-              </CardContent>
-            </Card>
-          </div>
-        </TabsContent>
-
-        <TabsContent value="payments" className="space-y-6 mt-6">
+        {/* Evaluations Radar */}
+        {radarData.length > 0 && (
           <Card className="border-none shadow-xl">
             <CardHeader>
-              <CardTitle className="text-lg">Estado de Pagos por Categoría</CardTitle>
+              <CardTitle className="text-lg">⭐ Promedio de Evaluaciones</CardTitle>
             </CardHeader>
             <CardContent>
-              <ResponsiveContainer width="100%" height={400}>
-                <BarChart data={paymentsByCategory()}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="categoria" angle={-45} textAnchor="end" height={100} style={{ fontSize: '11px' }} />
-                  <YAxis />
+              <ResponsiveContainer width="100%" height={300}>
+                <RadarChart data={radarData}>
+                  <PolarGrid />
+                  <PolarAngleAxis dataKey="skill" style={{ fontSize: '12px' }} />
+                  <PolarRadiusAxis domain={[0, 5]} style={{ fontSize: '10px' }} />
+                  <Radar name="Promedio" dataKey="value" stroke="#f97316" fill="#f97316" fillOpacity={0.6} />
                   <Tooltip />
-                  <Legend />
-                  <Bar dataKey="Pagado" fill="#16a34a" />
-                  <Bar dataKey="Pendiente" fill="#dc2626" />
-                  <Bar dataKey="Revisión" fill="#f59e0b" />
-                </BarChart>
+                </RadarChart>
               </ResponsiveContainer>
             </CardContent>
           </Card>
-        </TabsContent>
+        )}
 
-        <TabsContent value="attendance" className="space-y-6 mt-6">
-          <Card className="border-none shadow-xl">
-            <CardHeader>
-              <CardTitle className="text-lg">Asistencia por Categoría</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ResponsiveContainer width="100%" height={400}>
-                <BarChart data={attendanceStats()}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="categoria" angle={-45} textAnchor="end" height={100} style={{ fontSize: '11px' }} />
-                  <YAxis />
-                  <Tooltip />
-                  <Legend />
-                  <Bar dataKey="Presente" fill="#16a34a" />
-                  <Bar dataKey="Ausente" fill="#dc2626" />
-                  <Bar dataKey="Justificado" fill="#3b82f6" />
-                </BarChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
-        </TabsContent>
+        {/* Monthly Trends */}
+        <Card className="border-none shadow-xl">
+          <CardHeader>
+            <CardTitle className="text-lg">📈 Tendencias Mensuales</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ResponsiveContainer width="100%" height={300}>
+              <LineChart data={trendData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="mes" style={{ fontSize: '12px' }} />
+                <YAxis style={{ fontSize: '12px' }} />
+                <Tooltip />
+                <Legend />
+                <Line type="monotone" dataKey="Jugadores" stroke="#f97316" strokeWidth={2} />
+                <Line type="monotone" dataKey="Pagos" stroke="#16a34a" strokeWidth={2} />
+                <Line type="monotone" dataKey="Evaluaciones" stroke="#a855f7" strokeWidth={2} />
+              </LineChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+      </div>
 
-        <TabsContent value="evaluations" className="space-y-6 mt-6">
-          <Card className="border-none shadow-xl">
-            <CardHeader>
-              <CardTitle className="text-lg">Promedio de Evaluaciones</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ResponsiveContainer width="100%" height={400}>
-                <BarChart data={evaluationAverages()}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="categoria" angle={-45} textAnchor="end" height={100} style={{ fontSize: '11px' }} />
-                  <YAxis domain={[0, 5]} />
-                  <Tooltip />
-                  <Bar dataKey="Promedio" fill="#8b5cf6" />
-                </BarChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
+      {/* Evaluation Details by Category */}
+      {evalCategoryData.length > 0 && (
+        <Card className="border-none shadow-xl">
+          <CardHeader>
+            <CardTitle className="text-lg">🎯 Evaluaciones Detalladas por Categoría</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ResponsiveContainer width="100%" height={400}>
+              <BarChart data={evalCategoryData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="categoria" style={{ fontSize: '11px' }} angle={-45} textAnchor="end" height={80} />
+                <YAxis domain={[0, 5]} style={{ fontSize: '12px' }} />
+                <Tooltip />
+                <Legend />
+                <Bar dataKey="Técnica" fill="#f97316" />
+                <Bar dataKey="Táctica" fill="#16a34a" />
+                <Bar dataKey="Física" fill="#3b82f6" />
+                <Bar dataKey="Actitud" fill="#a855f7" />
+                <Bar dataKey="Equipo" fill="#f59e0b" />
+              </BarChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }

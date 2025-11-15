@@ -1,281 +1,304 @@
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
-import { useNavigate } from "react-router-dom";
-import { createPageUrl } from "@/utils";
+import { useQuery } from "@tanstack/react-query";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { Search, X, User, Calendar, Megaphone, CreditCard, Filter, Bell } from "lucide-react";
-import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Search, Users, CreditCard, Bell, Calendar, Megaphone, X } from "lucide-react";
+import { Link } from "react-router-dom";
+import { createPageUrl } from "@/utils";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 
 export default function GlobalSearch({ isAdmin, isCoach }) {
+  const [isOpen, setIsOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
-  const [results, setResults] = useState({ players: [], events: [], announcements: [], payments: [], callups: [] });
-  const [showResults, setShowResults] = useState(false);
   const [activeTab, setActiveTab] = useState("all");
-  const navigate = useNavigate();
 
   useEffect(() => {
-    const searchData = async () => {
-      if (searchTerm.length < 2) {
-        setResults({ players: [], events: [], announcements: [], payments: [], callups: [] });
-        return;
-      }
-
-      const term = searchTerm.toLowerCase();
-      const newResults = { players: [], events: [], announcements: [], payments: [], callups: [] };
-
-      try {
-        // Search players
-        const players = await base44.entities.Player.list();
-        players.forEach(p => {
-          if (p.nombre.toLowerCase().includes(term) || 
-              p.email_padre?.toLowerCase().includes(term) ||
-              p.deporte.toLowerCase().includes(term)) {
-            newResults.players.push({
-              type: 'player',
-              icon: User,
-              title: p.nombre,
-              subtitle: p.deporte,
-              detail: p.email_padre,
-              url: isAdmin ? createPageUrl("Players") : createPageUrl("ParentPlayers"),
-              color: "text-orange-600",
-              badge: p.activo ? "Activo" : "Inactivo"
-            });
-          }
-        });
-
-        // Search events
-        const events = await base44.entities.Event.list();
-        events.forEach(e => {
-          if (e.titulo.toLowerCase().includes(term) || 
-              e.descripcion?.toLowerCase().includes(term) ||
-              e.tipo.toLowerCase().includes(term)) {
-            newResults.events.push({
-              type: 'event',
-              icon: Calendar,
-              title: e.titulo,
-              subtitle: `${e.tipo} - ${e.fecha}`,
-              detail: e.ubicacion,
-              url: createPageUrl("Calendar"),
-              color: "text-blue-600",
-              badge: e.importante ? "Importante" : e.tipo
-            });
-          }
-        });
-
-        // Search announcements
-        const announcements = await base44.entities.Announcement.list();
-        announcements.forEach(a => {
-          if (a.titulo.toLowerCase().includes(term) || a.contenido?.toLowerCase().includes(term)) {
-            newResults.announcements.push({
-              type: 'announcement',
-              icon: Megaphone,
-              title: a.titulo,
-              subtitle: a.prioridad,
-              detail: a.destinatarios_tipo,
-              url: createPageUrl("Announcements"),
-              color: "text-purple-600",
-              badge: a.prioridad
-            });
-          }
-        });
-
-        // Search payments (admin/coach only)
-        if (isAdmin || isCoach) {
-          const payments = await base44.entities.Payment.list();
-          payments.forEach(p => {
-            if (p.jugador_nombre.toLowerCase().includes(term) || 
-                p.mes.toLowerCase().includes(term)) {
-              newResults.payments.push({
-                type: 'payment',
-                icon: CreditCard,
-                title: `Pago - ${p.jugador_nombre}`,
-                subtitle: `${p.mes} ${p.temporada}`,
-                detail: `${p.cantidad}€`,
-                url: createPageUrl("Payments"),
-                color: "text-green-600",
-                badge: p.estado
-              });
-            }
-          });
-        }
-
-        // Search callups
-        const callups = await base44.entities.Convocatoria.list();
-        callups.forEach(c => {
-          if (c.titulo.toLowerCase().includes(term) || 
-              c.categoria.toLowerCase().includes(term) ||
-              c.rival?.toLowerCase().includes(term)) {
-            newResults.callups.push({
-              type: 'callup',
-              icon: Bell,
-              title: c.titulo,
-              subtitle: `${c.categoria} - ${c.fecha_partido}`,
-              detail: c.rival,
-              url: isAdmin || isCoach ? createPageUrl("CoachCallups") : createPageUrl("ParentCallups"),
-              color: "text-yellow-600",
-              badge: c.tipo
-            });
-          }
-        });
-
-        setResults(newResults);
-      } catch (error) {
-        console.error("Search error:", error);
+    const handleKeyDown = (e) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault();
+        setIsOpen(true);
       }
     };
 
-    const debounce = setTimeout(searchData, 300);
-    return () => clearTimeout(debounce);
-  }, [searchTerm, isAdmin, isCoach]);
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
-  const handleResultClick = (url) => {
-    navigate(url);
-    setSearchTerm("");
-    setShowResults(false);
+  const { data: players } = useQuery({
+    queryKey: ['players'],
+    queryFn: () => base44.entities.Player.list(),
+    initialData: [],
+    enabled: isOpen,
+  });
+
+  const { data: payments } = useQuery({
+    queryKey: ['payments'],
+    queryFn: () => base44.entities.Payment.list(),
+    initialData: [],
+    enabled: isOpen && isAdmin,
+  });
+
+  const { data: callups } = useQuery({
+    queryKey: ['callups'],
+    queryFn: () => base44.entities.Convocatoria.list(),
+    initialData: [],
+    enabled: isOpen,
+  });
+
+  const { data: announcements } = useQuery({
+    queryKey: ['announcements'],
+    queryFn: () => base44.entities.Announcement.list(),
+    initialData: [],
+    enabled: isOpen,
+  });
+
+  const { data: events } = useQuery({
+    queryKey: ['events'],
+    queryFn: () => base44.entities.Event.list(),
+    initialData: [],
+    enabled: isOpen,
+  });
+
+  const filterResults = (items, fields) => {
+    if (!searchTerm) return items;
+    const term = searchTerm.toLowerCase();
+    return items.filter(item => 
+      fields.some(field => {
+        const value = item[field];
+        return value && value.toString().toLowerCase().includes(term);
+      })
+    );
   };
 
-  const allResults = [
-    ...results.players,
-    ...results.events,
-    ...results.announcements,
-    ...results.payments,
-    ...results.callups
-  ];
+  const filteredPlayers = filterResults(players, ['nombre', 'email_padre', 'deporte', 'telefono']);
+  const filteredPayments = filterResults(payments, ['jugador_nombre', 'mes', 'temporada', 'estado']);
+  const filteredCallups = filterResults(callups, ['titulo', 'categoria', 'rival', 'ubicacion']);
+  const filteredAnnouncements = filterResults(announcements, ['titulo', 'contenido', 'destinatarios_tipo']);
+  const filteredEvents = filterResults(events, ['titulo', 'descripcion', 'tipo', 'deporte', 'ubicacion']);
 
-  const totalResults = allResults.length;
+  const allResults = [
+    ...filteredPlayers.map(p => ({ type: 'player', item: p })),
+    ...(isAdmin ? filteredPayments.map(p => ({ type: 'payment', item: p })) : []),
+    ...filteredCallups.map(c => ({ type: 'callup', item: c })),
+    ...filteredAnnouncements.map(a => ({ type: 'announcement', item: a })),
+    ...filteredEvents.map(e => ({ type: 'event', item: e }))
+  ].slice(0, 20);
+
+  const getResultIcon = (type) => {
+    switch(type) {
+      case 'player': return Users;
+      case 'payment': return CreditCard;
+      case 'callup': return Bell;
+      case 'announcement': return Megaphone;
+      case 'event': return Calendar;
+      default: return Search;
+    }
+  };
+
+  const getResultUrl = (type, item) => {
+    switch(type) {
+      case 'player': return createPageUrl("Players");
+      case 'payment': return createPageUrl("Payments") + `?jugador_id=${item.jugador_id}`;
+      case 'callup': return isAdmin || isCoach ? createPageUrl("CoachCallups") : createPageUrl("ParentCallups");
+      case 'announcement': return createPageUrl("Announcements");
+      case 'event': return createPageUrl("Calendar");
+      default: return "#";
+    }
+  };
+
+  const getResultTitle = (type, item) => {
+    switch(type) {
+      case 'player': return item.nombre;
+      case 'payment': return `${item.jugador_nombre} - ${item.mes}`;
+      case 'callup': return item.titulo;
+      case 'announcement': return item.titulo;
+      case 'event': return item.titulo;
+      default: return "";
+    }
+  };
+
+  const getResultSubtitle = (type, item) => {
+    switch(type) {
+      case 'player': return item.deporte;
+      case 'payment': return `${item.cantidad}€ - ${item.estado}`;
+      case 'callup': return `${item.categoria} - ${item.fecha_partido}`;
+      case 'announcement': return item.destinatarios_tipo;
+      case 'event': return `${item.tipo} - ${item.fecha}`;
+      default: return "";
+    }
+  };
+
+  const getResultBadge = (type, item) => {
+    switch(type) {
+      case 'player': return item.activo ? { text: "Activo", color: "bg-green-500" } : { text: "Inactivo", color: "bg-slate-400" };
+      case 'payment': 
+        if (item.estado === "Pagado") return { text: "Pagado", color: "bg-green-500" };
+        if (item.estado === "Pendiente") return { text: "Pendiente", color: "bg-orange-500" };
+        return { text: "En Revisión", color: "bg-blue-500" };
+      case 'callup': return item.publicada ? { text: "Publicada", color: "bg-green-500" } : { text: "Borrador", color: "bg-slate-400" };
+      case 'announcement': return item.publicado ? { text: "Publicado", color: "bg-green-500" } : { text: "Borrador", color: "bg-slate-400" };
+      case 'event': return item.publicado ? { text: "Visible", color: "bg-green-500" } : { text: "Oculto", color: "bg-slate-400" };
+      default: return null;
+    }
+  };
+
+  const ResultItem = ({ type, item }) => {
+    const Icon = getResultIcon(type);
+    const badge = getResultBadge(type, item);
+    
+    return (
+      <Link 
+        to={getResultUrl(type, item)} 
+        onClick={() => setIsOpen(false)}
+        className="block"
+      >
+        <div className="flex items-start gap-3 p-3 hover:bg-slate-50 rounded-lg transition-colors cursor-pointer border border-transparent hover:border-orange-200">
+          <div className="w-10 h-10 rounded-lg bg-orange-100 flex items-center justify-center flex-shrink-0">
+            <Icon className="w-5 h-5 text-orange-600" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 mb-1">
+              <p className="font-semibold text-slate-900 truncate">{getResultTitle(type, item)}</p>
+              {badge && (
+                <Badge className={`${badge.color} text-white text-xs flex-shrink-0`}>
+                  {badge.text}
+                </Badge>
+              )}
+            </div>
+            <p className="text-sm text-slate-600 truncate">{getResultSubtitle(type, item)}</p>
+          </div>
+        </div>
+      </Link>
+    );
+  };
 
   return (
-    <div className="relative w-full max-w-md">
-      <div className="relative">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-        <Input
-          value={searchTerm}
-          onChange={(e) => {
-            setSearchTerm(e.target.value);
-            setShowResults(true);
-          }}
-          onFocus={() => setShowResults(true)}
-          placeholder="Buscar en todo el club..."
-          className="pl-10 pr-10 bg-white/10 border-white/20 text-white placeholder:text-white/60"
-        />
-        {searchTerm && (
-          <button
-            onClick={() => {
-              setSearchTerm("");
-              setShowResults(false);
-            }}
-            className="absolute right-3 top-1/2 -translate-y-1/2"
-          >
-            <X className="w-4 h-4 text-white/60 hover:text-white" />
-          </button>
-        )}
-      </div>
+    <>
+      <Button
+        variant="outline"
+        onClick={() => setIsOpen(true)}
+        className="w-full justify-start text-slate-500 hover:text-slate-900"
+      >
+        <Search className="w-4 h-4 mr-2" />
+        <span className="hidden lg:inline">Buscar...</span>
+        <kbd className="hidden lg:inline ml-auto pointer-events-none h-5 select-none items-center gap-1 rounded border bg-slate-100 px-1.5 font-mono text-xs font-medium opacity-100">
+          ⌘K
+        </kbd>
+      </Button>
 
-      {showResults && totalResults > 0 && (
-        <>
-          <div className="fixed inset-0 z-40" onClick={() => setShowResults(false)} />
-          <Card className="absolute top-full mt-2 w-full lg:w-[600px] z-50 shadow-2xl max-h-[600px] overflow-hidden">
-            <CardContent className="p-0">
-              <Tabs value={activeTab} onValueChange={setActiveTab}>
-                <TabsList className="w-full justify-start border-b rounded-none p-2">
-                  <TabsTrigger value="all" className="text-xs">
-                    Todos ({totalResults})
-                  </TabsTrigger>
-                  {results.players.length > 0 && (
-                    <TabsTrigger value="players" className="text-xs">
-                      Jugadores ({results.players.length})
-                    </TabsTrigger>
-                  )}
-                  {results.events.length > 0 && (
-                    <TabsTrigger value="events" className="text-xs">
-                      Eventos ({results.events.length})
-                    </TabsTrigger>
-                  )}
-                  {results.announcements.length > 0 && (
-                    <TabsTrigger value="announcements" className="text-xs">
-                      Anuncios ({results.announcements.length})
-                    </TabsTrigger>
-                  )}
-                  {results.payments.length > 0 && (
-                    <TabsTrigger value="payments" className="text-xs">
-                      Pagos ({results.payments.length})
-                    </TabsTrigger>
-                  )}
-                  {results.callups.length > 0 && (
-                    <TabsTrigger value="callups" className="text-xs">
-                      Convocatorias ({results.callups.length})
-                    </TabsTrigger>
-                  )}
-                </TabsList>
+      <Dialog open={isOpen} onOpenChange={setIsOpen}>
+        <DialogContent className="max-w-3xl max-h-[80vh] p-0">
+          <DialogHeader className="p-4 pb-0">
+            <div className="flex items-center gap-2 mb-3">
+              <Search className="w-5 h-5 text-slate-400" />
+              <Input
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                placeholder="Buscar jugadores, pagos, convocatorias..."
+                className="border-0 focus-visible:ring-0 text-lg"
+                autoFocus
+              />
+              {searchTerm && (
+                <Button variant="ghost" size="sm" onClick={() => setSearchTerm("")}>
+                  <X className="w-4 h-4" />
+                </Button>
+              )}
+            </div>
+          </DialogHeader>
 
-                <div className="max-h-96 overflow-y-auto">
-                  <TabsContent value="all" className="m-0 p-2">
-                    <div className="space-y-1">
-                      {allResults.slice(0, 10).map((result, idx) => {
-                        const Icon = result.icon;
-                        return (
-                          <button
-                            key={idx}
-                            onClick={() => handleResultClick(result.url)}
-                            className="w-full text-left p-3 rounded-lg hover:bg-slate-50 transition-colors flex items-start gap-3"
-                          >
-                            <Icon className={`w-5 h-5 ${result.color} mt-0.5 flex-shrink-0`} />
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-center gap-2 mb-1">
-                                <p className="font-medium text-sm text-slate-900 truncate flex-1">{result.title}</p>
-                                <Badge variant="outline" className="text-xs flex-shrink-0">
-                                  {result.badge}
-                                </Badge>
-                              </div>
-                              <p className="text-xs text-slate-500 truncate">{result.subtitle}</p>
-                              {result.detail && (
-                                <p className="text-xs text-slate-400 truncate mt-0.5">{result.detail}</p>
-                              )}
-                            </div>
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </TabsContent>
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="px-4">
+            <TabsList>
+              <TabsTrigger value="all">Todo ({allResults.length})</TabsTrigger>
+              <TabsTrigger value="players">Jugadores ({filteredPlayers.length})</TabsTrigger>
+              {isAdmin && <TabsTrigger value="payments">Pagos ({filteredPayments.length})</TabsTrigger>}
+              <TabsTrigger value="callups">Convocatorias ({filteredCallups.length})</TabsTrigger>
+              <TabsTrigger value="events">Eventos ({filteredEvents.length})</TabsTrigger>
+            </TabsList>
+          </Tabs>
 
-                  {['players', 'events', 'announcements', 'payments', 'callups'].map(tab => (
-                    <TabsContent key={tab} value={tab} className="m-0 p-2">
-                      <div className="space-y-1">
-                        {results[tab].map((result, idx) => {
-                          const Icon = result.icon;
-                          return (
-                            <button
-                              key={idx}
-                              onClick={() => handleResultClick(result.url)}
-                              className="w-full text-left p-3 rounded-lg hover:bg-slate-50 transition-colors flex items-start gap-3"
-                            >
-                              <Icon className={`w-5 h-5 ${result.color} mt-0.5 flex-shrink-0`} />
-                              <div className="flex-1 min-w-0">
-                                <div className="flex items-center gap-2 mb-1">
-                                  <p className="font-medium text-sm text-slate-900 truncate flex-1">{result.title}</p>
-                                  <Badge variant="outline" className="text-xs flex-shrink-0">
-                                    {result.badge}
-                                  </Badge>
-                                </div>
-                                <p className="text-xs text-slate-500 truncate">{result.subtitle}</p>
-                                {result.detail && (
-                                  <p className="text-xs text-slate-400 truncate mt-0.5">{result.detail}</p>
-                                )}
-                              </div>
-                            </button>
-                          );
-                        })}
-                      </div>
-                    </TabsContent>
-                  ))}
-                </div>
-              </Tabs>
-            </CardContent>
-          </Card>
-        </>
-      )}
-    </div>
+          <div className="overflow-y-auto max-h-[50vh] px-4 pb-4">
+            {activeTab === "all" && (
+              <div className="space-y-1">
+                {allResults.length === 0 ? (
+                  <div className="text-center py-12">
+                    <Search className="w-12 h-12 text-slate-300 mx-auto mb-3" />
+                    <p className="text-slate-500">
+                      {searchTerm ? "No se encontraron resultados" : "Escribe para buscar"}
+                    </p>
+                  </div>
+                ) : (
+                  allResults.map((result, idx) => (
+                    <ResultItem key={idx} type={result.type} item={result.item} />
+                  ))
+                )}
+              </div>
+            )}
+
+            {activeTab === "players" && (
+              <div className="space-y-1">
+                {filteredPlayers.length === 0 ? (
+                  <div className="text-center py-12">
+                    <Users className="w-12 h-12 text-slate-300 mx-auto mb-3" />
+                    <p className="text-slate-500">No se encontraron jugadores</p>
+                  </div>
+                ) : (
+                  filteredPlayers.map(player => (
+                    <ResultItem key={player.id} type="player" item={player} />
+                  ))
+                )}
+              </div>
+            )}
+
+            {isAdmin && activeTab === "payments" && (
+              <div className="space-y-1">
+                {filteredPayments.length === 0 ? (
+                  <div className="text-center py-12">
+                    <CreditCard className="w-12 h-12 text-slate-300 mx-auto mb-3" />
+                    <p className="text-slate-500">No se encontraron pagos</p>
+                  </div>
+                ) : (
+                  filteredPayments.map(payment => (
+                    <ResultItem key={payment.id} type="payment" item={payment} />
+                  ))
+                )}
+              </div>
+            )}
+
+            {activeTab === "callups" && (
+              <div className="space-y-1">
+                {filteredCallups.length === 0 ? (
+                  <div className="text-center py-12">
+                    <Bell className="w-12 h-12 text-slate-300 mx-auto mb-3" />
+                    <p className="text-slate-500">No se encontraron convocatorias</p>
+                  </div>
+                ) : (
+                  filteredCallups.map(callup => (
+                    <ResultItem key={callup.id} type="callup" item={callup} />
+                  ))
+                )}
+              </div>
+            )}
+
+            {activeTab === "events" && (
+              <div className="space-y-1">
+                {filteredEvents.length === 0 ? (
+                  <div className="text-center py-12">
+                    <Calendar className="w-12 h-12 text-slate-300 mx-auto mb-3" />
+                    <p className="text-slate-500">No se encontraron eventos</p>
+                  </div>
+                ) : (
+                  filteredEvents.map(event => (
+                    <ResultItem key={event.id} type="event" item={event} />
+                  ))
+                )}
+              </div>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }
