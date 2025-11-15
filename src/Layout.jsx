@@ -811,6 +811,7 @@ export default function Layout({ children, currentPageName }) {
             </div>
             <div className="flex items-center gap-2">
               {!isAdmin && !isCoach && <NotificationCenter />}
+              <ThemeToggle /> {/* Moved ThemeToggle to mobile header */}
               <button
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
                 className="p-2 text-white hover:bg-white/20 rounded-xl transition-colors"
@@ -821,8 +822,13 @@ export default function Layout({ children, currentPageName }) {
           </div>
         </header>
 
+        {/* Mobile Search Bar */}
+        <div className="lg:hidden fixed top-[72px] left-0 right-0 z-40 bg-white border-b shadow-sm p-3">
+          <GlobalSearch isAdmin={isAdmin} isCoach={isCoach} />
+        </div>
+
         {mobileMenuOpen && (
-          <div className="lg:hidden fixed inset-0 z-40 bg-slate-900/95 backdrop-blur-sm pt-20">
+          <div className="lg:hidden fixed inset-0 z-40 bg-slate-900/95 backdrop-blur-sm pt-[132px]"> {/* Adjusted pt- value */}
             <div className="h-full overflow-y-auto p-4 space-y-2">
               {navigationItems.map((item) => (
                 <Link
@@ -940,7 +946,7 @@ export default function Layout({ children, currentPageName }) {
           </div>
         </nav>
 
-        <main className="lg:ml-72 min-h-screen pt-20 lg:pt-0">
+        <main className="lg:ml-72 min-h-screen pt-[132px] lg:pt-0"> {/* Adjusted pt- value */}
           {children}
         </main>
       </div>

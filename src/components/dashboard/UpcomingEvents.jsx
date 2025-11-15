@@ -18,7 +18,7 @@ export default function UpcomingEvents({ events, myPlayers }) {
       eventDate <= nextWeek &&
       (e.deporte === "Todos" || myCategories.includes(e.deporte))
     );
-  }).sort((a, b) => new Date(a.fecha) - new Date(b.fecha)).slice(0, 5);
+  }).sort((a, b) => new Date(a.fecha) - new Date(b.fecha)).slice(0, 3);
 
   const typeEmojis = {
     "Partido": "⚽",
@@ -44,62 +44,49 @@ export default function UpcomingEvents({ events, myPlayers }) {
   };
 
   return (
-    <Card className="border-none shadow-xl">
-      <CardHeader className="border-b bg-gradient-to-r from-blue-50 to-blue-100">
-        <CardTitle className="flex items-center gap-2 text-blue-900">
-          <Calendar className="w-5 h-5" />
+    <Card className="border-none shadow-lg">
+      <CardHeader className="pb-3">
+        <CardTitle className="flex items-center gap-2 text-blue-900 text-base">
+          <Calendar className="w-4 h-4" />
           Próximos Eventos
         </CardTitle>
       </CardHeader>
-      <CardContent className="pt-6">
+      <CardContent className="pt-0">
         {relevantEvents.length === 0 ? (
-          <div className="text-center py-8 text-slate-500 text-sm">
+          <div className="text-center py-6 text-slate-500 text-xs">
             No hay eventos próximos esta semana
           </div>
         ) : (
-          <div className="space-y-3">
+          <div className="space-y-2">
             {relevantEvents.map(event => {
               const eventDate = new Date(event.fecha);
               const isToday = isSameDay(eventDate, today);
 
               return (
-                <div key={event.id} className={`p-4 rounded-xl border-2 ${isToday ? 'bg-orange-50 border-orange-300' : 'bg-white border-slate-200'}`}>
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-2">
-                        <Badge className={typeColors[event.tipo] || "bg-slate-100 text-slate-700"}>
-                          <span className="mr-1">{typeEmojis[event.tipo]}</span>
-                          {event.tipo}
-                        </Badge>
-                        {isToday && (
-                          <Badge className="bg-red-500 text-white animate-pulse">
-                            HOY
-                          </Badge>
-                        )}
-                      </div>
-                      <h3 className="font-bold text-slate-900 mb-1">{event.titulo}</h3>
-                      {event.descripcion && (
-                        <p className="text-xs text-slate-600 mb-2 line-clamp-2">{event.descripcion}</p>
-                      )}
-                      <div className="flex flex-wrap gap-2 text-xs text-slate-600">
-                        <div className="flex items-center gap-1">
-                          <Calendar className="w-3 h-3" />
-                          {format(eventDate, "EEEE d 'de' MMMM", { locale: es })}
-                        </div>
-                        {event.hora && (
-                          <div className="flex items-center gap-1">
-                            <Clock className="w-3 h-3" />
-                            {event.hora}
-                          </div>
-                        )}
-                        {event.ubicacion && (
-                          <div className="flex items-center gap-1">
-                            <MapPin className="w-3 h-3" />
-                            {event.ubicacion}
-                          </div>
-                        )}
-                      </div>
+                <div key={event.id} className={`p-3 rounded-lg border ${isToday ? 'bg-orange-50 border-orange-300' : 'bg-white border-slate-200'}`}>
+                  <div className="flex items-start justify-between gap-2 mb-2">
+                    <Badge className={`${typeColors[event.tipo] || "bg-slate-100 text-slate-700"} text-xs`}>
+                      <span className="mr-1">{typeEmojis[event.tipo]}</span>
+                      {event.tipo}
+                    </Badge>
+                    {isToday && (
+                      <Badge className="bg-red-500 text-white animate-pulse text-xs">
+                        HOY
+                      </Badge>
+                    )}
+                  </div>
+                  <h3 className="font-bold text-slate-900 text-sm mb-1">{event.titulo}</h3>
+                  <div className="flex flex-wrap gap-2 text-xs text-slate-600">
+                    <div className="flex items-center gap-1">
+                      <Calendar className="w-3 h-3" />
+                      {format(eventDate, "dd MMM", { locale: es })}
                     </div>
+                    {event.hora && (
+                      <div className="flex items-center gap-1">
+                        <Clock className="w-3 h-3" />
+                        {event.hora}
+                      </div>
+                    )}
                   </div>
                 </div>
               );
