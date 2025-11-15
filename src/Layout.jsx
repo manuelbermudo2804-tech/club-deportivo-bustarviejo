@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
@@ -718,6 +719,7 @@ export default function Layout({ children, currentPageName }) {
     { title: "Galería", url: createPageUrl("AdminGallery"), icon: Image },
     { title: "🎓 Crear Convocatorias", url: createPageUrl("CoachCallups"), icon: Bell },
     ...(hasPlayers ? [{ title: "👨‍👩‍👧 Confirmar Mis Hijos", url: createPageUrl("ParentCallups"), icon: ClipboardCheck, badge: pendingCallupsCount > 0 ? pendingCallupsCount : null }] : []),
+    { title: "⚽ Resultados", url: createPageUrl("MatchResults"), icon: Award },
     { title: "Evaluaciones", url: createPageUrl("PlayerEvaluations"), icon: Star },
     { title: "Pagos", url: createPageUrl("Payments"), icon: CreditCard },
     { title: "Recordatorios", url: createPageUrl("Reminders"), icon: Bell },
@@ -735,6 +737,7 @@ export default function Layout({ children, currentPageName }) {
     { title: "🎓 Plantillas", url: createPageUrl("TeamRosters"), icon: Users },
     { title: "✅ Asistencia", url: createPageUrl("CoachAttendance"), icon: CheckCircle2 },
     { title: "⭐ Evaluaciones", url: createPageUrl("PlayerEvaluations"), icon: Star },
+    { title: "⚽ Resultados", url: createPageUrl("MatchResults"), icon: Award },
     { title: "Horarios", url: createPageUrl("TrainingSchedules"), icon: Clock },
     { title: "Calendario", url: createPageUrl("Calendar"), icon: Calendar },
     { title: "Anuncios", url: createPageUrl("Announcements"), icon: Megaphone },
@@ -751,6 +754,7 @@ export default function Layout({ children, currentPageName }) {
     { title: "Jugadores", url: createPageUrl("ParentPlayers"), icon: Users },
     { title: "🆔 Carnets", url: createPageUrl("PlayerCards"), icon: Award },
     { title: "📜 Certificados", url: createPageUrl("Certificates"), icon: FileText },
+    { title: "⚽ Resultados", url: createPageUrl("MatchResults"), icon: Award },
     { title: "Horarios", url: createPageUrl("ParentTrainingSchedules"), icon: Clock },
     { title: "Calendario", url: createPageUrl("Calendar"), icon: Calendar },
     { title: "Anuncios", url: createPageUrl("Announcements"), icon: Megaphone },
@@ -765,6 +769,7 @@ export default function Layout({ children, currentPageName }) {
   const playerNavigationItems = [
     { title: "Inicio", url: createPageUrl("PlayerDashboard"), icon: Home },
     { title: "Mi Perfil", url: createPageUrl("PlayerProfile"), icon: UserIcon },
+    { title: "⚽ Resultados", url: createPageUrl("MatchResults"), icon: Award },
     { title: "Horarios", url: createPageUrl("PlayerSchedules"), icon: Clock },
     { title: "Calendario", url: createPageUrl("Calendar"), icon: Calendar },
     { title: "Anuncios", url: createPageUrl("Announcements"), icon: Megaphone },
