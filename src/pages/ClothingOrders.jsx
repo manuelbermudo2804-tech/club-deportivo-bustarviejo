@@ -14,9 +14,11 @@ import ClothingOrderForm from "../components/clothing/ClothingOrderForm";
 import OrdersSummary from "../components/clothing/OrdersSummary";
 import ContactCard from "../components/ContactCard";
 
+// TEMPORALMENTE DESBLOQUEADO PARA PRUEBAS
 const isOrderPeriodActive = () => {
-  const currentMonth = new Date().getMonth() + 1;
-  return currentMonth === 6 || currentMonth === 7;
+  return true; // Desbloqueado temporalmente
+  // const currentMonth = new Date().getMonth() + 1;
+  // return currentMonth === 6 || currentMonth === 7;
 };
 
 export default function ClothingOrders() {
@@ -104,6 +106,58 @@ export default function ClothingOrders() {
     "Preparado": "🟣",
     "Entregado": "🟢"
   };
+
+  const renderOrderDetails = (order) => (
+    <div className="space-y-2 text-sm">
+      {order.chaqueta_partidos && (
+        <p className="text-slate-700">✅ <strong>Chaqueta de Partidos:</strong> {order.chaqueta_talla} - 35€</p>
+      )}
+      {order.pack_entrenamiento && (
+        <div className="text-slate-700 bg-blue-50 p-2 rounded border border-blue-200">
+          <p className="font-semibold mb-1">✅ Pack de Entrenamiento - 41€</p>
+          <ul className="list-disc list-inside ml-4 space-y-1 text-xs">
+            {order.pack_camiseta_talla && <li>👕 Camiseta: {order.pack_camiseta_talla}</li>}
+            {order.pack_pantalon_talla && <li>👖 Pantalón: {order.pack_pantalon_talla}</li>}
+            {order.pack_sudadera_talla && <li>🧥 Sudadera: {order.pack_sudadera_talla}</li>}
+          </ul>
+        </div>
+      )}
+      {order.camiseta_individual && (
+        <p className="text-slate-700">✅ <strong>Camiseta Individual:</strong> {order.camiseta_individual_talla} - 10€</p>
+      )}
+      {order.pantalon_individual && (
+        <p className="text-slate-700">✅ <strong>Pantalón Individual:</strong> {order.pantalon_individual_talla} - 17€</p>
+      )}
+      {order.sudadera_individual && (
+        <p className="text-slate-700">✅ <strong>Sudadera Individual:</strong> {order.sudadera_individual_talla} - 18€</p>
+      )}
+      {order.chubasquero && (
+        <p className="text-slate-700">✅ <strong>Chubasquero:</strong> {order.chubasquero_talla} - 20€</p>
+      )}
+      {order.anorak && (
+        <p className="text-slate-700">✅ <strong>Anorak:</strong> {order.anorak_talla} - 40€</p>
+      )}
+      {order.mochila && (
+        <p className="text-slate-700">✅ <strong>Mochila con botero:</strong> 22€</p>
+      )}
+      <p className="text-slate-700 font-bold pt-2 border-t border-slate-200">
+        <strong>Total:</strong> {order.precio_total}€
+      </p>
+      <p className="text-slate-600 text-xs">
+        <strong>Fecha:</strong> {new Date(order.created_date).toLocaleDateString('es-ES')}
+      </p>
+      {order.justificante_url && (
+        <a
+          href={order.justificante_url}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-orange-600 hover:text-orange-700 text-xs flex items-center gap-1"
+        >
+          📄 Ver justificante
+        </a>
+      )}
+    </div>
+  );
 
   return (
     <div className="p-6 lg:p-8 space-y-6">
@@ -210,40 +264,7 @@ export default function ClothingOrders() {
                             {order.estado}
                           </Badge>
                         </div>
-
-                        <div className="space-y-2 text-sm">
-                          {order.chaqueta_partidos && (
-                            <p className="text-slate-700">
-                              ✅ <strong>Chaqueta de Partidos:</strong> {order.chaqueta_talla}
-                            </p>
-                          )}
-                          {order.pack_entrenamiento && (
-                            <div className="text-slate-700">
-                              <p className="font-semibold mb-1">✅ Pack de Entrenamiento:</p>
-                              <ul className="list-disc list-inside ml-4 space-y-1 text-xs">
-                                {order.pack_camiseta_talla && <li>👕 Camiseta: {order.pack_camiseta_talla}</li>}
-                                {order.pack_pantalon_talla && <li>👖 Pantalón: {order.pack_pantalon_talla}</li>}
-                                {order.pack_sudadera_talla && <li>🧥 Sudadera: {order.pack_sudadera_talla}</li>}
-                              </ul>
-                            </div>
-                          )}
-                          <p className="text-slate-700">
-                            <strong>Total:</strong> {order.precio_total}€
-                          </p>
-                          <p className="text-slate-600 text-xs">
-                            <strong>Fecha:</strong> {new Date(order.created_date).toLocaleDateString('es-ES')}
-                          </p>
-                          {order.justificante_url && (
-                            <a
-                              href={order.justificante_url}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="text-orange-600 hover:text-orange-700 text-xs flex items-center gap-1"
-                            >
-                              📄 Ver justificante
-                            </a>
-                          )}
-                        </div>
+                        {renderOrderDetails(order)}
                       </div>
                     ))}
                   </div>
@@ -256,17 +277,40 @@ export default function ClothingOrders() {
         <>
           <Card className="border-none shadow-lg bg-blue-50 border-blue-200">
             <CardHeader>
-              <CardTitle className="text-lg text-blue-900">ℹ️ Información Importante</CardTitle>
+              <CardTitle className="text-lg text-blue-900">ℹ️ Catálogo de Productos</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3 text-sm text-blue-800">
-              <p>📅 <strong>Periodo de pedidos:</strong> Junio y Julio (disponible durante inscripciones)</p>
-              <p>💳 <strong>Método de pago:</strong> Transferencia bancaria con justificante obligatorio</p>
-              <p>📦 <strong>Entrega:</strong> Los pedidos se entregarán en las instalaciones del club durante la primera semana de Septiembre</p>
-              <p>🏷️ <strong>Productos disponibles:</strong></p>
-              <ul className="list-disc list-inside ml-4 space-y-1">
-                <li><strong>Chaqueta de Partidos (35€)</strong> - Excepto Aficionado y Baloncesto</li>
-                <li><strong>Pack de Entrenamiento (41€)</strong> - Incluye: Camiseta + Pantalón + Sudadera (tallas independientes)</li>
-              </ul>
+              <div className="grid md:grid-cols-2 gap-4">
+                <div className="bg-white rounded-lg p-4 border-2 border-blue-300">
+                  <h4 className="font-bold text-blue-900 mb-2">🧥 Prendas Oficiales:</h4>
+                  <ul className="space-y-1">
+                    <li>• <strong>Chaqueta de Partidos:</strong> 35€</li>
+                    <li>• <strong>Chubasquero</strong> (escudo bordado): 20€</li>
+                    <li>• <strong>Anorak:</strong> 40€</li>
+                  </ul>
+                </div>
+                <div className="bg-white rounded-lg p-4 border-2 border-green-300">
+                  <h4 className="font-bold text-green-900 mb-2">👕 Pack de Entrenamiento (41€):</h4>
+                  <ul className="space-y-1">
+                    <li>✅ Camiseta + Pantalón + Sudadera</li>
+                    <li className="text-xs text-green-700">Tallas independientes para cada prenda</li>
+                  </ul>
+                </div>
+              </div>
+              <div className="bg-white rounded-lg p-4 border-2 border-orange-300">
+                <h4 className="font-bold text-orange-900 mb-2">🛍️ Prendas Individuales (FUERA DEL PACK):</h4>
+                <ul className="space-y-1">
+                  <li>• <strong>Camiseta:</strong> 10€</li>
+                  <li>• <strong>Pantalón:</strong> 17€</li>
+                  <li>• <strong>Sudadera:</strong> 18€</li>
+                </ul>
+              </div>
+              <div className="bg-white rounded-lg p-4 border-2 border-purple-300">
+                <h4 className="font-bold text-purple-900 mb-2">🎒 Complementos:</h4>
+                <ul className="space-y-1">
+                  <li>• <strong>Mochila con botero</strong> (escudo vinilo): 22€</li>
+                </ul>
+              </div>
               <p className="pt-2 border-t border-blue-200">
                 <strong>📧 Email del club:</strong> CDBUSTARVIEJO@GMAIL.COM
               </p>
@@ -312,40 +356,7 @@ export default function ClothingOrders() {
                           {order.estado}
                         </Badge>
                       </div>
-
-                      <div className="space-y-2 text-sm">
-                        {order.chaqueta_partidos && (
-                          <p className="text-slate-700">
-                            ✅ <strong>Chaqueta de Partidos:</strong> {order.chaqueta_talla}
-                          </p>
-                        )}
-                        {order.pack_entrenamiento && (
-                          <div className="text-slate-700">
-                            <p className="font-semibold mb-1">✅ Pack de Entrenamiento:</p>
-                            <ul className="list-disc list-inside ml-4 space-y-1 text-xs">
-                              {order.pack_camiseta_talla && <li>👕 Camiseta: {order.pack_camiseta_talla}</li>}
-                              {order.pack_pantalon_talla && <li>👖 Pantalón: {order.pack_pantalon_talla}</li>}
-                              {order.pack_sudadera_talla && <li>🧥 Sudadera: {order.pack_sudadera_talla}</li>}
-                            </ul>
-                          </div>
-                        )}
-                        <p className="text-slate-700">
-                          <strong>Total:</strong> {order.precio_total}€
-                        </p>
-                        <p className="text-slate-600 text-xs">
-                          <strong>Fecha:</strong> {new Date(order.created_date).toLocaleDateString('es-ES')}
-                        </p>
-                        {order.justificante_url && (
-                          <a
-                            href={order.justificante_url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-orange-600 hover:text-orange-700 text-xs flex items-center gap-1"
-                          >
-                            📄 Ver justificante
-                          </a>
-                        )}
-                      </div>
+                      {renderOrderDetails(order)}
                     </div>
                   ))}
                 </div>
