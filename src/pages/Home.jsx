@@ -3,7 +3,7 @@ import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { Users, CreditCard, ShoppingBag, Calendar, Megaphone, Image, Clock, MessageCircle, Bell, Settings, ClipboardCheck, CheckCircle2, Star, TrendingUp, Trophy } from "lucide-react";
+import { Users, CreditCard, ShoppingBag, Calendar, Megaphone, Image, Clock, MessageCircle, Bell, Settings, ClipboardCheck, CheckCircle2, Star, TrendingUp, Smartphone, Trophy } from "lucide-react";
 
 import Onboarding from "../components/Onboarding";
 import AutomaticReminders from "../components/AutomaticReminders";
@@ -98,6 +98,31 @@ export default function Home() {
     });
     
     return pending;
+  };
+
+  const handleMatchAppClick = () => {
+    const userAgent = navigator.userAgent || navigator.vendor || window.opera;
+    const isIOS = /iPad|iPhone|iPod/.test(userAgent) && !window.MSStream;
+    const isAndroid = /android/i.test(userAgent);
+    
+    if (isIOS || isAndroid) {
+      const deepLink = "matchapp://";
+      const storeUrl = isIOS 
+        ? "https://apps.apple.com/app/matchapp"
+        : "https://play.google.com/store/apps/details?id=com.matchapp";
+      
+      const iframe = document.createElement('iframe');
+      iframe.style.display = 'none';
+      iframe.src = deepLink;
+      document.body.appendChild(iframe);
+      
+      setTimeout(() => {
+        document.body.removeChild(iframe);
+        window.location.href = storeUrl;
+      }, 1000);
+    } else {
+      window.open("https://www.matchapp.com", "_blank");
+    }
   };
 
   const buildMenuItems = () => {
@@ -280,19 +305,21 @@ export default function Home() {
         <SocialLinks />
 
         {/* Banner MatchApp */}
-        <Link to={createPageUrl("MatchApp")} className="block">
-          <div className="w-full bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 rounded-2xl p-4 shadow-xl transition-all hover:scale-105 active:scale-95 border-2 border-green-500">
-            <div className="flex items-center justify-center gap-3">
-              <div className="bg-white/20 backdrop-blur-sm rounded-xl p-3">
-                <Trophy className="w-6 h-6 text-white" />
-              </div>
-              <div className="text-left">
-                <p className="text-white font-bold text-lg">⚽ Sigue a tus equipos</p>
-                <p className="text-green-100 text-sm">Ver resultados, clasificaciones y próximos partidos</p>
-              </div>
+        <button
+          onClick={handleMatchAppClick}
+          className="w-full bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 rounded-2xl p-4 shadow-xl transition-all hover:scale-105 active:scale-95 border-2 border-green-500"
+        >
+          <div className="flex items-center justify-center gap-3">
+            <div className="bg-white/20 backdrop-blur-sm rounded-xl p-3">
+              <Trophy className="w-6 h-6 text-white" />
             </div>
+            <div className="text-left">
+              <p className="text-white font-bold text-lg">⚽ Sigue a tus equipos en vivo</p>
+              <p className="text-green-100 text-sm">Descarga MatchApp para ver resultados y clasificaciones</p>
+            </div>
+            <Smartphone className="w-8 h-8 text-white ml-auto" />
           </div>
-        </Link>
+        </button>
 
         {/* Menu Grid */}
         <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 lg:gap-6">
