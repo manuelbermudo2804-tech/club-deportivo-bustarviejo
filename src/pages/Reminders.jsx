@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -11,6 +12,16 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { format, addDays, subDays } from "date-fns";
 import { es } from "date-fns/locale";
 import { toast } from "sonner";
+
+const CLUB_IBAN = "ES82 0049 4447 38 2010604048";
+const CLUB_BANK = "Banco Santander";
+
+const generatePaymentReference = (playerName, playerCategory) => {
+  if (!playerName || !playerCategory) return "";
+  const categoryCode = playerCategory.split(' ')[1] || "CLUB"; // e.g., "Cadete A" -> "A", "Benjamín" -> "CLUB"
+  const cleanName = playerName.trim().replace(/\s+/g, '_').toUpperCase();
+  return `${categoryCode}-${cleanName}`;
+};
 
 export default function RemindersPage() {
   const queryClient = useQueryClient();
@@ -120,6 +131,8 @@ export default function RemindersPage() {
         return;
       }
 
+      const player = players.find(p => p.id === reminder.jugador_id);
+      const reference = generatePaymentReference(reminder.jugador_nombre, player?.deporte);
       const hasJustificante = payment?.justificante_url;
       
       // Determinar nivel de urgencia de forma profesional
@@ -190,20 +203,29 @@ Temporada: ${reminder.temporada}
 Importe: ${reminder.cantidad} euros
 Fecha límite: 15 de ${reminder.mes_pago}
 ${reminder.tipo_recordatorio !== "1 día después" ? `Tiempo restante: ${daysText[reminder.tipo_recordatorio]}` : 'Estado: Fecha límite superada'}
-Estado: Pendiente de justificante
+Estado: Pendiente de pago
 ════════════════════════════════════════
+
+Datos bancarios para realizar el pago:
+────────────────────────────────────────
+IBAN: ${CLUB_IBAN}
+Banco: ${CLUB_BANK}
+Beneficiario: CD Bustarviejo
+Concepto (IMPORTANTE): ${reference}
+Importe: ${reminder.cantidad} euros
+
+⚠️ Es fundamental que indique el concepto exacto en la transferencia para poder identificar su pago correctamente.
+────────────────────────────────────────
 
 Instrucciones para completar el pago:
 ────────────────────────────────────────
-1. Realice el pago mediante transferencia bancaria a la cuenta del club
+1. Realice la transferencia bancaria con los datos indicados arriba
 2. Acceda a la aplicación del club
 3. Navegue a la sección "Mis Pagos"
 4. Localice el pago correspondiente a ${reminder.mes_pago}
 5. Suba el justificante de pago (foto o PDF del comprobante)
 
 Es importante completar ambos pasos (pago y justificante) para que podamos procesar correctamente su inscripción.
-
-Si ya ha realizado el pago, por favor suba el justificante en la aplicación lo antes posible para que podamos verificarlo.
 
 
 Atentamente,
@@ -235,7 +257,7 @@ Temporada ${reminder.temporada}
       });
 
       queryClient.invalidateQueries({ queryKey: ['reminders'] });
-      toast.success(`✅ Recordatorio enviado (${reminder.tipo_recordatorio})`);
+      toast.success(`✅ Recordatorio enviado con datos bancarios`);
     } catch (error) {
       console.error("Error sending reminder:", error);
       toast.error("Error al enviar el recordatorio");
@@ -264,7 +286,7 @@ Temporada ${reminder.temporada}
 
       const mensaje = hasJustificante ? 
         `${urgencyEmoji[reminder.tipo_recordatorio]} RECORDATORIO DE PAGO - ${reminder.mes_pago}\n\nFamilia de ${reminder.jugador_nombre}: Su justificante está en revisión. Pronto confirmaremos su pago.\n\nFecha límite: 15 de ${reminder.mes_pago}` :
-        `${urgencyEmoji[reminder.tipo_recordatorio]} RECORDATORIO DE PAGO - ${reminder.mes_pago}\n\nFamilia de ${reminder.jugador_nombre}: Recuerde subir el justificante de pago de ${reminder.cantidad}€ en la app.\n\nFecha límite: 15 de ${reminder.mes_pago}\n\nApp → Mis Pagos → ${reminder.mes_pago}`;
+        `${urgencyEmoji[reminder.tipo_recordatorio]} RECORDATORIO DE PAGO - ${reminder.mes_pago}\n\nFamilia de ${reminder.jugador_nombre}: Recuerde realizar el pago de ${reminder.cantidad}€ y subir el justificante en la app.\n\nFecha límite: 15 de ${reminder.mes_pago}\n\nApp → Mis Pagos → ${reminder.mes_pago}`;
 
       await base44.entities.ChatMessage.create({
         remitente_email: "admin@cdbustarviejo.com",
@@ -359,7 +381,7 @@ Temporada ${reminder.temporada}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <h1 className="text-3xl font-bold text-slate-900">Recordatorios de Pago</h1>
-          <p className="text-slate-600 mt-1">Sistema automático escalonado + envío al chat</p>
+          <p className="text-slate-600 mt-1">Sistema automático con datos bancarios incluidos</p>
         </div>
         <div className="flex gap-3 flex-wrap">
           <Button
@@ -394,33 +416,19 @@ Temporada ${reminder.temporada}
       <Alert className="bg-gradient-to-r from-blue-50 to-green-50 border-blue-300 border-2">
         <AlertCircle className="h-5 w-5 text-blue-600" />
         <AlertDescription className="text-slate-900">
-          <strong>📅 Sistema de Recordatorios Escalonados</strong>
+          <strong>💳 Recordatorios Mejorados con Datos Bancarios</strong>
           <div className="mt-2 space-y-2 text-sm">
-            <div className="grid md:grid-cols-2 gap-3">
-              <div className="bg-white rounded-lg p-3 border border-blue-200">
-                <p className="font-bold text-blue-900 mb-2">📧 Emails Automáticos:</p>
-                <ul className="space-y-1">
-                  <li>• <strong>15 días antes:</strong> Recordatorio inicial</li>
-                  <li>• <strong>7 días antes:</strong> Recordatorio importante</li>
-                  <li>• <strong>3 días antes:</strong> Recordatorio urgente</li>
-                  <li>• <strong>1 día después:</strong> Pago vencido</li>
-                </ul>
-              </div>
-              <div className="bg-white rounded-lg p-3 border border-green-200">
-                <p className="font-bold text-green-900 mb-2">💬 Mensajes al Chat:</p>
-                <ul className="space-y-1">
-                  <li>• <strong>7 días antes:</strong> Aviso al grupo</li>
-                  <li>• <strong>3 días antes:</strong> Aviso urgente</li>
-                  <li>• <strong>1 día después:</strong> Vencimiento</li>
-                </ul>
-              </div>
+            <div className="bg-white rounded-lg p-3 border border-blue-200">
+              <p className="font-bold text-blue-900 mb-2">✅ Cada recordatorio incluye automáticamente:</p>
+              <ul className="space-y-1">
+                <li>• IBAN del club: {CLUB_IBAN}</li>
+                <li>• Concepto único personalizado por jugador</li>
+                <li>• Importe exacto a pagar</li>
+                <li>• Instrucciones paso a paso</li>
+              </ul>
             </div>
-            <div className="bg-green-50 rounded-lg p-3 border border-green-300 mt-3">
-              <p className="font-bold text-green-900 mb-1">✅ Emails optimizados anti-spam:</p>
-              <p className="text-xs text-green-800">Los emails han sido rediseñados con formato profesional, sin exceso de mayúsculas ni emojis, para evitar filtros de spam.</p>
-            </div>
-            <p className="mt-3 text-xs text-slate-600">
-              💡 Haz clic en "Generar Automáticos" para crear todos los recordatorios de pagos pendientes. Luego "Enviar de Hoy" para procesar los de hoy.
+            <p className="text-xs text-slate-600 mt-2">
+              💡 Los emails están optimizados para evitar filtros de spam y facilitar el pago.
             </p>
           </div>
         </AlertDescription>
@@ -615,7 +623,7 @@ Temporada ${reminder.temporada}
                                 size="sm"
                                 onClick={() => sendReminderEmail(reminder)}
                                 disabled={sendingReminder === reminder.id}
-                                title="Enviar email"
+                                title="Enviar email con datos bancarios"
                               >
                                 {sendingReminder === reminder.id ? (
                                   <Loader2 className="w-4 h-4 animate-spin" />
