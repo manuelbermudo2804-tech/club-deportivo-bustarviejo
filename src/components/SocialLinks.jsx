@@ -41,14 +41,14 @@ export default function SocialLinks() {
         </a>
       ))}
       
-      {/* MatchApp Link - Solo visible en móvil */}
+      {/* MatchApp Link - Visible en todos los dispositivos */}
       <button
         onClick={handleMatchAppClick}
-        className="lg:hidden flex items-center gap-1 text-green-600 hover:text-green-700 transition-colors"
+        className="flex items-center gap-1 text-green-600 hover:text-green-700 transition-colors"
         title="MatchApp"
       >
         <Smartphone className="w-4 h-4" />
-        <span className="text-xs font-medium">MatchApp</span>
+        <span className="text-xs font-medium hidden sm:inline">MatchApp</span>
       </button>
     </div>
   );
