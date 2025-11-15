@@ -1,7 +1,7 @@
 import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, MapPin, Clock } from "lucide-react";
+import { Calendar, Clock } from "lucide-react";
 import { format, isSameDay, addDays } from "date-fns";
 import { es } from "date-fns/locale";
 
@@ -18,20 +18,15 @@ export default function UpcomingEvents({ events, myPlayers }) {
       eventDate <= nextWeek &&
       (e.deporte === "Todos" || myCategories.includes(e.deporte))
     );
-  }).sort((a, b) => new Date(a.fecha) - new Date(b.fecha)).slice(0, 3);
+  }).sort((a, b) => new Date(a.fecha) - new Date(b.fecha)).slice(0, 2);
 
   const typeEmojis = {
     "Partido": "⚽",
     "Entrenamiento": "🏃",
     "Reunión": "👥",
     "Torneo": "🏆",
-    "Inicio Temporada": "🎉",
-    "Gestion Club": "📋",
     "Pago": "💳",
-    "Inscripción": "📝",
-    "Pedido Ropa": "👕",
-    "Fiesta Club": "🎊",
-    "Fin Temporada": "🏁"
+    "Fiesta Club": "🎊"
   };
 
   const typeColors = {
@@ -39,32 +34,31 @@ export default function UpcomingEvents({ events, myPlayers }) {
     "Entrenamiento": "bg-blue-100 text-blue-700",
     "Reunión": "bg-purple-100 text-purple-700",
     "Torneo": "bg-orange-100 text-orange-700",
-    "Pago": "bg-red-100 text-red-700",
-    "Fiesta Club": "bg-pink-100 text-pink-700"
+    "Pago": "bg-red-100 text-red-700"
   };
 
   return (
     <Card className="border-none shadow-lg">
-      <CardHeader className="pb-3">
-        <CardTitle className="flex items-center gap-2 text-blue-900 text-base">
-          <Calendar className="w-4 h-4" />
+      <CardHeader className="pb-2">
+        <CardTitle className="flex items-center gap-2 text-sm">
+          <Calendar className="w-4 h-4 text-blue-600" />
           Próximos Eventos
         </CardTitle>
       </CardHeader>
       <CardContent className="pt-0">
         {relevantEvents.length === 0 ? (
-          <div className="text-center py-6 text-slate-500 text-xs">
-            No hay eventos próximos esta semana
+          <div className="text-center py-4 text-slate-500 text-xs">
+            Sin eventos próximos
           </div>
         ) : (
-          <div className="space-y-2">
+          <div className="space-y-1.5">
             {relevantEvents.map(event => {
               const eventDate = new Date(event.fecha);
               const isToday = isSameDay(eventDate, today);
 
               return (
-                <div key={event.id} className={`p-3 rounded-lg border ${isToday ? 'bg-orange-50 border-orange-300' : 'bg-white border-slate-200'}`}>
-                  <div className="flex items-start justify-between gap-2 mb-2">
+                <div key={event.id} className={`p-2 rounded-lg border ${isToday ? 'bg-orange-50 border-orange-300' : 'bg-white border-slate-200'}`}>
+                  <div className="flex items-start justify-between gap-2 mb-1">
                     <Badge className={`${typeColors[event.tipo] || "bg-slate-100 text-slate-700"} text-xs`}>
                       <span className="mr-1">{typeEmojis[event.tipo]}</span>
                       {event.tipo}
@@ -75,7 +69,7 @@ export default function UpcomingEvents({ events, myPlayers }) {
                       </Badge>
                     )}
                   </div>
-                  <h3 className="font-bold text-slate-900 text-sm mb-1">{event.titulo}</h3>
+                  <h3 className="font-bold text-slate-900 text-xs mb-1">{event.titulo}</h3>
                   <div className="flex flex-wrap gap-2 text-xs text-slate-600">
                     <div className="flex items-center gap-1">
                       <Calendar className="w-3 h-3" />
