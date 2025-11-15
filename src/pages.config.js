@@ -43,6 +43,7 @@ import MedicalRecords from './pages/MedicalRecords';
 import DirectMessages from './pages/DirectMessages';
 import MatchApp from './pages/MatchApp';
 import TeamConfigAdmin from './pages/TeamConfigAdmin';
+import ManualMatchEntry from './pages/ManualMatchEntry';
 import Layout from './Layout.jsx';
 
 
@@ -92,6 +93,7 @@ export const PAGES = {
     "DirectMessages": DirectMessages,
     "MatchApp": MatchApp,
     "TeamConfigAdmin": TeamConfigAdmin,
+    "ManualMatchEntry": ManualMatchEntry,
 }
 
 export const pagesConfig = {
