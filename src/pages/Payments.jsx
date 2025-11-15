@@ -3,13 +3,15 @@ import { useLocation } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
-import { Plus, X } from "lucide-react";
+import { Plus, X, FileSpreadsheet } from "lucide-react";
 import { AnimatePresence } from "framer-motion";
 import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 
 import PaymentForm from "../components/payments/PaymentForm";
 import PaymentTable from "../components/payments/PaymentTable";
 import PaymentStats from "../components/payments/PaymentStats";
+import BankReconciliation from "../components/payments/BankReconciliation";
 import ExportButton from "../components/ExportButton";
 
 export default function Payments() {
@@ -24,6 +26,7 @@ export default function Payments() {
   const [isAdmin, setIsAdmin] = useState(false);
   const [isCoach, setIsCoach] = useState(false);
   const [myPlayers, setMyPlayers] = useState([]);
+  const [activeTab, setActiveTab] = useState("pagos");
 
   const formRef = useRef(null);
   const queryClient = useQueryClient();
@@ -124,6 +127,10 @@ export default function Payments() {
     updatePaymentMutation.mutate({ id: payment.id, paymentData: updatedData });
   };
 
+  const handleReconcile = () => {
+    queryClient.invalidateQueries({ queryKey: ['payments'] });
+  };
+
   const canRegisterPayments = isAdmin || (isCoach && myPlayers.length > 0);
 
   const filteredPayments = (playerFilter && playerFilter !== "all")
@@ -144,7 +151,8 @@ export default function Payments() {
       Estado: p.estado,
       Metodo: p.metodo_pago,
       'Fecha Pago': p.fecha_pago || '-',
-      'Tiene Justificante': p.justificante_url ? 'Sí' : 'No'
+      'Tiene Justificante': p.justificante_url ? 'Sí' : 'No',
+      'Reconciliado': p.reconciliado_banco ? 'Sí' : 'No'
     }));
   };
 
@@ -154,7 +162,7 @@ export default function Payments() {
         <div>
           <h1 className="text-3xl font-bold text-slate-900">Pagos y Cuotas</h1>
           <p className="text-slate-600 mt-1">
-            {isAdmin ? "Gestión de pagos y cobros de temporada" : isCoach && myPlayers.length > 0 ? "Pagos de mis hijos" : "Consulta de pagos"}
+            {isAdmin ? "Gestión de pagos y reconciliación bancaria" : isCoach && myPlayers.length > 0 ? "Pagos de mis hijos" : "Consulta de pagos"}
           </p>
           {filteredPlayer && (
             <div className="flex items-center gap-2 mt-3">
@@ -204,35 +212,59 @@ export default function Payments() {
 
       <PaymentStats payments={filteredPayments} />
 
-      <div ref={formRef}>
-        <AnimatePresence>
-          {showForm && canRegisterPayments && (
-            <PaymentForm
-              payment={editingPayment}
-              players={isAdmin ? players : myPlayers}
-              onSubmit={handleSubmit}
-              onCancel={() => {
-                setShowForm(false);
-                setEditingPayment(null);
-              }}
-              isSubmitting={createPaymentMutation.isPending || updatePaymentMutation.isPending}
-              isAdmin={isAdmin}
-            />
+      <Tabs value={activeTab} onValueChange={setActiveTab}>
+        <TabsList className="w-full">
+          <TabsTrigger value="pagos" className="flex-1">Gestión de Pagos</TabsTrigger>
+          {isAdmin && (
+            <TabsTrigger value="reconciliacion" className="flex-1">
+              <FileSpreadsheet className="w-4 h-4 mr-2" />
+              Reconciliación Bancaria
+            </TabsTrigger>
           )}
-        </AnimatePresence>
-      </div>
+        </TabsList>
 
-      <PaymentTable
-        payments={filteredPayments}
-        players={players}
-        isLoading={isLoading}
-        onEdit={canRegisterPayments ? handleEdit : null}
-        onStatusChange={isAdmin ? handleStatusChange : null}
-        playerFilter={playerFilter}
-        setPlayerFilter={setPlayerFilter}
-        selectedPlayer={filteredPlayer}
-        isAdmin={isAdmin}
-      />
+        <TabsContent value="pagos" className="space-y-6">
+          <div ref={formRef}>
+            <AnimatePresence>
+              {showForm && canRegisterPayments && (
+                <PaymentForm
+                  payment={editingPayment}
+                  players={isAdmin ? players : myPlayers}
+                  onSubmit={handleSubmit}
+                  onCancel={() => {
+                    setShowForm(false);
+                    setEditingPayment(null);
+                  }}
+                  isSubmitting={createPaymentMutation.isPending || updatePaymentMutation.isPending}
+                  isAdmin={isAdmin}
+                />
+              )}
+            </AnimatePresence>
+          </div>
+
+          <PaymentTable
+            payments={filteredPayments}
+            players={players}
+            isLoading={isLoading}
+            onEdit={canRegisterPayments ? handleEdit : null}
+            onStatusChange={isAdmin ? handleStatusChange : null}
+            playerFilter={playerFilter}
+            setPlayerFilter={setPlayerFilter}
+            selectedPlayer={filteredPlayer}
+            isAdmin={isAdmin}
+          />
+        </TabsContent>
+
+        {isAdmin && (
+          <TabsContent value="reconciliacion">
+            <BankReconciliation
+              payments={payments}
+              players={players}
+              onReconcile={handleReconcile}
+            />
+          </TabsContent>
+        )}
+      </Tabs>
     </div>
   );
 }
