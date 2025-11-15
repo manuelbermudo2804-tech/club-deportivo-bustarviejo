@@ -333,7 +333,7 @@ export default function CoachChat() {
           <p className="text-xs text-blue-100">Tus equipos y grupos familiares</p>
         </div>
 
-        <div className="p-3 bg-slate-50 border-b flex-shrink-0">
+        <div className="p-3 bg-slate-50 border-b flex-shrink-0 sticky top-0 z-10">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
             <Input
