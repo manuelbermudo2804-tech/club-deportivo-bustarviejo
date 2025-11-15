@@ -713,6 +713,7 @@ export default function Layout({ children, currentPageName }) {
   const adminNavigationItems = [
     { title: "Inicio", url: createPageUrl("Home"), icon: Home },
     { title: "🏟️ Match Center", url: createPageUrl("MatchApp"), icon: Trophy },
+    { title: "⚙️ Config Match Center", url: createPageUrl("TeamConfigAdmin"), icon: Settings },
     { title: "Jugadores", url: createPageUrl("Players"), icon: Users },
     { title: "Horarios", url: createPageUrl("TrainingSchedules"), icon: Clock },
     { title: "Calendario", url: createPageUrl("Calendar"), icon: Calendar },
