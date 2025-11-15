@@ -105,24 +105,21 @@ export default function Home() {
     const isIOS = /iPad|iPhone|iPod/.test(userAgent) && !window.MSStream;
     const isAndroid = /android/i.test(userAgent);
     
-    if (isIOS) {
-      const appStoreUrl = "https://apps.apple.com/app/matchapp";
+    if (isIOS || isAndroid) {
       const deepLink = "matchapp://";
+      const storeUrl = isIOS 
+        ? "https://apps.apple.com/app/matchapp"
+        : "https://play.google.com/store/apps/details?id=com.matchapp";
       
-      window.location.href = deepLink;
+      const iframe = document.createElement('iframe');
+      iframe.style.display = 'none';
+      iframe.src = deepLink;
+      document.body.appendChild(iframe);
       
       setTimeout(() => {
-        window.location.href = appStoreUrl;
-      }, 1500);
-    } else if (isAndroid) {
-      const playStoreUrl = "https://play.google.com/store/apps/details?id=com.matchapp";
-      const deepLink = "matchapp://";
-      
-      window.location.href = deepLink;
-      
-      setTimeout(() => {
-        window.location.href = playStoreUrl;
-      }, 1500);
+        document.body.removeChild(iframe);
+        window.open(storeUrl, '_blank');
+      }, 1000);
     } else {
       window.open("https://www.matchapp.com", "_blank");
     }
