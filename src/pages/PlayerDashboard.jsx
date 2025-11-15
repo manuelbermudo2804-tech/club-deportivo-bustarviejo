@@ -125,8 +125,10 @@ export default function PlayerDashboard() {
       </div>
 
       <div className="px-4 lg:px-8 py-6 space-y-6">
+        {/* Social Links */}
         <SocialLinks />
 
+        {/* MatchApp Card */}
         <Card className="border-none shadow-xl bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 text-white overflow-hidden relative">
           <div className="absolute top-0 right-0 w-64 h-64 bg-orange-500 rounded-full blur-3xl opacity-20"></div>
           <CardContent className="relative z-10 py-4 px-4 lg:py-6 lg:px-6">
@@ -147,6 +149,7 @@ export default function PlayerDashboard() {
           </CardContent>
         </Card>
 
+        {/* Menu Grid */}
         <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6">
           {menuItems.map((item, index) => (
             <Link key={index} to={item.url} className="group">
@@ -178,6 +181,7 @@ export default function PlayerDashboard() {
           ))}
         </div>
 
+        {/* Info Card */}
         <div className="bg-gradient-to-r from-orange-600 to-orange-700 rounded-3xl p-6 shadow-2xl text-white">
           <h3 className="text-xl font-bold mb-3 flex items-center gap-2">
             <Trophy className="w-6 h-6 text-yellow-300" />

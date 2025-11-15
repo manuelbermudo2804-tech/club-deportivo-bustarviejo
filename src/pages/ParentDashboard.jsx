@@ -159,8 +159,10 @@ export default function ParentDashboard() {
       </div>
 
       <div className="px-4 lg:px-8 py-6 space-y-6">
+        {/* Social Links */}
         <SocialLinks />
 
+        {/* Menu Items */}
         <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6">
           {menuItems.map((item, index) => (
             <Link key={index} to={item.url} className="group">
@@ -191,6 +193,7 @@ export default function ParentDashboard() {
           ))}
         </div>
 
+        {/* Summary Stats */}
         <div className="bg-slate-800 rounded-3xl p-6 shadow-2xl border-2 border-slate-700">
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
             <div className="text-center">
