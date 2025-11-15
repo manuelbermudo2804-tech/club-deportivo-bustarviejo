@@ -1,10 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
-import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { CreditCard, Download } from "lucide-react";
-import QRCode from "react-qr-code";
 
 export default function PlayerCards() {
   const [user, setUser] = useState(null);
@@ -40,6 +38,31 @@ export default function PlayerCards() {
         link.click();
       });
     });
+  };
+
+  const printCard = (playerId) => {
+    const printContent = document.getElementById(`card-${playerId}`);
+    if (!printContent) return;
+
+    const printWindow = window.open('', '_blank');
+    printWindow.document.write(`
+      <html>
+        <head>
+          <title>Carnet ${playerId}</title>
+          <style>
+            body { margin: 0; padding: 20px; }
+            @media print {
+              body { margin: 0; }
+            }
+          </style>
+        </head>
+        <body>
+          ${printContent.outerHTML}
+        </body>
+      </html>
+    `);
+    printWindow.document.close();
+    printWindow.print();
   };
 
   return (
@@ -108,29 +131,35 @@ export default function PlayerCards() {
                   </div>
                 </div>
 
-                {/* Footer con QR */}
+                {/* Footer */}
                 <div className="flex items-end justify-between mt-4 pt-4 border-t border-orange-500/30">
                   <div className="text-white text-xs">
                     <p className="text-orange-400 uppercase mb-1">Fecha de nacimiento</p>
                     <p>{new Date(player.fecha_nacimiento).toLocaleDateString('es-ES')}</p>
                   </div>
-                  <div className="bg-white p-2 rounded">
-                    <QRCode 
-                      value={`https://cdbustarviejo.com/player/${player.id}`}
-                      size={60}
-                    />
+                  <div className="bg-orange-500 px-3 py-1 rounded text-white text-xs font-bold">
+                    OFICIAL
                   </div>
                 </div>
               </div>
             </Card>
 
-            <Button
-              onClick={() => downloadCard(player)}
-              className="w-full bg-orange-600 hover:bg-orange-700"
-            >
-              <Download className="w-4 h-4 mr-2" />
-              Descargar Carnet de {player.nombre.split(' ')[0]}
-            </Button>
+            <div className="flex gap-2">
+              <Button
+                onClick={() => downloadCard(player)}
+                className="flex-1 bg-orange-600 hover:bg-orange-700"
+              >
+                <Download className="w-4 h-4 mr-2" />
+                Descargar
+              </Button>
+              <Button
+                onClick={() => printCard(player.id)}
+                variant="outline"
+                className="flex-1"
+              >
+                Imprimir
+              </Button>
+            </div>
           </div>
         ))}
       </div>
