@@ -1,4 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.4';
+import puppeteer from 'npm:puppeteer@23.11.1';
 
 Deno.serve(async (req) => {
   try {
@@ -27,38 +28,49 @@ Deno.serve(async (req) => {
       });
     }
 
-    const response = await fetch(config.url_clasificacion);
-    const html = await response.text();
-
-    const cleanHtml = html
-      .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
-      .replace(/<style\b[^<]*(?:(?!<\/style>)<[^<]*)*<\/style>/gi, '')
-      .substring(0, 100000);
+    // Lanzar navegador headless
+    const browser = await puppeteer.launch({
+      args: ['--no-sandbox', '--disable-setuid-sandbox']
+    });
+    
+    const page = await browser.newPage();
+    await page.setViewport({ width: 1200, height: 2000 });
+    
+    await page.goto(config.url_clasificacion, { 
+      waitUntil: 'networkidle2',
+      timeout: 30000 
+    });
+    
+    await page.waitForTimeout(3000);
+    
+    const screenshotBuffer = await page.screenshot({ fullPage: true });
+    await browser.close();
+    
+    const screenshotFile = new File([screenshotBuffer], 'clasificacion.png', { type: 'image/png' });
+    const { file_url } = await base44.asServiceRole.integrations.Core.UploadFile({
+      file: screenshotFile
+    });
 
     const llmResponse = await base44.asServiceRole.integrations.Core.InvokeLLM({
-      prompt: `Analiza este HTML de la web de la RFFM y extrae la tabla de clasificación completa del grupo donde juega C.D. BUSTARVIEJO.
-
-HTML:
-${cleanHtml}
-
-Busca la tabla de clasificación que incluya a "BUSTARVIEJO" o "C.D. BUSTARVIEJO".
-
-EXTRAE TODOS los equipos de la tabla con:
-- posicion: posición en la tabla (número)
-- equipo: nombre completo del equipo
-- partidos_jugados: partidos jugados (PJ)
-- ganados: partidos ganados (G)
-- empatados: partidos empatados (E)
-- perdidos: partidos perdidos (P)
-- goles_favor: goles a favor (GF)
-- goles_contra: goles en contra (GC)
-- diferencia: diferencia de goles (puede ser negativa)
-- puntos: puntos totales (Pts)
+      prompt: `Analiza esta imagen de la tabla de clasificación de la RFFM y extrae la clasificación completa del grupo donde juega C.D. BUSTARVIEJO.
 
 IMPORTANTE:
-- Extrae TODOS los equipos del grupo (tabla completa)
+- Extrae TODOS los equipos de la tabla
 - Mantén el orden por posición
-- La diferencia de goles puede ser negativa`,
+- La diferencia de goles puede ser negativa
+
+Para cada equipo extrae:
+- posicion: número
+- equipo: nombre completo
+- partidos_jugados: PJ
+- ganados: G
+- empatados: E
+- perdidos: P
+- goles_favor: GF
+- goles_contra: GC
+- diferencia: diferencia de goles (puede ser negativa)
+- puntos: Pts`,
+      file_urls: [file_url],
       response_json_schema: {
         type: "object",
         properties: {
@@ -89,7 +101,7 @@ IMPORTANTE:
     if (!llmResponse?.clasificacion || llmResponse.clasificacion.length === 0) {
       return Response.json({
         success: false,
-        error: "No se pudo extraer la clasificación del HTML"
+        error: "No se pudo extraer la clasificación de la imagen"
       });
     }
 
@@ -103,6 +115,7 @@ IMPORTANTE:
         grupo: config.grupo_rffm,
         jornada: llmResponse.jornada_actual || "N/A",
         temporada: temporada,
+        metodo: "screenshot",
         url_usada: config.url_clasificacion,
         ultima_actualizacion: new Date().toISOString()
       }

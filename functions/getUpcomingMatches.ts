@@ -1,4 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.4';
+import puppeteer from 'npm:puppeteer@23.11.1';
 
 Deno.serve(async (req) => {
   try {
@@ -27,36 +28,49 @@ Deno.serve(async (req) => {
       });
     }
 
-    const response = await fetch(config.url_calendario);
-    const html = await response.text();
-
-    const cleanHtml = html
-      .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
-      .replace(/<style\b[^<]*(?:(?!<\/style>)<[^<]*)*<\/style>/gi, '')
-      .substring(0, 100000);
+    // Lanzar navegador headless
+    const browser = await puppeteer.launch({
+      args: ['--no-sandbox', '--disable-setuid-sandbox']
+    });
+    
+    const page = await browser.newPage();
+    await page.setViewport({ width: 1200, height: 3000 });
+    
+    await page.goto(config.url_calendario, { 
+      waitUntil: 'networkidle2',
+      timeout: 30000 
+    });
+    
+    await page.waitForTimeout(3000);
+    
+    const screenshotBuffer = await page.screenshot({ fullPage: true });
+    await browser.close();
+    
+    const screenshotFile = new File([screenshotBuffer], 'calendario.png', { type: 'image/png' });
+    const { file_url } = await base44.asServiceRole.integrations.Core.UploadFile({
+      file: screenshotFile
+    });
 
     const today = new Date().toISOString().split('T')[0];
 
     const llmResponse = await base44.asServiceRole.integrations.Core.InvokeLLM({
-      prompt: `Analiza este HTML de la web de la RFFM y extrae los próximos partidos (SIN RESULTADO AÚN) del C.D. BUSTARVIEJO.
+      prompt: `Analiza esta imagen del calendario de la RFFM y extrae los próximos partidos (SIN RESULTADO) del equipo C.D. BUSTARVIEJO.
 
-HTML:
-${cleanHtml}
-
-Busca partidos donde aparezca "BUSTARVIEJO" o "C.D. BUSTARVIEJO" que NO tienen resultado todavía (partidos futuros o pendientes).
-
-EXTRAE para cada partido:
-- fecha: formato YYYY-MM-DD (hoy es ${today}, busca fechas futuras)
-- hora: formato HH:MM (puede ser "Por confirmar" o vacío)
-- local: nombre del equipo local
-- visitante: nombre del equipo visitante
-- ubicacion: campo/instalación donde se juega
-- jornada: número de jornada (ej: "Jornada 5")
+Fecha de hoy: ${today}
 
 IMPORTANTE:
-- Solo partidos SIN resultado (futuros)
-- Ordenar por fecha ascendente (próximos primero)
-- Máximo 5 partidos`,
+- Solo partidos futuros o pendientes (SIN resultado todavía)
+- Busca "BUSTARVIEJO" o "C.D. BUSTARVIEJO"
+- Máximo 5 partidos próximos
+
+Extrae:
+- fecha: YYYY-MM-DD (fechas >= ${today})
+- hora: HH:MM o "Por confirmar"
+- jornada: número
+- local: equipo local
+- visitante: equipo visitante
+- campo: instalación`,
+      file_urls: [file_url],
       response_json_schema: {
         type: "object",
         properties: {
@@ -67,10 +81,10 @@ IMPORTANTE:
               properties: {
                 fecha: { type: "string" },
                 hora: { type: "string" },
+                jornada: { type: "string" },
                 local: { type: "string" },
                 visitante: { type: "string" },
-                ubicacion: { type: "string" },
-                jornada: { type: "string" }
+                campo: { type: "string" }
               },
               required: ["local", "visitante"]
             }
@@ -82,7 +96,7 @@ IMPORTANTE:
     if (!llmResponse?.partidos) {
       return Response.json({
         success: false,
-        error: "No se pudieron extraer próximos partidos del HTML"
+        error: "No se encontraron próximos partidos"
       });
     }
 
@@ -91,15 +105,15 @@ IMPORTANTE:
       .map(partido => ({
         fecha: partido.fecha || today,
         hora: partido.hora || "Por confirmar",
+        jornada: partido.jornada || "",
         local: partido.local,
         visitante: partido.visitante,
-        ubicacion: partido.ubicacion || "Por confirmar",
-        jornada: partido.jornada || "",
+        ubicacion: partido.campo || "Por confirmar",
         categoria: categoria,
         rival: partido.local.toUpperCase().includes('BUSTARVIEJO') ? partido.visitante : partido.local,
         local_visitante: partido.local.toUpperCase().includes('BUSTARVIEJO') ? "Local" : "Visitante",
         titulo: `${partido.local} vs ${partido.visitante}`,
-        fuente: "rffm"
+        fuente: "rffm_screenshot"
       }))
       .sort((a, b) => a.fecha.localeCompare(b.fecha))
       .slice(0, 5);
@@ -114,6 +128,7 @@ IMPORTANTE:
         grupo: config.grupo_rffm,
         temporada: temporada,
         total_matches: matches.length,
+        metodo: "screenshot",
         url_usada: config.url_calendario
       }
     });
