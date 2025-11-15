@@ -41,7 +41,6 @@ import AdminStats from './pages/AdminStats';
 import MatchResults from './pages/MatchResults';
 import MedicalRecords from './pages/MedicalRecords';
 import DirectMessages from './pages/DirectMessages';
-import ManualMatchEntry from './pages/ManualMatchEntry';
 import Layout from './Layout.jsx';
 
 
@@ -89,7 +88,6 @@ export const PAGES = {
     "MatchResults": MatchResults,
     "MedicalRecords": MedicalRecords,
     "DirectMessages": DirectMessages,
-    "ManualMatchEntry": ManualMatchEntry,
 }
 
 export const pagesConfig = {
