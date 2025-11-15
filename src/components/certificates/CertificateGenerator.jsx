@@ -5,42 +5,81 @@ import { Badge } from "@/components/ui/badge";
 import { Download, FileText, CheckCircle2, Award, Printer } from "lucide-react";
 
 export default function CertificateGenerator({ certificate }) {
-  const printCertificate = () => {
-    const printContent = document.getElementById(`cert-${certificate.id}`);
-    if (!printContent) return;
+  const generateHTML = () => {
+    const fecha = new Date(certificate.fecha_emision).toLocaleDateString('es-ES', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric'
+    });
 
+    return `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Certificado ${certificate.tipo_certificado}</title>
+  <style>
+    @page { size: A4; margin: 0; }
+    body { margin: 0; padding: 40px; font-family: Arial, sans-serif; }
+    .certificate { width: 100%; max-width: 800px; margin: 0 auto; border: 8px solid #ea580c; padding: 60px; background: white; }
+    .header { text-align: center; margin-bottom: 40px; }
+    .logo { width: 120px; height: 120px; margin: 0 auto 20px; background: #ea580c; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 48px; font-weight: bold; }
+    .title { font-size: 48px; font-weight: bold; color: #0f172a; margin: 20px 0; }
+    .subtitle { font-size: 32px; color: #ea580c; margin: 10px 0; }
+    .divider { height: 2px; background: #ea580c; margin: 30px 0; }
+    .club-name { font-size: 24px; font-weight: bold; margin: 30px 0; }
+    .content { font-size: 18px; line-height: 1.8; text-align: center; margin: 40px 0; }
+    .player-name { font-size: 28px; font-weight: bold; color: #ea580c; margin: 20px 0; }
+    .category { font-size: 16px; color: #64748b; margin: 10px 0; }
+    .footer { margin-top: 60px; text-align: center; font-size: 14px; color: #64748b; }
+    .seal { display: inline-block; border: 3px solid #ea580c; border-radius: 50%; padding: 20px; margin: 20px; }
+    .verification { font-size: 12px; color: #94a3b8; margin-top: 20px; }
+  </style>
+</head>
+<body>
+  <div class="certificate">
+    <div class="header">
+      <div class="logo">CD</div>
+      <div class="title">CERTIFICADO</div>
+      <div class="subtitle">DE ${certificate.tipo_certificado.toUpperCase()}</div>
+    </div>
+    <div class="divider"></div>
+    <div class="club-name">CD BUSTARVIEJO</div>
+    <div class="content">
+      ${certificate.datos_certificado?.mensaje || ''}
+    </div>
+    <div class="player-name">${certificate.jugador_nombre}</div>
+    <div class="category">${certificate.categoria}</div>
+    <div class="footer">
+      <p>Expedido en Bustarviejo, ${fecha}</p>
+      <div class="seal">SELLO OFICIAL</div>
+      <div class="verification">Código de verificación: ${certificate.codigo_verificacion}</div>
+    </div>
+  </div>
+</body>
+</html>`;
+  };
+
+  const printCertificate = () => {
+    const html = generateHTML();
     const printWindow = window.open('', '_blank');
-    printWindow.document.write(`
-      <html>
-        <head>
-          <title>Certificado - ${certificate.jugador_nombre}</title>
-          <style>
-            @page { 
-              size: A4;
-              margin: 0;
-            }
-            body { 
-              margin: 0;
-              padding: 0;
-              font-family: Arial, sans-serif;
-            }
-            @media print {
-              body { 
-                -webkit-print-color-adjust: exact;
-                print-color-adjust: exact;
-              }
-            }
-          </style>
-        </head>
-        <body>
-          ${printContent.innerHTML}
-        </body>
-      </html>
-    `);
+    printWindow.document.write(html);
     printWindow.document.close();
+    printWindow.focus();
     setTimeout(() => {
       printWindow.print();
-    }, 250);
+    }, 500);
+  };
+
+  const downloadHTML = () => {
+    const html = generateHTML();
+    const blob = new Blob([html], { type: 'text/html' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `certificado_${certificate.tipo_certificado}_${certificate.jugador_nombre}.html`;
+    a.click();
+    window.URL.revokeObjectURL(url);
   };
 
   const iconMap = {
@@ -58,199 +97,42 @@ export default function CertificateGenerator({ certificate }) {
   const Icon = iconMap[certificate.tipo_certificado] || FileText;
 
   return (
-    <>
-      <Card className="border-2 border-orange-200">
-        <CardContent className="p-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className={`p-3 rounded-lg ${colorMap[certificate.tipo_certificado]}`}>
-                <Icon className="w-6 h-6" />
-              </div>
-              <div>
-                <h3 className="font-semibold">{certificate.tipo_certificado}</h3>
-                <p className="text-sm text-slate-600">{certificate.jugador_nombre}</p>
-                <p className="text-xs text-slate-500">
-                  {new Date(certificate.fecha_emision).toLocaleDateString('es-ES')}
-                </p>
-              </div>
+    <Card className="border-2 border-orange-200">
+      <CardContent className="p-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className={`p-3 rounded-lg ${colorMap[certificate.tipo_certificado]}`}>
+              <Icon className="w-6 h-6" />
             </div>
-            <div className="flex items-center gap-3">
-              <Badge className="bg-green-500 text-white">Válido</Badge>
-              <Button
-                onClick={printCertificate}
-                className="bg-orange-600 hover:bg-orange-700"
-              >
-                <Printer className="w-4 h-4 mr-2" />
-                Imprimir
-              </Button>
+            <div>
+              <h3 className="font-semibold">{certificate.tipo_certificado}</h3>
+              <p className="text-sm text-slate-600">{certificate.jugador_nombre}</p>
+              <p className="text-xs text-slate-500">
+                {new Date(certificate.fecha_emision).toLocaleDateString('es-ES')}
+              </p>
             </div>
           </div>
-        </CardContent>
-      </Card>
-
-      {/* Certificado oculto para imprimir */}
-      <div id={`cert-${certificate.id}`} className="hidden">
-        <div style={{
-          width: '210mm',
-          height: '297mm',
-          padding: '20mm',
-          backgroundColor: 'white',
-          fontFamily: 'Arial, sans-serif'
-        }}>
-          {/* Borde */}
-          <div style={{
-            border: '3px solid #ea580c',
-            padding: '15mm',
-            height: '257mm',
-            position: 'relative'
-          }}>
-            <div style={{
-              border: '1px solid #ea580c',
-              padding: '10mm',
-              height: '237mm',
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center'
-            }}>
-              {/* Logo */}
-              <div style={{ marginTop: '20px', marginBottom: '20px' }}>
-                <div style={{
-                  width: '80px',
-                  height: '80px',
-                  borderRadius: '50%',
-                  backgroundColor: '#ea580c',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  color: 'white',
-                  fontSize: '32px',
-                  fontWeight: 'bold'
-                }}>
-                  CD
-                </div>
-              </div>
-
-              {/* Título */}
-              <h1 style={{ 
-                fontSize: '48px', 
-                fontWeight: 'bold', 
-                margin: '20px 0 10px',
-                textAlign: 'center'
-              }}>
-                CERTIFICADO
-              </h1>
-              <h2 style={{ 
-                fontSize: '32px', 
-                margin: '0 0 30px',
-                textAlign: 'center'
-              }}>
-                DE {certificate.tipo_certificado.toUpperCase()}
-              </h2>
-
-              {/* Línea decorativa */}
-              <div style={{
-                width: '60%',
-                height: '2px',
-                backgroundColor: '#ea580c',
-                margin: '20px 0'
-              }}></div>
-
-              {/* Club */}
-              <h3 style={{ 
-                fontSize: '24px', 
-                fontWeight: 'bold',
-                margin: '20px 0',
-                textAlign: 'center'
-              }}>
-                CD BUSTARVIEJO
-              </h3>
-
-              {/* Mensaje */}
-              <p style={{
-                fontSize: '18px',
-                lineHeight: '1.8',
-                textAlign: 'center',
-                margin: '30px 0',
-                maxWidth: '80%'
-              }}>
-                {certificate.datos_certificado?.mensaje}
-              </p>
-
-              {/* Datos adicionales */}
-              {certificate.tipo_certificado === "Pagos al Día" && (
-                <p style={{ fontSize: '16px', textAlign: 'center', margin: '10px 0' }}>
-                  Total Pagado: {certificate.datos_certificado.total_pagado}€
-                </p>
-              )}
-              {certificate.tipo_certificado === "Asistencia" && (
-                <p style={{ fontSize: '16px', textAlign: 'center', margin: '10px 0' }}>
-                  Sesiones: {certificate.datos_certificado.asistencias}/{certificate.datos_certificado.sesiones_totales}
-                </p>
-              )}
-
-              {/* Jugador */}
-              <div style={{ marginTop: '40px', textAlign: 'center' }}>
-                <p style={{ 
-                  fontSize: '24px', 
-                  fontWeight: 'bold',
-                  margin: '10px 0'
-                }}>
-                  {certificate.jugador_nombre}
-                </p>
-                <p style={{ fontSize: '16px', color: '#666' }}>
-                  {certificate.categoria}
-                </p>
-              </div>
-
-              {/* Fecha */}
-              <div style={{ 
-                position: 'absolute',
-                bottom: '40px',
-                left: '0',
-                right: '0',
-                textAlign: 'center'
-              }}>
-                <p style={{ fontSize: '14px', color: '#666' }}>
-                  Expedido en Bustarviejo, {new Date(certificate.fecha_emision).toLocaleDateString('es-ES', {
-                    day: 'numeric',
-                    month: 'long',
-                    year: 'numeric'
-                  })}
-                </p>
-                <p style={{ 
-                  fontSize: '10px', 
-                  color: '#999',
-                  marginTop: '20px'
-                }}>
-                  Código de verificación: {certificate.codigo_verificacion}
-                </p>
-              </div>
-
-              {/* Sello */}
-              <div style={{
-                position: 'absolute',
-                bottom: '50px',
-                left: '50px',
-                width: '60px',
-                height: '60px',
-                borderRadius: '50%',
-                border: '2px solid #ea580c',
-                backgroundColor: '#fff5e6',
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                justifyContent: 'center',
-                color: '#ea580c',
-                fontSize: '10px',
-                fontWeight: 'bold'
-              }}>
-                <span>SELLO</span>
-                <span>OFICIAL</span>
-              </div>
-            </div>
+          <div className="flex items-center gap-2">
+            <Badge className="bg-green-500 text-white">Válido</Badge>
+            <Button
+              onClick={printCertificate}
+              variant="outline"
+              size="sm"
+            >
+              <Printer className="w-4 h-4 mr-2" />
+              Imprimir
+            </Button>
+            <Button
+              onClick={downloadHTML}
+              className="bg-orange-600 hover:bg-orange-700"
+              size="sm"
+            >
+              <Download className="w-4 h-4 mr-2" />
+              Descargar
+            </Button>
           </div>
         </div>
-      </div>
-    </>
+      </CardContent>
+    </Card>
   );
 }

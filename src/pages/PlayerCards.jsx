@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { CreditCard, Download } from "lucide-react";
 
@@ -23,46 +23,24 @@ export default function PlayerCards() {
     fetchUser();
   }, []);
 
-  const downloadCard = (player) => {
+  const downloadCard = async (player) => {
     const card = document.getElementById(`card-${player.id}`);
     if (!card) return;
 
-    import('html2canvas').then(({ default: html2canvas }) => {
-      html2canvas(card, {
+    try {
+      const html2canvas = (await import('html2canvas')).default;
+      const canvas = await html2canvas(card, {
         backgroundColor: '#ffffff',
         scale: 2
-      }).then(canvas => {
-        const link = document.createElement('a');
-        link.download = `carnet_${player.nombre.replace(/\s+/g, '_')}.png`;
-        link.href = canvas.toDataURL();
-        link.click();
       });
-    });
-  };
-
-  const printCard = (playerId) => {
-    const printContent = document.getElementById(`card-${playerId}`);
-    if (!printContent) return;
-
-    const printWindow = window.open('', '_blank');
-    printWindow.document.write(`
-      <html>
-        <head>
-          <title>Carnet ${playerId}</title>
-          <style>
-            body { margin: 0; padding: 20px; }
-            @media print {
-              body { margin: 0; }
-            }
-          </style>
-        </head>
-        <body>
-          ${printContent.outerHTML}
-        </body>
-      </html>
-    `);
-    printWindow.document.close();
-    printWindow.print();
+      
+      const link = document.createElement('a');
+      link.download = `carnet_${player.nombre.replace(/\s+/g, '_')}.png`;
+      link.href = canvas.toDataURL();
+      link.click();
+    } catch (error) {
+      console.error('Error downloading card:', error);
+    }
   };
 
   return (
@@ -137,29 +115,22 @@ export default function PlayerCards() {
                     <p className="text-orange-400 uppercase mb-1">Fecha de nacimiento</p>
                     <p>{new Date(player.fecha_nacimiento).toLocaleDateString('es-ES')}</p>
                   </div>
-                  <div className="bg-orange-500 px-3 py-1 rounded text-white text-xs font-bold">
-                    OFICIAL
+                  <div className="bg-white p-2 rounded text-center">
+                    <div className="w-14 h-14 bg-slate-800 rounded flex items-center justify-center">
+                      <span className="text-orange-500 text-xs font-bold">CD</span>
+                    </div>
                   </div>
                 </div>
               </div>
             </Card>
 
-            <div className="flex gap-2">
-              <Button
-                onClick={() => downloadCard(player)}
-                className="flex-1 bg-orange-600 hover:bg-orange-700"
-              >
-                <Download className="w-4 h-4 mr-2" />
-                Descargar
-              </Button>
-              <Button
-                onClick={() => printCard(player.id)}
-                variant="outline"
-                className="flex-1"
-              >
-                Imprimir
-              </Button>
-            </div>
+            <Button
+              onClick={() => downloadCard(player)}
+              className="w-full bg-orange-600 hover:bg-orange-700"
+            >
+              <Download className="w-4 h-4 mr-2" />
+              Descargar Carnet de {player.nombre.split(' ')[0]}
+            </Button>
           </div>
         ))}
       </div>
