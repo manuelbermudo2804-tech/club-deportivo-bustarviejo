@@ -11,8 +11,9 @@ import { Card, CardContent } from "@/components/ui/card";
 import NotificationBadge from "./components/NotificationBadge";
 import SessionManager from "./components/SessionManager";
 import GlobalSearch from "./components/GlobalSearch";
-import ThemeToggle from "./components/ThemeToggle"; // Added import
+import ThemeToggle from "./components/ThemeToggle";
 import NotificationCenter from "./components/NotificationCenter";
+import LanguageSelector from "./components/LanguageSelector"; // Added import
 
 const CLUB_LOGO_URL = "https://www.cdbustarviejo.com/uploads/2/4/0/4/2404974/logo-cd-bustarviejo-cuadrado-xpeq_orig.png";
 
@@ -486,6 +487,15 @@ export default function Layout({ children, currentPageName }) {
   const [pendingCallupsCount, setPendingCallupsCount] = useState(0);
   const [showSpecialScreen, setShowSpecialScreen] = useState(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [currentLang, setCurrentLang] = useState(() => {
+    return localStorage.getItem('appLanguage') || 'es';
+  });
+
+  const handleLanguageChange = (newLang) => {
+    setCurrentLang(newLang);
+    localStorage.setItem('appLanguage', newLang);
+    // Aquí puedes agregar lógica adicional para cambiar el idioma de la app
+  };
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -717,7 +727,7 @@ export default function Layout({ children, currentPageName }) {
     { title: "Galería", url: createPageUrl("AdminGallery"), icon: Image },
     { title: "🎓 Crear Convocatorias", url: createPageUrl("CoachCallups"), icon: Bell },
     ...(hasPlayers ? [{ title: "👨‍👩‍👧 Confirmar Mis Hijos", url: createPageUrl("ParentCallups"), icon: ClipboardCheck, badge: pendingCallupsCount > 0 ? pendingCallupsCount : null }] : []),
-    { title: "Evaluaciones", url: createPageUrl("PlayerEvaluations"), icon: Star }, // Added item
+    { title: "Evaluaciones", url: createPageUrl("PlayerEvaluations"), icon: Star },
     { title: "Pagos", url: createPageUrl("Payments"), icon: CreditCard },
     { title: "Recordatorios", url: createPageUrl("Reminders"), icon: Bell },
     { title: "Pedidos Ropa", url: createPageUrl("ClothingOrders"), icon: ShoppingBag },
@@ -732,7 +742,7 @@ export default function Layout({ children, currentPageName }) {
     { title: "Mis Hijos", url: createPageUrl("Players"), icon: Users },
     { title: "🎓 Plantillas", url: createPageUrl("TeamRosters"), icon: Users },
     { title: "✅ Asistencia", url: createPageUrl("CoachAttendance"), icon: CheckCircle2 },
-    { title: "⭐ Evaluaciones", url: createPageUrl("PlayerEvaluations"), icon: Star }, // Added item
+    { title: "⭐ Evaluaciones", url: createPageUrl("PlayerEvaluations"), icon: Star },
     { title: "Horarios", url: createPageUrl("TrainingSchedules"), icon: Clock },
     { title: "Calendario", url: createPageUrl("Calendar"), icon: Calendar },
     { title: "Anuncios", url: createPageUrl("Announcements"), icon: Megaphone },
@@ -862,16 +872,18 @@ export default function Layout({ children, currentPageName }) {
               </div>
             </div>
             
-            <div className="flex items-center gap-2 mb-4"> {/* New div wrapping GlobalSearch and ThemeToggle */}
-                {/* Global Search for desktop */}
-                {user && (
-                  <div className="flex-1"> {/* Wrapped GlobalSearch in flex-1 div */}
-                    <GlobalSearch isAdmin={isAdmin} isCoach={isCoach} />
-                  </div>
-                )}
+            <div className="space-y-2">
+              {user && (
+                <div className="w-full">
+                  <GlobalSearch isAdmin={isAdmin} isCoach={isCoach} />
+                </div>
+              )}
+              <div className="flex items-center gap-2">
                 {!isAdmin && !isCoach && <NotificationCenter />}
-                <ThemeToggle /> {/* Added ThemeToggle */}
+                <ThemeToggle />
+                <LanguageSelector currentLang={currentLang} onLanguageChange={handleLanguageChange} />
               </div>
+            </div>
           </div>
 
           <div className="p-4 space-y-2">
