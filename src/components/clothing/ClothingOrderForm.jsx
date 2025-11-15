@@ -30,8 +30,16 @@ const TALLAS = [
 ];
 
 // Precios
-const PRECIO_CHAQUETA = 35;
-const PRECIO_PACK_ENTRENAMIENTO = 41; // Pack completo (camiseta + pantalón + sudadera)
+const PRECIOS = {
+  chaqueta: 35,
+  pack: 41,
+  camiseta_individual: 10,
+  pantalon_individual: 17,
+  sudadera_individual: 18,
+  chubasquero: 20,
+  anorak: 40,
+  mochila: 22
+};
 
 // Función para obtener la temporada actual
 const getCurrentSeason = () => {
@@ -61,6 +69,17 @@ export default function ClothingOrderForm({ players, onSubmit, onCancel, isSubmi
     pack_camiseta_talla: "",
     pack_pantalon_talla: "",
     pack_sudadera_talla: "",
+    camiseta_individual: false,
+    camiseta_individual_talla: "",
+    pantalon_individual: false,
+    pantalon_individual_talla: "",
+    sudadera_individual: false,
+    sudadera_individual_talla: "",
+    chubasquero: false,
+    chubasquero_talla: "",
+    anorak: false,
+    anorak_talla: "",
+    mochila: false,
     precio_total: 0,
     metodo_pago: "Transferencia",
     justificante_url: "",
@@ -79,15 +98,31 @@ export default function ClothingOrderForm({ players, onSubmit, onCancel, isSubmi
   // Calcular precio total
   useEffect(() => {
     let total = 0;
-    if (orderData.chaqueta_partidos) total += PRECIO_CHAQUETA;
-    if (orderData.pack_entrenamiento) total += PRECIO_PACK_ENTRENAMIENTO;
+    if (orderData.chaqueta_partidos) total += PRECIOS.chaqueta;
+    if (orderData.pack_entrenamiento) total += PRECIOS.pack;
+    if (orderData.camiseta_individual) total += PRECIOS.camiseta_individual;
+    if (orderData.pantalon_individual) total += PRECIOS.pantalon_individual;
+    if (orderData.sudadera_individual) total += PRECIOS.sudadera_individual;
+    if (orderData.chubasquero) total += PRECIOS.chubasquero;
+    if (orderData.anorak) total += PRECIOS.anorak;
+    if (orderData.mochila) total += PRECIOS.mochila;
     
     setOrderData(prev => ({
       ...prev,
       precio_total: total,
       concepto_pago: `Pedido ropa ${selectedPlayer?.nombre || ''} - Temporada ${getCurrentSeason()}`
     }));
-  }, [orderData.chaqueta_partidos, orderData.pack_entrenamiento, selectedPlayer]);
+  }, [
+    orderData.chaqueta_partidos, 
+    orderData.pack_entrenamiento,
+    orderData.camiseta_individual,
+    orderData.pantalon_individual,
+    orderData.sudadera_individual,
+    orderData.chubasquero,
+    orderData.anorak,
+    orderData.mochila,
+    selectedPlayer
+  ]);
 
   const handlePlayerChange = (playerId) => {
     const player = players.find(p => p.id === playerId);
@@ -100,9 +135,25 @@ export default function ClothingOrderForm({ players, onSubmit, onCancel, isSubmi
         jugador_categoria: player.deporte,
         email_padre: player.email_padre,
         telefono: player.telefono,
-        // Si no puede pedir chaqueta, desmarcarla
+        // Reset all product-related fields when player changes to ensure clean state
         chaqueta_partidos: false,
         chaqueta_talla: "",
+        pack_entrenamiento: false,
+        pack_camiseta_talla: "",
+        pack_pantalon_talla: "",
+        pack_sudadera_talla: "",
+        camiseta_individual: false,
+        camiseta_individual_talla: "",
+        pantalon_individual: false,
+        pantalon_individual_talla: "",
+        sudadera_individual: false,
+        sudadera_individual_talla: "",
+        chubasquero: false,
+        chubasquero_talla: "",
+        anorak: false,
+        anorak_talla: "",
+        mochila: false,
+        precio_total: 0, // Reset total, useEffect will re-calculate
         concepto_pago: `Pedido ropa ${player.nombre} - Temporada ${getCurrentSeason()}`
       });
     }
@@ -136,7 +187,12 @@ export default function ClothingOrderForm({ players, onSubmit, onCancel, isSubmi
       return;
     }
 
-    if (!orderData.chaqueta_partidos && !orderData.pack_entrenamiento) {
+    const hasAnyProduct = orderData.chaqueta_partidos || orderData.pack_entrenamiento || 
+      orderData.camiseta_individual || orderData.pantalon_individual || 
+      orderData.sudadera_individual || orderData.chubasquero || 
+      orderData.anorak || orderData.mochila;
+
+    if (!hasAnyProduct) {
       toast.error("Debes seleccionar al menos un producto");
       return;
     }
@@ -148,17 +204,42 @@ export default function ClothingOrderForm({ players, onSubmit, onCancel, isSubmi
 
     if (orderData.pack_entrenamiento) {
       if (!orderData.pack_camiseta_talla) {
-        toast.error("Selecciona la talla de la camiseta");
+        toast.error("Selecciona la talla de la camiseta del pack");
         return;
       }
       if (!orderData.pack_pantalon_talla) {
-        toast.error("Selecciona la talla del pantalón");
+        toast.error("Selecciona la talla del pantalón del pack");
         return;
       }
       if (!orderData.pack_sudadera_talla) {
-        toast.error("Selecciona la talla de la sudadera");
+        toast.error("Selecciona la talla de la sudadera del pack");
         return;
       }
+    }
+
+    if (orderData.camiseta_individual && !orderData.camiseta_individual_talla) {
+      toast.error("Selecciona la talla de la camiseta individual");
+      return;
+    }
+
+    if (orderData.pantalon_individual && !orderData.pantalon_individual_talla) {
+      toast.error("Selecciona la talla del pantalón individual");
+      return;
+    }
+
+    if (orderData.sudadera_individual && !orderData.sudadera_individual_talla) {
+      toast.error("Selecciona la talla de la sudadera individual");
+      return;
+    }
+
+    if (orderData.chubasquero && !orderData.chubasquero_talla) {
+      toast.error("Selecciona la talla del chubasquero");
+      return;
+    }
+
+    if (orderData.anorak && !orderData.anorak_talla) {
+      toast.error("Selecciona la talla del anorak");
+      return;
     }
 
     if (!orderData.justificante_url) {
@@ -168,6 +249,39 @@ export default function ClothingOrderForm({ players, onSubmit, onCancel, isSubmi
 
     // Enviar email de notificación al club
     try {
+      let productsHTML = '';
+      if (orderData.chaqueta_partidos) {
+        productsHTML += `<p>✅ <strong>Chaqueta de Partidos:</strong> ${orderData.chaqueta_talla} - ${PRECIOS.chaqueta}€</p>`;
+      }
+      if (orderData.pack_entrenamiento) {
+        productsHTML += `
+          <p>✅ <strong>Pack de Entrenamiento - ${PRECIOS.pack}€</strong></p>
+          <ul>
+            <li>Camiseta: ${orderData.pack_camiseta_talla}</li>
+            <li>Pantalón: ${orderData.pack_pantalon_talla}</li>
+            <li>Sudadera: ${orderData.pack_sudadera_talla}</li>
+          </ul>
+        `;
+      }
+      if (orderData.camiseta_individual) {
+        productsHTML += `<p>✅ <strong>Camiseta Individual (FUERA DEL PACK):</strong> ${orderData.camiseta_individual_talla} - ${PRECIOS.camiseta_individual}€</p>`;
+      }
+      if (orderData.pantalon_individual) {
+        productsHTML += `<p>✅ <strong>Pantalón Individual (FUERA DEL PACK):</strong> ${orderData.pantalon_individual_talla} - ${PRECIOS.pantalon_individual}€</p>`;
+      }
+      if (orderData.sudadera_individual) {
+        productsHTML += `<p>✅ <strong>Sudadera Individual (FUERA DEL PACK):</strong> ${orderData.sudadera_individual_talla} - ${PRECIOS.sudadera_individual}€</p>`;
+      }
+      if (orderData.chubasquero) {
+        productsHTML += `<p>✅ <strong>Chubasquero (escudo bordado):</strong> ${orderData.chubasquero_talla} - ${PRECIOS.chubasquero}€</p>`;
+      }
+      if (orderData.anorak) {
+        productsHTML += `<p>✅ <strong>Anorak:</strong> ${orderData.anorak_talla} - ${PRECIOS.anorak}€</p>`;
+      }
+      if (orderData.mochila) {
+        productsHTML += `<p>✅ <strong>Mochila con botero (escudo vinilo):</strong> ${PRECIOS.mochila}€</p>`;
+      }
+
       await base44.integrations.Core.SendEmail({
         to: "CDBUSTARVIEJO@GMAIL.COM",
         subject: `Nuevo Pedido de Equipación - ${orderData.jugador_nombre}`,
@@ -179,15 +293,7 @@ export default function ClothingOrderForm({ players, onSubmit, onCancel, isSubmi
           <p><strong>Teléfono:</strong> ${orderData.telefono}</p>
           <hr>
           <h3>Productos Solicitados:</h3>
-          ${orderData.chaqueta_partidos ? `<p>✅ <strong>Chaqueta de Partidos:</strong> ${orderData.chaqueta_talla} - ${PRECIO_CHAQUETA}€</p>` : ''}
-          ${orderData.pack_entrenamiento ? `
-            <p>✅ <strong>Pack de Entrenamiento - ${PRECIO_PACK_ENTRENAMIENTO}€</strong></p>
-            <ul>
-              <li>Camiseta: ${orderData.pack_camiseta_talla}</li>
-              <li>Pantalón: ${orderData.pack_pantalon_talla}</li>
-              <li>Sudadera: ${orderData.pack_sudadera_talla}</li>
-            </ul>
-          ` : ''}
+          ${productsHTML}
           <hr>
           <p><strong>Precio Total:</strong> ${orderData.precio_total}€</p>
           <p><strong>Concepto Pago:</strong> ${orderData.concepto_pago}</p>
@@ -205,6 +311,39 @@ export default function ClothingOrderForm({ players, onSubmit, onCancel, isSubmi
 
     onSubmit(orderData);
   };
+
+  const ProductCheckbox = ({ id, checked, onChange, label, price, description, talla, onTallaChange, required }) => (
+    <div className="space-y-3 bg-white rounded-lg p-4 border-2 border-slate-200">
+      <div className="flex items-center space-x-3">
+        <Checkbox
+          id={id}
+          checked={checked}
+          onCheckedChange={onChange}
+        />
+        <label htmlFor={id} className="font-semibold cursor-pointer flex-1">
+          {label} - {price}€
+        </label>
+      </div>
+      {description && (
+        <p className="text-sm text-slate-600 ml-7">{description}</p>
+      )}
+      {checked && talla !== undefined && (
+        <div className="ml-7 space-y-2">
+          <Label htmlFor={`${id}_talla`}>Talla *</Label>
+          <Select value={talla} onValueChange={onTallaChange} required={required}>
+            <SelectTrigger id={`${id}_talla`}>
+              <SelectValue placeholder="Selecciona una talla..." />
+            </SelectTrigger>
+            <SelectContent>
+              {TALLAS.map(t => (
+                <SelectItem key={t} value={t}>{t}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      )}
+    </div>
+  );
 
   return (
     <motion.div
@@ -353,44 +492,19 @@ export default function ClothingOrderForm({ players, onSubmit, onCancel, isSubmi
 
                   {/* Chaqueta de Partidos */}
                   {canOrderJacket ? (
-                    <div className="space-y-3 bg-white rounded-lg p-4 border-2 border-slate-200">
-                      <div className="flex items-center space-x-3">
-                        <Checkbox
-                          id="chaqueta"
-                          checked={orderData.chaqueta_partidos}
-                          onCheckedChange={(checked) => 
-                            setOrderData({...orderData, chaqueta_partidos: checked, chaqueta_talla: ""})
-                          }
-                        />
-                        <label htmlFor="chaqueta" className="font-semibold cursor-pointer flex-1">
-                          Chaqueta de Partidos - {PRECIO_CHAQUETA}€
-                        </label>
-                      </div>
-                      <p className="text-sm text-slate-600 ml-7">
-                        Chaqueta oficial para los partidos
-                      </p>
-                      {orderData.chaqueta_partidos && (
-                        <div className="ml-7 space-y-2">
-                          <Label htmlFor="chaqueta_talla">Talla de la Chaqueta *</Label>
-                          <Select
-                            value={orderData.chaqueta_talla}
-                            onValueChange={(value) => setOrderData({...orderData, chaqueta_talla: value})}
-                            required={orderData.chaqueta_partidos}
-                          >
-                            <SelectTrigger>
-                              <SelectValue placeholder="Selecciona una talla..." />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {TALLAS.map(talla => (
-                                <SelectItem key={talla} value={talla}>
-                                  {talla}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </div>
-                      )}
-                    </div>
+                    <ProductCheckbox
+                      id="chaqueta"
+                      checked={orderData.chaqueta_partidos}
+                      onChange={(checked) => 
+                        setOrderData({...orderData, chaqueta_partidos: checked, chaqueta_talla: ""})
+                      }
+                      label="Chaqueta de Partidos"
+                      price={PRECIOS.chaqueta}
+                      description="Chaqueta oficial para los partidos"
+                      talla={orderData.chaqueta_talla}
+                      onTallaChange={(value) => setOrderData({...orderData, chaqueta_talla: value})}
+                      required={orderData.chaqueta_partidos}
+                    />
                   ) : (
                     <Alert className="bg-orange-100 border-orange-300">
                       <AlertCircle className="h-4 w-4 text-orange-600" />
@@ -401,7 +515,7 @@ export default function ClothingOrderForm({ players, onSubmit, onCancel, isSubmi
                   )}
 
                   {/* Pack de Entrenamiento */}
-                  <div className="space-y-3 bg-white rounded-lg p-4 border-2 border-slate-200">
+                  <div className="space-y-3 bg-white rounded-lg p-4 border-2 border-green-300">
                     <div className="flex items-center space-x-3">
                       <Checkbox
                         id="pack"
@@ -417,7 +531,7 @@ export default function ClothingOrderForm({ players, onSubmit, onCancel, isSubmi
                         }
                       />
                       <label htmlFor="pack" className="font-semibold cursor-pointer flex-1">
-                        Pack de Entrenamiento - {PRECIO_PACK_ENTRENAMIENTO}€
+                        Pack de Entrenamiento - {PRECIOS.pack}€
                       </label>
                     </div>
                     <Alert className="ml-7 bg-blue-50 border-blue-200">
@@ -429,76 +543,103 @@ export default function ClothingOrderForm({ players, onSubmit, onCancel, isSubmi
                     </Alert>
                     {orderData.pack_entrenamiento && (
                       <div className="ml-7 space-y-4">
-                        {/* Talla Camiseta */}
-                        <div className="space-y-2 bg-slate-50 p-3 rounded-lg">
-                          <Label htmlFor="pack_camiseta_talla" className="flex items-center gap-2">
-                            👕 Talla de la Camiseta *
-                          </Label>
-                          <Select
-                            value={orderData.pack_camiseta_talla}
-                            onValueChange={(value) => setOrderData({...orderData, pack_camiseta_talla: value})}
-                            required={orderData.pack_entrenamiento}
-                          >
-                            <SelectTrigger>
-                              <SelectValue placeholder="Selecciona talla para camiseta..." />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {TALLAS.map(talla => (
-                                <SelectItem key={talla} value={talla}>
-                                  {talla}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </div>
-
-                        {/* Talla Pantalón */}
-                        <div className="space-y-2 bg-slate-50 p-3 rounded-lg">
-                          <Label htmlFor="pack_pantalon_talla" className="flex items-center gap-2">
-                            👖 Talla del Pantalón *
-                          </Label>
-                          <Select
-                            value={orderData.pack_pantalon_talla}
-                            onValueChange={(value) => setOrderData({...orderData, pack_pantalon_talla: value})}
-                            required={orderData.pack_entrenamiento}
-                          >
-                            <SelectTrigger>
-                              <SelectValue placeholder="Selecciona talla para pantalón..." />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {TALLAS.map(talla => (
-                                <SelectItem key={talla} value={talla}>
-                                  {talla}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </div>
-
-                        {/* Talla Sudadera */}
-                        <div className="space-y-2 bg-slate-50 p-3 rounded-lg">
-                          <Label htmlFor="pack_sudadera_talla" className="flex items-center gap-2">
-                            🧥 Talla de la Sudadera *
-                          </Label>
-                          <Select
-                            value={orderData.pack_sudadera_talla}
-                            onValueChange={(value) => setOrderData({...orderData, pack_sudadera_talla: value})}
-                            required={orderData.pack_entrenamiento}
-                          >
-                            <SelectTrigger>
-                              <SelectValue placeholder="Selecciona talla para sudadera..." />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {TALLAS.map(talla => (
-                                <SelectItem key={talla} value={talla}>
-                                  {talla}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </div>
+                        {['camiseta', 'pantalon', 'sudadera'].map(item => (
+                          <div key={item} className="space-y-2 bg-slate-50 p-3 rounded-lg">
+                            <Label className="flex items-center gap-2">
+                              {item === 'camiseta' ? '👕' : item === 'pantalon' ? '👖' : '🧥'} Talla de la {item.charAt(0).toUpperCase() + item.slice(1)} *
+                            </Label>
+                            <Select
+                              value={orderData[`pack_${item}_talla`]}
+                              onValueChange={(value) => setOrderData({...orderData, [`pack_${item}_talla`]: value})}
+                              required={orderData.pack_entrenamiento}
+                            >
+                              <SelectTrigger>
+                                <SelectValue placeholder={`Selecciona talla para ${item}...`} />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {TALLAS.map(talla => (
+                                  <SelectItem key={talla} value={talla}>{talla}</SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        ))}
                       </div>
                     )}
+                  </div>
+
+                  <div className="border-t-2 border-orange-300 pt-4">
+                    <h4 className="font-bold text-orange-900 mb-3">🛍️ Prendas Individuales (FUERA DEL PACK)</h4>
+                    <div className="space-y-3">
+                      <ProductCheckbox
+                        id="camiseta_ind"
+                        checked={orderData.camiseta_individual}
+                        onChange={(checked) => setOrderData({...orderData, camiseta_individual: checked, camiseta_individual_talla: ""})}
+                        label="Camiseta Individual"
+                        price={PRECIOS.camiseta_individual}
+                        talla={orderData.camiseta_individual_talla}
+                        onTallaChange={(value) => setOrderData({...orderData, camiseta_individual_talla: value})}
+                        required={orderData.camiseta_individual}
+                      />
+                      <ProductCheckbox
+                        id="pantalon_ind"
+                        checked={orderData.pantalon_individual}
+                        onChange={(checked) => setOrderData({...orderData, pantalon_individual: checked, pantalon_individual_talla: ""})}
+                        label="Pantalón Individual"
+                        price={PRECIOS.pantalon_individual}
+                        talla={orderData.pantalon_individual_talla}
+                        onTallaChange={(value) => setOrderData({...orderData, pantalon_individual_talla: value})}
+                        required={orderData.pantalon_individual}
+                      />
+                      <ProductCheckbox
+                        id="sudadera_ind"
+                        checked={orderData.sudadera_individual}
+                        onChange={(checked) => setOrderData({...orderData, sudadera_individual: checked, sudadera_individual_talla: ""})}
+                        label="Sudadera Individual"
+                        price={PRECIOS.sudadera_individual}
+                        talla={orderData.sudadera_individual_talla}
+                        onTallaChange={(value) => setOrderData({...orderData, sudadera_individual_talla: value})}
+                        required={orderData.sudadera_individual}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="border-t-2 border-orange-300 pt-4">
+                    <h4 className="font-bold text-orange-900 mb-3">🧥 Otras Prendas y Complementos</h4>
+                    <div className="space-y-3">
+                      <ProductCheckbox
+                        id="chubasquero"
+                        checked={orderData.chubasquero}
+                        onChange={(checked) => setOrderData({...orderData, chubasquero: checked, chubasquero_talla: ""})}
+                        label="Chubasquero (escudo bordado)"
+                        price={PRECIOS.chubasquero}
+                        talla={orderData.chubasquero_talla}
+                        onTallaChange={(value) => setOrderData({...orderData, chubasquero_talla: value})}
+                        required={orderData.chubasquero}
+                      />
+                      <ProductCheckbox
+                        id="anorak"
+                        checked={orderData.anorak}
+                        onChange={(checked) => setOrderData({...orderData, anorak: checked, anorak_talla: ""})}
+                        label="Anorak"
+                        price={PRECIOS.anorak}
+                        talla={orderData.anorak_talla}
+                        onTallaChange={(value) => setOrderData({...orderData, anorak_talla: value})}
+                        required={orderData.anorak}
+                      />
+                      <div className="space-y-3 bg-white rounded-lg p-4 border-2 border-slate-200">
+                        <div className="flex items-center space-x-3">
+                          <Checkbox
+                            id="mochila"
+                            checked={orderData.mochila}
+                            onCheckedChange={(checked) => setOrderData({...orderData, mochila: checked})}
+                          />
+                          <label htmlFor="mochila" className="font-semibold cursor-pointer flex-1">
+                            Mochila con botero (escudo vinilo) - {PRECIOS.mochila}€
+                          </label>
+                        </div>
+                      </div>
+                    </div>
                   </div>
 
                   {/* Total */}
