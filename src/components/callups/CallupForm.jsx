@@ -27,6 +27,7 @@ export default function CallupForm({ callup, players, coachName, coachEmail, cat
     jugadores_convocados: [],
     entrenador_email: coachEmail,
     entrenador_nombre: coachName,
+    entrenador_telefono: "",
     publicada: false,
     notificaciones_enviadas: false,
     cerrada: false
@@ -231,6 +232,20 @@ export default function CallupForm({ callup, players, coachName, coachEmail, cat
                 />
                 <p className="text-xs text-slate-500">
                   💡 Copia el enlace desde Google Maps para que los padres puedan ver la ubicación exacta
+                </p>
+              </div>
+
+              {/* Teléfono del entrenador */}
+              <div className="space-y-2 md:col-span-2">
+                <Label>Teléfono de Contacto del Entrenador</Label>
+                <Input
+                  type="tel"
+                  placeholder="Ej: 612 34 56 78"
+                  value={currentCallup.entrenador_telefono || ""}
+                  onChange={(e) => setCurrentCallup({ ...currentCallup, entrenador_telefono: e.target.value })}
+                />
+                <p className="text-xs text-slate-500">
+                  📞 Los padres verán este teléfono para contactarte en caso de dudas
                 </p>
               </div>
             </div>
