@@ -1,5 +1,5 @@
 import React from "react";
-import { ExternalLink, Calendar, Trophy, TrendingUp, Target } from "lucide-react";
+import { ExternalLink, Calendar, TrendingUp, Target } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
@@ -10,10 +10,9 @@ const TEAMS = [
     name: "C.D. BUSTARVIEJO",
     category: "SEGUNDA AFICIONADO",
     links: {
-      calendario: "https://www.rffm.es/", // Reemplazar con URL real
-      resultados: "https://www.rffm.es/", // Reemplazar con URL real
-      clasificacion: "https://www.rffm.es/", // Reemplazar con URL real
-      goleadores: "https://www.rffm.es/", // Reemplazar con URL real
+      calendario: "https://www.rffm.es/competicion/calendario?temporada=21&tipojuego=1&competicion=24762963&grupo=24762965",
+      clasificacion: "https://www.rffm.es/",
+      goleadores: "https://www.rffm.es/",
     }
   },
   {
@@ -21,7 +20,6 @@ const TEAMS = [
     category: "SEGUNDA JUVENIL",
     links: {
       calendario: "https://www.rffm.es/",
-      resultados: "https://www.rffm.es/",
       clasificacion: "https://www.rffm.es/",
       goleadores: "https://www.rffm.es/",
     }
@@ -31,7 +29,6 @@ const TEAMS = [
     category: "SEGUNDA CADETE",
     links: {
       calendario: "https://www.rffm.es/",
-      resultados: "https://www.rffm.es/",
       clasificacion: "https://www.rffm.es/",
       goleadores: "https://www.rffm.es/",
     }
@@ -41,7 +38,6 @@ const TEAMS = [
     category: "SEGUNDA INFANTIL",
     links: {
       calendario: "https://www.rffm.es/",
-      resultados: "https://www.rffm.es/",
       clasificacion: "https://www.rffm.es/",
       goleadores: "https://www.rffm.es/",
     }
@@ -51,7 +47,6 @@ const TEAMS = [
     category: "SEGUNDA ALEVIN F-7",
     links: {
       calendario: "https://www.rffm.es/",
-      resultados: "https://www.rffm.es/",
       clasificacion: "https://www.rffm.es/",
       goleadores: "https://www.rffm.es/",
     }
@@ -61,7 +56,6 @@ const TEAMS = [
     category: "PRIMERA BENJAMIN F7",
     links: {
       calendario: "https://www.rffm.es/",
-      resultados: "https://www.rffm.es/",
       clasificacion: "https://www.rffm.es/",
       goleadores: "https://www.rffm.es/",
     }
@@ -71,7 +65,6 @@ const TEAMS = [
     category: "JUVENIL F-7 FEMENINO",
     links: {
       calendario: "https://www.rffm.es/",
-      resultados: "https://www.rffm.es/",
       clasificacion: "https://www.rffm.es/",
       goleadores: "https://www.rffm.es/",
     }
@@ -122,20 +115,7 @@ export default function MatchApp() {
                 >
                   <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 shadow-lg">
                     <Calendar className="w-4 h-4 mr-2" />
-                    Calendario
-                    <ExternalLink className="w-3 h-3 ml-auto" />
-                  </Button>
-                </a>
-
-                <a 
-                  href={team.links.resultados} 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="block"
-                >
-                  <Button className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-3 shadow-lg">
-                    <Trophy className="w-4 h-4 mr-2" />
-                    Resultados y Jornadas
+                    Calendario - Resultados - Jornadas
                     <ExternalLink className="w-3 h-3 ml-auto" />
                   </Button>
                 </a>
