@@ -30,64 +30,66 @@ Deno.serve(async (req) => {
     const response = await fetch(config.url_calendario);
     const html = await response.text();
 
-    const today = new Date().toISOString().split('T')[0];
+    // Extraer una sección más limpia del HTML
+    const cleanHtml = html
+      .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
+      .replace(/<style\b[^<]*(?:(?!<\/style>)<[^<]*)*<\/style>/gi, '')
+      .substring(0, 100000);
 
     const llmResponse = await base44.asServiceRole.integrations.Core.InvokeLLM({
-      prompt: `Del siguiente HTML de la página de calendario de la RFFM, extrae los últimos ${limite || 10} partidos JUGADOS del equipo "${config.nombre_equipo_rffm}".
+      prompt: `Analiza este HTML de la web de la RFFM y extrae los últimos ${limite || 10} partidos JUGADOS (con resultado) del C.D. BUSTARVIEJO.
 
 HTML:
-${html.substring(0, 50000)}
+${cleanHtml}
 
-Extrae solo partidos YA JUGADOS (con resultado) del equipo "${config.nombre_equipo_rffm}".
+Busca todos los partidos donde aparezca "BUSTARVIEJO" o "C.D. BUSTARVIEJO" como equipo local o visitante que YA TIENEN RESULTADO.
 
-Para cada partido:
-- fecha (formato YYYY-MM-DD)
-- hora (formato HH:MM)
-- local (equipo local)
-- visitante (equipo visitante)
-- resultado (formato "X-Y", ej: "2-1")
-- ubicacion (campo/instalación)
-- jornada (ej: "Jornada 10")
+EXTRAE para cada partido:
+- fecha: formato YYYY-MM-DD (convierte cualquier formato de fecha)
+- local: nombre del equipo local (como aparece en la web)
+- visitante: nombre del equipo visitante (como aparece en la web)
+- goles_local: goles del equipo local (número)
+- goles_visitante: goles del equipo visitante (número)
+- jornada: número de jornada (ej: "Jornada 5")
 
-IMPORTANTE: 
-- Solo partidos FINALIZADOS con resultado
-- Ordenar por fecha descendente (más recientes primero)
-- Máximo ${limite || 10} partidos`,
+IMPORTANTE:
+- Solo partidos FINALIZADOS (que tengan resultado)
+- Ordenar por fecha descendente
+- Si no encuentras la fecha exacta, intenta inferirla del contexto
+- Los goles deben ser números válidos`,
       response_json_schema: {
         type: "object",
         properties: {
-          matches: {
+          partidos: {
             type: "array",
             items: {
               type: "object",
               properties: {
                 fecha: { type: "string" },
-                hora: { type: "string" },
                 local: { type: "string" },
                 visitante: { type: "string" },
-                resultado: { type: "string" },
-                ubicacion: { type: "string" },
+                goles_local: { type: "number" },
+                goles_visitante: { type: "number" },
                 jornada: { type: "string" }
-              }
+              },
+              required: ["local", "visitante", "goles_local", "goles_visitante"]
             }
           }
         }
       }
     });
 
-    if (!llmResponse?.matches || llmResponse.matches.length === 0) {
+    if (!llmResponse?.partidos || llmResponse.partidos.length === 0) {
       return Response.json({
         success: false,
-        error: "No se encontraron resultados"
+        error: "No se encontraron partidos jugados de Bustarviejo en el HTML"
       });
     }
 
-    const ourTeam = config.nombre_equipo_rffm;
-    const results = llmResponse.matches.map(match => {
-      const [golesLocal, golesVisitante] = match.resultado.split('-').map(n => parseInt(n.trim()));
-      const isLocal = match.local.includes("BUSTARVIEJO");
-      const golesFavor = isLocal ? golesLocal : golesVisitante;
-      const golesContra = isLocal ? golesVisitante : golesLocal;
+    const results = llmResponse.partidos.map(partido => {
+      const isLocal = partido.local.toUpperCase().includes('BUSTARVIEJO');
+      const golesFavor = isLocal ? partido.goles_local : partido.goles_visitante;
+      const golesContra = isLocal ? partido.goles_visitante : partido.goles_local;
       
       let resultado;
       if (golesFavor > golesContra) resultado = "Victoria";
@@ -96,16 +98,14 @@ IMPORTANTE:
 
       return {
         categoria: categoria,
-        fecha_partido: match.fecha,
-        hora: match.hora,
-        rival: isLocal ? match.visitante : match.local,
+        fecha_partido: partido.fecha || new Date().toISOString().split('T')[0],
+        rival: isLocal ? partido.visitante : partido.local,
         local_visitante: isLocal ? "Local" : "Visitante",
         goles_favor: golesFavor,
         goles_contra: golesContra,
         resultado: resultado,
-        ubicacion: match.ubicacion,
-        jornada: match.jornada,
-        titulo_partido: `${match.local} vs ${match.visitante}`,
+        jornada: partido.jornada || "",
+        titulo_partido: `${partido.local} vs ${partido.visitante}`,
         fuente: "rffm"
       };
     });
@@ -119,7 +119,8 @@ IMPORTANTE:
         competicion: config.competicion_rffm,
         grupo: config.grupo_rffm,
         temporada: temporada,
-        total_results: results.length
+        total_results: results.length,
+        url_usada: config.url_calendario
       }
     });
 

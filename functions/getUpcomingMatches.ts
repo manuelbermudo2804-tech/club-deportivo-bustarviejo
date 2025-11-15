@@ -30,30 +30,37 @@ Deno.serve(async (req) => {
     const response = await fetch(config.url_calendario);
     const html = await response.text();
 
+    const cleanHtml = html
+      .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
+      .replace(/<style\b[^<]*(?:(?!<\/style>)<[^<]*)*<\/style>/gi, '')
+      .substring(0, 100000);
+
     const today = new Date().toISOString().split('T')[0];
 
     const llmResponse = await base44.asServiceRole.integrations.Core.InvokeLLM({
-      prompt: `Del siguiente HTML de la página de calendario de la RFFM, extrae los próximos partidos del equipo "${config.nombre_equipo_rffm}".
+      prompt: `Analiza este HTML de la web de la RFFM y extrae los próximos partidos (SIN RESULTADO AÚN) del C.D. BUSTARVIEJO.
 
 HTML:
-${html.substring(0, 50000)}
+${cleanHtml}
 
-Extrae solo partidos FUTUROS (desde hoy ${today} en adelante) o de las últimas 2 jornadas.
+Busca partidos donde aparezca "BUSTARVIEJO" o "C.D. BUSTARVIEJO" que NO tienen resultado todavía (partidos futuros o pendientes).
 
-Para cada partido donde juegue "${config.nombre_equipo_rffm}":
-- fecha (formato YYYY-MM-DD)
-- hora (formato HH:MM, puede ser "Por confirmar")
-- local (equipo local)
-- visitante (equipo visitante)
-- ubicacion (campo/instalación donde se juega)
-- jornada (ej: "Jornada 10")
-- resultado (si ya se jugó: "X-Y", si no: null)
+EXTRAE para cada partido:
+- fecha: formato YYYY-MM-DD (hoy es ${today}, busca fechas futuras)
+- hora: formato HH:MM (puede ser "Por confirmar" o vacío)
+- local: nombre del equipo local
+- visitante: nombre del equipo visitante
+- ubicacion: campo/instalación donde se juega
+- jornada: número de jornada (ej: "Jornada 5")
 
-IMPORTANTE: Solo partidos donde juegue "${config.nombre_equipo_rffm}" como local O visitante.`,
+IMPORTANTE:
+- Solo partidos SIN resultado (futuros)
+- Ordenar por fecha ascendente (próximos primero)
+- Máximo 5 partidos`,
       response_json_schema: {
         type: "object",
         properties: {
-          matches: {
+          partidos: {
             type: "array",
             items: {
               type: "object",
@@ -63,31 +70,35 @@ IMPORTANTE: Solo partidos donde juegue "${config.nombre_equipo_rffm}" como local
                 local: { type: "string" },
                 visitante: { type: "string" },
                 ubicacion: { type: "string" },
-                jornada: { type: "string" },
-                resultado: { type: ["string", "null"] }
-              }
+                jornada: { type: "string" }
+              },
+              required: ["local", "visitante"]
             }
           }
         }
       }
     });
 
-    if (!llmResponse?.matches) {
+    if (!llmResponse?.partidos) {
       return Response.json({
         success: false,
-        error: "No se pudieron extraer partidos del HTML"
+        error: "No se pudieron extraer próximos partidos del HTML"
       });
     }
 
-    const ourTeam = config.nombre_equipo_rffm;
-    const matches = llmResponse.matches
-      .filter(m => !m.resultado && m.fecha >= today)
-      .map(match => ({
-        ...match,
+    const matches = llmResponse.partidos
+      .filter(p => !p.fecha || p.fecha >= today)
+      .map(partido => ({
+        fecha: partido.fecha || today,
+        hora: partido.hora || "Por confirmar",
+        local: partido.local,
+        visitante: partido.visitante,
+        ubicacion: partido.ubicacion || "Por confirmar",
+        jornada: partido.jornada || "",
         categoria: categoria,
-        rival: match.local.includes("BUSTARVIEJO") ? match.visitante : match.local,
-        local_visitante: match.local.includes("BUSTARVIEJO") ? "Local" : "Visitante",
-        titulo: `${match.local} vs ${match.visitante}`,
+        rival: partido.local.toUpperCase().includes('BUSTARVIEJO') ? partido.visitante : partido.local,
+        local_visitante: partido.local.toUpperCase().includes('BUSTARVIEJO') ? "Local" : "Visitante",
+        titulo: `${partido.local} vs ${partido.visitante}`,
         fuente: "rffm"
       }))
       .sort((a, b) => a.fecha.localeCompare(b.fecha))
@@ -102,7 +113,8 @@ IMPORTANTE: Solo partidos donde juegue "${config.nombre_equipo_rffm}" como local
         competicion: config.competicion_rffm,
         grupo: config.grupo_rffm,
         temporada: temporada,
-        total_matches: matches.length
+        total_matches: matches.length,
+        url_usada: config.url_calendario
       }
     });
 
