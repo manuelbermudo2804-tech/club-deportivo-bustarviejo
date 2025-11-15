@@ -34,6 +34,9 @@ import CoachAttendance from './pages/CoachAttendance';
 import PlayerEvaluations from './pages/PlayerEvaluations';
 import ClubStats from './pages/ClubStats';
 import PaymentsDashboard from './pages/PaymentsDashboard';
+import Certificates from './pages/Certificates';
+import PlayerCards from './pages/PlayerCards';
+import Surveys from './pages/Surveys';
 import Layout from './Layout.jsx';
 
 
@@ -74,6 +77,9 @@ export const PAGES = {
     "PlayerEvaluations": PlayerEvaluations,
     "ClubStats": ClubStats,
     "PaymentsDashboard": PaymentsDashboard,
+    "Certificates": Certificates,
+    "PlayerCards": PlayerCards,
+    "Surveys": Surveys,
 }
 
 export const pagesConfig = {
