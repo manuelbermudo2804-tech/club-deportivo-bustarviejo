@@ -8,7 +8,6 @@ import { Users, Calendar, Bell, MessageCircle, CreditCard, Image, Megaphone, Clo
 import SocialLinks from "../components/SocialLinks";
 import PushNotificationManager from "../components/push/PushNotificationManager";
 import ActivityTimeline from "../components/dashboard/ActivityTimeline";
-import AttendanceSummary from "../components/dashboard/AttendanceSummary";
 import UpcomingEvents from "../components/dashboard/UpcomingEvents";
 
 export default function ParentDashboard() {
@@ -53,12 +52,6 @@ export default function ParentDashboard() {
   const { data: events } = useQuery({
     queryKey: ['events'],
     queryFn: () => base44.entities.Event.list(),
-    initialData: [],
-  });
-
-  const { data: attendances } = useQuery({
-    queryKey: ['attendances'],
-    queryFn: () => base44.entities.Attendance.list(),
     initialData: [],
   });
 
@@ -175,39 +168,25 @@ export default function ParentDashboard() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-black">
       <div className="px-4 lg:px-8 py-6 space-y-6">
-        {/* Social Links */}
         <SocialLinks />
 
-        {/* Botón de notificaciones push - solo visible en móvil, con z-index alto */}
         <div className="lg:hidden relative z-50">
           <PushNotificationManager />
         </div>
 
-        {/* Dashboard Widgets */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           <ActivityTimeline 
             payments={myPayments}
             callups={upcomingCallups}
             messages={messages.filter(m => !m.leido)}
-            events={events}
           />
           
-          <div className="space-y-6">
-            {myPlayers[0] && (
-              <AttendanceSummary 
-                player={myPlayers[0]}
-                attendances={attendances}
-              />
-            )}
-            
-            <UpcomingEvents 
-              events={events}
-              myPlayers={myPlayers}
-            />
-          </div>
+          <UpcomingEvents 
+            events={events}
+            myPlayers={myPlayers}
+          />
         </div>
 
-        {/* Menu Items */}
         <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6">
           {menuItems.map((item, index) => (
             <Link key={index} to={item.url} className="group">
@@ -238,7 +217,6 @@ export default function ParentDashboard() {
           ))}
         </div>
 
-        {/* Summary Stats */}
         <div className="bg-slate-800 rounded-3xl p-6 shadow-2xl border-2 border-slate-700">
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
             <div className="text-center">
