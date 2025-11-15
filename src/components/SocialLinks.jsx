@@ -1,45 +1,35 @@
 import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Facebook, Instagram, Twitter, Youtube, Share2 } from "lucide-react";
+import { Facebook, Instagram, Globe, Share2 } from "lucide-react";
 
 export default function SocialLinks() {
-  // URLs de redes sociales - Se pueden actualizar fácilmente
   const socialLinks = [
     {
+      name: "Web Oficial",
+      url: "https://www.cdbustarviejo.com",
+      icon: Globe,
+      color: "bg-orange-600 hover:bg-orange-700",
+      enabled: true
+    },
+    {
       name: "Facebook",
-      url: "#", // URL pendiente
+      url: "https://www.facebook.com/cdbustarviejo",
       icon: Facebook,
       color: "bg-blue-600 hover:bg-blue-700",
-      enabled: false // Cambiar a true cuando tengas el enlace
+      enabled: true
     },
     {
       name: "Instagram",
-      url: "#", // URL pendiente
+      url: "https://www.instagram.com/cdbustarviejo",
       icon: Instagram,
       color: "bg-gradient-to-br from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700",
-      enabled: false // Cambiar a true cuando tengas el enlace
-    },
-    {
-      name: "Twitter/X",
-      url: "#", // URL pendiente
-      icon: Twitter,
-      color: "bg-slate-900 hover:bg-slate-800",
-      enabled: false // Cambiar a true cuando tengas el enlace
-    },
-    {
-      name: "YouTube",
-      url: "#", // URL pendiente
-      icon: Youtube,
-      color: "bg-red-600 hover:bg-red-700",
-      enabled: false // Cambiar a true cuando tengas el enlace
+      enabled: true
     }
   ];
 
-  // Filtrar solo las redes sociales habilitadas
   const enabledLinks = socialLinks.filter(link => link.enabled);
 
-  // Si no hay redes sociales habilitadas, no mostrar el componente
   if (enabledLinks.length === 0) {
     return null;
   }
@@ -53,7 +43,7 @@ export default function SocialLinks() {
         </CardTitle>
       </CardHeader>
       <CardContent className="pt-6">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {enabledLinks.map((social) => (
             <a
               key={social.name}
@@ -72,7 +62,7 @@ export default function SocialLinks() {
           ))}
         </div>
         <p className="text-center text-sm text-slate-500 mt-4">
-          Mantente al día con todas las novedades del club
+          🌟 Mantente al día con todas las novedades del club
         </p>
       </CardContent>
     </Card>
