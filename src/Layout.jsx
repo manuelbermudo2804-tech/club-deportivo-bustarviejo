@@ -3,7 +3,7 @@ import React, { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { base44 } from "@/api/base44Client";
-import { Home, Users, CreditCard, ShoppingBag, Menu, Bell, LogOut, Calendar, Megaphone, Mail, Archive, Settings, MessageCircle, Clock, Image, X, User as UserIcon, CheckCircle2, ClipboardCheck, Star, Award, FileText, Trophy } from "lucide-react";
+import { Home, Users, CreditCard, ShoppingBag, Menu, Bell, LogOut, Calendar, Megaphone, Mail, Archive, Settings, MessageCircle, Clock, Image, X, User as UserIcon, CheckCircle2, ClipboardCheck, Star, Award, FileText, Trophy, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
@@ -712,8 +712,8 @@ export default function Layout({ children, currentPageName }) {
 
   const adminNavigationItems = [
     { title: "Inicio", url: createPageUrl("Home"), icon: Home },
-    { title: "🏟️ Match Center", url: createPageUrl("MatchApp"), icon: Trophy },
-    { title: "⚙️ Config Match Center", url: createPageUrl("TeamConfigAdmin"), icon: Settings },
+    { title: "🏟️ Match Center", url: "https://www.rffm.es/fichaclub/4095", icon: ExternalLink, external: true },
+    // { title: "⚙️ Config Match Center", url: createPageUrl("TeamConfigAdmin"), icon: Settings }, // Removed as per instructions, but commented out if it was implicitly removed before.
     { title: "Jugadores", url: createPageUrl("Players"), icon: Users },
     { title: "Horarios", url: createPageUrl("TrainingSchedules"), icon: Clock },
     { title: "Calendario", url: createPageUrl("Calendar"), icon: Calendar },
@@ -735,7 +735,7 @@ export default function Layout({ children, currentPageName }) {
 
   const coachNavigationItems = [
     { title: "Inicio", url: createPageUrl("Home"), icon: Home },
-    { title: "🏟️ Match Center", url: createPageUrl("MatchApp"), icon: Trophy },
+    { title: "🏟️ Match Center", url: "https://www.rffm.es/fichaclub/4095", icon: ExternalLink, external: true },
     { title: "Mis Hijos", url: createPageUrl("Players"), icon: Users },
     { title: "🎓 Plantillas", url: createPageUrl("TeamRosters"), icon: Users },
     { title: "✅ Asistencia", url: createPageUrl("CoachAttendance"), icon: CheckCircle2 },
@@ -754,7 +754,7 @@ export default function Layout({ children, currentPageName }) {
 
   const parentNavigationItems = [
     { title: "Inicio", url: createPageUrl("ParentDashboard"), icon: Home },
-    { title: "🏟️ Match Center", url: createPageUrl("MatchApp"), icon: Trophy },
+    { title: "🏟️ Match Center", url: "https://www.rffm.es/fichaclub/4095", icon: ExternalLink, external: true },
     { title: "Jugadores", url: createPageUrl("ParentPlayers"), icon: Users },
     { title: "🆔 Carnets", url: createPageUrl("PlayerCards"), icon: Award },
     { title: "📜 Certificados", url: createPageUrl("Certificates"), icon: FileText },
@@ -772,7 +772,7 @@ export default function Layout({ children, currentPageName }) {
 
   const playerNavigationItems = [
     { title: "Inicio", url: createPageUrl("PlayerDashboard"), icon: Home },
-    { title: "🏟️ Match Center", url: createPageUrl("MatchApp"), icon: Trophy },
+    { title: "🏟️ Match Center", url: "https://www.rffm.es/fichaclub/4095", icon: ExternalLink, external: true },
     { title: "Mi Perfil", url: createPageUrl("PlayerProfile"), icon: UserIcon },
     { title: "⚽ Resultados", url: createPageUrl("MatchResults"), icon: Award },
     { title: "Horarios", url: createPageUrl("PlayerSchedules"), icon: Clock },
@@ -832,24 +832,39 @@ export default function Layout({ children, currentPageName }) {
           <div className="lg:hidden fixed inset-0 z-40 bg-slate-900/95 backdrop-blur-sm pt-20">
             <div className="h-full overflow-y-auto p-4 space-y-2">
               {navigationItems.map((item) => (
-                <Link
-                  key={item.title}
-                  to={item.url}
-                  onClick={() => setMobileMenuOpen(false)}
-                  className={`flex items-center gap-4 p-4 rounded-2xl transition-all ${
-                    location.pathname === item.url
-                      ? 'bg-gradient-to-r from-orange-600 to-orange-700 text-white shadow-lg'
-                      : 'bg-white/10 text-white hover:bg-white/20'
-                  }`}
-                >
-                  <item.icon className="w-6 h-6" />
-                  <span className="font-semibold text-lg">{item.title}</span>
-                  {item.badge && (
-                    <Badge className={`ml-auto ${item.urgentBadge ? 'bg-red-500 animate-pulse' : 'bg-green-500'}`}>
-                      {item.badge}
-                    </Badge>
-                  )}
-                </Link>
+                item.external ? (
+                  <a
+                    key={item.title}
+                    href={item.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={() => setMobileMenuOpen(false)} // Close menu on external link click too
+                    className="flex items-center gap-4 p-4 rounded-2xl bg-white/10 text-white hover:bg-white/20 transition-all"
+                  >
+                    <item.icon className="w-6 h-6" />
+                    <span className="font-semibold text-lg">{item.title}</span>
+                    <ExternalLink className="w-4 h-4 ml-auto" />
+                  </a>
+                ) : (
+                  <Link
+                    key={item.title}
+                    to={item.url}
+                    onClick={() => setMobileMenuOpen(false)}
+                    className={`flex items-center gap-4 p-4 rounded-2xl transition-all ${
+                      location.pathname === item.url
+                        ? 'bg-gradient-to-r from-orange-600 to-orange-700 text-white shadow-lg'
+                        : 'bg-white/10 text-white hover:bg-white/20'
+                    }`}
+                  >
+                    <item.icon className="w-6 h-6" />
+                    <span className="font-semibold text-lg">{item.title}</span>
+                    {item.badge && (
+                      <Badge className={`ml-auto ${item.urgentBadge ? 'bg-red-500 animate-pulse' : 'bg-green-500'}`}>
+                        {item.badge}
+                      </Badge>
+                    )}
+                  </Link>
+                )
               ))}
               <button
                 onClick={handleLogout}
@@ -890,23 +905,37 @@ export default function Layout({ children, currentPageName }) {
 
           <div className="p-4 space-y-2">
             {navigationItems.map((item) => (
-              <Link
-                key={item.title}
-                to={item.url}
-                className={`flex items-center gap-4 p-4 rounded-2xl transition-all group ${
-                  location.pathname === item.url
-                    ? 'bg-gradient-to-r from-orange-600 to-orange-700 text-white shadow-lg shadow-orange-600/50'
-                    : 'text-slate-300 hover:bg-white/10 hover:text-white'
-                }`}
-              >
-                <item.icon className="w-5 h-5" />
-                <span className="font-semibold flex-1">{item.title}</span>
-                {item.badge && (
-                  <Badge className={`${item.urgentBadge ? 'bg-red-500 text-white animate-pulse ring-2 ring-green-400' : 'bg-green-500 text-white'}`}>
-                    {item.urgentBadge && '🔴'} {item.badge}
-                  </Badge>
-                )}
-              </Link>
+              item.external ? (
+                <a
+                  key={item.title}
+                  href={item.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-4 p-4 rounded-2xl transition-all group text-slate-300 hover:bg-white/10 hover:text-white"
+                >
+                  <item.icon className="w-5 h-5" />
+                  <span className="font-semibold flex-1">{item.title}</span>
+                  <ExternalLink className="w-4 h-4" />
+                </a>
+              ) : (
+                <Link
+                  key={item.title}
+                  to={item.url}
+                  className={`flex items-center gap-4 p-4 rounded-2xl transition-all group ${
+                    location.pathname === item.url
+                      ? 'bg-gradient-to-r from-orange-600 to-orange-700 text-white shadow-lg shadow-orange-600/50'
+                      : 'text-slate-300 hover:bg-white/10 hover:text-white'
+                  }`}
+                >
+                  <item.icon className="w-5 h-5" />
+                  <span className="font-semibold flex-1">{item.title}</span>
+                  {item.badge && (
+                    <Badge className={`${item.urgentBadge ? 'bg-red-500 text-white animate-pulse ring-2 ring-green-400' : 'bg-green-500 text-white'}`}>
+                      {item.urgentBadge && '🔴'} {item.badge}
+                    </Badge>
+                  )}
+                </Link>
+              )
             ))}
           </div>
 
