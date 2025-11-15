@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Bell, Check, X, AlertCircle, Calendar, CreditCard, MessageCircle, Users } from "lucide-react";
+import { Bell, Check, AlertCircle, Calendar, CreditCard, MessageCircle, Megaphone, DollarSign, Clock } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
@@ -58,6 +58,12 @@ export default function NotificationCenter() {
     initialData: [],
   });
 
+  const { data: reminders } = useQuery({
+    queryKey: ['reminders'],
+    queryFn: () => base44.entities.Reminder.list('-fecha_envio'),
+    initialData: [],
+  });
+
   const markMessageAsReadMutation = useMutation({
     mutationFn: ({ id, message }) => base44.entities.ChatMessage.update(id, { ...message, leido: true }),
     onSuccess: () => {
@@ -71,11 +77,14 @@ export default function NotificationCenter() {
 
   const myGroupSports = [...new Set(myPlayers.map(p => p.deporte))];
 
-  // Filter notifications
+  // Messages
   const unreadMessages = messages.filter(m => 
     !m.leido && m.tipo === "admin_a_grupo" && myGroupSports.includes(m.grupo_id || m.deporte)
   );
 
+  const urgentMessages = unreadMessages.filter(m => m.prioridad === "Urgente");
+
+  // Callups
   const today = new Date().toISOString().split('T')[0];
   const pendingCallups = callups.filter(c => {
     if (!c.publicada || c.fecha_partido < today || c.cerrada) return false;
@@ -85,36 +94,52 @@ export default function NotificationCenter() {
     });
   });
 
+  // Announcements (recent)
   const recentAnnouncements = announcements.filter(a => {
     if (!a.publicado) return false;
+    if (a.destinatarios_tipo !== "Todos" && !myGroupSports.includes(a.destinatarios_tipo)) return false;
     const daysAgo = Math.floor((new Date() - new Date(a.fecha_publicacion)) / (1000 * 60 * 60 * 24));
-    return daysAgo <= 7;
-  }).slice(0, 10);
+    return daysAgo <= 3;
+  }).slice(0, 5);
 
+  const urgentAnnouncements = recentAnnouncements.filter(a => a.prioridad === "Urgente");
+
+  // Payments
   const pendingPayments = payments.filter(p => 
     myPlayers.some(player => player.id === p.jugador_id) && p.estado === "Pendiente"
   );
 
-  const totalNotifications = unreadMessages.length + pendingCallups.length + pendingPayments.length;
+  // Payment reminders due soon
+  const upcomingReminders = reminders.filter(r => {
+    if (r.enviado) return false;
+    const reminderDate = new Date(r.fecha_envio);
+    const daysUntil = Math.ceil((reminderDate - new Date()) / (1000 * 60 * 60 * 24));
+    return daysUntil >= 0 && daysUntil <= 3 && myPlayers.some(p => p.id === r.jugador_id);
+  });
+
+  const criticalNotifications = urgentMessages.length + urgentAnnouncements.length + pendingPayments.length;
+  const totalNotifications = unreadMessages.length + pendingCallups.length + pendingPayments.length + recentAnnouncements.length;
 
   const getNotificationIcon = (type) => {
     switch(type) {
       case "message": return MessageCircle;
       case "callup": return Bell;
-      case "announcement": return AlertCircle;
+      case "announcement": return Megaphone;
       case "payment": return CreditCard;
+      case "reminder": return Clock;
       default: return Bell;
     }
   };
 
   const getNotificationColor = (type, priority) => {
-    if (priority === "Urgente") return "text-red-600";
+    if (priority === "Urgente") return "text-red-600 bg-red-50";
     switch(type) {
-      case "message": return "text-blue-600";
-      case "callup": return "text-orange-600";
-      case "announcement": return "text-purple-600";
-      case "payment": return "text-green-600";
-      default: return "text-slate-600";
+      case "message": return "text-blue-600 bg-blue-50";
+      case "callup": return "text-orange-600 bg-orange-50";
+      case "announcement": return "text-purple-600 bg-purple-50";
+      case "payment": return "text-green-600 bg-green-50";
+      case "reminder": return "text-yellow-600 bg-yellow-50";
+      default: return "text-slate-600 bg-slate-50";
     }
   };
 
@@ -126,9 +151,9 @@ export default function NotificationCenter() {
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
         <Button variant="ghost" size="icon" className="relative">
-          <Bell className="w-5 h-5" />
+          <Bell className={`w-5 h-5 ${criticalNotifications > 0 ? 'animate-pulse text-red-600' : ''}`} />
           {totalNotifications > 0 && (
-            <Badge className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 bg-red-500 text-white text-xs">
+            <Badge className={`absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 ${criticalNotifications > 0 ? 'bg-red-500 animate-pulse' : 'bg-orange-500'} text-white text-xs`}>
               {totalNotifications > 9 ? "9+" : totalNotifications}
             </Badge>
           )}
@@ -140,51 +165,128 @@ export default function NotificationCenter() {
             <Bell className="w-5 h-5 text-orange-600" />
             Centro de Notificaciones
             {totalNotifications > 0 && (
-              <Badge className="bg-red-500 text-white">{totalNotifications}</Badge>
+              <Badge className="bg-orange-500 text-white">{totalNotifications}</Badge>
+            )}
+            {criticalNotifications > 0 && (
+              <Badge className="bg-red-500 text-white animate-pulse">🔴 {criticalNotifications} urgentes</Badge>
             )}
           </DialogTitle>
         </DialogHeader>
 
         <Tabs defaultValue="all" className="w-full">
-          <TabsList className="w-full">
-            <TabsTrigger value="all" className="flex-1">
+          <TabsList className="w-full grid grid-cols-5 gap-1">
+            <TabsTrigger value="all" className="text-xs">
               Todas ({totalNotifications})
             </TabsTrigger>
-            <TabsTrigger value="messages" className="flex-1">
-              Mensajes ({unreadMessages.length})
+            <TabsTrigger value="messages" className="text-xs">
+              💬 ({unreadMessages.length})
             </TabsTrigger>
-            <TabsTrigger value="callups" className="flex-1">
-              Convocatorias ({pendingCallups.length})
+            <TabsTrigger value="callups" className="text-xs">
+              🏆 ({pendingCallups.length})
             </TabsTrigger>
-            <TabsTrigger value="payments" className="flex-1">
-              Pagos ({pendingPayments.length})
+            <TabsTrigger value="payments" className="text-xs">
+              💰 ({pendingPayments.length})
+            </TabsTrigger>
+            <TabsTrigger value="announcements" className="text-xs">
+              📢 ({recentAnnouncements.length})
             </TabsTrigger>
           </TabsList>
 
           <TabsContent value="all" className="space-y-3 mt-4">
-            {/* Unread Messages */}
-            {unreadMessages.map(msg => {
+            {/* Critical Alerts */}
+            {criticalNotifications > 0 && (
+              <div className="p-3 bg-red-50 border-2 border-red-300 rounded-lg mb-4">
+                <div className="flex items-center gap-2 text-red-900 font-bold mb-2">
+                  <AlertCircle className="w-5 h-5 animate-pulse" />
+                  Notificaciones Urgentes ({criticalNotifications})
+                </div>
+              </div>
+            )}
+
+            {/* Urgent Messages */}
+            {urgentMessages.map(msg => {
               const Icon = getNotificationIcon("message");
               return (
-                <div key={msg.id} className="flex items-start gap-3 p-3 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors">
-                  <Icon className={`w-5 h-5 ${getNotificationColor("message", msg.prioridad)} mt-1`} />
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-1">
-                      <p className="text-sm font-semibold text-slate-900">{msg.remitente_nombre}</p>
-                      {msg.prioridad === "Urgente" && (
-                        <Badge className="bg-red-500 text-white text-xs">Urgente</Badge>
-                      )}
+                <Link key={msg.id} to={createPageUrl("ParentChat")}>
+                  <div className={`flex items-start gap-3 p-3 rounded-lg hover:opacity-80 transition-all border-2 border-red-300 ${getNotificationColor("message", "Urgente")}`}>
+                    <Icon className="w-5 h-5 text-red-600 mt-1 animate-pulse" />
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-1">
+                        <p className="text-sm font-semibold text-slate-900">{msg.remitente_nombre}</p>
+                        <Badge className="bg-red-500 text-white text-xs animate-pulse">🚨 Urgente</Badge>
+                      </div>
+                      <p className="text-sm text-slate-700">{msg.mensaje.substring(0, 100)}...</p>
+                      <p className="text-xs text-slate-500 mt-1">
+                        {format(new Date(msg.created_date), "dd MMM, HH:mm", { locale: es })}
+                      </p>
                     </div>
+                  </div>
+                </Link>
+              );
+            })}
+
+            {/* Urgent Announcements */}
+            {urgentAnnouncements.map(ann => (
+              <Link key={ann.id} to={createPageUrl("Announcements")}>
+                <div className={`flex items-start gap-3 p-3 rounded-lg hover:opacity-80 transition-all border-2 border-red-300 ${getNotificationColor("announcement", "Urgente")}`}>
+                  <Megaphone className="w-5 h-5 text-red-600 mt-1 animate-pulse" />
+                  <div className="flex-1">
+                    <Badge className="bg-red-500 text-white text-xs mb-2 animate-pulse">🚨 Anuncio Urgente</Badge>
+                    <p className="text-sm font-semibold text-slate-900">{ann.titulo}</p>
+                    <p className="text-xs text-slate-500 mt-1">
+                      {format(new Date(ann.fecha_publicacion), "dd MMM, HH:mm", { locale: es })}
+                    </p>
+                  </div>
+                </div>
+              </Link>
+            ))}
+
+            {/* Pending Payments */}
+            {pendingPayments.map(payment => {
+              const Icon = getNotificationIcon("payment");
+              return (
+                <Link key={payment.id} to={createPageUrl("ParentPayments")}>
+                  <div className={`flex items-start gap-3 p-3 rounded-lg hover:opacity-80 transition-all ${getNotificationColor("payment")}`}>
+                    <Icon className="w-5 h-5 text-green-600 mt-1" />
+                    <div className="flex-1">
+                      <p className="text-sm font-semibold text-slate-900">💰 Pago Pendiente</p>
+                      <p className="text-sm text-slate-700">{payment.jugador_nombre} - {payment.mes}</p>
+                      <p className="text-xs text-slate-500 mt-1">{payment.cantidad}€</p>
+                    </div>
+                    <Badge className="bg-red-500 text-white">Pagar</Badge>
+                  </div>
+                </Link>
+              );
+            })}
+
+            {/* Upcoming Reminders */}
+            {upcomingReminders.map(reminder => (
+              <Link key={reminder.id} to={createPageUrl("ParentPayments")}>
+                <div className={`flex items-start gap-3 p-3 rounded-lg hover:opacity-80 transition-all ${getNotificationColor("reminder")}`}>
+                  <Clock className="w-5 h-5 text-yellow-600 mt-1" />
+                  <div className="flex-1">
+                    <p className="text-sm font-semibold text-slate-900">⏰ Recordatorio de Pago Próximo</p>
+                    <p className="text-sm text-slate-700">{reminder.jugador_nombre} - {reminder.mes_pago}</p>
+                    <p className="text-xs text-slate-500 mt-1">Vence: {format(new Date(reminder.fecha_envio), "dd MMM", { locale: es })}</p>
+                  </div>
+                </div>
+              </Link>
+            ))}
+
+            {/* Regular Messages */}
+            {unreadMessages.filter(m => m.prioridad !== "Urgente").map(msg => {
+              const Icon = getNotificationIcon("message");
+              return (
+                <div key={msg.id} className={`flex items-start gap-3 p-3 rounded-lg hover:opacity-80 transition-all ${getNotificationColor("message", msg.prioridad)}`}>
+                  <Icon className="w-5 h-5 text-blue-600 mt-1" />
+                  <div className="flex-1">
+                    <p className="text-sm font-semibold text-slate-900">{msg.remitente_nombre}</p>
                     <p className="text-sm text-slate-700">{msg.mensaje.substring(0, 100)}...</p>
                     <p className="text-xs text-slate-500 mt-1">
                       {format(new Date(msg.created_date), "dd MMM, HH:mm", { locale: es })}
                     </p>
                   </div>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => handleMarkAsRead(msg)}
-                  >
+                  <Button variant="ghost" size="sm" onClick={() => handleMarkAsRead(msg)}>
                     <Check className="w-4 h-4" />
                   </Button>
                 </div>
@@ -196,47 +298,46 @@ export default function NotificationCenter() {
               const Icon = getNotificationIcon("callup");
               return (
                 <Link key={callup.id} to={createPageUrl("ParentCallups")}>
-                  <div className="flex items-start gap-3 p-3 bg-orange-50 rounded-lg hover:bg-orange-100 transition-colors cursor-pointer">
-                    <Icon className={`w-5 h-5 ${getNotificationColor("callup")} mt-1`} />
+                  <div className={`flex items-start gap-3 p-3 rounded-lg hover:opacity-80 transition-all ${getNotificationColor("callup")}`}>
+                    <Icon className="w-5 h-5 text-orange-600 mt-1" />
                     <div className="flex-1">
-                      <p className="text-sm font-semibold text-slate-900">Convocatoria Pendiente</p>
+                      <p className="text-sm font-semibold text-slate-900">🏆 Convocatoria Pendiente</p>
                       <p className="text-sm text-slate-700">{callup.titulo}</p>
                       <p className="text-xs text-slate-500 mt-1">
                         {format(new Date(callup.fecha_partido), "dd 'de' MMMM", { locale: es })} - {callup.hora_partido}
                       </p>
                     </div>
-                    <Badge className="bg-orange-500 text-white">¡Confirmar!</Badge>
+                    <Badge className="bg-orange-500 text-white">Confirmar</Badge>
                   </div>
                 </Link>
               );
             })}
 
-            {/* Pending Payments */}
-            {pendingPayments.map(payment => {
-              const Icon = getNotificationIcon("payment");
-              return (
-                <Link key={payment.id} to={createPageUrl("ParentPayments")}>
-                  <div className="flex items-start gap-3 p-3 bg-green-50 rounded-lg hover:bg-green-100 transition-colors cursor-pointer">
-                    <Icon className={`w-5 h-5 ${getNotificationColor("payment")} mt-1`} />
-                    <div className="flex-1">
-                      <p className="text-sm font-semibold text-slate-900">Pago Pendiente</p>
-                      <p className="text-sm text-slate-700">{payment.jugador_nombre} - {payment.mes}</p>
-                      <p className="text-xs text-slate-500 mt-1">{payment.cantidad}€</p>
-                    </div>
-                    <Badge className="bg-green-500 text-white">Pagar</Badge>
+            {/* Recent Announcements */}
+            {recentAnnouncements.filter(a => a.prioridad !== "Urgente").map(ann => (
+              <Link key={ann.id} to={createPageUrl("Announcements")}>
+                <div className={`flex items-start gap-3 p-3 rounded-lg hover:opacity-80 transition-all ${getNotificationColor("announcement", ann.prioridad)}`}>
+                  <Megaphone className="w-5 h-5 text-purple-600 mt-1" />
+                  <div className="flex-1">
+                    <p className="text-sm font-semibold text-slate-900">📢 {ann.titulo}</p>
+                    <p className="text-xs text-slate-500 mt-1">
+                      {format(new Date(ann.fecha_publicacion), "dd MMM, HH:mm", { locale: es })}
+                    </p>
                   </div>
-                </Link>
-              );
-            })}
+                </div>
+              </Link>
+            ))}
 
             {totalNotifications === 0 && (
               <div className="text-center py-12">
                 <Check className="w-16 h-16 text-green-500 mx-auto mb-3" />
-                <p className="text-slate-600">¡Todo al día! No hay notificaciones pendientes</p>
+                <p className="text-slate-600 font-medium">¡Todo al día!</p>
+                <p className="text-sm text-slate-500">No hay notificaciones pendientes</p>
               </div>
             )}
           </TabsContent>
 
+          {/* Keep existing tab contents for messages, callups, payments, and add announcements */}
           <TabsContent value="messages" className="space-y-3 mt-4">
             {unreadMessages.length === 0 ? (
               <div className="text-center py-12">
@@ -303,7 +404,33 @@ export default function NotificationCenter() {
                       <p className="text-sm text-slate-700">{payment.mes} - {payment.cantidad}€</p>
                       <p className="text-xs text-slate-500 mt-1">{payment.temporada}</p>
                     </div>
-                    <Badge className="bg-green-500 text-white">Pagar</Badge>
+                    <Badge className="bg-red-500 text-white">Pagar</Badge>
+                  </div>
+                </Link>
+              ))
+            )}
+          </TabsContent>
+
+          <TabsContent value="announcements" className="space-y-3 mt-4">
+            {recentAnnouncements.length === 0 ? (
+              <div className="text-center py-12">
+                <Megaphone className="w-16 h-16 text-purple-500 mx-auto mb-3" />
+                <p className="text-slate-600">No hay anuncios recientes</p>
+              </div>
+            ) : (
+              recentAnnouncements.map(ann => (
+                <Link key={ann.id} to={createPageUrl("Announcements")}>
+                  <div className={`flex items-start gap-3 p-3 rounded-lg hover:opacity-80 transition-all ${ann.prioridad === "Urgente" ? "bg-red-50 border-2 border-red-300" : "bg-purple-50"}`}>
+                    <Megaphone className={`w-5 h-5 mt-1 ${ann.prioridad === "Urgente" ? "text-red-600" : "text-purple-600"}`} />
+                    <div className="flex-1">
+                      {ann.prioridad === "Urgente" && (
+                        <Badge className="bg-red-500 text-white text-xs mb-2">🚨 Urgente</Badge>
+                      )}
+                      <p className="text-sm font-semibold text-slate-900">{ann.titulo}</p>
+                      <p className="text-xs text-slate-500 mt-1">
+                        {format(new Date(ann.fecha_publicacion), "dd MMM, HH:mm", { locale: es })}
+                      </p>
+                    </div>
                   </div>
                 </Link>
               ))

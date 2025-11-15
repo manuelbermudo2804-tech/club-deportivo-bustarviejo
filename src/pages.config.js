@@ -33,6 +33,7 @@ import TeamRosters from './pages/TeamRosters';
 import CoachAttendance from './pages/CoachAttendance';
 import PlayerEvaluations from './pages/PlayerEvaluations';
 import ClubStats from './pages/ClubStats';
+import PaymentsDashboard from './pages/PaymentsDashboard';
 import Layout from './Layout.jsx';
 
 
@@ -72,6 +73,7 @@ export const PAGES = {
     "CoachAttendance": CoachAttendance,
     "PlayerEvaluations": PlayerEvaluations,
     "ClubStats": ClubStats,
+    "PaymentsDashboard": PaymentsDashboard,
 }
 
 export const pagesConfig = {
