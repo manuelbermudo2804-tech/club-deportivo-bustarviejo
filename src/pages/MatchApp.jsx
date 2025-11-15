@@ -4,32 +4,21 @@ import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Trophy, Calendar, Target, TrendingUp } from "lucide-react";
+import { Trophy, Calendar, Target, TrendingUp, Settings } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
-const CATEGORIES = [
-  "Fútbol Pre-Benjamín (Mixto)",
-  "Fútbol Benjamín (Mixto)",
-  "Fútbol Alevín (Mixto)",
-  "Fútbol Infantil (Mixto)",
-  "Fútbol Cadete",
-  "Fútbol Juvenil",
-  "Fútbol Aficionado",
-  "Fútbol Femenino",
-  "Baloncesto (Mixto)"
-];
-
-function CategoryCard({ categoria }) {
+function CategoryCard({ config }) {
   const today = new Date().toISOString().split('T')[0];
 
   const { data: results } = useQuery({
-    queryKey: ['matchResults', categoria],
-    queryFn: () => base44.entities.MatchResult.filter({ categoria }, '-fecha_partido', 5),
+    queryKey: ['matchResults', config.categoria_interna],
+    queryFn: () => base44.entities.MatchResult.filter({ categoria: config.categoria_interna }, '-fecha_partido', 5),
     initialData: [],
   });
 
   const { data: callups } = useQuery({
-    queryKey: ['convocatorias', categoria],
-    queryFn: () => base44.entities.Convocatoria.filter({ categoria, publicada: true }),
+    queryKey: ['convocatorias', config.categoria_interna],
+    queryFn: () => base44.entities.Convocatoria.filter({ categoria: config.categoria_interna, publicada: true }),
     initialData: [],
   });
 
@@ -51,7 +40,10 @@ function CategoryCard({ categoria }) {
   return (
     <Card className="border-2 border-slate-200 hover:border-orange-300 transition-all">
       <CardHeader className="bg-gradient-to-r from-slate-900 to-black text-white">
-        <CardTitle className="text-lg">{categoria}</CardTitle>
+        <CardTitle className="text-lg">{config.categoria_interna}</CardTitle>
+        <p className="text-xs text-green-400 mt-1">
+          {config.competicion_rffm} {config.grupo_rffm && `- ${config.grupo_rffm}`}
+        </p>
       </CardHeader>
       <CardContent className="p-4">
         <Tabs defaultValue="resultados" className="w-full">
@@ -170,14 +162,45 @@ function CategoryCard({ categoria }) {
 
 export default function MatchApp() {
   const [refreshKey, setRefreshKey] = useState(0);
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  const { data: teamConfigs, isLoading } = useQuery({
+    queryKey: ['teamConfigs', refreshKey],
+    queryFn: () => base44.entities.TeamConfig.filter({ activo: true, temporada: "2024-2025" }),
+    initialData: [],
+    refetchInterval: 60000,
+  });
+
+  useEffect(() => {
+    const checkAdmin = async () => {
+      try {
+        const user = await base44.auth.me();
+        setIsAdmin(user.role === "admin");
+      } catch (error) {
+        setIsAdmin(false);
+      }
+    };
+    checkAdmin();
+  }, []);
 
   useEffect(() => {
     const interval = setInterval(() => {
       setRefreshKey(prev => prev + 1);
-    }, 60000); // Refresh cada minuto
+    }, 60000);
 
     return () => clearInterval(interval);
   }, []);
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-black to-green-950 flex items-center justify-center">
+        <div className="text-white text-center">
+          <div className="inline-block h-12 w-12 animate-spin rounded-full border-4 border-solid border-orange-600 border-r-transparent mb-4"></div>
+          <p>Cargando Match Center...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-black to-green-950 p-4">
@@ -201,11 +224,27 @@ export default function MatchApp() {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" key={refreshKey}>
-          {CATEGORIES.map(categoria => (
-            <CategoryCard key={categoria} categoria={categoria} />
-          ))}
-        </div>
+        {teamConfigs.length === 0 ? (
+          <Alert className="bg-orange-500/20 border-orange-500">
+            <AlertDescription className="text-white">
+              <div className="flex items-start gap-3">
+                <Settings className="w-5 h-5 mt-0.5" />
+                <div>
+                  <p className="font-semibold mb-2">⚙️ Configuración necesaria</p>
+                  <p className="text-sm">
+                    No hay equipos configurados. {isAdmin ? 'Ve a la sección de configuración y crea registros en TeamConfig para mapear tus categorías a los equipos de la RFFM.' : 'Contacta con el administrador para configurar los equipos.'}
+                  </p>
+                </div>
+              </div>
+            </AlertDescription>
+          </Alert>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" key={refreshKey}>
+            {teamConfigs.map(config => (
+              <CategoryCard key={config.id} config={config} />
+            ))}
+          </div>
+        )}
 
         <div className="text-center text-slate-400 text-xs py-4">
           <p>Actualización automática cada minuto</p>
