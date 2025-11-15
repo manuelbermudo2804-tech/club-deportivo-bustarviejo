@@ -118,7 +118,7 @@ export default function Home() {
       
       setTimeout(() => {
         document.body.removeChild(iframe);
-        window.open(storeUrl, '_blank');
+        window.location.href = storeUrl;
       }, 1000);
     } else {
       window.open("https://www.matchapp.com", "_blank");
