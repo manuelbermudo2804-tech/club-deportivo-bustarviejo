@@ -11,6 +11,17 @@ import { es } from "date-fns/locale";
 
 const CLUB_LOGO_URL = "https://www.cdbustarviejo.com/uploads/2/4/0/4/2404974/logo-cd-bustarviejo-cuadrado-xpeq_orig.png";
 
+const getCurrentSeason = () => {
+  const now = new Date();
+  const currentYear = now.getFullYear();
+  const currentMonth = now.getMonth() + 1;
+  
+  if (currentMonth >= 9) {
+    return `${currentYear}/${currentYear + 1}`;
+  }
+  return `${currentYear - 1}/${currentYear}`;
+};
+
 export default function Certificates() {
   const [user, setUser] = useState(null);
   const [myPlayers, setMyPlayers] = useState([]);
@@ -47,7 +58,7 @@ export default function Certificates() {
     setGenerating(true);
     try {
       const doc = new jsPDF();
-      const season = "2024/2025";
+      const season = getCurrentSeason();
       const codigo = `CD-${Date.now()}-${player.id.substring(0, 8)}`;
       
       // Header con fondo naranja
