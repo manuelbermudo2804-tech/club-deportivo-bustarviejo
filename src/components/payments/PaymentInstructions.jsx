@@ -2,12 +2,11 @@ import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Copy, CheckCircle2, QrCode, CreditCard, Info, Smartphone } from "lucide-react";
+import { Copy, CheckCircle2, QrCode, CreditCard, Info } from "lucide-react";
 import { toast } from "sonner";
 
 const CLUB_IBAN = "ES82 0049 4447 38 2010604048";
 const CLUB_BANK = "Banco Santander";
-const CLUB_EMAIL = "cdbustarviejo@gmail.com";
 
 export default function PaymentInstructions({ playerName, playerCategory, amount, paymentType }) {
   const [copied, setCopied] = useState(false);
@@ -165,30 +164,25 @@ Importe: ${amount}€`;
           </div>
         )}
 
-        {/* Opción Bizum (si disponible) */}
-        <Alert className="bg-blue-50 border-blue-300">
-          <Smartphone className="h-4 w-4 text-blue-600" />
-          <AlertDescription className="text-blue-900">
-            <strong>💡 ¿Prefieres Bizum?</strong>
-            <p className="text-sm mt-1">
-              Contacta con el club en <strong>{CLUB_EMAIL}</strong> para obtener el número de Bizum.
-              Recuerda indicar el concepto: <span className="font-mono font-bold">{reference}</span>
-            </p>
-          </AlertDescription>
-        </Alert>
-
         {/* Instrucciones adicionales */}
         <Alert className="bg-slate-50 border-slate-300">
           <Info className="h-4 w-4 text-slate-600" />
           <AlertDescription className="text-slate-800 text-sm">
             <strong>📋 Pasos a seguir:</strong>
             <ol className="list-decimal list-inside mt-2 space-y-1">
-              <li>Copia los datos de la transferencia</li>
+              <li>Copia los datos de la transferencia (usa el botón)</li>
               <li>Realiza el pago desde tu banco (app o web)</li>
               <li>Indica el <strong>concepto exacto</strong> en la transferencia</li>
               <li>Haz una captura del justificante</li>
               <li>Súbelo en el formulario de abajo</li>
             </ol>
+          </AlertDescription>
+        </Alert>
+
+        <Alert className="bg-blue-50 border-blue-300">
+          <Info className="h-4 w-4 text-blue-600" />
+          <AlertDescription className="text-blue-900 text-sm">
+            <strong>💡 Consejo:</strong> Guarda el número de cuenta en tus contactos bancarios para pagos futuros.
           </AlertDescription>
         </Alert>
       </CardContent>
