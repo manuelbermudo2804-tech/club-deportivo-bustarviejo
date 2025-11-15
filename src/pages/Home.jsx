@@ -1,9 +1,10 @@
+
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { Users, CreditCard, ShoppingBag, Calendar, Megaphone, Image, Clock, MessageCircle, Bell, Settings, ClipboardCheck, CheckCircle2, Star, TrendingUp } from "lucide-react";
+import { Users, CreditCard, ShoppingBag, Calendar, Megaphone, Image, Clock, MessageCircle, Bell, Settings, ClipboardCheck, CheckCircle2, Star, TrendingUp, Smartphone, Trophy } from "lucide-react";
 
 import Onboarding from "../components/Onboarding";
 import AutomaticReminders from "../components/AutomaticReminders";
@@ -46,6 +47,18 @@ export default function Home() {
     };
     fetchUser();
   }, []);
+
+  const handleMatchAppClick = () => {
+    const userAgent = navigator.userAgent || navigator.vendor || window.opera;
+    
+    if (/iPad|iPhone|iPod/.test(userAgent) && !window.MSStream) {
+      window.open("https://apps.apple.com/app/matchapp", "_blank");
+    } else if (/android/i.test(userAgent)) {
+      window.open("https://play.google.com/store/apps/details?id=com.matchapp", "_blank");
+    } else {
+      window.open("https://www.matchapp.com", "_blank");
+    }
+  };
 
   const { data: players } = useQuery({
     queryKey: ['players'],
@@ -278,6 +291,23 @@ export default function Home() {
       <div className="px-4 lg:px-8 py-6 space-y-6">
         {/* Social Links */}
         <SocialLinks />
+
+        {/* Banner MatchApp */}
+        <button
+          onClick={handleMatchAppClick}
+          className="w-full bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 rounded-2xl p-4 shadow-xl transition-all hover:scale-105 active:scale-95 border-2 border-green-500"
+        >
+          <div className="flex items-center justify-center gap-3">
+            <div className="bg-white/20 backdrop-blur-sm rounded-xl p-3">
+              <Trophy className="w-6 h-6 text-white" />
+            </div>
+            <div className="text-left">
+              <p className="text-white font-bold text-lg">⚽ Sigue a tus equipos en vivo</p>
+              <p className="text-green-100 text-sm">Descarga MatchApp para ver resultados y clasificaciones</p>
+            </div>
+            <Smartphone className="w-8 h-8 text-white ml-auto" />
+          </div>
+        </button>
 
         {/* Menu Grid */}
         <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 lg:gap-6">
