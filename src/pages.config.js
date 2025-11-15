@@ -42,6 +42,7 @@ import MatchResults from './pages/MatchResults';
 import MedicalRecords from './pages/MedicalRecords';
 import DirectMessages from './pages/DirectMessages';
 import MatchApp from './pages/MatchApp';
+import MemberManagement from './pages/MemberManagement';
 import Layout from './Layout.jsx';
 
 
@@ -90,6 +91,7 @@ export const PAGES = {
     "MedicalRecords": MedicalRecords,
     "DirectMessages": DirectMessages,
     "MatchApp": MatchApp,
+    "MemberManagement": MemberManagement,
 }
 
 export const pagesConfig = {
