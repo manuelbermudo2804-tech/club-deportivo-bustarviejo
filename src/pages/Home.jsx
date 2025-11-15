@@ -3,10 +3,13 @@ import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { Users, CreditCard, ShoppingBag, Calendar, Megaphone, Image, Clock, MessageCircle, Bell, Settings, ClipboardCheck, CheckCircle2, Star } from "lucide-react";
+import { Users, CreditCard, ShoppingBag, Calendar, Megaphone, Image, Clock, MessageCircle, Bell, Settings, ClipboardCheck, CheckCircle2, Star, TrendingUp, BarChart3 } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 
 import Onboarding from "../components/Onboarding";
 import AutomaticReminders from "../components/AutomaticReminders";
+import ActivityTimeline from "../components/ActivityTimeline";
 
 const CLUB_LOGO_URL = "https://www.cdbustarviejo.com/uploads/2/4/0/4/2404974/logo-cd-bustarviejo-cuadrado-xpeq_orig.png";
 
@@ -54,19 +57,31 @@ export default function Home() {
 
   const { data: payments } = useQuery({
     queryKey: ['payments'],
-    queryFn: () => base44.entities.Payment.list(),
+    queryFn: () => base44.entities.Payment.list('-created_date'),
     initialData: [],
   });
 
   const { data: messages } = useQuery({
     queryKey: ['chatMessages'],
-    queryFn: () => base44.entities.ChatMessage.list(),
+    queryFn: () => base44.entities.ChatMessage.list('-created_date'),
     initialData: [],
   });
 
   const { data: callups } = useQuery({
     queryKey: ['callups'],
-    queryFn: () => base44.entities.Convocatoria.list(),
+    queryFn: () => base44.entities.Convocatoria.list('-created_date'),
+    initialData: [],
+  });
+
+  const { data: attendances } = useQuery({
+    queryKey: ['attendances'],
+    queryFn: () => base44.entities.Attendance.list('-created_date'),
+    initialData: [],
+  });
+
+  const { data: events } = useQuery({
+    queryKey: ['events'],
+    queryFn: () => base44.entities.Event.list('-created_date'),
     initialData: [],
   });
 
@@ -97,6 +112,96 @@ export default function Home() {
     });
     
     return pending;
+  };
+
+  // Build activity timeline
+  const buildActivityTimeline = () => {
+    const activities = [];
+    
+    // New players
+    players.slice(0, 3).forEach(p => {
+      activities.push({
+        type: "player_new",
+        title: "Nuevo jugador registrado",
+        description: `${p.nombre} - ${p.deporte}`,
+        date: p.created_date,
+        badge: "Nuevo",
+        badgeColor: "bg-blue-500"
+      });
+    });
+    
+    // Recent payments
+    payments.slice(0, 3).forEach(p => {
+      activities.push({
+        type: "payment",
+        title: p.estado === "Pagado" ? "Pago confirmado" : "Pago pendiente",
+        description: `${p.jugador_nombre} - ${p.mes}`,
+        date: p.created_date,
+        badge: p.estado,
+        badgeColor: p.estado === "Pagado" ? "bg-green-500" : "bg-orange-500"
+      });
+    });
+    
+    // Recent callups
+    callups.slice(0, 3).forEach(c => {
+      activities.push({
+        type: "callup",
+        title: "Nueva convocatoria",
+        description: `${c.titulo} - ${c.categoria}`,
+        date: c.created_date,
+        badge: c.tipo,
+        badgeColor: "bg-orange-500"
+      });
+    });
+    
+    // Recent events
+    events.slice(0, 3).forEach(e => {
+      activities.push({
+        type: "event",
+        title: "Nuevo evento",
+        description: `${e.titulo} - ${e.fecha}`,
+        date: e.created_date,
+        badge: e.tipo,
+        badgeColor: "bg-purple-500"
+      });
+    });
+    
+    return activities.sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, 10);
+  };
+
+  // Payment trends by month
+  const paymentTrends = () => {
+    const monthlyData = {};
+    payments.forEach(p => {
+      const month = p.created_date?.substring(0, 7) || new Date().toISOString().substring(0, 7);
+      if (!monthlyData[month]) {
+        monthlyData[month] = { pendiente: 0, pagado: 0 };
+      }
+      if (p.estado === "Pagado") monthlyData[month].pagado++;
+      else monthlyData[month].pendiente++;
+    });
+    
+    return Object.keys(monthlyData).slice(-6).map(m => ({
+      mes: m.substring(5),
+      Pagados: monthlyData[m].pagado,
+      Pendientes: monthlyData[m].pendiente
+    }));
+  };
+
+  // Players by category
+  const playersByCategory = () => {
+    const categoryData = {};
+    players.forEach(p => {
+      if (p.activo) {
+        const sport = p.deporte.split(' ')[0];
+        categoryData[sport] = (categoryData[sport] || 0) + 1;
+      }
+    });
+    
+    return Object.keys(categoryData).map(c => ({
+      categoria: c,
+      Jugadores: categoryData[c]
+    }));
   };
 
   const buildMenuItems = () => {
@@ -198,6 +303,12 @@ export default function Home() {
           gradient: "from-purple-600 to-purple-700",
         },
         {
+          title: "📊 Estadísticas",
+          icon: BarChart3,
+          url: createPageUrl("ClubStats"),
+          gradient: "from-indigo-600 to-indigo-700",
+        },
+        {
           title: "Recordatorios",
           icon: Bell,
           url: createPageUrl("Reminders"),
@@ -253,6 +364,125 @@ export default function Home() {
     return "Panel de Gestión";
   };
 
+  // Show dashboard only for admins
+  if (isAdmin) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 p-4 lg:p-8">
+        <Onboarding userRole={userRole} />
+        <AutomaticReminders />
+        
+        <div className="space-y-6">
+          <div>
+            <h1 className="text-3xl font-bold text-slate-900">Panel de Administración</h1>
+            <p className="text-slate-600 mt-1">Vista general del club</p>
+          </div>
+
+          {/* Quick Stats */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            <Card className="border-none shadow-lg bg-gradient-to-br from-orange-50 to-orange-100">
+              <CardContent className="p-6">
+                <Users className="w-8 h-8 text-orange-600 mb-2" />
+                <div className="text-3xl font-bold text-orange-900">{activePlayers}</div>
+                <div className="text-sm text-orange-700">Jugadores Activos</div>
+              </CardContent>
+            </Card>
+            <Card className="border-none shadow-lg bg-gradient-to-br from-red-50 to-red-100">
+              <CardContent className="p-6">
+                <CreditCard className="w-8 h-8 text-red-600 mb-2" />
+                <div className="text-3xl font-bold text-red-900">{pendingPayments}</div>
+                <div className="text-sm text-red-700">Pagos Pendientes</div>
+              </CardContent>
+            </Card>
+            <Card className="border-none shadow-lg bg-gradient-to-br from-green-50 to-green-100">
+              <CardContent className="p-6">
+                <CheckCircle2 className="w-8 h-8 text-green-600 mb-2" />
+                <div className="text-3xl font-bold text-green-900">
+                  {payments.filter(p => p.estado === "Pagado").length}
+                </div>
+                <div className="text-sm text-green-700">Pagos Confirmados</div>
+              </CardContent>
+            </Card>
+            <Card className="border-none shadow-lg bg-gradient-to-br from-blue-50 to-blue-100">
+              <CardContent className="p-6">
+                <MessageCircle className="w-8 h-8 text-blue-600 mb-2" />
+                <div className="text-3xl font-bold text-blue-900">{unreadMessages}</div>
+                <div className="text-sm text-blue-700">Mensajes Nuevos</div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Charts */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <Card className="border-none shadow-xl">
+              <CardHeader>
+                <CardTitle className="text-lg">📊 Pagos por Mes</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ResponsiveContainer width="100%" height={250}>
+                  <BarChart data={paymentTrends()}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="mes" />
+                    <YAxis />
+                    <Tooltip />
+                    <Bar dataKey="Pagados" fill="#16a34a" />
+                    <Bar dataKey="Pendientes" fill="#dc2626" />
+                  </BarChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+
+            <Card className="border-none shadow-xl">
+              <CardHeader>
+                <CardTitle className="text-lg">👥 Jugadores por Deporte</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ResponsiveContainer width="100%" height={250}>
+                  <BarChart data={playersByCategory()}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="categoria" />
+                    <YAxis />
+                    <Tooltip />
+                    <Bar dataKey="Jugadores" fill="#f97316" />
+                  </BarChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Activity Timeline */}
+          <ActivityTimeline activities={buildActivityTimeline()} />
+
+          {/* Quick Access Menu */}
+          <div>
+            <h2 className="text-2xl font-bold text-slate-900 mb-4">Accesos Rápidos</h2>
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+              {menuItems.slice(0, 8).map((item, index) => (
+                <Link key={index} to={item.url}>
+                  <Card className="border-2 border-transparent hover:border-orange-500 transition-all hover:shadow-lg cursor-pointer group h-full">
+                    <CardContent className="p-6 text-center space-y-2">
+                      <div className={`w-16 h-16 mx-auto rounded-2xl bg-gradient-to-br ${item.gradient} flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform`}>
+                        <item.icon className="w-8 h-8 text-white" />
+                      </div>
+                      <p className="text-sm font-semibold text-slate-700">
+                        {item.title}
+                      </p>
+                      {item.badge !== undefined && item.badge > 0 && (
+                        <div className="bg-red-500 text-white text-xs px-2 py-1 rounded-full inline-block">
+                          {item.badge}
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                </Link>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Original menu view for coaches
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-black">
       {user && <Onboarding userRole={userRole} />}

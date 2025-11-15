@@ -32,6 +32,7 @@ import CoachChat from './pages/CoachChat';
 import TeamRosters from './pages/TeamRosters';
 import CoachAttendance from './pages/CoachAttendance';
 import PlayerEvaluations from './pages/PlayerEvaluations';
+import ClubStats from './pages/ClubStats';
 import Layout from './Layout.jsx';
 
 
@@ -70,6 +71,7 @@ export const PAGES = {
     "TeamRosters": TeamRosters,
     "CoachAttendance": CoachAttendance,
     "PlayerEvaluations": PlayerEvaluations,
+    "ClubStats": ClubStats,
 }
 
 export const pagesConfig = {
