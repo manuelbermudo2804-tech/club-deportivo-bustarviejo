@@ -4,6 +4,17 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { CreditCard, Download } from "lucide-react";
 
+const getCurrentSeason = () => {
+  const now = new Date();
+  const currentYear = now.getFullYear();
+  const currentMonth = now.getMonth() + 1;
+  
+  if (currentMonth >= 9) {
+    return `${currentYear}/${currentYear + 1}`;
+  }
+  return `${currentYear - 1}/${currentYear}`;
+};
+
 export default function PlayerCards() {
   const [user, setUser] = useState(null);
   const [myPlayers, setMyPlayers] = useState([]);
@@ -43,6 +54,8 @@ export default function PlayerCards() {
     }
   };
 
+  const season = getCurrentSeason();
+
   return (
     <div className="p-6 lg:p-8 space-y-6">
       <div>
@@ -71,7 +84,7 @@ export default function PlayerCards() {
                   />
                   <div className="text-right">
                     <h2 className="text-white font-bold text-sm">CD BUSTARVIEJO</h2>
-                    <p className="text-orange-400 text-xs">TEMPORADA 2024/2025</p>
+                    <p className="text-orange-400 text-xs">TEMPORADA {season}</p>
                   </div>
                 </div>
 
