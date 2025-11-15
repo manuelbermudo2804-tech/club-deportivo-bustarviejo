@@ -1,5 +1,5 @@
 import React from "react";
-import { Facebook, Instagram, Globe } from "lucide-react";
+import { Facebook, Instagram, Globe, Smartphone } from "lucide-react";
 
 export default function SocialLinks() {
   const links = [
@@ -7,6 +7,23 @@ export default function SocialLinks() {
     { name: "Facebook", url: "https://www.facebook.com/cdbustarviejo", icon: Facebook, color: "text-blue-600 hover:text-blue-700" },
     { name: "Instagram", url: "https://www.instagram.com/cdbustarviejo", icon: Instagram, color: "text-pink-600 hover:text-pink-700" }
   ];
+
+  const handleMatchAppClick = () => {
+    const userAgent = navigator.userAgent || navigator.vendor || window.opera;
+    
+    // Detectar iOS
+    if (/iPad|iPhone|iPod/.test(userAgent) && !window.MSStream) {
+      window.open("https://apps.apple.com/app/matchapp", "_blank");
+    }
+    // Detectar Android
+    else if (/android/i.test(userAgent)) {
+      window.open("https://play.google.com/store/apps/details?id=com.matchapp", "_blank");
+    }
+    // Fallback para otros dispositivos
+    else {
+      window.open("https://www.matchapp.com", "_blank");
+    }
+  };
 
   return (
     <div className="bg-white rounded-lg shadow-sm border border-slate-200 p-2 flex items-center justify-center gap-4">
@@ -23,6 +40,16 @@ export default function SocialLinks() {
           <span className="text-xs font-medium hidden sm:inline">{link.name}</span>
         </a>
       ))}
+      
+      {/* MatchApp Link - Solo visible en móvil */}
+      <button
+        onClick={handleMatchAppClick}
+        className="lg:hidden flex items-center gap-1 text-green-600 hover:text-green-700 transition-colors"
+        title="MatchApp"
+      >
+        <Smartphone className="w-4 h-4" />
+        <span className="text-xs font-medium">MatchApp</span>
+      </button>
     </div>
   );
 }
