@@ -11,8 +11,6 @@ import ActivityTimeline from "../components/dashboard/ActivityTimeline";
 import AttendanceSummary from "../components/dashboard/AttendanceSummary";
 import UpcomingEvents from "../components/dashboard/UpcomingEvents";
 
-const CLUB_LOGO_URL = "https://www.cdbustarviejo.com/uploads/2/4/0/4/2404974/logo-cd-bustarviejo-cuadrado-xpeq_orig.png";
-
 export default function ParentDashboard() {
   const [user, setUser] = useState(null);
 
@@ -176,26 +174,12 @@ export default function ParentDashboard() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-black">
-      <div className="bg-gradient-to-r from-orange-600 to-orange-700 p-4 lg:p-6 shadow-2xl">
-        <div className="flex flex-col gap-3">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <img src={CLUB_LOGO_URL} alt="CD Bustarviejo" className="w-12 h-12 lg:w-16 lg:h-16 rounded-2xl shadow-2xl ring-4 ring-white/50" />
-              <div className="text-white">
-                <h1 className="text-2xl lg:text-3xl font-bold">CD Bustarviejo</h1>
-                <p className="text-orange-100 text-xs lg:text-sm">Panel de Familias</p>
-              </div>
-            </div>
-          </div>
-          
-          {/* Botón de notificaciones en una fila separada para móvil */}
-          <div className="flex justify-center lg:absolute lg:top-4 lg:right-6">
-            <PushNotificationManager />
-          </div>
-        </div>
-      </div>
-
       <div className="px-4 lg:px-8 py-6 space-y-6">
+        {/* Botón de notificaciones push - solo visible en móvil */}
+        <div className="lg:hidden">
+          <PushNotificationManager />
+        </div>
+
         {/* Social Links */}
         <SocialLinks />
 
