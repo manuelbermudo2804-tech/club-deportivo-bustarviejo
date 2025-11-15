@@ -14,11 +14,9 @@ import ClothingOrderForm from "../components/clothing/ClothingOrderForm";
 import OrdersSummary from "../components/clothing/OrdersSummary";
 import ContactCard from "../components/ContactCard";
 
-// TEMPORALMENTE DESBLOQUEADO PARA PRUEBAS
 const isOrderPeriodActive = () => {
-  return true; // Desbloqueado temporalmente
-  // const currentMonth = new Date().getMonth() + 1;
-  // return currentMonth === 6 || currentMonth === 7;
+  const currentMonth = new Date().getMonth() + 1;
+  return currentMonth === 6 || currentMonth === 7;
 };
 
 export default function ClothingOrders() {
