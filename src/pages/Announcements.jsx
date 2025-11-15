@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -298,15 +297,27 @@ Ubicación: Bustarviejo, Madrid
     // Parents only see published
     if (!announcement.publicado) return false;
     
-    // Filter expired announcements (for parents)
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    // Filter expired announcements by fecha_expiracion
     if (announcement.fecha_expiracion) {
       const expirationDate = new Date(announcement.fecha_expiracion);
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
       expirationDate.setHours(0, 0, 0, 0);
-      
-      if (expirationDate < today) return false;
+      if (today > expirationDate) return false;
     }
+    
+    // Filter by days since publication based on priority
+    const daysAgo = Math.floor((today - new Date(announcement.fecha_publicacion)) / (1000 * 60 * 60 * 24));
+    
+    // Anuncios urgentes: solo del día actual
+    if (announcement.prioridad === "Urgente" && daysAgo > 0) return false;
+    
+    // Anuncios importantes: 2 días
+    if (announcement.prioridad === "Importante" && daysAgo > 2) return false;
+    
+    // Anuncios normales: 3 días
+    if (announcement.prioridad === "Normal" && daysAgo > 3) return false;
     
     // Check if announcement is relevant to user
     if (announcement.destinatarios_tipo === "Todos") return true;
