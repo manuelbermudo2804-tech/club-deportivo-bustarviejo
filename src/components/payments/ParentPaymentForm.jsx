@@ -12,6 +12,8 @@ import { base44 } from "@/api/base44Client";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { getCuotasPorCategoria, getImportePorCategoriaYMes, FECHAS_VENCIMIENTO } from "@/components/payments/paymentAmounts";
 
+import PaymentInstructions from "./PaymentInstructions";
+
 // Función para obtener la temporada actual
 const getCurrentSeason = () => {
   const now = new Date();
@@ -60,7 +62,6 @@ export default function ParentPaymentForm({ players, onSubmit, onCancel, isSubmi
     if (currentPayment.tipo_pago === "Único") {
       nuevaCantidad = cuotas.total;
     } else {
-      // Tres meses - obtener importe según el mes
       nuevaCantidad = getImportePorCategoriaYMes(selectedPlayer.deporte, currentPayment.mes);
     }
     
@@ -161,7 +162,6 @@ export default function ParentPaymentForm({ players, onSubmit, onCancel, isSubmi
     onSubmit(currentPayment);
   };
 
-  // Obtener cuotas del jugador seleccionado
   const cuotas = selectedPlayer ? getCuotasPorCategoria(selectedPlayer.deporte) : null;
 
   return (
@@ -169,19 +169,24 @@ export default function ParentPaymentForm({ players, onSubmit, onCancel, isSubmi
       initial={{ opacity: 0, y: -20 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -20 }}
+      className="space-y-6"
     >
+      {/* Instrucciones de Pago - Solo mostrar si hay jugador y cantidad seleccionados */}
+      {selectedPlayer && currentPayment.cantidad > 0 && (
+        <PaymentInstructions
+          playerName={selectedPlayer.nombre}
+          playerCategory={selectedPlayer.deporte}
+          amount={currentPayment.cantidad}
+          paymentType={currentPayment.tipo_pago}
+        />
+      )}
+
+      {/* Formulario */}
       <Card className="border-none shadow-xl bg-white/90 backdrop-blur-sm">
         <CardHeader className="border-b border-slate-100">
           <CardTitle className="text-2xl">Registrar Pago</CardTitle>
         </CardHeader>
         <CardContent className="pt-6">
-          <Alert className="mb-6 bg-blue-50 border-blue-200">
-            <AlertCircle className="h-4 w-4 text-blue-600" />
-            <AlertDescription className="text-blue-800">
-              <strong>Importante:</strong> Debes subir el justificante de la transferencia bancaria para que el pago pueda ser verificado por el administrador.
-            </AlertDescription>
-          </Alert>
-
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Selector de Jugador */}
@@ -225,7 +230,7 @@ export default function ParentPaymentForm({ players, onSubmit, onCancel, isSubmi
                 </Select>
               </div>
 
-              {/* Mes - Mostrar siempre (pero con mensaje diferente) */}
+              {/* Mes */}
               <div className="space-y-2">
                 <Label htmlFor="mes">
                   {currentPayment.tipo_pago === "Único" 
@@ -256,9 +261,7 @@ export default function ParentPaymentForm({ players, onSubmit, onCancel, isSubmi
 
               {/* Cantidad */}
               <div className="space-y-2">
-                <Label htmlFor="cantidad">
-                  Cantidad Pagada (€) *
-                </Label>
+                <Label htmlFor="cantidad">Cantidad Pagada (€) *</Label>
                 <Input
                   type="number"
                   step="0.01"
@@ -270,30 +273,31 @@ export default function ParentPaymentForm({ players, onSubmit, onCancel, isSubmi
                 />
                 {selectedPlayer && currentPayment.tipo_pago === "Único" && (
                   <p className="text-xs text-green-600">
-                    ✓ Total temporada: {cuotas?.total}€ (incluye las 3 cuotas completas)
+                    ✓ Total temporada: {cuotas?.total}€
                   </p>
                 )}
                 {selectedPlayer && currentPayment.tipo_pago === "Tres meses" && (
                   <p className="text-xs text-green-600">
-                    ✓ Importe oficial de esta cuota: {getImportePorCategoriaYMes(selectedPlayer.deporte, currentPayment.mes)}€ 
+                    ✓ Importe oficial: {getImportePorCategoriaYMes(selectedPlayer.deporte, currentPayment.mes)}€ 
                     (vence el {FECHAS_VENCIMIENTO[currentPayment.mes]})
                   </p>
                 )}
               </div>
 
               {/* Fecha de Pago */}
-              <div className="space-y-2">
+              <div className="space-y-2 md:col-span-2">
                 <Label htmlFor="fecha_pago">Fecha del Pago *</Label>
                 <Input
                   type="date"
                   value={currentPayment.fecha_pago}
                   onChange={(e) => setCurrentPayment({...currentPayment, fecha_pago: e.target.value})}
                   required
+                  className="max-w-xs"
                 />
               </div>
             </div>
 
-            {/* Información de cuotas del jugador */}
+            {/* Info de cuotas */}
             {cuotas && (
               <Alert className="bg-green-50 border-green-300">
                 <Info className="h-4 w-4 text-green-600" />
@@ -311,39 +315,21 @@ export default function ParentPaymentForm({ players, onSubmit, onCancel, isSubmi
               </Alert>
             )}
 
-            {/* Explicación según tipo de pago */}
-            {currentPayment.tipo_pago === "Tres meses" && (
-              <Alert className="bg-blue-50 border-blue-300">
-                <Info className="h-4 w-4 text-blue-600" />
-                <AlertDescription className="text-blue-800 text-sm">
-                  <strong>💡 Tres Pagos:</strong> Selecciona qué cuota estás pagando ahora (Inscripción, Segunda o Tercera). 
-                  El importe se ajustará automáticamente según la cuota elegida. Deberás repetir este proceso para cada cuota.
-                </AlertDescription>
-              </Alert>
-            )}
-
-            {/* Método de Pago - Solo Transferencia */}
-            <div className="bg-orange-50 border-2 border-orange-300 rounded-lg p-4">
-              <p className="text-sm font-semibold text-orange-900 mb-2">
-                💳 Método de Pago: Transferencia Bancaria
-              </p>
-              <p className="text-xs text-orange-800">
-                Realiza el pago mediante transferencia bancaria y sube el justificante aquí. El administrador verificará el pago.
-              </p>
-            </div>
-
-            {/* Justificante - OBLIGATORIO */}
-            <div className="space-y-2">
-              <Label htmlFor="justificante" className="text-base font-semibold">
-                Justificante de Transferencia * (Obligatorio)
+            {/* Justificante */}
+            <div className="space-y-3 p-4 bg-orange-50 rounded-lg border-2 border-orange-200">
+              <Label htmlFor="justificante" className="text-base font-semibold text-orange-900">
+                📎 Justificante de Transferencia * (Obligatorio)
               </Label>
+              <p className="text-sm text-orange-800">
+                Sube una captura o foto del justificante de tu transferencia bancaria
+              </p>
               <div className="flex gap-3">
                 <Button
                   type="button"
                   variant="outline"
                   onClick={() => document.getElementById('file-upload').click()}
                   disabled={uploadingFile}
-                  className="flex-1"
+                  className="flex-1 bg-white"
                 >
                   {uploadingFile ? (
                     <>
@@ -362,6 +348,7 @@ export default function ParentPaymentForm({ players, onSubmit, onCancel, isSubmi
                     type="button"
                     variant="outline"
                     onClick={() => setCurrentPayment({...currentPayment, justificante_url: ""})}
+                    className="bg-white"
                   >
                     <X className="w-4 h-4" />
                   </Button>
@@ -391,19 +378,6 @@ export default function ParentPaymentForm({ players, onSubmit, onCancel, isSubmi
                 rows={3}
               />
             </div>
-
-            {/* Info importante */}
-            <Alert className="bg-blue-50 border-blue-200">
-              <AlertCircle className="h-4 w-4 text-blue-600" />
-              <AlertDescription className="text-blue-800 text-sm">
-                <strong>ℹ️ Información:</strong>
-                <ul className="list-disc list-inside mt-2 space-y-1">
-                  <li>El pago quedará en estado "En Revisión" hasta que el administrador lo verifique</li>
-                  <li>Recibirás una notificación cuando el pago sea confirmado</li>
-                  <li>El justificante debe mostrar claramente la transferencia realizada</li>
-                </ul>
-              </AlertDescription>
-            </Alert>
 
             {/* Botones */}
             <div className="flex justify-end gap-3 pt-4 border-t border-slate-100">
