@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Save, Settings, ExternalLink } from "lucide-react";
+import { Save, Settings, ExternalLink, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 
 export default function TeamConfigAdmin() {
@@ -36,10 +36,11 @@ export default function TeamConfigAdmin() {
     mutationFn: ({ id, data }) => base44.entities.TeamConfig.update(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['teamConfigs'] });
-      toast.success("✅ Configuración actualizada");
+      setEditingConfig({});
+      toast.success("✅ URLs guardadas correctamente. Ahora ve al Match Center y recarga los datos.");
     },
     onError: (error) => {
-      toast.error("❌ Error: " + error.message);
+      toast.error("❌ Error al guardar: " + error.message);
     }
   });
 
@@ -55,6 +56,16 @@ export default function TeamConfigAdmin() {
 
   const handleSave = (config) => {
     const updates = editingConfig[config.id] || {};
+    
+    if (!updates.url_clasificacion && !config.url_clasificacion) {
+      toast.error("❌ Debes añadir la URL de clasificación");
+      return;
+    }
+    if (!updates.url_calendario && !config.url_calendario) {
+      toast.error("❌ Debes añadir la URL de calendario");
+      return;
+    }
+
     updateConfigMutation.mutate({
       id: config.id,
       data: {
@@ -105,8 +116,10 @@ export default function TeamConfigAdmin() {
             <ol className="list-decimal ml-5 space-y-1">
               <li>Ve a <a href="https://www.rffm.es/fichaclub/4095" target="_blank" className="underline text-blue-600">RFFM - CD Bustarviejo</a></li>
               <li>Haz clic en cada equipo para ver su competición</li>
-              <li>Copia la URL de "Clasificación" y "Calendario"</li>
-              <li>Pégalas en los campos correspondientes aquí</li>
+              <li>En la competición, haz clic en <strong>"Clasificación"</strong> y copia toda la URL de la barra del navegador</li>
+              <li>Luego haz clic en <strong>"Calendario"</strong> y copia toda la URL de la barra del navegador</li>
+              <li>Pégalas en los campos correspondientes aquí y haz clic en <strong>Guardar</strong></li>
+              <li><strong className="text-orange-700">Importante:</strong> Después de guardar, ve al Match Center y pulsa el botón de Refrescar (🔄) en cada equipo</li>
             </ol>
           </div>
         </AlertDescription>
@@ -118,6 +131,7 @@ export default function TeamConfigAdmin() {
           const urlClasificacion = edited.url_clasificacion !== undefined ? edited.url_clasificacion : config.url_clasificacion;
           const urlCalendario = edited.url_calendario !== undefined ? edited.url_calendario : config.url_calendario;
           const hasUrls = urlClasificacion && urlCalendario;
+          const hasChanges = Object.keys(edited).length > 0;
 
           return (
             <Card key={config.id} className={`border-2 ${hasUrls ? 'border-green-200 bg-green-50/30' : 'border-orange-200 bg-orange-50/30'}`}>
@@ -139,13 +153,13 @@ export default function TeamConfigAdmin() {
               <CardContent className="space-y-4">
                 <div>
                   <Label className="text-sm font-semibold text-slate-700">
-                    URL Clasificación
+                    URL Clasificación *
                   </Label>
                   <div className="flex gap-2 mt-1">
                     <Input
                       value={urlClasificacion || ''}
                       onChange={(e) => handleFieldChange(config.id, 'url_clasificacion', e.target.value)}
-                      placeholder="https://www.rffm.es/competicion/clasificaciones?..."
+                      placeholder="https://www.rffm.es/competicion/clasificaciones?temporada=2024&..."
                       className="flex-1 text-sm"
                     />
                     {urlClasificacion && (
@@ -162,13 +176,13 @@ export default function TeamConfigAdmin() {
 
                 <div>
                   <Label className="text-sm font-semibold text-slate-700">
-                    URL Calendario
+                    URL Calendario *
                   </Label>
                   <div className="flex gap-2 mt-1">
                     <Input
                       value={urlCalendario || ''}
                       onChange={(e) => handleFieldChange(config.id, 'url_calendario', e.target.value)}
-                      placeholder="https://www.rffm.es/competicion/calendario?..."
+                      placeholder="https://www.rffm.es/competicion/calendario?temporada=2024&..."
                       className="flex-1 text-sm"
                     />
                     {urlCalendario && (
@@ -186,11 +200,11 @@ export default function TeamConfigAdmin() {
                 <div className="flex justify-end pt-2">
                   <Button
                     onClick={() => handleSave(config)}
-                    disabled={updateConfigMutation.isPending}
-                    className="bg-orange-600 hover:bg-orange-700"
+                    disabled={updateConfigMutation.isPending || !hasChanges}
+                    className={`${hasChanges ? 'bg-orange-600 hover:bg-orange-700' : 'bg-slate-400'}`}
                   >
                     <Save className="w-4 h-4 mr-2" />
-                    {updateConfigMutation.isPending ? 'Guardando...' : 'Guardar'}
+                    {updateConfigMutation.isPending ? 'Guardando...' : hasChanges ? 'Guardar Cambios' : 'Sin cambios'}
                   </Button>
                 </div>
               </CardContent>
@@ -199,13 +213,28 @@ export default function TeamConfigAdmin() {
         })}
       </div>
 
+      <Alert className="bg-orange-50 border-orange-200">
+        <AlertDescription className="text-sm text-orange-900">
+          <p className="font-semibold mb-2 flex items-center gap-2">
+            <RefreshCw className="w-4 h-4" />
+            ⚠️ Después de guardar las URLs:
+          </p>
+          <ol className="list-decimal ml-5 space-y-1">
+            <li>Ve a la página <strong>Match Center</strong></li>
+            <li>Haz clic en el botón <strong>🔄 Refrescar</strong> que aparece en la esquina superior derecha de cada tarjeta de equipo</li>
+            <li>Espera unos segundos mientras se cargan los nuevos datos desde la RFFM</li>
+          </ol>
+        </AlertDescription>
+      </Alert>
+
       <Alert className="bg-slate-50 border-slate-200">
         <AlertDescription className="text-sm text-slate-600">
           <p className="font-semibold mb-2">💡 Consejos:</p>
           <ul className="list-disc ml-5 space-y-1">
-            <li>Las URLs deben incluir los parámetros: temporada, tipojuego, competicion y grupo</li>
-            <li>Una vez configuradas, el Match Center podrá obtener datos en tiempo real</li>
+            <li>Las URLs deben ser completas (empezar por https://www.rffm.es/...)</li>
+            <li>Deben incluir los parámetros: temporada, tipojuego, competicion y grupo</li>
             <li>Puedes probar las URLs haciendo clic en el icono 🔗 antes de guardar</li>
+            <li>Si los datos no aparecen correctos, verifica que la URL sea la correcta abriendo el enlace</li>
           </ul>
         </AlertDescription>
       </Alert>
