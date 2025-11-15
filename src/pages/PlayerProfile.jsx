@@ -429,45 +429,45 @@ export default function PlayerProfile() {
               </CardContent>
             </Card>
           ) : (
-            evaluations.map(eval => (
-              <Card key={eval.id} className="border-none shadow-lg hover:shadow-xl transition-shadow">
+            evaluations.map(evaluation => (
+              <Card key={evaluation.id} className="border-none shadow-lg hover:shadow-xl transition-shadow">
                 <CardContent className="p-4">
                   <div className="flex items-start justify-between mb-3">
                     <div>
                       <p className="font-bold text-slate-900">Evaluación</p>
                       <p className="text-xs text-slate-600">
-                        {format(new Date(eval.fecha_evaluacion), "dd/MM/yyyy")} • {eval.entrenador_nombre}
+                        {format(new Date(evaluation.fecha_evaluacion), "dd/MM/yyyy")} • {evaluation.entrenador_nombre}
                       </p>
                     </div>
                     <Badge className="bg-purple-500">
-                      {((eval.tecnica + eval.tactica + eval.fisica + eval.actitud + eval.trabajo_equipo) / 5).toFixed(1)}/5
+                      {((evaluation.tecnica + evaluation.tactica + evaluation.fisica + evaluation.actitud + evaluation.trabajo_equipo) / 5).toFixed(1)}/5
                     </Badge>
                   </div>
                   <div className="grid grid-cols-5 gap-2 mb-3">
                     <div className="text-center">
-                      <p className="text-lg font-bold text-slate-900">{eval.tecnica}</p>
+                      <p className="text-lg font-bold text-slate-900">{evaluation.tecnica}</p>
                       <p className="text-xs text-slate-600">Técnica</p>
                     </div>
                     <div className="text-center">
-                      <p className="text-lg font-bold text-slate-900">{eval.tactica}</p>
+                      <p className="text-lg font-bold text-slate-900">{evaluation.tactica}</p>
                       <p className="text-xs text-slate-600">Táctica</p>
                     </div>
                     <div className="text-center">
-                      <p className="text-lg font-bold text-slate-900">{eval.fisica}</p>
+                      <p className="text-lg font-bold text-slate-900">{evaluation.fisica}</p>
                       <p className="text-xs text-slate-600">Física</p>
                     </div>
                     <div className="text-center">
-                      <p className="text-lg font-bold text-slate-900">{eval.actitud}</p>
+                      <p className="text-lg font-bold text-slate-900">{evaluation.actitud}</p>
                       <p className="text-xs text-slate-600">Actitud</p>
                     </div>
                     <div className="text-center">
-                      <p className="text-lg font-bold text-slate-900">{eval.trabajo_equipo}</p>
+                      <p className="text-lg font-bold text-slate-900">{evaluation.trabajo_equipo}</p>
                       <p className="text-xs text-slate-600">Equipo</p>
                     </div>
                   </div>
-                  {eval.observaciones && (
+                  {evaluation.observaciones && (
                     <p className="text-sm text-slate-700 bg-slate-50 p-2 rounded">
-                      {eval.observaciones}
+                      {evaluation.observaciones}
                     </p>
                   )}
                 </CardContent>
