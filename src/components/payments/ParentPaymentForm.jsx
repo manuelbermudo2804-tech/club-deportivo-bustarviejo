@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
-import { Upload, X, Loader2, AlertCircle, Info, Banknote } from "lucide-react";
+import { Upload, X, Loader2, Info } from "lucide-react";
 import { toast } from "sonner";
 import { base44 } from "@/api/base44Client";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -147,8 +147,8 @@ export default function ParentPaymentForm({ players, onSubmit, onCancel, isSubmi
       return;
     }
 
-    if (currentPayment.metodo_pago === "Transferencia" && !currentPayment.justificante_url) {
-      toast.error("Debes subir el justificante de pago para transferencias");
+    if (!currentPayment.justificante_url) {
+      toast.error("Debes subir el justificante de pago");
       return;
     }
 
@@ -161,7 +161,6 @@ export default function ParentPaymentForm({ players, onSubmit, onCancel, isSubmi
   };
 
   const cuotas = selectedPlayer ? getCuotasPorCategoria(selectedPlayer.deporte) : null;
-  const isTransfer = currentPayment.metodo_pago === "Transferencia";
 
   return (
     <motion.div
@@ -170,8 +169,8 @@ export default function ParentPaymentForm({ players, onSubmit, onCancel, isSubmi
       exit={{ opacity: 0, y: -20 }}
       className="space-y-6"
     >
-      {/* Instrucciones de Pago - Solo para transferencias */}
-      {selectedPlayer && currentPayment.cantidad > 0 && isTransfer && (
+      {/* Instrucciones de Pago */}
+      {selectedPlayer && currentPayment.cantidad > 0 && (
         <PaymentInstructions
           playerName={selectedPlayer.nombre}
           playerCategory={selectedPlayer.deporte}
@@ -207,24 +206,6 @@ export default function ParentPaymentForm({ players, onSubmit, onCancel, isSubmi
                           {player.nombre} - {player.deporte}
                         </SelectItem>
                       ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {/* Método de Pago */}
-              <div className="space-y-2">
-                <Label htmlFor="metodo_pago">Método de Pago *</Label>
-                <Select
-                  value={currentPayment.metodo_pago}
-                  onValueChange={(value) => setCurrentPayment({...currentPayment, metodo_pago: value})}
-                  required
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Transferencia">💳 Transferencia Bancaria</SelectItem>
-                    <SelectItem value="Efectivo">💵 Efectivo (Presencial)</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -297,7 +278,7 @@ export default function ParentPaymentForm({ players, onSubmit, onCancel, isSubmi
               </div>
 
               {/* Fecha de Pago */}
-              <div className="space-y-2">
+              <div className="space-y-2 md:col-span-2">
                 <Label htmlFor="fecha_pago">Fecha del Pago *</Label>
                 <Input
                   type="date"
@@ -326,74 +307,58 @@ export default function ParentPaymentForm({ players, onSubmit, onCancel, isSubmi
               </Alert>
             )}
 
-            {/* Alerta pago efectivo */}
-            {!isTransfer && (
-              <Alert className="bg-blue-50 border-blue-300">
-                <Banknote className="h-4 w-4 text-blue-600" />
-                <AlertDescription className="text-blue-900">
-                  <strong>💵 Pago en Efectivo:</strong>
-                  <p className="text-sm mt-1">
-                    Debes realizar el pago presencialmente en las instalaciones del club. El administrador te entregará un recibo.
-                    No es necesario subir justificante para pagos en efectivo.
-                  </p>
-                </AlertDescription>
-              </Alert>
-            )}
-
-            {/* Justificante - Solo para transferencias */}
-            {isTransfer && (
-              <div className="space-y-3 p-4 bg-orange-50 rounded-lg border-2 border-orange-200">
-                <Label htmlFor="justificante" className="text-base font-semibold text-orange-900">
-                  📎 Justificante de Transferencia * (Obligatorio)
-                </Label>
-                <p className="text-sm text-orange-800">
-                  Sube una captura o foto del justificante de tu transferencia bancaria
-                </p>
-                <div className="flex gap-3">
+            {/* Justificante */}
+            <div className="space-y-3 p-4 bg-orange-50 rounded-lg border-2 border-orange-200">
+              <Label htmlFor="justificante" className="text-base font-semibold text-orange-900">
+                📎 Justificante de Transferencia * (Obligatorio)
+              </Label>
+              <p className="text-sm text-orange-800">
+                Sube una captura o foto del justificante de tu transferencia bancaria
+              </p>
+              <div className="flex gap-3">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => document.getElementById('file-upload').click()}
+                  disabled={uploadingFile}
+                  className="flex-1 bg-white"
+                >
+                  {uploadingFile ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Subiendo...
+                    </>
+                  ) : (
+                    <>
+                      <Upload className="w-4 h-4 mr-2" />
+                      {currentPayment.justificante_url ? "Cambiar justificante" : "Subir justificante"}
+                    </>
+                  )}
+                </Button>
+                {currentPayment.justificante_url && (
                   <Button
                     type="button"
                     variant="outline"
-                    onClick={() => document.getElementById('file-upload').click()}
-                    disabled={uploadingFile}
-                    className="flex-1 bg-white"
+                    onClick={() => setCurrentPayment({...currentPayment, justificante_url: ""})}
+                    className="bg-white"
                   >
-                    {uploadingFile ? (
-                      <>
-                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                        Subiendo...
-                      </>
-                    ) : (
-                      <>
-                        <Upload className="w-4 h-4 mr-2" />
-                        {currentPayment.justificante_url ? "Cambiar justificante" : "Subir justificante"}
-                      </>
-                    )}
+                    <X className="w-4 h-4" />
                   </Button>
-                  {currentPayment.justificante_url && (
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={() => setCurrentPayment({...currentPayment, justificante_url: ""})}
-                      className="bg-white"
-                    >
-                      <X className="w-4 h-4" />
-                    </Button>
-                  )}
-                </div>
-                <input
-                  id="file-upload"
-                  type="file"
-                  accept="image/*,.pdf"
-                  onChange={handleFileUpload}
-                  className="hidden"
-                />
-                {currentPayment.justificante_url ? (
-                  <p className="text-sm text-green-600 font-medium">✓ Justificante subido correctamente</p>
-                ) : (
-                  <p className="text-sm text-red-600 font-medium">⚠️ Debes subir el justificante para continuar</p>
                 )}
               </div>
-            )}
+              <input
+                id="file-upload"
+                type="file"
+                accept="image/*,.pdf"
+                onChange={handleFileUpload}
+                className="hidden"
+              />
+              {currentPayment.justificante_url ? (
+                <p className="text-sm text-green-600 font-medium">✓ Justificante subido correctamente</p>
+              ) : (
+                <p className="text-sm text-red-600 font-medium">⚠️ Debes subir el justificante para continuar</p>
+              )}
+            </div>
 
             {/* Notas */}
             <div className="space-y-2">
@@ -419,7 +384,7 @@ export default function ParentPaymentForm({ players, onSubmit, onCancel, isSubmi
               <Button
                 type="submit"
                 className="bg-orange-600 hover:bg-orange-700"
-                disabled={isSubmitting || (isTransfer && !currentPayment.justificante_url)}
+                disabled={isSubmitting || !currentPayment.justificante_url}
               >
                 {isSubmitting ? (
                   <>
