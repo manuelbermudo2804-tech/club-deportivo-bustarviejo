@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -38,10 +39,10 @@ const getCurrentSeason = () => {
   const currentYear = now.getFullYear();
   const currentMonth = now.getMonth() + 1;
   
-  if (currentMonth <= 8) {
-    return `${currentYear - 1}/${currentYear}`;
+  if (currentMonth >= 9) {
+    return `${currentYear}/${currentYear + 1}`;
   }
-  return `${currentYear}/${currentYear + 1}`;
+  return `${currentYear - 1}/${currentYear}`;
 };
 
 export default function ClothingOrderForm({ players, onSubmit, onCancel, isSubmitting }) {
