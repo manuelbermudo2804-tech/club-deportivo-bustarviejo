@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Calendar, MapPin, Clock, Users, ExternalLink, CheckCircle2, XCircle, HelpCircle, Loader2 } from "lucide-react";
+import { Calendar, MapPin, Clock, Users, ExternalLink, CheckCircle2, XCircle, HelpCircle, Loader2, Phone } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import {
@@ -25,6 +25,8 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+
+import WeatherWidget from "../components/callups/WeatherWidget";
 
 export default function ParentCallups() {
   const [user, setUser] = useState(null);
@@ -117,7 +119,6 @@ export default function ParentCallups() {
     });
   };
 
-  // Filter callups that are relevant to my players
   const relevantCallups = callups.filter(c => {
     if (!c.publicada) return false;
     
@@ -128,7 +129,6 @@ export default function ParentCallups() {
     return hasMyPlayer;
   });
 
-  // Separate upcoming ONLY - past callups are hidden
   const today = new Date().toISOString().split('T')[0];
   const upcomingCallups = relevantCallups.filter(c => c.fecha_partido >= today && !c.cerrada);
 
@@ -240,7 +240,19 @@ export default function ParentCallups() {
                         )}
                       </div>
                     </div>
+
+                    {callup.entrenador_telefono && (
+                      <div className="flex items-center gap-2 text-slate-700">
+                        <Phone className="w-4 h-4 text-green-600" />
+                        <span className="text-sm">
+                          Entrenador: <a href={`tel:${callup.entrenador_telefono}`} className="text-green-600 hover:text-green-700 font-medium">{callup.entrenador_telefono}</a>
+                        </span>
+                      </div>
+                    )}
                   </div>
+
+                  {/* Weather Widget */}
+                  <WeatherWidget location={callup.ubicacion} date={callup.fecha_partido} />
 
                   {callup.descripcion && (
                     <div className="bg-slate-50 rounded-lg p-3 border-l-4 border-orange-600">
