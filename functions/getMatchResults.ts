@@ -1,5 +1,4 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.4';
-import puppeteer from 'npm:puppeteer@23.11.1';
 
 Deno.serve(async (req) => {
   try {
@@ -28,53 +27,32 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Lanzar navegador headless para capturar screenshot
-    const browser = await puppeteer.launch({
-      args: ['--no-sandbox', '--disable-setuid-sandbox']
-    });
-    
-    const page = await browser.newPage();
-    await page.setViewport({ width: 1200, height: 3000 });
-    
-    // Navegar a la URL y esperar a que cargue
-    await page.goto(config.url_calendario, { 
-      waitUntil: 'networkidle2',
-      timeout: 30000 
-    });
-    
-    // Esperar un poco más para que se renderice todo
-    await page.waitForTimeout(3000);
-    
-    // Tomar screenshot
-    const screenshotBuffer = await page.screenshot({ fullPage: true });
-    await browser.close();
-    
-    // Subir screenshot a Base44
-    const screenshotFile = new File([screenshotBuffer], 'calendario.png', { type: 'image/png' });
-    const { file_url } = await base44.asServiceRole.integrations.Core.UploadFile({
-      file: screenshotFile
-    });
-
-    // Usar LLM con visión para extraer datos
     const llmResponse = await base44.asServiceRole.integrations.Core.InvokeLLM({
-      prompt: `Analiza esta imagen del calendario de partidos de la RFFM y extrae TODOS los partidos JUGADOS (con resultado) del equipo C.D. BUSTARVIEJO o BUSTARVIEJO.
+      prompt: `Accede a esta URL de la RFFM y extrae los partidos JUGADOS (con resultado) del equipo C.D. BUSTARVIEJO o BUSTARVIEJO:
 
-IMPORTANTE:
-- Solo partidos con resultado (ya jugados)
-- Busca donde aparezca "BUSTARVIEJO" o "C.D. BUSTARVIEJO"
-- Extrae fecha, equipos, resultado
+URL: ${config.url_calendario}
+
+Competición: ${config.competicion_rffm}
+Grupo: ${config.grupo_rffm || "N/A"}
+Equipo buscado: ${config.nombre_equipo_rffm}
+
+INSTRUCCIONES:
+- Busca en el calendario todos los partidos donde aparezca "BUSTARVIEJO" o "C.D. BUSTARVIEJO"
+- Solo partidos que YA SE JUGARON (tienen resultado con goles)
+- Extrae los últimos ${limite || 10} partidos jugados
 - Ordena por fecha descendente (más recientes primero)
-- Máximo ${limite || 10} partidos
 
-Devuelve para cada partido:
+Para cada partido extrae:
 - fecha: formato YYYY-MM-DD
-- jornada: número de jornada
-- local: equipo local
-- visitante: equipo visitante  
-- goles_local: goles del equipo local
-- goles_visitante: goles del visitante
-- campo: instalación donde se jugó`,
-      file_urls: [file_url],
+- jornada: número de jornada (ej: "Jornada 5")
+- local: nombre equipo local completo
+- visitante: nombre equipo visitante completo
+- goles_local: goles marcados por el equipo local
+- goles_visitante: goles marcados por el equipo visitante
+- campo: nombre del campo/instalación
+
+IMPORTANTE: Solo partidos con resultado numérico (ej: 3-1, 0-0, etc.)`,
+      add_context_from_internet: true,
       response_json_schema: {
         type: "object",
         properties: {
@@ -101,11 +79,10 @@ Devuelve para cada partido:
     if (!llmResponse?.partidos || llmResponse.partidos.length === 0) {
       return Response.json({
         success: false,
-        error: "No se encontraron resultados en la imagen"
+        error: "No se encontraron resultados. La URL puede no ser accesible o no contiene partidos de Bustarviejo."
       });
     }
 
-    // Formatear resultados
     const results = llmResponse.partidos.map(partido => {
       const isBustaLocal = partido.local.toUpperCase().includes('BUSTARVIEJO');
       const goles_favor = isBustaLocal ? partido.goles_local : partido.goles_visitante;
@@ -127,7 +104,7 @@ Devuelve para cada partido:
         ubicacion: partido.campo || "",
         categoria: categoria,
         titulo: `${partido.local} ${partido.goles_local} - ${partido.goles_visitante} ${partido.visitante}`,
-        fuente: "rffm_screenshot"
+        fuente: "rffm"
       };
     });
 
@@ -141,7 +118,6 @@ Devuelve para cada partido:
         grupo: config.grupo_rffm,
         temporada: temporada,
         total_results: results.length,
-        metodo: "screenshot",
         url_usada: config.url_calendario
       }
     });

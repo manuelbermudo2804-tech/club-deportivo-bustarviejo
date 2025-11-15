@@ -1,5 +1,4 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.4';
-import puppeteer from 'npm:puppeteer@23.11.1';
 
 Deno.serve(async (req) => {
   try {
@@ -28,49 +27,34 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Lanzar navegador headless
-    const browser = await puppeteer.launch({
-      args: ['--no-sandbox', '--disable-setuid-sandbox']
-    });
-    
-    const page = await browser.newPage();
-    await page.setViewport({ width: 1200, height: 2000 });
-    
-    await page.goto(config.url_clasificacion, { 
-      waitUntil: 'networkidle2',
-      timeout: 30000 
-    });
-    
-    await page.waitForTimeout(3000);
-    
-    const screenshotBuffer = await page.screenshot({ fullPage: true });
-    await browser.close();
-    
-    const screenshotFile = new File([screenshotBuffer], 'clasificacion.png', { type: 'image/png' });
-    const { file_url } = await base44.asServiceRole.integrations.Core.UploadFile({
-      file: screenshotFile
-    });
-
     const llmResponse = await base44.asServiceRole.integrations.Core.InvokeLLM({
-      prompt: `Analiza esta imagen de la tabla de clasificación de la RFFM y extrae la clasificación completa del grupo donde juega C.D. BUSTARVIEJO.
+      prompt: `Accede a esta URL de clasificación de la RFFM y extrae la tabla completa del grupo donde juega C.D. BUSTARVIEJO:
 
-IMPORTANTE:
-- Extrae TODOS los equipos de la tabla
-- Mantén el orden por posición
-- La diferencia de goles puede ser negativa
+URL: ${config.url_clasificacion}
+
+Competición: ${config.competicion_rffm}
+Grupo: ${config.grupo_rffm || "N/A"}
+Equipo: ${config.nombre_equipo_rffm}
+
+INSTRUCCIONES:
+- Busca la tabla de clasificación que incluya a "BUSTARVIEJO" o "C.D. BUSTARVIEJO"
+- Extrae TODOS los equipos de esa tabla
+- Mantén el orden por posición (1º, 2º, 3º, etc.)
 
 Para cada equipo extrae:
-- posicion: número
-- equipo: nombre completo
-- partidos_jugados: PJ
-- ganados: G
-- empatados: E
-- perdidos: P
-- goles_favor: GF
-- goles_contra: GC
+- posicion: número de posición en la tabla
+- equipo: nombre completo del equipo
+- partidos_jugados: PJ (partidos jugados)
+- ganados: G (partidos ganados)
+- empatados: E (partidos empatados)
+- perdidos: P (partidos perdidos)
+- goles_favor: GF (goles a favor)
+- goles_contra: GC (goles en contra)
 - diferencia: diferencia de goles (puede ser negativa)
-- puntos: Pts`,
-      file_urls: [file_url],
+- puntos: Pts (puntos totales)
+
+También extrae la jornada actual si está disponible.`,
+      add_context_from_internet: true,
       response_json_schema: {
         type: "object",
         properties: {
@@ -101,7 +85,7 @@ Para cada equipo extrae:
     if (!llmResponse?.clasificacion || llmResponse.clasificacion.length === 0) {
       return Response.json({
         success: false,
-        error: "No se pudo extraer la clasificación de la imagen"
+        error: "No se pudo extraer la clasificación. Verifica que la URL sea correcta."
       });
     }
 
@@ -115,7 +99,6 @@ Para cada equipo extrae:
         grupo: config.grupo_rffm,
         jornada: llmResponse.jornada_actual || "N/A",
         temporada: temporada,
-        metodo: "screenshot",
         url_usada: config.url_clasificacion,
         ultima_actualizacion: new Date().toISOString()
       }

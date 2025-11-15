@@ -1,5 +1,4 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.4';
-import puppeteer from 'npm:puppeteer@23.11.1';
 
 Deno.serve(async (req) => {
   try {
@@ -28,49 +27,32 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Lanzar navegador headless
-    const browser = await puppeteer.launch({
-      args: ['--no-sandbox', '--disable-setuid-sandbox']
-    });
-    
-    const page = await browser.newPage();
-    await page.setViewport({ width: 1200, height: 3000 });
-    
-    await page.goto(config.url_calendario, { 
-      waitUntil: 'networkidle2',
-      timeout: 30000 
-    });
-    
-    await page.waitForTimeout(3000);
-    
-    const screenshotBuffer = await page.screenshot({ fullPage: true });
-    await browser.close();
-    
-    const screenshotFile = new File([screenshotBuffer], 'calendario.png', { type: 'image/png' });
-    const { file_url } = await base44.asServiceRole.integrations.Core.UploadFile({
-      file: screenshotFile
-    });
-
     const today = new Date().toISOString().split('T')[0];
 
     const llmResponse = await base44.asServiceRole.integrations.Core.InvokeLLM({
-      prompt: `Analiza esta imagen del calendario de la RFFM y extrae los próximos partidos (SIN RESULTADO) del equipo C.D. BUSTARVIEJO.
+      prompt: `Accede a esta URL de la RFFM y extrae los próximos partidos (SIN resultado aún) del equipo C.D. BUSTARVIEJO:
 
+URL: ${config.url_calendario}
+
+Competición: ${config.competicion_rffm}
+Grupo: ${config.grupo_rffm || "N/A"}
+Equipo: ${config.nombre_equipo_rffm}
 Fecha de hoy: ${today}
 
-IMPORTANTE:
-- Solo partidos futuros o pendientes (SIN resultado todavía)
-- Busca "BUSTARVIEJO" o "C.D. BUSTARVIEJO"
-- Máximo 5 partidos próximos
+INSTRUCCIONES:
+- Busca partidos de "BUSTARVIEJO" o "C.D. BUSTARVIEJO"
+- Solo partidos FUTUROS o PENDIENTES (sin resultado todavía)
+- Máximo 5 próximos partidos
+- Ordena por fecha ascendente
 
 Extrae:
-- fecha: YYYY-MM-DD (fechas >= ${today})
-- hora: HH:MM o "Por confirmar"
-- jornada: número
-- local: equipo local
-- visitante: equipo visitante
-- campo: instalación`,
-      file_urls: [file_url],
+- fecha: YYYY-MM-DD (debe ser >= ${today})
+- hora: HH:MM o "Por confirmar" si no aparece
+- jornada: número de jornada
+- local: equipo local completo
+- visitante: equipo visitante completo
+- campo: instalación donde se juega`,
+      add_context_from_internet: true,
       response_json_schema: {
         type: "object",
         properties: {
@@ -113,7 +95,7 @@ Extrae:
         rival: partido.local.toUpperCase().includes('BUSTARVIEJO') ? partido.visitante : partido.local,
         local_visitante: partido.local.toUpperCase().includes('BUSTARVIEJO') ? "Local" : "Visitante",
         titulo: `${partido.local} vs ${partido.visitante}`,
-        fuente: "rffm_screenshot"
+        fuente: "rffm"
       }))
       .sort((a, b) => a.fecha.localeCompare(b.fecha))
       .slice(0, 5);
@@ -128,7 +110,6 @@ Extrae:
         grupo: config.grupo_rffm,
         temporada: temporada,
         total_matches: matches.length,
-        metodo: "screenshot",
         url_usada: config.url_calendario
       }
     });
