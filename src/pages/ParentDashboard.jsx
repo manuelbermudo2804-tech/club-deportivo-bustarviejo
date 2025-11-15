@@ -5,6 +5,9 @@ import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { Users, Calendar, Bell, MessageCircle, CreditCard, Image, Megaphone, Clock, ShoppingBag } from "lucide-react";
 
+import SocialLinks from "../components/SocialLinks";
+import StepCounter from "../components/StepCounter";
+
 const CLUB_LOGO_URL = "https://www.cdbustarviejo.com/uploads/2/4/0/4/2404974/logo-cd-bustarviejo-cuadrado-xpeq_orig.png";
 
 export default function ParentDashboard() {
@@ -62,7 +65,6 @@ export default function ParentDashboard() {
     return false;
   }).length;
 
-  // Callups stats
   const today = new Date().toISOString().split('T')[0];
   const upcomingCallups = callups.filter(c => 
     c.publicada && c.fecha_partido >= today && !c.cerrada
@@ -78,7 +80,6 @@ export default function ParentDashboard() {
     });
   });
 
-  // Payment stats
   const pendingPayments = myPayments.filter(p => p.estado === "Pendiente").length;
 
   const menuItems = [
@@ -158,7 +159,14 @@ export default function ParentDashboard() {
         </div>
       </div>
 
-      <div className="px-4 lg:px-8 py-6">
+      <div className="px-4 lg:px-8 py-6 space-y-6">
+        {/* Step Counter */}
+        <StepCounter />
+
+        {/* Social Links */}
+        <SocialLinks />
+
+        {/* Menu Items */}
         <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6">
           {menuItems.map((item, index) => (
             <Link key={index} to={item.url} className="group">
@@ -188,9 +196,8 @@ export default function ParentDashboard() {
             </Link>
           ))}
         </div>
-      </div>
 
-      <div className="px-4 lg:px-8 pb-8">
+        {/* Summary Stats */}
         <div className="bg-slate-800 rounded-3xl p-6 shadow-2xl border-2 border-slate-700">
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
             <div className="text-center">
