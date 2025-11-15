@@ -712,7 +712,6 @@ export default function Layout({ children, currentPageName }) {
 
   const adminNavigationItems = [
     { title: "Inicio", url: createPageUrl("Home"), icon: Home },
-    { title: "🏟️ Match Center", url: createPageUrl("MatchApp"), icon: Trophy },
     { title: "Jugadores", url: createPageUrl("Players"), icon: Users },
     { title: "Horarios", url: createPageUrl("TrainingSchedules"), icon: Clock },
     { title: "Calendario", url: createPageUrl("Calendar"), icon: Calendar },
@@ -733,7 +732,6 @@ export default function Layout({ children, currentPageName }) {
 
   const coachNavigationItems = [
     { title: "Inicio", url: createPageUrl("Home"), icon: Home },
-    { title: "🏟️ Match Center", url: createPageUrl("MatchApp"), icon: Trophy },
     { title: "Mis Hijos", url: createPageUrl("Players"), icon: Users },
     { title: "🎓 Plantillas", url: createPageUrl("TeamRosters"), icon: Users },
     { title: "✅ Asistencia", url: createPageUrl("CoachAttendance"), icon: CheckCircle2 },
@@ -751,7 +749,6 @@ export default function Layout({ children, currentPageName }) {
 
   const parentNavigationItems = [
     { title: "Inicio", url: createPageUrl("ParentDashboard"), icon: Home },
-    { title: "🏟️ Match Center", url: createPageUrl("MatchApp"), icon: Trophy },
     { title: "Jugadores", url: createPageUrl("ParentPlayers"), icon: Users },
     { title: "🆔 Carnets", url: createPageUrl("PlayerCards"), icon: Award },
     { title: "📜 Certificados", url: createPageUrl("Certificates"), icon: FileText },
@@ -768,7 +765,6 @@ export default function Layout({ children, currentPageName }) {
 
   const playerNavigationItems = [
     { title: "Inicio", url: createPageUrl("PlayerDashboard"), icon: Home },
-    { title: "🏟️ Match Center", url: createPageUrl("MatchApp"), icon: Trophy },
     { title: "Mi Perfil", url: createPageUrl("PlayerProfile"), icon: UserIcon },
     { title: "Horarios", url: createPageUrl("PlayerSchedules"), icon: Clock },
     { title: "Calendario", url: createPageUrl("Calendar"), icon: Calendar },
