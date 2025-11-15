@@ -77,9 +77,19 @@ export default function NotificationCenter() {
 
   const myGroupSports = [...new Set(myPlayers.map(p => p.deporte))];
 
-  // Messages
+  // Helper function to check if notification is recent (last 7 days)
+  const isRecent = (date) => {
+    const notifDate = new Date(date);
+    const daysAgo = Math.floor((new Date() - notifDate) / (1000 * 60 * 60 * 24));
+    return daysAgo <= 7;
+  };
+
+  // Messages - only recent unread
   const unreadMessages = messages.filter(m => 
-    !m.leido && m.tipo === "admin_a_grupo" && myGroupSports.includes(m.grupo_id || m.deporte)
+    !m.leido && 
+    m.tipo === "admin_a_grupo" && 
+    myGroupSports.includes(m.grupo_id || m.deporte) &&
+    isRecent(m.created_date)
   );
 
   const urgentMessages = unreadMessages.filter(m => m.prioridad === "Urgente");
@@ -94,7 +104,7 @@ export default function NotificationCenter() {
     });
   });
 
-  // Announcements (recent)
+  // Announcements (recent - last 3 days)
   const recentAnnouncements = announcements.filter(a => {
     if (!a.publicado) return false;
     if (a.destinatarios_tipo !== "Todos" && !myGroupSports.includes(a.destinatarios_tipo)) return false;
@@ -207,7 +217,7 @@ export default function NotificationCenter() {
             {urgentMessages.map(msg => {
               const Icon = getNotificationIcon("message");
               return (
-                <Link key={msg.id} to={createPageUrl("ParentChat")}>
+                <Link key={msg.id} to={createPageUrl("ParentChat")} onClick={() => setIsOpen(false)}>
                   <div className={`flex items-start gap-3 p-3 rounded-lg hover:opacity-80 transition-all border-2 border-red-300 ${getNotificationColor("message", "Urgente")}`}>
                     <Icon className="w-5 h-5 text-red-600 mt-1 animate-pulse" />
                     <div className="flex-1">
@@ -227,7 +237,7 @@ export default function NotificationCenter() {
 
             {/* Urgent Announcements */}
             {urgentAnnouncements.map(ann => (
-              <Link key={ann.id} to={createPageUrl("Announcements")}>
+              <Link key={ann.id} to={createPageUrl("Announcements")} onClick={() => setIsOpen(false)}>
                 <div className={`flex items-start gap-3 p-3 rounded-lg hover:opacity-80 transition-all border-2 border-red-300 ${getNotificationColor("announcement", "Urgente")}`}>
                   <Megaphone className="w-5 h-5 text-red-600 mt-1 animate-pulse" />
                   <div className="flex-1">
@@ -245,7 +255,7 @@ export default function NotificationCenter() {
             {pendingPayments.map(payment => {
               const Icon = getNotificationIcon("payment");
               return (
-                <Link key={payment.id} to={createPageUrl("ParentPayments")}>
+                <Link key={payment.id} to={createPageUrl("ParentPayments")} onClick={() => setIsOpen(false)}>
                   <div className={`flex items-start gap-3 p-3 rounded-lg hover:opacity-80 transition-all ${getNotificationColor("payment")}`}>
                     <Icon className="w-5 h-5 text-green-600 mt-1" />
                     <div className="flex-1">
@@ -261,7 +271,7 @@ export default function NotificationCenter() {
 
             {/* Upcoming Reminders */}
             {upcomingReminders.map(reminder => (
-              <Link key={reminder.id} to={createPageUrl("ParentPayments")}>
+              <Link key={reminder.id} to={createPageUrl("ParentPayments")} onClick={() => setIsOpen(false)}>
                 <div className={`flex items-start gap-3 p-3 rounded-lg hover:opacity-80 transition-all ${getNotificationColor("reminder")}`}>
                   <Clock className="w-5 h-5 text-yellow-600 mt-1" />
                   <div className="flex-1">
@@ -297,7 +307,7 @@ export default function NotificationCenter() {
             {pendingCallups.map(callup => {
               const Icon = getNotificationIcon("callup");
               return (
-                <Link key={callup.id} to={createPageUrl("ParentCallups")}>
+                <Link key={callup.id} to={createPageUrl("ParentCallups")} onClick={() => setIsOpen(false)}>
                   <div className={`flex items-start gap-3 p-3 rounded-lg hover:opacity-80 transition-all ${getNotificationColor("callup")}`}>
                     <Icon className="w-5 h-5 text-orange-600 mt-1" />
                     <div className="flex-1">
@@ -315,7 +325,7 @@ export default function NotificationCenter() {
 
             {/* Recent Announcements */}
             {recentAnnouncements.filter(a => a.prioridad !== "Urgente").map(ann => (
-              <Link key={ann.id} to={createPageUrl("Announcements")}>
+              <Link key={ann.id} to={createPageUrl("Announcements")} onClick={() => setIsOpen(false)}>
                 <div className={`flex items-start gap-3 p-3 rounded-lg hover:opacity-80 transition-all ${getNotificationColor("announcement", ann.prioridad)}`}>
                   <Megaphone className="w-5 h-5 text-purple-600 mt-1" />
                   <div className="flex-1">
@@ -337,7 +347,6 @@ export default function NotificationCenter() {
             )}
           </TabsContent>
 
-          {/* Keep existing tab contents for messages, callups, payments, and add announcements */}
           <TabsContent value="messages" className="space-y-3 mt-4">
             {unreadMessages.length === 0 ? (
               <div className="text-center py-12">
@@ -371,7 +380,7 @@ export default function NotificationCenter() {
               </div>
             ) : (
               pendingCallups.map(callup => (
-                <Link key={callup.id} to={createPageUrl("ParentCallups")}>
+                <Link key={callup.id} to={createPageUrl("ParentCallups")} onClick={() => setIsOpen(false)}>
                   <div className="flex items-start gap-3 p-3 bg-orange-50 rounded-lg hover:bg-orange-100 transition-colors cursor-pointer">
                     <Bell className="w-5 h-5 text-orange-600 mt-1" />
                     <div className="flex-1">
@@ -396,7 +405,7 @@ export default function NotificationCenter() {
               </div>
             ) : (
               pendingPayments.map(payment => (
-                <Link key={payment.id} to={createPageUrl("ParentPayments")}>
+                <Link key={payment.id} to={createPageUrl("ParentPayments")} onClick={() => setIsOpen(false)}>
                   <div className="flex items-start gap-3 p-3 bg-green-50 rounded-lg hover:bg-green-100 transition-colors cursor-pointer">
                     <CreditCard className="w-5 h-5 text-green-600 mt-1" />
                     <div className="flex-1">
@@ -419,7 +428,7 @@ export default function NotificationCenter() {
               </div>
             ) : (
               recentAnnouncements.map(ann => (
-                <Link key={ann.id} to={createPageUrl("Announcements")}>
+                <Link key={ann.id} to={createPageUrl("Announcements")} onClick={() => setIsOpen(false)}>
                   <div className={`flex items-start gap-3 p-3 rounded-lg hover:opacity-80 transition-all ${ann.prioridad === "Urgente" ? "bg-red-50 border-2 border-red-300" : "bg-purple-50"}`}>
                     <Megaphone className={`w-5 h-5 mt-1 ${ann.prioridad === "Urgente" ? "text-red-600" : "text-purple-600"}`} />
                     <div className="flex-1">

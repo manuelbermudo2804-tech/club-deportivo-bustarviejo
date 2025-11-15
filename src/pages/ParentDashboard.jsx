@@ -175,13 +175,13 @@ export default function ParentDashboard() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-black">
       <div className="px-4 lg:px-8 py-6 space-y-6">
-        {/* Botón de notificaciones push - solo visible en móvil */}
-        <div className="lg:hidden">
-          <PushNotificationManager />
-        </div>
-
         {/* Social Links */}
         <SocialLinks />
+
+        {/* Botón de notificaciones push - solo visible en móvil, con z-index alto */}
+        <div className="lg:hidden relative z-50">
+          <PushNotificationManager />
+        </div>
 
         {/* Dashboard Widgets */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
