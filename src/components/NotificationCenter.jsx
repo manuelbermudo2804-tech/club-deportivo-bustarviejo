@@ -110,10 +110,8 @@ export default function NotificationCenter() {
     });
   });
 
-  // Announcements con lógica diferenciada:
-  // - Urgentes: solo del día actual (desaparecen al día siguiente)
-  // - Importantes: hasta 2 días después de publicación
-  // - Normales: hasta 3 días después de publicación
+  // Announcements con lógica de horas en lugar de días
+  const now = new Date();
   const recentAnnouncements = announcements.filter(a => {
     if (!a.publicado) return false;
     if (a.destinatarios_tipo !== "Todos" && !myGroupSports.includes(a.destinatarios_tipo)) return false;
@@ -121,24 +119,25 @@ export default function NotificationCenter() {
     // Si tiene fecha de expiración, respetarla
     if (a.fecha_expiracion) {
       const expirationDate = new Date(a.fecha_expiracion);
-      expirationDate.setHours(0, 0, 0, 0);
-      if (today > expirationDate) return false;
+      if (now > expirationDate) return false;
     }
     
-    const daysAgo = Math.floor((new Date() - new Date(a.fecha_publicacion)) / (1000 * 60 * 60 * 24));
+    const publishedDate = new Date(a.fecha_publicacion);
+    const diffMs = now - publishedDate;
+    const diffHours = diffMs / (1000 * 60 * 60);
     
-    // Anuncios urgentes: solo del día actual
+    // Anuncios urgentes: 24 horas
     if (a.prioridad === "Urgente") {
-      return daysAgo === 0;
+      return diffHours < 24;
     }
     
-    // Anuncios importantes: 2 días
+    // Anuncios importantes: 48 horas
     if (a.prioridad === "Importante") {
-      return daysAgo <= 2;
+      return diffHours < 48;
     }
     
-    // Anuncios normales: 3 días
-    return daysAgo <= 3;
+    // Anuncios normales: 72 horas
+    return diffHours < 72;
   }).slice(0, 10);
 
   const urgentAnnouncements = recentAnnouncements.filter(a => a.prioridad === "Urgente");

@@ -19,7 +19,6 @@ export default function Announcements() {
   
   const queryClient = useQueryClient();
 
-  // Get current user info to filter announcements for parents
   useEffect(() => {
     const checkUser = async () => {
       try {
@@ -27,14 +26,12 @@ export default function Announcements() {
         setIsAdmin(user.role === "admin");
         
         if (user.role !== "admin") {
-          // Get user's players to determine relevant announcements
           const allPlayers = await base44.entities.Player.list();
           const myPlayers = allPlayers.filter(p => 
             p.email_padre === user.email || p.email === user.email
           );
           
           if (myPlayers.length > 0) {
-            // Get unique sports/categories (deporte field contains the full category)
             const sports = [...new Set(myPlayers.map(p => p.deporte).filter(Boolean))];
             setUserSports(sports);
           }
@@ -63,12 +60,10 @@ export default function Announcements() {
     mutationFn: async (announcementData) => {
       const announcement = await base44.entities.Announcement.create(announcementData);
       
-      // If email should be sent
       if (announcementData.enviar_email && !announcementData.email_enviado) {
         await sendAnnouncementEmails(announcement, announcementData);
       }
       
-      // If chat should be sent
       if (announcementData.enviar_chat && !announcementData.chat_enviado) {
         await sendAnnouncementToChats(announcement, announcementData);
       }
@@ -104,20 +99,17 @@ export default function Announcements() {
 
   const sendAnnouncementEmails = async (announcement, data) => {
     try {
-      // Filter recipients based on type
       let recipients = [];
       
       if (data.destinatarios_tipo === "Todos") {
         recipients = players.map(p => p.email_padre || p.email).filter(Boolean);
       } else {
-        // Specific category - filter by exact deporte match
         recipients = players
           .filter(p => p.deporte === data.destinatarios_tipo)
           .map(p => p.email_padre || p.email)
           .filter(Boolean);
       }
 
-      // Remove duplicates
       recipients = [...new Set(recipients)];
 
       if (recipients.length === 0) {
@@ -127,7 +119,6 @@ export default function Announcements() {
 
       toast.info(`Enviando emails a ${recipients.length} destinatarios...`);
 
-      // Send email to each recipient
       let successCount = 0;
       let errorCount = 0;
 
@@ -188,11 +179,9 @@ Ubicación: Bustarviejo, Madrid
           errorCount++;
         }
         
-        // Small delay between emails
         await new Promise(resolve => setTimeout(resolve, 300));
       }
 
-      // Mark as email sent
       await base44.entities.Announcement.update(announcement.id, {
         ...announcement,
         email_enviado: true
@@ -211,15 +200,12 @@ Ubicación: Bustarviejo, Madrid
 
   const sendAnnouncementToChats = async (announcement, data) => {
     try {
-      // Determine which groups to send to
       let targetGroups = [];
       
       if (data.destinatarios_tipo === "Todos") {
-        // Get all unique sports from players
         const allSports = [...new Set(players.map(p => p.deporte).filter(Boolean))];
         targetGroups = allSports;
       } else {
-        // Specific category
         targetGroups = [data.destinatarios_tipo];
       }
 
@@ -259,7 +245,6 @@ Ubicación: Bustarviejo, Madrid
         }
       }
 
-      // Mark as chat sent
       await base44.entities.Announcement.update(announcement.id, {
         ...announcement,
         chat_enviado: true
@@ -291,38 +276,44 @@ Ubicación: Bustarviejo, Madrid
 
   // Filter announcements based on user role and expiration
   const visibleAnnouncements = announcements.filter(announcement => {
-    // Admins see all (including expired for management)
+    // Admins see all
     if (isAdmin) return true;
     
     // Parents only see published
     if (!announcement.publicado) return false;
     
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+    const now = new Date();
+    const publishedDate = new Date(announcement.fecha_publicacion);
     
-    // Filter expired announcements by fecha_expiracion
+    // Calculate milliseconds difference
+    const diffMs = now - publishedDate;
+    const diffHours = diffMs / (1000 * 60 * 60);
+    
+    // Filter by fecha_expiracion if exists
     if (announcement.fecha_expiracion) {
       const expirationDate = new Date(announcement.fecha_expiracion);
-      expirationDate.setHours(0, 0, 0, 0);
-      if (today > expirationDate) return false;
+      if (now > expirationDate) return false;
     }
     
-    // Filter by days since publication based on priority
-    const daysAgo = Math.floor((today - new Date(announcement.fecha_publicacion)) / (1000 * 60 * 60 * 24));
+    // Urgente: solo el mismo día (desaparece después de 24h)
+    if (announcement.prioridad === "Urgente") {
+      return diffHours < 24;
+    }
     
-    // Anuncios urgentes: solo del día actual
-    if (announcement.prioridad === "Urgente" && daysAgo > 0) return false;
+    // Importante: hasta 48 horas (2 días)
+    if (announcement.prioridad === "Importante") {
+      return diffHours < 48;
+    }
     
-    // Anuncios importantes: 2 días
-    if (announcement.prioridad === "Importante" && daysAgo > 2) return false;
+    // Normal: hasta 72 horas (3 días)
+    if (announcement.prioridad === "Normal") {
+      return diffHours < 72;
+    }
     
-    // Anuncios normales: 3 días
-    if (announcement.prioridad === "Normal" && daysAgo > 3) return false;
-    
+    return false;
+  }).filter(announcement => {
     // Check if announcement is relevant to user
     if (announcement.destinatarios_tipo === "Todos") return true;
-    
-    // Check if user's sport matches the announcement target
     return userSports.includes(announcement.destinatarios_tipo);
   });
 
