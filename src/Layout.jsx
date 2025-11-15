@@ -3,7 +3,7 @@ import React, { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { base44 } from "@/api/base44Client";
-import { Home, Users, CreditCard, ShoppingBag, Menu, Bell, LogOut, Calendar, Megaphone, Mail, Archive, Settings, MessageCircle, Clock, Image, X, User as UserIcon, CheckCircle2, ClipboardCheck, Star } from "lucide-react";
+import { Home, Users, CreditCard, ShoppingBag, Menu, Bell, LogOut, Calendar, Megaphone, Mail, Archive, Settings, MessageCircle, Clock, Image, X, User as UserIcon, CheckCircle2, ClipboardCheck, Star, Award, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
@@ -577,8 +577,8 @@ export default function Layout({ children, currentPageName }) {
                   urgent++;
                 }
               }
-            }
-          });
+            });
+          }
         } else if (isPlayer) {
           const allPlayers = await base44.entities.Player.list();
           const myPlayer = allPlayers.find(p => p.email_jugador === user.email);
@@ -732,6 +732,7 @@ export default function Layout({ children, currentPageName }) {
     { title: "Recordatorios", url: createPageUrl("Reminders"), icon: Bell },
     { title: "Pedidos Ropa", url: createPageUrl("ClothingOrders"), icon: ShoppingBag },
     { title: "Chat Grupos", url: createPageUrl("AdminChat"), icon: MessageCircle, badge: unreadMessagesCount > 0 ? unreadMessagesCount : null, urgentBadge: urgentMessagesCount > 0 },
+    { title: "📋 Encuestas", url: createPageUrl("Surveys"), icon: FileText },
     { title: "Histórico", url: createPageUrl("PaymentHistory"), icon: Archive },
     { title: "Temporadas", url: createPageUrl("SeasonManagement"), icon: Settings },
     { title: "Usuarios", url: createPageUrl("UserManagement"), icon: Users },
@@ -757,6 +758,8 @@ export default function Layout({ children, currentPageName }) {
   const parentNavigationItems = [
     { title: "Inicio", url: createPageUrl("ParentDashboard"), icon: Home },
     { title: "Jugadores", url: createPageUrl("ParentPlayers"), icon: Users },
+    { title: "🆔 Carnets", url: createPageUrl("PlayerCards"), icon: Award },
+    { title: "📜 Certificados", url: createPageUrl("Certificates"), icon: FileText },
     { title: "Horarios", url: createPageUrl("ParentTrainingSchedules"), icon: Clock },
     { title: "Calendario", url: createPageUrl("Calendar"), icon: Calendar },
     { title: "Anuncios", url: createPageUrl("Announcements"), icon: Megaphone },
@@ -764,6 +767,7 @@ export default function Layout({ children, currentPageName }) {
     { title: "🏆 Convocatorias", url: createPageUrl("ParentCallups"), icon: Bell, badge: pendingCallupsCount > 0 ? pendingCallupsCount : null, urgentBadge: pendingCallupsCount > 0 },
     { title: "Pagos", url: createPageUrl("ParentPayments"), icon: CreditCard },
     { title: "Pedidos Ropa", url: createPageUrl("ClothingOrders"), icon: ShoppingBag },
+    { title: "📋 Encuestas", url: createPageUrl("Surveys"), icon: FileText },
     { title: "Chat", url: createPageUrl("ParentChat"), icon: MessageCircle, badge: unreadMessagesCount > 0 ? unreadMessagesCount : null, urgentBadge: urgentMessagesCount > 0 },
   ];
 
