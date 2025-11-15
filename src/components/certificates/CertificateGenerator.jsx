@@ -2,135 +2,151 @@ import React from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Download, FileText, CheckCircle2, Award, Printer } from "lucide-react";
+import { Download, FileText, CheckCircle2, Award } from "lucide-react";
+import { format } from "date-fns";
+import { es } from "date-fns/locale";
+import { jsPDF } from "jspdf";
+import { toast } from "sonner";
+
+const CLUB_LOGO_URL = "https://www.cdbustarviejo.com/uploads/2/4/0/4/2404974/logo-cd-bustarviejo-cuadrado-xpeq_orig.png";
 
 export default function CertificateGenerator({ certificate }) {
-  const generateHTML = () => {
-    const fecha = new Date(certificate.fecha_emision).toLocaleDateString('es-ES', {
-      day: 'numeric',
-      month: 'long',
-      year: 'numeric'
-    });
-
-    return `
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="UTF-8">
-  <title>Certificado ${certificate.tipo_certificado}</title>
-  <style>
-    @page { size: A4; margin: 0; }
-    body { margin: 0; padding: 40px; font-family: Arial, sans-serif; }
-    .certificate { width: 100%; max-width: 800px; margin: 0 auto; border: 8px solid #ea580c; padding: 60px; background: white; }
-    .header { text-align: center; margin-bottom: 40px; }
-    .logo { width: 120px; height: 120px; margin: 0 auto 20px; background: #ea580c; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 48px; font-weight: bold; }
-    .title { font-size: 48px; font-weight: bold; color: #0f172a; margin: 20px 0; }
-    .subtitle { font-size: 32px; color: #ea580c; margin: 10px 0; }
-    .divider { height: 2px; background: #ea580c; margin: 30px 0; }
-    .club-name { font-size: 24px; font-weight: bold; margin: 30px 0; }
-    .content { font-size: 18px; line-height: 1.8; text-align: center; margin: 40px 0; }
-    .player-name { font-size: 28px; font-weight: bold; color: #ea580c; margin: 20px 0; }
-    .category { font-size: 16px; color: #64748b; margin: 10px 0; }
-    .footer { margin-top: 60px; text-align: center; font-size: 14px; color: #64748b; }
-    .seal { display: inline-block; border: 3px solid #ea580c; border-radius: 50%; padding: 20px; margin: 20px; }
-    .verification { font-size: 12px; color: #94a3b8; margin-top: 20px; }
-  </style>
-</head>
-<body>
-  <div class="certificate">
-    <div class="header">
-      <div class="logo">CD</div>
-      <div class="title">CERTIFICADO</div>
-      <div class="subtitle">DE ${certificate.tipo_certificado.toUpperCase()}</div>
-    </div>
-    <div class="divider"></div>
-    <div class="club-name">CD BUSTARVIEJO</div>
-    <div class="content">
-      ${certificate.datos_certificado?.mensaje || ''}
-    </div>
-    <div class="player-name">${certificate.jugador_nombre}</div>
-    <div class="category">${certificate.categoria}</div>
-    <div class="footer">
-      <p>Expedido en Bustarviejo, ${fecha}</p>
-      <div class="seal">SELLO OFICIAL</div>
-      <div class="verification">Código de verificación: ${certificate.codigo_verificacion}</div>
-    </div>
-  </div>
-</body>
-</html>`;
+  const handleDownload = async () => {
+    try {
+      const doc = new jsPDF();
+      
+      // Header
+      doc.setFillColor(244, 114, 24); // Orange
+      doc.rect(0, 0, 210, 40, 'F');
+      
+      doc.setTextColor(255, 255, 255);
+      doc.setFontSize(26);
+      doc.text("CD BUSTARVIEJO", 105, 20, { align: "center" });
+      doc.setFontSize(14);
+      doc.text("Club Deportivo Bustarviejo", 105, 30, { align: "center" });
+      
+      // Certificate Type
+      doc.setTextColor(0, 0, 0);
+      doc.setFontSize(20);
+      doc.text(`CERTIFICADO DE ${certificate.tipo_certificado.toUpperCase()}`, 105, 60, { align: "center" });
+      
+      // Body
+      doc.setFontSize(12);
+      doc.setFont(undefined, 'normal');
+      
+      const startY = 80;
+      const lineHeight = 10;
+      let currentY = startY;
+      
+      doc.text("El Club Deportivo Bustarviejo certifica que:", 20, currentY);
+      currentY += lineHeight * 2;
+      
+      doc.setFontSize(16);
+      doc.setFont(undefined, 'bold');
+      doc.text(certificate.jugador_nombre, 105, currentY, { align: "center" });
+      currentY += lineHeight * 1.5;
+      
+      doc.setFontSize(12);
+      doc.setFont(undefined, 'normal');
+      
+      // Custom message based on type
+      const mensaje = certificate.datos_certificado?.mensaje || "";
+      const splitMsg = doc.splitTextToSize(mensaje, 170);
+      doc.text(splitMsg, 20, currentY);
+      currentY += (splitMsg.length * lineHeight) + lineHeight;
+      
+      // Additional details
+      if (certificate.tipo_certificado === "Pagos al Día" && certificate.datos_certificado) {
+        doc.text(`Pagos realizados: ${certificate.datos_certificado.pagos_realizados}`, 20, currentY);
+        currentY += lineHeight;
+        doc.text(`Total pagado: ${certificate.datos_certificado.total_pagado}€`, 20, currentY);
+        currentY += lineHeight;
+      } else if (certificate.tipo_certificado === "Asistencia" && certificate.datos_certificado) {
+        doc.text(`Sesiones totales: ${certificate.datos_certificado.sesiones_totales}`, 20, currentY);
+        currentY += lineHeight;
+        doc.text(`Asistencias: ${certificate.datos_certificado.asistencias}`, 20, currentY);
+        currentY += lineHeight;
+        doc.text(`Porcentaje: ${certificate.datos_certificado.porcentaje_asistencia}%`, 20, currentY);
+        currentY += lineHeight;
+      }
+      
+      currentY += lineHeight;
+      doc.text(`Categoría: ${certificate.categoria}`, 20, currentY);
+      currentY += lineHeight;
+      doc.text(`Temporada: ${certificate.temporada}`, 20, currentY);
+      
+      // Footer
+      currentY = 240;
+      doc.setFontSize(10);
+      doc.text(`Fecha de emisión: ${format(new Date(certificate.fecha_emision), "dd 'de' MMMM 'de' yyyy", { locale: es })}`, 20, currentY);
+      currentY += lineHeight / 2;
+      doc.text(`Código de verificación: ${certificate.codigo_verificacion}`, 20, currentY);
+      
+      // Signature area
+      currentY += lineHeight * 2;
+      doc.setDrawColor(0);
+      doc.line(130, currentY, 190, currentY);
+      currentY += 5;
+      doc.setFontSize(9);
+      doc.text("Firma y sello del club", 160, currentY, { align: "center" });
+      
+      // Footer bar
+      doc.setFillColor(244, 114, 24);
+      doc.rect(0, 285, 210, 12, 'F');
+      doc.setTextColor(255, 255, 255);
+      doc.setFontSize(8);
+      doc.text("CD Bustarviejo | Bustarviejo, Madrid | CDBUSTARVIEJO@GMAIL.COM", 105, 292, { align: "center" });
+      
+      // Save
+      doc.save(`certificado-${certificate.tipo_certificado}-${certificate.jugador_nombre}.pdf`);
+      toast.success("✅ Certificado descargado");
+    } catch (error) {
+      console.error("Error generating PDF:", error);
+      toast.error("Error al generar el PDF");
+    }
   };
 
-  const printCertificate = () => {
-    const html = generateHTML();
-    const printWindow = window.open('', '_blank');
-    printWindow.document.write(html);
-    printWindow.document.close();
-    printWindow.focus();
-    setTimeout(() => {
-      printWindow.print();
-    }, 500);
-  };
-
-  const downloadHTML = () => {
-    const html = generateHTML();
-    const blob = new Blob([html], { type: 'text/html' });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `certificado_${certificate.tipo_certificado}_${certificate.jugador_nombre}.html`;
-    a.click();
-    window.URL.revokeObjectURL(url);
-  };
-
-  const iconMap = {
+  const typeIcons = {
     "Inscripción": FileText,
     "Pagos al Día": CheckCircle2,
     "Asistencia": Award
   };
 
-  const colorMap = {
+  const typeColors = {
     "Inscripción": "bg-blue-100 text-blue-700",
     "Pagos al Día": "bg-green-100 text-green-700",
     "Asistencia": "bg-orange-100 text-orange-700"
   };
 
-  const Icon = iconMap[certificate.tipo_certificado] || FileText;
+  const Icon = typeIcons[certificate.tipo_certificado];
 
   return (
-    <Card className="border-2 border-orange-200">
+    <Card className="border-2 border-slate-200 hover:border-orange-300 transition-colors">
       <CardContent className="p-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className={`p-3 rounded-lg ${colorMap[certificate.tipo_certificado]}`}>
+        <div className="flex items-start justify-between gap-4">
+          <div className="flex items-start gap-3 flex-1">
+            <div className={`w-12 h-12 rounded-xl ${typeColors[certificate.tipo_certificado]} flex items-center justify-center`}>
               <Icon className="w-6 h-6" />
             </div>
-            <div>
-              <h3 className="font-semibold">{certificate.tipo_certificado}</h3>
-              <p className="text-sm text-slate-600">{certificate.jugador_nombre}</p>
-              <p className="text-xs text-slate-500">
-                {new Date(certificate.fecha_emision).toLocaleDateString('es-ES')}
+            <div className="flex-1">
+              <h3 className="font-bold text-lg text-slate-900">{certificate.tipo_certificado}</h3>
+              <p className="text-sm text-slate-600 mb-2">{certificate.jugador_nombre}</p>
+              <div className="flex flex-wrap gap-2 text-xs text-slate-600">
+                <Badge variant="outline">{certificate.temporada}</Badge>
+                <Badge variant="outline">{certificate.categoria}</Badge>
+              </div>
+              <p className="text-xs text-slate-500 mt-2">
+                Emitido: {format(new Date(certificate.fecha_emision), "dd MMM yyyy", { locale: es })}
               </p>
             </div>
           </div>
-          <div className="flex items-center gap-2">
-            <Badge className="bg-green-500 text-white">Válido</Badge>
-            <Button
-              onClick={printCertificate}
-              variant="outline"
-              size="sm"
-            >
-              <Printer className="w-4 h-4 mr-2" />
-              Imprimir
-            </Button>
-            <Button
-              onClick={downloadHTML}
-              className="bg-orange-600 hover:bg-orange-700"
-              size="sm"
-            >
-              <Download className="w-4 h-4 mr-2" />
-              Descargar
-            </Button>
-          </div>
+          <Button
+            onClick={handleDownload}
+            className="bg-orange-600 hover:bg-orange-700 flex-shrink-0"
+          >
+            <Download className="w-4 h-4 mr-2" />
+            Descargar PDF
+          </Button>
         </div>
       </CardContent>
     </Card>

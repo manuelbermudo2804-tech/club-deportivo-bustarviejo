@@ -3,9 +3,13 @@ import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { Users, Calendar, Bell, MessageCircle, CreditCard, Image, Megaphone, Clock, ShoppingBag } from "lucide-react";
+import { Users, Calendar, Bell, MessageCircle, CreditCard, Image, Megaphone, Clock, ShoppingBag, FileText, Award } from "lucide-react";
 
 import SocialLinks from "../components/SocialLinks";
+import PushNotificationManager from "../components/push/PushNotificationManager";
+import ActivityTimeline from "../components/dashboard/ActivityTimeline";
+import AttendanceSummary from "../components/dashboard/AttendanceSummary";
+import UpcomingEvents from "../components/dashboard/UpcomingEvents";
 
 const CLUB_LOGO_URL = "https://www.cdbustarviejo.com/uploads/2/4/0/4/2404974/logo-cd-bustarviejo-cuadrado-xpeq_orig.png";
 
@@ -32,19 +36,31 @@ export default function ParentDashboard() {
 
   const { data: payments } = useQuery({
     queryKey: ['payments'],
-    queryFn: () => base44.entities.Payment.list(),
+    queryFn: () => base44.entities.Payment.list('-created_date'),
     initialData: [],
   });
 
   const { data: callups } = useQuery({
     queryKey: ['callups'],
-    queryFn: () => base44.entities.Convocatoria.list(),
+    queryFn: () => base44.entities.Convocatoria.list('-created_date'),
     initialData: [],
   });
 
   const { data: messages } = useQuery({
     queryKey: ['messages'],
-    queryFn: () => base44.entities.ChatMessage.list(),
+    queryFn: () => base44.entities.ChatMessage.list('-created_date'),
+    initialData: [],
+  });
+
+  const { data: events } = useQuery({
+    queryKey: ['events'],
+    queryFn: () => base44.entities.Event.list(),
+    initialData: [],
+  });
+
+  const { data: attendances } = useQuery({
+    queryKey: ['attendances'],
+    queryFn: () => base44.entities.Attendance.list(),
     initialData: [],
   });
 
@@ -107,6 +123,18 @@ export default function ParentDashboard() {
       badgeLabel: "pendientes"
     },
     {
+      title: "Certificados",
+      icon: FileText,
+      url: createPageUrl("Certificates"),
+      gradient: "from-blue-600 to-blue-700",
+    },
+    {
+      title: "Carnets",
+      icon: Award,
+      url: createPageUrl("PlayerCards"),
+      gradient: "from-indigo-600 to-indigo-700",
+    },
+    {
       title: "Horarios",
       icon: Clock,
       url: createPageUrl("ParentTrainingSchedules"),
@@ -149,18 +177,45 @@ export default function ParentDashboard() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-black">
       <div className="bg-gradient-to-r from-orange-600 to-orange-700 p-4 lg:p-6 shadow-2xl">
-        <div className="flex items-center justify-center gap-3">
-          <img src={CLUB_LOGO_URL} alt="CD Bustarviejo" className="w-12 h-12 lg:w-16 lg:h-16 rounded-2xl shadow-2xl ring-4 ring-white/50" />
-          <div className="text-white text-center">
-            <h1 className="text-2xl lg:text-3xl font-bold">CD Bustarviejo</h1>
-            <p className="text-orange-100 text-xs lg:text-sm">Panel de Familias</p>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <img src={CLUB_LOGO_URL} alt="CD Bustarviejo" className="w-12 h-12 lg:w-16 lg:h-16 rounded-2xl shadow-2xl ring-4 ring-white/50" />
+            <div className="text-white">
+              <h1 className="text-2xl lg:text-3xl font-bold">CD Bustarviejo</h1>
+              <p className="text-orange-100 text-xs lg:text-sm">Panel de Familias</p>
+            </div>
           </div>
+          <PushNotificationManager />
         </div>
       </div>
 
       <div className="px-4 lg:px-8 py-6 space-y-6">
         {/* Social Links */}
         <SocialLinks />
+
+        {/* Dashboard Widgets */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <ActivityTimeline 
+            payments={myPayments}
+            callups={upcomingCallups}
+            messages={messages.filter(m => !m.leido)}
+            events={events}
+          />
+          
+          <div className="space-y-6">
+            {myPlayers[0] && (
+              <AttendanceSummary 
+                player={myPlayers[0]}
+                attendances={attendances}
+              />
+            )}
+            
+            <UpcomingEvents 
+              events={events}
+              myPlayers={myPlayers}
+            />
+          </div>
+        </div>
 
         {/* Menu Items */}
         <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6">
