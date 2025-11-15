@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Send, Clock, AlertCircle, X } from "lucide-react";
+import { Send, Clock, AlertCircle, X, ChevronLeft } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 
@@ -15,6 +15,7 @@ export default function ParentChat() {
   const [messageContent, setMessageContent] = useState("");
   const [selectedTab, setSelectedTab] = useState(null);
   const [attachments, setAttachments] = useState([]);
+  const [showChatList, setShowChatList] = useState(true);
   const messagesEndRef = useRef(null);
   const queryClient = useQueryClient();
   const [user, setUser] = useState(null);
@@ -193,6 +194,15 @@ export default function ParentChat() {
     setAttachments(prev => prev.filter((_, i) => i !== index));
   };
 
+  const handleSelectGroup = (groupId) => {
+    setSelectedTab(groupId);
+    setShowChatList(false);
+  };
+
+  const handleBackToList = () => {
+    setShowChatList(true);
+  };
+
   const sportEmojis = {
     "Fútbol Pre-Benjamín (Mixto)": "⚽",
     "Fútbol Benjamín (Mixto)": "⚽",
@@ -206,8 +216,10 @@ export default function ParentChat() {
   };
 
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [currentGroup?.messages]);
+    if (!showChatList) {
+      messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [currentGroup?.messages, showChatList]);
 
   if (loadingPlayers || loadingMessages) {
     return (
@@ -234,8 +246,9 @@ export default function ParentChat() {
 
   return (
     <div className="h-screen flex flex-col bg-white">
+      {/* Desktop tabs - always visible */}
       {myGroups.length > 1 && (
-        <div className="bg-white border-b overflow-x-auto">
+        <div className="hidden md:block bg-white border-b overflow-x-auto">
           <div className="flex">
             {myGroups.map(group => (
               <button
@@ -260,127 +273,301 @@ export default function ParentChat() {
         </div>
       )}
 
-      {currentGroup && (
-        <div className="bg-gradient-to-r from-orange-600 to-orange-700 p-4 text-white flex items-center gap-3 shadow-md">
-          <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
-            <span className="text-xl">{sportEmojis[currentGroup.deporte]}</span>
-          </div>
-          <div className="flex-1">
-            <h2 className="font-bold text-base">{currentGroup.deporte}</h2>
-            <p className="text-xs text-orange-100">Chat del grupo</p>
-          </div>
-          {!isBusinessHours() && (
-            <Badge className="bg-white/20 text-white text-xs">
-              <Clock className="w-3 h-3 mr-1" />
-              Fuera de horario
-            </Badge>
-          )}
-        </div>
-      )}
-
-      <div 
-        className="flex-1 overflow-y-auto p-4 space-y-2"
-        style={{
-          backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23d4c5b9' fill-opacity='0.1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
-          backgroundColor: '#e5ddd5'
-        }}
-      >
-        {currentGroup?.messages.length === 0 ? (
-          <div className="flex items-center justify-center h-full">
-            <div className="text-center text-slate-500">
-              <AlertCircle className="w-12 h-12 mx-auto mb-2 opacity-50" />
-              <p className="text-sm">No hay mensajes</p>
+      {/* Mobile - Chat List or Chat View */}
+      <div className="md:hidden flex-1 flex flex-col overflow-hidden">
+        {showChatList ? (
+          // Chat list view
+          <div className="flex-1 overflow-y-auto">
+            <div className="p-4">
+              <h2 className="text-xl font-bold text-slate-900 mb-4">Mis Chats</h2>
+              <div className="space-y-3">
+                {myGroups.map(group => (
+                  <button
+                    key={group.id}
+                    onClick={() => handleSelectGroup(group.id)}
+                    className="w-full bg-white rounded-xl shadow-md p-4 border-2 border-slate-200 hover:border-orange-300 transition-all"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-12 h-12 rounded-full bg-gradient-to-r from-orange-600 to-orange-700 flex items-center justify-center text-white text-xl flex-shrink-0">
+                        {sportEmojis[group.deporte]}
+                      </div>
+                      <div className="flex-1 text-left">
+                        <p className="font-bold text-slate-900">{group.deporte}</p>
+                        <p className="text-sm text-slate-500">
+                          {group.messages.length} mensaje{group.messages.length !== 1 ? 's' : ''}
+                        </p>
+                      </div>
+                      {group.unreadCount > 0 && (
+                        <Badge className="bg-orange-600 text-white">
+                          {group.unreadCount}
+                        </Badge>
+                      )}
+                    </div>
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
         ) : (
-          currentGroup?.messages
-            .sort((a, b) => new Date(a.created_date) - new Date(b.created_date))
-            .map((msg) => (
-              <div
-                key={msg.id}
-                className={`flex ${msg.tipo === "padre_a_grupo" ? 'justify-end' : 'justify-start'} mb-1`}
-              >
-                <div
-                  className={`max-w-[75%] rounded-lg shadow-sm ${
-                    msg.tipo === "padre_a_grupo"
-                      ? 'bg-gradient-to-r from-green-600 to-green-700 text-white rounded-br-none'
-                      : 'bg-white text-slate-900 rounded-bl-none'
-                  }`}
+          // Chat conversation view
+          <>
+            {currentGroup && (
+              <div className="bg-gradient-to-r from-orange-600 to-orange-700 p-4 text-white flex items-center gap-3 shadow-md">
+                <button
+                  onClick={handleBackToList}
+                  className="p-2 hover:bg-white/20 rounded-lg transition-colors"
                 >
-                  <div className="px-3 py-2">
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className={`text-xs font-semibold ${msg.tipo === "padre_a_grupo" ? 'text-green-100' : 'text-orange-700'}`}>
-                        {msg.remitente_nombre}
-                      </span>
-                      {msg.prioridad !== "Normal" && (
-                        <span className="text-xs">{msg.prioridad === "Urgente" ? "🔴" : "⚠️"}</span>
-                      )}
-                    </div>
-                    <p className="text-sm leading-relaxed break-words">{msg.mensaje}</p>
-                    
-                    {msg.archivos_adjuntos?.length > 0 && (
-                      <div className="mt-2">
-                        <MessageAttachments attachments={msg.archivos_adjuntos} />
-                      </div>
-                    )}
-                    
-                    <div className="flex items-center justify-end gap-1 mt-1">
-                      <span className={`text-[10px] ${msg.tipo === "padre_a_grupo" ? 'text-green-100' : 'text-slate-500'}`}>
-                        {format(new Date(msg.created_date), "HH:mm")}
-                      </span>
-                    </div>
+                  <ChevronLeft className="w-5 h-5" />
+                </button>
+                <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
+                  <span className="text-xl">{sportEmojis[currentGroup.deporte]}</span>
+                </div>
+                <div className="flex-1">
+                  <h2 className="font-bold text-base">{currentGroup.deporte}</h2>
+                  <p className="text-xs text-orange-100">Chat del grupo</p>
+                </div>
+                {!isBusinessHours() && (
+                  <Badge className="bg-white/20 text-white text-xs">
+                    <Clock className="w-3 h-3 mr-1" />
+                    Fuera de horario
+                  </Badge>
+                )}
+              </div>
+            )}
+
+            <div 
+              className="flex-1 overflow-y-auto p-4 space-y-2"
+              style={{
+                backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23d4c5b9' fill-opacity='0.1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
+                backgroundColor: '#e5ddd5'
+              }}
+            >
+              {currentGroup?.messages.length === 0 ? (
+                <div className="flex items-center justify-center h-full">
+                  <div className="text-center text-slate-500">
+                    <AlertCircle className="w-12 h-12 mx-auto mb-2 opacity-50" />
+                    <p className="text-sm">No hay mensajes</p>
                   </div>
                 </div>
+              ) : (
+                currentGroup?.messages
+                  .sort((a, b) => new Date(a.created_date) - new Date(b.created_date))
+                  .map((msg) => (
+                    <div
+                      key={msg.id}
+                      className={`flex ${msg.tipo === "padre_a_grupo" ? 'justify-end' : 'justify-start'} mb-1`}
+                    >
+                      <div
+                        className={`max-w-[75%] rounded-lg shadow-sm ${
+                          msg.tipo === "padre_a_grupo"
+                            ? 'bg-gradient-to-r from-green-600 to-green-700 text-white rounded-br-none'
+                            : 'bg-white text-slate-900 rounded-bl-none'
+                        }`}
+                      >
+                        <div className="px-3 py-2">
+                          <div className="flex items-center gap-2 mb-1">
+                            <span className={`text-xs font-semibold ${msg.tipo === "padre_a_grupo" ? 'text-green-100' : 'text-orange-700'}`}>
+                              {msg.remitente_nombre}
+                            </span>
+                            {msg.prioridad !== "Normal" && (
+                              <span className="text-xs">{msg.prioridad === "Urgente" ? "🔴" : "⚠️"}</span>
+                            )}
+                          </div>
+                          <p className="text-sm leading-relaxed break-words">{msg.mensaje}</p>
+                          
+                          {msg.archivos_adjuntos?.length > 0 && (
+                            <div className="mt-2">
+                              <MessageAttachments attachments={msg.archivos_adjuntos} />
+                            </div>
+                          )}
+                          
+                          <div className="flex items-center justify-end gap-1 mt-1">
+                            <span className={`text-[10px] ${msg.tipo === "padre_a_grupo" ? 'text-green-100' : 'text-slate-500'}`}>
+                              {format(new Date(msg.created_date), "HH:mm")}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))
+              )}
+              <div ref={messagesEndRef} />
+            </div>
+
+            <div className="bg-white border-t p-3">
+              {attachments.length > 0 && (
+                <div className="mb-2 flex flex-wrap gap-2">
+                  {attachments.map((att, index) => (
+                    <div key={index} className="bg-slate-100 rounded-lg px-3 py-1.5 text-sm flex items-center gap-2">
+                      <span className="text-xs truncate max-w-[150px]">{att.nombre}</span>
+                      <button
+                        onClick={() => handleRemoveAttachment(index)}
+                        className="text-slate-500 hover:text-red-600"
+                      >
+                        <X className="w-3 h-3" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              <div className="flex gap-2 items-end">
+                <FileAttachmentButton
+                  onFileUploaded={handleFileUploaded}
+                  disabled={!isBusinessHours() || sendMessageMutation.isPending}
+                />
+                
+                <Input
+                  value={messageContent}
+                  onChange={(e) => setMessageContent(e.target.value)}
+                  placeholder={isBusinessHours() ? "Escribe un mensaje..." : "Horario: 10:00 - 20:00"}
+                  className="flex-1 rounded-full"
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                      e.preventDefault();
+                      handleSendMessage();
+                    }
+                  }}
+                  disabled={!isBusinessHours()}
+                />
+                
+                <Button
+                  onClick={handleSendMessage}
+                  disabled={(!messageContent.trim() && attachments.length === 0) || sendMessageMutation.isPending || !isBusinessHours()}
+                  className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 rounded-full w-10 h-10 p-0 flex items-center justify-center shadow-lg"
+                >
+                  <Send className="w-4 h-4" />
+                </Button>
               </div>
-            ))
+            </div>
+          </>
         )}
-        <div ref={messagesEndRef} />
       </div>
 
-      <div className="bg-white border-t p-3">
-        {attachments.length > 0 && (
-          <div className="mb-2 flex flex-wrap gap-2">
-            {attachments.map((att, index) => (
-              <div key={index} className="bg-slate-100 rounded-lg px-3 py-1.5 text-sm flex items-center gap-2">
-                <span className="text-xs truncate max-w-[150px]">{att.nombre}</span>
-                <button
-                  onClick={() => handleRemoveAttachment(index)}
-                  className="text-slate-500 hover:text-red-600"
-                >
-                  <X className="w-3 h-3" />
-                </button>
-              </div>
-            ))}
+      {/* Desktop - Always show chat */}
+      <div className="hidden md:flex flex-1 flex-col overflow-hidden">
+        {currentGroup && (
+          <div className="bg-gradient-to-r from-orange-600 to-orange-700 p-4 text-white flex items-center gap-3 shadow-md">
+            <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
+              <span className="text-xl">{sportEmojis[currentGroup.deporte]}</span>
+            </div>
+            <div className="flex-1">
+              <h2 className="font-bold text-base">{currentGroup.deporte}</h2>
+              <p className="text-xs text-orange-100">Chat del grupo</p>
+            </div>
+            {!isBusinessHours() && (
+              <Badge className="bg-white/20 text-white text-xs">
+                <Clock className="w-3 h-3 mr-1" />
+                Fuera de horario
+              </Badge>
+            )}
           </div>
         )}
 
-        <div className="flex gap-2 items-end">
-          <FileAttachmentButton
-            onFileUploaded={handleFileUploaded}
-            disabled={!isBusinessHours() || sendMessageMutation.isPending}
-          />
-          
-          <Input
-            value={messageContent}
-            onChange={(e) => setMessageContent(e.target.value)}
-            placeholder={isBusinessHours() ? "Escribe un mensaje..." : "Horario: 10:00 - 20:00"}
-            className="flex-1 rounded-full"
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                handleSendMessage();
-              }
-            }}
-            disabled={!isBusinessHours()}
-          />
-          
-          <Button
-            onClick={handleSendMessage}
-            disabled={(!messageContent.trim() && attachments.length === 0) || sendMessageMutation.isPending || !isBusinessHours()}
-            className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 rounded-full w-10 h-10 p-0 flex items-center justify-center shadow-lg"
-          >
-            <Send className="w-4 h-4" />
-          </Button>
+        <div 
+          className="flex-1 overflow-y-auto p-4 space-y-2"
+          style={{
+            backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23d4c5b9' fill-opacity='0.1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
+            backgroundColor: '#e5ddd5'
+          }}
+        >
+          {currentGroup?.messages.length === 0 ? (
+            <div className="flex items-center justify-center h-full">
+              <div className="text-center text-slate-500">
+                <AlertCircle className="w-12 h-12 mx-auto mb-2 opacity-50" />
+                <p className="text-sm">No hay mensajes</p>
+              </div>
+            </div>
+          ) : (
+            currentGroup?.messages
+              .sort((a, b) => new Date(a.created_date) - new Date(b.created_date))
+              .map((msg) => (
+                <div
+                  key={msg.id}
+                  className={`flex ${msg.tipo === "padre_a_grupo" ? 'justify-end' : 'justify-start'} mb-1`}
+                >
+                  <div
+                    className={`max-w-[75%] rounded-lg shadow-sm ${
+                      msg.tipo === "padre_a_grupo"
+                        ? 'bg-gradient-to-r from-green-600 to-green-700 text-white rounded-br-none'
+                        : 'bg-white text-slate-900 rounded-bl-none'
+                    }`}
+                  >
+                    <div className="px-3 py-2">
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className={`text-xs font-semibold ${msg.tipo === "padre_a_grupo" ? 'text-green-100' : 'text-orange-700'}`}>
+                          {msg.remitente_nombre}
+                        </span>
+                        {msg.prioridad !== "Normal" && (
+                          <span className="text-xs">{msg.prioridad === "Urgente" ? "🔴" : "⚠️"}</span>
+                        )}
+                      </div>
+                      <p className="text-sm leading-relaxed break-words">{msg.mensaje}</p>
+                      
+                      {msg.archivos_adjuntos?.length > 0 && (
+                        <div className="mt-2">
+                          <MessageAttachments attachments={msg.archivos_adjuntos} />
+                        </div>
+                      )}
+                      
+                      <div className="flex items-center justify-end gap-1 mt-1">
+                        <span className={`text-[10px] ${msg.tipo === "padre_a_grupo" ? 'text-green-100' : 'text-slate-500'}`}>
+                          {format(new Date(msg.created_date), "HH:mm")}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))
+          )}
+          <div ref={messagesEndRef} />
+        </div>
+
+        <div className="bg-white border-t p-3">
+          {attachments.length > 0 && (
+            <div className="mb-2 flex flex-wrap gap-2">
+              {attachments.map((att, index) => (
+                <div key={index} className="bg-slate-100 rounded-lg px-3 py-1.5 text-sm flex items-center gap-2">
+                  <span className="text-xs truncate max-w-[150px]">{att.nombre}</span>
+                  <button
+                    onClick={() => handleRemoveAttachment(index)}
+                    className="text-slate-500 hover:text-red-600"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+
+          <div className="flex gap-2 items-end">
+            <FileAttachmentButton
+              onFileUploaded={handleFileUploaded}
+              disabled={!isBusinessHours() || sendMessageMutation.isPending}
+            />
+            
+            <Input
+              value={messageContent}
+              onChange={(e) => setMessageContent(e.target.value)}
+              placeholder={isBusinessHours() ? "Escribe un mensaje..." : "Horario: 10:00 - 20:00"}
+              className="flex-1 rounded-full"
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                  e.preventDefault();
+                  handleSendMessage();
+                }
+              }}
+              disabled={!isBusinessHours()}
+            />
+            
+            <Button
+              onClick={handleSendMessage}
+              disabled={(!messageContent.trim() && attachments.length === 0) || sendMessageMutation.isPending || !isBusinessHours()}
+              className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 rounded-full w-10 h-10 p-0 flex items-center justify-center shadow-lg"
+            >
+              <Send className="w-4 h-4" />
+            </Button>
+          </div>
         </div>
       </div>
     </div>
