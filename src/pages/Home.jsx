@@ -290,16 +290,6 @@ export default function Home() {
       {user && <Onboarding userRole={userRole} />}
       <AutomaticReminders />
       
-      <div className="bg-gradient-to-r from-orange-600 to-orange-700 p-4 lg:p-6 shadow-2xl">
-        <div className="flex items-center justify-center gap-3">
-          <img src={CLUB_LOGO_URL} alt="CD Bustarviejo" className="w-12 h-12 lg:w-16 lg:h-16 rounded-2xl shadow-2xl ring-4 ring-white/50" />
-          <div className="text-white text-center">
-            <h1 className="text-2xl lg:text-3xl font-bold">CD Bustarviejo</h1>
-            <p className="text-orange-100 text-xs lg:text-sm">{getPanelTitle()}</p>
-          </div>
-        </div>
-      </div>
-
       <div className="px-4 lg:px-8 py-6 space-y-6">
         {/* Social Links */}
         <SocialLinks />
