@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
@@ -13,7 +12,7 @@ import SessionManager from "./components/SessionManager";
 import GlobalSearch from "./components/GlobalSearch";
 import ThemeToggle from "./components/ThemeToggle";
 import NotificationCenter from "./components/NotificationCenter";
-import LanguageSelector from "./components/LanguageSelector"; // Added import
+import LanguageSelector from "./components/LanguageSelector";
 
 const CLUB_LOGO_URL = "https://www.cdbustarviejo.com/uploads/2/4/0/4/2404974/logo-cd-bustarviejo-cuadrado-xpeq_orig.png";
 
@@ -494,7 +493,6 @@ export default function Layout({ children, currentPageName }) {
   const handleLanguageChange = (newLang) => {
     setCurrentLang(newLang);
     localStorage.setItem('appLanguage', newLang);
-    // Aquí puedes agregar lógica adicional para cambiar el idioma de la app
   };
 
   useEffect(() => {
@@ -506,8 +504,6 @@ export default function Layout({ children, currentPageName }) {
         setIsPlayer(currentUser.role === "jugador");
         setIsCoach(currentUser.es_entrenador === true);
         
-        // Check if admin/coach has players (to show ParentCallups)
-        // This is for admins/coaches who are also parents and need to confirm callups for their kids
         if (currentUser.role === "admin" || currentUser.es_entrenador) {
           const allPlayers = await base44.entities.Player.list();
           const myPlayers = allPlayers.filter(p => 
@@ -522,7 +518,6 @@ export default function Layout({ children, currentPageName }) {
           return;
         }
         
-        // IMPORTANT: Coaches should NOT see special screens, only parents (non-admin, non-jugador, non-coach)
         if (currentUser.role !== "admin" && currentUser.role !== "jugador" && !currentUser.es_entrenador) {
           const period = getPeriodType();
           if (period === "closed") {
@@ -534,7 +529,6 @@ export default function Layout({ children, currentPageName }) {
           }
         }
 
-        // REDIRECT ONLY PARENTS (not coaches, not admins, not players) TO THEIR DASHBOARD IF THEY'RE ON HOME PAGE
         if (currentUser.role !== "admin" && currentUser.role !== "jugador" && !currentUser.es_entrenador && location.pathname === createPageUrl("Home")) {
           navigate(createPageUrl("ParentDashboard"), { replace: true });
         }
@@ -555,7 +549,6 @@ export default function Layout({ children, currentPageName }) {
         let urgent = 0;
         
         if (isAdmin) {
-          // Admin: count parent messages
           allMessages.forEach(msg => {
             if (!msg.leido && (msg.tipo === "padre_a_grupo" || msg.tipo === "jugador_a_equipo")) {
               unread++;
@@ -565,11 +558,9 @@ export default function Layout({ children, currentPageName }) {
             }
           });
         } else if (isCoach) {
-          // Coach: count parent messages from coached teams
           const categoriesCoached = user.categorias_entrena || [];
           allMessages.forEach(msg => {
             if (!msg.leido && msg.tipo === "padre_a_grupo") {
-              // Check if message is from a coached team
               const msgDeporte = msg.grupo_id || msg.deporte;
               if (categoriesCoached.includes(msgDeporte)) {
                 unread++;
@@ -577,8 +568,8 @@ export default function Layout({ children, currentPageName }) {
                   urgent++;
                 }
               }
-            });
-          }
+            }
+          });
         } else if (isPlayer) {
           const allPlayers = await base44.entities.Player.list();
           const myPlayer = allPlayers.find(p => p.email_jugador === user.email);
@@ -595,7 +586,7 @@ export default function Layout({ children, currentPageName }) {
               }
             });
           }
-        } else { // Parents
+        } else {
           const allPlayers = await base44.entities.Player.list();
           const myPlayers = allPlayers.filter(p => 
             p.email_padre === user.email || p.email_tutor_2 === user.email
@@ -653,7 +644,7 @@ export default function Layout({ children, currentPageName }) {
               }
             });
           }
-        } else if (!isAdmin && !isCoach) { // Only for parents (not admins, not coaches)
+        } else if (!isAdmin && !isCoach) {
           const allPlayers = await base44.entities.Player.list();
           const myPlayers = allPlayers.filter(p => 
             p.email_padre === user.email || 
@@ -672,7 +663,7 @@ export default function Layout({ children, currentPageName }) {
               });
             }
           });
-        } else if ((isAdmin || isCoach) && hasPlayers) { // Admins or Coaches who also have players associated
+        } else if ((isAdmin || isCoach) && hasPlayers) {
           const allPlayers = await base44.entities.Player.list();
           const myPlayers = allPlayers.filter(p => 
             p.email_padre === user.email || 
@@ -804,7 +795,6 @@ export default function Layout({ children, currentPageName }) {
       
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
         
-        {/* Header móvil */}
         <header className="lg:hidden fixed top-0 left-0 right-0 z-50 bg-gradient-to-r from-orange-600 to-orange-700 shadow-lg">
           <div className="flex items-center justify-between p-4">
             <div className="flex items-center gap-3">
@@ -828,7 +818,6 @@ export default function Layout({ children, currentPageName }) {
           </div>
         </header>
 
-        {/* Menú móvil */}
         {mobileMenuOpen && (
           <div className="lg:hidden fixed inset-0 z-40 bg-slate-900/95 backdrop-blur-sm pt-20">
             <div className="h-full overflow-y-auto p-4 space-y-2">
@@ -863,7 +852,6 @@ export default function Layout({ children, currentPageName }) {
           </div>
         )}
 
-        {/* Navegación desktop */}
         <nav className="hidden lg:block fixed left-0 top-0 bottom-0 w-72 bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900 shadow-2xl overflow-y-auto">
           <div className="p-6 border-b border-green-500/30">
             <div className="flex items-center gap-3 mb-6">
@@ -949,7 +937,6 @@ export default function Layout({ children, currentPageName }) {
           </div>
         </nav>
 
-        {/* Contenido principal */}
         <main className="lg:ml-72 min-h-screen pt-20 lg:pt-0">
           {children}
         </main>
