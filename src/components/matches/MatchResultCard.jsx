@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Calendar, MapPin, Pencil } from "lucide-react";
+import { Calendar, Pencil } from "lucide-react";
 
 export default function MatchResultCard({ result, onEdit, isAdmin }) {
   const resultColor = {

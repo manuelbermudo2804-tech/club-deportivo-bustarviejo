@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Calendar, Activity, Pencil, CheckCircle, XCircle } from "lucide-react";
+import { Calendar, Pencil, CheckCircle, XCircle } from "lucide-react";
 
 export default function MedicalRecordCard({ record, onEdit, isAdmin }) {
   const gravedadColor = {
@@ -62,7 +62,7 @@ export default function MedicalRecordCard({ record, onEdit, isAdmin }) {
 
               {record.fecha_alta_estimada && (
                 <div className="flex items-center gap-2 text-sm text-slate-600">
-                  <Activity className="w-4 h-4" />
+                  <Calendar className="w-4 h-4" />
                   <span>
                     Alta estimada: {new Date(record.fecha_alta_estimada).toLocaleDateString('es-ES')}
                   </span>
