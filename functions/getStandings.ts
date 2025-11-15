@@ -3,9 +3,8 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.4';
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
-    const { categoria, temporada, source } = await req.json();
+    const { categoria, temporada } = await req.json();
 
-    // Buscar configuración del equipo
     const configs = await base44.asServiceRole.entities.TeamConfig.filter({
       categoria_interna: categoria,
       temporada: temporada || "2024-2025",
@@ -15,36 +14,43 @@ Deno.serve(async (req) => {
     if (!configs || configs.length === 0) {
       return Response.json({
         success: false,
-        error: `No hay configuración para la categoría "${categoria}". Configura el equipo en TeamConfig.`
+        error: `No hay configuración para "${categoria}"`
       });
     }
 
     const config = configs[0];
-    const searchQuery = config.url_clasificacion || 
-      `clasificación ${config.competicion_rffm} ${config.grupo_rffm || ''} ${config.nombre_equipo_rffm} RFFM temporada ${temporada}`;
+    
+    if (!config.url_clasificacion) {
+      return Response.json({
+        success: false,
+        error: "No hay URL de clasificación configurada"
+      });
+    }
+
+    const response = await fetch(config.url_clasificacion);
+    const html = await response.text();
 
     const llmResponse = await base44.asServiceRole.integrations.Core.InvokeLLM({
-      prompt: `Busca y extrae la clasificación del equipo "${config.nombre_equipo_rffm}" en la competición "${config.competicion_rffm}" ${config.grupo_rffm ? `${config.grupo_rffm}` : ''} de la RFFM (Real Federación de Fútbol de Madrid) para la temporada ${temporada}.
+      prompt: `Del siguiente HTML de la página de clasificación de la RFFM, extrae la tabla de clasificación completa.
 
-URL sugerida: ${config.url_clasificacion || 'https://www.rffm.es/competicion/clasificaciones'}
+HTML:
+${html.substring(0, 50000)}
 
-Extrae TODOS los equipos de la tabla de clasificación con:
-- posicion (número)
-- equipo (nombre completo)
-- partidos_jugados
-- ganados
-- empatados  
-- perdidos
-- goles_favor
-- goles_contra
-- diferencia (goles_favor - goles_contra)
-- puntos
+Busca el equipo "${config.nombre_equipo_rffm}" en la competición "${config.competicion_rffm}".
 
-IMPORTANTE: 
-- Devuelve la clasificación COMPLETA de todos los equipos del grupo
-- Busca específicamente "${config.nombre_equipo_rffm}"
-- Los nombres de equipo deben ser EXACTOS como aparecen en la web`,
-      add_context_from_internet: true,
+Extrae TODOS los equipos de la tabla con:
+- posicion (número de la posición)
+- equipo (nombre exacto del equipo)
+- partidos_jugados (PJ)
+- ganados (G)
+- empatados (E)
+- perdidos (P)
+- goles_favor (GF)
+- goles_contra (GC)
+- diferencia (diferencia de goles, puede ser negativa)
+- puntos (Pts)
+
+IMPORTANTE: Extrae la tabla COMPLETA, todos los equipos del grupo.`,
       response_json_schema: {
         type: "object",
         properties: {
@@ -66,8 +72,6 @@ IMPORTANTE:
               }
             }
           },
-          grupo: { type: "string" },
-          competicion: { type: "string" },
           jornada: { type: "string" }
         }
       }
@@ -76,7 +80,7 @@ IMPORTANTE:
     if (!llmResponse?.standings || llmResponse.standings.length === 0) {
       return Response.json({
         success: false,
-        error: "No se encontró la clasificación. Verifica que el equipo esté inscrito en esta competición."
+        error: "No se pudo extraer la clasificación del HTML"
       });
     }
 
@@ -86,8 +90,8 @@ IMPORTANTE:
       metadata: {
         categoria_interna: categoria,
         equipo: config.nombre_equipo_rffm,
-        competicion: llmResponse.competicion || config.competicion_rffm,
-        grupo: llmResponse.grupo || config.grupo_rffm,
+        competicion: config.competicion_rffm,
+        grupo: config.grupo_rffm,
         jornada: llmResponse.jornada,
         temporada: temporada,
         ultima_actualizacion: new Date().toISOString()

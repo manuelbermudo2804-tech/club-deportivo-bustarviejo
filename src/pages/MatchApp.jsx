@@ -3,31 +3,83 @@ import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Trophy, Calendar, Target, TrendingUp, Settings } from "lucide-react";
+import { Trophy, Calendar, RefreshCw, Settings, Loader2 } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
-function CategoryCard({ config }) {
-  const today = new Date().toISOString().split('T')[0];
+function CategoryCard({ config, onRefresh }) {
+  const [results, setResults] = useState([]);
+  const [upcoming, setUpcoming] = useState([]);
+  const [standings, setStandings] = useState([]);
+  const [loading, setLoading] = useState({ results: false, upcoming: false, standings: false });
+  const [errors, setErrors] = useState({ results: null, upcoming: null, standings: null });
 
-  const { data: results } = useQuery({
-    queryKey: ['matchResults', config.categoria_interna],
-    queryFn: () => base44.entities.MatchResult.filter({ categoria: config.categoria_interna }, '-fecha_partido', 5),
-    initialData: [],
-  });
+  const loadResults = async () => {
+    setLoading(prev => ({ ...prev, results: true }));
+    setErrors(prev => ({ ...prev, results: null }));
+    try {
+      const { data } = await base44.functions.invoke('getMatchResults', {
+        categoria: config.categoria_interna,
+        temporada: config.temporada,
+        limite: 5
+      });
+      if (data.success) {
+        setResults(data.results);
+      } else {
+        setErrors(prev => ({ ...prev, results: data.error }));
+      }
+    } catch (error) {
+      setErrors(prev => ({ ...prev, results: error.message }));
+    } finally {
+      setLoading(prev => ({ ...prev, results: false }));
+    }
+  };
 
-  const { data: callups } = useQuery({
-    queryKey: ['convocatorias', config.categoria_interna],
-    queryFn: () => base44.entities.Convocatoria.filter({ categoria: config.categoria_interna, publicada: true }),
-    initialData: [],
-  });
+  const loadUpcoming = async () => {
+    setLoading(prev => ({ ...prev, upcoming: true }));
+    setErrors(prev => ({ ...prev, upcoming: null }));
+    try {
+      const { data } = await base44.functions.invoke('getUpcomingMatches', {
+        categoria: config.categoria_interna,
+        temporada: config.temporada
+      });
+      if (data.success) {
+        setUpcoming(data.matches);
+      } else {
+        setErrors(prev => ({ ...prev, upcoming: data.error }));
+      }
+    } catch (error) {
+      setErrors(prev => ({ ...prev, upcoming: error.message }));
+    } finally {
+      setLoading(prev => ({ ...prev, upcoming: false }));
+    }
+  };
 
-  const upcomingMatches = callups
-    .filter(c => !c.cerrada && c.fecha_partido >= today && (c.tipo === "Partido" || c.tipo === "Amistoso"))
-    .sort((a, b) => a.fecha_partido.localeCompare(b.fecha_partido))
-    .slice(0, 3);
+  const loadStandings = async () => {
+    setLoading(prev => ({ ...prev, standings: true }));
+    setErrors(prev => ({ ...prev, standings: null }));
+    try {
+      const { data } = await base44.functions.invoke('getStandings', {
+        categoria: config.categoria_interna,
+        temporada: config.temporada
+      });
+      if (data.success) {
+        setStandings(data.standings);
+      } else {
+        setErrors(prev => ({ ...prev, standings: data.error }));
+      }
+    } catch (error) {
+      setErrors(prev => ({ ...prev, standings: error.message }));
+    } finally {
+      setLoading(prev => ({ ...prev, standings: false }));
+    }
+  };
 
-  const latestResults = results.slice(0, 3);
+  useEffect(() => {
+    loadResults();
+    loadUpcoming();
+  }, [config]);
 
   const stats = {
     victorias: results.filter(r => r.resultado === "Victoria").length,
@@ -40,63 +92,115 @@ function CategoryCard({ config }) {
   return (
     <Card className="border-2 border-slate-200 hover:border-orange-300 transition-all">
       <CardHeader className="bg-gradient-to-r from-slate-900 to-black text-white">
-        <CardTitle className="text-lg">{config.categoria_interna}</CardTitle>
-        <p className="text-xs text-green-400 mt-1">
-          {config.competicion_rffm} {config.grupo_rffm && `- ${config.grupo_rffm}`}
-        </p>
+        <div className="flex items-start justify-between">
+          <div>
+            <CardTitle className="text-lg">{config.categoria_interna}</CardTitle>
+            <p className="text-xs text-green-400 mt-1">
+              {config.competicion_rffm} {config.grupo_rffm && `- ${config.grupo_rffm}`}
+            </p>
+          </div>
+          <Button 
+            size="sm" 
+            variant="ghost" 
+            className="text-white hover:bg-white/20"
+            onClick={() => {
+              loadResults();
+              loadUpcoming();
+              onRefresh();
+            }}
+          >
+            <RefreshCw className="w-4 h-4" />
+          </Button>
+        </div>
       </CardHeader>
       <CardContent className="p-4">
         <Tabs defaultValue="resultados" className="w-full">
           <TabsList className="grid grid-cols-3 w-full mb-4">
             <TabsTrigger value="resultados" className="text-xs">Resultados</TabsTrigger>
             <TabsTrigger value="proximos" className="text-xs">Próximos</TabsTrigger>
-            <TabsTrigger value="stats" className="text-xs">Stats</TabsTrigger>
+            <TabsTrigger value="clasificacion" className="text-xs">Tabla</TabsTrigger>
           </TabsList>
 
           <TabsContent value="resultados" className="space-y-2">
-            {latestResults.length === 0 ? (
-              <p className="text-sm text-slate-500 text-center py-4">Sin resultados</p>
+            {loading.results ? (
+              <div className="text-center py-8">
+                <Loader2 className="w-6 h-6 animate-spin mx-auto text-orange-600" />
+                <p className="text-xs text-slate-500 mt-2">Cargando resultados...</p>
+              </div>
+            ) : errors.results ? (
+              <div className="text-center py-4">
+                <p className="text-xs text-red-600">{errors.results}</p>
+                <Button size="sm" onClick={loadResults} className="mt-2">Reintentar</Button>
+              </div>
+            ) : results.length === 0 ? (
+              <p className="text-sm text-slate-500 text-center py-4">Sin resultados aún</p>
             ) : (
-              latestResults.map(result => (
-                <div key={result.id} className="p-3 bg-slate-50 rounded-lg">
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="text-xs text-slate-600">
-                      {new Date(result.fecha_partido).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })}
-                    </span>
-                    <Badge className={
-                      result.resultado === "Victoria" ? "bg-green-500" :
-                      result.resultado === "Empate" ? "bg-orange-500" :
-                      "bg-red-500"
-                    }>
-                      {result.resultado}
-                    </Badge>
+              <>
+                {results.slice(0, 3).map((result, idx) => (
+                  <div key={idx} className="p-3 bg-slate-50 rounded-lg">
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-xs text-slate-600">
+                        {new Date(result.fecha_partido).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })}
+                      </span>
+                      <Badge className={
+                        result.resultado === "Victoria" ? "bg-green-500" :
+                        result.resultado === "Empate" ? "bg-orange-500" :
+                        "bg-red-500"
+                      }>
+                        {result.resultado}
+                      </Badge>
+                    </div>
+                    <div className="flex items-center justify-center gap-3">
+                      <div className="text-center flex-1">
+                        <p className="text-xs text-slate-600 mb-1">Bustarviejo</p>
+                        <p className="text-2xl font-bold">{result.goles_favor}</p>
+                      </div>
+                      <div className="text-xl font-bold text-slate-400">-</div>
+                      <div className="text-center flex-1">
+                        <p className="text-xs text-slate-600 mb-1 truncate">{result.rival}</p>
+                        <p className="text-2xl font-bold">{result.goles_contra}</p>
+                      </div>
+                    </div>
                   </div>
-                  <div className="flex items-center justify-center gap-3">
-                    <div className="text-center flex-1">
-                      <p className="text-xs text-slate-600 mb-1">Bustarviejo</p>
-                      <p className="text-2xl font-bold">{result.goles_favor}</p>
-                    </div>
-                    <div className="text-xl font-bold text-slate-400">-</div>
-                    <div className="text-center flex-1">
-                      <p className="text-xs text-slate-600 mb-1">{result.rival}</p>
-                      <p className="text-2xl font-bold">{result.goles_contra}</p>
-                    </div>
+                ))}
+                <div className="grid grid-cols-3 gap-2 mt-3 pt-3 border-t">
+                  <div className="text-center">
+                    <p className="text-lg font-bold text-green-600">{stats.victorias}</p>
+                    <p className="text-xs text-slate-600">V</p>
+                  </div>
+                  <div className="text-center">
+                    <p className="text-lg font-bold text-orange-600">{stats.empates}</p>
+                    <p className="text-xs text-slate-600">E</p>
+                  </div>
+                  <div className="text-center">
+                    <p className="text-lg font-bold text-red-600">{stats.derrotas}</p>
+                    <p className="text-xs text-slate-600">D</p>
                   </div>
                 </div>
-              ))
+              </>
             )}
           </TabsContent>
 
           <TabsContent value="proximos" className="space-y-2">
-            {upcomingMatches.length === 0 ? (
-              <p className="text-sm text-slate-500 text-center py-4">No hay partidos próximos</p>
+            {loading.upcoming ? (
+              <div className="text-center py-8">
+                <Loader2 className="w-6 h-6 animate-spin mx-auto text-orange-600" />
+                <p className="text-xs text-slate-500 mt-2">Cargando próximos partidos...</p>
+              </div>
+            ) : errors.upcoming ? (
+              <div className="text-center py-4">
+                <p className="text-xs text-red-600">{errors.upcoming}</p>
+                <Button size="sm" onClick={loadUpcoming} className="mt-2">Reintentar</Button>
+              </div>
+            ) : upcoming.length === 0 ? (
+              <p className="text-sm text-slate-500 text-center py-4">No hay próximos partidos</p>
             ) : (
-              upcomingMatches.map(match => (
-                <div key={match.id} className="p-3 bg-blue-50 rounded-lg border border-blue-200">
+              upcoming.slice(0, 3).map((match, idx) => (
+                <div key={idx} className="p-3 bg-blue-50 rounded-lg border border-blue-200">
                   <div className="flex items-start justify-between mb-2">
                     <div className="flex-1">
-                      <p className="text-sm font-bold text-slate-900">{match.titulo}</p>
-                      <p className="text-xs text-slate-600 mt-1">vs {match.rival}</p>
+                      <p className="text-sm font-bold text-slate-900 truncate">{match.rival}</p>
+                      {match.jornada && <p className="text-xs text-slate-600">{match.jornada}</p>}
                     </div>
                     <Badge className={match.local_visitante === "Local" ? "bg-green-600" : "bg-blue-600"}>
                       {match.local_visitante}
@@ -105,53 +209,65 @@ function CategoryCard({ config }) {
                   <div className="text-xs text-slate-600 space-y-1">
                     <div className="flex items-center gap-1">
                       <Calendar className="w-3 h-3" />
-                      {new Date(match.fecha_partido).toLocaleDateString('es-ES', { 
+                      {new Date(match.fecha).toLocaleDateString('es-ES', { 
                         weekday: 'short', day: 'numeric', month: 'short' 
                       })}
                     </div>
-                    <div>⏰ {match.hora_partido}</div>
+                    <div>⏰ {match.hora}</div>
                   </div>
                 </div>
               ))
             )}
           </TabsContent>
 
-          <TabsContent value="stats" className="space-y-3">
-            {results.length === 0 ? (
-              <p className="text-sm text-slate-500 text-center py-4">Sin estadísticas</p>
+          <TabsContent value="clasificacion" className="space-y-2">
+            {standings.length === 0 && !loading.standings ? (
+              <div className="text-center py-6">
+                <Trophy className="w-8 h-8 text-slate-300 mx-auto mb-2" />
+                <Button size="sm" onClick={loadStandings} className="bg-orange-600 hover:bg-orange-700">
+                  <Trophy className="w-4 h-4 mr-2" />
+                  Cargar Tabla
+                </Button>
+              </div>
+            ) : loading.standings ? (
+              <div className="text-center py-8">
+                <Loader2 className="w-6 h-6 animate-spin mx-auto text-orange-600" />
+                <p className="text-xs text-slate-500 mt-2">Cargando clasificación...</p>
+              </div>
+            ) : errors.standings ? (
+              <div className="text-center py-4">
+                <p className="text-xs text-red-600">{errors.standings}</p>
+                <Button size="sm" onClick={loadStandings} className="mt-2">Reintentar</Button>
+              </div>
             ) : (
-              <>
-                <div className="grid grid-cols-3 gap-2">
-                  <div className="text-center p-3 bg-green-50 rounded-lg">
-                    <p className="text-2xl font-bold text-green-600">{stats.victorias}</p>
-                    <p className="text-xs text-slate-600">Victorias</p>
-                  </div>
-                  <div className="text-center p-3 bg-orange-50 rounded-lg">
-                    <p className="text-2xl font-bold text-orange-600">{stats.empates}</p>
-                    <p className="text-xs text-slate-600">Empates</p>
-                  </div>
-                  <div className="text-center p-3 bg-red-50 rounded-lg">
-                    <p className="text-2xl font-bold text-red-600">{stats.derrotas}</p>
-                    <p className="text-xs text-slate-600">Derrotas</p>
-                  </div>
-                </div>
-                <div className="grid grid-cols-2 gap-2">
-                  <div className="text-center p-3 bg-blue-50 rounded-lg">
-                    <p className="text-xl font-bold text-blue-600">{stats.goles_favor}</p>
-                    <p className="text-xs text-slate-600">Goles Favor</p>
-                  </div>
-                  <div className="text-center p-3 bg-slate-50 rounded-lg">
-                    <p className="text-xl font-bold text-slate-600">{stats.goles_contra}</p>
-                    <p className="text-xs text-slate-600">Goles Contra</p>
-                  </div>
-                </div>
-                <div className="text-center p-3 bg-gradient-to-r from-orange-50 to-green-50 rounded-lg border-2 border-orange-200">
-                  <p className="text-2xl font-bold text-orange-600">
-                    {stats.goles_favor - stats.goles_contra > 0 ? '+' : ''}{stats.goles_favor - stats.goles_contra}
-                  </p>
-                  <p className="text-xs text-slate-600">Diferencia de Goles</p>
-                </div>
-              </>
+              <div className="overflow-x-auto">
+                <table className="w-full text-xs">
+                  <thead>
+                    <tr className="border-b">
+                      <th className="text-left py-1">#</th>
+                      <th className="text-left py-1">Equipo</th>
+                      <th className="text-center py-1">PJ</th>
+                      <th className="text-center py-1">Pts</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {standings.slice(0, 8).map((team) => {
+                      const isBusta = team.equipo.toLowerCase().includes('bustarviejo');
+                      return (
+                        <tr key={team.posicion} className={isBusta ? 'bg-orange-50 font-semibold' : ''}>
+                          <td className="py-1">{team.posicion}</td>
+                          <td className="py-1 truncate max-w-[120px]">
+                            {team.equipo}
+                            {isBusta && ' ⭐'}
+                          </td>
+                          <td className="text-center py-1">{team.partidos_jugados}</td>
+                          <td className="text-center py-1 font-bold">{team.puntos}</td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
             )}
           </TabsContent>
         </Tabs>
@@ -165,10 +281,9 @@ export default function MatchApp() {
   const [isAdmin, setIsAdmin] = useState(false);
 
   const { data: teamConfigs, isLoading } = useQuery({
-    queryKey: ['teamConfigs', refreshKey],
+    queryKey: ['teamConfigs'],
     queryFn: () => base44.entities.TeamConfig.filter({ activo: true, temporada: "2024-2025" }),
     initialData: [],
-    refetchInterval: 60000,
   });
 
   useEffect(() => {
@@ -183,19 +298,11 @@ export default function MatchApp() {
     checkAdmin();
   }, []);
 
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setRefreshKey(prev => prev + 1);
-    }, 60000);
-
-    return () => clearInterval(interval);
-  }, []);
-
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-black to-green-950 flex items-center justify-center">
         <div className="text-white text-center">
-          <div className="inline-block h-12 w-12 animate-spin rounded-full border-4 border-solid border-orange-600 border-r-transparent mb-4"></div>
+          <Loader2 className="w-12 h-12 animate-spin mx-auto mb-4" />
           <p>Cargando Match Center...</p>
         </div>
       </div>
@@ -216,11 +323,11 @@ export default function MatchApp() {
               <h1 className="text-3xl md:text-4xl font-bold text-white">
                 CD Bustarviejo
               </h1>
-              <p className="text-green-400 font-medium">Match Center</p>
+              <p className="text-green-400 font-medium">Match Center 🔴 EN VIVO</p>
             </div>
           </div>
           <p className="text-slate-300 text-sm">
-            Resultados y próximos partidos en tiempo real
+            Datos en tiempo real de la RFFM
           </p>
         </div>
 
@@ -232,23 +339,27 @@ export default function MatchApp() {
                 <div>
                   <p className="font-semibold mb-2">⚙️ Configuración necesaria</p>
                   <p className="text-sm">
-                    No hay equipos configurados. {isAdmin ? 'Ve a la sección de configuración y crea registros en TeamConfig para mapear tus categorías a los equipos de la RFFM.' : 'Contacta con el administrador para configurar los equipos.'}
+                    No hay equipos configurados. {isAdmin ? 'Ve a la sección de configuración y crea registros en TeamConfig.' : 'Contacta con el administrador.'}
                   </p>
                 </div>
               </div>
             </AlertDescription>
           </Alert>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" key={refreshKey}>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {teamConfigs.map(config => (
-              <CategoryCard key={config.id} config={config} />
+              <CategoryCard 
+                key={config.id} 
+                config={config}
+                onRefresh={() => setRefreshKey(prev => prev + 1)}
+              />
             ))}
           </div>
         )}
 
         <div className="text-center text-slate-400 text-xs py-4">
-          <p>Actualización automática cada minuto</p>
-          <p className="mt-1">🔄 Última actualización: {new Date().toLocaleTimeString('es-ES')}</p>
+          <p>🔴 Datos actualizados de la RFFM</p>
+          <p className="mt-1">Última carga: {new Date().toLocaleTimeString('es-ES')}</p>
         </div>
       </div>
     </div>
