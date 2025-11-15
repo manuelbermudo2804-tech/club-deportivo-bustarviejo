@@ -10,17 +10,25 @@ export default function SocialLinks() {
 
   const handleMatchAppClick = () => {
     const userAgent = navigator.userAgent || navigator.vendor || window.opera;
+    const isIOS = /iPad|iPhone|iPod/.test(userAgent) && !window.MSStream;
+    const isAndroid = /android/i.test(userAgent);
     
-    // Detectar iOS
-    if (/iPad|iPhone|iPod/.test(userAgent) && !window.MSStream) {
-      window.open("https://apps.apple.com/app/matchapp", "_blank");
-    }
-    // Detectar Android
-    else if (/android/i.test(userAgent)) {
-      window.open("https://play.google.com/store/apps/details?id=com.matchapp", "_blank");
-    }
-    // Fallback para otros dispositivos
-    else {
+    if (isIOS || isAndroid) {
+      const deepLink = "matchapp://";
+      const storeUrl = isIOS 
+        ? "https://apps.apple.com/app/matchapp"
+        : "https://play.google.com/store/apps/details?id=com.matchapp";
+      
+      const iframe = document.createElement('iframe');
+      iframe.style.display = 'none';
+      iframe.src = deepLink;
+      document.body.appendChild(iframe);
+      
+      setTimeout(() => {
+        document.body.removeChild(iframe);
+        window.location.href = storeUrl;
+      }, 1000);
+    } else {
       window.open("https://www.matchapp.com", "_blank");
     }
   };
