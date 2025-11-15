@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
@@ -47,18 +46,6 @@ export default function Home() {
     };
     fetchUser();
   }, []);
-
-  const handleMatchAppClick = () => {
-    const userAgent = navigator.userAgent || navigator.vendor || window.opera;
-    
-    if (/iPad|iPhone|iPod/.test(userAgent) && !window.MSStream) {
-      window.open("https://apps.apple.com/app/matchapp", "_blank");
-    } else if (/android/i.test(userAgent)) {
-      window.open("https://play.google.com/store/apps/details?id=com.matchapp", "_blank");
-    } else {
-      window.open("https://www.matchapp.com", "_blank");
-    }
-  };
 
   const { data: players } = useQuery({
     queryKey: ['players'],
@@ -111,6 +98,34 @@ export default function Home() {
     });
     
     return pending;
+  };
+
+  const handleMatchAppClick = () => {
+    const userAgent = navigator.userAgent || navigator.vendor || window.opera;
+    const isIOS = /iPad|iPhone|iPod/.test(userAgent) && !window.MSStream;
+    const isAndroid = /android/i.test(userAgent);
+    
+    if (isIOS) {
+      const appStoreUrl = "https://apps.apple.com/app/matchapp";
+      const deepLink = "matchapp://";
+      
+      window.location.href = deepLink;
+      
+      setTimeout(() => {
+        window.location.href = appStoreUrl;
+      }, 1500);
+    } else if (isAndroid) {
+      const playStoreUrl = "https://play.google.com/store/apps/details?id=com.matchapp";
+      const deepLink = "matchapp://";
+      
+      window.location.href = deepLink;
+      
+      setTimeout(() => {
+        window.location.href = playStoreUrl;
+      }, 1500);
+    } else {
+      window.open("https://www.matchapp.com", "_blank");
+    }
   };
 
   const buildMenuItems = () => {
