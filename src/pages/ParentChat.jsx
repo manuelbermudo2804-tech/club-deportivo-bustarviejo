@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef, useMemo } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -271,9 +272,9 @@ export default function ParentChat() {
         </div>
       )}
 
-      {/* Mobile group selector */}
+      {/* Mobile group selector - STICKY */}
       {myGroups.length > 1 && isMobile && (
-        <div className="bg-white border-b p-2">
+        <div className="sticky top-0 z-10 bg-white border-b p-2 shadow-sm">
           <select
             value={selectedTab}
             onChange={(e) => setSelectedTab(e.target.value)}
