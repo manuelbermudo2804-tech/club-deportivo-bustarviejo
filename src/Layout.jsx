@@ -799,36 +799,36 @@ export default function Layout({ children, currentPageName }) {
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
         
         <header className="lg:hidden fixed top-0 left-0 right-0 z-50 bg-gradient-to-r from-orange-600 to-orange-700 shadow-lg">
-          <div className="flex items-center justify-between p-4">
-            <div className="flex items-center gap-3">
-              <img src={CLUB_LOGO_URL} alt="CD Bustarviejo" className="w-10 h-10 rounded-xl shadow-lg" />
+          <div className="flex items-center justify-between p-3">
+            <div className="flex items-center gap-2">
+              <img src={CLUB_LOGO_URL} alt="CD Bustarviejo" className="w-9 h-9 rounded-xl shadow-lg" />
               <div className="text-white">
-                <h1 className="font-bold text-lg leading-tight">CD Bustarviejo</h1>
+                <h1 className="font-bold text-base leading-tight">CD Bustarviejo</h1>
                 <p className="text-xs text-orange-100">
                   {isAdmin ? "Admin" : isPlayer ? "Jugador" : isCoach ? "Entrenador" : "Familia"}
                 </p>
               </div>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1">
               {!isAdmin && !isCoach && <NotificationCenter />}
-              <ThemeToggle /> {/* Moved ThemeToggle to mobile header */}
+              <ThemeToggle />
               <button
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
                 className="p-2 text-white hover:bg-white/20 rounded-xl transition-colors"
               >
-                {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+                {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
               </button>
             </div>
           </div>
         </header>
 
         {/* Mobile Search Bar */}
-        <div className="lg:hidden fixed top-[72px] left-0 right-0 z-40 bg-white border-b shadow-sm p-3">
+        <div className="lg:hidden fixed top-[64px] left-0 right-0 z-40 bg-white border-b shadow-sm p-2">
           <GlobalSearch isAdmin={isAdmin} isCoach={isCoach} />
         </div>
 
         {mobileMenuOpen && (
-          <div className="lg:hidden fixed inset-0 z-40 bg-slate-900/95 backdrop-blur-sm pt-[132px]"> {/* Adjusted pt- value */}
+          <div className="lg:hidden fixed inset-0 z-40 bg-slate-900/95 backdrop-blur-sm pt-[112px]">
             <div className="h-full overflow-y-auto p-4 space-y-2">
               {navigationItems.map((item) => (
                 <Link
@@ -946,7 +946,7 @@ export default function Layout({ children, currentPageName }) {
           </div>
         </nav>
 
-        <main className="lg:ml-72 min-h-screen pt-[132px] lg:pt-0"> {/* Adjusted pt- value */}
+        <main className="lg:ml-72 min-h-screen pt-[112px] lg:pt-0">
           {children}
         </main>
       </div>
