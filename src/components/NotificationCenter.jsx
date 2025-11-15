@@ -64,6 +64,12 @@ export default function NotificationCenter() {
     initialData: [],
   });
 
+  const { data: events } = useQuery({
+    queryKey: ['events'],
+    queryFn: () => base44.entities.Event.list(),
+    initialData: [],
+  });
+
   const markMessageAsReadMutation = useMutation({
     mutationFn: ({ id, message }) => base44.entities.ChatMessage.update(id, { ...message, leido: true }),
     onSuccess: () => {
@@ -77,42 +83,75 @@ export default function NotificationCenter() {
 
   const myGroupSports = [...new Set(myPlayers.map(p => p.deporte))];
 
-  // Helper function to check if notification is recent (last 7 days)
-  const isRecent = (date) => {
-    const notifDate = new Date(date);
-    const daysAgo = Math.floor((new Date() - notifDate) / (1000 * 60 * 60 * 24));
-    return daysAgo <= 7;
-  };
-
-  // Messages - only recent unread
-  const unreadMessages = messages.filter(m => 
-    !m.leido && 
-    m.tipo === "admin_a_grupo" && 
-    myGroupSports.includes(m.grupo_id || m.deporte) &&
-    isRecent(m.created_date)
-  );
+  // Messages - only last 7 days
+  const unreadMessages = messages.filter(m => {
+    if (!m.leido && m.tipo === "admin_a_grupo" && myGroupSports.includes(m.grupo_id || m.deporte)) {
+      const daysAgo = Math.floor((new Date() - new Date(m.created_date)) / (1000 * 60 * 60 * 24));
+      return daysAgo <= 7;
+    }
+    return false;
+  });
 
   const urgentMessages = unreadMessages.filter(m => m.prioridad === "Urgente");
 
-  // Callups
-  const today = new Date().toISOString().split('T')[0];
+  // Callups - solo pendientes y futuras (desaparecen el día después del partido)
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const todayStr = today.toISOString().split('T')[0];
+  
   const pendingCallups = callups.filter(c => {
-    if (!c.publicada || c.fecha_partido < today || c.cerrada) return false;
+    if (!c.publicada || c.cerrada) return false;
+    // Solo mostrar si el partido es hoy o en el futuro
+    if (c.fecha_partido < todayStr) return false;
+    
     return c.jugadores_convocados?.some(j => {
       const isMyPlayer = myPlayers.some(p => p.id === j.jugador_id);
       return isMyPlayer && j.confirmacion === "pendiente";
     });
   });
 
-  // Announcements (recent - last 3 days)
+  // Announcements con lógica diferenciada:
+  // - Urgentes: solo del día actual (desaparecen al día siguiente)
+  // - Importantes: hasta 2 días después de publicación
+  // - Normales: hasta 3 días después de publicación
   const recentAnnouncements = announcements.filter(a => {
     if (!a.publicado) return false;
     if (a.destinatarios_tipo !== "Todos" && !myGroupSports.includes(a.destinatarios_tipo)) return false;
+    
+    // Si tiene fecha de expiración, respetarla
+    if (a.fecha_expiracion) {
+      const expirationDate = new Date(a.fecha_expiracion);
+      expirationDate.setHours(0, 0, 0, 0);
+      if (today > expirationDate) return false;
+    }
+    
     const daysAgo = Math.floor((new Date() - new Date(a.fecha_publicacion)) / (1000 * 60 * 60 * 24));
+    
+    // Anuncios urgentes: solo del día actual
+    if (a.prioridad === "Urgente") {
+      return daysAgo === 0;
+    }
+    
+    // Anuncios importantes: 2 días
+    if (a.prioridad === "Importante") {
+      return daysAgo <= 2;
+    }
+    
+    // Anuncios normales: 3 días
     return daysAgo <= 3;
-  }).slice(0, 5);
+  }).slice(0, 10);
 
   const urgentAnnouncements = recentAnnouncements.filter(a => a.prioridad === "Urgente");
+
+  // Events - solo eventos futuros (desaparecen el día después de su fecha)
+  const upcomingEvents = events.filter(e => {
+    if (!e.publicado) return false;
+    
+    // Solo mostrar si el evento es hoy o en el futuro
+    const eventDate = new Date(e.fecha);
+    eventDate.setHours(0, 0, 0, 0);
+    return eventDate >= today;
+  });
 
   // Payments
   const pendingPayments = payments.filter(p => 
@@ -137,6 +176,7 @@ export default function NotificationCenter() {
       case "announcement": return Megaphone;
       case "payment": return CreditCard;
       case "reminder": return Clock;
+      case "event": return Calendar;
       default: return Bell;
     }
   };
@@ -149,6 +189,7 @@ export default function NotificationCenter() {
       case "announcement": return "text-purple-600 bg-purple-50";
       case "payment": return "text-green-600 bg-green-50";
       case "reminder": return "text-yellow-600 bg-yellow-50";
+      case "event": return "text-indigo-600 bg-indigo-50";
       default: return "text-slate-600 bg-slate-50";
     }
   };
