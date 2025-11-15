@@ -49,18 +49,20 @@ export default function PushNotificationManager() {
       onClick={requestPermission}
       disabled={isSubscribed}
       variant={isSubscribed ? "outline" : "default"}
-      className={isSubscribed ? "" : "bg-orange-600 hover:bg-orange-700"}
-      size="sm"
+      className={`${isSubscribed ? "bg-white text-slate-900" : "bg-white text-orange-600 hover:bg-orange-50"} font-bold shadow-lg`}
+      size="default"
     >
       {isSubscribed ? (
         <>
-          <Bell className="w-4 h-4 mr-2" />
-          Notificaciones ON
+          <Bell className="w-5 h-5 mr-2" />
+          <span className="hidden sm:inline">Notificaciones ON</span>
+          <span className="sm:hidden">ON</span>
         </>
       ) : (
         <>
-          <BellOff className="w-4 h-4 mr-2" />
-          Activar Notificaciones
+          <BellOff className="w-5 h-5 mr-2" />
+          <span className="hidden sm:inline">Activar Alertas</span>
+          <span className="sm:hidden">Activar</span>
         </>
       )}
     </Button>
