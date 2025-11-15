@@ -30,7 +30,7 @@ export default function ParentPayments() {
     queryKey: ['myPlayers', user?.email],
     queryFn: async () => {
       const allPlayers = await base44.entities.Player.list();
-      return allPlayers.filter(p => 
+      return allPlayers.filter(p =>
         p.email_padre === user?.email || p.email_tutor_2 === user?.email
       );
     },
@@ -80,6 +80,32 @@ export default function ParentPayments() {
         justificante_url: file_url,
         estado: "En revisión"
       });
+
+      // Enviar email de notificación al club
+      try {
+        await base44.integrations.Core.SendEmail({
+          to: "CDBUSTARVIEJO@GMAIL.COM",
+          subject: `Justificante de Pago Recibido - ${payment.jugador_nombre}`,
+          body: `
+            <h2>Nuevo Justificante de Pago Subido</h2>
+            <p><strong>Jugador:</strong> ${payment.jugador_nombre}</p>
+            <p><strong>Tipo de Pago:</strong> ${payment.tipo_pago}</p>
+            <p><strong>Mes:</strong> ${payment.mes}</p>
+            <p><strong>Temporada:</strong> ${payment.temporada}</p>
+            <p><strong>Cantidad:</strong> ${payment.cantidad}€</p>
+            <p><strong>Método de Pago:</strong> ${payment.metodo_pago}</p>
+            ${payment.fecha_pago ? `<p><strong>Fecha de Pago:</strong> ${new Date(payment.fecha_pago).toLocaleDateString('es-ES')}</p>` : ''}
+            <hr>
+            <p><strong>Estado:</strong> En revisión 🟠</p>
+            <p><strong>Justificante:</strong> <a href="${file_url}" target="_blank" rel="noopener noreferrer">Ver justificante</a></p>
+            ${payment.notas ? `<p><strong>Notas:</strong> ${payment.notas}</p>` : ''}
+            <hr>
+            <p style="font-size: 12px; color: #666;">Justificante subido el ${new Date().toLocaleString('es-ES')}</p>
+          `
+        });
+      } catch (error) {
+        console.error("Error sending email notification:", error);
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['myPayments'] });
@@ -293,8 +319,8 @@ export default function ParentPayments() {
                       </TableCell>
                       <TableCell>
                         <Badge className={
-                          payment.estado === "Pagado" 
-                            ? "bg-green-100 text-green-700" 
+                          payment.estado === "Pagado"
+                            ? "bg-green-100 text-green-700"
                             : payment.estado === "En revisión"
                             ? "bg-orange-100 text-orange-700"
                             : "bg-red-100 text-red-700"

@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -5,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Plus, Info } from "lucide-react";
 import { AnimatePresence } from "framer-motion";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { toast } from "sonner"; // Import toast for notifications
 
 import PlayerCard from "../components/players/PlayerCard";
 import PlayerForm from "../components/players/PlayerForm";
@@ -48,20 +50,60 @@ export default function ParentPlayers() {
   });
 
   const createPlayerMutation = useMutation({
-    mutationFn: (playerData) => {
+    mutationFn: async (playerData) => {
       const dataWithParentEmail = {
         ...playerData,
         email_padre: user?.email || playerData.email_padre
       };
-      return base44.entities.Player.create(dataWithParentEmail);
+      const newPlayer = await base44.entities.Player.create(dataWithParentEmail);
+      
+      // Enviar email de notificación al club
+      try {
+        await base44.integrations.Core.SendEmail({
+          to: "CDBUSTARVIEJO@GMAIL.COM",
+          subject: `Nueva Inscripción de Jugador - ${playerData.nombre}`,
+          body: `
+            <h2>Nueva Inscripción Recibida</h2>
+            <p><strong>Tipo:</strong> ${playerData.tipo_inscripcion}</p>
+            <p><strong>Jugador:</strong> ${playerData.nombre}</p>
+            <p><strong>Deporte/Categoría:</strong> ${playerData.deporte}</p>
+            <p><strong>Fecha de Nacimiento:</strong> ${new Date(playerData.fecha_nacimiento).toLocaleDateString('es-ES')}</p>
+            <hr>
+            <h3>Datos de Contacto:</h3>
+            <p><strong>Email Padre/Tutor 1:</strong> ${playerData.email_padre}</p>
+            <p><strong>Teléfono:</strong> ${playerData.telefono}</p>
+            ${playerData.email_tutor_2 ? `<p><strong>Email Padre/Tutor 2:</strong> ${playerData.email_tutor_2}</p>` : ''}
+            ${playerData.telefono_tutor_2 ? `<p><strong>Teléfono Tutor 2:</strong> ${playerData.telefono_tutor_2}</p>` : ''}
+            ${playerData.email_jugador ? `<p><strong>Email Jugador:</strong> ${playerData.email_jugador} (Acceso autorizado)</p>` : ''}
+            <p><strong>Dirección:</strong> ${playerData.direccion}</p>
+            <hr>
+            <h3>Autorizaciones:</h3>
+            <p><strong>Política de Privacidad:</strong> ${playerData.acepta_politica_privacidad ? 'Aceptada ✅' : 'No aceptada'}</p>
+            <p><strong>Fotografías/Videos:</strong> ${playerData.autorizacion_fotografia}</p>
+            <p><strong>Acceso del Jugador a la App:</strong> ${playerData.acceso_jugador_autorizado ? 'Autorizado ✅' : 'No autorizado'}</p>
+            ${playerData.observaciones ? `<hr><h3>Observaciones:</h3><p>${playerData.observaciones}</p>` : ''}
+            <hr>
+            <p style="font-size: 12px; color: #666;">Inscripción registrada el ${new Date().toLocaleString('es-ES')}</p>
+          `
+        });
+      } catch (error) {
+        console.error("Error sending email notification:", error);
+      }
+      
+      return newPlayer;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['myPlayers'] });
-      queryClient.invalidateQueries({ queryKey: ['players'] });
-      queryClient.invalidateQueries({ queryKey: ['allPlayersForRenewal'] });
+      queryClient.invalidateQueries({ queryKey: ['players'] }); // Ensure general players list is also invalidated
+      queryClient.invalidateQueries({ queryKey: ['allPlayersForRenewal'] }); // Invalidate for renewal purposes
       setShowForm(false);
       setEditingPlayer(null);
+      toast.success("Jugador registrado correctamente");
     },
+    onError: (error) => {
+      console.error("Error creating player:", error);
+      toast.error("Error al registrar el jugador");
+    }
   });
 
   const updatePlayerMutation = useMutation({
@@ -77,7 +119,12 @@ export default function ParentPlayers() {
       queryClient.invalidateQueries({ queryKey: ['players'] });
       setShowForm(false);
       setEditingPlayer(null);
+      toast.success("Jugador actualizado correctamente");
     },
+    onError: (error) => {
+      console.error("Error updating player:", error);
+      toast.error("Error al actualizar el jugador");
+    }
   });
 
   const handleSubmit = async (playerData) => {

@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -52,7 +53,44 @@ export default function Players() {
       );
 
   const createPlayerMutation = useMutation({
-    mutationFn: (playerData) => base44.entities.Player.create(playerData),
+    mutationFn: async (playerData) => {
+      const newPlayer = await base44.entities.Player.create(playerData);
+      
+      // Enviar email de notificación al club
+      try {
+        await base44.integrations.Core.SendEmail({
+          to: "CDBUSTARVIEJO@GMAIL.COM",
+          subject: `Nueva Inscripción de Jugador - ${playerData.nombre}`,
+          body: `
+            <h2>Nueva Inscripción Recibida</h2>
+            <p><strong>Tipo:</strong> ${playerData.tipo_inscripcion}</p>
+            <p><strong>Jugador:</strong> ${playerData.nombre}</p>
+            <p><strong>Categoría:</strong> ${playerData.deporte}</p>
+            <p><strong>Fecha de Nacimiento:</strong> ${new Date(playerData.fecha_nacimiento).toLocaleDateString('es-ES')}</p>
+            <hr>
+            <h3>Datos de Contacto:</h3>
+            <p><strong>Email Padre/Tutor 1:</strong> ${playerData.email_padre}</p>
+            <p><strong>Teléfono:</strong> ${playerData.telefono}</p>
+            ${playerData.email_tutor_2 ? `<p><strong>Email Padre/Tutor 2:</strong> ${playerData.email_tutor_2}</p>` : ''}
+            ${playerData.telefono_tutor_2 ? `<p><strong>Teléfono Tutor 2:</strong> ${playerData.telefono_tutor_2}</p>` : ''}
+            ${playerData.email_jugador ? `<p><strong>Email Jugador:</strong> ${playerData.email_jugador} (Acceso autorizado)</p>` : ''}
+            <p><strong>Dirección:</strong> ${playerData.direccion}</p>
+            <hr>
+            <h3>Autorizaciones:</h3>
+            <p><strong>Política de Privacidad:</strong> ${playerData.acepta_politica_privacidad ? 'Aceptada ✅' : 'No aceptada'}</p>
+            <p><strong>Fotografías/Videos:</strong> ${playerData.autorizacion_fotografia}</p>
+            <p><strong>Acceso del Jugador a la App:</strong> ${playerData.acceso_jugador_autorizado ? 'Autorizado ✅' : 'No autorizado'}</p>
+            ${playerData.observaciones ? `<hr><h3>Observaciones:</h3><p>${playerData.observaciones}</p>` : ''}
+            <hr>
+            <p style="font-size: 12px; color: #666;">Inscripción registrada el ${new Date().toLocaleString('es-ES')}</p>
+          `
+        });
+      } catch (error) {
+        console.error("Error sending email notification:", error);
+      }
+      
+      return newPlayer;
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['players'] });
       setShowForm(false);
@@ -171,7 +209,7 @@ export default function Players() {
         <Input
           placeholder="Buscar jugador..."
           value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
+          onChange={(e) => e.target && setSearchTerm(e.target.value)}
           className="pl-10 bg-white shadow-sm"
         />
       </div>
