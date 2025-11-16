@@ -97,6 +97,18 @@ export default function Announcements() {
     }
   });
 
+  const deleteAnnouncementMutation = useMutation({
+    mutationFn: (id) => base44.entities.Announcement.delete(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['announcements'] });
+      toast.success("Anuncio eliminado");
+    },
+    onError: (error) => {
+      console.error("Error deleting announcement:", error);
+      toast.error("Error al eliminar el anuncio");
+    }
+  });
+
   const sendAnnouncementEmails = async (announcement, data) => {
     try {
       let recipients = [];
@@ -274,6 +286,12 @@ Ubicación: Bustarviejo, Madrid
     setShowForm(true);
   };
 
+  const handleDelete = (announcement) => {
+    if (window.confirm(`¿Estás seguro de eliminar el anuncio "${announcement.titulo}"?`)) {
+      deleteAnnouncementMutation.mutate(announcement.id);
+    }
+  };
+
   // Filter announcements based on user role and expiration
   const visibleAnnouncements = announcements.filter(announcement => {
     // Admins see all
@@ -404,6 +422,7 @@ Ubicación: Bustarviejo, Madrid
                 key={announcement.id}
                 announcement={announcement}
                 onEdit={handleEdit}
+                onDelete={isAdmin ? handleDelete : null}
                 isAdmin={isAdmin}
               />
             ))}

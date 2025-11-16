@@ -3,11 +3,11 @@ import { motion } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Edit, Pin, Clock } from "lucide-react";
+import { Edit, Pin, Clock, Trash2 } from "lucide-react";
 import { format, differenceInHours } from "date-fns";
 import { es } from "date-fns/locale";
 
-export default function AnnouncementCard({ announcement, onEdit, isAdmin }) {
+export default function AnnouncementCard({ announcement, onEdit, onDelete, isAdmin }) {
   const priorityConfig = {
     Urgente: {
       gradient: "from-red-600 to-red-700",
@@ -101,16 +101,30 @@ export default function AnnouncementCard({ announcement, onEdit, isAdmin }) {
             )}
           </div>
 
-          {isAdmin && onEdit && (
-            <Button
-              onClick={() => onEdit(announcement)}
-              variant="outline"
-              size="sm"
-              className="w-full mt-2 h-7 text-xs"
-            >
-              <Edit className="w-3 h-3 mr-1" />
-              Editar
-            </Button>
+          {isAdmin && (onEdit || onDelete) && (
+            <div className="flex gap-2 mt-2">
+              {onEdit && (
+                <Button
+                  onClick={() => onEdit(announcement)}
+                  variant="outline"
+                  size="sm"
+                  className="flex-1 h-7 text-xs"
+                >
+                  <Edit className="w-3 h-3 mr-1" />
+                  Editar
+                </Button>
+              )}
+              {onDelete && (
+                <Button
+                  onClick={() => onDelete(announcement)}
+                  variant="destructive"
+                  size="sm"
+                  className="h-7 text-xs"
+                >
+                  <Trash2 className="w-3 h-3" />
+                </Button>
+              )}
+            </div>
           )}
         </CardContent>
       </Card>
