@@ -75,29 +75,39 @@ export const CUOTAS_POR_CATEGORIA = {
 
 // Función para obtener las cuotas según la categoría
 export const getCuotasPorCategoria = (categoria) => {
-  // Normalizar la categoría para que coincida con las claves
-  return CUOTAS_POR_CATEGORIA[categoria] || {
+  console.log("getCuotasPorCategoria llamada con:", categoria);
+  const cuotas = CUOTAS_POR_CATEGORIA[categoria] || {
     inscripcion: 0,
     segunda: 0,
     tercera: 0,
     total: 0
   };
+  console.log("Cuotas encontradas:", cuotas);
+  return cuotas;
 };
 
 // Función para obtener el importe según categoría y mes
 export const getImportePorCategoriaYMes = (categoria, mes) => {
+  console.log("getImportePorCategoriaYMes llamada con:", categoria, mes);
   const cuotas = getCuotasPorCategoria(categoria);
   
+  let importe = 0;
   switch(mes) {
     case "Junio":
-      return cuotas.inscripcion;
+      importe = cuotas.inscripcion;
+      break;
     case "Septiembre":
-      return cuotas.segunda;
+      importe = cuotas.segunda;
+      break;
     case "Diciembre":
-      return cuotas.tercera;
+      importe = cuotas.tercera;
+      break;
     default:
-      return 0;
+      importe = 0;
   }
+  
+  console.log("Importe calculado:", importe);
+  return importe;
 };
 
 // Fechas de vencimiento oficiales
