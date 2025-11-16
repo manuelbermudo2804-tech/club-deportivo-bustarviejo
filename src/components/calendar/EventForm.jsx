@@ -20,6 +20,7 @@ export default function EventForm({ event, onSubmit, onCancel, isSubmitting }) {
     fecha: "",
     fecha_fin: "",
     hora: "",
+    hora_fin: "",
     ubicacion: "",
     rival: "",
     local_visitante: "Local",
@@ -27,7 +28,9 @@ export default function EventForm({ event, onSubmit, onCancel, isSubmitting }) {
     color: "orange",
     publicado: true,
     es_automatico: false,
-    notificado: false
+    notificado: false,
+    requiere_confirmacion: false,
+    confirmaciones: []
   });
 
   const handleSubmit = (e) => {
@@ -180,12 +183,12 @@ export default function EventForm({ event, onSubmit, onCancel, isSubmitting }) {
                   value={currentEvent.fecha_fin}
                   onChange={(e) => setCurrentEvent({ ...currentEvent, fecha_fin: e.target.value })}
                 />
-                <p className="text-xs text-slate-500">Para eventos de varios días (ej: "Primera semana de...")</p>
+                <p className="text-xs text-slate-500">Para eventos de varios días</p>
               </div>
 
-              {/* Hora */}
+              {/* Hora Inicio */}
               <div className="space-y-2">
-                <Label>Hora</Label>
+                <Label>Hora Inicio</Label>
                 <Input
                   type="time"
                   value={currentEvent.hora}
@@ -193,8 +196,18 @@ export default function EventForm({ event, onSubmit, onCancel, isSubmitting }) {
                 />
               </div>
 
-              {/* Ubicación */}
+              {/* Hora Fin */}
               <div className="space-y-2">
+                <Label>Hora Fin</Label>
+                <Input
+                  type="time"
+                  value={currentEvent.hora_fin}
+                  onChange={(e) => setCurrentEvent({ ...currentEvent, hora_fin: e.target.value })}
+                />
+              </div>
+
+              {/* Ubicación */}
+              <div className="space-y-2 md:col-span-2">
                 <Label>Ubicación</Label>
                 <Input
                   placeholder="Campo municipal, pabellón, etc."
@@ -255,6 +268,20 @@ export default function EventForm({ event, onSubmit, onCancel, isSubmitting }) {
                 <Switch
                   checked={currentEvent.importante}
                   onCheckedChange={(checked) => setCurrentEvent({ ...currentEvent, importante: checked })}
+                />
+              </div>
+
+              <div className="flex items-center justify-between p-4 rounded-lg bg-blue-50 border-2 border-blue-200">
+                <div>
+                  <Label className="text-base font-medium">Requiere Confirmación</Label>
+                  <p className="text-sm text-blue-700">
+                    Los padres/jugadores deberán confirmar asistencia
+                  </p>
+                </div>
+                <Switch
+                  checked={currentEvent.requiere_confirmacion}
+                  onCheckedChange={(checked) => setCurrentEvent({ ...currentEvent, requiere_confirmacion: checked })}
+                  className="data-[state=checked]:bg-blue-600"
                 />
               </div>
 
