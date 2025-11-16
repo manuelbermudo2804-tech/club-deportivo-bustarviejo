@@ -92,7 +92,7 @@ export default function ParentDashboard() {
     });
   });
 
-  // Calcular pagos pendientes incluyendo los que NO se han registrado aún
+  // Calcular pagos pendientes solo de jugadores que YA hayan registrado pagos
   const calculatePendingPayments = () => {
     const activeSeason = seasonConfigs.find(s => s.activa);
     if (!activeSeason) return myPayments.filter(p => p.estado === "Pendiente").length;
@@ -105,6 +105,9 @@ export default function ParentDashboard() {
       const playerPayments = myPayments.filter(p => 
         p.jugador_id === player.id && p.temporada === activeSeason.temporada
       );
+
+      // Si NO tiene pagos registrados, no contamos nada (no sabemos su modalidad)
+      if (playerPayments.length === 0) return;
 
       // Si tiene pago único, solo debe haber 1 pago (Junio)
       const pagoUnico = playerPayments.find(p => p.tipo_pago === "Único");
