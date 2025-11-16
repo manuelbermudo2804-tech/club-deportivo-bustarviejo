@@ -17,7 +17,6 @@ export default function Home() {
   const [isCoach, setIsCoach] = useState(false);
   const [hasPlayers, setHasPlayers] = useState(false);
   const [userRole, setUserRole] = useState("parent");
-  const [myPlayersSports, setMyPlayersSports] = useState([]);
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -40,11 +39,6 @@ export default function Home() {
             p.email_tutor_2 === currentUser.email
           );
           setHasPlayers(myPlayers.length > 0);
-          
-          if (coachCheck && myPlayers.length > 0) {
-            const sports = [...new Set(myPlayers.map(p => p.deporte))];
-            setMyPlayersSports(sports);
-          }
         }
       } catch (error) {
         console.error("Error fetching user:", error);
@@ -82,6 +76,12 @@ export default function Home() {
     queryFn: () => base44.entities.Survey.list('-created_date'),
     initialData: [],
   });
+
+  const myPlayers = user && isCoach && hasPlayers 
+    ? players.filter(p => p.email_padre === user.email || p.email_tutor_2 === user.email)
+    : [];
+
+  const myPlayersSports = [...new Set(myPlayers.map(p => p.deporte))];
 
   const activeSurveys = isCoach && hasPlayers 
     ? surveys.filter(s => {
@@ -306,12 +306,6 @@ export default function Home() {
   };
 
   const menuItems = buildMenuItems();
-
-  const getPanelTitle = () => {
-    if (isAdmin) return "Panel de Administración";
-    if (isCoach) return "Panel de Entrenadores";
-    return "Panel de Gestión";
-  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-black pt-4 lg:pt-0">
