@@ -113,44 +113,41 @@ export default function PlayerDashboard() {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-black">
-      <div className="bg-gradient-to-r from-orange-600 to-orange-700 p-4 lg:p-6 shadow-2xl">
-        <div className="flex items-center justify-center gap-3">
-          <img src={CLUB_LOGO_URL} alt="CD Bustarviejo" className="w-12 h-12 lg:w-16 lg:h-16 rounded-2xl shadow-2xl ring-4 ring-white/50" />
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-black pt-4 lg:pt-0">
+      <div className="bg-gradient-to-r from-orange-600 to-orange-700 p-3 lg:p-6 shadow-2xl">
+        <div className="flex items-center justify-center gap-2 lg:gap-3">
+          <img src={CLUB_LOGO_URL} alt="CD Bustarviejo" className="w-10 h-10 lg:w-16 lg:h-16 rounded-2xl shadow-2xl ring-4 ring-white/50" />
           <div className="text-white text-center">
-            <h1 className="text-2xl lg:text-3xl font-bold">CD Bustarviejo</h1>
-            <p className="text-orange-100 text-xs lg:text-sm">Panel de Jugador</p>
+            <h1 className="text-xl lg:text-3xl font-bold">CD Bustarviejo</h1>
+            <p className="text-orange-100 text-[10px] lg:text-sm">Panel de Jugador</p>
           </div>
         </div>
       </div>
 
-      <div className="px-4 lg:px-8 py-6 space-y-6">
-        {/* Social Links */}
+      <div className="px-4 lg:px-8 py-6 space-y-4 lg:space-y-6">
         <SocialLinks />
 
-        {/* MatchApp Card */}
         <Card className="border-none shadow-xl bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 text-white overflow-hidden relative">
           <div className="absolute top-0 right-0 w-64 h-64 bg-orange-500 rounded-full blur-3xl opacity-20"></div>
-          <CardContent className="relative z-10 py-4 px-4 lg:py-6 lg:px-6">
+          <CardContent className="relative z-10 py-3 px-3 lg:py-6 lg:px-6">
             <div className="flex flex-col md:flex-row items-center justify-between gap-3">
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 lg:w-16 lg:h-16 bg-orange-500 rounded-2xl flex items-center justify-center shadow-lg">
-                  <Trophy className="w-6 h-6 lg:w-8 lg:h-8 text-white" />
+              <div className="flex items-center gap-2 lg:gap-3">
+                <div className="w-10 h-10 lg:w-16 lg:h-16 bg-orange-500 rounded-2xl flex items-center justify-center shadow-lg">
+                  <Trophy className="w-5 h-5 lg:w-8 lg:h-8 text-white" />
                 </div>
                 <div>
-                  <h3 className="text-lg lg:text-2xl font-bold mb-1">Horarios y Resultados</h3>
-                  <p className="text-slate-300 text-xs lg:text-sm">
+                  <h3 className="text-base lg:text-2xl font-bold mb-1">Horarios y Resultados</h3>
+                  <p className="text-slate-300 text-[10px] lg:text-sm">
                     📱 Descarga MatchApp • Ver partidos en directo
                   </p>
                 </div>
               </div>
-              <MatchAppLink className="w-full md:w-auto py-3 lg:py-4 px-6 lg:px-8 text-sm lg:text-base" />
+              <MatchAppLink className="w-full md:w-auto py-2 lg:py-4 px-4 lg:px-8 text-xs lg:text-base" />
             </div>
           </CardContent>
         </Card>
 
-        {/* Menu Grid */}
-        <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6">
+        <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 lg:gap-6">
           {menuItems.map((item, index) => (
             <Link key={index} to={item.url} className="group">
               <div className="relative bg-slate-800 rounded-3xl overflow-hidden shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105 active:scale-95 border-2 border-slate-700 hover:border-orange-500">
@@ -159,18 +156,18 @@ export default function PlayerDashboard() {
                 <div className={`absolute bottom-0 right-0 w-32 h-32 bg-gradient-to-tl ${item.gradient} opacity-30 blur-2xl`}></div>
                 <div className={`absolute top-0 left-0 w-24 h-24 bg-gradient-to-br ${item.gradient} opacity-20 blur-xl`}></div>
                 
-                <div className="relative z-10 p-6 lg:p-8 flex flex-col items-center justify-center min-h-[180px] lg:min-h-[200px]">
-                  <div className={`w-16 h-16 lg:w-20 lg:h-20 rounded-2xl bg-gradient-to-br ${item.gradient} flex items-center justify-center mb-4 shadow-2xl group-hover:scale-110 transition-transform duration-300`}>
-                    <item.icon className="w-8 h-8 lg:w-10 lg:h-10 text-white" />
+                <div className="relative z-10 p-4 lg:p-8 flex flex-col items-center justify-center min-h-[140px] lg:min-h-[200px]">
+                  <div className={`w-12 h-12 lg:w-20 lg:h-20 rounded-2xl bg-gradient-to-br ${item.gradient} flex items-center justify-center mb-3 lg:mb-4 shadow-2xl group-hover:scale-110 transition-transform duration-300`}>
+                    <item.icon className="w-6 h-6 lg:w-10 lg:h-10 text-white" />
                   </div>
                   
-                  <h3 className="text-white font-bold text-center text-base lg:text-lg mb-2">
+                  <h3 className="text-white font-bold text-center text-sm lg:text-lg mb-2">
                     {item.title}
                   </h3>
                   
                   {item.badge !== undefined && item.badge > 0 && (
-                    <div className="bg-white/20 backdrop-blur-sm px-3 py-1 rounded-full">
-                      <p className="text-white text-xs font-semibold">
+                    <div className="bg-white/20 backdrop-blur-sm px-2 py-1 rounded-full">
+                      <p className="text-white text-[10px] lg:text-xs font-semibold">
                         {item.badge} {item.badgeLabel}
                       </p>
                     </div>
@@ -181,28 +178,27 @@ export default function PlayerDashboard() {
           ))}
         </div>
 
-        {/* Info Card */}
-        <div className="bg-gradient-to-r from-orange-600 to-orange-700 rounded-3xl p-6 shadow-2xl text-white">
-          <h3 className="text-xl font-bold mb-3 flex items-center gap-2">
-            <Trophy className="w-6 h-6 text-yellow-300" />
+        <div className="bg-gradient-to-r from-orange-600 to-orange-700 rounded-3xl p-4 lg:p-6 shadow-2xl text-white">
+          <h3 className="text-lg lg:text-xl font-bold mb-3 flex items-center gap-2">
+            <Trophy className="w-5 h-5 lg:w-6 lg:h-6 text-yellow-300" />
             Valores del Deportista
           </h3>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 lg:gap-4 text-center">
             <div>
-              <div className="text-3xl mb-1">💪</div>
-              <p className="text-xs text-orange-100">Esfuerzo</p>
+              <div className="text-2xl lg:text-3xl mb-1">💪</div>
+              <p className="text-[10px] lg:text-xs text-orange-100">Esfuerzo</p>
             </div>
             <div>
-              <div className="text-3xl mb-1">🤝</div>
-              <p className="text-xs text-orange-100">Compañerismo</p>
+              <div className="text-2xl lg:text-3xl mb-1">🤝</div>
+              <p className="text-[10px] lg:text-xs text-orange-100">Compañerismo</p>
             </div>
             <div>
-              <div className="text-3xl mb-1">🎯</div>
-              <p className="text-xs text-orange-100">Disciplina</p>
+              <div className="text-2xl lg:text-3xl mb-1">🎯</div>
+              <p className="text-[10px] lg:text-xs text-orange-100">Disciplina</p>
             </div>
             <div>
-              <div className="text-3xl mb-1">❤️</div>
-              <p className="text-xs text-orange-100">Pasión</p>
+              <div className="text-2xl lg:text-3xl mb-1">❤️</div>
+              <p className="text-[10px] lg:text-xs text-orange-100">Pasión</p>
             </div>
           </div>
         </div>

@@ -286,33 +286,30 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-black">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-black pt-4 lg:pt-0">
       {user && <Onboarding userRole={userRole} />}
       <AutomaticReminders />
       
-      <div className="px-4 lg:px-8 py-6 space-y-6">
-        {/* Social Links */}
+      <div className="px-4 lg:px-8 py-6 space-y-4 lg:space-y-6">
         <SocialLinks />
 
-        {/* Banner MatchApp */}
         <button
           onClick={handleMatchAppClick}
-          className="w-full bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 rounded-2xl p-4 shadow-xl transition-all hover:scale-105 active:scale-95 border-2 border-green-500"
+          className="w-full bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 rounded-2xl p-3 lg:p-4 shadow-xl transition-all hover:scale-105 active:scale-95 border-2 border-green-500"
         >
-          <div className="flex items-center justify-center gap-3">
-            <div className="bg-white/20 backdrop-blur-sm rounded-xl p-3">
-              <Trophy className="w-6 h-6 text-white" />
+          <div className="flex items-center justify-center gap-2 lg:gap-3">
+            <div className="bg-white/20 backdrop-blur-sm rounded-xl p-2 lg:p-3">
+              <Trophy className="w-5 h-5 lg:w-6 lg:h-6 text-white" />
             </div>
-            <div className="text-left">
-              <p className="text-white font-bold text-lg">⚽ Sigue a tus equipos en vivo</p>
-              <p className="text-green-100 text-sm">Descarga MatchApp para ver resultados y clasificaciones</p>
+            <div className="text-left flex-1">
+              <p className="text-white font-bold text-sm lg:text-lg">⚽ Sigue a tus equipos en vivo</p>
+              <p className="text-green-100 text-xs lg:text-sm">Descarga MatchApp para ver resultados y clasificaciones</p>
             </div>
-            <Smartphone className="w-8 h-8 text-white ml-auto" />
+            <Smartphone className="w-6 h-6 lg:w-8 lg:h-8 text-white" />
           </div>
         </button>
 
-        {/* Menu Grid */}
-        <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 lg:gap-6">
+        <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3 lg:gap-6">
           {menuItems.map((item, index) => (
             <Link key={index} to={item.url} className="group">
               <div className="relative bg-slate-800 rounded-3xl overflow-hidden shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105 active:scale-95 border-2 border-slate-700 hover:border-orange-500">
@@ -320,18 +317,18 @@ export default function Home() {
                 <div className={`absolute bottom-0 right-0 w-32 h-32 bg-gradient-to-tl ${item.gradient} opacity-30 blur-2xl`}></div>
                 <div className={`absolute top-0 left-0 w-24 h-24 bg-gradient-to-br ${item.gradient} opacity-20 blur-xl`}></div>
                 
-                <div className="relative z-10 p-6 lg:p-8 flex flex-col items-center justify-center min-h-[180px] lg:min-h-[200px]">
-                  <div className={`w-16 h-16 lg:w-20 lg:h-20 rounded-2xl bg-gradient-to-br ${item.gradient} flex items-center justify-center mb-4 shadow-2xl group-hover:scale-110 transition-transform duration-300`}>
-                    <item.icon className="w-8 h-8 lg:w-10 lg:h-10 text-white" />
+                <div className="relative z-10 p-4 lg:p-8 flex flex-col items-center justify-center min-h-[140px] lg:min-h-[200px]">
+                  <div className={`w-12 h-12 lg:w-20 lg:h-20 rounded-2xl bg-gradient-to-br ${item.gradient} flex items-center justify-center mb-3 lg:mb-4 shadow-2xl group-hover:scale-110 transition-transform duration-300`}>
+                    <item.icon className="w-6 h-6 lg:w-10 lg:h-10 text-white" />
                   </div>
                   
-                  <h3 className="text-white font-bold text-center text-base lg:text-lg mb-2">
+                  <h3 className="text-white font-bold text-center text-sm lg:text-lg mb-2">
                     {item.title}
                   </h3>
                   
                   {item.badge !== undefined && item.badge > 0 && (
-                    <div className="bg-white/20 backdrop-blur-sm px-3 py-1 rounded-full">
-                      <p className="text-white text-xs font-semibold">
+                    <div className="bg-white/20 backdrop-blur-sm px-2 py-1 rounded-full">
+                      <p className="text-white text-[10px] lg:text-xs font-semibold">
                         {item.badge} {item.badgeLabel}
                       </p>
                     </div>
@@ -342,32 +339,31 @@ export default function Home() {
           ))}
         </div>
 
-        {/* Summary Stats */}
-        <div className="bg-slate-800 rounded-3xl p-6 shadow-2xl border-2 border-slate-700">
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="bg-slate-800 rounded-3xl p-4 lg:p-6 shadow-2xl border-2 border-slate-700">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
             <div className="text-center">
-              <div className="text-3xl lg:text-4xl font-bold text-orange-500 mb-1">
+              <div className="text-2xl lg:text-4xl font-bold text-orange-500 mb-1">
                 {activePlayers}
               </div>
-              <div className="text-slate-400 text-xs lg:text-sm">Jugadores Activos</div>
+              <div className="text-slate-400 text-[10px] lg:text-sm">Jugadores Activos</div>
             </div>
             <div className="text-center">
-              <div className="text-3xl lg:text-4xl font-bold text-red-500 mb-1">
+              <div className="text-2xl lg:text-4xl font-bold text-red-500 mb-1">
                 {pendingPayments}
               </div>
-              <div className="text-slate-400 text-xs lg:text-sm">Pagos Pendientes</div>
+              <div className="text-slate-400 text-[10px] lg:text-sm">Pagos Pendientes</div>
             </div>
             <div className="text-center">
-              <div className="text-3xl lg:text-4xl font-bold text-green-500 mb-1">
+              <div className="text-2xl lg:text-4xl font-bold text-green-500 mb-1">
                 {payments.filter(p => p.estado === "Pagado").length}
               </div>
-              <div className="text-slate-400 text-xs lg:text-sm">Pagos Confirmados</div>
+              <div className="text-slate-400 text-[10px] lg:text-sm">Pagos Confirmados</div>
             </div>
             <div className="text-center">
-              <div className="text-3xl lg:text-4xl font-bold text-blue-500 mb-1">
+              <div className="text-2xl lg:text-4xl font-bold text-blue-500 mb-1">
                 {unreadMessages}
               </div>
-              <div className="text-slate-400 text-xs lg:text-sm">Mensajes Nuevos</div>
+              <div className="text-slate-400 text-[10px] lg:text-sm">Mensajes Nuevos</div>
             </div>
           </div>
         </div>
