@@ -7,21 +7,17 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Upload, FileText, Loader2, Search, Plus, CreditCard, Info, Copy, CheckCircle2 } from "lucide-react";
+import { Upload, FileText, Loader2, Search, Plus, X } from "lucide-react";
 import { toast } from "sonner";
 import { AnimatePresence } from "framer-motion";
 
 import ContactCard from "../components/ContactCard";
 import ParentPaymentForm from "../components/payments/ParentPaymentForm";
 
-const CLUB_IBAN = "ES82 0049 4447 38 2010604048";
-
 export default function ParentPayments() {
   const [uploadingPaymentId, setUploadingPaymentId] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [showForm, setShowForm] = useState(false);
-  const [copiedIban, setCopiedIban] = useState(false);
   const queryClient = useQueryClient();
 
   const { data: user } = useQuery({
@@ -60,17 +56,6 @@ export default function ParentPayments() {
     }
   }, []);
 
-  const copyIban = async () => {
-    try {
-      await navigator.clipboard.writeText(CLUB_IBAN);
-      setCopiedIban(true);
-      toast.success("IBAN copiado");
-      setTimeout(() => setCopiedIban(false), 2000);
-    } catch (error) {
-      toast.error("Error al copiar");
-    }
-  };
-
   const createPaymentMutation = useMutation({
     mutationFn: (paymentData) => base44.entities.Payment.create(paymentData),
     onSuccess: () => {
@@ -96,24 +81,31 @@ export default function ParentPayments() {
       try {
         await base44.integrations.Core.SendEmail({
           to: "CDBUSTARVIEJO@GMAIL.COM",
-          subject: `Justificante de Pago - ${payment.jugador_nombre}`,
+          subject: `Justificante de Pago Recibido - ${payment.jugador_nombre}`,
           body: `
-            <h2>Nuevo Justificante de Pago</h2>
+            <h2>Nuevo Justificante de Pago Subido</h2>
             <p><strong>Jugador:</strong> ${payment.jugador_nombre}</p>
-            <p><strong>Mes:</strong> ${payment.mes} (${payment.tipo_pago})</p>
+            <p><strong>Tipo de Pago:</strong> ${payment.tipo_pago}</p>
+            <p><strong>Mes:</strong> ${payment.mes}</p>
             <p><strong>Temporada:</strong> ${payment.temporada}</p>
             <p><strong>Cantidad:</strong> ${payment.cantidad}€</p>
+            <p><strong>Método de Pago:</strong> ${payment.metodo_pago}</p>
+            ${payment.fecha_pago ? `<p><strong>Fecha de Pago:</strong> ${new Date(payment.fecha_pago).toLocaleDateString('es-ES')}</p>` : ''}
             <hr>
-            <p><strong>Justificante:</strong> <a href="${file_url}">Ver justificante</a></p>
+            <p><strong>Estado:</strong> En revisión 🟠</p>
+            <p><strong>Justificante:</strong> <a href="${file_url}" target="_blank" rel="noopener noreferrer">Ver justificante</a></p>
+            ${payment.notas ? `<p><strong>Notas:</strong> ${payment.notas}</p>` : ''}
+            <hr>
+            <p style="font-size: 12px; color: #666;">Justificante subido el ${new Date().toLocaleString('es-ES')}</p>
           `
         });
       } catch (error) {
-        console.error("Error sending email:", error);
+        console.error("Error sending email notification:", error);
       }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['myPayments'] });
-      toast.success("Justificante subido. El pago está en revisión.");
+      toast.success("Justificante subido correctamente. El pago está en revisión.");
       setUploadingPaymentId(null);
     },
     onError: () => {
@@ -125,6 +117,7 @@ export default function ParentPayments() {
   const handleFileUpload = async (paymentId, e) => {
     const file = e.target.files?.[0];
     if (!file) return;
+
     setUploadingPaymentId(paymentId);
     uploadJustificanteMutation.mutate({ paymentId, file });
   };
@@ -149,11 +142,11 @@ export default function ParentPayments() {
   const paidCount = payments.filter(p => p.estado === "Pagado").length;
 
   return (
-    <div className="p-4 lg:p-8 space-y-6">
+    <div className="p-6 lg:p-8 space-y-6">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <h1 className="text-3xl font-bold text-slate-900">Mis Pagos</h1>
-          <p className="text-slate-600 mt-1">Gestiona tus cuotas</p>
+          <p className="text-slate-600 mt-1">Gestiona tus cuotas y justificantes</p>
         </div>
         <Button
           onClick={() => setShowForm(!showForm)}
@@ -164,47 +157,8 @@ export default function ParentPayments() {
         </Button>
       </div>
 
-      {/* Datos Bancarios SIEMPRE VISIBLES */}
-      <Card className="border-2 border-orange-400 shadow-xl bg-gradient-to-br from-orange-50 to-white">
-        <CardHeader className="bg-gradient-to-r from-orange-600 to-orange-700 text-white pb-4">
-          <CardTitle className="flex items-center gap-2 text-xl">
-            <CreditCard className="w-6 h-6" />
-            Datos Bancarios del Club
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="pt-6">
-          <div className="bg-white rounded-xl p-4 border-2 border-slate-200">
-            <div className="flex items-center justify-between p-4 bg-slate-50 rounded-lg">
-              <div className="flex-1">
-                <p className="text-xs text-slate-600 font-medium mb-1">IBAN</p>
-                <p className="font-mono font-bold text-lg text-slate-900">{CLUB_IBAN}</p>
-                <p className="text-sm text-slate-600 mt-1">Banco Santander - CD Bustarviejo</p>
-              </div>
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={copyIban}
-                className="ml-4"
-              >
-                {copiedIban ? <CheckCircle2 className="w-4 h-4 text-green-600" /> : <Copy className="w-4 h-4" />}
-              </Button>
-            </div>
-          </div>
-          
-          <Alert className="mt-4 bg-blue-50 border-blue-300">
-            <Info className="h-4 w-4 text-blue-600" />
-            <AlertDescription className="text-blue-900 text-sm">
-              <strong>📝 Importante:</strong> Al hacer la transferencia, indica en el <strong>concepto</strong> el formato: 
-              <span className="font-mono bg-white px-2 py-1 rounded ml-1">CATEGORÍA-NOMBRE_APELLIDOS</span>
-              <br/>
-              <span className="text-xs mt-1 block">Ejemplo: <span className="font-mono bg-white px-1">BENJAMÍN-JUAN_GARCÍA</span></span>
-            </AlertDescription>
-          </Alert>
-        </CardContent>
-      </Card>
-
       {/* Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <Card className="border-none shadow-lg bg-white">
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
@@ -258,7 +212,7 @@ export default function ParentPayments() {
       <Card className="border-none shadow-lg bg-white">
         <CardHeader className="border-b border-slate-100">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-            <CardTitle className="text-xl">Mis Pagos Registrados</CardTitle>
+            <CardTitle className="text-xl">Detalle de Pagos</CardTitle>
             <div className="relative w-full md:w-64">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400" />
               <Input
@@ -280,7 +234,7 @@ export default function ParentPayments() {
           ) : filteredPayments.length === 0 ? (
             <div className="text-center py-12">
               <p className="text-slate-500">No hay pagos registrados</p>
-              <p className="text-sm text-slate-400 mt-2">Haz clic en "Registrar Pago" para añadir uno</p>
+              <p className="text-sm text-slate-400 mt-2">Haz clic en "Registrar Pago" para añadir uno nuevo</p>
             </div>
           ) : (
             <div className="overflow-x-auto">
@@ -289,7 +243,9 @@ export default function ParentPayments() {
                   <TableRow>
                     <TableHead>Jugador</TableHead>
                     <TableHead>Período</TableHead>
+                    <TableHead>Temporada</TableHead>
                     <TableHead>Cantidad</TableHead>
+                    <TableHead>Vencimiento</TableHead>
                     <TableHead>Justificante</TableHead>
                     <TableHead>Estado</TableHead>
                   </TableRow>
@@ -298,24 +254,29 @@ export default function ParentPayments() {
                   {filteredPayments.map((payment) => (
                     <TableRow key={payment.id} className="hover:bg-slate-50">
                       <TableCell className="font-medium">{payment.jugador_nombre}</TableCell>
-                      <TableCell>
-                        {payment.mes}
-                        <span className="text-xs text-slate-500 block">{payment.temporada}</span>
+                      <TableCell>{payment.mes}</TableCell>
+                      <TableCell className="font-medium text-slate-700">
+                        {payment.temporada}
                       </TableCell>
                       <TableCell className="font-bold text-slate-900">
                         {payment.cantidad}€
                       </TableCell>
+                      <TableCell className="text-sm text-slate-600">
+                        Día 30 de {payment.mes}
+                      </TableCell>
                       <TableCell>
                         {payment.justificante_url ? (
-                          <a
-                            href={payment.justificante_url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="inline-flex items-center gap-1 text-orange-600 hover:text-orange-700"
-                          >
-                            <FileText className="w-4 h-4" />
-                            <span className="text-xs">Ver</span>
-                          </a>
+                          <div className="flex items-center gap-2">
+                            <a
+                              href={payment.justificante_url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center gap-1 text-orange-600 hover:text-orange-700"
+                            >
+                              <FileText className="w-4 h-4" />
+                              <span className="text-xs">Ver</span>
+                            </a>
+                          </div>
                         ) : payment.estado === "Pagado" ? (
                           <span className="text-xs text-slate-400">-</span>
                         ) : (
@@ -373,32 +334,23 @@ export default function ParentPayments() {
         </CardContent>
       </Card>
 
-      {/* Instrucciones simplificadas */}
-      <Card className="border-none shadow-lg bg-blue-50 border-blue-200">
+      <ContactCard />
+
+      {/* Instrucciones */}
+      <Card className="border-none shadow-lg bg-orange-50 border-orange-200">
         <CardHeader>
-          <CardTitle className="text-lg text-blue-900">📋 Cómo Funciona</CardTitle>
+          <CardTitle className="text-lg text-orange-900">ℹ️ Instrucciones</CardTitle>
         </CardHeader>
         <CardContent className="space-y-3 text-sm text-slate-700">
-          <div className="flex items-start gap-3">
-            <span className="flex-shrink-0 w-6 h-6 bg-orange-600 text-white rounded-full flex items-center justify-center text-xs font-bold">1</span>
-            <p><strong>Haz la transferencia</strong> con el IBAN de arriba (indica tu concepto: CATEGORÍA-NOMBRE)</p>
-          </div>
-          <div className="flex items-start gap-3">
-            <span className="flex-shrink-0 w-6 h-6 bg-orange-600 text-white rounded-full flex items-center justify-center text-xs font-bold">2</span>
-            <p><strong>Haz una captura</strong> del justificante de tu banco</p>
-          </div>
-          <div className="flex items-start gap-3">
-            <span className="flex-shrink-0 w-6 h-6 bg-orange-600 text-white rounded-full flex items-center justify-center text-xs font-bold">3</span>
-            <p><strong>Registra el pago aquí</strong> y sube la captura (botón "Registrar Pago")</p>
-          </div>
-          <div className="flex items-start gap-3">
-            <span className="flex-shrink-0 w-6 h-6 bg-green-600 text-white rounded-full flex items-center justify-center text-xs font-bold">✓</span>
-            <p><strong>Listo!</strong> El administrador lo revisará y confirmará</p>
-          </div>
+          <p>• <strong>Registrar un pago:</strong> Haz clic en el botón "Registrar Pago", selecciona el jugador, tipo de pago y sube el justificante</p>
+          <p>• <strong>Pagos Pendientes (🔴):</strong> Sube el justificante de pago (Bizum o transferencia) haciendo clic en "Subir"</p>
+          <p>• <strong>En Revisión (🟠):</strong> El administrador está verificando tu pago</p>
+          <p>• <strong>Pagado (🟢):</strong> El pago ha sido confirmado por el administrador</p>
+          <p className="pt-2 border-t border-orange-200">
+            <strong>Importante:</strong> Sube el justificante junto con el registro del pago para que pueda ser verificado más rápidamente.
+          </p>
         </CardContent>
       </Card>
-
-      <ContactCard />
     </div>
   );
 }
