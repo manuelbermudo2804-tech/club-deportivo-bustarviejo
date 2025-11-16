@@ -14,10 +14,18 @@ import MessageAttachments from "../components/chat/MessageAttachments";
 export default function PlayerChat() {
   const [messageContent, setMessageContent] = useState("");
   const [attachments, setAttachments] = useState([]);
+  const [isMobile, setIsMobile] = useState(false);
   const messagesEndRef = useRef(null);
   const queryClient = useQueryClient();
   const [user, setUser] = useState(null);
   const [player, setPlayer] = useState(null);
+
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -193,8 +201,8 @@ export default function PlayerChat() {
   }
 
   return (
-    <div className="h-screen flex flex-col bg-white">
-      <div className="bg-gradient-to-r from-orange-600 to-orange-700 p-4 text-white flex items-center gap-3 shadow-md">
+    <div className="fixed inset-0 flex flex-col bg-white" style={{ top: isMobile ? '120px' : '0', left: isMobile ? '0' : '288px' }}>
+      <div className="bg-gradient-to-r from-orange-600 to-orange-700 p-4 text-white flex items-center gap-3 shadow-md flex-shrink-0">
         <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
           <span className="text-xl">{sportEmojis[player.deporte]}</span>
         </div>
@@ -285,7 +293,7 @@ export default function PlayerChat() {
         <div ref={messagesEndRef} />
       </div>
 
-      <div className="bg-white border-t p-3">
+      <div className="bg-white border-t p-3 flex-shrink-0">
         {attachments.length > 0 && (
           <div className="mb-2 flex flex-wrap gap-2">
             {attachments.map((att, index) => (
