@@ -12,7 +12,6 @@ import { base44 } from "@/api/base44Client";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
 import PaymentInstructions from "./PaymentInstructions";
-import { getCuotasPorCategoria, getImportePorCategoriaYMes, FECHAS_VENCIMIENTO } from "./paymentAmounts";
 
 const getCurrentSeason = () => {
   const now = new Date();
@@ -23,6 +22,36 @@ const getCurrentSeason = () => {
     return `${currentYear}/${currentYear + 1}`;
   }
   return `${currentYear - 1}/${currentYear}`;
+};
+
+const CUOTAS = {
+  "Fútbol Aficionado": { inscripcion: 165, segunda: 100, tercera: 95, total: 360 },
+  "Fútbol Juvenil": { inscripcion: 135, segunda: 100, tercera: 95, total: 330 },
+  "Fútbol Cadete": { inscripcion: 135, segunda: 100, tercera: 95, total: 330 },
+  "Fútbol Infantil (Mixto)": { inscripcion: 115, segunda: 83, tercera: 83, total: 281 },
+  "Fútbol Alevín (Mixto)": { inscripcion: 115, segunda: 83, tercera: 83, total: 281 },
+  "Fútbol Benjamín (Mixto)": { inscripcion: 100, segunda: 75, tercera: 75, total: 250 },
+  "Fútbol Pre-Benjamín (Mixto)": { inscripcion: 100, segunda: 75, tercera: 75, total: 250 },
+  "Fútbol Femenino": { inscripcion: 135, segunda: 100, tercera: 95, total: 330 },
+  "Baloncesto (Mixto)": { inscripcion: 50, segunda: 50, tercera: 50, total: 150 }
+};
+
+const FECHAS_VENCIMIENTO = {
+  "Junio": "30 de junio",
+  "Septiembre": "15 de septiembre",
+  "Diciembre": "15 de diciembre"
+};
+
+const getCuotasPorCategoria = (categoria) => {
+  return CUOTAS[categoria] || { inscripcion: 0, segunda: 0, tercera: 0, total: 0 };
+};
+
+const getImportePorMes = (categoria, mes) => {
+  const cuotas = getCuotasPorCategoria(categoria);
+  if (mes === "Junio") return cuotas.inscripcion;
+  if (mes === "Septiembre") return cuotas.segunda;
+  if (mes === "Diciembre") return cuotas.tercera;
+  return 0;
 };
 
 export default function ParentPaymentForm({ players, onSubmit, onCancel, isSubmitting }) {
@@ -50,49 +79,46 @@ export default function ParentPaymentForm({ players, onSubmit, onCancel, isSubmi
       const jugadorId = urlParams.get('jugador_id');
       
       if (jugadorId) {
-        handlePlayerChange(jugadorId);
+        const player = players.find(p => p.id === jugadorId);
+        if (player) {
+          setSelectedPlayer(player);
+          const cuotas = getCuotasPorCategoria(player.deporte);
+          setCurrentPayment(prev => ({
+            ...prev,
+            jugador_id: player.id,
+            jugador_nombre: player.nombre,
+            cantidad: cuotas.total
+          }));
+        }
       } else {
-        handlePlayerChange(players[0].id);
+        const player = players[0];
+        setSelectedPlayer(player);
+        const cuotas = getCuotasPorCategoria(player.deporte);
+        setCurrentPayment(prev => ({
+          ...prev,
+          jugador_id: player.id,
+          jugador_nombre: player.nombre,
+          cantidad: cuotas.total
+        }));
       }
     }
   }, [players]);
 
-  useEffect(() => {
-    if (currentPayment.jugador_id) {
-      const player = players.find(p => p.id === currentPayment.jugador_id);
-      setSelectedPlayer(player);
-    }
-  }, [currentPayment.jugador_id, players]);
-
-  useEffect(() => {
-    if (!selectedPlayer) return;
-    
-    const cuotas = getCuotasPorCategoria(selectedPlayer.deporte);
-    
-    let nuevaCantidad = 0;
-    if (currentPayment.tipo_pago === "Único") {
-      nuevaCantidad = cuotas.total;
-    } else {
-      nuevaCantidad = getImportePorCategoriaYMes(selectedPlayer.deporte, currentPayment.mes);
-    }
-    
-    setCurrentPayment(prev => ({ ...prev, cantidad: nuevaCantidad }));
-  }, [selectedPlayer, currentPayment.tipo_pago, currentPayment.mes]);
-
   const handlePlayerChange = (playerId) => {
     const player = players.find(p => p.id === playerId);
     if (player) {
+      setSelectedPlayer(player);
       const cuotas = getCuotasPorCategoria(player.deporte);
       const cantidad = currentPayment.tipo_pago === "Único" 
         ? cuotas.total 
-        : getImportePorCategoriaYMes(player.deporte, currentPayment.mes);
+        : getImportePorMes(player.deporte, currentPayment.mes);
       
-      setCurrentPayment({
-        ...currentPayment,
+      setCurrentPayment(prev => ({
+        ...prev,
         jugador_id: player.id,
         jugador_nombre: player.nombre,
         cantidad: cantidad
-      });
+      }));
     }
   };
 
@@ -101,34 +127,27 @@ export default function ParentPaymentForm({ players, onSubmit, onCancel, isSubmi
       const cuotas = getCuotasPorCategoria(selectedPlayer.deporte);
       const cantidad = value === "Único" 
         ? cuotas.total 
-        : getImportePorCategoriaYMes(selectedPlayer.deporte, currentPayment.mes);
+        : getImportePorMes(selectedPlayer.deporte, currentPayment.mes);
       
-      setCurrentPayment({
-        ...currentPayment,
+      setCurrentPayment(prev => ({
+        ...prev,
         tipo_pago: value,
         cantidad: cantidad
-      });
-    } else {
-      setCurrentPayment({
-        ...currentPayment,
-        tipo_pago: value
-      });
+      }));
     }
   };
 
   const handleMesChange = (value) => {
-    if (selectedPlayer && currentPayment.tipo_pago !== "Único") {
-      const cantidad = getImportePorCategoriaYMes(selectedPlayer.deporte, value);
-      setCurrentPayment({
-        ...currentPayment,
+    if (selectedPlayer) {
+      const cantidad = currentPayment.tipo_pago === "Único"
+        ? getCuotasPorCategoria(selectedPlayer.deporte).total
+        : getImportePorMes(selectedPlayer.deporte, value);
+      
+      setCurrentPayment(prev => ({
+        ...prev,
         mes: value,
         cantidad: cantidad
-      });
-    } else {
-      setCurrentPayment({
-        ...currentPayment,
-        mes: value
-      });
+      }));
     }
   };
 
@@ -139,10 +158,10 @@ export default function ParentPaymentForm({ players, onSubmit, onCancel, isSubmi
     setUploadingFile(true);
     try {
       const response = await base44.integrations.Core.UploadFile({ file });
-      setCurrentPayment({
-        ...currentPayment,
+      setCurrentPayment(prev => ({
+        ...prev,
         justificante_url: response.file_url
-      });
+      }));
       toast.success("Justificante subido correctamente");
     } catch (error) {
       console.error("Error uploading file:", error);
@@ -266,19 +285,19 @@ export default function ParentPaymentForm({ players, onSubmit, onCancel, isSubmi
                   type="number"
                   step="0.01"
                   value={currentPayment.cantidad}
-                  onChange={(e) => setCurrentPayment({...currentPayment, cantidad: parseFloat(e.target.value) || 0})}
+                  onChange={(e) => setCurrentPayment(prev => ({...prev, cantidad: parseFloat(e.target.value) || 0}))}
                   required
                   placeholder="Ej: 50.00"
                   className="font-bold text-lg"
                 />
-                {selectedPlayer && currentPayment.tipo_pago === "Único" && (
+                {selectedPlayer && currentPayment.tipo_pago === "Único" && cuotas && (
                   <p className="text-xs text-green-600">
-                    ✓ Total temporada: {cuotas?.total}€
+                    ✓ Total temporada: {cuotas.total}€
                   </p>
                 )}
                 {selectedPlayer && currentPayment.tipo_pago === "Tres meses" && (
                   <p className="text-xs text-green-600">
-                    ✓ Importe oficial: {getImportePorCategoriaYMes(selectedPlayer.deporte, currentPayment.mes)}€ 
+                    ✓ Importe oficial: {getImportePorMes(selectedPlayer.deporte, currentPayment.mes)}€ 
                     (vence el {FECHAS_VENCIMIENTO[currentPayment.mes]})
                   </p>
                 )}
@@ -289,7 +308,7 @@ export default function ParentPaymentForm({ players, onSubmit, onCancel, isSubmi
                 <Input
                   type="date"
                   value={currentPayment.fecha_pago}
-                  onChange={(e) => setCurrentPayment({...currentPayment, fecha_pago: e.target.value})}
+                  onChange={(e) => setCurrentPayment(prev => ({...prev, fecha_pago: e.target.value}))}
                   required
                 />
               </div>
@@ -343,7 +362,7 @@ export default function ParentPaymentForm({ players, onSubmit, onCancel, isSubmi
                   <Button
                     type="button"
                     variant="outline"
-                    onClick={() => setCurrentPayment({...currentPayment, justificante_url: ""})}
+                    onClick={() => setCurrentPayment(prev => ({...prev, justificante_url: ""}))}
                     className="bg-white"
                   >
                     <X className="w-4 h-4" />
@@ -368,7 +387,7 @@ export default function ParentPaymentForm({ players, onSubmit, onCancel, isSubmi
               <Label htmlFor="notas">Notas Adicionales (opcional)</Label>
               <Textarea
                 value={currentPayment.notas}
-                onChange={(e) => setCurrentPayment({...currentPayment, notas: e.target.value})}
+                onChange={(e) => setCurrentPayment(prev => ({...prev, notas: e.target.value}))}
                 placeholder="Información adicional sobre el pago..."
                 rows={3}
               />
