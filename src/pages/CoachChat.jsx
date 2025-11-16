@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Send, Clock, AlertCircle, X } from "lucide-react";
+import { Send, Clock, AlertCircle, X, Search, ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
@@ -18,6 +18,7 @@ export default function CoachChat() {
   const [selectedTab, setSelectedTab] = useState(null);
   const [attachments, setAttachments] = useState([]);
   const [priority, setPriority] = useState("Normal");
+  const [searchTerm, setSearchTerm] = useState("");
   const [isMobile, setIsMobile] = useState(false);
   const messagesEndRef = useRef(null);
   const queryClient = useQueryClient();
@@ -140,12 +141,17 @@ export default function CoachChat() {
           !msg.leido && msg.tipo === "padre_a_grupo"
         ).length;
         
+        const urgentCount = groupMessages.filter(msg =>
+          !msg.leido && msg.tipo === "padre_a_grupo" && msg.prioridad === "Urgente"
+        ).length;
+        
         groups.push({
           id: deporteNormalizado,
           deporte: deporteNormalizado,
           tipo: 'entrenador',
           messages: groupMessages,
-          unreadCount
+          unreadCount,
+          urgentCount
         });
       }
     });
@@ -166,12 +172,17 @@ export default function CoachChat() {
           !msg.leido && msg.tipo === "admin_a_grupo"
         ).length;
         
+        const urgentCount = groupMessages.filter(msg =>
+          !msg.leido && msg.tipo === "admin_a_grupo" && msg.prioridad === "Urgente"
+        ).length;
+        
         groups.push({
           id: deporteNormalizado,
           deporte: deporteNormalizado,
           tipo: 'hijo',
           messages: groupMessages,
-          unreadCount
+          unreadCount,
+          urgentCount
         });
       }
     });
@@ -183,15 +194,15 @@ export default function CoachChat() {
     return getCoachGroups();
   }, [messages, allPlayers, user]);
 
+  const filteredGroups = useMemo(() => {
+    return myGroups.filter(group =>
+      group.deporte.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }, [myGroups, searchTerm]);
+
   const currentGroup = useMemo(() => {
     return myGroups.find(g => g.id === selectedTab);
   }, [myGroups, selectedTab]);
-
-  useEffect(() => {
-    if (myGroups.length === 1 && !selectedTab) {
-      setSelectedTab(myGroups[0].id);
-    }
-  }, [myGroups.length, selectedTab]);
 
   useEffect(() => {
     if (selectedTab && currentGroup) {
@@ -298,7 +309,7 @@ export default function CoachChat() {
 
   return (
     <div className="fixed inset-0 flex flex-col bg-white" style={{ top: isMobile ? '120px' : '0', left: isMobile ? '0' : '288px' }}>
-      {myGroups.length > 1 && isMobile && (
+      {isMobile && (
         <div className="fixed top-[120px] left-0 right-0 z-20 bg-white border-b p-2 shadow-sm">
           <select
             value={selectedTab || ''}
@@ -306,9 +317,9 @@ export default function CoachChat() {
             className="w-full p-3 rounded-lg border-2 border-blue-300 bg-white text-slate-900 font-semibold"
           >
             <option value="">Selecciona un grupo...</option>
-            {myGroups.map(group => (
+            {filteredGroups.map(group => (
               <option key={group.id} value={group.id}>
-                {group.tipo === 'entrenador' ? '🎓' : '👨‍👩‍👧'} {sportEmojis[group.deporte]} {group.deporte}
+                {group.tipo === 'entrenador' ? '🎓' : sportEmojis[group.deporte] || '⚽'} {group.deporte}
                 {group.unreadCount > 0 ? ` (${group.unreadCount})` : ''}
               </option>
             ))}
@@ -316,10 +327,10 @@ export default function CoachChat() {
         </div>
       )}
 
-      {myGroups.length > 1 && !isMobile && (
+      {!isMobile && myGroups.length > 1 && (
         <div className="bg-white border-b overflow-x-auto flex-shrink-0">
           <div className="flex">
-            {myGroups.map(group => (
+            {filteredGroups.map(group => (
               <button
                 key={group.id}
                 onClick={() => setSelectedTab(group.id)}
@@ -329,8 +340,7 @@ export default function CoachChat() {
                     : 'border-transparent text-slate-600 hover:bg-slate-50'
                 }`}
               >
-                <span>{group.tipo === 'entrenador' ? '🎓' : '👨‍👩‍👧'}</span>
-                <span>{sportEmojis[group.deporte]}</span>
+                <span>{group.tipo === 'entrenador' ? '🎓' : sportEmojis[group.deporte]}</span>
                 <span>{group.deporte}</span>
                 {group.unreadCount > 0 && (
                   <Badge className="bg-blue-600 text-white text-xs h-5 min-w-5 rounded-full">
@@ -349,7 +359,7 @@ export default function CoachChat() {
             currentGroup.tipo === 'entrenador'
               ? 'bg-gradient-to-r from-blue-600 to-blue-700'
               : 'bg-gradient-to-r from-orange-600 to-orange-700'
-          }`} style={{ marginTop: myGroups.length > 1 && isMobile ? '56px' : '0' }}>
+          }`} style={{ marginTop: isMobile && myGroups.length > 1 ? '56px' : isMobile ? '56px' : '0' }}>
             <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
               <span className="text-xl">{currentGroup.tipo === 'entrenador' ? '🎓' : sportEmojis[currentGroup.deporte]}</span>
             </div>
