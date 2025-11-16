@@ -293,47 +293,44 @@ Ubicación: Bustarviejo, Madrid
   };
 
   // Filter announcements based on user role and expiration
-  const visibleAnnouncements = announcements.filter(announcement => {
-    // Admins see all
-    if (isAdmin) return true;
-    
-    // Parents only see published
-    if (!announcement.publicado) return false;
-    
-    const now = new Date();
-    const publishedDate = new Date(announcement.fecha_publicacion);
-    
-    // Calculate milliseconds difference
-    const diffMs = now - publishedDate;
-    const diffHours = diffMs / (1000 * 60 * 60);
-    
-    // Filter by fecha_expiracion if exists
-    if (announcement.fecha_expiracion) {
-      const expirationDate = new Date(announcement.fecha_expiracion);
-      if (now > expirationDate) return false;
-    }
-    
-    // Urgente: solo el mismo día (desaparece después de 24h)
-    if (announcement.prioridad === "Urgente") {
-      return diffHours < 24;
-    }
-    
-    // Importante: hasta 48 horas (2 días)
-    if (announcement.prioridad === "Importante") {
-      return diffHours < 48;
-    }
-    
-    // Normal: hasta 72 horas (3 días)
-    if (announcement.prioridad === "Normal") {
-      return diffHours < 72;
-    }
-    
-    return false;
-  }).filter(announcement => {
-    // Check if announcement is relevant to user
-    if (announcement.destinatarios_tipo === "Todos") return true;
-    return userSports.includes(announcement.destinatarios_tipo);
-  });
+  const visibleAnnouncements = isAdmin 
+    ? announcements 
+    : announcements.filter(announcement => {
+        // Parents only see published
+        if (!announcement.publicado) return false;
+        
+        const now = new Date();
+        const publishedDate = new Date(announcement.fecha_publicacion);
+        
+        // Calculate milliseconds difference
+        const diffMs = now - publishedDate;
+        const diffHours = diffMs / (1000 * 60 * 60);
+        
+        // Filter by fecha_expiracion if exists
+        if (announcement.fecha_expiracion) {
+          const expirationDate = new Date(announcement.fecha_expiracion);
+          if (now > expirationDate) return false;
+        }
+        
+        // Urgente: solo el mismo día (desaparece después de 24h)
+        if (announcement.prioridad === "Urgente") {
+          if (diffHours >= 24) return false;
+        }
+        
+        // Importante: hasta 48 horas (2 días)
+        if (announcement.prioridad === "Importante") {
+          if (diffHours >= 48) return false;
+        }
+        
+        // Normal: hasta 72 horas (3 días)
+        if (announcement.prioridad === "Normal") {
+          if (diffHours >= 72) return false;
+        }
+        
+        // Check if announcement is relevant to user
+        if (announcement.destinatarios_tipo === "Todos") return true;
+        return userSports.includes(announcement.destinatarios_tipo);
+      });
 
   // Apply priority filter
   const filteredAnnouncements = priorityFilter === "all" 
