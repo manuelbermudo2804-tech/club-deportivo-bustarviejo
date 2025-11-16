@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -11,7 +10,6 @@ import { Upload, X, Loader2, Info } from "lucide-react";
 import { toast } from "sonner";
 import { base44 } from "@/api/base44Client";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { getCuotasPorCategoria, getImportePorCategoriaYMes, FECHAS_VENCIMIENTO } from "@/components/payments/paymentAmounts";
 
 import PaymentInstructions from "./PaymentInstructions";
 
@@ -24,6 +22,39 @@ const getCurrentSeason = () => {
     return `${currentYear}/${currentYear + 1}`;
   }
   return `${currentYear - 1}/${currentYear}`;
+};
+
+const CUOTAS_BASE = {
+  inscripcion: 120,
+  segunda: 120,
+  tercera: 120,
+  total: 300
+};
+
+const getCuotasPorCategoria = (categoria) => {
+  if (!categoria) return CUOTAS_BASE;
+  
+  if (categoria.includes("Pre-Benjamín")) {
+    return { inscripcion: 100, segunda: 100, tercera: 100, total: 250 };
+  }
+  
+  return CUOTAS_BASE;
+};
+
+const getImportePorCategoriaYMes = (categoria, mes) => {
+  const cuotas = getCuotasPorCategoria(categoria);
+  
+  if (mes === "Junio") return cuotas.inscripcion;
+  if (mes === "Septiembre") return cuotas.segunda;
+  if (mes === "Diciembre") return cuotas.tercera;
+  
+  return cuotas.inscripcion;
+};
+
+const FECHAS_VENCIMIENTO = {
+  "Junio": "30 de junio",
+  "Septiembre": "15 de septiembre",
+  "Diciembre": "15 de diciembre"
 };
 
 export default function ParentPaymentForm({ players, onSubmit, onCancel, isSubmitting }) {
@@ -44,6 +75,19 @@ export default function ParentPaymentForm({ players, onSubmit, onCancel, isSubmi
 
   const [uploadingFile, setUploadingFile] = useState(false);
   const [selectedPlayer, setSelectedPlayer] = useState(null);
+
+  useEffect(() => {
+    if (players && players.length > 0 && !currentPayment.jugador_id) {
+      const urlParams = new URLSearchParams(window.location.search);
+      const jugadorId = urlParams.get('jugador_id');
+      
+      if (jugadorId) {
+        handlePlayerChange(jugadorId);
+      } else {
+        handlePlayerChange(players[0].id);
+      }
+    }
+  }, [players]);
 
   useEffect(() => {
     if (currentPayment.jugador_id) {
@@ -170,7 +214,6 @@ export default function ParentPaymentForm({ players, onSubmit, onCancel, isSubmi
       exit={{ opacity: 0, y: -20 }}
       className="space-y-6"
     >
-      {/* Instrucciones de Pago */}
       {selectedPlayer && currentPayment.cantidad > 0 && (
         <PaymentInstructions
           playerName={selectedPlayer.nombre}
@@ -180,7 +223,6 @@ export default function ParentPaymentForm({ players, onSubmit, onCancel, isSubmi
         />
       )}
 
-      {/* Formulario */}
       <Card className="border-none shadow-xl bg-white/90 backdrop-blur-sm">
         <CardHeader className="border-b border-slate-100">
           <CardTitle className="text-2xl">Registrar Pago</CardTitle>
@@ -188,7 +230,6 @@ export default function ParentPaymentForm({ players, onSubmit, onCancel, isSubmi
         <CardContent className="pt-6">
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Selector de Jugador */}
               <div className="space-y-2">
                 <Label htmlFor="jugador">Jugador *</Label>
                 <Select
@@ -201,7 +242,7 @@ export default function ParentPaymentForm({ players, onSubmit, onCancel, isSubmi
                   </SelectTrigger>
                   <SelectContent>
                     {players
-                      .filter(p => p.activo)
+                      .filter(p => p.activo !== false)
                       .map(player => (
                         <SelectItem key={player.id} value={player.id}>
                           {player.nombre} - {player.deporte}
@@ -211,7 +252,6 @@ export default function ParentPaymentForm({ players, onSubmit, onCancel, isSubmi
                 </Select>
               </div>
 
-              {/* Tipo de Pago */}
               <div className="space-y-2">
                 <Label htmlFor="tipo_pago">Tipo de Pago *</Label>
                 <Select
@@ -229,7 +269,6 @@ export default function ParentPaymentForm({ players, onSubmit, onCancel, isSubmi
                 </Select>
               </div>
 
-              {/* Mes */}
               <div className="space-y-2">
                 <Label htmlFor="mes">
                   {currentPayment.tipo_pago === "Único" 
@@ -253,7 +292,6 @@ export default function ParentPaymentForm({ players, onSubmit, onCancel, isSubmi
                 </Select>
               </div>
 
-              {/* Cantidad */}
               <div className="space-y-2">
                 <Label htmlFor="cantidad">Cantidad Pagada (€) *</Label>
                 <Input
@@ -278,7 +316,6 @@ export default function ParentPaymentForm({ players, onSubmit, onCancel, isSubmi
                 )}
               </div>
 
-              {/* Fecha de Pago */}
               <div className="space-y-2 md:col-span-2">
                 <Label htmlFor="fecha_pago">Fecha del Pago *</Label>
                 <Input
@@ -290,7 +327,6 @@ export default function ParentPaymentForm({ players, onSubmit, onCancel, isSubmi
               </div>
             </div>
 
-            {/* Info de cuotas */}
             {cuotas && (
               <Alert className="bg-green-50 border-green-300">
                 <Info className="h-4 w-4 text-green-600" />
@@ -308,7 +344,6 @@ export default function ParentPaymentForm({ players, onSubmit, onCancel, isSubmi
               </Alert>
             )}
 
-            {/* Justificante */}
             <div className="space-y-3 p-4 bg-orange-50 rounded-lg border-2 border-orange-200">
               <Label htmlFor="justificante" className="text-base font-semibold text-orange-900">
                 📎 Justificante de Transferencia * (Obligatorio)
@@ -361,7 +396,6 @@ export default function ParentPaymentForm({ players, onSubmit, onCancel, isSubmi
               )}
             </div>
 
-            {/* Notas */}
             <div className="space-y-2">
               <Label htmlFor="notas">Notas Adicionales (opcional)</Label>
               <Textarea
@@ -372,7 +406,6 @@ export default function ParentPaymentForm({ players, onSubmit, onCancel, isSubmi
               />
             </div>
 
-            {/* Botones */}
             <div className="flex justify-end gap-3 pt-4 border-t border-slate-100">
               <Button
                 type="button"
