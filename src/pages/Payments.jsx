@@ -2,15 +2,19 @@ import React, { useState, useEffect, useRef } from "react";
 import { useLocation } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Button } from "@/components/ui/button";
-import { Plus, X, FileSpreadsheet } from "lucide-react";
-import { AnimatePresence } from "framer-motion";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Upload, FileText, Loader2, Search, Plus, X, FileSpreadsheet } from "lucide-react";
+import { toast } from "sonner";
+import { AnimatePresence } from "framer-motion";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 
-import PaymentForm from "../components/payments/PaymentForm";
-import PaymentTable from "../components/payments/PaymentTable";
-import PaymentStats from "../components/payments/PaymentStats";
+import ContactCard from "../components/ContactCard";
+import ParentPaymentForm from "../components/payments/ParentPaymentForm";
 import BankReconciliation from "../components/payments/BankReconciliation";
 import ExportButton from "../components/ExportButton";
 
@@ -20,23 +24,29 @@ export default function Payments() {
   const jugadorIdFromUrl = urlParams.get('jugador_id');
   const autoRegister = urlParams.get('register') === 'true';
 
+  const [uploadingPaymentId, setUploadingPaymentId] = useState(null);
+  const [searchTerm, setSearchTerm] = useState("");
   const [showForm, setShowForm] = useState(false);
-  const [editingPayment, setEditingPayment] = useState(null);
-  const [playerFilter, setPlayerFilter] = useState(jugadorIdFromUrl || "all");
   const [isAdmin, setIsAdmin] = useState(false);
   const [isCoach, setIsCoach] = useState(false);
   const [myPlayers, setMyPlayers] = useState([]);
   const [activeTab, setActiveTab] = useState("pagos");
+  const [playerFilter, setPlayerFilter] = useState(jugadorIdFromUrl || "all");
 
   const formRef = useRef(null);
   const queryClient = useQueryClient();
 
+  const { data: user } = useQuery({
+    queryKey: ['currentUser'],
+    queryFn: () => base44.auth.me(),
+  });
+
   useEffect(() => {
     const checkUserRoleAndPlayers = async () => {
       try {
-        const user = await base44.auth.me();
-        const adminCheck = user.role === "admin";
-        const coachCheck = user.es_entrenador === true && !adminCheck;
+        const currentUser = await base44.auth.me();
+        const adminCheck = currentUser.role === "admin";
+        const coachCheck = currentUser.es_entrenador === true && !adminCheck;
 
         setIsAdmin(adminCheck);
         setIsCoach(coachCheck);
@@ -47,8 +57,8 @@ export default function Payments() {
         } else if (coachCheck) {
           const allPlayers = await base44.entities.Player.list();
           const userPlayers = allPlayers.filter(p =>
-            p.email_padre === user.email ||
-            p.email_tutor_2 === user.email
+            p.email_padre === currentUser.email ||
+            p.email_tutor_2 === currentUser.email
           );
           setMyPlayers(userPlayers);
         }
@@ -72,48 +82,103 @@ export default function Payments() {
     }
   }, [autoRegister, isAdmin, isCoach, myPlayers.length]);
 
-  const { data: payments, isLoading } = useQuery({
-    queryKey: ['payments'],
-    queryFn: () => base44.entities.Payment.list('-created_date'),
+  const { data: players } = useQuery({
+    queryKey: ['myPlayers', user?.email],
+    queryFn: async () => {
+      if (isAdmin) {
+        return await base44.entities.Player.list();
+      } else if (isCoach) {
+        const allPlayers = await base44.entities.Player.list();
+        return allPlayers.filter(p =>
+          p.email_padre === user?.email || p.email_tutor_2 === user?.email
+        );
+      }
+      return [];
+    },
+    enabled: !!user?.email && (isAdmin || isCoach),
     initialData: [],
   });
 
-  const { data: players } = useQuery({
-    queryKey: ['players'],
-    queryFn: () => base44.entities.Player.list(),
+  const { data: payments, isLoading } = useQuery({
+    queryKey: ['myPayments'],
+    queryFn: async () => {
+      const allPayments = await base44.entities.Payment.list('-created_date');
+      if (isAdmin) {
+        return allPayments;
+      } else if (isCoach) {
+        const playerIds = players.map(p => p.id);
+        return allPayments.filter(payment => playerIds.includes(payment.jugador_id));
+      }
+      return [];
+    },
+    enabled: players.length > 0,
     initialData: [],
   });
 
   const createPaymentMutation = useMutation({
     mutationFn: (paymentData) => base44.entities.Payment.create(paymentData),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['payments'] });
+      queryClient.invalidateQueries({ queryKey: ['myPayments'] });
       setShowForm(false);
-      setEditingPayment(null);
+      toast.success("Pago registrado correctamente");
     },
+    onError: () => {
+      toast.error("Error al registrar el pago");
+    }
   });
 
   const updatePaymentMutation = useMutation({
     mutationFn: ({ id, paymentData }) => base44.entities.Payment.update(id, paymentData),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['payments'] });
-      setShowForm(false);
-      setEditingPayment(null);
+      queryClient.invalidateQueries({ queryKey: ['myPayments'] });
     },
   });
 
-  const handleSubmit = async (paymentData) => {
-    if (editingPayment) {
-      updatePaymentMutation.mutate({ id: editingPayment.id, paymentData });
-    } else {
-      createPaymentMutation.mutate(paymentData);
-    }
-  };
+  const uploadJustificanteMutation = useMutation({
+    mutationFn: async ({ paymentId, file }) => {
+      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+      const payment = payments.find(p => p.id === paymentId);
+      await base44.entities.Payment.update(paymentId, {
+        ...payment,
+        justificante_url: file_url,
+        estado: "En revisión"
+      });
 
-  const handleEdit = (payment) => {
-    setEditingPayment(payment);
-    setShowForm(true);
-  };
+      try {
+        await base44.integrations.Core.SendEmail({
+          to: "CDBUSTARVIEJO@GMAIL.COM",
+          subject: `Justificante de Pago Recibido - ${payment.jugador_nombre}`,
+          body: `
+            <h2>Nuevo Justificante de Pago Subido</h2>
+            <p><strong>Jugador:</strong> ${payment.jugador_nombre}</p>
+            <p><strong>Tipo de Pago:</strong> ${payment.tipo_pago}</p>
+            <p><strong>Mes:</strong> ${payment.mes}</p>
+            <p><strong>Temporada:</strong> ${payment.temporada}</p>
+            <p><strong>Cantidad:</strong> ${payment.cantidad}€</p>
+            <p><strong>Método de Pago:</strong> ${payment.metodo_pago}</p>
+            ${payment.fecha_pago ? `<p><strong>Fecha de Pago:</strong> ${new Date(payment.fecha_pago).toLocaleDateString('es-ES')}</p>` : ''}
+            <hr>
+            <p><strong>Estado:</strong> En revisión 🟠</p>
+            <p><strong>Justificante:</strong> <a href="${file_url}" target="_blank" rel="noopener noreferrer">Ver justificante</a></p>
+            ${payment.notas ? `<p><strong>Notas:</strong> ${payment.notas}</p>` : ''}
+            <hr>
+            <p style="font-size: 12px; color: #666;">Justificante subido el ${new Date().toLocaleString('es-ES')}</p>
+          `
+        });
+      } catch (error) {
+        console.error("Error sending email notification:", error);
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['myPayments'] });
+      toast.success("Justificante subido correctamente. El pago está en revisión.");
+      setUploadingPaymentId(null);
+    },
+    onError: () => {
+      toast.error("Error al subir el justificante");
+      setUploadingPaymentId(null);
+    }
+  });
 
   const handleStatusChange = (payment, newStatus) => {
     if (!isAdmin) {
@@ -127,19 +192,42 @@ export default function Payments() {
     updatePaymentMutation.mutate({ id: payment.id, paymentData: updatedData });
   };
 
-  const handleReconcile = () => {
-    queryClient.invalidateQueries({ queryKey: ['payments'] });
+  const handleFileUpload = async (paymentId, e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploadingPaymentId(paymentId);
+    uploadJustificanteMutation.mutate({ paymentId, file });
   };
 
-  const canRegisterPayments = isAdmin || (isCoach && myPlayers.length > 0);
+  const handleSubmitPayment = async (paymentData) => {
+    createPaymentMutation.mutate(paymentData);
+  };
 
-  const filteredPayments = (playerFilter && playerFilter !== "all")
-    ? payments.filter(p => p.jugador_id === playerFilter)
-    : payments;
+  const handleReconcile = () => {
+    queryClient.invalidateQueries({ queryKey: ['myPayments'] });
+  };
+
+  const filteredPayments = payments.filter(payment => {
+    const matchesSearch = payment.jugador_nombre?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      payment.mes?.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesPlayer = playerFilter === "all" || payment.jugador_id === playerFilter;
+    return matchesSearch && matchesPlayer;
+  });
 
   const filteredPlayer = (playerFilter && playerFilter !== "all")
     ? players.find(p => p.id === playerFilter)
     : null;
+
+  const statusEmojis = {
+    "Pagado": "🟢",
+    "En revisión": "🟠",
+    "Pendiente": "🔴"
+  };
+
+  const pendingCount = payments.filter(p => p.estado === "Pendiente").length;
+  const inReviewCount = payments.filter(p => p.estado === "En revisión").length;
+  const paidCount = payments.filter(p => p.estado === "Pagado").length;
 
   const prepareExportData = () => {
     return filteredPayments.map(p => ({
@@ -160,9 +248,11 @@ export default function Payments() {
     <div className="p-6 lg:p-8 space-y-6">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-slate-900">Pagos y Cuotas</h1>
+          <h1 className="text-3xl font-bold text-slate-900">
+            {isAdmin ? "Gestión de Pagos" : isCoach ? "Mis Pagos" : "Pagos"}
+          </h1>
           <p className="text-slate-600 mt-1">
-            {isAdmin ? "Gestión de pagos y reconciliación bancaria" : isCoach && myPlayers.length > 0 ? "Pagos de mis hijos" : "Consulta de pagos"}
+            {isAdmin ? "Gestiona las cuotas y justificantes de todos los jugadores" : "Gestiona tus cuotas y justificantes"}
           </p>
           {filteredPlayer && (
             <div className="flex items-center gap-2 mt-3">
@@ -184,33 +274,67 @@ export default function Payments() {
           )}
         </div>
         <div className="flex gap-2">
-          {(isAdmin || (isCoach && myPlayers.length > 0)) && filteredPayments.length > 0 && (
+          {filteredPayments.length > 0 && (
             <ExportButton
               data={prepareExportData()}
               filename="pagos_club"
             />
           )}
-          {canRegisterPayments && (
-            <Button
-              onClick={() => {
-                setEditingPayment(null);
-                setShowForm(!showForm);
-                if (!showForm) {
-                  setTimeout(() => {
-                    formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                  }, 100);
-                }
-              }}
-              className="bg-orange-600 hover:bg-orange-700 shadow-lg"
-            >
-              <Plus className="w-5 h-5 mr-2" />
-              Registrar Pago
-            </Button>
-          )}
+          <Button
+            onClick={() => {
+              setShowForm(!showForm);
+              if (!showForm) {
+                setTimeout(() => {
+                  formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }, 100);
+              }
+            }}
+            className="bg-orange-600 hover:bg-orange-700 shadow-lg"
+          >
+            <Plus className="w-5 h-5 mr-2" />
+            Registrar Pago
+          </Button>
         </div>
       </div>
 
-      <PaymentStats payments={filteredPayments} />
+      {/* Stats */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <Card className="border-none shadow-lg bg-white">
+          <CardContent className="pt-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-slate-600 mb-1">Pendientes</p>
+                <p className="text-3xl font-bold text-red-600">{pendingCount}</p>
+              </div>
+              <span className="text-4xl">🔴</span>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="border-none shadow-lg bg-white">
+          <CardContent className="pt-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-slate-600 mb-1">En Revisión</p>
+                <p className="text-3xl font-bold text-orange-600">{inReviewCount}</p>
+              </div>
+              <span className="text-4xl">🟠</span>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="border-none shadow-lg bg-white">
+          <CardContent className="pt-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-slate-600 mb-1">Pagados</p>
+                <p className="text-3xl font-bold text-green-600">{paidCount}</p>
+              </div>
+              <span className="text-4xl">🟢</span>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="w-full">
@@ -224,35 +348,161 @@ export default function Payments() {
         </TabsList>
 
         <TabsContent value="pagos" className="space-y-6">
+          {/* Payment Form */}
           <div ref={formRef}>
             <AnimatePresence>
-              {showForm && canRegisterPayments && (
-                <PaymentForm
-                  payment={editingPayment}
-                  players={isAdmin ? players : myPlayers}
-                  onSubmit={handleSubmit}
-                  onCancel={() => {
-                    setShowForm(false);
-                    setEditingPayment(null);
-                  }}
-                  isSubmitting={createPaymentMutation.isPending || updatePaymentMutation.isPending}
-                  isAdmin={isAdmin}
+              {showForm && (
+                <ParentPaymentForm
+                  players={players}
+                  onSubmit={handleSubmitPayment}
+                  onCancel={() => setShowForm(false)}
+                  isSubmitting={createPaymentMutation.isPending}
                 />
               )}
             </AnimatePresence>
           </div>
 
-          <PaymentTable
-            payments={filteredPayments}
-            players={players}
-            isLoading={isLoading}
-            onEdit={canRegisterPayments ? handleEdit : null}
-            onStatusChange={isAdmin ? handleStatusChange : null}
-            playerFilter={playerFilter}
-            setPlayerFilter={setPlayerFilter}
-            selectedPlayer={filteredPlayer}
-            isAdmin={isAdmin}
-          />
+          {/* Payments Table */}
+          <Card className="border-none shadow-lg bg-white">
+            <CardHeader className="border-b border-slate-100">
+              <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                <CardTitle className="text-xl">Detalle de Pagos</CardTitle>
+                <div className="relative w-full md:w-64">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400" />
+                  <Input
+                    placeholder="Buscar..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-10"
+                  />
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent className="p-0">
+              {isLoading ? (
+                <div className="p-6 space-y-3">
+                  {[...Array(5)].map((_, i) => (
+                    <Skeleton key={i} className="h-16 w-full" />
+                  ))}
+                </div>
+              ) : filteredPayments.length === 0 ? (
+                <div className="text-center py-12">
+                  <p className="text-slate-500">No hay pagos registrados</p>
+                  <p className="text-sm text-slate-400 mt-2">Haz clic en "Registrar Pago" para añadir uno nuevo</p>
+                </div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Jugador</TableHead>
+                        <TableHead>Período</TableHead>
+                        <TableHead>Temporada</TableHead>
+                        <TableHead>Cantidad</TableHead>
+                        <TableHead>Vencimiento</TableHead>
+                        <TableHead>Justificante</TableHead>
+                        <TableHead>Estado</TableHead>
+                        {isAdmin && <TableHead>Acciones</TableHead>}
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {filteredPayments.map((payment) => (
+                        <TableRow key={payment.id} className="hover:bg-slate-50">
+                          <TableCell className="font-medium">{payment.jugador_nombre}</TableCell>
+                          <TableCell>{payment.mes}</TableCell>
+                          <TableCell className="font-medium text-slate-700">
+                            {payment.temporada}
+                          </TableCell>
+                          <TableCell className="font-bold text-slate-900">
+                            {payment.cantidad}€
+                          </TableCell>
+                          <TableCell className="text-sm text-slate-600">
+                            Día 30 de {payment.mes}
+                          </TableCell>
+                          <TableCell>
+                            {payment.justificante_url ? (
+                              <div className="flex items-center gap-2">
+                                <a
+                                  href={payment.justificante_url}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="inline-flex items-center gap-1 text-orange-600 hover:text-orange-700"
+                                >
+                                  <FileText className="w-4 h-4" />
+                                  <span className="text-xs">Ver</span>
+                                </a>
+                              </div>
+                            ) : payment.estado === "Pagado" ? (
+                              <span className="text-xs text-slate-400">-</span>
+                            ) : (
+                              <>
+                                <input
+                                  type="file"
+                                  accept="image/*,.pdf"
+                                  onChange={(e) => handleFileUpload(payment.id, e)}
+                                  className="hidden"
+                                  id={`upload-${payment.id}`}
+                                  disabled={uploadingPaymentId === payment.id}
+                                />
+                                <label htmlFor={`upload-${payment.id}`}>
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    disabled={uploadingPaymentId === payment.id}
+                                    onClick={() => document.getElementById(`upload-${payment.id}`).click()}
+                                    className="text-xs"
+                                  >
+                                    {uploadingPaymentId === payment.id ? (
+                                      <>
+                                        <Loader2 className="w-3 h-3 mr-1 animate-spin" />
+                                        Subiendo...
+                                      </>
+                                    ) : (
+                                      <>
+                                        <Upload className="w-3 h-3 mr-1" />
+                                        Subir
+                                      </>
+                                    )}
+                                  </Button>
+                                </label>
+                              </>
+                            )}
+                          </TableCell>
+                          <TableCell>
+                            <Badge className={
+                              payment.estado === "Pagado"
+                                ? "bg-green-100 text-green-700"
+                                : payment.estado === "En revisión"
+                                ? "bg-orange-100 text-orange-700"
+                                : "bg-red-100 text-red-700"
+                            }>
+                              <span className="mr-1">{statusEmojis[payment.estado]}</span>
+                              {payment.estado}
+                            </Badge>
+                          </TableCell>
+                          {isAdmin && (
+                            <TableCell>
+                              <div className="flex gap-2">
+                                {payment.estado !== "Pagado" && (
+                                  <Button
+                                    size="sm"
+                                    onClick={() => handleStatusChange(payment, "Pagado")}
+                                    className="bg-green-600 hover:bg-green-700 text-xs"
+                                  >
+                                    Marcar Pagado
+                                  </Button>
+                                )}
+                              </div>
+                            </TableCell>
+                          )}
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              )}
+            </CardContent>
+          </Card>
         </TabsContent>
 
         {isAdmin && (
@@ -265,6 +515,24 @@ export default function Payments() {
           </TabsContent>
         )}
       </Tabs>
+
+      <ContactCard />
+
+      {/* Instrucciones */}
+      <Card className="border-none shadow-lg bg-orange-50 border-orange-200">
+        <CardHeader>
+          <CardTitle className="text-lg text-orange-900">ℹ️ Instrucciones</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3 text-sm text-slate-700">
+          <p>• <strong>Registrar un pago:</strong> Haz clic en el botón "Registrar Pago", selecciona el jugador, tipo de pago y sube el justificante</p>
+          <p>• <strong>Pagos Pendientes (🔴):</strong> Sube el justificante de pago (transferencia) haciendo clic en "Subir"</p>
+          <p>• <strong>En Revisión (🟠):</strong> {isAdmin ? "Verifica el justificante y marca como pagado" : "El administrador está verificando tu pago"}</p>
+          <p>• <strong>Pagado (🟢):</strong> El pago ha sido confirmado</p>
+          <p className="pt-2 border-t border-orange-200">
+            <strong>Importante:</strong> Sube el justificante junto con el registro del pago para que pueda ser verificado más rápidamente.
+          </p>
+        </CardContent>
+      </Card>
     </div>
   );
 }
