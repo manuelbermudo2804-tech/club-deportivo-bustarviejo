@@ -43,6 +43,7 @@ import MedicalRecords from './pages/MedicalRecords';
 import DirectMessages from './pages/DirectMessages';
 import MatchApp from './pages/MatchApp';
 import MemberManagement from './pages/MemberManagement';
+import ParentDirectMessages from './pages/ParentDirectMessages';
 import Layout from './Layout.jsx';
 
 
@@ -92,6 +93,7 @@ export const PAGES = {
     "DirectMessages": DirectMessages,
     "MatchApp": MatchApp,
     "MemberManagement": MemberManagement,
+    "ParentDirectMessages": ParentDirectMessages,
 }
 
 export const pagesConfig = {

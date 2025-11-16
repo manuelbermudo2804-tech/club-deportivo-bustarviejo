@@ -15,6 +15,7 @@ import ThemeToggle from "./components/ThemeToggle";
 import NotificationCenter from "./components/NotificationCenter";
 import LanguageSelector from "./components/LanguageSelector";
 import ChatNotificationListener from "./components/push/ChatNotificationListener";
+import DirectMessageNotificationListener from "./components/chat/DirectMessageNotificationListener";
 
 const CLUB_LOGO_URL = "https://www.cdbustarviejo.com/uploads/2/4/0/4/2404974/logo-cd-bustarviejo-cuadrado-xpeq_orig.png";
 
@@ -688,7 +689,7 @@ export default function Layout({ children, currentPageName }) {
         
         setPendingCallupsCount(pending);
       } catch (error) {
-        console.error("Error checking pending callups:", error);
+              console.error("Error checking pending callups:", error);
       }
     };
 
@@ -725,6 +726,7 @@ export default function Layout({ children, currentPageName }) {
     { title: "Recordatorios", url: createPageUrl("Reminders"), icon: Bell },
     { title: "Pedidos Ropa", url: createPageUrl("ClothingOrders"), icon: ShoppingBag },
     { title: "Chat Grupos", url: createPageUrl("AdminChat"), icon: MessageCircle, badge: unreadMessagesCount > 0 ? unreadMessagesCount : null, urgentBadge: urgentMessagesCount > 0 },
+    { title: "💬 Mensajes Directos", url: createPageUrl("DirectMessages"), icon: Mail },
     { title: "📋 Encuestas", url: createPageUrl("Surveys"), icon: FileText },
     { title: "Histórico", url: createPageUrl("PaymentHistory"), icon: Archive },
     { title: "Temporadas", url: createPageUrl("SeasonManagement"), icon: Settings },
@@ -746,6 +748,7 @@ export default function Layout({ children, currentPageName }) {
     { title: "Pagos", url: createPageUrl("Payments"), icon: CreditCard },
     { title: "Pedidos Ropa", url: createPageUrl("ClothingOrders"), icon: ShoppingBag },
     { title: "🎓 Chat Equipos", url: createPageUrl("CoachChat"), icon: MessageCircle, badge: unreadMessagesCount > 0 ? unreadMessagesCount : null, urgentBadge: urgentMessagesCount > 0 },
+    { title: "💬 Mensajes Directos", url: createPageUrl("DirectMessages"), icon: Mail },
   ];
 
   const parentNavigationItems = [
@@ -762,6 +765,7 @@ export default function Layout({ children, currentPageName }) {
     { title: "Pedidos Ropa", url: createPageUrl("ClothingOrders"), icon: ShoppingBag },
     { title: "📋 Encuestas", url: createPageUrl("Surveys"), icon: FileText },
     { title: "Chat", url: createPageUrl("ParentChat"), icon: MessageCircle, badge: unreadMessagesCount > 0 ? unreadMessagesCount : null, urgentBadge: unreadMessagesCount > 0 },
+    { title: "💬 Mensajes Directos", url: createPageUrl("ParentDirectMessages"), icon: Mail },
   ];
 
   const playerNavigationItems = [
@@ -795,6 +799,7 @@ export default function Layout({ children, currentPageName }) {
       <SessionManager />
       <NotificationBadge />
       {user && <ChatNotificationListener user={user} />}
+      {user && !isPlayer && <DirectMessageNotificationListener user={user} />}
       
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
         
