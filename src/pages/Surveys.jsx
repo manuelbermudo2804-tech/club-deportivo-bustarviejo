@@ -25,8 +25,8 @@ export default function Surveys() {
       setUser(currentUser);
       setIsAdmin(currentUser.role === "admin");
 
-      // Si es padre/familia, obtener deportes de sus jugadores
-      if (currentUser.role !== "admin" && currentUser.role !== "jugador" && !currentUser.es_entrenador) {
+      // Si es padre/familia O entrenador con hijos, obtener deportes de sus jugadores
+      if (currentUser.role !== "admin" && currentUser.role !== "jugador") {
         const allPlayers = await base44.entities.Player.list();
         const myPlayers = allPlayers.filter(p => 
           p.email_padre === currentUser.email || p.email_tutor_2 === currentUser.email
@@ -80,7 +80,7 @@ export default function Surveys() {
         // Si es para "Todos", mostrar
         if (s.destinatarios === "Todos") return true;
         
-        // Si es para un deporte específico, ver si el padre tiene jugadores en ese deporte
+        // Si es para un deporte específico, ver si el padre/entrenador tiene jugadores en ese deporte
         return myPlayersSports.includes(s.destinatarios);
       });
 
