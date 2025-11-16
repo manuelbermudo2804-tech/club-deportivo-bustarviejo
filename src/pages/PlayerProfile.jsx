@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useSearchParams, Link } from "react-router-dom";
+import { useSearchParams, Link, useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -14,12 +14,14 @@ import {
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { toast } from "sonner";
+import { createPageUrl } from "@/utils";
 
 import MemberNoteForm from "../components/members/MemberNoteForm";
 import MemberNoteCard from "../components/members/MemberNoteCard";
 
 export default function PlayerProfile() {
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
   const playerId = searchParams.get("id");
   const [user, setUser] = useState(null);
   const [isAdmin, setIsAdmin] = useState(false);
@@ -33,9 +35,18 @@ export default function PlayerProfile() {
       setUser(currentUser);
       setIsAdmin(currentUser.role === "admin");
       setIsCoach(currentUser.es_entrenador === true);
+
+      // Si es jugador y no hay ID, buscar su propio perfil
+      if (currentUser.role === "jugador" && !playerId) {
+        const allPlayers = await base44.entities.Player.list();
+        const myPlayer = allPlayers.find(p => p.email_jugador === currentUser.email);
+        if (myPlayer) {
+          navigate(createPageUrl("PlayerProfile") + `?id=${myPlayer.id}`, { replace: true });
+        }
+      }
     };
     fetchUser();
-  }, []);
+  }, [playerId, navigate]);
 
   const { data: player, isLoading: loadingPlayer } = useQuery({
     queryKey: ['player', playerId],
@@ -119,7 +130,7 @@ export default function PlayerProfile() {
     },
   });
 
-  if (loadingPlayer) {
+  if (loadingPlayer || !user) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
@@ -192,10 +203,12 @@ export default function PlayerProfile() {
     });
   };
 
+  const backUrl = isAdmin || isCoach ? createPageUrl("Players") : createPageUrl("PlayerDashboard");
+
   return (
     <div className="p-6 space-y-6">
       <div className="flex items-center gap-4">
-        <Link to="/Players">
+        <Link to={backUrl}>
           <Button variant="outline" size="icon">
             <ArrowLeft className="w-4 h-4" />
           </Button>
