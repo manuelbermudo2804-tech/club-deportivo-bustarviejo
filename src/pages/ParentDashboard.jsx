@@ -60,6 +60,18 @@ export default function ParentDashboard() {
     initialData: [],
   });
 
+  const { data: announcements } = useQuery({
+    queryKey: ['announcements'],
+    queryFn: () => base44.entities.Announcement.list('-created_date'),
+    initialData: [],
+  });
+
+  const { data: clothingOrders } = useQuery({
+    queryKey: ['clothingOrders'],
+    queryFn: () => base44.entities.ClothingOrder.list('-created_date'),
+    initialData: [],
+  });
+
   const myPlayers = user ? players.filter(p => 
     p.email_padre === user.email || p.email_tutor_2 === user.email
   ) : [];
@@ -89,6 +101,14 @@ export default function ParentDashboard() {
     return false;
   }).length;
 
+  const urgentUnreadMessages = messages.filter(m => {
+    if (!m.leido && m.tipo === "admin_a_grupo" && m.prioridad === "Urgente") {
+      const myGroupSports = [...new Set(myPlayers.map(p => p.deporte))];
+      return myGroupSports.includes(m.grupo_id || m.deporte);
+    }
+    return false;
+  }).length;
+
   const today = new Date().toISOString().split('T')[0];
   const upcomingCallups = callups.filter(c => 
     c.publicada && c.fecha_partido >= today && !c.cerrada
@@ -103,6 +123,29 @@ export default function ParentDashboard() {
       }
     });
   });
+
+  const urgentAnnouncements = announcements.filter(a => {
+    if (!a.publicado || a.prioridad !== "Urgente") return false;
+    const now = new Date();
+    const publishedDate = new Date(a.fecha_publicacion);
+    const diffHours = (now - publishedDate) / (1000 * 60 * 60);
+    if (diffHours >= 24) return false;
+    if (a.destinatarios_tipo === "Todos") return true;
+    return myPlayersSports.includes(a.destinatarios_tipo);
+  });
+
+  const importantAnnouncements = announcements.filter(a => {
+    if (!a.publicado || a.prioridad !== "Importante") return false;
+    const now = new Date();
+    const publishedDate = new Date(a.fecha_publicacion);
+    const diffHours = (now - publishedDate) / (1000 * 60 * 60);
+    if (diffHours >= 48) return false;
+    if (a.destinatarios_tipo === "Todos") return true;
+    return myPlayersSports.includes(a.destinatarios_tipo);
+  });
+
+  const myClothingOrders = clothingOrders.filter(o => o.email_padre === user?.email);
+  const pendingClothingOrders = myClothingOrders.filter(o => o.estado === "Pendiente" || o.estado === "En revisión");
 
   const calculatePendingPayments = () => {
     const activeSeason = seasonConfigs.find(s => s.activa);
@@ -230,6 +273,7 @@ export default function ParentDashboard() {
           <PushNotificationManager />
         </div>
 
+        {/* ENCUESTAS */}
         {activeSurveys.length > 0 && (
           <Link to={createPageUrl("Surveys")}>
             <div className="bg-gradient-to-r from-purple-600 to-purple-700 rounded-2xl p-4 shadow-xl transition-all hover:scale-105 active:scale-95 border-2 border-purple-500 animate-pulse">
@@ -246,6 +290,122 @@ export default function ParentDashboard() {
                   </p>
                   <p className="text-white text-xs mt-2 font-semibold">
                     👉 Pulsa aquí para participar
+                  </p>
+                </div>
+              </div>
+            </div>
+          </Link>
+        )}
+
+        {/* CONVOCATORIAS PENDIENTES */}
+        {pendingCallups > 0 && (
+          <Link to={createPageUrl("ParentCallups")}>
+            <div className="bg-gradient-to-r from-yellow-600 to-yellow-700 rounded-2xl p-4 shadow-xl transition-all hover:scale-105 active:scale-95 border-2 border-yellow-500 animate-pulse">
+              <div className="flex items-start gap-3">
+                <Bell className="w-6 h-6 text-white flex-shrink-0 mt-0.5" />
+                <div className="flex-1">
+                  <p className="text-white font-bold text-base lg:text-lg">
+                    🏆 ¡Convocatorias Pendientes!
+                  </p>
+                  <p className="text-yellow-100 text-xs lg:text-sm mt-1">
+                    {pendingCallups === 1 
+                      ? "Tienes 1 convocatoria esperando confirmación" 
+                      : `Tienes ${pendingCallups} convocatorias esperando confirmación`}
+                  </p>
+                  <p className="text-white text-xs mt-2 font-semibold">
+                    👉 Pulsa aquí para confirmar asistencia
+                  </p>
+                </div>
+              </div>
+            </div>
+          </Link>
+        )}
+
+        {/* MENSAJES URGENTES */}
+        {urgentUnreadMessages > 0 && (
+          <Link to={createPageUrl("ParentChat")}>
+            <div className="bg-gradient-to-r from-red-600 to-red-700 rounded-2xl p-4 shadow-xl transition-all hover:scale-105 active:scale-95 border-2 border-red-500 animate-pulse">
+              <div className="flex items-start gap-3">
+                <MessageCircle className="w-6 h-6 text-white flex-shrink-0 mt-0.5" />
+                <div className="flex-1">
+                  <p className="text-white font-bold text-base lg:text-lg">
+                    🚨 ¡Mensajes Urgentes!
+                  </p>
+                  <p className="text-red-100 text-xs lg:text-sm mt-1">
+                    {urgentUnreadMessages === 1 
+                      ? "Tienes 1 mensaje urgente sin leer" 
+                      : `Tienes ${urgentUnreadMessages} mensajes urgentes sin leer`}
+                  </p>
+                  <p className="text-white text-xs mt-2 font-semibold">
+                    👉 Pulsa aquí para leer
+                  </p>
+                </div>
+              </div>
+            </div>
+          </Link>
+        )}
+
+        {/* ANUNCIOS URGENTES */}
+        {urgentAnnouncements.length > 0 && (
+          <Link to={createPageUrl("Announcements")}>
+            <div className="bg-gradient-to-r from-red-600 to-red-700 rounded-2xl p-4 shadow-xl transition-all hover:scale-105 active:scale-95 border-2 border-red-500 animate-pulse">
+              <div className="flex items-start gap-3">
+                <Megaphone className="w-6 h-6 text-white flex-shrink-0 mt-0.5" />
+                <div className="flex-1">
+                  <p className="text-white font-bold text-base lg:text-lg">
+                    🚨 ¡Anuncio Urgente!
+                  </p>
+                  <p className="text-red-100 text-xs lg:text-sm mt-1">
+                    {urgentAnnouncements[0].titulo}
+                  </p>
+                  <p className="text-white text-xs mt-2 font-semibold">
+                    👉 Pulsa aquí para leer • Válido 24h
+                  </p>
+                </div>
+              </div>
+            </div>
+          </Link>
+        )}
+
+        {/* ANUNCIOS IMPORTANTES */}
+        {importantAnnouncements.length > 0 && urgentAnnouncements.length === 0 && (
+          <Link to={createPageUrl("Announcements")}>
+            <div className="bg-gradient-to-r from-orange-600 to-orange-700 rounded-2xl p-4 shadow-xl transition-all hover:scale-105 active:scale-95 border-2 border-orange-500 animate-pulse">
+              <div className="flex items-start gap-3">
+                <Megaphone className="w-6 h-6 text-white flex-shrink-0 mt-0.5" />
+                <div className="flex-1">
+                  <p className="text-white font-bold text-base lg:text-lg">
+                    ⚠️ Anuncio Importante
+                  </p>
+                  <p className="text-orange-100 text-xs lg:text-sm mt-1">
+                    {importantAnnouncements[0].titulo}
+                  </p>
+                  <p className="text-white text-xs mt-2 font-semibold">
+                    👉 Pulsa aquí para leer • Válido 48h
+                  </p>
+                </div>
+              </div>
+            </div>
+          </Link>
+        )}
+
+        {/* PEDIDOS PENDIENTES */}
+        {pendingClothingOrders.length > 0 && (
+          <Link to={createPageUrl("ClothingOrders")}>
+            <div className="bg-gradient-to-r from-indigo-600 to-indigo-700 rounded-2xl p-4 shadow-xl transition-all hover:scale-105 active:scale-95 border-2 border-indigo-500 animate-pulse">
+              <div className="flex items-start gap-3">
+                <ShoppingBag className="w-6 h-6 text-white flex-shrink-0 mt-0.5" />
+                <div className="flex-1">
+                  <p className="text-white font-bold text-base lg:text-lg">
+                    🛍️ Pedidos de Equipación Pendientes
+                  </p>
+                  <p className="text-indigo-100 text-xs lg:text-sm mt-1">
+                    {pendingClothingOrders.length === 1 
+                      ? "Tienes 1 pedido pendiente de pago/confirmación" 
+                      : `Tienes ${pendingClothingOrders.length} pedidos pendientes`}
+                  </p>
+                  <p className="text-white text-xs mt-2 font-semibold">
+                    👉 Pulsa aquí para ver estado
                   </p>
                 </div>
               </div>
