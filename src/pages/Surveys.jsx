@@ -14,13 +14,26 @@ export default function Surveys() {
   const [editingSurvey, setEditingSurvey] = useState(null);
   const [viewingResults, setViewingResults] = useState(null);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [user, setUser] = useState(null);
+  const [myPlayersSports, setMyPlayersSports] = useState([]);
 
   const queryClient = useQueryClient();
 
   useEffect(() => {
     const checkAdmin = async () => {
-      const user = await base44.auth.me();
-      setIsAdmin(user.role === "admin");
+      const currentUser = await base44.auth.me();
+      setUser(currentUser);
+      setIsAdmin(currentUser.role === "admin");
+
+      // Si es padre/familia, obtener deportes de sus jugadores
+      if (currentUser.role !== "admin" && currentUser.role !== "jugador" && !currentUser.es_entrenador) {
+        const allPlayers = await base44.entities.Player.list();
+        const myPlayers = allPlayers.filter(p => 
+          p.email_padre === currentUser.email || p.email_tutor_2 === currentUser.email
+        );
+        const sports = [...new Set(myPlayers.map(p => p.deporte))];
+        setMyPlayersSports(sports);
+      }
     };
     checkAdmin();
   }, []);
@@ -57,22 +70,36 @@ export default function Surveys() {
     }
   };
 
-  const activeSurveys = surveys.filter(s => s.activa && new Date(s.fecha_fin) >= new Date());
-  const closedSurveys = surveys.filter(s => !s.activa || new Date(s.fecha_fin) < new Date());
+  // Filtrar encuestas según el rol
+  const filteredSurveys = isAdmin 
+    ? surveys 
+    : surveys.filter(s => {
+        // Encuesta debe estar activa y no vencida
+        if (!s.activa || new Date(s.fecha_fin) < new Date()) return false;
+        
+        // Si es para "Todos", mostrar
+        if (s.destinatarios === "Todos") return true;
+        
+        // Si es para un deporte específico, ver si el padre tiene jugadores en ese deporte
+        return myPlayersSports.includes(s.destinatarios);
+      });
+
+  const activeSurveys = filteredSurveys.filter(s => s.activa && new Date(s.fecha_fin) >= new Date());
+  const closedSurveys = filteredSurveys.filter(s => !s.activa || new Date(s.fecha_fin) < new Date());
 
   if (viewingResults) {
     return <SurveyResults survey={viewingResults} onBack={() => setViewingResults(null)} />;
   }
 
   return (
-    <div className="p-6 lg:p-8 space-y-6">
-      <div className="flex justify-between items-center">
+    <div className="p-4 lg:p-8 space-y-4 lg:space-y-6">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 lg:gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-slate-900 flex items-center gap-2">
-            <MessageCircle className="w-8 h-8 text-orange-600" />
+          <h1 className="text-2xl lg:text-3xl font-bold text-slate-900 flex items-center gap-2">
+            <MessageCircle className="w-6 h-6 lg:w-8 lg:h-8 text-orange-600" />
             Encuestas y Feedback
           </h1>
-          <p className="text-slate-600 mt-1">
+          <p className="text-slate-600 mt-1 text-sm lg:text-base">
             {isAdmin ? "Gestiona encuestas y consulta resultados" : "Participa en las encuestas del club"}
           </p>
         </div>
@@ -82,7 +109,7 @@ export default function Surveys() {
               setEditingSurvey(null);
               setShowForm(!showForm);
             }}
-            className="bg-orange-600 hover:bg-orange-700"
+            className="bg-orange-600 hover:bg-orange-700 w-full md:w-auto"
           >
             <Plus className="w-4 h-4 mr-2" />
             Nueva Encuesta
@@ -104,11 +131,11 @@ export default function Surveys() {
         )}
       </AnimatePresence>
 
-      <div className="space-y-6">
+      <div className="space-y-4 lg:space-y-6">
         {activeSurveys.length > 0 && (
           <div>
-            <h2 className="text-xl font-bold text-slate-900 mb-4">Encuestas Activas</h2>
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <h2 className="text-lg lg:text-xl font-bold text-slate-900 mb-3 lg:mb-4">Encuestas Activas</h2>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 lg:gap-4">
               {activeSurveys.map(survey => (
                 <SurveyCard
                   key={survey.id}
@@ -124,8 +151,8 @@ export default function Surveys() {
 
         {closedSurveys.length > 0 && isAdmin && (
           <div>
-            <h2 className="text-xl font-bold text-slate-500 mb-4">Encuestas Cerradas</h2>
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 opacity-60">
+            <h2 className="text-lg lg:text-xl font-bold text-slate-500 mb-3 lg:mb-4">Encuestas Cerradas</h2>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 lg:gap-4 opacity-60">
               {closedSurveys.map(survey => (
                 <SurveyCard
                   key={survey.id}
@@ -141,8 +168,8 @@ export default function Surveys() {
 
         {activeSurveys.length === 0 && !isAdmin && (
           <div className="text-center py-12 bg-white rounded-xl shadow-md">
-            <MessageCircle className="w-16 h-16 text-slate-300 mx-auto mb-3" />
-            <p className="text-slate-500">No hay encuestas activas en este momento</p>
+            <MessageCircle className="w-12 h-12 lg:w-16 lg:h-16 text-slate-300 mx-auto mb-3" />
+            <p className="text-slate-500 text-sm lg:text-base">No hay encuestas activas en este momento</p>
           </div>
         )}
       </div>
