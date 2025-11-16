@@ -3,7 +3,7 @@ import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { Users, CreditCard, ShoppingBag, Calendar, Megaphone, Image, Clock, MessageCircle, Bell, Settings, ClipboardCheck, CheckCircle2, Star, TrendingUp, Smartphone, Trophy } from "lucide-react";
+import { Users, CreditCard, ShoppingBag, Calendar, Megaphone, Image, Clock, MessageCircle, Bell, Settings, ClipboardCheck, CheckCircle2, Star, TrendingUp, Smartphone, Trophy, FileText } from "lucide-react";
 
 import Onboarding from "../components/Onboarding";
 import AutomaticReminders from "../components/AutomaticReminders";
@@ -17,6 +17,7 @@ export default function Home() {
   const [isCoach, setIsCoach] = useState(false);
   const [hasPlayers, setHasPlayers] = useState(false);
   const [userRole, setUserRole] = useState("parent");
+  const [myPlayersSports, setMyPlayersSports] = useState([]);
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -39,6 +40,11 @@ export default function Home() {
             p.email_tutor_2 === currentUser.email
           );
           setHasPlayers(myPlayers.length > 0);
+          
+          if (coachCheck && myPlayers.length > 0) {
+            const sports = [...new Set(myPlayers.map(p => p.deporte))];
+            setMyPlayersSports(sports);
+          }
         }
       } catch (error) {
         console.error("Error fetching user:", error);
@@ -70,6 +76,20 @@ export default function Home() {
     queryFn: () => base44.entities.Convocatoria.list(),
     initialData: [],
   });
+
+  const { data: surveys } = useQuery({
+    queryKey: ['surveys'],
+    queryFn: () => base44.entities.Survey.list('-created_date'),
+    initialData: [],
+  });
+
+  const activeSurveys = isCoach && hasPlayers 
+    ? surveys.filter(s => {
+        if (!s.activa || new Date(s.fecha_fin) < new Date()) return false;
+        if (s.destinatarios === "Todos") return true;
+        return myPlayersSports.includes(s.destinatarios);
+      })
+    : [];
 
   const activePlayers = players.filter(p => p.activo).length;
   const pendingPayments = payments.filter(p => p.estado === "Pendiente").length;
@@ -246,14 +266,22 @@ export default function Home() {
     });
 
     if (isAdmin) {
-      items.push({
-        title: "Chat Grupos",
-        icon: MessageCircle,
-        url: createPageUrl("AdminChat"),
-        gradient: "from-indigo-600 to-indigo-700",
-        badge: unreadMessages,
-        badgeLabel: "nuevos"
-      });
+      items.push(
+        {
+          title: "Chat Grupos",
+          icon: MessageCircle,
+          url: createPageUrl("AdminChat"),
+          gradient: "from-indigo-600 to-indigo-700",
+          badge: unreadMessages,
+          badgeLabel: "nuevos"
+        },
+        {
+          title: "📋 Encuestas",
+          icon: FileText,
+          url: createPageUrl("Surveys"),
+          gradient: "from-purple-600 to-purple-700",
+        }
+      );
     } else if (isCoach) {
       items.push({
         title: "Chat Equipos",
@@ -292,6 +320,29 @@ export default function Home() {
       
       <div className="px-4 lg:px-8 py-6 space-y-4 lg:space-y-6">
         <SocialLinks />
+
+        {isCoach && hasPlayers && activeSurveys.length > 0 && (
+          <Link to={createPageUrl("Surveys")}>
+            <div className="bg-gradient-to-r from-purple-600 to-purple-700 rounded-2xl p-3 lg:p-4 shadow-xl transition-all hover:scale-105 active:scale-95 border-2 border-purple-500 animate-pulse">
+              <div className="flex items-start gap-2 lg:gap-3">
+                <MessageCircle className="w-5 h-5 lg:w-6 lg:h-6 text-white flex-shrink-0 mt-0.5" />
+                <div className="flex-1">
+                  <p className="text-white font-bold text-sm lg:text-lg">
+                    📋 ¡Nueva Encuesta Disponible!
+                  </p>
+                  <p className="text-purple-100 text-xs lg:text-sm mt-1">
+                    {activeSurveys.length === 1 
+                      ? "Hay 1 encuesta esperando tu opinión" 
+                      : `Hay ${activeSurveys.length} encuestas esperando tu opinión`}
+                  </p>
+                  <p className="text-white text-xs mt-2 font-semibold">
+                    👉 Pulsa aquí para participar
+                  </p>
+                </div>
+              </div>
+            </div>
+          </Link>
+        )}
 
         <button
           onClick={handleMatchAppClick}

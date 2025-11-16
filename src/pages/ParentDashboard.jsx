@@ -10,6 +10,7 @@ import PushNotificationManager from "../components/push/PushNotificationManager"
 
 export default function ParentDashboard() {
   const [user, setUser] = useState(null);
+  const [myPlayersSports, setMyPlayersSports] = useState([]);
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -53,9 +54,28 @@ export default function ParentDashboard() {
     initialData: [],
   });
 
+  const { data: surveys } = useQuery({
+    queryKey: ['surveys'],
+    queryFn: () => base44.entities.Survey.list('-created_date'),
+    initialData: [],
+  });
+
   const myPlayers = user ? players.filter(p => 
     p.email_padre === user.email || p.email_tutor_2 === user.email
   ) : [];
+
+  useEffect(() => {
+    if (myPlayers.length > 0) {
+      const sports = [...new Set(myPlayers.map(p => p.deporte))];
+      setMyPlayersSports(sports);
+    }
+  }, [myPlayers.length]);
+
+  const activeSurveys = surveys.filter(s => {
+    if (!s.activa || new Date(s.fecha_fin) < new Date()) return false;
+    if (s.destinatarios === "Todos") return true;
+    return myPlayersSports.includes(s.destinatarios);
+  });
 
   const myPayments = payments.filter(p => 
     myPlayers.some(player => player.id === p.jugador_id)
@@ -203,12 +223,35 @@ export default function ParentDashboard() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-black pt-4 lg:pt-0">
-      <div className="px-4 lg:px-8 py-6 space-y-6">
+      <div className="px-4 lg:px-8 py-6 space-y-4 lg:space-y-6">
         <SocialLinks />
 
         <div className="lg:hidden">
           <PushNotificationManager />
         </div>
+
+        {activeSurveys.length > 0 && (
+          <Link to={createPageUrl("Surveys")}>
+            <div className="bg-gradient-to-r from-purple-600 to-purple-700 rounded-2xl p-4 shadow-xl transition-all hover:scale-105 active:scale-95 border-2 border-purple-500 animate-pulse">
+              <div className="flex items-start gap-3">
+                <MessageCircle className="w-6 h-6 text-white flex-shrink-0 mt-0.5" />
+                <div className="flex-1">
+                  <p className="text-white font-bold text-base lg:text-lg">
+                    📋 ¡Nueva Encuesta Disponible!
+                  </p>
+                  <p className="text-purple-100 text-xs lg:text-sm mt-1">
+                    {activeSurveys.length === 1 
+                      ? "Hay 1 encuesta esperando tu opinión" 
+                      : `Hay ${activeSurveys.length} encuestas esperando tu opinión`}
+                  </p>
+                  <p className="text-white text-xs mt-2 font-semibold">
+                    👉 Pulsa aquí para participar
+                  </p>
+                </div>
+              </div>
+            </div>
+          </Link>
+        )}
 
         {hasUnregisteredPayments && (
           <div className="bg-orange-500/20 border-2 border-orange-500 rounded-2xl p-4 flex items-start gap-3">
