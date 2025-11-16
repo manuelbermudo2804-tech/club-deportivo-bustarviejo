@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -6,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Plus, Info } from "lucide-react";
 import { AnimatePresence } from "framer-motion";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { toast } from "sonner"; // Import toast for notifications
+import { toast } from "sonner";
 
 import PlayerCard from "../components/players/PlayerCard";
 import PlayerForm from "../components/players/PlayerForm";
@@ -57,7 +56,6 @@ export default function ParentPlayers() {
       };
       const newPlayer = await base44.entities.Player.create(dataWithParentEmail);
       
-      // Enviar email de notificación al club
       try {
         await base44.integrations.Core.SendEmail({
           to: "CDBUSTARVIEJO@GMAIL.COM",
@@ -94,8 +92,8 @@ export default function ParentPlayers() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['myPlayers'] });
-      queryClient.invalidateQueries({ queryKey: ['players'] }); // Ensure general players list is also invalidated
-      queryClient.invalidateQueries({ queryKey: ['allPlayersForRenewal'] }); // Invalidate for renewal purposes
+      queryClient.invalidateQueries({ queryKey: ['players'] });
+      queryClient.invalidateQueries({ queryKey: ['allPlayersForRenewal'] });
       setShowForm(false);
       setEditingPlayer(null);
       toast.success("Jugador registrado correctamente");
@@ -140,7 +138,6 @@ export default function ParentPlayers() {
     setShowForm(true);
   };
 
-  // Filtrar jugadores por deporte usando las nuevas categorías
   const futbolPlayers = players.filter(p => 
     p.deporte?.includes("Fútbol") && !p.deporte?.includes("Femenino")
   );
@@ -148,68 +145,67 @@ export default function ParentPlayers() {
   const baloncestoPlayers = players.filter(p => p.deporte?.includes("Baloncesto"));
 
   return (
-    <div className="p-6 lg:p-8 space-y-6">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+    <div className="p-4 lg:p-8 space-y-4 lg:space-y-6">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 lg:gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-slate-900">Mis Jugadores</h1>
-          <p className="text-slate-600 mt-1">Gestiona la información de tus jugadores</p>
+          <h1 className="text-2xl lg:text-3xl font-bold text-slate-900">Mis Jugadores</h1>
+          <p className="text-slate-600 mt-1 text-sm lg:text-base">Gestiona la información de tus jugadores</p>
         </div>
         <Button
           onClick={() => {
             setEditingPlayer(null);
             setShowForm(!showForm);
           }}
-          className="bg-orange-600 hover:bg-orange-700 shadow-lg"
+          className="bg-orange-600 hover:bg-orange-700 shadow-lg w-full md:w-auto"
         >
-          <Plus className="w-5 h-5 mr-2" />
-          Registrar Jugador
+          <Plus className="w-4 h-4 lg:w-5 lg:h-5 mr-2" />
+          <span className="text-sm lg:text-base">Registrar Jugador</span>
         </Button>
       </div>
 
-      {/* Advertencia de protección de datos */}
       <Alert className="bg-blue-50 border-blue-200">
         <Info className="h-4 w-4 text-blue-600" />
-        <AlertDescription className="text-blue-800 ml-6">
+        <AlertDescription className="text-blue-800 ml-6 text-xs lg:text-sm">
           <strong>Protección de datos:</strong> Puedes editar la información de contacto y detalles de tus jugadores. 
-          Los campos críticos como <strong>deporte y categoría</strong> solo pueden ser modificados por el administrador durante el inicio de temporada.
+          Los campos críticos como <strong>deporte y categoría</strong> solo pueden ser modificados por el administrador.
           <br />
-          <span className="text-xs text-blue-600 mt-1 block">
+          <span className="text-[10px] lg:text-xs text-blue-600 mt-1 block">
             ⚠️ No es posible eliminar jugadores. Si necesitas dar de baja a un jugador, contacta con el administrador.
           </span>
         </AlertDescription>
       </Alert>
 
       {/* Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="bg-white rounded-xl shadow-lg p-6 border-l-4 border-orange-500">
+      <div className="grid grid-cols-3 gap-3 lg:gap-6">
+        <div className="bg-white rounded-xl shadow-lg p-3 lg:p-6 border-l-4 border-orange-500">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-slate-600 mb-1">Total Jugadores</p>
-              <p className="text-3xl font-bold text-slate-900">{players.length}</p>
+              <p className="text-[10px] lg:text-sm text-slate-600 mb-1">Total Jugadores</p>
+              <p className="text-xl lg:text-3xl font-bold text-slate-900">{players.length}</p>
             </div>
-            <span className="text-4xl">👥</span>
+            <span className="text-2xl lg:text-4xl">👥</span>
           </div>
         </div>
 
-        <div className="bg-white rounded-xl shadow-lg p-6 border-l-4 border-blue-500">
+        <div className="bg-white rounded-xl shadow-lg p-3 lg:p-6 border-l-4 border-blue-500">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-slate-600 mb-1">Fútbol</p>
-              <p className="text-3xl font-bold text-blue-700">
+              <p className="text-[10px] lg:text-sm text-slate-600 mb-1">Fútbol</p>
+              <p className="text-xl lg:text-3xl font-bold text-blue-700">
                 {futbolPlayers.length + futbolFemeninoPlayers.length}
               </p>
             </div>
-            <span className="text-4xl">⚽</span>
+            <span className="text-2xl lg:text-4xl">⚽</span>
           </div>
         </div>
 
-        <div className="bg-white rounded-xl shadow-lg p-6 border-l-4 border-orange-500">
+        <div className="bg-white rounded-xl shadow-lg p-3 lg:p-6 border-l-4 border-orange-500">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-slate-600 mb-1">Baloncesto</p>
-              <p className="text-3xl font-bold text-orange-700">{baloncestoPlayers.length}</p>
+              <p className="text-[10px] lg:text-sm text-slate-600 mb-1">Baloncesto</p>
+              <p className="text-xl lg:text-3xl font-bold text-orange-700">{baloncestoPlayers.length}</p>
             </div>
-            <span className="text-4xl">🏀</span>
+            <span className="text-2xl lg:text-4xl">🏀</span>
           </div>
         </div>
       </div>
@@ -237,19 +233,19 @@ export default function ParentPlayers() {
         </div>
       ) : players.length === 0 ? (
         <div className="text-center py-12 bg-white rounded-xl shadow-lg">
-          <div className="text-6xl mb-4">⚽🏀</div>
-          <p className="text-slate-500 text-lg mb-2">No tienes jugadores registrados</p>
-          <p className="text-slate-400 text-sm">Haz clic en "Registrar Jugador" para añadir a tu hijo/a</p>
+          <div className="text-4xl lg:text-6xl mb-4">⚽🏀</div>
+          <p className="text-slate-500 text-base lg:text-lg mb-2">No tienes jugadores registrados</p>
+          <p className="text-slate-400 text-xs lg:text-sm">Haz clic en "Registrar Jugador" para añadir a tu hijo/a</p>
         </div>
       ) : (
         <>
           {/* Jugadores de Fútbol */}
           {futbolPlayers.length > 0 && (
-            <div className="space-y-4">
-              <h2 className="text-2xl font-bold text-slate-900 flex items-center gap-2">
+            <div className="space-y-3 lg:space-y-4">
+              <h2 className="text-xl lg:text-2xl font-bold text-slate-900 flex items-center gap-2">
                 <span>⚽</span> Fútbol
               </h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 lg:gap-6">
                 <AnimatePresence>
                   {futbolPlayers.map((player) => (
                     <PlayerCard 
@@ -267,11 +263,11 @@ export default function ParentPlayers() {
 
           {/* Jugadores de Fútbol Femenino */}
           {futbolFemeninoPlayers.length > 0 && (
-            <div className="space-y-4">
-              <h2 className="text-2xl font-bold text-slate-900 flex items-center gap-2">
+            <div className="space-y-3 lg:space-y-4">
+              <h2 className="text-xl lg:text-2xl font-bold text-slate-900 flex items-center gap-2">
                 <span>⚽</span> Fútbol Femenino
               </h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 lg:gap-6">
                 <AnimatePresence>
                   {futbolFemeninoPlayers.map((player) => (
                     <PlayerCard 
@@ -289,11 +285,11 @@ export default function ParentPlayers() {
 
           {/* Jugadores de Baloncesto */}
           {baloncestoPlayers.length > 0 && (
-            <div className="space-y-4">
-              <h2 className="text-2xl font-bold text-slate-900 flex items-center gap-2">
+            <div className="space-y-3 lg:space-y-4">
+              <h2 className="text-xl lg:text-2xl font-bold text-slate-900 flex items-center gap-2">
                 <span>🏀</span> Baloncesto
               </h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 lg:gap-6">
                 <AnimatePresence>
                   {baloncestoPlayers.map((player) => (
                     <PlayerCard 
