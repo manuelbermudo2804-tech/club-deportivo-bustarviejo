@@ -8,7 +8,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Upload, FileText, Loader2, Search, Plus, X, FileSpreadsheet } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Upload, FileText, Loader2, Search, Plus, X, FileSpreadsheet, AlertTriangle, Calendar, Filter } from "lucide-react";
 import { toast } from "sonner";
 import { AnimatePresence } from "framer-motion";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
@@ -17,6 +19,28 @@ import ContactCard from "../components/ContactCard";
 import ParentPaymentForm from "../components/payments/ParentPaymentForm";
 import BankReconciliation from "../components/payments/BankReconciliation";
 import ExportButton from "../components/ExportButton";
+
+const getCurrentSeason = () => {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = now.getMonth() + 1;
+  return month >= 9 ? `${year}/${year + 1}` : `${year - 1}/${year}`;
+};
+
+const calculateDaysOverdue = (mes) => {
+  const vencimientos = {
+    "Junio": new Date(new Date().getFullYear(), 5, 30),
+    "Septiembre": new Date(new Date().getFullYear(), 8, 15),
+    "Diciembre": new Date(new Date().getFullYear(), 11, 15)
+  };
+  
+  const vencimiento = vencimientos[mes];
+  if (!vencimiento) return 0;
+  
+  const today = new Date();
+  const diff = Math.floor((today - vencimiento) / (1000 * 60 * 60 * 24));
+  return diff > 0 ? diff : 0;
+};
 
 export default function Payments() {
   const location = useLocation();
@@ -32,6 +56,13 @@ export default function Payments() {
   const [myPlayers, setMyPlayers] = useState([]);
   const [activeTab, setActiveTab] = useState("pagos");
   const [playerFilter, setPlayerFilter] = useState(jugadorIdFromUrl || "all");
+  const [previewImage, setPreviewImage] = useState(null);
+  
+  // Filtros avanzados
+  const [temporadaFilter, setTemporadaFilter] = useState(getCurrentSeason());
+  const [categoriaFilter, setCategoriaFilter] = useState("all");
+  const [estadoFilter, setEstadoFilter] = useState("all");
+  const [showOverdueOnly, setShowOverdueOnly] = useState(false);
 
   const formRef = useRef(null);
   const queryClient = useQueryClient();
@@ -131,6 +162,7 @@ export default function Payments() {
     mutationFn: ({ id, paymentData }) => base44.entities.Payment.update(id, paymentData),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['myPayments'] });
+      toast.success("Pago actualizado correctamente");
     },
   });
 
@@ -180,7 +212,7 @@ export default function Payments() {
     }
   });
 
-  const handleStatusChange = (payment, newStatus) => {
+  const handleStatusChange = async (payment, newStatus) => {
     if (!isAdmin) {
       console.warn("Only administrators can change payment status.");
       return;
@@ -189,7 +221,39 @@ export default function Payments() {
     if (newStatus === "Pagado" && !payment.fecha_pago) {
       updatedData.fecha_pago = new Date().toISOString().split('T')[0];
     }
-    updatePaymentMutation.mutate({ id: payment.id, paymentData: updatedData });
+    
+    await updatePaymentMutation.mutateAsync({ id: payment.id, paymentData: updatedData });
+    
+    // Enviar email de confirmación al padre
+    if (newStatus === "Pagado") {
+      try {
+        const player = players.find(p => p.id === payment.jugador_id);
+        if (player?.email_padre) {
+          await base44.integrations.Core.SendEmail({
+            to: player.email_padre,
+            subject: `✅ Pago Confirmado - ${payment.jugador_nombre}`,
+            body: `
+              <h2>Pago Confirmado</h2>
+              <p>Hola,</p>
+              <p>Te confirmamos que hemos recibido y verificado el pago de <strong>${payment.jugador_nombre}</strong>.</p>
+              <hr>
+              <p><strong>Detalles del pago:</strong></p>
+              <ul>
+                <li><strong>Periodo:</strong> ${payment.mes}</li>
+                <li><strong>Temporada:</strong> ${payment.temporada}</li>
+                <li><strong>Cantidad:</strong> ${payment.cantidad}€</li>
+                <li><strong>Estado:</strong> ✅ Pagado</li>
+              </ul>
+              <hr>
+              <p>Gracias por tu pago.</p>
+              <p><strong>CD Bustarviejo</strong></p>
+            `
+          });
+        }
+      } catch (error) {
+        console.error("Error sending confirmation email:", error);
+      }
+    }
   };
 
   const handleFileUpload = async (paymentId, e) => {
@@ -208,11 +272,29 @@ export default function Payments() {
     queryClient.invalidateQueries({ queryKey: ['myPayments'] });
   };
 
+  // Filtrado avanzado
   const filteredPayments = payments.filter(payment => {
     const matchesSearch = payment.jugador_nombre?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       payment.mes?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesPlayer = playerFilter === "all" || payment.jugador_id === playerFilter;
-    return matchesSearch && matchesPlayer;
+    const matchesTemporada = temporadaFilter === "all" || payment.temporada === temporadaFilter;
+    const matchesEstado = estadoFilter === "all" || payment.estado === estadoFilter;
+    
+    // Filtro de categoría
+    let matchesCategoria = true;
+    if (categoriaFilter !== "all") {
+      const player = players.find(p => p.id === payment.jugador_id);
+      matchesCategoria = player?.deporte === categoriaFilter;
+    }
+    
+    // Filtro de vencidos
+    let matchesOverdue = true;
+    if (showOverdueOnly) {
+      const daysOverdue = calculateDaysOverdue(payment.mes);
+      matchesOverdue = payment.estado !== "Pagado" && daysOverdue > 0;
+    }
+    
+    return matchesSearch && matchesPlayer && matchesTemporada && matchesEstado && matchesCategoria && matchesOverdue;
   });
 
   const filteredPlayer = (playerFilter && playerFilter !== "all")
@@ -225,9 +307,25 @@ export default function Payments() {
     "Pendiente": "🔴"
   };
 
-  const pendingCount = payments.filter(p => p.estado === "Pendiente").length;
-  const inReviewCount = payments.filter(p => p.estado === "En revisión").length;
-  const paidCount = payments.filter(p => p.estado === "Pagado").length;
+  // Estadísticas mejoradas
+  const pendingCount = payments.filter(p => p.estado === "Pendiente" && p.temporada === temporadaFilter).length;
+  const inReviewCount = payments.filter(p => p.estado === "En revisión" && p.temporada === temporadaFilter).length;
+  const paidCount = payments.filter(p => p.estado === "Pagado" && p.temporada === temporadaFilter).length;
+  
+  const overduePayments = payments.filter(p => {
+    if (p.estado === "Pagado" || p.temporada !== temporadaFilter) return false;
+    return calculateDaysOverdue(p.mes) > 0;
+  });
+  
+  const totalRecaudado = payments
+    .filter(p => p.estado === "Pagado" && p.temporada === temporadaFilter)
+    .reduce((sum, p) => sum + (p.cantidad || 0), 0);
+
+  // Temporadas únicas
+  const temporadas = ["all", ...new Set(payments.map(p => p.temporada).filter(Boolean))];
+  
+  // Categorías únicas
+  const categorias = ["all", ...new Set(players.map(p => p.deporte).filter(Boolean))];
 
   const prepareExportData = () => {
     return filteredPayments.map(p => ({
@@ -297,8 +395,8 @@ export default function Payments() {
         </div>
       </div>
 
-      {/* Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      {/* Stats mejoradas */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
         <Card className="border-none shadow-lg bg-white">
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
@@ -334,7 +432,59 @@ export default function Payments() {
             </div>
           </CardContent>
         </Card>
+
+        {isAdmin && (
+          <>
+            <Card className="border-none shadow-lg bg-gradient-to-br from-red-50 to-red-100 border-red-200">
+              <CardContent className="pt-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-red-900 mb-1 font-semibold">Vencidos</p>
+                    <p className="text-3xl font-bold text-red-700">{overduePayments.length}</p>
+                  </div>
+                  <AlertTriangle className="w-10 h-10 text-red-600" />
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="border-none shadow-lg bg-gradient-to-br from-green-50 to-green-100">
+              <CardContent className="pt-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-green-900 mb-1 font-semibold">Recaudado</p>
+                    <p className="text-2xl font-bold text-green-700">{totalRecaudado.toFixed(0)}€</p>
+                  </div>
+                  <span className="text-4xl">💰</span>
+                </div>
+              </CardContent>
+            </Card>
+          </>
+        )}
       </div>
+
+      {/* Alerta de pagos vencidos */}
+      {isAdmin && overduePayments.length > 0 && (
+        <Card className="border-2 border-red-400 bg-red-50">
+          <CardContent className="pt-6">
+            <div className="flex items-start gap-4">
+              <AlertTriangle className="w-6 h-6 text-red-600 flex-shrink-0 mt-1" />
+              <div className="flex-1">
+                <h3 className="font-bold text-red-900 mb-2">⚠️ Pagos Vencidos Detectados</h3>
+                <p className="text-sm text-red-800 mb-3">
+                  Hay {overduePayments.length} pago(s) vencido(s) que requieren atención
+                </p>
+                <Button
+                  size="sm"
+                  onClick={() => setShowOverdueOnly(!showOverdueOnly)}
+                  className={showOverdueOnly ? "bg-red-700" : "bg-red-600 hover:bg-red-700"}
+                >
+                  {showOverdueOnly ? "Ver Todos" : "Ver Solo Vencidos"}
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="w-full">
@@ -348,6 +498,84 @@ export default function Payments() {
         </TabsList>
 
         <TabsContent value="pagos" className="space-y-6">
+          {/* Filtros avanzados */}
+          {isAdmin && (
+            <Card className="border-none shadow-lg bg-white">
+              <CardHeader className="border-b border-slate-100">
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <Filter className="w-5 h-5" />
+                  Filtros Avanzados
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="pt-4">
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Temporada</label>
+                    <Select value={temporadaFilter} onValueChange={setTemporadaFilter}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {temporadas.map(t => (
+                          <SelectItem key={t} value={t}>
+                            {t === "all" ? "Todas las temporadas" : t}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Categoría</label>
+                    <Select value={categoriaFilter} onValueChange={setCategoriaFilter}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">Todas las categorías</SelectItem>
+                        {categorias.filter(c => c !== "all").map(cat => (
+                          <SelectItem key={cat} value={cat}>{cat}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Estado</label>
+                    <Select value={estadoFilter} onValueChange={setEstadoFilter}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">Todos los estados</SelectItem>
+                        <SelectItem value="Pendiente">Pendiente</SelectItem>
+                        <SelectItem value="En revisión">En revisión</SelectItem>
+                        <SelectItem value="Pagado">Pagado</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="flex items-end">
+                    <Button
+                      variant="outline"
+                      onClick={() => {
+                        setTemporadaFilter(getCurrentSeason());
+                        setCategoriaFilter("all");
+                        setEstadoFilter("all");
+                        setShowOverdueOnly(false);
+                        setSearchTerm("");
+                      }}
+                      className="w-full"
+                    >
+                      <X className="w-4 h-4 mr-2" />
+                      Limpiar Filtros
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
           {/* Payment Form */}
           <div ref={formRef}>
             <AnimatePresence>
@@ -366,7 +594,14 @@ export default function Payments() {
           <Card className="border-none shadow-lg bg-white">
             <CardHeader className="border-b border-slate-100">
               <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                <CardTitle className="text-xl">Detalle de Pagos</CardTitle>
+                <CardTitle className="text-xl">
+                  Detalle de Pagos
+                  {filteredPayments.length !== payments.length && (
+                    <span className="text-sm font-normal text-slate-600 ml-2">
+                      ({filteredPayments.length} de {payments.length})
+                    </span>
+                  )}
+                </CardTitle>
                 <div className="relative w-full md:w-64">
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400" />
                   <Input
@@ -406,97 +641,111 @@ export default function Payments() {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {filteredPayments.map((payment) => (
-                        <TableRow key={payment.id} className="hover:bg-slate-50">
-                          <TableCell className="font-medium">{payment.jugador_nombre}</TableCell>
-                          <TableCell>{payment.mes}</TableCell>
-                          <TableCell className="font-medium text-slate-700">
-                            {payment.temporada}
-                          </TableCell>
-                          <TableCell className="font-bold text-slate-900">
-                            {payment.cantidad}€
-                          </TableCell>
-                          <TableCell className="text-sm text-slate-600">
-                            Día 30 de {payment.mes}
-                          </TableCell>
-                          <TableCell>
-                            {payment.justificante_url ? (
-                              <div className="flex items-center gap-2">
-                                <a
-                                  href={payment.justificante_url}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="inline-flex items-center gap-1 text-orange-600 hover:text-orange-700"
-                                >
-                                  <FileText className="w-4 h-4" />
-                                  <span className="text-xs">Ver</span>
-                                </a>
-                              </div>
-                            ) : payment.estado === "Pagado" ? (
-                              <span className="text-xs text-slate-400">-</span>
-                            ) : (
-                              <>
-                                <input
-                                  type="file"
-                                  accept="image/*,.pdf"
-                                  onChange={(e) => handleFileUpload(payment.id, e)}
-                                  className="hidden"
-                                  id={`upload-${payment.id}`}
-                                  disabled={uploadingPaymentId === payment.id}
-                                />
-                                <label htmlFor={`upload-${payment.id}`}>
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    disabled={uploadingPaymentId === payment.id}
-                                    onClick={() => document.getElementById(`upload-${payment.id}`).click()}
-                                    className="text-xs"
-                                  >
-                                    {uploadingPaymentId === payment.id ? (
-                                      <>
-                                        <Loader2 className="w-3 h-3 mr-1 animate-spin" />
-                                        Subiendo...
-                                      </>
-                                    ) : (
-                                      <>
-                                        <Upload className="w-3 h-3 mr-1" />
-                                        Subir
-                                      </>
-                                    )}
-                                  </Button>
-                                </label>
-                              </>
-                            )}
-                          </TableCell>
-                          <TableCell>
-                            <Badge className={
-                              payment.estado === "Pagado"
-                                ? "bg-green-100 text-green-700"
-                                : payment.estado === "En revisión"
-                                ? "bg-orange-100 text-orange-700"
-                                : "bg-red-100 text-red-700"
-                            }>
-                              <span className="mr-1">{statusEmojis[payment.estado]}</span>
-                              {payment.estado}
-                            </Badge>
-                          </TableCell>
-                          {isAdmin && (
-                            <TableCell>
-                              <div className="flex gap-2">
-                                {payment.estado !== "Pagado" && (
-                                  <Button
-                                    size="sm"
-                                    onClick={() => handleStatusChange(payment, "Pagado")}
-                                    className="bg-green-600 hover:bg-green-700 text-xs"
-                                  >
-                                    Marcar Pagado
-                                  </Button>
-                                )}
-                              </div>
+                      {filteredPayments.map((payment) => {
+                        const daysOverdue = calculateDaysOverdue(payment.mes);
+                        const isOverdue = payment.estado !== "Pagado" && daysOverdue > 0;
+                        
+                        return (
+                          <TableRow key={payment.id} className={`hover:bg-slate-50 ${isOverdue ? 'bg-red-50' : ''}`}>
+                            <TableCell className="font-medium">
+                              {payment.jugador_nombre}
+                              {isOverdue && (
+                                <Badge className="ml-2 bg-red-500 text-white text-xs">
+                                  Vencido {daysOverdue}d
+                                </Badge>
+                              )}
                             </TableCell>
-                          )}
-                        </TableRow>
-                      ))}
+                            <TableCell>{payment.mes}</TableCell>
+                            <TableCell className="font-medium text-slate-700">
+                              {payment.temporada}
+                            </TableCell>
+                            <TableCell className="font-bold text-slate-900">
+                              {payment.cantidad}€
+                            </TableCell>
+                            <TableCell className="text-sm text-slate-600">
+                              {payment.mes === "Junio" && "30 de junio"}
+                              {payment.mes === "Septiembre" && "15 de sept"}
+                              {payment.mes === "Diciembre" && "15 de dic"}
+                            </TableCell>
+                            <TableCell>
+                              {payment.justificante_url ? (
+                                <div className="flex items-center gap-2">
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => setPreviewImage(payment.justificante_url)}
+                                    className="text-orange-600 hover:text-orange-700 p-0 h-auto"
+                                  >
+                                    <FileText className="w-4 h-4 mr-1" />
+                                    <span className="text-xs">Ver</span>
+                                  </Button>
+                                </div>
+                              ) : payment.estado === "Pagado" ? (
+                                <span className="text-xs text-slate-400">-</span>
+                              ) : (
+                                <>
+                                  <input
+                                    type="file"
+                                    accept="image/*,.pdf"
+                                    onChange={(e) => handleFileUpload(payment.id, e)}
+                                    className="hidden"
+                                    id={`upload-${payment.id}`}
+                                    disabled={uploadingPaymentId === payment.id}
+                                  />
+                                  <label htmlFor={`upload-${payment.id}`}>
+                                    <Button
+                                      variant="outline"
+                                      size="sm"
+                                      disabled={uploadingPaymentId === payment.id}
+                                      onClick={() => document.getElementById(`upload-${payment.id}`).click()}
+                                      className="text-xs"
+                                    >
+                                      {uploadingPaymentId === payment.id ? (
+                                        <>
+                                          <Loader2 className="w-3 h-3 mr-1 animate-spin" />
+                                          Subiendo...
+                                        </>
+                                      ) : (
+                                        <>
+                                          <Upload className="w-3 h-3 mr-1" />
+                                          Subir
+                                        </>
+                                      )}
+                                    </Button>
+                                  </label>
+                                </>
+                              )}
+                            </TableCell>
+                            <TableCell>
+                              <Badge className={
+                                payment.estado === "Pagado"
+                                  ? "bg-green-100 text-green-700"
+                                  : payment.estado === "En revisión"
+                                  ? "bg-orange-100 text-orange-700"
+                                  : "bg-red-100 text-red-700"
+                              }>
+                                <span className="mr-1">{statusEmojis[payment.estado]}</span>
+                                {payment.estado}
+                              </Badge>
+                            </TableCell>
+                            {isAdmin && (
+                              <TableCell>
+                                <div className="flex gap-2">
+                                  {payment.estado !== "Pagado" && (
+                                    <Button
+                                      size="sm"
+                                      onClick={() => handleStatusChange(payment, "Pagado")}
+                                      className="bg-green-600 hover:bg-green-700 text-xs"
+                                    >
+                                      ✓ Pagado
+                                    </Button>
+                                  )}
+                                </div>
+                              </TableCell>
+                            )}
+                          </TableRow>
+                        );
+                      })}
                     </TableBody>
                   </Table>
                 </div>
@@ -516,6 +765,35 @@ export default function Payments() {
         )}
       </Tabs>
 
+      {/* Modal de vista previa */}
+      <Dialog open={!!previewImage} onOpenChange={() => setPreviewImage(null)}>
+        <DialogContent className="max-w-4xl">
+          <DialogHeader>
+            <DialogTitle>Vista Previa del Justificante</DialogTitle>
+          </DialogHeader>
+          {previewImage && (
+            <div className="mt-4">
+              {previewImage.endsWith('.pdf') ? (
+                <iframe src={previewImage} className="w-full h-[600px] border rounded-lg" />
+              ) : (
+                <img src={previewImage} alt="Justificante" className="w-full h-auto rounded-lg" />
+              )}
+              <div className="flex justify-end gap-2 mt-4">
+                <Button
+                  variant="outline"
+                  onClick={() => window.open(previewImage, '_blank')}
+                >
+                  Abrir en nueva pestaña
+                </Button>
+                <Button onClick={() => setPreviewImage(null)}>
+                  Cerrar
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
       <ContactCard />
 
       {/* Instrucciones */}
@@ -528,6 +806,12 @@ export default function Payments() {
           <p>• <strong>Pagos Pendientes (🔴):</strong> Sube el justificante de pago (transferencia) haciendo clic en "Subir"</p>
           <p>• <strong>En Revisión (🟠):</strong> {isAdmin ? "Verifica el justificante y marca como pagado" : "El administrador está verificando tu pago"}</p>
           <p>• <strong>Pagado (🟢):</strong> El pago ha sido confirmado</p>
+          {isAdmin && (
+            <>
+              <p>• <strong>Filtros:</strong> Usa los filtros avanzados para buscar pagos específicos por temporada, categoría o estado</p>
+              <p>• <strong>Vencidos:</strong> Los pagos vencidos aparecen resaltados en rojo con los días de retraso</p>
+            </>
+          )}
           <p className="pt-2 border-t border-orange-200">
             <strong>Importante:</strong> Sube el justificante junto con el registro del pago para que pueda ser verificado más rápidamente.
           </p>
