@@ -126,6 +126,7 @@ export default function ParentDashboard() {
 
   const urgentAnnouncements = announcements.filter(a => {
     if (!a.publicado || a.prioridad !== "Urgente") return false;
+    if (a.created_by === user?.email) return false;
     const now = new Date();
     const publishedDate = new Date(a.fecha_publicacion);
     const diffHours = (now - publishedDate) / (1000 * 60 * 60);
@@ -136,6 +137,7 @@ export default function ParentDashboard() {
 
   const importantAnnouncements = announcements.filter(a => {
     if (!a.publicado || a.prioridad !== "Importante") return false;
+    if (a.created_by === user?.email) return false;
     const now = new Date();
     const publishedDate = new Date(a.fecha_publicacion);
     const diffHours = (now - publishedDate) / (1000 * 60 * 60);
