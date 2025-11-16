@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Send, Clock, AlertCircle, X, Users, Check, CheckCheck } from "lucide-react";
+import { Send, Search, Clock, AlertCircle, X, Users, Check, CheckCheck, ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
@@ -18,6 +18,7 @@ export default function AdminChat() {
   const [selectedGroup, setSelectedGroup] = useState(null);
   const [messageContent, setMessageContent] = useState("");
   const [priority, setPriority] = useState("Normal");
+  const [searchTerm, setSearchTerm] = useState("");
   const [attachments, setAttachments] = useState([]);
   const [sendToAll, setSendToAll] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
@@ -229,6 +230,12 @@ export default function AdminChat() {
       return b.lastMessageDate.getTime() - a.lastMessageDate.getTime();
     });
   }, [groups]);
+
+  const filteredGroups = useMemo(() => {
+    return sortedGroups.filter(group =>
+      (group.deporte || "").toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }, [sortedGroups, searchTerm]);
 
   const allGroupsList = useMemo(() => {
     return [
