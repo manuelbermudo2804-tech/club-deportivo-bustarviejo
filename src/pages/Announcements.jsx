@@ -15,6 +15,7 @@ export default function Announcements() {
   const [editingAnnouncement, setEditingAnnouncement] = useState(null);
   const [priorityFilter, setPriorityFilter] = useState("all");
   const [isAdmin, setIsAdmin] = useState(false);
+  const [isCoach, setIsCoach] = useState(false);
   const [userSports, setUserSports] = useState([]);
   
   const queryClient = useQueryClient();
@@ -24,6 +25,7 @@ export default function Announcements() {
       try {
         const user = await base44.auth.me();
         setIsAdmin(user.role === "admin");
+        setIsCoach(user.es_entrenador === true);
         
         if (user.role !== "admin") {
           const allPlayers = await base44.entities.Player.list();
@@ -38,6 +40,7 @@ export default function Announcements() {
         }
       } catch (error) {
         setIsAdmin(false);
+        setIsCoach(false);
       }
     };
     checkUser();
@@ -53,7 +56,7 @@ export default function Announcements() {
     queryKey: ['players'],
     queryFn: () => base44.entities.Player.list(),
     initialData: [],
-    enabled: isAdmin,
+    enabled: isAdmin || isCoach,
   });
 
   const createAnnouncementMutation = useMutation({
@@ -293,7 +296,7 @@ Ubicación: Bustarviejo, Madrid
   };
 
   // Filter announcements based on user role and expiration
-  const visibleAnnouncements = isAdmin 
+  const visibleAnnouncements = (isAdmin || isCoach)
     ? announcements 
     : announcements.filter(announcement => {
         // Parents only see published
@@ -357,7 +360,7 @@ Ubicación: Bustarviejo, Madrid
           </h1>
           <p className="text-slate-600 mt-1 text-sm">Comunicados del club</p>
         </div>
-        {isAdmin && (
+        {(isAdmin || isCoach) && (
           <Button
             onClick={() => {
               setEditingAnnouncement(null);
@@ -372,7 +375,7 @@ Ubicación: Bustarviejo, Madrid
       </div>
 
       <AnimatePresence>
-        {showForm && isAdmin && (
+        {showForm && (isAdmin || isCoach) && (
           <AnnouncementForm
             announcement={editingAnnouncement}
             onSubmit={handleSubmit}
@@ -419,8 +422,8 @@ Ubicación: Bustarviejo, Madrid
                 key={announcement.id}
                 announcement={announcement}
                 onEdit={handleEdit}
-                onDelete={isAdmin ? handleDelete : null}
-                isAdmin={isAdmin}
+                onDelete={(isAdmin || isCoach) ? handleDelete : null}
+                isAdmin={isAdmin || isCoach}
               />
             ))}
           </AnimatePresence>
