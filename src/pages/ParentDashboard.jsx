@@ -55,6 +55,12 @@ export default function ParentDashboard() {
     initialData: [],
   });
 
+  const { data: seasonConfigs } = useQuery({
+    queryKey: ['seasonConfigs'],
+    queryFn: () => base44.entities.SeasonConfig.list(),
+    initialData: [],
+  });
+
   const myPlayers = user ? players.filter(p => 
     p.email_padre === user.email || p.email_tutor_2 === user.email
   ) : [];
@@ -86,7 +92,47 @@ export default function ParentDashboard() {
     });
   });
 
-  const pendingPayments = myPayments.filter(p => p.estado === "Pendiente").length;
+  // Calcular pagos pendientes incluyendo los que NO se han registrado aún
+  const calculatePendingPayments = () => {
+    const activeSeason = seasonConfigs.find(s => s.activa);
+    if (!activeSeason) return myPayments.filter(p => p.estado === "Pendiente").length;
+
+    const currentMonth = new Date().getMonth() + 1; // 1-12
+    let expectedPayments = 0;
+
+    myPlayers.forEach(player => {
+      // Buscar pagos de este jugador para la temporada activa
+      const playerPayments = myPayments.filter(p => 
+        p.jugador_id === player.id && p.temporada === activeSeason.temporada
+      );
+
+      // Si tiene pago único, solo debe haber 1 pago (Junio)
+      const pagoUnico = playerPayments.find(p => p.tipo_pago === "Único");
+      if (pagoUnico) {
+        if (pagoUnico.estado !== "Pagado") {
+          expectedPayments++;
+        }
+      } else {
+        // Si tiene pagos fraccionados (Junio, Septiembre, Diciembre)
+        const mesesRequeridos = ["Junio", "Septiembre", "Diciembre"];
+        mesesRequeridos.forEach(mes => {
+          const mesNum = mes === "Junio" ? 6 : mes === "Septiembre" ? 9 : 12;
+          
+          // Solo contar si ya pasó el mes o estamos en el mes
+          if (currentMonth >= mesNum) {
+            const pagoMes = playerPayments.find(p => p.mes === mes);
+            if (!pagoMes || pagoMes.estado !== "Pagado") {
+              expectedPayments++;
+            }
+          }
+        });
+      }
+    });
+
+    return expectedPayments;
+  };
+
+  const pendingPayments = calculatePendingPayments();
 
   const menuItems = [
     {
