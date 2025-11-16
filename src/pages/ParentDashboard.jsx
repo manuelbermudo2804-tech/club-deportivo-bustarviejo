@@ -3,7 +3,8 @@ import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { Users, Calendar, Bell, MessageCircle, CreditCard, Image, Megaphone, Clock, ShoppingBag, FileText, Award } from "lucide-react";
+import { Users, Calendar, Bell, MessageCircle, CreditCard, Image, Megaphone, Clock, ShoppingBag, FileText, Award, AlertCircle, Mail } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 
 import SocialLinks from "../components/SocialLinks";
 import PushNotificationManager from "../components/push/PushNotificationManager";
@@ -49,6 +50,12 @@ export default function ParentDashboard() {
     initialData: [],
   });
 
+  const { data: directMessages } = useQuery({
+    queryKey: ['directMessages'],
+    queryFn: () => base44.entities.DirectMessage.list('-created_date'),
+    initialData: [],
+  });
+
   const { data: events } = useQuery({
     queryKey: ['events'],
     queryFn: () => base44.entities.Event.list(),
@@ -76,6 +83,10 @@ export default function ParentDashboard() {
     }
     return false;
   }).length;
+
+  const unreadDirectMessages = user ? directMessages.filter(m => 
+    m.destinatario_email === user.email && !m.leido
+  ).length : 0;
 
   const today = new Date().toISOString().split('T')[0];
   const upcomingCallups = callups.filter(c => 
@@ -136,6 +147,7 @@ export default function ParentDashboard() {
   };
 
   const pendingPayments = calculatePendingPayments();
+  const hasUnregisteredPayments = myPlayers.length > 0 && myPayments.length === 0;
 
   const menuItems = [
     {
@@ -145,6 +157,15 @@ export default function ParentDashboard() {
       gradient: "from-orange-600 to-orange-700",
       badge: myPlayers.length,
       badgeLabel: "registrados"
+    },
+    {
+      title: "💬 Mensajes Privados",
+      icon: Mail,
+      url: createPageUrl("DirectMessages"),
+      gradient: "from-purple-600 to-purple-700",
+      badge: unreadDirectMessages,
+      badgeLabel: "nuevos",
+      urgent: unreadDirectMessages > 0
     },
     {
       title: "🏆 Convocatorias",
@@ -223,6 +244,20 @@ export default function ParentDashboard() {
           <PushNotificationManager />
         </div>
 
+        {hasUnregisteredPayments && (
+          <div className="bg-orange-500/20 border-2 border-orange-500 rounded-2xl p-4 flex items-start gap-3">
+            <AlertCircle className="w-5 h-5 text-orange-500 flex-shrink-0 mt-0.5" />
+            <div className="flex-1">
+              <p className="text-white font-semibold text-sm">
+                💰 Recuerda registrar los pagos de tus jugadores
+              </p>
+              <p className="text-orange-100 text-xs mt-1">
+                Ve a la sección "Pagos" para registrar las cuotas de la temporada actual
+              </p>
+            </div>
+          </div>
+        )}
+
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           <ActivityTimeline 
             payments={myPayments}
@@ -239,7 +274,9 @@ export default function ParentDashboard() {
         <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6">
           {menuItems.map((item, index) => (
             <Link key={index} to={item.url} className="group">
-              <div className="relative bg-slate-800 rounded-3xl overflow-hidden shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105 active:scale-95 border-2 border-slate-700 hover:border-orange-500">
+              <div className={`relative bg-slate-800 rounded-3xl overflow-hidden shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105 active:scale-95 border-2 ${
+                item.urgent ? 'border-purple-500 ring-2 ring-purple-400 animate-pulse' : 'border-slate-700 hover:border-orange-500'
+              }`}>
                 <div className="absolute inset-0 bg-gradient-to-br from-slate-700/50 to-black/80 opacity-60"></div>
                 <div className={`absolute bottom-0 right-0 w-32 h-32 bg-gradient-to-tl ${item.gradient} opacity-30 blur-2xl`}></div>
                 <div className={`absolute top-0 left-0 w-24 h-24 bg-gradient-to-br ${item.gradient} opacity-20 blur-xl`}></div>
@@ -254,7 +291,7 @@ export default function ParentDashboard() {
                   </h3>
                   
                   {item.badge !== undefined && item.badge > 0 && (
-                    <div className="bg-white/20 backdrop-blur-sm px-3 py-1 rounded-full">
+                    <div className={`${item.urgent ? 'bg-purple-500 ring-2 ring-purple-300' : 'bg-white/20'} backdrop-blur-sm px-3 py-1 rounded-full`}>
                       <p className="text-white text-xs font-semibold">
                         {item.badge} {item.badgeLabel}
                       </p>
@@ -267,7 +304,7 @@ export default function ParentDashboard() {
         </div>
 
         <div className="bg-slate-800 rounded-3xl p-6 shadow-2xl border-2 border-slate-700">
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-2 lg:grid-cols-5 gap-6">
             <div className="text-center">
               <div className="text-3xl lg:text-4xl font-bold text-orange-500 mb-1">
                 {myPlayers.length}
@@ -279,6 +316,9 @@ export default function ParentDashboard() {
                 {pendingPayments}
               </div>
               <div className="text-slate-400 text-xs lg:text-sm">Pagos Pendientes</div>
+              <div className="text-slate-500 text-[10px] mt-1">
+                (solo registrados)
+              </div>
             </div>
             <div className="text-center">
               <div className="text-3xl lg:text-4xl font-bold text-yellow-500 mb-1">
@@ -290,7 +330,13 @@ export default function ParentDashboard() {
               <div className="text-3xl lg:text-4xl font-bold text-blue-500 mb-1">
                 {unreadMessages}
               </div>
-              <div className="text-slate-400 text-xs lg:text-sm">Mensajes Nuevos</div>
+              <div className="text-slate-400 text-xs lg:text-sm">Mensajes Grupo</div>
+            </div>
+            <div className="text-center">
+              <div className="text-3xl lg:text-4xl font-bold text-purple-500 mb-1">
+                {unreadDirectMessages}
+              </div>
+              <div className="text-slate-400 text-xs lg:text-sm">Mensajes Privados</div>
             </div>
           </div>
         </div>
