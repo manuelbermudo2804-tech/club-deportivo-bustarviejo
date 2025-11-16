@@ -7,8 +7,6 @@ import { Users, Calendar, Bell, MessageCircle, CreditCard, Image, Megaphone, Clo
 
 import SocialLinks from "../components/SocialLinks";
 import PushNotificationManager from "../components/push/PushNotificationManager";
-import ActivityTimeline from "../components/dashboard/ActivityTimeline";
-import UpcomingEvents from "../components/dashboard/UpcomingEvents";
 
 export default function ParentDashboard() {
   const [user, setUser] = useState(null);
@@ -49,12 +47,6 @@ export default function ParentDashboard() {
     initialData: [],
   });
 
-  const { data: events } = useQuery({
-    queryKey: ['events'],
-    queryFn: () => base44.entities.Event.list(),
-    initialData: [],
-  });
-
   const { data: seasonConfigs } = useQuery({
     queryKey: ['seasonConfigs'],
     queryFn: () => base44.entities.SeasonConfig.list(),
@@ -92,7 +84,6 @@ export default function ParentDashboard() {
     });
   });
 
-  // Calcular pagos pendientes solo de jugadores que YA hayan registrado pagos
   const calculatePendingPayments = () => {
     const activeSeason = seasonConfigs.find(s => s.activa);
     if (!activeSeason) return myPayments.filter(p => p.estado === "Pendiente").length;
@@ -232,19 +223,6 @@ export default function ParentDashboard() {
             </div>
           </div>
         )}
-
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          <ActivityTimeline 
-            payments={myPayments}
-            callups={upcomingCallups}
-            messages={messages.filter(m => !m.leido)}
-          />
-          
-          <UpcomingEvents 
-            events={events}
-            myPlayers={myPlayers}
-          />
-        </div>
 
         <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6">
           {menuItems.map((item, index) => (
