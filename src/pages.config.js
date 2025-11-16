@@ -40,7 +40,6 @@ import Surveys from './pages/Surveys';
 import AdminStats from './pages/AdminStats';
 import MatchResults from './pages/MatchResults';
 import MedicalRecords from './pages/MedicalRecords';
-import DirectMessages from './pages/DirectMessages';
 import MatchApp from './pages/MatchApp';
 import MemberManagement from './pages/MemberManagement';
 import Layout from './Layout.jsx';
@@ -89,7 +88,6 @@ export const PAGES = {
     "AdminStats": AdminStats,
     "MatchResults": MatchResults,
     "MedicalRecords": MedicalRecords,
-    "DirectMessages": DirectMessages,
     "MatchApp": MatchApp,
     "MemberManagement": MemberManagement,
 }
