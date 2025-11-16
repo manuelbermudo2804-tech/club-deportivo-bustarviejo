@@ -12,6 +12,7 @@ import { base44 } from "@/api/base44Client";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
 import PaymentInstructions from "./PaymentInstructions";
+import { getCuotasPorCategoria, getImportePorCategoriaYMes, FECHAS_VENCIMIENTO } from "./paymentAmounts";
 
 const getCurrentSeason = () => {
   const now = new Date();
@@ -22,39 +23,6 @@ const getCurrentSeason = () => {
     return `${currentYear}/${currentYear + 1}`;
   }
   return `${currentYear - 1}/${currentYear}`;
-};
-
-const CUOTAS_BASE = {
-  inscripcion: 120,
-  segunda: 120,
-  tercera: 120,
-  total: 300
-};
-
-const getCuotasPorCategoria = (categoria) => {
-  if (!categoria) return CUOTAS_BASE;
-  
-  if (categoria.includes("Pre-Benjamín")) {
-    return { inscripcion: 100, segunda: 100, tercera: 100, total: 250 };
-  }
-  
-  return CUOTAS_BASE;
-};
-
-const getImportePorCategoriaYMes = (categoria, mes) => {
-  const cuotas = getCuotasPorCategoria(categoria);
-  
-  if (mes === "Junio") return cuotas.inscripcion;
-  if (mes === "Septiembre") return cuotas.segunda;
-  if (mes === "Diciembre") return cuotas.tercera;
-  
-  return cuotas.inscripcion;
-};
-
-const FECHAS_VENCIMIENTO = {
-  "Junio": "30 de junio",
-  "Septiembre": "15 de septiembre",
-  "Diciembre": "15 de diciembre"
 };
 
 export default function ParentPaymentForm({ players, onSubmit, onCancel, isSubmitting }) {
