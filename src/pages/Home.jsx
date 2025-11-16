@@ -208,7 +208,7 @@ export default function Home() {
       {
         title: "Pagos",
         icon: CreditCard,
-        url: createPageUrl("Payments"),
+        url: isCoach && hasPlayers ? createPageUrl("Payments") + "?register=true" : createPageUrl("Payments"),
         gradient: "from-orange-600 to-red-700",
         badge: pendingPayments,
         badgeLabel: "pendientes"
@@ -291,8 +291,10 @@ export default function Home() {
       <AutomaticReminders />
       
       <div className="px-4 lg:px-8 py-6 space-y-6">
+        {/* Social Links */}
         <SocialLinks />
 
+        {/* Banner MatchApp */}
         <button
           onClick={handleMatchAppClick}
           className="w-full bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 rounded-2xl p-4 shadow-xl transition-all hover:scale-105 active:scale-95 border-2 border-green-500"
@@ -309,6 +311,7 @@ export default function Home() {
           </div>
         </button>
 
+        {/* Menu Grid */}
         <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 lg:gap-6">
           {menuItems.map((item, index) => (
             <Link key={index} to={item.url} className="group">
@@ -339,6 +342,7 @@ export default function Home() {
           ))}
         </div>
 
+        {/* Summary Stats */}
         <div className="bg-slate-800 rounded-3xl p-6 shadow-2xl border-2 border-slate-700">
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
             <div className="text-center">
