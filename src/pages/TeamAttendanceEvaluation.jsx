@@ -131,7 +131,7 @@ ${data.estado === 'presente' ? '✅ Presente' :
   data.estado === 'justificado' ? '📝 Ausencia Justificada' : 
   '⏰ Llegada con retraso'}
 
-${data.estado === 'presente' ? `
+${(data.estado === 'presente' || data.estado === 'tardanza') ? `
 ⭐ Evaluación:
   😊 Actitud: ${data.actitud || 'No evaluado'}/5
   ${data.observaciones ? `\n📝 Observaciones: ${data.observaciones}` : ''}
@@ -208,7 +208,7 @@ CD Bustarviejo
         const playerAttendances = [];
         relevantAttendances.forEach(attendance => {
           const playerRecord = attendance.asistencias?.find(a => a.jugador_id === player.id);
-          if (playerRecord && playerRecord.estado === 'presente') {
+          if (playerRecord && (playerRecord.estado === 'presente' || playerRecord.estado === 'tardanza')) {
             playerAttendances.push({
               fecha: attendance.fecha,
               ...playerRecord
@@ -535,7 +535,7 @@ CD Bustarviejo
           <div className="lg:hidden space-y-3">
             {categoryPlayers.map((player) => {
               const playerData = sessionData[player.id] || {};
-              const isPresent = playerData.asistencia === 'presente';
+              const isPresent = playerData.asistencia === 'presente' || playerData.asistencia === 'tardanza';
 
               return (
                 <div key={player.id} className="bg-white rounded-xl shadow-md p-4 space-y-3">
@@ -644,7 +644,7 @@ CD Bustarviejo
               <tbody>
                 {categoryPlayers.map((player, idx) => {
                   const playerData = sessionData[player.id] || {};
-                  const isPresent = playerData.asistencia === 'presente';
+                  const isPresent = playerData.asistencia === 'presente' || playerData.asistencia === 'tardanza';
 
                   return (
                     <tr key={player.id} className={`border-b ${idx % 2 === 0 ? 'bg-slate-50' : 'bg-white'}`}>
