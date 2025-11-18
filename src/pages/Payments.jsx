@@ -614,22 +614,17 @@ Email: cdbustarviejo@gmail.com
             </AnimatePresence>
           </div>
 
-          {/* Payments Table */}
+          {/* Payments by Player */}
           <Card className="border-none shadow-lg bg-white">
             <CardHeader className="border-b border-slate-100">
               <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <CardTitle className="text-xl">
-                  Detalle de Pagos
-                  {filteredPayments.length !== payments.length && (
-                    <span className="text-sm font-normal text-slate-600 ml-2">
-                      ({filteredPayments.length} de {payments.length})
-                    </span>
-                  )}
+                  Pagos por Jugador
                 </CardTitle>
                 <div className="relative w-full md:w-64">
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400" />
                   <Input
-                    placeholder="Buscar..."
+                    placeholder="Buscar jugador..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     className="pl-10"
@@ -637,143 +632,149 @@ Email: cdbustarviejo@gmail.com
                 </div>
               </div>
             </CardHeader>
-            <CardContent className="p-0">
+            <CardContent className="p-6">
               {isLoading ? (
-                <div className="p-6 space-y-3">
+                <div className="space-y-3">
                   {[...Array(5)].map((_, i) => (
-                    <Skeleton key={i} className="h-16 w-full" />
+                    <Skeleton key={i} className="h-32 w-full" />
                   ))}
                 </div>
-              ) : filteredPayments.length === 0 ? (
+              ) : players.length === 0 ? (
                 <div className="text-center py-12">
-                  <p className="text-slate-500">No hay pagos registrados</p>
-                  <p className="text-sm text-slate-400 mt-2">Haz clic en "Registrar Pago" para añadir uno nuevo</p>
+                  <p className="text-slate-500">No hay jugadores registrados</p>
                 </div>
-              ) : (
-                <div className="overflow-x-auto">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Jugador</TableHead>
-                        <TableHead>Período</TableHead>
-                        <TableHead>Temporada</TableHead>
-                        <TableHead>Cantidad</TableHead>
-                        <TableHead>Vencimiento</TableHead>
-                        <TableHead>Justificante</TableHead>
-                        <TableHead>Estado</TableHead>
-                        {isAdmin && <TableHead>Acciones</TableHead>}
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {filteredPayments.map((payment) => {
-                        const daysOverdue = calculateDaysOverdue(payment.mes);
-                        const isOverdue = payment.estado !== "Pagado" && daysOverdue > 0;
-                        
-                        return (
-                          <TableRow key={payment.id} className={`hover:bg-slate-50 ${isOverdue ? 'bg-red-50' : ''}`}>
-                            <TableCell className="font-medium">
-                              {payment.jugador_nombre}
-                              {isOverdue && (
-                                <Badge className="ml-2 bg-red-500 text-white text-xs">
-                                  Vencido {daysOverdue}d
-                                </Badge>
-                              )}
-                            </TableCell>
-                            <TableCell>{payment.mes}</TableCell>
-                            <TableCell className="font-medium text-slate-700">
-                              {payment.temporada}
-                            </TableCell>
-                            <TableCell className="font-bold text-slate-900">
-                              {payment.cantidad}€
-                            </TableCell>
-                            <TableCell className="text-sm text-slate-600">
-                              {payment.mes === "Junio" && "30 de junio"}
-                              {payment.mes === "Septiembre" && "15 de sept"}
-                              {payment.mes === "Diciembre" && "15 de dic"}
-                            </TableCell>
-                            <TableCell>
-                              {payment.justificante_url ? (
-                                <div className="flex items-center gap-2">
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={() => setPreviewImage(payment.justificante_url)}
-                                    className="text-orange-600 hover:text-orange-700 p-0 h-auto"
-                                  >
-                                    <FileText className="w-4 h-4 mr-1" />
-                                    <span className="text-xs">Ver</span>
-                                  </Button>
+              ) : (() => {
+                // Filtrar jugadores por búsqueda
+                const filteredPlayers = players.filter(player =>
+                  player.nombre?.toLowerCase().includes(searchTerm.toLowerCase())
+                );
+
+                if (filteredPlayers.length === 0) {
+                  return (
+                    <div className="text-center py-12">
+                      <p className="text-slate-500">No se encontraron jugadores</p>
+                    </div>
+                  );
+                }
+
+                return (
+                  <div className="space-y-4">
+                    {filteredPlayers.map(player => {
+                      const playerPayments = payments.filter(p => p.jugador_id === player.id && p.temporada === temporadaFilter);
+                      const pendingPayments = playerPayments.filter(p => p.estado === "Pendiente");
+                      const reviewPayments = playerPayments.filter(p => p.estado === "En revisión");
+                      const paidPayments = playerPayments.filter(p => p.estado === "Pagado");
+                      const totalPending = pendingPayments.reduce((sum, p) => sum + (p.cantidad || 0), 0);
+
+                      return (
+                        <Card key={player.id} className="border hover:shadow-lg transition-shadow">
+                          <CardHeader className="bg-gradient-to-r from-slate-50 to-slate-100 border-b p-3 lg:p-4">
+                            <div className="flex items-center justify-between gap-2">
+                              <div className="flex items-center gap-2 min-w-0">
+                                {player.foto_url ? (
+                                  <img src={player.foto_url} className="w-8 h-8 lg:w-10 lg:h-10 rounded-full object-cover flex-shrink-0" alt="" />
+                                ) : (
+                                  <div className="w-8 h-8 lg:w-10 lg:h-10 rounded-full bg-orange-500 flex items-center justify-center text-white font-bold text-xs lg:text-sm flex-shrink-0">
+                                    {player.nombre.charAt(0)}
+                                  </div>
+                                )}
+                                <div className="min-w-0">
+                                  <h3 className="font-bold text-sm lg:text-base text-slate-900 truncate">{player.nombre}</h3>
+                                  <p className="text-xs text-slate-600 truncate">{player.deporte || "Sin categoría"}</p>
                                 </div>
-                              ) : payment.estado === "Pagado" ? (
-                                <span className="text-xs text-slate-400">-</span>
-                              ) : (
-                                <>
-                                  <input
-                                    type="file"
-                                    accept="image/*,.pdf"
-                                    onChange={(e) => handleFileUpload(payment.id, e)}
-                                    className="hidden"
-                                    id={`upload-${payment.id}`}
-                                    disabled={uploadingPaymentId === payment.id}
-                                  />
-                                  <label htmlFor={`upload-${payment.id}`}>
-                                    <Button
-                                      variant="outline"
-                                      size="sm"
-                                      disabled={uploadingPaymentId === payment.id}
-                                      onClick={() => document.getElementById(`upload-${payment.id}`).click()}
-                                      className="text-xs"
-                                    >
-                                      {uploadingPaymentId === payment.id ? (
-                                        <>
-                                          <Loader2 className="w-3 h-3 mr-1 animate-spin" />
-                                          Subiendo...
-                                        </>
-                                      ) : (
-                                        <>
-                                          <Upload className="w-3 h-3 mr-1" />
-                                          Subir
-                                        </>
-                                      )}
-                                    </Button>
-                                  </label>
-                                </>
-                              )}
-                            </TableCell>
-                            <TableCell>
-                              <Badge className={
-                                payment.estado === "Pagado"
-                                  ? "bg-green-100 text-green-700"
-                                  : payment.estado === "En revisión"
-                                  ? "bg-orange-100 text-orange-700"
-                                  : "bg-red-100 text-red-700"
-                              }>
-                                <span className="mr-1">{statusEmojis[payment.estado]}</span>
-                                {payment.estado}
-                              </Badge>
-                            </TableCell>
-                            {isAdmin && (
-                              <TableCell>
-                                <div className="flex gap-2">
-                                  {payment.estado !== "Pagado" && (
-                                    <Button
-                                      size="sm"
-                                      onClick={() => handleStatusChange(payment, "Pagado")}
-                                      className="bg-green-600 hover:bg-green-700 text-xs"
-                                    >
-                                      ✓ Pagado
-                                    </Button>
-                                  )}
-                                </div>
-                              </TableCell>
+                              </div>
+                              <div className="flex gap-2">
+                                {pendingPayments.length > 0 && (
+                                  <Badge className="bg-red-500 text-white text-xs">
+                                    {pendingPayments.length} Pendiente
+                                  </Badge>
+                                )}
+                                {reviewPayments.length > 0 && (
+                                  <Badge className="bg-orange-500 text-white text-xs">
+                                    {reviewPayments.length} Revisión
+                                  </Badge>
+                                )}
+                              </div>
+                            </div>
+                          </CardHeader>
+                          <CardContent className="p-3 lg:p-4">
+                            <div className="grid grid-cols-3 gap-2 mb-3">
+                              <div className="bg-red-50 rounded p-2 border border-red-200">
+                                <p className="text-[10px] lg:text-xs text-red-700">Pendiente</p>
+                                <p className="text-lg lg:text-xl font-bold text-red-600">{totalPending.toFixed(0)}€</p>
+                              </div>
+                              <div className="bg-orange-50 rounded p-2 border border-orange-200">
+                                <p className="text-[10px] lg:text-xs text-orange-700">Revisión</p>
+                                <p className="text-lg lg:text-xl font-bold text-orange-600">{reviewPayments.length}</p>
+                              </div>
+                              <div className="bg-green-50 rounded p-2 border border-green-200">
+                                <p className="text-[10px] lg:text-xs text-green-700">Pagados</p>
+                                <p className="text-lg lg:text-xl font-bold text-green-600">{paidPayments.length}</p>
+                              </div>
+                            </div>
+
+                            {playerPayments.length === 0 ? (
+                              <div className="text-center py-4 text-slate-500 text-sm">
+                                Sin pagos registrados para {temporadaFilter}
+                              </div>
+                            ) : (
+                              <div className="space-y-1.5">
+                                {playerPayments.map(payment => {
+                                  const daysOverdue = calculateDaysOverdue(payment.mes);
+                                  const isOverdue = payment.estado !== "Pagado" && daysOverdue > 0;
+
+                                  return (
+                                    <div key={payment.id} className="flex items-center justify-between p-2 bg-slate-50 rounded hover:bg-slate-100 transition-colors gap-2">
+                                      <div className="flex items-center gap-2 min-w-0 flex-1">
+                                        <Badge className={
+                                          payment.estado === "Pagado" ? "bg-green-100 text-green-700 text-[10px] lg:text-xs" :
+                                          payment.estado === "En revisión" ? "bg-orange-100 text-orange-700 text-[10px] lg:text-xs" :
+                                          "bg-red-100 text-red-700 text-[10px] lg:text-xs"
+                                        }>
+                                          {statusEmojis[payment.estado]}
+                                        </Badge>
+                                        <div className="min-w-0 flex-1">
+                                          <p className="text-xs lg:text-sm font-medium text-slate-900">
+                                            {payment.mes}
+                                            {isOverdue && (
+                                              <span className="ml-2 text-red-600 text-[10px]">
+                                                (Vencido {daysOverdue}d)
+                                              </span>
+                                            )}
+                                          </p>
+                                          <p className="text-[10px] lg:text-xs text-slate-600">
+                                            {payment.cantidad}€
+                                          </p>
+                                        </div>
+                                      </div>
+                                      <div className="flex gap-1">
+                                        {payment.justificante_url ? (
+                                          <span className="text-green-600 text-xs lg:text-sm">✅</span>
+                                        ) : payment.estado === "Pendiente" && (
+                                          <span className="text-red-600 text-xs lg:text-sm">❌</span>
+                                        )}
+                                        {isAdmin && payment.estado !== "Pagado" && (
+                                          <Button
+                                            size="sm"
+                                            onClick={() => handleStatusChange(payment, "Pagado")}
+                                            className="bg-green-600 hover:bg-green-700 text-[10px] lg:text-xs h-6 px-2"
+                                          >
+                                            ✓
+                                          </Button>
+                                        )}
+                                      </div>
+                                    </div>
+                                  );
+                                })}
+                              </div>
                             )}
-                          </TableRow>
-                        );
-                      })}
-                    </TableBody>
-                  </Table>
-                </div>
-              )}
+                          </CardContent>
+                        </Card>
+                      );
+                    })}
+                  </div>
+                );
+              })()}
             </CardContent>
           </Card>
         </TabsContent>
