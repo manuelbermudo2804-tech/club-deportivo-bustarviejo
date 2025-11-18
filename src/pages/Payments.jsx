@@ -130,17 +130,22 @@ export default function Payments() {
     initialData: [],
   });
 
-  const { data: payments, isLoading } = useQuery({
+  const { data: payments = [], isLoading } = useQuery({
     queryKey: ['myPayments'],
     queryFn: async () => {
-      const allPayments = await base44.entities.Payment.list('-created_date');
-      if (isAdmin) {
-        return allPayments;
-      } else if (isCoach) {
-        const playerIds = players.map(p => p.id);
-        return allPayments.filter(payment => playerIds.includes(payment.jugador_id));
+      try {
+        const allPayments = await base44.entities.Payment.list('-created_date');
+        if (isAdmin) {
+          return allPayments || [];
+        } else if (isCoach) {
+          const playerIds = players.map(p => p.id);
+          return allPayments.filter(payment => playerIds.includes(payment.jugador_id)) || [];
+        }
+        return [];
+      } catch (error) {
+        console.error("Error loading payments:", error);
+        return [];
       }
-      return [];
     },
     enabled: players.length > 0,
     initialData: [],
@@ -664,7 +669,7 @@ Email: cdbustarviejo@gmail.com
                       
                       // Si el jugador paga en 3 meses y tiene algún pago, mostrar los 3 meses
                       let allMonths = ["Junio", "Septiembre", "Diciembre"];
-                      if (player?.tipo_pago === "Único") {
+                      if (player.tipo_pago === "Único") {
                         allMonths = ["Junio"];
                       }
                       
@@ -786,10 +791,10 @@ Email: cdbustarviejo@gmail.com
                                            variant="ghost"
                                            size="sm"
                                            onClick={() => setPreviewImage(payment.justificante_url)}
-                                           className="text-orange-600 hover:text-orange-700 p-1 h-6"
+                                           className="text-orange-600 hover:text-orange-700 p-2 h-8"
                                            title="Ver justificante"
                                          >
-                                           <FileText className="w-3 h-3 lg:w-4 lg:h-4" />
+                                           <FileText className="w-5 h-5 lg:w-6 lg:h-6" />
                                          </Button>
                                        ) : (payment.estado === "Pendiente" || payment.isVirtual) && (
                                          <span className="text-red-600 text-xs lg:text-sm">❌</span>
