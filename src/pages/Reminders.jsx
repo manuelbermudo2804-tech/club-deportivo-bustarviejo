@@ -674,175 +674,166 @@ Temporada ${reminder.temporada}
 
       <Card className="border-none shadow-lg bg-white">
         <CardHeader className="border-b border-slate-100">
-          <CardTitle className="text-xl">Todos los Recordatorios</CardTitle>
+          <CardTitle className="text-xl">Pagos Agrupados por Jugador</CardTitle>
         </CardHeader>
-        <CardContent className="p-0">
+        <CardContent className="p-6">
           {isLoading ? (
-            <div className="p-6 space-y-3">
+            <div className="space-y-3">
               {[...Array(5)].map((_, i) => (
-                <Skeleton key={i} className="h-16 w-full" />
+                <Skeleton key={i} className="h-32 w-full" />
               ))}
             </div>
-          ) : reminders.length === 0 ? (
+          ) : payments.length === 0 ? (
             <div className="text-center py-12">
               <Bell className="w-16 h-16 text-slate-300 mx-auto mb-4" />
-              <p className="text-slate-500 text-lg mb-2">No hay recordatorios registrados</p>
-              <p className="text-slate-400 text-sm mb-4">Haz clic en "Generar Automáticos" para crearlos</p>
-              <Button onClick={generateStaggeredReminders} disabled={isGenerating}>
-                <Zap className="w-4 h-4 mr-2" />
-                Generar Recordatorios
-              </Button>
+              <p className="text-slate-500 text-lg mb-2">No hay pagos registrados</p>
             </div>
-          ) : (
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Jugador</TableHead>
-                    <TableHead>Tipo</TableHead>
-                    <TableHead>Período</TableHead>
-                    <TableHead>Fecha Envío</TableHead>
-                    <TableHead>Email</TableHead>
-                    <TableHead>Justificante</TableHead>
-                    <TableHead>Estado Pago</TableHead>
-                    <TableHead>Email</TableHead>
-                    <TableHead>Chat</TableHead>
-                    <TableHead className="text-right">Acciones</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {reminders.map((reminder) => {
-                    const payment = payments.find(p => p.id === reminder.pago_id);
-                    const isPaid = payment?.estado === "Pagado";
-                    const hasJustificante = payment?.justificante_url;
+          ) : (() => {
+            // Agrupar pagos por jugador
+            const paymentsByPlayer = {};
+            payments.forEach(payment => {
+              if (!paymentsByPlayer[payment.jugador_id]) {
+                paymentsByPlayer[payment.jugador_id] = {
+                  jugador_id: payment.jugador_id,
+                  jugador_nombre: payment.jugador_nombre,
+                  pagos: []
+                };
+              }
+              paymentsByPlayer[payment.jugador_id].pagos.push(payment);
+            });
 
-                    return (
-                      <TableRow key={reminder.id} className={`hover:bg-slate-50 ${isPaid ? 'opacity-60' : ''}`}>
-                        <TableCell className="font-medium">{reminder.jugador_nombre}</TableCell>
-                        <TableCell>
-                          <Badge className={typeColors[reminder.tipo_recordatorio]}>
-                            {reminder.tipo_recordatorio}
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="text-sm">
-                          {reminder.mes_pago} - {reminder.cantidad}€
-                        </TableCell>
-                        <TableCell className="text-sm">
-                          {format(new Date(reminder.fecha_envio + 'T00:00:00'), 'dd MMM', { locale: es })}
-                        </TableCell>
-                        <TableCell>
-                          {reminder.email_padre ? (
-                            <div className="flex items-center gap-1 text-xs text-slate-600">
-                              <Mail className="w-3 h-3" />
-                              <span className="truncate max-w-[120px]">{reminder.email_padre}</span>
+            // Filtrar solo jugadores con pagos pendientes o en revisión
+            const playersWithPendingPayments = Object.values(paymentsByPlayer).filter(playerData => 
+              playerData.pagos.some(p => p.estado !== "Pagado")
+            );
+
+            if (playersWithPendingPayments.length === 0) {
+              return (
+                <div className="text-center py-12">
+                  <CheckCircle2 className="w-16 h-16 text-green-500 mx-auto mb-4" />
+                  <p className="text-slate-500 text-lg mb-2">¡Todos los pagos están al día!</p>
+                  <p className="text-slate-400 text-sm">No hay pagos pendientes ni en revisión</p>
+                </div>
+              );
+            }
+
+            return (
+              <div className="space-y-4">
+                {playersWithPendingPayments.map(playerData => {
+                  const player = players.find(p => p.id === playerData.jugador_id);
+                  const pendingPayments = playerData.pagos.filter(p => p.estado === "Pendiente");
+                  const reviewPayments = playerData.pagos.filter(p => p.estado === "En revisión");
+                  const paidPayments = playerData.pagos.filter(p => p.estado === "Pagado");
+                  const totalPending = pendingPayments.reduce((sum, p) => sum + (p.cantidad || 0), 0);
+
+                  return (
+                    <Card key={playerData.jugador_id} className="border-2 hover:shadow-lg transition-shadow">
+                      <CardHeader className="bg-gradient-to-r from-slate-50 to-slate-100 border-b">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                            {player?.foto_url ? (
+                              <img src={player.foto_url} className="w-12 h-12 rounded-full object-cover" alt="" />
+                            ) : (
+                              <div className="w-12 h-12 rounded-full bg-orange-500 flex items-center justify-center text-white font-bold">
+                                {playerData.jugador_nombre.charAt(0)}
+                              </div>
+                            )}
+                            <div>
+                              <h3 className="font-bold text-lg text-slate-900">{playerData.jugador_nombre}</h3>
+                              <p className="text-sm text-slate-600">{player?.deporte || "Sin categoría"}</p>
                             </div>
-                          ) : (
-                            <span className="text-xs text-slate-400">Sin email</span>
-                          )}
-                        </TableCell>
-                        <TableCell>
-                          {hasJustificante ? (
-                            <Badge className="bg-blue-100 text-blue-700 text-xs">
-                              ✅ Subido
-                            </Badge>
-                          ) : (
-                            <Badge className="bg-red-100 text-red-700 text-xs">
-                              ❌ Sin subir
-                            </Badge>
-                          )}
-                        </TableCell>
-                        <TableCell>
-                          {payment ? (
-                            <Badge className={
-                              payment.estado === "Pagado" ? "bg-green-100 text-green-700" :
-                              payment.estado === "En revisión" ? "bg-orange-100 text-orange-700" :
-                              "bg-red-100 text-red-700"
-                            }>
-                              <span className="mr-1">{statusEmojis[payment.estado]}</span>
-                              {payment.estado}
-                            </Badge>
-                          ) : (
-                            <Badge className="bg-red-100 text-red-700">
-                              <span className="mr-1">🔴</span>
-                              Pendiente
-                            </Badge>
-                          )}
-                        </TableCell>
-                        <TableCell>
-                          {reminder.enviado ? (
-                            <Badge className="bg-green-100 text-green-700 text-xs">
-                              <CheckCircle2 className="w-3 h-3 mr-1" />
-                              Enviado
-                            </Badge>
-                          ) : (
-                            <Badge className="bg-slate-100 text-slate-700 text-xs">
-                              Pendiente
-                            </Badge>
-                          )}
-                        </TableCell>
-                        <TableCell>
-                          {reminder.enviado_chat ? (
-                            <Badge className="bg-blue-100 text-blue-700 text-xs">
-                              <MessageCircle className="w-3 h-3 mr-1" />
-                              Enviado
-                            </Badge>
-                          ) : ["7 días antes", "3 días antes", "1 día después"].includes(reminder.tipo_recordatorio) ? (
-                            <Badge className="bg-slate-100 text-slate-700 text-xs">
-                              Pendiente
-                            </Badge>
-                          ) : (
-                            <span className="text-xs text-slate-400">-</span>
-                          )}
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <div className="flex gap-1 justify-end">
-                            {!isPaid && (
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => {
-                                  setSelectedReminder(payment);
-                                  setSelectedPlayer(players.find(p => p.id === reminder.jugador_id));
-                                }}
-                                title="Enviar recordatorio personalizado"
-                              >
-                                <User className="w-4 h-4 text-purple-600" />
-                              </Button>
-                            )}
-                            {!reminder.enviado && !isPaid && reminder.email_padre && (
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => sendReminderEmail(reminder)}
-                                disabled={sendingReminder === reminder.id}
-                                title="Enviar email con datos bancarios"
-                              >
-                                {sendingReminder === reminder.id ? (
-                                  <Loader2 className="w-4 h-4 animate-spin" />
-                                ) : (
-                                  <Mail className="w-4 h-4 text-orange-600" />
-                                )}
-                              </Button>
-                            )}
-                            {!reminder.enviado_chat && !isPaid && ["7 días antes", "3 días antes", "1 día después"].includes(reminder.tipo_recordatorio) && (
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => sendChatReminder(reminder)}
-                                title="Enviar al chat del grupo"
-                              >
-                                <MessageCircle className="w-4 h-4 text-blue-600" />
-                              </Button>
-                            )}
                           </div>
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })}
-                </TableBody>
-              </Table>
-            </div>
-          )}
+                          <Button
+                            onClick={() => {
+                              // Seleccionar el primer pago pendiente o en revisión
+                              const targetPayment = pendingPayments[0] || reviewPayments[0];
+                              if (targetPayment) {
+                                setSelectedReminder(targetPayment);
+                                setSelectedPlayer(player);
+                              }
+                            }}
+                            className="bg-purple-600 hover:bg-purple-700"
+                          >
+                            <Send className="w-4 h-4 mr-2" />
+                            Enviar Recordatorio
+                          </Button>
+                        </div>
+                      </CardHeader>
+                      <CardContent className="pt-4">
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4">
+                          <div className="bg-red-50 rounded-lg p-3 border border-red-200">
+                            <p className="text-xs text-red-700 mb-1">Pendientes</p>
+                            <p className="text-2xl font-bold text-red-600">{pendingPayments.length}</p>
+                            <p className="text-xs text-red-600">{totalPending.toFixed(0)}€</p>
+                          </div>
+                          <div className="bg-orange-50 rounded-lg p-3 border border-orange-200">
+                            <p className="text-xs text-orange-700 mb-1">En Revisión</p>
+                            <p className="text-2xl font-bold text-orange-600">{reviewPayments.length}</p>
+                          </div>
+                          <div className="bg-green-50 rounded-lg p-3 border border-green-200">
+                            <p className="text-xs text-green-700 mb-1">Pagados</p>
+                            <p className="text-2xl font-bold text-green-600">{paidPayments.length}</p>
+                          </div>
+                        </div>
+
+                        <div className="space-y-2">
+                          {playerData.pagos.map(pago => {
+                            const playerReminders = reminders.filter(r => r.pago_id === pago.id);
+                            const hasReminders = playerReminders.length > 0;
+                            const sentReminders = playerReminders.filter(r => r.enviado).length;
+
+                            return (
+                              <div key={pago.id} className="flex items-center justify-between p-3 bg-slate-50 rounded-lg hover:bg-slate-100 transition-colors">
+                                <div className="flex items-center gap-3 flex-1">
+                                  <Badge className={
+                                    pago.estado === "Pagado" ? "bg-green-100 text-green-700" :
+                                    pago.estado === "En revisión" ? "bg-orange-100 text-orange-700" :
+                                    "bg-red-100 text-red-700"
+                                  }>
+                                    {statusEmojis[pago.estado]} {pago.estado}
+                                  </Badge>
+                                  <div>
+                                    <p className="font-medium text-slate-900">{pago.mes} - {pago.temporada}</p>
+                                    <p className="text-sm text-slate-600">
+                                      {pago.cantidad}€ • Vence: 30 de {pago.mes}
+                                      {hasReminders && (
+                                        <span className="ml-2 text-blue-600">
+                                          • {sentReminders}/{playerReminders.length} recordatorios enviados
+                                        </span>
+                                      )}
+                                    </p>
+                                  </div>
+                                </div>
+                                <div className="flex gap-2">
+                                  {pago.justificante_url ? (
+                                    <Badge className="bg-blue-100 text-blue-700">
+                                      ✅ Con justificante
+                                    </Badge>
+                                  ) : pago.estado === "Pendiente" && (
+                                    <Badge className="bg-red-100 text-red-700">
+                                      ❌ Sin justificante
+                                    </Badge>
+                                  )}
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+
+                        {player?.email_padre && (
+                          <div className="mt-3 pt-3 border-t text-xs text-slate-600">
+                            <p>📧 {player.email_padre}</p>
+                            {player.email_tutor_2 && <p>📧 {player.email_tutor_2}</p>}
+                            {player.telefono && <p>📱 {player.telefono}</p>}
+                          </div>
+                        )}
+                      </CardContent>
+                    </Card>
+                  );
+                })}
+              </div>
+            );
+          })()}
         </CardContent>
       </Card>
     </div>
