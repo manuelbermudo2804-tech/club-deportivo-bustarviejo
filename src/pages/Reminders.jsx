@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Bell, Send, CheckCircle2, Calendar, Mail, Loader2, RefreshCw, AlertCircle, MessageCircle, Zap, FileDown, User } from "lucide-react";
+import { Bell, Send, CheckCircle2, Calendar, Mail, Loader2, RefreshCw, AlertCircle, MessageCircle, Zap, FileDown, User, Plus } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
 import { format, addDays, subDays } from "date-fns";
@@ -119,13 +119,19 @@ Gracias por su atención.
       if (sms) {
         const smsMessage = `CD Bustarviejo: Recordatorio de pago ${payment.mes} para ${player.nombre}. Importe: ${payment.cantidad}€. Por favor, realiza el pago y sube el justificante en la app.`;
         
+        const phoneNumbers = [];
         if (player.telefono) {
-          // Aquí simularíamos el envío de SMS
+          phoneNumbers.push(player.telefono);
           console.log('SMS enviado a:', player.telefono, smsMessage);
-          sentMethods.push('SMS');
         }
         if (player.telefono_tutor_2) {
+          phoneNumbers.push(player.telefono_tutor_2);
           console.log('SMS enviado a:', player.telefono_tutor_2, smsMessage);
+        }
+        
+        if (phoneNumbers.length > 0) {
+          sentMethods.push(`SMS (${phoneNumbers.join(', ')})`);
+          // Nota: Sistema de SMS simulado - en producción integrar con proveedor SMS
         }
       }
       
@@ -204,6 +210,61 @@ Gracias por su atención.
   };
 
   // Generar recordatorios escalonados automáticamente
+  const generatePaymentsForSeason = async () => {
+    setIsGenerating(true);
+    
+    try {
+      const currentSeason = getCurrentSeason();
+      const activePlayers = players.filter(p => p.activo !== false);
+      let created = 0;
+      
+      const months = ["Junio", "Septiembre", "Diciembre"];
+      
+      for (const player of activePlayers) {
+        for (const mes of months) {
+          // Verificar si ya existe este pago
+          const existingPayment = payments.find(p => 
+            p.jugador_id === player.id && 
+            p.mes === mes && 
+            p.temporada === currentSeason
+          );
+          
+          if (!existingPayment) {
+            // Determinar cantidad según deporte
+            let cantidad = 0;
+            if (player.deporte && player.deporte.includes("Fútbol")) {
+              cantidad = player.tipo_pago === "Único" ? 130 : 45;
+            } else if (player.deporte && player.deporte.includes("Baloncesto")) {
+              cantidad = player.tipo_pago === "Único" ? 115 : 40;
+            } else {
+              cantidad = 45; // Default
+            }
+            
+            await base44.entities.Payment.create({
+              jugador_id: player.id,
+              jugador_nombre: player.nombre,
+              tipo_pago: player.tipo_pago || "Tres meses",
+              mes: mes,
+              temporada: currentSeason,
+              cantidad: cantidad,
+              estado: "Pendiente",
+              metodo_pago: "Transferencia"
+            });
+            created++;
+          }
+        }
+      }
+      
+      await queryClient.invalidateQueries({ queryKey: ['payments'] });
+      toast.success(`✅ ${created} pagos generados para la temporada ${currentSeason}`);
+    } catch (error) {
+      console.error("Error generating payments:", error);
+      toast.error("Error al generar pagos");
+    }
+    
+    setIsGenerating(false);
+  };
+
   const generateStaggeredReminders = async () => {
     setIsGenerating(true);
     
@@ -560,12 +621,20 @@ Temporada ${reminder.temporada}
             Actualizar
           </Button>
           <Button
+            onClick={generatePaymentsForSeason}
+            disabled={isGenerating}
+            className="bg-blue-600 hover:bg-blue-700 shadow-lg"
+          >
+            <Plus className={`w-5 h-5 mr-2 ${isGenerating ? 'animate-spin' : ''}`} />
+            Generar Pagos Temporada
+          </Button>
+          <Button
             onClick={generateStaggeredReminders}
             disabled={isGenerating}
             className="bg-green-600 hover:bg-green-700 shadow-lg"
           >
             <Zap className={`w-5 h-5 mr-2 ${isGenerating ? 'animate-spin' : ''}`} />
-            Generar Automáticos
+            Generar Recordatorios
           </Button>
           <Button
             onClick={sendTodayReminders}
@@ -652,10 +721,11 @@ Temporada ${reminder.temporada}
           <div className="bg-gradient-to-r from-orange-50 to-orange-100 rounded-lg p-4 border-2 border-orange-300">
             <p className="font-bold text-orange-900 mb-2">💡 Cómo Funciona:</p>
             <ol className="list-decimal list-inside space-y-1 text-sm text-orange-800">
-              <li>Haz clic en "Generar Automáticos" para crear todos los recordatorios</li>
-              <li>El sistema programa 4 recordatorios por cada pago pendiente</li>
+              <li>Haz clic en "Generar Pagos Temporada" para crear los pagos de Junio, Septiembre y Diciembre para todos los jugadores activos</li>
+              <li>Haz clic en "Generar Recordatorios" para crear los recordatorios automáticos de cada pago pendiente</li>
+              <li>El sistema programa 4 recordatorios por cada pago: 15, 7, 3 días antes y 1 día después del vencimiento</li>
               <li>Los recordatorios se envían automáticamente en sus fechas programadas</li>
-              <li>También puedes enviar recordatorios manuales desde la tabla</li>
+              <li>También puedes enviar recordatorios individuales con Email, SMS o Chat desde cada jugador</li>
               <li>Todos los emails incluyen IBAN, concepto de pago e instrucciones</li>
             </ol>
           </div>
