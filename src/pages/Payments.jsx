@@ -224,30 +224,51 @@ export default function Payments() {
     
     await updatePaymentMutation.mutateAsync({ id: payment.id, paymentData: updatedData });
     
-    // Enviar email de confirmación al padre
+    // Enviar email de confirmación a los padres
     if (newStatus === "Pagado") {
       try {
         const player = players.find(p => p.id === payment.jugador_id);
+        
+        const confirmBody = `
+Estimados padres/tutores,
+
+Confirmamos que hemos recibido y verificado el pago de ${payment.jugador_nombre}.
+
+════════════════════════════════════════
+💰 DETALLES DEL PAGO
+════════════════════════════════════════
+Período: ${payment.mes}
+Temporada: ${payment.temporada}
+Cantidad: ${payment.cantidad}€
+Estado: Pagado ✅
+
+Gracias por su pago.
+
+Atentamente,
+
+CD Bustarviejo
+
+════════════════════════════════════════
+Datos de contacto:
+════════════════════════════════════════
+Email: cdbustarviejo@gmail.com
+        `;
+        
         if (player?.email_padre) {
           await base44.integrations.Core.SendEmail({
+            from_name: "CD Bustarviejo",
             to: player.email_padre,
-            subject: `✅ Pago Confirmado - ${payment.jugador_nombre}`,
-            body: `
-              <h2>Pago Confirmado</h2>
-              <p>Hola,</p>
-              <p>Te confirmamos que hemos recibido y verificado el pago de <strong>${payment.jugador_nombre}</strong>.</p>
-              <hr>
-              <p><strong>Detalles del pago:</strong></p>
-              <ul>
-                <li><strong>Periodo:</strong> ${payment.mes}</li>
-                <li><strong>Temporada:</strong> ${payment.temporada}</li>
-                <li><strong>Cantidad:</strong> ${payment.cantidad}€</li>
-                <li><strong>Estado:</strong> ✅ Pagado</li>
-              </ul>
-              <hr>
-              <p>Gracias por tu pago.</p>
-              <p><strong>CD Bustarviejo</strong></p>
-            `
+            subject: "Pago Confirmado - CD Bustarviejo",
+            body: confirmBody
+          });
+        }
+        
+        if (player?.email_tutor_2) {
+          await base44.integrations.Core.SendEmail({
+            from_name: "CD Bustarviejo",
+            to: player.email_tutor_2,
+            subject: "Pago Confirmado - CD Bustarviejo",
+            body: confirmBody
           });
         }
       } catch (error) {
