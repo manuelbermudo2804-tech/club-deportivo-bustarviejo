@@ -791,14 +791,17 @@ Temporada ${reminder.temporada}
                           </div>
                           <Button
                             onClick={() => {
-                              // Seleccionar el primer pago pendiente o en revisión
-                              const targetPayment = pendingPayments[0] || reviewPayments[0];
-                              if (targetPayment) {
+                              // Seleccionar el primer pago pendiente o en revisión, o cualquier pago
+                              const targetPayment = pendingPayments[0] || reviewPayments[0] || playerData.pagos[0];
+                              if (targetPayment && player) {
                                 setSelectedReminder(targetPayment);
                                 setSelectedPlayer(player);
+                              } else {
+                                toast.error("No se pudo cargar la información del jugador");
                               }
                             }}
                             className="bg-purple-600 hover:bg-purple-700"
+                            disabled={!player}
                           >
                             <Send className="w-4 h-4 mr-2" />
                             Enviar Recordatorio
