@@ -58,7 +58,8 @@ export default function ParentPlayers() {
       
       try {
         await base44.integrations.Core.SendEmail({
-          to: "CDBUSTARVIEJO@GMAIL.COM",
+          from_name: "CD Bustarviejo - Sistema de Inscripciones",
+          to: "cdbustarviejo@gmail.com",
           subject: `Nueva Inscripción de Jugador - ${playerData.nombre}`,
           body: `
             <h2>Nueva Inscripción Recibida</h2>

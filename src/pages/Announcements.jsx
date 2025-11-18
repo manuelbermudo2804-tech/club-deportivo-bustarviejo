@@ -117,15 +117,18 @@ export default function Announcements() {
       let recipients = [];
       
       if (data.destinatarios_tipo === "Todos") {
-        recipients = players.map(p => p.email_padre || p.email).filter(Boolean);
+        players.forEach(p => {
+          if (p.email_padre) recipients.push(p.email_padre);
+          if (p.email_tutor_2) recipients.push(p.email_tutor_2);
+        });
       } else {
-        recipients = players
-          .filter(p => p.deporte === data.destinatarios_tipo)
-          .map(p => p.email_padre || p.email)
-          .filter(Boolean);
+        players.filter(p => p.deporte === data.destinatarios_tipo).forEach(p => {
+          if (p.email_padre) recipients.push(p.email_padre);
+          if (p.email_tutor_2) recipients.push(p.email_tutor_2);
+        });
       }
 
-      recipients = [...new Set(recipients)];
+      recipients = [...new Set(recipients)].filter(Boolean);
 
       if (recipients.length === 0) {
         toast.warning("No hay destinatarios con email para este anuncio");
@@ -138,12 +141,12 @@ export default function Announcements() {
       let errorCount = 0;
 
       const priorityEmoji = {
-        "Urgente": "🚨",
-        "Importante": "⚠️",
-        "Normal": "📢"
+        "Urgente": "URGENTE",
+        "Importante": "IMPORTANTE",
+        "Normal": "INFO"
       };
 
-      const subject = `${priorityEmoji[announcement.prioridad]} ${announcement.titulo} - CF Bustarviejo`;
+      const subject = `${priorityEmoji[announcement.prioridad]} - ${announcement.titulo} - CD Bustarviejo`;
 
       const body = `
 Estimadas familias,
@@ -169,21 +172,20 @@ Para más información, acceda a la aplicación del club.
 
 Atentamente,
 
-Club de Fútbol Bustarviejo
+CD Bustarviejo
 Equipo de Administración
 
 ════════════════════════════════════════
 Datos de contacto:
 ════════════════════════════════════════
-Email: C.D.BUSTARVIEJO@HOTMAIL.ES
-Email alternativo: CDBUSTARVIEJO@GMAIL.COM
+Email: cdbustarviejo@gmail.com
 Ubicación: Bustarviejo, Madrid
-      `;
+            `;
 
       for (const email of recipients) {
         try {
           await base44.integrations.Core.SendEmail({
-            from_name: "CF Bustarviejo",
+            from_name: "CD Bustarviejo",
             to: email,
             subject: subject,
             body: body
@@ -229,13 +231,13 @@ Ubicación: Bustarviejo, Madrid
         return;
       }
 
-      const priorityEmoji = {
+      const chatEmoji = {
         "Urgente": "🚨",
         "Importante": "⚠️",
         "Normal": "📢"
       };
 
-      const mensaje = `${priorityEmoji[announcement.prioridad]} ANUNCIO ${announcement.prioridad.toUpperCase()}\n\n📌 ${announcement.titulo}\n\n${announcement.contenido}\n\n${announcement.fecha_expiracion ? `⏰ Válido hasta: ${new Date(announcement.fecha_expiracion).toLocaleDateString('es-ES', { day: 'numeric', month: 'long' })}` : ''}`;
+      const mensaje = `${chatEmoji[announcement.prioridad]} ANUNCIO ${announcement.prioridad.toUpperCase()}\n\n📌 ${announcement.titulo}\n\n${announcement.contenido}\n\n${announcement.fecha_expiracion ? `⏰ Válido hasta: ${new Date(announcement.fecha_expiracion).toLocaleDateString('es-ES', { day: 'numeric', month: 'long' })}` : ''}`;
 
       let sentCount = 0;
 

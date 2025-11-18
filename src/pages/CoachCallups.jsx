@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -150,17 +149,21 @@ export default function CoachCallups() {
 
   const sendCallupNotifications = async (callup) => {
     try {
-      // Send emails
-      const emailPromises = callup.jugadores_convocados.map(async (jugador) => {
-        if (!jugador.email_padre && !jugador.email_jugador) return;
+      // Send emails to parents AND second tutors
+      const emailPromises = callup.jugadores_convocados.flatMap(async (jugador) => {
+        const emails = [];
+        if (jugador.email_padre) emails.push(jugador.email_padre);
+        if (jugador.email_tutor_2) emails.push(jugador.email_tutor_2);
+        if (!jugador.email_padre && jugador.email_jugador) emails.push(jugador.email_jugador);
         
-        const email = jugador.email_padre || jugador.email_jugador;
+        if (emails.length === 0) return;
         
-        const subject = `🏆 Convocatoria: ${callup.titulo} - CF Bustarviejo`;
-        const body = `
-Hola ${jugador.jugador_nombre},
+        const sendToEmails = emails.map(async (email) => {
+          const subject = `Convocatoria: ${callup.titulo} - CD Bustarviejo`;
+          const body = `
+Hola,
 
-Has sido convocado para el siguiente evento:
+${jugador.jugador_nombre} ha sido convocado para el siguiente evento:
 
 ════════════════════════════════════════
 📋 CONVOCATORIA
@@ -194,22 +197,24 @@ ${callup.entrenador_nombre}
 ════════════════════════════════════════
 Datos de contacto:
 ════════════════════════════════════════
-Email: C.D.BUSTARVIEJO@HOTMAIL.ES
-Email alternativo: CDBUSTARVIEJO@GMAIL.COM
-        `;
+Email: cdbustarviejo@gmail.com
+          `;
+          
+          try {
+            await base44.integrations.Core.SendEmail({
+              from_name: `CD Bustarviejo - ${callup.entrenador_nombre}`,
+              to: email,
+              subject: subject,
+              body: body
+            });
+          } catch (error) {
+            console.error(`Error sending email to ${email}:`, error);
+          }
+          
+          await new Promise(resolve => setTimeout(resolve, 300));
+        });
         
-        try {
-          await base44.integrations.Core.SendEmail({
-            from_name: `CF Bustarviejo - ${callup.entrenador_nombre}`,
-            to: email,
-            subject: subject,
-            body: body
-          });
-        } catch (error) {
-          console.error(`Error sending email to ${email}:`, error);
-        }
-        
-        await new Promise(resolve => setTimeout(resolve, 300));
+        return Promise.all(sendToEmails);
       });
       
       await Promise.all(emailPromises);
