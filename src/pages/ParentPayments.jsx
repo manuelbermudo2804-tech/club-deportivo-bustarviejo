@@ -349,9 +349,20 @@ Email: cdbustarviejo@gmail.com
             )
             .map((player) => {
               const playerPayments = payments.filter(p => p.jugador_id === player.id);
-              const pendingPayments = playerPayments.filter(p => p.estado === "Pendiente");
-              const reviewPayments = playerPayments.filter(p => p.estado === "En revisión");
-              const paidPayments = playerPayments.filter(p => p.estado === "Pagado");
+              
+              // Si tiene pago único pagado o en revisión, solo mostrar Junio
+              const hasPagoUnico = playerPayments.some(p => 
+                (p.tipo_pago === "Único" || p.tipo_pago === "único") && 
+                (p.estado === "Pagado" || p.estado === "En revisión")
+              );
+              
+              const relevantPayments = hasPagoUnico 
+                ? playerPayments.filter(p => p.mes === "Junio")
+                : playerPayments;
+              
+              const pendingPayments = relevantPayments.filter(p => p.estado === "Pendiente");
+              const reviewPayments = relevantPayments.filter(p => p.estado === "En revisión");
+              const paidPayments = relevantPayments.filter(p => p.estado === "Pagado");
 
               return (
                 <Card key={player.id} className="border-none shadow-lg bg-white overflow-hidden">
@@ -371,7 +382,7 @@ Email: cdbustarviejo@gmail.com
                     </div>
                   </CardHeader>
                   <CardContent className="p-6">
-                    {playerPayments.length === 0 ? (
+                    {relevantPayments.length === 0 ? (
                       <div className="text-center py-8 text-slate-500">
                         <p>No hay pagos registrados para este jugador</p>
                         <Button
@@ -394,7 +405,7 @@ Email: cdbustarviejo@gmail.com
                       </div>
                     ) : (
                       <div className="space-y-3">
-                        {playerPayments.map((payment) => (
+                        {relevantPayments.map((payment) => (
                           <div key={payment.id} className={`border-l-4 p-3 rounded ${
                             payment.estado === "Pagado" ? "border-green-500 bg-green-50" :
                             payment.estado === "En revisión" ? "border-orange-500 bg-orange-50" :
