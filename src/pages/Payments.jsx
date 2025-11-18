@@ -667,11 +667,10 @@ Email: cdbustarviejo@gmail.com
                     {filteredPlayers.map(player => {
                       const playerPayments = payments.filter(p => p.jugador_id === player.id && p.temporada === temporadaFilter);
                       
-                      // Si el jugador paga en 3 meses y tiene algún pago, mostrar los 3 meses
-                      let allMonths = ["Junio", "Septiembre", "Diciembre"];
-                      if (player.tipo_pago === "Único") {
-                        allMonths = ["Junio"];
-                      }
+                      // Determinar meses según tipo de pago del jugador
+                      const allMonths = (player.tipo_pago === "Único" || player.tipo_pago === "único") 
+                        ? ["Junio"]
+                        : ["Junio", "Septiembre", "Diciembre"];
                       
                       // Crear pagos "virtuales" para los meses faltantes SOLO si hay al menos un pago real
                       const displayPayments = playerPayments.length > 0 
@@ -791,10 +790,10 @@ Email: cdbustarviejo@gmail.com
                                            variant="ghost"
                                            size="sm"
                                            onClick={() => setPreviewImage(payment.justificante_url)}
-                                           className="text-orange-600 hover:text-orange-700 p-2 h-8"
+                                           className="text-orange-600 hover:text-orange-700 p-1 h-6"
                                            title="Ver justificante"
                                          >
-                                           <FileText className="w-5 h-5 lg:w-6 lg:h-6" />
+                                           <FileText className="w-3 h-3 lg:w-4 lg:h-4" />
                                          </Button>
                                        ) : (payment.estado === "Pendiente" || payment.isVirtual) && (
                                          <span className="text-red-600 text-xs lg:text-sm">❌</span>
