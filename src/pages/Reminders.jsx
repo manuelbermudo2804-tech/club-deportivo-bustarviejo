@@ -897,9 +897,20 @@ Temporada ${reminder.temporada}
               <div className="space-y-4">
                 {allPlayersData.map(playerData => {
                   const player = players.find(p => p.id === playerData.jugador_id);
-                  const pendingPayments = playerData.pagos.filter(p => p.estado === "Pendiente");
-                  const reviewPayments = playerData.pagos.filter(p => p.estado === "En revisión");
-                  const paidPayments = playerData.pagos.filter(p => p.estado === "Pagado");
+
+                  // Si tiene pago único pagado, filtrar solo Junio
+                  const hasPagoUnico = playerData.pagos.some(p => 
+                    (p.tipo_pago === "Único" || p.tipo_pago === "único") && 
+                    (p.estado === "Pagado" || p.estado === "En revisión")
+                  );
+
+                  const relevantPayments = hasPagoUnico 
+                    ? playerData.pagos.filter(p => p.mes === "Junio")
+                    : playerData.pagos;
+
+                  const pendingPayments = relevantPayments.filter(p => p.estado === "Pendiente");
+                  const reviewPayments = relevantPayments.filter(p => p.estado === "En revisión");
+                  const paidPayments = relevantPayments.filter(p => p.estado === "Pagado");
                   const totalPending = pendingPayments.reduce((sum, p) => sum + (p.cantidad || 0), 0);
 
                   return (
@@ -956,7 +967,7 @@ Temporada ${reminder.temporada}
                         </div>
 
                         <div className="space-y-1.5">
-                          {playerData.pagos.map(pago => {
+                          {relevantPayments.map(pago => {
                             const playerReminders = reminders.filter(r => r.pago_id === pago.id);
                             const hasReminders = playerReminders.length > 0;
                             const sentReminders = playerReminders.filter(r => r.enviado).length;
