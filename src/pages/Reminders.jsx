@@ -536,27 +536,82 @@ Temporada ${reminder.temporada}
         currentSeason={getCurrentSeason()} 
       />
 
-      {/* Alerta de Información */}
-      <Alert className="bg-gradient-to-r from-blue-50 to-green-50 border-blue-300 border-2">
-        <AlertCircle className="h-5 w-5 text-blue-600" />
-        <AlertDescription className="text-slate-900">
-          <strong>💳 Recordatorios Mejorados con Datos Bancarios</strong>
-          <div className="mt-2 space-y-2 text-sm">
-            <div className="bg-white rounded-lg p-3 border border-blue-200">
-              <p className="font-bold text-blue-900 mb-2">✅ Cada recordatorio incluye automáticamente:</p>
-              <ul className="space-y-1">
-                <li>• IBAN del club: {CLUB_IBAN}</li>
-                <li>• Concepto único personalizado por jugador</li>
-                <li>• Importe exacto a pagar</li>
-                <li>• Instrucciones paso a paso</li>
-              </ul>
+      {/* Información del Sistema Automático */}
+      <Card className="border-2 border-blue-300 shadow-lg bg-gradient-to-br from-blue-50 to-blue-100">
+        <CardHeader className="border-b border-blue-200">
+          <CardTitle className="text-lg text-blue-900 flex items-center gap-2">
+            <Calendar className="w-5 h-5" />
+            📅 Calendario de Recordatorios Automáticos
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="pt-4 space-y-4">
+          <div className="bg-white rounded-lg p-4 border-2 border-blue-200">
+            <p className="font-bold text-blue-900 mb-3">📌 Fechas de Vencimiento por Periodo:</p>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm">
+              <div className="bg-blue-50 rounded p-3">
+                <p className="font-bold text-blue-800">Junio</p>
+                <p className="text-blue-600">Vence: 30 de Junio</p>
+              </div>
+              <div className="bg-blue-50 rounded p-3">
+                <p className="font-bold text-blue-800">Septiembre</p>
+                <p className="text-blue-600">Vence: 15 de Septiembre</p>
+              </div>
+              <div className="bg-blue-50 rounded p-3">
+                <p className="font-bold text-blue-800">Diciembre</p>
+                <p className="text-blue-600">Vence: 15 de Diciembre</p>
+              </div>
             </div>
-            <p className="text-xs text-slate-600 mt-2">
-              💡 Los emails están optimizados para evitar filtros de spam y facilitar el pago.
-            </p>
           </div>
-        </AlertDescription>
-      </Alert>
+
+          <div className="bg-white rounded-lg p-4 border-2 border-green-200">
+            <p className="font-bold text-green-900 mb-3">🔔 Recordatorios que se Generan Automáticamente:</p>
+            <div className="space-y-2 text-sm">
+              <div className="flex items-start gap-3 p-2 bg-blue-50 rounded">
+                <span className="text-lg">📅</span>
+                <div>
+                  <p className="font-semibold text-blue-900">15 días antes del vencimiento</p>
+                  <p className="text-blue-700">• Email automático con datos bancarios</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-3 p-2 bg-orange-50 rounded">
+                <span className="text-lg">⚠️</span>
+                <div>
+                  <p className="font-semibold text-orange-900">7 días antes del vencimiento</p>
+                  <p className="text-orange-700">• Email con datos bancarios</p>
+                  <p className="text-orange-700">• Mensaje al chat del grupo</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-3 p-2 bg-red-50 rounded">
+                <span className="text-lg">🔴</span>
+                <div>
+                  <p className="font-semibold text-red-900">3 días antes del vencimiento</p>
+                  <p className="text-red-700">• Email urgente con datos bancarios</p>
+                  <p className="text-red-700">• Mensaje urgente al chat del grupo</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-3 p-2 bg-purple-50 rounded">
+                <span className="text-lg">🚨</span>
+                <div>
+                  <p className="font-semibold text-purple-900">1 día después del vencimiento</p>
+                  <p className="text-purple-700">• Email de pago vencido</p>
+                  <p className="text-purple-700">• Mensaje al chat del grupo</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-gradient-to-r from-orange-50 to-orange-100 rounded-lg p-4 border-2 border-orange-300">
+            <p className="font-bold text-orange-900 mb-2">💡 Cómo Funciona:</p>
+            <ol className="list-decimal list-inside space-y-1 text-sm text-orange-800">
+              <li>Haz clic en "Generar Automáticos" para crear todos los recordatorios</li>
+              <li>El sistema programa 4 recordatorios por cada pago pendiente</li>
+              <li>Los recordatorios se envían automáticamente en sus fechas programadas</li>
+              <li>También puedes enviar recordatorios manuales desde la tabla</li>
+              <li>Todos los emails incluyen IBAN, concepto de pago e instrucciones</li>
+            </ol>
+          </div>
+        </CardContent>
+      </Card>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <Card className="border-none shadow-lg bg-white">
