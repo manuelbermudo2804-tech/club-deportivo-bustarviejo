@@ -216,7 +216,48 @@ Gracias por su atención.
     toast.success("📄 Reporte exportado correctamente");
   };
 
-  // Generar recordatorios escalonados automáticamente
+  // Corregir cantidades de pagos existentes
+  const fixPaymentAmounts = async () => {
+    setIsGenerating(true);
+    
+    try {
+      const currentSeason = getCurrentSeason();
+      let updated = 0;
+      
+      for (const payment of payments) {
+        if (payment.temporada === currentSeason && payment.estado !== "Pagado") {
+          const player = players.find(p => p.id === payment.jugador_id);
+          if (player) {
+            const correctAmount = getImportePorCategoriaYMes(player.deporte, payment.mes);
+            
+            if (correctAmount > 0 && payment.cantidad !== correctAmount) {
+              await base44.entities.Payment.update(payment.id, {
+                ...payment,
+                cantidad: correctAmount
+              });
+              updated++;
+            }
+          }
+        }
+      }
+      
+      await queryClient.invalidateQueries({ queryKey: ['payments'] });
+      await queryClient.invalidateQueries({ queryKey: ['reminders'] });
+      
+      if (updated > 0) {
+        toast.success(`✅ ${updated} cantidades corregidas`);
+      } else {
+        toast.info("✓ Todas las cantidades ya son correctas");
+      }
+    } catch (error) {
+      console.error("Error fixing amounts:", error);
+      toast.error("Error al corregir cantidades");
+    }
+    
+    setIsGenerating(false);
+  };
+
+  // Generar pagos para la temporada
   const generatePaymentsForSeason = async () => {
     setIsGenerating(true);
     
@@ -625,6 +666,15 @@ Temporada ${reminder.temporada}
             className="shadow-lg text-xs lg:text-sm"
           >
             <RefreshCw className={`w-4 h-4 lg:w-5 lg:h-5 ${isRefreshing ? 'animate-spin' : ''}`} />
+          </Button>
+          <Button
+            onClick={fixPaymentAmounts}
+            disabled={isGenerating}
+            size="sm"
+            className="bg-purple-600 hover:bg-purple-700 shadow-lg text-xs lg:text-sm"
+          >
+            <RefreshCw className={`w-4 h-4 lg:w-5 lg:h-5 lg:mr-2 ${isGenerating ? 'animate-spin' : ''}`} />
+            <span className="hidden lg:inline">Corregir Cantidades</span>
           </Button>
           <Button
             onClick={generatePaymentsForSeason}
