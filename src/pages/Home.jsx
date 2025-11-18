@@ -51,30 +51,40 @@ export default function Home() {
     queryKey: ['players'],
     queryFn: () => base44.entities.Player.list(),
     initialData: [],
+    staleTime: 30000,
+    refetchOnWindowFocus: false,
   });
 
   const { data: payments } = useQuery({
     queryKey: ['payments'],
     queryFn: () => base44.entities.Payment.list(),
     initialData: [],
+    staleTime: 30000,
+    refetchOnWindowFocus: false,
   });
 
   const { data: messages } = useQuery({
     queryKey: ['chatMessages'],
     queryFn: () => base44.entities.ChatMessage.list(),
     initialData: [],
+    staleTime: 30000,
+    refetchOnWindowFocus: false,
   });
 
   const { data: callups } = useQuery({
     queryKey: ['callups'],
     queryFn: () => base44.entities.Convocatoria.list(),
     initialData: [],
+    staleTime: 30000,
+    refetchOnWindowFocus: false,
   });
 
   const { data: surveys } = useQuery({
     queryKey: ['surveys'],
     queryFn: () => base44.entities.Survey.list('-created_date'),
     initialData: [],
+    staleTime: 30000,
+    refetchOnWindowFocus: false,
   });
 
   const myPlayers = user && isCoach && hasPlayers 
