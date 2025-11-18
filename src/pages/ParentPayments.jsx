@@ -277,7 +277,18 @@ Email: cdbustarviejo@gmail.com
           <p className="text-slate-600 mt-1">Gestiona tus cuotas y justificantes</p>
         </div>
         <Button
-          onClick={() => setShowForm(!showForm)}
+          onClick={() => {
+            setShowForm(!showForm);
+            if (!showForm) {
+              setTimeout(() => {
+                const formElement = document.querySelector('[data-payment-form]');
+                if (formElement) {
+                  formElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+              }, 100);
+            }
+          }}
+          type="button"
           className="bg-orange-600 hover:bg-orange-700 shadow-lg"
         >
           <Plus className="w-5 h-5 mr-2" />
@@ -325,17 +336,19 @@ Email: cdbustarviejo@gmail.com
       </div>
 
       {/* Payment Form */}
-      <AnimatePresence>
-        {showForm && (
-          <ParentPaymentForm
-            players={players}
-            payments={payments}
-            onSubmit={handleSubmitPayment}
-            onCancel={() => setShowForm(false)}
-            isSubmitting={createPaymentMutation.isPending}
-          />
-        )}
-      </AnimatePresence>
+      <div data-payment-form>
+        <AnimatePresence>
+          {showForm && (
+            <ParentPaymentForm
+              players={players}
+              payments={payments}
+              onSubmit={handleSubmitPayment}
+              onCancel={() => setShowForm(false)}
+              isSubmitting={createPaymentMutation.isPending}
+            />
+          )}
+        </AnimatePresence>
+      </div>
 
       {/* Payments by Player */}
       <div className="space-y-6">
@@ -407,10 +420,13 @@ Email: cdbustarviejo@gmail.com
                           onClick={() => {
                             setShowForm(true);
                             setTimeout(() => {
-                              const form = document.querySelector('form');
-                              if (form) form.scrollIntoView({ behavior: 'smooth' });
+                              const formElement = document.querySelector('[data-payment-form]');
+                              if (formElement) {
+                                formElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                              }
                             }, 100);
                           }}
+                          type="button"
                           variant="outline"
                           className="mt-4"
                         >
@@ -460,37 +476,35 @@ Email: cdbustarviejo@gmail.com
                                 ) : payment.estado === "Pagado" ? (
                                   <span className="text-xs text-slate-400">Sin justificante</span>
                                 ) : (
-                                 <>
-                                   <input
-                                     type="file"
-                                     accept="image/*,.pdf"
-                                     onChange={(e) => handleFileUpload(payment.id, e)}
-                                     className="hidden"
-                                     id={`upload-${payment.id}`}
-                                     disabled={uploadingPaymentId === payment.id}
-                                   />
-                                   <Button
-                                     variant="outline"
-                                     size="sm"
-                                     disabled={uploadingPaymentId === payment.id}
-                                     onClick={(e) => {
-                                       e.preventDefault();
-                                       document.getElementById(`upload-${payment.id}`).click();
-                                     }}
-                                   >
-                                     {uploadingPaymentId === payment.id ? (
-                                       <>
-                                         <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                                         Subiendo...
-                                       </>
-                                     ) : (
-                                       <>
-                                         <Upload className="w-4 h-4 mr-2" />
-                                         Subir Justificante
-                                       </>
-                                     )}
-                                   </Button>
-                                 </>
+                                  <>
+                                    <input
+                                      type="file"
+                                      accept="image/*,.pdf"
+                                      onChange={(e) => handleFileUpload(payment.id, e)}
+                                      className="hidden"
+                                      id={`upload-${payment.id}`}
+                                      disabled={uploadingPaymentId === payment.id}
+                                    />
+                                    <Button
+                                       variant="outline"
+                                       size="sm"
+                                       disabled={uploadingPaymentId === payment.id}
+                                       onClick={() => document.getElementById(`upload-${payment.id}`)?.click()}
+                                       type="button"
+                                     >
+                                        {uploadingPaymentId === payment.id ? (
+                                          <>
+                                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                            Subiendo...
+                                          </>
+                                        ) : (
+                                          <>
+                                            <Upload className="w-4 h-4 mr-2" />
+                                            Subir Justificante
+                                          </>
+                                        )}
+                                      </Button>
+                                  </>
                                 )}
                               </div>
                             </div>
