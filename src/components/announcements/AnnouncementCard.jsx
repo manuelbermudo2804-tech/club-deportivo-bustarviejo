@@ -101,7 +101,7 @@ export default function AnnouncementCard({ announcement, onEdit, onDelete, isAdm
             )}
           </div>
 
-          {(onEdit || onDelete) && (
+          {isAdmin && (onEdit || onDelete) && (
             <div className="flex gap-2 mt-2">
               {onEdit && (
                 <Button
