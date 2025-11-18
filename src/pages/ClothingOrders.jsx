@@ -145,14 +145,16 @@ export default function ClothingOrders() {
         <strong>Fecha:</strong> {new Date(order.created_date).toLocaleDateString('es-ES')}
       </p>
       {order.justificante_url && (
-        <a
-          href={order.justificante_url}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="text-orange-600 hover:text-orange-700 text-xs flex items-center gap-1"
-        >
-          📄 Ver justificante
-        </a>
+        <div className="pt-2">
+          <a
+            href={order.justificante_url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-block px-3 py-1.5 bg-orange-100 hover:bg-orange-200 text-orange-700 rounded-lg text-xs font-medium transition-colors"
+          >
+            📄 Ver justificante {order.justificante_url.toLowerCase().endsWith('.pdf') ? '(PDF)' : '(Imagen)'}
+          </a>
+        </div>
       )}
     </div>
   );
