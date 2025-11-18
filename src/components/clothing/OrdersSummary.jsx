@@ -1,10 +1,198 @@
 import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Download, Package } from "lucide-react";
+import { Download, Package, FileText, FileSpreadsheet } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 export default function OrdersSummary({ orders }) {
+  const generateSummaryPDF = () => {
+    const jackets = {};
+    const shirts = {};
+    const pants = {};
+    const sweatshirts = {};
+    
+    orders.forEach(order => {
+      if (order.estado === "Entregado") return;
+      
+      if (order.chaqueta_partidos && order.chaqueta_talla) {
+        jackets[order.chaqueta_talla] = (jackets[order.chaqueta_talla] || 0) + 1;
+      }
+      
+      if (order.pack_entrenamiento) {
+        if (order.pack_camiseta_talla) {
+          shirts[order.pack_camiseta_talla] = (shirts[order.pack_camiseta_talla] || 0) + 1;
+        }
+        if (order.pack_pantalon_talla) {
+          pants[order.pack_pantalon_talla] = (pants[order.pack_pantalon_talla] || 0) + 1;
+        }
+        if (order.pack_sudadera_talla) {
+          sweatshirts[order.pack_sudadera_talla] = (sweatshirts[order.pack_sudadera_talla] || 0) + 1;
+        }
+      }
+    });
+    
+    let htmlContent = `
+      <html>
+        <head>
+          <meta charset="utf-8">
+          <title>Resumen de Pedidos</title>
+          <style>
+            body { font-family: Arial, sans-serif; padding: 20px; }
+            h1 { color: #22c55e; }
+            h2 { color: #333; margin-top: 20px; }
+            table { width: 100%; border-collapse: collapse; margin: 10px 0; }
+            th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+            th { background-color: #22c55e; color: white; }
+            .total { font-weight: bold; background-color: #f0fdf4; }
+          </style>
+        </head>
+        <body>
+          <h1>RESUMEN DE PEDIDOS - CD BUSTARVIEJO</h1>
+          <p>Fecha: ${new Date().toLocaleDateString('es-ES')}</p>
+    `;
+    
+    if (Object.keys(jackets).length > 0) {
+      htmlContent += `
+        <h2>CHAQUETAS DE PARTIDOS</h2>
+        <table>
+          <thead><tr><th>Talla</th><th>Cantidad</th></tr></thead>
+          <tbody>
+      `;
+      Object.entries(jackets).sort().forEach(([talla, qty]) => {
+        htmlContent += `<tr><td>${talla}</td><td>${qty}</td></tr>`;
+      });
+      htmlContent += `<tr class="total"><td>TOTAL</td><td>${Object.values(jackets).reduce((a, b) => a + b, 0)}</td></tr></tbody></table>`;
+    }
+    
+    if (Object.keys(shirts).length > 0) {
+      htmlContent += `
+        <h2>CAMISETAS ENTRENAMIENTO</h2>
+        <table>
+          <thead><tr><th>Talla</th><th>Cantidad</th></tr></thead>
+          <tbody>
+      `;
+      Object.entries(shirts).sort().forEach(([talla, qty]) => {
+        htmlContent += `<tr><td>${talla}</td><td>${qty}</td></tr>`;
+      });
+      htmlContent += `<tr class="total"><td>TOTAL</td><td>${Object.values(shirts).reduce((a, b) => a + b, 0)}</td></tr></tbody></table>`;
+    }
+    
+    if (Object.keys(pants).length > 0) {
+      htmlContent += `
+        <h2>PANTALONES ENTRENAMIENTO</h2>
+        <table>
+          <thead><tr><th>Talla</th><th>Cantidad</th></tr></thead>
+          <tbody>
+      `;
+      Object.entries(pants).sort().forEach(([talla, qty]) => {
+        htmlContent += `<tr><td>${talla}</td><td>${qty}</td></tr>`;
+      });
+      htmlContent += `<tr class="total"><td>TOTAL</td><td>${Object.values(pants).reduce((a, b) => a + b, 0)}</td></tr></tbody></table>`;
+    }
+    
+    if (Object.keys(sweatshirts).length > 0) {
+      htmlContent += `
+        <h2>SUDADERAS ENTRENAMIENTO</h2>
+        <table>
+          <thead><tr><th>Talla</th><th>Cantidad</th></tr></thead>
+          <tbody>
+      `;
+      Object.entries(sweatshirts).sort().forEach(([talla, qty]) => {
+        htmlContent += `<tr><td>${talla}</td><td>${qty}</td></tr>`;
+      });
+      htmlContent += `<tr class="total"><td>TOTAL</td><td>${Object.values(sweatshirts).reduce((a, b) => a + b, 0)}</td></tr></tbody></table>`;
+    }
+    
+    htmlContent += '</body></html>';
+    
+    const blob = new Blob([htmlContent], { type: 'application/pdf' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `resumen_pedidos_${new Date().toISOString().split('T')[0]}.pdf`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const generateDetailedPDF = () => {
+    let htmlContent = `
+      <html>
+        <head>
+          <meta charset="utf-8">
+          <title>Detalle de Pedidos</title>
+          <style>
+            body { font-family: Arial, sans-serif; padding: 20px; }
+            h1 { color: #22c55e; font-size: 18px; }
+            table { width: 100%; border-collapse: collapse; margin: 10px 0; font-size: 10px; }
+            th, td { border: 1px solid #ddd; padding: 6px; text-align: left; }
+            th { background-color: #22c55e; color: white; }
+          </style>
+        </head>
+        <body>
+          <h1>DETALLE DE PEDIDOS POR FAMILIA - CD BUSTARVIEJO</h1>
+          <p>Fecha: ${new Date().toLocaleDateString('es-ES')}</p>
+          <table>
+            <thead>
+              <tr>
+                <th>Jugador</th>
+                <th>Categoría</th>
+                <th>Email</th>
+                <th>Teléfono</th>
+                <th>Chaqueta</th>
+                <th>Talla Chaq.</th>
+                <th>Pack</th>
+                <th>Cam.</th>
+                <th>Pant.</th>
+                <th>Sud.</th>
+                <th>Total</th>
+                <th>Estado</th>
+              </tr>
+            </thead>
+            <tbody>
+    `;
+    
+    orders
+      .filter(order => order.estado !== "Entregado")
+      .forEach(order => {
+        htmlContent += `
+          <tr>
+            <td>${order.jugador_nombre}</td>
+            <td>${order.jugador_categoria}</td>
+            <td>${order.email_padre}</td>
+            <td>${order.telefono}</td>
+            <td>${order.chaqueta_partidos ? "SÍ" : "NO"}</td>
+            <td>${order.chaqueta_talla || "-"}</td>
+            <td>${order.pack_entrenamiento ? "SÍ" : "NO"}</td>
+            <td>${order.pack_camiseta_talla || "-"}</td>
+            <td>${order.pack_pantalon_talla || "-"}</td>
+            <td>${order.pack_sudadera_talla || "-"}</td>
+            <td>${order.precio_total}€</td>
+            <td>${order.estado}</td>
+          </tr>
+        `;
+      });
+    
+    htmlContent += '</tbody></table></body></html>';
+    
+    const blob = new Blob([htmlContent], { type: 'application/pdf' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `pedidos_detallados_${new Date().toISOString().split('T')[0]}.pdf`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   const generateSummaryCSV = () => {
     const jackets = {};
     const shirts = {};
@@ -168,24 +356,43 @@ export default function OrdersSummary({ orders }) {
             📦 Resumen de Pedidos Agrupados
           </CardTitle>
           <div className="flex gap-2">
-            <Button
-              onClick={generateSummaryCSV}
-              variant="outline"
-              size="sm"
-              className="bg-white"
-            >
-              <Download className="w-4 h-4 mr-2" />
-              Resumen para Proveedor
-            </Button>
-            <Button
-              onClick={generateDetailedCSV}
-              variant="outline"
-              size="sm"
-              className="bg-white"
-            >
-              <Download className="w-4 h-4 mr-2" />
-              Detalle por Familia
-            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm" className="bg-white">
+                  <Download className="w-4 h-4 mr-2" />
+                  Resumen para Proveedor
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent>
+                <DropdownMenuItem onClick={generateSummaryCSV}>
+                  <FileSpreadsheet className="w-4 h-4 mr-2" />
+                  Descargar CSV
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={generateSummaryPDF}>
+                  <FileText className="w-4 h-4 mr-2" />
+                  Descargar PDF
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+            
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm" className="bg-white">
+                  <Download className="w-4 h-4 mr-2" />
+                  Detalle por Familia
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent>
+                <DropdownMenuItem onClick={generateDetailedCSV}>
+                  <FileSpreadsheet className="w-4 h-4 mr-2" />
+                  Descargar CSV
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={generateDetailedPDF}>
+                  <FileText className="w-4 h-4 mr-2" />
+                  Descargar PDF
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
       </CardHeader>
