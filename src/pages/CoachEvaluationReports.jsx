@@ -51,11 +51,18 @@ export default function CoachEvaluationReports() {
 
   // Extraer todas las evaluaciones individuales
   const allEvaluations = [];
+  
+  console.log('Total attendances:', attendances.length);
+  console.log('Filtered attendances:', filteredAttendances.length);
+  
   filteredAttendances.forEach(attendance => {
+    console.log('Processing attendance:', attendance.fecha, attendance.categoria, attendance.asistencias?.length);
+    
     attendance.asistencias?.forEach(asistencia => {
-      // Incluir si tiene actitud O observaciones (cualquier evaluación del entrenador)
-      if ((asistencia.estado === 'presente' || asistencia.estado === 'tardanza') && 
-          (asistencia.actitud != null || asistencia.observaciones)) {
+      console.log('Asistencia:', asistencia.jugador_nombre, 'estado:', asistencia.estado, 'actitud:', asistencia.actitud, 'observaciones:', asistencia.observaciones);
+      
+      // Incluir TODAS las asistencias con estado presente o tardanza
+      if (asistencia.estado === 'presente' || asistencia.estado === 'tardanza') {
         const player = players.find(p => p.id === asistencia.jugador_id);
         if (player) {
           if (selectedPlayer !== "all" && asistencia.jugador_id !== selectedPlayer) return;
@@ -72,6 +79,8 @@ export default function CoachEvaluationReports() {
       }
     });
   });
+  
+  console.log('Total evaluations found:', allEvaluations.length);
 
   // Estadísticas por jugador
   const playerStats = {};
