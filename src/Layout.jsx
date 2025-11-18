@@ -490,6 +490,7 @@ export default function Layout({ children, currentPageName }) {
   const [currentLang, setCurrentLang] = useState(() => {
     return localStorage.getItem('appLanguage') || 'es';
   });
+  const [showWelcome, setShowWelcome] = useState(true);
 
   const handleLanguageChange = (newLang) => {
     setCurrentLang(newLang);
@@ -530,8 +531,23 @@ export default function Layout({ children, currentPageName }) {
           }
         }
 
-        if (currentUser.role !== "admin" && currentUser.role !== "jugador" && !currentUser.es_entrenador && location.pathname === createPageUrl("Home")) {
-          navigate(createPageUrl("ParentDashboard"), { replace: true });
+        // Navegación basada en rol
+        const currentPath = location.pathname;
+        if (currentUser.role === "admin" || currentUser.es_entrenador) {
+          // Admin y entrenadores siempre al Home
+          if (currentPath !== createPageUrl("Home")) {
+            navigate(createPageUrl("Home"), { replace: true });
+          }
+        } else if (currentUser.role === "jugador") {
+          // Jugadores al PlayerDashboard
+          if (currentPath !== createPageUrl("PlayerDashboard")) {
+            navigate(createPageUrl("PlayerDashboard"), { replace: true });
+          }
+        } else {
+          // Padres al ParentDashboard
+          if (currentPath !== createPageUrl("ParentDashboard")) {
+            navigate(createPageUrl("ParentDashboard"), { replace: true });
+          }
         }
       } catch (error) {
         console.error("Error fetching user:", error);
@@ -791,6 +807,7 @@ export default function Layout({ children, currentPageName }) {
 
   return (
     <>
+      {showWelcome && <WelcomeScreen onComplete={() => setShowWelcome(false)} />}
       <SessionManager />
       <NotificationBadge />
       {user && <ChatNotificationListener user={user} />}
