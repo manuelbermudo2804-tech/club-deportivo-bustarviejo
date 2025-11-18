@@ -227,7 +227,10 @@ Gracias por su atención.
       const months = ["Junio", "Septiembre", "Diciembre"];
       
       for (const player of activePlayers) {
-        for (const mes of months) {
+        // Si el jugador tiene pago único, solo generar Junio
+        const playerMonths = player.tipo_pago === "Único" ? ["Junio"] : months;
+        
+        for (const mes of playerMonths) {
           // Verificar si ya existe este pago
           const existingPayment = payments.find(p => 
             p.jugador_id === player.id && 
@@ -236,14 +239,14 @@ Gracias por su atención.
           );
           
           if (!existingPayment) {
-            // Determinar cantidad según deporte
+            // Determinar cantidad según deporte y tipo de pago
             let cantidad = 0;
             if (player.deporte && player.deporte.includes("Fútbol")) {
               cantidad = player.tipo_pago === "Único" ? 130 : 45;
             } else if (player.deporte && player.deporte.includes("Baloncesto")) {
               cantidad = player.tipo_pago === "Único" ? 115 : 40;
             } else {
-              cantidad = 45; // Default
+              cantidad = player.tipo_pago === "Único" ? 130 : 45; // Default
             }
             
             await base44.entities.Payment.create({
