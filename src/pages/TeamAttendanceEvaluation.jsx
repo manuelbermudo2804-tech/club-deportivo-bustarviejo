@@ -335,11 +335,7 @@ CD Bustarviejo
       existing.asistencias.forEach(a => {
         data[a.jugador_id] = {
           asistencia: a.estado,
-          tecnica: a.tecnica,
-          tactica: a.tactica,
-          fisica: a.fisica,
           actitud: a.actitud,
-          trabajo_equipo: a.trabajo_equipo,
           observaciones: a.observaciones
         };
       });
@@ -369,11 +365,7 @@ CD Bustarviejo
       jugador_id: p.id,
       jugador_nombre: p.nombre,
       estado: sessionData[p.id]?.asistencia || "ausente",
-      tecnica: sessionData[p.id]?.tecnica || null,
-      tactica: sessionData[p.id]?.tactica || null,
-      fisica: sessionData[p.id]?.fisica || null,
       actitud: sessionData[p.id]?.actitud || null,
-      trabajo_equipo: sessionData[p.id]?.trabajo_equipo || null,
       observaciones: sessionData[p.id]?.observaciones || ""
     }));
 
@@ -594,35 +586,25 @@ CD Bustarviejo
                     </div>
                   </div>
 
-                  {/* Evaluaciones - Solo si presente */}
+                  {/* Evaluación - Solo si presente */}
                   {isPresent && (
-                    <div className="grid grid-cols-2 gap-3">
-                      {[
-                        { field: 'tecnica', label: '🎯 Técnica' },
-                        { field: 'tactica', label: '📐 Táctica' },
-                        { field: 'fisica', label: '💪 Física' },
-                        { field: 'actitud', label: '😊 Actitud' },
-                        { field: 'trabajo_equipo', label: '🤝 Equipo' }
-                      ].map(({ field, label }) => (
-                        <div key={field}>
-                          <label className="text-xs font-medium text-slate-600 mb-1 block">{label}</label>
-                          <Select
-                            value={playerData[field]?.toString() || ""}
-                            onValueChange={(value) => handleChange(player.id, field, parseInt(value))}
-                          >
-                            <SelectTrigger className="h-9 text-sm">
-                              <SelectValue placeholder="-" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {[1, 2, 3, 4, 5].map(num => (
-                                <SelectItem key={num} value={num.toString()}>
-                                  {'⭐'.repeat(num)}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </div>
-                      ))}
+                    <div>
+                      <label className="text-xs font-medium text-slate-600 mb-1 block">😊 Actitud</label>
+                      <Select
+                        value={playerData.actitud?.toString() || ""}
+                        onValueChange={(value) => handleChange(player.id, 'actitud', parseInt(value))}
+                      >
+                        <SelectTrigger className="h-9 text-sm">
+                          <SelectValue placeholder="-" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {[1, 2, 3, 4, 5].map(num => (
+                            <SelectItem key={num} value={num.toString()}>
+                              {'⭐'.repeat(num)}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                     </div>
                   )}
 
@@ -662,11 +644,7 @@ CD Bustarviejo
                 <tr>
                   <th className="p-3 text-left text-xs font-semibold sticky left-0 bg-orange-600 z-10">Jugador</th>
                   <th className="p-3 text-center text-xs font-semibold min-w-[140px]">Asistencia</th>
-                  <th className="p-3 text-center text-xs font-semibold min-w-[80px]">Técnica</th>
-                  <th className="p-3 text-center text-xs font-semibold min-w-[80px]">Táctica</th>
-                  <th className="p-3 text-center text-xs font-semibold min-w-[80px]">Física</th>
                   <th className="p-3 text-center text-xs font-semibold min-w-[80px]">Actitud</th>
-                  <th className="p-3 text-center text-xs font-semibold min-w-[80px]">Equipo</th>
                   <th className="p-3 text-left text-xs font-semibold min-w-[200px]">Observaciones</th>
                   <th className="p-3 text-center text-xs font-semibold min-w-[100px]">Reporte</th>
                 </tr>
@@ -714,26 +692,24 @@ CD Bustarviejo
                           })}
                         </div>
                       </td>
-                      {['tecnica', 'tactica', 'fisica', 'actitud', 'trabajo_equipo'].map(field => (
-                        <td key={field} className="p-2">
-                          <Select
-                            value={playerData[field]?.toString() || ""}
-                            onValueChange={(value) => handleChange(player.id, field, parseInt(value))}
-                            disabled={!isPresent}
-                          >
-                            <SelectTrigger className="h-8 text-xs">
-                              <SelectValue placeholder="-" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {[1, 2, 3, 4, 5].map(num => (
-                                <SelectItem key={num} value={num.toString()}>
-                                  {'⭐'.repeat(num)}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </td>
-                      ))}
+                      <td className="p-2">
+                        <Select
+                          value={playerData.actitud?.toString() || ""}
+                          onValueChange={(value) => handleChange(player.id, 'actitud', parseInt(value))}
+                          disabled={!isPresent}
+                        >
+                          <SelectTrigger className="h-8 text-xs">
+                            <SelectValue placeholder="-" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {[1, 2, 3, 4, 5].map(num => (
+                              <SelectItem key={num} value={num.toString()}>
+                                {'⭐'.repeat(num)}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </td>
                       <td className="p-2">
                         <input
                           type="text"
