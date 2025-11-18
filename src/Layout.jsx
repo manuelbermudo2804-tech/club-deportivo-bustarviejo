@@ -721,7 +721,6 @@ export default function Layout({ children, currentPageName }) {
     { title: "Galería", url: createPageUrl("AdminGallery"), icon: Image },
     { title: "🎓 Crear Convocatorias", url: createPageUrl("CoachCallups"), icon: Bell },
     ...(hasPlayers ? [{ title: "👨‍👩‍👧 Confirmar Mis Hijos", url: createPageUrl("ParentCallups"), icon: ClipboardCheck, badge: pendingCallupsCount > 0 ? pendingCallupsCount : null }] : []),
-    { title: "Evaluaciones", url: createPageUrl("PlayerEvaluations"), icon: Star },
     { title: "Pagos", url: createPageUrl("Payments"), icon: CreditCard },
     { title: "Recordatorios", url: createPageUrl("Reminders"), icon: Bell },
     { title: "Pedidos Ropa", url: createPageUrl("ClothingOrders"), icon: ShoppingBag },
