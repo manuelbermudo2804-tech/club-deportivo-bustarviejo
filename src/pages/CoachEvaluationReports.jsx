@@ -23,6 +23,14 @@ export default function CoachEvaluationReports() {
     const fetchUser = async () => {
       const currentUser = await base44.auth.me();
       setUser(currentUser);
+      
+      // Si es entrenador, pre-seleccionar su primera categoría
+      if (currentUser.es_entrenador && !currentUser.role === "admin") {
+        const categories = currentUser.categorias_entrena || [];
+        if (categories.length === 1) {
+          setSelectedCategory(categories[0]);
+        }
+      }
     };
     fetchUser();
   }, []);
@@ -39,10 +47,19 @@ export default function CoachEvaluationReports() {
     initialData: [],
   });
 
-  const categories = [...new Set(players.map(p => p.deporte).filter(Boolean))];
+  // Filtrar categorías según el rol del usuario
+  const allCategories = [...new Set(players.map(p => p.deporte).filter(Boolean))];
+  const categories = user?.role === "admin" 
+    ? allCategories 
+    : (user?.categorias_entrena || []);
 
-  // Filtrar asistencias
+  // Filtrar asistencias según rol y permisos
   const filteredAttendances = attendances.filter(att => {
+    // Filtrar por categorías del entrenador si no es admin
+    if (user?.role !== "admin" && user?.categorias_entrena) {
+      if (!user.categorias_entrena.includes(att.categoria)) return false;
+    }
+    
     if (selectedCategory !== "all" && att.categoria !== selectedCategory) return false;
     if (dateFrom && att.fecha < dateFrom) return false;
     if (dateTo && att.fecha > dateTo) return false;
@@ -119,14 +136,14 @@ export default function CoachEvaluationReports() {
     Observaciones: ev.observaciones || '-'
   }));
 
-  if (!user || user.role !== "admin") {
+  if (!user || (!user.es_entrenador && user.role !== "admin")) {
     return (
       <div className="p-6">
         <Card className="border-red-200 bg-red-50">
           <CardContent className="p-12 text-center">
             <AlertCircle className="w-16 h-16 text-red-600 mx-auto mb-4" />
             <h2 className="text-2xl font-bold text-red-900 mb-2">Acceso Restringido</h2>
-            <p className="text-red-700">Solo administradores pueden ver este reporte</p>
+            <p className="text-red-700">Solo administradores y entrenadores pueden ver este reporte</p>
           </CardContent>
         </Card>
       </div>
@@ -138,7 +155,11 @@ export default function CoachEvaluationReports() {
       <div className="flex items-start justify-between">
         <div>
           <h1 className="text-2xl lg:text-3xl font-bold text-slate-900">📊 Evaluaciones de Entrenadores</h1>
-          <p className="text-slate-600 mt-1">Historial completo de actitud evaluada por los entrenadores</p>
+          <p className="text-slate-600 mt-1">
+            {user?.role === "admin" 
+              ? "Historial completo de actitud evaluada por los entrenadores" 
+              : "Historial de tus evaluaciones de actitud"}
+          </p>
         </div>
         {allEvaluations.length > 0 && (
           <ExportButton 
