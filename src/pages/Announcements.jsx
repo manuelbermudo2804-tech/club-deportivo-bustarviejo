@@ -418,18 +418,18 @@ Ubicación: Bustarviejo, Madrid
         </div>
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
-          <AnimatePresence>
-            {sortedAnnouncements.map((announcement) => (
-              <AnnouncementCard
-                key={announcement.id}
-                announcement={announcement}
-                onEdit={handleEdit}
-                onDelete={(isAdmin || isCoach) ? handleDelete : null}
-                isAdmin={isAdmin || isCoach}
-              />
-            ))}
-          </AnimatePresence>
-        </div>
+            <AnimatePresence mode="popLayout">
+              {sortedAnnouncements.map((announcement) => (
+                <AnnouncementCard
+                  key={announcement.id}
+                  announcement={announcement}
+                  onEdit={handleEdit}
+                  onDelete={(isAdmin || isCoach) ? handleDelete : null}
+                  isAdmin={isAdmin || isCoach}
+                />
+              ))}
+            </AnimatePresence>
+          </div>
       )}
     </div>
   );

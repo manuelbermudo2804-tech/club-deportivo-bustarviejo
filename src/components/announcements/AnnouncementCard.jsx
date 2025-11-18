@@ -42,9 +42,11 @@ export default function AnnouncementCard({ announcement, onEdit, onDelete, isAdm
 
   return (
     <motion.div
+      layout
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -10 }}
+      exit={{ opacity: 0, scale: 0.8 }}
+      transition={{ duration: 0.3 }}
       className="relative"
     >
       <Card className={`border ${config.borderColor} ${config.bgColor} shadow-md hover:shadow-lg transition-all duration-200 overflow-hidden`}>
