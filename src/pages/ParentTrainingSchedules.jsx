@@ -17,7 +17,7 @@ const DIAS_ORDEN = {
   "Viernes": 5
 };
 
-const UBICACION_MAPS_URL = "https://www.google.com/maps/place/Campo+de+F%C3%BAtbol+Municipal+Bustarviejo/@40.8569444,-3.7230556,17z";
+const UBICACION_MAPS_URL = "https://www.google.com/maps?q=40.856169,-3.724407";
 
 export default function ParentTrainingSchedules() {
   const { data: user } = useQuery({
@@ -192,12 +192,18 @@ export default function ParentTrainingSchedules() {
                             </span>
                           </div>
 
-                          <div className="flex items-start gap-2 text-slate-600 bg-green-50 rounded-lg p-2 border border-green-200">
+                          <a
+                            href={UBICACION_MAPS_URL}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-start gap-2 text-slate-600 bg-green-50 rounded-lg p-2 border border-green-200 hover:bg-green-100 transition-colors cursor-pointer"
+                          >
                             <MapPin className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" />
                             <div className="flex-1">
                               <span className="text-xs font-medium">{schedule.ubicacion}</span>
                             </div>
-                          </div>
+                            <ExternalLink className="w-3 h-3 text-green-600 flex-shrink-0" />
+                          </a>
 
                           {schedule.notas && (
                             <div className="mt-2 pt-2 border-t border-orange-200 bg-blue-50 rounded-lg p-2">
