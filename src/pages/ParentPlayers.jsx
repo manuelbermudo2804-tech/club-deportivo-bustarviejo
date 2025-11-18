@@ -57,6 +57,7 @@ export default function ParentPlayers() {
       const newPlayer = await base44.entities.Player.create(dataWithParentEmail);
       
       try {
+        console.log('📧 [ParentPlayers] Enviando notificación de inscripción a admin');
         await base44.integrations.Core.SendEmail({
           from_name: "CD Bustarviejo - Sistema de Inscripciones",
           to: "cdbustarviejo@gmail.com",
@@ -87,6 +88,8 @@ export default function ParentPlayers() {
         });
         // Send confirmation to parents
         try {
+          console.log('📧 [ParentPlayers] Enviando confirmación de inscripción a padres:', { padre: playerData.email_padre, tutor2: playerData.email_tutor_2 });
+          
           const emailBody = `
 Estimados padres/tutores,
 
@@ -113,20 +116,24 @@ Datos de contacto:
 Email: cdbustarviejo@gmail.com
           `;
           
+          console.log('📤 [ParentPlayers] Enviando a padre:', playerData.email_padre);
           await base44.integrations.Core.SendEmail({
             from_name: "CD Bustarviejo",
             to: playerData.email_padre,
             subject: "Inscripción Recibida - CD Bustarviejo",
             body: emailBody
           });
+          console.log('✅ [ParentPlayers] Email enviado a padre');
           
           if (playerData.email_tutor_2) {
+            console.log('📤 [ParentPlayers] Enviando a tutor 2:', playerData.email_tutor_2);
             await base44.integrations.Core.SendEmail({
               from_name: "CD Bustarviejo",
               to: playerData.email_tutor_2,
               subject: "Inscripción Recibida - CD Bustarviejo",
               body: emailBody
             });
+            console.log('✅ [ParentPlayers] Email enviado a tutor 2');
           }
         } catch (error) {
           console.error("Error sending confirmation emails:", error);

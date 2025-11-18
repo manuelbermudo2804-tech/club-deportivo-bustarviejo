@@ -184,15 +184,17 @@ Ubicación: Bustarviejo, Madrid
 
       for (const email of recipients) {
         try {
+          console.log('📤 [Announcements] Enviando anuncio a:', email);
           await base44.integrations.Core.SendEmail({
             from_name: "CD Bustarviejo",
             to: email,
             subject: subject,
             body: body
           });
+          console.log('✅ [Announcements] Email enviado a:', email);
           successCount++;
         } catch (error) {
-          console.error(`Error sending email to ${email}:`, error);
+          console.error(`❌ [Announcements] Error sending email to ${email}:`, error);
           errorCount++;
         }
         

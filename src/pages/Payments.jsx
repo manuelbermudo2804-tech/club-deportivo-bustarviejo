@@ -177,6 +177,7 @@ export default function Payments() {
       });
 
       try {
+        console.log('📧 [Payments] Enviando notificación de justificante a admin');
         await base44.integrations.Core.SendEmail({
           to: "cdbustarviejo@gmail.com",
           subject: `Justificante de Pago Recibido - ${payment.jugador_nombre}`,
@@ -229,6 +230,8 @@ export default function Payments() {
       try {
         const player = players.find(p => p.id === payment.jugador_id);
         
+        console.log('📧 [Payments] Enviando confirmación de pago a padres:', { jugador: payment.jugador_nombre, padre: player?.email_padre, tutor2: player?.email_tutor_2 });
+        
         const confirmBody = `
 Estimados padres/tutores,
 
@@ -255,21 +258,25 @@ Email: cdbustarviejo@gmail.com
         `;
         
         if (player?.email_padre) {
+          console.log('📤 [Payments] Enviando a padre:', player.email_padre);
           await base44.integrations.Core.SendEmail({
             from_name: "CD Bustarviejo",
             to: player.email_padre,
             subject: "Pago Confirmado - CD Bustarviejo",
             body: confirmBody
           });
+          console.log('✅ [Payments] Email enviado a padre');
         }
         
         if (player?.email_tutor_2) {
+          console.log('📤 [Payments] Enviando a tutor 2:', player.email_tutor_2);
           await base44.integrations.Core.SendEmail({
             from_name: "CD Bustarviejo",
             to: player.email_tutor_2,
             subject: "Pago Confirmado - CD Bustarviejo",
             body: confirmBody
           });
+          console.log('✅ [Payments] Email enviado a tutor 2');
         }
       } catch (error) {
         console.error("Error sending confirmation email:", error);

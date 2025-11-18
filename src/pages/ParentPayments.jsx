@@ -63,6 +63,7 @@ export default function ParentPayments() {
       // Send email to club
       const player = players.find(p => p.id === paymentData.jugador_id);
       try {
+        console.log('📧 [ParentPayments] Enviando notificación de pago a admin');
         await base44.integrations.Core.SendEmail({
           from_name: "CD Bustarviejo - Sistema de Pagos",
           to: "cdbustarviejo@gmail.com",
@@ -112,22 +113,28 @@ Datos de contacto:
 Email: cdbustarviejo@gmail.com
         `;
         
+        console.log('📧 [ParentPayments] Enviando confirmación a padres:', { padre: player?.email_padre, tutor2: player?.email_tutor_2 });
+        
         if (player?.email_padre) {
+          console.log('📤 [ParentPayments] Enviando a padre:', player.email_padre);
           await base44.integrations.Core.SendEmail({
             from_name: "CD Bustarviejo",
             to: player.email_padre,
             subject: "Pago Registrado - CD Bustarviejo",
             body: confirmBody
           });
+          console.log('✅ [ParentPayments] Email enviado a padre');
         }
         
         if (player?.email_tutor_2) {
+          console.log('📤 [ParentPayments] Enviando a tutor 2:', player.email_tutor_2);
           await base44.integrations.Core.SendEmail({
             from_name: "CD Bustarviejo",
             to: player.email_tutor_2,
             subject: "Pago Registrado - CD Bustarviejo",
             body: confirmBody
           });
+          console.log('✅ [ParentPayments] Email enviado a tutor 2');
         }
       } catch (error) {
         console.error("Error sending email notifications:", error);
@@ -158,6 +165,7 @@ Email: cdbustarviejo@gmail.com
       const player = players.find(p => p.id === payment.jugador_id);
       
       try {
+        console.log('📧 [ParentPayments] Enviando notificación de justificante a admin');
         await base44.integrations.Core.SendEmail({
           from_name: "CD Bustarviejo - Sistema de Pagos",
           to: "cdbustarviejo@gmail.com",
@@ -206,22 +214,28 @@ Datos de contacto:
 Email: cdbustarviejo@gmail.com
         `;
         
+        console.log('📧 [ParentPayments] Enviando confirmación de justificante a padres:', { padre: player?.email_padre, tutor2: player?.email_tutor_2 });
+        
         if (player?.email_padre) {
+          console.log('📤 [ParentPayments] Enviando a padre:', player.email_padre);
           await base44.integrations.Core.SendEmail({
             from_name: "CD Bustarviejo",
             to: player.email_padre,
             subject: "Justificante Recibido - CD Bustarviejo",
             body: confirmBody
           });
+          console.log('✅ [ParentPayments] Email enviado a padre');
         }
         
         if (player?.email_tutor_2) {
+          console.log('📤 [ParentPayments] Enviando a tutor 2:', player.email_tutor_2);
           await base44.integrations.Core.SendEmail({
             from_name: "CD Bustarviejo",
             to: player.email_tutor_2,
             subject: "Justificante Recibido - CD Bustarviejo",
             body: confirmBody
           });
+          console.log('✅ [ParentPayments] Email enviado a tutor 2');
         }
       } catch (error) {
         console.error("Error sending email notification:", error);
