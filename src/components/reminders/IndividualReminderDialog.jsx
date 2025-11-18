@@ -1,173 +1,140 @@
 import React, { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Mail, MessageCircle, Phone, Loader2 } from "lucide-react";
-import { Alert, AlertDescription } from "@/components/ui/alert";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Mail, MessageCircle, Send, Loader2 } from "lucide-react";
 
-export default function IndividualReminderDialog({ 
-  isOpen, 
-  onClose, 
-  payment,
-  player,
-  onSend,
-  isLoading 
-}) {
-  const [sendMethod, setSendMethod] = useState("email");
+export default function IndividualReminderDialog({ isOpen, onClose, payment, player, onSend }) {
+  const [method, setMethod] = useState("email");
   const [customMessage, setCustomMessage] = useState("");
+  const [sending, setSending] = useState(false);
 
-  const handleSend = () => {
-    onSend({ 
-      payment, 
-      player,
-      sendMethod, 
-      customMessage: customMessage.trim() || null 
-    });
+  const defaultMessage = `Estimados padres/tutores,
+
+Les recordamos que tienen un pago pendiente:
+
+Jugador: ${payment?.jugador_nombre}
+Periodo: ${payment?.mes}
+Temporada: ${payment?.temporada}
+Cantidad: ${payment?.cantidad}€
+Vencimiento: 30 de ${payment?.mes}
+
+Por favor, realiza el pago y sube el justificante en la aplicación.
+
+Atentamente,
+CD Bustarviejo`;
+
+  const handleSend = async () => {
+    setSending(true);
+    try {
+      await onSend({
+        paymentId: payment.id,
+        playerId: player.id,
+        method,
+        message: customMessage || defaultMessage
+      });
+      onClose();
+    } catch (error) {
+      console.error("Error sending reminder:", error);
+    } finally {
+      setSending(false);
+    }
   };
-
-  if (!payment || !player) return null;
-
-  const hasEmail = player.email_padre || player.email_tutor_2;
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl">
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="text-xl">
-            📩 Enviar Recordatorio Individual
-          </DialogTitle>
+          <DialogTitle>Enviar Recordatorio Individual</DialogTitle>
         </DialogHeader>
 
-        <div className="space-y-6">
-          {/* Player Info */}
+        <div className="space-y-6 py-4">
+          {/* Payment Info */}
           <div className="bg-slate-50 rounded-lg p-4 space-y-2">
-            <div className="flex items-center gap-3">
-              {player.foto_url ? (
-                <img src={player.foto_url} className="w-12 h-12 rounded-full object-cover" alt="" />
-              ) : (
-                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center text-white font-bold">
-                  {player.nombre.charAt(0)}
-                </div>
-              )}
-              <div>
-                <p className="font-bold text-slate-900">{player.nombre}</p>
-                <p className="text-sm text-slate-600">{player.deporte}</p>
-              </div>
+            <p className="font-semibold text-slate-900">{payment?.jugador_nombre}</p>
+            <div className="grid grid-cols-2 gap-2 text-sm">
+              <p className="text-slate-600">Periodo: <span className="font-medium">{payment?.mes}</span></p>
+              <p className="text-slate-600">Cantidad: <span className="font-medium">{payment?.cantidad}€</span></p>
+              <p className="text-slate-600">Estado: <span className="font-medium">{payment?.estado}</span></p>
+              <p className="text-slate-600">Temporada: <span className="font-medium">{payment?.temporada}</span></p>
             </div>
-            <div className="border-t pt-2 text-sm space-y-1">
-              <p><strong>Mes:</strong> {payment.mes}</p>
-              <p><strong>Cantidad:</strong> {payment.cantidad}€</p>
-              <p><strong>Estado:</strong> {payment.estado}</p>
-              {payment.justificante_url && (
-                <p className="text-blue-600">✅ Justificante subido</p>
+          </div>
+
+          {/* Contact Info */}
+          <div className="bg-blue-50 rounded-lg p-4 space-y-2">
+            <p className="font-semibold text-blue-900">Contactos del Jugador</p>
+            <div className="space-y-1 text-sm">
+              {player?.email_padre && (
+                <p className="text-blue-800">📧 Padre: {player.email_padre}</p>
+              )}
+              {player?.email_tutor_2 && (
+                <p className="text-blue-800">📧 Tutor 2: {player.email_tutor_2}</p>
+              )}
+              {player?.telefono && (
+                <p className="text-blue-800">📱 Teléfono: {player.telefono}</p>
               )}
             </div>
           </div>
 
-          {/* Send Method */}
-          <div className="space-y-2">
-            <Label>Método de Envío *</Label>
-            <Select value={sendMethod} onValueChange={setSendMethod}>
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="email" disabled={!hasEmail}>
-                  <div className="flex items-center gap-2">
-                    <Mail className="w-4 h-4" />
-                    <span>Email con datos bancarios</span>
-                  </div>
-                </SelectItem>
-                <SelectItem value="chat">
-                  <div className="flex items-center gap-2">
-                    <MessageCircle className="w-4 h-4" />
-                    <span>Mensaje al chat del grupo</span>
-                  </div>
-                </SelectItem>
-                <SelectItem value="both" disabled={!hasEmail}>
-                  <div className="flex items-center gap-2">
-                    <Mail className="w-4 h-4" />
-                    <MessageCircle className="w-4 h-4" />
-                    <span>Email + Chat</span>
-                  </div>
-                </SelectItem>
-              </SelectContent>
-            </Select>
-            {!hasEmail && (
-              <p className="text-xs text-orange-600">
-                ⚠️ No hay email configurado para este jugador
-              </p>
-            )}
+          {/* Method Selection */}
+          <div className="space-y-3">
+            <Label>Método de Envío</Label>
+            <RadioGroup value={method} onValueChange={setMethod}>
+              <div className="flex items-center space-x-2 border rounded-lg p-3 hover:bg-slate-50 cursor-pointer">
+                <RadioGroupItem value="email" id="email" />
+                <Label htmlFor="email" className="flex items-center gap-2 cursor-pointer flex-1">
+                  <Mail className="w-4 h-4 text-orange-600" />
+                  <span>Correo Electrónico</span>
+                  <span className="text-xs text-slate-500">(Recomendado)</span>
+                </Label>
+              </div>
+
+              <div className="flex items-center space-x-2 border rounded-lg p-3 hover:bg-slate-50 cursor-pointer">
+                <RadioGroupItem value="chat" id="chat" />
+                <Label htmlFor="chat" className="flex items-center gap-2 cursor-pointer flex-1">
+                  <MessageCircle className="w-4 h-4 text-green-600" />
+                  <span>Chat del Grupo</span>
+                </Label>
+              </div>
+
+              <div className="flex items-center space-x-2 border rounded-lg p-3 hover:bg-slate-50 cursor-pointer">
+                <RadioGroupItem value="both" id="both" />
+                <Label htmlFor="both" className="flex items-center gap-2 cursor-pointer flex-1">
+                  <Send className="w-4 h-4 text-blue-600" />
+                  <span>Ambos (Email + Chat)</span>
+                </Label>
+              </div>
+            </RadioGroup>
           </div>
 
           {/* Custom Message */}
           <div className="space-y-2">
-            <Label>Mensaje Personalizado (Opcional)</Label>
+            <Label>Mensaje (opcional - se usará el mensaje por defecto si está vacío)</Label>
             <Textarea
               value={customMessage}
               onChange={(e) => setCustomMessage(e.target.value)}
-              placeholder="Añade un mensaje personalizado que se incluirá en el recordatorio..."
-              className="h-24"
+              placeholder={defaultMessage}
+              rows={10}
+              className="font-mono text-sm"
             />
-            <p className="text-xs text-slate-500">
-              💡 Se enviará el mensaje estándar con datos bancarios + tu mensaje
-            </p>
           </div>
 
-          {/* Info Alert */}
-          <Alert className="bg-blue-50 border-blue-300">
-            <Mail className="w-4 h-4 text-blue-600" />
-            <AlertDescription className="text-sm text-slate-700">
-              {sendMethod === "email" || sendMethod === "both" ? (
-                <>
-                  <strong>El email incluirá:</strong>
-                  <ul className="list-disc list-inside mt-1 text-xs">
-                    <li>IBAN del club y datos bancarios completos</li>
-                    <li>Concepto de pago personalizado</li>
-                    <li>Instrucciones paso a paso</li>
-                    {customMessage && <li>Tu mensaje personalizado</li>}
-                  </ul>
-                </>
-              ) : (
-                <>
-                  <strong>El mensaje al chat incluirá:</strong>
-                  <ul className="list-disc list-inside mt-1 text-xs">
-                    <li>Recordatorio de pago pendiente</li>
-                    <li>Enlace directo a la app</li>
-                    {customMessage && <li>Tu mensaje personalizado</li>}
-                  </ul>
-                </>
-              )}
-            </AlertDescription>
-          </Alert>
-
           {/* Actions */}
-          <div className="flex gap-3 justify-end pt-4 border-t">
-            <Button variant="outline" onClick={onClose} disabled={isLoading}>
+          <div className="flex justify-end gap-3 pt-4 border-t">
+            <Button variant="outline" onClick={onClose} disabled={sending}>
               Cancelar
             </Button>
-            <Button 
-              onClick={handleSend} 
-              disabled={isLoading || (sendMethod !== "chat" && !hasEmail)}
-              className="bg-orange-600 hover:bg-orange-700"
-            >
-              {isLoading ? (
+            <Button onClick={handleSend} disabled={sending} className="bg-orange-600 hover:bg-orange-700">
+              {sending ? (
                 <>
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                   Enviando...
                 </>
               ) : (
                 <>
-                  {sendMethod === "email" && <Mail className="w-4 h-4 mr-2" />}
-                  {sendMethod === "chat" && <MessageCircle className="w-4 h-4 mr-2" />}
-                  {sendMethod === "both" && (
-                    <>
-                      <Mail className="w-4 h-4 mr-1" />
-                      <MessageCircle className="w-4 h-4 mr-2" />
-                    </>
-                  )}
+                  <Send className="w-4 h-4 mr-2" />
                   Enviar Recordatorio
                 </>
               )}

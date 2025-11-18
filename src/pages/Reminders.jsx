@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -11,11 +12,6 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { format, addDays, subDays } from "date-fns";
 import { es } from "date-fns/locale";
 import { toast } from "sonner";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import IndividualReminderDialog from "../components/reminders/IndividualReminderDialog";
 
 const CLUB_IBAN = "ES82 0049 4447 38 2010604048";
 const CLUB_BANK = "Banco Santander";
@@ -32,9 +28,6 @@ export default function RemindersPage() {
   const [sendingReminder, setSendingReminder] = useState(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
-  const [selectedPaymentForReminder, setSelectedPaymentForReminder] = useState(null);
-  const [selectedPlayerForReminder, setSelectedPlayerForReminder] = useState(null);
-  const [showIndividualDialog, setShowIndividualDialog] = useState(false);
 
   const { data: reminders, isLoading } = useQuery({
     queryKey: ['reminders'],
@@ -369,131 +362,6 @@ Temporada ${reminder.temporada}
   const todayDate = new Date().toISOString().split('T')[0];
   const dueToday = reminders.filter(r => r.fecha_envio === todayDate && !r.enviado).length;
 
-  // Estadísticas por jugador
-  const playerPaymentStats = players.map(player => {
-    const playerPayments = payments.filter(p => p.jugador_id === player.id);
-    const pendientes = playerPayments.filter(p => p.estado === "Pendiente").length;
-    const enRevision = playerPayments.filter(p => p.estado === "En revisión").length;
-    const pagados = playerPayments.filter(p => p.estado === "Pagado").length;
-    
-    return {
-      ...player,
-      pagos_pendientes: pendientes,
-      pagos_en_revision: enRevision,
-      pagos_confirmados: pagados,
-      total_pagos: playerPayments.length
-    };
-  }).filter(p => p.total_pagos > 0);
-
-  const sendIndividualReminder = async (data) => {
-    try {
-      const { payment, player, sendMethod, customMessage } = data;
-      const reference = generatePaymentReference(player.nombre, player.deporte);
-      
-      const baseMessage = payment.justificante_url
-        ? `PAGO EN REVISIÓN - ${payment.mes_pago}\n\nFamilia de ${player.nombre}: Su justificante está en revisión. Pronto confirmaremos su pago.`
-        : `RECORDATORIO DE PAGO - ${payment.mes_pago}\n\nFamilia de ${player.nombre}: Recuerde realizar el pago de ${payment.cantidad}€.\n\nIBAN: ${CLUB_IBAN}\nConcepto: ${reference}\n\nInstrucciones en la app: Mis Pagos → ${payment.mes_pago}`;
-      
-      const finalMessage = customMessage ? `${baseMessage}\n\n📝 Nota: ${customMessage}` : baseMessage;
-
-      if (sendMethod === "email" || sendMethod === "both") {
-        const emailBody = payment.justificante_url ? `
-Estimada familia de ${player.nombre},
-
-Le informamos que su pago correspondiente al mes de ${payment.mes_pago} se encuentra en estado de revisión.
-
-${customMessage ? `\n📝 NOTA DEL CLUB:\n${customMessage}\n` : ''}
-
-Detalles del pago:
-════════════════════════════════════════
-Jugador: ${player.nombre}
-Mes: ${payment.mes_pago}
-Temporada: ${payment.temporada}
-Importe: ${payment.cantidad} euros
-Estado actual: En revisión
-════════════════════════════════════════
-
-Atentamente,
-Club de Fútbol Bustarviejo
-        ` : `
-Estimada familia de ${player.nombre},
-
-Le recordamos que tiene pendiente el pago de la inscripción correspondiente al mes de ${payment.mes_pago}.
-
-${customMessage ? `\n📝 NOTA DEL CLUB:\n${customMessage}\n` : ''}
-
-Detalles del pago:
-════════════════════════════════════════
-Jugador: ${player.nombre}
-Mes: ${payment.mes_pago}
-Temporada: ${payment.temporada}
-Importe: ${payment.cantidad} euros
-════════════════════════════════════════
-
-Datos bancarios:
-────────────────────────────────────────
-IBAN: ${CLUB_IBAN}
-Banco: ${CLUB_BANK}
-Concepto: ${reference}
-Importe: ${payment.cantidad} euros
-────────────────────────────────────────
-
-Atentamente,
-Club de Fútbol Bustarviejo
-        `;
-
-        if (player.email_padre) {
-          await base44.integrations.Core.SendEmail({
-            from_name: "CF Bustarviejo",
-            to: player.email_padre,
-            subject: `Recordatorio de Pago - ${payment.mes_pago}`,
-            body: emailBody
-          });
-        }
-
-        if (player.email_tutor_2) {
-          await base44.integrations.Core.SendEmail({
-            from_name: "CF Bustarviejo",
-            to: player.email_tutor_2,
-            subject: `Recordatorio de Pago - ${payment.mes_pago}`,
-            body: emailBody
-          });
-        }
-      }
-
-      if (sendMethod === "chat" || sendMethod === "both") {
-        await base44.entities.ChatMessage.create({
-          remitente_email: "admin@cdbustarviejo.com",
-          remitente_nombre: "Administración CF Bustarviejo",
-          mensaje: finalMessage,
-          prioridad: "Importante",
-          tipo: "admin_a_grupo",
-          deporte: player.deporte,
-          grupo_id: player.deporte,
-          leido: false,
-          archivos_adjuntos: []
-        });
-      }
-
-      toast.success("✅ Recordatorio enviado correctamente");
-      setShowIndividualDialog(false);
-      setSelectedPaymentForReminder(null);
-      setSelectedPlayerForReminder(null);
-    } catch (error) {
-      console.error("Error sending individual reminder:", error);
-      toast.error("Error al enviar el recordatorio");
-    }
-  };
-
-  const handleOpenIndividualReminder = (payment) => {
-    const player = players.find(p => p.id === payment.jugador_id);
-    if (player) {
-      setSelectedPaymentForReminder(payment);
-      setSelectedPlayerForReminder(player);
-      setShowIndividualDialog(true);
-    }
-  };
-
   const statusEmojis = {
     "Pagado": "🟢",
     "En revisión": "🟠",
@@ -510,18 +378,6 @@ Club de Fútbol Bustarviejo
 
   return (
     <div className="p-6 lg:p-8 space-y-6">
-      <IndividualReminderDialog
-        isOpen={showIndividualDialog}
-        onClose={() => {
-          setShowIndividualDialog(false);
-          setSelectedPaymentForReminder(null);
-          setSelectedPlayerForReminder(null);
-        }}
-        payment={selectedPaymentForReminder}
-        player={selectedPlayerForReminder}
-        onSend={sendIndividualReminder}
-        isLoading={false}
-      />
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <h1 className="text-3xl font-bold text-slate-900">Recordatorios de Pago</h1>
@@ -577,163 +433,6 @@ Club de Fútbol Bustarviejo
           </div>
         </AlertDescription>
       </Alert>
-
-      {/* Estadísticas Generales */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <Card className="border-none shadow-lg bg-white">
-          <CardHeader className="pb-3">
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-sm font-medium text-slate-600">
-                Total Jugadores
-              </CardTitle>
-              <div className="p-2 rounded-xl bg-blue-500 bg-opacity-10">
-                <Bell className="w-5 h-5 text-blue-500" />
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-blue-600">
-              {playerPaymentStats.length}
-            </div>
-            <p className="text-xs text-slate-500 mt-1">Con pagos registrados</p>
-          </CardContent>
-        </Card>
-
-        <Card className="border-none shadow-lg bg-white">
-          <CardHeader className="pb-3">
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-sm font-medium text-slate-600">
-                Faltan por Pagar
-              </CardTitle>
-              <div className="p-2 rounded-xl bg-red-500 bg-opacity-10">
-                <AlertCircle className="w-5 h-5 text-red-500" />
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-red-600">
-              {playerPaymentStats.filter(p => p.pagos_pendientes > 0).length}
-            </div>
-            <p className="text-xs text-slate-500 mt-1">🔴 Jugadores con pagos pendientes</p>
-          </CardContent>
-        </Card>
-        
-        <Card className="border-none shadow-lg bg-white">
-          <CardHeader className="pb-3">
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-sm font-medium text-slate-600">
-                En Revisión
-              </CardTitle>
-              <div className="p-2 rounded-xl bg-orange-500 bg-opacity-10">
-                <Calendar className="w-5 h-5 text-orange-500" />
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-orange-600">
-              {playerPaymentStats.filter(p => p.pagos_en_revision > 0).length}
-            </div>
-            <p className="text-xs text-slate-500 mt-1">🟠 Jugadores con pagos en revisión</p>
-          </CardContent>
-        </Card>
-
-        <Card className="border-none shadow-lg bg-white">
-          <CardHeader className="pb-3">
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-sm font-medium text-slate-600">
-                Al Día
-              </CardTitle>
-              <div className="p-2 rounded-xl bg-green-500 bg-opacity-10">
-                <CheckCircle2 className="w-5 h-5 text-green-500" />
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-green-600">
-              {playerPaymentStats.filter(p => p.pagos_pendientes === 0 && p.pagos_en_revision === 0).length}
-            </div>
-            <p className="text-xs text-slate-500 mt-1">🟢 Todos los pagos confirmados</p>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Estadísticas detalladas por jugador */}
-      <Card className="border-none shadow-lg bg-white">
-        <CardHeader className="border-b border-slate-100">
-          <CardTitle className="text-xl">Registro de Pagos por Jugador</CardTitle>
-        </CardHeader>
-        <CardContent className="p-0">
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Jugador</TableHead>
-                  <TableHead>Categoría</TableHead>
-                  <TableHead className="text-center">Pendientes</TableHead>
-                  <TableHead className="text-center">En Revisión</TableHead>
-                  <TableHead className="text-center">Pagados</TableHead>
-                  <TableHead className="text-right">Acción</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {playerPaymentStats.map((playerStat) => (
-                  <TableRow key={playerStat.id}>
-                    <TableCell className="font-medium">{playerStat.nombre}</TableCell>
-                    <TableCell className="text-sm text-slate-600">{playerStat.deporte}</TableCell>
-                    <TableCell className="text-center">
-                      {playerStat.pagos_pendientes > 0 ? (
-                        <Badge className="bg-red-100 text-red-700">
-                          🔴 {playerStat.pagos_pendientes}
-                        </Badge>
-                      ) : (
-                        <span className="text-slate-400">-</span>
-                      )}
-                    </TableCell>
-                    <TableCell className="text-center">
-                      {playerStat.pagos_en_revision > 0 ? (
-                        <Badge className="bg-orange-100 text-orange-700">
-                          🟠 {playerStat.pagos_en_revision}
-                        </Badge>
-                      ) : (
-                        <span className="text-slate-400">-</span>
-                      )}
-                    </TableCell>
-                    <TableCell className="text-center">
-                      {playerStat.pagos_confirmados > 0 ? (
-                        <Badge className="bg-green-100 text-green-700">
-                          🟢 {playerStat.pagos_confirmados}
-                        </Badge>
-                      ) : (
-                        <span className="text-slate-400">-</span>
-                      )}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      {playerStat.pagos_pendientes > 0 && (
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => {
-                            const pendingPayment = payments.find(p => 
-                              p.jugador_id === playerStat.id && p.estado === "Pendiente"
-                            );
-                            if (pendingPayment) {
-                              handleOpenIndividualReminder(pendingPayment);
-                            }
-                          }}
-                          className="text-orange-600 hover:text-orange-700"
-                        >
-                          <Send className="w-4 h-4 mr-1" />
-                          Recordar
-                        </Button>
-                      )}
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
-        </CardContent>
-      </Card>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <Card className="border-none shadow-lg bg-white">
