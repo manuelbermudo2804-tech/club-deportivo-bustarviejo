@@ -101,50 +101,62 @@ export default function TeamAttendanceEvaluation() {
         throw new Error("No hay datos de asistencia para el periodo seleccionado");
       }
 
+      // Calcular actitud promedio
+      const evaluacionesConActitud = playerData.filter(d => d.actitud != null && (d.estado === 'presente' || d.estado === 'tardanza'));
+      const actitudPromedio = evaluacionesConActitud.length > 0
+        ? (evaluacionesConActitud.reduce((sum, d) => sum + d.actitud, 0) / evaluacionesConActitud.length).toFixed(1)
+        : 'No evaluado';
+      
+      // Últimas 3 evaluaciones
+      const ultimasEvaluaciones = playerData
+        .filter(d => d.estado === 'presente' || d.estado === 'tardanza')
+        .slice(0, 3)
+        .map(d => format(new Date(d.fecha), "dd/MM/yy"))
+        .join('\n  ');
+
       const reportText = `
-📋 REPORTE DE ENTRENAMIENTO - PERIODO
-═══════════════════════════════════
+╔════════════════════════════════════════╗
+║   📊 REPORTE DE ENTRENAMIENTO          ║
+╚════════════════════════════════════════╝
 
-👤 Jugador: ${player.nombre}
-⚽ Categoría: ${selectedCategory}
+┌─────────────────────────────────────┐
+│  👤 ${player.nombre}
+│  ⚽ ${selectedCategory}
+└─────────────────────────────────────┘
+
 📅 Periodo: ${format(new Date(dateRange.start), "dd/MM/yyyy")} - ${format(new Date(dateRange.end), "dd/MM/yyyy")}
-👨‍🏫 Entrenador: ${user.full_name}
 
-═══════════════════════════════════
-📊 RESUMEN DEL PERIODO
-═══════════════════════════════════
+╔════════════════════════════════════════╗
+║              RESUMEN                    ║
+╚════════════════════════════════════════╝
 
-Total de sesiones: ${playerData.length}
-Asistencias: ${playerData.filter(p => p.estado === 'presente').length}
-Ausencias: ${playerData.filter(p => p.estado === 'ausente').length}
-Justificadas: ${playerData.filter(p => p.estado === 'justificado').length}
-Tardanzas: ${playerData.filter(p => p.estado === 'tardanza').length}
+📌 Sesiones: ${playerData.length}
 
-═══════════════════════════════════
-📝 DETALLE POR SESIÓN
-═══════════════════════════════════
+⭐ Actitud promedio: ${actitudPromedio}/5
+
+📆 Últimas evaluaciones:
+  ${ultimasEvaluaciones || 'Sin evaluaciones'}
+
+╔════════════════════════════════════════╗
+║         DETALLE POR SESIÓN             ║
+╚════════════════════════════════════════╝
 
 ${playerData.map(data => `
-📅 ${format(new Date(data.fecha), "dd 'de' MMMM", { locale: es })}
+📅 ${format(new Date(data.fecha), "dd 'de' MMMM 'de' yyyy", { locale: es })}
 ${data.estado === 'presente' ? '✅ Presente' : 
   data.estado === 'ausente' ? '❌ Ausente' : 
   data.estado === 'justificado' ? '📝 Ausencia Justificada' : 
-  '⏰ Llegada con retraso'}
-
-${(data.estado === 'presente' || data.estado === 'tardanza') ? `
-⭐ Evaluación:
-  😊 Actitud: ${data.actitud || 'No evaluado'}/5
-  ${data.observaciones ? `\n📝 Observaciones: ${data.observaciones}` : ''}
-` : ''}
+  '⏰ Tardanza'}
+${(data.estado === 'presente' || data.estado === 'tardanza') && data.actitud != null ? `⭐ Actitud: ${data.actitud}/5` : ''}
+${data.observaciones ? `📝 ${data.observaciones}` : ''}
 `).join('\n───────────────────────────────────\n')}
 
-═══════════════════════════════════
-Este reporte ha sido generado automáticamente.
-Para cualquier consulta, contacta con tu entrenador.
+════════════════════════════════════════
 
-Atentamente,
-${user.full_name}
-CD Bustarviejo
+👨‍🏫 Entrenador: ${user.full_name}
+📧 CD Bustarviejo
+
+Para cualquier consulta, contacta con tu entrenador.
       `.trim();
 
       if (sendMethod === 'email' || sendMethod === 'both') {
