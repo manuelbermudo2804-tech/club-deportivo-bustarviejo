@@ -296,44 +296,21 @@ Email: cdbustarviejo@gmail.com
         </Button>
       </div>
 
-      {/* Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <Card className="border-none shadow-lg bg-white">
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-slate-600 mb-1">Pendientes</p>
-                <p className="text-3xl font-bold text-red-600">{pendingCount}</p>
-              </div>
-              <span className="text-4xl">🔴</span>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="border-none shadow-lg bg-white">
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-slate-600 mb-1">En Revisión</p>
-                <p className="text-3xl font-bold text-orange-600">{inReviewCount}</p>
-              </div>
-              <span className="text-4xl">🟠</span>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="border-none shadow-lg bg-white">
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-slate-600 mb-1">Pagados</p>
-                <p className="text-3xl font-bold text-green-600">{paidCount}</p>
-              </div>
-              <span className="text-4xl">🟢</span>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+      {/* Stats - Simplified */}
+      {(pendingCount > 0 || inReviewCount > 0) && (
+        <div className="flex gap-3 flex-wrap">
+          {pendingCount > 0 && (
+            <Badge className="bg-red-500 text-white text-base px-4 py-2">
+              🔴 {pendingCount} Pendiente{pendingCount > 1 ? 's' : ''}
+            </Badge>
+          )}
+          {inReviewCount > 0 && (
+            <Badge className="bg-orange-500 text-white text-base px-4 py-2">
+              🟠 {inReviewCount} En Revisión
+            </Badge>
+          )}
+        </div>
+      )}
 
       {/* Payment Form */}
       <div data-payment-form>
@@ -378,37 +355,18 @@ Email: cdbustarviejo@gmail.com
 
               return (
                 <Card key={player.id} className="border-none shadow-lg bg-white overflow-hidden">
-                  <CardHeader className="bg-gradient-to-r from-orange-50 to-orange-100 border-b border-orange-200">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        {player.foto_url ? (
-                          <img src={player.foto_url} className="w-12 h-12 rounded-full object-cover border-2 border-orange-300" alt="" />
-                        ) : (
-                          <div className="w-12 h-12 rounded-full bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center text-white font-bold text-lg">
-                            {player.nombre.charAt(0)}
-                          </div>
-                        )}
-                        <div>
-                          <CardTitle className="text-xl text-slate-900">{player.nombre}</CardTitle>
-                          <p className="text-sm text-slate-600">{player.deporte}</p>
+                  <CardHeader className="bg-slate-50 border-b">
+                    <div className="flex items-center gap-3">
+                      {player.foto_url ? (
+                        <img src={player.foto_url} className="w-12 h-12 rounded-full object-cover" alt="" />
+                      ) : (
+                        <div className="w-12 h-12 rounded-full bg-orange-500 flex items-center justify-center text-white font-bold text-lg">
+                          {player.nombre.charAt(0)}
                         </div>
-                      </div>
-                      <div className="flex gap-2">
-                        {pendingPayments.length > 0 && (
-                          <Badge className="bg-red-500 text-white">
-                            {pendingPayments.length} Pendiente{pendingPayments.length > 1 ? 's' : ''}
-                          </Badge>
-                        )}
-                        {reviewPayments.length > 0 && (
-                          <Badge className="bg-orange-500 text-white">
-                            {reviewPayments.length} En Revisión
-                          </Badge>
-                        )}
-                        {paidPayments.length > 0 && (
-                          <Badge className="bg-green-500 text-white">
-                            {paidPayments.length} Pagado{paidPayments.length > 1 ? 's' : ''}
-                          </Badge>
-                        )}
+                      )}
+                      <div>
+                        <CardTitle className="text-xl text-slate-900">{player.nombre}</CardTitle>
+                        <p className="text-sm text-slate-600">{player.deporte}</p>
                       </div>
                     </div>
                   </CardHeader>
@@ -435,78 +393,55 @@ Email: cdbustarviejo@gmail.com
                         </Button>
                       </div>
                     ) : (
-                      <div className="space-y-4">
+                      <div className="space-y-3">
                         {playerPayments.map((payment) => (
-                          <div key={payment.id} className="border rounded-lg p-4 hover:bg-slate-50 transition-colors">
-                            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                              <div className="flex-1 space-y-2">
-                                <div className="flex items-center gap-3">
-                                  <Badge className={
-                                    payment.estado === "Pagado"
-                                      ? "bg-green-100 text-green-700"
-                                      : payment.estado === "En revisión"
-                                      ? "bg-orange-100 text-orange-700"
-                                      : "bg-red-100 text-red-700"
-                                  }>
-                                    <span className="mr-1">{statusEmojis[payment.estado]}</span>
-                                    {payment.estado}
-                                  </Badge>
-                                  <span className="font-semibold text-slate-900">{payment.mes} - {payment.temporada}</span>
-                                  <Badge variant="outline">{payment.tipo_pago}</Badge>
+                          <div key={payment.id} className={`border-l-4 p-3 rounded ${
+                            payment.estado === "Pagado" ? "border-green-500 bg-green-50" :
+                            payment.estado === "En revisión" ? "border-orange-500 bg-orange-50" :
+                            "border-red-500 bg-red-50"
+                          }`}>
+                            <div className="flex items-center justify-between gap-3">
+                              <div className="flex-1">
+                                <div className="flex items-center gap-2 mb-1">
+                                  <span className="font-bold text-slate-900">{payment.mes}</span>
+                                  <span className="text-2xl">{statusEmojis[payment.estado]}</span>
+                                  <span className="text-lg font-bold">{payment.cantidad}€</span>
                                 </div>
-                                <div className="flex items-center gap-4 text-sm text-slate-600">
-                                  <span className="font-bold text-lg text-slate-900">{payment.cantidad}€</span>
-                                  <span>• Vencimiento: 30 de {payment.mes}</span>
-                                  {payment.fecha_pago && (
-                                    <span>• Pagado: {new Date(payment.fecha_pago).toLocaleDateString('es-ES')}</span>
-                                  )}
-                                </div>
+                                <p className="text-xs text-slate-600">{payment.estado}</p>
                               </div>
-                              <div className="flex items-center gap-2">
-                                {payment.justificante_url ? (
-                                  <a
-                                    href={payment.justificante_url}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-orange-50 text-orange-700 hover:bg-orange-100 transition-colors"
+                              {payment.justificante_url ? (
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  onClick={() => window.open(payment.justificante_url, '_blank')}
+                                  className="text-orange-600 hover:text-orange-700"
+                                >
+                                  <FileText className="w-4 h-4" />
+                                </Button>
+                              ) : payment.estado !== "Pagado" && (
+                                <>
+                                  <input
+                                    type="file"
+                                    accept="image/*,.pdf"
+                                    onChange={(e) => handleFileUpload(payment.id, e)}
+                                    className="hidden"
+                                    id={`upload-${payment.id}`}
+                                    disabled={uploadingPaymentId === payment.id}
+                                  />
+                                  <Button
+                                    size="sm"
+                                    disabled={uploadingPaymentId === payment.id}
+                                    onClick={() => document.getElementById(`upload-${payment.id}`)?.click()}
+                                    className="bg-orange-600 hover:bg-orange-700"
                                   >
-                                    <FileText className="w-4 h-4" />
-                                    <span className="text-sm font-medium">Ver Justificante</span>
-                                  </a>
-                                ) : payment.estado === "Pagado" ? (
-                                  <span className="text-xs text-slate-400">Sin justificante</span>
-                                ) : (
-                                  <>
-                                    <input
-                                      type="file"
-                                      accept="image/*,.pdf"
-                                      onChange={(e) => handleFileUpload(payment.id, e)}
-                                      className="hidden"
-                                      id={`upload-${payment.id}`}
-                                      disabled={uploadingPaymentId === payment.id}
-                                    />
-                                    <Button
-                                       variant="outline"
-                                       size="sm"
-                                       disabled={uploadingPaymentId === payment.id}
-                                       onClick={() => document.getElementById(`upload-${payment.id}`)?.click()}
-                                       type="button"
-                                     >
-                                        {uploadingPaymentId === payment.id ? (
-                                          <>
-                                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                                            Subiendo...
-                                          </>
-                                        ) : (
-                                          <>
-                                            <Upload className="w-4 h-4 mr-2" />
-                                            Subir Justificante
-                                          </>
-                                        )}
-                                      </Button>
-                                  </>
-                                )}
-                              </div>
+                                    {uploadingPaymentId === payment.id ? (
+                                      <Loader2 className="w-4 h-4 animate-spin" />
+                                    ) : (
+                                      <Upload className="w-4 h-4" />
+                                    )}
+                                  </Button>
+                                </>
+                              )}
                             </div>
                           </div>
                         ))}
@@ -521,18 +456,13 @@ Email: cdbustarviejo@gmail.com
 
       <ContactCard />
 
-      {/* Instrucciones */}
-      <Card className="border-none shadow-lg bg-orange-50 border-orange-200">
-        <CardHeader>
-          <CardTitle className="text-lg text-orange-900">ℹ️ Instrucciones</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3 text-sm text-slate-700">
-          <p>• <strong>Registrar un pago:</strong> Haz clic en el botón "Registrar Pago", selecciona el jugador, tipo de pago y sube el justificante</p>
-          <p>• <strong>Pagos Pendientes (🔴):</strong> Sube el justificante de pago (Bizum o transferencia) haciendo clic en "Subir"</p>
-          <p>• <strong>En Revisión (🟠):</strong> El administrador está verificando tu pago</p>
-          <p>• <strong>Pagado (🟢):</strong> El pago ha sido confirmado por el administrador</p>
-          <p className="pt-2 border-t border-orange-200">
-            <strong>Importante:</strong> Sube el justificante junto con el registro del pago para que pueda ser verificado más rápidamente.
+      {/* Instrucciones simplificadas */}
+      <Card className="border-orange-200 bg-orange-50">
+        <CardContent className="p-4">
+          <p className="text-sm text-slate-700">
+            <strong>🔴 Pendiente:</strong> Sube justificante • 
+            <strong className="ml-2">🟠 En Revisión:</strong> Verificando • 
+            <strong className="ml-2">🟢 Pagado:</strong> Confirmado
           </p>
         </CardContent>
       </Card>
