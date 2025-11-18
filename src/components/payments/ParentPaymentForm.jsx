@@ -83,28 +83,14 @@ export default function ParentPaymentForm({ players, payments = [], onSubmit, on
       if (jugadorId) {
         const player = players.find(p => p.id === jugadorId);
         if (player) {
-          setSelectedPlayer(player);
-          const cuotas = getCuotasPorCategoria(player.deporte);
-          setCurrentPayment(prev => ({
-            ...prev,
-            jugador_id: player.id,
-            jugador_nombre: player.nombre,
-            cantidad: cuotas.total
-          }));
+          handlePlayerChange(player.id);
         }
       } else {
         const player = players[0];
-        setSelectedPlayer(player);
-        const cuotas = getCuotasPorCategoria(player.deporte);
-        setCurrentPayment(prev => ({
-          ...prev,
-          jugador_id: player.id,
-          jugador_nombre: player.nombre,
-          cantidad: cuotas.total
-        }));
+        handlePlayerChange(player.id);
       }
     }
-  }, [players]);
+  }, [players, payments]);
 
   const handlePlayerChange = (playerId) => {
     const player = players.find(p => p.id === playerId);
