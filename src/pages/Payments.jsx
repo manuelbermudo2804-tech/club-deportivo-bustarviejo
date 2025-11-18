@@ -232,18 +232,15 @@ export default function Payments() {
         
         console.log('📧 [Payments] Enviando confirmación de pago a padres:', { jugador: payment.jugador_nombre, padre: player?.email_padre, tutor2: player?.email_tutor_2 });
         
-        const confirmBody = `
-Estimados padres/tutores,
+        const confirmBody = `Estimados padres/tutores,
 
 Confirmamos que hemos recibido y verificado el pago de ${payment.jugador_nombre}.
 
-════════════════════════════════════════
-💰 DETALLES DEL PAGO
-════════════════════════════════════════
-Período: ${payment.mes}
+DETALLES DEL PAGO
+Periodo: ${payment.mes}
 Temporada: ${payment.temporada}
-Cantidad: ${payment.cantidad}€
-Estado: Pagado ✅
+Cantidad: ${payment.cantidad} euros
+Estado: Pagado
 
 Gracias por su pago.
 
@@ -251,9 +248,7 @@ Atentamente,
 
 CD Bustarviejo
 
-════════════════════════════════════════
 Datos de contacto:
-════════════════════════════════════════
 Email: cdbustarviejo@gmail.com
         `;
         
