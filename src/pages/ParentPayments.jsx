@@ -420,38 +420,16 @@ Email: cdbustarviejo@gmail.com
                                 </div>
                                 <p className="text-xs text-slate-600">{payment.estado}</p>
                               </div>
-                              {payment.justificante_url ? (
+                              {payment.estado === "Pagado" && payment.justificante_url && (
                                 <Button
                                   size="sm"
                                   variant="ghost"
                                   onClick={() => window.open(payment.justificante_url, '_blank')}
-                                  className="text-orange-600 hover:text-orange-700"
+                                  className="text-green-600 hover:text-green-700"
                                 >
-                                  <FileText className="w-4 h-4" />
+                                  <FileText className="w-4 h-4 mr-1" />
+                                  Ver
                                 </Button>
-                              ) : payment.estado !== "Pagado" && (
-                                <>
-                                  <input
-                                    type="file"
-                                    accept="image/*,.pdf"
-                                    onChange={(e) => handleFileUpload(payment.id, e)}
-                                    className="hidden"
-                                    id={`upload-${payment.id}`}
-                                    disabled={uploadingPaymentId === payment.id}
-                                  />
-                                  <Button
-                                    size="sm"
-                                    disabled={uploadingPaymentId === payment.id}
-                                    onClick={() => document.getElementById(`upload-${payment.id}`)?.click()}
-                                    className="bg-orange-600 hover:bg-orange-700"
-                                  >
-                                    {uploadingPaymentId === payment.id ? (
-                                      <Loader2 className="w-4 h-4 animate-spin" />
-                                    ) : (
-                                      <Upload className="w-4 h-4" />
-                                    )}
-                                  </Button>
-                                </>
                               )}
                             </div>
                           </div>
