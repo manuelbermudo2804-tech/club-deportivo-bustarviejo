@@ -460,38 +460,37 @@ Email: cdbustarviejo@gmail.com
                                 ) : payment.estado === "Pagado" ? (
                                   <span className="text-xs text-slate-400">Sin justificante</span>
                                 ) : (
-                                  <>
-                                    <input
-                                      type="file"
-                                      accept="image/*,.pdf"
-                                      onChange={(e) => handleFileUpload(payment.id, e)}
-                                      className="hidden"
-                                      id={`upload-${payment.id}`}
-                                      disabled={uploadingPaymentId === payment.id}
-                                    />
-                                    <Button
-                                       variant="outline"
-                                       size="sm"
-                                       disabled={uploadingPaymentId === payment.id}
-                                       onClick={(e) => {
-                                         e.preventDefault();
-                                         document.getElementById(`upload-${payment.id}`).click();
-                                       }}
-                                       asChild
-                                     >
-                                        {uploadingPaymentId === payment.id ? (
-                                          <>
-                                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                                            Subiendo...
-                                          </>
-                                        ) : (
-                                          <>
-                                            <Upload className="w-4 h-4 mr-2" />
-                                            Subir Justificante
-                                            </>
-                                            )}
-                                            </Button>
-                                  </>
+                                 <>
+                                   <input
+                                     type="file"
+                                     accept="image/*,.pdf"
+                                     onChange={(e) => handleFileUpload(payment.id, e)}
+                                     className="hidden"
+                                     id={`upload-${payment.id}`}
+                                     disabled={uploadingPaymentId === payment.id}
+                                   />
+                                   <Button
+                                     variant="outline"
+                                     size="sm"
+                                     disabled={uploadingPaymentId === payment.id}
+                                     onClick={(e) => {
+                                       e.preventDefault();
+                                       document.getElementById(`upload-${payment.id}`).click();
+                                     }}
+                                   >
+                                     {uploadingPaymentId === payment.id ? (
+                                       <>
+                                         <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                         Subiendo...
+                                       </>
+                                     ) : (
+                                       <>
+                                         <Upload className="w-4 h-4 mr-2" />
+                                         Subir Justificante
+                                       </>
+                                     )}
+                                   </Button>
+                                 </>
                                 )}
                               </div>
                             </div>
