@@ -300,9 +300,10 @@ Email: cdbustarviejo@gmail.com
     queryClient.invalidateQueries({ queryKey: ['myPayments'] });
   };
 
-  // Filtrado avanzado
-  const filteredPayments = payments.filter(payment => {
-    const matchesSearch = payment.jugador_nombre?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+  // Filtrado avanzado - aplicar solo a admin
+  const filteredPayments = !isAdmin ? payments : payments.filter(payment => {
+    const matchesSearch = searchTerm === "" || 
+      payment.jugador_nombre?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       payment.mes?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesPlayer = playerFilter === "all" || payment.jugador_id === playerFilter;
     const matchesTemporada = temporadaFilter === "all" || payment.temporada === temporadaFilter;

@@ -420,12 +420,12 @@ Email: cdbustarviejo@gmail.com
                                 </div>
                                 <p className="text-xs text-slate-600">{payment.estado}</p>
                               </div>
-                              {payment.estado === "Pagado" && payment.justificante_url && (
+                              {payment.justificante_url && (
                                 <Button
                                   size="sm"
                                   variant="ghost"
                                   onClick={() => window.open(payment.justificante_url, '_blank')}
-                                  className="text-green-600 hover:text-green-700"
+                                  className={payment.estado === "Pagado" ? "text-green-600 hover:text-green-700" : "text-orange-600 hover:text-orange-700"}
                                 >
                                   <FileText className="w-4 h-4 mr-1" />
                                   Ver
