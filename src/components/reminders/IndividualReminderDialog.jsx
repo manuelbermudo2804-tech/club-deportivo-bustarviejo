@@ -9,7 +9,6 @@ import { Mail, MessageCircle, Send, Loader2, Smartphone } from "lucide-react";
 export default function IndividualReminderDialog({ isOpen, onClose, payment, player, onSend }) {
   const [methods, setMethods] = useState({
     email: false,
-    sms: false,
     chat: false,
     animation: false
   });
@@ -51,7 +50,7 @@ CD Bustarviejo`;
         message: customMessage || defaultMessage
       });
       onClose();
-      setMethods({ email: false, sms: false, chat: false, animation: false });
+      setMethods({ email: false, chat: false, animation: false });
       setCustomMessage("");
     } catch (error) {
       console.error("Error sending reminder:", error);
@@ -120,24 +119,6 @@ CD Bustarviejo`;
 
               <div 
                 className="flex items-center space-x-3 border rounded-lg p-4 hover:bg-slate-50 cursor-pointer transition-colors"
-                onClick={() => toggleMethod('sms')}
-              >
-                <Checkbox 
-                  id="sms"
-                  checked={methods.sms}
-                  onCheckedChange={() => toggleMethod('sms')}
-                />
-                <Label htmlFor="sms" className="flex items-center gap-2 cursor-pointer flex-1">
-                  <Smartphone className="w-5 h-5 text-blue-600" />
-                  <div>
-                    <span className="font-medium">SMS / WhatsApp</span>
-                    <p className="text-xs text-slate-500">Mensaje directo al teléfono</p>
-                  </div>
-                </Label>
-              </div>
-
-              <div 
-                className="flex items-center space-x-3 border rounded-lg p-4 hover:bg-slate-50 cursor-pointer transition-colors"
                 onClick={() => toggleMethod('chat')}
               >
                 <Checkbox 
@@ -166,8 +147,8 @@ CD Bustarviejo`;
                 <Label htmlFor="animation" className="flex items-center gap-2 cursor-pointer flex-1">
                   <span className="text-2xl animate-bounce">🔔</span>
                   <div>
-                    <span className="font-semibold text-purple-700">Con Animación Visual</span>
-                    <p className="text-xs text-purple-600">Notificación destacada y prioritaria</p>
+                    <span className="font-semibold text-purple-700">Formato Urgente</span>
+                    <p className="text-xs text-purple-600">Email y Chat con prioridad máxima</p>
                   </div>
                 </Label>
               </div>
@@ -178,9 +159,8 @@ CD Bustarviejo`;
                 <p className="text-sm text-blue-800 font-medium">
                   ✓ Se enviará por: {Object.keys(methods).filter(k => methods[k]).map(k => {
                     if (k === 'email') return 'Email';
-                    if (k === 'sms') return 'SMS';
                     if (k === 'chat') return 'Chat';
-                    if (k === 'animation') return 'Animación';
+                    if (k === 'animation') return 'Prioridad Urgente';
                   }).join(', ')}
                 </p>
               </div>

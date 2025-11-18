@@ -72,7 +72,7 @@ export default function RemindersPage() {
       const payment = payments.find(p => p.id === data.paymentId);
       const player = players.find(p => p.id === data.playerId);
       
-      const { email, sms, chat, animation } = data.methods;
+      const { email, chat, animation } = data.methods;
       let sentMethods = [];
       
       // EMAIL
@@ -115,26 +115,6 @@ Gracias por su atención.
         sentMethods.push('Email');
       }
       
-      // SMS / WhatsApp
-      if (sms) {
-        const smsMessage = `CD Bustarviejo: Recordatorio de pago ${payment.mes} para ${player.nombre}. Importe: ${payment.cantidad}€. Por favor, realiza el pago y sube el justificante en la app.`;
-        
-        const phoneNumbers = [];
-        if (player.telefono) {
-          phoneNumbers.push(player.telefono);
-          console.log('SMS enviado a:', player.telefono, smsMessage);
-        }
-        if (player.telefono_tutor_2) {
-          phoneNumbers.push(player.telefono_tutor_2);
-          console.log('SMS enviado a:', player.telefono_tutor_2, smsMessage);
-        }
-        
-        if (phoneNumbers.length > 0) {
-          sentMethods.push(`SMS (${phoneNumbers.join(', ')})`);
-          // Nota: Sistema de SMS simulado - en producción integrar con proveedor SMS
-        }
-      }
-      
       // CHAT
       if (chat || animation) {
         const chatMessage = animation
@@ -156,7 +136,7 @@ Gracias por su atención.
       
       // ANIMATION adds visual priority
       if (animation) {
-        sentMethods.push('Animación');
+        sentMethods.push('Formato Urgente');
       }
       
       toast.success(`✅ Recordatorio enviado por: ${sentMethods.join(', ')}`);
@@ -586,7 +566,7 @@ Temporada ${reminder.temporada}
   };
 
   return (
-    <div className="p-6 lg:p-8 space-y-6">
+    <div className="p-3 lg:p-8 space-y-4 lg:space-y-6">
       <IndividualReminderDialog
         isOpen={!!selectedReminder}
         onClose={() => {
@@ -597,52 +577,57 @@ Temporada ${reminder.temporada}
         player={selectedPlayer}
         onSend={handleSendIndividualReminder}
       />
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3">
         <div>
-          <h1 className="text-3xl font-bold text-slate-900">Recordatorios de Pago</h1>
-          <p className="text-slate-600 mt-1">Sistema automático con datos bancarios incluidos</p>
+          <h1 className="text-xl lg:text-3xl font-bold text-slate-900">Recordatorios de Pago</h1>
+          <p className="text-xs lg:text-sm text-slate-600 mt-1">Sistema automático</p>
         </div>
-        <div className="flex gap-3 flex-wrap">
+        <div className="flex gap-2 flex-wrap">
           <Button
             onClick={exportPaymentsPDF}
             variant="outline"
-            className="shadow-lg"
+            size="sm"
+            className="shadow-lg text-xs lg:text-sm"
           >
-            <FileDown className="w-5 h-5 mr-2" />
-            Exportar CSV
+            <FileDown className="w-4 h-4 lg:w-5 lg:h-5 lg:mr-2" />
+            <span className="hidden lg:inline">Exportar CSV</span>
           </Button>
           <Button
             onClick={handleRefresh}
             disabled={isRefreshing}
             variant="outline"
-            className="shadow-lg"
+            size="sm"
+            className="shadow-lg text-xs lg:text-sm"
           >
-            <RefreshCw className={`w-5 h-5 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
-            Actualizar
+            <RefreshCw className={`w-4 h-4 lg:w-5 lg:h-5 ${isRefreshing ? 'animate-spin' : ''}`} />
           </Button>
           <Button
             onClick={generatePaymentsForSeason}
             disabled={isGenerating}
-            className="bg-blue-600 hover:bg-blue-700 shadow-lg"
+            size="sm"
+            className="bg-blue-600 hover:bg-blue-700 shadow-lg text-xs lg:text-sm"
           >
-            <Plus className={`w-5 h-5 mr-2 ${isGenerating ? 'animate-spin' : ''}`} />
-            Generar Pagos Temporada
+            <Plus className={`w-4 h-4 lg:w-5 lg:h-5 lg:mr-2 ${isGenerating ? 'animate-spin' : ''}`} />
+            <span className="hidden lg:inline">Generar Pagos</span>
           </Button>
           <Button
             onClick={generateStaggeredReminders}
             disabled={isGenerating}
-            className="bg-green-600 hover:bg-green-700 shadow-lg"
+            size="sm"
+            className="bg-green-600 hover:bg-green-700 shadow-lg text-xs lg:text-sm"
           >
-            <Zap className={`w-5 h-5 mr-2 ${isGenerating ? 'animate-spin' : ''}`} />
-            Generar Recordatorios
+            <Zap className={`w-4 h-4 lg:w-5 lg:h-5 lg:mr-2 ${isGenerating ? 'animate-spin' : ''}`} />
+            <span className="hidden lg:inline">Recordatorios</span>
           </Button>
           <Button
             onClick={sendTodayReminders}
             disabled={dueToday === 0}
-            className="bg-orange-600 hover:bg-orange-700 shadow-lg"
+            size="sm"
+            className="bg-orange-600 hover:bg-orange-700 shadow-lg text-xs lg:text-sm"
           >
-            <Send className="w-5 h-5 mr-2" />
-            Enviar de Hoy ({dueToday})
+            <Send className="w-4 h-4 lg:w-5 lg:h-5 lg:mr-2" />
+            <span className="hidden lg:inline">Hoy ({dueToday})</span>
+            <span className="lg:hidden">{dueToday}</span>
           </Button>
         </div>
       </div>
@@ -732,61 +717,61 @@ Temporada ${reminder.temporada}
         </CardContent>
       </Card>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-3 gap-2 lg:gap-6">
         <Card className="border-none shadow-lg bg-white">
-          <CardHeader className="pb-3">
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-sm font-medium text-slate-600">
-                Sin Justificante
+          <CardHeader className="pb-2 lg:pb-3 p-3 lg:p-6">
+            <div className="flex flex-col lg:flex-row items-start lg:items-center lg:justify-between gap-2">
+              <CardTitle className="text-xs lg:text-sm font-medium text-slate-600">
+                Sin Justif.
               </CardTitle>
-              <div className="p-2 rounded-xl bg-red-500 bg-opacity-10">
-                <Bell className="w-5 h-5 text-red-500" />
+              <div className="p-1 lg:p-2 rounded-lg lg:rounded-xl bg-red-500 bg-opacity-10">
+                <Bell className="w-3 h-3 lg:w-5 lg:h-5 text-red-500" />
               </div>
             </div>
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-red-600">
+          <CardContent className="p-3 lg:p-6 pt-0">
+            <div className="text-xl lg:text-2xl font-bold text-red-600">
               {paymentsWithoutJustificante}
             </div>
-            <p className="text-xs text-slate-500 mt-1">🔴 Urgente - Sin justificante cargado</p>
+            <p className="text-[10px] lg:text-xs text-slate-500 mt-1">🔴 Urgente</p>
           </CardContent>
         </Card>
 
         <Card className="border-none shadow-lg bg-white">
-          <CardHeader className="pb-3">
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-sm font-medium text-slate-600">
-                En Revisión
+          <CardHeader className="pb-2 lg:pb-3 p-3 lg:p-6">
+            <div className="flex flex-col lg:flex-row items-start lg:items-center lg:justify-between gap-2">
+              <CardTitle className="text-xs lg:text-sm font-medium text-slate-600">
+                Revisión
               </CardTitle>
-              <div className="p-2 rounded-xl bg-orange-500 bg-opacity-10">
-                <Calendar className="w-5 h-5 text-orange-500" />
+              <div className="p-1 lg:p-2 rounded-lg lg:rounded-xl bg-orange-500 bg-opacity-10">
+                <Calendar className="w-3 h-3 lg:w-5 lg:h-5 text-orange-500" />
               </div>
             </div>
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-orange-600">
+          <CardContent className="p-3 lg:p-6 pt-0">
+            <div className="text-xl lg:text-2xl font-bold text-orange-600">
               {paymentsInReview}
             </div>
-            <p className="text-xs text-slate-500 mt-1">🟠 Justificante recibido, pendiente verificar</p>
+            <p className="text-[10px] lg:text-xs text-slate-500 mt-1">🟠 Pendiente</p>
           </CardContent>
         </Card>
 
         <Card className="border-none shadow-lg bg-white">
-          <CardHeader className="pb-3">
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-sm font-medium text-slate-600">
-                Pagados Confirmados
+          <CardHeader className="pb-2 lg:pb-3 p-3 lg:p-6">
+            <div className="flex flex-col lg:flex-row items-start lg:items-center lg:justify-between gap-2">
+              <CardTitle className="text-xs lg:text-sm font-medium text-slate-600">
+                Pagados
               </CardTitle>
-              <div className="p-2 rounded-xl bg-green-500 bg-opacity-10">
-                <CheckCircle2 className="w-5 h-5 text-green-500" />
+              <div className="p-1 lg:p-2 rounded-lg lg:rounded-xl bg-green-500 bg-opacity-10">
+                <CheckCircle2 className="w-3 h-3 lg:w-5 lg:h-5 text-green-500" />
               </div>
             </div>
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-green-600">
+          <CardContent className="p-3 lg:p-6 pt-0">
+            <div className="text-xl lg:text-2xl font-bold text-green-600">
               {paidPayments}
             </div>
-            <p className="text-xs text-slate-500 mt-1">🟢 Pagos verificados y confirmados</p>
+            <p className="text-[10px] lg:text-xs text-slate-500 mt-1">🟢 Confirmados</p>
           </CardContent>
         </Card>
       </div>
@@ -870,11 +855,13 @@ Temporada ${reminder.temporada}
                                 toast.error("No se pudo cargar la información del jugador");
                               }
                             }}
-                            className="bg-purple-600 hover:bg-purple-700"
+                            size="sm"
+                            className="bg-purple-600 hover:bg-purple-700 text-xs lg:text-sm"
                             disabled={!player}
                           >
-                            <Send className="w-4 h-4 mr-2" />
-                            Enviar Recordatorio
+                            <Send className="w-3 h-3 lg:w-4 lg:h-4 lg:mr-2" />
+                            <span className="hidden lg:inline">Enviar Recordatorio</span>
+                            <span className="lg:hidden">Enviar</span>
                           </Button>
                         </div>
                       </CardHeader>
