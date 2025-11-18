@@ -529,110 +529,222 @@ CD Bustarviejo
           <p className="text-slate-500 text-sm">No hay jugadores en este equipo</p>
         </div>
       ) : (
-        <div className="overflow-x-auto">
-          <table className="w-full bg-white rounded-xl shadow-md">
-            <thead className="bg-gradient-to-r from-orange-600 to-orange-700 text-white">
-              <tr>
-                <th className="p-3 text-left text-xs font-semibold sticky left-0 bg-orange-600 z-10">Jugador</th>
-                <th className="p-3 text-center text-xs font-semibold min-w-[140px]">Asistencia</th>
-                <th className="p-3 text-center text-xs font-semibold min-w-[80px]">Técnica</th>
-                <th className="p-3 text-center text-xs font-semibold min-w-[80px]">Táctica</th>
-                <th className="p-3 text-center text-xs font-semibold min-w-[80px]">Física</th>
-                <th className="p-3 text-center text-xs font-semibold min-w-[80px]">Actitud</th>
-                <th className="p-3 text-center text-xs font-semibold min-w-[80px]">Equipo</th>
-                <th className="p-3 text-left text-xs font-semibold min-w-[200px]">Observaciones</th>
-                <th className="p-3 text-center text-xs font-semibold min-w-[100px]">Reporte</th>
-              </tr>
-            </thead>
-            <tbody>
-              {categoryPlayers.map((player, idx) => {
-                const playerData = sessionData[player.id] || {};
-                const isPresent = playerData.asistencia === 'presente';
-                
-                return (
-                  <tr key={player.id} className={`border-b ${idx % 2 === 0 ? 'bg-slate-50' : 'bg-white'}`}>
-                    <td className="p-3 sticky left-0 bg-inherit z-10">
-                      <div className="flex items-center gap-2">
-                        {player.foto_url ? (
-                          <img src={player.foto_url} className="w-8 h-8 rounded-full object-cover" alt="" />
-                        ) : (
-                          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center text-white text-xs font-bold">
-                            {player.nombre.charAt(0)}
-                          </div>
-                        )}
-                        <span className="font-medium text-sm whitespace-nowrap">{player.nombre}</span>
+        <>
+          {/* Vista Móvil */}
+          <div className="lg:hidden space-y-3">
+            {categoryPlayers.map((player) => {
+              const playerData = sessionData[player.id] || {};
+              const isPresent = playerData.asistencia === 'presente';
+
+              return (
+                <div key={player.id} className="bg-white rounded-xl shadow-md p-4 space-y-3">
+                  {/* Header */}
+                  <div className="flex items-center gap-3 pb-3 border-b">
+                    {player.foto_url ? (
+                      <img src={player.foto_url} className="w-12 h-12 rounded-full object-cover" alt="" />
+                    ) : (
+                      <div className="w-12 h-12 rounded-full bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center text-white font-bold">
+                        {player.nombre.charAt(0)}
                       </div>
-                    </td>
-                    <td className="p-2">
-                      <div className="flex gap-1 justify-center">
-                        {[
-                          { value: 'presente', icon: CheckCircle2, color: 'text-green-600', bg: 'bg-green-100' },
-                          { value: 'ausente', icon: XCircle, color: 'text-red-600', bg: 'bg-red-100' },
-                          { value: 'justificado', icon: Clock, color: 'text-blue-600', bg: 'bg-blue-100' },
-                          { value: 'tardanza', icon: Clock, color: 'text-orange-600', bg: 'bg-orange-100' }
-                        ].map(({ value, icon: Icon, color, bg }) => {
-                          const isSelected = playerData.asistencia === value;
-                          return (
-                            <button
-                              key={value}
-                              onClick={() => handleChange(player.id, 'asistencia', value)}
-                              className={`p-2 rounded transition-all ${
-                                isSelected ? `${bg} ${color} ring-2 ring-offset-1` : 'bg-slate-100 text-slate-400 hover:bg-slate-200'
-                              }`}
-                            >
-                              <Icon className="w-4 h-4" />
-                            </button>
-                          );
-                        })}
-                      </div>
-                    </td>
-                    {['tecnica', 'tactica', 'fisica', 'actitud', 'trabajo_equipo'].map(field => (
-                      <td key={field} className="p-2">
-                        <Select
-                          value={playerData[field]?.toString() || ""}
-                          onValueChange={(value) => handleChange(player.id, field, parseInt(value))}
-                          disabled={!isPresent}
-                        >
-                          <SelectTrigger className="h-8 text-xs">
-                            <SelectValue placeholder="-" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {[1, 2, 3, 4, 5].map(num => (
-                              <SelectItem key={num} value={num.toString()}>
-                                {'⭐'.repeat(num)}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </td>
-                    ))}
-                    <td className="p-2">
+                    )}
+                    <span className="font-semibold text-base">{player.nombre}</span>
+                  </div>
+
+                  {/* Asistencia */}
+                  <div>
+                    <label className="text-xs font-medium text-slate-600 mb-2 block">Asistencia</label>
+                    <div className="grid grid-cols-4 gap-2">
+                      {[
+                        { value: 'presente', icon: CheckCircle2, color: 'text-green-600', bg: 'bg-green-100', label: '✅ Presente' },
+                        { value: 'ausente', icon: XCircle, color: 'text-red-600', bg: 'bg-red-100', label: '❌ Ausente' },
+                        { value: 'justificado', icon: Clock, color: 'text-blue-600', bg: 'bg-blue-100', label: '📝 Justificado' },
+                        { value: 'tardanza', icon: Clock, color: 'text-orange-600', bg: 'bg-orange-100', label: '⏰ Tardanza' }
+                      ].map(({ value, icon: Icon, color, bg, label }) => {
+                        const isSelected = playerData.asistencia === value;
+                        return (
+                          <button
+                            key={value}
+                            onClick={() => handleChange(player.id, 'asistencia', value)}
+                            className={`p-3 rounded-lg transition-all flex flex-col items-center gap-1 ${
+                              isSelected ? `${bg} ${color} ring-2 ring-offset-1` : 'bg-slate-50 text-slate-400'
+                            }`}
+                          >
+                            <Icon className="w-5 h-5" />
+                            <span className="text-[10px] font-medium">{label.split(' ')[1]}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Evaluaciones - Solo si presente */}
+                  {isPresent && (
+                    <div className="grid grid-cols-2 gap-3">
+                      {[
+                        { field: 'tecnica', label: '🎯 Técnica' },
+                        { field: 'tactica', label: '📐 Táctica' },
+                        { field: 'fisica', label: '💪 Física' },
+                        { field: 'actitud', label: '😊 Actitud' },
+                        { field: 'trabajo_equipo', label: '🤝 Equipo' }
+                      ].map(({ field, label }) => (
+                        <div key={field}>
+                          <label className="text-xs font-medium text-slate-600 mb-1 block">{label}</label>
+                          <Select
+                            value={playerData[field]?.toString() || ""}
+                            onValueChange={(value) => handleChange(player.id, field, parseInt(value))}
+                          >
+                            <SelectTrigger className="h-9 text-sm">
+                              <SelectValue placeholder="-" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {[1, 2, 3, 4, 5].map(num => (
+                                <SelectItem key={num} value={num.toString()}>
+                                  {'⭐'.repeat(num)}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Observaciones */}
+                  {isPresent && (
+                    <div>
+                      <label className="text-xs font-medium text-slate-600 mb-1 block">Observaciones</label>
                       <input
                         type="text"
                         value={playerData.observaciones || ""}
                         onChange={(e) => handleChange(player.id, 'observaciones', e.target.value)}
-                        placeholder="Notas..."
-                        disabled={!isPresent}
-                        className="w-full h-8 px-2 text-xs border rounded focus:outline-none focus:ring-2 focus:ring-orange-500 disabled:bg-slate-100"
+                        placeholder="Notas del jugador..."
+                        className="w-full h-9 px-3 text-sm border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
                       />
-                    </td>
-                    <td className="p-2">
-                      <Button
-                        onClick={() => handleOpenIndividualReport(player)}
-                        size="sm"
-                        variant="outline"
-                        className="h-8 text-xs"
-                      >
-                        <Mail className="w-3 h-3 mr-1" />
-                        Enviar
-                      </Button>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
+                    </div>
+                  )}
+
+                  {/* Botón enviar reporte */}
+                  <Button
+                    onClick={() => handleOpenIndividualReport(player)}
+                    size="sm"
+                    variant="outline"
+                    className="w-full"
+                  >
+                    <Mail className="w-4 h-4 mr-2" />
+                    Enviar Reporte Individual
+                  </Button>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Vista Desktop */}
+          <div className="hidden lg:block overflow-x-auto">
+            <table className="w-full bg-white rounded-xl shadow-md">
+              <thead className="bg-gradient-to-r from-orange-600 to-orange-700 text-white">
+                <tr>
+                  <th className="p-3 text-left text-xs font-semibold sticky left-0 bg-orange-600 z-10">Jugador</th>
+                  <th className="p-3 text-center text-xs font-semibold min-w-[140px]">Asistencia</th>
+                  <th className="p-3 text-center text-xs font-semibold min-w-[80px]">Técnica</th>
+                  <th className="p-3 text-center text-xs font-semibold min-w-[80px]">Táctica</th>
+                  <th className="p-3 text-center text-xs font-semibold min-w-[80px]">Física</th>
+                  <th className="p-3 text-center text-xs font-semibold min-w-[80px]">Actitud</th>
+                  <th className="p-3 text-center text-xs font-semibold min-w-[80px]">Equipo</th>
+                  <th className="p-3 text-left text-xs font-semibold min-w-[200px]">Observaciones</th>
+                  <th className="p-3 text-center text-xs font-semibold min-w-[100px]">Reporte</th>
+                </tr>
+              </thead>
+              <tbody>
+                {categoryPlayers.map((player, idx) => {
+                  const playerData = sessionData[player.id] || {};
+                  const isPresent = playerData.asistencia === 'presente';
+
+                  return (
+                    <tr key={player.id} className={`border-b ${idx % 2 === 0 ? 'bg-slate-50' : 'bg-white'}`}>
+                      <td className="p-3 sticky left-0 bg-inherit z-10">
+                        <div className="flex items-center gap-2">
+                          {player.foto_url ? (
+                            <img src={player.foto_url} className="w-8 h-8 rounded-full object-cover" alt="" />
+                          ) : (
+                            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center text-white text-xs font-bold">
+                              {player.nombre.charAt(0)}
+                            </div>
+                          )}
+                          <span className="font-medium text-sm whitespace-nowrap">{player.nombre}</span>
+                        </div>
+                      </td>
+                      <td className="p-2">
+                        <div className="flex gap-1 justify-center">
+                          {[
+                            { value: 'presente', icon: CheckCircle2, color: 'text-green-600', bg: 'bg-green-100', label: 'Presente' },
+                            { value: 'ausente', icon: XCircle, color: 'text-red-600', bg: 'bg-red-100', label: 'Ausente' },
+                            { value: 'justificado', icon: Clock, color: 'text-blue-600', bg: 'bg-blue-100', label: 'Justificado' },
+                            { value: 'tardanza', icon: Clock, color: 'text-orange-600', bg: 'bg-orange-100', label: 'Tardanza' }
+                          ].map(({ value, icon: Icon, color, bg, label }) => {
+                            const isSelected = playerData.asistencia === value;
+                            return (
+                              <button
+                                key={value}
+                                onClick={() => handleChange(player.id, 'asistencia', value)}
+                                title={label}
+                                className={`p-2 rounded transition-all ${
+                                  isSelected ? `${bg} ${color} ring-2 ring-offset-1` : 'bg-slate-100 text-slate-400 hover:bg-slate-200'
+                                }`}
+                              >
+                                <Icon className="w-4 h-4" />
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </td>
+                      {['tecnica', 'tactica', 'fisica', 'actitud', 'trabajo_equipo'].map(field => (
+                        <td key={field} className="p-2">
+                          <Select
+                            value={playerData[field]?.toString() || ""}
+                            onValueChange={(value) => handleChange(player.id, field, parseInt(value))}
+                            disabled={!isPresent}
+                          >
+                            <SelectTrigger className="h-8 text-xs">
+                              <SelectValue placeholder="-" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {[1, 2, 3, 4, 5].map(num => (
+                                <SelectItem key={num} value={num.toString()}>
+                                  {'⭐'.repeat(num)}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </td>
+                      ))}
+                      <td className="p-2">
+                        <input
+                          type="text"
+                          value={playerData.observaciones || ""}
+                          onChange={(e) => handleChange(player.id, 'observaciones', e.target.value)}
+                          placeholder="Notas..."
+                          disabled={!isPresent}
+                          className="w-full h-8 px-2 text-xs border rounded focus:outline-none focus:ring-2 focus:ring-orange-500 disabled:bg-slate-100"
+                        />
+                      </td>
+                      <td className="p-2">
+                        <Button
+                          onClick={() => handleOpenIndividualReport(player)}
+                          size="sm"
+                          variant="outline"
+                          className="h-8 text-xs"
+                        >
+                          <Mail className="w-3 h-3 mr-1" />
+                          Enviar
+                        </Button>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </>
       )}
     </div>
   );
