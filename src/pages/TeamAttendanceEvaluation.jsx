@@ -218,41 +218,58 @@ CD Bustarviejo
         
         if (playerAttendances.length === 0) continue;
 
+        // Calcular actitud promedio
+        const evaluacionesConActitud = playerAttendances.filter(d => d.actitud != null);
+        const actitudPromedio = evaluacionesConActitud.length > 0
+          ? (evaluacionesConActitud.reduce((sum, d) => sum + d.actitud, 0) / evaluacionesConActitud.length).toFixed(1)
+          : 'No evaluado';
+
+        // Últimas 3 evaluaciones
+        const ultimasEvaluaciones = playerAttendances
+          .slice(0, 3)
+          .map(d => format(new Date(d.fecha), "dd/MM/yy"))
+          .join('\n  ');
+
         const reportText = `
-📋 REPORTE DE ENTRENAMIENTO - PERIODO
-═══════════════════════════════════
+        ╔════════════════════════════════════════╗
+        ║   📊 REPORTE DE ENTRENAMIENTO          ║
+        ╚════════════════════════════════════════╝
 
-👤 Jugador: ${player.nombre}
-⚽ Categoría: ${selectedCategory}
-📅 Periodo: ${format(new Date(dateRange.start), "dd/MM/yyyy")} - ${format(new Date(dateRange.end), "dd/MM/yyyy")}
-👨‍🏫 Entrenador: ${user.full_name}
+        ┌─────────────────────────────────────┐
+        │  👤 ${player.nombre}
+        │  ⚽ ${selectedCategory}
+        └─────────────────────────────────────┘
 
-═══════════════════════════════════
-📊 RESUMEN DEL PERIODO
-═══════════════════════════════════
+        📅 Periodo: ${format(new Date(dateRange.start), "dd/MM/yyyy")} - ${format(new Date(dateRange.end), "dd/MM/yyyy")}
 
-Total de sesiones asistidas: ${playerAttendances.length}
+        ╔════════════════════════════════════════╗
+        ║              RESUMEN                    ║
+        ╚════════════════════════════════════════╝
 
-═══════════════════════════════════
-📝 DETALLE POR SESIÓN
-═══════════════════════════════════
+        📌 Sesiones: ${playerAttendances.length}
 
-${playerAttendances.map(data => `
-📅 ${format(new Date(data.fecha), "dd 'de' MMMM", { locale: es })}
-✅ Presente
+        ⭐ Actitud promedio: ${actitudPromedio}/5
 
-⭐ Evaluación:
-  😊 Actitud: ${data.actitud || 'No evaluado'}/5
-  ${data.observaciones ? `\n📝 Observaciones: ${data.observaciones}` : ''}
-`).join('\n───────────────────────────────────\n')}
+        📆 Últimas evaluaciones:
+        ${ultimasEvaluaciones || 'Sin evaluaciones'}
 
-═══════════════════════════════════
-Este reporte ha sido generado automáticamente.
-Para cualquier consulta, contacta con tu entrenador.
+        ╔════════════════════════════════════════╗
+        ║         DETALLE POR SESIÓN             ║
+        ╚════════════════════════════════════════╝
 
-Atentamente,
-${user.full_name}
-CD Bustarviejo
+        ${playerAttendances.map(data => `
+        📅 ${format(new Date(data.fecha), "dd 'de' MMMM 'de' yyyy", { locale: es })}
+        ✅ Presente
+        ${data.actitud != null ? `⭐ Actitud: ${data.actitud}/5` : ''}
+        ${data.observaciones ? `📝 ${data.observaciones}` : ''}
+        `).join('\n───────────────────────────────────\n')}
+
+        ════════════════════════════════════════
+
+        👨‍🏫 Entrenador: ${user.full_name}
+        📧 CD Bustarviejo
+
+        Para cualquier consulta, contacta con tu entrenador.
         `.trim();
 
         try {
