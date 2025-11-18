@@ -11,6 +11,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { format, addDays, subDays } from "date-fns";
 import { es } from "date-fns/locale";
 import { toast } from "sonner";
+import { getImportePorCategoriaYMes } from "../components/payments/paymentAmounts";
 
 import IndividualReminderDialog from "../components/reminders/IndividualReminderDialog";
 import PaymentStatsDashboard from "../components/reminders/PaymentStatsDashboard";
@@ -239,27 +240,22 @@ Gracias por su atención.
           );
           
           if (!existingPayment) {
-            // Determinar cantidad según deporte y tipo de pago
-            let cantidad = 0;
-            if (player.deporte && player.deporte.includes("Fútbol")) {
-              cantidad = player.tipo_pago === "Único" ? 130 : 45;
-            } else if (player.deporte && player.deporte.includes("Baloncesto")) {
-              cantidad = player.tipo_pago === "Único" ? 115 : 40;
-            } else {
-              cantidad = player.tipo_pago === "Único" ? 130 : 45; // Default
-            }
+            // Obtener cantidad correcta según categoría y mes
+            const cantidad = getImportePorCategoriaYMes(player.deporte, mes);
             
-            await base44.entities.Payment.create({
-              jugador_id: player.id,
-              jugador_nombre: player.nombre,
-              tipo_pago: player.tipo_pago || "Tres meses",
-              mes: mes,
-              temporada: currentSeason,
-              cantidad: cantidad,
-              estado: "Pendiente",
-              metodo_pago: "Transferencia"
-            });
-            created++;
+            if (cantidad > 0) {
+              await base44.entities.Payment.create({
+                jugador_id: player.id,
+                jugador_nombre: player.nombre,
+                tipo_pago: player.tipo_pago || "Tres meses",
+                mes: mes,
+                temporada: currentSeason,
+                cantidad: cantidad,
+                estado: "Pendiente",
+                metodo_pago: "Transferencia"
+              });
+              created++;
+            }
           }
         }
       }
