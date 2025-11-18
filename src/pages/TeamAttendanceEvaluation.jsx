@@ -164,13 +164,27 @@ Para cualquier consulta, contacta con tu entrenador.
         if (player.email_padre) recipients.push(player.email_padre);
         if (player.email_tutor_2) recipients.push(player.email_tutor_2);
 
+        console.log('📧 Enviando reporte individual a:', recipients);
+        console.log('📊 Datos del reporte:', { player: player.nombre, dateRange, dataLength: playerData.length });
+        
+        if (recipients.length === 0) {
+          throw new Error(`El jugador ${player.nombre} no tiene emails de padres/tutores configurados`);
+        }
+
         for (const email of recipients) {
-          await base44.integrations.Core.SendEmail({
-            from_name: `${user.full_name} - CD Bustarviejo`,
-            to: email,
-            subject: `Reporte de Entrenamiento - ${player.nombre} - ${format(new Date(dateRange.start), "dd/MM/yyyy")} al ${format(new Date(dateRange.end), "dd/MM/yyyy")}`,
-            body: reportText
-          });
+          console.log('📤 Enviando a:', email);
+          try {
+            await base44.integrations.Core.SendEmail({
+              from_name: `${user.full_name} - CD Bustarviejo`,
+              to: email,
+              subject: `Reporte de Entrenamiento - ${player.nombre} - ${format(new Date(dateRange.start), "dd/MM/yyyy")} al ${format(new Date(dateRange.end), "dd/MM/yyyy")}`,
+              body: reportText
+            });
+            console.log('✅ Email enviado a:', email);
+          } catch (error) {
+            console.error('❌ Error enviando email a:', email, error);
+            throw error;
+          }
           await new Promise(resolve => setTimeout(resolve, 300));
         }
       }
@@ -286,21 +300,27 @@ Para cualquier consulta, contacta con tu entrenador.
 
         try {
           if (sendMethod === 'email' || sendMethod === 'both') {
+            console.log('📧 Enviando reporte masivo para:', player.nombre, 'Emails:', { padre: player.email_padre, tutor2: player.email_tutor_2 });
+            
             if (player.email_padre) {
+              console.log('📤 Enviando a padre:', player.email_padre);
               await base44.integrations.Core.SendEmail({
                 from_name: `${user.full_name} - CD Bustarviejo`,
                 to: player.email_padre,
                 subject: `Reporte de Entrenamiento - ${player.nombre} - ${format(new Date(dateRange.start), "dd/MM/yyyy")} al ${format(new Date(dateRange.end), "dd/MM/yyyy")}`,
                 body: reportText
               });
+              console.log('✅ Enviado a padre');
             }
             if (player.email_tutor_2) {
+              console.log('📤 Enviando a tutor 2:', player.email_tutor_2);
               await base44.integrations.Core.SendEmail({
                 from_name: `${user.full_name} - CD Bustarviejo`,
                 to: player.email_tutor_2,
                 subject: `Reporte de Entrenamiento - ${player.nombre} - ${format(new Date(dateRange.start), "dd/MM/yyyy")} al ${format(new Date(dateRange.end), "dd/MM/yyyy")}`,
                 body: reportText
               });
+              console.log('✅ Enviado a tutor 2');
             }
           }
           
