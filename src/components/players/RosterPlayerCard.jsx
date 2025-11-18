@@ -53,16 +53,22 @@ export default function RosterPlayerCard({ player }) {
 
         <div className="space-y-1 text-xs text-slate-600">
           {player.email_padre && (
-            <div className="flex items-center gap-1 truncate">
+            <a 
+              href={`mailto:${player.email_padre}`}
+              className="flex items-center gap-1 truncate hover:text-orange-600 transition-colors"
+            >
               <Mail className="w-3 h-3 flex-shrink-0" />
               <span className="truncate">{player.email_padre}</span>
-            </div>
+            </a>
           )}
           {player.telefono && (
-            <div className="flex items-center gap-1">
+            <a 
+              href={`tel:${player.telefono}`}
+              className="flex items-center gap-1 hover:text-orange-600 transition-colors"
+            >
               <Phone className="w-3 h-3 flex-shrink-0" />
               <span>{player.telefono}</span>
-            </div>
+            </a>
           )}
         </div>
       </CardContent>
