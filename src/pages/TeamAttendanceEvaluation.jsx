@@ -133,11 +133,7 @@ ${data.estado === 'presente' ? '✅ Presente' :
 
 ${data.estado === 'presente' ? `
 ⭐ Evaluación:
-  🎯 Técnica: ${data.tecnica || 'No evaluado'}/5
-  📐 Táctica: ${data.tactica || 'No evaluado'}/5
-  💪 Física: ${data.fisica || 'No evaluado'}/5
   😊 Actitud: ${data.actitud || 'No evaluado'}/5
-  🤝 Trabajo en Equipo: ${data.trabajo_equipo || 'No evaluado'}/5
   ${data.observaciones ? `\n📝 Observaciones: ${data.observaciones}` : ''}
 ` : ''}
 `).join('\n───────────────────────────────────\n')}
@@ -246,11 +242,7 @@ ${playerAttendances.map(data => `
 ✅ Presente
 
 ⭐ Evaluación:
-  🎯 Técnica: ${data.tecnica || 'No evaluado'}/5
-  📐 Táctica: ${data.tactica || 'No evaluado'}/5
-  💪 Física: ${data.fisica || 'No evaluado'}/5
   😊 Actitud: ${data.actitud || 'No evaluado'}/5
-  🤝 Trabajo en Equipo: ${data.trabajo_equipo || 'No evaluado'}/5
   ${data.observaciones ? `\n📝 Observaciones: ${data.observaciones}` : ''}
 `).join('\n───────────────────────────────────\n')}
 
