@@ -42,7 +42,7 @@ import MatchResults from './pages/MatchResults';
 import MedicalRecords from './pages/MedicalRecords';
 import MatchApp from './pages/MatchApp';
 import MemberManagement from './pages/MemberManagement';
-import Layout from './Layout.jsx';
+import __Layout from './Layout.jsx';
 
 
 export const PAGES = {
@@ -95,5 +95,5 @@ export const PAGES = {
 export const pagesConfig = {
     mainPage: "Home",
     Pages: PAGES,
-    Layout: Layout,
+    Layout: __Layout,
 };

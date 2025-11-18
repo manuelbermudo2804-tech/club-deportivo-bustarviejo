@@ -178,7 +178,7 @@ export default function Payments() {
 
       try {
         await base44.integrations.Core.SendEmail({
-          to: "CDBUSTARVIEJO@GMAIL.COM",
+          to: "cdbustarviejo@gmail.com",
           subject: `Justificante de Pago Recibido - ${payment.jugador_nombre}`,
           body: `
             <h2>Nuevo Justificante de Pago Subido</h2>
