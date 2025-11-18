@@ -650,23 +650,34 @@ Email: cdbustarviejo@gmail.com
                   <p className="text-slate-500">No hay jugadores registrados</p>
                 </div>
               ) : (() => {
-                // Filtrar jugadores por búsqueda
-                const filteredPlayers = players.filter(player =>
-                  player.nombre?.toLowerCase().includes(searchTerm.toLowerCase())
-                );
+                // Filtrar jugadores por búsqueda Y filtros avanzados
+                const playersToShow = players.filter(player => {
+                 // Filtro de búsqueda
+                 const matchesSearch = searchTerm === "" || player.nombre?.toLowerCase().includes(searchTerm.toLowerCase());
 
-                if (filteredPlayers.length === 0) {
-                  return (
-                    <div className="text-center py-12">
-                      <p className="text-slate-500">No se encontraron jugadores</p>
-                    </div>
-                  );
+                 // Filtro de categoría
+                 const matchesCategoria = categoriaFilter === "all" || player.deporte === categoriaFilter;
+
+                 // Filtro por si tiene pagos en la temporada seleccionada
+                 const hasPaymentsInSeason = isAdmin 
+                   ? filteredPayments.some(p => p.jugador_id === player.id)
+                   : true; // Para no-admin mostrar todos
+
+                 return matchesSearch && matchesCategoria && hasPaymentsInSeason;
+                });
+
+                if (playersToShow.length === 0) {
+                 return (
+                   <div className="text-center py-12">
+                     <p className="text-slate-500">No se encontraron jugadores con los filtros aplicados</p>
+                   </div>
+                 );
                 }
 
                 return (
-                  <div className="space-y-4">
-                    {filteredPlayers.map(player => {
-                      const allPlayerPayments = payments.filter(p => p.jugador_id === player.id && p.temporada === temporadaFilter);
+                 <div className="space-y-4">
+                   {playersToShow.map(player => {
+                     const allPlayerPayments = filteredPayments.filter(p => p.jugador_id === player.id);
 
                       // Determinar meses según tipo de pago REAL (no del player.tipo_pago)
                       // Si tiene un pago "Único" pagado o en revisión, solo mostrar Junio
