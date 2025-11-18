@@ -5,10 +5,11 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { Calendar, Save, Send, User, AlertCircle, CheckCircle2, XCircle, Clock, Star } from "lucide-react";
+import { Calendar, Save, Send, User, AlertCircle, CheckCircle2, XCircle, Clock, Star, Mail } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
+import IndividualReportDialog from "../components/coach/IndividualReportDialog";
 
 export default function TeamAttendanceEvaluation() {
   const [user, setUser] = useState(null);
@@ -17,6 +18,8 @@ export default function TeamAttendanceEvaluation() {
   const [sessionData, setSessionData] = useState({});
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [generalNotes, setGeneralNotes] = useState("");
+  const [showIndividualDialog, setShowIndividualDialog] = useState(false);
+  const [selectedPlayer, setSelectedPlayer] = useState(null);
   
   const queryClient = useQueryClient();
 
@@ -63,6 +66,119 @@ export default function TeamAttendanceEvaluation() {
     },
     onError: () => {
       toast.error("❌ Error al guardar la sesión");
+    }
+  });
+
+  const sendIndividualReportMutation = useMutation({
+    mutationFn: async ({ player, dateRange, sendMethod }) => {
+      const playerAttendances = attendances.filter(a => 
+        a.categoria === selectedCategory &&
+        a.fecha >= dateRange.start &&
+        a.fecha <= dateRange.end
+      );
+
+      const playerData = [];
+      playerAttendances.forEach(attendance => {
+        const playerRecord = attendance.asistencias?.find(a => a.jugador_id === player.id);
+        if (playerRecord) {
+          playerData.push({
+            fecha: attendance.fecha,
+            ...playerRecord
+          });
+        }
+      });
+
+      if (playerData.length === 0) {
+        throw new Error("No hay datos de asistencia para el periodo seleccionado");
+      }
+
+      const reportText = `
+📋 REPORTE DE ENTRENAMIENTO - PERIODO
+═══════════════════════════════════
+
+👤 Jugador: ${player.nombre}
+⚽ Categoría: ${selectedCategory}
+📅 Periodo: ${format(new Date(dateRange.start), "dd/MM/yyyy")} - ${format(new Date(dateRange.end), "dd/MM/yyyy")}
+👨‍🏫 Entrenador: ${user.full_name}
+
+═══════════════════════════════════
+📊 RESUMEN DEL PERIODO
+═══════════════════════════════════
+
+Total de sesiones: ${playerData.length}
+Asistencias: ${playerData.filter(p => p.estado === 'presente').length}
+Ausencias: ${playerData.filter(p => p.estado === 'ausente').length}
+Justificadas: ${playerData.filter(p => p.estado === 'justificado').length}
+Tardanzas: ${playerData.filter(p => p.estado === 'tardanza').length}
+
+═══════════════════════════════════
+📝 DETALLE POR SESIÓN
+═══════════════════════════════════
+
+${playerData.map(data => `
+📅 ${format(new Date(data.fecha), "dd 'de' MMMM", { locale: es })}
+${data.estado === 'presente' ? '✅ Presente' : 
+  data.estado === 'ausente' ? '❌ Ausente' : 
+  data.estado === 'justificado' ? '📝 Ausencia Justificada' : 
+  '⏰ Llegada con retraso'}
+
+${data.estado === 'presente' ? `
+⭐ Evaluación:
+  🎯 Técnica: ${data.tecnica || 'No evaluado'}/5
+  📐 Táctica: ${data.tactica || 'No evaluado'}/5
+  💪 Física: ${data.fisica || 'No evaluado'}/5
+  😊 Actitud: ${data.actitud || 'No evaluado'}/5
+  🤝 Trabajo en Equipo: ${data.trabajo_equipo || 'No evaluado'}/5
+  ${data.observaciones ? `\n📝 Observaciones: ${data.observaciones}` : ''}
+` : ''}
+`).join('\n───────────────────────────────────\n')}
+
+═══════════════════════════════════
+Este reporte ha sido generado automáticamente.
+Para cualquier consulta, contacta con tu entrenador.
+
+Atentamente,
+${user.full_name}
+CD Bustarviejo
+      `.trim();
+
+      if (sendMethod === 'email') {
+        const recipients = [];
+        if (player.email_padre) recipients.push(player.email_padre);
+        if (player.email_tutor_2) recipients.push(player.email_tutor_2);
+
+        for (const email of recipients) {
+          await base44.integrations.Core.SendEmail({
+            from_name: `${user.full_name} - CD Bustarviejo`,
+            to: email,
+            subject: `Reporte de Entrenamiento - ${player.nombre} - ${format(new Date(dateRange.start), "dd/MM/yyyy")} al ${format(new Date(dateRange.end), "dd/MM/yyyy")}`,
+            body: reportText
+          });
+          await new Promise(resolve => setTimeout(resolve, 300));
+        }
+      } else if (sendMethod === 'chat') {
+        await base44.entities.ChatMessage.create({
+          remitente_email: user.email,
+          remitente_nombre: user.full_name,
+          mensaje: reportText,
+          prioridad: "Normal",
+          tipo: "admin_a_grupo",
+          deporte: selectedCategory,
+          grupo_id: selectedCategory,
+          leido: false,
+          archivos_adjuntos: []
+        });
+      }
+
+      return { success: true };
+    },
+    onSuccess: () => {
+      toast.success("✅ Reporte individual enviado correctamente");
+      setShowIndividualDialog(false);
+      setSelectedPlayer(null);
+    },
+    onError: (error) => {
+      toast.error(error.message || "❌ Error al enviar el reporte");
     }
   });
 
@@ -264,6 +380,15 @@ CD Bustarviejo
     }
   };
 
+  const handleOpenIndividualReport = (player) => {
+    setSelectedPlayer(player);
+    setShowIndividualDialog(true);
+  };
+
+  const handleSendIndividualReport = (data) => {
+    sendIndividualReportMutation.mutate(data);
+  };
+
   if (!user || !user.categorias_entrena || user.categorias_entrena.length === 0) {
     return (
       <div className="p-4 lg:p-6">
@@ -284,6 +409,17 @@ CD Bustarviejo
 
   return (
     <div className="p-4 lg:p-6 space-y-4">
+      <IndividualReportDialog
+        player={selectedPlayer}
+        isOpen={showIndividualDialog}
+        onClose={() => {
+          setShowIndividualDialog(false);
+          setSelectedPlayer(null);
+        }}
+        onSend={handleSendIndividualReport}
+        isLoading={sendIndividualReportMutation.isPending}
+      />
+
       <div className="flex items-start justify-between">
         <div>
           <h1 className="text-2xl lg:text-3xl font-bold text-slate-900">📋 Asistencia y Evaluación</h1>
@@ -400,6 +536,7 @@ CD Bustarviejo
                 <th className="p-3 text-center text-xs font-semibold min-w-[80px]">Actitud</th>
                 <th className="p-3 text-center text-xs font-semibold min-w-[80px]">Equipo</th>
                 <th className="p-3 text-left text-xs font-semibold min-w-[200px]">Observaciones</th>
+                <th className="p-3 text-center text-xs font-semibold min-w-[100px]">Reporte</th>
               </tr>
             </thead>
             <tbody>
@@ -473,6 +610,17 @@ CD Bustarviejo
                         disabled={!isPresent}
                         className="w-full h-8 px-2 text-xs border rounded focus:outline-none focus:ring-2 focus:ring-orange-500 disabled:bg-slate-100"
                       />
+                    </td>
+                    <td className="p-2">
+                      <Button
+                        onClick={() => handleOpenIndividualReport(player)}
+                        size="sm"
+                        variant="outline"
+                        className="h-8 text-xs"
+                      >
+                        <Mail className="w-3 h-3 mr-1" />
+                        Enviar
+                      </Button>
                     </td>
                   </tr>
                 );
