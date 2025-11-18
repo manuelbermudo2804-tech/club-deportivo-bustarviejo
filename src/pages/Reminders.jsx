@@ -803,10 +803,10 @@ Temporada ${reminder.temporada}
       </div>
 
       <Card className="border-none shadow-lg bg-white">
-        <CardHeader className="border-b border-slate-100">
-          <CardTitle className="text-xl">Pagos Agrupados por Jugador</CardTitle>
+        <CardHeader className="border-b border-slate-100 p-3 lg:p-6">
+          <CardTitle className="text-base lg:text-xl">Pagos por Jugador</CardTitle>
         </CardHeader>
-        <CardContent className="p-6">
+        <CardContent className="p-3 lg:p-6">
           {isLoading ? (
             <div className="space-y-3">
               {[...Array(5)].map((_, i) => (
@@ -854,25 +854,24 @@ Temporada ${reminder.temporada}
                   const totalPending = pendingPayments.reduce((sum, p) => sum + (p.cantidad || 0), 0);
 
                   return (
-                    <Card key={playerData.jugador_id} className="border-2 hover:shadow-lg transition-shadow">
-                      <CardHeader className="bg-gradient-to-r from-slate-50 to-slate-100 border-b">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-3">
+                    <Card key={playerData.jugador_id} className="border hover:shadow-lg transition-shadow">
+                      <CardHeader className="bg-gradient-to-r from-slate-50 to-slate-100 border-b p-3 lg:p-4">
+                        <div className="flex items-center justify-between gap-2">
+                          <div className="flex items-center gap-2 min-w-0">
                             {player?.foto_url ? (
-                              <img src={player.foto_url} className="w-12 h-12 rounded-full object-cover" alt="" />
+                              <img src={player.foto_url} className="w-8 h-8 lg:w-10 lg:h-10 rounded-full object-cover flex-shrink-0" alt="" />
                             ) : (
-                              <div className="w-12 h-12 rounded-full bg-orange-500 flex items-center justify-center text-white font-bold">
+                              <div className="w-8 h-8 lg:w-10 lg:h-10 rounded-full bg-orange-500 flex items-center justify-center text-white font-bold text-xs lg:text-sm flex-shrink-0">
                                 {playerData.jugador_nombre.charAt(0)}
                               </div>
                             )}
-                            <div>
-                              <h3 className="font-bold text-lg text-slate-900">{playerData.jugador_nombre}</h3>
-                              <p className="text-sm text-slate-600">{player?.deporte || "Sin categoría"}</p>
+                            <div className="min-w-0">
+                              <h3 className="font-bold text-sm lg:text-base text-slate-900 truncate">{playerData.jugador_nombre}</h3>
+                              <p className="text-xs text-slate-600 truncate">{player?.deporte || "Sin categoría"}</p>
                             </div>
                           </div>
                           <Button
                             onClick={() => {
-                              // Seleccionar el primer pago pendiente o en revisión, o cualquier pago
                               const targetPayment = pendingPayments[0] || reviewPayments[0] || playerData.pagos[0];
                               if (targetPayment && player) {
                                 setSelectedReminder(targetPayment);
@@ -882,81 +881,72 @@ Temporada ${reminder.temporada}
                               }
                             }}
                             size="sm"
-                            className="bg-purple-600 hover:bg-purple-700 text-xs lg:text-sm"
+                            className="bg-purple-600 hover:bg-purple-700 text-xs flex-shrink-0"
                             disabled={!player}
                           >
-                            <Send className="w-3 h-3 lg:w-4 lg:h-4 lg:mr-2" />
-                            <span className="hidden lg:inline">Enviar Recordatorio</span>
-                            <span className="lg:hidden">Enviar</span>
+                            <Send className="w-3 h-3 lg:mr-1" />
+                            <span className="hidden lg:inline">Enviar</span>
                           </Button>
                         </div>
                       </CardHeader>
-                      <CardContent className="pt-4">
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4">
-                          <div className="bg-red-50 rounded-lg p-3 border border-red-200">
-                            <p className="text-xs text-red-700 mb-1">Pendientes</p>
-                            <p className="text-2xl font-bold text-red-600">{pendingPayments.length}</p>
-                            <p className="text-xs text-red-600">{totalPending.toFixed(0)}€</p>
+                      <CardContent className="p-3 lg:p-4">
+                        <div className="grid grid-cols-3 gap-2 mb-3">
+                          <div className="bg-red-50 rounded p-2 border border-red-200">
+                            <p className="text-[10px] lg:text-xs text-red-700">Pendientes</p>
+                            <p className="text-lg lg:text-xl font-bold text-red-600">{pendingPayments.length}</p>
+                            <p className="text-[10px] lg:text-xs text-red-600">{totalPending.toFixed(0)}€</p>
                           </div>
-                          <div className="bg-orange-50 rounded-lg p-3 border border-orange-200">
-                            <p className="text-xs text-orange-700 mb-1">En Revisión</p>
-                            <p className="text-2xl font-bold text-orange-600">{reviewPayments.length}</p>
+                          <div className="bg-orange-50 rounded p-2 border border-orange-200">
+                            <p className="text-[10px] lg:text-xs text-orange-700">Revisión</p>
+                            <p className="text-lg lg:text-xl font-bold text-orange-600">{reviewPayments.length}</p>
                           </div>
-                          <div className="bg-green-50 rounded-lg p-3 border border-green-200">
-                            <p className="text-xs text-green-700 mb-1">Pagados</p>
-                            <p className="text-2xl font-bold text-green-600">{paidPayments.length}</p>
+                          <div className="bg-green-50 rounded p-2 border border-green-200">
+                            <p className="text-[10px] lg:text-xs text-green-700">Pagados</p>
+                            <p className="text-lg lg:text-xl font-bold text-green-600">{paidPayments.length}</p>
                           </div>
                         </div>
 
-                        <div className="space-y-2">
+                        <div className="space-y-1.5">
                           {playerData.pagos.map(pago => {
                             const playerReminders = reminders.filter(r => r.pago_id === pago.id);
                             const hasReminders = playerReminders.length > 0;
                             const sentReminders = playerReminders.filter(r => r.enviado).length;
 
                             return (
-                              <div key={pago.id} className="flex items-center justify-between p-3 bg-slate-50 rounded-lg hover:bg-slate-100 transition-colors">
-                                <div className="flex items-center gap-3 flex-1">
+                              <div key={pago.id} className="flex items-center justify-between p-2 bg-slate-50 rounded hover:bg-slate-100 transition-colors gap-2">
+                                <div className="flex items-center gap-2 min-w-0 flex-1">
                                   <Badge className={
-                                    pago.estado === "Pagado" ? "bg-green-100 text-green-700" :
-                                    pago.estado === "En revisión" ? "bg-orange-100 text-orange-700" :
-                                    "bg-red-100 text-red-700"
+                                    pago.estado === "Pagado" ? "bg-green-100 text-green-700 text-[10px] lg:text-xs" :
+                                    pago.estado === "En revisión" ? "bg-orange-100 text-orange-700 text-[10px] lg:text-xs" :
+                                    "bg-red-100 text-red-700 text-[10px] lg:text-xs"
                                   }>
-                                    {statusEmojis[pago.estado]} {pago.estado}
+                                    {statusEmojis[pago.estado]}
                                   </Badge>
-                                  <div>
-                                    <p className="font-medium text-slate-900">{pago.mes} - {pago.temporada}</p>
-                                    <p className="text-sm text-slate-600">
-                                      {pago.cantidad}€ • Vence: 30 de {pago.mes}
+                                  <div className="min-w-0 flex-1">
+                                    <p className="text-xs lg:text-sm font-medium text-slate-900">{pago.mes}</p>
+                                    <p className="text-[10px] lg:text-xs text-slate-600">
+                                      {pago.cantidad}€
                                       {hasReminders && (
-                                        <span className="ml-2 text-blue-600">
-                                          • {sentReminders}/{playerReminders.length} recordatorios enviados
+                                        <span className="ml-1 text-blue-600">
+                                          • {sentReminders}/{playerReminders.length} enviados
                                         </span>
                                       )}
                                     </p>
                                   </div>
                                 </div>
-                                <div className="flex gap-2">
-                                  {pago.justificante_url ? (
-                                    <Badge className="bg-blue-100 text-blue-700">
-                                      ✅ Con justificante
-                                    </Badge>
-                                  ) : pago.estado === "Pendiente" && (
-                                    <Badge className="bg-red-100 text-red-700">
-                                      ❌ Sin justificante
-                                    </Badge>
-                                  )}
-                                </div>
+                                {pago.justificante_url ? (
+                                  <span className="text-green-600 text-xs lg:text-sm">✅</span>
+                                ) : pago.estado === "Pendiente" && (
+                                  <span className="text-red-600 text-xs lg:text-sm">❌</span>
+                                )}
                               </div>
                             );
                           })}
                         </div>
 
                         {player?.email_padre && (
-                          <div className="mt-3 pt-3 border-t text-xs text-slate-600">
-                            <p>📧 {player.email_padre}</p>
-                            {player.email_tutor_2 && <p>📧 {player.email_tutor_2}</p>}
-                            {player.telefono && <p>📱 {player.telefono}</p>}
+                          <div className="mt-2 pt-2 border-t text-[10px] lg:text-xs text-slate-600">
+                            <p className="truncate">📧 {player.email_padre}</p>
                           </div>
                         )}
                       </CardContent>
