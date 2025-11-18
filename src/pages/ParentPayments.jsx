@@ -337,131 +337,172 @@ Email: cdbustarviejo@gmail.com
         )}
       </AnimatePresence>
 
-      {/* Payments Table */}
-      <Card className="border-none shadow-lg bg-white">
-        <CardHeader className="border-b border-slate-100">
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-            <CardTitle className="text-xl">Detalle de Pagos</CardTitle>
-            <div className="relative w-full md:w-64">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400" />
-              <Input
-                placeholder="Buscar..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
-              />
-            </div>
+      {/* Payments by Player */}
+      <div className="space-y-6">
+        {isLoading ? (
+          <div className="space-y-3">
+            {[...Array(3)].map((_, i) => (
+              <Skeleton key={i} className="h-48 w-full" />
+            ))}
           </div>
-        </CardHeader>
-        <CardContent className="p-0">
-          {isLoading ? (
-            <div className="p-6 space-y-3">
-              {[...Array(5)].map((_, i) => (
-                <Skeleton key={i} className="h-16 w-full" />
-              ))}
-            </div>
-          ) : filteredPayments.length === 0 ? (
-            <div className="text-center py-12">
-              <p className="text-slate-500">No hay pagos registrados</p>
-              <p className="text-sm text-slate-400 mt-2">Haz clic en "Registrar Pago" para añadir uno nuevo</p>
-            </div>
-          ) : (
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Jugador</TableHead>
-                    <TableHead>Período</TableHead>
-                    <TableHead>Temporada</TableHead>
-                    <TableHead>Cantidad</TableHead>
-                    <TableHead>Vencimiento</TableHead>
-                    <TableHead>Justificante</TableHead>
-                    <TableHead>Estado</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredPayments.map((payment) => (
-                    <TableRow key={payment.id} className="hover:bg-slate-50">
-                      <TableCell className="font-medium">{payment.jugador_nombre}</TableCell>
-                      <TableCell>{payment.mes}</TableCell>
-                      <TableCell className="font-medium text-slate-700">
-                        {payment.temporada}
-                      </TableCell>
-                      <TableCell className="font-bold text-slate-900">
-                        {payment.cantidad}€
-                      </TableCell>
-                      <TableCell className="text-sm text-slate-600">
-                        Día 30 de {payment.mes}
-                      </TableCell>
-                      <TableCell>
-                        {payment.justificante_url ? (
-                          <div className="flex items-center gap-2">
-                            <a
-                              href={payment.justificante_url}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="inline-flex items-center gap-1 text-orange-600 hover:text-orange-700"
-                            >
-                              <FileText className="w-4 h-4" />
-                              <span className="text-xs">Ver</span>
-                            </a>
-                          </div>
-                        ) : payment.estado === "Pagado" ? (
-                          <span className="text-xs text-slate-400">-</span>
+        ) : players.length === 0 ? (
+          <Card className="border-none shadow-lg bg-white">
+            <CardContent className="py-12 text-center">
+              <p className="text-slate-500">No tienes jugadores registrados</p>
+            </CardContent>
+          </Card>
+        ) : (
+          players
+            .filter(player => 
+              !searchTerm || 
+              player.nombre.toLowerCase().includes(searchTerm.toLowerCase())
+            )
+            .map((player) => {
+              const playerPayments = payments.filter(p => p.jugador_id === player.id);
+              const pendingPayments = playerPayments.filter(p => p.estado === "Pendiente");
+              const reviewPayments = playerPayments.filter(p => p.estado === "En revisión");
+              const paidPayments = playerPayments.filter(p => p.estado === "Pagado");
+
+              return (
+                <Card key={player.id} className="border-none shadow-lg bg-white overflow-hidden">
+                  <CardHeader className="bg-gradient-to-r from-orange-50 to-orange-100 border-b border-orange-200">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        {player.foto_url ? (
+                          <img src={player.foto_url} className="w-12 h-12 rounded-full object-cover border-2 border-orange-300" alt="" />
                         ) : (
-                          <>
-                            <input
-                              type="file"
-                              accept="image/*,.pdf"
-                              onChange={(e) => handleFileUpload(payment.id, e)}
-                              className="hidden"
-                              id={`upload-${payment.id}`}
-                              disabled={uploadingPaymentId === payment.id}
-                            />
-                            <label htmlFor={`upload-${payment.id}`}>
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                disabled={uploadingPaymentId === payment.id}
-                                onClick={() => document.getElementById(`upload-${payment.id}`).click()}
-                                className="text-xs"
-                              >
-                                {uploadingPaymentId === payment.id ? (
-                                  <>
-                                    <Loader2 className="w-3 h-3 mr-1 animate-spin" />
-                                    Subiendo...
-                                  </>
+                          <div className="w-12 h-12 rounded-full bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center text-white font-bold text-lg">
+                            {player.nombre.charAt(0)}
+                          </div>
+                        )}
+                        <div>
+                          <CardTitle className="text-xl text-slate-900">{player.nombre}</CardTitle>
+                          <p className="text-sm text-slate-600">{player.deporte}</p>
+                        </div>
+                      </div>
+                      <div className="flex gap-2">
+                        {pendingPayments.length > 0 && (
+                          <Badge className="bg-red-500 text-white">
+                            {pendingPayments.length} Pendiente{pendingPayments.length > 1 ? 's' : ''}
+                          </Badge>
+                        )}
+                        {reviewPayments.length > 0 && (
+                          <Badge className="bg-orange-500 text-white">
+                            {reviewPayments.length} En Revisión
+                          </Badge>
+                        )}
+                        {paidPayments.length > 0 && (
+                          <Badge className="bg-green-500 text-white">
+                            {paidPayments.length} Pagado{paidPayments.length > 1 ? 's' : ''}
+                          </Badge>
+                        )}
+                      </div>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="p-6">
+                    {playerPayments.length === 0 ? (
+                      <div className="text-center py-8 text-slate-500">
+                        <p>No hay pagos registrados para este jugador</p>
+                        <Button
+                          onClick={() => {
+                            setShowForm(true);
+                            setTimeout(() => {
+                              const form = document.querySelector('form');
+                              if (form) form.scrollIntoView({ behavior: 'smooth' });
+                            }, 100);
+                          }}
+                          variant="outline"
+                          className="mt-4"
+                        >
+                          <Plus className="w-4 h-4 mr-2" />
+                          Registrar Primer Pago
+                        </Button>
+                      </div>
+                    ) : (
+                      <div className="space-y-4">
+                        {playerPayments.map((payment) => (
+                          <div key={payment.id} className="border rounded-lg p-4 hover:bg-slate-50 transition-colors">
+                            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                              <div className="flex-1 space-y-2">
+                                <div className="flex items-center gap-3">
+                                  <Badge className={
+                                    payment.estado === "Pagado"
+                                      ? "bg-green-100 text-green-700"
+                                      : payment.estado === "En revisión"
+                                      ? "bg-orange-100 text-orange-700"
+                                      : "bg-red-100 text-red-700"
+                                  }>
+                                    <span className="mr-1">{statusEmojis[payment.estado]}</span>
+                                    {payment.estado}
+                                  </Badge>
+                                  <span className="font-semibold text-slate-900">{payment.mes} - {payment.temporada}</span>
+                                  <Badge variant="outline">{payment.tipo_pago}</Badge>
+                                </div>
+                                <div className="flex items-center gap-4 text-sm text-slate-600">
+                                  <span className="font-bold text-lg text-slate-900">{payment.cantidad}€</span>
+                                  <span>• Vencimiento: 30 de {payment.mes}</span>
+                                  {payment.fecha_pago && (
+                                    <span>• Pagado: {new Date(payment.fecha_pago).toLocaleDateString('es-ES')}</span>
+                                  )}
+                                </div>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                {payment.justificante_url ? (
+                                  <a
+                                    href={payment.justificante_url}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-orange-50 text-orange-700 hover:bg-orange-100 transition-colors"
+                                  >
+                                    <FileText className="w-4 h-4" />
+                                    <span className="text-sm font-medium">Ver Justificante</span>
+                                  </a>
+                                ) : payment.estado === "Pagado" ? (
+                                  <span className="text-xs text-slate-400">Sin justificante</span>
                                 ) : (
                                   <>
-                                    <Upload className="w-3 h-3 mr-1" />
-                                    Subir
+                                    <input
+                                      type="file"
+                                      accept="image/*,.pdf"
+                                      onChange={(e) => handleFileUpload(payment.id, e)}
+                                      className="hidden"
+                                      id={`upload-${payment.id}`}
+                                      disabled={uploadingPaymentId === payment.id}
+                                    />
+                                    <label htmlFor={`upload-${payment.id}`}>
+                                      <Button
+                                        variant="outline"
+                                        size="sm"
+                                        disabled={uploadingPaymentId === payment.id}
+                                        onClick={() => document.getElementById(`upload-${payment.id}`).click()}
+                                      >
+                                        {uploadingPaymentId === payment.id ? (
+                                          <>
+                                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                            Subiendo...
+                                          </>
+                                        ) : (
+                                          <>
+                                            <Upload className="w-4 h-4 mr-2" />
+                                            Subir Justificante
+                                          </>
+                                        )}
+                                      </Button>
+                                    </label>
                                   </>
                                 )}
-                              </Button>
-                            </label>
-                          </>
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        <Badge className={
-                          payment.estado === "Pagado"
-                            ? "bg-green-100 text-green-700"
-                            : payment.estado === "En revisión"
-                            ? "bg-orange-100 text-orange-700"
-                            : "bg-red-100 text-red-700"
-                        }>
-                          <span className="mr-1">{statusEmojis[payment.estado]}</span>
-                          {payment.estado}
-                        </Badge>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              );
+            })
+        )}
+      </div>
 
       <ContactCard />
 
