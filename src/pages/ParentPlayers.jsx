@@ -90,29 +90,24 @@ export default function ParentPlayers() {
         try {
           console.log('📧 [ParentPlayers] Enviando confirmación de inscripción a padres:', { padre: playerData.email_padre, tutor2: playerData.email_tutor_2 });
           
-          const emailBody = `
-Estimados padres/tutores,
+          const emailBody = `Estimados padres/tutores,
 
-Confirmamos que hemos recibido correctamente la inscripción de ${playerData.nombre}.
+Confirmamos que hemos recibido correctamente la inscripcion de ${playerData.nombre}.
 
-════════════════════════════════════════
-📋 DATOS DE LA INSCRIPCIÓN
-════════════════════════════════════════
+DATOS DE LA INSCRIPCION
 Tipo: ${playerData.tipo_inscripcion}
 Jugador: ${playerData.nombre}
-Deporte/Categoría: ${playerData.deporte}
+Deporte/Categoria: ${playerData.deporte}
 Fecha de Nacimiento: ${new Date(playerData.fecha_nacimiento).toLocaleDateString('es-ES')}
 
-En breve procesaremos la información y podrán acceder a todos los servicios del club a través de la aplicación.
+En breve procesaremos la informacion y podran acceder a todos los servicios del club a traves de la aplicacion.
 
 Atentamente,
 
 CD Bustarviejo
-Equipo de Administración
+Equipo de Administracion
 
-════════════════════════════════════════
 Datos de contacto:
-════════════════════════════════════════
 Email: cdbustarviejo@gmail.com
           `;
           

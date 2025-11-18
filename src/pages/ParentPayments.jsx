@@ -88,18 +88,15 @@ export default function ParentPayments() {
         });
         
         // Send confirmation to parents
-        const confirmBody = `
-Estimados padres/tutores,
+        const confirmBody = `Estimados padres/tutores,
 
 Confirmamos que hemos recibido el registro de pago para ${paymentData.jugador_nombre}.
 
-════════════════════════════════════════
-💰 DETALLES DEL PAGO
-════════════════════════════════════════
-Período: ${paymentData.mes}
+DETALLES DEL PAGO
+Periodo: ${paymentData.mes}
 Temporada: ${paymentData.temporada}
-Cantidad: ${paymentData.cantidad}€
-Estado: ${paymentData.justificante_url ? 'En revisión' : 'Pendiente de justificante'}
+Cantidad: ${paymentData.cantidad} euros
+Estado: ${paymentData.justificante_url ? 'En revision' : 'Pendiente de justificante'}
 
 ${paymentData.justificante_url ? 'Estamos revisando tu justificante y actualizaremos el estado pronto.' : 'Recuerda subir el justificante de pago para que podamos verificarlo.'}
 
@@ -107,9 +104,7 @@ Atentamente,
 
 CD Bustarviejo
 
-════════════════════════════════════════
 Datos de contacto:
-════════════════════════════════════════
 Email: cdbustarviejo@gmail.com
         `;
         
@@ -189,18 +184,15 @@ Email: cdbustarviejo@gmail.com
         });
         
         // Send confirmation to parents
-        const confirmBody = `
-Estimados padres/tutores,
+        const confirmBody = `Estimados padres/tutores,
 
 Hemos recibido el justificante de pago para ${payment.jugador_nombre}.
 
-════════════════════════════════════════
-💰 DETALLES DEL PAGO
-════════════════════════════════════════
-Período: ${payment.mes}
+DETALLES DEL PAGO
+Periodo: ${payment.mes}
 Temporada: ${payment.temporada}
-Cantidad: ${payment.cantidad}€
-Estado: En revisión 🟠
+Cantidad: ${payment.cantidad} euros
+Estado: En revision
 
 Estamos verificando tu justificante y actualizaremos el estado pronto.
 
@@ -208,9 +200,7 @@ Atentamente,
 
 CD Bustarviejo
 
-════════════════════════════════════════
 Datos de contacto:
-════════════════════════════════════════
 Email: cdbustarviejo@gmail.com
         `;
         
