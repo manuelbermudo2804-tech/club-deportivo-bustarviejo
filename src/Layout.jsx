@@ -531,31 +531,12 @@ export default function Layout({ children, currentPageName }) {
             setShowSpecialScreen("vacation");
           }
         }
-
-        // Navegación basada en rol
-        const currentPath = location.pathname;
-        if (currentUser.role === "admin" || currentUser.es_entrenador) {
-          // Admin y entrenadores siempre al Home
-          if (currentPath !== createPageUrl("Home")) {
-            navigate(createPageUrl("Home"), { replace: true });
-          }
-        } else if (currentUser.role === "jugador") {
-          // Jugadores al PlayerDashboard
-          if (currentPath !== createPageUrl("PlayerDashboard")) {
-            navigate(createPageUrl("PlayerDashboard"), { replace: true });
-          }
-        } else {
-          // Padres al ParentDashboard
-          if (currentPath !== createPageUrl("ParentDashboard")) {
-            navigate(createPageUrl("ParentDashboard"), { replace: true });
-          }
-        }
       } catch (error) {
         console.error("Error fetching user:", error);
       }
     };
     fetchUser();
-  }, [location.pathname, navigate]);
+  }, []);
 
   useEffect(() => {
     const checkUnreadMessages = async () => {
