@@ -57,7 +57,84 @@ export default function ParentPayments() {
   }, []);
 
   const createPaymentMutation = useMutation({
-    mutationFn: (paymentData) => base44.entities.Payment.create(paymentData),
+    mutationFn: async (paymentData) => {
+      const payment = await base44.entities.Payment.create(paymentData);
+      
+      // Send email to club
+      const player = players.find(p => p.id === paymentData.jugador_id);
+      try {
+        await base44.integrations.Core.SendEmail({
+          from_name: "CD Bustarviejo - Sistema de Pagos",
+          to: "cdbustarviejo@gmail.com",
+          subject: `Nuevo Pago Registrado - ${paymentData.jugador_nombre}`,
+          body: `
+            <h2>Nuevo Pago Registrado</h2>
+            <p><strong>Jugador:</strong> ${paymentData.jugador_nombre}</p>
+            <p><strong>Email Padre:</strong> ${player?.email_padre || 'N/A'}</p>
+            <p><strong>Tipo de Pago:</strong> ${paymentData.tipo_pago}</p>
+            <p><strong>Mes:</strong> ${paymentData.mes}</p>
+            <p><strong>Temporada:</strong> ${paymentData.temporada}</p>
+            <p><strong>Cantidad:</strong> ${paymentData.cantidad}€</p>
+            <p><strong>Método de Pago:</strong> ${paymentData.metodo_pago}</p>
+            ${paymentData.fecha_pago ? `<p><strong>Fecha de Pago:</strong> ${new Date(paymentData.fecha_pago).toLocaleDateString('es-ES')}</p>` : ''}
+            <hr>
+            <p><strong>Estado:</strong> ${paymentData.justificante_url ? 'En revisión 🟠' : 'Pendiente 🔴'}</p>
+            ${paymentData.justificante_url ? `<p><strong>Justificante:</strong> <a href="${paymentData.justificante_url}">Ver justificante</a></p>` : ''}
+            ${paymentData.notas ? `<p><strong>Notas:</strong> ${paymentData.notas}</p>` : ''}
+            <hr>
+            <p style="font-size: 12px; color: #666;">Registrado el ${new Date().toLocaleString('es-ES')}</p>
+          `
+        });
+        
+        // Send confirmation to parents
+        const confirmBody = `
+Estimados padres/tutores,
+
+Confirmamos que hemos recibido el registro de pago para ${paymentData.jugador_nombre}.
+
+════════════════════════════════════════
+💰 DETALLES DEL PAGO
+════════════════════════════════════════
+Período: ${paymentData.mes}
+Temporada: ${paymentData.temporada}
+Cantidad: ${paymentData.cantidad}€
+Estado: ${paymentData.justificante_url ? 'En revisión' : 'Pendiente de justificante'}
+
+${paymentData.justificante_url ? 'Estamos revisando tu justificante y actualizaremos el estado pronto.' : 'Recuerda subir el justificante de pago para que podamos verificarlo.'}
+
+Atentamente,
+
+CD Bustarviejo
+
+════════════════════════════════════════
+Datos de contacto:
+════════════════════════════════════════
+Email: cdbustarviejo@gmail.com
+        `;
+        
+        if (player?.email_padre) {
+          await base44.integrations.Core.SendEmail({
+            from_name: "CD Bustarviejo",
+            to: player.email_padre,
+            subject: "Pago Registrado - CD Bustarviejo",
+            body: confirmBody
+          });
+        }
+        
+        if (player?.email_tutor_2) {
+          await base44.integrations.Core.SendEmail({
+            from_name: "CD Bustarviejo",
+            to: player.email_tutor_2,
+            subject: "Pago Registrado - CD Bustarviejo",
+            body: confirmBody
+          });
+        }
+      } catch (error) {
+        console.error("Error sending email notifications:", error);
+      }
+      
+      return payment;
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['myPayments'] });
       setShowForm(false);
@@ -78,9 +155,12 @@ export default function ParentPayments() {
         estado: "En revisión"
       });
 
+      const player = players.find(p => p.id === payment.jugador_id);
+      
       try {
         await base44.integrations.Core.SendEmail({
-          to: "CDBUSTARVIEJO@GMAIL.COM",
+          from_name: "CD Bustarviejo - Sistema de Pagos",
+          to: "cdbustarviejo@gmail.com",
           subject: `Justificante de Pago Recibido - ${payment.jugador_nombre}`,
           body: `
             <h2>Nuevo Justificante de Pago Subido</h2>
@@ -99,6 +179,50 @@ export default function ParentPayments() {
             <p style="font-size: 12px; color: #666;">Justificante subido el ${new Date().toLocaleString('es-ES')}</p>
           `
         });
+        
+        // Send confirmation to parents
+        const confirmBody = `
+Estimados padres/tutores,
+
+Hemos recibido el justificante de pago para ${payment.jugador_nombre}.
+
+════════════════════════════════════════
+💰 DETALLES DEL PAGO
+════════════════════════════════════════
+Período: ${payment.mes}
+Temporada: ${payment.temporada}
+Cantidad: ${payment.cantidad}€
+Estado: En revisión 🟠
+
+Estamos verificando tu justificante y actualizaremos el estado pronto.
+
+Atentamente,
+
+CD Bustarviejo
+
+════════════════════════════════════════
+Datos de contacto:
+════════════════════════════════════════
+Email: cdbustarviejo@gmail.com
+        `;
+        
+        if (player?.email_padre) {
+          await base44.integrations.Core.SendEmail({
+            from_name: "CD Bustarviejo",
+            to: player.email_padre,
+            subject: "Justificante Recibido - CD Bustarviejo",
+            body: confirmBody
+          });
+        }
+        
+        if (player?.email_tutor_2) {
+          await base44.integrations.Core.SendEmail({
+            from_name: "CD Bustarviejo",
+            to: player.email_tutor_2,
+            subject: "Justificante Recibido - CD Bustarviejo",
+            body: confirmBody
+          });
+        }
       } catch (error) {
         console.error("Error sending email notification:", error);
       }

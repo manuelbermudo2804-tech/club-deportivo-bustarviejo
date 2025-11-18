@@ -85,6 +85,52 @@ export default function ParentPlayers() {
             <p style="font-size: 12px; color: #666;">Inscripción registrada el ${new Date().toLocaleString('es-ES')}</p>
           `
         });
+        // Send confirmation to parents
+        try {
+          const emailBody = `
+Estimados padres/tutores,
+
+Confirmamos que hemos recibido correctamente la inscripción de ${playerData.nombre}.
+
+════════════════════════════════════════
+📋 DATOS DE LA INSCRIPCIÓN
+════════════════════════════════════════
+Tipo: ${playerData.tipo_inscripcion}
+Jugador: ${playerData.nombre}
+Deporte/Categoría: ${playerData.deporte}
+Fecha de Nacimiento: ${new Date(playerData.fecha_nacimiento).toLocaleDateString('es-ES')}
+
+En breve procesaremos la información y podrán acceder a todos los servicios del club a través de la aplicación.
+
+Atentamente,
+
+CD Bustarviejo
+Equipo de Administración
+
+════════════════════════════════════════
+Datos de contacto:
+════════════════════════════════════════
+Email: cdbustarviejo@gmail.com
+          `;
+          
+          await base44.integrations.Core.SendEmail({
+            from_name: "CD Bustarviejo",
+            to: playerData.email_padre,
+            subject: "Inscripción Recibida - CD Bustarviejo",
+            body: emailBody
+          });
+          
+          if (playerData.email_tutor_2) {
+            await base44.integrations.Core.SendEmail({
+              from_name: "CD Bustarviejo",
+              to: playerData.email_tutor_2,
+              subject: "Inscripción Recibida - CD Bustarviejo",
+              body: emailBody
+            });
+          }
+        } catch (error) {
+          console.error("Error sending confirmation emails:", error);
+        }
       } catch (error) {
         console.error("Error sending email notification:", error);
       }

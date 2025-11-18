@@ -143,11 +143,60 @@ export default function ClothingOrderForm({ players, onSubmit, onCancel, isSubmi
       if (orderData.anorak) productsHTML += `<p>✅ <strong>Anorak:</strong> ${orderData.anorak_talla} - ${PRECIOS.anorak}€</p>`;
       if (orderData.mochila) productsHTML += `<p>✅ <strong>Mochila con botero (escudo vinilo):</strong> ${PRECIOS.mochila}€</p>`;
 
+      // Send to club
       await base44.integrations.Core.SendEmail({
-        to: "CDBUSTARVIEJO@GMAIL.COM",
+        from_name: "CD Bustarviejo - Sistema de Pedidos",
+        to: "cdbustarviejo@gmail.com",
         subject: `Nuevo Pedido de Equipación - ${orderData.jugador_nombre}`,
         body: `<h2>Nuevo Pedido de Equipación</h2><p><strong>Jugador:</strong> ${orderData.jugador_nombre}</p><p><strong>Categoría:</strong> ${orderData.jugador_categoria}</p><p><strong>Email:</strong> ${orderData.email_padre}</p><p><strong>Teléfono:</strong> ${orderData.telefono}</p><hr><h3>Productos:</h3>${productsHTML}<hr><p><strong>Total:</strong> ${orderData.precio_total}€</p><p><strong>Concepto:</strong> ${orderData.concepto_pago}</p><p><strong>Fecha Pago:</strong> ${orderData.fecha_pago}</p><p><strong>Justificante:</strong> <a href="${orderData.justificante_url}">Ver</a></p>${orderData.notas ? `<p><strong>Notas:</strong> ${orderData.notas}</p>` : ''}<hr><p><strong>Temporada:</strong> ${orderData.temporada}</p>`
       });
+      
+      // Get player to send confirmation to both parents
+      const player = players.find(p => p.id === orderData.jugador_id);
+      
+      // Send confirmation to parents
+      const confirmBody = `
+Estimados padres/tutores,
+
+Confirmamos que hemos recibido su pedido de equipación para ${orderData.jugador_nombre}.
+
+════════════════════════════════════════
+🛍️ DETALLES DEL PEDIDO
+════════════════════════════════════════
+Jugador: ${orderData.jugador_nombre}
+Categoría: ${orderData.jugador_categoria}
+Total: ${orderData.precio_total}€
+Estado: En revisión
+
+Los pedidos se entregarán en las instalaciones del club durante la primera semana de Septiembre.
+
+Atentamente,
+
+CD Bustarviejo
+
+════════════════════════════════════════
+Datos de contacto:
+════════════════════════════════════════
+Email: cdbustarviejo@gmail.com
+      `;
+      
+      if (player?.email_padre) {
+        await base44.integrations.Core.SendEmail({
+          from_name: "CD Bustarviejo",
+          to: player.email_padre,
+          subject: "Pedido de Equipación Recibido - CD Bustarviejo",
+          body: confirmBody
+        });
+      }
+      
+      if (player?.email_tutor_2) {
+        await base44.integrations.Core.SendEmail({
+          from_name: "CD Bustarviejo",
+          to: player.email_tutor_2,
+          subject: "Pedido de Equipación Recibido - CD Bustarviejo",
+          body: confirmBody
+        });
+      }
     } catch (error) {
       console.error("Error sending email:", error);
     }
