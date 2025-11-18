@@ -42,6 +42,7 @@ import MatchResults from './pages/MatchResults';
 import MedicalRecords from './pages/MedicalRecords';
 import MatchApp from './pages/MatchApp';
 import MemberManagement from './pages/MemberManagement';
+import TeamAttendanceEvaluation from './pages/TeamAttendanceEvaluation';
 import __Layout from './Layout.jsx';
 
 
@@ -90,6 +91,7 @@ export const PAGES = {
     "MedicalRecords": MedicalRecords,
     "MatchApp": MatchApp,
     "MemberManagement": MemberManagement,
+    "TeamAttendanceEvaluation": TeamAttendanceEvaluation,
 }
 
 export const pagesConfig = {

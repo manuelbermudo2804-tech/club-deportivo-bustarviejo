@@ -731,12 +731,11 @@ export default function Layout({ children, currentPageName }) {
   ];
 
   const coachNavigationItems = [
-    { title: "Inicio", url: createPageUrl("Home"), icon: Home },
-    { title: "Mis Hijos", url: createPageUrl("ParentPlayers"), icon: Users },
+    { title: "🏠 Inicio", url: createPageUrl("Home"), icon: Home },
+    { title: "👨‍👩‍👧 Mis Hijos", url: createPageUrl("ParentPlayers"), icon: Users },
     { title: "🎓 Plantillas", url: createPageUrl("TeamRosters"), icon: Users },
-    { title: "✅ Asistencia", url: createPageUrl("CoachAttendance"), icon: CheckCircle2 },
-    { title: "⭐ Evaluaciones", url: createPageUrl("PlayerEvaluations"), icon: Star },
-    { title: "Horarios", url: createPageUrl("TrainingSchedules"), icon: Clock },
+    { title: "📋 Asistencia y Evaluación", url: createPageUrl("TeamAttendanceEvaluation"), icon: CheckCircle2 },
+    { title: "⏰ Horarios", url: createPageUrl("TrainingSchedules"), icon: Clock },
     { title: "Calendario", url: createPageUrl("Calendar"), icon: Calendar },
     { title: "Anuncios", url: createPageUrl("Announcements"), icon: Megaphone },
     { title: "Galería", url: createPageUrl("AdminGallery"), icon: Image },
