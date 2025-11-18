@@ -115,48 +115,52 @@ export default function TeamAttendanceEvaluation() {
         .join('\n  ');
 
       const reportText = `
-╔════════════════════════════════════════╗
-║   📊 REPORTE DE ENTRENAMIENTO          ║
-╚════════════════════════════════════════╝
+Estimados padres/tutores,
 
-┌─────────────────────────────────────┐
-│  👤 ${player.nombre}
-│  ⚽ ${selectedCategory}
-└─────────────────────────────────────┘
+A continuacion el reporte de entrenamiento de ${player.nombre}.
 
-📅 Periodo: ${format(new Date(dateRange.start), "dd/MM/yyyy")} - ${format(new Date(dateRange.end), "dd/MM/yyyy")}
+====================================
+REPORTE DE ENTRENAMIENTO
+====================================
 
-╔════════════════════════════════════════╗
-║              RESUMEN                    ║
-╚════════════════════════════════════════╝
+Jugador: ${player.nombre}
+Categoria: ${selectedCategory}
+Periodo: ${format(new Date(dateRange.start), "dd/MM/yyyy")} - ${format(new Date(dateRange.end), "dd/MM/yyyy")}
 
-📌 Sesiones: ${playerData.length}
+====================================
+RESUMEN
+====================================
 
-⭐ Actitud promedio: ${actitudPromedio}/5
+Sesiones: ${playerData.length}
+Actitud promedio: ${actitudPromedio}/5
 
-📆 Últimas evaluaciones:
-  ${ultimasEvaluaciones || 'Sin evaluaciones'}
+Ultimas evaluaciones:
+${ultimasEvaluaciones || 'Sin evaluaciones'}
 
-╔════════════════════════════════════════╗
-║         DETALLE POR SESIÓN             ║
-╚════════════════════════════════════════╝
+====================================
+DETALLE POR SESION
+====================================
 
 ${playerData.map(data => `
-📅 ${format(new Date(data.fecha), "dd 'de' MMMM 'de' yyyy", { locale: es })}
-${data.estado === 'presente' ? '✅ Presente' : 
-  data.estado === 'ausente' ? '❌ Ausente' : 
-  data.estado === 'justificado' ? '📝 Ausencia Justificada' : 
-  '⏰ Tardanza'}
-${(data.estado === 'presente' || data.estado === 'tardanza') && data.actitud != null ? `⭐ Actitud: ${data.actitud}/5` : ''}
-${data.observaciones ? `📝 ${data.observaciones}` : ''}
-`).join('\n───────────────────────────────────\n')}
+Fecha: ${format(new Date(data.fecha), "dd 'de' MMMM 'de' yyyy", { locale: es })}
+Estado: ${data.estado === 'presente' ? 'Presente' : 
+  data.estado === 'ausente' ? 'Ausente' : 
+  data.estado === 'justificado' ? 'Ausencia Justificada' : 
+  'Tardanza'}
+${(data.estado === 'presente' || data.estado === 'tardanza') && data.actitud != null ? `Actitud: ${data.actitud}/5` : ''}
+${data.observaciones ? `Observaciones: ${data.observaciones}` : ''}
+`).join('\n-----------------------------------\n')}
 
-════════════════════════════════════════
+====================================
 
-👨‍🏫 Entrenador: ${user.full_name}
-📧 CD Bustarviejo
+Entrenador: ${user.full_name}
 
 Para cualquier consulta, contacta con tu entrenador.
+
+Atentamente,
+
+CD Bustarviejo
+Email: cdbustarviejo@gmail.com
       `.trim();
 
       if (sendMethod === 'email' || sendMethod === 'both') {
@@ -257,45 +261,49 @@ Para cualquier consulta, contacta con tu entrenador.
           .join('\n  ');
 
         const reportText = `
-        ╔════════════════════════════════════════╗
-        ║   📊 REPORTE DE ENTRENAMIENTO          ║
-        ╚════════════════════════════════════════╝
+Estimados padres/tutores,
 
-        ┌─────────────────────────────────────┐
-        │  👤 ${player.nombre}
-        │  ⚽ ${selectedCategory}
-        └─────────────────────────────────────┘
+A continuacion el reporte de entrenamiento de ${player.nombre}.
 
-        📅 Periodo: ${format(new Date(dateRange.start), "dd/MM/yyyy")} - ${format(new Date(dateRange.end), "dd/MM/yyyy")}
+====================================
+REPORTE DE ENTRENAMIENTO
+====================================
 
-        ╔════════════════════════════════════════╗
-        ║              RESUMEN                    ║
-        ╚════════════════════════════════════════╝
+Jugador: ${player.nombre}
+Categoria: ${selectedCategory}
+Periodo: ${format(new Date(dateRange.start), "dd/MM/yyyy")} - ${format(new Date(dateRange.end), "dd/MM/yyyy")}
 
-        📌 Sesiones: ${playerAttendances.length}
+====================================
+RESUMEN
+====================================
 
-        ⭐ Actitud promedio: ${actitudPromedio}/5
+Sesiones: ${playerAttendances.length}
+Actitud promedio: ${actitudPromedio}/5
 
-        📆 Últimas evaluaciones:
-        ${ultimasEvaluaciones || 'Sin evaluaciones'}
+Ultimas evaluaciones:
+${ultimasEvaluaciones || 'Sin evaluaciones'}
 
-        ╔════════════════════════════════════════╗
-        ║         DETALLE POR SESIÓN             ║
-        ╚════════════════════════════════════════╝
+====================================
+DETALLE POR SESION
+====================================
 
-        ${playerAttendances.map(data => `
-        📅 ${format(new Date(data.fecha), "dd 'de' MMMM 'de' yyyy", { locale: es })}
-        ✅ Presente
-        ${data.actitud != null ? `⭐ Actitud: ${data.actitud}/5` : ''}
-        ${data.observaciones ? `📝 ${data.observaciones}` : ''}
-        `).join('\n───────────────────────────────────\n')}
+${playerAttendances.map(data => `
+Fecha: ${format(new Date(data.fecha), "dd 'de' MMMM 'de' yyyy", { locale: es })}
+Estado: Presente
+${data.actitud != null ? `Actitud: ${data.actitud}/5` : ''}
+${data.observaciones ? `Observaciones: ${data.observaciones}` : ''}
+`).join('\n-----------------------------------\n')}
 
-        ════════════════════════════════════════
+====================================
 
-        👨‍🏫 Entrenador: ${user.full_name}
-        📧 CD Bustarviejo
+Entrenador: ${user.full_name}
 
-        Para cualquier consulta, contacta con tu entrenador.
+Para cualquier consulta, contacta con tu entrenador.
+
+Atentamente,
+
+CD Bustarviejo
+Email: cdbustarviejo@gmail.com
         `.trim();
 
         try {
