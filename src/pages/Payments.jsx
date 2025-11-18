@@ -665,14 +665,19 @@ Email: cdbustarviejo@gmail.com
                 return (
                   <div className="space-y-4">
                     {filteredPlayers.map(player => {
-                      const playerPayments = payments.filter(p => p.jugador_id === player.id && p.temporada === temporadaFilter);
+                      const allPlayerPayments = payments.filter(p => p.jugador_id === player.id && p.temporada === temporadaFilter);
 
                       // Determinar meses según tipo de pago REAL (no del player.tipo_pago)
                       // Si tiene un pago "Único" pagado o en revisión, solo mostrar Junio
-                      const hasPagoUnico = playerPayments.some(p => 
+                      const hasPagoUnico = allPlayerPayments.some(p => 
                         (p.tipo_pago === "Único" || p.tipo_pago === "único") && 
                         (p.estado === "Pagado" || p.estado === "En revisión")
                       );
+
+                      // Si tiene pago único, solo mostrar ese pago (Junio), ignorar los demás
+                      const playerPayments = hasPagoUnico
+                        ? allPlayerPayments.filter(p => p.mes === "Junio")
+                        : allPlayerPayments;
 
                       const allMonths = hasPagoUnico
                         ? ["Junio"]
