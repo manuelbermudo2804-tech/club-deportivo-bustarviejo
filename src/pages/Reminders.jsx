@@ -72,31 +72,58 @@ export default function RemindersPage() {
       const payment = payments.find(p => p.id === data.paymentId);
       const player = players.find(p => p.id === data.playerId);
       
-      if (data.method === 'email' || data.method === 'both') {
+      const isAnimated = data.method === 'animation';
+      const shouldSendEmail = data.method === 'email' || data.method === 'both' || isAnimated;
+      const shouldSendChat = data.method === 'chat' || data.method === 'both' || isAnimated;
+      
+      if (shouldSendEmail) {
+        const subject = isAnimated 
+          ? `🔔 ¡RECORDATORIO IMPORTANTE! - Pago ${payment.mes} - CD Bustarviejo`
+          : `Recordatorio de Pago - ${payment.mes}`;
+        
+        const emailBody = isAnimated
+          ? `
+╔═══════════════════════════════════════════╗
+║  🔔 RECORDATORIO URGENTE DE PAGO 🔔      ║
+╚═══════════════════════════════════════════╝
+
+${data.message}
+
+⚠️ ATENCIÓN: Este es un recordatorio prioritario
+Por favor, complete el pago a la brevedad posible.
+
+Gracias por su atención.
+          `
+          : data.message;
+        
         if (player.email_padre) {
           await base44.integrations.Core.SendEmail({
             from_name: "CD Bustarviejo",
             to: player.email_padre,
-            subject: `Recordatorio de Pago - ${payment.mes}`,
-            body: data.message
+            subject: subject,
+            body: emailBody
           });
         }
         if (player.email_tutor_2) {
           await base44.integrations.Core.SendEmail({
             from_name: "CD Bustarviejo",
             to: player.email_tutor_2,
-            subject: `Recordatorio de Pago - ${payment.mes}`,
-            body: data.message
+            subject: subject,
+            body: emailBody
           });
         }
       }
       
-      if (data.method === 'chat' || data.method === 'both') {
+      if (shouldSendChat) {
+        const chatMessage = isAnimated
+          ? `🚨🔔 RECORDATORIO URGENTE 🔔🚨\n\n${data.message}\n\n⚠️ POR FAVOR, ATENCIÓN INMEDIATA`
+          : data.message;
+        
         await base44.entities.ChatMessage.create({
           remitente_email: "admin@cdbustarviejo.com",
           remitente_nombre: "Administración CD Bustarviejo",
-          mensaje: data.message,
-          prioridad: "Importante",
+          mensaje: chatMessage,
+          prioridad: isAnimated ? "Urgente" : "Importante",
           tipo: "admin_a_grupo",
           deporte: player.deporte,
           grupo_id: player.deporte,
@@ -104,7 +131,11 @@ export default function RemindersPage() {
         });
       }
       
-      toast.success("✅ Recordatorio enviado correctamente");
+      const successMessage = isAnimated
+        ? "🎉 ¡Recordatorio con animación enviado! Email + Chat + Prioridad urgente"
+        : "✅ Recordatorio enviado correctamente";
+      
+      toast.success(successMessage);
     } catch (error) {
       console.error("Error sending individual reminder:", error);
       throw error;
@@ -702,24 +733,21 @@ Temporada ${reminder.temporada}
               paymentsByPlayer[payment.jugador_id].pagos.push(payment);
             });
 
-            // Filtrar solo jugadores con pagos pendientes o en revisión
-            const playersWithPendingPayments = Object.values(paymentsByPlayer).filter(playerData => 
-              playerData.pagos.some(p => p.estado !== "Pagado")
-            );
+            // Mostrar TODOS los jugadores
+            const allPlayersData = Object.values(paymentsByPlayer);
 
-            if (playersWithPendingPayments.length === 0) {
+            if (allPlayersData.length === 0) {
               return (
                 <div className="text-center py-12">
-                  <CheckCircle2 className="w-16 h-16 text-green-500 mx-auto mb-4" />
-                  <p className="text-slate-500 text-lg mb-2">¡Todos los pagos están al día!</p>
-                  <p className="text-slate-400 text-sm">No hay pagos pendientes ni en revisión</p>
+                  <Bell className="w-16 h-16 text-slate-300 mx-auto mb-4" />
+                  <p className="text-slate-500 text-lg mb-2">No hay jugadores con pagos registrados</p>
                 </div>
               );
             }
 
             return (
               <div className="space-y-4">
-                {playersWithPendingPayments.map(playerData => {
+                {allPlayersData.map(playerData => {
                   const player = players.find(p => p.id === playerData.jugador_id);
                   const pendingPayments = playerData.pagos.filter(p => p.estado === "Pendiente");
                   const reviewPayments = playerData.pagos.filter(p => p.estado === "En revisión");

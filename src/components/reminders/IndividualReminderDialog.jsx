@@ -106,6 +106,17 @@ CD Bustarviejo`;
                   <span>Ambos (Email + Chat)</span>
                 </Label>
               </div>
+
+              <div className="flex items-center space-x-2 border-2 border-purple-300 rounded-lg p-3 hover:bg-purple-50 cursor-pointer bg-gradient-to-r from-purple-50 to-pink-50">
+                <RadioGroupItem value="animation" id="animation" />
+                <Label htmlFor="animation" className="flex items-center gap-2 cursor-pointer flex-1">
+                  <span className="text-2xl animate-bounce">🔔</span>
+                  <div>
+                    <span className="font-semibold text-purple-700">Con Animación Visual</span>
+                    <p className="text-xs text-purple-600">Email + Chat + Notificación destacada</p>
+                  </div>
+                </Label>
+              </div>
             </RadioGroup>
           </div>
 
