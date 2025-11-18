@@ -14,33 +14,81 @@ const SURVEY_TEMPLATES = {
     { pregunta: "¿Cómo valorarías tu experiencia general en el club?", tipo_respuesta: "rating", obligatoria: true },
     { pregunta: "¿Qué es lo que más te gusta del club?", tipo_respuesta: "texto", obligatoria: false },
     { pregunta: "¿Qué aspectos crees que podríamos mejorar?", tipo_respuesta: "texto", obligatoria: false },
-    { pregunta: "¿Recomendarías el club a otras familias?", tipo_respuesta: "rating", obligatoria: true }
+    { pregunta: "¿Recomendarías el club a otras familias?", tipo_respuesta: "rating", obligatoria: true },
+    { pregunta: "¿Cómo calificarías la relación calidad-precio?", tipo_respuesta: "rating", obligatoria: true }
   ],
   "Fin de Temporada": [
     { pregunta: "¿Cómo valorarías la temporada en general?", tipo_respuesta: "rating", obligatoria: true },
     { pregunta: "¿Tu hijo/a ha disfrutado de los entrenamientos?", tipo_respuesta: "rating", obligatoria: true },
+    { pregunta: "¿Ha mejorado técnica y tácticamente?", tipo_respuesta: "rating", obligatoria: true },
     { pregunta: "¿Cómo valorarías la comunicación del club con las familias?", tipo_respuesta: "rating", obligatoria: true },
+    { pregunta: "¿Los horarios de entrenamientos fueron adecuados?", tipo_respuesta: "rating", obligatoria: true },
     { pregunta: "¿Qué momentos destacarías de esta temporada?", tipo_respuesta: "texto", obligatoria: false },
     { pregunta: "Sugerencias para la próxima temporada", tipo_respuesta: "texto", obligatoria: false }
   ],
   "Entrenadores": [
     { pregunta: "¿Cómo valorarías la calidad de los entrenamientos?", tipo_respuesta: "rating", obligatoria: true },
     { pregunta: "¿El entrenador se comunica bien con los jugadores?", tipo_respuesta: "rating", obligatoria: true },
-    { pregunta: "¿El entrenador fomenta valores deportivos?", tipo_respuesta: "rating", obligatoria: true },
+    { pregunta: "¿El entrenador fomenta valores deportivos y respeto?", tipo_respuesta: "rating", obligatoria: true },
+    { pregunta: "¿El entrenador motiva y anima a los jugadores?", tipo_respuesta: "rating", obligatoria: true },
     { pregunta: "¿Notas progreso en las habilidades de tu hijo/a?", tipo_respuesta: "rating", obligatoria: true },
-    { pregunta: "Comentarios adicionales sobre los entrenadores", tipo_respuesta: "texto", obligatoria: false }
+    { pregunta: "¿El entrenador atiende las necesidades individuales?", tipo_respuesta: "rating", obligatoria: true },
+    { pregunta: "¿Qué aspectos destacarías del entrenador?", tipo_respuesta: "texto", obligatoria: false },
+    { pregunta: "Sugerencias para mejorar los entrenamientos", tipo_respuesta: "texto", obligatoria: false }
   ],
   "Instalaciones": [
     { pregunta: "¿Cómo valorarías el estado de las instalaciones?", tipo_respuesta: "rating", obligatoria: true },
     { pregunta: "¿Las instalaciones son seguras y adecuadas?", tipo_respuesta: "rating", obligatoria: true },
-    { pregunta: "¿Los vestuarios están en buen estado?", tipo_respuesta: "rating", obligatoria: true },
+    { pregunta: "¿Los vestuarios están limpios y en buen estado?", tipo_respuesta: "rating", obligatoria: true },
+    { pregunta: "¿Hay suficiente espacio para entrenamientos y partidos?", tipo_respuesta: "rating", obligatoria: true },
+    { pregunta: "¿El acceso y aparcamiento es cómodo?", tipo_respuesta: "rating", obligatoria: true },
     { pregunta: "¿Qué instalaciones o servicios te gustaría que mejoráramos?", tipo_respuesta: "texto", obligatoria: false }
   ],
   "Evento Específico": [
     { pregunta: "¿Cómo valorarías la organización del evento?", tipo_respuesta: "rating", obligatoria: true },
     { pregunta: "¿El evento cumplió tus expectativas?", tipo_respuesta: "rating", obligatoria: true },
+    { pregunta: "¿La comunicación previa al evento fue clara?", tipo_respuesta: "rating", obligatoria: true },
     { pregunta: "¿Qué es lo que más te gustó del evento?", tipo_respuesta: "texto", obligatoria: false },
     { pregunta: "¿Qué mejorarías para futuros eventos?", tipo_respuesta: "texto", obligatoria: false }
+  ],
+  "Aplicación/App": [
+    { pregunta: "¿Cómo valorarías la facilidad de uso de la aplicación?", tipo_respuesta: "rating", obligatoria: true },
+    { pregunta: "¿La información en la app es clara y útil?", tipo_respuesta: "rating", obligatoria: true },
+    { pregunta: "¿Las notificaciones y avisos son oportunos?", tipo_respuesta: "rating", obligatoria: true },
+    { pregunta: "¿Qué funcionalidades usas más de la app?", tipo_respuesta: "texto", obligatoria: false },
+    { pregunta: "¿Qué funcionalidades te gustaría que tuviera la app?", tipo_respuesta: "texto", obligatoria: false },
+    { pregunta: "¿Has tenido problemas técnicos con la app?", tipo_respuesta: "texto", obligatoria: false }
+  ],
+  "Pagos y Gestión": [
+    { pregunta: "¿Cómo valorarías el proceso de inscripción?", tipo_respuesta: "rating", obligatoria: true },
+    { pregunta: "¿El sistema de pagos es claro y fácil de usar?", tipo_respuesta: "rating", obligatoria: true },
+    { pregunta: "¿Los plazos de pago son razonables?", tipo_respuesta: "rating", obligatoria: true },
+    { pregunta: "¿La información sobre cuotas y pagos es transparente?", tipo_respuesta: "rating", obligatoria: true },
+    { pregunta: "¿Cómo valorarías la relación calidad-precio del club?", tipo_respuesta: "rating", obligatoria: true },
+    { pregunta: "Sugerencias sobre pagos o gestión administrativa", tipo_respuesta: "texto", obligatoria: false }
+  ],
+  "Comunicación": [
+    { pregunta: "¿Cómo valorarías la comunicación general del club?", tipo_respuesta: "rating", obligatoria: true },
+    { pregunta: "¿Recibes la información de forma oportuna?", tipo_respuesta: "rating", obligatoria: true },
+    { pregunta: "¿Los canales de comunicación (app, email, chat) son efectivos?", tipo_respuesta: "rating", obligatoria: true },
+    { pregunta: "¿El club responde rápidamente a tus consultas?", tipo_respuesta: "rating", obligatoria: true },
+    { pregunta: "¿Qué canal de comunicación prefieres?", tipo_respuesta: "texto", obligatoria: false },
+    { pregunta: "Sugerencias para mejorar la comunicación", tipo_respuesta: "texto", obligatoria: false }
+  ],
+  "Equipación y Material": [
+    { pregunta: "¿Cómo valorarías la calidad de la equipación?", tipo_respuesta: "rating", obligatoria: true },
+    { pregunta: "¿El proceso de pedido de ropa fue sencillo?", tipo_respuesta: "rating", obligatoria: true },
+    { pregunta: "¿Las tallas y medidas son correctas?", tipo_respuesta: "rating", obligatoria: true },
+    { pregunta: "¿El material deportivo es adecuado?", tipo_respuesta: "rating", obligatoria: true },
+    { pregunta: "¿Qué equipación o material adicional te gustaría?", tipo_respuesta: "texto", obligatoria: false }
+  ],
+  "Valores y Convivencia": [
+    { pregunta: "¿El club fomenta valores deportivos positivos?", tipo_respuesta: "rating", obligatoria: true },
+    { pregunta: "¿Se promueve el respeto entre compañeros?", tipo_respuesta: "rating", obligatoria: true },
+    { pregunta: "¿El ambiente en el club es acogedor?", tipo_respuesta: "rating", obligatoria: true },
+    { pregunta: "¿Se gestiona bien la competitividad?", tipo_respuesta: "rating", obligatoria: true },
+    { pregunta: "¿Tu hijo/a se siente integrado en el equipo?", tipo_respuesta: "rating", obligatoria: true },
+    { pregunta: "Comentarios sobre el ambiente y los valores del club", tipo_respuesta: "texto", obligatoria: false }
   ]
 };
 
@@ -147,10 +195,15 @@ export default function SurveyForm({ survey, onSubmit, onCancel, isSubmitting })
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="Satisfacción General">Satisfacción General</SelectItem>
-                    <SelectItem value="Evento Específico">Evento Específico</SelectItem>
                     <SelectItem value="Fin de Temporada">Fin de Temporada</SelectItem>
-                    <SelectItem value="Instalaciones">Instalaciones</SelectItem>
                     <SelectItem value="Entrenadores">Entrenadores</SelectItem>
+                    <SelectItem value="Instalaciones">Instalaciones</SelectItem>
+                    <SelectItem value="Aplicación/App">Aplicación/App</SelectItem>
+                    <SelectItem value="Pagos y Gestión">Pagos y Gestión</SelectItem>
+                    <SelectItem value="Comunicación">Comunicación</SelectItem>
+                    <SelectItem value="Equipación y Material">Equipación y Material</SelectItem>
+                    <SelectItem value="Valores y Convivencia">Valores y Convivencia</SelectItem>
+                    <SelectItem value="Evento Específico">Evento Específico</SelectItem>
                     <SelectItem value="Otro">Otro</SelectItem>
                   </SelectContent>
                 </Select>
