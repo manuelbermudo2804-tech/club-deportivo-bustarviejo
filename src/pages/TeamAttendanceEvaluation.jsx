@@ -10,6 +10,7 @@ import { toast } from "sonner";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import IndividualReportDialog from "../components/coach/IndividualReportDialog";
+import BulkReportDialog from "../components/coach/BulkReportDialog";
 
 export default function TeamAttendanceEvaluation() {
   const [user, setUser] = useState(null);
@@ -20,6 +21,7 @@ export default function TeamAttendanceEvaluation() {
   const [generalNotes, setGeneralNotes] = useState("");
   const [showIndividualDialog, setShowIndividualDialog] = useState(false);
   const [selectedPlayer, setSelectedPlayer] = useState(null);
+  const [showBulkDialog, setShowBulkDialog] = useState(false);
   
   const queryClient = useQueryClient();
 
@@ -185,7 +187,7 @@ CD Bustarviejo
   });
 
   const sendReportsMutation = useMutation({
-    mutationFn: async ({ method }) => {
+    mutationFn: async ({ dateRange, sendMethod }) => {
       const categoryPlayers = players.filter(p => 
         p.deporte === selectedCategory && p.activo
       );
@@ -193,48 +195,57 @@ CD Bustarviejo
       let sentCount = 0;
       const results = [];
 
+      const relevantAttendances = attendances.filter(a => 
+        a.categoria === selectedCategory &&
+        a.fecha >= dateRange.start &&
+        a.fecha <= dateRange.end
+      );
+
       for (const player of categoryPlayers) {
-        const playerData = sessionData[player.id] || {};
+        const playerAttendances = [];
+        relevantAttendances.forEach(attendance => {
+          const playerRecord = attendance.asistencias?.find(a => a.jugador_id === player.id);
+          if (playerRecord && playerRecord.estado === 'presente') {
+            playerAttendances.push({
+              fecha: attendance.fecha,
+              ...playerRecord
+            });
+          }
+        });
         
-        if (!playerData.asistencia) continue;
+        if (playerAttendances.length === 0) continue;
 
         const reportText = `
-📋 REPORTE DE ENTRENAMIENTO
+📋 REPORTE DE ENTRENAMIENTO - PERIODO
 ═══════════════════════════════════
 
 👤 Jugador: ${player.nombre}
 ⚽ Categoría: ${selectedCategory}
-📅 Fecha: ${format(new Date(selectedDate), "dd 'de' MMMM 'de' yyyy", { locale: es })}
+📅 Periodo: ${format(new Date(dateRange.start), "dd/MM/yyyy")} - ${format(new Date(dateRange.end), "dd/MM/yyyy")}
 👨‍🏫 Entrenador: ${user.full_name}
 
 ═══════════════════════════════════
-✅ ASISTENCIA
+📊 RESUMEN DEL PERIODO
 ═══════════════════════════════════
-${playerData.asistencia === 'presente' ? '✅ Presente' : 
-  playerData.asistencia === 'ausente' ? '❌ Ausente' : 
-  playerData.asistencia === 'justificado' ? '📝 Ausencia Justificada' : 
-  '⏰ Llegada con retraso'}
 
-${playerData.asistencia === 'presente' ? `
-═══════════════════════════════════
-⭐ EVALUACIÓN DEL ENTRENAMIENTO
-═══════════════════════════════════
-🎯 Técnica: ${playerData.tecnica || 'No evaluado'}/5
-📐 Táctica: ${playerData.tactica || 'No evaluado'}/5
-💪 Física: ${playerData.fisica || 'No evaluado'}/5
-😊 Actitud: ${playerData.actitud || 'No evaluado'}/5
-🤝 Trabajo en Equipo: ${playerData.trabajo_equipo || 'No evaluado'}/5
+Total de sesiones asistidas: ${playerAttendances.length}
 
-${playerData.observaciones ? `📝 Observaciones:
-${playerData.observaciones}` : ''}
-` : ''}
+═══════════════════════════════════
+📝 DETALLE POR SESIÓN
+═══════════════════════════════════
 
-${generalNotes ? `
-═══════════════════════════════════
-📌 NOTAS GENERALES DE LA SESIÓN
-═══════════════════════════════════
-${generalNotes}
-` : ''}
+${playerAttendances.map(data => `
+📅 ${format(new Date(data.fecha), "dd 'de' MMMM", { locale: es })}
+✅ Presente
+
+⭐ Evaluación:
+  🎯 Técnica: ${data.tecnica || 'No evaluado'}/5
+  📐 Táctica: ${data.tactica || 'No evaluado'}/5
+  💪 Física: ${data.fisica || 'No evaluado'}/5
+  😊 Actitud: ${data.actitud || 'No evaluado'}/5
+  🤝 Trabajo en Equipo: ${data.trabajo_equipo || 'No evaluado'}/5
+  ${data.observaciones ? `\n📝 Observaciones: ${data.observaciones}` : ''}
+`).join('\n───────────────────────────────────\n')}
 
 ═══════════════════════════════════
 Este reporte ha sido generado automáticamente.
@@ -246,13 +257,12 @@ CD Bustarviejo
         `.trim();
 
         try {
-          if (method === 'email') {
-            // Enviar por email a los padres
+          if (sendMethod === 'email' || sendMethod === 'both') {
             if (player.email_padre) {
               await base44.integrations.Core.SendEmail({
                 from_name: `${user.full_name} - CD Bustarviejo`,
                 to: player.email_padre,
-                subject: `Reporte de Entrenamiento - ${player.nombre} - ${format(new Date(selectedDate), "dd/MM/yyyy")}`,
+                subject: `Reporte de Entrenamiento - ${player.nombre} - ${format(new Date(dateRange.start), "dd/MM/yyyy")} al ${format(new Date(dateRange.end), "dd/MM/yyyy")}`,
                 body: reportText
               });
             }
@@ -260,12 +270,13 @@ CD Bustarviejo
               await base44.integrations.Core.SendEmail({
                 from_name: `${user.full_name} - CD Bustarviejo`,
                 to: player.email_tutor_2,
-                subject: `Reporte de Entrenamiento - ${player.nombre} - ${format(new Date(selectedDate), "dd/MM/yyyy")}`,
+                subject: `Reporte de Entrenamiento - ${player.nombre} - ${format(new Date(dateRange.start), "dd/MM/yyyy")} al ${format(new Date(dateRange.end), "dd/MM/yyyy")}`,
                 body: reportText
               });
             }
-          } else if (method === 'chat') {
-            // Enviar por chat al grupo
+          }
+          
+          if (sendMethod === 'chat' || sendMethod === 'both') {
             await base44.entities.ChatMessage.create({
               remitente_email: user.email,
               remitente_nombre: user.full_name,
@@ -371,15 +382,8 @@ CD Bustarviejo
     saveSessionMutation.mutate(data);
   };
 
-  const handleSendReports = (method) => {
-    if (hasUnsavedChanges) {
-      toast.error("Debes guardar los cambios antes de enviar reportes");
-      return;
-    }
-    
-    if (window.confirm(`¿Enviar reportes por ${method === 'email' ? 'Email' : 'Chat'}?`)) {
-      sendReportsMutation.mutate({ method });
-    }
+  const handleSendBulkReports = (data) => {
+    sendReportsMutation.mutate(data);
   };
 
   const handleOpenIndividualReport = (player) => {
@@ -420,6 +424,14 @@ CD Bustarviejo
         }}
         onSend={handleSendIndividualReport}
         isLoading={sendIndividualReportMutation.isPending}
+      />
+
+      <BulkReportDialog
+        isOpen={showBulkDialog}
+        onClose={() => setShowBulkDialog(false)}
+        onSend={handleSendBulkReports}
+        isLoading={sendReportsMutation.isPending}
+        selectedCategory={selectedCategory}
       />
 
       <div className="flex items-start justify-between">
@@ -500,22 +512,13 @@ CD Bustarviejo
 
           <div className="flex gap-2 pt-2 border-t">
             <Button 
-              onClick={() => handleSendReports('email')}
-              disabled={hasUnsavedChanges || sendReportsMutation.isPending || presentCount === 0}
+              onClick={() => setShowBulkDialog(true)}
+              disabled={sendReportsMutation.isPending}
               variant="outline"
               className="flex-1 h-9 text-sm"
             >
               <Send className="w-4 h-4 mr-1" />
-              Enviar por Email
-            </Button>
-            <Button 
-              onClick={() => handleSendReports('chat')}
-              disabled={hasUnsavedChanges || sendReportsMutation.isPending || presentCount === 0}
-              variant="outline"
-              className="flex-1 h-9 text-sm"
-            >
-              <Send className="w-4 h-4 mr-1" />
-              Enviar por Chat
+              Enviar Reportes Masivos
             </Button>
           </div>
         </CardContent>
