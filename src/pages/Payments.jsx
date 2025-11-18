@@ -661,9 +661,38 @@ Email: cdbustarviejo@gmail.com
                   <div className="space-y-4">
                     {filteredPlayers.map(player => {
                       const playerPayments = payments.filter(p => p.jugador_id === player.id && p.temporada === temporadaFilter);
-                      const pendingPayments = playerPayments.filter(p => p.estado === "Pendiente");
-                      const reviewPayments = playerPayments.filter(p => p.estado === "En revisión");
-                      const paidPayments = playerPayments.filter(p => p.estado === "Pagado");
+                      
+                      // Si el jugador paga en 3 meses y tiene algún pago, mostrar los 3 meses
+                      let allMonths = ["Junio", "Septiembre", "Diciembre"];
+                      if (player.tipo_pago === "Único") {
+                        allMonths = ["Junio"];
+                      }
+                      
+                      // Crear pagos "virtuales" para los meses faltantes si tiene tipo de pago "Tres meses"
+                      const displayPayments = allMonths.map(mes => {
+                        const existing = playerPayments.find(p => p.mes === mes);
+                        if (existing) {
+                          return existing;
+                        }
+                        // Solo mostrar pagos virtuales si hay al menos un pago real del jugador
+                        if (playerPayments.length > 0) {
+                          return {
+                            id: `virtual-${player.id}-${mes}`,
+                            jugador_id: player.id,
+                            jugador_nombre: player.nombre,
+                            mes: mes,
+                            temporada: temporadaFilter,
+                            cantidad: 0, // Se mostrará como pendiente sin cantidad
+                            estado: "Sin registrar",
+                            isVirtual: true
+                          };
+                        }
+                        return null;
+                      }).filter(Boolean);
+                      
+                      const pendingPayments = displayPayments.filter(p => p.estado === "Pendiente" || p.isVirtual);
+                      const reviewPayments = displayPayments.filter(p => p.estado === "En revisión");
+                      const paidPayments = displayPayments.filter(p => p.estado === "Pagado");
                       const totalPending = pendingPayments.reduce((sum, p) => sum + (p.cantidad || 0), 0);
 
                       return (
@@ -713,13 +742,13 @@ Email: cdbustarviejo@gmail.com
                               </div>
                             </div>
 
-                            {playerPayments.length === 0 ? (
+                            {displayPayments.length === 0 ? (
                               <div className="text-center py-4 text-slate-500 text-sm">
                                 Sin pagos registrados para {temporadaFilter}
                               </div>
                             ) : (
                               <div className="space-y-1.5">
-                                {playerPayments.map(payment => {
+                                {displayPayments.map(payment => {
                                   const daysOverdue = calculateDaysOverdue(payment.mes);
                                   const isOverdue = payment.estado !== "Pagado" && daysOverdue > 0;
 
@@ -729,26 +758,27 @@ Email: cdbustarviejo@gmail.com
                                         <Badge className={
                                           payment.estado === "Pagado" ? "bg-green-100 text-green-700 text-[10px] lg:text-xs" :
                                           payment.estado === "En revisión" ? "bg-orange-100 text-orange-700 text-[10px] lg:text-xs" :
+                                          payment.isVirtual ? "bg-slate-100 text-slate-600 text-[10px] lg:text-xs" :
                                           "bg-red-100 text-red-700 text-[10px] lg:text-xs"
                                         }>
-                                          {statusEmojis[payment.estado]}
+                                          {payment.isVirtual ? "⚪" : statusEmojis[payment.estado]}
                                         </Badge>
                                         <div className="min-w-0 flex-1">
                                           <p className="text-xs lg:text-sm font-medium text-slate-900">
                                             {payment.mes}
-                                            {isOverdue && (
+                                            {isOverdue && !payment.isVirtual && (
                                               <span className="ml-2 text-red-600 text-[10px]">
                                                 (Vencido {daysOverdue}d)
                                               </span>
                                             )}
                                           </p>
                                           <p className="text-[10px] lg:text-xs text-slate-600">
-                                            {payment.cantidad}€
+                                            {payment.isVirtual ? "Pendiente registrar" : `${payment.cantidad}€`}
                                           </p>
                                         </div>
                                       </div>
                                       <div className="flex gap-1 items-center">
-                                       {payment.justificante_url ? (
+                                       {!payment.isVirtual && payment.justificante_url ? (
                                          <Button
                                            variant="ghost"
                                            size="sm"
@@ -758,10 +788,10 @@ Email: cdbustarviejo@gmail.com
                                          >
                                            <FileText className="w-3 h-3 lg:w-4 lg:h-4" />
                                          </Button>
-                                       ) : payment.estado === "Pendiente" && (
+                                       ) : (payment.estado === "Pendiente" || payment.isVirtual) && (
                                          <span className="text-red-600 text-xs lg:text-sm">❌</span>
                                        )}
-                                       {isAdmin && payment.estado !== "Pagado" && (
+                                       {isAdmin && !payment.isVirtual && payment.estado !== "Pagado" && (
                                          <Button
                                            size="sm"
                                            onClick={() => handleStatusChange(payment, "Pagado")}
