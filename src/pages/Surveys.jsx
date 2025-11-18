@@ -143,6 +143,7 @@ export default function Surveys() {
                   onEdit={isAdmin ? (s) => { setEditingSurvey(s); setShowForm(true); } : null}
                   onViewResults={isAdmin ? setViewingResults : null}
                   isAdmin={isAdmin}
+                  userEmail={user?.email}
                 />
               ))}
             </div>
@@ -160,6 +161,7 @@ export default function Surveys() {
                   onEdit={(s) => { setEditingSurvey(s); setShowForm(true); }}
                   onViewResults={setViewingResults}
                   isAdmin={isAdmin}
+                  userEmail={user?.email}
                 />
               ))}
             </div>
