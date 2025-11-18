@@ -258,6 +258,7 @@ Email: cdbustarviejo@gmail.com
 
   const handleEdit = (callup) => {
     setEditingCallup(callup);
+    setSelectedCategory(callup.categoria);
     setShowForm(true);
   };
 
