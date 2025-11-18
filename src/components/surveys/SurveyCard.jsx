@@ -60,10 +60,18 @@ export default function SurveyCard({ survey, onEdit, onViewResults, isAdmin, use
             {survey.preguntas.length} preguntas
           </div>
           <div className="flex items-center gap-1">
-            <BarChart3 className="w-4 h-4" />
-            {survey.respuestas_count || 0} respuestas
+            <BarChart3 className="w-4 h-4 text-blue-600" />
+            <span className="font-semibold text-blue-600">{survey.respuestas_count || 0} respuestas</span>
           </div>
         </div>
+
+        {isAdmin && (survey.respuestas_count || 0) > 0 && (
+          <div className="bg-blue-50 border-2 border-blue-200 rounded-lg p-3">
+            <p className="text-xs text-blue-800 font-medium text-center">
+              📊 {survey.respuestas_count} respuesta(s) • Haz clic en "Ver Gráficos" para análisis detallado
+            </p>
+          </div>
+        )}
 
         <div className="flex items-center gap-2 text-sm">
           <Calendar className="w-4 h-4 text-slate-500" />
@@ -94,9 +102,12 @@ export default function SurveyCard({ survey, onEdit, onViewResults, isAdmin, use
               <Button variant="outline" onClick={() => onEdit(survey)} className="flex-1">
                 Editar
               </Button>
-              <Button onClick={() => onViewResults(survey)} className="flex-1 bg-blue-600 hover:bg-blue-700">
-                <Eye className="w-4 h-4 mr-2" />
-                Ver Resultados
+              <Button 
+                onClick={() => onViewResults(survey)} 
+                className="flex-1 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 shadow-lg"
+              >
+                <BarChart3 className="w-5 h-5 mr-2" />
+                📊 Ver Gráficos
               </Button>
             </>
           )}
