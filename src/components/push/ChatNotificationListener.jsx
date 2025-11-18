@@ -13,13 +13,8 @@ export default function ChatNotificationListener({ user }) {
     enabled: !!user,
   });
 
-  const { data: directMessages } = useQuery({
-    queryKey: ['directMessages'],
-    queryFn: () => base44.entities.DirectMessage.list(),
-    initialData: [],
-    refetchInterval: 5000,
-    enabled: !!user,
-  });
+  // DirectMessage entity doesn't exist, so we skip it
+  const directMessages = [];
 
   useEffect(() => {
     if (!user || Notification.permission !== 'granted') return;
@@ -43,18 +38,12 @@ export default function ChatNotificationListener({ user }) {
       return m.tipo === "admin_a_grupo";
     });
 
-    // Mensajes directos no leídos
-    const unreadDirectMessages = directMessages.filter(m => 
-      m.destinatario_email === user.email && !m.leido
-    );
-
-    const totalUnread = unreadGroupMessages.length + unreadDirectMessages.length;
+    const totalUnread = unreadGroupMessages.length;
 
     // Si hay nuevos mensajes desde la última verificación
     if (totalUnread > previousMessageCount.current && previousMessageCount.current > 0) {
       const newMessages = totalUnread - previousMessageCount.current;
       
-      // Notificación para mensajes de grupo urgentes
       if (unreadGroupMessages.length > 0) {
         const lastMessage = unreadGroupMessages[0];
         new Notification("💬 Mensaje Urgente del Club", {
@@ -64,21 +53,10 @@ export default function ChatNotificationListener({ user }) {
           requireInteraction: true
         });
       }
-      
-      // Notificación para mensajes directos
-      if (unreadDirectMessages.length > 0) {
-        const lastDM = unreadDirectMessages[0];
-        new Notification(`💬 Mensaje de ${lastDM.remitente_nombre}`, {
-          body: lastDM.mensaje.substring(0, 100),
-          icon: "https://www.cdbustarviejo.com/uploads/2/4/0/4/2404974/logo-cd-bustarviejo-cuadrado-xpeq_orig.png",
-          tag: 'direct-message',
-          requireInteraction: false
-        });
-      }
     }
 
     previousMessageCount.current = totalUnread;
-  }, [messages, directMessages, user]);
+  }, [messages, user]);
 
   return null; // Este componente no renderiza nada
 }
