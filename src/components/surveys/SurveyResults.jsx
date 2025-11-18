@@ -42,8 +42,9 @@ export default function SurveyResults({ survey, onBack }) {
     const ratings = { "1": 0, "2": 0, "3": 0, "4": 0, "5": 0 };
     responses.forEach(r => {
       const answer = r.respuestas[questionIndex]?.respuesta;
-      if (answer && ratings[answer] !== undefined) {
-        ratings[answer]++;
+      const answerStr = String(answer).trim();
+      if (answerStr && ratings[answerStr] !== undefined) {
+        ratings[answerStr]++;
       }
     });
     return Object.entries(ratings).map(([key, value]) => ({
@@ -59,8 +60,9 @@ export default function SurveyResults({ survey, onBack }) {
     let count = 0;
     responses.forEach(r => {
       const answer = r.respuestas[questionIndex]?.respuesta;
-      if (answer && !isNaN(answer)) {
-        total += parseInt(answer);
+      const answerNum = parseInt(String(answer).trim());
+      if (!isNaN(answerNum) && answerNum >= 1 && answerNum <= 5) {
+        total += answerNum;
         count++;
       }
     });
@@ -193,45 +195,65 @@ export default function SurveyResults({ survey, onBack }) {
               </div>
               
               {q.tipo_respuesta === "rating" && (
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  <div>
-                    <p className="text-sm font-medium text-slate-600 mb-3">Distribución de Valoraciones</p>
-                    <ResponsiveContainer width="100%" height={250}>
-                      <BarChart data={getRatingData(index)}>
-                        <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis dataKey="rating" />
-                        <YAxis allowDecimals={false} />
-                        <Tooltip />
-                        <Bar dataKey="count" fill="#ea580c" radius={[8, 8, 0, 0]} />
-                      </BarChart>
-                    </ResponsiveContainer>
+                <>
+                  <div className="grid grid-cols-5 gap-2 mb-4">
+                    {[1, 2, 3, 4, 5].map(star => {
+                      const data = getRatingData(index);
+                      const starData = data.find(d => d.estrellas === String(star));
+                      const count = starData?.count || 0;
+                      const total = responses.length;
+                      const percentage = total > 0 ? Math.round((count / total) * 100) : 0;
+                      
+                      return (
+                        <div key={star} className="text-center p-3 bg-slate-50 rounded-lg border-2 border-slate-200">
+                          <div className="text-2xl mb-1">{"⭐".repeat(star)}</div>
+                          <div className="font-bold text-lg text-slate-900">{count}</div>
+                          <div className="text-xs text-slate-600">{percentage}%</div>
+                        </div>
+                      );
+                    })}
                   </div>
                   
-                  <div>
-                    <p className="text-sm font-medium text-slate-600 mb-3">Proporción</p>
-                    <ResponsiveContainer width="100%" height={250}>
-                      <PieChart>
-                        <Pie
-                          data={getRatingData(index).filter(d => d.count > 0)}
-                          cx="50%"
-                          cy="50%"
-                          labelLine={false}
-                          label={({ estrellas, count, percent }) => 
-                            `${estrellas}★: ${count} (${(percent * 100).toFixed(0)}%)`
-                          }
-                          outerRadius={80}
-                          fill="#8884d8"
-                          dataKey="count"
-                        >
-                          {getRatingData(index).map((entry, idx) => (
-                            <Cell key={`cell-${idx}`} fill={COLORS[idx % COLORS.length]} />
-                          ))}
-                        </Pie>
-                        <Tooltip />
-                      </PieChart>
-                    </ResponsiveContainer>
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div>
+                      <p className="text-sm font-medium text-slate-600 mb-3">📊 Distribución de Valoraciones</p>
+                      <ResponsiveContainer width="100%" height={250}>
+                        <BarChart data={getRatingData(index)}>
+                          <CartesianGrid strokeDasharray="3 3" />
+                          <XAxis dataKey="rating" />
+                          <YAxis allowDecimals={false} />
+                          <Tooltip />
+                          <Bar dataKey="count" fill="#ea580c" radius={[8, 8, 0, 0]} />
+                        </BarChart>
+                      </ResponsiveContainer>
+                    </div>
+                    
+                    <div>
+                      <p className="text-sm font-medium text-slate-600 mb-3">🥧 Proporción</p>
+                      <ResponsiveContainer width="100%" height={250}>
+                        <PieChart>
+                          <Pie
+                            data={getRatingData(index).filter(d => d.count > 0)}
+                            cx="50%"
+                            cy="50%"
+                            labelLine={false}
+                            label={({ estrellas, count, percent }) => 
+                              `${estrellas}★: ${count} (${(percent * 100).toFixed(0)}%)`
+                            }
+                            outerRadius={80}
+                            fill="#8884d8"
+                            dataKey="count"
+                          >
+                            {getRatingData(index).map((entry, idx) => (
+                              <Cell key={`cell-${idx}`} fill={COLORS[idx % COLORS.length]} />
+                            ))}
+                          </Pie>
+                          <Tooltip />
+                        </PieChart>
+                      </ResponsiveContainer>
+                    </div>
                   </div>
-                </div>
+                </>
               )}
 
               {q.tipo_respuesta === "texto" && (
