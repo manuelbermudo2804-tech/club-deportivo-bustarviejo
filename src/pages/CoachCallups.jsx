@@ -201,14 +201,16 @@ Email: cdbustarviejo@gmail.com
           `;
           
           try {
+            console.log('📤 [CoachCallups] Enviando convocatoria a:', email);
             await base44.integrations.Core.SendEmail({
               from_name: `CD Bustarviejo - ${callup.entrenador_nombre}`,
               to: email,
               subject: subject,
               body: body
             });
+            console.log('✅ [CoachCallups] Email enviado a:', email);
           } catch (error) {
-            console.error(`Error sending email to ${email}:`, error);
+            console.error(`❌ [CoachCallups] Error sending email to ${email}:`, error);
           }
           
           await new Promise(resolve => setTimeout(resolve, 300));
