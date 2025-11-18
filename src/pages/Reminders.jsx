@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -6,12 +5,15 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Bell, Send, CheckCircle2, Calendar, Mail, Loader2, RefreshCw, AlertCircle, MessageCircle, Zap } from "lucide-react";
+import { Bell, Send, CheckCircle2, Calendar, Mail, Loader2, RefreshCw, AlertCircle, MessageCircle, Zap, FileDown, User } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
 import { format, addDays, subDays } from "date-fns";
 import { es } from "date-fns/locale";
 import { toast } from "sonner";
+
+import IndividualReminderDialog from "../components/reminders/IndividualReminderDialog";
+import PaymentStatsDashboard from "../components/reminders/PaymentStatsDashboard";
 
 const CLUB_IBAN = "ES82 0049 4447 38 2010604048";
 const CLUB_BANK = "Banco Santander";
@@ -23,11 +25,20 @@ const generatePaymentReference = (playerName, playerCategory) => {
   return `${categoryCode}-${cleanName}`;
 };
 
+const getCurrentSeason = () => {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = now.getMonth() + 1;
+  return month >= 9 ? `${year}/${year + 1}` : `${year - 1}/${year}`;
+};
+
 export default function RemindersPage() {
   const queryClient = useQueryClient();
   const [sendingReminder, setSendingReminder] = useState(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [selectedReminder, setSelectedReminder] = useState(null);
+  const [selectedPlayer, setSelectedPlayer] = useState(null);
 
   const { data: reminders, isLoading } = useQuery({
     queryKey: ['reminders'],
@@ -51,8 +62,96 @@ export default function RemindersPage() {
     setIsRefreshing(true);
     await queryClient.invalidateQueries({ queryKey: ['reminders'] });
     await queryClient.invalidateQueries({ queryKey: ['payments'] });
+    await queryClient.invalidateQueries({ queryKey: ['players'] });
     toast.success("Datos actualizados");
     setIsRefreshing(false);
+  };
+
+  const handleSendIndividualReminder = async (data) => {
+    try {
+      const payment = payments.find(p => p.id === data.paymentId);
+      const player = players.find(p => p.id === data.playerId);
+      
+      if (data.method === 'email' || data.method === 'both') {
+        if (player.email_padre) {
+          await base44.integrations.Core.SendEmail({
+            from_name: "CD Bustarviejo",
+            to: player.email_padre,
+            subject: `Recordatorio de Pago - ${payment.mes}`,
+            body: data.message
+          });
+        }
+        if (player.email_tutor_2) {
+          await base44.integrations.Core.SendEmail({
+            from_name: "CD Bustarviejo",
+            to: player.email_tutor_2,
+            subject: `Recordatorio de Pago - ${payment.mes}`,
+            body: data.message
+          });
+        }
+      }
+      
+      if (data.method === 'chat' || data.method === 'both') {
+        await base44.entities.ChatMessage.create({
+          remitente_email: "admin@cdbustarviejo.com",
+          remitente_nombre: "Administración CD Bustarviejo",
+          mensaje: data.message,
+          prioridad: "Importante",
+          tipo: "admin_a_grupo",
+          deporte: player.deporte,
+          grupo_id: player.deporte,
+          leido: false
+        });
+      }
+      
+      toast.success("✅ Recordatorio enviado correctamente");
+    } catch (error) {
+      console.error("Error sending individual reminder:", error);
+      throw error;
+    }
+  };
+
+  const exportPaymentsPDF = () => {
+    const pendingPayments = payments.filter(p => p.estado !== "Pagado");
+    const dataByPlayer = {};
+    
+    pendingPayments.forEach(payment => {
+      if (!dataByPlayer[payment.jugador_id]) {
+        const player = players.find(p => p.id === payment.jugador_id);
+        dataByPlayer[payment.jugador_id] = {
+          nombre: payment.jugador_nombre,
+          deporte: player?.deporte,
+          email: player?.email_padre,
+          pagos: []
+        };
+      }
+      dataByPlayer[payment.jugador_id].pagos.push(payment);
+    });
+    
+    const csvContent = [
+      ['Jugador', 'Categoría', 'Email', 'Periodo', 'Cantidad', 'Estado', 'Vencimiento'].join(','),
+      ...Object.values(dataByPlayer).flatMap(player => 
+        player.pagos.map(pago => 
+          [
+            player.nombre,
+            player.deporte || '',
+            player.email || '',
+            pago.mes,
+            `${pago.cantidad}€`,
+            pago.estado,
+            `30 de ${pago.mes}`
+          ].join(',')
+        )
+      )
+    ].join('\n');
+    
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `pagos_pendientes_${new Date().toISOString().split('T')[0]}.csv`;
+    link.click();
+    
+    toast.success("📄 Reporte exportado correctamente");
   };
 
   // Generar recordatorios escalonados automáticamente
@@ -378,12 +477,30 @@ Temporada ${reminder.temporada}
 
   return (
     <div className="p-6 lg:p-8 space-y-6">
+      <IndividualReminderDialog
+        isOpen={!!selectedReminder}
+        onClose={() => {
+          setSelectedReminder(null);
+          setSelectedPlayer(null);
+        }}
+        payment={selectedReminder}
+        player={selectedPlayer}
+        onSend={handleSendIndividualReminder}
+      />
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <h1 className="text-3xl font-bold text-slate-900">Recordatorios de Pago</h1>
           <p className="text-slate-600 mt-1">Sistema automático con datos bancarios incluidos</p>
         </div>
         <div className="flex gap-3 flex-wrap">
+          <Button
+            onClick={exportPaymentsPDF}
+            variant="outline"
+            className="shadow-lg"
+          >
+            <FileDown className="w-5 h-5 mr-2" />
+            Exportar CSV
+          </Button>
           <Button
             onClick={handleRefresh}
             disabled={isRefreshing}
@@ -411,6 +528,13 @@ Temporada ${reminder.temporada}
           </Button>
         </div>
       </div>
+
+      {/* Statistics Dashboard */}
+      <PaymentStatsDashboard 
+        payments={payments} 
+        players={players} 
+        currentSeason={getCurrentSeason()} 
+      />
 
       {/* Alerta de Información */}
       <Alert className="bg-gradient-to-r from-blue-50 to-green-50 border-blue-300 border-2">
@@ -617,6 +741,19 @@ Temporada ${reminder.temporada}
                         </TableCell>
                         <TableCell className="text-right">
                           <div className="flex gap-1 justify-end">
+                            {!isPaid && (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => {
+                                  setSelectedReminder(payment);
+                                  setSelectedPlayer(players.find(p => p.id === reminder.jugador_id));
+                                }}
+                                title="Enviar recordatorio personalizado"
+                              >
+                                <User className="w-4 h-4 text-purple-600" />
+                              </Button>
+                            )}
                             {!reminder.enviado && !isPaid && reminder.email_padre && (
                               <Button
                                 variant="ghost"
