@@ -152,28 +152,42 @@ export default function IndividualReportDialog({
           {/* Método de envío */}
           <div>
             <label className="text-sm font-medium text-slate-700 mb-2 block">Método de envío</label>
-            <div className="grid grid-cols-2 gap-2">
+            <div className="grid grid-cols-3 gap-2">
               <button
                 onClick={() => setSendMethod("email")}
-                className={`p-3 rounded-lg border-2 transition-all flex items-center justify-center gap-2 ${
+                className={`p-3 rounded-lg border-2 transition-all flex flex-col items-center justify-center gap-1 ${
                   sendMethod === "email"
                     ? "border-orange-500 bg-orange-50 text-orange-700"
                     : "border-slate-200 bg-white text-slate-600 hover:border-slate-300"
                 }`}
               >
                 <Mail className="w-5 h-5" />
-                <span className="font-medium text-sm">Email</span>
+                <span className="font-medium text-xs">Email</span>
               </button>
               <button
                 onClick={() => setSendMethod("chat")}
-                className={`p-3 rounded-lg border-2 transition-all flex items-center justify-center gap-2 ${
+                className={`p-3 rounded-lg border-2 transition-all flex flex-col items-center justify-center gap-1 ${
                   sendMethod === "chat"
                     ? "border-blue-500 bg-blue-50 text-blue-700"
                     : "border-slate-200 bg-white text-slate-600 hover:border-slate-300"
                 }`}
               >
                 <MessageCircle className="w-5 h-5" />
-                <span className="font-medium text-sm">Chat</span>
+                <span className="font-medium text-xs">Chat</span>
+              </button>
+              <button
+                onClick={() => setSendMethod("both")}
+                className={`p-3 rounded-lg border-2 transition-all flex flex-col items-center justify-center gap-1 ${
+                  sendMethod === "both"
+                    ? "border-green-500 bg-green-50 text-green-700"
+                    : "border-slate-200 bg-white text-slate-600 hover:border-slate-300"
+                }`}
+              >
+                <div className="flex gap-1">
+                  <Mail className="w-4 h-4" />
+                  <MessageCircle className="w-4 h-4" />
+                </div>
+                <span className="font-medium text-xs">Ambos</span>
               </button>
             </div>
           </div>
@@ -181,11 +195,16 @@ export default function IndividualReportDialog({
           {/* Resumen */}
           <div className="bg-green-50 p-3 rounded-lg border border-green-200">
             <p className="text-xs text-green-800">
-              <strong>Se enviará:</strong> Reporte de <strong>{getPeriodLabel()}</strong> por <strong>{sendMethod === "email" ? "Email" : "Chat"}</strong>
-              {sendMethod === "email" && player?.email_padre && (
+              <strong>Se enviará:</strong> Reporte de <strong>{getPeriodLabel()}</strong> por <strong>{sendMethod === "email" ? "Email" : sendMethod === "chat" ? "Chat" : "Email + Chat"}</strong>
+              {(sendMethod === "email" || sendMethod === "both") && player?.email_padre && (
                 <>
                   <br />• Al padre: {player.email_padre}
                   {player.email_tutor_2 && <><br />• Al tutor 2: {player.email_tutor_2}</>}
+                </>
+              )}
+              {(sendMethod === "chat" || sendMethod === "both") && (
+                <>
+                  <br />• Al chat del grupo: {player?.deporte}
                 </>
               )}
             </p>

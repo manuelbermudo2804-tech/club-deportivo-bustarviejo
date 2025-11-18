@@ -142,7 +142,7 @@ ${user.full_name}
 CD Bustarviejo
       `.trim();
 
-      if (sendMethod === 'email') {
+      if (sendMethod === 'email' || sendMethod === 'both') {
         const recipients = [];
         if (player.email_padre) recipients.push(player.email_padre);
         if (player.email_tutor_2) recipients.push(player.email_tutor_2);
@@ -156,7 +156,9 @@ CD Bustarviejo
           });
           await new Promise(resolve => setTimeout(resolve, 300));
         }
-      } else if (sendMethod === 'chat') {
+      }
+      
+      if (sendMethod === 'chat' || sendMethod === 'both') {
         await base44.entities.ChatMessage.create({
           remitente_email: user.email,
           remitente_nombre: user.full_name,
