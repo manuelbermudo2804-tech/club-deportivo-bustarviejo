@@ -732,7 +732,7 @@ export default function Layout({ children, currentPageName }) {
 
   const coachNavigationItems = [
     { title: "Inicio", url: createPageUrl("Home"), icon: Home },
-    { title: "Mis Hijos", url: createPageUrl("Players"), icon: Users },
+    { title: "Mis Hijos", url: createPageUrl("ParentPlayers"), icon: Users },
     { title: "🎓 Plantillas", url: createPageUrl("TeamRosters"), icon: Users },
     { title: "✅ Asistencia", url: createPageUrl("CoachAttendance"), icon: CheckCircle2 },
     { title: "⭐ Evaluaciones", url: createPageUrl("PlayerEvaluations"), icon: Star },
