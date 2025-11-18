@@ -53,7 +53,7 @@ export default function CoachEvaluationReports() {
   const allEvaluations = [];
   filteredAttendances.forEach(attendance => {
     attendance.asistencias?.forEach(asistencia => {
-      if (asistencia.estado === 'presente' && asistencia.actitud) {
+      if ((asistencia.estado === 'presente' || asistencia.estado === 'tardanza') && asistencia.actitud) {
         const player = players.find(p => p.id === asistencia.jugador_id);
         if (player) {
           if (selectedPlayer !== "all" && asistencia.jugador_id !== selectedPlayer) return;
