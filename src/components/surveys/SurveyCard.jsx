@@ -1,23 +1,43 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { BarChart3, Calendar, Users, Eye, MessageSquare } from "lucide-react";
+import { BarChart3, Calendar, Users, Eye, MessageSquare, CheckCircle2 } from "lucide-react";
+import { base44 } from "@/api/base44Client";
+import { useQuery } from "@tanstack/react-query";
 
 import SurveyResponseForm from "./SurveyResponseForm";
 
-export default function SurveyCard({ survey, onEdit, onViewResults, isAdmin }) {
+export default function SurveyCard({ survey, onEdit, onViewResults, isAdmin, userEmail }) {
   const [showResponse, setShowResponse] = useState(false);
+  const [hasResponded, setHasResponded] = useState(false);
 
   const daysLeft = Math.ceil((new Date(survey.fecha_fin) - new Date()) / (1000 * 60 * 60 * 24));
   const isActive = survey.activa && daysLeft > 0;
+
+  const { data: responses } = useQuery({
+    queryKey: ['surveyResponses', survey.id],
+    queryFn: () => base44.entities.SurveyResponse.list(),
+    initialData: [],
+    enabled: !isAdmin && !!userEmail,
+  });
+
+  useEffect(() => {
+    if (!isAdmin && userEmail && responses) {
+      const userResponse = responses.find(r => 
+        r.survey_id === survey.id && 
+        (r.respondente_email === userEmail || survey.anonima)
+      );
+      setHasResponded(!!userResponse);
+    }
+  }, [responses, userEmail, survey.id, survey.anonima, isAdmin]);
 
   if (showResponse) {
     return <SurveyResponseForm survey={survey} onClose={() => setShowResponse(false)} />;
   }
 
   return (
-    <Card className={`border-2 ${isActive ? 'border-green-200' : 'border-slate-200'}`}>
+    <Card className={`border-2 ${hasResponded ? 'border-green-300 bg-green-50' : isActive ? 'border-green-200' : 'border-slate-200'}`}>
       <CardHeader>
         <div className="flex items-start justify-between">
           <div>
@@ -54,13 +74,20 @@ export default function SurveyCard({ survey, onEdit, onViewResults, isAdmin }) {
         </div>
 
         <div className="flex gap-2">
-          {!isAdmin && isActive && (
+          {!isAdmin && isActive && !hasResponded && (
             <Button
               onClick={() => setShowResponse(true)}
               className="flex-1 bg-orange-600 hover:bg-orange-700"
             >
               Responder
             </Button>
+          )}
+          {!isAdmin && hasResponded && (
+            <div className="flex-1 bg-green-100 border-2 border-green-500 rounded-lg p-4 text-center">
+              <CheckCircle2 className="w-6 h-6 text-green-600 mx-auto mb-2" />
+              <p className="text-sm font-semibold text-green-800">¡Gracias por responder!</p>
+              <p className="text-xs text-green-600 mt-1">Tu opinión es muy valiosa para nosotros</p>
+            </div>
           )}
           {isAdmin && (
             <>

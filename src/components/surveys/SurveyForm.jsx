@@ -6,8 +6,43 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
-import { Plus, X, Loader2 } from "lucide-react";
+import { Plus, X, Loader2, Sparkles } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
+
+const SURVEY_TEMPLATES = {
+  "Satisfacción General": [
+    { pregunta: "¿Cómo valorarías tu experiencia general en el club?", tipo_respuesta: "rating", obligatoria: true },
+    { pregunta: "¿Qué es lo que más te gusta del club?", tipo_respuesta: "texto", obligatoria: false },
+    { pregunta: "¿Qué aspectos crees que podríamos mejorar?", tipo_respuesta: "texto", obligatoria: false },
+    { pregunta: "¿Recomendarías el club a otras familias?", tipo_respuesta: "rating", obligatoria: true }
+  ],
+  "Fin de Temporada": [
+    { pregunta: "¿Cómo valorarías la temporada en general?", tipo_respuesta: "rating", obligatoria: true },
+    { pregunta: "¿Tu hijo/a ha disfrutado de los entrenamientos?", tipo_respuesta: "rating", obligatoria: true },
+    { pregunta: "¿Cómo valorarías la comunicación del club con las familias?", tipo_respuesta: "rating", obligatoria: true },
+    { pregunta: "¿Qué momentos destacarías de esta temporada?", tipo_respuesta: "texto", obligatoria: false },
+    { pregunta: "Sugerencias para la próxima temporada", tipo_respuesta: "texto", obligatoria: false }
+  ],
+  "Entrenadores": [
+    { pregunta: "¿Cómo valorarías la calidad de los entrenamientos?", tipo_respuesta: "rating", obligatoria: true },
+    { pregunta: "¿El entrenador se comunica bien con los jugadores?", tipo_respuesta: "rating", obligatoria: true },
+    { pregunta: "¿El entrenador fomenta valores deportivos?", tipo_respuesta: "rating", obligatoria: true },
+    { pregunta: "¿Notas progreso en las habilidades de tu hijo/a?", tipo_respuesta: "rating", obligatoria: true },
+    { pregunta: "Comentarios adicionales sobre los entrenadores", tipo_respuesta: "texto", obligatoria: false }
+  ],
+  "Instalaciones": [
+    { pregunta: "¿Cómo valorarías el estado de las instalaciones?", tipo_respuesta: "rating", obligatoria: true },
+    { pregunta: "¿Las instalaciones son seguras y adecuadas?", tipo_respuesta: "rating", obligatoria: true },
+    { pregunta: "¿Los vestuarios están en buen estado?", tipo_respuesta: "rating", obligatoria: true },
+    { pregunta: "¿Qué instalaciones o servicios te gustaría que mejoráramos?", tipo_respuesta: "texto", obligatoria: false }
+  ],
+  "Evento Específico": [
+    { pregunta: "¿Cómo valorarías la organización del evento?", tipo_respuesta: "rating", obligatoria: true },
+    { pregunta: "¿El evento cumplió tus expectativas?", tipo_respuesta: "rating", obligatoria: true },
+    { pregunta: "¿Qué es lo que más te gustó del evento?", tipo_respuesta: "texto", obligatoria: false },
+    { pregunta: "¿Qué mejorarías para futuros eventos?", tipo_respuesta: "texto", obligatoria: false }
+  ]
+};
 
 export default function SurveyForm({ survey, onSubmit, onCancel, isSubmitting }) {
   const [currentSurvey, setCurrentSurvey] = useState(survey || {
@@ -56,6 +91,16 @@ export default function SurveyForm({ survey, onSubmit, onCancel, isSubmitting })
   const handleSubmit = (e) => {
     e.preventDefault();
     onSubmit(currentSurvey);
+  };
+
+  const applyTemplate = (tipo) => {
+    const template = SURVEY_TEMPLATES[tipo];
+    if (template) {
+      setCurrentSurvey({
+        ...currentSurvey,
+        preguntas: [...template]
+      });
+    }
   };
 
   return (
@@ -164,7 +209,21 @@ export default function SurveyForm({ survey, onSubmit, onCancel, isSubmitting })
 
             {/* Preguntas */}
             <div className="space-y-4 border-t pt-4">
-              <h3 className="font-semibold text-lg">Preguntas</h3>
+              <div className="flex items-center justify-between">
+                <h3 className="font-semibold text-lg">Preguntas</h3>
+                {SURVEY_TEMPLATES[currentSurvey.tipo] && currentSurvey.preguntas.length === 0 && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => applyTemplate(currentSurvey.tipo)}
+                    className="text-orange-600 border-orange-300"
+                  >
+                    <Sparkles className="w-4 h-4 mr-2" />
+                    Usar Plantilla
+                  </Button>
+                )}
+              </div>
               
               {currentSurvey.preguntas.map((q, index) => (
                 <div key={index} className="flex items-start gap-2 p-3 bg-slate-50 rounded-lg">
