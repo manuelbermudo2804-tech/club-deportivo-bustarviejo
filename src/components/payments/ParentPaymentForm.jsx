@@ -74,6 +74,7 @@ export default function ParentPaymentForm({ players, payments = [], onSubmit, on
   const [selectedPlayer, setSelectedPlayer] = useState(null);
   const [existingPayments, setExistingPayments] = useState([]);
   const [pagoUnicoPagado, setPagoUnicoPagado] = useState(false);
+  const [tipoPagoFijado, setTipoPagoFijado] = useState(null);
 
   useEffect(() => {
     if (players && players.length > 0 && !currentPayment.jugador_id) {
@@ -113,6 +114,14 @@ export default function ParentPaymentForm({ players, payments = [], onSubmit, on
         return;
       }
       
+      // Verificar el tipo de pago ya usado (aunque no esté pagado)
+      const primerPago = jugadorPayments.find(p => p.estado === "Pagado" || p.estado === "En revisión");
+      if (primerPago) {
+        setTipoPagoFijado(primerPago.tipo_pago);
+      } else {
+        setTipoPagoFijado(null);
+      }
+      
       const cuotas = getCuotasPorCategoria(player.deporte);
       
       // Obtener meses ya pagados
@@ -134,7 +143,10 @@ export default function ParentPaymentForm({ players, payments = [], onSubmit, on
         mesSeleccionado = mesesDisponibles[0] || "Junio";
       }
       
-      const cantidad = currentPayment.tipo_pago === "Único" 
+      // Si hay tipo fijado, usarlo
+      const tipoPago = primerPago ? primerPago.tipo_pago : currentPayment.tipo_pago;
+      
+      const cantidad = tipoPago === "Único" 
         ? cuotas.total 
         : getImportePorMes(player.deporte, mesSeleccionado);
       
@@ -142,6 +154,7 @@ export default function ParentPaymentForm({ players, payments = [], onSubmit, on
         ...prev,
         jugador_id: player.id,
         jugador_nombre: player.nombre,
+        tipo_pago: tipoPago,
         mes: mesSeleccionado,
         cantidad: cantidad
       }));
@@ -252,12 +265,17 @@ export default function ParentPaymentForm({ players, payments = [], onSubmit, on
         />
       )}
       
-      {!pagoUnicoPagado && mesesPagados.length > 0 && currentPayment.tipo_pago === "Tres meses" && (
+      {!pagoUnicoPagado && tipoPagoFijado && (
         <Alert className="bg-blue-50 border-blue-300">
           <Info className="h-4 w-4 text-blue-600" />
           <AlertDescription className="text-blue-800">
-            <p className="font-semibold">Pagos ya realizados:</p>
-            <p className="text-sm mt-1">{mesesPagados.join(", ")}</p>
+            <p className="font-semibold">Tipo de pago seleccionado previamente:</p>
+            <p className="text-sm mt-1">
+              Este jugador está inscrito con modalidad de <strong>{tipoPagoFijado}</strong>.
+              {tipoPagoFijado === "Tres meses" && mesesPagados.length > 0 && (
+                <span className="block mt-1">Cuotas pagadas: {mesesPagados.join(", ")}</span>
+              )}
+            </p>
           </AlertDescription>
         </Alert>
       )}
@@ -298,6 +316,7 @@ export default function ParentPaymentForm({ players, payments = [], onSubmit, on
                   value={currentPayment.tipo_pago}
                   onValueChange={handleTipoPagoChange}
                   required
+                  disabled={!!tipoPagoFijado}
                 >
                   <SelectTrigger>
                     <SelectValue />
@@ -307,6 +326,11 @@ export default function ParentPaymentForm({ players, payments = [], onSubmit, on
                     <SelectItem value="Tres meses">Tres Pagos (Jun, Sep, Dic)</SelectItem>
                   </SelectContent>
                 </Select>
+                {tipoPagoFijado && (
+                  <p className="text-xs text-slate-600">
+                    ℹ️ Tipo de pago fijado según inscripción
+                  </p>
+                )}
               </div>
 
               <div className="space-y-2">
