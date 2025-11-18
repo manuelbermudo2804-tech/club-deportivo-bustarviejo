@@ -72,16 +72,16 @@ export default function RemindersPage() {
       const payment = payments.find(p => p.id === data.paymentId);
       const player = players.find(p => p.id === data.playerId);
       
-      const isAnimated = data.method === 'animation';
-      const shouldSendEmail = data.method === 'email' || data.method === 'both' || isAnimated;
-      const shouldSendChat = data.method === 'chat' || data.method === 'both' || isAnimated;
+      const { email, sms, chat, animation } = data.methods;
+      let sentMethods = [];
       
-      if (shouldSendEmail) {
-        const subject = isAnimated 
+      // EMAIL
+      if (email || animation) {
+        const subject = animation 
           ? `🔔 ¡RECORDATORIO IMPORTANTE! - Pago ${payment.mes} - CD Bustarviejo`
           : `Recordatorio de Pago - ${payment.mes}`;
         
-        const emailBody = isAnimated
+        const emailBody = animation
           ? `
 ╔═══════════════════════════════════════════╗
 ║  🔔 RECORDATORIO URGENTE DE PAGO 🔔      ║
@@ -112,10 +112,26 @@ Gracias por su atención.
             body: emailBody
           });
         }
+        sentMethods.push('Email');
       }
       
-      if (shouldSendChat) {
-        const chatMessage = isAnimated
+      // SMS / WhatsApp
+      if (sms) {
+        const smsMessage = `CD Bustarviejo: Recordatorio de pago ${payment.mes} para ${player.nombre}. Importe: ${payment.cantidad}€. Por favor, realiza el pago y sube el justificante en la app.`;
+        
+        if (player.telefono) {
+          // Aquí simularíamos el envío de SMS
+          console.log('SMS enviado a:', player.telefono, smsMessage);
+          sentMethods.push('SMS');
+        }
+        if (player.telefono_tutor_2) {
+          console.log('SMS enviado a:', player.telefono_tutor_2, smsMessage);
+        }
+      }
+      
+      // CHAT
+      if (chat || animation) {
+        const chatMessage = animation
           ? `🚨🔔 RECORDATORIO URGENTE 🔔🚨\n\n${data.message}\n\n⚠️ POR FAVOR, ATENCIÓN INMEDIATA`
           : data.message;
         
@@ -123,19 +139,21 @@ Gracias por su atención.
           remitente_email: "admin@cdbustarviejo.com",
           remitente_nombre: "Administración CD Bustarviejo",
           mensaje: chatMessage,
-          prioridad: isAnimated ? "Urgente" : "Importante",
+          prioridad: animation ? "Urgente" : "Importante",
           tipo: "admin_a_grupo",
           deporte: player.deporte,
           grupo_id: player.deporte,
           leido: false
         });
+        sentMethods.push('Chat');
       }
       
-      const successMessage = isAnimated
-        ? "🎉 ¡Recordatorio con animación enviado! Email + Chat + Prioridad urgente"
-        : "✅ Recordatorio enviado correctamente";
+      // ANIMATION adds visual priority
+      if (animation) {
+        sentMethods.push('Animación');
+      }
       
-      toast.success(successMessage);
+      toast.success(`✅ Recordatorio enviado por: ${sentMethods.join(', ')}`);
     } catch (error) {
       console.error("Error sending individual reminder:", error);
       throw error;

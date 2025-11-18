@@ -3,13 +3,22 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Mail, MessageCircle, Send, Loader2 } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Mail, MessageCircle, Send, Loader2, Smartphone } from "lucide-react";
 
 export default function IndividualReminderDialog({ isOpen, onClose, payment, player, onSend }) {
-  const [method, setMethod] = useState("email");
+  const [methods, setMethods] = useState({
+    email: false,
+    sms: false,
+    chat: false,
+    animation: false
+  });
   const [customMessage, setCustomMessage] = useState("");
   const [sending, setSending] = useState(false);
+
+  const toggleMethod = (method) => {
+    setMethods(prev => ({ ...prev, [method]: !prev[method] }));
+  };
 
   const defaultMessage = `Estimados padres/tutores,
 
@@ -27,15 +36,23 @@ Atentamente,
 CD Bustarviejo`;
 
   const handleSend = async () => {
+    const selectedMethods = Object.keys(methods).filter(m => methods[m]);
+    if (selectedMethods.length === 0) {
+      alert("Por favor selecciona al menos un método de envío");
+      return;
+    }
+
     setSending(true);
     try {
       await onSend({
         paymentId: payment.id,
         playerId: player.id,
-        method,
+        methods: methods,
         message: customMessage || defaultMessage
       });
       onClose();
+      setMethods({ email: false, sms: false, chat: false, animation: false });
+      setCustomMessage("");
     } catch (error) {
       console.error("Error sending reminder:", error);
     } finally {
@@ -78,46 +95,96 @@ CD Bustarviejo`;
             </div>
           </div>
 
-          {/* Method Selection */}
+          {/* Method Selection - Multiple */}
           <div className="space-y-3">
-            <Label>Método de Envío</Label>
-            <RadioGroup value={method} onValueChange={setMethod}>
-              <div className="flex items-center space-x-2 border rounded-lg p-3 hover:bg-slate-50 cursor-pointer">
-                <RadioGroupItem value="email" id="email" />
+            <Label className="text-base font-semibold">Métodos de Envío (selecciona uno o varios)</Label>
+            
+            <div className="space-y-2">
+              <div 
+                className="flex items-center space-x-3 border rounded-lg p-4 hover:bg-slate-50 cursor-pointer transition-colors"
+                onClick={() => toggleMethod('email')}
+              >
+                <Checkbox 
+                  id="email"
+                  checked={methods.email}
+                  onCheckedChange={() => toggleMethod('email')}
+                />
                 <Label htmlFor="email" className="flex items-center gap-2 cursor-pointer flex-1">
-                  <Mail className="w-4 h-4 text-orange-600" />
-                  <span>Correo Electrónico</span>
-                  <span className="text-xs text-slate-500">(Recomendado)</span>
+                  <Mail className="w-5 h-5 text-orange-600" />
+                  <div>
+                    <span className="font-medium">Correo Electrónico</span>
+                    <p className="text-xs text-slate-500">Envío profesional con datos bancarios</p>
+                  </div>
                 </Label>
               </div>
 
-              <div className="flex items-center space-x-2 border rounded-lg p-3 hover:bg-slate-50 cursor-pointer">
-                <RadioGroupItem value="chat" id="chat" />
+              <div 
+                className="flex items-center space-x-3 border rounded-lg p-4 hover:bg-slate-50 cursor-pointer transition-colors"
+                onClick={() => toggleMethod('sms')}
+              >
+                <Checkbox 
+                  id="sms"
+                  checked={methods.sms}
+                  onCheckedChange={() => toggleMethod('sms')}
+                />
+                <Label htmlFor="sms" className="flex items-center gap-2 cursor-pointer flex-1">
+                  <Smartphone className="w-5 h-5 text-blue-600" />
+                  <div>
+                    <span className="font-medium">SMS / WhatsApp</span>
+                    <p className="text-xs text-slate-500">Mensaje directo al teléfono</p>
+                  </div>
+                </Label>
+              </div>
+
+              <div 
+                className="flex items-center space-x-3 border rounded-lg p-4 hover:bg-slate-50 cursor-pointer transition-colors"
+                onClick={() => toggleMethod('chat')}
+              >
+                <Checkbox 
+                  id="chat"
+                  checked={methods.chat}
+                  onCheckedChange={() => toggleMethod('chat')}
+                />
                 <Label htmlFor="chat" className="flex items-center gap-2 cursor-pointer flex-1">
-                  <MessageCircle className="w-4 h-4 text-green-600" />
-                  <span>Chat del Grupo</span>
+                  <MessageCircle className="w-5 h-5 text-green-600" />
+                  <div>
+                    <span className="font-medium">Chat del Grupo</span>
+                    <p className="text-xs text-slate-500">Mensaje en el grupo de la categoría</p>
+                  </div>
                 </Label>
               </div>
 
-              <div className="flex items-center space-x-2 border rounded-lg p-3 hover:bg-slate-50 cursor-pointer">
-                <RadioGroupItem value="both" id="both" />
-                <Label htmlFor="both" className="flex items-center gap-2 cursor-pointer flex-1">
-                  <Send className="w-4 h-4 text-blue-600" />
-                  <span>Ambos (Email + Chat)</span>
-                </Label>
-              </div>
-
-              <div className="flex items-center space-x-2 border-2 border-purple-300 rounded-lg p-3 hover:bg-purple-50 cursor-pointer bg-gradient-to-r from-purple-50 to-pink-50">
-                <RadioGroupItem value="animation" id="animation" />
+              <div 
+                className="flex items-center space-x-3 border-2 border-purple-300 rounded-lg p-4 hover:bg-purple-50 cursor-pointer bg-gradient-to-r from-purple-50 to-pink-50 transition-colors"
+                onClick={() => toggleMethod('animation')}
+              >
+                <Checkbox 
+                  id="animation"
+                  checked={methods.animation}
+                  onCheckedChange={() => toggleMethod('animation')}
+                />
                 <Label htmlFor="animation" className="flex items-center gap-2 cursor-pointer flex-1">
                   <span className="text-2xl animate-bounce">🔔</span>
                   <div>
                     <span className="font-semibold text-purple-700">Con Animación Visual</span>
-                    <p className="text-xs text-purple-600">Email + Chat + Notificación destacada</p>
+                    <p className="text-xs text-purple-600">Notificación destacada y prioritaria</p>
                   </div>
                 </Label>
               </div>
-            </RadioGroup>
+            </div>
+
+            {Object.values(methods).some(v => v) && (
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mt-3">
+                <p className="text-sm text-blue-800 font-medium">
+                  ✓ Se enviará por: {Object.keys(methods).filter(k => methods[k]).map(k => {
+                    if (k === 'email') return 'Email';
+                    if (k === 'sms') return 'SMS';
+                    if (k === 'chat') return 'Chat';
+                    if (k === 'animation') return 'Animación';
+                  }).join(', ')}
+                </p>
+              </div>
+            )}
           </div>
 
           {/* Custom Message */}
