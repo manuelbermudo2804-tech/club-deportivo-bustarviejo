@@ -488,10 +488,9 @@ Email: cdbustarviejo@gmail.com
                                           <>
                                             <Upload className="w-4 h-4 mr-2" />
                                             Subir Justificante
-                                          </>
-                                        )}
-                                      </Button>
-                                    </label>
+                                            </>
+                                            )}
+                                            </Button>
                                   </>
                                 )}
                               </div>
