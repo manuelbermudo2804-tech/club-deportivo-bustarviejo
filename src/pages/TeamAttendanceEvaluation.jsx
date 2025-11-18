@@ -29,7 +29,14 @@ export default function TeamAttendanceEvaluation() {
     const fetchUser = async () => {
       const currentUser = await base44.auth.me();
       setUser(currentUser);
-      if (currentUser.categorias_entrena?.length > 0) {
+      if (currentUser.role === "admin") {
+        // Admin can see all categories
+        const allPlayers = await base44.entities.Player.list();
+        const categories = [...new Set(allPlayers.map(p => p.deporte).filter(Boolean))];
+        if (categories.length > 0) {
+          setSelectedCategory(categories[0]);
+        }
+      } else if (currentUser.categorias_entrena?.length > 0) {
         setSelectedCategory(currentUser.categorias_entrena[0]);
       }
     };
@@ -470,7 +477,7 @@ CD Bustarviejo
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {user.categorias_entrena.map(cat => (
+                  {availableCategories.map(cat => (
                     <SelectItem key={cat} value={cat}>{cat}</SelectItem>
                   ))}
                 </SelectContent>
