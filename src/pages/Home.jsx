@@ -166,16 +166,10 @@ export default function Home() {
           gradient: "from-blue-600 to-blue-700",
         },
         {
-          title: "✅ Asistencia",
+          title: "📋 Asistencia y Evaluación",
           icon: CheckCircle2,
-          url: createPageUrl("CoachAttendance"),
+          url: createPageUrl("TeamAttendanceEvaluation"),
           gradient: "from-green-600 to-green-700",
-        },
-        {
-          title: "⭐ Evaluaciones",
-          icon: Star,
-          url: createPageUrl("PlayerEvaluations"),
-          gradient: "from-purple-600 to-purple-700",
         }
       );
     }
