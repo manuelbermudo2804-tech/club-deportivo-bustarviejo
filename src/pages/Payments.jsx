@@ -747,21 +747,29 @@ Email: cdbustarviejo@gmail.com
                                           </p>
                                         </div>
                                       </div>
-                                      <div className="flex gap-1">
-                                        {payment.justificante_url ? (
-                                          <span className="text-green-600 text-xs lg:text-sm">✅</span>
-                                        ) : payment.estado === "Pendiente" && (
-                                          <span className="text-red-600 text-xs lg:text-sm">❌</span>
-                                        )}
-                                        {isAdmin && payment.estado !== "Pagado" && (
-                                          <Button
-                                            size="sm"
-                                            onClick={() => handleStatusChange(payment, "Pagado")}
-                                            className="bg-green-600 hover:bg-green-700 text-[10px] lg:text-xs h-6 px-2"
-                                          >
-                                            ✓
-                                          </Button>
-                                        )}
+                                      <div className="flex gap-1 items-center">
+                                       {payment.justificante_url ? (
+                                         <Button
+                                           variant="ghost"
+                                           size="sm"
+                                           onClick={() => setPreviewImage(payment.justificante_url)}
+                                           className="text-orange-600 hover:text-orange-700 p-1 h-6"
+                                           title="Ver justificante"
+                                         >
+                                           <FileText className="w-3 h-3 lg:w-4 lg:h-4" />
+                                         </Button>
+                                       ) : payment.estado === "Pendiente" && (
+                                         <span className="text-red-600 text-xs lg:text-sm">❌</span>
+                                       )}
+                                       {isAdmin && payment.estado !== "Pagado" && (
+                                         <Button
+                                           size="sm"
+                                           onClick={() => handleStatusChange(payment, "Pagado")}
+                                           className="bg-green-600 hover:bg-green-700 text-[10px] lg:text-xs h-6 px-2"
+                                         >
+                                           ✓ Pagado
+                                         </Button>
+                                       )}
                                       </div>
                                     </div>
                                   );
