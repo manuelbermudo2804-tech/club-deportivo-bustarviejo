@@ -664,7 +664,7 @@ Email: cdbustarviejo@gmail.com
                       
                       // Si el jugador paga en 3 meses y tiene algún pago, mostrar los 3 meses
                       let allMonths = ["Junio", "Septiembre", "Diciembre"];
-                      if (player.tipo_pago === "Único") {
+                      if (player?.tipo_pago === "Único") {
                         allMonths = ["Junio"];
                       }
                       
