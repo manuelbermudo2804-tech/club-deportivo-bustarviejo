@@ -490,7 +490,7 @@ export default function Layout({ children, currentPageName }) {
   const [currentLang, setCurrentLang] = useState(() => {
     return localStorage.getItem('appLanguage') || 'es';
   });
-  const [showWelcome, setShowWelcome] = useState(true);
+  const [showWelcome, setShowWelcome] = useState(false);
 
   const handleLanguageChange = (newLang) => {
     setCurrentLang(newLang);
