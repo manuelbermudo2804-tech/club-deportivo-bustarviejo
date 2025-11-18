@@ -402,7 +402,17 @@ CD Bustarviejo
     sendIndividualReportMutation.mutate(data);
   };
 
-  if (!user || !user.categorias_entrena || user.categorias_entrena.length === 0) {
+  // Get available categories for the user
+  const availableCategories = React.useMemo(() => {
+    if (!user) return [];
+    if (user.role === "admin") {
+      const allPlayers = players || [];
+      return [...new Set(allPlayers.map(p => p.deporte).filter(Boolean))];
+    }
+    return user.categorias_entrena || [];
+  }, [user, players]);
+
+  if (!user || (user.role !== "admin" && (!user.es_entrenador || availableCategories.length === 0))) {
     return (
       <div className="p-4 lg:p-6">
         <div className="text-center py-12">
