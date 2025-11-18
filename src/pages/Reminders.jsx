@@ -134,9 +134,35 @@ Gracias por su atención.
         sentMethods.push('Chat');
       }
       
-      // ANIMATION adds visual priority
+      // NOTIFICACIÓN VISUAL EN LA APP
       if (animation) {
-        sentMethods.push('Formato Urgente');
+        const notificationMessage = `Tienes un pago pendiente:\n\n${payment.mes} - ${payment.temporada}\nImporte: ${payment.cantidad}€\n\n${data.message.substring(0, 150)}...`;
+        
+        // Crear notificación para padre
+        if (player.email_padre) {
+          await base44.entities.AppNotification.create({
+            usuario_email: player.email_padre,
+            titulo: `🔔 PAGO URGENTE - ${payment.mes}`,
+            mensaje: notificationMessage,
+            tipo: "urgente",
+            icono: "🔔",
+            vista: false
+          });
+        }
+        
+        // Crear notificación para tutor 2
+        if (player.email_tutor_2) {
+          await base44.entities.AppNotification.create({
+            usuario_email: player.email_tutor_2,
+            titulo: `🔔 PAGO URGENTE - ${payment.mes}`,
+            mensaje: notificationMessage,
+            tipo: "urgente",
+            icono: "🔔",
+            vista: false
+          });
+        }
+        
+        sentMethods.push('Notificación Visual en App');
       }
       
       toast.success(`✅ Recordatorio enviado por: ${sentMethods.join(', ')}`);

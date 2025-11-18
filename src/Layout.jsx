@@ -15,6 +15,7 @@ import NotificationCenter from "./components/NotificationCenter";
 import LanguageSelector from "./components/LanguageSelector";
 import ChatNotificationListener from "./components/push/ChatNotificationListener";
 import WelcomeScreen from "./components/WelcomeScreen";
+import NotificationManager from "./components/notifications/NotificationManager";
 
 const CLUB_LOGO_URL = "https://www.cdbustarviejo.com/uploads/2/4/0/4/2404974/logo-cd-bustarviejo-cuadrado_orig.png";
 
@@ -792,6 +793,7 @@ export default function Layout({ children, currentPageName }) {
       <SessionManager />
       <NotificationBadge />
       {user && <ChatNotificationListener user={user} />}
+      {user && <NotificationManager user={user} />}
       
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
         

@@ -147,8 +147,8 @@ CD Bustarviejo`;
                 <Label htmlFor="animation" className="flex items-center gap-2 cursor-pointer flex-1">
                   <span className="text-2xl animate-bounce">🔔</span>
                   <div>
-                    <span className="font-semibold text-purple-700">Formato Urgente</span>
-                    <p className="text-xs text-purple-600">Email y Chat con prioridad máxima</p>
+                    <span className="font-semibold text-purple-700">Notificación Visual en App</span>
+                    <p className="text-xs text-purple-600">Banner animado + Email + Chat urgente</p>
                   </div>
                 </Label>
               </div>
@@ -160,7 +160,7 @@ CD Bustarviejo`;
                   ✓ Se enviará por: {Object.keys(methods).filter(k => methods[k]).map(k => {
                     if (k === 'email') return 'Email';
                     if (k === 'chat') return 'Chat';
-                    if (k === 'animation') return 'Prioridad Urgente';
+                    if (k === 'animation') return 'Notificación Visual en App';
                   }).join(', ')}
                 </p>
               </div>
