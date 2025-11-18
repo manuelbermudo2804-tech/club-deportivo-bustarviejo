@@ -605,6 +605,7 @@ Email: cdbustarviejo@gmail.com
               {showForm && (
                 <ParentPaymentForm
                   players={players}
+                  payments={payments}
                   onSubmit={handleSubmitPayment}
                   onCancel={() => setShowForm(false)}
                   isSubmitting={createPaymentMutation.isPending}

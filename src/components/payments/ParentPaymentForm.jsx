@@ -54,7 +54,7 @@ const getImportePorMes = (categoria, mes) => {
   return 0;
 };
 
-export default function ParentPaymentForm({ players, onSubmit, onCancel, isSubmitting }) {
+export default function ParentPaymentForm({ players, payments = [], onSubmit, onCancel, isSubmitting }) {
   const currentSeason = getCurrentSeason();
   const [currentPayment, setCurrentPayment] = useState({
     jugador_id: "",
@@ -72,6 +72,8 @@ export default function ParentPaymentForm({ players, onSubmit, onCancel, isSubmi
 
   const [uploadingFile, setUploadingFile] = useState(false);
   const [selectedPlayer, setSelectedPlayer] = useState(null);
+  const [existingPayments, setExistingPayments] = useState([]);
+  const [pagoUnicoPagado, setPagoUnicoPagado] = useState(false);
 
   useEffect(() => {
     if (players && players.length > 0 && !currentPayment.jugador_id) {
@@ -108,15 +110,53 @@ export default function ParentPaymentForm({ players, onSubmit, onCancel, isSubmi
     const player = players.find(p => p.id === playerId);
     if (player) {
       setSelectedPlayer(player);
+      
+      // Verificar pagos existentes del jugador en esta temporada
+      const jugadorPayments = payments.filter(p => 
+        p.jugador_id === playerId && 
+        p.temporada === currentSeason
+      );
+      setExistingPayments(jugadorPayments);
+      
+      // Verificar si ya tiene un pago único pagado
+      const pagoUnico = jugadorPayments.find(p => p.tipo_pago === "Único" && p.estado === "Pagado");
+      setPagoUnicoPagado(!!pagoUnico);
+      
+      // Si tiene pago único pagado, no continuar
+      if (pagoUnico) {
+        return;
+      }
+      
       const cuotas = getCuotasPorCategoria(player.deporte);
+      
+      // Obtener meses ya pagados
+      const mesesPagados = jugadorPayments
+        .filter(p => p.tipo_pago === "Tres meses" && p.estado === "Pagado")
+        .map(p => p.mes);
+      
+      // Si todos los meses están pagados en tres pagos, no permitir más registros
+      const todosMesesPagados = ["Junio", "Septiembre", "Diciembre"].every(m => mesesPagados.includes(m));
+      if (todosMesesPagados) {
+        setPagoUnicoPagado(true);
+        return;
+      }
+      
+      // Seleccionar el primer mes disponible si el actual está pagado
+      let mesSeleccionado = currentPayment.mes;
+      if (mesesPagados.includes(currentPayment.mes)) {
+        const mesesDisponibles = ["Junio", "Septiembre", "Diciembre"].filter(m => !mesesPagados.includes(m));
+        mesSeleccionado = mesesDisponibles[0] || "Junio";
+      }
+      
       const cantidad = currentPayment.tipo_pago === "Único" 
         ? cuotas.total 
-        : getImportePorMes(player.deporte, currentPayment.mes);
+        : getImportePorMes(player.deporte, mesSeleccionado);
       
       setCurrentPayment(prev => ({
         ...prev,
         jugador_id: player.id,
         jugador_nombre: player.nombre,
+        mes: mesSeleccionado,
         cantidad: cantidad
       }));
     }
@@ -193,6 +233,11 @@ export default function ParentPaymentForm({ players, onSubmit, onCancel, isSubmi
   };
 
   const cuotas = selectedPlayer ? getCuotasPorCategoria(selectedPlayer.deporte) : null;
+  
+  // Obtener meses ya pagados
+  const mesesPagados = existingPayments
+    .filter(p => p.tipo_pago === "Tres meses" && p.estado === "Pagado")
+    .map(p => p.mes);
 
   return (
     <motion.div
@@ -201,7 +246,18 @@ export default function ParentPaymentForm({ players, onSubmit, onCancel, isSubmi
       exit={{ opacity: 0, y: -20 }}
       className="space-y-6"
     >
-      {selectedPlayer && currentPayment.cantidad > 0 && (
+      {pagoUnicoPagado && selectedPlayer && (
+        <Alert className="bg-green-50 border-2 border-green-500">
+          <Info className="h-5 w-5 text-green-600" />
+          <AlertDescription className="text-green-900">
+            <p className="font-bold text-lg mb-2">✅ Temporada Pagada Completamente</p>
+            <p>El jugador <strong>{selectedPlayer.nombre}</strong> ya tiene todos los pagos de la temporada {currentSeason} completados.</p>
+            <p className="mt-2 text-sm">No es necesario registrar más pagos para este jugador en esta temporada.</p>
+          </AlertDescription>
+        </Alert>
+      )}
+
+      {!pagoUnicoPagado && selectedPlayer && currentPayment.cantidad > 0 && (
         <PaymentInstructions
           playerName={selectedPlayer.nombre}
           playerCategory={selectedPlayer.deporte}
@@ -209,13 +265,24 @@ export default function ParentPaymentForm({ players, onSubmit, onCancel, isSubmi
           paymentType={currentPayment.tipo_pago}
         />
       )}
+      
+      {!pagoUnicoPagado && mesesPagados.length > 0 && currentPayment.tipo_pago === "Tres meses" && (
+        <Alert className="bg-blue-50 border-blue-300">
+          <Info className="h-4 w-4 text-blue-600" />
+          <AlertDescription className="text-blue-800">
+            <p className="font-semibold">Pagos ya realizados:</p>
+            <p className="text-sm mt-1">{mesesPagados.join(", ")}</p>
+          </AlertDescription>
+        </Alert>
+      )}
 
-      <Card className="border-none shadow-xl bg-white/90 backdrop-blur-sm">
-        <CardHeader className="border-b border-slate-100">
-          <CardTitle className="text-2xl">Registrar Pago</CardTitle>
-        </CardHeader>
-        <CardContent className="pt-6">
-          <form onSubmit={handleSubmit} className="space-y-6">
+      {!pagoUnicoPagado && (
+        <Card className="border-none shadow-xl bg-white/90 backdrop-blur-sm">
+          <CardHeader className="border-b border-slate-100">
+            <CardTitle className="text-2xl">Registrar Pago</CardTitle>
+          </CardHeader>
+          <CardContent className="pt-6">
+            <form onSubmit={handleSubmit} className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
                 <Label htmlFor="jugador">Jugador *</Label>
@@ -272,9 +339,15 @@ export default function ParentPaymentForm({ players, onSubmit, onCancel, isSubmi
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="Junio">Inscripción (Junio)</SelectItem>
-                    <SelectItem value="Septiembre">Segunda Cuota (Septiembre)</SelectItem>
-                    <SelectItem value="Diciembre">Tercera Cuota (Diciembre)</SelectItem>
+                    {!mesesPagados.includes("Junio") && (
+                      <SelectItem value="Junio">Inscripción (Junio)</SelectItem>
+                    )}
+                    {!mesesPagados.includes("Septiembre") && (
+                      <SelectItem value="Septiembre">Segunda Cuota (Septiembre)</SelectItem>
+                    )}
+                    {!mesesPagados.includes("Diciembre") && (
+                      <SelectItem value="Diciembre">Tercera Cuota (Diciembre)</SelectItem>
+                    )}
                   </SelectContent>
                 </Select>
               </div>
@@ -420,6 +493,7 @@ export default function ParentPaymentForm({ players, onSubmit, onCancel, isSubmi
           </form>
         </CardContent>
       </Card>
+      )}
     </motion.div>
   );
 }
