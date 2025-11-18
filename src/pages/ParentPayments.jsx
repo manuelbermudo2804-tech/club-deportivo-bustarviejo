@@ -469,13 +469,16 @@ Email: cdbustarviejo@gmail.com
                                       id={`upload-${payment.id}`}
                                       disabled={uploadingPaymentId === payment.id}
                                     />
-                                    <label htmlFor={`upload-${payment.id}`}>
-                                      <Button
-                                        variant="outline"
-                                        size="sm"
-                                        disabled={uploadingPaymentId === payment.id}
-                                        onClick={() => document.getElementById(`upload-${payment.id}`).click()}
-                                      >
+                                    <Button
+                                       variant="outline"
+                                       size="sm"
+                                       disabled={uploadingPaymentId === payment.id}
+                                       onClick={(e) => {
+                                         e.preventDefault();
+                                         document.getElementById(`upload-${payment.id}`).click();
+                                       }}
+                                       asChild
+                                     >
                                         {uploadingPaymentId === payment.id ? (
                                           <>
                                             <Loader2 className="w-4 h-4 mr-2 animate-spin" />
