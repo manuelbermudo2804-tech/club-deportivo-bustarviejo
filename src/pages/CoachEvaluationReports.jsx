@@ -5,10 +5,12 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, User, Star, Search, AlertCircle } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Calendar, User, Star, Search, AlertCircle, Send, Mail } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { toast } from "sonner";
 import ExportButton from "../components/ExportButton";
 
 export default function CoachEvaluationReports() {
@@ -18,6 +20,7 @@ export default function CoachEvaluationReports() {
   const [searchTerm, setSearchTerm] = useState("");
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
+  const [sendingReport, setSendingReport] = useState(null);
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -135,6 +138,92 @@ export default function CoachEvaluationReports() {
     Actitud: `${ev.actitud}/5`,
     Observaciones: ev.observaciones || '-'
   }));
+
+  const sendPlayerReport = async (stats) => {
+    setSendingReport(stats.jugador.id);
+    
+    try {
+      const player = stats.jugador;
+      const evaluaciones = stats.evaluaciones.sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
+      
+      const reportHTML = `
+        <h2 style="color: #ea580c;">Reporte de Asistencia y Evaluación</h2>
+        <h3>${player.nombre} - ${stats.categoria}</h3>
+        
+        <div style="background: #f8fafc; padding: 20px; border-radius: 8px; margin: 20px 0;">
+          <h4 style="color: #64748b; margin-top: 0;">📊 Resumen General</h4>
+          <ul style="list-style: none; padding: 0;">
+            <li>✅ <strong>Total de sesiones:</strong> ${stats.totalSesiones}</li>
+            <li>⭐ <strong>Promedio de actitud:</strong> ${stats.promedioActitud}/5</li>
+            <li>📅 <strong>Periodo:</strong> ${format(new Date(evaluaciones[evaluaciones.length - 1].fecha), 'dd/MM/yyyy')} - ${format(new Date(evaluaciones[0].fecha), 'dd/MM/yyyy')}</li>
+          </ul>
+        </div>
+        
+        <h4 style="color: #64748b;">📋 Detalle de Evaluaciones</h4>
+        <table style="width: 100%; border-collapse: collapse; margin-top: 10px;">
+          <thead>
+            <tr style="background: #f1f5f9;">
+              <th style="padding: 10px; text-align: left; border: 1px solid #e2e8f0;">Fecha</th>
+              <th style="padding: 10px; text-align: left; border: 1px solid #e2e8f0;">Entrenador</th>
+              <th style="padding: 10px; text-align: center; border: 1px solid #e2e8f0;">Actitud</th>
+              <th style="padding: 10px; text-align: left; border: 1px solid #e2e8f0;">Observaciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${evaluaciones.map(ev => `
+              <tr>
+                <td style="padding: 8px; border: 1px solid #e2e8f0;">${format(new Date(ev.fecha), 'dd/MM/yyyy')}</td>
+                <td style="padding: 8px; border: 1px solid #e2e8f0;">${ev.entrenador_nombre}</td>
+                <td style="padding: 8px; text-align: center; border: 1px solid #e2e8f0;">${'⭐'.repeat(ev.actitud)} (${ev.actitud}/5)</td>
+                <td style="padding: 8px; border: 1px solid #e2e8f0;">${ev.observaciones || '-'}</td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+        
+        <div style="margin-top: 30px; padding: 15px; background: #fef3c7; border-left: 4px solid #f59e0b; border-radius: 4px;">
+          <p style="margin: 0; color: #92400e;">
+            <strong>📧 Reporte generado por:</strong> ${user.full_name || user.email}<br>
+            <strong>📅 Fecha:</strong> ${format(new Date(), 'dd/MM/yyyy HH:mm')}
+          </p>
+        </div>
+        
+        <hr style="margin: 30px 0; border: none; border-top: 1px solid #e2e8f0;">
+        
+        <p style="color: #64748b; font-size: 14px;">
+          Para cualquier consulta, contacta con el club:<br>
+          📧 <a href="mailto:cdbustarviejo@gmail.com" style="color: #ea580c;">cdbustarviejo@gmail.com</a>
+        </p>
+      `;
+      
+      // Enviar a padre principal
+      if (player.email_padre) {
+        await base44.integrations.Core.SendEmail({
+          from_name: "CD Bustarviejo - Evaluaciones",
+          to: player.email_padre,
+          subject: `Reporte de Asistencia y Evaluación - ${player.nombre}`,
+          body: reportHTML
+        });
+      }
+      
+      // Enviar a tutor 2 si existe
+      if (player.email_tutor_2) {
+        await base44.integrations.Core.SendEmail({
+          from_name: "CD Bustarviejo - Evaluaciones",
+          to: player.email_tutor_2,
+          subject: `Reporte de Asistencia y Evaluación - ${player.nombre}`,
+          body: reportHTML
+        });
+      }
+      
+      toast.success(`Reporte enviado a los padres de ${player.nombre}`);
+    } catch (error) {
+      console.error("Error sending report:", error);
+      toast.error("Error al enviar el reporte");
+    } finally {
+      setSendingReport(null);
+    }
+  };
 
   if (!user || (!user.es_entrenador && user.role !== "admin")) {
     return (
@@ -313,6 +402,24 @@ export default function CoachEvaluationReports() {
                         ))}
                       </div>
                     </div>
+                    <Button
+                      onClick={() => sendPlayerReport(stats)}
+                      disabled={sendingReport === stats.jugador.id}
+                      className="w-full bg-orange-600 hover:bg-orange-700 mt-3"
+                      size="sm"
+                    >
+                      {sendingReport === stats.jugador.id ? (
+                        <>
+                          <Mail className="w-4 h-4 mr-2 animate-pulse" />
+                          Enviando...
+                        </>
+                      ) : (
+                        <>
+                          <Send className="w-4 h-4 mr-2" />
+                          Enviar Reporte a Padres
+                        </>
+                      )}
+                    </Button>
                   </CardContent>
                 </Card>
               ))}
