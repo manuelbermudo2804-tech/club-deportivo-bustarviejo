@@ -326,8 +326,7 @@ export default function AdminChat() {
   const getParentName = (email) => {
     const player = players.find(p => p.email_padre === email || p.email_tutor_2 === email);
     if (!player) return email;
-    const role = player.email_padre === email ? "Padre" : "Tutor 2";
-    return `${role} - ${email}`;
+    return player.email_padre === email ? `Padre de ${player.nombre}` : `Tutor 2 de ${player.nombre}`;
   };
 
   const getGroupParents = () => {
