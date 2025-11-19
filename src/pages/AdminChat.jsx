@@ -323,23 +323,23 @@ export default function AdminChat() {
     setAttachments(prev => prev.filter((_, i) => i !== index));
   };
 
-  const getParentName = (email) => {
-    const player = players.find(p => p.email_padre === email || p.email_tutor_2 === email);
-    if (!player) return email;
-    return player.email_padre === email ? `Padre de ${player.nombre}` : `Tutor 2 de ${player.nombre}`;
-  };
-
   const getGroupParents = () => {
     if (!selectedGroup || sendToAll) return [];
     const groupPlayers = players.filter(p => p.deporte === selectedGroup);
-    const parentsSet = new Set();
+    const parentsMap = new Map();
+    
     groupPlayers.forEach(p => {
-      if (p.email_padre) parentsSet.add(p.email_padre);
-      if (p.email_tutor_2) parentsSet.add(p.email_tutor_2);
+      if (p.email_padre && !parentsMap.has(p.email_padre)) {
+        parentsMap.set(p.email_padre, `Padre de ${p.nombre}`);
+      }
+      if (p.email_tutor_2 && !parentsMap.has(p.email_tutor_2)) {
+        parentsMap.set(p.email_tutor_2, `Tutor 2 de ${p.nombre}`);
+      }
     });
-    return Array.from(parentsSet).map(email => ({
+    
+    return Array.from(parentsMap.entries()).map(([email, name]) => ({
       email,
-      name: getParentName(email)
+      name
     }));
   };
 
