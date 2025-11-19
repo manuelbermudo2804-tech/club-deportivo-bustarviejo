@@ -32,13 +32,10 @@ export default function Home() {
         else if (coachCheck) setUserRole("coach");
         else setUserRole("parent");
 
-        if (adminCheck || currentUser.es_entrenador) {
-          const allPlayers = await base44.entities.Player.list();
-          const myPlayers = allPlayers.filter(p => 
-            p.email_padre === currentUser.email || 
-            p.email_tutor_2 === currentUser.email
-          );
-          setHasPlayers(myPlayers.length > 0);
+        if (adminCheck || currentUser.es_entrenador || currentUser.es_coordinador) {
+          // Para admin/entrenadores/coordinadores, SOLO usar el campo manual
+          const tienehijos = currentUser.tiene_hijos_jugando === true;
+          setHasPlayers(tienehijos);
         }
       } catch (error) {
         console.error("Error fetching user:", error);
@@ -228,16 +225,16 @@ export default function Home() {
       });
     }
 
-    items.push(
-      {
+    if (isAdmin || hasPlayers) {
+      items.push({
         title: "Pagos",
         icon: CreditCard,
         url: isCoach && hasPlayers ? createPageUrl("Payments") + "?register=true" : createPageUrl("Payments"),
         gradient: "from-orange-600 to-red-700",
         badge: pendingPayments,
         badgeLabel: "pendientes"
-      }
-    );
+      });
+    }
 
     if (isAdmin) {
       items.push(
@@ -262,12 +259,14 @@ export default function Home() {
       );
     }
 
-    items.push({
-      title: "Pedidos Ropa",
-      icon: ShoppingBag,
-      url: createPageUrl("ClothingOrders"),
-      gradient: "from-teal-600 to-teal-700",
-    });
+    if (isAdmin || hasPlayers) {
+      items.push({
+        title: "Pedidos Ropa",
+        icon: ShoppingBag,
+        url: createPageUrl("ClothingOrders"),
+        gradient: "from-teal-600 to-teal-700",
+      });
+    }
 
     if (isAdmin) {
       items.push(
