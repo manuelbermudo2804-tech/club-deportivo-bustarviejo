@@ -847,7 +847,7 @@ Email: cdbustarviejo@gmail.com
                                        ) : payment.estado === "Pendiente" && (
                                          <span className="text-red-600 text-xs lg:text-sm">❌</span>
                                        )}
-                                       {isAdmin && payment.estado !== "Pagado" && payment.justificante_url && (
+                                       {isAdmin && payment.estado !== "Pagado" && payment.justificante_url && !payment.isVirtual && (
                                          <Button
                                            size="sm"
                                            onClick={() => handleStatusChange(payment, "Pagado")}
