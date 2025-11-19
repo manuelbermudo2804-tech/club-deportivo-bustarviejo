@@ -25,6 +25,7 @@ export default function AdminChat() {
   const [sendToAll, setSendToAll] = useState(false);
   const [selectedRecipient, setSelectedRecipient] = useState("all"); // "all" o email específico
   const [isMobile, setIsMobile] = useState(false);
+  const [showPollDialog, setShowPollDialog] = useState(false);
   const messagesEndRef = useRef(null);
   const queryClient = useQueryClient();
   const [user, setUser] = useState(null);
@@ -55,6 +56,34 @@ export default function AdminChat() {
     queryKey: ['allPlayers'],
     queryFn: () => base44.entities.Player.list(),
     initialData: [],
+  });
+
+  const voteOnPollMutation = useMutation({
+    mutationFn: async ({ messageId, optionIndex }) => {
+      const message = messages.find(m => m.id === messageId);
+      if (!message || !message.poll) return;
+
+      const votes = message.poll.votes || [];
+      const existingVote = votes.find(v => v.user_email === user.email);
+      
+      if (!existingVote) {
+        votes.push({
+          user_email: user.email,
+          user_name: user.full_name,
+          option_index: optionIndex,
+          voted_at: new Date().toISOString()
+        });
+
+        const updatedPoll = { ...message.poll, votes };
+        await base44.entities.ChatMessage.update(messageId, {
+          ...message,
+          poll: updatedPoll
+        });
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['chatMessages'] });
+    },
   });
 
   const sendMessageMutation = useMutation({
@@ -260,6 +289,49 @@ export default function AdminChat() {
     if (sendToAll) return null;
     return selectedGroup ? groups[selectedGroup] : null;
   }, [selectedGroup, sendToAll, groups]);
+
+  const handleSendPoll = async (pollData) => {
+    if (!user) return;
+
+    const uniqueParents = new Map();
+    
+    if (sendToAll) {
+      players.forEach(p => {
+        if (p.email_padre) uniqueParents.set(p.email_padre, { email: p.email_padre, deporte: p.deporte, playerName: p.nombre });
+        if (p.email_tutor_2) uniqueParents.set(p.email_tutor_2, { email: p.email_tutor_2, deporte: p.deporte, playerName: p.nombre });
+      });
+    } else {
+      const groupPlayers = players.filter(p => p.deporte === selectedGroup);
+      groupPlayers.forEach(p => {
+        if (p.email_padre) uniqueParents.set(p.email_padre, { email: p.email_padre, deporte: p.deporte, playerName: p.nombre });
+        if (p.email_tutor_2) uniqueParents.set(p.email_tutor_2, { email: p.email_tutor_2, deporte: p.deporte, playerName: p.nombre });
+      });
+    }
+
+    for (const parent of uniqueParents.values()) {
+      await base44.entities.ChatMessage.create({
+        remitente_email: user.email,
+        remitente_nombre: user.full_name,
+        destinatario_email: parent.email,
+        destinatario_nombre: `Padre de ${parent.playerName}`,
+        mensaje: `📊 ${pollData.question}`,
+        prioridad: priority,
+        tipo: "admin_a_grupo",
+        deporte: parent.deporte,
+        grupo_id: parent.deporte,
+        leido: false,
+        poll: {
+          question: pollData.question,
+          options: pollData.options,
+          votes: []
+        }
+      });
+      await new Promise(resolve => setTimeout(resolve, 50));
+    }
+
+    toast.success("📊 Encuesta enviada");
+    queryClient.invalidateQueries({ queryKey: ['chatMessages'] });
+  };
 
   const handleSendMessage = () => {
     if (!user) return;
@@ -633,6 +705,17 @@ export default function AdminChat() {
                 onFileUploaded={handleFileUploaded}
                 disabled={!isBusinessHours() || sendMessageMutation.isPending}
               />
+              
+              <Button
+                onClick={() => setShowPollDialog(true)}
+                disabled={!isBusinessHours()}
+                variant="ghost"
+                size="icon"
+                className="text-slate-600 hover:text-orange-600 hover:bg-orange-50"
+                title="Crear encuesta rápida"
+              >
+                📊
+              </Button>
               
               <Input
                 value={messageContent}
