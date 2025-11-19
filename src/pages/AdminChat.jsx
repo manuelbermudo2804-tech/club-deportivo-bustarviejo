@@ -806,5 +806,6 @@ export default function AdminChat() {
         </div>
       )}
     </div>
+    </>
   );
 }
