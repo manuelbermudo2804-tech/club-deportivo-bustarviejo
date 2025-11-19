@@ -130,8 +130,16 @@ export default function ParentChat() {
     myGroupSports.forEach(deporte => {
       const groupMessages = messages.filter(msg => {
         const msgDeporte = normalizeDeporte(msg.grupo_id || msg.deporte);
-        // Solo mostrar mensajes de admin/entrenadores/coordinador, NO de otros padres
-        return msgDeporte === deporte && msg.tipo !== "padre_a_grupo";
+        // Solo mostrar mensajes del staff (admin_a_grupo)
+        if (msgDeporte !== deporte || msg.tipo !== "admin_a_grupo") return false;
+        
+        // Si el mensaje tiene destinatario específico, solo mostrarlo si es para este usuario
+        if (msg.destinatario_email) {
+          return msg.destinatario_email === user.email;
+        }
+        
+        // Si no tiene destinatario específico, es mensaje general al grupo
+        return true;
       });
       
       const unreadCount = groupMessages.filter(msg => 

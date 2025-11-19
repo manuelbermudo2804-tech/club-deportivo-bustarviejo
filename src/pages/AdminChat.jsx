@@ -21,6 +21,7 @@ export default function AdminChat() {
   const [searchTerm, setSearchTerm] = useState("");
   const [attachments, setAttachments] = useState([]);
   const [sendToAll, setSendToAll] = useState(false);
+  const [selectedRecipient, setSelectedRecipient] = useState("all"); // "all" o email específico
   const [isMobile, setIsMobile] = useState(false);
   const messagesEndRef = useRef(null);
   const queryClient = useQueryClient();
@@ -133,6 +134,7 @@ export default function AdminChat() {
       setAttachments([]);
       setPriority("Normal");
       setSendToAll(false);
+      setSelectedRecipient("all");
       toast.success(sendToAll ? "Anuncio enviado a todos los grupos" : "Mensaje enviado");
     },
   });
@@ -285,7 +287,9 @@ export default function AdminChat() {
       grupo_id: sendToAll ? "todos" : selectedGroup,
       leido: false,
       archivos_adjuntos: attachments,
-      sendToAll: sendToAll
+      sendToAll: sendToAll,
+      destinatario_email: selectedRecipient !== "all" ? selectedRecipient : undefined,
+      destinatario_nombre: selectedRecipient !== "all" ? getParentName(selectedRecipient) : undefined
     };
 
     sendMessageMutation.mutate(messageData);
@@ -317,6 +321,26 @@ export default function AdminChat() {
 
   const handleRemoveAttachment = (index) => {
     setAttachments(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const getParentName = (email) => {
+    const player = players.find(p => p.email_padre === email || p.email_tutor_2 === email);
+    if (!player) return email;
+    return player.email_padre === email ? `Padre de ${player.nombre}` : `Tutor 2 de ${player.nombre}`;
+  };
+
+  const getGroupParents = () => {
+    if (!selectedGroup || sendToAll) return [];
+    const groupPlayers = players.filter(p => p.deporte === selectedGroup);
+    const parentsSet = new Set();
+    groupPlayers.forEach(p => {
+      if (p.email_padre) parentsSet.add(p.email_padre);
+      if (p.email_tutor_2) parentsSet.add(p.email_tutor_2);
+    });
+    return Array.from(parentsSet).map(email => ({
+      email,
+      name: getParentName(email)
+    }));
   };
 
   const sportEmojis = {
@@ -486,12 +510,19 @@ export default function AdminChat() {
                           <Trash2 className="w-3 h-3" />
                         </button>
                         <div className="px-3 py-2">
-                          <div className="flex items-center gap-2 mb-1">
+                          <div className="flex items-center gap-2 mb-1 flex-wrap">
                             <span className={`text-xs font-semibold ${
                               isAdmin ? 'text-green-100' : isJugador ? 'text-blue-100' : 'text-orange-700'
                             }`}>
                               {isAdmin ? '🎓 ' : isJugador ? '⚽ ' : '👨‍👩‍👧 '}{msg.remitente_nombre}
                             </span>
+                            {msg.destinatario_nombre && (
+                              <span className={`text-[10px] px-1.5 py-0.5 rounded ${
+                                isAdmin ? 'bg-green-800 text-green-100' : 'bg-slate-200 text-slate-700'
+                              }`}>
+                                → {msg.destinatario_nombre}
+                              </span>
+                            )}
                             {msg.prioridad !== "Normal" && (
                               <span className="text-xs">{msg.prioridad === "Urgente" ? "🔴" : "⚠️"}</span>
                             )}
@@ -541,17 +572,33 @@ export default function AdminChat() {
               </div>
             )}
 
-            <div className="mb-2">
+            <div className="grid grid-cols-2 gap-2 mb-2">
               <Select value={priority} onValueChange={setPriority}>
-                <SelectTrigger className="w-full h-9 text-sm">
+                <SelectTrigger className="h-9 text-sm">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="Normal">📝 Normal</SelectItem>
-                  <SelectItem value="Importante">⚠️ Importante (Email)</SelectItem>
-                  <SelectItem value="Urgente">🔴 Urgente (Email)</SelectItem>
+                  <SelectItem value="Importante">⚠️ Importante</SelectItem>
+                  <SelectItem value="Urgente">🔴 Urgente</SelectItem>
                 </SelectContent>
               </Select>
+              
+              {!sendToAll && selectedGroup && (
+                <Select value={selectedRecipient} onValueChange={setSelectedRecipient}>
+                  <SelectTrigger className="h-9 text-sm">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">👥 Todos del grupo</SelectItem>
+                    {getGroupParents().map(parent => (
+                      <SelectItem key={parent.email} value={parent.email}>
+                        👤 {parent.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
             </div>
 
             <div className="flex gap-2 items-end">
