@@ -153,13 +153,13 @@ export default function ParentChat() {
   }, [myGroups, selectedTab]);
 
   useEffect(() => {
-    if (myGroups.length === 1 && !selectedTab) {
+    if (myGroups.length === 1 && !selectedTab && !isMobile) {
       setSelectedTab(myGroups[0].id);
     }
-  }, [myGroups.length, selectedTab]);
+  }, [myGroups.length, selectedTab, isMobile]);
 
   useEffect(() => {
-    if (selectedTab && currentGroup) {
+    if (selectedTab && currentGroup && currentGroup.messages) {
       const unreadMessageIds = currentGroup.messages
         .filter(msg => !msg.leido && (msg.tipo === "admin_a_grupo" || msg.tipo === "coordinador_a_familia"))
         .map(msg => msg.id);
