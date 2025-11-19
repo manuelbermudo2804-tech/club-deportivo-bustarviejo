@@ -19,6 +19,7 @@ export default function ParentPayments() {
   const [uploadingPaymentId, setUploadingPaymentId] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [showForm, setShowForm] = useState(false);
+  const [selectedPlayerId, setSelectedPlayerId] = useState(null);
   const queryClient = useQueryClient();
 
   const { data: user } = useQuery({
@@ -284,6 +285,7 @@ Email: cdbustarviejo@gmail.com
         </div>
         <Button
           onClick={() => {
+            setSelectedPlayerId(null);
             setShowForm(!showForm);
             if (!showForm) {
               setTimeout(() => {
@@ -312,8 +314,12 @@ Email: cdbustarviejo@gmail.com
               players={players}
               payments={payments}
               onSubmit={handleSubmitPayment}
-              onCancel={() => setShowForm(false)}
+              onCancel={() => {
+                setShowForm(false);
+                setSelectedPlayerId(null);
+              }}
               isSubmitting={createPaymentMutation.isPending}
+              preselectedPlayerId={selectedPlayerId}
             />
           )}
         </AnimatePresence>
@@ -421,6 +427,7 @@ Email: cdbustarviejo@gmail.com
                         <p>No hay pagos registrados para este jugador</p>
                         <Button
                           onClick={() => {
+                            setSelectedPlayerId(player.id);
                             setShowForm(true);
                             setTimeout(() => {
                               const formElement = document.querySelector('[data-payment-form]');

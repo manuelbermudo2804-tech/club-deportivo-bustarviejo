@@ -54,7 +54,7 @@ const getImportePorMes = (categoria, mes) => {
   return 0;
 };
 
-export default function ParentPaymentForm({ players, payments = [], onSubmit, onCancel, isSubmitting, isAdmin = false }) {
+export default function ParentPaymentForm({ players, payments = [], onSubmit, onCancel, isSubmitting, isAdmin = false, preselectedPlayerId = null }) {
   const currentSeason = getCurrentSeason();
   const [currentPayment, setCurrentPayment] = useState({
     jugador_id: "",
@@ -78,6 +78,16 @@ export default function ParentPaymentForm({ players, payments = [], onSubmit, on
 
   useEffect(() => {
     if (players && players.length > 0 && !currentPayment.jugador_id) {
+      // Primero prioridad a preselectedPlayerId (desde botón "Registrar Primer Pago")
+      if (preselectedPlayerId) {
+        const player = players.find(p => p.id === preselectedPlayerId);
+        if (player) {
+          handlePlayerChange(player.id);
+          return;
+        }
+      }
+      
+      // Segundo prioridad a URL param
       const urlParams = new URLSearchParams(window.location.search);
       const jugadorId = urlParams.get('jugador_id');
       
@@ -87,9 +97,8 @@ export default function ParentPaymentForm({ players, payments = [], onSubmit, on
           handlePlayerChange(player.id);
         }
       }
-      // No seleccionar automáticamente el primer jugador para evitar bloqueos
     }
-  }, [players, payments]);
+  }, [players, payments, preselectedPlayerId]);
 
   const handlePlayerChange = (playerId) => {
     const player = players.find(p => p.id === playerId);
