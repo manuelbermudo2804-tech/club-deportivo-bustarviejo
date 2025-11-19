@@ -13,6 +13,8 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 
 import FileAttachmentButton from "../components/chat/FileAttachmentButton";
 import MessageAttachments from "../components/chat/MessageAttachments";
+import QuickPollDialog from "../components/chat/QuickPollDialog";
+import PollMessage from "../components/chat/PollMessage";
 
 export default function AdminChat() {
   const [selectedGroup, setSelectedGroup] = useState(null);
@@ -371,7 +373,15 @@ export default function AdminChat() {
   };
 
   return (
-    <div className="fixed inset-0 flex bg-white" style={{ top: isMobile ? '120px' : '0', left: isMobile ? '0' : '288px' }}>
+    <>
+      <QuickPollDialog
+        isOpen={showPollDialog}
+        onClose={() => setShowPollDialog(false)}
+        onSend={handleSendPoll}
+        groupName={currentGroup?.name || selectedGroup}
+      />
+      
+      <div className="fixed inset-0 flex bg-white" style={{ top: isMobile ? '120px' : '0', left: isMobile ? '0' : '288px' }}>
       {/* Mobile chat list */}
       {isMobile && !selectedGroup && !sendToAll && (
         <div className="fixed inset-0 bg-white overflow-y-auto" style={{ top: '120px', left: 0 }}>
@@ -534,7 +544,18 @@ export default function AdminChat() {
                             )}
                           </div>
                           <p className="text-sm leading-relaxed break-words">{msg.mensaje}</p>
-                          
+
+                          {msg.poll && (
+                            <div className="mt-3">
+                              <PollMessage 
+                                poll={msg.poll} 
+                                onVote={(msgId, optIdx) => voteOnPollMutation.mutate({ messageId: msgId, optionIndex: optIdx })}
+                                userEmail={user.email}
+                                messageId={msg.id}
+                              />
+                            </div>
+                          )}
+
                           {msg.archivos_adjuntos?.length > 0 && (
                             <div className="mt-2">
                               <MessageAttachments attachments={msg.archivos_adjuntos} />
