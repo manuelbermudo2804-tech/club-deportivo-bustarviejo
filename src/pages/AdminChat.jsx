@@ -556,7 +556,7 @@ export default function AdminChat() {
 
       {/* Sidebar with chat list - Desktop only */}
       {!isMobile && (
-        <div className="w-80 border-l bg-slate-50 flex flex-col overflow-hidden">
+        <div className="hidden lg:flex w-80 border-l bg-slate-50 flex-col overflow-hidden">
           <div className="p-4 bg-white border-b">
             <h3 className="font-bold text-slate-900">Chats</h3>
             <p className="text-xs text-slate-600 mt-1">{filteredGroups.length} grupos disponibles</p>
