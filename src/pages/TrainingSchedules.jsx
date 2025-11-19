@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -34,7 +33,7 @@ export default function TrainingSchedules() {
       try {
         const user = await base44.auth.me();
         setIsAdmin(user.role === "admin");
-        setIsCoach(user.es_entrenador === true);
+        setIsCoach(user.es_entrenador === true || user.es_coordinador === true);
       } catch (error) {
         console.error("Error checking permissions:", error);
       }

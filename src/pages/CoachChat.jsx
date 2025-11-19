@@ -128,6 +128,27 @@ export default function CoachChat() {
     
     const groups = [];
     const categoriesCoached = user.categorias_entrena || [];
+    const isCoordinator = user.es_coordinador;
+    
+    // Si es coordinador, agregar chat de "Coordinación con Entrenadores" (chat interno)
+    if (isCoordinator) {
+      const chatInternoMessages = messages.filter(msg => 
+        normalizeDeporte(msg.grupo_id || msg.deporte) === "Chat Interno Entrenadores"
+      );
+      
+      const unreadCount = chatInternoMessages.filter(msg => 
+        !msg.leido && msg.remitente_email !== user.email
+      ).length;
+      
+      groups.push({
+        id: "Chat Interno Entrenadores",
+        deporte: "Chat Interno Entrenadores",
+        tipo: 'interno',
+        messages: chatInternoMessages,
+        unreadCount,
+        urgentCount: 0
+      });
+    }
     
     categoriesCoached.forEach(categoria => {
       const deporteNormalizado = normalizeDeporte(categoria);
@@ -237,12 +258,14 @@ export default function CoachChat() {
       return;
     }
 
-    if (!isBusinessHours()) {
+    if (!isBusinessHours() && currentGroup?.tipo !== 'interno') {
       toast.error("Solo entre 10:00 y 20:00");
       return;
     }
     
-    const tipoMensaje = currentGroup?.tipo === 'entrenador' ? "admin_a_grupo" : "padre_a_grupo";
+    const tipoMensaje = currentGroup?.tipo === 'entrenador' ? "admin_a_grupo" 
+      : currentGroup?.tipo === 'interno' ? "interno_entrenadores"
+      : "padre_a_grupo";
     
     const messageData = {
       remitente_email: user.email,
@@ -277,7 +300,8 @@ export default function CoachChat() {
     "Fútbol Juvenil": "⚽",
     "Fútbol Aficionado": "⚽",
     "Fútbol Femenino": "⚽",
-    "Baloncesto (Mixto)": "🏀"
+    "Baloncesto (Mixto)": "🏀",
+    "Chat Interno Entrenadores": "💼"
   };
 
   useEffect(() => {
@@ -319,7 +343,7 @@ export default function CoachChat() {
             <option value="">Selecciona un grupo...</option>
             {filteredGroups.map(group => (
               <option key={group.id} value={group.id}>
-                {group.tipo === 'entrenador' ? '🎓' : sportEmojis[group.deporte] || '⚽'} {group.deporte}
+                {group.tipo === 'interno' ? '💼' : group.tipo === 'entrenador' ? '🎓' : sportEmojis[group.deporte] || '⚽'} {group.deporte}
                 {group.unreadCount > 0 ? ` (${group.unreadCount})` : ''}
               </option>
             ))}
@@ -340,7 +364,7 @@ export default function CoachChat() {
                     : 'border-transparent text-slate-600 hover:bg-slate-50'
                 }`}
               >
-                <span>{group.tipo === 'entrenador' ? '🎓' : sportEmojis[group.deporte]}</span>
+                <span>{group.tipo === 'interno' ? '💼' : group.tipo === 'entrenador' ? '🎓' : sportEmojis[group.deporte]}</span>
                 <span>{group.deporte}</span>
                 {group.unreadCount > 0 && (
                   <Badge className="bg-blue-600 text-white text-xs h-5 min-w-5 rounded-full">
@@ -356,20 +380,24 @@ export default function CoachChat() {
       {currentGroup && (
         <>
           <div className={`p-4 text-white flex items-center gap-3 shadow-md flex-shrink-0 ${
-            currentGroup.tipo === 'entrenador'
+            currentGroup.tipo === 'interno'
+              ? 'bg-gradient-to-r from-purple-600 to-purple-700'
+              : currentGroup.tipo === 'entrenador'
               ? 'bg-gradient-to-r from-blue-600 to-blue-700'
               : 'bg-gradient-to-r from-orange-600 to-orange-700'
           }`} style={{ marginTop: isMobile && myGroups.length > 1 ? '56px' : isMobile ? '56px' : '0' }}>
             <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
-              <span className="text-xl">{currentGroup.tipo === 'entrenador' ? '🎓' : sportEmojis[currentGroup.deporte]}</span>
+              <span className="text-xl">{currentGroup.tipo === 'interno' ? '💼' : currentGroup.tipo === 'entrenador' ? '🎓' : sportEmojis[currentGroup.deporte]}</span>
             </div>
             <div className="flex-1">
               <h2 className="font-bold text-base">{currentGroup.deporte}</h2>
               <p className="text-xs opacity-90">
-                {currentGroup.tipo === 'entrenador' ? '🎓 Entrenas este equipo' : '👨‍👩‍👧 Chat de tus hijos'}
+                {currentGroup.tipo === 'interno' ? '💼 Chat privado entre entrenadores' 
+                  : currentGroup.tipo === 'entrenador' ? '🎓 Entrenas este equipo' 
+                  : '👨‍👩‍👧 Chat de tus hijos'}
               </p>
             </div>
-            {!isBusinessHours() && (
+            {!isBusinessHours() && currentGroup.tipo !== 'interno' && (
               <Badge className="bg-white/20 text-white text-xs">
                 <Clock className="w-3 h-3 mr-1" />
                 Fuera de horario
@@ -395,12 +423,19 @@ export default function CoachChat() {
               currentGroup.messages
                 .sort((a, b) => new Date(a.created_date) - new Date(b.created_date))
                 .map((msg) => {
+                  const esGrupoInterno = currentGroup.tipo === 'interno';
                   const esGrupoEntrenador = currentGroup.tipo === 'entrenador';
                   
                   let messageColor;
                   let isMyMessage;
                   
-                  if (esGrupoEntrenador && msg.tipo === "admin_a_grupo") {
+                  if (esGrupoInterno) {
+                    // En chat interno, todos los mensajes son de entrenadores
+                    isMyMessage = msg.remitente_email === user?.email;
+                    messageColor = isMyMessage 
+                      ? 'bg-gradient-to-r from-purple-600 to-purple-700 text-white rounded-br-none'
+                      : 'bg-white text-slate-900 rounded-bl-none';
+                  } else if (esGrupoEntrenador && msg.tipo === "admin_a_grupo") {
                     messageColor = 'bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-br-none';
                     isMyMessage = true;
                   } else if (!esGrupoEntrenador && msg.tipo === "padre_a_grupo") {
@@ -499,7 +534,7 @@ export default function CoachChat() {
               <Input
                 value={messageContent}
                 onChange={(e) => setMessageContent(e.target.value)}
-                placeholder={isBusinessHours() ? "Escribe un mensaje..." : "Horario: 10:00 - 20:00"}
+                placeholder={isBusinessHours() || currentGroup?.tipo === 'interno' ? "Escribe un mensaje..." : "Horario: 10:00 - 20:00"}
                 className="flex-1 rounded-full"
                 onKeyDown={(e) => {
                   if (e.key === 'Enter' && !e.shiftKey) {
@@ -507,14 +542,16 @@ export default function CoachChat() {
                     handleSendMessage();
                   }
                 }}
-                disabled={!isBusinessHours()}
+                disabled={!isBusinessHours() && currentGroup?.tipo !== 'interno'}
               />
               
               <Button
                 onClick={handleSendMessage}
-                disabled={(!messageContent.trim() && attachments.length === 0) || sendMessageMutation.isPending || !isBusinessHours()}
+                disabled={(!messageContent.trim() && attachments.length === 0) || sendMessageMutation.isPending || (!isBusinessHours() && currentGroup?.tipo !== 'interno')}
                 className={`rounded-full w-10 h-10 p-0 flex items-center justify-center shadow-lg ${
-                  currentGroup.tipo === 'entrenador'
+                  currentGroup.tipo === 'interno'
+                    ? 'bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800'
+                    : currentGroup.tipo === 'entrenador'
                     ? 'bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800'
                     : 'bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800'
                 }`}
