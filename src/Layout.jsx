@@ -739,7 +739,7 @@ export default function Layout({ children, currentPageName }) {
 
   const coachNavigationItems = [
       { title: "🏠 Inicio", url: createPageUrl("Home"), icon: Home },
-      { title: "👨‍👩‍👧 Mis Hijos", url: createPageUrl("ParentPlayers"), icon: Users },
+      ...(hasPlayers ? [{ title: "👨‍👩‍👧 Mis Hijos", url: createPageUrl("ParentPlayers"), icon: Users }] : []),
       { title: "🎓 Plantillas", url: createPageUrl("TeamRosters"), icon: Users },
       { title: "📋 Asistencia y Evaluación", url: createPageUrl("TeamAttendanceEvaluation"), icon: CheckCircle2 },
       { title: "📊 Reportes Entrenadores", url: createPageUrl("CoachEvaluationReports"), icon: Star },
@@ -750,7 +750,8 @@ export default function Layout({ children, currentPageName }) {
       { title: "🎓 Crear Convocatorias", url: createPageUrl("CoachCallups"), icon: Bell },
       ...(hasPlayers ? [{ title: "👨‍👩‍👧 Confirmar Mis Hijos", url: createPageUrl("ParentCallups"), icon: ClipboardCheck, badge: pendingCallupsCount > 0 ? pendingCallupsCount : null }] : []),
       { title: "Pagos", url: createPageUrl("Payments"), icon: CreditCard },
-      { title: "Pedidos Ropa", url: createPageUrl("ClothingOrders"), icon: ShoppingBag },
+      ...(hasPlayers ? [{ title: "💰 Pagos Mis Hijos", url: createPageUrl("ParentPayments"), icon: CreditCard }] : []),
+      ...(hasPlayers ? [{ title: "Pedidos Ropa", url: createPageUrl("ClothingOrders"), icon: ShoppingBag }] : []),
       { title: "🎓 Chat Equipos", url: createPageUrl("CoachChat"), icon: MessageCircle, badge: unreadMessagesCount > 0 ? unreadMessagesCount : null, urgentBadge: urgentMessagesCount > 0 },
     ];
 
@@ -767,7 +768,7 @@ export default function Layout({ children, currentPageName }) {
       { title: "🎓 Convocatorias", url: createPageUrl("CoachCallups"), icon: Bell },
       ...(hasPlayers ? [{ title: "👨‍👩‍👧 Confirmar Mis Hijos", url: createPageUrl("ParentCallups"), icon: ClipboardCheck, badge: pendingCallupsCount > 0 ? pendingCallupsCount : null }] : []),
       ...(hasPlayers ? [{ title: "💰 Pagos Mis Hijos", url: createPageUrl("ParentPayments"), icon: CreditCard }] : []),
-      { title: "Pedidos Ropa", url: createPageUrl("ClothingOrders"), icon: ShoppingBag },
+      ...(hasPlayers ? [{ title: "Pedidos Ropa", url: createPageUrl("ClothingOrders"), icon: ShoppingBag }] : []),
       { title: "🎓 Chat Coordinación", url: createPageUrl("CoachChat"), icon: MessageCircle, badge: unreadMessagesCount > 0 ? unreadMessagesCount : null, urgentBadge: urgentMessagesCount > 0 },
     ];
 
