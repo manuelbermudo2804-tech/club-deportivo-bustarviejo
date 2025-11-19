@@ -286,11 +286,7 @@ export default function ParentPaymentForm({ players, payments = [], onSubmit, on
               </AlertDescription>
             </Alert>
           )}
-          <CardHeader className="border-b border-slate-100">
-            <CardTitle className="text-2xl">Registrar Pago</CardTitle>
-          </CardHeader>
-          <CardContent className="pt-6">
-            <form onSubmit={handleSubmit} className="space-y-6">
+          <form onSubmit={handleSubmit} className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
                 <Label htmlFor="jugador">Jugador *</Label>
