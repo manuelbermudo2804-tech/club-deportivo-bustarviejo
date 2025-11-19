@@ -506,34 +506,34 @@ export default function ParentPaymentForm({ players, payments = [], onSubmit, on
                 />
               </div>
 
-              <div className="flex justify-end gap-3 pt-4 border-t border-slate-100">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={onCancel}
-                  disabled={isSubmitting}
-                >
-                  Cancelar
-                </Button>
-                <Button
-                  type="submit"
-                  className="bg-orange-600 hover:bg-orange-700"
-                  disabled={isSubmitting || !currentPayment.justificante_url || pagoUnicoPagado}
-                >
-                  {isSubmitting ? (
-                    <>
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                      Registrando...
-                    </>
-                  ) : (
-                    "Registrar Pago"
-                  )}
-                </Button>
-              </div>
+            <div className="flex justify-end gap-3 pt-4 border-t border-slate-100">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={onCancel}
+                disabled={isSubmitting}
+              >
+                Cancelar
+              </Button>
+              <Button
+                type="submit"
+                className="bg-orange-600 hover:bg-orange-700"
+                disabled={isSubmitting || !currentPayment.justificante_url || pagoUnicoPagado}
+              >
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Registrando...
+                  </>
+                ) : (
+                  "Registrar Pago"
+                )}
+              </Button>
+            </div>
             )}
           </form>
-          </CardContent>
-          </Card>
-          </motion.div>
-          );
-          }
+        </CardContent>
+      </Card>
+    </motion.div>
+  );
+}
