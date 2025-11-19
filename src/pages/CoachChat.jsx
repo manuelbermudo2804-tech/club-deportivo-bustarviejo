@@ -130,6 +130,30 @@ export default function CoachChat() {
     const categoriesCoached = user.categorias_entrena || [];
     const isCoordinator = user.es_coordinador;
     
+    // Si es coordinador, agregar chat de "Coordinación Deportiva" (familias -> coordinador)
+    if (isCoordinator) {
+      const chatCoordinacionMessages = messages.filter(msg => 
+        normalizeDeporte(msg.grupo_id || msg.deporte) === "Coordinación Deportiva"
+      );
+      
+      const unreadCount = chatCoordinacionMessages.filter(msg => 
+        !msg.leido && msg.tipo === "padre_a_grupo"
+      ).length;
+      
+      const urgentCount = chatCoordinacionMessages.filter(msg =>
+        !msg.leido && msg.tipo === "padre_a_grupo" && msg.prioridad === "Urgente"
+      ).length;
+      
+      groups.push({
+        id: "Coordinación Deportiva",
+        deporte: "Coordinación Deportiva",
+        tipo: 'coordinacion',
+        messages: chatCoordinacionMessages,
+        unreadCount,
+        urgentCount
+      });
+    }
+    
     // Si es coordinador, agregar chat de "Coordinación con Entrenadores" (chat interno)
     if (isCoordinator) {
       const chatInternoMessages = messages.filter(msg => 
@@ -258,13 +282,14 @@ export default function CoachChat() {
       return;
     }
 
-    if (!isBusinessHours() && currentGroup?.tipo !== 'interno') {
+    if (!isBusinessHours() && currentGroup?.tipo !== 'interno' && currentGroup?.tipo !== 'coordinacion') {
       toast.error("Solo entre 10:00 y 20:00");
       return;
     }
     
     const tipoMensaje = currentGroup?.tipo === 'entrenador' ? "admin_a_grupo" 
       : currentGroup?.tipo === 'interno' ? "interno_entrenadores"
+      : currentGroup?.tipo === 'coordinacion' ? "admin_a_grupo"
       : "padre_a_grupo";
     
     const messageData = {
@@ -301,6 +326,7 @@ export default function CoachChat() {
     "Fútbol Aficionado": "⚽",
     "Fútbol Femenino": "⚽",
     "Baloncesto (Mixto)": "🏀",
+    "Coordinación Deportiva": "🎓",
     "Chat Interno Entrenadores": "💼"
   };
 
@@ -343,7 +369,7 @@ export default function CoachChat() {
             <option value="">Selecciona un grupo...</option>
             {filteredGroups.map(group => (
               <option key={group.id} value={group.id}>
-                {group.tipo === 'interno' ? '💼' : group.tipo === 'entrenador' ? '🎓' : sportEmojis[group.deporte] || '⚽'} {group.deporte}
+                {group.tipo === 'coordinacion' ? '🎓' : group.tipo === 'interno' ? '💼' : group.tipo === 'entrenador' ? '🎓' : sportEmojis[group.deporte] || '⚽'} {group.deporte}
                 {group.unreadCount > 0 ? ` (${group.unreadCount})` : ''}
               </option>
             ))}
@@ -364,7 +390,7 @@ export default function CoachChat() {
                     : 'border-transparent text-slate-600 hover:bg-slate-50'
                 }`}
               >
-                <span>{group.tipo === 'interno' ? '💼' : group.tipo === 'entrenador' ? '🎓' : sportEmojis[group.deporte]}</span>
+                <span>{group.tipo === 'coordinacion' ? '🎓' : group.tipo === 'interno' ? '💼' : group.tipo === 'entrenador' ? '🎓' : sportEmojis[group.deporte]}</span>
                 <span>{group.deporte}</span>
                 {group.unreadCount > 0 && (
                   <Badge className="bg-blue-600 text-white text-xs h-5 min-w-5 rounded-full">
@@ -380,24 +406,27 @@ export default function CoachChat() {
       {currentGroup && (
         <>
           <div className={`p-4 text-white flex items-center gap-3 shadow-md flex-shrink-0 ${
-            currentGroup.tipo === 'interno'
+            currentGroup.tipo === 'coordinacion'
+              ? 'bg-gradient-to-r from-cyan-600 to-cyan-700'
+              : currentGroup.tipo === 'interno'
               ? 'bg-gradient-to-r from-purple-600 to-purple-700'
               : currentGroup.tipo === 'entrenador'
               ? 'bg-gradient-to-r from-blue-600 to-blue-700'
               : 'bg-gradient-to-r from-orange-600 to-orange-700'
           }`} style={{ marginTop: isMobile && myGroups.length > 1 ? '56px' : isMobile ? '56px' : '0' }}>
             <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
-              <span className="text-xl">{currentGroup.tipo === 'interno' ? '💼' : currentGroup.tipo === 'entrenador' ? '🎓' : sportEmojis[currentGroup.deporte]}</span>
+              <span className="text-xl">{currentGroup.tipo === 'coordinacion' ? '🎓' : currentGroup.tipo === 'interno' ? '💼' : currentGroup.tipo === 'entrenador' ? '🎓' : sportEmojis[currentGroup.deporte]}</span>
             </div>
             <div className="flex-1">
               <h2 className="font-bold text-base">{currentGroup.deporte}</h2>
               <p className="text-xs opacity-90">
-                {currentGroup.tipo === 'interno' ? '💼 Chat privado entre entrenadores' 
+                {currentGroup.tipo === 'coordinacion' ? '🎓 Consultas de familias al coordinador'
+                  : currentGroup.tipo === 'interno' ? '💼 Chat privado entre entrenadores' 
                   : currentGroup.tipo === 'entrenador' ? '🎓 Entrenas este equipo' 
                   : '👨‍👩‍👧 Chat de tus hijos'}
               </p>
             </div>
-            {!isBusinessHours() && currentGroup.tipo !== 'interno' && (
+            {!isBusinessHours() && currentGroup.tipo !== 'interno' && currentGroup.tipo !== 'coordinacion' && (
               <Badge className="bg-white/20 text-white text-xs">
                 <Clock className="w-3 h-3 mr-1" />
                 Fuera de horario
@@ -423,13 +452,23 @@ export default function CoachChat() {
               currentGroup.messages
                 .sort((a, b) => new Date(a.created_date) - new Date(b.created_date))
                 .map((msg) => {
+                  const esGrupoCoordinacion = currentGroup.tipo === 'coordinacion';
                   const esGrupoInterno = currentGroup.tipo === 'interno';
                   const esGrupoEntrenador = currentGroup.tipo === 'entrenador';
                   
                   let messageColor;
                   let isMyMessage;
                   
-                  if (esGrupoInterno) {
+                  if (esGrupoCoordinacion) {
+                    // En chat de coordinación: padres escriben, coordinador responde
+                    if (msg.tipo === "admin_a_grupo") {
+                      messageColor = 'bg-gradient-to-r from-cyan-600 to-cyan-700 text-white rounded-br-none';
+                      isMyMessage = true;
+                    } else {
+                      messageColor = 'bg-white text-slate-900 rounded-bl-none';
+                      isMyMessage = false;
+                    }
+                  } else if (esGrupoInterno) {
                     // En chat interno, todos los mensajes son de entrenadores
                     isMyMessage = msg.remitente_email === user?.email;
                     messageColor = isMyMessage 
@@ -542,14 +581,16 @@ export default function CoachChat() {
                     handleSendMessage();
                   }
                 }}
-                disabled={!isBusinessHours() && currentGroup?.tipo !== 'interno'}
+                disabled={!isBusinessHours() && currentGroup?.tipo !== 'interno' && currentGroup?.tipo !== 'coordinacion'}
               />
               
               <Button
                 onClick={handleSendMessage}
-                disabled={(!messageContent.trim() && attachments.length === 0) || sendMessageMutation.isPending || (!isBusinessHours() && currentGroup?.tipo !== 'interno')}
+                disabled={(!messageContent.trim() && attachments.length === 0) || sendMessageMutation.isPending || (!isBusinessHours() && currentGroup?.tipo !== 'interno' && currentGroup?.tipo !== 'coordinacion')}
                 className={`rounded-full w-10 h-10 p-0 flex items-center justify-center shadow-lg ${
-                  currentGroup.tipo === 'interno'
+                  currentGroup.tipo === 'coordinacion'
+                    ? 'bg-gradient-to-r from-cyan-600 to-cyan-700 hover:from-cyan-700 hover:to-cyan-800'
+                    : currentGroup.tipo === 'interno'
                     ? 'bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800'
                     : currentGroup.tipo === 'entrenador'
                     ? 'bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800'
