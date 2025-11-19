@@ -900,13 +900,12 @@ Temporada ${reminder.temporada}
 
                   // Determinar qué pagos mostrar según el tipo de pago del jugador
                   const hasPagoUnico = playerData.pagos.some(p => 
-                    (p.tipo_pago === "Único" || p.tipo_pago === "único") && 
-                    (p.estado === "Pagado" || p.estado === "En revisión")
+                    (p.tipo_pago === "Único" || p.tipo_pago === "único")
                   );
 
-                  // Si tiene pago único, solo mostrar Junio
+                  // Si tiene pago único, solo mostrar los pagos que existan (no generar virtuales)
                   // Si es "Tres meses", mostrar los 3 pagos (Junio, Septiembre, Diciembre)
-                  const allPossibleMonths = hasPagoUnico ? ["Junio"] : ["Junio", "Septiembre", "Diciembre"];
+                  const allPossibleMonths = hasPagoUnico ? [] : ["Junio", "Septiembre", "Diciembre"];
                   
                   // Crear mapa de pagos existentes
                   const existingPaymentsMap = {};
