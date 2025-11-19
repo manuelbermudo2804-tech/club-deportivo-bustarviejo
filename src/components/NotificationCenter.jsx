@@ -200,8 +200,8 @@ export default function NotificationCenter() {
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <Button variant="ghost" size="icon" className="relative">
-          <Bell className={`w-5 h-5 ${criticalNotifications > 0 ? 'animate-pulse text-red-600' : ''}`} />
+        <Button variant="ghost" size="icon" className="relative min-w-[44px] min-h-[44px]">
+          <Bell className={`w-6 h-6 ${criticalNotifications > 0 ? 'animate-pulse text-red-600' : ''}`} />
           {totalNotifications > 0 && (
             <Badge className={`absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 ${criticalNotifications > 0 ? 'bg-red-500 animate-pulse' : 'bg-orange-500'} text-white text-xs`}>
               {totalNotifications > 9 ? "9+" : totalNotifications}
