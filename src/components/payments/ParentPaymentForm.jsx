@@ -530,9 +530,8 @@ export default function ParentPaymentForm({ players, payments = [], onSubmit, on
               </Button>
             </div>
           </form>
-        </CardContent>
-      </Card>
-      )}
-    </motion.div>
-  );
-}
+          </CardContent>
+          </Card>
+          </motion.div>
+          );
+          }
