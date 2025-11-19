@@ -289,7 +289,7 @@ export default function CoachChat() {
     
     const tipoMensaje = currentGroup?.tipo === 'entrenador' ? "admin_a_grupo" 
       : currentGroup?.tipo === 'interno' ? "interno_entrenadores"
-      : currentGroup?.tipo === 'coordinacion' ? "admin_a_grupo"
+      : currentGroup?.tipo === 'coordinacion' ? "coordinador_a_familia"
       : "padre_a_grupo";
     
     const messageData = {
@@ -305,6 +305,7 @@ export default function CoachChat() {
       archivos_adjuntos: attachments
     };
 
+    console.log('📤 Enviando mensaje coordinación:', messageData);
     sendMessageMutation.mutate(messageData);
   };
 
