@@ -533,7 +533,7 @@ export default function UserManagement() {
                           </div>
                         )}
 
-                        {isCoach && user.categorias_entrena && user.categorias_entrena.length > 0 && (
+                        {user.es_entrenador && user.categorias_entrena && user.categorias_entrena.length > 0 && (
                           <div className="text-sm text-blue-700 bg-blue-100 rounded p-2 mb-2">
                             <strong>🏃 {isCoordinator ? "También Entrena:" : "Entrena:"}</strong> {user.categorias_entrena.join(", ")}
                             {user.telefono_entrenador && ` • 📱 ${user.telefono_entrenador}`}

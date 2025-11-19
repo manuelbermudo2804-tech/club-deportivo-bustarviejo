@@ -38,8 +38,8 @@ export default function CoachCallups() {
         const currentUser = await base44.auth.me();
         setUser(currentUser);
         
-        // Check if user is coach or admin
-        if (!currentUser.es_entrenador && currentUser.role !== "admin") {
+        // Check if user is coach/coordinator or admin
+        if (!currentUser.es_entrenador && !currentUser.es_coordinador && currentUser.role !== "admin") {
           toast.error("No tienes permisos de entrenador");
           return;
         }
@@ -48,8 +48,8 @@ export default function CoachCallups() {
         const categories = currentUser.categorias_entrena || [];
         setCoachCategories(categories);
         
-        // If admin, set to "admin" mode (can create for any category)
-        if (currentUser.role === "admin") {
+        // If admin or coordinator, set to "admin" mode (can see all categories)
+        if (currentUser.role === "admin" || currentUser.es_coordinador) {
           setSelectedCategory("admin");
         } else if (categories.length === 1) {
           // If only one category, select it by default
@@ -282,7 +282,7 @@ Email: cdbustarviejo@gmail.com
 
   // Filter callups for coach's categories
   const myCallups = callups.filter(c => {
-    if (user?.role === "admin") return true; // Admins see all callups
+    if (user?.role === "admin" || user?.es_coordinador) return true; // Admins and coordinators see all callups
     
     // Coach can see callups they created OR from their categories
     const isMyCallup = c.entrenador_email === user?.email;
@@ -327,7 +327,7 @@ Email: cdbustarviejo@gmail.com
     return acc + c.jugadores_convocados.filter(j => j.confirmacion === "pendiente").length;
   }, 0);
 
-  if (!user || (!user.es_entrenador && user.role !== "admin")) {
+  if (!user || (!user.es_entrenador && !user.es_coordinador && user.role !== "admin")) {
     return (
       <div className="flex items-center justify-center min-h-screen p-6">
         <Card className="border-red-200 bg-red-50">
@@ -342,7 +342,9 @@ Email: cdbustarviejo@gmail.com
   }
 
   // Determine if user can create callups
-  const canCreateCallup = user?.role === "admin" || (selectedCategory && selectedCategory !== "all");
+  // Admins and coaches with categories can create; coordinators can only view unless they're also coaches
+  const canCreateCallup = user?.role === "admin" || 
+    (user?.es_entrenador && selectedCategory && selectedCategory !== "all" && selectedCategory !== "admin");
 
   return (
     <div className="p-6 lg:p-8 space-y-6">
