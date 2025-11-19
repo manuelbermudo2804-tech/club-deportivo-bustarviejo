@@ -276,10 +276,10 @@ export default function ParentChat() {
   }
 
   return (
-    <div className="flex flex-col h-screen lg:fixed lg:inset-0 lg:flex-row bg-white" style={{ left: isMobile ? '0' : '288px' }}>
+    <div className="min-h-screen bg-white lg:fixed lg:inset-0 lg:flex" style={{ top: isMobile ? '120px' : '0', left: isMobile ? '0' : '288px' }}>
       {/* Mobile chat list */}
-      {isMobile && !selectedTab && myGroups.length > 0 && (
-        <div className="flex-1 bg-white overflow-y-auto">
+      {isMobile && !selectedTab && (
+        <div className="min-h-screen bg-white">
           <div className="p-4 bg-gradient-to-r from-orange-600 to-orange-700 text-white">
             <h2 className="text-xl font-bold">Chats</h2>
             <p className="text-sm text-orange-100">{myGroups.length} grupos disponibles</p>
@@ -340,7 +340,8 @@ export default function ParentChat() {
         </div>
       )}
 
-      <div className="flex-1 flex flex-col overflow-hidden">
+      {(selectedTab || !isMobile) && (
+        <div className="flex-1 flex flex-col" style={{ height: isMobile ? 'calc(100vh - 120px)' : '100vh' }}>
         {selectedTab && currentGroup ? (
           <>
             <div className="bg-gradient-to-r from-orange-600 to-orange-700 p-4 text-white flex items-center gap-3 shadow-md flex-shrink-0 min-h-[72px]">
@@ -483,7 +484,8 @@ export default function ParentChat() {
             </div>
           </div>
         ) : null}
-      </div>
+        </div>
+      )}
 
       {/* Sidebar with chat list - Desktop only */}
       {!isMobile && (
