@@ -342,22 +342,44 @@ export default function AdminChat() {
 
   return (
     <div className="fixed inset-0 flex bg-white" style={{ top: isMobile ? '120px' : '0', left: isMobile ? '0' : '288px' }}>
-      {/* Mobile selector at top */}
-      {isMobile && (
-        <div className="fixed top-[120px] left-0 right-0 z-20 bg-white border-b p-2 shadow-sm">
-          <select
-            value={sendToAll ? 'todos' : selectedGroup || ''}
-            onChange={(e) => handleSelectGroup(e.target.value, e.target.value === 'todos')}
-            className="w-full p-3 rounded-lg border-2 border-orange-300 bg-white text-slate-900 font-semibold"
-          >
-            <option value="">Selecciona un grupo...</option>
-            {allGroupsList.map(group => (
-              <option key={group.id} value={group.id}>
-                {group.isSendToAll ? '📢 Todos los Grupos' : `${sportEmojis[group.deporte] || '⚽'} ${group.deporte}`}
-                {group.unreadCount > 0 ? ` (${group.unreadCount})` : ''}
-              </option>
-            ))}
-          </select>
+      {/* Mobile chat list */}
+      {isMobile && !selectedGroup && !sendToAll && (
+        <div className="fixed inset-0 bg-white overflow-y-auto" style={{ top: '120px', left: 0 }}>
+          <div className="p-4 bg-gradient-to-r from-orange-600 to-orange-700 text-white">
+            <h2 className="text-xl font-bold">Chats</h2>
+            <p className="text-sm text-orange-100">{allGroupsList.length} grupos disponibles</p>
+          </div>
+          <div className="divide-y">
+            {allGroupsList.map(group => {
+              const displayGroup = group.isSendToAll ? { ...group, unreadCount: 0, urgentCount: 0 } : groups[group.id] || group;
+              return (
+                <button
+                  key={group.id}
+                  onClick={() => handleSelectGroup(group.id, group.isSendToAll)}
+                  className="w-full p-4 flex items-center gap-3 bg-white hover:bg-slate-50 transition-colors text-left"
+                >
+                  <div className={`w-14 h-14 rounded-full flex items-center justify-center flex-shrink-0 ${
+                    group.isSendToAll ? 'bg-green-100' : 'bg-orange-100'
+                  }`}>
+                    <span className="text-2xl">{group.isSendToAll ? '📢' : sportEmojis[group.deporte] || '⚽'}</span>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="font-bold text-slate-900 truncate">{group.isSendToAll ? '📢 Todos los Grupos' : group.deporte}</div>
+                    <div className="text-sm text-slate-600 truncate">
+                      {group.isSendToAll ? 'Anuncio general' : `${displayGroup.messages?.length || 0} mensajes`}
+                    </div>
+                  </div>
+                  {displayGroup.unreadCount > 0 && (
+                    <Badge className={`${
+                      displayGroup.urgentCount > 0 ? 'bg-red-600 animate-pulse' : 'bg-orange-600'
+                    } text-white text-sm h-7 min-w-7 rounded-full flex items-center justify-center shadow-lg`}>
+                      {displayGroup.unreadCount}
+                    </Badge>
+                  )}
+                </button>
+              );
+            })}
+          </div>
         </div>
       )}
 
@@ -368,6 +390,17 @@ export default function AdminChat() {
             <div className={`p-4 text-white flex items-center gap-3 shadow-md flex-shrink-0 ${
               sendToAll ? 'bg-gradient-to-r from-green-600 to-green-700' : 'bg-gradient-to-r from-orange-600 to-orange-700'
             }`}>
+            {isMobile && (
+              <button
+                onClick={() => {
+                  setSelectedGroup(null);
+                  setSendToAll(false);
+                }}
+                className="mr-2 p-2 hover:bg-white/20 rounded-lg transition-colors"
+              >
+                <ArrowLeft className="w-5 h-5" />
+              </button>
+            )}
             <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
               {sendToAll ? <Users className="w-6 h-6" /> : <span className="text-xl">{sportEmojis[currentGroup?.deporte]}</span>}
             </div>
