@@ -105,10 +105,21 @@ export default function ParentPaymentForm({ players, payments = [], onSubmit, on
       
       // Verificar si ya tiene un pago único pagado
       const pagoUnico = jugadorPayments.find(p => p.tipo_pago === "Único" && p.estado === "Pagado");
-      setPagoUnicoPagado(!!pagoUnico);
       
-      // Si tiene pago único pagado, no continuar
-      if (pagoUnico) {
+      // Obtener meses ya pagados en modalidad Tres meses
+      const mesesPagados = jugadorPayments
+        .filter(p => p.tipo_pago === "Tres meses" && p.estado === "Pagado")
+        .map(p => p.mes);
+      
+      // Verificar si todos los meses están pagados
+      const todosMesesPagados = ["Junio", "Septiembre", "Diciembre"].every(m => mesesPagados.includes(m));
+      
+      // Solo bloquear si tiene TODO completado
+      const estaTodoCompletado = !!pagoUnico || todosMesesPagados;
+      setPagoUnicoPagado(estaTodoCompletado);
+      
+      // Si está todo completado, no configurar más el formulario
+      if (estaTodoCompletado) {
         return;
       }
       
@@ -121,18 +132,6 @@ export default function ParentPaymentForm({ players, payments = [], onSubmit, on
       }
       
       const cuotas = getCuotasPorCategoria(player.deporte);
-      
-      // Obtener meses ya pagados
-      const mesesPagados = jugadorPayments
-        .filter(p => p.tipo_pago === "Tres meses" && p.estado === "Pagado")
-        .map(p => p.mes);
-      
-      // Si todos los meses están pagados en tres pagos, no permitir más registros
-      const todosMesesPagados = ["Junio", "Septiembre", "Diciembre"].every(m => mesesPagados.includes(m));
-      if (todosMesesPagados) {
-        setPagoUnicoPagado(true);
-        return;
-      }
       
       // Seleccionar el primer mes disponible si el actual está pagado
       let mesSeleccionado = currentPayment.mes;
