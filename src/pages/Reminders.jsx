@@ -998,9 +998,9 @@ Temporada ${reminder.temporada}
                                   <div className={`w-2 h-2 rounded-full flex-shrink-0 ${isPaid ? 'bg-green-500' : 'bg-red-500'}`} />
                                   <div className="flex-1">
                                     <p className="text-sm font-medium text-slate-900">{pago.mes}</p>
-                                    <p className="text-xs text-slate-600">
-                                      {pago.isVirtual ? "" : `${pago.cantidad}€`}
-                                    </p>
+                                    {isPaid && pago.cantidad > 0 && (
+                                      <p className="text-xs text-slate-600">{pago.cantidad}€</p>
+                                    )}
                                   </div>
                                 </div>
                                 {isPaid ? (
