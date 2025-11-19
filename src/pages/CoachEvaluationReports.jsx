@@ -50,7 +50,7 @@ export default function CoachEvaluationReports() {
     initialData: [],
   });
 
-  // Filtrar categorías según el rol del usuario
+  // Filtrar categorías según el rol del usuario (solo sus categorías asignadas)
   const allCategories = [...new Set(players.map(p => p.deporte).filter(Boolean))];
   const categories = user?.role === "admin" 
     ? allCategories 
