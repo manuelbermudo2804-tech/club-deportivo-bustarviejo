@@ -13,6 +13,7 @@ import { AnimatePresence } from "framer-motion";
 
 import ContactCard from "../components/ContactCard";
 import ParentPaymentForm from "../components/payments/ParentPaymentForm";
+import { getCuotasPorCategoria, getImportePorCategoriaYMes as getImportePorMes } from "../components/payments/paymentAmounts";
 
 export default function ParentPayments() {
   const [uploadingPaymentId, setUploadingPaymentId] = useState(null);
@@ -380,41 +381,83 @@ Email: cdbustarviejo@gmail.com
               player.nombre.toLowerCase().includes(searchTerm.toLowerCase())
             )
             .map((player) => {
-              const playerPayments = payments.filter(p => p.jugador_id === player.id);
+              const allPlayerPayments = payments.filter(p => p.jugador_id === player.id);
               
               // Si tiene pago único pagado o en revisión, solo mostrar Junio
-              const hasPagoUnico = playerPayments.some(p => 
+              const hasPagoUnico = allPlayerPayments.some(p => 
                 (p.tipo_pago === "Único" || p.tipo_pago === "único") && 
                 (p.estado === "Pagado" || p.estado === "En revisión")
               );
               
-              const relevantPayments = hasPagoUnico 
-                ? playerPayments.filter(p => p.mes === "Junio")
-                : playerPayments;
+              const playerPayments = hasPagoUnico 
+                ? allPlayerPayments.filter(p => p.mes === "Junio")
+                : allPlayerPayments;
               
-              const pendingPayments = relevantPayments.filter(p => p.estado === "Pendiente");
-              const reviewPayments = relevantPayments.filter(p => p.estado === "En revisión");
-              const paidPayments = relevantPayments.filter(p => p.estado === "Pagado");
+              // Determinar los meses que debería tener este jugador
+              const allMonths = hasPagoUnico
+                ? ["Junio"]
+                : ["Junio", "Septiembre", "Diciembre"];
+
+              // Crear pagos virtuales para los meses que faltan
+              const displayPayments = allMonths.map(mes => {
+                const existingPayment = playerPayments.find(p => p.mes === mes);
+                if (existingPayment) {
+                  return existingPayment;
+                }
+                // Crear un pago virtual pendiente con cantidad correcta
+                const cuotas = getCuotasPorCategoria(player.deporte);
+                const cantidad = hasPagoUnico 
+                  ? cuotas.total 
+                  : getImportePorMes(player.deporte, mes);
+                
+                return {
+                  id: `virtual-${player.id}-${mes}`,
+                  jugador_id: player.id,
+                  jugador_nombre: player.nombre,
+                  mes: mes,
+                  temporada: currentSeason,
+                  estado: "Pendiente",
+                  cantidad: cantidad,
+                  tipo_pago: hasPagoUnico ? "Único" : "Tres meses",
+                  isVirtual: true
+                };
+              });
+              
+              // Contar solo pagos REALES (no virtuales)
+              const realPayments = displayPayments.filter(p => !p.isVirtual);
+              const pendingPayments = realPayments.filter(p => p.estado === "Pendiente");
+              const reviewPayments = realPayments.filter(p => p.estado === "En revisión");
+              const paidPayments = realPayments.filter(p => p.estado === "Pagado");
+              
+              // Contar cuántos pagos faltan (incluyendo virtuales)
+              const totalPaymentsDue = displayPayments.filter(p => p.estado === "Pendiente").length;
 
               return (
                 <Card key={player.id} className="border-none shadow-lg bg-white overflow-hidden">
                   <CardHeader className="bg-slate-50 border-b">
-                    <div className="flex items-center gap-3">
-                      {player.foto_url ? (
-                        <img src={player.foto_url} className="w-12 h-12 rounded-full object-cover" alt="" />
-                      ) : (
-                        <div className="w-12 h-12 rounded-full bg-orange-500 flex items-center justify-center text-white font-bold text-lg">
-                          {player.nombre.charAt(0)}
+                    <div className="flex items-center justify-between gap-3">
+                      <div className="flex items-center gap-3">
+                        {player.foto_url ? (
+                          <img src={player.foto_url} className="w-12 h-12 rounded-full object-cover" alt="" />
+                        ) : (
+                          <div className="w-12 h-12 rounded-full bg-orange-500 flex items-center justify-center text-white font-bold text-lg">
+                            {player.nombre.charAt(0)}
+                          </div>
+                        )}
+                        <div>
+                          <CardTitle className="text-xl text-slate-900">{player.nombre}</CardTitle>
+                          <p className="text-sm text-slate-600">{player.deporte}</p>
                         </div>
-                      )}
-                      <div>
-                        <CardTitle className="text-xl text-slate-900">{player.nombre}</CardTitle>
-                        <p className="text-sm text-slate-600">{player.deporte}</p>
                       </div>
+                      {totalPaymentsDue > 0 && (
+                        <Badge className="bg-red-500 text-white">
+                          {totalPaymentsDue} Pendiente{totalPaymentsDue > 1 ? 's' : ''}
+                        </Badge>
+                      )}
                     </div>
                   </CardHeader>
                   <CardContent className="p-6">
-                    {relevantPayments.length === 0 ? (
+                    {playerPayments.length === 0 ? (
                       <div className="text-center py-8 text-slate-500">
                         <p>No hay pagos registrados para este jugador</p>
                         <Button
@@ -437,7 +480,7 @@ Email: cdbustarviejo@gmail.com
                       </div>
                     ) : (
                       <div className="space-y-3">
-                        {relevantPayments.map((payment) => (
+                        {displayPayments.map((payment) => (
                           <div key={payment.id} className={`border-l-4 p-3 rounded ${
                             payment.estado === "Pagado" ? "border-green-500 bg-green-50" :
                             payment.estado === "En revisión" ? "border-orange-500 bg-orange-50" :
