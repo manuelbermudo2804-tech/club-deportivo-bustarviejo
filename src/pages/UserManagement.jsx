@@ -604,9 +604,9 @@ export default function UserManagement() {
                                 size="sm"
                                 variant="outline"
                                 onClick={() => handleCoachToggle(user)}
-                                className={isCoach ? "bg-blue-100 hover:bg-blue-200 border-blue-400" : "bg-blue-50 hover:bg-blue-100 border-blue-300"}
+                                className={user.es_entrenador ? "bg-blue-100 hover:bg-blue-200 border-blue-400" : "bg-blue-50 hover:bg-blue-100 border-blue-300"}
                               >
-                                {isCoach ? "✅ Entrenador" : "🎓 Marcar Entrenador"}
+                                {user.es_entrenador ? "✅ Entrenador" : "🎓 Marcar Entrenador"}
                               </Button>
                               {(isCoordinator || isCoach) && (
                                 <Button
