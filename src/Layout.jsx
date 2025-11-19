@@ -509,9 +509,11 @@ export default function Layout({ children, currentPageName }) {
         setIsCoach(currentUser.es_entrenador === true && !currentUser.es_coordinador);
         setIsCoordinator(currentUser.es_coordinador === true);
 
-        // Para admin/entrenadores/coordinadores, solo usar el campo manual
+        // Para admin/entrenadores/coordinadores, SOLO usar el campo manual (no verificar BD)
         if (currentUser.role === "admin" || currentUser.es_entrenador || currentUser.es_coordinador) {
-          setHasPlayers(currentUser.tiene_hijos_jugando === true);
+          const tienehijos = currentUser.tiene_hijos_jugando === true;
+          console.log('Admin/Entrenador/Coordinador - tiene_hijos_jugando:', currentUser.tiene_hijos_jugando, 'resultado:', tienehijos);
+          setHasPlayers(tienehijos);
         } else {
           // Para padres normales, verificar en la base de datos
           const allPlayers = await base44.entities.Player.list();
@@ -519,6 +521,7 @@ export default function Layout({ children, currentPageName }) {
             p.email_padre === currentUser.email || 
             p.email_tutor_2 === currentUser.email
           );
+          console.log('Padre normal - jugadores encontrados:', myPlayers.length);
           setHasPlayers(myPlayers.length > 0);
         }
         
