@@ -339,7 +339,7 @@ export default function ParentChat() {
       )}
 
       <div className="flex-1 flex flex-col">
-        {selectedTab && currentGroup && (
+        {selectedTab && currentGroup ? (
           <>
             <div className="bg-gradient-to-r from-orange-600 to-orange-700 p-4 text-white flex items-center gap-3 shadow-md flex-shrink-0">
               {isMobile && (
@@ -473,7 +473,14 @@ export default function ParentChat() {
             </div>
           </div>
           </>
-        )}
+        ) : selectedTab && !currentGroup ? (
+          <div className="flex items-center justify-center h-full">
+            <div className="text-center">
+              <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-orange-600 border-r-transparent mb-4"></div>
+              <p className="text-slate-600">Cargando chat...</p>
+            </div>
+          </div>
+        ) : null}
       </div>
 
       {/* Sidebar with chat list - Desktop only */}
