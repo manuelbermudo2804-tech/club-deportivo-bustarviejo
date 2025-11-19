@@ -433,25 +433,28 @@ export default function Calendar() {
                   </div>
                   <div className="space-y-0.5 lg:space-y-1">
                     {callups.map((c, idx) => (
-                      <div key={`callup-${idx}`} className="text-[10px] lg:text-xs px-1 lg:px-2 py-0.5 lg:py-1 rounded bg-blue-600 text-white font-bold truncate" title={c.titulo}>
-                        ⚽ {c.rival ? `vs ${c.rival}` : c.titulo.substring(0, 12)}
+                      <div key={`callup-${idx}`} className="text-[10px] lg:text-xs px-1 lg:px-2 py-0.5 lg:py-1 rounded bg-blue-600 text-white font-bold truncate shadow-sm" title={c.titulo}>
+                        ⚽ {c.rival ? `vs ${c.rival}` : c.titulo.substring(0, 15)}
                       </div>
                     ))}
                     {events.filter(e => e.importante).map((e, idx) => (
-                      <div key={`important-${idx}`} className="text-[10px] lg:text-xs px-1 lg:px-2 py-0.5 lg:py-1 rounded bg-red-600 text-white font-bold truncate" title={e.titulo}>
-                        ⭐ {e.titulo.substring(0, 12)}
+                      <div key={`important-${idx}`} className="text-[10px] lg:text-xs px-1 lg:px-2 py-0.5 lg:py-1 rounded bg-red-600 text-white font-bold truncate shadow-sm" title={e.titulo}>
+                        ⭐ {e.titulo.substring(0, 15)}
                       </div>
                     ))}
                     {events.filter(e => !e.importante).map((e, idx) => (
-                      <div key={`event-${idx}`} className="text-[10px] lg:text-xs px-1 lg:px-2 py-0.5 lg:py-1 rounded bg-orange-600 text-white font-bold truncate" title={e.titulo}>
-                        📅 {e.titulo.substring(0, 12)}
+                      <div key={`event-${idx}`} className="text-[10px] lg:text-xs px-1 lg:px-2 py-0.5 lg:py-1 rounded bg-orange-600 text-white font-bold truncate shadow-sm" title={e.titulo}>
+                        📅 {e.titulo.substring(0, 15)}
                       </div>
                     ))}
-                    {trainings.map((t, idx) => (
-                      <div key={`training-${idx}`} className="text-[10px] lg:text-xs px-1 lg:px-2 py-0.5 lg:py-1 rounded bg-green-600 text-white font-bold truncate" title={t.category}>
-                        🏃 {t.category.split(' ').pop()}
-                      </div>
-                    ))}
+                    {trainings.map((t, idx) => {
+                      const categoryName = t.category.replace('Fútbol ', '').replace(' (Mixto)', '').replace('Baloncesto', 'Basket');
+                      return (
+                        <div key={`training-${idx}`} className="text-[10px] lg:text-xs px-1 lg:px-2 py-0.5 lg:py-1 rounded bg-green-600 text-white font-bold truncate" title={t.category}>
+                          🏃 {categoryName}
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
               );
