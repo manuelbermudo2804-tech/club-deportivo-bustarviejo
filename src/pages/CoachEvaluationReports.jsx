@@ -35,8 +35,8 @@ export default function CoachEvaluationReports() {
       const currentUser = await base44.auth.me();
       setUser(currentUser);
       
-      // Si es entrenador, pre-seleccionar su primera categoría
-      if (currentUser.es_entrenador && !currentUser.role === "admin") {
+      // Si es entrenador (no coordinador), pre-seleccionar su primera categoría
+      if (currentUser.es_entrenador && !currentUser.es_coordinador && !currentUser.role === "admin") {
         const categories = currentUser.categorias_entrena || [];
         if (categories.length === 1) {
           setSelectedCategory(categories[0]);
@@ -404,7 +404,7 @@ CD Bustarviejo
         <div>
           <h1 className="text-2xl lg:text-3xl font-bold text-slate-900">📊 Evaluaciones de Entrenadores</h1>
           <p className="text-slate-600 mt-1">
-            {user?.role === "admin" 
+            {user?.role === "admin" || user?.es_coordinador
               ? "Historial completo de actitud evaluada por los entrenadores" 
               : "Historial de tus evaluaciones de actitud"}
           </p>
