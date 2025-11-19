@@ -230,7 +230,18 @@ export default function UserManagement() {
       userData: {
         es_coordinador: isSettingAsCoordinator,
         es_entrenador: isSettingAsCoordinator ? false : selectedUser.es_entrenador,
-        categorias_entrena: isSettingAsCoordinator ? [] : selectedUser.categorias_entrena
+        categorias_entrena: isSettingAsCoordinator ? [] : selectedUser.categorias_entrena,
+        tiene_hijos_jugando: isSettingAsCoordinator ? false : selectedUser.tiene_hijos_jugando
+      }
+    });
+  };
+
+  const handleToggleHijos = async (user) => {
+    const newValue = !user.tiene_hijos_jugando;
+    updateUserMutation.mutate({
+      userId: user.id,
+      userData: {
+        tiene_hijos_jugando: newValue
       }
     });
   };
@@ -515,10 +526,22 @@ export default function UserManagement() {
                           <span>{user.email}</span>
                         </div>
 
+                        {isCoordinator && (
+                          <div className="text-sm text-cyan-700 bg-cyan-100 rounded p-2 mb-2">
+                            <strong>🎓 Coordinador Deportivo</strong>
+                            {user.tiene_hijos_jugando && (
+                              <span className="ml-2">• 👨‍👩‍👧 Con hijos jugando</span>
+                            )}
+                          </div>
+                        )}
+
                         {isCoach && user.categorias_entrena && user.categorias_entrena.length > 0 && (
                           <div className="text-sm text-blue-700 bg-blue-100 rounded p-2 mb-2">
                             <strong>🏃 Entrena:</strong> {user.categorias_entrena.join(", ")}
                             {user.telefono_entrenador && ` • 📱 ${user.telefono_entrenador}`}
+                            {user.tiene_hijos_jugando && (
+                              <span className="ml-2">• 👨‍👩‍👧 Con hijos jugando</span>
+                            )}
                           </div>
                         )}
 
@@ -588,6 +611,16 @@ export default function UserManagement() {
                               >
                                 {isCoach ? "✅ Entrenador" : "🎓 Marcar Entrenador"}
                               </Button>
+                              {(isCoordinator || isCoach) && (
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => handleToggleHijos(user)}
+                                  className={user.tiene_hijos_jugando ? "bg-green-100 hover:bg-green-200 border-green-400" : "bg-slate-50 hover:bg-slate-100 border-slate-300"}
+                                >
+                                  {user.tiene_hijos_jugando ? "✅ Con hijos" : "👨‍👩‍👧 Tiene hijos"}
+                                </Button>
+                              )}
                               <Button
                                 size="sm"
                                 variant="outline"
@@ -802,9 +835,13 @@ export default function UserManagement() {
               <p className="text-sm text-orange-900 font-bold mb-2">
                 ⚠️ Importante:
               </p>
-              <p className="text-sm text-orange-800">
+              <p className="text-sm text-orange-800 mb-2">
                 Al marcar como Coordinador, <strong>se quitará automáticamente el rol de Entrenador</strong> si lo tiene, 
                 ya que el Coordinador tiene permisos superiores sobre todas las categorías.
+              </p>
+              <p className="text-sm text-orange-800">
+                Después de asignarlo, usa el botón <strong>"Tiene hijos"</strong> para darle acceso a funciones de padre 
+                (gestión de jugadores y pagos) si tiene hijos en el club.
               </p>
             </div>
           </div>

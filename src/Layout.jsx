@@ -509,13 +509,19 @@ export default function Layout({ children, currentPageName }) {
         setIsCoach(currentUser.es_entrenador === true && !currentUser.es_coordinador);
         setIsCoordinator(currentUser.es_coordinador === true);
         
-        if (currentUser.role === "admin" || currentUser.es_entrenador) {
-          const allPlayers = await base44.entities.Player.list();
-          const myPlayers = allPlayers.filter(p => 
-            p.email_padre === currentUser.email || 
-            p.email_tutor_2 === currentUser.email
-          );
-          setHasPlayers(myPlayers.length > 0);
+        if (currentUser.role === "admin" || currentUser.es_entrenador || currentUser.es_coordinador) {
+          // Prioridad al campo manual tiene_hijos_jugando
+          if (currentUser.tiene_hijos_jugando) {
+            setHasPlayers(true);
+          } else {
+            // Si no está marcado, verificar en la base de datos
+            const allPlayers = await base44.entities.Player.list();
+            const myPlayers = allPlayers.filter(p => 
+              p.email_padre === currentUser.email || 
+              p.email_tutor_2 === currentUser.email
+            );
+            setHasPlayers(myPlayers.length > 0);
+          }
         }
         
         if (currentUser.acceso_activo === false && currentUser.role !== "admin") {
