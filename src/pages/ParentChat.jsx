@@ -255,7 +255,7 @@ export default function ParentChat() {
   }
 
   return (
-    <div className="fixed inset-0 flex flex-col bg-white" style={{ top: isMobile ? '120px' : '0' }}>
+    <div className="fixed inset-0 flex bg-white" style={{ top: isMobile ? '120px' : '0', left: isMobile ? '0' : '288px' }}>
       {/* Mobile group selector - FIXED at top */}
       {myGroups.length > 1 && isMobile && (
         <div className="fixed top-[120px] left-0 right-0 z-20 bg-white border-b p-2 shadow-sm">
@@ -301,9 +301,10 @@ export default function ParentChat() {
         </div>
       )}
 
-      {currentGroup && (
-        <>
-          <div className="bg-gradient-to-r from-orange-600 to-orange-700 p-4 text-white flex items-center gap-3 shadow-md flex-shrink-0" style={{ marginTop: myGroups.length > 1 && isMobile ? '56px' : '0' }}>
+      <div className="flex-1 flex flex-col" style={{ marginTop: isMobile && myGroups.length > 1 ? '56px' : '0' }}>
+        {currentGroup && (
+          <>
+            <div className="bg-gradient-to-r from-orange-600 to-orange-700 p-4 text-white flex items-center gap-3 shadow-md flex-shrink-0">
             <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
               <span className="text-xl">{sportEmojis[currentGroup.deporte]}</span>
             </div>
