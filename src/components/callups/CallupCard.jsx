@@ -159,7 +159,7 @@ export default function CallupCard({ callup, onEdit, onDelete, isCoach }) {
               </div>
             </div>
 
-            <div className="pt-2 border-t border-slate-200 space-y-2">
+            <div className="pt-2 border-t border-slate-200">
               <div className="flex items-center gap-2 text-slate-700">
                 <Users className="w-4 h-4 text-orange-600" />
                 <span className="text-sm">
@@ -167,9 +167,11 @@ export default function CallupCard({ callup, onEdit, onDelete, isCoach }) {
                 </span>
               </div>
             </div>
-            
-            {/* Lista de jugadores por estado de confirmación */}
-            <div className="space-y-2 mt-3">
+          </div>
+          
+          {/* Lista de jugadores por estado de confirmación */}
+          {jugadores.length > 0 && (
+            <div className="space-y-2">
               {confirmed > 0 && (
                 <div className="bg-green-50 rounded-lg p-3 border border-green-200">
                   <p className="text-xs font-semibold text-green-800 mb-2">✅ Confirmados ({confirmed}):</p>
@@ -218,7 +220,7 @@ export default function CallupCard({ callup, onEdit, onDelete, isCoach }) {
                 </div>
               )}
             </div>
-          </div>
+          )}
 
           {/* Actions */}
           {isCoach && (
