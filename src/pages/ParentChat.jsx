@@ -345,6 +345,8 @@ export default function ParentChat() {
                       className={`max-w-[75%] rounded-lg shadow-sm ${
                         msg.tipo === "padre_a_grupo"
                           ? 'bg-gradient-to-r from-green-600 to-green-700 text-white rounded-br-none'
+                          : msg.tipo === "coordinador_a_familia"
+                          ? 'bg-gradient-to-r from-cyan-600 to-cyan-700 text-white rounded-bl-none'
                           : 'bg-white text-slate-900 rounded-bl-none'
                       }`}
                     >
