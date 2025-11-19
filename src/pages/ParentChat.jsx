@@ -227,6 +227,19 @@ export default function ParentChat() {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [currentGroup?.messages]);
 
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const groupParam = params.get('group');
+    if (groupParam && myGroups.length > 0) {
+      const targetGroup = myGroups.find(g => g.deporte === groupParam);
+      if (targetGroup) {
+        setSelectedTab(targetGroup.id);
+      }
+    } else if (!selectedTab && myGroups.length > 0) {
+      setSelectedTab(myGroups[0].id);
+    }
+  }, [location.search, myGroups.length]);
+
   if (loadingMessages || loadingPlayers || !user) {
     return (
       <div className="flex items-center justify-center min-h-screen">
