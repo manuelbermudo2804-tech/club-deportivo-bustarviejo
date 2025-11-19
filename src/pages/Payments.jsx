@@ -378,7 +378,44 @@ Email: cdbustarviejo@gmail.com
     return totalPendientes;
   }, [players, payments, temporadaFilter]);
   
-  // Calcular vencidos: pagos que pasó la fecha de vencimiento
+  // Calcular vencidos: cuotas que pasaron su fecha de vencimiento
+  const overdueCount = React.useMemo(() => {
+    let totalVencidos = 0;
+    
+    players.forEach(player => {
+      const playerPayments = payments.filter(p => 
+        p.jugador_id === player.id && 
+        p.temporada === temporadaFilter
+      );
+      
+      // Verificar si tiene pago único pagado
+      const hasPagoUnico = playerPayments.some(p => 
+        (p.tipo_pago === "Único" || p.tipo_pago === "único") && 
+        p.estado === "Pagado"
+      );
+      
+      if (hasPagoUnico) {
+        // Si tiene pago único pagado, no hay vencidos
+        return;
+      }
+      
+      // Verificar cada mes (Junio, Septiembre, Diciembre)
+      const allMonths = ["Junio", "Septiembre", "Diciembre"];
+      
+      allMonths.forEach(mes => {
+        const pagoMes = playerPayments.find(p => p.mes === mes);
+        const daysOverdue = calculateDaysOverdue(mes);
+        
+        // Si no tiene pago o el pago no está pagado, y ya pasó la fecha de vencimiento
+        if (daysOverdue > 0 && (!pagoMes || pagoMes.estado !== "Pagado")) {
+          totalVencidos++;
+        }
+      });
+    });
+    
+    return totalVencidos;
+  }, [players, payments, temporadaFilter]);
+  
   const overduePayments = payments.filter(p => {
     if (p.estado === "Pagado" || p.temporada !== temporadaFilter) return false;
     return calculateDaysOverdue(p.mes) > 0;
@@ -521,7 +558,7 @@ Email: cdbustarviejo@gmail.com
                 <div className="flex items-center justify-between">
                   <div className="flex-1">
                     <p className="text-sm text-red-900 mb-1 font-semibold">Vencidos</p>
-                    <p className="text-3xl font-bold text-red-700">{overduePayments.length}</p>
+                    <p className="text-3xl font-bold text-red-700">{overdueCount}</p>
                     <p className="text-[10px] text-red-700 mt-1">Pasó fecha límite</p>
                   </div>
                   <AlertTriangle className="w-10 h-10 text-red-600" />
@@ -546,7 +583,7 @@ Email: cdbustarviejo@gmail.com
       </div>
 
       {/* Alerta de pagos vencidos */}
-      {isAdmin && overduePayments.length > 0 && (
+      {isAdmin && overdueCount > 0 && (
         <Card className="border-2 border-red-400 bg-red-50">
           <CardContent className="pt-6">
             <div className="flex items-start gap-4">
@@ -554,7 +591,7 @@ Email: cdbustarviejo@gmail.com
               <div className="flex-1">
                 <h3 className="font-bold text-red-900 mb-2">⚠️ Pagos Vencidos Detectados</h3>
                 <p className="text-sm text-red-800 mb-3">
-                  Hay {overduePayments.length} pago(s) vencido(s) que requieren atención
+                  Hay {overdueCount} cuota(s) vencida(s) que requieren atención
                 </p>
                 <Button
                   size="sm"
