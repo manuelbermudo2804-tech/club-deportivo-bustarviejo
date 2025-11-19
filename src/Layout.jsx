@@ -512,7 +512,15 @@ export default function Layout({ children, currentPageName }) {
         // Para admin/entrenadores/coordinadores, SOLO usar el campo manual (no verificar BD)
         if (currentUser.role === "admin" || currentUser.es_entrenador || currentUser.es_coordinador) {
           const tienehijos = currentUser.tiene_hijos_jugando === true;
-          console.log('Admin/Entrenador/Coordinador - tiene_hijos_jugando:', currentUser.tiene_hijos_jugando, 'resultado:', tienehijos);
+          console.log('🔍 DEPURACIÓN:', {
+            email: currentUser.email,
+            role: currentUser.role,
+            es_entrenador: currentUser.es_entrenador,
+            es_coordinador: currentUser.es_coordinador,
+            tiene_hijos_jugando_RAW: currentUser.tiene_hijos_jugando,
+            tiene_hijos_jugando_TYPE: typeof currentUser.tiene_hijos_jugando,
+            resultado_hasPlayers: tienehijos
+          });
           setHasPlayers(tienehijos);
         } else {
           // Para padres normales, verificar en la base de datos
