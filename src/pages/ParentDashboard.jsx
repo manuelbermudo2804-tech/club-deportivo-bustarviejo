@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { Users, Calendar, Bell, MessageCircle, CreditCard, Image, Megaphone, Clock, ShoppingBag, FileText, Award, AlertCircle } from "lucide-react";
 
@@ -9,6 +9,7 @@ import SocialLinks from "../components/SocialLinks";
 import PushNotificationManager from "../components/push/PushNotificationManager";
 
 export default function ParentDashboard() {
+  const navigate = useNavigate();
   const [user, setUser] = useState(null);
   const [myPlayersSports, setMyPlayersSports] = useState([]);
 
@@ -311,12 +312,13 @@ export default function ParentDashboard() {
                   <strong>Nota:</strong> Para pagos, inscripciones o temas administrativos, contacta con la oficina del club
                 </p>
               </div>
-              <Link to={createPageUrl("ParentChat") + "?group=Coordinación Deportiva"}>
-                <button className="w-full lg:w-auto bg-white hover:bg-blue-50 text-blue-700 font-bold py-2.5 px-6 rounded-xl shadow-lg transition-all hover:scale-105 active:scale-95 flex items-center justify-center gap-2">
-                  <MessageCircle className="w-4 h-4 lg:w-5 lg:h-5" />
-                  <span className="text-sm lg:text-base">Contactar con Coordinación</span>
-                </button>
-              </Link>
+              <button 
+                onClick={() => navigate(createPageUrl("ParentChat") + "?group=Coordinación Deportiva")}
+                className="w-full lg:w-auto bg-white hover:bg-blue-50 text-blue-700 font-bold py-2.5 px-6 rounded-xl shadow-lg transition-all hover:scale-105 active:scale-95 flex items-center justify-center gap-2"
+              >
+                <MessageCircle className="w-4 h-4 lg:w-5 lg:h-5" />
+                <span className="text-sm lg:text-base">Contactar con Coordinación</span>
+              </button>
             </div>
           </div>
         </div>
