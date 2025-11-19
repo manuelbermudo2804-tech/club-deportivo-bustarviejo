@@ -43,7 +43,7 @@ export default function ParentChat() {
     const groupParam = params.get('group');
     
     if (groupParam) {
-      const targetGroup = myGroups.find(g => g.deporte === groupParam);
+      const targetGroup = myGroups.find(g => g.deporte === decodeURIComponent(groupParam));
       if (targetGroup) {
         setSelectedTab(targetGroup.id);
         return;
