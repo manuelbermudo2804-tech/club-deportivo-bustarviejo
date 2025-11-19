@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -51,6 +50,7 @@ export default function UserManagement() {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showRoleDialog, setShowRoleDialog] = useState(false);
   const [showCoachDialog, setShowCoachDialog] = useState(false);
+  const [showCoordinatorDialog, setShowCoordinatorDialog] = useState(false);
   const [showDeleted, setShowDeleted] = useState(false);
   const [restrictionData, setRestrictionData] = useState({
     motivo_restriccion: "",
@@ -97,6 +97,7 @@ export default function UserManagement() {
       setShowDeleteDialog(false);
       setShowRoleDialog(false);
       setShowCoachDialog(false);
+      setShowCoordinatorDialog(false);
       setSelectedUser(null);
       setRestrictionData({ motivo_restriccion: "", notas_admin: "" });
       setCoachData({ categorias_entrena: [], telefono_entrenador: "" });
@@ -187,6 +188,11 @@ export default function UserManagement() {
     setShowCoachDialog(true);
   };
 
+  const handleCoordinatorToggle = (user) => {
+    setSelectedUser(user);
+    setShowCoordinatorDialog(true);
+  };
+
   const handleConfirmCoach = async () => {
     if (!selectedUser) return;
 
@@ -205,11 +211,27 @@ export default function UserManagement() {
     } else {
       updateData.categorias_entrena = [];
       updateData.telefono_entrenador = null;
+      updateData.es_coordinador = false;
     }
 
     updateUserMutation.mutate({
       userId: selectedUser.id,
       userData: updateData
+    });
+  };
+
+  const handleConfirmCoordinator = async () => {
+    if (!selectedUser) return;
+
+    const isSettingAsCoordinator = !selectedUser.es_coordinador;
+
+    updateUserMutation.mutate({
+      userId: selectedUser.id,
+      userData: {
+        es_coordinador: isSettingAsCoordinator,
+        es_entrenador: isSettingAsCoordinator ? false : selectedUser.es_entrenador,
+        categorias_entrena: isSettingAsCoordinator ? [] : selectedUser.categorias_entrena
+      }
     });
   };
 
@@ -255,7 +277,8 @@ export default function UserManagement() {
   const admins = activeUsersWithoutDeleted.filter(u => u.role === "admin");
   const deletedUsers = users.filter(u => u.eliminado === true);
   const jugadores = activeUsersWithoutDeleted.filter(u => u.role === "jugador");
-  const entrenadores = activeUsersWithoutDeleted.filter(u => u.es_entrenador === true);
+  const entrenadores = activeUsersWithoutDeleted.filter(u => u.es_entrenador === true && !u.es_coordinador);
+  const coordinadores = activeUsersWithoutDeleted.filter(u => u.es_coordinador === true);
 
 
   return (
@@ -266,7 +289,7 @@ export default function UserManagement() {
       </div>
 
       {/* Estadísticas */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-7 gap-6">
         <Card className="border-none shadow-lg">
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
@@ -311,6 +334,18 @@ export default function UserManagement() {
                 <p className="text-3xl font-bold text-blue-600">{entrenadores.length}</p>
               </div>
               <Users className="w-12 h-12 text-blue-500 opacity-20" />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="border-none shadow-lg border-2 border-cyan-200 bg-cyan-50">
+          <CardContent className="pt-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-slate-600 mb-1">🎓 Coordinadores</p>
+                <p className="text-3xl font-bold text-cyan-600">{coordinadores.length}</p>
+              </div>
+              <Shield className="w-12 h-12 text-cyan-500 opacity-20" />
             </div>
           </CardContent>
         </Card>
@@ -420,7 +455,8 @@ export default function UserManagement() {
                 const hasRestriction = user.acceso_activo === false;
                 const isDeleted = user.eliminado === true;
                 const linkedPlayer = user.jugador_id ? players.find(p => p.id === user.jugador_id) : null;
-                const isCoach = user.es_entrenador === true;
+                const isCoach = user.es_entrenador === true && !user.es_coordinador;
+                const isCoordinator = user.es_coordinador === true;
 
                 return (
                   <div
@@ -430,6 +466,8 @@ export default function UserManagement() {
                         ? 'bg-slate-100 border-slate-400 opacity-75'
                         : hasRestriction
                         ? 'bg-red-50 border-red-200'
+                        : isCoordinator
+                        ? 'bg-cyan-50 border-cyan-300'
                         : isCoach
                         ? 'bg-blue-50 border-blue-300'
                         : 'bg-white border-slate-200 hover:border-orange-300'
@@ -448,6 +486,11 @@ export default function UserManagement() {
                           }>
                             {user.role === "admin" ? "🎓 Administrador" : user.role === "jugador" ? "⚽ Jugador" : "👨‍👩‍👧 Padre/Tutor"}
                           </Badge>
+                          {isCoordinator && (
+                            <Badge className="bg-cyan-600 text-white">
+                              🎓 Coordinador Deportivo
+                            </Badge>
+                          )}
                           {isCoach && (
                             <Badge className="bg-blue-600 text-white">
                               🏃 Entrenador
@@ -531,7 +574,16 @@ export default function UserManagement() {
                               <Button
                                 size="sm"
                                 variant="outline"
+                                onClick={() => handleCoordinatorToggle(user)}
+                                className={isCoordinator ? "bg-cyan-100 hover:bg-cyan-200 border-cyan-400" : "bg-cyan-50 hover:bg-cyan-100 border-cyan-300"}
+                              >
+                                {isCoordinator ? "✅ Coordinador" : "🎓 Marcar Coordinador"}
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="outline"
                                 onClick={() => handleCoachToggle(user)}
+                                disabled={isCoordinator}
                                 className={isCoach ? "bg-blue-100 hover:bg-blue-200 border-blue-400" : "bg-blue-50 hover:bg-blue-100 border-blue-300"}
                               >
                                 {isCoach ? "✅ Entrenador" : "🎓 Marcar Entrenador"}
@@ -708,6 +760,79 @@ export default function UserManagement() {
                 "Quitar Rol de Entrenador"
               ) : (
                 "Confirmar Entrenador"
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Diálogo de Coordinador */}
+      <Dialog open={showCoordinatorDialog} onOpenChange={setShowCoordinatorDialog}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="text-2xl flex items-center gap-2">
+              <Shield className="w-6 h-6 text-cyan-600" />
+              {selectedUser?.es_coordinador ? "Quitar Rol de Coordinador" : "Asignar como Coordinador Deportivo"}
+            </DialogTitle>
+            <DialogDescription>
+              {selectedUser?.es_coordinador ? (
+                <>Quitar permisos de Coordinador a <strong>{selectedUser?.full_name}</strong></>
+              ) : (
+                <>Asignar permisos de Coordinador-Director Deportivo a <strong>{selectedUser?.full_name}</strong></>
+              )}
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 py-4">
+            <div className="bg-cyan-50 border-2 border-cyan-300 rounded-lg p-4">
+              <p className="text-sm text-cyan-900 font-bold mb-2">
+                🎓 Permisos de Coordinador-Director Deportivo:
+              </p>
+              <ul className="text-sm text-cyan-800 space-y-1">
+                <li>✅ <strong>Visibilidad completa:</strong> Asistencia y evaluaciones de todas las categorías</li>
+                <li>✅ <strong>Reportes:</strong> Ver reportes de entrenadores de todos los equipos</li>
+                <li>✅ <strong>Plantillas:</strong> Acceso a todos los jugadores del club</li>
+                <li>✅ <strong>Convocatorias:</strong> Ver todas las convocatorias (sin crear)</li>
+                <li>✅ <strong>Chat especial:</strong> "Coordinación Deportiva" para familias</li>
+                <li>❌ <strong>NO gestiona:</strong> Pagos, inscripciones, administración</li>
+              </ul>
+            </div>
+
+            <div className="bg-orange-50 border-2 border-orange-300 rounded-lg p-4">
+              <p className="text-sm text-orange-900 font-bold mb-2">
+                ⚠️ Importante:
+              </p>
+              <p className="text-sm text-orange-800">
+                Al marcar como Coordinador, <strong>se quitará automáticamente el rol de Entrenador</strong> si lo tiene, 
+                ya que el Coordinador tiene permisos superiores sobre todas las categorías.
+              </p>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setShowCoordinatorDialog(false);
+                setSelectedUser(null);
+              }}
+            >
+              Cancelar
+            </Button>
+            <Button
+              onClick={handleConfirmCoordinator}
+              disabled={updateUserMutation.isPending}
+              className={selectedUser?.es_coordinador ? "bg-red-600 hover:bg-red-700" : "bg-cyan-600 hover:bg-cyan-700"}
+            >
+              {updateUserMutation.isPending ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Procesando...
+                </>
+              ) : selectedUser?.es_coordinador ? (
+                "Quitar Rol de Coordinador"
+              ) : (
+                "Confirmar Coordinador Deportivo"
               )}
             </Button>
           </DialogFooter>
