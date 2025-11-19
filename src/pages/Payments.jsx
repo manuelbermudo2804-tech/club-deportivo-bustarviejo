@@ -698,17 +698,30 @@ Email: cdbustarviejo@gmail.com
                         (p.estado === "Pagado" || p.estado === "En revisión")
                       );
 
-                      // Si tiene pago único, solo mostrar ese pago (Junio), ignorar los demás
-                      const playerPayments = hasPagoUnico
-                        ? allPlayerPayments.filter(p => p.mes === "Junio")
-                        : allPlayerPayments;
-
+                      // Determinar los meses que debería tener este jugador
                       const allMonths = hasPagoUnico
                         ? ["Junio"]
                         : ["Junio", "Septiembre", "Diciembre"];
 
-                      // Mostrar solo los pagos reales que existen en la base de datos
-                      const displayPayments = playerPayments;
+                      // Crear pagos virtuales para los meses que faltan
+                      const displayPayments = allMonths.map(mes => {
+                        const existingPayment = allPlayerPayments.find(p => p.mes === mes);
+                        if (existingPayment) {
+                          return existingPayment;
+                        }
+                        // Crear un pago virtual pendiente
+                        return {
+                          id: `virtual-${player.id}-${mes}`,
+                          jugador_id: player.id,
+                          jugador_nombre: player.nombre,
+                          mes: mes,
+                          temporada: temporadaFilter,
+                          estado: "Pendiente",
+                          cantidad: 0,
+                          tipo_pago: hasPagoUnico ? "Único" : "Tres meses",
+                          isVirtual: true
+                        };
+                      });
                       
                       const pendingPayments = displayPayments.filter(p => p.estado === "Pendiente");
                       const reviewPayments = displayPayments.filter(p => p.estado === "En revisión");
