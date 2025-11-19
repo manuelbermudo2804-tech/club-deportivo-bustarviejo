@@ -15,6 +15,7 @@ export default function Home() {
   const [user, setUser] = useState(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [isCoach, setIsCoach] = useState(false);
+  const [isCoordinator, setIsCoordinator] = useState(false);
   const [hasPlayers, setHasPlayers] = useState(false);
   const [userRole, setUserRole] = useState("parent");
 
@@ -24,11 +25,14 @@ export default function Home() {
         const currentUser = await base44.auth.me();
         setUser(currentUser);
         const adminCheck = currentUser.role === "admin";
-        const coachCheck = currentUser.es_entrenador === true && !adminCheck;
+        const coordinatorCheck = currentUser.es_coordinador === true;
+        const coachCheck = currentUser.es_entrenador === true && !coordinatorCheck && !adminCheck;
         setIsAdmin(adminCheck);
+        setIsCoordinator(coordinatorCheck);
         setIsCoach(coachCheck);
 
         if (adminCheck) setUserRole("admin");
+        else if (coordinatorCheck) setUserRole("coordinator");
         else if (coachCheck) setUserRole("coach");
         else setUserRole("parent");
 
@@ -164,7 +168,7 @@ export default function Home() {
       }
     ];
 
-    if (isCoach) {
+    if (isCoach || isCoordinator) {
       items.push(
         {
           title: "🎓 Plantillas",
