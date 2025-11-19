@@ -809,11 +809,11 @@ export default function Layout({ children, currentPageName }) {
     } else if (isPlayer) {
       navigationItems = playerNavigationItems;
     } else if (isCoordinator) {
-      // Si es coordinador (tenga o no rol de entrenador), usa menú de coordinador
       navigationItems = coordinatorNavigationItems;
     } else if (isCoach) {
       navigationItems = coachNavigationItems;
     } else {
+      // Usuario normal de familia (padre/madre sin roles especiales)
       navigationItems = parentNavigationItems;
     }
 
@@ -838,7 +838,7 @@ export default function Layout({ children, currentPageName }) {
               <div className="text-white">
                 <h1 className="font-bold text-base leading-tight">CD Bustarviejo</h1>
                 <p className="text-xs text-orange-100">
-                  {isAdmin ? "Admin" : isPlayer ? "Jugador" : isCoach ? "Entrenador" : "Familia"}
+                  {isAdmin ? "Admin" : isPlayer ? "Jugador" : isCoordinator ? "Coordinador" : isCoach ? "Entrenador" : "Familia"}
                 </p>
               </div>
             </div>
