@@ -152,11 +152,7 @@ export default function ParentChat() {
     return myGroups.find(g => g.id === selectedTab);
   }, [myGroups, selectedTab]);
 
-  useEffect(() => {
-    if (myGroups.length === 1 && !selectedTab && !isMobile) {
-      setSelectedTab(myGroups[0].id);
-    }
-  }, [myGroups.length, selectedTab, isMobile]);
+
 
   useEffect(() => {
     if (selectedTab && currentGroup && currentGroup.messages) {
