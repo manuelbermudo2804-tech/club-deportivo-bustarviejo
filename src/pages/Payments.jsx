@@ -728,9 +728,14 @@ Email: cdbustarviejo@gmail.com
                         };
                       });
                       
-                      const pendingPayments = displayPayments.filter(p => p.estado === "Pendiente");
-                      const reviewPayments = displayPayments.filter(p => p.estado === "En revisión");
-                      const paidPayments = displayPayments.filter(p => p.estado === "Pagado");
+                      // Contar solo pagos REALES (no virtuales)
+                      const realPayments = displayPayments.filter(p => !p.isVirtual);
+                      const pendingPayments = realPayments.filter(p => p.estado === "Pendiente");
+                      const reviewPayments = realPayments.filter(p => p.estado === "En revisión");
+                      const paidPayments = realPayments.filter(p => p.estado === "Pagado");
+                      
+                      // Contar cuántos pagos faltan (incluyendo virtuales)
+                      const totalPaymentsDue = displayPayments.filter(p => p.estado === "Pendiente").length;
                       const totalPending = pendingPayments.reduce((sum, p) => sum + (p.cantidad || 0), 0);
 
                       return (
