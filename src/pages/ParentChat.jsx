@@ -113,7 +113,7 @@ export default function ParentChat() {
     
     // Añadir grupo de "Coordinación Deportiva" siempre
     const groups = [{
-      id: "coordinacion_deportiva",
+      id: "Coordinación Deportiva",
       deporte: "Coordinación Deportiva",
       messages: messages.filter(msg => {
         const msgDeporte = normalizeDeporte(msg.grupo_id || msg.deporte);
@@ -121,7 +121,7 @@ export default function ParentChat() {
       }),
       unreadCount: messages.filter(msg => 
         !msg.leido && 
-        msg.tipo === "admin_a_grupo" && 
+        (msg.tipo === "coordinador_a_familia" || msg.tipo === "admin_a_grupo") && 
         (normalizeDeporte(msg.grupo_id || msg.deporte) === "Coordinación Deportiva")
       ).length
     }];
