@@ -575,7 +575,7 @@ export default function CoachChat() {
             <div className="flex gap-2 items-end">
               <FileAttachmentButton
                 onFileUploaded={handleFileUploaded}
-                disabled={!isBusinessHours() || sendMessageMutation.isPending}
+                disabled={(!isBusinessHours() && currentGroup?.tipo !== 'interno' && currentGroup?.tipo !== 'coordinacion') || sendMessageMutation.isPending}
               />
               
               <Input
