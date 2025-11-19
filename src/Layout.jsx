@@ -773,7 +773,7 @@ export default function Layout({ children, currentPageName }) {
       { title: "Calendario", url: createPageUrl("Calendar"), icon: Calendar },
       { title: "Anuncios", url: createPageUrl("Announcements"), icon: Megaphone },
       { title: "Galería", url: createPageUrl("AdminGallery"), icon: Image },
-      { title: "🎓 Convocatorias", url: createPageUrl("CoachCallups"), icon: Bell },
+      { title: user?.es_entrenador ? "🎓 Crear Convocatorias" : "🎓 Ver Convocatorias", url: createPageUrl("CoachCallups"), icon: Bell },
       ...(hasPlayers ? [{ title: "👨‍👩‍👧 Confirmar Mis Hijos", url: createPageUrl("ParentCallups"), icon: ClipboardCheck, badge: pendingCallupsCount > 0 ? pendingCallupsCount : null }] : []),
       ...(hasPlayers ? [{ title: "💰 Pagos Mis Hijos", url: createPageUrl("ParentPayments"), icon: CreditCard }] : []),
       ...(hasPlayers ? [{ title: "Pedidos Ropa", url: createPageUrl("ClothingOrders"), icon: ShoppingBag }] : []),
@@ -980,13 +980,13 @@ export default function Layout({ children, currentPageName }) {
                 <p className="font-medium">{user.full_name}</p>
                 <p className="text-green-400 text-xs">{user.email}</p>
                 {isCoordinator && (
-                  <Badge className="mt-2 bg-blue-600 text-white text-xs">
+                  <Badge className="mt-2 bg-cyan-600 text-white text-xs">
                     🎓 Coordinador Deportivo
                   </Badge>
                 )}
-                {isCoach && !isAdmin && !isCoordinator && (
+                {user?.es_entrenador && !isAdmin && (
                   <Badge className="mt-2 bg-blue-600 text-white text-xs">
-                    🎓 Entrenador
+                    🏃 Entrenador{user?.categorias_entrena?.length > 0 ? ` (${user.categorias_entrena.length})` : ''}
                   </Badge>
                 )}
               </div>
