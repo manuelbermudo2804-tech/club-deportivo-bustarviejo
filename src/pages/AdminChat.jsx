@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Send, Search, Clock, AlertCircle, X, Users, Check, CheckCheck, ArrowLeft } from "lucide-react";
+import { Send, Search, Clock, AlertCircle, X, Users, Check, CheckCheck, ArrowLeft, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
@@ -146,6 +146,14 @@ export default function AdminChat() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['chatMessages'] });
+    },
+  });
+
+  const deleteMessageMutation = useMutation({
+    mutationFn: (messageId) => base44.entities.ChatMessage.delete(messageId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['chatMessages'] });
+      toast.success("Mensaje eliminado");
     },
   });
 
@@ -457,10 +465,10 @@ export default function AdminChat() {
                   return (
                     <div
                       key={msg.id}
-                      className={`flex ${isAdmin ? 'justify-end' : 'justify-start'} mb-1`}
+                      className={`flex ${isAdmin ? 'justify-end' : 'justify-start'} mb-1 group`}
                     >
                       <div
-                        className={`max-w-[75%] rounded-lg shadow-sm ${
+                        className={`max-w-[75%] rounded-lg shadow-sm relative ${
                           isAdmin
                             ? 'bg-gradient-to-r from-green-600 to-green-700 text-white rounded-br-none'
                             : isJugador
@@ -468,6 +476,16 @@ export default function AdminChat() {
                             : 'bg-white text-slate-900 rounded-bl-none'
                         }`}
                       >
+                        <button
+                          onClick={() => {
+                            if (confirm('¿Eliminar este mensaje?')) {
+                              deleteMessageMutation.mutate(msg.id);
+                            }
+                          }}
+                          className="absolute -top-2 -right-2 bg-red-600 hover:bg-red-700 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity shadow-lg"
+                        >
+                          <Trash2 className="w-3 h-3" />
+                        </button>
                         <div className="px-3 py-2">
                           <div className="flex items-center gap-2 mb-1">
                             <span className={`text-xs font-semibold ${

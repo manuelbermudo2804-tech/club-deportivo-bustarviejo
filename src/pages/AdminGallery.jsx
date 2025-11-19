@@ -42,6 +42,13 @@ export default function AdminGallery() {
     },
   });
 
+  const deleteAlbumMutation = useMutation({
+    mutationFn: (albumId) => base44.entities.PhotoGallery.delete(albumId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['photoGallery'] });
+    },
+  });
+
   const handleSubmit = async (albumData) => {
     if (editingAlbum) {
       updateAlbumMutation.mutate({ id: editingAlbum.id, albumData });
@@ -143,6 +150,11 @@ export default function AdminGallery() {
                 key={album.id} 
                 album={album} 
                 onEdit={handleEdit}
+                onDelete={(album) => {
+                  if (confirm(`¿Eliminar el álbum "${album.titulo}"?`)) {
+                    deleteAlbumMutation.mutate(album.id);
+                  }
+                }}
                 isAdmin={true}
               />
             ))}
