@@ -937,18 +937,18 @@ Temporada ${reminder.temporada}
 
                   return (
                     <Card key={playerData.jugador_id} className="border hover:shadow-lg transition-shadow">
-                      <CardHeader className="bg-gradient-to-r from-slate-50 to-slate-100 border-b p-3 lg:p-4">
-                        <div className="flex items-center justify-between gap-2">
-                          <div className="flex items-center gap-2 min-w-0">
+                      <CardHeader className="bg-white border-b p-4">
+                        <div className="flex items-center justify-between gap-3">
+                          <div className="flex items-center gap-3 min-w-0">
                             {player?.foto_url ? (
-                              <img src={player.foto_url} className="w-8 h-8 lg:w-10 lg:h-10 rounded-full object-cover flex-shrink-0" alt="" />
+                              <img src={player.foto_url} className="w-10 h-10 rounded-full object-cover flex-shrink-0" alt="" />
                             ) : (
-                              <div className="w-8 h-8 lg:w-10 lg:h-10 rounded-full bg-orange-500 flex items-center justify-center text-white font-bold text-xs lg:text-sm flex-shrink-0">
+                              <div className="w-10 h-10 rounded-full bg-orange-500 flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
                                 {playerData.jugador_nombre.charAt(0)}
                               </div>
                             )}
                             <div className="min-w-0">
-                              <h3 className="font-bold text-sm lg:text-base text-slate-900 truncate">{playerData.jugador_nombre}</h3>
+                              <h3 className="font-bold text-base text-slate-900 truncate">{playerData.jugador_nombre}</h3>
                               <p className="text-xs text-slate-600 truncate">{player?.deporte || "Sin categoría"}</p>
                             </div>
                           </div>
@@ -966,63 +966,56 @@ Temporada ${reminder.temporada}
                             className="bg-purple-600 hover:bg-purple-700 text-xs flex-shrink-0"
                             disabled={!player}
                           >
-                            <Send className="w-3 h-3 lg:mr-1" />
-                            <span className="hidden lg:inline">Enviar</span>
+                            <Send className="w-4 h-4 mr-1" />
+                            Enviar
                           </Button>
                         </div>
                       </CardHeader>
-                      <CardContent className="p-3 lg:p-4">
-                        <div className="grid grid-cols-3 gap-2 mb-3">
-                          <div className="bg-red-50 rounded p-2 border border-red-200">
-                            <p className="text-[10px] lg:text-xs text-red-700">Pendientes</p>
-                            <p className="text-lg lg:text-xl font-bold text-red-600">{pendingPayments.length}</p>
-                            <p className="text-[10px] lg:text-xs text-red-600">{totalPending.toFixed(0)}€</p>
+                      <CardContent className="p-4">
+                        <div className="grid grid-cols-3 gap-3 mb-4">
+                          <div className="bg-red-50 rounded-lg p-3">
+                            <p className="text-xs text-red-700 mb-1">Pendientes</p>
+                            <p className="text-2xl font-bold text-red-600">{pendingPayments.length}</p>
+                            <p className="text-xs text-red-600">{totalPending.toFixed(0)}€</p>
                           </div>
-                          <div className="bg-orange-50 rounded p-2 border border-orange-200">
-                            <p className="text-[10px] lg:text-xs text-orange-700">Revisión</p>
-                            <p className="text-lg lg:text-xl font-bold text-orange-600">{reviewPayments.length}</p>
+                          <div className="bg-orange-50 rounded-lg p-3">
+                            <p className="text-xs text-orange-700 mb-1">Revisión</p>
+                            <p className="text-2xl font-bold text-orange-600">{reviewPayments.length}</p>
                           </div>
-                          <div className="bg-green-50 rounded p-2 border border-green-200">
-                            <p className="text-[10px] lg:text-xs text-green-700">Pagados</p>
-                            <p className="text-lg lg:text-xl font-bold text-green-600">{paidPayments.length}</p>
+                          <div className="bg-green-50 rounded-lg p-3">
+                            <p className="text-xs text-green-700 mb-1">Pagados</p>
+                            <p className="text-2xl font-bold text-green-600">{paidPayments.length}</p>
                           </div>
                         </div>
 
-                        <div className="space-y-1.5">
+                        <div className="space-y-2">
                           {relevantPayments.map(pago => {
-                            const playerReminders = reminders.filter(r => r.pago_id === pago.id);
-                            const hasReminders = playerReminders.length > 0;
-                            const sentReminders = playerReminders.filter(r => r.enviado).length;
+                            const isPaid = pago.estado === "Pagado";
+                            const isPending = pago.estado === "Pendiente" || pago.isVirtual;
 
                             return (
-                              <div key={pago.id} className="flex items-center justify-between p-2 bg-slate-50 rounded hover:bg-slate-100 transition-colors gap-2">
-                                <div className="flex items-center gap-2 min-w-0 flex-1">
-                                  <Badge className={
-                                    pago.isVirtual ? "bg-slate-100 text-slate-600 text-[10px] lg:text-xs" :
-                                    pago.estado === "Pagado" ? "bg-green-100 text-green-700 text-[10px] lg:text-xs" :
-                                    pago.estado === "En revisión" ? "bg-orange-100 text-orange-700 text-[10px] lg:text-xs" :
-                                    "bg-red-100 text-red-700 text-[10px] lg:text-xs"
-                                  }>
-                                    {pago.isVirtual ? "⚪" : statusEmojis[pago.estado]}
-                                  </Badge>
-                                  <div className="min-w-0 flex-1">
-                                    <p className="text-xs lg:text-sm font-medium text-slate-900">{pago.mes}</p>
-                                    <p className="text-[10px] lg:text-xs text-slate-600">
+                              <div key={pago.id} className="flex items-center justify-between py-2">
+                                <div className="flex items-center gap-3 flex-1">
+                                  <div className={`w-2 h-2 rounded-full flex-shrink-0 ${isPaid ? 'bg-green-500' : 'bg-red-500'}`} />
+                                  <div className="flex-1">
+                                    <p className="text-sm font-medium text-slate-900">{pago.mes}</p>
+                                    <p className="text-xs text-slate-600">
                                       {pago.isVirtual ? "Pendiente" : `${pago.cantidad}€`}
-                                      {!pago.isVirtual && hasReminders && (
-                                        <span className="ml-1 text-blue-600">
-                                          • {sentReminders}/{playerReminders.length} enviados
-                                        </span>
-                                      )}
                                     </p>
                                   </div>
                                 </div>
-                                {pago.isVirtual ? (
-                                  <span className="text-slate-400 text-xs lg:text-sm">➖</span>
-                                ) : pago.justificante_url ? (
-                                  <span className="text-green-600 text-xs lg:text-sm">✅</span>
-                                ) : pago.estado === "Pendiente" && (
-                                  <span className="text-red-600 text-xs lg:text-sm">❌</span>
+                                {isPaid ? (
+                                  <div className="w-5 h-5 rounded bg-green-500 flex items-center justify-center flex-shrink-0">
+                                    <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                                    </svg>
+                                  </div>
+                                ) : (
+                                  <div className="w-5 h-5 flex items-center justify-center flex-shrink-0">
+                                    <svg className="w-4 h-4 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                    </svg>
+                                  </div>
                                 )}
                               </div>
                             );
@@ -1030,8 +1023,8 @@ Temporada ${reminder.temporada}
                         </div>
 
                         {player?.email_padre && (
-                          <div className="mt-2 pt-2 border-t text-[10px] lg:text-xs text-slate-600">
-                            <p className="truncate">📧 {player.email_padre}</p>
+                          <div className="mt-3 pt-3 border-t">
+                            <p className="text-xs text-slate-600 truncate">📧 {player.email_padre}</p>
                           </div>
                         )}
                       </CardContent>
