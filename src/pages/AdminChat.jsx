@@ -231,6 +231,9 @@ export default function AdminChat() {
       
       if (!deporteNormalizado) return;
       
+      // Filtrar grupo de Coordinación Deportiva (es solo para padres)
+      if (deporteNormalizado === "Coordinación Deportiva") return;
+      
       if (!groupsMap[deporteNormalizado]) {
         groupsMap[deporteNormalizado] = {
           id: deporteNormalizado,
