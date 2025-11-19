@@ -158,13 +158,61 @@ export default function CallupCard({ callup, onEdit, onDelete, isCoach }) {
               </div>
             </div>
 
-            <div className="pt-2 border-t border-slate-200">
+            <div className="pt-2 border-t border-slate-200 space-y-2">
               <div className="flex items-center gap-2 text-slate-700">
                 <Users className="w-4 h-4 text-orange-600" />
                 <span className="text-sm">
                   <strong>{callup.jugadores_convocados.length}</strong> jugadores convocados
                 </span>
               </div>
+              
+              {confirmed > 0 && (
+                <div className="bg-green-50 rounded-lg p-2 border border-green-200">
+                  <p className="text-xs font-semibold text-green-800 mb-1">✅ Confirmados ({confirmed}):</p>
+                  <p className="text-xs text-green-700">
+                    {callup.jugadores_convocados
+                      .filter(j => j.confirmacion === "asistire")
+                      .map(j => j.jugador_nombre)
+                      .join(", ")}
+                  </p>
+                </div>
+              )}
+              
+              {declined > 0 && (
+                <div className="bg-red-50 rounded-lg p-2 border border-red-200">
+                  <p className="text-xs font-semibold text-red-800 mb-1">❌ No asisten ({declined}):</p>
+                  <p className="text-xs text-red-700">
+                    {callup.jugadores_convocados
+                      .filter(j => j.confirmacion === "no_asistire")
+                      .map(j => j.jugador_nombre)
+                      .join(", ")}
+                  </p>
+                </div>
+              )}
+              
+              {doubt > 0 && (
+                <div className="bg-yellow-50 rounded-lg p-2 border border-yellow-200">
+                  <p className="text-xs font-semibold text-yellow-800 mb-1">❓ En duda ({doubt}):</p>
+                  <p className="text-xs text-yellow-700">
+                    {callup.jugadores_convocados
+                      .filter(j => j.confirmacion === "duda")
+                      .map(j => j.jugador_nombre)
+                      .join(", ")}
+                  </p>
+                </div>
+              )}
+              
+              {pending > 0 && (
+                <div className="bg-slate-50 rounded-lg p-2 border border-slate-200">
+                  <p className="text-xs font-semibold text-slate-800 mb-1">⏳ Pendientes ({pending}):</p>
+                  <p className="text-xs text-slate-700">
+                    {callup.jugadores_convocados
+                      .filter(j => j.confirmacion === "pendiente")
+                      .map(j => j.jugador_nombre)
+                      .join(", ")}
+                  </p>
+                </div>
+              )}
             </div>
           </div>
 
