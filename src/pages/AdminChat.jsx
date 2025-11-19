@@ -360,43 +360,6 @@ export default function AdminChat() {
         </div>
       )}
 
-      {!isMobile && (
-        <div className="bg-white border-b overflow-x-auto flex-shrink-0">
-          <div className="flex">
-            <button
-              onClick={() => handleSelectGroup(null, true)}
-              className={`px-6 py-3 text-sm font-semibold flex items-center gap-2 border-b-2 transition-all flex-shrink-0 ${
-                sendToAll
-                  ? 'border-green-600 text-green-600 bg-green-50'
-                  : 'border-transparent text-slate-600 hover:bg-slate-50'
-              }`}
-            >
-              <Users className="w-4 h-4" />
-              <span>📢 Todos</span>
-            </button>
-            {sortedGroups.map(group => (
-              <button
-                key={group.id}
-                onClick={() => handleSelectGroup(group.id, false)}
-                className={`px-6 py-3 text-sm font-semibold flex items-center gap-2 border-b-2 transition-all flex-shrink-0 ${
-                  selectedGroup === group.id && !sendToAll
-                    ? 'border-orange-600 text-orange-600 bg-orange-50'
-                    : 'border-transparent text-slate-600 hover:bg-slate-50'
-                }`}
-              >
-                <span>{sportEmojis[group.deporte]}</span>
-                <span>{group.deporte}</span>
-                {group.unreadCount > 0 && (
-                  <Badge className="bg-orange-600 text-white text-xs h-5 min-w-5 rounded-full">
-                    {group.unreadCount}
-                  </Badge>
-                )}
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
-
       <div className="flex-1 flex flex-col" style={{ marginTop: isMobile ? '56px' : '0' }}>
         {(selectedGroup || sendToAll) && (
           <>
