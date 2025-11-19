@@ -698,6 +698,11 @@ Email: cdbustarviejo@gmail.com
                         (p.estado === "Pagado" || p.estado === "En revisión")
                       );
 
+                      // Si tiene pago único, solo mostrar ese pago (Junio), ignorar los demás
+                      const playerPayments = hasPagoUnico
+                        ? allPlayerPayments.filter(p => p.mes === "Junio")
+                        : allPlayerPayments;
+
                       // Determinar los meses que debería tener este jugador
                       const allMonths = hasPagoUnico
                         ? ["Junio"]
@@ -705,7 +710,7 @@ Email: cdbustarviejo@gmail.com
 
                       // Crear pagos virtuales para los meses que faltan
                       const displayPayments = allMonths.map(mes => {
-                        const existingPayment = allPlayerPayments.find(p => p.mes === mes);
+                        const existingPayment = playerPayments.find(p => p.mes === mes);
                         if (existingPayment) {
                           return existingPayment;
                         }
