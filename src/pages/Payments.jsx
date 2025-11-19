@@ -772,8 +772,11 @@ Email: cdbustarviejo@gmail.com
                           <CardContent className="p-3 lg:p-4">
                             <div className="grid grid-cols-3 gap-2 mb-3">
                               <div className="bg-red-50 rounded p-2 border border-red-200">
-                                <p className="text-[10px] lg:text-xs text-red-700">Pendiente</p>
-                                <p className="text-lg lg:text-xl font-bold text-red-600">{totalPending.toFixed(0)}€</p>
+                                <p className="text-[10px] lg:text-xs text-red-700">Pendientes</p>
+                                <p className="text-lg lg:text-xl font-bold text-red-600">{totalPaymentsDue}</p>
+                                {totalPending > 0 && (
+                                  <p className="text-[10px] text-red-600">{totalPending.toFixed(0)}€</p>
+                                )}
                               </div>
                               <div className="bg-orange-50 rounded p-2 border border-orange-200">
                                 <p className="text-[10px] lg:text-xs text-orange-700">Revisión</p>
