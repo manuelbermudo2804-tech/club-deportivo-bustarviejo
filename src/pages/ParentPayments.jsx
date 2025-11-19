@@ -265,9 +265,17 @@ Email: cdbustarviejo@gmail.com
     "Pendiente": "🔴"
   };
 
-  const pendingCount = payments.filter(p => p.estado === "Pendiente").length;
-  const inReviewCount = payments.filter(p => p.estado === "En revisión").length;
-  const paidCount = payments.filter(p => p.estado === "Pagado").length;
+  const getCurrentSeason = () => {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = now.getMonth() + 1;
+    return month >= 9 ? `${year}/${year + 1}` : `${year - 1}/${year}`;
+  };
+  
+  const currentSeason = getCurrentSeason();
+  const pendingCount = payments.filter(p => p.estado === "Pendiente" && p.temporada === currentSeason).length;
+  const inReviewCount = payments.filter(p => p.estado === "En revisión" && p.temporada === currentSeason).length;
+  const paidCount = payments.filter(p => p.estado === "Pagado" && p.temporada === currentSeason).length;
 
   return (
     <div className="p-6 lg:p-8 space-y-6">

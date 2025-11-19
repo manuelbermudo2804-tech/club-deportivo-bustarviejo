@@ -296,43 +296,14 @@ export default function ParentPaymentForm({ players, payments = [], onSubmit, on
                     <SelectValue placeholder="Selecciona un jugador" />
                   </SelectTrigger>
                   <SelectContent>
-                    {players
-                      .filter(p => {
-                        if (p.activo === false) return false;
-
-                        // Si es admin, mostrar todos los jugadores activos
-                        if (isAdmin) return true;
-
-                        // Para padres/coaches, filtrar jugadores que ya completaron todos los pagos
-                        const jugadorPayments = payments.filter(pay => 
-                          pay.jugador_id === p.id && 
-                          pay.temporada === currentSeason
-                        );
-
-                        // Si tiene pago único pagado, no mostrar
-                        const hasPagoUnicoPagado = jugadorPayments.some(pay => 
-                          (pay.tipo_pago === "Único" || pay.tipo_pago === "único") && 
-                          pay.estado === "Pagado"
-                        );
-
-                        if (hasPagoUnicoPagado) return false;
-
-                        // Si tiene los 3 meses pagados en fraccionado, no mostrar
-                        const mesesPagados = jugadorPayments
-                          .filter(pay => pay.tipo_pago === "Tres meses" && pay.estado === "Pagado")
-                          .map(pay => pay.mes);
-
-                        const todosMesesPagados = ["Junio", "Septiembre", "Diciembre"]
-                          .every(m => mesesPagados.includes(m));
-
-                        return !todosMesesPagados;
-                      })
-                      .map(player => (
-                        <SelectItem key={player.id} value={player.id}>
-                          {player.nombre} - {player.deporte}
-                        </SelectItem>
-                      ))}
-                  </SelectContent>
+                                {players
+                                  .filter(p => p.activo !== false)
+                                  .map(player => (
+                                    <SelectItem key={player.id} value={player.id}>
+                                      {player.nombre} - {player.deporte}
+                                    </SelectItem>
+                                  ))}
+                              </SelectContent>
                 </Select>
             </div>
 
