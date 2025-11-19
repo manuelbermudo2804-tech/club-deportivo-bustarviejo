@@ -341,7 +341,7 @@ export default function AdminChat() {
   };
 
   return (
-    <div className="fixed inset-0 flex flex-col bg-white" style={{ top: isMobile ? '120px' : '0', left: isMobile ? '0' : '288px' }}>
+    <div className="fixed inset-0 flex bg-white" style={{ top: isMobile ? '120px' : '0', left: isMobile ? '0' : '288px' }}>
       {isMobile && (
         <div className="fixed top-[120px] left-0 right-0 z-20 bg-white border-b p-2 shadow-sm">
           <select
@@ -397,11 +397,12 @@ export default function AdminChat() {
         </div>
       )}
 
-      {(selectedGroup || sendToAll) && (
-        <>
-          <div className={`p-4 text-white flex items-center gap-3 shadow-md flex-shrink-0 ${
-            sendToAll ? 'bg-gradient-to-r from-green-600 to-green-700' : 'bg-gradient-to-r from-orange-600 to-orange-700'
-          }`} style={{ marginTop: isMobile ? '56px' : '0' }}>
+      <div className="flex-1 flex flex-col" style={{ marginTop: isMobile ? '56px' : '0' }}>
+        {(selectedGroup || sendToAll) && (
+          <>
+            <div className={`p-4 text-white flex items-center gap-3 shadow-md flex-shrink-0 ${
+              sendToAll ? 'bg-gradient-to-r from-green-600 to-green-700' : 'bg-gradient-to-r from-orange-600 to-orange-700'
+            }`}>
             <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
               {sendToAll ? <Users className="w-6 h-6" /> : <span className="text-xl">{sportEmojis[currentGroup?.deporte]}</span>}
             </div>
@@ -584,7 +585,70 @@ export default function AdminChat() {
               </Button>
             </div>
           </div>
-        </>
+          </>
+        )}
+      </div>
+
+      {/* Sidebar with chat list - Desktop only */}
+      {!isMobile && (
+        <div className="w-80 border-l bg-slate-50 flex flex-col overflow-hidden">
+          <div className="p-4 bg-white border-b">
+            <h3 className="font-bold text-slate-900">Chats</h3>
+            <p className="text-xs text-slate-600 mt-1">{filteredGroups.length} grupos disponibles</p>
+          </div>
+          <div className="flex-1 overflow-y-auto">
+            <button
+              onClick={() => handleSelectGroup(null, true)}
+              className={`w-full p-4 flex items-center gap-3 border-b transition-all text-left ${
+                sendToAll
+                  ? 'bg-green-100 border-l-4 border-l-green-600'
+                  : 'bg-white hover:bg-slate-100 border-l-4 border-l-transparent'
+              }`}
+            >
+              <div className={`w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0 ${
+                sendToAll ? 'bg-green-600' : 'bg-slate-200'
+              }`}>
+                <span className="text-xl">📢</span>
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="font-semibold text-slate-900 truncate">Todos los Grupos</div>
+                <div className="text-xs text-slate-600 truncate">
+                  Anuncio general
+                </div>
+              </div>
+            </button>
+            {filteredGroups.map(group => (
+              <button
+                key={group.id}
+                onClick={() => handleSelectGroup(group.id, false)}
+                className={`w-full p-4 flex items-center gap-3 border-b transition-all text-left ${
+                  selectedGroup === group.id && !sendToAll
+                    ? 'bg-orange-100 border-l-4 border-l-orange-600'
+                    : 'bg-white hover:bg-slate-100 border-l-4 border-l-transparent'
+                }`}
+              >
+                <div className={`w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0 ${
+                  selectedGroup === group.id && !sendToAll ? 'bg-orange-600' : 'bg-slate-200'
+                }`}>
+                  <span className="text-xl">{sportEmojis[group.deporte]}</span>
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="font-semibold text-slate-900 truncate">{group.deporte}</div>
+                  <div className="text-xs text-slate-600 truncate">
+                    {group.messages.length} mensajes • {group.players.length} jugadores
+                  </div>
+                </div>
+                {group.unreadCount > 0 && (
+                  <Badge className={`${
+                    group.urgentCount > 0 ? 'bg-red-600 animate-pulse' : 'bg-orange-600'
+                  } text-white text-xs h-6 min-w-6 rounded-full flex items-center justify-center`}>
+                    {group.unreadCount}
+                  </Badge>
+                )}
+              </button>
+            ))}
+          </div>
+        </div>
       )}
     </div>
   );

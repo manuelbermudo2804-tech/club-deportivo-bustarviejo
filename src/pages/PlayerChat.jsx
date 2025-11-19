@@ -201,8 +201,9 @@ export default function PlayerChat() {
   }
 
   return (
-    <div className="fixed inset-0 flex flex-col bg-white" style={{ top: isMobile ? '120px' : '0', left: isMobile ? '0' : '288px' }}>
-      <div className="bg-gradient-to-r from-orange-600 to-orange-700 p-4 text-white flex items-center gap-3 shadow-md flex-shrink-0">
+    <div className="fixed inset-0 flex bg-white" style={{ top: isMobile ? '120px' : '0', left: isMobile ? '0' : '288px' }}>
+      <div className="flex-1 flex flex-col">
+        <div className="bg-gradient-to-r from-orange-600 to-orange-700 p-4 text-white flex items-center gap-3 shadow-md flex-shrink-0">
         <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
           <span className="text-xl">{sportEmojis[player.deporte]}</span>
         </div>
@@ -338,6 +339,7 @@ export default function PlayerChat() {
             <Send className="w-4 h-4" />
           </Button>
         </div>
+      </div>
       </div>
     </div>
   );
