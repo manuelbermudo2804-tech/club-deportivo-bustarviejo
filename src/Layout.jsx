@@ -482,6 +482,7 @@ export default function Layout({ children, currentPageName }) {
   const [isAdmin, setIsAdmin] = useState(false);
   const [isPlayer, setIsPlayer] = useState(false);
   const [isCoach, setIsCoach] = useState(false);
+  const [isCoordinator, setIsCoordinator] = useState(false);
   const [hasPlayers, setHasPlayers] = useState(false);
   const [unreadMessagesCount, setUnreadMessagesCount] = useState(0);
   const [urgentMessagesCount, setUrgentMessagesCount] = useState(0);
@@ -505,7 +506,8 @@ export default function Layout({ children, currentPageName }) {
         setUser(currentUser);
         setIsAdmin(currentUser.role === "admin");
         setIsPlayer(currentUser.role === "jugador");
-        setIsCoach(currentUser.es_entrenador === true);
+        setIsCoach(currentUser.es_entrenador === true && !currentUser.es_coordinador);
+        setIsCoordinator(currentUser.es_coordinador === true);
         
         if (currentUser.role === "admin" || currentUser.es_entrenador) {
           const allPlayers = await base44.entities.Player.list();
@@ -730,21 +732,37 @@ export default function Layout({ children, currentPageName }) {
   ];
 
   const coachNavigationItems = [
-    { title: "🏠 Inicio", url: createPageUrl("Home"), icon: Home },
-    { title: "👨‍👩‍👧 Mis Hijos", url: createPageUrl("ParentPlayers"), icon: Users },
-    { title: "🎓 Plantillas", url: createPageUrl("TeamRosters"), icon: Users },
-    { title: "📋 Asistencia y Evaluación", url: createPageUrl("TeamAttendanceEvaluation"), icon: CheckCircle2 },
-    { title: "📊 Reportes Entrenadores", url: createPageUrl("CoachEvaluationReports"), icon: Star },
-    { title: "⏰ Horarios", url: createPageUrl("TrainingSchedules"), icon: Clock },
-    { title: "Calendario", url: createPageUrl("Calendar"), icon: Calendar },
-    { title: "Anuncios", url: createPageUrl("Announcements"), icon: Megaphone },
-    { title: "Galería", url: createPageUrl("AdminGallery"), icon: Image },
-    { title: "🎓 Crear Convocatorias", url: createPageUrl("CoachCallups"), icon: Bell },
-    ...(hasPlayers ? [{ title: "👨‍👩‍👧 Confirmar Mis Hijos", url: createPageUrl("ParentCallups"), icon: ClipboardCheck, badge: pendingCallupsCount > 0 ? pendingCallupsCount : null }] : []),
-    { title: "Pagos", url: createPageUrl("Payments"), icon: CreditCard },
-    { title: "Pedidos Ropa", url: createPageUrl("ClothingOrders"), icon: ShoppingBag },
-    { title: "🎓 Chat Equipos", url: createPageUrl("CoachChat"), icon: MessageCircle, badge: unreadMessagesCount > 0 ? unreadMessagesCount : null, urgentBadge: urgentMessagesCount > 0 },
-  ];
+      { title: "🏠 Inicio", url: createPageUrl("Home"), icon: Home },
+      { title: "👨‍👩‍👧 Mis Hijos", url: createPageUrl("ParentPlayers"), icon: Users },
+      { title: "🎓 Plantillas", url: createPageUrl("TeamRosters"), icon: Users },
+      { title: "📋 Asistencia y Evaluación", url: createPageUrl("TeamAttendanceEvaluation"), icon: CheckCircle2 },
+      { title: "📊 Reportes Entrenadores", url: createPageUrl("CoachEvaluationReports"), icon: Star },
+      { title: "⏰ Horarios", url: createPageUrl("TrainingSchedules"), icon: Clock },
+      { title: "Calendario", url: createPageUrl("Calendar"), icon: Calendar },
+      { title: "Anuncios", url: createPageUrl("Announcements"), icon: Megaphone },
+      { title: "Galería", url: createPageUrl("AdminGallery"), icon: Image },
+      { title: "🎓 Crear Convocatorias", url: createPageUrl("CoachCallups"), icon: Bell },
+      ...(hasPlayers ? [{ title: "👨‍👩‍👧 Confirmar Mis Hijos", url: createPageUrl("ParentCallups"), icon: ClipboardCheck, badge: pendingCallupsCount > 0 ? pendingCallupsCount : null }] : []),
+      { title: "Pagos", url: createPageUrl("Payments"), icon: CreditCard },
+      { title: "Pedidos Ropa", url: createPageUrl("ClothingOrders"), icon: ShoppingBag },
+      { title: "🎓 Chat Equipos", url: createPageUrl("CoachChat"), icon: MessageCircle, badge: unreadMessagesCount > 0 ? unreadMessagesCount : null, urgentBadge: urgentMessagesCount > 0 },
+    ];
+
+  const coordinatorNavigationItems = [
+      { title: "🏠 Inicio", url: createPageUrl("Home"), icon: Home },
+      ...(hasPlayers ? [{ title: "👨‍👩‍👧 Mis Hijos", url: createPageUrl("ParentPlayers"), icon: Users }] : []),
+      { title: "🎓 Plantillas", url: createPageUrl("TeamRosters"), icon: Users },
+      { title: "📋 Asistencia y Evaluación", url: createPageUrl("TeamAttendanceEvaluation"), icon: CheckCircle2 },
+      { title: "📊 Reportes Entrenadores", url: createPageUrl("CoachEvaluationReports"), icon: Star },
+      { title: "⏰ Horarios", url: createPageUrl("TrainingSchedules"), icon: Clock },
+      { title: "Calendario", url: createPageUrl("Calendar"), icon: Calendar },
+      { title: "Anuncios", url: createPageUrl("Announcements"), icon: Megaphone },
+      { title: "Galería", url: createPageUrl("AdminGallery"), icon: Image },
+      { title: "🎓 Convocatorias", url: createPageUrl("CoachCallups"), icon: Bell },
+      ...(hasPlayers ? [{ title: "👨‍👩‍👧 Confirmar Mis Hijos", url: createPageUrl("ParentCallups"), icon: ClipboardCheck, badge: pendingCallupsCount > 0 ? pendingCallupsCount : null }] : []),
+      { title: "Pedidos Ropa", url: createPageUrl("ClothingOrders"), icon: ShoppingBag },
+      { title: "🎓 Chat Coordinación", url: createPageUrl("CoachChat"), icon: MessageCircle, badge: unreadMessagesCount > 0 ? unreadMessagesCount : null, urgentBadge: urgentMessagesCount > 0 },
+    ];
 
   const parentNavigationItems = [
     { title: "Inicio", url: createPageUrl("ParentDashboard"), icon: Home },
@@ -774,15 +792,17 @@ export default function Layout({ children, currentPageName }) {
   ];
 
   let navigationItems;
-  if (isAdmin) {
-    navigationItems = adminNavigationItems;
-  } else if (isPlayer) {
-    navigationItems = playerNavigationItems;
-  } else if (isCoach) {
-    navigationItems = coachNavigationItems;
-  } else {
-    navigationItems = parentNavigationItems;
-  }
+    if (isAdmin) {
+      navigationItems = adminNavigationItems;
+    } else if (isPlayer) {
+      navigationItems = playerNavigationItems;
+    } else if (isCoordinator) {
+      navigationItems = coordinatorNavigationItems;
+    } else if (isCoach) {
+      navigationItems = coachNavigationItems;
+    } else {
+      navigationItems = parentNavigationItems;
+    }
 
   const handleLogout = () => {
     base44.auth.logout();
@@ -884,7 +904,7 @@ export default function Layout({ children, currentPageName }) {
               <div className="text-white">
                 <h2 className="font-bold text-xl">CD Bustarviejo</h2>
                 <p className="text-xs text-green-400">
-                  {isAdmin ? "Panel Admin" : isPlayer ? "Panel Jugador" : isCoach ? "Panel Entrenador" : "Panel Familia"}
+                  {isAdmin ? "Panel Admin" : isPlayer ? "Panel Jugador" : isCoordinator ? "Panel Coordinador" : isCoach ? "Panel Entrenador" : "Panel Familia"}
                 </p>
               </div>
             </div>
@@ -942,7 +962,12 @@ export default function Layout({ children, currentPageName }) {
               <div className="text-center text-xs text-white mb-4">
                 <p className="font-medium">{user.full_name}</p>
                 <p className="text-green-400 text-xs">{user.email}</p>
-                {isCoach && !isAdmin && (
+                {isCoordinator && (
+                  <Badge className="mt-2 bg-blue-600 text-white text-xs">
+                    🎓 Coordinador Deportivo
+                  </Badge>
+                )}
+                {isCoach && !isAdmin && !isCoordinator && (
                   <Badge className="mt-2 bg-blue-600 text-white text-xs">
                     🎓 Entrenador
                   </Badge>

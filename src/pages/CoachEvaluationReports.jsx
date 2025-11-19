@@ -59,15 +59,15 @@ export default function CoachEvaluationReports() {
   });
 
   // Filtrar categorías según el rol del usuario (solo sus categorías asignadas)
-  const allCategories = [...new Set(players.map(p => p.deporte).filter(Boolean))];
-  const categories = user?.role === "admin" 
-    ? allCategories 
-    : (user?.categorias_entrena || []);
+    const allCategories = [...new Set(players.map(p => p.deporte).filter(Boolean))];
+    const categories = (user?.role === "admin" || user?.es_coordinador) 
+      ? allCategories 
+      : (user?.categorias_entrena || []);
 
   // Filtrar asistencias según rol y permisos
   const filteredAttendances = attendances.filter(att => {
-    // Filtrar por categorías del entrenador si no es admin
-    if (user?.role !== "admin" && user?.categorias_entrena) {
+    // Filtrar por categorías del entrenador si no es admin ni coordinador
+    if (user?.role !== "admin" && !user?.es_coordinador && user?.categorias_entrena) {
       if (!user.categorias_entrena.includes(att.categoria)) return false;
     }
     
@@ -298,7 +298,7 @@ CD Bustarviejo
     }
   };
 
-  if (!user || (!user.es_entrenador && user.role !== "admin")) {
+  if (!user || (!user.es_entrenador && !user.es_coordinador && user.role !== "admin")) {
     return (
       <div className="p-6">
         <Card className="border-red-200 bg-red-50">

@@ -29,6 +29,11 @@ export default function TeamAttendanceEvaluation() {
     const fetchUser = async () => {
       const currentUser = await base44.auth.me();
       setUser(currentUser);
+      
+      // Coordinador puede ver todas las categorías
+      if (currentUser.es_coordinador) {
+        return;
+      }
       if (currentUser.role === "admin") {
         // Admin can see all categories
         const allPlayers = await base44.entities.Player.list();

@@ -111,7 +111,23 @@ export default function ParentChat() {
     
     const myGroupSports = [...new Set(myPlayers.map(p => normalizeDeporte(p.deporte)).filter(Boolean))];
     
-    return myGroupSports.map(deporte => {
+    // Añadir grupo de "Coordinación Deportiva" siempre
+    const groups = [{
+      id: "coordinacion_deportiva",
+      deporte: "Coordinación Deportiva",
+      messages: messages.filter(msg => {
+        const msgDeporte = normalizeDeporte(msg.grupo_id || msg.deporte);
+        return msgDeporte === "Coordinación Deportiva";
+      }),
+      unreadCount: messages.filter(msg => 
+        !msg.leido && 
+        msg.tipo === "admin_a_grupo" && 
+        (normalizeDeporte(msg.grupo_id || msg.deporte) === "Coordinación Deportiva")
+      ).length
+    }];
+    
+    // Añadir grupos deportivos
+    myGroupSports.forEach(deporte => {
       const groupMessages = messages.filter(msg => {
         const msgDeporte = normalizeDeporte(msg.grupo_id || msg.deporte);
         return msgDeporte === deporte;
@@ -121,13 +137,15 @@ export default function ParentChat() {
         !msg.leido && msg.tipo === "admin_a_grupo"
       ).length;
       
-      return {
+      groups.push({
         id: deporte,
         deporte,
         messages: groupMessages,
         unreadCount
-      };
+      });
     });
+    
+    return groups;
   }, [user, players, messages]);
 
   const currentGroup = useMemo(() => {
@@ -197,6 +215,7 @@ export default function ParentChat() {
   };
 
   const sportEmojis = {
+    "Coordinación Deportiva": "🎓",
     "Fútbol Pre-Benjamín (Mixto)": "⚽",
     "Fútbol Benjamín (Mixto)": "⚽",
     "Fútbol Alevín (Mixto)": "⚽",

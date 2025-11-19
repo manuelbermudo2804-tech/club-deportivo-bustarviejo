@@ -18,10 +18,21 @@ export default function TeamRosters() {
     const fetchUser = async () => {
       const currentUser = await base44.auth.me();
       setUser(currentUser);
-      const categories = currentUser.categorias_entrena || [];
-      setCoachCategories(categories);
-      if (categories.length > 0) {
-        setSelectedCategory(categories[0]);
+      
+      // Coordinador ve todas las categorías
+      if (currentUser.es_coordinador) {
+        const allPlayers = await base44.entities.Player.list();
+        const allCategories = [...new Set(allPlayers.map(p => p.deporte).filter(Boolean))];
+        setCoachCategories(allCategories);
+        if (allCategories.length > 0) {
+          setSelectedCategory(allCategories[0]);
+        }
+      } else {
+        const categories = currentUser.categorias_entrena || [];
+        setCoachCategories(categories);
+        if (categories.length > 0) {
+          setSelectedCategory(categories[0]);
+        }
       }
     };
     fetchUser();
