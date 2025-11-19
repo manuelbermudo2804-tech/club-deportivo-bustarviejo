@@ -86,10 +86,8 @@ export default function ParentPaymentForm({ players, payments = [], onSubmit, on
         if (player) {
           handlePlayerChange(player.id);
         }
-      } else {
-        const player = players[0];
-        handlePlayerChange(player.id);
       }
+      // No seleccionar automáticamente el primer jugador para evitar bloqueos
     }
   }, [players, payments]);
 
