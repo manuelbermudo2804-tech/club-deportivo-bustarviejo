@@ -227,8 +227,8 @@ export default function Calendar() {
   });
 
   const today = new Date().toISOString().split('T')[0];
-  const upcomingItems = filteredItems.filter(e => e.date >= today);
-  const pastItems = filteredItems.filter(e => e.date < today).sort((a, b) => b.date.localeCompare(a.date));
+  const upcomingItems = filteredItems.filter(e => e.date >= today && e.type !== 'training');
+  const pastItems = filteredItems.filter(e => e.date < today && e.type !== 'training').sort((a, b) => b.date.localeCompare(a.date));
 
   const daysInMonth = useMemo(() => {
     const start = startOfMonth(currentMonth);
@@ -433,25 +433,25 @@ export default function Calendar() {
                   </div>
                   <div className="space-y-0.5 lg:space-y-1">
                     {callups.map((c, idx) => (
-                      <div key={`callup-${idx}`} className="text-[10px] lg:text-xs px-1 lg:px-2 py-0.5 lg:py-1 rounded bg-blue-500 text-white font-semibold truncate">
-                        ⚽ {c.rival || 'Partido'}
+                      <div key={`callup-${idx}`} className="text-[10px] lg:text-xs px-1 lg:px-2 py-0.5 lg:py-1 rounded bg-blue-600 text-white font-bold truncate" title={c.titulo}>
+                        ⚽ {c.rival ? `vs ${c.rival}` : c.titulo.substring(0, 12)}
                       </div>
                     ))}
                     {events.filter(e => e.importante).map((e, idx) => (
-                      <div key={`important-${idx}`} className="text-[10px] lg:text-xs px-1 lg:px-2 py-0.5 lg:py-1 rounded bg-red-500 text-white font-semibold truncate">
-                        ⭐ {e.titulo.substring(0, 10)}
+                      <div key={`important-${idx}`} className="text-[10px] lg:text-xs px-1 lg:px-2 py-0.5 lg:py-1 rounded bg-red-600 text-white font-bold truncate" title={e.titulo}>
+                        ⭐ {e.titulo.substring(0, 12)}
                       </div>
                     ))}
                     {events.filter(e => !e.importante).map((e, idx) => (
-                      <div key={`event-${idx}`} className="text-[10px] lg:text-xs px-1 lg:px-2 py-0.5 lg:py-1 rounded bg-slate-600 text-white font-semibold truncate">
-                        📅 {e.titulo.substring(0, 10)}
+                      <div key={`event-${idx}`} className="text-[10px] lg:text-xs px-1 lg:px-2 py-0.5 lg:py-1 rounded bg-orange-600 text-white font-bold truncate" title={e.titulo}>
+                        📅 {e.titulo.substring(0, 12)}
                       </div>
                     ))}
-                    {trainings.length > 0 && (
-                      <div className="text-[10px] lg:text-xs px-1 lg:px-2 py-0.5 lg:py-1 rounded bg-green-500 text-white font-semibold">
-                        🏃 {trainings.length} entreno{trainings.length > 1 ? 's' : ''}
+                    {trainings.map((t, idx) => (
+                      <div key={`training-${idx}`} className="text-[10px] lg:text-xs px-1 lg:px-2 py-0.5 lg:py-1 rounded bg-green-600 text-white font-bold truncate" title={t.category}>
+                        🏃 {t.category.split(' ').pop()}
                       </div>
-                    )}
+                    ))}
                   </div>
                 </div>
               );
@@ -482,7 +482,7 @@ export default function Calendar() {
                           isAdmin={isAdmin}
                         />
                       </div>
-                    ) : item.type === 'callup' ? (
+                    ) : (
                       <Card 
                         key={`callup-${item.id}`} 
                         className="bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200 cursor-pointer hover:shadow-lg transition-shadow"
@@ -501,27 +501,6 @@ export default function Calendar() {
                             {item.rival && <p>🆚 {item.rival}</p>}
                             {item.ubicacion && <p>📍 {item.ubicacion}</p>}
                             {item.hora_partido && <p>🕐 {item.hora_partido}</p>}
-                          </div>
-                        </CardContent>
-                      </Card>
-                    ) : (
-                      <Card 
-                        key={item.id} 
-                        className="bg-gradient-to-br from-green-50 to-green-100 border-green-200 cursor-pointer hover:shadow-lg transition-shadow"
-                        onClick={() => handleCardClick(item.date)}
-                      >
-                        <CardContent className="p-4">
-                          <div className="flex items-start justify-between mb-2">
-                            <Badge className="bg-green-600 text-white">Entrenamiento</Badge>
-                            <span className="text-xs text-slate-600">
-                              {format(new Date(item.date), "d MMM yyyy", { locale: es })}
-                            </span>
-                          </div>
-                          <h3 className="font-bold text-slate-900 mb-2">{item.title}</h3>
-                          <div className="space-y-1 text-sm text-slate-700">
-                            <p>⚽ {item.category}</p>
-                            {item.hora_inicio && <p>🕐 {item.hora_inicio}</p>}
-                            {item.ubicacion && <p>📍 {item.ubicacion}</p>}
                           </div>
                         </CardContent>
                       </Card>
