@@ -219,7 +219,8 @@ export default function Calendar() {
   const filteredItems = allCalendarItems.filter(item => {
     const matchesType = typeFilter === "all" || 
       (item.type === 'event' && item.tipo === typeFilter) ||
-      (item.type === 'callup' && typeFilter === "Partido");
+      (item.type === 'callup' && typeFilter === "Partido") ||
+      (item.type === 'training' && typeFilter === "Entrenamiento");
     const matchesSport = sportFilter === "all" || 
       item.category === sportFilter || 
       (item.type === 'event' && item.deporte === "Todos");
@@ -253,6 +254,13 @@ export default function Calendar() {
     "Entrenamiento",
     "Reunión",
     "Torneo",
+    "Inicio Temporada",
+    "Gestion Club",
+    "Pago",
+    "Inscripción",
+    "Pedido Ropa",
+    "Fiesta Club",
+    "Fin Temporada",
     "Otro"
   ];
 
