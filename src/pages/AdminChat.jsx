@@ -343,11 +343,6 @@ export default function AdminChat() {
       return;
     }
 
-    if (!isBusinessHours()) {
-      toast.error("Solo entre 10:00 y 20:00");
-      return;
-    }
-
     if (!sendToAll && !selectedGroup) {
       toast.error("Selecciona un grupo");
       return;
@@ -527,12 +522,7 @@ export default function AdminChat() {
                 {sendToAll ? `${Object.keys(groups).length} grupos • ${players.length} jugadores` : `${currentGroup?.players.length || 0} jugadores`}
               </p>
             </div>
-            {!isBusinessHours() && (
-              <Badge className="bg-white/20 text-white text-xs">
-                <Clock className="w-3 h-3 mr-1" />
-                Fuera de horario
-              </Badge>
-            )}
+
           </div>
 
           {sendToAll && (
@@ -706,7 +696,7 @@ export default function AdminChat() {
             <div className="flex gap-2 items-end">
               <FileAttachmentButton
                 onFileUploaded={handleFileUploaded}
-                disabled={!isBusinessHours() || sendMessageMutation.isPending}
+                disabled={sendMessageMutation.isPending}
               />
               
               <Button
@@ -723,7 +713,7 @@ export default function AdminChat() {
               <Input
                 value={messageContent}
                 onChange={(e) => setMessageContent(e.target.value)}
-                placeholder={isBusinessHours() ? "Escribe un mensaje..." : "Horario: 10:00 - 20:00"}
+                placeholder="Escribe un mensaje..."
                 className="flex-1 rounded-full"
                 onKeyDown={(e) => {
                   if (e.key === 'Enter' && !e.shiftKey) {
@@ -731,12 +721,11 @@ export default function AdminChat() {
                     handleSendMessage();
                   }
                 }}
-                disabled={!isBusinessHours()}
               />
               
               <Button
                 onClick={handleSendMessage}
-                disabled={(!messageContent.trim() && attachments.length === 0) || sendMessageMutation.isPending || !isBusinessHours()}
+                disabled={(!messageContent.trim() && attachments.length === 0) || sendMessageMutation.isPending}
                 className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 rounded-full w-10 h-10 p-0 flex items-center justify-center shadow-lg"
               >
                 <Send className="w-4 h-4" />
