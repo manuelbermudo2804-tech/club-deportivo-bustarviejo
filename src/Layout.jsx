@@ -734,6 +734,7 @@ export default function Layout({ children, currentPageName }) {
     { title: "👨‍👩‍👧 Mis Hijos", url: createPageUrl("ParentPlayers"), icon: Users },
     { title: "🎓 Plantillas", url: createPageUrl("TeamRosters"), icon: Users },
     { title: "📋 Asistencia y Evaluación", url: createPageUrl("TeamAttendanceEvaluation"), icon: CheckCircle2 },
+    { title: "📊 Reportes Entrenadores", url: createPageUrl("CoachEvaluationReports"), icon: Star },
     { title: "⏰ Horarios", url: createPageUrl("TrainingSchedules"), icon: Clock },
     { title: "Calendario", url: createPageUrl("Calendar"), icon: Calendar },
     { title: "Anuncios", url: createPageUrl("Announcements"), icon: Megaphone },
