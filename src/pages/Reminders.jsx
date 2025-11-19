@@ -641,6 +641,7 @@ Temporada ${reminder.temporada}
         }}
         payment={selectedReminder}
         player={selectedPlayer}
+        allPlayerPayments={selectedPlayer ? payments.filter(p => p.jugador_id === selectedPlayer.id) : []}
         onSend={handleSendIndividualReminder}
       />
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3">
