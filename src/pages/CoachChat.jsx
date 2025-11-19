@@ -462,7 +462,7 @@ export default function CoachChat() {
                   
                   if (esGrupoCoordinacion) {
                     // En chat de coordinación: padres escriben, coordinador responde
-                    if (msg.tipo === "admin_a_grupo") {
+                    if (msg.tipo === "coordinador_a_familia") {
                       messageColor = 'bg-gradient-to-r from-cyan-600 to-cyan-700 text-white rounded-br-none';
                       isMyMessage = true;
                     } else {
