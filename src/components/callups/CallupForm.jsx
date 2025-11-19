@@ -83,7 +83,8 @@ export default function CallupForm({ callup, players, coachName, coachEmail, cat
         jugador_id: player.id,
         jugador_nombre: player.nombre,
         email_padre: player.email_padre,
-        email_jugador: player.email,
+        email_tutor_2: player.email_tutor_2,
+        email_jugador: player.email_jugador,
         confirmacion: existing?.confirmacion || "pendiente",
         fecha_confirmacion: existing?.fecha_confirmacion || null,
         comentario: existing?.comentario || ""
