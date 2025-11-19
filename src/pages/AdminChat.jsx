@@ -329,17 +329,23 @@ export default function AdminChat() {
     const parentsMap = new Map();
     
     groupPlayers.forEach(p => {
-      if (p.email_padre && !parentsMap.has(p.email_padre)) {
-        parentsMap.set(p.email_padre, `Padre de ${p.nombre}`);
+      if (p.email_padre) {
+        if (!parentsMap.has(p.email_padre)) {
+          parentsMap.set(p.email_padre, { role: 'Padre', kids: [] });
+        }
+        parentsMap.get(p.email_padre).kids.push(p.nombre);
       }
-      if (p.email_tutor_2 && !parentsMap.has(p.email_tutor_2)) {
-        parentsMap.set(p.email_tutor_2, `Tutor 2 de ${p.nombre}`);
+      if (p.email_tutor_2) {
+        if (!parentsMap.has(p.email_tutor_2)) {
+          parentsMap.set(p.email_tutor_2, { role: 'Tutor 2', kids: [] });
+        }
+        parentsMap.get(p.email_tutor_2).kids.push(p.nombre);
       }
     });
     
-    return Array.from(parentsMap.entries()).map(([email, name]) => ({
+    return Array.from(parentsMap.entries()).map(([email, data]) => ({
       email,
-      name
+      name: `${data.role} de ${data.kids.join(', ')}`
     }));
   };
 
