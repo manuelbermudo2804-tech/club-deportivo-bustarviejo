@@ -914,20 +914,28 @@ Temporada ${reminder.temporada}
                   });
                   
                   // Generar lista completa incluyendo pagos "virtuales" para meses faltantes
-                  const relevantPayments = allPossibleMonths.map(mes => {
-                    if (existingPaymentsMap[mes]) {
-                      return existingPaymentsMap[mes];
-                    }
-                    // Crear pago virtual para meses sin registro
-                    return {
-                      id: `virtual-${playerData.jugador_id}-${mes}`,
-                      jugador_id: playerData.jugador_id,
-                      mes: mes,
-                      estado: "Sin registrar",
-                      cantidad: 0,
-                      isVirtual: true
-                    };
-                  });
+                  let relevantPayments = [];
+                  
+                  if (hasPagoUnico) {
+                    // Para pago único: solo mostrar los pagos que existan en la BD
+                    relevantPayments = playerData.pagos;
+                  } else {
+                    // Para tres meses: mostrar los 3 meses, creando virtuales para los que falten
+                    relevantPayments = allPossibleMonths.map(mes => {
+                      if (existingPaymentsMap[mes]) {
+                        return existingPaymentsMap[mes];
+                      }
+                      // Crear pago virtual para meses sin registro
+                      return {
+                        id: `virtual-${playerData.jugador_id}-${mes}`,
+                        jugador_id: playerData.jugador_id,
+                        mes: mes,
+                        estado: "Sin registrar",
+                        cantidad: 0,
+                        isVirtual: true
+                      };
+                    });
+                  }
 
                   const pendingPayments = relevantPayments.filter(p => p.estado === "Pendiente" || p.isVirtual);
                   const reviewPayments = relevantPayments.filter(p => p.estado === "En revisión");
