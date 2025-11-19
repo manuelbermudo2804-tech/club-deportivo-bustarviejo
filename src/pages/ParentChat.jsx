@@ -161,7 +161,7 @@ export default function ParentChat() {
   useEffect(() => {
     if (selectedTab && currentGroup) {
       const unreadMessageIds = currentGroup.messages
-        .filter(msg => !msg.leido && msg.tipo === "admin_a_grupo")
+        .filter(msg => !msg.leido && (msg.tipo === "admin_a_grupo" || msg.tipo === "coordinador_a_familia"))
         .map(msg => msg.id);
       
       if (unreadMessageIds.length > 0) {
