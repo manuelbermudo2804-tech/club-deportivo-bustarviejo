@@ -257,12 +257,6 @@ export default function Home() {
     if (isAdmin) {
       items.push(
         {
-          title: "⭐ Evaluaciones",
-          icon: Star,
-          url: createPageUrl("PlayerEvaluations"),
-          gradient: "from-purple-600 to-purple-700",
-        },
-        {
           title: "📊 Estadísticas",
           icon: TrendingUp,
           url: createPageUrl("ClubStats"),
