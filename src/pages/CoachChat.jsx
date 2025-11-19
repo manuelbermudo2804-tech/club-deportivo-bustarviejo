@@ -359,7 +359,8 @@ export default function CoachChat() {
   }
 
   return (
-    <div className="fixed inset-0 flex flex-col bg-white" style={{ top: isMobile ? '120px' : '0', left: isMobile ? '0' : '288px' }}>
+    <div className="fixed inset-0 flex bg-white" style={{ top: isMobile ? '120px' : '0', left: isMobile ? '0' : '288px' }}>
+      {/* Mobile selector at top */}
       {isMobile && (
         <div className="fixed top-[120px] left-0 right-0 z-20 bg-white border-b p-2 shadow-sm">
           <select
@@ -378,31 +379,8 @@ export default function CoachChat() {
         </div>
       )}
 
-      {!isMobile && myGroups.length > 1 && (
-        <div className="bg-white border-b overflow-x-auto flex-shrink-0">
-          <div className="flex">
-            {filteredGroups.map(group => (
-              <button
-                key={group.id}
-                onClick={() => setSelectedTab(group.id)}
-                className={`px-6 py-3 text-sm font-semibold flex items-center gap-2 border-b-2 transition-all flex-shrink-0 ${
-                  selectedTab === group.id
-                    ? 'border-blue-600 text-blue-600 bg-blue-50'
-                    : 'border-transparent text-slate-600 hover:bg-slate-50'
-                }`}
-              >
-                <span>{group.tipo === 'coordinacion' ? '🎓' : group.tipo === 'interno' ? '💼' : group.tipo === 'entrenador' ? '🎓' : sportEmojis[group.deporte]}</span>
-                <span>{group.deporte}</span>
-                {group.unreadCount > 0 && (
-                  <Badge className="bg-blue-600 text-white text-xs h-5 min-w-5 rounded-full">
-                    {group.unreadCount}
-                  </Badge>
-                )}
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
+      {/* Main chat area */}
+      <div className="flex-1 flex flex-col" style={{ marginTop: isMobile ? '56px' : '0' }}>
 
       {currentGroup && (
         <>
