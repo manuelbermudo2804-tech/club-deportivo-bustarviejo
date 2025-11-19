@@ -898,15 +898,37 @@ Temporada ${reminder.temporada}
                 {allPlayersData.map(playerData => {
                   const player = players.find(p => p.id === playerData.jugador_id);
 
-                  // Si tiene pago único pagado, filtrar solo Junio
+                  // Determinar qué pagos mostrar según el tipo de pago del jugador
                   const hasPagoUnico = playerData.pagos.some(p => 
                     (p.tipo_pago === "Único" || p.tipo_pago === "único") && 
                     (p.estado === "Pagado" || p.estado === "En revisión")
                   );
 
-                  const relevantPayments = hasPagoUnico 
-                    ? playerData.pagos.filter(p => p.mes === "Junio")
-                    : playerData.pagos;
+                  // Si tiene pago único, solo mostrar Junio
+                  // Si es "Tres meses", mostrar los 3 pagos (Junio, Septiembre, Diciembre)
+                  const allPossibleMonths = hasPagoUnico ? ["Junio"] : ["Junio", "Septiembre", "Diciembre"];
+                  
+                  // Crear mapa de pagos existentes
+                  const existingPaymentsMap = {};
+                  playerData.pagos.forEach(p => {
+                    existingPaymentsMap[p.mes] = p;
+                  });
+                  
+                  // Generar lista completa incluyendo pagos "virtuales" para meses faltantes
+                  const relevantPayments = allPossibleMonths.map(mes => {
+                    if (existingPaymentsMap[mes]) {
+                      return existingPaymentsMap[mes];
+                    }
+                    // Crear pago virtual para meses sin registro
+                    return {
+                      id: `virtual-${playerData.jugador_id}-${mes}`,
+                      jugador_id: playerData.jugador_id,
+                      mes: mes,
+                      estado: "Sin registrar",
+                      cantidad: 0,
+                      isVirtual: true
+                    };
+                  });
 
                   const pendingPayments = relevantPayments.filter(p => p.estado === "Pendiente");
                   const reviewPayments = relevantPayments.filter(p => p.estado === "En revisión");
@@ -976,17 +998,18 @@ Temporada ${reminder.temporada}
                               <div key={pago.id} className="flex items-center justify-between p-2 bg-slate-50 rounded hover:bg-slate-100 transition-colors gap-2">
                                 <div className="flex items-center gap-2 min-w-0 flex-1">
                                   <Badge className={
+                                    pago.isVirtual ? "bg-slate-100 text-slate-600 text-[10px] lg:text-xs" :
                                     pago.estado === "Pagado" ? "bg-green-100 text-green-700 text-[10px] lg:text-xs" :
                                     pago.estado === "En revisión" ? "bg-orange-100 text-orange-700 text-[10px] lg:text-xs" :
                                     "bg-red-100 text-red-700 text-[10px] lg:text-xs"
                                   }>
-                                    {statusEmojis[pago.estado]}
+                                    {pago.isVirtual ? "⚪" : statusEmojis[pago.estado]}
                                   </Badge>
                                   <div className="min-w-0 flex-1">
                                     <p className="text-xs lg:text-sm font-medium text-slate-900">{pago.mes}</p>
                                     <p className="text-[10px] lg:text-xs text-slate-600">
-                                      {pago.cantidad}€
-                                      {hasReminders && (
+                                      {pago.isVirtual ? "Pendiente registrar" : `${pago.cantidad}€`}
+                                      {!pago.isVirtual && hasReminders && (
                                         <span className="ml-1 text-blue-600">
                                           • {sentReminders}/{playerReminders.length} enviados
                                         </span>
@@ -994,7 +1017,9 @@ Temporada ${reminder.temporada}
                                     </p>
                                   </div>
                                 </div>
-                                {pago.justificante_url ? (
+                                {pago.isVirtual ? (
+                                  <span className="text-slate-400 text-xs lg:text-sm">➖</span>
+                                ) : pago.justificante_url ? (
                                   <span className="text-green-600 text-xs lg:text-sm">✅</span>
                                 ) : pago.estado === "Pendiente" && (
                                   <span className="text-red-600 text-xs lg:text-sm">❌</span>
