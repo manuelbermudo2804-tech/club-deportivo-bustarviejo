@@ -384,15 +384,15 @@ export default function Calendar() {
           <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-orange-600 border-r-transparent"></div>
         </div>
       ) : viewMode === "calendar" ? (
-        <div className="bg-white rounded-xl shadow-lg p-4 lg:p-6">
-          <div className="flex items-center justify-between mb-6">
+        <div className="bg-white rounded-xl shadow-lg p-4">
+          <div className="flex items-center justify-between mb-4">
             <Button
               variant="ghost"
               onClick={() => setCurrentMonth(subMonths(currentMonth, 1))}
             >
               <ChevronLeft className="w-5 h-5" />
             </Button>
-            <h2 className="text-2xl font-bold text-slate-900 capitalize">
+            <h2 className="text-xl lg:text-2xl font-bold text-slate-900 capitalize">
               {format(currentMonth, 'MMMM yyyy', { locale: es })}
             </h2>
             <Button
@@ -403,15 +403,15 @@ export default function Calendar() {
             </Button>
           </div>
 
-          <div className="grid grid-cols-7 gap-2">
+          <div className="grid grid-cols-7 gap-1 lg:gap-2">
             {['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'].map(day => (
-              <div key={day} className="text-center text-sm font-bold text-slate-700 py-2 bg-slate-50 rounded">
+              <div key={day} className="text-center text-xs lg:text-sm font-bold text-slate-700 py-2 bg-slate-50 rounded">
                 {day}
               </div>
             ))}
             
             {Array.from({ length: daysInMonth[0].getDay() === 0 ? 6 : daysInMonth[0].getDay() - 1 }).map((_, i) => (
-              <div key={`empty-${i}`} className="min-h-[100px] lg:min-h-[120px]" />
+              <div key={`empty-${i}`} className="min-h-[80px] lg:min-h-[120px]" />
             ))}
 
             {daysInMonth.map(day => {
@@ -424,31 +424,31 @@ export default function Calendar() {
               return (
                 <div
                   key={day.toISOString()}
-                  className={`min-h-[100px] lg:min-h-[120px] border-2 rounded-lg p-2 ${
+                  className={`min-h-[80px] lg:min-h-[120px] border-2 rounded-lg p-1 lg:p-2 ${
                     isToday ? 'bg-orange-50 border-orange-500' : 'bg-white border-slate-200'
                   } hover:border-orange-400 transition-colors overflow-hidden`}
                 >
-                  <div className={`text-base font-bold mb-1 ${isToday ? 'text-orange-600' : 'text-slate-800'}`}>
+                  <div className={`text-sm lg:text-lg font-bold mb-1 ${isToday ? 'text-orange-600' : 'text-slate-800'}`}>
                     {format(day, 'd')}
                   </div>
-                  <div className="space-y-1">
-                    {callups.length > 0 && (
-                      <div className="text-xs px-2 py-1 rounded bg-blue-500 text-white font-semibold">
-                        ⚽ {callups.length} partido{callups.length > 1 ? 's' : ''}
+                  <div className="space-y-0.5 lg:space-y-1">
+                    {callups.map((c, idx) => (
+                      <div key={`callup-${idx}`} className="text-[10px] lg:text-xs px-1 lg:px-2 py-0.5 lg:py-1 rounded bg-blue-500 text-white font-semibold truncate">
+                        ⚽ {c.rival || 'Partido'}
                       </div>
-                    )}
-                    {events.filter(e => e.importante).length > 0 && (
-                      <div className="text-xs px-2 py-1 rounded bg-red-500 text-white font-semibold">
-                        ⭐ {events.filter(e => e.importante).length} importante{events.filter(e => e.importante).length > 1 ? 's' : ''}
+                    ))}
+                    {events.filter(e => e.importante).map((e, idx) => (
+                      <div key={`important-${idx}`} className="text-[10px] lg:text-xs px-1 lg:px-2 py-0.5 lg:py-1 rounded bg-red-500 text-white font-semibold truncate">
+                        ⭐ {e.titulo.substring(0, 10)}
                       </div>
-                    )}
-                    {events.filter(e => !e.importante).length > 0 && (
-                      <div className="text-xs px-2 py-1 rounded bg-slate-600 text-white font-semibold">
-                        📅 {events.filter(e => !e.importante).length} evento{events.filter(e => !e.importante).length > 1 ? 's' : ''}
+                    ))}
+                    {events.filter(e => !e.importante).map((e, idx) => (
+                      <div key={`event-${idx}`} className="text-[10px] lg:text-xs px-1 lg:px-2 py-0.5 lg:py-1 rounded bg-slate-600 text-white font-semibold truncate">
+                        📅 {e.titulo.substring(0, 10)}
                       </div>
-                    )}
+                    ))}
                     {trainings.length > 0 && (
-                      <div className="text-xs px-2 py-1 rounded bg-green-500 text-white font-semibold">
+                      <div className="text-[10px] lg:text-xs px-1 lg:px-2 py-0.5 lg:py-1 rounded bg-green-500 text-white font-semibold">
                         🏃 {trainings.length} entreno{trainings.length > 1 ? 's' : ''}
                       </div>
                     )}
