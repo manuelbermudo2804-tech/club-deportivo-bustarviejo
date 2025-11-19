@@ -847,9 +847,9 @@ export default function Layout({ children, currentPageName }) {
               <ThemeToggle />
               <button
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                className="p-2 text-white hover:bg-white/20 rounded-xl transition-colors"
+                className="p-3 text-white hover:bg-white/20 rounded-xl transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center"
               >
-                {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+                {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
               </button>
             </div>
           </div>
@@ -923,16 +923,16 @@ export default function Layout({ children, currentPageName }) {
             </div>
             
             <div className="space-y-2">
-              {user && (
-                <div className="w-full">
-                  <GlobalSearch isAdmin={isAdmin} isCoach={isCoach} />
-                </div>
-              )}
-              <div className="flex items-center gap-2">
-                {!isAdmin && !isCoach && <NotificationCenter />}
-                <ThemeToggle />
-                <LanguageSelector currentLang={currentLang} onLanguageChange={handleLanguageChange} />
+            {user && (
+              <div className="w-full">
+                <GlobalSearch isAdmin={isAdmin} isCoach={isCoach} />
               </div>
+            )}
+            <div className="flex items-center gap-1">
+              {!isAdmin && !isCoach && <NotificationCenter />}
+              <ThemeToggle />
+              <LanguageSelector currentLang={currentLang} onLanguageChange={handleLanguageChange} />
+            </div>
             </div>
           </div>
 
