@@ -150,6 +150,9 @@ export default function Payments() {
     },
     enabled: players.length > 0,
     initialData: [],
+    staleTime: 0,
+    refetchOnWindowFocus: true,
+    refetchOnMount: true,
   });
 
   const createPaymentMutation = useMutation({
