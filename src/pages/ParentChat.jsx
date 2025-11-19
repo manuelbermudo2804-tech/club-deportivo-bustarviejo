@@ -130,7 +130,8 @@ export default function ParentChat() {
     myGroupSports.forEach(deporte => {
       const groupMessages = messages.filter(msg => {
         const msgDeporte = normalizeDeporte(msg.grupo_id || msg.deporte);
-        return msgDeporte === deporte;
+        // Solo mostrar mensajes de admin/entrenadores/coordinador, NO de otros padres
+        return msgDeporte === deporte && msg.tipo !== "padre_a_grupo";
       });
       
       const unreadCount = groupMessages.filter(msg => 
