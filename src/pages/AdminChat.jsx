@@ -342,6 +342,7 @@ export default function AdminChat() {
 
   return (
     <div className="fixed inset-0 flex bg-white" style={{ top: isMobile ? '120px' : '0', left: isMobile ? '0' : '288px' }}>
+      {/* Mobile selector at top */}
       {isMobile && (
         <div className="fixed top-[120px] left-0 right-0 z-20 bg-white border-b p-2 shadow-sm">
           <select
@@ -360,6 +361,7 @@ export default function AdminChat() {
         </div>
       )}
 
+      {/* Main chat area */}
       <div className="flex-1 flex flex-col" style={{ marginTop: isMobile ? '56px' : '0' }}>
         {(selectedGroup || sendToAll) && (
           <>
