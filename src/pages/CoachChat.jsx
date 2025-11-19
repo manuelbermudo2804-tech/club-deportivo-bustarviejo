@@ -382,17 +382,17 @@ export default function CoachChat() {
       {/* Main chat area */}
       <div className="flex-1 flex flex-col" style={{ marginTop: isMobile ? '56px' : '0' }}>
 
-      {currentGroup && (
-        <>
-          <div className={`p-4 text-white flex items-center gap-3 shadow-md flex-shrink-0 ${
-            currentGroup.tipo === 'coordinacion'
-              ? 'bg-gradient-to-r from-cyan-600 to-cyan-700'
-              : currentGroup.tipo === 'interno'
-              ? 'bg-gradient-to-r from-purple-600 to-purple-700'
-              : currentGroup.tipo === 'entrenador'
-              ? 'bg-gradient-to-r from-blue-600 to-blue-700'
-              : 'bg-gradient-to-r from-orange-600 to-orange-700'
-          }`} style={{ marginTop: isMobile && myGroups.length > 1 ? '56px' : isMobile ? '56px' : '0' }}>
+        {currentGroup && (
+          <>
+            <div className={`p-4 text-white flex items-center gap-3 shadow-md flex-shrink-0 ${
+              currentGroup.tipo === 'coordinacion'
+                ? 'bg-gradient-to-r from-cyan-600 to-cyan-700'
+                : currentGroup.tipo === 'interno'
+                ? 'bg-gradient-to-r from-purple-600 to-purple-700'
+                : currentGroup.tipo === 'entrenador'
+                ? 'bg-gradient-to-r from-blue-600 to-blue-700'
+                : 'bg-gradient-to-r from-orange-600 to-orange-700'
+            }`}>
             <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
               <span className="text-xl">{currentGroup.tipo === 'coordinacion' ? '🎓' : currentGroup.tipo === 'interno' ? '💼' : currentGroup.tipo === 'entrenador' ? '🎓' : sportEmojis[currentGroup.deporte]}</span>
             </div>
