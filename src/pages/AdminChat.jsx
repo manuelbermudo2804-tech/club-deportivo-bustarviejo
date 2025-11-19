@@ -497,7 +497,7 @@ export default function AdminChat() {
       <div className="flex-1 flex flex-col" style={{ marginTop: isMobile ? '56px' : '0' }}>
         {(selectedGroup || sendToAll) && (
           <>
-            <div className={`p-4 text-white flex items-center gap-3 shadow-md flex-shrink-0 ${
+            <div className={`p-4 text-white flex items-center gap-3 shadow-md flex-shrink-0 min-h-[72px] ${
               sendToAll ? 'bg-gradient-to-r from-green-600 to-green-700' : 'bg-gradient-to-r from-orange-600 to-orange-700'
             }`}>
             {isMobile && (

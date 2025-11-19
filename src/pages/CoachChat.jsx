@@ -405,7 +405,7 @@ export default function CoachChat() {
 
         {currentGroup && (
           <>
-            <div className={`p-4 text-white flex items-center gap-3 shadow-md flex-shrink-0 ${
+            <div className={`p-4 text-white flex items-center gap-3 shadow-md flex-shrink-0 min-h-[72px] ${
               currentGroup.tipo === 'coordinacion'
                 ? 'bg-gradient-to-r from-cyan-600 to-cyan-700'
                 : currentGroup.tipo === 'interno'

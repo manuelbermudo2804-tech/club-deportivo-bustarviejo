@@ -341,7 +341,7 @@ export default function ParentChat() {
       <div className="flex-1 flex flex-col">
         {selectedTab && currentGroup ? (
           <>
-            <div className="bg-gradient-to-r from-orange-600 to-orange-700 p-4 text-white flex items-center gap-3 shadow-md flex-shrink-0">
+            <div className="bg-gradient-to-r from-orange-600 to-orange-700 p-4 text-white flex items-center gap-3 shadow-md flex-shrink-0 min-h-[72px]">
               {isMobile && (
                 <button
                   onClick={() => setSelectedTab(null)}
