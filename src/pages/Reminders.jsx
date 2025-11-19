@@ -930,7 +930,7 @@ Temporada ${reminder.temporada}
                     };
                   });
 
-                  const pendingPayments = relevantPayments.filter(p => p.estado === "Pendiente");
+                  const pendingPayments = relevantPayments.filter(p => p.estado === "Pendiente" || p.isVirtual);
                   const reviewPayments = relevantPayments.filter(p => p.estado === "En revisión");
                   const paidPayments = relevantPayments.filter(p => p.estado === "Pagado");
                   const totalPending = pendingPayments.reduce((sum, p) => sum + (p.cantidad || 0), 0);
@@ -997,8 +997,13 @@ Temporada ${reminder.temporada}
                             return (
                               <div key={pago.id} className="flex items-center justify-between p-2 bg-slate-50 rounded hover:bg-slate-100 transition-colors gap-2">
                                 <div className="flex items-center gap-2 min-w-0 flex-1">
-                                  <Badge className="bg-red-100 text-red-700 text-[10px] lg:text-xs">
-                                    {pago.isVirtual || pago.estado === "Pendiente" ? "🔴" : pago.estado === "Pagado" ? "🟢" : "🟠"}
+                                  <Badge className={
+                                    pago.isVirtual ? "bg-slate-100 text-slate-600 text-[10px] lg:text-xs" :
+                                    pago.estado === "Pagado" ? "bg-green-100 text-green-700 text-[10px] lg:text-xs" :
+                                    pago.estado === "En revisión" ? "bg-orange-100 text-orange-700 text-[10px] lg:text-xs" :
+                                    "bg-red-100 text-red-700 text-[10px] lg:text-xs"
+                                  }>
+                                    {pago.isVirtual ? "⚪" : statusEmojis[pago.estado]}
                                   </Badge>
                                   <div className="min-w-0 flex-1">
                                     <p className="text-xs lg:text-sm font-medium text-slate-900">{pago.mes}</p>
@@ -1013,7 +1018,7 @@ Temporada ${reminder.temporada}
                                   </div>
                                 </div>
                                 {pago.isVirtual ? (
-                                  <span className="text-red-600 text-xs lg:text-sm">❌</span>
+                                  <span className="text-slate-400 text-xs lg:text-sm">➖</span>
                                 ) : pago.justificante_url ? (
                                   <span className="text-green-600 text-xs lg:text-sm">✅</span>
                                 ) : pago.estado === "Pendiente" && (
