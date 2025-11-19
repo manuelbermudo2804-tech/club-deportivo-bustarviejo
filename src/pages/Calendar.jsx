@@ -1,13 +1,15 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Calendar as CalendarIcon, Bell } from "lucide-react";
+import { Plus, Calendar as CalendarIcon, Bell, Grid, List, ChevronLeft, ChevronRight } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
+import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, isSameMonth, addMonths, subMonths } from "date-fns";
+import { es } from "date-fns/locale";
 
 import EventForm from "../components/calendar/EventForm";
 import EventCard from "../components/calendar/EventCard";
@@ -17,25 +19,41 @@ export default function Calendar() {
   const [editingEvent, setEditingEvent] = useState(null);
   const [typeFilter, setTypeFilter] = useState("all");
   const [sportFilter, setSportFilter] = useState("all");
+  const [viewMode, setViewMode] = useState("calendar"); // "calendar" o "cards"
+  const [currentMonth, setCurrentMonth] = useState(new Date());
   const [isAdmin, setIsAdmin] = useState(false);
+  const [user, setUser] = useState(null);
   
   const queryClient = useQueryClient();
 
   useEffect(() => {
-    const checkAdmin = async () => {
+    const checkUser = async () => {
       try {
-        const user = await base44.auth.me();
-        setIsAdmin(user.role === "admin");
+        const currentUser = await base44.auth.me();
+        setUser(currentUser);
+        setIsAdmin(currentUser.role === "admin");
       } catch (error) {
         setIsAdmin(false);
       }
     };
-    checkAdmin();
+    checkUser();
   }, []);
 
   const { data: events, isLoading } = useQuery({
     queryKey: ['events'],
     queryFn: () => base44.entities.Event.list('-fecha'),
+    initialData: [],
+  });
+
+  const { data: callups } = useQuery({
+    queryKey: ['callups'],
+    queryFn: () => base44.entities.Convocatoria.list('-fecha_partido'),
+    initialData: [],
+  });
+
+  const { data: players } = useQuery({
+    queryKey: ['players'],
+    queryFn: () => base44.entities.Player.list(),
     initialData: [],
   });
 
@@ -116,17 +134,74 @@ export default function Calendar() {
     setShowForm(true);
   };
 
-  const visibleEvents = events.filter(event => isAdmin || event.publicado);
+  const myPlayersSports = useMemo(() => {
+    if (!user || isAdmin) return [];
+    const myPlayers = players.filter(p => 
+      p.email_padre === user.email || 
+      p.email_tutor_2 === user.email ||
+      p.email_jugador === user.email
+    );
+    return [...new Set(myPlayers.map(p => p.deporte))];
+  }, [user, players, isAdmin]);
 
-  const filteredEvents = visibleEvents.filter(event => {
-    const matchesType = typeFilter === "all" || event.tipo === typeFilter;
-    const matchesSport = sportFilter === "all" || event.deporte === sportFilter || event.deporte === "Todos";
+  const visibleCallups = useMemo(() => {
+    if (isAdmin) return callups.filter(c => c.publicada);
+    
+    return callups.filter(callup => {
+      if (!callup.publicada) return false;
+      return myPlayersSports.includes(callup.categoria);
+    });
+  }, [callups, isAdmin, myPlayersSports]);
+
+  const allCalendarItems = useMemo(() => {
+    const eventItems = events
+      .filter(event => isAdmin || event.publicado)
+      .map(event => ({
+        ...event,
+        type: 'event',
+        date: event.fecha,
+        title: event.titulo,
+        category: event.deporte,
+      }));
+
+    const callupItems = visibleCallups.map(callup => ({
+      ...callup,
+      type: 'callup',
+      date: callup.fecha_partido,
+      title: `⚽ ${callup.titulo}`,
+      category: callup.categoria,
+      color: 'blue',
+    }));
+
+    return [...eventItems, ...callupItems].sort((a, b) => 
+      a.date.localeCompare(b.date)
+    );
+  }, [events, visibleCallups, isAdmin]);
+
+  const filteredItems = allCalendarItems.filter(item => {
+    const matchesType = typeFilter === "all" || 
+      (item.type === 'event' && item.tipo === typeFilter) ||
+      (item.type === 'callup' && typeFilter === "Partido");
+    const matchesSport = sportFilter === "all" || 
+      item.category === sportFilter || 
+      (item.type === 'event' && item.deporte === "Todos");
     return matchesType && matchesSport;
   });
 
   const today = new Date().toISOString().split('T')[0];
-  const upcomingEvents = filteredEvents.filter(e => e.fecha >= today).sort((a, b) => a.fecha.localeCompare(b.fecha));
-  const pastEvents = filteredEvents.filter(e => e.fecha < today).sort((a, b) => b.fecha.localeCompare(a.fecha));
+  const upcomingItems = filteredItems.filter(e => e.date >= today);
+  const pastItems = filteredItems.filter(e => e.date < today).sort((a, b) => b.date.localeCompare(a.date));
+
+  const daysInMonth = useMemo(() => {
+    const start = startOfMonth(currentMonth);
+    const end = endOfMonth(currentMonth);
+    return eachDayOfInterval({ start, end });
+  }, [currentMonth]);
+
+  const getItemsForDay = (day) => {
+    const dayStr = format(day, 'yyyy-MM-dd');
+    return filteredItems.filter(item => item.date === dayStr);
+  };
 
   const eventTypes = [
     "all",
@@ -158,20 +233,40 @@ export default function Calendar() {
               </Badge>
             )}
           </div>
-          <p className="text-slate-600 mt-1 text-sm">Eventos y partidos</p>
+          <p className="text-slate-600 mt-1 text-sm">Eventos del club y partidos</p>
         </div>
-        {isAdmin && (
-          <Button
-            onClick={() => {
-              setEditingEvent(null);
-              setShowForm(!showForm);
-            }}
-            className="bg-orange-600 hover:bg-orange-700"
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            Nuevo
-          </Button>
-        )}
+        <div className="flex items-center gap-2">
+          <div className="flex bg-white rounded-lg shadow-sm p-1">
+            <Button
+              size="sm"
+              variant={viewMode === "calendar" ? "default" : "ghost"}
+              onClick={() => setViewMode("calendar")}
+              className={viewMode === "calendar" ? "bg-orange-600 hover:bg-orange-700" : ""}
+            >
+              <CalendarIcon className="w-4 h-4" />
+            </Button>
+            <Button
+              size="sm"
+              variant={viewMode === "cards" ? "default" : "ghost"}
+              onClick={() => setViewMode("cards")}
+              className={viewMode === "cards" ? "bg-orange-600 hover:bg-orange-700" : ""}
+            >
+              <Grid className="w-4 h-4" />
+            </Button>
+          </div>
+          {isAdmin && (
+            <Button
+              onClick={() => {
+                setEditingEvent(null);
+                setShowForm(!showForm);
+              }}
+              className="bg-orange-600 hover:bg-orange-700"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Nuevo Evento
+            </Button>
+          )}
+        </div>
       </div>
 
       <AnimatePresence>
@@ -244,15 +339,88 @@ export default function Calendar() {
         <div className="text-center py-12">
           <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-orange-600 border-r-transparent"></div>
         </div>
+      ) : viewMode === "calendar" ? (
+        <div className="bg-white rounded-xl shadow-lg p-4">
+          <div className="flex items-center justify-between mb-4">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setCurrentMonth(subMonths(currentMonth, 1))}
+            >
+              <ChevronLeft className="w-5 h-5" />
+            </Button>
+            <h2 className="text-xl font-bold text-slate-900">
+              {format(currentMonth, 'MMMM yyyy', { locale: es })}
+            </h2>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setCurrentMonth(addMonths(currentMonth, 1))}
+            >
+              <ChevronRight className="w-5 h-5" />
+            </Button>
+          </div>
+
+          <div className="grid grid-cols-7 gap-2">
+            {['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'].map(day => (
+              <div key={day} className="text-center text-xs font-semibold text-slate-600 py-2">
+                {day}
+              </div>
+            ))}
+            
+            {Array.from({ length: daysInMonth[0].getDay() === 0 ? 6 : daysInMonth[0].getDay() - 1 }).map((_, i) => (
+              <div key={`empty-${i}`} className="aspect-square" />
+            ))}
+
+            {daysInMonth.map(day => {
+              const dayItems = getItemsForDay(day);
+              const isToday = isSameDay(day, new Date());
+              
+              return (
+                <div
+                  key={day.toISOString()}
+                  className={`aspect-square border rounded-lg p-1 ${
+                    isToday ? 'bg-orange-50 border-orange-300' : 'bg-white border-slate-200'
+                  } hover:border-orange-400 transition-colors overflow-hidden`}
+                >
+                  <div className={`text-xs font-semibold ${isToday ? 'text-orange-600' : 'text-slate-700'} mb-1`}>
+                    {format(day, 'd')}
+                  </div>
+                  <div className="space-y-0.5">
+                    {dayItems.slice(0, 2).map((item, idx) => (
+                      <div
+                        key={`${item.id}-${idx}`}
+                        className={`text-[10px] px-1 rounded truncate ${
+                          item.type === 'callup' 
+                            ? 'bg-blue-100 text-blue-700' 
+                            : item.importante 
+                            ? 'bg-red-100 text-red-700'
+                            : 'bg-slate-100 text-slate-700'
+                        }`}
+                        title={item.title}
+                      >
+                        {item.type === 'callup' ? '⚽' : '📅'} {item.title.substring(0, 8)}
+                      </div>
+                    ))}
+                    {dayItems.length > 2 && (
+                      <div className="text-[10px] text-slate-500 text-center">
+                        +{dayItems.length - 2}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
       ) : (
         <>
-          {/* Próximos Eventos */}
           <div className="space-y-3">
             <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
               <CalendarIcon className="w-5 h-5 text-orange-600" />
-              Próximos ({upcomingEvents.length})
+              Próximos ({upcomingItems.length})
             </h2>
-            {upcomingEvents.length === 0 ? (
+            {upcomingItems.length === 0 ? (
               <div className="text-center py-8 bg-white rounded-xl shadow-md">
                 <div className="text-4xl mb-2">📅</div>
                 <p className="text-slate-500 text-sm">No hay eventos próximos</p>
@@ -260,36 +428,69 @@ export default function Calendar() {
             ) : (
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
                 <AnimatePresence>
-                  {upcomingEvents.map((event) => (
-                    <EventCard
-                      key={event.id}
-                      event={event}
-                      onEdit={handleEdit}
-                      isAdmin={isAdmin}
-                    />
-                  ))}
+                  {upcomingItems.map((item) => 
+                    item.type === 'event' ? (
+                      <EventCard
+                        key={`event-${item.id}`}
+                        event={item}
+                        onEdit={handleEdit}
+                        isAdmin={isAdmin}
+                      />
+                    ) : (
+                      <Card key={`callup-${item.id}`} className="bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200">
+                        <CardContent className="p-4">
+                          <div className="flex items-start justify-between mb-2">
+                            <Badge className="bg-blue-600 text-white">Partido</Badge>
+                            <span className="text-xs text-slate-600">
+                              {format(new Date(item.date), "d MMM yyyy", { locale: es })}
+                            </span>
+                          </div>
+                          <h3 className="font-bold text-slate-900 mb-2">{item.titulo}</h3>
+                          <div className="space-y-1 text-sm text-slate-700">
+                            <p>⚽ {item.categoria}</p>
+                            {item.rival && <p>🆚 {item.rival}</p>}
+                            {item.ubicacion && <p>📍 {item.ubicacion}</p>}
+                            {item.hora_partido && <p>🕐 {item.hora_partido}</p>}
+                          </div>
+                        </CardContent>
+                      </Card>
+                    )
+                  )}
                 </AnimatePresence>
               </div>
             )}
           </div>
 
-          {/* Eventos Pasados */}
-          {pastEvents.length > 0 && (
+          {pastItems.length > 0 && (
             <div className="space-y-3 pt-4 border-t border-slate-200">
               <h2 className="text-lg font-bold text-slate-500 flex items-center gap-2">
                 <CalendarIcon className="w-5 h-5" />
-                Pasados ({pastEvents.length})
+                Pasados ({pastItems.length})
               </h2>
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 opacity-60">
                 <AnimatePresence>
-                  {pastEvents.slice(0, 4).map((event) => (
-                    <EventCard
-                      key={event.id}
-                      event={event}
-                      onEdit={handleEdit}
-                      isAdmin={isAdmin}
-                    />
-                  ))}
+                  {pastItems.slice(0, 4).map((item) =>
+                    item.type === 'event' ? (
+                      <EventCard
+                        key={`past-event-${item.id}`}
+                        event={item}
+                        onEdit={handleEdit}
+                        isAdmin={isAdmin}
+                      />
+                    ) : (
+                      <Card key={`past-callup-${item.id}`} className="bg-slate-50 border-slate-200">
+                        <CardContent className="p-4">
+                          <div className="flex items-start justify-between mb-2">
+                            <Badge variant="outline">Partido</Badge>
+                            <span className="text-xs text-slate-600">
+                              {format(new Date(item.date), "d MMM yyyy", { locale: es })}
+                            </span>
+                          </div>
+                          <h3 className="font-bold text-slate-700 mb-2">{item.titulo}</h3>
+                        </CardContent>
+                      </Card>
+                    )
+                  )}
                 </AnimatePresence>
               </div>
             </div>
