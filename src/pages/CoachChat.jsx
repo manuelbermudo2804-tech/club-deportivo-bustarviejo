@@ -19,6 +19,7 @@ export default function CoachChat() {
   const [attachments, setAttachments] = useState([]);
   const [priority, setPriority] = useState("Normal");
   const [searchTerm, setSearchTerm] = useState("");
+  const [selectedRecipient, setSelectedRecipient] = useState("all");
   const [isMobile, setIsMobile] = useState(false);
   const messagesEndRef = useRef(null);
   const queryClient = useQueryClient();
@@ -99,6 +100,7 @@ export default function CoachChat() {
       setMessageContent("");
       setAttachments([]);
       setPriority("Normal");
+      setSelectedRecipient("all");
       toast.success("Mensaje enviado");
     },
   });
@@ -302,7 +304,9 @@ export default function CoachChat() {
       categoria: "",
       grupo_id: selectedTab,
       leido: false,
-      archivos_adjuntos: attachments
+      archivos_adjuntos: attachments,
+      destinatario_email: selectedRecipient !== "all" ? selectedRecipient : undefined,
+      destinatario_nombre: selectedRecipient !== "all" ? getInternalChatParticipants().find(p => p.email === selectedRecipient)?.name : undefined
     };
 
     console.log('📤 Enviando mensaje coordinación:', messageData);
@@ -315,6 +319,41 @@ export default function CoachChat() {
 
   const handleRemoveAttachment = (index) => {
     setAttachments(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const getInternalChatParticipants = () => {
+    if (!user) return [];
+    
+    const trainers = allPlayers.reduce((acc, player) => {
+      if (player.email_padre && (acc.find(t => t.email === player.email_padre)?.es_entrenador || allPlayers.find(p => p.email_padre === player.email_padre && (user.categorias_entrena || []).includes(p.deporte)))) {
+        // Skip - logic handled below
+      }
+      return acc;
+    }, []);
+
+    const allTrainers = new Set();
+    const result = [];
+
+    // Add current user if coordinator/trainer
+    if (user.es_coordinador || user.es_entrenador) {
+      allTrainers.add(user.email);
+    }
+
+    // Collect all unique trainer/coordinator emails from User entity would be ideal
+    // For now, we'll use a simpler approach based on messages in the internal chat
+    messages.forEach(msg => {
+      if (msg.grupo_id === "Chat Interno Entrenadores" && msg.remitente_email !== user.email) {
+        if (!allTrainers.has(msg.remitente_email)) {
+          allTrainers.add(msg.remitente_email);
+          result.push({
+            email: msg.remitente_email,
+            name: msg.remitente_nombre
+          });
+        }
+      }
+    });
+
+    return result;
   };
 
   const sportEmojis = {
@@ -557,10 +596,10 @@ export default function CoachChat() {
               </div>
             )}
 
-            {currentGroup.tipo === 'entrenador' && (
-              <div className="mb-2">
+            <div className="grid grid-cols-2 gap-2 mb-2">
+              {currentGroup.tipo === 'entrenador' && (
                 <Select value={priority} onValueChange={setPriority}>
-                  <SelectTrigger className="w-full h-9 text-sm">
+                  <SelectTrigger className="h-9 text-sm">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -569,8 +608,24 @@ export default function CoachChat() {
                     <SelectItem value="Urgente">🔴 Urgente (Email)</SelectItem>
                   </SelectContent>
                 </Select>
-              </div>
-            )}
+              )}
+              
+              {currentGroup.tipo === 'interno' && (
+                <Select value={selectedRecipient} onValueChange={setSelectedRecipient}>
+                  <SelectTrigger className={`h-9 text-sm ${currentGroup.tipo === 'entrenador' ? '' : 'col-span-2'}`}>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">👥 Todos los entrenadores</SelectItem>
+                    {getInternalChatParticipants().map(trainer => (
+                      <SelectItem key={trainer.email} value={trainer.email}>
+                        👤 {trainer.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+            </div>
 
             <div className="flex gap-2 items-end">
               <FileAttachmentButton
