@@ -46,6 +46,7 @@ export default function CoachCallups() {
         
         // Get coach categories
         const categories = currentUser.categorias_entrena || [];
+        console.log('🔍 Categorías del usuario:', categories);
         setCoachCategories(categories);
         
         // If admin, set to "admin" mode (can see all categories)
