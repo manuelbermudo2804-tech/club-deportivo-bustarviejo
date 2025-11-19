@@ -27,6 +27,8 @@ export default function CoachEvaluationReports() {
   const [showSendDialog, setShowSendDialog] = useState(false);
   const [selectedPlayerForReport, setSelectedPlayerForReport] = useState(null);
   const [sendMethod, setSendMethod] = useState("email");
+  const [reportDateFrom, setReportDateFrom] = useState("");
+  const [reportDateTo, setReportDateTo] = useState("");
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -259,11 +261,40 @@ CD Bustarviejo
     setSelectedPlayerForReport(stats);
     setShowSendDialog(true);
     setSendMethod("email");
+    
+    // Establecer periodo por defecto: últimos 30 días
+    const today = new Date();
+    const thirtyDaysAgo = new Date(today);
+    thirtyDaysAgo.setDate(today.getDate() - 30);
+    
+    setReportDateTo(today.toISOString().split('T')[0]);
+    setReportDateFrom(thirtyDaysAgo.toISOString().split('T')[0]);
   };
 
   const handleConfirmSend = () => {
     if (selectedPlayerForReport) {
-      sendPlayerReport(selectedPlayerForReport, sendMethod);
+      // Filtrar evaluaciones por el periodo seleccionado
+      const filteredEvaluations = selectedPlayerForReport.evaluaciones.filter(ev => 
+        ev.fecha >= reportDateFrom && ev.fecha <= reportDateTo
+      );
+      
+      if (filteredEvaluations.length === 0) {
+        toast.error("No hay evaluaciones en el periodo seleccionado");
+        return;
+      }
+      
+      // Calcular estadísticas para el periodo filtrado
+      const actitudSum = filteredEvaluations.reduce((sum, ev) => sum + (ev.actitud || 0), 0);
+      const promedioActitud = (actitudSum / filteredEvaluations.length).toFixed(1);
+      
+      const filteredStats = {
+        ...selectedPlayerForReport,
+        evaluaciones: filteredEvaluations,
+        totalSesiones: filteredEvaluations.length,
+        promedioActitud: promedioActitud
+      };
+      
+      sendPlayerReport(filteredStats, sendMethod);
     }
   };
 
@@ -289,16 +320,26 @@ CD Bustarviejo
             <DialogTitle>Enviar Reporte - {selectedPlayerForReport?.jugador.nombre}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 pt-4">
-            <div className="bg-slate-50 rounded-lg p-4 space-y-2">
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-slate-600">Total de sesiones:</span>
-                <Badge variant="outline">{selectedPlayerForReport?.totalSesiones}</Badge>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-slate-600">Promedio de actitud:</span>
-                <div className="flex items-center gap-1">
-                  <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
-                  <span className="font-bold text-orange-600">{selectedPlayerForReport?.promedioActitud}/5</span>
+            <div className="space-y-3">
+              <Label className="text-sm font-medium">Periodo del Reporte</Label>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs text-slate-600 mb-1 block">Desde</label>
+                  <input
+                    type="date"
+                    value={reportDateFrom}
+                    onChange={(e) => setReportDateFrom(e.target.value)}
+                    className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs text-slate-600 mb-1 block">Hasta</label>
+                  <input
+                    type="date"
+                    value={reportDateTo}
+                    onChange={(e) => setReportDateTo(e.target.value)}
+                    className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm"
+                  />
                 </div>
               </div>
             </div>
