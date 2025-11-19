@@ -122,7 +122,7 @@ export default function ParentCallups() {
   const relevantCallups = callups.filter(c => {
     if (!c.publicada) return false;
     
-    const hasMyPlayer = c.jugadores_convocados.some(j => 
+    const hasMyPlayer = c.jugadores_convocados?.some(j => 
       myPlayers.some(p => p.id === j.jugador_id)
     );
     
