@@ -51,10 +51,12 @@ export default function ParentChat() {
       }
     }
     
-    if (!selectedTab) {
+    // En desktop, seleccionar el primer grupo por defecto
+    // En mobile, no seleccionar ninguno para mostrar la lista
+    if (!selectedTab && !isMobile) {
       setSelectedTab(myGroups[0].id);
     }
-  }, [myGroups, location.search]);
+  }, [myGroups, location.search, isMobile]);
 
   const { data: messages, isLoading: loadingMessages, refetch: refetchMessages } = useQuery({
     queryKey: ['chatMessages'],
@@ -274,10 +276,10 @@ export default function ParentChat() {
   }
 
   return (
-    <div className="fixed inset-0 flex bg-white" style={{ top: isMobile ? '120px' : '0', left: isMobile ? '0' : '288px' }}>
+    <div className="flex flex-col h-screen lg:fixed lg:inset-0 lg:flex-row bg-white" style={{ left: isMobile ? '0' : '288px' }}>
       {/* Mobile chat list */}
       {isMobile && !selectedTab && myGroups.length > 0 && (
-        <div className="fixed inset-0 bg-white overflow-y-auto" style={{ top: '120px', left: 0 }}>
+        <div className="flex-1 bg-white overflow-y-auto">
           <div className="p-4 bg-gradient-to-r from-orange-600 to-orange-700 text-white">
             <h2 className="text-xl font-bold">Chats</h2>
             <p className="text-sm text-orange-100">{myGroups.length} grupos disponibles</p>
@@ -287,7 +289,7 @@ export default function ParentChat() {
               <button
                 key={group.id}
                 onClick={() => setSelectedTab(group.id)}
-                className="w-full p-4 flex items-center gap-3 bg-white hover:bg-slate-50 transition-colors text-left"
+                className="w-full p-4 flex items-center gap-3 bg-white hover:bg-slate-50 transition-colors text-left min-h-[80px]"
               >
                 <div className={`w-14 h-14 rounded-full flex items-center justify-center flex-shrink-0 ${
                   group.deporte === "Coordinación Deportiva" ? 'bg-cyan-100' : 'bg-orange-100'
@@ -338,16 +340,16 @@ export default function ParentChat() {
         </div>
       )}
 
-      <div className="flex-1 flex flex-col">
+      <div className="flex-1 flex flex-col overflow-hidden">
         {selectedTab && currentGroup ? (
           <>
             <div className="bg-gradient-to-r from-orange-600 to-orange-700 p-4 text-white flex items-center gap-3 shadow-md flex-shrink-0 min-h-[72px]">
               {isMobile && (
                 <button
                   onClick={() => setSelectedTab(null)}
-                  className="mr-2 p-2 hover:bg-white/20 rounded-lg transition-colors"
+                  className="mr-2 p-2 hover:bg-white/20 rounded-lg transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center"
                 >
-                  <ArrowLeft className="w-5 h-5" />
+                  <ArrowLeft className="w-6 h-6" />
                 </button>
               )}
               <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
