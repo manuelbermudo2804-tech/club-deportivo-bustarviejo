@@ -88,6 +88,14 @@ export default function Home() {
     refetchOnWindowFocus: false,
   });
 
+  const { data: surveyResponses } = useQuery({
+    queryKey: ['surveyResponses'],
+    queryFn: () => base44.entities.SurveyResponse.list(),
+    initialData: [],
+    staleTime: 30000,
+    refetchOnWindowFocus: false,
+  });
+
   const myPlayers = user && isCoach && hasPlayers 
     ? players.filter(p => p.email_padre === user.email || p.email_tutor_2 === user.email)
     : [];
@@ -97,8 +105,14 @@ export default function Home() {
   const activeSurveys = isCoach && hasPlayers 
     ? surveys.filter(s => {
         if (!s.activa || new Date(s.fecha_fin) < new Date()) return false;
-        if (s.destinatarios === "Todos") return true;
-        return myPlayersSports.includes(s.destinatarios);
+        if (s.destinatarios === "Todos" || myPlayersSports.includes(s.destinatarios)) {
+          // Verificar si el usuario ya respondió esta encuesta
+          const alreadyResponded = surveyResponses.some(r => 
+            r.survey_id === s.id && r.respondente_email === user.email
+          );
+          return !alreadyResponded;
+        }
+        return false;
       })
     : [];
 
