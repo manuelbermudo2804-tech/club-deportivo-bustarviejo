@@ -285,19 +285,13 @@ Email: cdbustarviejo@gmail.com
   const myCallups = callups.filter(c => {
     if (user?.role === "admin") return true; // Admins see all callups
     
-    // Coordinator: ONLY see callups from assigned categories (not all they created)
-    if (user?.es_coordinador && !user?.es_entrenador) {
-      return coachCategories.includes(c.categoria);
-    }
-    
-    // Coach: can see callups they created OR from their categories
-    const isMyCallup = c.entrenador_email === user?.email;
+    // Coach/Coordinator: ONLY see callups from their assigned categories
     const isFromMyCategories = coachCategories.includes(c.categoria);
     
     if (selectedCategory === "all" || selectedCategory === "admin") {
-      return isMyCallup || isFromMyCategories;
+      return isFromMyCategories;
     }
-    return isMyCallup || c.categoria === selectedCategory;
+    return c.categoria === selectedCategory && isFromMyCategories;
   });
   
   // Separate upcoming ONLY - past callups are hidden
