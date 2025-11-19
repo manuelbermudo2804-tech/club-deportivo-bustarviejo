@@ -6,7 +6,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Calendar, User, Star, Search, AlertCircle, Send, Mail } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Label } from "@/components/ui/label";
+import { Calendar, User, Star, Search, AlertCircle, Send, Mail, MessageCircle } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
@@ -21,6 +24,9 @@ export default function CoachEvaluationReports() {
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
   const [sendingReport, setSendingReport] = useState(null);
+  const [showSendDialog, setShowSendDialog] = useState(false);
+  const [selectedPlayerForReport, setSelectedPlayerForReport] = useState(null);
+  const [sendMethod, setSendMethod] = useState("email");
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -139,7 +145,7 @@ export default function CoachEvaluationReports() {
     Observaciones: ev.observaciones || '-'
   }));
 
-  const sendPlayerReport = async (stats) => {
+  const sendPlayerReport = async (stats, method) => {
     setSendingReport(stats.jugador.id);
     
     try {
@@ -159,69 +165,105 @@ export default function CoachEvaluationReports() {
           </ul>
         </div>
         
-        <h4 style="color: #64748b;">📋 Detalle de Evaluaciones</h4>
-        <table style="width: 100%; border-collapse: collapse; margin-top: 10px;">
-          <thead>
-            <tr style="background: #f1f5f9;">
-              <th style="padding: 10px; text-align: left; border: 1px solid #e2e8f0;">Fecha</th>
-              <th style="padding: 10px; text-align: left; border: 1px solid #e2e8f0;">Entrenador</th>
-              <th style="padding: 10px; text-align: center; border: 1px solid #e2e8f0;">Actitud</th>
-              <th style="padding: 10px; text-align: left; border: 1px solid #e2e8f0;">Observaciones</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${evaluaciones.map(ev => `
-              <tr>
-                <td style="padding: 8px; border: 1px solid #e2e8f0;">${format(new Date(ev.fecha), 'dd/MM/yyyy')}</td>
-                <td style="padding: 8px; border: 1px solid #e2e8f0;">${ev.entrenador_nombre}</td>
-                <td style="padding: 8px; text-align: center; border: 1px solid #e2e8f0;">${'⭐'.repeat(ev.actitud)} (${ev.actitud}/5)</td>
-                <td style="padding: 8px; border: 1px solid #e2e8f0;">${ev.observaciones || '-'}</td>
-              </tr>
-            `).join('')}
-          </tbody>
-        </table>
+        <p style="color: #64748b; font-size: 14px;">
+          <strong>📧 Reporte generado por:</strong> ${user.full_name || user.email}<br>
+          <strong>📅 Fecha:</strong> ${format(new Date(), 'dd/MM/yyyy HH:mm')}
+        </p>
         
-        <div style="margin-top: 30px; padding: 15px; background: #fef3c7; border-left: 4px solid #f59e0b; border-radius: 4px;">
-          <p style="margin: 0; color: #92400e;">
-            <strong>📧 Reporte generado por:</strong> ${user.full_name || user.email}<br>
-            <strong>📅 Fecha:</strong> ${format(new Date(), 'dd/MM/yyyy HH:mm')}
-          </p>
-        </div>
-        
-        <hr style="margin: 30px 0; border: none; border-top: 1px solid #e2e8f0;">
+        <hr style="margin: 20px 0; border: none; border-top: 1px solid #e2e8f0;">
         
         <p style="color: #64748b; font-size: 14px;">
           Para cualquier consulta, contacta con el club:<br>
           📧 <a href="mailto:cdbustarviejo@gmail.com" style="color: #ea580c;">cdbustarviejo@gmail.com</a>
         </p>
       `;
+
+      const reportText = `
+Estimados padres/tutores,
+
+A continuación el reporte de asistencia y evaluación de ${player.nombre}.
+
+====================================
+REPORTE DE ASISTENCIA Y EVALUACION
+====================================
+
+Jugador: ${player.nombre}
+Categoria: ${stats.categoria}
+Periodo: ${format(new Date(evaluaciones[evaluaciones.length - 1].fecha), 'dd/MM/yyyy')} - ${format(new Date(evaluaciones[0].fecha), 'dd/MM/yyyy')}
+
+====================================
+RESUMEN
+====================================
+
+Total de sesiones: ${stats.totalSesiones}
+Actitud promedio: ${stats.promedioActitud}/5
+
+====================================
+
+Reporte generado por: ${user.full_name || user.email}
+Fecha: ${format(new Date(), 'dd/MM/yyyy HH:mm')}
+
+Para cualquier consulta, contacta con el club:
+cdbustarviejo@gmail.com
+
+Atentamente,
+CD Bustarviejo
+      `.trim();
       
-      // Enviar a padre principal
-      if (player.email_padre) {
-        await base44.integrations.Core.SendEmail({
-          from_name: "CD Bustarviejo - Evaluaciones",
-          to: player.email_padre,
-          subject: `Reporte de Asistencia y Evaluación - ${player.nombre}`,
-          body: reportHTML
+      if (method === 'email' || method === 'both') {
+        if (player.email_padre) {
+          await base44.integrations.Core.SendEmail({
+            from_name: "CD Bustarviejo - Evaluaciones",
+            to: player.email_padre,
+            subject: `Reporte de Asistencia y Evaluación - ${player.nombre}`,
+            body: reportHTML
+          });
+        }
+        
+        if (player.email_tutor_2) {
+          await base44.integrations.Core.SendEmail({
+            from_name: "CD Bustarviejo - Evaluaciones",
+            to: player.email_tutor_2,
+            subject: `Reporte de Asistencia y Evaluación - ${player.nombre}`,
+            body: reportHTML
+          });
+        }
+      }
+
+      if (method === 'chat' || method === 'both') {
+        await base44.entities.ChatMessage.create({
+          remitente_email: user.email,
+          remitente_nombre: user.full_name,
+          mensaje: reportText,
+          prioridad: "Normal",
+          tipo: "admin_a_grupo",
+          deporte: stats.categoria,
+          grupo_id: stats.categoria,
+          leido: false,
+          archivos_adjuntos: []
         });
       }
       
-      // Enviar a tutor 2 si existe
-      if (player.email_tutor_2) {
-        await base44.integrations.Core.SendEmail({
-          from_name: "CD Bustarviejo - Evaluaciones",
-          to: player.email_tutor_2,
-          subject: `Reporte de Asistencia y Evaluación - ${player.nombre}`,
-          body: reportHTML
-        });
-      }
-      
-      toast.success(`Reporte enviado a los padres de ${player.nombre}`);
+      toast.success(`Reporte enviado correctamente`);
     } catch (error) {
       console.error("Error sending report:", error);
       toast.error("Error al enviar el reporte");
     } finally {
       setSendingReport(null);
+      setShowSendDialog(false);
+      setSelectedPlayerForReport(null);
+    }
+  };
+
+  const handleOpenSendDialog = (stats) => {
+    setSelectedPlayerForReport(stats);
+    setShowSendDialog(true);
+    setSendMethod("email");
+  };
+
+  const handleConfirmSend = () => {
+    if (selectedPlayerForReport) {
+      sendPlayerReport(selectedPlayerForReport, sendMethod);
     }
   };
 
@@ -241,6 +283,82 @@ export default function CoachEvaluationReports() {
 
   return (
     <div className="p-4 lg:p-6 space-y-6">
+      <Dialog open={showSendDialog} onOpenChange={setShowSendDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Enviar Reporte - {selectedPlayerForReport?.jugador.nombre}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 pt-4">
+            <div className="bg-slate-50 rounded-lg p-4 space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-slate-600">Total de sesiones:</span>
+                <Badge variant="outline">{selectedPlayerForReport?.totalSesiones}</Badge>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-slate-600">Promedio de actitud:</span>
+                <div className="flex items-center gap-1">
+                  <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
+                  <span className="font-bold text-orange-600">{selectedPlayerForReport?.promedioActitud}/5</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-3">
+              <Label className="text-sm font-medium">¿Cómo deseas enviar el reporte?</Label>
+              <RadioGroup value={sendMethod} onValueChange={setSendMethod}>
+                <div className="flex items-center space-x-2 p-3 border rounded-lg hover:bg-slate-50 cursor-pointer">
+                  <RadioGroupItem value="email" id="email" />
+                  <Label htmlFor="email" className="flex items-center gap-2 cursor-pointer flex-1">
+                    <Mail className="w-4 h-4 text-blue-600" />
+                    <div>
+                      <p className="font-medium">Email</p>
+                      <p className="text-xs text-slate-500">Enviar por correo electrónico</p>
+                    </div>
+                  </Label>
+                </div>
+                <div className="flex items-center space-x-2 p-3 border rounded-lg hover:bg-slate-50 cursor-pointer">
+                  <RadioGroupItem value="chat" id="chat" />
+                  <Label htmlFor="chat" className="flex items-center gap-2 cursor-pointer flex-1">
+                    <MessageCircle className="w-4 h-4 text-green-600" />
+                    <div>
+                      <p className="font-medium">Chat del Grupo</p>
+                      <p className="text-xs text-slate-500">Publicar en el chat de la categoría</p>
+                    </div>
+                  </Label>
+                </div>
+                <div className="flex items-center space-x-2 p-3 border rounded-lg hover:bg-slate-50 cursor-pointer">
+                  <RadioGroupItem value="both" id="both" />
+                  <Label htmlFor="both" className="flex items-center gap-2 cursor-pointer flex-1">
+                    <Send className="w-4 h-4 text-orange-600" />
+                    <div>
+                      <p className="font-medium">Ambos</p>
+                      <p className="text-xs text-slate-500">Email + Chat del grupo</p>
+                    </div>
+                  </Label>
+                </div>
+              </RadioGroup>
+            </div>
+
+            <div className="flex gap-2 pt-4">
+              <Button
+                variant="outline"
+                onClick={() => setShowSendDialog(false)}
+                className="flex-1"
+              >
+                Cancelar
+              </Button>
+              <Button
+                onClick={handleConfirmSend}
+                disabled={sendingReport}
+                className="flex-1 bg-orange-600 hover:bg-orange-700"
+              >
+                {sendingReport ? "Enviando..." : "Enviar Reporte"}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
       <div className="flex items-start justify-between">
         <div>
           <h1 className="text-2xl lg:text-3xl font-bold text-slate-900">📊 Evaluaciones de Entrenadores</h1>
@@ -389,21 +507,8 @@ export default function CoachEvaluationReports() {
                         <span className="font-bold text-orange-600">{stats.promedioActitud}/5</span>
                       </div>
                     </div>
-                    <div className="pt-2 border-t">
-                      <p className="text-xs text-slate-600 mb-2">Últimas evaluaciones:</p>
-                      <div className="space-y-1">
-                        {stats.evaluaciones.slice(0, 3).map((ev, idx) => (
-                          <div key={idx} className="text-xs flex items-center justify-between bg-slate-50 p-2 rounded">
-                            <span className="text-slate-600">
-                              {format(new Date(ev.fecha), 'dd/MM/yy')}
-                            </span>
-                            <span className="font-medium">{'⭐'.repeat(ev.actitud)}</span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
                     <Button
-                      onClick={() => sendPlayerReport(stats)}
+                      onClick={() => handleOpenSendDialog(stats)}
                       disabled={sendingReport === stats.jugador.id}
                       className="w-full bg-orange-600 hover:bg-orange-700 mt-3"
                       size="sm"
