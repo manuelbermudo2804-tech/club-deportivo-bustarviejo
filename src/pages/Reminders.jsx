@@ -898,46 +898,10 @@ Temporada ${reminder.temporada}
                 {allPlayersData.map(playerData => {
                   const player = players.find(p => p.id === playerData.jugador_id);
 
-                  // Determinar qué pagos mostrar según el tipo de pago del jugador
-                  const hasPagoUnico = playerData.pagos.some(p => 
-                    (p.tipo_pago === "Único" || p.tipo_pago === "único")
-                  );
+                  // Mostrar solo los pagos que existen en la base de datos
+                  const relevantPayments = playerData.pagos;
 
-                  // Si tiene pago único, solo mostrar los pagos que existan (no generar virtuales)
-                  // Si es "Tres meses", mostrar los 3 pagos (Junio, Septiembre, Diciembre)
-                  const allPossibleMonths = hasPagoUnico ? [] : ["Junio", "Septiembre", "Diciembre"];
-                  
-                  // Crear mapa de pagos existentes
-                  const existingPaymentsMap = {};
-                  playerData.pagos.forEach(p => {
-                    existingPaymentsMap[p.mes] = p;
-                  });
-                  
-                  // Generar lista completa incluyendo pagos "virtuales" para meses faltantes
-                  let relevantPayments = [];
-                  
-                  if (hasPagoUnico) {
-                    // Para pago único: solo mostrar los pagos que existan en la BD
-                    relevantPayments = playerData.pagos;
-                  } else {
-                    // Para tres meses: mostrar los 3 meses, creando virtuales para los que falten
-                    relevantPayments = allPossibleMonths.map(mes => {
-                      if (existingPaymentsMap[mes]) {
-                        return existingPaymentsMap[mes];
-                      }
-                      // Crear pago virtual para meses sin registro
-                      return {
-                        id: `virtual-${playerData.jugador_id}-${mes}`,
-                        jugador_id: playerData.jugador_id,
-                        mes: mes,
-                        estado: "Sin registrar",
-                        cantidad: 0,
-                        isVirtual: true
-                      };
-                    });
-                  }
-
-                  const pendingPayments = relevantPayments.filter(p => p.estado === "Pendiente" || p.isVirtual);
+                  const pendingPayments = relevantPayments.filter(p => p.estado === "Pendiente");
                   const reviewPayments = relevantPayments.filter(p => p.estado === "En revisión");
                   const paidPayments = relevantPayments.filter(p => p.estado === "Pagado");
                   const totalPending = pendingPayments.reduce((sum, p) => sum + (p.cantidad || 0), 0);
