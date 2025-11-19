@@ -116,23 +116,45 @@ Gracias por su atención.
         sentMethods.push('Email');
       }
       
-      // CHAT
+      // CHAT INDIVIDUAL
       if (chat || animation) {
         const chatMessage = animation
           ? `🚨🔔 RECORDATORIO URGENTE 🔔🚨\n\n${data.message}\n\n⚠️ POR FAVOR, ATENCIÓN INMEDIATA`
           : data.message;
         
-        await base44.entities.ChatMessage.create({
-          remitente_email: "admin@cdbustarviejo.com",
-          remitente_nombre: "Administración CD Bustarviejo",
-          mensaje: chatMessage,
-          prioridad: animation ? "Urgente" : "Importante",
-          tipo: "admin_a_grupo",
-          deporte: player.deporte,
-          grupo_id: player.deporte,
-          leido: false
-        });
-        sentMethods.push('Chat');
+        // Enviar mensaje individual al padre principal
+        if (player.email_padre) {
+          await base44.entities.ChatMessage.create({
+            remitente_email: "admin@cdbustarviejo.com",
+            remitente_nombre: "Administración CD Bustarviejo",
+            destinatario_email: player.email_padre,
+            destinatario_nombre: `Padre de ${player.nombre}`,
+            mensaje: chatMessage,
+            prioridad: animation ? "Urgente" : "Importante",
+            tipo: "admin_a_grupo",
+            deporte: player.deporte,
+            grupo_id: player.deporte,
+            leido: false
+          });
+        }
+        
+        // Enviar mensaje individual al tutor 2 si existe
+        if (player.email_tutor_2) {
+          await base44.entities.ChatMessage.create({
+            remitente_email: "admin@cdbustarviejo.com",
+            remitente_nombre: "Administración CD Bustarviejo",
+            destinatario_email: player.email_tutor_2,
+            destinatario_nombre: `Tutor 2 de ${player.nombre}`,
+            mensaje: chatMessage,
+            prioridad: animation ? "Urgente" : "Importante",
+            tipo: "admin_a_grupo",
+            deporte: player.deporte,
+            grupo_id: player.deporte,
+            leido: false
+          });
+        }
+        
+        sentMethods.push('Chat Individual');
       }
       
       // NOTIFICACIÓN VISUAL EN LA APP
@@ -543,18 +565,41 @@ Temporada ${reminder.temporada}
         `${urgencyEmoji[reminder.tipo_recordatorio]} RECORDATORIO DE PAGO - ${reminder.mes_pago}\n\nFamilia de ${reminder.jugador_nombre}: Su justificante está en revisión. Pronto confirmaremos su pago.\n\nFecha límite: 15 de ${reminder.mes_pago}` :
         `${urgencyEmoji[reminder.tipo_recordatorio]} RECORDATORIO DE PAGO - ${reminder.mes_pago}\n\nFamilia de ${reminder.jugador_nombre}: Recuerde realizar el pago de ${reminder.cantidad}€ y subir el justificante en la app.\n\nFecha límite: 15 de ${reminder.mes_pago}\n\nApp → Mis Pagos → ${reminder.mes_pago}`;
 
-      await base44.entities.ChatMessage.create({
-        remitente_email: "admin@cdbustarviejo.com",
-        remitente_nombre: "Administración CF Bustarviejo",
-        mensaje: mensaje,
-        prioridad: reminder.tipo_recordatorio === "3 días antes" || reminder.tipo_recordatorio === "1 día después" ? "Urgente" : "Importante",
-        tipo: "admin_a_grupo",
-        deporte: player.deporte,
-        categoria: "",
-        grupo_id: player.deporte,
-        leido: false,
-        archivos_adjuntos: []
-      });
+      // Enviar mensaje individual al padre principal
+      if (player.email_padre) {
+        await base44.entities.ChatMessage.create({
+          remitente_email: "admin@cdbustarviejo.com",
+          remitente_nombre: "Administración CF Bustarviejo",
+          destinatario_email: player.email_padre,
+          destinatario_nombre: `Padre de ${player.nombre}`,
+          mensaje: mensaje,
+          prioridad: reminder.tipo_recordatorio === "3 días antes" || reminder.tipo_recordatorio === "1 día después" ? "Urgente" : "Importante",
+          tipo: "admin_a_grupo",
+          deporte: player.deporte,
+          categoria: "",
+          grupo_id: player.deporte,
+          leido: false,
+          archivos_adjuntos: []
+        });
+      }
+      
+      // Enviar mensaje individual al tutor 2 si existe
+      if (player.email_tutor_2) {
+        await base44.entities.ChatMessage.create({
+          remitente_email: "admin@cdbustarviejo.com",
+          remitente_nombre: "Administración CF Bustarviejo",
+          destinatario_email: player.email_tutor_2,
+          destinatario_nombre: `Tutor 2 de ${player.nombre}`,
+          mensaje: mensaje,
+          prioridad: reminder.tipo_recordatorio === "3 días antes" || reminder.tipo_recordatorio === "1 día después" ? "Urgente" : "Importante",
+          tipo: "admin_a_grupo",
+          deporte: player.deporte,
+          categoria: "",
+          grupo_id: player.deporte,
+          leido: false,
+          archivos_adjuntos: []
+        });
+      }
 
       await base44.entities.Reminder.update(reminder.id, {
         ...reminder,
@@ -563,7 +608,7 @@ Temporada ${reminder.temporada}
       });
 
       queryClient.invalidateQueries({ queryKey: ['reminders'] });
-      toast.success("💬 Mensaje enviado al chat del grupo");
+      toast.success("💬 Mensaje individual enviado por chat");
     } catch (error) {
       console.error("Error sending chat reminder:", error);
       toast.error("Error al enviar mensaje al chat");
