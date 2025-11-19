@@ -710,7 +710,7 @@ Email: cdbustarviejo@gmail.com
                       // Mostrar solo los pagos reales que existen en la base de datos
                       const displayPayments = playerPayments;
                       
-                      const pendingPayments = displayPayments.filter(p => p.estado === "Pendiente" || p.isVirtual);
+                      const pendingPayments = displayPayments.filter(p => p.estado === "Pendiente");
                       const reviewPayments = displayPayments.filter(p => p.estado === "En revisión");
                       const paidPayments = displayPayments.filter(p => p.estado === "Pagado");
                       const totalPending = pendingPayments.reduce((sum, p) => sum + (p.cantidad || 0), 0);
@@ -783,27 +783,26 @@ Email: cdbustarviejo@gmail.com
                                         <Badge className={
                                           payment.estado === "Pagado" ? "bg-green-100 text-green-700 text-[10px] lg:text-xs" :
                                           payment.estado === "En revisión" ? "bg-orange-100 text-orange-700 text-[10px] lg:text-xs" :
-                                          payment.isVirtual ? "bg-slate-100 text-slate-600 text-[10px] lg:text-xs" :
                                           "bg-red-100 text-red-700 text-[10px] lg:text-xs"
                                         }>
-                                          {payment.isVirtual ? "⚪" : statusEmojis[payment.estado]}
+                                          {statusEmojis[payment.estado]}
                                         </Badge>
                                         <div className="min-w-0 flex-1">
                                           <p className="text-xs lg:text-sm font-medium text-slate-900">
                                             {payment.mes}
-                                            {isOverdue && !payment.isVirtual && (
+                                            {isOverdue && (
                                               <span className="ml-2 text-red-600 text-[10px]">
                                                 (Vencido {daysOverdue}d)
                                               </span>
                                             )}
                                           </p>
                                           <p className="text-[10px] lg:text-xs text-slate-600">
-                                            {payment.isVirtual ? "Pendiente registrar" : `${payment.cantidad}€`}
+                                            {payment.cantidad}€
                                           </p>
                                         </div>
                                       </div>
                                       <div className="flex gap-1 items-center">
-                                       {!payment.isVirtual && payment.justificante_url ? (
+                                       {payment.justificante_url ? (
                                          <Button
                                            variant="ghost"
                                            size="sm"
@@ -813,10 +812,10 @@ Email: cdbustarviejo@gmail.com
                                          >
                                            <FileText className="w-3 h-3 lg:w-4 lg:h-4" />
                                          </Button>
-                                       ) : (payment.estado === "Pendiente" || payment.isVirtual) && (
+                                       ) : payment.estado === "Pendiente" && (
                                          <span className="text-red-600 text-xs lg:text-sm">❌</span>
                                        )}
-                                       {isAdmin && !payment.isVirtual && payment.estado !== "Pagado" && payment.justificante_url && (
+                                       {isAdmin && payment.estado !== "Pagado" && payment.justificante_url && (
                                          <Button
                                            size="sm"
                                            onClick={() => handleStatusChange(payment, "Pagado")}
