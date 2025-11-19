@@ -342,27 +342,8 @@ export default function AdminChat() {
 
   return (
     <div className="fixed inset-0 flex bg-white" style={{ top: isMobile ? '120px' : '0', left: isMobile ? '0' : '288px' }}>
-      {/* Mobile selector at top */}
-      {isMobile && (
-        <div className="fixed top-[120px] left-0 right-0 z-20 bg-white border-b p-2 shadow-sm">
-          <select
-            value={sendToAll ? 'todos' : selectedGroup || ''}
-            onChange={(e) => handleSelectGroup(e.target.value, e.target.value === 'todos')}
-            className="w-full p-3 rounded-lg border-2 border-orange-300 bg-white text-slate-900 font-semibold"
-          >
-            <option value="">Selecciona un grupo...</option>
-            {allGroupsList.map(group => (
-              <option key={group.id} value={group.id}>
-                {group.isSendToAll ? '📢 Todos los Grupos' : `${sportEmojis[group.deporte] || '⚽'} ${group.deporte}`}
-                {group.unreadCount > 0 ? ` (${group.unreadCount})` : ''}
-              </option>
-            ))}
-          </select>
-        </div>
-      )}
-
       {/* Main chat area */}
-      <div className="flex-1 flex flex-col" style={{ marginTop: isMobile ? '56px' : '0' }}>
+      <div className="flex-1 flex flex-col">
         {(selectedGroup || sendToAll) && (
           <>
             <div className={`p-4 text-white flex items-center gap-3 shadow-md flex-shrink-0 ${
@@ -554,9 +535,8 @@ export default function AdminChat() {
         )}
       </div>
 
-      {/* Sidebar with chat list - Desktop only */}
-      {!isMobile && (
-        <div className="w-80 border-l bg-slate-50 flex flex-col overflow-hidden">
+      {/* Sidebar with chat list */}
+      <div className="w-80 border-l bg-slate-50 flex flex-col overflow-hidden">
           <div className="p-4 bg-white border-b">
             <h3 className="font-bold text-slate-900">Chats</h3>
             <p className="text-xs text-slate-600 mt-1">{filteredGroups.length} grupos disponibles</p>
@@ -614,7 +594,6 @@ export default function AdminChat() {
             ))}
           </div>
         </div>
-      )}
     </div>
   );
 }

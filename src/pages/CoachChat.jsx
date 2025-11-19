@@ -360,27 +360,8 @@ export default function CoachChat() {
 
   return (
     <div className="fixed inset-0 flex bg-white" style={{ top: isMobile ? '120px' : '0', left: isMobile ? '0' : '288px' }}>
-      {/* Mobile selector at top */}
-      {isMobile && (
-        <div className="fixed top-[120px] left-0 right-0 z-20 bg-white border-b p-2 shadow-sm">
-          <select
-            value={selectedTab || ''}
-            onChange={(e) => setSelectedTab(e.target.value)}
-            className="w-full p-3 rounded-lg border-2 border-blue-300 bg-white text-slate-900 font-semibold"
-          >
-            <option value="">Selecciona un grupo...</option>
-            {filteredGroups.map(group => (
-              <option key={group.id} value={group.id}>
-                {group.tipo === 'coordinacion' ? '🎓' : group.tipo === 'interno' ? '💼' : group.tipo === 'entrenador' ? '🎓' : sportEmojis[group.deporte] || '⚽'} {group.deporte}
-                {group.unreadCount > 0 ? ` (${group.unreadCount})` : ''}
-              </option>
-            ))}
-          </select>
-        </div>
-      )}
-
       {/* Main chat area */}
-      <div className="flex-1 flex flex-col" style={{ marginTop: isMobile ? '56px' : '0' }}>
+      <div className="flex-1 flex flex-col">
 
         {currentGroup && (
           <>
@@ -584,9 +565,8 @@ export default function CoachChat() {
         )}
       </div>
 
-      {/* Sidebar with chat list - Desktop only */}
-      {!isMobile && (
-        <div className="w-80 border-l bg-slate-50 flex flex-col overflow-hidden">
+      {/* Sidebar with chat list */}
+      <div className="w-80 border-l bg-slate-50 flex flex-col overflow-hidden">
           <div className="p-4 bg-white border-b">
             <h3 className="font-bold text-slate-900">Chats</h3>
             <p className="text-xs text-slate-600 mt-1">{filteredGroups.length} grupos disponibles</p>
@@ -625,8 +605,7 @@ export default function CoachChat() {
               </button>
             ))}
           </div>
-        </div>
-      )}
-    </div>
-  );
+          </div>
+          </div>
+          );
 }

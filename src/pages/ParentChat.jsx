@@ -439,9 +439,8 @@ export default function ParentChat() {
         )}
       </div>
 
-      {/* Sidebar with chat list - Desktop only */}
-      {!isMobile && (
-        <div className="w-80 border-l bg-slate-50 flex flex-col overflow-hidden">
+      {/* Sidebar with chat list */}
+      <div className="w-80 border-l bg-slate-50 flex flex-col overflow-hidden">
           <div className="p-4 bg-white border-b">
             <h3 className="font-bold text-slate-900">Chats</h3>
             <p className="text-xs text-slate-600 mt-1">{myGroups.length} grupos disponibles</p>
@@ -477,7 +476,6 @@ export default function ParentChat() {
             ))}
           </div>
         </div>
-      )}
     </div>
   );
 }
