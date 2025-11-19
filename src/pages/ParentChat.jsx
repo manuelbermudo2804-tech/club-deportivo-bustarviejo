@@ -275,7 +275,7 @@ export default function ParentChat() {
   return (
     <div className="fixed inset-0 flex bg-white" style={{ top: isMobile ? '120px' : '0', left: isMobile ? '0' : '288px' }}>
       {/* Mobile chat list */}
-      {isMobile && !selectedTab && (
+      {isMobile && !selectedTab && myGroups.length > 0 && (
         <div className="fixed inset-0 bg-white overflow-y-auto" style={{ top: '120px', left: 0 }}>
           <div className="p-4 bg-gradient-to-r from-orange-600 to-orange-700 text-white">
             <h2 className="text-xl font-bold">Chats</h2>
@@ -338,7 +338,7 @@ export default function ParentChat() {
       )}
 
       <div className="flex-1 flex flex-col">
-        {currentGroup && (
+        {selectedTab && currentGroup && (
           <>
             <div className="bg-gradient-to-r from-orange-600 to-orange-700 p-4 text-white flex items-center gap-3 shadow-md flex-shrink-0">
               {isMobile && (
