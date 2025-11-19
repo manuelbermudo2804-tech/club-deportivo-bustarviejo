@@ -245,43 +245,47 @@ export default function ParentPaymentForm({ players, payments = [], onSubmit, on
       exit={{ opacity: 0, y: -20 }}
       className="space-y-6"
     >
-      {pagoUnicoPagado && selectedPlayer && (
-        <Alert className="bg-green-50 border-2 border-green-500">
-          <Info className="h-5 w-5 text-green-600" />
-          <AlertDescription className="text-green-900">
-            <p className="font-bold text-lg mb-2">✅ Temporada Pagada Completamente</p>
-            <p>El jugador <strong>{selectedPlayer.nombre}</strong> ya tiene todos los pagos de la temporada {currentSeason} completados.</p>
-            <p className="mt-2 text-sm">No es necesario registrar más pagos para este jugador en esta temporada.</p>
-          </AlertDescription>
-        </Alert>
-      )}
+      <Card className="border-none shadow-xl bg-white/90 backdrop-blur-sm">
+        <CardHeader className="border-b border-slate-100">
+          <CardTitle className="text-2xl">Registrar Pago</CardTitle>
+        </CardHeader>
+        <CardContent className="pt-6">
+          {pagoUnicoPagado && selectedPlayer && (
+            <Alert className="bg-green-50 border-2 border-green-500 mb-6">
+              <Info className="h-5 w-5 text-green-600" />
+              <AlertDescription className="text-green-900">
+                <p className="font-bold text-lg mb-2">✅ Temporada Pagada Completamente</p>
+                <p>El jugador <strong>{selectedPlayer.nombre}</strong> ya tiene todos los pagos de la temporada {currentSeason} completados.</p>
+                <p className="mt-2 text-sm">No es necesario registrar más pagos para este jugador. Selecciona otro jugador.</p>
+              </AlertDescription>
+            </Alert>
+          )}
 
-      {!pagoUnicoPagado && selectedPlayer && currentPayment.cantidad > 0 && (
-        <PaymentInstructions
-          playerName={selectedPlayer.nombre}
-          playerCategory={selectedPlayer.deporte}
-          amount={currentPayment.cantidad}
-          paymentType={currentPayment.tipo_pago}
-        />
-      )}
-      
-      {!pagoUnicoPagado && tipoPagoFijado && (
-        <Alert className="bg-blue-50 border-blue-300">
-          <Info className="h-4 w-4 text-blue-600" />
-          <AlertDescription className="text-blue-800">
-            <p className="font-semibold">Tipo de pago seleccionado previamente:</p>
-            <p className="text-sm mt-1">
-              Este jugador está inscrito con modalidad de <strong>{tipoPagoFijado}</strong>.
-              {tipoPagoFijado === "Tres meses" && mesesPagados.length > 0 && (
-                <span className="block mt-1">Cuotas pagadas: {mesesPagados.join(", ")}</span>
-              )}
-            </p>
-          </AlertDescription>
-        </Alert>
-      )}
-
-      {!pagoUnicoPagado && (
-        <Card className="border-none shadow-xl bg-white/90 backdrop-blur-sm">
+          {!pagoUnicoPagado && selectedPlayer && currentPayment.cantidad > 0 && (
+            <div className="mb-6">
+              <PaymentInstructions
+                playerName={selectedPlayer.nombre}
+                playerCategory={selectedPlayer.deporte}
+                amount={currentPayment.cantidad}
+                paymentType={currentPayment.tipo_pago}
+              />
+            </div>
+          )}
+          
+          {!pagoUnicoPagado && tipoPagoFijado && (
+            <Alert className="bg-blue-50 border-blue-300 mb-6">
+              <Info className="h-4 w-4 text-blue-600" />
+              <AlertDescription className="text-blue-800">
+                <p className="font-semibold">Tipo de pago seleccionado previamente:</p>
+                <p className="text-sm mt-1">
+                  Este jugador está inscrito con modalidad de <strong>{tipoPagoFijado}</strong>.
+                  {tipoPagoFijado === "Tres meses" && mesesPagados.length > 0 && (
+                    <span className="block mt-1">Cuotas pagadas: {mesesPagados.join(", ")}</span>
+                  )}
+                </p>
+              </AlertDescription>
+            </Alert>
+          )}
           <CardHeader className="border-b border-slate-100">
             <CardTitle className="text-2xl">Registrar Pago</CardTitle>
           </CardHeader>
