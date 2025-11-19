@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Mail, MessageCircle, Send, Loader2, Smartphone } from "lucide-react";
 
-export default function IndividualReminderDialog({ isOpen, onClose, payment, player, onSend }) {
+export default function IndividualReminderDialog({ isOpen, onClose, payment, player, allPlayerPayments, onSend }) {
   const [methods, setMethods] = useState({
     email: false,
     chat: false,
@@ -14,12 +14,52 @@ export default function IndividualReminderDialog({ isOpen, onClose, payment, pla
   });
   const [customMessage, setCustomMessage] = useState("");
   const [sending, setSending] = useState(false);
+  const [selectedMonths, setSelectedMonths] = useState([]);
+  const [reminderType, setReminderType] = useState("specific"); // "specific" | "all_unpaid"
 
   const toggleMethod = (method) => {
     setMethods(prev => ({ ...prev, [method]: !prev[method] }));
   };
 
-  const defaultMessage = `Estimados padres/tutores,
+  // Filtrar pagos pendientes del jugador
+  const unpaidPayments = (allPlayerPayments || []).filter(p => 
+    p.jugador_id === player?.id && 
+    (p.estado === "Pendiente" || p.estado === "En revisión")
+  );
+
+  const hasAnyPayment = (allPlayerPayments || []).some(p => p.jugador_id === player?.id);
+
+  const toggleMonth = (mes) => {
+    setSelectedMonths(prev => 
+      prev.includes(mes) ? prev.filter(m => m !== mes) : [...prev, mes]
+    );
+  };
+
+  const selectAllMonths = () => {
+    if (selectedMonths.length === unpaidPayments.length) {
+      setSelectedMonths([]);
+    } else {
+      setSelectedMonths(unpaidPayments.map(p => p.mes));
+    }
+  };
+
+  const getDefaultMessage = () => {
+    if (reminderType === "all_unpaid" || !hasAnyPayment) {
+      return `Estimados padres/tutores,
+
+Les recordamos que NO han registrado ningún pago para este jugador en la temporada actual.
+
+Jugador: ${player?.nombre}
+Temporada: ${payment?.temporada || "2024-2025"}
+
+Por favor, accede a la aplicación y registra los pagos correspondientes lo antes posible.
+
+Atentamente,
+CD Bustarviejo`;
+    }
+
+    if (selectedMonths.length === 0) {
+      return `Estimados padres/tutores,
 
 Les recordamos que tienen un pago pendiente:
 
@@ -33,11 +73,37 @@ Por favor, realiza el pago y sube el justificante en la aplicación.
 
 Atentamente,
 CD Bustarviejo`;
+    }
+
+    const selectedPayments = unpaidPayments.filter(p => selectedMonths.includes(p.mes));
+    const totalAmount = selectedPayments.reduce((sum, p) => sum + (p.cantidad || 0), 0);
+
+    return `Estimados padres/tutores,
+
+Les recordamos que tienen ${selectedMonths.length} pago${selectedMonths.length > 1 ? 's' : ''} pendiente${selectedMonths.length > 1 ? 's' : ''}:
+
+Jugador: ${player?.nombre}
+Temporada: ${payment?.temporada || "2024-2025"}
+
+${selectedPayments.map(p => `• ${p.mes}: ${p.cantidad}€ (Vencimiento: 30 de ${p.mes})`).join('\n')}
+
+Total pendiente: ${totalAmount}€
+
+Por favor, realiza ${selectedMonths.length > 1 ? 'los pagos' : 'el pago'} y sube ${selectedMonths.length > 1 ? 'los justificantes' : 'el justificante'} en la aplicación.
+
+Atentamente,
+CD Bustarviejo`;
+  };
 
   const handleSend = async () => {
     const selectedMethods = Object.keys(methods).filter(m => methods[m]);
     if (selectedMethods.length === 0) {
       alert("Por favor selecciona al menos un método de envío");
+      return;
+    }
+
+    if (reminderType === "specific" && selectedMonths.length === 0) {
+      alert("Por favor selecciona al menos un mes para recordar");
       return;
     }
 
@@ -47,11 +113,15 @@ CD Bustarviejo`;
         paymentId: payment.id,
         playerId: player.id,
         methods: methods,
-        message: customMessage || defaultMessage
+        message: customMessage || getDefaultMessage(),
+        reminderType: reminderType,
+        selectedMonths: selectedMonths
       });
       onClose();
       setMethods({ email: false, chat: false, animation: false });
       setCustomMessage("");
+      setSelectedMonths([]);
+      setReminderType("specific");
     } catch (error) {
       console.error("Error sending reminder:", error);
     } finally {
@@ -67,16 +137,120 @@ CD Bustarviejo`;
         </DialogHeader>
 
         <div className="space-y-6 py-4">
-          {/* Payment Info */}
+          {/* Player Info */}
           <div className="bg-slate-50 rounded-lg p-4 space-y-2">
-            <p className="font-semibold text-slate-900">{payment?.jugador_nombre}</p>
-            <div className="grid grid-cols-2 gap-2 text-sm">
-              <p className="text-slate-600">Periodo: <span className="font-medium">{payment?.mes}</span></p>
-              <p className="text-slate-600">Cantidad: <span className="font-medium">{payment?.cantidad}€</span></p>
-              <p className="text-slate-600">Estado: <span className="font-medium">{payment?.estado}</span></p>
-              <p className="text-slate-600">Temporada: <span className="font-medium">{payment?.temporada}</span></p>
+            <p className="font-semibold text-slate-900">{player?.nombre}</p>
+            <div className="text-sm">
+              <p className="text-slate-600">Temporada: <span className="font-medium">{payment?.temporada || "2024-2025"}</span></p>
+              {unpaidPayments.length > 0 && (
+                <p className="text-orange-600 font-medium mt-1">
+                  {unpaidPayments.length} pago{unpaidPayments.length > 1 ? 's' : ''} pendiente{unpaidPayments.length > 1 ? 's' : ''}
+                </p>
+              )}
+              {!hasAnyPayment && (
+                <p className="text-red-600 font-medium mt-1">
+                  ⚠️ Sin pagos registrados
+                </p>
+              )}
             </div>
           </div>
+
+          {/* Reminder Type Selection */}
+          <div className="space-y-3">
+            <Label className="text-base font-semibold">Tipo de Recordatorio</Label>
+            
+            <div className="space-y-2">
+              <div 
+                className={`flex items-start space-x-3 border-2 rounded-lg p-4 cursor-pointer transition-colors ${
+                  reminderType === "specific" ? 'border-orange-500 bg-orange-50' : 'border-slate-200 hover:bg-slate-50'
+                }`}
+                onClick={() => setReminderType("specific")}
+              >
+                <input 
+                  type="radio" 
+                  name="reminderType" 
+                  checked={reminderType === "specific"}
+                  onChange={() => setReminderType("specific")}
+                  className="mt-1"
+                />
+                <div className="flex-1">
+                  <span className="font-medium">Meses específicos sin pagar</span>
+                  <p className="text-xs text-slate-500 mt-1">Selecciona los meses pendientes que quieres recordar</p>
+                </div>
+              </div>
+
+              <div 
+                className={`flex items-start space-x-3 border-2 rounded-lg p-4 cursor-pointer transition-colors ${
+                  reminderType === "all_unpaid" ? 'border-red-500 bg-red-50' : 'border-slate-200 hover:bg-slate-50'
+                }`}
+                onClick={() => setReminderType("all_unpaid")}
+              >
+                <input 
+                  type="radio" 
+                  name="reminderType" 
+                  checked={reminderType === "all_unpaid"}
+                  onChange={() => setReminderType("all_unpaid")}
+                  className="mt-1"
+                />
+                <div className="flex-1">
+                  <span className="font-medium text-red-700">Sin ningún pago registrado</span>
+                  <p className="text-xs text-red-600 mt-1">Para jugadores que no han registrado ninguna cuota</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Month Selection - Only for specific type */}
+          {reminderType === "specific" && unpaidPayments.length > 0 && (
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <Label className="text-base font-semibold">Selecciona los meses a recordar</Label>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={selectAllMonths}
+                  className="text-xs"
+                >
+                  {selectedMonths.length === unpaidPayments.length ? "Deseleccionar todos" : "Seleccionar todos"}
+                </Button>
+              </div>
+              
+              <div className="space-y-2 max-h-60 overflow-y-auto">
+                {unpaidPayments.map((p) => (
+                  <div 
+                    key={p.id}
+                    className={`flex items-center space-x-3 border rounded-lg p-3 cursor-pointer transition-colors ${
+                      selectedMonths.includes(p.mes) ? 'border-orange-500 bg-orange-50' : 'border-slate-200 hover:bg-slate-50'
+                    }`}
+                    onClick={() => toggleMonth(p.mes)}
+                  >
+                    <Checkbox 
+                      checked={selectedMonths.includes(p.mes)}
+                      onCheckedChange={() => toggleMonth(p.mes)}
+                    />
+                    <div className="flex-1">
+                      <div className="flex items-center justify-between">
+                        <span className="font-medium">{p.mes}</span>
+                        <span className="text-sm font-semibold text-orange-600">{p.cantidad}€</span>
+                      </div>
+                      <p className="text-xs text-slate-500">Estado: {p.estado} • Vencimiento: 30 de {p.mes}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {selectedMonths.length > 0 && (
+                <div className="bg-orange-50 border border-orange-200 rounded-lg p-3">
+                  <p className="text-sm font-medium text-orange-800">
+                    ✓ {selectedMonths.length} mes{selectedMonths.length > 1 ? 'es' : ''} seleccionado{selectedMonths.length > 1 ? 's' : ''}
+                  </p>
+                  <p className="text-xs text-orange-600 mt-1">
+                    Total: {unpaidPayments.filter(p => selectedMonths.includes(p.mes)).reduce((sum, p) => sum + (p.cantidad || 0), 0)}€
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Contact Info */}
           <div className="bg-blue-50 rounded-lg p-4 space-y-2">
@@ -169,12 +343,18 @@ CD Bustarviejo`;
 
           {/* Custom Message */}
           <div className="space-y-2">
-            <Label>Mensaje (opcional - se usará el mensaje por defecto si está vacío)</Label>
+            <Label>Mensaje personalizado (opcional)</Label>
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-2">
+              <p className="text-xs text-blue-800 font-medium mb-2">Vista previa del mensaje por defecto:</p>
+              <pre className="text-[10px] text-blue-700 whitespace-pre-wrap font-mono max-h-32 overflow-y-auto">
+                {getDefaultMessage()}
+              </pre>
+            </div>
             <Textarea
               value={customMessage}
               onChange={(e) => setCustomMessage(e.target.value)}
-              placeholder={defaultMessage}
-              rows={10}
+              placeholder="Deja vacío para usar el mensaje por defecto mostrado arriba, o escribe tu mensaje personalizado aquí..."
+              rows={8}
               className="font-mono text-sm"
             />
           </div>
