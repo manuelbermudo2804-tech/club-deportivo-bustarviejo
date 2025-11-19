@@ -141,13 +141,25 @@ export default function Calendar() {
   };
 
   const myPlayersSports = useMemo(() => {
-    if (!user || isAdmin) return [];
+    if (!user) return [];
+    if (isAdmin) return [];
+    
+    const sports = new Set();
+    
+    // Agregar deportes de jugadores relacionados
     const myPlayers = players.filter(p => 
       p.email_padre === user.email || 
       p.email_tutor_2 === user.email ||
       p.email_jugador === user.email
     );
-    return [...new Set(myPlayers.map(p => p.deporte))];
+    myPlayers.forEach(p => sports.add(p.deporte));
+    
+    // Agregar categorías que entrena (si es entrenador/coordinador)
+    if (user.categorias_entrena && user.categorias_entrena.length > 0) {
+      user.categorias_entrena.forEach(cat => sports.add(cat));
+    }
+    
+    return [...sports];
   }, [user, players, isAdmin]);
 
   const visibleCallups = useMemo(() => {
