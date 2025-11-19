@@ -233,17 +233,39 @@ CD Bustarviejo
       }
 
       if (method === 'chat' || method === 'both') {
-        await base44.entities.ChatMessage.create({
-          remitente_email: user.email,
-          remitente_nombre: user.full_name,
-          mensaje: reportText,
-          prioridad: "Normal",
-          tipo: "admin_a_grupo",
-          deporte: stats.categoria,
-          grupo_id: stats.categoria,
-          leido: false,
-          archivos_adjuntos: []
-        });
+        // Enviar mensaje individual al padre principal
+        if (player.email_padre) {
+          await base44.entities.ChatMessage.create({
+            remitente_email: user.email,
+            remitente_nombre: user.full_name,
+            destinatario_email: player.email_padre,
+            destinatario_nombre: `Padre de ${player.nombre}`,
+            mensaje: reportText,
+            prioridad: "Normal",
+            tipo: "admin_a_grupo",
+            deporte: stats.categoria,
+            grupo_id: stats.categoria,
+            leido: false,
+            archivos_adjuntos: []
+          });
+        }
+        
+        // Enviar mensaje individual al tutor 2 si existe
+        if (player.email_tutor_2) {
+          await base44.entities.ChatMessage.create({
+            remitente_email: user.email,
+            remitente_nombre: user.full_name,
+            destinatario_email: player.email_tutor_2,
+            destinatario_nombre: `Tutor 2 de ${player.nombre}`,
+            mensaje: reportText,
+            prioridad: "Normal",
+            tipo: "admin_a_grupo",
+            deporte: stats.categoria,
+            grupo_id: stats.categoria,
+            leido: false,
+            archivos_adjuntos: []
+          });
+        }
       }
       
       toast.success(`Reporte enviado correctamente`);
