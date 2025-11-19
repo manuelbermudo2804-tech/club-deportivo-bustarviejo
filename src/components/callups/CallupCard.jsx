@@ -8,13 +8,14 @@ import { format } from "date-fns";
 import { es } from "date-fns/locale";
 
 export default function CallupCard({ callup, onEdit, onDelete, isCoach }) {
-  const confirmed = callup.jugadores_convocados.filter(j => j.confirmacion === "asistire").length;
-  const declined = callup.jugadores_convocados.filter(j => j.confirmacion === "no_asistire").length;
-  const pending = callup.jugadores_convocados.filter(j => j.confirmacion === "pendiente").length;
-  const doubt = callup.jugadores_convocados.filter(j => j.confirmacion === "duda").length;
+  const jugadores = callup.jugadores_convocados || [];
+  const confirmed = jugadores.filter(j => j.confirmacion === "asistire").length;
+  const declined = jugadores.filter(j => j.confirmacion === "no_asistire").length;
+  const pending = jugadores.filter(j => j.confirmacion === "pendiente").length;
+  const doubt = jugadores.filter(j => j.confirmacion === "duda").length;
 
-  const confirmationRate = callup.jugadores_convocados.length > 0 
-    ? Math.round((confirmed / callup.jugadores_convocados.length) * 100) 
+  const confirmationRate = jugadores.length > 0 
+    ? Math.round((confirmed / jugadores.length) * 100) 
     : 0;
 
   // Check if the match date has passed
@@ -162,15 +163,18 @@ export default function CallupCard({ callup, onEdit, onDelete, isCoach }) {
               <div className="flex items-center gap-2 text-slate-700">
                 <Users className="w-4 h-4 text-orange-600" />
                 <span className="text-sm">
-                  <strong>{callup.jugadores_convocados.length}</strong> jugadores convocados
+                  <strong>{jugadores.length}</strong> jugadores convocados
                 </span>
               </div>
-              
+            </div>
+            
+            {/* Lista de jugadores por estado de confirmación */}
+            <div className="space-y-2 mt-3">
               {confirmed > 0 && (
-                <div className="bg-green-50 rounded-lg p-2 border border-green-200">
-                  <p className="text-xs font-semibold text-green-800 mb-1">✅ Confirmados ({confirmed}):</p>
-                  <p className="text-xs text-green-700">
-                    {callup.jugadores_convocados
+                <div className="bg-green-50 rounded-lg p-3 border border-green-200">
+                  <p className="text-xs font-semibold text-green-800 mb-2">✅ Confirmados ({confirmed}):</p>
+                  <p className="text-xs text-green-700 leading-relaxed">
+                    {jugadores
                       .filter(j => j.confirmacion === "asistire")
                       .map(j => j.jugador_nombre)
                       .join(", ")}
@@ -179,10 +183,10 @@ export default function CallupCard({ callup, onEdit, onDelete, isCoach }) {
               )}
               
               {declined > 0 && (
-                <div className="bg-red-50 rounded-lg p-2 border border-red-200">
-                  <p className="text-xs font-semibold text-red-800 mb-1">❌ No asisten ({declined}):</p>
-                  <p className="text-xs text-red-700">
-                    {callup.jugadores_convocados
+                <div className="bg-red-50 rounded-lg p-3 border border-red-200">
+                  <p className="text-xs font-semibold text-red-800 mb-2">❌ No asisten ({declined}):</p>
+                  <p className="text-xs text-red-700 leading-relaxed">
+                    {jugadores
                       .filter(j => j.confirmacion === "no_asistire")
                       .map(j => j.jugador_nombre)
                       .join(", ")}
@@ -191,10 +195,10 @@ export default function CallupCard({ callup, onEdit, onDelete, isCoach }) {
               )}
               
               {doubt > 0 && (
-                <div className="bg-yellow-50 rounded-lg p-2 border border-yellow-200">
-                  <p className="text-xs font-semibold text-yellow-800 mb-1">❓ En duda ({doubt}):</p>
-                  <p className="text-xs text-yellow-700">
-                    {callup.jugadores_convocados
+                <div className="bg-yellow-50 rounded-lg p-3 border border-yellow-200">
+                  <p className="text-xs font-semibold text-yellow-800 mb-2">❓ En duda ({doubt}):</p>
+                  <p className="text-xs text-yellow-700 leading-relaxed">
+                    {jugadores
                       .filter(j => j.confirmacion === "duda")
                       .map(j => j.jugador_nombre)
                       .join(", ")}
@@ -203,10 +207,10 @@ export default function CallupCard({ callup, onEdit, onDelete, isCoach }) {
               )}
               
               {pending > 0 && (
-                <div className="bg-slate-50 rounded-lg p-2 border border-slate-200">
-                  <p className="text-xs font-semibold text-slate-800 mb-1">⏳ Pendientes ({pending}):</p>
-                  <p className="text-xs text-slate-700">
-                    {callup.jugadores_convocados
+                <div className="bg-slate-50 rounded-lg p-3 border border-slate-200">
+                  <p className="text-xs font-semibold text-slate-800 mb-2">⏳ Pendientes ({pending}):</p>
+                  <p className="text-xs text-slate-700 leading-relaxed">
+                    {jugadores
                       .filter(j => j.confirmacion === "pendiente")
                       .map(j => j.jugador_nombre)
                       .join(", ")}
