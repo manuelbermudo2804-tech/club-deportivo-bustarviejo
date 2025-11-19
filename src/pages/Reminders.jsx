@@ -991,7 +991,6 @@ Temporada ${reminder.temporada}
                         <div className="space-y-2">
                           {relevantPayments.map(pago => {
                             const isPaid = pago.estado === "Pagado";
-                            const isPending = pago.estado === "Pendiente" || pago.isVirtual;
 
                             return (
                               <div key={pago.id} className="flex items-center justify-between py-2">
@@ -1000,7 +999,7 @@ Temporada ${reminder.temporada}
                                   <div className="flex-1">
                                     <p className="text-sm font-medium text-slate-900">{pago.mes}</p>
                                     <p className="text-xs text-slate-600">
-                                      {pago.isVirtual ? "Pendiente" : `${pago.cantidad}€`}
+                                      {pago.isVirtual ? "" : `${pago.cantidad}€`}
                                     </p>
                                   </div>
                                 </div>
