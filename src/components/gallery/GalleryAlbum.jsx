@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Pencil, Image, X } from "lucide-react";
+import { Pencil, Image, X, Trash2 } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import {
@@ -13,7 +13,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 
-export default function GalleryAlbum({ album, onEdit, isAdmin }) {
+export default function GalleryAlbum({ album, onEdit, onDelete, isAdmin }) {
   const [showGallery, setShowGallery] = useState(false);
   const [selectedPhotoIndex, setSelectedPhotoIndex] = useState(0);
 
@@ -89,15 +89,35 @@ export default function GalleryAlbum({ album, onEdit, isAdmin }) {
                 {album.categoria === "Todas las Categorías" ? "Todas" : album.categoria.split(" ")[1]}
               </Badge>
 
-              {isAdmin && onEdit && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => onEdit(album)}
-                  className="h-6 w-6 p-0"
-                >
-                  <Pencil className="w-3 h-3" />
-                </Button>
+              {isAdmin && (
+                <div className="flex gap-1">
+                  {onEdit && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onEdit(album);
+                      }}
+                      className="h-6 w-6 p-0"
+                    >
+                      <Pencil className="w-3 h-3" />
+                    </Button>
+                  )}
+                  {onDelete && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onDelete(album);
+                      }}
+                      className="h-6 w-6 p-0 hover:bg-red-50 hover:border-red-300"
+                    >
+                      <Trash2 className="w-3 h-3 text-red-600" />
+                    </Button>
+                  )}
+                </div>
               )}
             </div>
           </CardContent>
