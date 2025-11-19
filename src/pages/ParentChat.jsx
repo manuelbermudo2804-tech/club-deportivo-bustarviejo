@@ -413,49 +413,11 @@ export default function ParentChat() {
           </div>
 
           <div className="bg-white border-t p-3 flex-shrink-0">
-            {attachments.length > 0 && (
-              <div className="mb-2 flex flex-wrap gap-2">
-                {attachments.map((att, index) => (
-                  <div key={index} className="bg-slate-100 rounded-lg px-3 py-1.5 text-sm flex items-center gap-2">
-                    <span className="text-xs truncate max-w-[150px]">{att.nombre}</span>
-                    <button
-                      onClick={() => handleRemoveAttachment(index)}
-                      className="text-slate-500 hover:text-red-600"
-                    >
-                      <X className="w-3 h-3" />
-                    </button>
-                  </div>
-                ))}
-              </div>
-            )}
-
-            <div className="flex gap-2 items-end">
-              <FileAttachmentButton
-                onFileUploaded={handleFileUploaded}
-                disabled={!isBusinessHours() || sendMessageMutation.isPending}
-              />
-              
-              <Input
-                value={messageContent}
-                onChange={(e) => setMessageContent(e.target.value)}
-                placeholder={isBusinessHours() ? "Escribe un mensaje..." : "Horario: 10:00 - 20:00"}
-                className="flex-1 rounded-full"
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' && !e.shiftKey) {
-                    e.preventDefault();
-                    handleSendMessage();
-                  }
-                }}
-                disabled={!isBusinessHours()}
-              />
-              
-              <Button
-                onClick={handleSendMessage}
-                disabled={(!messageContent.trim() && attachments.length === 0) || sendMessageMutation.isPending || !isBusinessHours()}
-                className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 rounded-full w-10 h-10 p-0 flex items-center justify-center shadow-lg"
-              >
-                <Send className="w-4 h-4" />
-              </Button>
+            <div className="bg-orange-50 border border-orange-200 rounded-lg p-3 mb-3">
+              <p className="text-xs text-orange-800 flex items-center gap-2">
+                <AlertCircle className="w-4 h-4" />
+                <span>Solo puedes recibir mensajes del club. Para consultas, contacta por email.</span>
+              </p>
             </div>
           </div>
           </>
