@@ -305,20 +305,31 @@ Email: cdbustarviejo@gmail.com
       </div>
 
       {/* Stats - Simplified */}
-      {(pendingCount > 0 || inReviewCount > 0) && (
-        <div className="flex gap-3 flex-wrap">
-          {pendingCount > 0 && (
-            <Badge className="bg-red-500 text-white text-base px-4 py-2">
-              🔴 {pendingCount} Pendiente{pendingCount > 1 ? 's' : ''}
-            </Badge>
-          )}
-          {inReviewCount > 0 && (
-            <Badge className="bg-orange-500 text-white text-base px-4 py-2">
-              🟠 {inReviewCount} En Revisión
-            </Badge>
-          )}
-        </div>
-      )}
+      <div className="grid grid-cols-2 gap-3">
+        <Card className="border-none shadow-lg bg-white">
+          <CardContent className="pt-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-slate-600 mb-1">Pendientes</p>
+                <p className="text-3xl font-bold text-red-600">{pendingCount}</p>
+              </div>
+              <span className="text-4xl">🔴</span>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="border-none shadow-lg bg-white">
+          <CardContent className="pt-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-slate-600 mb-1">En Revisión</p>
+                <p className="text-3xl font-bold text-orange-600">{inReviewCount}</p>
+              </div>
+              <span className="text-4xl">🟠</span>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
 
       {/* Payment Form */}
       <div data-payment-form>
