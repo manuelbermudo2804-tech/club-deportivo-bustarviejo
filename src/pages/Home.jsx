@@ -171,18 +171,116 @@ export default function Home() {
   };
 
   const buildMenuItems = () => {
-    const items = [
-      {
-        title: "Jugadores",
-        icon: Users,
-        url: createPageUrl("Players"),
-        gradient: "from-orange-600 to-orange-700",
-        badge: activePlayers,
-        badgeLabel: "activos"
-      }
-    ];
+    const items = [];
 
-    if (isCoach || isCoordinator) {
+    if (isAdmin) {
+      items.push(
+        {
+          title: "Jugadores",
+          icon: Users,
+          url: createPageUrl("Players"),
+          gradient: "from-orange-600 to-orange-700",
+          badge: activePlayers,
+          badgeLabel: "activos"
+        },
+        {
+          title: "📋 Asistencia y Evaluación",
+          icon: CheckCircle2,
+          url: createPageUrl("TeamAttendanceEvaluation"),
+          gradient: "from-green-600 to-green-700",
+        },
+        {
+          title: "📊 Reportes Entrenadores",
+          icon: Star,
+          url: createPageUrl("CoachEvaluationReports"),
+          gradient: "from-purple-600 to-purple-700",
+        },
+        {
+          title: "Horarios",
+          icon: Clock,
+          url: createPageUrl("TrainingSchedules"),
+          gradient: "from-blue-600 to-blue-700",
+        },
+        {
+          title: "Calendario",
+          icon: Calendar,
+          url: createPageUrl("Calendar"),
+          gradient: "from-purple-600 to-purple-700",
+        },
+        {
+          title: "Anuncios",
+          icon: Megaphone,
+          url: createPageUrl("Announcements"),
+          gradient: "from-pink-600 to-pink-700",
+        },
+        {
+          title: "Galería",
+          icon: Image,
+          url: createPageUrl("AdminGallery"),
+          gradient: "from-indigo-600 to-indigo-700",
+        },
+        {
+          title: "🎓 Crear Convocatorias",
+          icon: Bell,
+          url: createPageUrl("CoachCallups"),
+          gradient: "from-yellow-600 to-yellow-700",
+        }
+      );
+
+      if (hasPlayers) {
+        items.push({
+          title: "👨‍👩‍👧 Confirmar Mis Hijos",
+          icon: ClipboardCheck,
+          url: createPageUrl("ParentCallups"),
+          gradient: "from-green-600 to-green-700",
+          badge: pendingCallupsCount(),
+          badgeLabel: "pendientes"
+        });
+      }
+
+      items.push(
+        {
+          title: "Pagos",
+          icon: CreditCard,
+          url: createPageUrl("Payments"),
+          gradient: "from-green-600 to-green-700",
+          badge: pendingPayments,
+          badgeLabel: "pendientes"
+        },
+        {
+          title: "Recordatorios",
+          icon: Bell,
+          url: createPageUrl("Reminders"),
+          gradient: "from-red-600 to-orange-700",
+        },
+        {
+          title: "Pedidos Ropa",
+          icon: ShoppingBag,
+          url: createPageUrl("ClothingOrders"),
+          gradient: "from-red-600 to-red-700",
+        },
+        {
+          title: "Chat Grupos",
+          icon: MessageCircle,
+          url: createPageUrl("AdminChat"),
+          gradient: "from-teal-600 to-teal-700",
+          badge: unreadMessages,
+          badgeLabel: "nuevos"
+        },
+        {
+          title: "📋 Encuestas",
+          icon: FileText,
+          url: createPageUrl("Surveys"),
+          gradient: "from-purple-600 to-purple-700",
+        },
+        {
+          title: "Configuración",
+          icon: Settings,
+          url: createPageUrl("SeasonManagement"),
+          gradient: "from-slate-600 to-slate-700",
+        }
+      );
+    } else if (isCoach || isCoordinator) {
       items.push(
         {
           title: "🎓 Plantillas",
@@ -195,109 +293,59 @@ export default function Home() {
           icon: CheckCircle2,
           url: createPageUrl("TeamAttendanceEvaluation"),
           gradient: "from-green-600 to-green-700",
-        }
-      );
-    }
-
-    items.push(
-      {
-        title: "Horarios",
-        icon: Clock,
-        url: createPageUrl("TrainingSchedules"),
-        gradient: "from-green-600 to-green-700",
-      },
-      {
-        title: "Calendario",
-        icon: Calendar,
-        url: createPageUrl("Calendar"),
-        gradient: "from-blue-600 to-blue-700",
-      },
-      {
-        title: "Anuncios",
-        icon: Megaphone,
-        url: createPageUrl("Announcements"),
-        gradient: "from-purple-600 to-purple-700",
-      },
-      {
-        title: "Galería",
-        icon: Image,
-        url: createPageUrl("AdminGallery"),
-        gradient: "from-pink-600 to-pink-700",
-      },
-      {
-        title: "🎓 Crear Convocatorias",
-        icon: Bell,
-        url: createPageUrl("CoachCallups"),
-        gradient: "from-yellow-600 to-yellow-700",
-      }
-    );
-
-    if (hasPlayers) {
-      items.push({
-        title: "👨‍👩‍👧 Mis Convocatorias",
-        icon: ClipboardCheck,
-        url: createPageUrl("ParentCallups"),
-        gradient: "from-green-600 to-green-700",
-        badge: pendingCallupsCount(),
-        badgeLabel: "pendientes"
-      });
-    }
-
-    if (isAdmin || hasPlayers) {
-      items.push({
-        title: "Pagos",
-        icon: CreditCard,
-        url: isCoach && hasPlayers ? createPageUrl("Payments") + "?register=true" : createPageUrl("Payments"),
-        gradient: "from-orange-600 to-red-700",
-        badge: pendingPayments,
-        badgeLabel: "pendientes"
-      });
-    }
-
-    if (isAdmin) {
-      items.push(
-        {
-          title: "📊 Estadísticas",
-          icon: TrendingUp,
-          url: createPageUrl("ClubStats"),
-          gradient: "from-indigo-600 to-indigo-700",
         },
         {
-          title: "Recordatorios",
-          icon: Bell,
-          url: createPageUrl("Reminders"),
-          gradient: "from-red-600 to-orange-700",
-        }
-      );
-    }
-
-    if (isAdmin || hasPlayers) {
-      items.push({
-        title: "Pedidos Ropa",
-        icon: ShoppingBag,
-        url: createPageUrl("ClothingOrders"),
-        gradient: "from-teal-600 to-teal-700",
-      });
-    }
-
-    if (isAdmin) {
-      items.push(
-        {
-          title: "Chat Grupos",
-          icon: MessageCircle,
-          url: createPageUrl("AdminChat"),
-          gradient: "from-indigo-600 to-indigo-700",
-          badge: unreadMessages,
-          badgeLabel: "nuevos"
+          title: "Horarios",
+          icon: Clock,
+          url: createPageUrl("TrainingSchedules"),
+          gradient: "from-blue-600 to-blue-700",
         },
         {
-          title: "📋 Encuestas",
-          icon: FileText,
-          url: createPageUrl("Surveys"),
+          title: "Calendario",
+          icon: Calendar,
+          url: createPageUrl("Calendar"),
           gradient: "from-purple-600 to-purple-700",
+        },
+        {
+          title: "Anuncios",
+          icon: Megaphone,
+          url: createPageUrl("Announcements"),
+          gradient: "from-pink-600 to-pink-700",
+        },
+        {
+          title: "Galería",
+          icon: Image,
+          url: createPageUrl("AdminGallery"),
+          gradient: "from-indigo-600 to-indigo-700",
+        },
+        {
+          title: "🎓 Crear Convocatorias",
+          icon: Bell,
+          url: createPageUrl("CoachCallups"),
+          gradient: "from-yellow-600 to-yellow-700",
         }
       );
-    } else if (isCoach) {
+
+      if (hasPlayers) {
+        items.push({
+          title: "👨‍👩‍👧 Confirmar Mis Hijos",
+          icon: ClipboardCheck,
+          url: createPageUrl("ParentCallups"),
+          gradient: "from-green-600 to-green-700",
+          badge: pendingCallupsCount(),
+          badgeLabel: "pendientes"
+        });
+      }
+
+      if (hasPlayers) {
+        items.push({
+          title: "Pedidos Ropa",
+          icon: ShoppingBag,
+          url: createPageUrl("ClothingOrders"),
+          gradient: "from-teal-600 to-teal-700",
+        });
+      }
+
       items.push({
         title: "Chat Equipos",
         icon: MessageCircle,
@@ -305,15 +353,6 @@ export default function Home() {
         gradient: "from-blue-600 to-blue-700",
         badge: unreadMessages,
         badgeLabel: "nuevos"
-      });
-    }
-
-    if (isAdmin) {
-      items.push({
-        title: "Configuración",
-        icon: Settings,
-        url: createPageUrl("SeasonManagement"),
-        gradient: "from-slate-600 to-slate-700",
       });
     }
 
