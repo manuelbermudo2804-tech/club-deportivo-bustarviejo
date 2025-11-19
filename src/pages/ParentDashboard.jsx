@@ -313,7 +313,7 @@ export default function ParentDashboard() {
                 </p>
               </div>
               <button 
-                onClick={() => navigate(createPageUrl("ParentChat") + "?group=Coordinación Deportiva")}
+                onClick={() => navigate(createPageUrl("ParentChat") + "?group=" + encodeURIComponent("Coordinación Deportiva"))}
                 className="w-full lg:w-auto bg-white hover:bg-blue-50 text-blue-700 font-bold py-2.5 px-6 rounded-xl shadow-lg transition-all hover:scale-105 active:scale-95 flex items-center justify-center gap-2"
               >
                 <MessageCircle className="w-4 h-4 lg:w-5 lg:h-5" />
