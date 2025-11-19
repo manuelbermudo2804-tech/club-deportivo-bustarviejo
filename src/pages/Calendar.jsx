@@ -57,6 +57,12 @@ export default function Calendar() {
     initialData: [],
   });
 
+  const { data: schedules } = useQuery({
+    queryKey: ['schedules'],
+    queryFn: () => base44.entities.TrainingSchedule.list(),
+    initialData: [],
+  });
+
   const createEventMutation = useMutation({
     mutationFn: async (eventData) => {
       const newEvent = await base44.entities.Event.create(eventData);
@@ -153,6 +159,16 @@ export default function Calendar() {
     });
   }, [callups, isAdmin, myPlayersSports]);
 
+  const getTrainingsForWeek = (date) => {
+    const weekDays = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+    const dayName = weekDays[date.getDay()];
+    
+    return schedules.filter(schedule => 
+      schedule.activo && schedule.dia_semana === dayName &&
+      (isAdmin || myPlayersSports.includes(schedule.categoria))
+    );
+  };
+
   const allCalendarItems = useMemo(() => {
     const eventItems = events
       .filter(event => isAdmin || event.publicado)
@@ -173,10 +189,32 @@ export default function Calendar() {
       color: 'blue',
     }));
 
-    return [...eventItems, ...callupItems].sort((a, b) => 
+    const trainingItems = [];
+    const start = new Date();
+    start.setMonth(start.getMonth() - 1);
+    const end = new Date();
+    end.setMonth(end.getMonth() + 3);
+    
+    for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+      const trainings = getTrainingsForWeek(d);
+      trainings.forEach(training => {
+        trainingItems.push({
+          id: `training-${format(d, 'yyyy-MM-dd')}-${training.id}`,
+          type: 'training',
+          date: format(d, 'yyyy-MM-dd'),
+          title: `🏃 ${training.categoria}`,
+          category: training.categoria,
+          hora_inicio: training.hora_inicio,
+          ubicacion: training.ubicacion,
+          color: 'green',
+        });
+      });
+    }
+
+    return [...eventItems, ...callupItems, ...trainingItems].sort((a, b) => 
       a.date.localeCompare(b.date)
     );
-  }, [events, visibleCallups, isAdmin]);
+  }, [events, visibleCallups, schedules, isAdmin, myPlayersSports]);
 
   const filteredItems = allCalendarItems.filter(item => {
     const matchesType = typeFilter === "all" || 
@@ -346,71 +384,72 @@ export default function Calendar() {
           <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-orange-600 border-r-transparent"></div>
         </div>
       ) : viewMode === "calendar" ? (
-        <div className="bg-white rounded-xl shadow-lg p-3">
-          <div className="flex items-center justify-between mb-3">
+        <div className="bg-white rounded-xl shadow-lg p-4 lg:p-6">
+          <div className="flex items-center justify-between mb-6">
             <Button
               variant="ghost"
-              size="sm"
               onClick={() => setCurrentMonth(subMonths(currentMonth, 1))}
             >
-              <ChevronLeft className="w-4 h-4" />
+              <ChevronLeft className="w-5 h-5" />
             </Button>
-            <h2 className="text-lg font-bold text-slate-900 capitalize">
+            <h2 className="text-2xl font-bold text-slate-900 capitalize">
               {format(currentMonth, 'MMMM yyyy', { locale: es })}
             </h2>
             <Button
               variant="ghost"
-              size="sm"
               onClick={() => setCurrentMonth(addMonths(currentMonth, 1))}
             >
-              <ChevronRight className="w-4 h-4" />
+              <ChevronRight className="w-5 h-5" />
             </Button>
           </div>
 
-          <div className="grid grid-cols-7 gap-1">
-            {['L', 'M', 'X', 'J', 'V', 'S', 'D'].map(day => (
-              <div key={day} className="text-center text-[10px] font-semibold text-slate-600 py-1">
+          <div className="grid grid-cols-7 gap-2">
+            {['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'].map(day => (
+              <div key={day} className="text-center text-sm font-bold text-slate-700 py-2 bg-slate-50 rounded">
                 {day}
               </div>
             ))}
             
             {Array.from({ length: daysInMonth[0].getDay() === 0 ? 6 : daysInMonth[0].getDay() - 1 }).map((_, i) => (
-              <div key={`empty-${i}`} className="h-16 lg:h-20" />
+              <div key={`empty-${i}`} className="min-h-[100px] lg:min-h-[120px]" />
             ))}
 
             {daysInMonth.map(day => {
               const dayItems = getItemsForDay(day);
               const isToday = isSameDay(day, new Date());
+              const events = dayItems.filter(i => i.type === 'event');
+              const callups = dayItems.filter(i => i.type === 'callup');
+              const trainings = dayItems.filter(i => i.type === 'training');
               
               return (
                 <div
                   key={day.toISOString()}
-                  className={`h-16 lg:h-20 border rounded p-1 ${
-                    isToday ? 'bg-orange-50 border-orange-400 border-2' : 'bg-white border-slate-200'
+                  className={`min-h-[100px] lg:min-h-[120px] border-2 rounded-lg p-2 ${
+                    isToday ? 'bg-orange-50 border-orange-500' : 'bg-white border-slate-200'
                   } hover:border-orange-400 transition-colors overflow-hidden`}
                 >
-                  <div className={`text-[10px] font-semibold ${isToday ? 'text-orange-600' : 'text-slate-700'}`}>
+                  <div className={`text-base font-bold mb-1 ${isToday ? 'text-orange-600' : 'text-slate-800'}`}>
                     {format(day, 'd')}
                   </div>
-                  <div className="space-y-0.5 mt-0.5">
-                    {dayItems.slice(0, 2).map((item, idx) => (
-                      <div
-                        key={`${item.id}-${idx}`}
-                        className={`text-[9px] px-0.5 rounded truncate leading-tight ${
-                          item.type === 'callup' 
-                            ? 'bg-blue-500 text-white' 
-                            : item.importante 
-                            ? 'bg-red-500 text-white'
-                            : 'bg-slate-600 text-white'
-                        }`}
-                        title={item.title}
-                      >
-                        {item.type === 'callup' ? '⚽' : '📅'}
+                  <div className="space-y-1">
+                    {callups.length > 0 && (
+                      <div className="text-xs px-2 py-1 rounded bg-blue-500 text-white font-semibold">
+                        ⚽ {callups.length} partido{callups.length > 1 ? 's' : ''}
                       </div>
-                    ))}
-                    {dayItems.length > 2 && (
-                      <div className="text-[8px] text-slate-500 font-bold">
-                        +{dayItems.length - 2}
+                    )}
+                    {events.filter(e => e.importante).length > 0 && (
+                      <div className="text-xs px-2 py-1 rounded bg-red-500 text-white font-semibold">
+                        ⭐ {events.filter(e => e.importante).length} importante{events.filter(e => e.importante).length > 1 ? 's' : ''}
+                      </div>
+                    )}
+                    {events.filter(e => !e.importante).length > 0 && (
+                      <div className="text-xs px-2 py-1 rounded bg-slate-600 text-white font-semibold">
+                        📅 {events.filter(e => !e.importante).length} evento{events.filter(e => !e.importante).length > 1 ? 's' : ''}
+                      </div>
+                    )}
+                    {trainings.length > 0 && (
+                      <div className="text-xs px-2 py-1 rounded bg-green-500 text-white font-semibold">
+                        🏃 {trainings.length} entreno{trainings.length > 1 ? 's' : ''}
                       </div>
                     )}
                   </div>
@@ -443,7 +482,7 @@ export default function Calendar() {
                           isAdmin={isAdmin}
                         />
                       </div>
-                    ) : (
+                    ) : item.type === 'callup' ? (
                       <Card 
                         key={`callup-${item.id}`} 
                         className="bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200 cursor-pointer hover:shadow-lg transition-shadow"
@@ -462,6 +501,27 @@ export default function Calendar() {
                             {item.rival && <p>🆚 {item.rival}</p>}
                             {item.ubicacion && <p>📍 {item.ubicacion}</p>}
                             {item.hora_partido && <p>🕐 {item.hora_partido}</p>}
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ) : (
+                      <Card 
+                        key={item.id} 
+                        className="bg-gradient-to-br from-green-50 to-green-100 border-green-200 cursor-pointer hover:shadow-lg transition-shadow"
+                        onClick={() => handleCardClick(item.date)}
+                      >
+                        <CardContent className="p-4">
+                          <div className="flex items-start justify-between mb-2">
+                            <Badge className="bg-green-600 text-white">Entrenamiento</Badge>
+                            <span className="text-xs text-slate-600">
+                              {format(new Date(item.date), "d MMM yyyy", { locale: es })}
+                            </span>
+                          </div>
+                          <h3 className="font-bold text-slate-900 mb-2">{item.title}</h3>
+                          <div className="space-y-1 text-sm text-slate-700">
+                            <p>⚽ {item.category}</p>
+                            {item.hora_inicio && <p>🕐 {item.hora_inicio}</p>}
+                            {item.ubicacion && <p>📍 {item.ubicacion}</p>}
                           </div>
                         </CardContent>
                       </Card>
