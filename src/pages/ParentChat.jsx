@@ -12,6 +12,7 @@ import FileAttachmentButton from "../components/chat/FileAttachmentButton";
 import MessageAttachments from "../components/chat/MessageAttachments";
 
 export default function ParentChat() {
+  const location = useLocation();
   const [messageContent, setMessageContent] = useState("");
   const [selectedTab, setSelectedTab] = useState(null);
   const [attachments, setAttachments] = useState([]);
@@ -34,6 +35,19 @@ export default function ParentChat() {
     };
     fetchUser();
   }, []);
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const groupParam = params.get('group');
+    if (groupParam && myGroups.length > 0) {
+      const targetGroup = myGroups.find(g => g.deporte === groupParam);
+      if (targetGroup) {
+        setSelectedTab(targetGroup.id);
+      }
+    } else if (!selectedTab && myGroups.length > 0) {
+      setSelectedTab(myGroups[0].id);
+    }
+  }, [location.search, myGroups.length]);
 
   const { data: messages, isLoading: loadingMessages, refetch: refetchMessages } = useQuery({
     queryKey: ['chatMessages'],
