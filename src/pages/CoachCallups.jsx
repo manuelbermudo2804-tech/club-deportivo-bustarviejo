@@ -287,9 +287,12 @@ Email: cdbustarviejo@gmail.com
     
     // Coach/Coordinator can see callups they created OR from their categories
     const isMyCallup = c.entrenador_email === user?.email;
+    const isFromMyCategories = coachCategories.includes(c.categoria);
+    
+    console.log('🔍 Convocatoria:', c.titulo, '| Categoría:', c.categoria, '| Mis categorías:', coachCategories, '| Es de mis categorías:', isFromMyCategories);
     
     if (selectedCategory === "all" || selectedCategory === "admin") {
-      return isMyCallup || coachCategories.includes(c.categoria);
+      return isMyCallup || isFromMyCategories;
     }
     return isMyCallup || c.categoria === selectedCategory;
   });
