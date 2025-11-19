@@ -775,8 +775,6 @@ export default function Layout({ children, currentPageName }) {
       { title: "Galería", url: createPageUrl("AdminGallery"), icon: Image },
       { title: user?.es_entrenador ? "🎓 Crear Convocatorias" : "🎓 Ver Convocatorias", url: createPageUrl("CoachCallups"), icon: Bell },
       ...(hasPlayers ? [{ title: "👨‍👩‍👧 Confirmar Mis Hijos", url: createPageUrl("ParentCallups"), icon: ClipboardCheck, badge: pendingCallupsCount > 0 ? pendingCallupsCount : null }] : []),
-      ...(hasPlayers ? [{ title: "💰 Pagos Mis Hijos", url: createPageUrl("ParentPayments"), icon: CreditCard }] : []),
-      ...(hasPlayers ? [{ title: "Pedidos Ropa", url: createPageUrl("ClothingOrders"), icon: ShoppingBag }] : []),
       { title: "🎓 Chat Coordinación", url: createPageUrl("CoachChat"), icon: MessageCircle, badge: unreadMessagesCount > 0 ? unreadMessagesCount : null, urgentBadge: urgentMessagesCount > 0 },
     ];
 
