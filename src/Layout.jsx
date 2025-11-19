@@ -805,6 +805,7 @@ export default function Layout({ children, currentPageName }) {
     } else if (isPlayer) {
       navigationItems = playerNavigationItems;
     } else if (isCoordinator) {
+      // Si es coordinador (tenga o no rol de entrenador), usa menú de coordinador
       navigationItems = coordinatorNavigationItems;
     } else if (isCoach) {
       navigationItems = coachNavigationItems;
