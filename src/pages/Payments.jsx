@@ -10,7 +10,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Skeleton } from "@/components/ui/skeleton";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Upload, FileText, Loader2, Search, Plus, X, FileSpreadsheet, AlertTriangle, Calendar, Filter } from "lucide-react";
+import { Upload, FileText, Loader2, Search, Plus, X, FileSpreadsheet, AlertTriangle, Calendar, Filter, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 import { AnimatePresence } from "framer-motion";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
@@ -407,6 +407,17 @@ Email: cdbustarviejo@gmail.com
               filename="pagos_club"
             />
           )}
+          <Button
+            onClick={() => {
+              queryClient.invalidateQueries({ queryKey: ['myPayments'] });
+              queryClient.invalidateQueries({ queryKey: ['myPlayers'] });
+              toast.success("Datos actualizados");
+            }}
+            variant="outline"
+            className="shadow-lg"
+          >
+            <RefreshCw className="w-5 h-5" />
+          </Button>
           <Button
             onClick={() => {
               setShowForm(!showForm);
