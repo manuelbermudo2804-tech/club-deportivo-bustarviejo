@@ -14,7 +14,7 @@ export default function LanguageSelector({ currentLang, onLanguageChange }) {
     <div className="flex items-center gap-2">
       <Globe className="w-4 h-4 text-slate-500" />
       <Select value={currentLang} onValueChange={onLanguageChange}>
-        <SelectTrigger className="w-[150px] h-9">
+        <SelectTrigger className="w-[150px] min-h-[44px]">
           <SelectValue>
             {languages.find(l => l.code === currentLang)?.flag} {languages.find(l => l.code === currentLang)?.name}
           </SelectValue>
