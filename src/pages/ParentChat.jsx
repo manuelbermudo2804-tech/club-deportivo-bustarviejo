@@ -256,52 +256,8 @@ export default function ParentChat() {
 
   return (
     <div className="fixed inset-0 flex bg-white" style={{ top: isMobile ? '120px' : '0', left: isMobile ? '0' : '288px' }}>
-      {/* Mobile group selector - FIXED at top */}
-      {myGroups.length > 1 && isMobile && (
-        <div className="fixed top-[120px] left-0 right-0 z-20 bg-white border-b p-2 shadow-sm">
-          <select
-            value={selectedTab}
-            onChange={(e) => setSelectedTab(e.target.value)}
-            className="w-full p-3 rounded-lg border-2 border-orange-300 bg-white text-slate-900 font-semibold"
-          >
-            {myGroups.map(group => (
-              <option key={group.id} value={group.id}>
-                {sportEmojis[group.deporte]} {group.deporte}
-                {group.unreadCount > 0 ? ` (${group.unreadCount})` : ''}
-              </option>
-            ))}
-          </select>
-        </div>
-      )}
-
-      {/* Tabs for desktop or when there's more than 1 group */}
-      {myGroups.length > 1 && !isMobile && (
-        <div className="bg-white border-b overflow-x-auto flex-shrink-0">
-          <div className="flex">
-            {myGroups.map(group => (
-              <button
-                key={group.id}
-                onClick={() => setSelectedTab(group.id)}
-                className={`px-6 py-3 text-sm font-semibold flex items-center gap-2 border-b-2 transition-all flex-shrink-0 ${
-                  selectedTab === group.id
-                    ? 'border-orange-600 text-orange-600 bg-orange-50'
-                    : 'border-transparent text-slate-600 hover:bg-slate-50'
-                }`}
-              >
-                <span>{sportEmojis[group.deporte]}</span>
-                <span>{group.deporte}</span>
-                {group.unreadCount > 0 && (
-                  <Badge className="bg-orange-600 text-white text-xs h-5 min-w-5 rounded-full">
-                    {group.unreadCount}
-                  </Badge>
-                )}
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
-
-      <div className="flex-1 flex flex-col" style={{ marginTop: isMobile && myGroups.length > 1 ? '56px' : '0' }}>
+      {/* Main chat area */}
+      <div className="flex-1 flex flex-col">
         {currentGroup && (
           <>
             <div className="bg-gradient-to-r from-orange-600 to-orange-700 p-4 text-white flex items-center gap-3 shadow-md flex-shrink-0">
