@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Pencil, Image, X, Trash2 } from "lucide-react";
+import { Pencil, Image, X, Trash2, Check } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import {
@@ -16,6 +16,8 @@ import {
 export default function GalleryAlbum({ album, onEdit, onDelete, isAdmin }) {
   const [showGallery, setShowGallery] = useState(false);
   const [selectedPhotoIndex, setSelectedPhotoIndex] = useState(0);
+  const [selectedPhotos, setSelectedPhotos] = useState([]);
+  const [selectionMode, setSelectionMode] = useState(false);
 
   const eventTypeEmojis = {
     "Partido": "⚽",
@@ -37,6 +39,25 @@ export default function GalleryAlbum({ album, onEdit, onDelete, isAdmin }) {
 
   const prevPhoto = () => {
     setSelectedPhotoIndex((prev) => (prev - 1 + album.fotos.length) % album.fotos.length);
+  };
+
+  const togglePhotoSelection = (index) => {
+    setSelectedPhotos(prev => 
+      prev.includes(index) 
+        ? prev.filter(i => i !== index)
+        : [...prev, index]
+    );
+  };
+
+  const handleDeleteSelectedPhotos = () => {
+    if (selectedPhotos.length === 0) return;
+    
+    if (confirm(`¿Eliminar ${selectedPhotos.length} foto(s) seleccionada(s)?`)) {
+      const newPhotos = album.fotos.filter((_, index) => !selectedPhotos.includes(index));
+      onEdit({ ...album, fotos: newPhotos });
+      setSelectedPhotos([]);
+      setSelectionMode(false);
+    }
   };
 
   return (
@@ -127,36 +148,114 @@ export default function GalleryAlbum({ album, onEdit, onDelete, isAdmin }) {
       <Dialog open={showGallery} onOpenChange={setShowGallery}>
         <DialogContent className="max-w-4xl h-[90vh] p-0">
           <DialogHeader className="p-4 border-b">
-            <DialogTitle className="text-lg">{album.titulo}</DialogTitle>
-            <p className="text-xs text-slate-500">
-              Foto {selectedPhotoIndex + 1} de {album.fotos?.length || 0}
-            </p>
+            <div className="flex items-center justify-between">
+              <div>
+                <DialogTitle className="text-lg">{album.titulo}</DialogTitle>
+                <p className="text-xs text-slate-500">
+                  {selectionMode 
+                    ? `${selectedPhotos.length} foto(s) seleccionada(s)`
+                    : `Foto ${selectedPhotoIndex + 1} de ${album.fotos?.length || 0}`
+                  }
+                </p>
+              </div>
+              {isAdmin && onEdit && (
+                <div className="flex gap-2">
+                  {selectionMode ? (
+                    <>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => {
+                          setSelectionMode(false);
+                          setSelectedPhotos([]);
+                        }}
+                      >
+                        Cancelar
+                      </Button>
+                      {selectedPhotos.length > 0 && (
+                        <Button
+                          size="sm"
+                          variant="destructive"
+                          onClick={handleDeleteSelectedPhotos}
+                        >
+                          <Trash2 className="w-4 h-4 mr-2" />
+                          Eliminar ({selectedPhotos.length})
+                        </Button>
+                      )}
+                    </>
+                  ) : (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => setSelectionMode(true)}
+                    >
+                      Seleccionar
+                    </Button>
+                  )}
+                </div>
+              )}
+            </div>
           </DialogHeader>
           
           <div className="flex-1 flex items-center justify-center bg-slate-900 relative overflow-hidden">
             {album.fotos && album.fotos.length > 0 && (
               <>
-                <img
-                  src={album.fotos[selectedPhotoIndex].url}
-                  alt={`Foto ${selectedPhotoIndex + 1}`}
-                  className="max-h-full max-w-full object-contain"
-                />
-
-                {album.fotos.length > 1 && (
+                {!selectionMode && (
                   <>
-                    <button
-                      onClick={prevPhoto}
-                      className="absolute left-2 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white text-slate-900 rounded-full p-2 shadow-lg"
-                    >
-                      ←
-                    </button>
-                    <button
-                      onClick={nextPhoto}
-                      className="absolute right-2 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white text-slate-900 rounded-full p-2 shadow-lg"
-                    >
-                      →
-                    </button>
+                    <img
+                      src={album.fotos[selectedPhotoIndex].url}
+                      alt={`Foto ${selectedPhotoIndex + 1}`}
+                      className="max-h-full max-w-full object-contain"
+                    />
+
+                    {album.fotos.length > 1 && (
+                      <>
+                        <button
+                          onClick={prevPhoto}
+                          className="absolute left-2 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white text-slate-900 rounded-full p-2 shadow-lg"
+                        >
+                          ←
+                        </button>
+                        <button
+                          onClick={nextPhoto}
+                          className="absolute right-2 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white text-slate-900 rounded-full p-2 shadow-lg"
+                        >
+                          →
+                        </button>
+                      </>
+                    )}
                   </>
+                )}
+                
+                {selectionMode && (
+                  <div className="w-full h-full overflow-y-auto p-4">
+                    <div className="grid grid-cols-3 gap-4">
+                      {album.fotos.map((foto, index) => (
+                        <div 
+                          key={index} 
+                          className="relative cursor-pointer group"
+                          onClick={() => togglePhotoSelection(index)}
+                        >
+                          <img
+                            src={foto.url}
+                            alt={`Foto ${index + 1}`}
+                            className={`w-full h-40 object-cover rounded-lg transition-all ${
+                              selectedPhotos.includes(index) 
+                                ? 'ring-4 ring-orange-500 opacity-75' 
+                                : 'group-hover:opacity-75'
+                            }`}
+                          />
+                          {selectedPhotos.includes(index) && (
+                            <div className="absolute inset-0 flex items-center justify-center">
+                              <div className="bg-orange-500 rounded-full p-2">
+                                <Check className="w-6 h-6 text-white" />
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
                 )}
               </>
             )}
