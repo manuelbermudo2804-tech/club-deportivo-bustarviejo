@@ -318,32 +318,7 @@ Email: cdbustarviejo@gmail.com
         </Button>
       </div>
 
-      {/* Stats - Simplified */}
-      <div className="grid grid-cols-2 gap-3">
-        <Card className="border-none shadow-lg bg-white">
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-slate-600 mb-1">Pendientes</p>
-                <p className="text-3xl font-bold text-red-600">{pendingCount}</p>
-              </div>
-              <span className="text-4xl">🔴</span>
-            </div>
-          </CardContent>
-        </Card>
 
-        <Card className="border-none shadow-lg bg-white">
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-slate-600 mb-1">En Revisión</p>
-                <p className="text-3xl font-bold text-orange-600">{inReviewCount}</p>
-              </div>
-              <span className="text-4xl">🟠</span>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
 
       {/* Payment Form */}
       <div data-payment-form>
