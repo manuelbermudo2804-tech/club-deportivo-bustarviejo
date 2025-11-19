@@ -229,8 +229,6 @@ export default function UserManagement() {
       userId: selectedUser.id,
       userData: {
         es_coordinador: isSettingAsCoordinator,
-        es_entrenador: isSettingAsCoordinator ? false : selectedUser.es_entrenador,
-        categorias_entrena: isSettingAsCoordinator ? [] : selectedUser.categorias_entrena,
         tiene_hijos_jugando: isSettingAsCoordinator ? false : selectedUser.tiene_hijos_jugando
       }
     });
@@ -606,7 +604,6 @@ export default function UserManagement() {
                                 size="sm"
                                 variant="outline"
                                 onClick={() => handleCoachToggle(user)}
-                                disabled={isCoordinator}
                                 className={isCoach ? "bg-blue-100 hover:bg-blue-200 border-blue-400" : "bg-blue-50 hover:bg-blue-100 border-blue-300"}
                               >
                                 {isCoach ? "✅ Entrenador" : "🎓 Marcar Entrenador"}
@@ -831,16 +828,18 @@ export default function UserManagement() {
               </ul>
             </div>
 
-            <div className="bg-orange-50 border-2 border-orange-300 rounded-lg p-4">
-              <p className="text-sm text-orange-900 font-bold mb-2">
-                ⚠️ Importante:
+            <div className="bg-cyan-50 border-2 border-cyan-300 rounded-lg p-4">
+              <p className="text-sm text-cyan-900 font-bold mb-2">
+                ℹ️ Información:
               </p>
-              <p className="text-sm text-orange-800 mb-2">
-                Al marcar como Coordinador, <strong>se quitará automáticamente el rol de Entrenador</strong> si lo tiene, 
-                ya que el Coordinador tiene permisos superiores sobre todas las categorías.
+              <p className="text-sm text-cyan-800 mb-2">
+                El <strong>Coordinador Deportivo</strong> tiene acceso a todas las categorías para asistencia, evaluaciones y reportes.
               </p>
-              <p className="text-sm text-orange-800">
-                Después de asignarlo, usa el botón <strong>"Tiene hijos"</strong> para darle acceso a funciones de padre 
+              <p className="text-sm text-cyan-800 mb-2">
+                <strong>Puede ser también Entrenador</strong> de categorías específicas si se le asigna ese rol.
+              </p>
+              <p className="text-sm text-cyan-800">
+                Usa el botón <strong>"Tiene hijos"</strong> para darle acceso a funciones de padre 
                 (gestión de jugadores y pagos) si tiene hijos en el club.
               </p>
             </div>
