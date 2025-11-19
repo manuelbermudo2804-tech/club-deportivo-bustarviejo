@@ -360,27 +360,48 @@ export default function CoachChat() {
 
   return (
     <div className="fixed inset-0 flex bg-white" style={{ top: isMobile ? '120px' : '0', left: isMobile ? '0' : '288px' }}>
-      {/* Mobile selector at top */}
-      {isMobile && (
-        <div className="fixed top-[120px] left-0 right-0 z-20 bg-white border-b p-2 shadow-sm">
-          <select
-            value={selectedTab || ''}
-            onChange={(e) => setSelectedTab(e.target.value)}
-            className="w-full p-3 rounded-lg border-2 border-blue-300 bg-white text-slate-900 font-semibold"
-          >
-            <option value="">Selecciona un grupo...</option>
+      {/* Mobile chat list */}
+      {isMobile && !selectedTab && (
+        <div className="fixed inset-0 bg-white overflow-y-auto" style={{ top: '120px', left: 0 }}>
+          <div className="p-4 bg-gradient-to-r from-blue-600 to-blue-700 text-white">
+            <h2 className="text-xl font-bold">Chats</h2>
+            <p className="text-sm text-blue-100">{filteredGroups.length} grupos disponibles</p>
+          </div>
+          <div className="divide-y">
             {filteredGroups.map(group => (
-              <option key={group.id} value={group.id}>
-                {group.tipo === 'coordinacion' ? '🎓' : group.tipo === 'interno' ? '💼' : group.tipo === 'entrenador' ? '🎓' : sportEmojis[group.deporte] || '⚽'} {group.deporte}
-                {group.unreadCount > 0 ? ` (${group.unreadCount})` : ''}
-              </option>
+              <button
+                key={group.id}
+                onClick={() => setSelectedTab(group.id)}
+                className="w-full p-4 flex items-center gap-3 bg-white hover:bg-slate-50 transition-colors text-left"
+              >
+                <div className={`w-14 h-14 rounded-full flex items-center justify-center flex-shrink-0 ${
+                  group.tipo === 'coordinacion' ? 'bg-cyan-100' : group.tipo === 'interno' ? 'bg-purple-100' : group.tipo === 'entrenador' ? 'bg-blue-100' : 'bg-orange-100'
+                }`}>
+                  <span className="text-2xl">
+                    {group.tipo === 'coordinacion' ? '🎓' : group.tipo === 'interno' ? '💼' : group.tipo === 'entrenador' ? '🎓' : sportEmojis[group.deporte]}
+                  </span>
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="font-bold text-slate-900 truncate">{group.deporte}</div>
+                  <div className="text-sm text-slate-600 truncate">
+                    {group.tipo === 'coordinacion' ? 'Consultas familias' : group.tipo === 'interno' ? 'Chat privado' : `${group.messages.length} mensajes`}
+                  </div>
+                </div>
+                {group.unreadCount > 0 && (
+                  <Badge className={`${
+                    group.urgentCount > 0 ? 'bg-red-600 animate-pulse' : 'bg-blue-600'
+                  } text-white text-sm h-7 min-w-7 rounded-full flex items-center justify-center shadow-lg`}>
+                    {group.unreadCount}
+                  </Badge>
+                )}
+              </button>
             ))}
-          </select>
+          </div>
         </div>
       )}
 
       {/* Main chat area */}
-      <div className="flex-1 flex flex-col" style={{ marginTop: isMobile ? '56px' : '0' }}>
+      <div className="flex-1 flex flex-col">
 
         {currentGroup && (
           <>
@@ -393,6 +414,14 @@ export default function CoachChat() {
                 ? 'bg-gradient-to-r from-blue-600 to-blue-700'
                 : 'bg-gradient-to-r from-orange-600 to-orange-700'
             }`}>
+            {isMobile && (
+              <button
+                onClick={() => setSelectedTab(null)}
+                className="mr-2 p-2 hover:bg-white/20 rounded-lg transition-colors"
+              >
+                <ArrowLeft className="w-5 h-5" />
+              </button>
+            )}
             <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
               <span className="text-xl">{currentGroup.tipo === 'coordinacion' ? '🎓' : currentGroup.tipo === 'interno' ? '💼' : currentGroup.tipo === 'entrenador' ? '🎓' : sportEmojis[currentGroup.deporte]}</span>
             </div>
