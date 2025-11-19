@@ -341,10 +341,44 @@ Email: cdbustarviejo@gmail.com
   };
 
   // Estadísticas mejoradas
-  const pendingCount = payments.filter(p => p.estado === "Pendiente" && p.temporada === temporadaFilter).length;
   const inReviewCount = payments.filter(p => p.estado === "En revisión" && p.temporada === temporadaFilter).length;
   const paidCount = payments.filter(p => p.estado === "Pagado" && p.temporada === temporadaFilter).length;
   
+  // Calcular pendientes: cuántas cuotas faltan por pagar de todos los jugadores
+  const pendingCount = React.useMemo(() => {
+    let totalPendientes = 0;
+    
+    players.forEach(player => {
+      const playerPayments = payments.filter(p => 
+        p.jugador_id === player.id && 
+        p.temporada === temporadaFilter
+      );
+      
+      // Verificar si tiene pago único pagado o en revisión
+      const hasPagoUnico = playerPayments.some(p => 
+        (p.tipo_pago === "Único" || p.tipo_pago === "único") && 
+        (p.estado === "Pagado" || p.estado === "En revisión")
+      );
+      
+      if (hasPagoUnico) {
+        // Si tiene pago único, no faltan cuotas
+        return;
+      }
+      
+      // Contar cuotas pagadas o en revisión de tipo "Tres meses"
+      const mesesPagados = playerPayments
+        .filter(p => p.tipo_pago === "Tres meses" && (p.estado === "Pagado" || p.estado === "En revisión"))
+        .map(p => p.mes);
+      
+      // Faltan 3 meses menos los que ya están pagados/en revisión
+      const cuotasFaltantes = 3 - mesesPagados.length;
+      totalPendientes += cuotasFaltantes;
+    });
+    
+    return totalPendientes;
+  }, [players, payments, temporadaFilter]);
+  
+  // Calcular vencidos: pagos que pasó la fecha de vencimiento
   const overduePayments = payments.filter(p => {
     if (p.estado === "Pagado" || p.temporada !== temporadaFilter) return false;
     return calculateDaysOverdue(p.mes) > 0;
@@ -444,9 +478,10 @@ Email: cdbustarviejo@gmail.com
         <Card className="border-none shadow-lg bg-white">
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
-              <div>
+              <div className="flex-1">
                 <p className="text-sm text-slate-600 mb-1">Pendientes</p>
                 <p className="text-3xl font-bold text-red-600">{pendingCount}</p>
+                <p className="text-[10px] text-slate-500 mt-1">Cuotas por pagar</p>
               </div>
               <span className="text-4xl">🔴</span>
             </div>
@@ -456,9 +491,10 @@ Email: cdbustarviejo@gmail.com
         <Card className="border-none shadow-lg bg-white">
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
-              <div>
+              <div className="flex-1">
                 <p className="text-sm text-slate-600 mb-1">En Revisión</p>
                 <p className="text-3xl font-bold text-orange-600">{inReviewCount}</p>
+                <p className="text-[10px] text-slate-500 mt-1">Pagos verificando</p>
               </div>
               <span className="text-4xl">🟠</span>
             </div>
@@ -468,9 +504,10 @@ Email: cdbustarviejo@gmail.com
         <Card className="border-none shadow-lg bg-white">
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
-              <div>
+              <div className="flex-1">
                 <p className="text-sm text-slate-600 mb-1">Pagados</p>
                 <p className="text-3xl font-bold text-green-600">{paidCount}</p>
+                <p className="text-[10px] text-slate-500 mt-1">Pagos confirmados</p>
               </div>
               <span className="text-4xl">🟢</span>
             </div>
@@ -482,9 +519,10 @@ Email: cdbustarviejo@gmail.com
             <Card className="border-none shadow-lg bg-gradient-to-br from-red-50 to-red-100 border-red-200">
               <CardContent className="pt-6">
                 <div className="flex items-center justify-between">
-                  <div>
+                  <div className="flex-1">
                     <p className="text-sm text-red-900 mb-1 font-semibold">Vencidos</p>
                     <p className="text-3xl font-bold text-red-700">{overduePayments.length}</p>
+                    <p className="text-[10px] text-red-700 mt-1">Pasó fecha límite</p>
                   </div>
                   <AlertTriangle className="w-10 h-10 text-red-600" />
                 </div>
@@ -494,9 +532,10 @@ Email: cdbustarviejo@gmail.com
             <Card className="border-none shadow-lg bg-gradient-to-br from-green-50 to-green-100">
               <CardContent className="pt-6">
                 <div className="flex items-center justify-between">
-                  <div>
+                  <div className="flex-1">
                     <p className="text-sm text-green-900 mb-1 font-semibold">Recaudado</p>
                     <p className="text-2xl font-bold text-green-700">{totalRecaudado.toFixed(0)}€</p>
+                    <p className="text-[10px] text-green-700 mt-1">Total temporada</p>
                   </div>
                   <span className="text-4xl">💰</span>
                 </div>
