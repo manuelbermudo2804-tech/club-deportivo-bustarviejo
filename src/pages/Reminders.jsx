@@ -11,7 +11,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { format, addDays, subDays } from "date-fns";
 import { es } from "date-fns/locale";
 import { toast } from "sonner";
-import { getImportePorCategoriaYMes } from "../components/payments/paymentAmounts";
+import { getCuotasPorCategoria, getImportePorCategoriaYMes as getImportePorMes } from "../components/payments/paymentAmounts";
 
 import IndividualReminderDialog from "../components/reminders/IndividualReminderDialog";
 import PaymentStatsDashboard from "../components/reminders/PaymentStatsDashboard";
@@ -897,13 +897,56 @@ Temporada ${reminder.temporada}
               <div className="space-y-4">
                 {allPlayersData.map(playerData => {
                   const player = players.find(p => p.id === playerData.jugador_id);
+                  const allPlayerPayments = playerData.pagos;
 
-                  // Mostrar solo los pagos que existen en la base de datos
-                  const relevantPayments = playerData.pagos;
+                  // Si tiene pago único pagado o en revisión, solo mostrar Junio
+                  const hasPagoUnico = allPlayerPayments.some(p => 
+                    (p.tipo_pago === "Único" || p.tipo_pago === "único") && 
+                    (p.estado === "Pagado" || p.estado === "En revisión")
+                  );
+                  
+                  const playerPayments = hasPagoUnico 
+                    ? allPlayerPayments.filter(p => p.mes === "Junio")
+                    : allPlayerPayments;
+                  
+                  // Determinar los meses que debería tener este jugador
+                  const allMonths = hasPagoUnico
+                    ? ["Junio"]
+                    : ["Junio", "Septiembre", "Diciembre"];
 
-                  const pendingPayments = relevantPayments.filter(p => p.estado === "Pendiente");
-                  const reviewPayments = relevantPayments.filter(p => p.estado === "En revisión");
-                  const paidPayments = relevantPayments.filter(p => p.estado === "Pagado");
+                  // Crear pagos virtuales para los meses que faltan
+                  const displayPayments = allMonths.map(mes => {
+                    const existingPayment = playerPayments.find(p => p.mes === mes);
+                    if (existingPayment) {
+                      return existingPayment;
+                    }
+                    // Crear un pago virtual pendiente con cantidad correcta
+                    const cuotas = getCuotasPorCategoria(player?.deporte);
+                    const cantidad = hasPagoUnico 
+                      ? cuotas.total 
+                      : getImportePorMes(player?.deporte, mes);
+                    
+                    return {
+                      id: `virtual-${player?.id}-${mes}`,
+                      jugador_id: player?.id,
+                      jugador_nombre: playerData.jugador_nombre,
+                      mes: mes,
+                      temporada: getCurrentSeason(),
+                      estado: "Pendiente",
+                      cantidad: cantidad,
+                      tipo_pago: hasPagoUnico ? "Único" : "Tres meses",
+                      isVirtual: true
+                    };
+                  });
+                  
+                  // Contar solo pagos REALES (no virtuales)
+                  const realPayments = displayPayments.filter(p => !p.isVirtual);
+                  const pendingPayments = realPayments.filter(p => p.estado === "Pendiente");
+                  const reviewPayments = realPayments.filter(p => p.estado === "En revisión");
+                  const paidPayments = realPayments.filter(p => p.estado === "Pagado");
+                  
+                  // Contar cuántos pagos faltan (incluyendo virtuales)
+                  const totalPaymentsDue = displayPayments.filter(p => p.estado === "Pendiente").length;
                   const totalPending = pendingPayments.reduce((sum, p) => sum + (p.cantidad || 0), 0);
 
                   return (
@@ -946,8 +989,10 @@ Temporada ${reminder.temporada}
                         <div className="grid grid-cols-3 gap-3 mb-4">
                           <div className="bg-red-50 rounded-lg p-3">
                             <p className="text-xs text-red-700 mb-1">Pendientes</p>
-                            <p className="text-2xl font-bold text-red-600">{pendingPayments.length}</p>
-                            <p className="text-xs text-red-600">{totalPending.toFixed(0)}€</p>
+                            <p className="text-2xl font-bold text-red-600">{totalPaymentsDue}</p>
+                            {totalPending > 0 && (
+                              <p className="text-xs text-red-600">{totalPending.toFixed(0)}€</p>
+                            )}
                           </div>
                           <div className="bg-orange-50 rounded-lg p-3">
                             <p className="text-xs text-orange-700 mb-1">Revisión</p>
@@ -960,7 +1005,7 @@ Temporada ${reminder.temporada}
                         </div>
 
                         <div className="space-y-2">
-                          {relevantPayments.map(pago => {
+                          {displayPayments.map(pago => {
                             const isPaid = pago.estado === "Pagado";
 
                             return (
