@@ -154,8 +154,8 @@ export default function CoachChat() {
       });
     }
     
-    // Si es coordinador, agregar chat de "Coordinación con Entrenadores" (chat interno)
-    if (isCoordinator) {
+    // Chat interno para todos los entrenadores y coordinadores
+    if (isCoordinator || user.es_entrenador) {
       const chatInternoMessages = messages.filter(msg => 
         normalizeDeporte(msg.grupo_id || msg.deporte) === "Chat Interno Entrenadores"
       );
