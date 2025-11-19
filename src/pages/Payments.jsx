@@ -756,9 +756,9 @@ Email: cdbustarviejo@gmail.com
                                 </div>
                               </div>
                               <div className="flex gap-2">
-                                {pendingPayments.length > 0 && (
+                                {totalPaymentsDue > 0 && (
                                   <Badge className="bg-red-500 text-white text-xs">
-                                    {pendingPayments.length} Pendiente
+                                    {totalPaymentsDue} Pendiente{totalPaymentsDue > 1 ? 's' : ''}
                                   </Badge>
                                 )}
                                 {reviewPayments.length > 0 && (
