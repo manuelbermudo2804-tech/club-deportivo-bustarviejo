@@ -494,7 +494,7 @@ export default function AdminChat() {
       )}
 
       {/* Main chat area */}
-      <div className="flex-1 flex flex-col" style={{ marginTop: isMobile ? '56px' : '0' }}>
+      <div className="flex-1 flex flex-col">
         {(selectedGroup || sendToAll) && (
           <>
             <div className={`p-4 text-white flex items-center gap-3 shadow-md flex-shrink-0 min-h-[72px] ${
