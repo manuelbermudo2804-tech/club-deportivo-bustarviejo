@@ -714,7 +714,12 @@ Email: cdbustarviejo@gmail.com
                         if (existingPayment) {
                           return existingPayment;
                         }
-                        // Crear un pago virtual pendiente
+                        // Crear un pago virtual pendiente con cantidad correcta
+                        const cuotas = getCuotasPorCategoria(player.deporte);
+                        const cantidad = hasPagoUnico 
+                          ? cuotas.total 
+                          : getImportePorMes(player.deporte, mes);
+                        
                         return {
                           id: `virtual-${player.id}-${mes}`,
                           jugador_id: player.id,
@@ -722,7 +727,7 @@ Email: cdbustarviejo@gmail.com
                           mes: mes,
                           temporada: temporadaFilter,
                           estado: "Pendiente",
-                          cantidad: 0,
+                          cantidad: cantidad,
                           tipo_pago: hasPagoUnico ? "Único" : "Tres meses",
                           isVirtual: true
                         };
