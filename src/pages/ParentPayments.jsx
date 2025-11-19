@@ -273,9 +273,22 @@ Email: cdbustarviejo@gmail.com
   };
   
   const currentSeason = getCurrentSeason();
-  const pendingCount = payments.filter(p => p.estado === "Pendiente" && p.temporada === currentSeason).length;
-  const inReviewCount = payments.filter(p => p.estado === "En revisión" && p.temporada === currentSeason).length;
-  const paidCount = payments.filter(p => p.estado === "Pagado" && p.temporada === currentSeason).length;
+  
+  // Recalcular contadores reactivamente cada vez que cambian los payments
+  const pendingCount = React.useMemo(() => 
+    payments.filter(p => p.estado === "Pendiente" && p.temporada === currentSeason).length,
+    [payments, currentSeason]
+  );
+  
+  const inReviewCount = React.useMemo(() => 
+    payments.filter(p => p.estado === "En revisión" && p.temporada === currentSeason).length,
+    [payments, currentSeason]
+  );
+  
+  const paidCount = React.useMemo(() => 
+    payments.filter(p => p.estado === "Pagado" && p.temporada === currentSeason).length,
+    [payments, currentSeason]
+  );
 
   return (
     <div className="p-6 lg:p-8 space-y-6">
