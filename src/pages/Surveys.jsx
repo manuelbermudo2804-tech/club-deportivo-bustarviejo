@@ -45,7 +45,64 @@ export default function Surveys() {
   });
 
   const createSurveyMutation = useMutation({
-    mutationFn: (surveyData) => base44.entities.Survey.create(surveyData),
+    mutationFn: async (surveyData) => {
+      const newSurvey = await base44.entities.Survey.create(surveyData);
+      
+      // Si se marcó enviar por chat, enviar mensaje individual a cada padre
+      if (surveyData.enviar_chat) {
+        const allPlayers = await base44.entities.Player.list();
+        let targetPlayers = [];
+        
+        if (surveyData.destinatarios === "Todos") {
+          targetPlayers = allPlayers.filter(p => p.activo);
+        } else {
+          targetPlayers = allPlayers.filter(p => 
+            p.deporte === surveyData.destinatarios && p.activo
+          );
+        }
+        
+        // Agrupar por email de padre para no enviar duplicados
+        const uniqueParents = {};
+        targetPlayers.forEach(player => {
+          if (player.email_padre && !uniqueParents[player.email_padre]) {
+            uniqueParents[player.email_padre] = {
+              email: player.email_padre,
+              deporte: player.deporte,
+              playerName: player.nombre
+            };
+          }
+          if (player.email_tutor_2 && !uniqueParents[player.email_tutor_2]) {
+            uniqueParents[player.email_tutor_2] = {
+              email: player.email_tutor_2,
+              deporte: player.deporte,
+              playerName: player.nombre
+            };
+          }
+        });
+        
+        const mensaje = `📋 **NUEVA ENCUESTA**\n\n**${surveyData.titulo}**\n\n${surveyData.descripcion || ''}\n\n📅 Disponible hasta: ${new Date(surveyData.fecha_fin).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' })}\n\n👉 Accede desde la app: Menú → Encuestas`;
+        
+        // Enviar mensaje individual a cada padre
+        for (const parent of Object.values(uniqueParents)) {
+          await base44.entities.ChatMessage.create({
+            remitente_email: user.email,
+            remitente_nombre: user.full_name || "Administración CD Bustarviejo",
+            destinatario_email: parent.email,
+            destinatario_nombre: `Padre de ${parent.playerName}`,
+            mensaje: mensaje,
+            prioridad: "Normal",
+            tipo: "admin_a_grupo",
+            deporte: parent.deporte,
+            grupo_id: parent.deporte,
+            leido: false
+          });
+          
+          await new Promise(resolve => setTimeout(resolve, 100));
+        }
+      }
+      
+      return newSurvey;
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['surveys'] });
       setShowForm(false);

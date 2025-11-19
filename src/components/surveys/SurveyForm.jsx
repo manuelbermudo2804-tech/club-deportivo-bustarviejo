@@ -103,7 +103,8 @@ export default function SurveyForm({ survey, onSubmit, onCancel, isSubmitting })
     fecha_inicio: new Date().toISOString().split('T')[0],
     fecha_fin: "",
     anonima: false,
-    respuestas_count: 0
+    respuestas_count: 0,
+    enviar_chat: false
   });
 
   const [newQuestion, setNewQuestion] = useState({
@@ -257,6 +258,17 @@ export default function SurveyForm({ survey, onSubmit, onCancel, isSubmitting })
                   onCheckedChange={(checked) => setCurrentSurvey({...currentSurvey, anonima: checked})}
                 />
                 <Label>Respuestas Anónimas</Label>
+              </div>
+              
+              <div className="flex items-center space-x-2">
+                <Switch
+                  checked={currentSurvey.enviar_chat}
+                  onCheckedChange={(checked) => setCurrentSurvey({...currentSurvey, enviar_chat: checked})}
+                />
+                <Label className="flex items-center gap-2">
+                  💬 Enviar al Chat
+                  <span className="text-xs text-slate-500">(Mensaje individual a cada padre)</span>
+                </Label>
               </div>
             </div>
 
