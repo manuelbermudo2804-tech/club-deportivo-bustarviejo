@@ -372,7 +372,11 @@ export default function ParentChat() {
                         )}
                         
                         <div className="flex items-center justify-end gap-1 mt-1">
-                          <span className={`text-[10px] ${msg.tipo === "padre_a_grupo" ? 'text-green-100' : 'text-slate-500'}`}>
+                          <span className={`text-[10px] ${
+                            msg.tipo === "padre_a_grupo" ? 'text-green-100' 
+                            : msg.tipo === "coordinador_a_familia" ? 'text-cyan-100'
+                            : 'text-slate-500'
+                          }`}>
                             {format(new Date(msg.created_date), "HH:mm")}
                           </span>
                         </div>
