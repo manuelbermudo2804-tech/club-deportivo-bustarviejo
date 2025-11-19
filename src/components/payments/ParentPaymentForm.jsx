@@ -54,7 +54,7 @@ const getImportePorMes = (categoria, mes) => {
   return 0;
 };
 
-export default function ParentPaymentForm({ players, payments = [], onSubmit, onCancel, isSubmitting }) {
+export default function ParentPaymentForm({ players, payments = [], onSubmit, onCancel, isSubmitting, isAdmin = false }) {
   const currentSeason = getCurrentSeason();
   const [currentPayment, setCurrentPayment] = useState({
     jugador_id: "",
@@ -303,7 +303,10 @@ export default function ParentPaymentForm({ players, payments = [], onSubmit, on
                       .filter(p => {
                         if (p.activo === false) return false;
 
-                        // Filtrar jugadores que ya completaron todos los pagos
+                        // Si es admin, mostrar todos los jugadores activos
+                        if (isAdmin) return true;
+
+                        // Para padres/coaches, filtrar jugadores que ya completaron todos los pagos
                         const jugadorPayments = payments.filter(pay => 
                           pay.jugador_id === p.id && 
                           pay.temporada === currentSeason

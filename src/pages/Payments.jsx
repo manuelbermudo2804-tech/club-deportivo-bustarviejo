@@ -615,6 +615,7 @@ Email: cdbustarviejo@gmail.com
                   onSubmit={handleSubmitPayment}
                   onCancel={() => setShowForm(false)}
                   isSubmitting={createPaymentMutation.isPending}
+                  isAdmin={isAdmin}
                 />
               )}
             </AnimatePresence>
