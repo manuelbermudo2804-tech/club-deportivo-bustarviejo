@@ -19,7 +19,7 @@ export default function Calendar() {
   const [editingEvent, setEditingEvent] = useState(null);
   const [typeFilter, setTypeFilter] = useState("all");
   const [sportFilter, setSportFilter] = useState("all");
-  const [viewMode, setViewMode] = useState("calendar"); // "calendar" o "cards"
+  const [viewMode, setViewMode] = useState("cards"); // "calendar" o "cards"
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [isAdmin, setIsAdmin] = useState(false);
   const [user, setUser] = useState(null);
@@ -203,6 +203,12 @@ export default function Calendar() {
     return filteredItems.filter(item => item.date === dayStr);
   };
 
+  const handleCardClick = (date) => {
+    const itemDate = new Date(date);
+    setCurrentMonth(itemDate);
+    setViewMode("calendar");
+  };
+
   const eventTypes = [
     "all",
     "Partido",
@@ -340,16 +346,16 @@ export default function Calendar() {
           <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-orange-600 border-r-transparent"></div>
         </div>
       ) : viewMode === "calendar" ? (
-        <div className="bg-white rounded-xl shadow-lg p-4">
-          <div className="flex items-center justify-between mb-4">
+        <div className="bg-white rounded-xl shadow-lg p-3">
+          <div className="flex items-center justify-between mb-3">
             <Button
               variant="ghost"
               size="sm"
               onClick={() => setCurrentMonth(subMonths(currentMonth, 1))}
             >
-              <ChevronLeft className="w-5 h-5" />
+              <ChevronLeft className="w-4 h-4" />
             </Button>
-            <h2 className="text-xl font-bold text-slate-900">
+            <h2 className="text-lg font-bold text-slate-900 capitalize">
               {format(currentMonth, 'MMMM yyyy', { locale: es })}
             </h2>
             <Button
@@ -357,19 +363,19 @@ export default function Calendar() {
               size="sm"
               onClick={() => setCurrentMonth(addMonths(currentMonth, 1))}
             >
-              <ChevronRight className="w-5 h-5" />
+              <ChevronRight className="w-4 h-4" />
             </Button>
           </div>
 
-          <div className="grid grid-cols-7 gap-2">
-            {['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'].map(day => (
-              <div key={day} className="text-center text-xs font-semibold text-slate-600 py-2">
+          <div className="grid grid-cols-7 gap-1">
+            {['L', 'M', 'X', 'J', 'V', 'S', 'D'].map(day => (
+              <div key={day} className="text-center text-[10px] font-semibold text-slate-600 py-1">
                 {day}
               </div>
             ))}
             
             {Array.from({ length: daysInMonth[0].getDay() === 0 ? 6 : daysInMonth[0].getDay() - 1 }).map((_, i) => (
-              <div key={`empty-${i}`} className="aspect-square" />
+              <div key={`empty-${i}`} className="h-16 lg:h-20" />
             ))}
 
             {daysInMonth.map(day => {
@@ -379,31 +385,31 @@ export default function Calendar() {
               return (
                 <div
                   key={day.toISOString()}
-                  className={`aspect-square border rounded-lg p-1 ${
-                    isToday ? 'bg-orange-50 border-orange-300' : 'bg-white border-slate-200'
+                  className={`h-16 lg:h-20 border rounded p-1 ${
+                    isToday ? 'bg-orange-50 border-orange-400 border-2' : 'bg-white border-slate-200'
                   } hover:border-orange-400 transition-colors overflow-hidden`}
                 >
-                  <div className={`text-xs font-semibold ${isToday ? 'text-orange-600' : 'text-slate-700'} mb-1`}>
+                  <div className={`text-[10px] font-semibold ${isToday ? 'text-orange-600' : 'text-slate-700'}`}>
                     {format(day, 'd')}
                   </div>
-                  <div className="space-y-0.5">
+                  <div className="space-y-0.5 mt-0.5">
                     {dayItems.slice(0, 2).map((item, idx) => (
                       <div
                         key={`${item.id}-${idx}`}
-                        className={`text-[10px] px-1 rounded truncate ${
+                        className={`text-[9px] px-0.5 rounded truncate leading-tight ${
                           item.type === 'callup' 
-                            ? 'bg-blue-100 text-blue-700' 
+                            ? 'bg-blue-500 text-white' 
                             : item.importante 
-                            ? 'bg-red-100 text-red-700'
-                            : 'bg-slate-100 text-slate-700'
+                            ? 'bg-red-500 text-white'
+                            : 'bg-slate-600 text-white'
                         }`}
                         title={item.title}
                       >
-                        {item.type === 'callup' ? '⚽' : '📅'} {item.title.substring(0, 8)}
+                        {item.type === 'callup' ? '⚽' : '📅'}
                       </div>
                     ))}
                     {dayItems.length > 2 && (
-                      <div className="text-[10px] text-slate-500 text-center">
+                      <div className="text-[8px] text-slate-500 font-bold">
                         +{dayItems.length - 2}
                       </div>
                     )}
@@ -430,14 +436,19 @@ export default function Calendar() {
                 <AnimatePresence>
                   {upcomingItems.map((item) => 
                     item.type === 'event' ? (
-                      <EventCard
-                        key={`event-${item.id}`}
-                        event={item}
-                        onEdit={handleEdit}
-                        isAdmin={isAdmin}
-                      />
+                      <div key={`event-${item.id}`} onClick={() => handleCardClick(item.date)} className="cursor-pointer">
+                        <EventCard
+                          event={item}
+                          onEdit={handleEdit}
+                          isAdmin={isAdmin}
+                        />
+                      </div>
                     ) : (
-                      <Card key={`callup-${item.id}`} className="bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200">
+                      <Card 
+                        key={`callup-${item.id}`} 
+                        className="bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200 cursor-pointer hover:shadow-lg transition-shadow"
+                        onClick={() => handleCardClick(item.date)}
+                      >
                         <CardContent className="p-4">
                           <div className="flex items-start justify-between mb-2">
                             <Badge className="bg-blue-600 text-white">Partido</Badge>
