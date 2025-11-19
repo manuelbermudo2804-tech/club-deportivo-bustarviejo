@@ -451,7 +451,7 @@ export default function AdminChat() {
         groupName={currentGroup?.name || selectedGroup}
       />
       
-      <div className="fixed inset-0 flex bg-white" style={{ top: isMobile ? '120px' : '0', left: isMobile ? '0' : '288px' }}>
+      <div className="fixed inset-0 flex bg-white overflow-hidden" style={{ top: isMobile ? '120px' : '0', left: isMobile ? '0' : '288px' }}>
       {/* Mobile chat list */}
       {isMobile && !selectedGroup && !sendToAll && (
         <div className="fixed inset-0 bg-white overflow-y-auto" style={{ top: '120px', left: 0 }}>
@@ -494,7 +494,7 @@ export default function AdminChat() {
       )}
 
       {/* Main chat area */}
-      <div className="flex-1 flex flex-col" style={{ marginTop: isMobile ? '56px' : '0' }}>
+      <div className="flex-1 flex flex-col overflow-hidden">
         {(selectedGroup || sendToAll) && (
           <>
             <div className={`p-4 text-white flex items-center gap-3 shadow-md flex-shrink-0 min-h-[72px] ${
@@ -514,11 +514,11 @@ export default function AdminChat() {
             <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
               {sendToAll ? <Users className="w-6 h-6" /> : <span className="text-xl">{sportEmojis[currentGroup?.deporte]}</span>}
             </div>
-            <div className="flex-1">
-              <h2 className="font-bold text-base">
+            <div className="flex-1 min-w-0">
+              <h2 className="font-bold text-base truncate">
                 {sendToAll ? '📢 Anuncio a Todos los Grupos' : currentGroup?.deporte}
               </h2>
-              <p className="text-xs opacity-90">
+              <p className="text-xs opacity-90 truncate">
                 {sendToAll ? `${Object.keys(groups).length} grupos • ${players.length} jugadores` : `${currentGroup?.players.length || 0} jugadores`}
               </p>
             </div>
@@ -537,7 +537,7 @@ export default function AdminChat() {
           )}
 
           <div 
-            className="flex-1 overflow-y-auto p-4 space-y-2"
+            className="flex-1 overflow-y-auto overflow-x-hidden p-4 space-y-2"
             style={{
               backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23d4c5b9' fill-opacity='0.1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
               backgroundColor: '#e5ddd5'
