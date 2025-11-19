@@ -287,14 +287,13 @@ export default function ParentPaymentForm({ players, payments = [], onSubmit, on
             </Alert>
           )}
           <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-2">
-                <Label htmlFor="jugador">Jugador *</Label>
-                <Select
-                  value={currentPayment.jugador_id}
-                  onValueChange={handlePlayerChange}
-                  required
-                >
+            <div className="space-y-2">
+              <Label htmlFor="jugador">Jugador *</Label>
+              <Select
+                value={currentPayment.jugador_id}
+                onValueChange={handlePlayerChange}
+                required
+              >
                   <SelectTrigger>
                     <SelectValue placeholder="Selecciona un jugador" />
                   </SelectTrigger>
