@@ -48,8 +48,8 @@ export default function CoachCallups() {
         const categories = currentUser.categorias_entrena || [];
         setCoachCategories(categories);
         
-        // If admin or coordinator, set to "admin" mode (can see all categories)
-        if (currentUser.role === "admin" || currentUser.es_coordinador) {
+        // If admin, set to "admin" mode (can see all categories)
+        if (currentUser.role === "admin") {
           setSelectedCategory("admin");
         } else if (categories.length === 1) {
           // If only one category, select it by default
