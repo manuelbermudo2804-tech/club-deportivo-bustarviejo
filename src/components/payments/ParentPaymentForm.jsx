@@ -336,10 +336,12 @@ export default function ParentPaymentForm({ players, payments = [], onSubmit, on
                       ))}
                   </SelectContent>
                 </Select>
-              </div>
+            </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="tipo_pago">Tipo de Pago *</Label>
+            {!pagoUnicoPagado && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <Label htmlFor="tipo_pago">Tipo de Pago *</Label>
                 <Select
                   value={currentPayment.tipo_pago}
                   onValueChange={handleTipoPagoChange}
