@@ -37,17 +37,23 @@ export default function ParentChat() {
   }, []);
 
   useEffect(() => {
+    if (myGroups.length === 0) return;
+    
     const params = new URLSearchParams(location.search);
     const groupParam = params.get('group');
-    if (groupParam && myGroups.length > 0) {
+    
+    if (groupParam) {
       const targetGroup = myGroups.find(g => g.deporte === groupParam);
       if (targetGroup) {
         setSelectedTab(targetGroup.id);
+        return;
       }
-    } else if (!selectedTab && myGroups.length > 0) {
+    }
+    
+    if (!selectedTab) {
       setSelectedTab(myGroups[0].id);
     }
-  }, [location.search, myGroups.length]);
+  }, [myGroups, location.search]);
 
   const { data: messages, isLoading: loadingMessages, refetch: refetchMessages } = useQuery({
     queryKey: ['chatMessages'],
