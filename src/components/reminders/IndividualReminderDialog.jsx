@@ -21,11 +21,19 @@ export default function IndividualReminderDialog({ isOpen, onClose, payment, pla
     setMethods(prev => ({ ...prev, [method]: !prev[method] }));
   };
 
-  // Filtrar pagos pendientes del jugador
-  const unpaidPayments = (allPlayerPayments || []).filter(p => 
-    p.jugador_id === player?.id && 
-    (p.estado === "Pendiente" || p.estado === "En revisión")
-  );
+  // Todos los meses posibles
+  const allPossibleMonths = ["Junio", "Septiembre", "Diciembre"];
+  
+  // Información de pagos por mes
+  const monthsInfo = allPossibleMonths.map(mes => {
+    const existingPayment = (allPlayerPayments || []).find(p => p.mes === mes);
+    return {
+      mes: mes,
+      estado: existingPayment?.estado || "Sin registrar",
+      cantidad: existingPayment?.cantidad || 0,
+      isPending: !existingPayment || existingPayment.estado === "Pendiente" || existingPayment.estado === "En revisión"
+    };
+  });
 
   const hasAnyPayment = (allPlayerPayments || []).some(p => p.jugador_id === player?.id);
 
@@ -36,10 +44,11 @@ export default function IndividualReminderDialog({ isOpen, onClose, payment, pla
   };
 
   const selectAllMonths = () => {
-    if (selectedMonths.length === unpaidPayments.length) {
+    const pendingMonths = monthsInfo.filter(m => m.isPending).map(m => m.mes);
+    if (selectedMonths.length === pendingMonths.length) {
       setSelectedMonths([]);
     } else {
-      setSelectedMonths(unpaidPayments.map(p => p.mes));
+      setSelectedMonths(pendingMonths);
     }
   };
 
@@ -75,8 +84,8 @@ Atentamente,
 CD Bustarviejo`;
     }
 
-    const selectedPayments = unpaidPayments.filter(p => selectedMonths.includes(p.mes));
-    const totalAmount = selectedPayments.reduce((sum, p) => sum + (p.cantidad || 0), 0);
+    const selectedMonthsInfo = monthsInfo.filter(m => selectedMonths.includes(m.mes));
+    const totalAmount = selectedMonthsInfo.reduce((sum, m) => sum + (m.cantidad || 0), 0);
 
     return `Estimados padres/tutores,
 
@@ -85,9 +94,9 @@ Les recordamos que tienen ${selectedMonths.length} pago${selectedMonths.length >
 Jugador: ${player?.nombre}
 Temporada: ${payment?.temporada || "2024-2025"}
 
-${selectedPayments.map(p => `• ${p.mes}: ${p.cantidad}€ (Vencimiento: 30 de ${p.mes})`).join('\n')}
+${selectedMonthsInfo.map(m => `• ${m.mes}: ${m.cantidad > 0 ? m.cantidad + '€' : 'Importe pendiente'} (Vencimiento: 30 de ${m.mes})`).join('\n')}
 
-Total pendiente: ${totalAmount}€
+${totalAmount > 0 ? `Total pendiente: ${totalAmount}€` : ''}
 
 Por favor, realiza ${selectedMonths.length > 1 ? 'los pagos' : 'el pago'} y sube ${selectedMonths.length > 1 ? 'los justificantes' : 'el justificante'} en la aplicación.
 
@@ -142,9 +151,9 @@ CD Bustarviejo`;
             <p className="font-semibold text-slate-900">{player?.nombre}</p>
             <div className="text-sm">
               <p className="text-slate-600">Temporada: <span className="font-medium">{payment?.temporada || "2024-2025"}</span></p>
-              {unpaidPayments.length > 0 && (
+              {monthsInfo.filter(m => m.isPending).length > 0 && (
                 <p className="text-orange-600 font-medium mt-1">
-                  {unpaidPayments.length} pago{unpaidPayments.length > 1 ? 's' : ''} pendiente{unpaidPayments.length > 1 ? 's' : ''}
+                  {monthsInfo.filter(m => m.isPending).length} pago{monthsInfo.filter(m => m.isPending).length > 1 ? 's' : ''} pendiente{monthsInfo.filter(m => m.isPending).length > 1 ? 's' : ''}
                 </p>
               )}
               {!hasAnyPayment && (
@@ -201,7 +210,7 @@ CD Bustarviejo`;
           </div>
 
           {/* Month Selection - Only for specific type */}
-          {reminderType === "specific" && unpaidPayments.length > 0 && (
+          {reminderType === "specific" && (
             <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <Label className="text-base font-semibold">Selecciona los meses a recordar</Label>
@@ -211,29 +220,34 @@ CD Bustarviejo`;
                   onClick={selectAllMonths}
                   className="text-xs"
                 >
-                  {selectedMonths.length === unpaidPayments.length ? "Deseleccionar todos" : "Seleccionar todos"}
+                  {selectedMonths.length === monthsInfo.filter(m => m.isPending).length ? "Deseleccionar todos" : "Seleccionar todos"}
                 </Button>
               </div>
               
               <div className="space-y-2 max-h-60 overflow-y-auto">
-                {unpaidPayments.map((p) => (
+                {monthsInfo.map((monthInfo) => (
                   <div 
-                    key={p.id}
+                    key={monthInfo.mes}
                     className={`flex items-center space-x-3 border rounded-lg p-3 cursor-pointer transition-colors ${
-                      selectedMonths.includes(p.mes) ? 'border-orange-500 bg-orange-50' : 'border-slate-200 hover:bg-slate-50'
+                      selectedMonths.includes(monthInfo.mes) ? 'border-orange-500 bg-orange-50' : 'border-slate-200 hover:bg-slate-50'
                     }`}
-                    onClick={() => toggleMonth(p.mes)}
+                    onClick={() => toggleMonth(monthInfo.mes)}
                   >
                     <Checkbox 
-                      checked={selectedMonths.includes(p.mes)}
-                      onCheckedChange={() => toggleMonth(p.mes)}
+                      checked={selectedMonths.includes(monthInfo.mes)}
+                      onCheckedChange={() => toggleMonth(monthInfo.mes)}
                     />
                     <div className="flex-1">
                       <div className="flex items-center justify-between">
-                        <span className="font-medium">{p.mes}</span>
-                        <span className="text-sm font-semibold text-orange-600">{p.cantidad}€</span>
+                        <span className="font-medium">{monthInfo.mes}</span>
+                        {monthInfo.cantidad > 0 && (
+                          <span className="text-sm font-semibold text-orange-600">{monthInfo.cantidad}€</span>
+                        )}
                       </div>
-                      <p className="text-xs text-slate-500">Estado: {p.estado} • Vencimiento: 30 de {p.mes}</p>
+                      <p className="text-xs text-slate-500">
+                        Estado: {monthInfo.estado}
+                        {monthInfo.isPending && " • Vencimiento: 30 de " + monthInfo.mes}
+                      </p>
                     </div>
                   </div>
                 ))}
@@ -244,9 +258,11 @@ CD Bustarviejo`;
                   <p className="text-sm font-medium text-orange-800">
                     ✓ {selectedMonths.length} mes{selectedMonths.length > 1 ? 'es' : ''} seleccionado{selectedMonths.length > 1 ? 's' : ''}
                   </p>
-                  <p className="text-xs text-orange-600 mt-1">
-                    Total: {unpaidPayments.filter(p => selectedMonths.includes(p.mes)).reduce((sum, p) => sum + (p.cantidad || 0), 0)}€
-                  </p>
+                  {monthsInfo.filter(m => selectedMonths.includes(m.mes)).reduce((sum, m) => sum + (m.cantidad || 0), 0) > 0 && (
+                    <p className="text-xs text-orange-600 mt-1">
+                      Total: {monthsInfo.filter(m => selectedMonths.includes(m.mes)).reduce((sum, m) => sum + (m.cantidad || 0), 0)}€
+                    </p>
+                  )}
                 </div>
               )}
             </div>
