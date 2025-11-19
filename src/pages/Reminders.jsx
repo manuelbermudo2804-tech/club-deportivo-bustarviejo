@@ -1008,7 +1008,7 @@ Temporada ${reminder.temporada}
                                   <div className="min-w-0 flex-1">
                                     <p className="text-xs lg:text-sm font-medium text-slate-900">{pago.mes}</p>
                                     <p className="text-[10px] lg:text-xs text-slate-600">
-                                      {pago.isVirtual ? "Pendiente registrar" : `${pago.cantidad}€`}
+                                      {pago.isVirtual ? "Pendiente" : `${pago.cantidad}€`}
                                       {!pago.isVirtual && hasReminders && (
                                         <span className="ml-1 text-blue-600">
                                           • {sentReminders}/{playerReminders.length} enviados
