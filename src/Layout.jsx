@@ -557,15 +557,36 @@ export default function Layout({ children, currentPageName }) {
           }, []);
 
           useEffect(() => {
-            if (user && (location.pathname === '/' || location.pathname === '')) {
-              if (isAdmin || isCoach || isCoordinator) {
-                navigate(createPageUrl('Home'));
-              } else if (isPlayer) {
-                navigate(createPageUrl('PlayerDashboard'));
-              } else {
-                navigate(createPageUrl('ParentDashboard'));
+            const checkAndRedirect = async () => {
+              if (user && (location.pathname === '/' || location.pathname === '')) {
+                // Si es entrenador, verificar si es email_tutor_2 de algún jugador
+                if (isCoach || isCoordinator) {
+                  try {
+                    const allPlayers = await base44.entities.Player.list();
+                    const isSecondParent = allPlayers.some(p => p.email_tutor_2 === user.email);
+
+                    if (isSecondParent) {
+                      // Si es segundo progenitor, redirigir al panel de familia
+                      navigate(createPageUrl('ParentDashboard'));
+                      return;
+                    }
+                  } catch (error) {
+                    console.error('Error checking parent status:', error);
+                  }
+                }
+
+                // Lógica de redirección normal
+                if (isAdmin || isCoach || isCoordinator) {
+                  navigate(createPageUrl('Home'));
+                } else if (isPlayer) {
+                  navigate(createPageUrl('PlayerDashboard'));
+                } else {
+                  navigate(createPageUrl('ParentDashboard'));
+                }
               }
-            }
+            };
+
+            checkAndRedirect();
           }, [user, isAdmin, isCoach, isCoordinator, isPlayer, location.pathname, navigate]);
 
   useEffect(() => {
