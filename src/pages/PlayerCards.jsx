@@ -71,66 +71,66 @@ export default function PlayerCards() {
           <div key={player.id} className="space-y-3">
             <Card 
               id={`card-${player.id}`}
-              className="border-4 border-orange-600 shadow-2xl overflow-hidden"
-              style={{ aspectRatio: '1.586', maxWidth: '500px' }}
+              className="border-4 border-orange-600 shadow-2xl overflow-hidden mx-auto"
+              style={{ width: '350px', height: '220px' }}
             >
-              <div className="h-full bg-gradient-to-br from-slate-900 via-black to-orange-900 p-6 flex flex-col">
+              <div className="h-full bg-gradient-to-br from-slate-900 via-black to-orange-900 p-4 flex flex-col">
                 {/* Header */}
-                <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center justify-between mb-3">
                   <img 
                     src="https://www.cdbustarviejo.com/uploads/2/4/0/4/2404974/logo-cd-bustarviejo-cuadrado-xpeq_orig.png"
                     alt="Logo"
-                    className="w-16 h-16 object-contain"
+                    className="w-12 h-12 object-contain"
                   />
                   <div className="text-right">
-                    <h2 className="text-white font-bold text-sm">CD BUSTARVIEJO</h2>
-                    <p className="text-orange-400 text-xs">TEMPORADA {season}</p>
+                    <h2 className="text-white font-bold text-xs">CD BUSTARVIEJO</h2>
+                    <p className="text-orange-400 text-[10px]">TEMPORADA {season}</p>
                   </div>
                 </div>
 
                 {/* Contenido Principal */}
-                <div className="flex-1 flex gap-4">
+                <div className="flex-1 flex gap-3">
                   {/* Foto */}
                   <div className="flex-shrink-0">
                     {player.foto_url ? (
                       <img 
                         src={player.foto_url} 
                         alt={player.nombre}
-                        className="w-32 h-32 rounded-lg object-cover border-4 border-orange-500"
+                        className="w-24 h-24 rounded-lg object-cover border-3 border-orange-500"
                       />
                     ) : (
-                      <div className="w-32 h-32 bg-slate-700 rounded-lg flex items-center justify-center border-4 border-orange-500">
-                        <span className="text-4xl">👤</span>
+                      <div className="w-24 h-24 bg-slate-700 rounded-lg flex items-center justify-center border-3 border-orange-500">
+                        <span className="text-3xl">👤</span>
                       </div>
                     )}
                   </div>
 
                   {/* Datos */}
-                  <div className="flex-1 space-y-2 text-white">
+                  <div className="flex-1 space-y-1 text-white">
                     <div>
-                      <p className="text-xs text-orange-400 uppercase">Jugador</p>
-                      <p className="font-bold text-lg leading-tight">{player.nombre}</p>
+                      <p className="text-[10px] text-orange-400 uppercase">Jugador</p>
+                      <p className="font-bold text-sm leading-tight">{player.nombre}</p>
                     </div>
                     <div>
-                      <p className="text-xs text-orange-400 uppercase">Categoría</p>
-                      <p className="font-semibold text-sm">{player.deporte}</p>
+                      <p className="text-[10px] text-orange-400 uppercase">Categoría</p>
+                      <p className="font-semibold text-[11px]">{player.deporte}</p>
                     </div>
                     <div>
-                      <p className="text-xs text-orange-400 uppercase">ID</p>
-                      <p className="font-mono text-xs">{player.id.substring(0, 12)}</p>
+                      <p className="text-[10px] text-orange-400 uppercase">ID</p>
+                      <p className="font-mono text-[9px]">{player.id.substring(0, 12)}</p>
                     </div>
                   </div>
                 </div>
 
                 {/* Footer */}
-                <div className="flex items-end justify-between mt-4 pt-4 border-t border-orange-500/30">
-                  <div className="text-white text-xs">
-                    <p className="text-orange-400 uppercase mb-1">Fecha de nacimiento</p>
-                    <p>{new Date(player.fecha_nacimiento).toLocaleDateString('es-ES')}</p>
+                <div className="flex items-end justify-between mt-2 pt-2 border-t border-orange-500/30">
+                  <div className="text-white text-[10px]">
+                    <p className="text-orange-400 uppercase mb-0.5">Fecha de nacimiento</p>
+                    <p className="text-[11px]">{new Date(player.fecha_nacimiento).toLocaleDateString('es-ES')}</p>
                   </div>
-                  <div className="bg-white p-2 rounded text-center">
-                    <div className="w-14 h-14 bg-slate-800 rounded flex items-center justify-center">
-                      <span className="text-orange-500 text-xs font-bold">CD</span>
+                  <div className="bg-white p-1 rounded">
+                    <div className="w-10 h-10 bg-slate-800 rounded flex items-center justify-center">
+                      <span className="text-orange-500 text-[10px] font-bold">CD</span>
                     </div>
                   </div>
                 </div>
