@@ -577,6 +577,27 @@ export default function Layout({ children, currentPageName }) {
           useEffect(() => {
             const checkAndRedirect = async () => {
               if (user && (location.pathname === '/' || location.pathname === '')) {
+                // Verificar si tiene jugadores pendientes de renovación
+                try {
+                  const allPlayers = await base44.entities.Player.list();
+                  const seasonConfigs = await base44.entities.SeasonConfig.list();
+                  const activeSeason = seasonConfigs.find(c => c.activa === true);
+
+                  const myPendingPlayers = allPlayers.filter(p => 
+                    (p.email_padre === user.email || p.email_tutor_2 === user.email) &&
+                    p.estado_renovacion === "pendiente" &&
+                    p.temporada_renovacion === activeSeason?.temporada
+                  );
+
+                  // Si tiene jugadores pendientes de renovación, redirigir a página de renovación
+                  if (myPendingPlayers.length > 0 && user.role !== "admin" && !user.es_entrenador && !user.es_coordinador && !user.es_tesorero) {
+                    navigate(createPageUrl('PlayerRenewal'));
+                    return;
+                  }
+                } catch (error) {
+                  console.error('Error checking pending renewals:', error);
+                }
+
                 // Si es entrenador/coordinador/tesorero, verificar si es email_tutor_2 de algún jugador
                 if (isCoach || isCoordinator || isTreasurer) {
                   try {

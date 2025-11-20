@@ -1,0 +1,337 @@
+import React, { useState, useEffect } from "react";
+import { base44 } from "@/api/base44Client";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { CheckCircle2, XCircle, AlertTriangle, Users } from "lucide-react";
+import { toast } from "sonner";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+
+const CATEGORIAS = [
+  "Fútbol Pre-Benjamín (Mixto)",
+  "Fútbol Benjamín (Mixto)",
+  "Fútbol Alevín (Mixto)",
+  "Fútbol Infantil (Mixto)",
+  "Fútbol Cadete",
+  "Fútbol Juvenil",
+  "Fútbol Aficionado",
+  "Fútbol Femenino",
+  "Baloncesto (Mixto)"
+];
+
+const calculateAge = (birthDate) => {
+  const today = new Date();
+  const birth = new Date(birthDate);
+  let age = today.getFullYear() - birth.getFullYear();
+  const monthDiff = today.getMonth() - birth.getMonth();
+  if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
+    age--;
+  }
+  return age;
+};
+
+const suggestCategory = (birthDate) => {
+  const age = calculateAge(birthDate);
+  
+  if (age <= 5) return "Fútbol Pre-Benjamín (Mixto)";
+  if (age <= 7) return "Fútbol Benjamín (Mixto)";
+  if (age <= 9) return "Fútbol Alevín (Mixto)";
+  if (age <= 11) return "Fútbol Infantil (Mixto)";
+  if (age <= 13) return "Fútbol Cadete";
+  if (age <= 15) return "Fútbol Juvenil";
+  return "Fútbol Aficionado";
+};
+
+export default function PlayerRenewal() {
+  const [user, setUser] = useState(null);
+  const [selectedCategories, setSelectedCategories] = useState({});
+  const [confirmDialog, setConfirmDialog] = useState({ open: false, playerId: null, action: null });
+  const queryClient = useQueryClient();
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      const currentUser = await base44.auth.me();
+      setUser(currentUser);
+    };
+    fetchUser();
+  }, []);
+
+  const { data: seasonConfig } = useQuery({
+    queryKey: ['seasonConfig'],
+    queryFn: async () => {
+      const configs = await base44.entities.SeasonConfig.list();
+      return configs.find(c => c.activa === true);
+    },
+  });
+
+  const { data: players = [] } = useQuery({
+    queryKey: ['myPlayers', user?.email],
+    queryFn: async () => {
+      const allPlayers = await base44.entities.Player.list();
+      return allPlayers.filter(p => 
+        (p.email_padre === user?.email || p.email_tutor_2 === user?.email) &&
+        p.estado_renovacion === "pendiente" &&
+        p.temporada_renovacion === seasonConfig?.temporada
+      );
+    },
+    enabled: !!user?.email && !!seasonConfig?.temporada,
+  });
+
+  const renewPlayerMutation = useMutation({
+    mutationFn: ({ playerId, newCategory }) => {
+      const player = players.find(p => p.id === playerId);
+      return base44.entities.Player.update(playerId, {
+        ...player,
+        deporte: newCategory,
+        estado_renovacion: "renovado",
+        fecha_renovacion: new Date().toISOString(),
+        activo: true
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['myPlayers'] });
+      toast.success("✅ Jugador renovado correctamente");
+      setConfirmDialog({ open: false, playerId: null, action: null });
+    },
+  });
+
+  const notRenewMutation = useMutation({
+    mutationFn: (playerId) => {
+      const player = players.find(p => p.id === playerId);
+      return base44.entities.Player.update(playerId, {
+        ...player,
+        estado_renovacion: "no_renueva",
+        fecha_renovacion: new Date().toISOString(),
+        activo: false
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['myPlayers'] });
+      toast.success("Jugador marcado como no renueva");
+      setConfirmDialog({ open: false, playerId: null, action: null });
+    },
+  });
+
+  useEffect(() => {
+    const initialCategories = {};
+    players.forEach(player => {
+      const suggested = suggestCategory(player.fecha_nacimiento);
+      initialCategories[player.id] = suggested;
+    });
+    setSelectedCategories(initialCategories);
+  }, [players]);
+
+  const handleConfirmAction = () => {
+    if (confirmDialog.action === 'renew') {
+      const newCategory = selectedCategories[confirmDialog.playerId];
+      renewPlayerMutation.mutate({ 
+        playerId: confirmDialog.playerId, 
+        newCategory 
+      });
+    } else if (confirmDialog.action === 'not_renew') {
+      notRenewMutation.mutate(confirmDialog.playerId);
+    }
+  };
+
+  if (!seasonConfig) {
+    return (
+      <div className="p-6">
+        <Card>
+          <CardContent className="pt-6">
+            <p className="text-center text-slate-600">Cargando...</p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  if (players.length === 0) {
+    return (
+      <div className="p-6 lg:p-8">
+        <Card className="border-green-200 bg-green-50">
+          <CardContent className="pt-6 text-center space-y-4">
+            <CheckCircle2 className="w-16 h-16 text-green-600 mx-auto" />
+            <div>
+              <h2 className="text-2xl font-bold text-green-900 mb-2">
+                ✅ Todo listo para la temporada {seasonConfig.temporada}
+              </h2>
+              <p className="text-green-700">
+                No tienes jugadores pendientes de renovación
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  return (
+    <>
+      <AlertDialog open={confirmDialog.open} onOpenChange={(open) => !open && setConfirmDialog({ open: false, playerId: null, action: null })}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {confirmDialog.action === 'renew' ? '✅ Confirmar Renovación' : '❌ No Renovar'}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {confirmDialog.action === 'renew' 
+                ? '¿Confirmas que este jugador continúa en el club para la temporada ' + seasonConfig.temporada + '?'
+                : '¿Confirmas que este jugador NO continuará en el club? Esta acción se puede revertir desde el panel de administración.'}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleConfirmAction}
+              className={confirmDialog.action === 'renew' ? 'bg-green-600 hover:bg-green-700' : 'bg-red-600 hover:bg-red-700'}
+            >
+              {confirmDialog.action === 'renew' ? '✅ Renovar' : '❌ No Renueva'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <div className="p-4 lg:p-8 space-y-6">
+        <div className="bg-gradient-to-r from-orange-600 to-orange-700 rounded-2xl p-6 shadow-xl text-white">
+          <div className="flex items-start gap-4">
+            <AlertTriangle className="w-8 h-8 flex-shrink-0 animate-pulse" />
+            <div>
+              <h1 className="text-2xl lg:text-3xl font-bold mb-2">
+                🔄 Renovación de Jugadores - Temporada {seasonConfig.temporada}
+              </h1>
+              <p className="text-orange-100 text-lg">
+                Por favor, confirma qué jugadores continúan en el club y actualiza sus categorías si es necesario
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <Card className="border-blue-200 bg-blue-50">
+          <CardContent className="pt-6">
+            <div className="flex items-start gap-3">
+              <Users className="w-6 h-6 text-blue-600 flex-shrink-0 mt-1" />
+              <div className="space-y-2">
+                <p className="text-blue-900 font-semibold">
+                  📋 Instrucciones:
+                </p>
+                <ul className="text-blue-800 space-y-1 text-sm">
+                  <li>✅ <strong>Renovar:</strong> Confirma la categoría sugerida o cámbiala si es necesario</li>
+                  <li>❌ <strong>No Renueva:</strong> Si el jugador no continuará en el club</li>
+                  <li>🎯 Las categorías se sugieren automáticamente según la edad del jugador</li>
+                  <li>⚠️ Debes procesar todos los jugadores para acceder al resto de la aplicación</li>
+                </ul>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <div className="grid gap-6">
+          {players.map((player) => {
+            const age = calculateAge(player.fecha_nacimiento);
+            const suggestedCat = suggestCategory(player.fecha_nacimiento);
+            const selectedCat = selectedCategories[player.id] || player.deporte;
+            const categoryChanged = selectedCat !== player.deporte;
+
+            return (
+              <Card key={player.id} className="border-2 border-slate-200 shadow-lg hover:shadow-xl transition-shadow">
+                <CardHeader className="bg-gradient-to-r from-slate-50 to-slate-100">
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <CardTitle className="text-2xl">{player.nombre}</CardTitle>
+                      <div className="flex gap-2 mt-2 flex-wrap">
+                        <Badge variant="outline" className="text-sm">
+                          {age} años
+                        </Badge>
+                        <Badge className="bg-slate-600 text-sm">
+                          Actual: {player.deporte}
+                        </Badge>
+                      </div>
+                    </div>
+                    {player.foto_url && (
+                      <img 
+                        src={player.foto_url} 
+                        alt={player.nombre}
+                        className="w-20 h-20 rounded-full object-cover border-4 border-white shadow-lg"
+                      />
+                    )}
+                  </div>
+                </CardHeader>
+                <CardContent className="pt-6 space-y-4">
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2">
+                      <label className="text-sm font-semibold text-slate-700">
+                        📚 Categoría para {seasonConfig.temporada}:
+                      </label>
+                      {categoryChanged && (
+                        <Badge className="bg-orange-500 text-white animate-pulse">
+                          Cambio de categoría
+                        </Badge>
+                      )}
+                    </div>
+                    
+                    {suggestedCat !== player.deporte && (
+                      <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-sm">
+                        <p className="text-blue-900">
+                          💡 <strong>Sugerencia:</strong> Según la edad ({age} años), la categoría recomendada es <strong>{suggestedCat}</strong>
+                        </p>
+                      </div>
+                    )}
+
+                    <Select 
+                      value={selectedCat}
+                      onValueChange={(value) => setSelectedCategories({
+                        ...selectedCategories,
+                        [player.id]: value
+                      })}
+                    >
+                      <SelectTrigger className="h-12 text-base border-2">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {CATEGORIAS.map(cat => (
+                          <SelectItem key={cat} value={cat}>
+                            {cat}
+                            {cat === suggestedCat && " 💡"}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="flex gap-3 pt-4">
+                    <Button
+                      onClick={() => setConfirmDialog({ open: true, playerId: player.id, action: 'renew' })}
+                      className="flex-1 h-12 bg-green-600 hover:bg-green-700 text-white font-bold"
+                    >
+                      <CheckCircle2 className="w-5 h-5 mr-2" />
+                      ✅ Renovar
+                    </Button>
+                    <Button
+                      onClick={() => setConfirmDialog({ open: true, playerId: player.id, action: 'not_renew' })}
+                      variant="outline"
+                      className="flex-1 h-12 border-2 border-red-300 text-red-700 hover:bg-red-50 font-bold"
+                    >
+                      <XCircle className="w-5 h-5 mr-2" />
+                      ❌ No Renueva
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            );
+          })}
+        </div>
+      </div>
+    </>
+  );
+}
