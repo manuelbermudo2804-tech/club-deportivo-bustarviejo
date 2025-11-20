@@ -1032,6 +1032,11 @@ export default function Layout({ children, currentPageName }) {
                     🎓 Coordinador Deportivo
                   </Badge>
                 )}
+                {isTreasurer && (
+                  <Badge className="mt-2 bg-green-600 text-white text-xs">
+                    💰 Tesorero
+                  </Badge>
+                )}
                 {user?.es_entrenador && !isAdmin && (
                   <Badge className="mt-2 bg-blue-600 text-white text-xs">
                     🏃 Entrenador{user?.categorias_entrena?.length > 0 ? ` (${user.categorias_entrena.length})` : ''}
