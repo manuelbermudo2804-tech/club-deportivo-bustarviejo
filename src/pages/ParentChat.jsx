@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useMemo } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useLocation } from "react-router-dom";
@@ -20,39 +20,27 @@ export default function ParentChat() {
   const messagesEndRef = useRef(null);
   const queryClient = useQueryClient();
   const [user, setUser] = useState(null);
-  const [isMobile, setIsMobile] = useState(false);
-  const [isInitialized, setIsInitialized] = useState(false);
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
 
   useEffect(() => {
-    const checkMobile = () => setIsMobile(window.innerWidth < 768);
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
+    const handleResize = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
   }, []);
 
   useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const currentUser = await base44.auth.me();
-        setUser(currentUser);
-      } catch (error) {
-        console.error("Error fetching user:", error);
-      }
-    };
-    fetchUser();
+    base44.auth.me().then(setUser).catch(console.error);
   }, []);
 
-  const { data: messages, isLoading: loadingMessages, refetch: refetchMessages } = useQuery({
+  const { data: messages = [], isLoading: loadingMessages, refetch: refetchMessages } = useQuery({
     queryKey: ['chatMessages'],
     queryFn: () => base44.entities.ChatMessage.list('-created_date'),
-    initialData: [],
     refetchInterval: 2000,
   });
 
-  const { data: players, isLoading: loadingPlayers } = useQuery({
+  const { data: players = [], isLoading: loadingPlayers } = useQuery({
     queryKey: ['allPlayers'],
     queryFn: () => base44.entities.Player.list(),
-    initialData: [],
   });
 
   const sendMessageMutation = useMutation({
@@ -91,10 +79,9 @@ export default function ParentChat() {
 
   const markAsReadMutation = useMutation({
     mutationFn: async (messageIds) => {
-      const updatePromises = messageIds.map(id => 
+      await Promise.all(messageIds.map(id => 
         base44.entities.ChatMessage.update(id, { leido: true })
-      );
-      await Promise.all(updatePromises);
+      ));
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['chatMessages'] });
@@ -103,87 +90,59 @@ export default function ParentChat() {
 
   const normalizeDeporte = (deporte) => {
     if (!deporte) return null;
-    let normalized = deporte.trim();
-    normalized = normalized.replace(/_undefined$/, '');
-    normalized = normalized.replace(/_$/, '');
-    return normalized;
+    return deporte.trim().replace(/_undefined$/, '').replace(/_$/, '');
   };
 
-  const myGroups = useMemo(() => {
-    if (!user) return [];
-    
-    const myPlayers = players.filter(p => 
-      p.email_padre === user.email || p.email_tutor_2 === user.email
-    );
-    
-    const myGroupSports = [...new Set(myPlayers.map(p => normalizeDeporte(p.deporte)).filter(Boolean))];
-    
-    // Añadir grupo de "Coordinación Deportiva" siempre
-    const groups = [{
-      id: "Coordinación Deportiva",
-      deporte: "Coordinación Deportiva",
-      messages: messages.filter(msg => {
-        const msgDeporte = normalizeDeporte(msg.grupo_id || msg.deporte);
-        return msgDeporte === "Coordinación Deportiva";
-      }),
-      unreadCount: messages.filter(msg => 
-        !msg.leido && 
-        (msg.tipo === "coordinador_a_familia" || msg.tipo === "admin_a_grupo") && 
-        (normalizeDeporte(msg.grupo_id || msg.deporte) === "Coordinación Deportiva")
-      ).length
-    }];
-    
-    // Añadir grupos deportivos
-    myGroupSports.forEach(deporte => {
-      const groupMessages = messages.filter(msg => {
-        const msgDeporte = normalizeDeporte(msg.grupo_id || msg.deporte);
-        return msgDeporte === deporte;
-      });
-      
-      const unreadCount = groupMessages.filter(msg => 
-        !msg.leido && msg.tipo === "admin_a_grupo"
-      ).length;
-      
-      groups.push({
-        id: deporte,
-        deporte,
-        messages: groupMessages,
-        unreadCount
-      });
-    });
-    
-    return groups;
-  }, [user, players, messages]);
+  const myPlayers = user ? players.filter(p => 
+    p.email_padre === user.email || p.email_tutor_2 === user.email
+  ) : [];
 
-  const currentGroup = useMemo(() => {
-    return myGroups.find(g => g.id === selectedTab);
-  }, [myGroups, selectedTab]);
+  const myGroupSports = [...new Set(myPlayers.map(p => normalizeDeporte(p.deporte)).filter(Boolean))];
+
+  const groups = [{
+    id: "Coordinación Deportiva",
+    deporte: "Coordinación Deportiva",
+    messages: messages.filter(msg => normalizeDeporte(msg.grupo_id || msg.deporte) === "Coordinación Deportiva"),
+    unreadCount: messages.filter(msg => 
+      !msg.leido && 
+      (msg.tipo === "coordinador_a_familia" || msg.tipo === "admin_a_grupo") && 
+      normalizeDeporte(msg.grupo_id || msg.deporte) === "Coordinación Deportiva"
+    ).length
+  }];
+
+  myGroupSports.forEach(deporte => {
+    const groupMessages = messages.filter(msg => normalizeDeporte(msg.grupo_id || msg.deporte) === deporte);
+    groups.push({
+      id: deporte,
+      deporte,
+      messages: groupMessages,
+      unreadCount: groupMessages.filter(msg => !msg.leido && msg.tipo === "admin_a_grupo").length
+    });
+  });
+
+  const currentGroup = groups.find(g => g.id === selectedTab);
 
   useEffect(() => {
-    if (isInitialized || !user || myGroups.length === 0) return;
-    
-    const params = new URLSearchParams(location.search);
-    const groupParam = params.get('group');
-    
-    if (groupParam) {
-      const targetGroup = myGroups.find(g => g.deporte === decodeURIComponent(groupParam));
-      if (targetGroup) {
-        setSelectedTab(targetGroup.id);
-        setIsInitialized(true);
-        return;
+    if (groups.length > 0 && !selectedTab) {
+      const params = new URLSearchParams(location.search);
+      const groupParam = params.get('group');
+      
+      if (groupParam) {
+        const targetGroup = groups.find(g => g.deporte === decodeURIComponent(groupParam));
+        if (targetGroup) {
+          setSelectedTab(targetGroup.id);
+          return;
+        }
+      }
+      
+      if (!isMobile) {
+        setSelectedTab(groups[0].id);
       }
     }
-    
-    if (!isMobile && myGroups.length > 0) {
-      setSelectedTab(myGroups[0].id);
-      setIsInitialized(true);
-    } else if (isMobile) {
-      setIsInitialized(true);
-    }
-  }, [user, myGroups.length, isMobile, isInitialized, location.search]);
+  }, [groups.length, isMobile]);
 
   useEffect(() => {
-    if (selectedTab && currentGroup && currentGroup.messages) {
+    if (selectedTab && currentGroup?.messages) {
       const unreadMessageIds = currentGroup.messages
         .filter(msg => !msg.leido && (msg.tipo === "admin_a_grupo" || msg.tipo === "coordinador_a_familia"))
         .map(msg => msg.id);
@@ -194,27 +153,27 @@ export default function ParentChat() {
     }
   }, [selectedTab, currentGroup?.messages?.length]);
 
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [currentGroup?.messages]);
+
   const isBusinessHours = () => {
-    const now = new Date();
-    const hour = now.getHours();
+    const hour = new Date().getHours();
     return hour >= 10 && hour < 20;
   };
 
   const handleSendMessage = () => {
-    if (!user || !selectedTab) {
-      return;
-    }
+    if (!user || !selectedTab) return;
     if (!messageContent.trim() && attachments.length === 0) {
       toast.error("Escribe un mensaje");
       return;
     }
-
     if (!isBusinessHours()) {
       toast.error("Solo entre 10:00 y 20:00");
       return;
     }
 
-    const messageData = {
+    sendMessageMutation.mutate({
       remitente_email: user.email,
       remitente_nombre: user.full_name,
       mensaje: messageContent || "(Archivo adjunto)",
@@ -225,17 +184,7 @@ export default function ParentChat() {
       grupo_id: selectedTab,
       leido: false,
       archivos_adjuntos: attachments
-    };
-
-    sendMessageMutation.mutate(messageData);
-  };
-
-  const handleFileUploaded = (attachment) => {
-    setAttachments(prev => [...prev, attachment]);
-  };
-
-  const handleRemoveAttachment = (index) => {
-    setAttachments(prev => prev.filter((_, i) => i !== index));
+    });
   };
 
   const sportEmojis = {
@@ -251,12 +200,6 @@ export default function ParentChat() {
     "Baloncesto (Mixto)": "🏀"
   };
 
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [currentGroup?.messages]);
-
-
-
   if (loadingMessages || loadingPlayers || !user) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-slate-50">
@@ -268,7 +211,7 @@ export default function ParentChat() {
     );
   }
 
-  if (myGroups.length === 0) {
+  if (groups.length === 0) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-slate-50 p-6">
         <div className="text-center bg-white rounded-2xl shadow-lg p-8 max-w-md">
@@ -282,18 +225,16 @@ export default function ParentChat() {
 
   return (
     <div className="p-4 lg:p-6 min-h-screen bg-slate-50">
-      {/* Mobile: Show list or chat */}
       {isMobile ? (
         <>
           {!selectedTab ? (
-            // Mobile chat list
             <div>
               <div className="mb-4">
                 <h2 className="text-2xl font-bold text-slate-900">Chats</h2>
-                <p className="text-sm text-slate-600">{myGroups.length} grupos disponibles</p>
+                <p className="text-sm text-slate-600">{groups.length} grupos disponibles</p>
               </div>
               <div className="space-y-2">
-                {myGroups.map(group => (
+                {groups.map(group => (
                   <button
                     key={group.id}
                     onClick={() => setSelectedTab(group.id)}
@@ -319,145 +260,141 @@ export default function ParentChat() {
                 ))}
               </div>
             </div>
-          ) : (
-            // Mobile chat view
-            currentGroup && (
-              <div className="fixed inset-0 bg-white z-50 flex flex-col" style={{ top: '120px' }}>
-                <div className="bg-gradient-to-r from-orange-600 to-orange-700 p-4 text-white flex items-center gap-3 shadow-md flex-shrink-0">
-                  <button
-                    onClick={() => setSelectedTab(null)}
-                    className="p-2 hover:bg-white/20 rounded-lg transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center"
-                  >
-                    <ArrowLeft className="w-6 h-6" />
-                  </button>
-                  <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
-                    <span className="text-xl">{sportEmojis[currentGroup.deporte]}</span>
-                  </div>
-                  <div className="flex-1">
-                    <h2 className="font-bold text-base">{currentGroup.deporte}</h2>
-                    <p className="text-xs text-orange-100">Chat del grupo</p>
-                  </div>
-                </div>
-
-                <div 
-                  className="flex-1 overflow-y-auto p-4 space-y-2"
-                  style={{
-                    backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23d4c5b9' fill-opacity='0.1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
-                    backgroundColor: '#e5ddd5'
-                  }}
+          ) : currentGroup && (
+            <div className="fixed inset-0 bg-white z-50 flex flex-col" style={{ top: '120px' }}>
+              <div className="bg-gradient-to-r from-orange-600 to-orange-700 p-4 text-white flex items-center gap-3 shadow-md flex-shrink-0">
+                <button
+                  onClick={() => setSelectedTab(null)}
+                  className="p-2 hover:bg-white/20 rounded-lg transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center"
                 >
-                  {currentGroup.messages.length === 0 ? (
-                    <div className="flex items-center justify-center h-full">
-                      <div className="text-center text-slate-500">
-                        <AlertCircle className="w-12 h-12 mx-auto mb-2 opacity-50" />
-                        <p className="text-sm">No hay mensajes</p>
-                      </div>
+                  <ArrowLeft className="w-6 h-6" />
+                </button>
+                <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
+                  <span className="text-xl">{sportEmojis[currentGroup.deporte]}</span>
+                </div>
+                <div className="flex-1">
+                  <h2 className="font-bold text-base">{currentGroup.deporte}</h2>
+                  <p className="text-xs text-orange-100">Chat del grupo</p>
+                </div>
+              </div>
+
+              <div 
+                className="flex-1 overflow-y-auto p-4 space-y-2"
+                style={{
+                  backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23d4c5b9' fill-opacity='0.1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
+                  backgroundColor: '#e5ddd5'
+                }}
+              >
+                {currentGroup.messages.length === 0 ? (
+                  <div className="flex items-center justify-center h-full">
+                    <div className="text-center text-slate-500">
+                      <AlertCircle className="w-12 h-12 mx-auto mb-2 opacity-50" />
+                      <p className="text-sm">No hay mensajes</p>
                     </div>
-                  ) : (
-                    currentGroup.messages
-                      .sort((a, b) => new Date(a.created_date) - new Date(b.created_date))
-                      .map((msg) => (
+                  </div>
+                ) : (
+                  currentGroup.messages
+                    .sort((a, b) => new Date(a.created_date) - new Date(b.created_date))
+                    .map((msg) => (
+                      <div
+                        key={msg.id}
+                        className={`flex ${msg.tipo === "padre_a_grupo" ? 'justify-end' : 'justify-start'} mb-1`}
+                      >
                         <div
-                          key={msg.id}
-                          className={`flex ${msg.tipo === "padre_a_grupo" ? 'justify-end' : 'justify-start'} mb-1`}
+                          className={`max-w-[75%] rounded-lg shadow-sm ${
+                            msg.tipo === "padre_a_grupo"
+                              ? 'bg-gradient-to-r from-green-600 to-green-700 text-white rounded-br-none'
+                              : msg.tipo === "coordinador_a_familia"
+                              ? 'bg-gradient-to-r from-cyan-600 to-cyan-700 text-white rounded-bl-none'
+                              : 'bg-white text-slate-900 rounded-bl-none'
+                          }`}
                         >
-                          <div
-                            className={`max-w-[75%] rounded-lg shadow-sm ${
-                              msg.tipo === "padre_a_grupo"
-                                ? 'bg-gradient-to-r from-green-600 to-green-700 text-white rounded-br-none'
-                                : msg.tipo === "coordinador_a_familia"
-                                ? 'bg-gradient-to-r from-cyan-600 to-cyan-700 text-white rounded-bl-none'
-                                : 'bg-white text-slate-900 rounded-bl-none'
-                            }`}
-                          >
-                            <div className="px-3 py-2">
-                              <div className="flex items-center gap-2 mb-1">
-                                <span className={`text-xs font-semibold ${
-                                  msg.tipo === "padre_a_grupo" ? 'text-green-100' 
-                                  : msg.tipo === "coordinador_a_familia" ? 'text-cyan-100'
-                                  : 'text-orange-700'
-                                }`}>
-                                  {msg.tipo === "coordinador_a_familia" ? "🎓 " : ""}{msg.remitente_nombre}
-                                </span>
-                                {msg.prioridad !== "Normal" && (
-                                  <span className="text-xs">{msg.prioridad === "Urgente" ? "🔴" : "⚠️"}</span>
-                                )}
-                              </div>
-                              <p className="text-sm leading-relaxed break-words">{msg.mensaje}</p>
-                              
-                              {msg.archivos_adjuntos?.length > 0 && (
-                                <div className="mt-2">
-                                  <MessageAttachments attachments={msg.archivos_adjuntos} />
-                                </div>
+                          <div className="px-3 py-2">
+                            <div className="flex items-center gap-2 mb-1">
+                              <span className={`text-xs font-semibold ${
+                                msg.tipo === "padre_a_grupo" ? 'text-green-100' 
+                                : msg.tipo === "coordinador_a_familia" ? 'text-cyan-100'
+                                : 'text-orange-700'
+                              }`}>
+                                {msg.tipo === "coordinador_a_familia" ? "🎓 " : ""}{msg.remitente_nombre}
+                              </span>
+                              {msg.prioridad !== "Normal" && (
+                                <span className="text-xs">{msg.prioridad === "Urgente" ? "🔴" : "⚠️"}</span>
                               )}
-                              
-                              <div className="flex items-center justify-end gap-1 mt-1">
-                                <span className={`text-[10px] ${
-                                  msg.tipo === "padre_a_grupo" ? 'text-green-100' 
-                                  : msg.tipo === "coordinador_a_familia" ? 'text-cyan-100'
-                                  : 'text-slate-500'
-                                }`}>
-                                  {format(new Date(msg.created_date), "HH:mm")}
-                                </span>
+                            </div>
+                            <p className="text-sm leading-relaxed break-words">{msg.mensaje}</p>
+                            
+                            {msg.archivos_adjuntos?.length > 0 && (
+                              <div className="mt-2">
+                                <MessageAttachments attachments={msg.archivos_adjuntos} />
                               </div>
+                            )}
+                            
+                            <div className="flex items-center justify-end gap-1 mt-1">
+                              <span className={`text-[10px] ${
+                                msg.tipo === "padre_a_grupo" ? 'text-green-100' 
+                                : msg.tipo === "coordinador_a_familia" ? 'text-cyan-100'
+                                : 'text-slate-500'
+                              }`}>
+                                {format(new Date(msg.created_date), "HH:mm")}
+                              </span>
                             </div>
                           </div>
                         </div>
-                      ))
-                  )}
-                  <div ref={messagesEndRef} />
-                </div>
+                      </div>
+                    ))
+                )}
+                <div ref={messagesEndRef} />
+              </div>
 
-                <div className="bg-white border-t p-3 flex-shrink-0">
-                  {attachments.length > 0 && (
-                    <div className="mb-2 flex flex-wrap gap-2">
-                      {attachments.map((att, index) => (
-                        <div key={index} className="bg-slate-100 rounded-lg px-3 py-1.5 text-sm flex items-center gap-2">
-                          <span className="text-xs truncate max-w-[150px]">{att.nombre}</span>
-                          <button onClick={() => handleRemoveAttachment(index)} className="text-slate-500 hover:text-red-600">
-                            <X className="w-3 h-3" />
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-
-                  <div className="flex gap-2 items-end">
-                    <Input
-                      value={messageContent}
-                      onChange={(e) => setMessageContent(e.target.value)}
-                      placeholder={isBusinessHours() ? "Escribe un mensaje..." : "Horario: 10:00 - 20:00"}
-                      className="flex-1 rounded-full"
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter' && !e.shiftKey) {
-                          e.preventDefault();
-                          handleSendMessage();
-                        }
-                      }}
-                      disabled={!isBusinessHours()}
-                    />
-                    
-                    <Button
-                      onClick={handleSendMessage}
-                      disabled={!messageContent.trim() || sendMessageMutation.isPending || !isBusinessHours()}
-                      className="bg-gradient-to-r from-orange-600 to-orange-700 hover:from-orange-700 hover:to-orange-800 rounded-full w-10 h-10 p-0 flex items-center justify-center shadow-lg"
-                    >
-                      <Send className="w-4 h-4" />
-                    </Button>
+              <div className="bg-white border-t p-3 flex-shrink-0">
+                {attachments.length > 0 && (
+                  <div className="mb-2 flex flex-wrap gap-2">
+                    {attachments.map((att, index) => (
+                      <div key={index} className="bg-slate-100 rounded-lg px-3 py-1.5 text-sm flex items-center gap-2">
+                        <span className="text-xs truncate max-w-[150px]">{att.nombre}</span>
+                        <button onClick={() => setAttachments(prev => prev.filter((_, i) => i !== index))} className="text-slate-500 hover:text-red-600">
+                          <X className="w-3 h-3" />
+                        </button>
+                      </div>
+                    ))}
                   </div>
+                )}
+
+                <div className="flex gap-2 items-end">
+                  <Input
+                    value={messageContent}
+                    onChange={(e) => setMessageContent(e.target.value)}
+                    placeholder={isBusinessHours() ? "Escribe un mensaje..." : "Horario: 10:00 - 20:00"}
+                    className="flex-1 rounded-full"
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault();
+                        handleSendMessage();
+                      }
+                    }}
+                    disabled={!isBusinessHours()}
+                  />
+                  
+                  <Button
+                    onClick={handleSendMessage}
+                    disabled={!messageContent.trim() || sendMessageMutation.isPending || !isBusinessHours()}
+                    className="bg-gradient-to-r from-orange-600 to-orange-700 hover:from-orange-700 hover:to-orange-800 rounded-full w-10 h-10 p-0 flex items-center justify-center shadow-lg"
+                  >
+                    <Send className="w-4 h-4" />
+                  </Button>
                 </div>
               </div>
-            )
+            </div>
           )}
         </>
       ) : (
-        // Desktop view
         <div className="flex gap-4">
           <div className="flex-1">
-            {myGroups.length > 1 && (
+            {groups.length > 1 && (
               <div className="bg-white border-b overflow-x-auto flex-shrink-0 rounded-t-xl mb-4">
                 <div className="flex">
-                  {myGroups.map(group => (
+                  {groups.map(group => (
                     <button
                       key={group.id}
                       onClick={() => setSelectedTab(group.id)}
@@ -573,7 +510,7 @@ export default function ParentChat() {
                       {attachments.map((att, index) => (
                         <div key={index} className="bg-slate-100 rounded-lg px-3 py-1.5 text-sm flex items-center gap-2">
                           <span className="text-xs truncate max-w-[150px]">{att.nombre}</span>
-                          <button onClick={() => handleRemoveAttachment(index)} className="text-slate-500 hover:text-red-600">
+                          <button onClick={() => setAttachments(prev => prev.filter((_, i) => i !== index))} className="text-slate-500 hover:text-red-600">
                             <X className="w-3 h-3" />
                           </button>
                         </div>
@@ -607,7 +544,7 @@ export default function ParentChat() {
                 </div>
               </div>
             ) : (
-              <div className="flex items-center justify-center h-96">
+              <div className="flex items-center justify-center h-96 bg-white rounded-xl shadow-md">
                 <div className="text-center text-slate-500">
                   <AlertCircle className="w-12 h-12 mx-auto mb-2 opacity-50" />
                   <p className="text-sm">Selecciona un chat</p>
