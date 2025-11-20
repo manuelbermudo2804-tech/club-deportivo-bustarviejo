@@ -208,9 +208,10 @@ export default function ParentDashboard() {
     return pendingCount;
   };
 
-  const isDataLoading = loadingPlayers || loadingPayments || loadingSeasons;
-  const pendingPayments = isDataLoading ? 0 : calculatePendingPayments();
-  const hasUnregisteredPayments = !isDataLoading && myPlayers.length > 0 && myPayments.length === 0;
+  const pendingPayments = myPayments.filter(p => 
+    myPlayers.some(player => player.id === p.jugador_id) &&
+    (p.estado === "Pendiente" || p.estado === "En revisión")
+  ).length;
 
   const buildMenuItems = () => {
     const items = [
@@ -532,44 +533,7 @@ export default function ParentDashboard() {
           </Link>
         )}
 
-        {hasUnregisteredPayments && (
-          <Link to={createPageUrl("ParentPayments")}>
-            <div className="bg-orange-500/20 border-2 border-orange-500 rounded-2xl p-4 flex items-start gap-3 hover:bg-orange-500/30 transition-all cursor-pointer">
-              <AlertCircle className="w-5 h-5 text-orange-500 flex-shrink-0 mt-0.5" />
-              <div className="flex-1">
-                <p className="text-white font-semibold text-sm">
-                  💰 Recuerda registrar los pagos de tus jugadores
-                </p>
-                <p className="text-orange-100 text-xs mt-1">
-                  Pulsa aquí para ir a la sección "Pagos" y registrar las cuotas de la temporada
-                </p>
-              </div>
-            </div>
-          </Link>
-        )}
-        
-        {!isDataLoading && pendingPayments > 0 && (
-          <Link to={createPageUrl("ParentPayments")}>
-            <div className="bg-gradient-to-r from-red-600 to-red-700 rounded-2xl p-4 shadow-xl transition-all hover:scale-105 active:scale-95 border-2 border-red-500 animate-pulse">
-              <div className="flex items-start gap-3">
-                <CreditCard className="w-6 h-6 text-white flex-shrink-0 mt-0.5" />
-                <div className="flex-1">
-                  <p className="text-white font-bold text-base lg:text-lg">
-                    💳 ¡Pagos Pendientes de Completar!
-                  </p>
-                  <p className="text-red-100 text-xs lg:text-sm mt-1">
-                    {pendingPayments === 1 
-                      ? "Tienes 1 pago registrado pendiente de justificante" 
-                      : `Tienes ${pendingPayments} pagos registrados pendientes`}
-                  </p>
-                  <p className="text-white text-xs mt-2 font-semibold">
-                    👉 Pulsa aquí para subir justificante o completar
-                  </p>
-                </div>
-              </div>
-            </div>
-          </Link>
-        )}
+
 
         <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6">
           {menuItems.map((item, index) => (
