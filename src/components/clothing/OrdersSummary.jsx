@@ -16,6 +16,9 @@ export default function OrdersSummary({ orders }) {
     const shirts = {};
     const pants = {};
     const sweatshirts = {};
+    const chubasqueros = {};
+    const anoraks = {};
+    const mochilas = 0;
     
     orders.forEach(order => {
       if (order.estado === "Entregado") return;
@@ -35,31 +38,70 @@ export default function OrdersSummary({ orders }) {
           sweatshirts[order.pack_sudadera_talla] = (sweatshirts[order.pack_sudadera_talla] || 0) + 1;
         }
       }
+      
+      if (order.camiseta_individual && order.camiseta_individual_talla) {
+        shirts[order.camiseta_individual_talla] = (shirts[order.camiseta_individual_talla] || 0) + 1;
+      }
+      if (order.pantalon_individual && order.pantalon_individual_talla) {
+        pants[order.pantalon_individual_talla] = (pants[order.pantalon_individual_talla] || 0) + 1;
+      }
+      if (order.sudadera_individual && order.sudadera_individual_talla) {
+        sweatshirts[order.sudadera_individual_talla] = (sweatshirts[order.sudadera_individual_talla] || 0) + 1;
+      }
+      if (order.chubasquero && order.chubasquero_talla) {
+        chubasqueros[order.chubasquero_talla] = (chubasqueros[order.chubasquero_talla] || 0) + 1;
+      }
+      if (order.anorak && order.anorak_talla) {
+        anoraks[order.anorak_talla] = (anoraks[order.anorak_talla] || 0) + 1;
+      }
     });
     
     let htmlContent = `
+      <!DOCTYPE html>
       <html>
         <head>
           <meta charset="utf-8">
           <title>Resumen de Pedidos</title>
           <style>
-            body { font-family: Arial, sans-serif; padding: 20px; }
-            h1 { color: #22c55e; }
-            h2 { color: #333; margin-top: 20px; }
-            table { width: 100%; border-collapse: collapse; margin: 10px 0; }
-            th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
-            th { background-color: #22c55e; color: white; }
-            .total { font-weight: bold; background-color: #f0fdf4; }
+            @media print {
+              body { margin: 0; }
+              @page { margin: 1cm; }
+            }
+            body { font-family: Arial, sans-serif; padding: 20px; max-width: 800px; }
+            h1 { color: #22c55e; font-size: 24px; border-bottom: 3px solid #22c55e; padding-bottom: 10px; }
+            h2 { color: #333; margin-top: 30px; font-size: 18px; background: #f0fdf4; padding: 8px; }
+            table { width: 100%; border-collapse: collapse; margin: 10px 0 20px 0; }
+            th, td { border: 1px solid #ddd; padding: 10px; text-align: left; }
+            th { background-color: #22c55e; color: white; font-weight: bold; }
+            tr:nth-child(even) { background-color: #f9f9f9; }
+            .total { font-weight: bold; background-color: #f0fdf4 !important; font-size: 16px; }
+            .header { text-align: center; margin-bottom: 20px; }
+            .date { color: #666; font-size: 14px; }
+            .print-button { 
+              background: #22c55e; 
+              color: white; 
+              border: none; 
+              padding: 10px 20px; 
+              cursor: pointer; 
+              font-size: 16px;
+              border-radius: 5px;
+              margin-bottom: 20px;
+            }
+            .print-button:hover { background: #16a34a; }
+            @media print { .print-button { display: none; } }
           </style>
         </head>
         <body>
-          <h1>RESUMEN DE PEDIDOS - CD BUSTARVIEJO</h1>
-          <p>Fecha: ${new Date().toLocaleDateString('es-ES')}</p>
+          <button class="print-button" onclick="window.print()">🖨️ Imprimir / Guardar como PDF</button>
+          <div class="header">
+            <h1>RESUMEN DE PEDIDOS - CD BUSTARVIEJO</h1>
+            <p class="date">Fecha: ${new Date().toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
+          </div>
     `;
     
     if (Object.keys(jackets).length > 0) {
       htmlContent += `
-        <h2>CHAQUETAS DE PARTIDOS</h2>
+        <h2>🧥 CHAQUETAS DE PARTIDOS</h2>
         <table>
           <thead><tr><th>Talla</th><th>Cantidad</th></tr></thead>
           <tbody>
@@ -72,7 +114,7 @@ export default function OrdersSummary({ orders }) {
     
     if (Object.keys(shirts).length > 0) {
       htmlContent += `
-        <h2>CAMISETAS ENTRENAMIENTO</h2>
+        <h2>👕 CAMISETAS ENTRENAMIENTO</h2>
         <table>
           <thead><tr><th>Talla</th><th>Cantidad</th></tr></thead>
           <tbody>
@@ -85,7 +127,7 @@ export default function OrdersSummary({ orders }) {
     
     if (Object.keys(pants).length > 0) {
       htmlContent += `
-        <h2>PANTALONES ENTRENAMIENTO</h2>
+        <h2>👖 PANTALONES ENTRENAMIENTO</h2>
         <table>
           <thead><tr><th>Talla</th><th>Cantidad</th></tr></thead>
           <tbody>
@@ -98,7 +140,7 @@ export default function OrdersSummary({ orders }) {
     
     if (Object.keys(sweatshirts).length > 0) {
       htmlContent += `
-        <h2>SUDADERAS ENTRENAMIENTO</h2>
+        <h2>🧥 SUDADERAS ENTRENAMIENTO</h2>
         <table>
           <thead><tr><th>Talla</th><th>Cantidad</th></tr></thead>
           <tbody>
@@ -109,36 +151,89 @@ export default function OrdersSummary({ orders }) {
       htmlContent += `<tr class="total"><td>TOTAL</td><td>${Object.values(sweatshirts).reduce((a, b) => a + b, 0)}</td></tr></tbody></table>`;
     }
     
-    htmlContent += '</body></html>';
+    if (Object.keys(chubasqueros).length > 0) {
+      htmlContent += `
+        <h2>🌧️ CHUBASQUEROS</h2>
+        <table>
+          <thead><tr><th>Talla</th><th>Cantidad</th></tr></thead>
+          <tbody>
+      `;
+      Object.entries(chubasqueros).sort().forEach(([talla, qty]) => {
+        htmlContent += `<tr><td>${talla}</td><td>${qty}</td></tr>`;
+      });
+      htmlContent += `<tr class="total"><td>TOTAL</td><td>${Object.values(chubasqueros).reduce((a, b) => a + b, 0)}</td></tr></tbody></table>`;
+    }
     
-    const blob = new Blob([htmlContent], { type: 'application/pdf' });
-    const link = document.createElement('a');
+    if (Object.keys(anoraks).length > 0) {
+      htmlContent += `
+        <h2>🧥 ANORAKS</h2>
+        <table>
+          <thead><tr><th>Talla</th><th>Cantidad</th></tr></thead>
+          <tbody>
+      `;
+      Object.entries(anoraks).sort().forEach(([talla, qty]) => {
+        htmlContent += `<tr><td>${talla}</td><td>${qty}</td></tr>`;
+      });
+      htmlContent += `<tr class="total"><td>TOTAL</td><td>${Object.values(anoraks).reduce((a, b) => a + b, 0)}</td></tr></tbody></table>`;
+    }
+    
+    htmlContent += `
+          <script>
+            // Auto-print on mobile devices
+            if (/Android|iPhone|iPad/i.test(navigator.userAgent)) {
+              setTimeout(() => window.print(), 500);
+            }
+          </script>
+        </body>
+      </html>
+    `;
+    
+    const blob = new Blob([htmlContent], { type: 'text/html;charset=utf-8' });
     const url = URL.createObjectURL(blob);
-    link.setAttribute('href', url);
-    link.setAttribute('download', `resumen_pedidos_${new Date().toISOString().split('T')[0]}.pdf`);
-    link.style.visibility = 'hidden';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    window.open(url, '_blank');
+    setTimeout(() => URL.revokeObjectURL(url), 100);
   };
 
   const generateDetailedPDF = () => {
     let htmlContent = `
+      <!DOCTYPE html>
       <html>
         <head>
           <meta charset="utf-8">
           <title>Detalle de Pedidos</title>
           <style>
-            body { font-family: Arial, sans-serif; padding: 20px; }
-            h1 { color: #22c55e; font-size: 18px; }
-            table { width: 100%; border-collapse: collapse; margin: 10px 0; font-size: 10px; }
-            th, td { border: 1px solid #ddd; padding: 6px; text-align: left; }
-            th { background-color: #22c55e; color: white; }
+            @media print {
+              body { margin: 0; }
+              @page { margin: 1cm; size: landscape; }
+            }
+            body { font-family: Arial, sans-serif; padding: 15px; }
+            h1 { color: #22c55e; font-size: 20px; text-align: center; margin-bottom: 10px; }
+            .date { text-align: center; color: #666; margin-bottom: 20px; }
+            table { width: 100%; border-collapse: collapse; font-size: 11px; }
+            th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+            th { background-color: #22c55e; color: white; font-weight: bold; }
+            tr:nth-child(even) { background-color: #f9f9f9; }
+            .print-button { 
+              background: #22c55e; 
+              color: white; 
+              border: none; 
+              padding: 10px 20px; 
+              cursor: pointer; 
+              font-size: 16px;
+              border-radius: 5px;
+              margin-bottom: 15px;
+              display: block;
+              margin-left: auto;
+              margin-right: auto;
+            }
+            .print-button:hover { background: #16a34a; }
+            @media print { .print-button { display: none; } }
           </style>
         </head>
         <body>
+          <button class="print-button" onclick="window.print()">🖨️ Imprimir / Guardar como PDF</button>
           <h1>DETALLE DE PEDIDOS POR FAMILIA - CD BUSTARVIEJO</h1>
-          <p>Fecha: ${new Date().toLocaleDateString('es-ES')}</p>
+          <p class="date">Fecha: ${new Date().toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
           <table>
             <thead>
               <tr>
@@ -147,11 +242,14 @@ export default function OrdersSummary({ orders }) {
                 <th>Email</th>
                 <th>Teléfono</th>
                 <th>Chaqueta</th>
-                <th>Talla Chaq.</th>
+                <th>Talla</th>
                 <th>Pack</th>
                 <th>Cam.</th>
                 <th>Pant.</th>
                 <th>Sud.</th>
+                <th>Chub.</th>
+                <th>Anorak</th>
+                <th>Mochila</th>
                 <th>Total</th>
                 <th>Estado</th>
               </tr>
@@ -167,30 +265,38 @@ export default function OrdersSummary({ orders }) {
             <td>${order.jugador_nombre}</td>
             <td>${order.jugador_categoria}</td>
             <td>${order.email_padre}</td>
-            <td>${order.telefono}</td>
-            <td>${order.chaqueta_partidos ? "SÍ" : "NO"}</td>
+            <td>${order.telefono || '-'}</td>
+            <td>${order.chaqueta_partidos ? "✓" : ""}</td>
             <td>${order.chaqueta_talla || "-"}</td>
-            <td>${order.pack_entrenamiento ? "SÍ" : "NO"}</td>
+            <td>${order.pack_entrenamiento ? "✓" : ""}</td>
             <td>${order.pack_camiseta_talla || "-"}</td>
             <td>${order.pack_pantalon_talla || "-"}</td>
             <td>${order.pack_sudadera_talla || "-"}</td>
+            <td>${order.chubasquero ? order.chubasquero_talla : "-"}</td>
+            <td>${order.anorak ? order.anorak_talla : "-"}</td>
+            <td>${order.mochila ? "✓" : ""}</td>
             <td>${order.precio_total}€</td>
             <td>${order.estado}</td>
           </tr>
         `;
       });
     
-    htmlContent += '</tbody></table></body></html>';
+    htmlContent += `
+            </tbody>
+          </table>
+          <script>
+            if (/Android|iPhone|iPad/i.test(navigator.userAgent)) {
+              setTimeout(() => window.print(), 500);
+            }
+          </script>
+        </body>
+      </html>
+    `;
     
-    const blob = new Blob([htmlContent], { type: 'application/pdf' });
-    const link = document.createElement('a');
+    const blob = new Blob([htmlContent], { type: 'text/html;charset=utf-8' });
     const url = URL.createObjectURL(blob);
-    link.setAttribute('href', url);
-    link.setAttribute('download', `pedidos_detallados_${new Date().toISOString().split('T')[0]}.pdf`);
-    link.style.visibility = 'hidden';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    window.open(url, '_blank');
+    setTimeout(() => URL.revokeObjectURL(url), 100);
   };
 
   const generateSummaryCSV = () => {
@@ -198,6 +304,9 @@ export default function OrdersSummary({ orders }) {
     const shirts = {};
     const pants = {};
     const sweatshirts = {};
+    const chubasqueros = {};
+    const anoraks = {};
+    let mochilas = 0;
     
     orders.forEach(order => {
       if (order.estado === "Entregado") return;
@@ -217,92 +326,128 @@ export default function OrdersSummary({ orders }) {
           sweatshirts[order.pack_sudadera_talla] = (sweatshirts[order.pack_sudadera_talla] || 0) + 1;
         }
       }
+      
+      if (order.camiseta_individual && order.camiseta_individual_talla) {
+        shirts[order.camiseta_individual_talla] = (shirts[order.camiseta_individual_talla] || 0) + 1;
+      }
+      if (order.pantalon_individual && order.pantalon_individual_talla) {
+        pants[order.pantalon_individual_talla] = (pants[order.pantalon_individual_talla] || 0) + 1;
+      }
+      if (order.sudadera_individual && order.sudadera_individual_talla) {
+        sweatshirts[order.sudadera_individual_talla] = (sweatshirts[order.sudadera_individual_talla] || 0) + 1;
+      }
+      if (order.chubasquero && order.chubasquero_talla) {
+        chubasqueros[order.chubasquero_talla] = (chubasqueros[order.chubasquero_talla] || 0) + 1;
+      }
+      if (order.anorak && order.anorak_talla) {
+        anoraks[order.anorak_talla] = (anoraks[order.anorak_talla] || 0) + 1;
+      }
+      if (order.mochila) {
+        mochilas++;
+      }
     });
     
-    const csvLines = [
-      "RESUMEN DE PEDIDOS - CD BUSTARVIEJO",
-      "",
-      "CHAQUETAS DE PARTIDOS",
-      "Talla,Cantidad"
+    const rows = [
+      ["RESUMEN DE PEDIDOS - CD BUSTARVIEJO"],
+      [""],
+      ["CHAQUETAS DE PARTIDOS"],
+      ["Talla", "Cantidad"]
     ];
     
     Object.entries(jackets).sort().forEach(([talla, qty]) => {
-      csvLines.push(`${talla},${qty}`);
+      rows.push([talla, qty]);
     });
-    csvLines.push(`TOTAL CHAQUETAS,${Object.values(jackets).reduce((a, b) => a + b, 0)}`);
+    rows.push(["TOTAL CHAQUETAS", Object.values(jackets).reduce((a, b) => a + b, 0)]);
     
-    csvLines.push("");
-    csvLines.push("CAMISETAS ENTRENAMIENTO");
-    csvLines.push("Talla,Cantidad");
+    rows.push([""], ["CAMISETAS ENTRENAMIENTO"], ["Talla", "Cantidad"]);
     Object.entries(shirts).sort().forEach(([talla, qty]) => {
-      csvLines.push(`${talla},${qty}`);
+      rows.push([talla, qty]);
     });
-    csvLines.push(`TOTAL CAMISETAS,${Object.values(shirts).reduce((a, b) => a + b, 0)}`);
+    rows.push(["TOTAL CAMISETAS", Object.values(shirts).reduce((a, b) => a + b, 0)]);
     
-    csvLines.push("");
-    csvLines.push("PANTALONES ENTRENAMIENTO");
-    csvLines.push("Talla,Cantidad");
+    rows.push([""], ["PANTALONES ENTRENAMIENTO"], ["Talla", "Cantidad"]);
     Object.entries(pants).sort().forEach(([talla, qty]) => {
-      csvLines.push(`${talla},${qty}`);
+      rows.push([talla, qty]);
     });
-    csvLines.push(`TOTAL PANTALONES,${Object.values(pants).reduce((a, b) => a + b, 0)}`);
+    rows.push(["TOTAL PANTALONES", Object.values(pants).reduce((a, b) => a + b, 0)]);
     
-    csvLines.push("");
-    csvLines.push("SUDADERAS ENTRENAMIENTO");
-    csvLines.push("Talla,Cantidad");
+    rows.push([""], ["SUDADERAS ENTRENAMIENTO"], ["Talla", "Cantidad"]);
     Object.entries(sweatshirts).sort().forEach(([talla, qty]) => {
-      csvLines.push(`${talla},${qty}`);
+      rows.push([talla, qty]);
     });
-    csvLines.push(`TOTAL SUDADERAS,${Object.values(sweatshirts).reduce((a, b) => a + b, 0)}`);
+    rows.push(["TOTAL SUDADERAS", Object.values(sweatshirts).reduce((a, b) => a + b, 0)]);
     
-    const csv = csvLines.join('\n');
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    if (Object.keys(chubasqueros).length > 0) {
+      rows.push([""], ["CHUBASQUEROS"], ["Talla", "Cantidad"]);
+      Object.entries(chubasqueros).sort().forEach(([talla, qty]) => {
+        rows.push([talla, qty]);
+      });
+      rows.push(["TOTAL CHUBASQUEROS", Object.values(chubasqueros).reduce((a, b) => a + b, 0)]);
+    }
+    
+    if (Object.keys(anoraks).length > 0) {
+      rows.push([""], ["ANORAKS"], ["Talla", "Cantidad"]);
+      Object.entries(anoraks).sort().forEach(([talla, qty]) => {
+        rows.push([talla, qty]);
+      });
+      rows.push(["TOTAL ANORAKS", Object.values(anoraks).reduce((a, b) => a + b, 0)]);
+    }
+    
+    if (mochilas > 0) {
+      rows.push([""], ["MOCHILAS"], ["", "Cantidad"], ["Mochilas con botero", mochilas]);
+    }
+    
+    const csvContent = '\ufeff' + rows.map(row => 
+      row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(',')
+    ).join('\r\n');
+    
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
-    const url = URL.createObjectURL(blob);
-    link.setAttribute('href', url);
-    link.setAttribute('download', `resumen_pedidos_${new Date().toISOString().split('T')[0]}.csv`);
-    link.style.visibility = 'hidden';
-    document.body.appendChild(link);
+    link.href = URL.createObjectURL(blob);
+    link.download = `resumen_pedidos_${new Date().toISOString().split('T')[0]}.csv`;
     link.click();
-    document.body.removeChild(link);
+    URL.revokeObjectURL(link.href);
   };
 
   const generateDetailedCSV = () => {
-    const csvLines = [
-      "DETALLE DE PEDIDOS POR FAMILIA - CD BUSTARVIEJO",
-      "",
-      "Jugador,Categoría,Email,Teléfono,Chaqueta,Talla Chaqueta,Pack,Camiseta,Pantalón,Sudadera,Total,Estado"
+    const rows = [
+      ["DETALLE DE PEDIDOS POR FAMILIA - CD BUSTARVIEJO"],
+      [""],
+      ["Jugador", "Categoría", "Email", "Teléfono", "Chaqueta", "Talla Chaq", "Pack", "Cam", "Pant", "Sud", "Chub", "Anorak", "Mochila", "Total", "Estado"]
     ];
     
     orders
       .filter(order => order.estado !== "Entregado")
       .forEach(order => {
-        csvLines.push([
+        rows.push([
           order.jugador_nombre,
           order.jugador_categoria,
           order.email_padre,
-          order.telefono,
-          order.chaqueta_partidos ? "SÍ" : "NO",
-          order.chaqueta_talla || "-",
-          order.pack_entrenamiento ? "SÍ" : "NO",
-          order.pack_camiseta_talla || "-",
-          order.pack_pantalon_talla || "-",
-          order.pack_sudadera_talla || "-",
-          order.precio_total + "€",
+          order.telefono || "",
+          order.chaqueta_partidos ? "SÍ" : "",
+          order.chaqueta_talla || "",
+          order.pack_entrenamiento ? "SÍ" : "",
+          order.pack_camiseta_talla || "",
+          order.pack_pantalon_talla || "",
+          order.pack_sudadera_talla || "",
+          order.chubasquero ? order.chubasquero_talla : "",
+          order.anorak ? order.anorak_talla : "",
+          order.mochila ? "SÍ" : "",
+          order.precio_total,
           order.estado
-        ].join(','));
+        ]);
       });
     
-    const csv = csvLines.join('\n');
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const csvContent = '\ufeff' + rows.map(row => 
+      row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(',')
+    ).join('\r\n');
+    
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
-    const url = URL.createObjectURL(blob);
-    link.setAttribute('href', url);
-    link.setAttribute('download', `pedidos_detallados_${new Date().toISOString().split('T')[0]}.csv`);
-    link.style.visibility = 'hidden';
-    document.body.appendChild(link);
+    link.href = URL.createObjectURL(blob);
+    link.download = `pedidos_detallados_${new Date().toISOString().split('T')[0]}.csv`;
     link.click();
-    document.body.removeChild(link);
+    URL.revokeObjectURL(link.href);
   };
 
   const jackets = {};
