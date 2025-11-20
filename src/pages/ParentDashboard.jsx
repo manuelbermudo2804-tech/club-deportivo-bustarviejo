@@ -151,7 +151,7 @@ export default function ParentDashboard() {
     });
   }
 
-  const urgentAnnouncements = announcements && myPlayersSports ? announcements.filter(a => {
+  const urgentAnnouncements = announcements && myPlayersSports.length > 0 ? announcements.filter(a => {
     if (!a.publicado || a.prioridad !== "Urgente") return false;
     if (a.created_by === user?.email) return false;
     const now = new Date();
@@ -160,9 +160,9 @@ export default function ParentDashboard() {
     if (diffHours >= 24) return false;
     if (a.destinatarios_tipo === "Todos") return true;
     return myPlayersSports.includes(a.destinatarios_tipo);
-  });
+  }) : [];
 
-  const importantAnnouncements = announcements && myPlayersSports ? announcements.filter(a => {
+  const importantAnnouncements = announcements && myPlayersSports.length > 0 ? announcements.filter(a => {
     if (!a.publicado || a.prioridad !== "Importante") return false;
     if (a.created_by === user?.email) return false;
     const now = new Date();
