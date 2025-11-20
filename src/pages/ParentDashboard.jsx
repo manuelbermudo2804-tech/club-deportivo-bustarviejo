@@ -264,6 +264,12 @@ export default function ParentDashboard() {
       icon: ShoppingBag,
       url: createPageUrl("ClothingOrders"),
       gradient: "from-red-600 to-red-700",
+    },
+    {
+      title: "📋 Encuestas",
+      icon: FileText,
+      url: createPageUrl("Surveys"),
+      gradient: "from-purple-600 to-purple-700",
     }
   ];
 
