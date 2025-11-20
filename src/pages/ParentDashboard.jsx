@@ -3,7 +3,7 @@ import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
 import { Link, useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { Users, Calendar, Bell, MessageCircle, CreditCard, Image, Megaphone, Clock, ShoppingBag, FileText, Award, AlertCircle } from "lucide-react";
+import { Users, Calendar, Bell, MessageCircle, CreditCard, Image, Megaphone, Clock, ShoppingBag, FileText, Award, AlertCircle, Clover } from "lucide-react";
 
 import SocialLinks from "../components/SocialLinks";
 import PushNotificationManager from "../components/push/PushNotificationManager";
@@ -149,6 +149,9 @@ export default function ParentDashboard() {
 
   const myClothingOrders = clothingOrders.filter(o => o.email_padre === user?.email);
   const pendingClothingOrders = myClothingOrders.filter(o => o.estado === "Pendiente" || o.estado === "En revisión");
+
+  const activeSeason = seasonConfigs.find(s => s.activa);
+  const loteriaVisible = activeSeason?.loteria_navidad_abierta === true;
 
   const calculatePendingPayments = () => {
     const activeSeason = seasonConfigs.find(s => s.activa);
@@ -334,6 +337,24 @@ export default function ParentDashboard() {
             </div>
           </div>
         </div>
+
+        {/* LOTERIA NAVIDAD */}
+        {loteriaVisible && (
+          <Link to={createPageUrl("ParentLottery")}>
+            <div className="bg-gradient-to-r from-green-600 to-green-700 rounded-2xl p-4 lg:p-5 shadow-xl transition-all hover:scale-105 active:scale-95 border-2 border-green-500">
+              <div className="flex items-center justify-center gap-3">
+                <div className="bg-white/20 backdrop-blur-sm rounded-xl p-2 lg:p-3">
+                  <Clover className="w-6 h-6 lg:w-8 lg:h-8 text-white" />
+                </div>
+                <div className="text-left flex-1">
+                  <p className="text-white font-bold text-base lg:text-xl">🍀 Lotería de Navidad</p>
+                  <p className="text-green-100 text-xs lg:text-sm">Compra décimos del club • Participa y apoya al equipo</p>
+                </div>
+                <div className="text-4xl">🎄</div>
+              </div>
+            </div>
+          </Link>
+        )}
 
         {/* ENCUESTAS */}
         {activeSurveys.length > 0 && (
