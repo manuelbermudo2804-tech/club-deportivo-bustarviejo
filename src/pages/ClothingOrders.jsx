@@ -2,13 +2,19 @@ import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
-import { Plus, ShoppingBag, AlertCircle } from "lucide-react";
+import { Plus, ShoppingBag, AlertCircle, MoreVertical, Check, Package, Truck, Users } from "lucide-react";
 import { AnimatePresence } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { toast } from "sonner";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 import ClothingOrderForm from "../components/clothing/ClothingOrderForm";
 import OrdersSummary from "../components/clothing/OrdersSummary";
@@ -91,7 +97,39 @@ export default function ClothingOrders() {
       queryClient.invalidateQueries({ queryKey: ['myClothingOrders'] });
       queryClient.invalidateQueries({ queryKey: ['allPlayersForClothing'] });
       setShowForm(false);
-      toast.success("Pedido registrado correctamente");
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      toast.success("✅ Pedido registrado correctamente");
+    },
+  });
+
+  const updateOrderStatusMutation = useMutation({
+    mutationFn: async ({ orderId, newStatus, notifyParent }) => {
+      const order = orders.find(o => o.id === orderId);
+      const updatedOrder = await base44.entities.ClothingOrder.update(orderId, {
+        ...order,
+        estado: newStatus
+      });
+      
+      if (notifyParent && order.email_padre) {
+        const statusMessages = {
+          "Confirmado": `✅ Pedido confirmado para ${order.jugador_nombre}. Su equipación está en proceso.`,
+          "Preparado": `📦 Pedido listo para ${order.jugador_nombre}. Puede recogerlo en las instalaciones del club.`,
+          "Entregado": `🎉 Pedido entregado para ${order.jugador_nombre}. ¡Gracias por su confianza!`
+        };
+        
+        await base44.integrations.Core.SendEmail({
+          from_name: "CD Bustarviejo",
+          to: order.email_padre,
+          subject: `Estado de Pedido - ${order.jugador_nombre}`,
+          body: statusMessages[newStatus] || `Estado actualizado a: ${newStatus}`
+        });
+      }
+      
+      return updatedOrder;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['myClothingOrders'] });
+      toast.success("Estado actualizado y notificación enviada");
     },
   });
 
@@ -282,11 +320,147 @@ export default function ClothingOrders() {
         <Tabs defaultValue="summary" className="w-full">
           <TabsList className="bg-white shadow-sm">
             <TabsTrigger value="summary">📊 Resumen Agrupado</TabsTrigger>
+            <TabsTrigger value="families">👨‍👩‍👧 Por Familia</TabsTrigger>
+            <TabsTrigger value="players">👤 Por Jugador</TabsTrigger>
             <TabsTrigger value="orders">📋 Todos los Pedidos</TabsTrigger>
           </TabsList>
 
           <TabsContent value="summary" className="mt-6">
             <OrdersSummary orders={orders} />
+          </TabsContent>
+
+          <TabsContent value="families" className="mt-6">
+            <Card className="border-none shadow-lg">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Users className="w-5 h-5 text-orange-600" />
+                  Pedidos por Familia
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {(() => {
+                  const ordersByFamily = {};
+                  orders.forEach(order => {
+                    if (!ordersByFamily[order.email_padre]) {
+                      ordersByFamily[order.email_padre] = [];
+                    }
+                    ordersByFamily[order.email_padre].push(order);
+                  });
+
+                  return (
+                    <div className="space-y-6">
+                      {Object.entries(ordersByFamily).map(([email, familyOrders]) => {
+                        const totalAmount = familyOrders.reduce((sum, o) => sum + (o.precio_total || 0), 0);
+                        return (
+                          <Card key={email} className="border-2 border-slate-200">
+                            <CardHeader className="bg-gradient-to-r from-orange-50 to-orange-100 border-b">
+                              <div className="flex justify-between items-start">
+                                <div>
+                                  <p className="text-sm text-slate-600 mb-1">📧 {email}</p>
+                                  <p className="text-lg font-bold text-slate-900">
+                                    {familyOrders.length} pedido{familyOrders.length > 1 ? 's' : ''} - Total: {totalAmount}€
+                                  </p>
+                                </div>
+                              </div>
+                            </CardHeader>
+                            <CardContent className="pt-4 space-y-4">
+                              {familyOrders.map(order => (
+                                <div key={order.id} className="p-4 rounded-lg bg-slate-50 border border-slate-200">
+                                  <div className="flex justify-between items-start mb-3">
+                                    <div>
+                                      <h4 className="font-bold text-slate-900">{order.jugador_nombre}</h4>
+                                      <p className="text-sm text-slate-600">{order.jugador_categoria}</p>
+                                    </div>
+                                    <div className="flex gap-2">
+                                      <Badge className={statusColors[order.estado]}>
+                                        {statusEmojis[order.estado]} {order.estado}
+                                      </Badge>
+                                      <DropdownMenu>
+                                        <DropdownMenuTrigger asChild>
+                                          <Button variant="ghost" size="sm">
+                                            <MoreVertical className="w-4 h-4" />
+                                          </Button>
+                                        </DropdownMenuTrigger>
+                                        <DropdownMenuContent>
+                                          <DropdownMenuItem onClick={() => updateOrderStatusMutation.mutate({ orderId: order.id, newStatus: "Confirmado", notifyParent: true })}>
+                                            <Check className="w-4 h-4 mr-2" /> Confirmar y notificar
+                                          </DropdownMenuItem>
+                                          <DropdownMenuItem onClick={() => updateOrderStatusMutation.mutate({ orderId: order.id, newStatus: "Preparado", notifyParent: true })}>
+                                            <Package className="w-4 h-4 mr-2" /> Marcar preparado
+                                          </DropdownMenuItem>
+                                          <DropdownMenuItem onClick={() => updateOrderStatusMutation.mutate({ orderId: order.id, newStatus: "Entregado", notifyParent: true })}>
+                                            <Truck className="w-4 h-4 mr-2" /> Marcar entregado
+                                          </DropdownMenuItem>
+                                        </DropdownMenuContent>
+                                      </DropdownMenu>
+                                    </div>
+                                  </div>
+                                  {renderOrderDetails(order)}
+                                </div>
+                              ))}
+                            </CardContent>
+                          </Card>
+                        );
+                      })}
+                    </div>
+                  );
+                })()}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="players" className="mt-6">
+            <Card className="border-none shadow-lg">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <ShoppingBag className="w-5 h-5 text-orange-600" />
+                  Pedidos por Jugador
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {orders.map((order) => (
+                    <div
+                      key={order.id}
+                      className="p-4 rounded-lg border-2 border-slate-200 hover:border-orange-300 transition-colors bg-white"
+                    >
+                      <div className="flex justify-between items-start mb-3">
+                        <div>
+                          <h3 className="font-bold text-lg text-slate-900">{order.jugador_nombre}</h3>
+                          <p className="text-sm text-slate-600">{order.jugador_categoria}</p>
+                          <p className="text-xs text-slate-500 mt-1">📧 {order.email_padre}</p>
+                        </div>
+                        <div className="flex gap-2">
+                          <Badge className={statusColors[order.estado]}>
+                            <span className="mr-1">{statusEmojis[order.estado]}</span>
+                            {order.estado}
+                          </Badge>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="sm">
+                                <MoreVertical className="w-4 h-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent>
+                              <DropdownMenuItem onClick={() => updateOrderStatusMutation.mutate({ orderId: order.id, newStatus: "Confirmado", notifyParent: true })}>
+                                <Check className="w-4 h-4 mr-2" /> Confirmar y notificar
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => updateOrderStatusMutation.mutate({ orderId: order.id, newStatus: "Preparado", notifyParent: true })}>
+                                <Package className="w-4 h-4 mr-2" /> Marcar preparado
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => updateOrderStatusMutation.mutate({ orderId: order.id, newStatus: "Entregado", notifyParent: true })}>
+                                <Truck className="w-4 h-4 mr-2" /> Marcar entregado
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </div>
+                      </div>
+                      {renderOrderDetails(order)}
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
           </TabsContent>
 
           <TabsContent value="orders" className="mt-6">
