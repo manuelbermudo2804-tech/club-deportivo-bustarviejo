@@ -14,15 +14,9 @@ import ClothingOrderForm from "../components/clothing/ClothingOrderForm";
 import OrdersSummary from "../components/clothing/OrdersSummary";
 import ContactCard from "../components/ContactCard";
 
-const isOrderPeriodActive = () => {
-  const currentMonth = new Date().getMonth() + 1;
-  return currentMonth === 6 || currentMonth === 7;
-};
-
 export default function ClothingOrders() {
   const [showForm, setShowForm] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
-  const orderPeriodActive = isOrderPeriodActive();
   
   const queryClient = useQueryClient();
 
@@ -42,6 +36,21 @@ export default function ClothingOrders() {
     };
     checkAdmin();
   }, []);
+
+  const { data: seasonConfig } = useQuery({
+    queryKey: ['seasonConfig'],
+    queryFn: async () => {
+      const configs = await base44.entities.SeasonConfig.list();
+      return configs.find(c => c.activa === true);
+    },
+    initialData: null,
+  });
+
+  const orderPeriodActive = (() => {
+    if (seasonConfig?.tienda_ropa_abierta === true) return true;
+    const currentMonth = new Date().getMonth() + 1;
+    return currentMonth === 6 || currentMonth === 7;
+  })();
 
   const { data: allPlayers, isLoading: loadingAllPlayers } = useQuery({
     queryKey: ['allPlayersForClothing'],
@@ -167,6 +176,11 @@ export default function ClothingOrders() {
           <p className="text-slate-600 mt-1">
             {isAdmin ? "Gestión de pedidos del club" : "Solicita la equipación para tus jugadores"}
           </p>
+          {isAdmin && seasonConfig?.tienda_ropa_abierta && (
+            <Badge className="bg-green-600 text-white mt-2">
+              🛍️ Tienda abierta manualmente por admin
+            </Badge>
+          )}
         </div>
         {!isAdmin && (
           <Button
@@ -189,6 +203,11 @@ export default function ClothingOrders() {
               Los pedidos de equipación solo están disponibles durante <strong>Junio y Julio</strong>.
               Los pedidos ya realizados se pueden consultar aquí, pero no se pueden crear nuevos pedidos fuera de este periodo.
             </p>
+            {isAdmin && (
+              <p className="mt-3 text-xs bg-white rounded p-2 border border-orange-200">
+                💡 <strong>Admin:</strong> Puedes abrir la tienda manualmente desde <strong>Panel Admin → Temporadas → Editar temporada activa → Tienda de Ropa Abierta</strong>
+              </p>
+            )}
           </AlertDescription>
         </Alert>
       )}
