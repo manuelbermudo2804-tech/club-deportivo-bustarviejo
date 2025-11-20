@@ -397,7 +397,7 @@ function RestrictedAccessScreen({ user, restriction }) {
                 <img 
                   src={CLUB_LOGO_URL} 
                   alt="CD Bustarviejo"
-                  className="w-32 h-32 object-contain drop-shadow-2xl opacity-50"
+                  className="w-32 h-32 object-cover drop-shadow-2xl opacity-50 rounded-2xl"
                 />
               </div>
             </div>
@@ -910,7 +910,7 @@ export default function Layout({ children, currentPageName }) {
         <header className="lg:hidden fixed top-0 left-0 right-0 z-50 bg-gradient-to-r from-orange-600 to-orange-700 shadow-lg">
           <div className="flex items-center justify-between p-3">
             <div className="flex items-center gap-2">
-              <img src={CLUB_LOGO_URL} alt="CD Bustarviejo" className="w-9 h-9 rounded-xl shadow-lg" />
+              <img src={CLUB_LOGO_URL} alt="CD Bustarviejo" className="w-9 h-9 rounded-lg shadow-lg object-cover" />
               <div className="text-white">
                 <h1 className="font-bold text-base leading-tight">CD Bustarviejo</h1>
                 <p className="text-xs text-orange-100">
@@ -989,7 +989,7 @@ export default function Layout({ children, currentPageName }) {
         <nav className="hidden lg:block fixed left-0 top-0 bottom-0 w-72 bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900 shadow-2xl overflow-y-auto">
           <div className="p-6 border-b border-green-500/30">
             <div className="flex items-center gap-3 mb-6">
-              <img src={CLUB_LOGO_URL} alt="CD Bustarviejo" className="w-14 h-14 rounded-2xl shadow-xl ring-4 ring-green-500/50" />
+              <img src={CLUB_LOGO_URL} alt="CD Bustarviejo" className="w-14 h-14 rounded-xl shadow-xl ring-4 ring-green-500/50 object-cover" />
               <div className="text-white">
                 <h2 className="font-bold text-xl">CD Bustarviejo</h2>
                 <p className="text-xs text-green-400">
