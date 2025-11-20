@@ -337,8 +337,8 @@ CD Bustarviejo`;
                 <Label htmlFor="animation" className="flex items-center gap-2 cursor-pointer flex-1">
                   <span className="text-2xl animate-bounce">🔔</span>
                   <div>
-                    <span className="font-semibold text-purple-700">Notificación Visual en App</span>
-                    <p className="text-xs text-purple-600">Banner animado + Email + Chat urgente</p>
+                    <span className="font-semibold text-purple-700">Notificación Visual en App (privada)</span>
+                    <p className="text-xs text-purple-600">⚠️ Banner animado personal + Email + Chat individual urgente</p>
                   </div>
                 </Label>
               </div>
