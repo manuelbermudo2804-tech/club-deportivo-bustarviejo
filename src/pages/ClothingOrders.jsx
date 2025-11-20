@@ -142,65 +142,81 @@ export default function ClothingOrders() {
       ordersByFamily[order.email_padre].push(order);
     });
 
-    const csvContent = [
-      ['Email Familia', 'Jugador', 'Categoría', 'Items', 'Total', 'Estado'].join(','),
-      ...Object.entries(ordersByFamily).flatMap(([email, familyOrders]) =>
-        familyOrders.map(order => [
+    const rows = [
+      ['Email Familia', 'Jugador', 'Categoría', 'Items', 'Total', 'Estado']
+    ];
+
+    Object.entries(ordersByFamily).forEach(([email, familyOrders]) => {
+      familyOrders.forEach(order => {
+        const items = [
+          order.chaqueta_partidos && `Chaqueta ${order.chaqueta_talla}`,
+          order.pack_entrenamiento && `Pack (${order.pack_camiseta_talla}/${order.pack_pantalon_talla}/${order.pack_sudadera_talla})`,
+          order.camiseta_individual && `Camiseta ${order.camiseta_individual_talla}`,
+          order.pantalon_individual && `Pantalón ${order.pantalon_individual_talla}`,
+          order.sudadera_individual && `Sudadera ${order.sudadera_individual_talla}`,
+          order.chubasquero && `Chubasquero ${order.chubasquero_talla}`,
+          order.anorak && `Anorak ${order.anorak_talla}`,
+          order.mochila && 'Mochila'
+        ].filter(Boolean).join(' | ');
+
+        rows.push([
           email,
           order.jugador_nombre,
           order.jugador_categoria,
-          `"${[
-            order.chaqueta_partidos && 'Chaqueta',
-            order.pack_entrenamiento && 'Pack',
-            order.camiseta_individual && 'Camiseta',
-            order.pantalon_individual && 'Pantalón',
-            order.sudadera_individual && 'Sudadera',
-            order.chubasquero && 'Chubasquero',
-            order.anorak && 'Anorak',
-            order.mochila && 'Mochila'
-          ].filter(Boolean).join(', ')}"`,
-          `${order.precio_total}€`,
+          items,
+          `${order.precio_total}`,
           order.estado
-        ].join(','))
-      )
-    ].join('\n');
+        ]);
+      });
+    });
+
+    const csvContent = '\ufeff' + rows.map(row => 
+      row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(',')
+    ).join('\r\n');
 
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
     link.href = URL.createObjectURL(blob);
     link.download = `pedidos_por_familia_${new Date().toISOString().split('T')[0]}.csv`;
     link.click();
-    toast.success("📄 CSV exportado");
+    URL.revokeObjectURL(link.href);
+    toast.success("📄 CSV exportado correctamente");
   };
 
   const exportPlayersCSV = () => {
-    const csvContent = [
-      ['Jugador', 'Categoría', 'Email', 'Items', 'Total', 'Estado'].join(','),
-      ...orders.map(order => [
+    const rows = [
+      ['Jugador', 'Categoría', 'Email', 'Chaqueta', 'Pack', 'Camiseta', 'Pantalón', 'Sudadera', 'Chubasquero', 'Anorak', 'Mochila', 'Total', 'Estado']
+    ];
+
+    orders.forEach(order => {
+      rows.push([
         order.jugador_nombre,
         order.jugador_categoria,
         order.email_padre,
-        `"${[
-          order.chaqueta_partidos && 'Chaqueta',
-          order.pack_entrenamiento && 'Pack',
-          order.camiseta_individual && 'Camiseta',
-          order.pantalon_individual && 'Pantalón',
-          order.sudadera_individual && 'Sudadera',
-          order.chubasquero && 'Chubasquero',
-          order.anorak && 'Anorak',
-          order.mochila && 'Mochila'
-        ].filter(Boolean).join(', ')}"`,
-        `${order.precio_total}€`,
+        order.chaqueta_partidos ? order.chaqueta_talla : '',
+        order.pack_entrenamiento ? `${order.pack_camiseta_talla}/${order.pack_pantalon_talla}/${order.pack_sudadera_talla}` : '',
+        order.camiseta_individual ? order.camiseta_individual_talla : '',
+        order.pantalon_individual ? order.pantalon_individual_talla : '',
+        order.sudadera_individual ? order.sudadera_individual_talla : '',
+        order.chubasquero ? order.chubasquero_talla : '',
+        order.anorak ? order.anorak_talla : '',
+        order.mochila ? 'Sí' : '',
+        order.precio_total,
         order.estado
-      ].join(','))
-    ].join('\n');
+      ]);
+    });
+
+    const csvContent = '\ufeff' + rows.map(row => 
+      row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(',')
+    ).join('\r\n');
 
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
     link.href = URL.createObjectURL(blob);
     link.download = `pedidos_por_jugador_${new Date().toISOString().split('T')[0]}.csv`;
     link.click();
-    toast.success("📄 CSV exportado");
+    URL.revokeObjectURL(link.href);
+    toast.success("📄 CSV exportado correctamente");
   };
 
   const toggleStoreMutation = useMutation({
