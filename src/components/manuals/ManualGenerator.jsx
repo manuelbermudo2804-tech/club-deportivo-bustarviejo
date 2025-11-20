@@ -12,70 +12,88 @@ const manuals = {
       {
         title: "1. Acceso a la Aplicación",
         content: [
-          "• Accede desde cualquier navegador web o instala la app en tu móvil",
-          "• Usa el email y contraseña que recibiste en el correo de bienvenida",
-          "• Recomendamos instalar la app en tu móvil para recibir notificaciones"
+          "• Accede desde cualquier navegador: https://tu-app.base44.app",
+          "• Recibirás un email de invitación con tu usuario y enlace de acceso",
+          "• Crea tu contraseña en el primer acceso",
+          "• IMPORTANTE: Instala la app en tu móvil (botón 'Añadir a inicio' en Safari/Chrome) para recibir notificaciones push de convocatorias y mensajes importantes"
         ]
       },
       {
         title: "2. Panel Principal",
         content: [
-          "• Verás un resumen de tus jugadores y próximos eventos",
-          "• Accede rápido a las funciones más usadas desde los botones principales",
-          "• Consulta anuncios importantes del club en la parte superior"
+          "• El panel principal muestra tus jugadores inscritos con foto y datos básicos",
+          "• Verás estadísticas: pagos pendientes, convocatorias sin confirmar",
+          "• Los botones de acceso rápido están organizados por función (Calendario, Pagos, Chat, etc.)",
+          "• Los anuncios urgentes del club aparecen destacados en rojo en la parte superior",
+          "• La barra inferior (móvil) o lateral (escritorio) da acceso al menú completo"
         ]
       },
       {
         title: "3. Calendario y Eventos",
         content: [
-          "• Ve todos los partidos, entrenamientos y eventos del club",
-          "• Exporta el calendario a tu móvil para recibir recordatorios",
-          "• Filtra por deporte o categoría de tus hijos"
+          "• Calendario → Vista mensual con todos los eventos del club",
+          "• VERDE: Entrenamientos semanales | NARANJA: Partidos oficiales | ROJO: Eventos importantes",
+          "• Click en cualquier evento para ver detalles (hora, ubicación, rival)",
+          "• Botón 'Exportar Calendario' → Descarga archivo .ics → Impórtalo en Google Calendar o Apple Calendar",
+          "• Una vez importado, tu móvil te avisará automáticamente 1 hora antes de cada partido"
         ]
       },
       {
         title: "4. Convocatorias",
         content: [
-          "• Recibirás notificaciones cuando haya una nueva convocatoria",
-          "• Confirma la asistencia de tu hijo con un solo click",
-          "• Ve la lista completa de jugadores convocados",
-          "• Indica si tu hijo asistirá, no asistirá o tiene dudas"
+          "• Convocatorias → Lista de partidos para los que tu hijo está convocado",
+          "• BADGE NARANJA: Indica cuántas convocatorias tienen confirmación pendiente",
+          "• Recibirás una notificación push en tu móvil cuando tu hijo sea convocado",
+          "• Click en la convocatoria → Verás: rival, hora concentración, hora partido, ubicación (con mapa)",
+          "• BOTÓN CONFIRMAR: Elige 'Asistiré' (verde), 'No asistiré' (rojo) o 'Duda' (amarillo)",
+          "• Una vez confirmado, el entrenador verá tu respuesta en tiempo real",
+          "• Puedes cambiar tu confirmación hasta 2 horas antes del partido"
         ]
       },
       {
         title: "5. Gestión de Pagos",
         content: [
-          "• Consulta el estado de tus pagos (pendiente/pagado)",
-          "• Sube el justificante de transferencia desde tu móvil",
-          "• Recibirás recordatorios automáticos antes de cada cuota",
-          "• Revisa el historial completo de pagos"
+          "• Pagos → Lista de cuotas por jugador: Junio (inscripción), Septiembre, Diciembre",
+          "• ESTADOS: Pendiente (naranja), En revisión (azul), Pagado (verde)",
+          "• PROCESO: 1) Haz la transferencia al banco del club, 2) Sube foto del justificante, 3) Espera confirmación del tesorero",
+          "• Datos bancarios: IBAN ES12 XXXX XXXX XX XXXXXXXXXX | Concepto: Nombre Jugador + Mes",
+          "• Recibirás recordatorios automáticos: 15 días antes, 7 días antes, 3 días antes, 1 día después si no has pagado",
+          "• El administrador reconcilia pagos con extractos bancarios y confirma",
+          "• Histórico: Consulta todos los pagos de temporadas anteriores"
         ]
       },
       {
         title: "6. Chat con Entrenadores",
         content: [
-          "• Comunícate directamente con los entrenadores de tu hijo",
-          "• Recibe anuncios importantes del club",
-          "• Puedes adjuntar fotos o documentos si es necesario",
-          "• Marca mensajes importantes para recordarlos"
+          "• Chat → Comunicación por categoría (ej: 'Chat Fútbol Alevín')",
+          "• MENSAJES DEL CLUB: Aparecen con fondo azul/verde → Son de entrenadores o administradores",
+          "• TUS MENSAJES: Fondo gris → El entrenador los verá en su panel",
+          "• Adjuntar archivos: Click en 📎 → Sube fotos (lesiones, justificantes) o documentos",
+          "• PRIORIDAD URGENTE: Los mensajes marcados como urgentes aparecen con notificación roja",
+          "• El chat NO es para emergencias → Usa el teléfono del entrenador en casos urgentes (está en su perfil)",
+          "• Los mensajes antiguos (>6 meses) se archivan automáticamente"
         ]
       },
       {
         title: "7. Pedidos de Equipación",
         content: [
-          "• Pide la ropa oficial del club para tus hijos",
-          "• Elige tallas, artículos y packs disponibles",
-          "• Sube el justificante de pago",
-          "• Recoge el pedido en las instalaciones del club"
+          "• Tienda de Ropa → ABIERTA SOLO EN JUNIO Y JULIO (inscripciones)",
+          "• ARTÍCULOS: Chaqueta partidos (35€), Pack entrenamiento completo (41€), Chubasquero (20€), Anorak (40€), Mochila (22€)",
+          "• TALLAS: Desde 6XS (4-5 años) hasta 3XL adultos → Consulta la guía de tallas en la app",
+          "• PROCESO: 1) Haz tu pedido seleccionando artículos y tallas, 2) Transferencia bancaria, 3) Sube justificante, 4) Recogida en septiembre",
+          "• Los pedidos se entregan en la primera semana de SEPTIEMBRE en las instalaciones del club",
+          "• Pedidos grupales: Si varios padres piden juntos, pueden ahorrar en envío"
         ]
       },
       {
         title: "8. Datos de tus Jugadores",
         content: [
-          "• Mantén actualizados los datos de contacto",
-          "• Sube o actualiza la foto de perfil",
-          "• Autoriza el uso de imágenes en galería",
-          "• Añade información médica relevante si es necesario"
+          "• Mis Jugadores → Lista de tus hijos inscritos en el club",
+          "• Click en un jugador → Editar: nombre, fecha nacimiento, categoría, foto, teléfonos, emails tutores",
+          "• EMAILS: Email padre (acceso principal) + Email tutor 2 (recibe notificaciones) + Email jugador (opcional, para mayores de 14 años con autorización)",
+          "• AUTORIZACIÓN IMÁGENES: Marca SI o NO para permitir fotos en redes sociales y galería del club",
+          "• Información médica: Alergias, lesiones crónicas, medicación → Visible solo para entrenador y coordinador",
+          "• Actualiza datos de contacto si cambias de móvil o email"
         ]
       }
     ]
@@ -275,10 +293,18 @@ const manuals = {
 };
 
 export default function ManualGenerator({ userRole }) {
+  const [isVisible, setIsVisible] = React.useState(() => {
+    return !localStorage.getItem('manualDownloaded');
+  });
+
   const manual = manuals[userRole] || manuals.padre;
   const Icon = manual.icon;
 
+  if (!isVisible) return null;
+
   const generatePDF = () => {
+    localStorage.setItem('manualDownloaded', 'true');
+    setIsVisible(false);
     const doc = new jsPDF();
     const pageWidth = doc.internal.pageSize.getWidth();
     const pageHeight = doc.internal.pageSize.getHeight();
