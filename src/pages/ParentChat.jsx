@@ -21,6 +21,7 @@ export default function ParentChat() {
   const queryClient = useQueryClient();
   const [user, setUser] = useState(null);
   const [isMobile, setIsMobile] = useState(false);
+  const [isInitialized, setIsInitialized] = useState(false);
 
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth < 768);
@@ -159,8 +160,7 @@ export default function ParentChat() {
   }, [myGroups, selectedTab]);
 
   useEffect(() => {
-    if (myGroups.length === 0) return;
-    if (selectedTab) return;
+    if (isInitialized || !user || myGroups.length === 0) return;
     
     const params = new URLSearchParams(location.search);
     const groupParam = params.get('group');
@@ -169,14 +169,18 @@ export default function ParentChat() {
       const targetGroup = myGroups.find(g => g.deporte === decodeURIComponent(groupParam));
       if (targetGroup) {
         setSelectedTab(targetGroup.id);
+        setIsInitialized(true);
         return;
       }
     }
     
     if (!isMobile && myGroups.length > 0) {
       setSelectedTab(myGroups[0].id);
+      setIsInitialized(true);
+    } else if (isMobile) {
+      setIsInitialized(true);
     }
-  }, [myGroups.length, location.search, isMobile, selectedTab]);
+  }, [user, myGroups.length, isMobile, isInitialized, location.search]);
 
   useEffect(() => {
     if (selectedTab && currentGroup && currentGroup.messages) {
