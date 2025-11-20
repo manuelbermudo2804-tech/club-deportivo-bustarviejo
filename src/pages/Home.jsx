@@ -69,48 +69,54 @@ export default function Home() {
     queryKey: ['players'],
     queryFn: () => base44.entities.Player.list(),
     initialData: [],
-    staleTime: 30000,
+    staleTime: 60000,
     refetchOnWindowFocus: false,
+    enabled: !!user,
   });
 
   const { data: payments } = useQuery({
     queryKey: ['payments'],
     queryFn: () => base44.entities.Payment.list(),
     initialData: [],
-    staleTime: 30000,
+    staleTime: 60000,
     refetchOnWindowFocus: false,
+    enabled: !!user && isAdmin,
   });
 
   const { data: messages } = useQuery({
     queryKey: ['chatMessages'],
     queryFn: () => base44.entities.ChatMessage.list(),
     initialData: [],
-    staleTime: 30000,
+    staleTime: 60000,
     refetchOnWindowFocus: false,
+    enabled: !!user && isAdmin,
   });
 
   const { data: callups } = useQuery({
     queryKey: ['callups'],
     queryFn: () => base44.entities.Convocatoria.list(),
     initialData: [],
-    staleTime: 30000,
+    staleTime: 60000,
     refetchOnWindowFocus: false,
+    enabled: !!user,
   });
 
   const { data: surveys } = useQuery({
     queryKey: ['surveys'],
     queryFn: () => base44.entities.Survey.list('-created_date'),
     initialData: [],
-    staleTime: 30000,
+    staleTime: 60000,
     refetchOnWindowFocus: false,
+    enabled: !!user && (isCoach || isCoordinator) && hasPlayers,
   });
 
   const { data: surveyResponses } = useQuery({
     queryKey: ['surveyResponses'],
     queryFn: () => base44.entities.SurveyResponse.list(),
     initialData: [],
-    staleTime: 30000,
+    staleTime: 60000,
     refetchOnWindowFocus: false,
+    enabled: !!user && (isCoach || isCoordinator) && hasPlayers,
   });
 
   const myPlayers = user && isCoach && hasPlayers 
@@ -427,15 +433,15 @@ export default function Home() {
             badgeLabel: "pendientes"
           }
         );
+      }
 
-        if (loteriaVisible) {
-          items.push({
-            title: "🍀 Mi Lotería",
-            icon: Clover,
-            url: createPageUrl("ParentLottery"),
-            gradient: "from-green-600 to-green-700",
-          });
-        }
+      if (hasPlayers && loteriaVisible) {
+        items.push({
+          title: "🍀 Mi Lotería",
+          icon: Clover,
+          url: createPageUrl("ParentLottery"),
+          gradient: "from-green-600 to-green-700",
+        });
       }
 
       if (loteriaVisible) {

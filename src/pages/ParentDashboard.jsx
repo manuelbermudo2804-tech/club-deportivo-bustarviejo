@@ -25,60 +25,76 @@ export default function ParentDashboard() {
     fetchUser();
   }, []);
 
-  const { data: players, isLoading: loadingPlayers } = useQuery({
+  const { data: players } = useQuery({
     queryKey: ['players'],
     queryFn: () => base44.entities.Player.list(),
     initialData: [],
-    staleTime: 30000,
+    staleTime: 60000,
+    refetchOnWindowFocus: false,
+    enabled: !!user,
   });
 
-  const { data: payments, isLoading: loadingPayments } = useQuery({
+  const { data: payments } = useQuery({
     queryKey: ['payments'],
     queryFn: () => base44.entities.Payment.list('-created_date'),
     initialData: [],
-    staleTime: 30000,
+    staleTime: 60000,
+    refetchOnWindowFocus: false,
+    enabled: !!user,
   });
 
   const { data: callups } = useQuery({
     queryKey: ['callups'],
     queryFn: () => base44.entities.Convocatoria.list('-created_date'),
     initialData: [],
-    staleTime: 30000,
+    staleTime: 60000,
+    refetchOnWindowFocus: false,
+    enabled: !!user,
   });
 
   const { data: messages } = useQuery({
     queryKey: ['messages'],
     queryFn: () => base44.entities.ChatMessage.list('-created_date'),
     initialData: [],
-    staleTime: 10000,
+    staleTime: 30000,
+    refetchOnWindowFocus: false,
+    enabled: !!user,
   });
 
-  const { data: seasonConfigs, isLoading: loadingSeasons } = useQuery({
+  const { data: seasonConfigs } = useQuery({
     queryKey: ['seasonConfigs'],
     queryFn: () => base44.entities.SeasonConfig.list(),
     initialData: [],
-    staleTime: 60000,
+    staleTime: 120000,
+    refetchOnWindowFocus: false,
+    enabled: !!user,
   });
 
   const { data: surveys } = useQuery({
     queryKey: ['surveys'],
     queryFn: () => base44.entities.Survey.list('-created_date'),
     initialData: [],
-    staleTime: 30000,
+    staleTime: 60000,
+    refetchOnWindowFocus: false,
+    enabled: !!user,
   });
 
   const { data: announcements } = useQuery({
     queryKey: ['announcements'],
     queryFn: () => base44.entities.Announcement.list('-created_date'),
     initialData: [],
-    staleTime: 30000,
+    staleTime: 60000,
+    refetchOnWindowFocus: false,
+    enabled: !!user,
   });
 
   const { data: clothingOrders } = useQuery({
     queryKey: ['clothingOrders'],
     queryFn: () => base44.entities.ClothingOrder.list('-created_date'),
     initialData: [],
-    staleTime: 30000,
+    staleTime: 60000,
+    refetchOnWindowFocus: false,
+    enabled: !!user,
   });
 
   const myPlayers = user ? players.filter(p => 
