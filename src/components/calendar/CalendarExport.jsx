@@ -127,9 +127,6 @@ END:VEVENT`;
   const exportToICal = () => {
     const icalEvents = events.map(generateICalEvent).join('\n');
     const icalCallups = callups.map(generateICalCallup).join('\n');
-    const weekStart = new Date();
-    weekStart.setDate(weekStart.getDate() - weekStart.getDay() + 1);
-    const icalSchedules = schedules.map(s => generateICalSchedule(s, weekStart)).join('\n');
 
     const icalContent = `BEGIN:VCALENDAR
 VERSION:2.0
@@ -141,7 +138,6 @@ X-WR-TIMEZONE:Europe/Madrid
 X-WR-CALDESC:Calendario personal de eventos del CD Bustarviejo
 ${icalEvents}
 ${icalCallups}
-${icalSchedules}
 END:VCALENDAR`;
 
     const blob = new Blob([icalContent], { type: 'text/calendar;charset=utf-8' });
@@ -202,14 +198,14 @@ END:VCALENDAR`;
         <div className="px-3 py-3 border-b border-slate-200 bg-blue-50">
           <p className="text-sm font-medium text-blue-900 mb-1">¿Para qué sirve?</p>
           <p className="text-xs text-blue-700 leading-relaxed">
-            📱 Descarga un archivo .ics para importar todos los eventos, partidos y entrenamientos semanales en Google Calendar, Apple Calendar o Outlook. Recibirás recordatorios automáticos en tu móvil de cada entrenamiento, partido y evento.
+            📱 Descarga un archivo .ics para importar partidos y eventos importantes en Google Calendar, Apple Calendar o Outlook. Recibirás recordatorios automáticos en tu móvil.
           </p>
         </div>
         <DropdownMenuItem onClick={exportToICal} className="cursor-pointer py-3">
           <CalendarIcon className="w-4 h-4 mr-2" />
           <div className="flex-1">
             <div className="font-medium">Exportar Todo</div>
-            <div className="text-xs text-slate-500">Eventos, convocatorias y entrenamientos</div>
+            <div className="text-xs text-slate-500">Eventos y convocatorias de partidos</div>
           </div>
         </DropdownMenuItem>
         <DropdownMenuItem onClick={exportPersonalEvents} className="cursor-pointer py-3">
