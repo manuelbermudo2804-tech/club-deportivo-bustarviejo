@@ -51,6 +51,7 @@ export default function UserManagement() {
   const [showRoleDialog, setShowRoleDialog] = useState(false);
   const [showCoachDialog, setShowCoachDialog] = useState(false);
   const [showCoordinatorDialog, setShowCoordinatorDialog] = useState(false);
+  const [showTreasurerDialog, setShowTreasurerDialog] = useState(false);
   const [showDeleted, setShowDeleted] = useState(false);
   const [restrictionData, setRestrictionData] = useState({
     motivo_restriccion: "",
@@ -98,6 +99,7 @@ export default function UserManagement() {
       setShowRoleDialog(false);
       setShowCoachDialog(false);
       setShowCoordinatorDialog(false);
+      setShowTreasurerDialog(false);
       setSelectedUser(null);
       setRestrictionData({ motivo_restriccion: "", notas_admin: "" });
       setCoachData({ categorias_entrena: [], telefono_entrenador: "" });
@@ -193,6 +195,11 @@ export default function UserManagement() {
     setShowCoordinatorDialog(true);
   };
 
+  const handleTreasurerToggle = (user) => {
+    setSelectedUser(user);
+    setShowTreasurerDialog(true);
+  };
+
   const handleConfirmCoach = async () => {
     if (!selectedUser) return;
 
@@ -230,6 +237,20 @@ export default function UserManagement() {
       userData: {
         es_coordinador: isSettingAsCoordinator,
         tiene_hijos_jugando: isSettingAsCoordinator ? false : selectedUser.tiene_hijos_jugando
+      }
+    });
+  };
+
+  const handleConfirmTreasurer = async () => {
+    if (!selectedUser) return;
+
+    const isSettingAsTreasurer = !selectedUser.es_tesorero;
+
+    updateUserMutation.mutate({
+      userId: selectedUser.id,
+      userData: {
+        es_tesorero: isSettingAsTreasurer,
+        tiene_hijos_jugando: isSettingAsTreasurer ? false : selectedUser.tiene_hijos_jugando
       }
     });
   };
@@ -288,6 +309,7 @@ export default function UserManagement() {
   const jugadores = activeUsersWithoutDeleted.filter(u => u.role === "jugador");
   const entrenadores = activeUsersWithoutDeleted.filter(u => u.es_entrenador === true && !u.es_coordinador);
   const coordinadores = activeUsersWithoutDeleted.filter(u => u.es_coordinador === true);
+  const tesoreros = activeUsersWithoutDeleted.filter(u => u.es_tesorero === true);
 
 
   return (
@@ -298,7 +320,7 @@ export default function UserManagement() {
       </div>
 
       {/* Estadísticas */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-7 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-8 gap-6">
         <Card className="border-none shadow-lg">
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
@@ -355,6 +377,18 @@ export default function UserManagement() {
                 <p className="text-3xl font-bold text-cyan-600">{coordinadores.length}</p>
               </div>
               <Shield className="w-12 h-12 text-cyan-500 opacity-20" />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="border-none shadow-lg border-2 border-green-200 bg-green-50">
+          <CardContent className="pt-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-slate-600 mb-1">💰 Tesoreros</p>
+                <p className="text-3xl font-bold text-green-600">{tesoreros.length}</p>
+              </div>
+              <Shield className="w-12 h-12 text-green-500 opacity-20" />
             </div>
           </CardContent>
         </Card>
@@ -466,6 +500,7 @@ export default function UserManagement() {
                 const linkedPlayer = user.jugador_id ? players.find(p => p.id === user.jugador_id) : null;
                 const isCoach = user.es_entrenador === true && !user.es_coordinador;
                 const isCoordinator = user.es_coordinador === true;
+                const isTreasurer = user.es_tesorero === true;
 
                 return (
                   <div
@@ -477,6 +512,8 @@ export default function UserManagement() {
                         ? 'bg-red-50 border-red-200'
                         : isCoordinator
                         ? 'bg-cyan-50 border-cyan-300'
+                        : isTreasurer
+                        ? 'bg-green-50 border-green-300'
                         : isCoach
                         ? 'bg-blue-50 border-blue-300'
                         : 'bg-white border-slate-200 hover:border-orange-300'
@@ -498,6 +535,11 @@ export default function UserManagement() {
                           {isCoordinator && (
                             <Badge className="bg-cyan-600 text-white">
                               🎓 Coordinador Deportivo
+                            </Badge>
+                          )}
+                          {isTreasurer && (
+                            <Badge className="bg-green-600 text-white">
+                              💰 Tesorero
                             </Badge>
                           )}
                           {isCoach && (
@@ -527,6 +569,15 @@ export default function UserManagement() {
                         {isCoordinator && (
                           <div className="text-sm text-cyan-700 bg-cyan-100 rounded p-2 mb-2">
                             <strong>🎓 Coordinador Deportivo</strong>
+                            {user.tiene_hijos_jugando && (
+                              <span className="ml-2">• 👨‍👩‍👧 Con hijos jugando</span>
+                            )}
+                          </div>
+                        )}
+
+                        {isTreasurer && (
+                          <div className="text-sm text-green-700 bg-green-100 rounded p-2 mb-2">
+                            <strong>💰 Tesorero</strong>
                             {user.tiene_hijos_jugando && (
                               <span className="ml-2">• 👨‍👩‍👧 Con hijos jugando</span>
                             )}
@@ -603,12 +654,20 @@ export default function UserManagement() {
                               <Button
                                 size="sm"
                                 variant="outline"
+                                onClick={() => handleTreasurerToggle(user)}
+                                className={isTreasurer ? "bg-green-100 hover:bg-green-200 border-green-400" : "bg-green-50 hover:bg-green-100 border-green-300"}
+                              >
+                                {isTreasurer ? "✅ Tesorero" : "💰 Marcar Tesorero"}
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="outline"
                                 onClick={() => handleCoachToggle(user)}
                                 className={user.es_entrenador ? "bg-blue-100 hover:bg-blue-200 border-blue-400" : "bg-blue-50 hover:bg-blue-100 border-blue-300"}
                               >
                                 {user.es_entrenador ? "✅ Entrenador" : "🎓 Marcar Entrenador"}
                               </Button>
-                              {(isCoordinator || isCoach) && (
+                              {(isCoordinator || isCoach || isTreasurer) && (
                                 <Button
                                   size="sm"
                                   variant="outline"
@@ -869,6 +928,83 @@ export default function UserManagement() {
                 "Quitar Rol de Coordinador"
               ) : (
                 "Confirmar Coordinador Deportivo"
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Diálogo de Tesorero */}
+      <Dialog open={showTreasurerDialog} onOpenChange={setShowTreasurerDialog}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="text-2xl flex items-center gap-2">
+              <Shield className="w-6 h-6 text-green-600" />
+              {selectedUser?.es_tesorero ? "Quitar Rol de Tesorero" : "Asignar como Tesorero"}
+            </DialogTitle>
+            <DialogDescription>
+              {selectedUser?.es_tesorero ? (
+                <>Quitar permisos de Tesorero a <strong>{selectedUser?.full_name}</strong></>
+              ) : (
+                <>Asignar permisos de Tesorero a <strong>{selectedUser?.full_name}</strong></>
+              )}
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 py-4">
+            <div className="bg-green-50 border-2 border-green-300 rounded-lg p-4">
+              <p className="text-sm text-green-900 font-bold mb-2">
+                💰 Permisos de Tesorero:
+              </p>
+              <ul className="text-sm text-green-800 space-y-1">
+                <li>✅ <strong>Gestión de Pagos:</strong> Ver y gestionar todos los pagos del club</li>
+                <li>✅ <strong>Recordatorios:</strong> Enviar recordatorios de pago</li>
+                <li>✅ <strong>Histórico:</strong> Acceso completo al historial de pagos</li>
+                <li>✅ <strong>Pedidos:</strong> Gestionar pedidos de equipación</li>
+                <li>✅ <strong>Temporadas:</strong> Configurar cuotas y temporadas</li>
+                <li>✅ <strong>Calendario y Anuncios:</strong> Ver y publicar información</li>
+                <li>❌ <strong>NO gestiona:</strong> Jugadores, evaluaciones, entrenadores</li>
+              </ul>
+            </div>
+
+            <div className="bg-green-50 border-2 border-green-300 rounded-lg p-4">
+              <p className="text-sm text-green-900 font-bold mb-2">
+                ℹ️ Información:
+              </p>
+              <p className="text-sm text-green-800 mb-2">
+                El <strong>Tesorero</strong> tiene acceso completo a la gestión financiera del club.
+              </p>
+              <p className="text-sm text-green-800">
+                Usa el botón <strong>"Tiene hijos"</strong> para darle acceso a funciones de padre 
+                (gestión de jugadores propios y vista familiar) si tiene hijos en el club.
+              </p>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setShowTreasurerDialog(false);
+                setSelectedUser(null);
+              }}
+            >
+              Cancelar
+            </Button>
+            <Button
+              onClick={handleConfirmTreasurer}
+              disabled={updateUserMutation.isPending}
+              className={selectedUser?.es_tesorero ? "bg-red-600 hover:bg-red-700" : "bg-green-600 hover:bg-green-700"}
+            >
+              {updateUserMutation.isPending ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Procesando...
+                </>
+              ) : selectedUser?.es_tesorero ? (
+                "Quitar Rol de Tesorero"
+              ) : (
+                "Confirmar Tesorero"
               )}
             </Button>
           </DialogFooter>
