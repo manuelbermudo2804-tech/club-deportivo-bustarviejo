@@ -549,7 +549,9 @@ export default function LotteryManagement() {
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="familias" className="space-y-4 mt-6">
+    </div>
+  );
+}
           <Card className="border-none shadow-lg">
             <CardHeader className="border-b">
               <div className="flex justify-between items-center">
