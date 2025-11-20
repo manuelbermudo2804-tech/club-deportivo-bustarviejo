@@ -27,7 +27,7 @@ export default function ParentPayments() {
     queryFn: () => base44.auth.me(),
   });
 
-  const { data: players } = useQuery({
+  const { data: players, isLoading: loadingPlayers } = useQuery({
     queryKey: ['myPlayers', user?.email],
     queryFn: async () => {
       const allPlayers = await base44.entities.Player.list();
@@ -39,7 +39,7 @@ export default function ParentPayments() {
     initialData: [],
   });
 
-  const { data: payments, isLoading } = useQuery({
+  const { data: payments, isLoading: loadingPayments } = useQuery({
     queryKey: ['myPayments', players],
     queryFn: async () => {
       if (players.length === 0) return [];
@@ -50,6 +50,8 @@ export default function ParentPayments() {
     enabled: !!user && players.length > 0,
     initialData: [],
   });
+
+  const isLoading = loadingPlayers || loadingPayments || !user;
 
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
