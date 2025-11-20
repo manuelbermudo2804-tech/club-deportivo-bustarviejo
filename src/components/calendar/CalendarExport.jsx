@@ -202,7 +202,7 @@ END:VCALENDAR`;
         <div className="px-3 py-3 border-b border-slate-200 bg-blue-50">
           <p className="text-sm font-medium text-blue-900 mb-1">¿Para qué sirve?</p>
           <p className="text-xs text-blue-700 leading-relaxed">
-            📱 Descarga un archivo .ics para importar todos los eventos en Google Calendar, Apple Calendar o Outlook. Así recibirás recordatorios automáticos en tu móvil.
+            📱 Descarga un archivo .ics para importar todos los eventos, partidos y entrenamientos semanales en Google Calendar, Apple Calendar o Outlook. Recibirás recordatorios automáticos en tu móvil de cada entrenamiento, partido y evento.
           </p>
         </div>
         <DropdownMenuItem onClick={exportToICal} className="cursor-pointer py-3">
