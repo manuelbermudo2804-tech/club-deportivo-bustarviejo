@@ -548,13 +548,21 @@ export default function Layout({ children, currentPageName }) {
           } else if (period === "vacation") {
             setShowSpecialScreen("vacation");
           }
-        }
-      } catch (error) {
-        console.error("Error fetching user:", error);
-      }
-    };
-    fetchUser();
-  }, []);
+          }
+          } catch (error) {
+          console.error("Error fetching user:", error);
+          }
+          };
+          fetchUser();
+          }, []);
+
+          useEffect(() => {
+          if (user && !isAdmin && !isCoach && !isCoordinator && !isPlayer) {
+          if (location.pathname === '/' || location.pathname === '') {
+          navigate(createPageUrl('ParentDashboard'));
+          }
+          }
+          }, [user, isAdmin, isCoach, isCoordinator, isPlayer, location.pathname, navigate]);
 
   useEffect(() => {
     const checkUnreadMessages = async () => {
