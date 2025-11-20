@@ -536,8 +536,8 @@ export default function CoachChat() {
                   }
                   
                   return (
-                    <div key={msg.id} className={`flex ${isMyMessage ? 'justify-end' : 'justify-start'} mb-1`}>
-                      <div className={`max-w-[75%] rounded-lg shadow-sm ${messageColor}`}>
+                    <div key={msg.id} className={`flex ${isMyMessage ? 'justify-end' : 'justify-start'} mb-1 w-full`}>
+                      <div className={`max-w-[85%] lg:max-w-[75%] rounded-lg shadow-sm ${messageColor}`}>
                         <div className="px-3 py-2">
                           <div className="flex items-center gap-2 mb-1">
                             <span className={`text-xs font-semibold ${
