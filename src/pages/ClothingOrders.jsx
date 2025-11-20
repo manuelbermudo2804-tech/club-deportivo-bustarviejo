@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
-import { Plus, ShoppingBag, AlertCircle, MoreVertical, Check, Package, Truck, Users } from "lucide-react";
+import { Plus, ShoppingBag, AlertCircle, MoreVertical, Check, Package, Truck, Users, Download, FileDown } from "lucide-react";
 import { AnimatePresence } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -139,6 +139,76 @@ export default function ClothingOrders() {
       estado: orderData.justificante_url ? "En revisión" : "Pendiente"
     };
     createOrderMutation.mutate(dataToSubmit);
+  };
+
+  const exportFamiliesCSV = () => {
+    const ordersByFamily = {};
+    orders.forEach(order => {
+      if (!ordersByFamily[order.email_padre]) {
+        ordersByFamily[order.email_padre] = [];
+      }
+      ordersByFamily[order.email_padre].push(order);
+    });
+
+    const csvContent = [
+      ['Email Familia', 'Jugador', 'Categoría', 'Items', 'Total', 'Estado'].join(','),
+      ...Object.entries(ordersByFamily).flatMap(([email, familyOrders]) =>
+        familyOrders.map(order => [
+          email,
+          order.jugador_nombre,
+          order.jugador_categoria,
+          `"${[
+            order.chaqueta_partidos && 'Chaqueta',
+            order.pack_entrenamiento && 'Pack',
+            order.camiseta_individual && 'Camiseta',
+            order.pantalon_individual && 'Pantalón',
+            order.sudadera_individual && 'Sudadera',
+            order.chubasquero && 'Chubasquero',
+            order.anorak && 'Anorak',
+            order.mochila && 'Mochila'
+          ].filter(Boolean).join(', ')}"`,
+          `${order.precio_total}€`,
+          order.estado
+        ].join(','))
+      )
+    ].join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `pedidos_por_familia_${new Date().toISOString().split('T')[0]}.csv`;
+    link.click();
+    toast.success("📄 CSV exportado");
+  };
+
+  const exportPlayersCSV = () => {
+    const csvContent = [
+      ['Jugador', 'Categoría', 'Email', 'Items', 'Total', 'Estado'].join(','),
+      ...orders.map(order => [
+        order.jugador_nombre,
+        order.jugador_categoria,
+        order.email_padre,
+        `"${[
+          order.chaqueta_partidos && 'Chaqueta',
+          order.pack_entrenamiento && 'Pack',
+          order.camiseta_individual && 'Camiseta',
+          order.pantalon_individual && 'Pantalón',
+          order.sudadera_individual && 'Sudadera',
+          order.chubasquero && 'Chubasquero',
+          order.anorak && 'Anorak',
+          order.mochila && 'Mochila'
+        ].filter(Boolean).join(', ')}"`,
+        `${order.precio_total}€`,
+        order.estado
+      ].join(','))
+    ].join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `pedidos_por_jugador_${new Date().toISOString().split('T')[0]}.csv`;
+    link.click();
+    toast.success("📄 CSV exportado");
   };
 
   const toggleStoreMutation = useMutation({
@@ -332,10 +402,16 @@ export default function ClothingOrders() {
           <TabsContent value="families" className="mt-6">
             <Card className="border-none shadow-lg">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Users className="w-5 h-5 text-orange-600" />
-                  Pedidos por Familia
-                </CardTitle>
+                <div className="flex justify-between items-center">
+                  <CardTitle className="flex items-center gap-2">
+                    <Users className="w-5 h-5 text-orange-600" />
+                    Pedidos por Familia
+                  </CardTitle>
+                  <Button onClick={exportFamiliesCSV} variant="outline" size="sm">
+                    <FileDown className="w-4 h-4 mr-2" />
+                    Exportar CSV
+                  </Button>
+                </div>
               </CardHeader>
               <CardContent>
                 {(() => {
@@ -412,10 +488,16 @@ export default function ClothingOrders() {
           <TabsContent value="players" className="mt-6">
             <Card className="border-none shadow-lg">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <ShoppingBag className="w-5 h-5 text-orange-600" />
-                  Pedidos por Jugador
-                </CardTitle>
+                <div className="flex justify-between items-center">
+                  <CardTitle className="flex items-center gap-2">
+                    <ShoppingBag className="w-5 h-5 text-orange-600" />
+                    Pedidos por Jugador
+                  </CardTitle>
+                  <Button onClick={exportPlayersCSV} variant="outline" size="sm">
+                    <FileDown className="w-4 h-4 mr-2" />
+                    Exportar CSV
+                  </Button>
+                </div>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
@@ -466,10 +548,16 @@ export default function ClothingOrders() {
           <TabsContent value="orders" className="mt-6">
             <Card className="border-none shadow-lg">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <ShoppingBag className="w-5 h-5 text-orange-600" />
-                  Todos los Pedidos ({orders.length})
-                </CardTitle>
+                <div className="flex justify-between items-center">
+                  <CardTitle className="flex items-center gap-2">
+                    <ShoppingBag className="w-5 h-5 text-orange-600" />
+                    Todos los Pedidos ({orders.length})
+                  </CardTitle>
+                  <Button onClick={exportPlayersCSV} variant="outline" size="sm">
+                    <FileDown className="w-4 h-4 mr-2" />
+                    Exportar CSV
+                  </Button>
+                </div>
               </CardHeader>
               <CardContent>
                 {isLoading ? (
