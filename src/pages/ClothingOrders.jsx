@@ -248,28 +248,28 @@ export default function ClothingOrders() {
   };
 
   const renderOrderDetails = (order) => (
-    <div className="space-y-2 text-sm">
+    <div className="space-y-1.5 lg:space-y-2 text-xs lg:text-sm">
       {order.chaqueta_partidos && (
-        <p className="text-slate-700">✅ <strong>Chaqueta de Partidos:</strong> {order.chaqueta_talla} - 35€</p>
+        <p className="text-slate-700">✅ <strong>Chaqueta:</strong> {order.chaqueta_talla} - 35€</p>
       )}
       {order.pack_entrenamiento && (
         <div className="text-slate-700 bg-blue-50 p-2 rounded border border-blue-200">
-          <p className="font-semibold mb-1">✅ Pack de Entrenamiento - 41€</p>
-          <ul className="list-disc list-inside ml-4 space-y-1 text-xs">
-            {order.pack_camiseta_talla && <li>👕 Camiseta: {order.pack_camiseta_talla}</li>}
-            {order.pack_pantalon_talla && <li>👖 Pantalón: {order.pack_pantalon_talla}</li>}
-            {order.pack_sudadera_talla && <li>🧥 Sudadera: {order.pack_sudadera_talla}</li>}
+          <p className="font-semibold mb-1 text-xs lg:text-sm">✅ Pack Entrenamiento - 41€</p>
+          <ul className="list-disc list-inside ml-2 lg:ml-4 space-y-0.5 text-xs">
+            {order.pack_camiseta_talla && <li>👕 {order.pack_camiseta_talla}</li>}
+            {order.pack_pantalon_talla && <li>👖 {order.pack_pantalon_talla}</li>}
+            {order.pack_sudadera_talla && <li>🧥 {order.pack_sudadera_talla}</li>}
           </ul>
         </div>
       )}
       {order.camiseta_individual && (
-        <p className="text-slate-700">✅ <strong>Camiseta Individual:</strong> {order.camiseta_individual_talla} - 10€</p>
+        <p className="text-slate-700">✅ <strong>Camiseta:</strong> {order.camiseta_individual_talla} - 10€</p>
       )}
       {order.pantalon_individual && (
-        <p className="text-slate-700">✅ <strong>Pantalón Individual:</strong> {order.pantalon_individual_talla} - 17€</p>
+        <p className="text-slate-700">✅ <strong>Pantalón:</strong> {order.pantalon_individual_talla} - 17€</p>
       )}
       {order.sudadera_individual && (
-        <p className="text-slate-700">✅ <strong>Sudadera Individual:</strong> {order.sudadera_individual_talla} - 18€</p>
+        <p className="text-slate-700">✅ <strong>Sudadera:</strong> {order.sudadera_individual_talla} - 18€</p>
       )}
       {order.chubasquero && (
         <p className="text-slate-700">✅ <strong>Chubasquero:</strong> {order.chubasquero_talla} - 20€</p>
@@ -278,9 +278,9 @@ export default function ClothingOrders() {
         <p className="text-slate-700">✅ <strong>Anorak:</strong> {order.anorak_talla} - 40€</p>
       )}
       {order.mochila && (
-        <p className="text-slate-700">✅ <strong>Mochila con botero:</strong> 22€</p>
+        <p className="text-slate-700">✅ <strong>Mochila:</strong> 22€</p>
       )}
-      <p className="text-slate-700 font-bold pt-2 border-t border-slate-200">
+      <p className="text-slate-700 font-bold pt-2 border-t border-slate-200 text-xs lg:text-sm">
         <strong>Total:</strong> {order.precio_total}€
       </p>
       <p className="text-slate-600 text-xs">
@@ -292,9 +292,9 @@ export default function ClothingOrders() {
             href={order.justificante_url}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-block px-3 py-1.5 bg-orange-100 hover:bg-orange-200 text-orange-700 rounded-lg text-xs font-medium transition-colors"
+            className="inline-block px-2 lg:px-3 py-1 lg:py-1.5 bg-orange-100 hover:bg-orange-200 text-orange-700 rounded-lg text-xs font-medium transition-colors"
           >
-            📄 Ver justificante {order.justificante_url.toLowerCase().endsWith('.pdf') ? '(PDF)' : '(Imagen)'}
+            📄 Ver {order.justificante_url.toLowerCase().endsWith('.pdf') ? 'PDF' : 'Imagen'}
           </a>
         </div>
       )}
@@ -385,15 +385,15 @@ export default function ClothingOrders() {
   };
 
   return (
-    <div className="p-6 lg:p-8 space-y-6">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+    <div className="p-3 lg:p-8 space-y-4 lg:space-y-6">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3">
         <div>
-          <h1 className="text-3xl font-bold text-slate-900">Pedidos de Equipación</h1>
-          <p className="text-slate-600 mt-1">
+          <h1 className="text-xl lg:text-3xl font-bold text-slate-900">Pedidos de Equipación</h1>
+          <p className="text-xs lg:text-base text-slate-600 mt-1">
             {isAdmin ? "Gestión de pedidos del club" : "Solicita la equipación para tus jugadores"}
           </p>
           {isAdmin && seasonConfig?.tienda_ropa_abierta && (
-            <Badge className="bg-green-600 text-white mt-2">
+            <Badge className="bg-green-600 text-white mt-2 text-xs">
               🛍️ Tienda abierta manualmente
             </Badge>
           )}
@@ -402,24 +402,26 @@ export default function ClothingOrders() {
           <Button
             onClick={() => toggleStoreMutation.mutate()}
             disabled={toggleStoreMutation.isPending}
-            className={`shadow-lg ${
+            size="sm"
+            className={`shadow-lg text-xs lg:text-sm ${
               seasonConfig?.tienda_ropa_abierta 
                 ? 'bg-red-600 hover:bg-red-700' 
                 : 'bg-green-600 hover:bg-green-700'
             }`}
           >
-            {toggleStoreMutation.isPending ? '⏳ Procesando...' : (
-              seasonConfig?.tienda_ropa_abierta ? '🔒 Cerrar Tienda' : '🛍️ Abrir Tienda'
+            {toggleStoreMutation.isPending ? '⏳' : (
+              seasonConfig?.tienda_ropa_abierta ? '🔒 Cerrar' : '🛍️ Abrir'
             )}
           </Button>
         ) : (
           <Button
             onClick={() => setShowForm(!showForm)}
-            className="bg-orange-600 hover:bg-orange-700 shadow-lg"
+            size="sm"
+            className="bg-orange-600 hover:bg-orange-700 shadow-lg text-xs lg:text-sm"
             disabled={!orderPeriodActive || players.length === 0}
           >
-            <Plus className="w-5 h-5 mr-2" />
-            Nuevo Pedido
+            <Plus className="w-4 h-4 lg:w-5 lg:h-5 lg:mr-2" />
+            <span className="hidden lg:inline">Nuevo Pedido</span>
           </Button>
         )}
       </div>
@@ -467,28 +469,29 @@ export default function ClothingOrders() {
 
       {isAdmin ? (
         <Tabs defaultValue="summary" className="w-full">
-          <TabsList className="bg-white shadow-sm">
-            <TabsTrigger value="summary">📊 Resumen Agrupado</TabsTrigger>
-            <TabsTrigger value="families">👨‍👩‍👧 Por Familia</TabsTrigger>
-            <TabsTrigger value="players">👤 Por Jugador</TabsTrigger>
-            <TabsTrigger value="orders">📋 Todos los Pedidos</TabsTrigger>
+          <TabsList className="bg-white shadow-sm grid grid-cols-2 lg:grid-cols-4 h-auto gap-1 p-1">
+            <TabsTrigger value="summary" className="text-xs lg:text-sm py-2">📊 Resumen</TabsTrigger>
+            <TabsTrigger value="families" className="text-xs lg:text-sm py-2">👨‍👩‍👧 Familia</TabsTrigger>
+            <TabsTrigger value="players" className="text-xs lg:text-sm py-2">👤 Jugador</TabsTrigger>
+            <TabsTrigger value="orders" className="text-xs lg:text-sm py-2">📋 Todos</TabsTrigger>
           </TabsList>
 
           <TabsContent value="summary" className="mt-6">
             <OrdersSummary orders={orders} />
           </TabsContent>
 
-          <TabsContent value="families" className="mt-6">
+          <TabsContent value="families" className="mt-3 lg:mt-6">
             <Card className="border-none shadow-lg">
-              <CardHeader>
-                <div className="flex justify-between items-center">
-                  <CardTitle className="flex items-center gap-2">
-                    <Users className="w-5 h-5 text-orange-600" />
-                    Pedidos por Familia
+              <CardHeader className="p-3 lg:p-6">
+                <div className="flex justify-between items-center gap-2">
+                  <CardTitle className="flex items-center gap-2 text-base lg:text-xl">
+                    <Users className="w-4 h-4 lg:w-5 lg:h-5 text-orange-600" />
+                    <span className="hidden lg:inline">Pedidos por Familia</span>
+                    <span className="lg:hidden">Familias</span>
                   </CardTitle>
-                  <Button onClick={exportFamiliesCSV} variant="outline" size="sm">
-                    <FileDown className="w-4 h-4 mr-2" />
-                    Exportar CSV
+                  <Button onClick={exportFamiliesCSV} variant="outline" size="sm" className="text-xs">
+                    <FileDown className="w-3 h-3 lg:w-4 lg:h-4 lg:mr-2" />
+                    <span className="hidden lg:inline">CSV</span>
                   </Button>
                 </div>
               </CardHeader>
@@ -571,17 +574,18 @@ export default function ClothingOrders() {
             </Card>
           </TabsContent>
 
-          <TabsContent value="players" className="mt-6">
+          <TabsContent value="players" className="mt-3 lg:mt-6">
             <Card className="border-none shadow-lg">
-              <CardHeader>
-                <div className="flex justify-between items-center">
-                  <CardTitle className="flex items-center gap-2">
-                    <ShoppingBag className="w-5 h-5 text-orange-600" />
-                    Pedidos por Jugador
+              <CardHeader className="p-3 lg:p-6">
+                <div className="flex justify-between items-center gap-2">
+                  <CardTitle className="flex items-center gap-2 text-base lg:text-xl">
+                    <ShoppingBag className="w-4 h-4 lg:w-5 lg:h-5 text-orange-600" />
+                    <span className="hidden lg:inline">Pedidos por Jugador</span>
+                    <span className="lg:hidden">Jugadores</span>
                   </CardTitle>
-                  <Button onClick={exportPlayersCSV} variant="outline" size="sm">
-                    <FileDown className="w-4 h-4 mr-2" />
-                    Exportar CSV
+                  <Button onClick={exportPlayersCSV} variant="outline" size="sm" className="text-xs">
+                    <FileDown className="w-3 h-3 lg:w-4 lg:h-4 lg:mr-2" />
+                    <span className="hidden lg:inline">CSV</span>
                   </Button>
                 </div>
               </CardHeader>
@@ -590,34 +594,34 @@ export default function ClothingOrders() {
                   {orders.map((order) => (
                     <div
                       key={order.id}
-                      className="p-4 rounded-lg border-2 border-slate-200 hover:border-orange-300 transition-colors bg-white"
+                      className="p-3 lg:p-4 rounded-lg border border-slate-200 hover:border-orange-300 transition-colors bg-white"
                     >
-                      <div className="flex justify-between items-start mb-3">
-                        <div>
-                          <h3 className="font-bold text-lg text-slate-900">{order.jugador_nombre}</h3>
-                          <p className="text-sm text-slate-600">{order.jugador_categoria}</p>
-                          <p className="text-xs text-slate-500 mt-1">📧 {order.email_padre}</p>
+                      <div className="flex justify-between items-start mb-2 lg:mb-3">
+                        <div className="min-w-0 flex-1">
+                          <h3 className="font-bold text-sm lg:text-lg text-slate-900 truncate">{order.jugador_nombre}</h3>
+                          <p className="text-xs lg:text-sm text-slate-600">{order.jugador_categoria}</p>
+                          <p className="text-xs text-slate-500 mt-1 truncate">📧 {order.email_padre}</p>
                         </div>
-                        <div className="flex gap-2">
-                          <Badge className={statusColors[order.estado]}>
+                        <div className="flex gap-1 lg:gap-2 flex-shrink-0 ml-2">
+                          <Badge className={`${statusColors[order.estado]} text-xs whitespace-nowrap`}>
                             <span className="mr-1">{statusEmojis[order.estado]}</span>
-                            {order.estado}
+                            <span className="hidden lg:inline">{order.estado}</span>
                           </Badge>
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="sm">
-                                <MoreVertical className="w-4 h-4" />
+                              <Button variant="ghost" size="sm" className="h-6 w-6 lg:h-8 lg:w-8 p-0">
+                                <MoreVertical className="w-3 h-3 lg:w-4 lg:h-4" />
                               </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent>
                               <DropdownMenuItem onClick={() => updateOrderStatusMutation.mutate({ orderId: order.id, newStatus: "Confirmado", notifyParent: true })}>
-                                <Check className="w-4 h-4 mr-2" /> Confirmar y notificar
+                                <Check className="w-4 h-4 mr-2" /> Confirmar
                               </DropdownMenuItem>
                               <DropdownMenuItem onClick={() => updateOrderStatusMutation.mutate({ orderId: order.id, newStatus: "Preparado", notifyParent: true })}>
-                                <Package className="w-4 h-4 mr-2" /> Marcar preparado
+                                <Package className="w-4 h-4 mr-2" /> Preparado
                               </DropdownMenuItem>
                               <DropdownMenuItem onClick={() => updateOrderStatusMutation.mutate({ orderId: order.id, newStatus: "Entregado", notifyParent: true })}>
-                                <Truck className="w-4 h-4 mr-2" /> Marcar entregado
+                                <Truck className="w-4 h-4 mr-2" /> Entregado
                               </DropdownMenuItem>
                             </DropdownMenuContent>
                           </DropdownMenu>
@@ -631,32 +635,33 @@ export default function ClothingOrders() {
             </Card>
           </TabsContent>
 
-          <TabsContent value="orders" className="mt-6">
+          <TabsContent value="orders" className="mt-3 lg:mt-6">
             <Card className="border-none shadow-lg">
-              <CardHeader>
-                <div className="flex justify-between items-center">
-                  <CardTitle className="flex items-center gap-2">
-                    <ShoppingBag className="w-5 h-5 text-orange-600" />
-                    Todos los Pedidos ({orders.length})
+              <CardHeader className="p-3 lg:p-6">
+                <div className="flex justify-between items-center gap-2">
+                  <CardTitle className="flex items-center gap-2 text-base lg:text-xl">
+                    <ShoppingBag className="w-4 h-4 lg:w-5 lg:h-5 text-orange-600" />
+                    <span className="hidden lg:inline">Todos los Pedidos ({orders.length})</span>
+                    <span className="lg:hidden">Todos ({orders.length})</span>
                   </CardTitle>
-                  <Button onClick={exportPlayersCSV} variant="outline" size="sm">
-                    <FileDown className="w-4 h-4 mr-2" />
-                    Exportar CSV
+                  <Button onClick={exportPlayersCSV} variant="outline" size="sm" className="text-xs">
+                    <FileDown className="w-3 h-3 lg:w-4 lg:h-4 lg:mr-2" />
+                    <span className="hidden lg:inline">CSV</span>
                   </Button>
                 </div>
               </CardHeader>
-              <CardContent>
+              <CardContent className="p-3 lg:p-6">
                 {isLoading ? (
-                  <div className="text-center py-12">
-                    <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-orange-600 border-r-transparent"></div>
+                  <div className="text-center py-8 lg:py-12">
+                    <div className="inline-block h-6 w-6 lg:h-8 lg:w-8 animate-spin rounded-full border-4 border-solid border-orange-600 border-r-transparent"></div>
                   </div>
                 ) : orders.length === 0 ? (
-                  <div className="text-center py-12">
-                    <ShoppingBag className="w-16 h-16 text-slate-300 mx-auto mb-4" />
-                    <p className="text-slate-500">No hay pedidos registrados</p>
+                  <div className="text-center py-8 lg:py-12">
+                    <ShoppingBag className="w-12 h-12 lg:w-16 lg:h-16 text-slate-300 mx-auto mb-3 lg:mb-4" />
+                    <p className="text-sm lg:text-base text-slate-500">No hay pedidos registrados</p>
                   </div>
                 ) : (
-                  <div className="space-y-4">
+                  <div className="space-y-3 lg:space-y-4">
                     {orders.map((order) => (
                       <div
                         key={order.id}
@@ -685,10 +690,10 @@ export default function ClothingOrders() {
       ) : (
         <>
           <Card className="border-none shadow-lg bg-blue-50 border-blue-200">
-            <CardHeader>
-              <CardTitle className="text-lg text-blue-900">ℹ️ Catálogo de Productos</CardTitle>
+            <CardHeader className="p-3 lg:p-6">
+              <CardTitle className="text-base lg:text-lg text-blue-900">ℹ️ Catálogo de Productos</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-3 text-sm text-blue-800">
+            <CardContent className="space-y-3 text-xs lg:text-sm text-blue-800 p-3 lg:p-6">
               <div className="grid md:grid-cols-2 gap-4">
                 <div className="bg-white rounded-lg p-4 border-2 border-blue-300">
                   <h4 className="font-bold text-blue-900 mb-2">🧥 Prendas Oficiales:</h4>
@@ -727,42 +732,42 @@ export default function ClothingOrders() {
           </Card>
 
           <Card className="border-none shadow-lg">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <ShoppingBag className="w-5 h-5 text-orange-600" />
+            <CardHeader className="p-3 lg:p-6">
+              <CardTitle className="flex items-center gap-2 text-base lg:text-xl">
+                <ShoppingBag className="w-4 h-4 lg:w-5 lg:h-5 text-orange-600" />
                 Mis Pedidos ({orders.length})
               </CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="p-3 lg:p-6">
               {isLoading ? (
-                <div className="text-center py-12">
-                  <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-orange-600 border-r-transparent"></div>
+                <div className="text-center py-8 lg:py-12">
+                  <div className="inline-block h-6 w-6 lg:h-8 lg:w-8 animate-spin rounded-full border-4 border-solid border-orange-600 border-r-transparent"></div>
                 </div>
               ) : orders.length === 0 ? (
-                <div className="text-center py-12">
-                  <ShoppingBag className="w-16 h-16 text-slate-300 mx-auto mb-4" />
-                  <p className="text-slate-500">No tienes pedidos registrados</p>
+                <div className="text-center py-8 lg:py-12">
+                  <ShoppingBag className="w-12 h-12 lg:w-16 lg:h-16 text-slate-300 mx-auto mb-3 lg:mb-4" />
+                  <p className="text-sm lg:text-base text-slate-500">No tienes pedidos registrados</p>
                   {orderPeriodActive ? (
-                    <p className="text-sm text-slate-400 mt-2">Haz clic en "Nuevo Pedido" para solicitar equipación</p>
+                    <p className="text-xs lg:text-sm text-slate-400 mt-2">Haz clic en "Nuevo Pedido" para solicitar equipación</p>
                   ) : (
-                    <p className="text-sm text-orange-600 mt-2">Los pedidos solo se pueden realizar en Junio y Julio</p>
+                    <p className="text-xs lg:text-sm text-orange-600 mt-2">Los pedidos solo se pueden realizar en Junio y Julio</p>
                   )}
                 </div>
               ) : (
-                <div className="space-y-4">
+                <div className="space-y-3 lg:space-y-4">
                   {orders.map((order) => (
                     <div
                       key={order.id}
-                      className="p-4 rounded-lg border-2 border-slate-200 hover:border-orange-300 transition-colors bg-white"
+                      className="p-3 lg:p-4 rounded-lg border border-slate-200 hover:border-orange-300 transition-colors bg-white"
                     >
-                      <div className="flex justify-between items-start mb-3">
-                        <div>
-                          <h3 className="font-bold text-lg text-slate-900">{order.jugador_nombre}</h3>
-                          <p className="text-sm text-slate-600">{order.jugador_categoria}</p>
+                      <div className="flex justify-between items-start mb-2 lg:mb-3 gap-2">
+                        <div className="min-w-0 flex-1">
+                          <h3 className="font-bold text-sm lg:text-lg text-slate-900 truncate">{order.jugador_nombre}</h3>
+                          <p className="text-xs lg:text-sm text-slate-600">{order.jugador_categoria}</p>
                         </div>
-                        <Badge className={statusColors[order.estado]}>
+                        <Badge className={`${statusColors[order.estado]} text-xs whitespace-nowrap flex-shrink-0`}>
                           <span className="mr-1">{statusEmojis[order.estado]}</span>
-                          {order.estado}
+                          <span className="hidden sm:inline">{order.estado}</span>
                         </Badge>
                       </div>
                       {renderOrderDetails(order)}
