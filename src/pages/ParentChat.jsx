@@ -390,8 +390,8 @@ export default function ParentChat() {
           )}
         </>
       ) : (
-        <div className="flex gap-4">
-          <div className="flex-1">
+        <div className="flex gap-4 h-screen">
+          <div className="flex-1 flex flex-col">
             {groups.length > 1 && (
               <div className="bg-white border-b overflow-x-auto flex-shrink-0 rounded-t-xl mb-4">
                 <div className="flex">
@@ -419,7 +419,7 @@ export default function ParentChat() {
             )}
 
             {selectedTab && currentGroup ? (
-              <div className="bg-white rounded-xl shadow-md border border-slate-200 overflow-hidden flex flex-col" style={{ height: 'calc(100vh - 200px)' }}>
+              <div className="bg-white rounded-xl shadow-md border border-slate-200 overflow-hidden flex flex-col flex-1">
                 <div className="bg-gradient-to-r from-orange-600 to-orange-700 p-4 text-white flex items-center gap-3 shadow-md flex-shrink-0">
                   <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
                     <span className="text-xl">{sportEmojis[currentGroup.deporte]}</span>
