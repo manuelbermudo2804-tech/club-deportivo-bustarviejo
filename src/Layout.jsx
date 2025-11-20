@@ -797,6 +797,20 @@ export default function Layout({ children, currentPageName }) {
       { title: "🎓 Chat Equipos", url: createPageUrl("CoachChat"), icon: MessageCircle, badge: unreadMessagesCount > 0 ? unreadMessagesCount : null, urgentBadge: urgentMessagesCount > 0 },
     ];
 
+  const treasurerNavigationItems = [
+      { title: "🏠 Inicio", url: createPageUrl("Home"), icon: Home },
+      ...(hasPlayers ? [{ title: "👨‍👩‍👧 Mis Hijos", url: createPageUrl("ParentPlayers"), icon: Users }] : []),
+      { title: "💰 Pagos", url: createPageUrl("Payments"), icon: CreditCard },
+      { title: "🔔 Recordatorios", url: createPageUrl("Reminders"), icon: Bell },
+      { title: "📋 Histórico Pagos", url: createPageUrl("PaymentHistory"), icon: Archive },
+      { title: "🛍️ Pedidos Ropa", url: createPageUrl("ClothingOrders"), icon: ShoppingBag },
+      { title: "⚙️ Temporadas", url: createPageUrl("SeasonManagement"), icon: Settings },
+      { title: "📅 Calendario", url: createPageUrl("Calendar"), icon: Calendar },
+      { title: "📢 Anuncios", url: createPageUrl("Announcements"), icon: Megaphone },
+      ...(hasPlayers ? [{ title: "👨‍👩‍👧 Confirmar Mis Hijos", url: createPageUrl("ParentCallups"), icon: ClipboardCheck, badge: pendingCallupsCount > 0 ? pendingCallupsCount : null }] : []),
+      ...(hasPlayers ? [{ title: "💬 Chat Familiar", url: createPageUrl("ParentChat"), icon: MessageCircle, badge: unreadMessagesCount > 0 ? unreadMessagesCount : null, urgentBadge: urgentMessagesCount > 0 }] : []),
+    ];
+
   const coordinatorNavigationItems = [
       { title: "🏠 Inicio", url: createPageUrl("Home"), icon: Home },
       ...(hasPlayers ? [{ title: "👨‍👩‍👧 Mis Hijos", url: createPageUrl("ParentPlayers"), icon: Users }] : []),
