@@ -1633,18 +1633,24 @@ export default function SeasonManagement() {
                 </ul>
               </div>
 
-              <div className="space-y-3">
-                <div>
-                  <Label className="text-sm font-medium" htmlFor="confirmText">
-                    Para confirmar, escribe: <span className="font-mono bg-red-100 px-2 py-1 rounded">CONFIRMAR</span>
+              <div className="space-y-4">
+                <div className="bg-red-50 border-2 border-red-300 rounded-lg p-4">
+                  <Label className="text-base font-bold text-red-900 mb-3 block" htmlFor="confirmText">
+                    ⚠️ Para confirmar, escribe exactamente: <span className="font-mono bg-red-600 text-white px-3 py-1 rounded text-lg">CONFIRMAR</span>
                   </Label>
                   <Input
                     id="confirmText"
                     value={confirmText}
-                    onChange={(e) => setConfirmText(e.target.value)}
-                    placeholder="Escribe CONFIRMAR"
-                    className="mt-1 border-red-300 focus:border-red-500"
+                    onChange={(e) => setConfirmText(e.target.value.trim())}
+                    placeholder="Escribe CONFIRMAR en mayúsculas"
+                    className="mt-2 text-lg font-bold border-red-400 focus:border-red-600"
                   />
+                  {confirmText && confirmText !== "CONFIRMAR" && (
+                    <p className="text-xs text-red-600 mt-1">❌ Debe ser exactamente "CONFIRMAR"</p>
+                  )}
+                  {confirmText === "CONFIRMAR" && (
+                    <p className="text-xs text-green-600 mt-1">✅ Correcto</p>
+                  )}
                 </div>
 
                 <div>
@@ -1656,6 +1662,12 @@ export default function SeasonManagement() {
                     onChange={(e) => setSecurityCheck({...securityCheck, emailConfirmacion: e.target.value})}
                     className="mt-1"
                   />
+                  {securityCheck.emailConfirmacion && securityCheck.emailConfirmacion !== currentUser?.email && (
+                    <p className="text-xs text-red-600 mt-1">❌ El email no coincide</p>
+                  )}
+                  {securityCheck.emailConfirmacion === currentUser?.email && (
+                    <p className="text-xs text-green-600 mt-1">✅ Email correcto</p>
+                  )}
                 </div>
 
                 {/* Removed password input field */}
