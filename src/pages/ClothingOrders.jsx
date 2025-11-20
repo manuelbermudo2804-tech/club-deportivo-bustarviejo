@@ -799,52 +799,104 @@ export default function ClothingOrders() {
             </CardContent>
           </Card>
 
-          <Card className="border-none shadow-lg">
-            <CardHeader className="p-3 lg:p-6">
-              <CardTitle className="flex items-center gap-2 text-base lg:text-xl">
-                <ShoppingBag className="w-4 h-4 lg:w-5 lg:h-5 text-orange-600" />
-                Mis Pedidos ({orders.length})
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="p-3 lg:p-6">
-              {isLoading ? (
-                <div className="text-center py-8 lg:py-12">
-                  <div className="inline-block h-6 w-6 lg:h-8 lg:w-8 animate-spin rounded-full border-4 border-solid border-orange-600 border-r-transparent"></div>
-                </div>
-              ) : orders.length === 0 ? (
-                <div className="text-center py-8 lg:py-12">
-                  <ShoppingBag className="w-12 h-12 lg:w-16 lg:h-16 text-slate-300 mx-auto mb-3 lg:mb-4" />
-                  <p className="text-sm lg:text-base text-slate-500">No tienes pedidos registrados</p>
-                  {orderPeriodActive ? (
-                    <p className="text-xs lg:text-sm text-slate-400 mt-2">Haz clic en "Nuevo Pedido" para solicitar equipación</p>
-                  ) : (
-                    <p className="text-xs lg:text-sm text-orange-600 mt-2">Los pedidos solo se pueden realizar en Junio y Julio</p>
-                  )}
-                </div>
-              ) : (
-                <div className="space-y-3 lg:space-y-4">
-                  {orders.map((order) => (
-                    <div
-                      key={order.id}
-                      className="p-3 lg:p-4 rounded-lg border border-slate-200 hover:border-orange-300 transition-colors bg-white"
-                    >
-                      <div className="flex justify-between items-start mb-2 lg:mb-3 gap-2">
-                        <div className="min-w-0 flex-1">
-                          <h3 className="font-bold text-sm lg:text-lg text-slate-900 truncate">{order.jugador_nombre}</h3>
-                          <p className="text-xs lg:text-sm text-slate-600">{order.jugador_categoria}</p>
-                        </div>
-                        <Badge className={`${statusColors[order.estado]} text-xs whitespace-nowrap flex-shrink-0`}>
-                          <span className="mr-1">{statusEmojis[order.estado]}</span>
-                          <span className="hidden sm:inline">{order.estado}</span>
-                        </Badge>
-                      </div>
-                      {renderOrderDetails(order)}
+          <Tabs defaultValue="active" className="w-full">
+            <TabsList className="bg-white shadow-sm grid grid-cols-2 h-auto gap-1 p-1 mb-4">
+              <TabsTrigger value="active" className="text-xs lg:text-sm py-2">
+                📋 Pedidos Activos ({orders.filter(o => o.estado !== "Entregado").length})
+              </TabsTrigger>
+              <TabsTrigger value="delivered" className="text-xs lg:text-sm py-2">
+                ✅ Pedidos Anteriores ({orders.filter(o => o.estado === "Entregado").length})
+              </TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="active">
+              <Card className="border-none shadow-lg">
+                <CardHeader className="p-3 lg:p-6">
+                  <CardTitle className="flex items-center gap-2 text-base lg:text-xl">
+                    <ShoppingBag className="w-4 h-4 lg:w-5 lg:h-5 text-orange-600" />
+                    Pedidos Activos
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="p-3 lg:p-6">
+                  {isLoading ? (
+                    <div className="text-center py-8 lg:py-12">
+                      <div className="inline-block h-6 w-6 lg:h-8 lg:w-8 animate-spin rounded-full border-4 border-solid border-orange-600 border-r-transparent"></div>
                     </div>
-                  ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
+                  ) : orders.filter(o => o.estado !== "Entregado").length === 0 ? (
+                    <div className="text-center py-8 lg:py-12">
+                      <ShoppingBag className="w-12 h-12 lg:w-16 lg:h-16 text-slate-300 mx-auto mb-3 lg:mb-4" />
+                      <p className="text-sm lg:text-base text-slate-500">No tienes pedidos activos</p>
+                      {orderPeriodActive ? (
+                        <p className="text-xs lg:text-sm text-slate-400 mt-2">Haz clic en "Nuevo Pedido" para solicitar equipación</p>
+                      ) : (
+                        <p className="text-xs lg:text-sm text-orange-600 mt-2">Los pedidos solo se pueden realizar en Junio y Julio</p>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="space-y-3 lg:space-y-4">
+                      {orders.filter(o => o.estado !== "Entregado").map((order) => (
+                        <div
+                          key={order.id}
+                          className="p-3 lg:p-4 rounded-lg border border-slate-200 hover:border-orange-300 transition-colors bg-white"
+                        >
+                          <div className="flex justify-between items-start mb-2 lg:mb-3 gap-2">
+                            <div className="min-w-0 flex-1">
+                              <h3 className="font-bold text-sm lg:text-lg text-slate-900 truncate">{order.jugador_nombre}</h3>
+                              <p className="text-xs lg:text-sm text-slate-600">{order.jugador_categoria}</p>
+                            </div>
+                            <Badge className={`${statusColors[order.estado]} text-xs whitespace-nowrap flex-shrink-0`}>
+                              <span className="mr-1">{statusEmojis[order.estado]}</span>
+                              <span className="hidden sm:inline">{order.estado}</span>
+                            </Badge>
+                          </div>
+                          {renderOrderDetails(order)}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="delivered">
+              <Card className="border-none shadow-lg bg-green-50">
+                <CardHeader className="p-3 lg:p-6">
+                  <CardTitle className="flex items-center gap-2 text-base lg:text-xl text-green-900">
+                    <Package className="w-4 h-4 lg:w-5 lg:h-5 text-green-600" />
+                    Pedidos Anteriores
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="p-3 lg:p-6">
+                  {orders.filter(o => o.estado === "Entregado").length === 0 ? (
+                    <div className="text-center py-8 lg:py-12">
+                      <Package className="w-12 h-12 lg:w-16 lg:h-16 text-green-300 mx-auto mb-3 lg:mb-4" />
+                      <p className="text-sm lg:text-base text-green-700">No tienes pedidos anteriores</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-3 lg:space-y-4">
+                      {orders.filter(o => o.estado === "Entregado").map((order) => (
+                        <div
+                          key={order.id}
+                          className="p-3 lg:p-4 rounded-lg border border-green-200 bg-white"
+                        >
+                          <div className="flex justify-between items-start mb-2 lg:mb-3 gap-2">
+                            <div className="min-w-0 flex-1">
+                              <h3 className="font-bold text-sm lg:text-lg text-slate-900 truncate">{order.jugador_nombre}</h3>
+                              <p className="text-xs lg:text-sm text-slate-600">{order.jugador_categoria}</p>
+                            </div>
+                            <Badge className="bg-green-100 text-green-700 text-xs whitespace-nowrap flex-shrink-0">
+                              ✅ Entregado
+                            </Badge>
+                          </div>
+                          {renderOrderDetails(order)}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </TabsContent>
+          </Tabs>
         </>
       )}
 
