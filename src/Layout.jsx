@@ -17,7 +17,7 @@ import ChatNotificationListener from "./components/push/ChatNotificationListener
 import WelcomeScreen from "./components/WelcomeScreen";
 import NotificationManager from "./components/notifications/NotificationManager";
 
-const CLUB_LOGO_URL = "https://www.cdbustarviejo.com/uploads/2/4/0/4/2404974/logo-cd-bustarviejo-cuadrado_orig.png";
+const CLUB_LOGO_URL = "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6911b8e453ca3ac01fb134d6/14072ed7d_logo_cd_bustarviejo_pequeo.jpg";
 
 const getCurrentSeason = () => {
   const now = new Date();
