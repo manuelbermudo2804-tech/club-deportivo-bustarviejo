@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { Clover, Search, Check, FileDown, Users } from "lucide-react";
+import { Clover, Search, Check, FileDown, Users, Grid3x3 } from "lucide-react";
 import { toast } from "sonner";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 
@@ -156,6 +156,73 @@ export default function LotteryManagement() {
     toast.success("CSV por jugador exportado");
   };
 
+  const exportByCategory = () => {
+    // Agrupar por categoría
+    const ordersByCategory = {};
+    orders.forEach(order => {
+      const cat = order.jugador_categoria || "Sin categoría";
+      if (!ordersByCategory[cat]) {
+        ordersByCategory[cat] = [];
+      }
+      ordersByCategory[cat].push(order);
+    });
+
+    // Ordenar categorías alfabéticamente
+    const sortedCategories = Object.keys(ordersByCategory).sort();
+
+    const rows = [
+      ['Categoría', 'Email Familia', 'Jugadores', 'Total Décimos', 'Total €', 'Estados']
+    ];
+
+    sortedCategories.forEach(categoria => {
+      const categoryOrders = ordersByCategory[categoria];
+      
+      // Agrupar por familia dentro de cada categoría
+      const ordersByFamily = {};
+      categoryOrders.forEach(order => {
+        const email = order.email_padre;
+        if (!ordersByFamily[email]) {
+          ordersByFamily[email] = [];
+        }
+        ordersByFamily[email].push(order);
+      });
+
+      // Añadir fila de encabezado de categoría
+      rows.push(['', '', '', '', '', '']);
+      rows.push([`📚 ${categoria}`, '', '', '', '', '']);
+      rows.push(['', '', '', '', '', '']);
+
+      // Añadir cada familia
+      Object.entries(ordersByFamily).forEach(([email, familyOrders]) => {
+        const jugadores = familyOrders.map(o => o.jugador_nombre).join(' + ');
+        const totalDecimos = familyOrders.reduce((sum, o) => sum + o.numero_decimos, 0);
+        const totalDinero = familyOrders.reduce((sum, o) => sum + o.total, 0);
+        const estados = familyOrders.map(o => `${o.jugador_nombre}: ${o.estado}`).join(' | ');
+
+        rows.push([
+          '',
+          email,
+          jugadores,
+          totalDecimos,
+          `${totalDinero}€`,
+          estados
+        ]);
+      });
+    });
+
+    const csvContent = '\ufeff' + rows.map(row => 
+      row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(',')
+    ).join('\r\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `loteria_por_categoria_${new Date().toISOString().split('T')[0]}.csv`;
+    link.click();
+    URL.revokeObjectURL(link.href);
+    toast.success("CSV por categoría exportado");
+  };
+
   const filteredOrders = orders.filter(order =>
     order.jugador_nombre?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     order.email_padre?.toLowerCase().includes(searchTerm.toLowerCase())
@@ -227,6 +294,10 @@ export default function LotteryManagement() {
           <Button onClick={exportByPlayer} variant="outline" size="sm">
             <FileDown className="w-4 h-4 mr-2" />
             Por Jugador
+          </Button>
+          <Button onClick={exportByCategory} variant="outline" size="sm" className="bg-orange-600 text-white hover:bg-orange-700">
+            <Grid3x3 className="w-4 h-4 mr-2" />
+            Por Categoría
           </Button>
         </div>
       </div>
