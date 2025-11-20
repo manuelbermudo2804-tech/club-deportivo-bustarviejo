@@ -494,7 +494,7 @@ export default function Layout({ children, currentPageName }) {
   const [currentLang, setCurrentLang] = useState(() => {
     return localStorage.getItem('appLanguage') || 'es';
   });
-  const [showWelcome, setShowWelcome] = useState(false);
+  const [showWelcome, setShowWelcome] = useState(true);
   const [loteriaVisible, setLoteriaVisible] = useState(false);
 
   const handleLanguageChange = (newLang) => {
