@@ -327,6 +327,12 @@ export default function Home() {
           gradient: "from-green-600 to-green-700",
         },
         {
+          title: "📊 Reportes Entrenadores",
+          icon: Star,
+          url: createPageUrl("CoachEvaluationReports"),
+          gradient: "from-purple-600 to-purple-700",
+        },
+        {
           title: "Horarios",
           icon: Clock,
           url: createPageUrl("TrainingSchedules"),
