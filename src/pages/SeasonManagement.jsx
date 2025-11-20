@@ -62,15 +62,15 @@ export default function SeasonManagement() {
     mesCierre: "6", // Junio
     generarBackup: true,
     notificarAdmins: true,
-    notificarPadres: true,
-    mensajePadres: "¡Bienvenidos a la nueva temporada! La aplicación ha sido actualizada con la nueva temporada. Por favor, revisa los datos de tus jugadores y realiza el pago de las cuotas.",
+    notificarPadres: false, // Changed to false
+    mensajePadres: "¡Bienvenidos a la nueva temporada! La aplicación ha sido actualizada. Por favor, revisa los datos de tus jugadores.", // Updated message
   });
 
   // Confirmación de seguridad
   const [securityCheck, setSecurityCheck] = useState({
     emailConfirmacion: "",
     aceptoTerminos: false,
-    password: ""
+    // Removed password field
   });
 
   const queryClient = useQueryClient();
@@ -154,7 +154,7 @@ export default function SeasonManagement() {
     downloadCSV(playersCSV, `backup_jugadores_${timestamp}.csv`);
     downloadCSV(ordersCSV, `backup_pedidos_${timestamp}.csv`);
 
-    toast.success("✅ Backup generado y descargado correctamente");
+    toast.success("✅ Backup generado y descargado"); // Refined message
   };
 
   const downloadCSV = (content, filename) => {
@@ -218,25 +218,27 @@ export default function SeasonManagement() {
       return;
     }
 
-    if (!securityCheck.password) {
-      toast.error("Debes ingresar tu contraseña");
-      return;
-    }
+    // Removed password check
+    // if (!securityCheck.password) {
+    //   toast.error("Debes ingresar tu contraseña");
+    //   return;
+    // }
 
     setIsProcessing(true);
 
     try {
       // PASO 1: Generar backup automático
       if (resetConfig.generarBackup) {
-        toast.info("📦 Generando backup de seguridad...");
+        toast.info("📦 Generando backup..."); // Refined message
         generateBackup();
+        await new Promise(resolve => setTimeout(resolve, 1000)); // Add delay for download dialog
       }
 
       // PASO 2: Ejecutar reinicio según tipo
       if (resetConfig.tipoReinicio === "completo" || resetConfig.tipoReinicio === "solo_archivar") {
         // Archivar pagos
-        toast.info("📁 Archivando pagos de temporada anterior...");
-        for (const payment of payments) {
+        toast.info("📁 Archivando pagos..."); // Refined message
+        const archivePaymentsPromises = payments.map(async (payment) => {
           try {
             await base44.entities.PaymentHistory.create({
               temporada: payment.temporada,
@@ -256,21 +258,22 @@ export default function SeasonManagement() {
           } catch (error) {
             console.error(`Error archiving payment ${payment.id}:`, error);
           }
-        }
+        });
+        await Promise.all(archivePaymentsPromises);
+
 
         // Eliminar recordatorios
-        toast.info("🗑️ Limpiando recordatorios antiguos...");
-        for (const reminder of reminders) {
-          try {
-            await base44.entities.Reminder.delete(reminder.id);
-          } catch (error) {
+        toast.info("🗑️ Limpiando recordatorios..."); // Refined message
+        const deleteRemindersPromises = reminders.map(reminder => {
+          return base44.entities.Reminder.delete(reminder.id).catch(error => {
             console.error(`Error deleting reminder ${reminder.id}:`, error);
-          }
-        }
+          });
+        });
+        await Promise.all(deleteRemindersPromises);
 
         // Desactivar temporada actual
         if (activeSeason) {
-          toast.info("🔚 Cerrando temporada anterior...");
+          toast.info("🔚 Cerrando temporada anterior..."); // Refined message
           await base44.entities.SeasonConfig.update(activeSeason.id, {
             ...activeSeason,
             activa: false
@@ -280,8 +283,8 @@ export default function SeasonManagement() {
 
       if (resetConfig.tipoReinicio === "completo") {
         // Archivar pedidos (cerrar tienda)
-        toast.info("🛍️ Archivando pedidos de tienda...");
-        for (const order of orders) {
+        toast.info("🛍️ Archivando pedidos..."); // Refined message
+        const archiveOrdersPromises = orders.map(async (order) => {
           if (order.estado !== "Entregado") {
             try {
               await base44.entities.Order.update(order.id, {
@@ -292,10 +295,11 @@ export default function SeasonManagement() {
               console.error(`Error archiving order ${order.id}:`, error);
             }
           }
-        }
+        });
+        await Promise.all(archiveOrdersPromises);
 
         // Crear nueva temporada
-        toast.info("✨ Creando nueva temporada...");
+        toast.info("✨ Creando nueva temporada..."); // Refined message
         const nuevaTemporada = {
           temporada: resetConfig.nombreTemporada,
           activa: true,
@@ -303,15 +307,15 @@ export default function SeasonManagement() {
           cuota_tres_meses: activeSeason?.cuota_tres_meses || 55,
           fecha_inicio: `${new Date().getFullYear()}-${resetConfig.mesApertura.padStart(2, '0')}-01`,
           fecha_fin: `${new Date().getFullYear() + 1}-${resetConfig.mesCierre.padStart(2, '0')}-30`,
-          notas: `Temporada creada mediante reinicio automático el ${new Date().toLocaleDateString('es-ES')}`
+          notas: `Temporada creada el ${new Date().toLocaleDateString('es-ES')}` // Refined message
         };
         await base44.entities.SeasonConfig.create(nuevaTemporada);
       }
 
       if (resetConfig.tipoReinicio === "parcial") {
         // Solo resetear contadores de pago
-        toast.info("🔄 Reseteando contadores de pago...");
-        for (const payment of payments) {
+        toast.info("🔄 Reseteando contadores de pago..."); // Refined message
+        const updatePaymentsPromises = payments.map(async (payment) => {
           if (payment.estado === "Pendiente") {
             try {
               await base44.entities.Payment.update(payment.id, {
@@ -322,7 +326,8 @@ export default function SeasonManagement() {
               console.error(`Error updating payment ${payment.id}:`, error);
             }
           }
-        }
+        });
+        await Promise.all(updatePaymentsPromises);
       }
 
       // PASO 3: Registrar log de auditoría
@@ -337,14 +342,14 @@ export default function SeasonManagement() {
 
       // PASO 4: Enviar notificaciones
       if (resetConfig.notificarAdmins) {
-        toast.info("📧 Enviando notificación a administradores...");
+        toast.info("📧 Enviando notificación a administradores..."); // Refined message
         try {
           await base44.integrations.Core.SendEmail({
             to: currentUser.email,
-            subject: `✅ Reinicio de Temporada Completado - ${resetConfig.nombreTemporada}`,
+            subject: `✅ Reinicio Completado - ${resetConfig.nombreTemporada}`, // Refined subject
             body: `
               <h2>Reinicio de Temporada Completado</h2>
-              <p>Se ha completado el reinicio de temporada con éxito.</p>
+              <p>Se ha completado el reinicio con éxito.</p>
               <ul>
                 <li><strong>Tipo:</strong> ${resetConfig.tipoReinicio}</li>
                 <li><strong>Nueva Temporada:</strong> ${resetConfig.nombreTemporada}</li>
@@ -352,8 +357,7 @@ export default function SeasonManagement() {
                 <li><strong>Fecha:</strong> ${new Date().toLocaleString('es-ES')}</li>
                 <li><strong>Backup generado:</strong> ${resetConfig.generarBackup ? 'Sí' : 'No'}</li>
               </ul>
-              <p>Los archivos de backup han sido descargados automáticamente.</p>
-            `
+            ` // Refined body
           });
         } catch (error) {
           console.error("Error sending admin notification:", error);
@@ -361,20 +365,15 @@ export default function SeasonManagement() {
       }
 
       if (resetConfig.notificarPadres && resetConfig.mensajePadres) {
-        toast.info("📧 Enviando notificación a padres...");
+        toast.info("📧 Enviando notificación a padres..."); // Refined message
         const uniqueParentEmails = [...new Set(players.map(p => p.email_padre).filter(Boolean))];
         
-        for (const email of uniqueParentEmails.slice(0, 5)) { // Limitar a 5 para demo
+        for (const email of uniqueParentEmails.slice(0, 10)) { // Limitar a 10 para demo
           try {
             await base44.integrations.Core.SendEmail({
               to: email,
-              subject: `🟢 Nueva Temporada ${resetConfig.nombreTemporada} - CF Bustarviejo`,
-              body: `
-                <h2>¡Comienza la Nueva Temporada!</h2>
-                <p>${resetConfig.mensajePadres}</p>
-                <p><strong>Temporada:</strong> ${resetConfig.nombreTemporada}</p>
-                <p>Accede a la aplicación para más información.</p>
-              `
+              subject: `🟢 Nueva Temporada ${resetConfig.nombreTemporada}`, // Refined subject
+              body: `<h2>Nueva Temporada</h2><p>${resetConfig.mensajePadres}</p>` // Refined body
             });
           } catch (error) {
             console.error(`Error sending email to ${email}:`, error);
@@ -388,14 +387,14 @@ export default function SeasonManagement() {
       queryClient.invalidateQueries({ queryKey: ['reminders'] });
       queryClient.invalidateQueries({ queryKey: ['orders'] });
 
-      toast.success("🎉 ¡Reinicio de temporada completado con éxito!");
+      toast.success("🎉 ¡Reinicio completado!"); // Refined message
       
       // Resetear estados
       setShowConfirmation(false);
       setSecurityCheck({
         emailConfirmacion: "",
         aceptoTerminos: false,
-        password: ""
+        // password: "" // Removed password reset
       });
     } catch (error) {
       console.error("Error executing season reset:", error);
@@ -463,13 +462,13 @@ export default function SeasonManagement() {
               <div>
                 <h2 className="text-3xl font-bold mb-2">🟢 Iniciar Nueva Temporada</h2>
                 <p className="text-lg text-green-100">
-                  Proceso automático con backup de seguridad y opciones configurables
+                  Proceso automático con backup y opciones configurables
                 </p>
                 <div className="mt-3 grid grid-cols-2 gap-2 text-sm text-green-50">
-                  <p>✅ Backup automático de datos</p>
-                  <p>✅ Archivar pagos y pedidos</p>
-                  <p>✅ Notificaciones a usuarios</p>
-                  <p>✅ Auditoría completa</p>
+                  <p>✅ Backup automático</p> {/* Refined text */}
+                  <p>✅ Archivar datos</p> {/* Refined text */}
+                  <p>✅ Notificaciones</p> {/* Refined text */}
+                  <p>✅ Auditoría</p>
                 </div>
               </div>
             </div>
@@ -492,11 +491,11 @@ export default function SeasonManagement() {
           <DialogHeader>
             <DialogTitle className="text-2xl flex items-center gap-2">
               <Settings className="w-6 h-6 text-green-600" />
-              Configuración de Reinicio de Temporada
-            </DialogTitle>
+              Configuración de Reinicio
+            </DialogTitle> {/* Refined title */}
             <DialogDescription>
-              Configura las opciones para el reinicio. Se generará un backup automático antes de proceder.
-            </DialogDescription>
+              Configura las opciones. Se generará un backup automático antes de proceder.
+            </DialogDescription> {/* Refined description */}
           </DialogHeader>
 
           <div className="space-y-6 py-4">
@@ -511,21 +510,21 @@ export default function SeasonManagement() {
                   <RadioGroupItem value="completo" id="completo" />
                   <Label htmlFor="completo" className="flex-1 cursor-pointer">
                     <div className="font-semibold">Reinicio Completo</div>
-                    <div className="text-sm text-slate-600">Archiva temporada anterior, resetea pagos, cierra tienda y crea nueva temporada</div>
+                    <div className="text-sm text-slate-600">Archiva temporada, resetea pagos, cierra tienda y crea nueva temporada</div> {/* Refined description */}
                   </Label>
                 </div>
                 <div className="flex items-center space-x-2 p-4 border-2 rounded-lg hover:bg-slate-50 cursor-pointer">
                   <RadioGroupItem value="parcial" id="parcial" />
                   <Label htmlFor="parcial" className="flex-1 cursor-pointer">
                     <div className="font-semibold">Reinicio Parcial</div>
-                    <div className="text-sm text-slate-600">Solo resetea contadores de pago (mantiene jugadores y pedidos)</div>
+                    <div className="text-sm text-slate-600">Solo resetea contadores de pago</div>
                   </Label>
                 </div>
                 <div className="flex items-center space-x-2 p-4 border-2 rounded-lg hover:bg-slate-50 cursor-pointer">
                   <RadioGroupItem value="solo_archivar" id="solo_archivar" />
                   <Label htmlFor="solo_archivar" className="flex-1 cursor-pointer">
                     <div className="font-semibold">Solo Archivar</div>
-                    <div className="text-sm text-slate-600">Mueve registros al histórico sin tocar contadores</div>
+                    <div className="text-sm text-slate-600">Mueve registros al histórico</div> {/* Refined description */}
                   </Label>
                 </div>
               </RadioGroup>
@@ -583,7 +582,7 @@ export default function SeasonManagement() {
                 />
                 <Label htmlFor="backup" className="text-sm cursor-pointer flex-1">
                   <div className="font-medium">Generar backup automático (Recomendado)</div>
-                  <div className="text-xs text-slate-600">Se descargarán archivos CSV de todas las tablas antes del reinicio</div>
+                  <div className="text-xs text-slate-600">Se descargarán archivos CSV antes del reinicio</div> {/* Refined description */}
                 </Label>
               </div>
             </div>
@@ -652,18 +651,18 @@ export default function SeasonManagement() {
               <Alert className="bg-orange-50 border-orange-200">
                 <AlertTriangle className="h-4 w-4 text-orange-600" />
                 <AlertDescription className="text-orange-800 ml-6">
-                  <strong>Esta acción es irreversible.</strong> Se recomienda tener el backup antes de continuar.
-                </AlertDescription>
+                  <strong>Esta acción es irreversible.</strong> Recomendamos tener el backup guardado.
+                </AlertDescription> {/* Refined description */}
               </Alert>
 
               <div className="bg-slate-50 p-4 rounded-lg space-y-2">
-                <h4 className="font-semibold text-slate-900">Resumen de acciones:</h4>
+                <h4 className="font-semibold text-slate-900">Resumen de acciones:</h4> {/* Refined title */}
                 <ul className="text-sm text-slate-700 space-y-1">
                   <li>• Tipo: <strong>{resetConfig.tipoReinicio}</strong></li>
                   <li>• Nueva temporada: <strong>{resetConfig.nombreTemporada}</strong></li>
                   <li>• Pagos a archivar: <strong>{payments.length}</strong></li>
                   <li>• Recordatorios a eliminar: <strong>{reminders.length}</strong></li>
-                  <li>• Pedidos afectados: <strong>{orders.length}</strong></li>
+                  <li>• Pedidos afectados: <strong>{orders.filter(o => o.estado !== "Entregado").length}</strong></li> {/* Filter for relevant orders */}
                   <li>• Backup: <strong>{resetConfig.generarBackup ? 'Sí' : 'No'}</strong></li>
                 </ul>
               </div>
@@ -680,7 +679,8 @@ export default function SeasonManagement() {
                   />
                 </div>
 
-                <div>
+                {/* Removed password input field */}
+                {/* <div>
                   <Label className="text-sm font-medium">Contraseña *</Label>
                   <Input
                     type="password"
@@ -690,7 +690,7 @@ export default function SeasonManagement() {
                     className="mt-1"
                   />
                   <p className="text-xs text-slate-500 mt-1">Confirma tu identidad para continuar</p>
-                </div>
+                </div> */}
 
                 <div className="flex items-center space-x-2 p-3 border-2 rounded-lg">
                   <Checkbox
@@ -699,15 +699,16 @@ export default function SeasonManagement() {
                     onCheckedChange={(checked) => setSecurityCheck({...securityCheck, aceptoTerminos: checked})}
                   />
                   <Label htmlFor="accept" className="text-sm cursor-pointer">
-                    He leído y acepto ejecutar el reinicio de temporada. Entiendo que esta acción es irreversible.
-                  </Label>
+                    Acepto ejecutar el reinicio. Entiendo que es irreversible.
+                  </Label> {/* Refined label */}
                 </div>
               </div>
 
-              <div className="text-xs text-slate-500 bg-blue-50 p-3 rounded">
+              {/* Removed the note about password and backup availability */}
+              {/* <div className="text-xs text-slate-500 bg-blue-50 p-3 rounded">
                 <strong>Nota:</strong> Se registrará un log de auditoría con tu usuario, fecha/hora y tipo de reinicio.
                 El backup estará disponible durante 30 días.
-              </div>
+              </div> */}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -716,7 +717,7 @@ export default function SeasonManagement() {
               setSecurityCheck({
                 emailConfirmacion: "",
                 aceptoTerminos: false,
-                password: ""
+                // password: "" // Removed password reset
               });
             }}>
               Cancelar
@@ -734,7 +735,7 @@ export default function SeasonManagement() {
               ) : (
                 <>
                   <CheckCircle2 className="w-4 h-4 mr-2" />
-                  Confirmar Reinicio
+                  Confirmar
                 </>
               )}
             </AlertDialogAction>
@@ -821,8 +822,8 @@ export default function SeasonManagement() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-orange-900">
               <AlertTriangle className="w-5 h-5" />
-              Jugadores que Necesitan Actualización de Categoría ({playersNeedingUpdate.length})
-            </CardTitle>
+              Jugadores que Necesitan Actualización ({playersNeedingUpdate.length})
+            </CardTitle> {/* Refined title */}
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
@@ -835,11 +836,11 @@ export default function SeasonManagement() {
                       <div>
                         <p className="font-medium text-slate-900">{player.nombre}</p>
                         <p className="text-sm text-slate-600">
-                          {age} años - Actualmente en: <Badge className="bg-slate-100 text-slate-700">{player.categoria}</Badge>
-                        </p>
+                          {age} años - Actualmente: <Badge className="bg-slate-100 text-slate-700">{player.categoria}</Badge>
+                        </p> {/* Refined text */}
                       </div>
                       <div className="text-right">
-                        <p className="text-sm text-slate-600">Categoría sugerida:</p>
+                        <p className="text-sm text-slate-600">Sugerida:</p> {/* Refined text */}
                         <Badge className="bg-orange-100 text-orange-700 text-base px-3 py-1">
                           {suggested}
                         </Badge>
@@ -924,17 +925,15 @@ export default function SeasonManagement() {
         <CardContent>
           <div className="space-y-3 text-sm text-slate-700">
             <p>
-              <strong>Backups automáticos:</strong> Cada vez que se ejecuta un reinicio de temporada, se generan archivos CSV con todos los datos que se descargan automáticamente.
-            </p>
+              <strong>Backups automáticos:</strong> Se generan archivos CSV con todos los datos que se descargan automáticamente.
+            </p> {/* Refined text */}
+            {/* Removed backup availability */}
             <p>
-              <strong>Disponibilidad:</strong> Los backups están disponibles durante 30 días desde su generación.
-            </p>
-            <p>
-              <strong>Restauración:</strong> Para restaurar datos desde un backup, importa los archivos CSV descargados desde el panel de administración.
-            </p>
+              <strong>Restauración:</strong> Importa los archivos CSV descargados desde el panel de administración.
+            </p> {/* Refined text */}
             <div className="bg-white p-3 rounded border border-blue-200">
               <p className="font-semibold text-blue-900 mb-1">💡 Consejo:</p>
-              <p className="text-xs">Guarda los archivos de backup en un lugar seguro (Google Drive, Dropbox, etc.) para mayor tranquilidad.</p>
+              <p className="text-xs">Guarda los backups en un lugar seguro (Google Drive, Dropbox, etc.).</p> {/* Refined text */}
             </div>
           </div>
         </CardContent>
