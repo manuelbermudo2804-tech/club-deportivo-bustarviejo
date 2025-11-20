@@ -58,17 +58,22 @@ export default function CoachEvaluationReports() {
     initialData: [],
   });
 
-  // Filtrar categorías según el rol del usuario (solo sus categorías asignadas)
+  // Filtrar categorías según el rol del usuario
     const allCategories = [...new Set(players.map(p => p.deporte).filter(Boolean))];
+    // Admin y coordinador ven todas las categorías
+    // Entrenadores (no coordinadores) solo ven sus categorías asignadas
     const categories = (user?.role === "admin" || user?.es_coordinador) 
       ? allCategories 
       : (user?.categorias_entrena || []);
 
   // Filtrar asistencias según rol y permisos
   const filteredAttendances = attendances.filter(att => {
-    // Filtrar por categorías del entrenador si no es admin ni coordinador
-    if (user?.role !== "admin" && !user?.es_coordinador && user?.categorias_entrena) {
-      if (!user.categorias_entrena.includes(att.categoria)) return false;
+    // Admin y coordinador: ven TODAS las categorías (sin restricción)
+    // Entrenadores (no coordinadores): SOLO ven sus categorías asignadas
+    if (user?.role !== "admin" && !user?.es_coordinador) {
+      // Si es entrenador pero no coordinador, filtrar por sus categorías
+      const coachCategories = user?.categorias_entrena || [];
+      if (!coachCategories.includes(att.categoria)) return false;
     }
     
     if (selectedCategory !== "all" && att.categoria !== selectedCategory) return false;
