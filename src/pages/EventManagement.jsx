@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Users, Calendar, MapPin, Clock, Mail, Bell, CheckCircle2, XCircle, HelpCircle, AlertTriangle, Download, Plus, Edit, Trash2, Eye } from "lucide-react";
+import { Users, Calendar, MapPin, Clock, Mail, Bell, CheckCircle2, XCircle, HelpCircle, AlertTriangle, Download, Plus, Edit, Trash2, Eye, Copy, Bookmark } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { toast } from "sonner";
@@ -28,6 +28,8 @@ export default function EventManagement() {
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [showRSVPDialog, setShowRSVPDialog] = useState(false);
   const [activeTab, setActiveTab] = useState("upcoming");
+  const [showTemplateDialog, setShowTemplateDialog] = useState(false);
+  const [templateName, setTemplateName] = useState("");
 
   const queryClient = useQueryClient();
 
@@ -53,6 +55,12 @@ export default function EventManagement() {
   const { data: players } = useQuery({
     queryKey: ['players'],
     queryFn: () => base44.entities.Player.list(),
+    initialData: [],
+  });
+
+  const { data: templates } = useQuery({
+    queryKey: ['eventTemplates'],
+    queryFn: () => base44.entities.EventTemplate.list('-created_date'),
     initialData: [],
   });
 
@@ -87,6 +95,81 @@ export default function EventManagement() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['events'] });
       toast.success("🗑️ Evento eliminado");
+    },
+  });
+
+  const saveAsTemplateMutation = useMutation({
+    mutationFn: async ({ event, name }) => {
+      const eventDate = new Date(event.fecha);
+      const templateData = {
+        nombre_plantilla: name,
+        titulo: event.titulo,
+        descripcion: event.descripcion,
+        tipo: event.tipo,
+        deporte: event.deporte,
+        categoria: event.categoria,
+        mes_tipico: eventDate.getMonth() + 1,
+        dia_semana_preferido: ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'][eventDate.getDay()],
+        hora: event.hora,
+        hora_fin: event.hora_fin,
+        ubicacion: event.ubicacion,
+        ubicacion_url: event.ubicacion_url,
+        importante: event.importante,
+        color: event.color,
+        requiere_confirmacion: event.requiere_confirmacion,
+        capacidad_maxima: event.capacidad_maxima,
+        precio: event.precio,
+        activa: true
+      };
+      return await base44.entities.EventTemplate.create(templateData);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['eventTemplates'] });
+      setShowTemplateDialog(false);
+      setTemplateName("");
+      setSelectedEvent(null);
+      toast.success("📋 Plantilla guardada");
+    },
+  });
+
+  const createFromTemplateMutation = useMutation({
+    mutationFn: async ({ template, fecha }) => {
+      const eventData = {
+        titulo: template.titulo,
+        descripcion: template.descripcion,
+        tipo: template.tipo,
+        deporte: template.deporte,
+        categoria: template.categoria,
+        fecha: fecha,
+        hora: template.hora,
+        hora_fin: template.hora_fin,
+        ubicacion: template.ubicacion,
+        ubicacion_url: template.ubicacion_url,
+        importante: template.importante,
+        color: template.color,
+        requiere_confirmacion: template.requiere_confirmacion,
+        capacidad_maxima: template.capacidad_maxima,
+        precio: template.precio,
+        publicado: true,
+        es_automatico: false,
+        notificado: false,
+        confirmaciones: []
+      };
+      return await base44.entities.Event.create(eventData);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['events'] });
+      toast.success("✅ Evento creado desde plantilla");
+    },
+  });
+
+  const deleteTemplateMutation = useMutation({
+    mutationFn: async (id) => {
+      return await base44.entities.EventTemplate.delete(id);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['eventTemplates'] });
+      toast.success("🗑️ Plantilla eliminada");
     },
   });
 
@@ -148,6 +231,41 @@ export default function EventManagement() {
   const handleDelete = (event) => {
     if (window.confirm(`¿Eliminar evento "${event.titulo}"?`)) {
       deleteEventMutation.mutate(event.id);
+    }
+  };
+
+  const handleDuplicate = (event) => {
+    setEditingEvent({
+      ...event,
+      fecha: new Date().toISOString().split('T')[0],
+      confirmaciones: []
+    });
+    setShowForm(true);
+  };
+
+  const handleSaveAsTemplate = (event) => {
+    setSelectedEvent(event);
+    setShowTemplateDialog(true);
+  };
+
+  const handleCreateFromTemplate = (template) => {
+    const today = new Date();
+    const suggestedDate = new Date(today.getFullYear(), template.mes_tipico - 1, 15);
+    const dateStr = suggestedDate.toISOString().split('T')[0];
+    
+    const confirmDate = prompt(
+      `Crear evento "${template.titulo}" para la fecha (formato: YYYY-MM-DD):`,
+      dateStr
+    );
+    
+    if (confirmDate) {
+      createFromTemplateMutation.mutate({ template, fecha: confirmDate });
+    }
+  };
+
+  const handleDeleteTemplate = (template) => {
+    if (window.confirm(`¿Eliminar plantilla "${template.nombre_plantilla}"?`)) {
+      deleteTemplateMutation.mutate(template.id);
     }
   };
 
@@ -242,11 +360,110 @@ export default function EventManagement() {
       )}
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-4">
+          <TabsTrigger value="templates">Plantillas ({templates.length})</TabsTrigger>
           <TabsTrigger value="upcoming">Próximos ({upcomingEvents.length})</TabsTrigger>
           <TabsTrigger value="rsvp">Con RSVP ({eventosConRSVP.length})</TabsTrigger>
           <TabsTrigger value="past">Pasados ({pastEvents.length})</TabsTrigger>
         </TabsList>
+
+        <TabsContent value="templates" className="space-y-4">
+          <Card className="bg-blue-50 border-blue-200">
+            <CardContent className="pt-6">
+              <div className="flex items-start gap-3">
+                <Bookmark className="w-5 h-5 text-blue-600 flex-shrink-0 mt-1" />
+                <div>
+                  <h3 className="font-semibold text-blue-900 mb-1">Plantillas de Eventos</h3>
+                  <p className="text-sm text-blue-700">
+                    Guarda eventos como plantillas para crearlos fácilmente cada año. Puedes ajustar las fechas según el calendario.
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {templates.length === 0 ? (
+            <Card>
+              <CardContent className="pt-6 text-center py-12">
+                <Bookmark className="w-12 h-12 text-slate-400 mx-auto mb-3" />
+                <p className="text-slate-500 mb-4">No hay plantillas guardadas</p>
+                <p className="text-sm text-slate-400">
+                  Crea un evento y guárdalo como plantilla usando el botón "Guardar como plantilla"
+                </p>
+              </CardContent>
+            </Card>
+          ) : (
+            <div className="grid gap-4">
+              {templates.filter(t => t.activa).map(template => (
+                <Card key={template.id} className="hover:shadow-lg transition-shadow border-blue-200">
+                  <CardHeader>
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-2">
+                          <Badge className="bg-blue-600">
+                            <Bookmark className="w-3 h-3 mr-1" />
+                            Plantilla
+                          </Badge>
+                          <Badge variant="outline">{template.tipo}</Badge>
+                          {template.importante && <Badge className="bg-red-600">Importante</Badge>}
+                        </div>
+                        <CardTitle className="text-xl">{template.nombre_plantilla}</CardTitle>
+                        <p className="text-sm text-slate-600 mt-1">{template.titulo}</p>
+                      </div>
+                      <div className="flex gap-2">
+                        <Button
+                          size="sm"
+                          onClick={() => handleCreateFromTemplate(template)}
+                          className="bg-green-600 hover:bg-green-700"
+                        >
+                          <Plus className="w-4 h-4 mr-1" />
+                          Crear
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => handleDeleteTemplate(template)}
+                          className="text-red-600 hover:bg-red-50"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    <div className="grid md:grid-cols-2 gap-3 text-sm">
+                      <div className="flex items-center gap-2 text-slate-700">
+                        <Calendar className="w-4 h-4 text-blue-600" />
+                        {template.mes_tipico && `Mes ${template.mes_tipico}`} • {template.dia_semana_preferido}
+                      </div>
+                      {template.hora && (
+                        <div className="flex items-center gap-2 text-slate-700">
+                          <Clock className="w-4 h-4 text-blue-600" />
+                          {template.hora}
+                        </div>
+                      )}
+                      {template.ubicacion && (
+                        <div className="flex items-center gap-2 text-slate-700">
+                          <MapPin className="w-4 h-4 text-blue-600" />
+                          {template.ubicacion}
+                        </div>
+                      )}
+                      {template.deporte && (
+                        <div className="flex items-center gap-2 text-slate-700">
+                          <span>🏃</span>
+                          {template.deporte} - {template.categoria}
+                        </div>
+                      )}
+                    </div>
+                    {template.descripcion && (
+                      <p className="text-sm text-slate-600">{template.descripcion}</p>
+                    )}
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
+        </TabsContent>
 
         <TabsContent value="upcoming" className="space-y-4">
           {upcomingEvents.length === 0 ? (
@@ -287,8 +504,25 @@ export default function EventManagement() {
                               setSelectedEvent(event);
                               setShowRSVPDialog(true);
                             }}
+                            title="Ver detalles"
                           >
                             <Eye className="w-4 h-4" />
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleDuplicate(event)}
+                            title="Duplicar evento"
+                          >
+                            <Copy className="w-4 h-4" />
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleSaveAsTemplate(event)}
+                            title="Guardar como plantilla"
+                          >
+                            <Bookmark className="w-4 h-4" />
                           </Button>
                           <Button
                             size="sm"
@@ -297,6 +531,7 @@ export default function EventManagement() {
                               setEditingEvent(event);
                               setShowForm(true);
                             }}
+                            title="Editar"
                           >
                             <Edit className="w-4 h-4" />
                           </Button>
@@ -305,6 +540,7 @@ export default function EventManagement() {
                             variant="outline"
                             onClick={() => handleDelete(event)}
                             className="text-red-600 hover:bg-red-50"
+                            title="Eliminar"
                           >
                             <Trash2 className="w-4 h-4" />
                           </Button>
@@ -519,6 +755,59 @@ export default function EventManagement() {
           )}
         </TabsContent>
       </Tabs>
+
+      {/* Dialog para guardar plantilla */}
+      <Dialog open={showTemplateDialog} onOpenChange={setShowTemplateDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Guardar como Plantilla</DialogTitle>
+            <DialogDescription>
+              Esta plantilla te permitirá crear el mismo evento cada año ajustando solo la fecha
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <label className="text-sm font-medium text-slate-700">Nombre de la plantilla</label>
+              <input
+                type="text"
+                className="w-full mt-1 px-3 py-2 border border-slate-300 rounded-lg"
+                placeholder="ej: Cena de Navidad, Torneo Primavera..."
+                value={templateName}
+                onChange={(e) => setTemplateName(e.target.value)}
+              />
+            </div>
+            {selectedEvent && (
+              <div className="bg-slate-50 rounded-lg p-3 text-sm">
+                <p className="font-medium text-slate-900 mb-1">Vista previa:</p>
+                <p className="text-slate-600">• {selectedEvent.titulo}</p>
+                <p className="text-slate-600">• {selectedEvent.tipo}</p>
+                <p className="text-slate-600">• {selectedEvent.ubicacion}</p>
+              </div>
+            )}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => {
+              setShowTemplateDialog(false);
+              setTemplateName("");
+              setSelectedEvent(null);
+            }}>
+              Cancelar
+            </Button>
+            <Button 
+              onClick={() => {
+                if (!templateName.trim()) {
+                  toast.error("Escribe un nombre para la plantilla");
+                  return;
+                }
+                saveAsTemplateMutation.mutate({ event: selectedEvent, name: templateName });
+              }}
+              disabled={!templateName.trim() || saveAsTemplateMutation.isPending}
+            >
+              Guardar Plantilla
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Dialog de detalles RSVP */}
       <Dialog open={showRSVPDialog} onOpenChange={setShowRSVPDialog}>
