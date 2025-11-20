@@ -233,7 +233,7 @@ export default function Home() {
           icon: ClipboardCheck,
           url: createPageUrl("ParentCallups"),
           gradient: "from-green-600 to-green-700",
-          badge: pendingCallupsCount(),
+          badge: pendingCallups,
           badgeLabel: "pendientes"
         });
       }
@@ -332,7 +332,7 @@ export default function Home() {
           icon: ClipboardCheck,
           url: createPageUrl("ParentCallups"),
           gradient: "from-green-600 to-green-700",
-          badge: pendingCallupsCount(),
+          badge: pendingCallups,
           badgeLabel: "pendientes"
         });
       }
