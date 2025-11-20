@@ -64,8 +64,20 @@ export default function SeasonManagement() {
     mesCierre: "6", // Junio
     generarBackup: true,
     notificarAdmins: true,
-    notificarPadres: false, // Changed to false
-    mensajePadres: "¡Bienvenidos a la nueva temporada! La aplicación ha sido actualizada. Por favor, revisa los datos de tus jugadores.", // Updated message
+    notificarPadres: false,
+    mensajePadres: "¡Bienvenidos a la nueva temporada! La aplicación ha sido actualizada. Por favor, revisa los datos de tus jugadores.",
+    // Opciones de borrado/archivo
+    borrarAsistencias: true,
+    borrarEvaluaciones: true,
+    borrarHorarios: false,
+    borrarCalendario: true,
+    borrarAnuncios: true,
+    borrarGaleria: false,
+    borrarConvocatorias: true,
+    borrarChats: true,
+    borrarEncuestas: true,
+    borrarResultados: true,
+    borrarPedidosRopa: true,
   });
 
   // Confirmación de seguridad
@@ -117,6 +129,78 @@ export default function SeasonManagement() {
   const { data: orders } = useQuery({
     queryKey: ['orders'],
     queryFn: () => base44.entities.Order.list(),
+    initialData: [],
+  });
+
+  const { data: attendances } = useQuery({
+    queryKey: ['attendances'],
+    queryFn: () => base44.entities.Attendance.list(),
+    initialData: [],
+  });
+
+  const { data: evaluations } = useQuery({
+    queryKey: ['evaluations'],
+    queryFn: () => base44.entities.PlayerEvaluation.list(),
+    initialData: [],
+  });
+
+  const { data: schedules } = useQuery({
+    queryKey: ['schedules'],
+    queryFn: () => base44.entities.TrainingSchedule.list(),
+    initialData: [],
+  });
+
+  const { data: events } = useQuery({
+    queryKey: ['events'],
+    queryFn: () => base44.entities.Event.list(),
+    initialData: [],
+  });
+
+  const { data: announcements } = useQuery({
+    queryKey: ['announcements'],
+    queryFn: () => base44.entities.Announcement.list(),
+    initialData: [],
+  });
+
+  const { data: gallery } = useQuery({
+    queryKey: ['gallery'],
+    queryFn: () => base44.entities.PhotoGallery.list(),
+    initialData: [],
+  });
+
+  const { data: callups } = useQuery({
+    queryKey: ['callups'],
+    queryFn: () => base44.entities.Convocatoria.list(),
+    initialData: [],
+  });
+
+  const { data: chats } = useQuery({
+    queryKey: ['chats'],
+    queryFn: () => base44.entities.ChatMessage.list(),
+    initialData: [],
+  });
+
+  const { data: surveys } = useQuery({
+    queryKey: ['surveys'],
+    queryFn: () => base44.entities.Survey.list(),
+    initialData: [],
+  });
+
+  const { data: surveyResponses } = useQuery({
+    queryKey: ['surveyResponses'],
+    queryFn: () => base44.entities.SurveyResponse.list(),
+    initialData: [],
+  });
+
+  const { data: matchResults } = useQuery({
+    queryKey: ['matchResults'],
+    queryFn: () => base44.entities.MatchResult.list(),
+    initialData: [],
+  });
+
+  const { data: clothingOrders } = useQuery({
+    queryKey: ['clothingOrders'],
+    queryFn: () => base44.entities.ClothingOrder.list(),
     initialData: [],
   });
 
@@ -314,6 +398,108 @@ export default function SeasonManagement() {
           }
         });
         await Promise.all(updatePlayersPromises);
+
+        // Borrar asistencias
+        if (resetConfig.borrarAsistencias) {
+          toast.info("📋 Eliminando asistencias...");
+          const deleteAttendancesPromises = attendances.map(a => 
+            base44.entities.Attendance.delete(a.id).catch(error => console.error(`Error deleting attendance ${a.id}:`, error))
+          );
+          await Promise.all(deleteAttendancesPromises);
+        }
+
+        // Borrar evaluaciones
+        if (resetConfig.borrarEvaluaciones) {
+          toast.info("⭐ Eliminando evaluaciones...");
+          const deleteEvaluationsPromises = evaluations.map(e => 
+            base44.entities.PlayerEvaluation.delete(e.id).catch(error => console.error(`Error deleting evaluation ${e.id}:`, error))
+          );
+          await Promise.all(deleteEvaluationsPromises);
+        }
+
+        // Borrar horarios
+        if (resetConfig.borrarHorarios) {
+          toast.info("⏰ Eliminando horarios...");
+          const deleteSchedulesPromises = schedules.map(s => 
+            base44.entities.TrainingSchedule.delete(s.id).catch(error => console.error(`Error deleting schedule ${s.id}:`, error))
+          );
+          await Promise.all(deleteSchedulesPromises);
+        }
+
+        // Borrar calendario
+        if (resetConfig.borrarCalendario) {
+          toast.info("📅 Eliminando eventos...");
+          const deleteEventsPromises = events.map(e => 
+            base44.entities.Event.delete(e.id).catch(error => console.error(`Error deleting event ${e.id}:`, error))
+          );
+          await Promise.all(deleteEventsPromises);
+        }
+
+        // Borrar anuncios
+        if (resetConfig.borrarAnuncios) {
+          toast.info("📢 Eliminando anuncios...");
+          const deleteAnnouncementsPromises = announcements.map(a => 
+            base44.entities.Announcement.delete(a.id).catch(error => console.error(`Error deleting announcement ${a.id}:`, error))
+          );
+          await Promise.all(deleteAnnouncementsPromises);
+        }
+
+        // Borrar galería
+        if (resetConfig.borrarGaleria) {
+          toast.info("🖼️ Eliminando galería...");
+          const deleteGalleryPromises = gallery.map(g => 
+            base44.entities.PhotoGallery.delete(g.id).catch(error => console.error(`Error deleting gallery ${g.id}:`, error))
+          );
+          await Promise.all(deleteGalleryPromises);
+        }
+
+        // Borrar convocatorias
+        if (resetConfig.borrarConvocatorias) {
+          toast.info("🎓 Eliminando convocatorias...");
+          const deleteCallupsPromises = callups.map(c => 
+            base44.entities.Convocatoria.delete(c.id).catch(error => console.error(`Error deleting callup ${c.id}:`, error))
+          );
+          await Promise.all(deleteCallupsPromises);
+        }
+
+        // Borrar chats
+        if (resetConfig.borrarChats) {
+          toast.info("💬 Eliminando mensajes...");
+          const deleteChatsPromises = chats.map(c => 
+            base44.entities.ChatMessage.delete(c.id).catch(error => console.error(`Error deleting chat ${c.id}:`, error))
+          );
+          await Promise.all(deleteChatsPromises);
+        }
+
+        // Borrar encuestas y respuestas
+        if (resetConfig.borrarEncuestas) {
+          toast.info("📋 Eliminando encuestas...");
+          const deleteSurveysPromises = surveys.map(s => 
+            base44.entities.Survey.delete(s.id).catch(error => console.error(`Error deleting survey ${s.id}:`, error))
+          );
+          const deleteResponsesPromises = surveyResponses.map(r => 
+            base44.entities.SurveyResponse.delete(r.id).catch(error => console.error(`Error deleting response ${r.id}:`, error))
+          );
+          await Promise.all([...deleteSurveysPromises, ...deleteResponsesPromises]);
+        }
+
+        // Borrar resultados
+        if (resetConfig.borrarResultados) {
+          toast.info("⚽ Eliminando resultados...");
+          const deleteResultsPromises = matchResults.map(m => 
+            base44.entities.MatchResult.delete(m.id).catch(error => console.error(`Error deleting result ${m.id}:`, error))
+          );
+          await Promise.all(deleteResultsPromises);
+        }
+
+        // Borrar pedidos de ropa
+        if (resetConfig.borrarPedidosRopa) {
+          toast.info("👕 Eliminando pedidos de ropa...");
+          const deleteClothingPromises = clothingOrders.map(o => 
+            base44.entities.ClothingOrder.delete(o.id).catch(error => console.error(`Error deleting clothing order ${o.id}:`, error))
+          );
+          await Promise.all(deleteClothingPromises);
+        }
 
         // Crear nueva temporada
         toast.info("✨ Creando nueva temporada..."); // Refined message
@@ -624,6 +810,126 @@ export default function SeasonManagement() {
                   <div className="font-medium">Generar backup automático (Recomendado)</div>
                   <div className="text-xs text-slate-600">Se descargarán archivos CSV antes del reinicio</div> {/* Refined description */}
                 </Label>
+              </div>
+            </div>
+
+            {/* Datos a Eliminar */}
+            <div className="space-y-3">
+              <Label className="text-base font-semibold flex items-center gap-2">
+                <Database className="w-4 h-4" />
+                Datos a Eliminar
+              </Label>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="flex items-center space-x-2 p-3 rounded-lg border">
+                  <Checkbox
+                    id="borrarAsistencias"
+                    checked={resetConfig.borrarAsistencias}
+                    onCheckedChange={(checked) => setResetConfig({...resetConfig, borrarAsistencias: checked})}
+                  />
+                  <Label htmlFor="borrarAsistencias" className="text-sm cursor-pointer">
+                    📋 Asistencias ({attendances.length})
+                  </Label>
+                </div>
+                <div className="flex items-center space-x-2 p-3 rounded-lg border">
+                  <Checkbox
+                    id="borrarEvaluaciones"
+                    checked={resetConfig.borrarEvaluaciones}
+                    onCheckedChange={(checked) => setResetConfig({...resetConfig, borrarEvaluaciones: checked})}
+                  />
+                  <Label htmlFor="borrarEvaluaciones" className="text-sm cursor-pointer">
+                    ⭐ Evaluaciones ({evaluations.length})
+                  </Label>
+                </div>
+                <div className="flex items-center space-x-2 p-3 rounded-lg border">
+                  <Checkbox
+                    id="borrarHorarios"
+                    checked={resetConfig.borrarHorarios}
+                    onCheckedChange={(checked) => setResetConfig({...resetConfig, borrarHorarios: checked})}
+                  />
+                  <Label htmlFor="borrarHorarios" className="text-sm cursor-pointer">
+                    ⏰ Horarios ({schedules.length})
+                  </Label>
+                </div>
+                <div className="flex items-center space-x-2 p-3 rounded-lg border">
+                  <Checkbox
+                    id="borrarCalendario"
+                    checked={resetConfig.borrarCalendario}
+                    onCheckedChange={(checked) => setResetConfig({...resetConfig, borrarCalendario: checked})}
+                  />
+                  <Label htmlFor="borrarCalendario" className="text-sm cursor-pointer">
+                    📅 Eventos ({events.length})
+                  </Label>
+                </div>
+                <div className="flex items-center space-x-2 p-3 rounded-lg border">
+                  <Checkbox
+                    id="borrarAnuncios"
+                    checked={resetConfig.borrarAnuncios}
+                    onCheckedChange={(checked) => setResetConfig({...resetConfig, borrarAnuncios: checked})}
+                  />
+                  <Label htmlFor="borrarAnuncios" className="text-sm cursor-pointer">
+                    📢 Anuncios ({announcements.length})
+                  </Label>
+                </div>
+                <div className="flex items-center space-x-2 p-3 rounded-lg border">
+                  <Checkbox
+                    id="borrarGaleria"
+                    checked={resetConfig.borrarGaleria}
+                    onCheckedChange={(checked) => setResetConfig({...resetConfig, borrarGaleria: checked})}
+                  />
+                  <Label htmlFor="borrarGaleria" className="text-sm cursor-pointer">
+                    🖼️ Galería ({gallery.length})
+                  </Label>
+                </div>
+                <div className="flex items-center space-x-2 p-3 rounded-lg border">
+                  <Checkbox
+                    id="borrarConvocatorias"
+                    checked={resetConfig.borrarConvocatorias}
+                    onCheckedChange={(checked) => setResetConfig({...resetConfig, borrarConvocatorias: checked})}
+                  />
+                  <Label htmlFor="borrarConvocatorias" className="text-sm cursor-pointer">
+                    🎓 Convocatorias ({callups.length})
+                  </Label>
+                </div>
+                <div className="flex items-center space-x-2 p-3 rounded-lg border">
+                  <Checkbox
+                    id="borrarChats"
+                    checked={resetConfig.borrarChats}
+                    onCheckedChange={(checked) => setResetConfig({...resetConfig, borrarChats: checked})}
+                  />
+                  <Label htmlFor="borrarChats" className="text-sm cursor-pointer">
+                    💬 Mensajes ({chats.length})
+                  </Label>
+                </div>
+                <div className="flex items-center space-x-2 p-3 rounded-lg border">
+                  <Checkbox
+                    id="borrarEncuestas"
+                    checked={resetConfig.borrarEncuestas}
+                    onCheckedChange={(checked) => setResetConfig({...resetConfig, borrarEncuestas: checked})}
+                  />
+                  <Label htmlFor="borrarEncuestas" className="text-sm cursor-pointer">
+                    📋 Encuestas ({surveys.length})
+                  </Label>
+                </div>
+                <div className="flex items-center space-x-2 p-3 rounded-lg border">
+                  <Checkbox
+                    id="borrarResultados"
+                    checked={resetConfig.borrarResultados}
+                    onCheckedChange={(checked) => setResetConfig({...resetConfig, borrarResultados: checked})}
+                  />
+                  <Label htmlFor="borrarResultados" className="text-sm cursor-pointer">
+                    ⚽ Resultados ({matchResults.length})
+                  </Label>
+                </div>
+                <div className="flex items-center space-x-2 p-3 rounded-lg border">
+                  <Checkbox
+                    id="borrarPedidosRopa"
+                    checked={resetConfig.borrarPedidosRopa}
+                    onCheckedChange={(checked) => setResetConfig({...resetConfig, borrarPedidosRopa: checked})}
+                  />
+                  <Label htmlFor="borrarPedidosRopa" className="text-sm cursor-pointer">
+                    👕 Pedidos Ropa ({clothingOrders.length})
+                  </Label>
+                </div>
               </div>
             </div>
 
