@@ -899,13 +899,17 @@ export default function Layout({ children, currentPageName }) {
 
   return (
     <>
-      <SessionManager />
-      <NotificationBadge />
-      {user && <ChatNotificationListener user={user} />}
-      {user && <NotificationManager user={user} />}
       {showWelcome && <WelcomeScreen onComplete={() => setShowWelcome(false)} />}
+      {!showWelcome && (
+        <>
+          <SessionManager />
+          <NotificationBadge />
+          {user && <ChatNotificationListener user={user} />}
+          {user && <NotificationManager user={user} />}
+        </>
+      )}
       
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
+      {!showWelcome && <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
         
         <header className="lg:hidden fixed top-0 left-0 right-0 z-50 bg-gradient-to-r from-orange-600 to-orange-700 shadow-lg">
           <div className="flex items-center justify-between p-3">
@@ -1084,7 +1088,7 @@ export default function Layout({ children, currentPageName }) {
         <main className="lg:ml-72 min-h-screen pt-[120px] lg:pt-0">
           {children}
         </main>
-      </div>
+      </div>}
     </>
   );
 }
