@@ -557,11 +557,15 @@ export default function Layout({ children, currentPageName }) {
           }, []);
 
           useEffect(() => {
-          if (user && !isAdmin && !isCoach && !isCoordinator && !isPlayer) {
-          if (location.pathname === '/' || location.pathname === '') {
-          navigate(createPageUrl('ParentDashboard'));
-          }
-          }
+            if (user && (location.pathname === '/' || location.pathname === '')) {
+              if (isAdmin || isCoach || isCoordinator) {
+                navigate(createPageUrl('Home'));
+              } else if (isPlayer) {
+                navigate(createPageUrl('PlayerDashboard'));
+              } else {
+                navigate(createPageUrl('ParentDashboard'));
+              }
+            }
           }, [user, isAdmin, isCoach, isCoordinator, isPlayer, location.pathname, navigate]);
 
   useEffect(() => {
