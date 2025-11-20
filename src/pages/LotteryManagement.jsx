@@ -145,6 +145,7 @@ export default function LotteryManagement() {
   });
 
   const totalDecimos = orders.reduce((sum, o) => sum + (o.numero_decimos || 0), 0);
+  const gananciasClub = totalDecimos * 2;
 
   const exportPDF = () => {
     const doc = new jsPDF();
@@ -346,24 +347,41 @@ export default function LotteryManagement() {
         </div>
         </div>
 
-        <Card className="border-none shadow-lg bg-gradient-to-br from-orange-50 to-orange-100">
-        <CardContent className="pt-6">
-          <div className="flex justify-between items-center">
-            <div>
-              <p className="text-sm text-slate-600 mb-1">
-                {user?.role === "admin" ? "Total Décimos (Club)" : "Total Décimos (Mis Categorías)"}
-              </p>
-              <p className="text-4xl font-bold text-orange-600">{totalDecimos}</p>
-              {user?.role !== "admin" && (
-                <p className="text-xs text-slate-600 mt-2">
-                  {Object.keys(decimosPorCategoria).length} categoría{Object.keys(decimosPorCategoria).length > 1 ? 's' : ''}
-                </p>
-              )}
-            </div>
-            <Clover className="w-16 h-16 text-orange-400 opacity-50" />
-          </div>
-        </CardContent>
-        </Card>
+        <div className="grid md:grid-cols-2 gap-4">
+          <Card className="border-none shadow-lg bg-gradient-to-br from-orange-50 to-orange-100">
+            <CardContent className="pt-6">
+              <div className="flex justify-between items-center">
+                <div>
+                  <p className="text-sm text-slate-600 mb-1">
+                    {user?.role === "admin" ? "Total Décimos (Club)" : "Total Décimos (Mis Categorías)"}
+                  </p>
+                  <p className="text-4xl font-bold text-orange-600">{totalDecimos}</p>
+                  {user?.role !== "admin" && (
+                    <p className="text-xs text-slate-600 mt-2">
+                      {Object.keys(decimosPorCategoria).length} categoría{Object.keys(decimosPorCategoria).length > 1 ? 's' : ''}
+                    </p>
+                  )}
+                </div>
+                <Clover className="w-16 h-16 text-orange-400 opacity-50" />
+              </div>
+            </CardContent>
+          </Card>
+
+          {user?.role === "admin" && (
+            <Card className="border-none shadow-lg bg-gradient-to-br from-green-50 to-green-100">
+              <CardContent className="pt-6">
+                <div className="flex justify-between items-center">
+                  <div>
+                    <p className="text-sm text-slate-600 mb-1">💰 Ganancias Club</p>
+                    <p className="text-4xl font-bold text-green-600">{gananciasClub}€</p>
+                    <p className="text-xs text-slate-600 mt-2">2€ por décimo vendido</p>
+                  </div>
+                  <div className="text-5xl">💸</div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+        </div>
 
         <div className="space-y-4">
         {Object.entries(decimosPorCategoria).sort(([a], [b]) => a.localeCompare(b)).map(([categoria, stats]) => {
