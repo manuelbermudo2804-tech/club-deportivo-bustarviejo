@@ -484,6 +484,7 @@ export default function Layout({ children, currentPageName }) {
   const [isPlayer, setIsPlayer] = useState(false);
   const [isCoach, setIsCoach] = useState(false);
   const [isCoordinator, setIsCoordinator] = useState(false);
+  const [isTreasurer, setIsTreasurer] = useState(false);
   const [hasPlayers, setHasPlayers] = useState(false);
   const [unreadMessagesCount, setUnreadMessagesCount] = useState(0);
   const [urgentMessagesCount, setUrgentMessagesCount] = useState(0);
