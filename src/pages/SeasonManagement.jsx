@@ -358,7 +358,13 @@ export default function SeasonManagement() {
         await new Promise(resolve => setTimeout(resolve, 1000)); // Add delay for download dialog
       }
 
-      // PASO 2: Ejecutar reinicio según tipo
+      // PASO 2: Guardar cuotas de temporada actual antes de cualquier cambio
+      const cuotasTemporadaAnterior = {
+        cuota_unica: activeSeason?.cuota_unica || 150,
+        cuota_tres_meses: activeSeason?.cuota_tres_meses || 55,
+      };
+
+      // PASO 3: Ejecutar reinicio según tipo
       if (resetConfig.tipoReinicio === "completo" || resetConfig.tipoReinicio === "solo_archivar") {
         // Archivar pagos
         toast.info("📁 Archivando pagos..."); // Refined message
@@ -580,10 +586,12 @@ export default function SeasonManagement() {
         const nuevaTemporada = {
           temporada: resetConfig.nombreTemporada,
           activa: true,
-          cuota_unica: activeSeason?.cuota_unica || 150,
-          cuota_tres_meses: activeSeason?.cuota_tres_meses || 55,
+          cuota_unica: cuotasTemporadaAnterior.cuota_unica,
+          cuota_tres_meses: cuotasTemporadaAnterior.cuota_tres_meses,
           fecha_inicio: `${new Date().getFullYear()}-${resetConfig.mesApertura.padStart(2, '0')}-01`,
           fecha_fin: `${new Date().getFullYear() + 1}-${resetConfig.mesCierre.padStart(2, '0')}-30`,
+          tienda_ropa_abierta: false,
+          loteria_navidad_abierta: false,
           notas: `Temporada creada el ${new Date().toLocaleDateString('es-ES')}` // Refined message
         };
         await base44.entities.SeasonConfig.create(nuevaTemporada);
@@ -642,7 +650,7 @@ export default function SeasonManagement() {
         await Promise.all(updatePaymentsPromises);
       }
 
-      // PASO 3: Registrar log de auditoría
+      // PASO 4: Registrar log de auditoría
       const logEntry = {
         administrador: currentUser.email,
         fecha: new Date().toISOString(),
@@ -652,7 +660,7 @@ export default function SeasonManagement() {
       };
       console.log("LOG DE AUDITORÍA:", logEntry);
 
-      // PASO 4: Enviar notificaciones
+      // PASO 5: Enviar notificaciones
       if (resetConfig.notificarAdmins) {
         toast.info("📧 Enviando notificación a administradores..."); // Refined message
         try {
