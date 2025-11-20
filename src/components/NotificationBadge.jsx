@@ -26,7 +26,32 @@ export default function NotificationBadge() {
     queryKey: ['events'],
     queryFn: () => base44.entities.Event.list(),
     initialData: [],
-    refetchInterval: 30000, // Check events every 30 seconds
+    refetchInterval: 30000,
+  });
+
+  const { data: announcements } = useQuery({
+    queryKey: ['announcements'],
+    queryFn: () => base44.entities.Announcement.list(),
+    initialData: [],
+    refetchInterval: 30000,
+  });
+
+  const { data: appNotifications } = useQuery({
+    queryKey: ['appNotifications', user?.email],
+    queryFn: async () => {
+      const all = await base44.entities.AppNotification.list();
+      return all.filter(n => n.usuario_email === user?.email && !n.vista);
+    },
+    initialData: [],
+    refetchInterval: 10000,
+    enabled: !!user?.email,
+  });
+
+  const { data: callups } = useQuery({
+    queryKey: ['callups'],
+    queryFn: () => base44.entities.Convocatoria.list(),
+    initialData: [],
+    refetchInterval: 30000,
   });
 
   useEffect(() => {
@@ -83,6 +108,52 @@ export default function NotificationBadge() {
       }
     });
 
+    // Count new announcements (published in the last 24 hours)
+    announcements.forEach(announcement => {
+      if (announcement.publicado && announcement.created_date) {
+        const announcementCreated = new Date(announcement.created_date);
+        if (announcementCreated > oneDayAgo) {
+          unreadCount++;
+        }
+      }
+    });
+
+    // Count unread app notifications
+    unreadCount += appNotifications.length;
+
+    // Count pending callups (only for parents and players)
+    if (!isAdmin) {
+      const today = new Date().toISOString().split('T')[0];
+      if (isPlayer) {
+        const myPlayer = players.find(p => p.email_jugador === user.email);
+        if (myPlayer) {
+          callups.forEach(callup => {
+            if (callup.publicada && callup.fecha_partido >= today && !callup.cerrada) {
+              const myConfirmation = callup.jugadores_convocados?.find(j => j.jugador_id === myPlayer.id);
+              if (myConfirmation && myConfirmation.confirmacion === "pendiente") {
+                unreadCount++;
+              }
+            }
+          });
+        }
+      } else {
+        // Parent
+        const myPlayers = players.filter(p => 
+          p.email_padre === user.email || p.email_tutor_2 === user.email
+        );
+        callups.forEach(callup => {
+          if (callup.publicada && callup.fecha_partido >= today && !callup.cerrada) {
+            callup.jugadores_convocados?.forEach(jugador => {
+              const isMyPlayer = myPlayers.some(p => p.id === jugador.jugador_id);
+              if (isMyPlayer && jugador.confirmacion === "pendiente") {
+                unreadCount++;
+              }
+            });
+          }
+        });
+      }
+    }
+
     // Update document title
     if (unreadCount > 0) {
       document.title = `(${unreadCount}) CD Bustarviejo`;
@@ -110,7 +181,7 @@ export default function NotificationBadge() {
         navigator.clearAppBadge().catch(() => {});
       }
     };
-  }, [user, messages, players, events]);
+  }, [user, messages, players, events, announcements, appNotifications, callups]);
 
   return null;
 }
