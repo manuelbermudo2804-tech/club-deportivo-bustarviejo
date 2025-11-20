@@ -119,17 +119,16 @@ export default function Home() {
     enabled: !!user && (isCoach || isCoordinator) && hasPlayers,
   });
 
-  const myPlayers = user && isCoach && hasPlayers 
+  const myPlayers = user && isCoach && hasPlayers && players
     ? players.filter(p => p.email_padre === user.email || p.email_tutor_2 === user.email)
     : [];
 
   const myPlayersSports = [...new Set(myPlayers.map(p => p.deporte))];
 
-  const activeSurveys = isCoach && hasPlayers 
+  const activeSurveys = isCoach && hasPlayers && surveys && surveyResponses
     ? surveys.filter(s => {
         if (!s.activa || new Date(s.fecha_fin) < new Date()) return false;
         if (s.destinatarios === "Todos" || myPlayersSports.includes(s.destinatarios)) {
-          // Verificar si el usuario ya respondió esta encuesta
           const alreadyResponded = surveyResponses.some(r => 
             r.survey_id === s.id && r.respondente_email === user.email
           );
@@ -139,12 +138,12 @@ export default function Home() {
       })
     : [];
 
-  const activePlayers = players.filter(p => p.activo).length;
-  const pendingPayments = payments.filter(p => p.estado === "Pendiente").length;
-  const unreadMessages = messages.filter(m => !m.leido && m.tipo === "padre_a_grupo").length;
+  const activePlayers = players ? players.filter(p => p.activo).length : 0;
+  const pendingPayments = payments ? payments.filter(p => p.estado === "Pendiente").length : 0;
+  const unreadMessages = messages ? messages.filter(m => !m.leido && m.tipo === "padre_a_grupo").length : 0;
 
   let pendingCallups = 0;
-  if (user && hasPlayers) {
+  if (user && hasPlayers && players && callups) {
     const myPlayers = players.filter(p => 
       p.email_padre === user.email || 
       p.email_tutor_2 === user.email

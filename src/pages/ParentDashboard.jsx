@@ -97,7 +97,7 @@ export default function ParentDashboard() {
     enabled: !!user,
   });
 
-  const myPlayers = user ? players.filter(p => 
+  const myPlayers = user && players ? players.filter(p => 
     p.email_padre === user.email || p.email_tutor_2 === user.email
   ) : [];
 
@@ -108,48 +108,50 @@ export default function ParentDashboard() {
     }
   }, [user?.email, myPlayers.length]);
 
-  const activeSurveys = surveys.filter(s => {
+  const activeSurveys = surveys && myPlayersSports ? surveys.filter(s => {
     if (!s.activa || new Date(s.fecha_fin) < new Date()) return false;
     if (s.destinatarios === "Todos") return true;
     return myPlayersSports.includes(s.destinatarios);
-  });
+  }) : [];
 
-  const myPayments = payments.filter(p => 
+  const myPayments = payments && myPlayers ? payments.filter(p => 
     myPlayers.some(player => player.id === p.jugador_id)
-  );
+  ) : [];
 
-  const unreadMessages = messages.filter(m => {
+  const unreadMessages = messages && myPlayers ? messages.filter(m => {
     if (!m.leido && m.tipo === "admin_a_grupo") {
       const myGroupSports = [...new Set(myPlayers.map(p => p.deporte))];
       return myGroupSports.includes(m.grupo_id || m.deporte);
     }
     return false;
-  }).length;
+  }).length : 0;
 
-  const urgentUnreadMessages = messages.filter(m => {
+  const urgentUnreadMessages = messages && myPlayers ? messages.filter(m => {
     if (!m.leido && m.tipo === "admin_a_grupo" && m.prioridad === "Urgente") {
       const myGroupSports = [...new Set(myPlayers.map(p => p.deporte))];
       return myGroupSports.includes(m.grupo_id || m.deporte);
     }
     return false;
-  }).length;
+  }).length : 0;
 
   const today = new Date().toISOString().split('T')[0];
-  const upcomingCallups = callups.filter(c => 
+  const upcomingCallups = callups ? callups.filter(c => 
     c.publicada && c.fecha_partido >= today && !c.cerrada
-  );
+  ) : [];
 
   let pendingCallups = 0;
-  upcomingCallups.forEach(callup => {
-    callup.jugadores_convocados?.forEach(jugador => {
-      const isMyPlayer = myPlayers.some(p => p.id === jugador.jugador_id);
-      if (isMyPlayer && jugador.confirmacion === "pendiente") {
-        pendingCallups++;
-      }
+  if (myPlayers.length > 0) {
+    upcomingCallups.forEach(callup => {
+      callup.jugadores_convocados?.forEach(jugador => {
+        const isMyPlayer = myPlayers.some(p => p.id === jugador.jugador_id);
+        if (isMyPlayer && jugador.confirmacion === "pendiente") {
+          pendingCallups++;
+        }
+      });
     });
-  });
+  }
 
-  const urgentAnnouncements = announcements.filter(a => {
+  const urgentAnnouncements = announcements && myPlayersSports ? announcements.filter(a => {
     if (!a.publicado || a.prioridad !== "Urgente") return false;
     if (a.created_by === user?.email) return false;
     const now = new Date();
@@ -160,7 +162,7 @@ export default function ParentDashboard() {
     return myPlayersSports.includes(a.destinatarios_tipo);
   });
 
-  const importantAnnouncements = announcements.filter(a => {
+  const importantAnnouncements = announcements && myPlayersSports ? announcements.filter(a => {
     if (!a.publicado || a.prioridad !== "Importante") return false;
     if (a.created_by === user?.email) return false;
     const now = new Date();
@@ -169,12 +171,12 @@ export default function ParentDashboard() {
     if (diffHours >= 48) return false;
     if (a.destinatarios_tipo === "Todos") return true;
     return myPlayersSports.includes(a.destinatarios_tipo);
-  });
+  }) : [];
 
-  const myClothingOrders = clothingOrders.filter(o => o.email_padre === user?.email);
+  const myClothingOrders = clothingOrders && user ? clothingOrders.filter(o => o.email_padre === user?.email) : [];
   const pendingClothingOrders = myClothingOrders.filter(o => o.estado === "Pendiente" || o.estado === "En revisión");
 
-  const activeSeason = seasonConfigs.find(s => s.activa);
+  const activeSeason = seasonConfigs ? seasonConfigs.find(s => s.activa) : null;
   const loteriaVisible = activeSeason?.loteria_navidad_abierta === true;
 
   const calculatePendingPayments = () => {
@@ -224,10 +226,10 @@ export default function ParentDashboard() {
     return pendingCount;
   };
 
-  const pendingPayments = myPayments.filter(p => 
+  const pendingPayments = myPayments && myPlayers ? myPayments.filter(p => 
     myPlayers.some(player => player.id === p.jugador_id) &&
     (p.estado === "Pendiente" || p.estado === "En revisión")
-  ).length;
+  ).length : 0;
 
   const buildMenuItems = () => {
     const items = [
