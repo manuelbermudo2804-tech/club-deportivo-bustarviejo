@@ -104,15 +104,28 @@ export default function ClothingOrders() {
 
   const toggleStoreMutation = useMutation({
     mutationFn: async () => {
-      if (!seasonConfig) return;
-      return base44.entities.SeasonConfig.update(seasonConfig.id, {
-        ...seasonConfig,
-        tienda_ropa_abierta: !seasonConfig.tienda_ropa_abierta
-      });
+      if (seasonConfig) {
+        // Si existe, actualizar
+        return base44.entities.SeasonConfig.update(seasonConfig.id, {
+          ...seasonConfig,
+          tienda_ropa_abierta: !seasonConfig.tienda_ropa_abierta
+        });
+      } else {
+        // Si no existe, crear una temporada activa con tienda abierta
+        const currentYear = new Date().getFullYear();
+        return base44.entities.SeasonConfig.create({
+          temporada: `${currentYear}/${currentYear + 1}`,
+          activa: true,
+          cuota_unica: 0,
+          cuota_tres_meses: 0,
+          tienda_ropa_abierta: true
+        });
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['seasonConfig'] });
-      toast.success(seasonConfig?.tienda_ropa_abierta ? "Tienda cerrada" : "Tienda abierta");
+      const newState = seasonConfig ? !seasonConfig.tienda_ropa_abierta : true;
+      toast.success(newState ? "✅ Tienda abierta" : "🔒 Tienda cerrada");
     },
   });
 
@@ -201,25 +214,19 @@ export default function ClothingOrders() {
           )}
         </div>
         {isAdmin ? (
-          <div className="flex items-center gap-3">
-            {seasonConfig ? (
-              <Button
-                onClick={() => toggleStoreMutation.mutate()}
-                disabled={toggleStoreMutation.isPending}
-                className={`shadow-lg ${
-                  seasonConfig?.tienda_ropa_abierta 
-                    ? 'bg-red-600 hover:bg-red-700' 
-                    : 'bg-green-600 hover:bg-green-700'
-                }`}
-              >
-                {seasonConfig?.tienda_ropa_abierta ? '🔒 Cerrar Tienda' : '🛍️ Abrir Tienda'}
-              </Button>
-            ) : (
-              <div className="text-sm text-orange-600 bg-orange-50 px-4 py-2 rounded-lg">
-                ⚠️ No hay temporada activa
-              </div>
+          <Button
+            onClick={() => toggleStoreMutation.mutate()}
+            disabled={toggleStoreMutation.isPending}
+            className={`shadow-lg ${
+              seasonConfig?.tienda_ropa_abierta 
+                ? 'bg-red-600 hover:bg-red-700' 
+                : 'bg-green-600 hover:bg-green-700'
+            }`}
+          >
+            {toggleStoreMutation.isPending ? '⏳ Procesando...' : (
+              seasonConfig?.tienda_ropa_abierta ? '🔒 Cerrar Tienda' : '🛍️ Abrir Tienda'
             )}
-          </div>
+          </Button>
         ) : (
           <Button
             onClick={() => setShowForm(!showForm)}
