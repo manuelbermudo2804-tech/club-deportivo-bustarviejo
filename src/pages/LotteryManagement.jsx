@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Clover, Search, Check, FileDown, Users, Grid3x3 } from "lucide-react";
 import { toast } from "sonner";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { jsPDF } from "jspdf";
 
 const NUMERO_LOTERIA = "28720";
 
@@ -224,84 +225,131 @@ export default function LotteryManagement() {
   };
 
   const exportPDF = (type) => {
-    let content = '';
+    const doc = new jsPDF();
     const date = new Date().toLocaleDateString('es-ES');
-    
+    let yPos = 20;
+
+    doc.setFontSize(18);
+    doc.text('CLUB DEPORTIVO BUSTARVIEJO', 105, yPos, { align: 'center' });
+    yPos += 8;
+    doc.setFontSize(14);
+    doc.text(type === 'resumen' ? 'RESUMEN LOTERIA DE NAVIDAD' : 'LOTERIA POR CATEGORIA Y JUGADOR', 105, yPos, { align: 'center' });
+    yPos += 6;
+    doc.setFontSize(10);
+    doc.text(`Fecha: ${date} | Numero: ${NUMERO_LOTERIA}`, 105, yPos, { align: 'center' });
+    yPos += 10;
+
     if (type === 'resumen') {
-      content = `
-CLUB DEPORTIVO BUSTARVIEJO
-RESUMEN LOTERÍA DE NAVIDAD
-Fecha: ${date}
-Número: ${NUMERO_LOTERIA}
+      doc.setFontSize(12);
+      doc.text('RESUMEN GENERAL', 20, yPos);
+      yPos += 8;
+      doc.setFontSize(10);
+      doc.text(`Total Decimos: ${totalDecimos}`, 25, yPos);
+      yPos += 6;
+      doc.text(`Total Familias: ${totalFamilias}`, 25, yPos);
+      yPos += 6;
+      doc.text(`Total Pedidos: ${orders.length}`, 25, yPos);
+      yPos += 6;
+      doc.text(`Total Recaudado: ${totalRecaudado} EUR`, 25, yPos);
+      yPos += 6;
+      doc.text(`Pendiente Cobro: ${totalPendienteCobro} EUR`, 25, yPos);
+      yPos += 10;
 
-═══════════════════════════════════════
+      doc.setFontSize(12);
+      doc.text('DESGLOSE POR CATEGORIA', 20, yPos);
+      yPos += 8;
+      doc.setFontSize(10);
 
-RESUMEN GENERAL:
-• Total Décimos: ${totalDecimos}
-• Total Familias: ${totalFamilias}
-• Total Pedidos: ${orders.length}
-• Total Recaudado: ${totalRecaudado}€
-• Pendiente Cobro: ${totalPendienteCobro}€
+      Object.entries(decimosPorCategoria).sort(([a], [b]) => a.localeCompare(b)).forEach(([cat, stats]) => {
+        if (yPos > 270) {
+          doc.addPage();
+          yPos = 20;
+        }
+        doc.setFontSize(11);
+        doc.text(`${cat}`, 25, yPos);
+        yPos += 6;
+        doc.setFontSize(10);
+        doc.text(`  Decimos: ${stats.decimos} | Pedidos: ${stats.pedidos} | Familias: ${stats.familias.size} | Jugadores: ${stats.jugadores.size}`, 30, yPos);
+        yPos += 7;
+      });
 
-═══════════════════════════════════════
-
-DESGLOSE POR CATEGORÍA:
-${Object.entries(decimosPorCategoria).map(([cat, stats]) => `
-${cat}
-  • Décimos: ${stats.decimos}
-  • Pedidos: ${stats.pedidos}
-  • Familias: ${stats.familias.size}
-  • Jugadores: ${stats.jugadores.size}
-`).join('\n')}
-
-═══════════════════════════════════════
-
-DETALLE POR JUGADOR:
-${orders.map(o => `
-• ${o.jugador_nombre} (${o.jugador_categoria})
-  Email: ${o.email_padre}
-  Décimos: ${o.numero_decimos} - Total: ${o.total}€
-  Estado: ${o.estado} - Pagado: ${o.pagado ? 'Sí' : 'No'}
-`).join('\n')}
-`;
     } else if (type === 'categoria') {
       const sortedCategories = Object.keys(decimosPorCategoria).sort();
-      content = `
-CLUB DEPORTIVO BUSTARVIEJO
-LOTERÍA POR CATEGORÍA
-Fecha: ${date}
-Número: ${NUMERO_LOTERIA}
+      
+      sortedCategories.forEach((cat, catIndex) => {
+        if (catIndex > 0 || yPos > 50) {
+          doc.addPage();
+          yPos = 20;
+        }
 
-═══════════════════════════════════════
-${sortedCategories.map(cat => {
-  const categoryOrders = orders.filter(o => (o.jugador_categoria || "Sin categoría") === cat);
-  const ordersByFam = {};
-  categoryOrders.forEach(o => {
-    if (!ordersByFam[o.email_padre]) ordersByFam[o.email_padre] = [];
-    ordersByFam[o.email_padre].push(o);
-  });
-  
-  return `
-📚 ${cat}
-Total Décimos: ${decimosPorCategoria[cat].decimos}
-Familias: ${decimosPorCategoria[cat].familias.size}
+        doc.setFontSize(14);
+        doc.text(`CATEGORIA: ${cat}`, 20, yPos);
+        yPos += 6;
+        doc.setFontSize(10);
+        doc.text(`Total Decimos: ${decimosPorCategoria[cat].decimos} | Familias: ${decimosPorCategoria[cat].familias.size} | Jugadores: ${decimosPorCategoria[cat].jugadores.size}`, 20, yPos);
+        yPos += 10;
 
-${Object.entries(ordersByFam).map(([email, fOrders]) => `
-  👨‍👩‍👧 ${email}
-  ${fOrders.map(o => `    • ${o.jugador_nombre}: ${o.numero_decimos} décimos - ${o.total}€`).join('\n  ')}
-`).join('\n')}
-`;
-}).join('\n═══════════════════════════════════════\n')}
-`;
+        const categoryOrders = orders.filter(o => (o.jugador_categoria || "Sin categoría") === cat);
+        const ordersByFam = {};
+        categoryOrders.forEach(o => {
+          if (!ordersByFam[o.email_padre]) ordersByFam[o.email_padre] = [];
+          ordersByFam[o.email_padre].push(o);
+        });
+
+        Object.entries(ordersByFam).forEach(([email, fOrders]) => {
+          if (yPos > 260) {
+            doc.addPage();
+            yPos = 20;
+          }
+
+          const totalDecimosFam = fOrders.reduce((sum, o) => sum + o.numero_decimos, 0);
+          const totalDineroFam = fOrders.reduce((sum, o) => sum + o.total, 0);
+
+          doc.setFontSize(11);
+          doc.text(`Familia: ${email}`, 25, yPos);
+          yPos += 6;
+          doc.setFontSize(9);
+          doc.text(`Total: ${totalDecimosFam} decimos - ${totalDineroFam} EUR`, 30, yPos);
+          yPos += 6;
+
+          fOrders.forEach(o => {
+            if (yPos > 270) {
+              doc.addPage();
+              yPos = 20;
+            }
+            doc.text(`  - ${o.jugador_nombre}: ${o.numero_decimos} decimos (${o.total} EUR) [${o.estado}]`, 35, yPos);
+            yPos += 5;
+          });
+          yPos += 3;
+        });
+        yPos += 5;
+      });
+
+      doc.addPage();
+      yPos = 20;
+      doc.setFontSize(14);
+      doc.text('RESUMEN FINAL POR CATEGORIA', 20, yPos);
+      yPos += 10;
+      doc.setFontSize(10);
+
+      let granTotal = 0;
+      sortedCategories.forEach(cat => {
+        if (yPos > 270) {
+          doc.addPage();
+          yPos = 20;
+        }
+        doc.text(`${cat}: ${decimosPorCategoria[cat].decimos} decimos`, 25, yPos);
+        granTotal += decimosPorCategoria[cat].decimos;
+        yPos += 6;
+      });
+
+      yPos += 5;
+      doc.setFontSize(12);
+      doc.text(`TOTAL GENERAL: ${granTotal} decimos`, 25, yPos);
     }
 
-    const blob = new Blob([content], { type: 'text/plain;charset=utf-8;' });
-    const link = document.createElement('a');
-    link.href = URL.createObjectURL(blob);
-    link.download = `loteria_${type}_${new Date().toISOString().split('T')[0]}.txt`;
-    link.click();
-    URL.revokeObjectURL(link.href);
-    toast.success("Reporte descargado");
+    doc.save(`loteria_${type}_${new Date().toISOString().split('T')[0]}.pdf`);
+    toast.success("PDF descargado");
   };
 
   const filteredOrders = orders.filter(order =>
