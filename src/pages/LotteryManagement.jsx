@@ -4,15 +4,26 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Clover, Check, FileDown } from "lucide-react";
+import { Clover, Check, FileDown, RotateCcw, X } from "lucide-react";
 import { toast } from "sonner";
 import { jsPDF } from "jspdf";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 const NUMERO_LOTERIA = "28720";
 
 export default function LotteryManagement() {
   const [isAdmin, setIsAdmin] = useState(false);
   const [user, setUser] = useState(null);
+  const [confirmDialog, setConfirmDialog] = useState({ open: false, orderId: null, action: null });
   const queryClient = useQueryClient();
 
   useEffect(() => {
@@ -88,9 +99,36 @@ export default function LotteryManagement() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['allLotteryOrders'] });
-      toast.success("✅ Entregado");
+      setConfirmDialog({ open: false, orderId: null, action: null });
+      toast.success("✅ Marcado como entregado");
     },
   });
+
+  const revertDeliveryMutation = useMutation({
+    mutationFn: (orderId) => {
+      const order = orders.find(o => o.id === orderId);
+      return base44.entities.LotteryOrder.update(orderId, {
+        ...order,
+        estado: "Solicitado",
+        pagado: false,
+        entregado_por: null,
+        fecha_entrega: null
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['allLotteryOrders'] });
+      setConfirmDialog({ open: false, orderId: null, action: null });
+      toast.success("↩️ Entrega revertida");
+    },
+  });
+
+  const handleConfirmAction = () => {
+    if (confirmDialog.action === 'deliver') {
+      markAsDeliveredMutation.mutate(confirmDialog.orderId);
+    } else if (confirmDialog.action === 'revert') {
+      revertDeliveryMutation.mutate(confirmDialog.orderId);
+    }
+  };
 
   // Calcular estadísticas por categoría
   const decimosPorCategoria = {};
@@ -248,8 +286,37 @@ export default function LotteryManagement() {
   }
 
   return (
-    <div className="p-3 lg:p-8 space-y-4 lg:space-y-6">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3">
+    <>
+      <AlertDialog open={confirmDialog.open} onOpenChange={(open) => !open && setConfirmDialog({ open: false, orderId: null, action: null })}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {confirmDialog.action === 'deliver' ? '✅ Confirmar Entrega' : '↩️ Revertir Entrega'}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {confirmDialog.action === 'deliver' 
+                ? '¿Confirmas que has entregado los décimos de lotería a este jugador/entrenador? Esta acción puede revertirse después si fue un error.'
+                : '¿Deseas revertir esta entrega y marcarla como pendiente? Esto deshará el registro de entrega.'}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>
+              <X className="w-4 h-4 mr-2" />
+              Cancelar
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleConfirmAction}
+              className={confirmDialog.action === 'deliver' ? 'bg-green-600 hover:bg-green-700' : 'bg-orange-600 hover:bg-orange-700'}
+            >
+              {confirmDialog.action === 'deliver' ? <Check className="w-4 h-4 mr-2" /> : <RotateCcw className="w-4 h-4 mr-2" />}
+              {confirmDialog.action === 'deliver' ? 'Marcar Entregado' : 'Revertir'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <div className="p-3 lg:p-8 space-y-4 lg:space-y-6">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3">
         <div>
           <h1 className="text-xl lg:text-3xl font-bold text-slate-900">🍀 Gestión Lotería</h1>
           <p className="text-xs lg:text-sm text-slate-600 mt-1">Número: {NUMERO_LOTERIA}</p>
@@ -343,12 +410,23 @@ export default function LotteryManagement() {
                           <p className="text-xs text-slate-600">{order.total}€</p>
                         </div>
                         {order.estado === "Entregado" ? (
-                          <Badge className="bg-green-100 text-green-700">✅</Badge>
+                          <div className="flex gap-2">
+                            <Badge className="bg-green-100 text-green-700">✅</Badge>
+                            <Button
+                              onClick={() => setConfirmDialog({ open: true, orderId: order.id, action: 'revert' })}
+                              size="sm"
+                              variant="outline"
+                              className="border-orange-300 hover:bg-orange-50"
+                            >
+                              <RotateCcw className="w-4 h-4" />
+                            </Button>
+                          </div>
                         ) : (
                           <Button
-                            onClick={() => markAsDeliveredMutation.mutate(order.id)}
+                            onClick={() => setConfirmDialog({ open: true, orderId: order.id, action: 'deliver' })}
                             size="sm"
                             variant="outline"
+                            className="border-green-300 hover:bg-green-50"
                           >
                             <Check className="w-4 h-4" />
                           </Button>
