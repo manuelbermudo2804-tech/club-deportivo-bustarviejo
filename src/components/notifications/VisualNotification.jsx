@@ -44,12 +44,16 @@ export default function VisualNotification({ notification, onDismiss }) {
   };
 
   useEffect(() => {
+    if (!notification || notification.vista) {
+      return;
+    }
+    
     const timer = setTimeout(() => {
       handleDismiss();
     }, 30000);
     
     return () => clearTimeout(timer);
-  }, []);
+  }, [notification]);
 
   if (!isVisible || !notification) return null;
 
