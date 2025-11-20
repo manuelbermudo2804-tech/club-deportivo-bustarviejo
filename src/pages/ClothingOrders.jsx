@@ -485,11 +485,12 @@ export default function ClothingOrders() {
 
       {isAdmin ? (
         <Tabs defaultValue="summary" className="w-full">
-          <TabsList className="bg-white shadow-sm grid grid-cols-2 lg:grid-cols-4 h-auto gap-1 p-1">
+          <TabsList className="bg-white shadow-sm grid grid-cols-3 lg:grid-cols-5 h-auto gap-1 p-1">
             <TabsTrigger value="summary" className="text-xs lg:text-sm py-2">📊 Resumen</TabsTrigger>
             <TabsTrigger value="families" className="text-xs lg:text-sm py-2">👨‍👩‍👧 Familia</TabsTrigger>
             <TabsTrigger value="players" className="text-xs lg:text-sm py-2">👤 Jugador</TabsTrigger>
-            <TabsTrigger value="orders" className="text-xs lg:text-sm py-2">📋 Todos</TabsTrigger>
+            <TabsTrigger value="orders" className="text-xs lg:text-sm py-2">📋 Activos</TabsTrigger>
+            <TabsTrigger value="delivered" className="text-xs lg:text-sm py-2">✅ Entregados</TabsTrigger>
           </TabsList>
 
           <TabsContent value="summary" className="mt-6">
@@ -521,9 +522,17 @@ export default function ClothingOrders() {
                     ordersByFamily[order.email_padre].push(order);
                   });
 
+                  const activeOrdersByFamily = {};
+                  Object.entries(ordersByFamily).forEach(([email, familyOrders]) => {
+                    const activeOrders = familyOrders.filter(o => o.estado !== "Entregado");
+                    if (activeOrders.length > 0) {
+                      activeOrdersByFamily[email] = activeOrders;
+                    }
+                  });
+
                   return (
                     <div className="space-y-6">
-                      {Object.entries(ordersByFamily).map(([email, familyOrders]) => {
+                      {Object.entries(activeOrdersByFamily).map(([email, familyOrders]) => {
                         const totalAmount = familyOrders.reduce((sum, o) => sum + (o.precio_total || 0), 0);
                         return (
                           <Card key={email} className="border-2 border-slate-200">
@@ -657,8 +666,8 @@ export default function ClothingOrders() {
                 <div className="flex justify-between items-center gap-2">
                   <CardTitle className="flex items-center gap-2 text-base lg:text-xl">
                     <ShoppingBag className="w-4 h-4 lg:w-5 lg:h-5 text-orange-600" />
-                    <span className="hidden lg:inline">Todos los Pedidos ({orders.length})</span>
-                    <span className="lg:hidden">Todos ({orders.length})</span>
+                    <span className="hidden lg:inline">Pedidos Activos ({orders.filter(o => o.estado !== "Entregado").length})</span>
+                    <span className="lg:hidden">Activos ({orders.filter(o => o.estado !== "Entregado").length})</span>
                   </CardTitle>
                   <Button onClick={exportPlayersCSV} variant="outline" size="sm" className="text-xs">
                     <FileDown className="w-3 h-3 lg:w-4 lg:h-4 lg:mr-2" />
@@ -671,14 +680,14 @@ export default function ClothingOrders() {
                   <div className="text-center py-8 lg:py-12">
                     <div className="inline-block h-6 w-6 lg:h-8 lg:w-8 animate-spin rounded-full border-4 border-solid border-orange-600 border-r-transparent"></div>
                   </div>
-                ) : orders.length === 0 ? (
+                ) : orders.filter(o => o.estado !== "Entregado").length === 0 ? (
                   <div className="text-center py-8 lg:py-12">
                     <ShoppingBag className="w-12 h-12 lg:w-16 lg:h-16 text-slate-300 mx-auto mb-3 lg:mb-4" />
-                    <p className="text-sm lg:text-base text-slate-500">No hay pedidos registrados</p>
+                    <p className="text-sm lg:text-base text-slate-500">No hay pedidos activos</p>
                   </div>
                 ) : (
                   <div className="space-y-3 lg:space-y-4">
-                    {orders.map((order) => (
+                    {orders.filter(o => o.estado !== "Entregado").map((order) => (
                       <div
                         key={order.id}
                         className="p-4 rounded-lg border-2 border-slate-200 hover:border-orange-300 transition-colors bg-white"
@@ -692,6 +701,49 @@ export default function ClothingOrders() {
                           <Badge className={statusColors[order.estado]}>
                             <span className="mr-1">{statusEmojis[order.estado]}</span>
                             {order.estado}
+                          </Badge>
+                        </div>
+                        {renderOrderDetails(order)}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="delivered" className="mt-3 lg:mt-6">
+            <Card className="border-none shadow-lg bg-green-50">
+              <CardHeader className="p-3 lg:p-6">
+                <div className="flex justify-between items-center gap-2">
+                  <CardTitle className="flex items-center gap-2 text-base lg:text-xl text-green-900">
+                    <Package className="w-4 h-4 lg:w-5 lg:h-5 text-green-600" />
+                    <span className="hidden lg:inline">Pedidos Entregados ({orders.filter(o => o.estado === "Entregado").length})</span>
+                    <span className="lg:hidden">Entregados ({orders.filter(o => o.estado === "Entregado").length})</span>
+                  </CardTitle>
+                </div>
+              </CardHeader>
+              <CardContent className="p-3 lg:p-6">
+                {orders.filter(o => o.estado === "Entregado").length === 0 ? (
+                  <div className="text-center py-8 lg:py-12">
+                    <Package className="w-12 h-12 lg:w-16 lg:h-16 text-green-300 mx-auto mb-3 lg:mb-4" />
+                    <p className="text-sm lg:text-base text-green-700">No hay pedidos entregados aún</p>
+                  </div>
+                ) : (
+                  <div className="space-y-3 lg:space-y-4">
+                    {orders.filter(o => o.estado === "Entregado").map((order) => (
+                      <div
+                        key={order.id}
+                        className="p-3 lg:p-4 rounded-lg border border-green-200 bg-white"
+                      >
+                        <div className="flex justify-between items-start mb-2 lg:mb-3 gap-2">
+                          <div className="min-w-0 flex-1">
+                            <h3 className="font-bold text-sm lg:text-lg text-slate-900 truncate">{order.jugador_nombre}</h3>
+                            <p className="text-xs lg:text-sm text-slate-600">{order.jugador_categoria}</p>
+                            <p className="text-xs text-slate-500 mt-1 truncate">📧 {order.email_padre}</p>
+                          </div>
+                          <Badge className="bg-green-100 text-green-700 text-xs whitespace-nowrap flex-shrink-0">
+                            ✅ Entregado
                           </Badge>
                         </div>
                         {renderOrderDetails(order)}
