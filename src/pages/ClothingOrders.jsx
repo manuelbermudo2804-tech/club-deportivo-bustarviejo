@@ -50,7 +50,7 @@ export default function ClothingOrders() {
       return configs.find(c => c.activa === true);
     },
     initialData: null,
-    refetchInterval: 2000, // Refrescar cada 2 segundos
+    refetchInterval: 2000,
   });
 
   const orderPeriodActive = seasonConfig?.tienda_ropa_abierta === true;
