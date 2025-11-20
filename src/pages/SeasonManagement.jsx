@@ -1193,15 +1193,15 @@ export default function SeasonManagement() {
                 <Database className="w-4 h-4" />
                 Datos a Eliminar
               </Label>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div className="flex items-center space-x-2 p-3 rounded-lg border">
                   <Checkbox
                     id="borrarAsistencias"
                     checked={resetConfig.borrarAsistencias}
                     onCheckedChange={(checked) => setResetConfig({...resetConfig, borrarAsistencias: checked})}
                   />
-                  <Label htmlFor="borrarAsistencias" className="text-sm cursor-pointer">
-                    📋 Asistencias ({attendances.length})
+                  <Label htmlFor="borrarAsistencias" className="text-xs lg:text-sm cursor-pointer">
+                    📋 Asist. ({attendances.length})
                   </Label>
                 </div>
                 <div className="flex items-center space-x-2 p-3 rounded-lg border">
@@ -1210,8 +1210,8 @@ export default function SeasonManagement() {
                     checked={resetConfig.borrarEvaluaciones}
                     onCheckedChange={(checked) => setResetConfig({...resetConfig, borrarEvaluaciones: checked})}
                   />
-                  <Label htmlFor="borrarEvaluaciones" className="text-sm cursor-pointer">
-                    ⭐ Evaluaciones ({evaluations.length})
+                  <Label htmlFor="borrarEvaluaciones" className="text-xs lg:text-sm cursor-pointer">
+                    ⭐ Eval. ({evaluations.length})
                   </Label>
                 </div>
                 <div className="flex items-center space-x-2 p-3 rounded-lg border">
@@ -1220,8 +1220,8 @@ export default function SeasonManagement() {
                     checked={resetConfig.borrarHorarios}
                     onCheckedChange={(checked) => setResetConfig({...resetConfig, borrarHorarios: checked})}
                   />
-                  <Label htmlFor="borrarHorarios" className="text-sm cursor-pointer">
-                    ⏰ Horarios ({schedules.length})
+                  <Label htmlFor="borrarHorarios" className="text-xs lg:text-sm cursor-pointer">
+                    ⏰ Horar. ({schedules.length})
                   </Label>
                 </div>
                 <div className="flex items-center space-x-2 p-3 rounded-lg border">
@@ -1230,8 +1230,8 @@ export default function SeasonManagement() {
                     checked={resetConfig.borrarCalendario}
                     onCheckedChange={(checked) => setResetConfig({...resetConfig, borrarCalendario: checked})}
                   />
-                  <Label htmlFor="borrarCalendario" className="text-sm cursor-pointer">
-                    📅 Eventos ({events.length})
+                  <Label htmlFor="borrarCalendario" className="text-xs lg:text-sm cursor-pointer">
+                    📅 Event. ({events.length})
                   </Label>
                 </div>
                 <div className="flex items-center space-x-2 p-3 rounded-lg border">
@@ -1240,8 +1240,8 @@ export default function SeasonManagement() {
                     checked={resetConfig.borrarAnuncios}
                     onCheckedChange={(checked) => setResetConfig({...resetConfig, borrarAnuncios: checked})}
                   />
-                  <Label htmlFor="borrarAnuncios" className="text-sm cursor-pointer">
-                    📢 Anuncios ({announcements.length})
+                  <Label htmlFor="borrarAnuncios" className="text-xs lg:text-sm cursor-pointer">
+                    📢 Anunc. ({announcements.length})
                   </Label>
                 </div>
                 <div className="flex items-center space-x-2 p-3 rounded-lg border">
@@ -1250,8 +1250,8 @@ export default function SeasonManagement() {
                     checked={resetConfig.borrarGaleria}
                     onCheckedChange={(checked) => setResetConfig({...resetConfig, borrarGaleria: checked})}
                   />
-                  <Label htmlFor="borrarGaleria" className="text-sm cursor-pointer">
-                    🖼️ Galería ({gallery.length})
+                  <Label htmlFor="borrarGaleria" className="text-xs lg:text-sm cursor-pointer">
+                    🖼️ Galer. ({gallery.length})
                   </Label>
                 </div>
                 <div className="flex items-center space-x-2 p-3 rounded-lg border">
@@ -1260,8 +1260,8 @@ export default function SeasonManagement() {
                     checked={resetConfig.borrarConvocatorias}
                     onCheckedChange={(checked) => setResetConfig({...resetConfig, borrarConvocatorias: checked})}
                   />
-                  <Label htmlFor="borrarConvocatorias" className="text-sm cursor-pointer">
-                    🎓 Convocatorias ({callups.length})
+                  <Label htmlFor="borrarConvocatorias" className="text-xs lg:text-sm cursor-pointer">
+                    🎓 Conv. ({callups.length})
                   </Label>
                 </div>
                 <div className="flex items-center space-x-2 p-3 rounded-lg border">
@@ -1270,8 +1270,8 @@ export default function SeasonManagement() {
                     checked={resetConfig.borrarChats}
                     onCheckedChange={(checked) => setResetConfig({...resetConfig, borrarChats: checked})}
                   />
-                  <Label htmlFor="borrarChats" className="text-sm cursor-pointer">
-                    💬 Mensajes ({chats.length})
+                  <Label htmlFor="borrarChats" className="text-xs lg:text-sm cursor-pointer">
+                    💬 Mens. ({chats.length})
                   </Label>
                 </div>
                 <div className="flex items-center space-x-2 p-3 rounded-lg border">
@@ -1280,8 +1280,8 @@ export default function SeasonManagement() {
                     checked={resetConfig.borrarEncuestas}
                     onCheckedChange={(checked) => setResetConfig({...resetConfig, borrarEncuestas: checked})}
                   />
-                  <Label htmlFor="borrarEncuestas" className="text-sm cursor-pointer">
-                    📋 Encuestas ({surveys.length})
+                  <Label htmlFor="borrarEncuestas" className="text-xs lg:text-sm cursor-pointer">
+                    📋 Encues. ({surveys.length})
                   </Label>
                 </div>
                 <div className="flex items-center space-x-2 p-3 rounded-lg border">
@@ -1290,8 +1290,8 @@ export default function SeasonManagement() {
                     checked={resetConfig.borrarResultados}
                     onCheckedChange={(checked) => setResetConfig({...resetConfig, borrarResultados: checked})}
                   />
-                  <Label htmlFor="borrarResultados" className="text-sm cursor-pointer">
-                    ⚽ Resultados ({matchResults.length})
+                  <Label htmlFor="borrarResultados" className="text-xs lg:text-sm cursor-pointer">
+                    ⚽ Result. ({matchResults.length})
                   </Label>
                 </div>
                 <div className="flex items-center space-x-2 p-3 rounded-lg border">
@@ -1300,8 +1300,8 @@ export default function SeasonManagement() {
                     checked={resetConfig.borrarPedidosRopa}
                     onCheckedChange={(checked) => setResetConfig({...resetConfig, borrarPedidosRopa: checked})}
                   />
-                  <Label htmlFor="borrarPedidosRopa" className="text-sm cursor-pointer">
-                    👕 Pedidos Ropa ({clothingOrders.length})
+                  <Label htmlFor="borrarPedidosRopa" className="text-xs lg:text-sm cursor-pointer">
+                    👕 Ropa ({clothingOrders.length})
                     </Label>
                     </div>
                     <div className="flex items-center space-x-2 p-3 rounded-lg border">
@@ -1310,8 +1310,8 @@ export default function SeasonManagement() {
                     checked={resetConfig.borrarPedidosLoteria}
                     onCheckedChange={(checked) => setResetConfig({...resetConfig, borrarPedidosLoteria: checked})}
                     />
-                    <Label htmlFor="borrarPedidosLoteria" className="text-sm cursor-pointer">
-                    🍀 Pedidos Lotería ({lotteryOrders.length})
+                    <Label htmlFor="borrarPedidosLoteria" className="text-xs lg:text-sm cursor-pointer">
+                    🍀 Loter. ({lotteryOrders.length})
                     </Label>
                     </div>
                     <div className="flex items-center space-x-2 p-3 rounded-lg border">
@@ -1320,8 +1320,8 @@ export default function SeasonManagement() {
                     checked={resetConfig.borrarCertificados}
                     onCheckedChange={(checked) => setResetConfig({...resetConfig, borrarCertificados: checked})}
                     />
-                    <Label htmlFor="borrarCertificados" className="text-sm cursor-pointer">
-                    📜 Certificados ({certificates.length})
+                    <Label htmlFor="borrarCertificados" className="text-xs lg:text-sm cursor-pointer">
+                    📜 Certif. ({certificates.length})
                     </Label>
                     </div>
                     <div className="flex items-center space-x-2 p-3 rounded-lg border">
@@ -1330,8 +1330,8 @@ export default function SeasonManagement() {
                     checked={resetConfig.borrarNotasInternas}
                     onCheckedChange={(checked) => setResetConfig({...resetConfig, borrarNotasInternas: checked})}
                     />
-                    <Label htmlFor="borrarNotasInternas" className="text-sm cursor-pointer">
-                    📝 Notas Internas ({memberNotes.length})
+                    <Label htmlFor="borrarNotasInternas" className="text-xs lg:text-sm cursor-pointer">
+                    📝 Notas ({memberNotes.length})
                     </Label>
                     </div>
                     <div className="flex items-center space-x-2 p-3 rounded-lg border">
@@ -1340,8 +1340,8 @@ export default function SeasonManagement() {
                     checked={resetConfig.borrarNotificaciones}
                     onCheckedChange={(checked) => setResetConfig({...resetConfig, borrarNotificaciones: checked})}
                     />
-                    <Label htmlFor="borrarNotificaciones" className="text-sm cursor-pointer">
-                    🔔 Notificaciones ({appNotifications.length})
+                    <Label htmlFor="borrarNotificaciones" className="text-xs lg:text-sm cursor-pointer">
+                    🔔 Notif. ({appNotifications.length})
                     </Label>
                     </div>
                     </div>

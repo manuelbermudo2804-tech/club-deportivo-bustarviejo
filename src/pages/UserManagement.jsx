@@ -320,99 +320,99 @@ export default function UserManagement() {
       </div>
 
       {/* Estadísticas */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-8 gap-6">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 lg:gap-6">
         <Card className="border-none shadow-lg">
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-slate-600 mb-1">Padres Activos</p>
-                <p className="text-3xl font-bold text-green-600">{activeUsers.length}</p>
+          <CardContent className="pt-4 lg:pt-6">
+            <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-2">
+              <div className="w-full">
+                <p className="text-[10px] lg:text-sm text-slate-600 mb-0.5 lg:mb-1">Padres Activos</p>
+                <p className="text-xl lg:text-3xl font-bold text-green-600">{activeUsers.length}</p>
               </div>
-              <UserCheck className="w-12 h-12 text-green-500 opacity-20" />
+              <UserCheck className="w-8 h-8 lg:w-12 lg:h-12 text-green-500 opacity-20 hidden lg:block" />
             </div>
           </CardContent>
         </Card>
 
         <Card className="border-none shadow-lg">
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-slate-600 mb-1">Administradores</p>
-                <p className="text-3xl font-bold text-orange-600">{admins.length}</p>
+          <CardContent className="pt-4 lg:pt-6">
+            <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-2">
+              <div className="w-full">
+                <p className="text-[10px] lg:text-sm text-slate-600 mb-0.5 lg:mb-1">Admins</p>
+                <p className="text-xl lg:text-3xl font-bold text-orange-600">{admins.length}</p>
               </div>
-              <Shield className="w-12 h-12 text-orange-500 opacity-20" />
+              <Shield className="w-8 h-8 lg:w-12 lg:h-12 text-orange-500 opacity-20 hidden lg:block" />
             </div>
           </CardContent>
         </Card>
 
         <Card className="border-none shadow-lg border-2 border-purple-200">
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-slate-600 mb-1">Jugadores</p>
-                <p className="text-3xl font-bold text-purple-600">{jugadores.length}</p>
+          <CardContent className="pt-4 lg:pt-6">
+            <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-2">
+              <div className="w-full">
+                <p className="text-[10px] lg:text-sm text-slate-600 mb-0.5 lg:mb-1">Jugadores</p>
+                <p className="text-xl lg:text-3xl font-bold text-purple-600">{jugadores.length}</p>
               </div>
-              <User className="w-12 h-12 text-purple-500 opacity-20" />
+              <User className="w-8 h-8 lg:w-12 lg:h-12 text-purple-500 opacity-20 hidden lg:block" />
             </div>
           </CardContent>
         </Card>
 
         <Card className="border-none shadow-lg border-2 border-blue-200 bg-blue-50">
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-slate-600 mb-1">🎓 Entrenadores</p>
-                <p className="text-3xl font-bold text-blue-600">{entrenadores.length}</p>
+          <CardContent className="pt-4 lg:pt-6">
+            <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-2">
+              <div className="w-full">
+                <p className="text-[10px] lg:text-sm text-slate-600 mb-0.5 lg:mb-1">Entrenadores</p>
+                <p className="text-xl lg:text-3xl font-bold text-blue-600">{entrenadores.length}</p>
               </div>
-              <Users className="w-12 h-12 text-blue-500 opacity-20" />
+              <Users className="w-8 h-8 lg:w-12 lg:h-12 text-blue-500 opacity-20 hidden lg:block" />
             </div>
           </CardContent>
         </Card>
 
         <Card className="border-none shadow-lg border-2 border-cyan-200 bg-cyan-50">
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-slate-600 mb-1">🎓 Coordinadores</p>
-                <p className="text-3xl font-bold text-cyan-600">{coordinadores.length}</p>
+          <CardContent className="pt-4 lg:pt-6">
+            <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-2">
+              <div className="w-full">
+                <p className="text-[10px] lg:text-sm text-slate-600 mb-0.5 lg:mb-1">Coordinadores</p>
+                <p className="text-xl lg:text-3xl font-bold text-cyan-600">{coordinadores.length}</p>
               </div>
-              <Shield className="w-12 h-12 text-cyan-500 opacity-20" />
+              <Shield className="w-8 h-8 lg:w-12 lg:h-12 text-cyan-500 opacity-20 hidden lg:block" />
             </div>
           </CardContent>
         </Card>
 
         <Card className="border-none shadow-lg border-2 border-green-200 bg-green-50">
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-slate-600 mb-1">💰 Tesoreros</p>
-                <p className="text-3xl font-bold text-green-600">{tesoreros.length}</p>
+          <CardContent className="pt-4 lg:pt-6">
+            <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-2">
+              <div className="w-full">
+                <p className="text-[10px] lg:text-sm text-slate-600 mb-0.5 lg:mb-1">Tesoreros</p>
+                <p className="text-xl lg:text-3xl font-bold text-green-600">{tesoreros.length}</p>
               </div>
-              <Shield className="w-12 h-12 text-green-500 opacity-20" />
+              <Shield className="w-8 h-8 lg:w-12 lg:h-12 text-green-500 opacity-20 hidden lg:block" />
             </div>
           </CardContent>
         </Card>
 
         <Card className="border-none shadow-lg">
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-slate-600 mb-1">Restringidos</p>
-                <p className="text-3xl font-bold text-red-600">{restrictedUsers.length}</p>
+          <CardContent className="pt-4 lg:pt-6">
+            <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-2">
+              <div className="w-full">
+                <p className="text-[10px] lg:text-sm text-slate-600 mb-0.5 lg:mb-1">Restringidos</p>
+                <p className="text-xl lg:text-3xl font-bold text-red-600">{restrictedUsers.length}</p>
               </div>
-              <UserX className="w-12 h-12 text-red-500 opacity-20" />
+              <UserX className="w-8 h-8 lg:w-12 lg:h-12 text-red-500 opacity-20 hidden lg:block" />
             </div>
           </CardContent>
         </Card>
 
         <Card className="border-none shadow-lg border-2 border-slate-300">
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-slate-600 mb-1">Eliminados</p>
-                <p className="text-3xl font-bold text-slate-600">{deletedUsers.length}</p>
+          <CardContent className="pt-4 lg:pt-6">
+            <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-2">
+              <div className="w-full">
+                <p className="text-[10px] lg:text-sm text-slate-600 mb-0.5 lg:mb-1">Eliminados</p>
+                <p className="text-xl lg:text-3xl font-bold text-slate-600">{deletedUsers.length}</p>
               </div>
-              <Trash2 className="w-12 h-12 text-slate-500 opacity-20" />
+              <Trash2 className="w-8 h-8 lg:w-12 lg:h-12 text-slate-500 opacity-20 hidden lg:block" />
             </div>
           </CardContent>
         </Card>
@@ -640,67 +640,67 @@ export default function UserManagement() {
                       </div>
 
                       {!isDeleted && (
-                        <div className="flex flex-col gap-2">
+                        <div className="flex flex-col gap-1.5 lg:gap-2">
                           {user.role !== "admin" && (
                             <>
                               <Button
                                 size="sm"
                                 variant="outline"
                                 onClick={() => handleCoordinatorToggle(user)}
-                                className={isCoordinator ? "bg-cyan-100 hover:bg-cyan-200 border-cyan-400" : "bg-cyan-50 hover:bg-cyan-100 border-cyan-300"}
+                                className={`${isCoordinator ? "bg-cyan-100 hover:bg-cyan-200 border-cyan-400" : "bg-cyan-50 hover:bg-cyan-100 border-cyan-300"} text-xs lg:text-sm px-2 py-1 lg:px-4 lg:py-2`}
                               >
-                                {isCoordinator ? "✅ Coordinador" : "🎓 Marcar Coordinador"}
+                                {isCoordinator ? "✅ Coord." : "🎓 Coord."}
                               </Button>
                               <Button
                                 size="sm"
                                 variant="outline"
                                 onClick={() => handleTreasurerToggle(user)}
-                                className={isTreasurer ? "bg-green-100 hover:bg-green-200 border-green-400" : "bg-green-50 hover:bg-green-100 border-green-300"}
+                                className={`${isTreasurer ? "bg-green-100 hover:bg-green-200 border-green-400" : "bg-green-50 hover:bg-green-100 border-green-300"} text-xs lg:text-sm px-2 py-1 lg:px-4 lg:py-2`}
                               >
-                                {isTreasurer ? "✅ Tesorero" : "💰 Marcar Tesorero"}
+                                {isTreasurer ? "✅ Teso." : "💰 Teso."}
                               </Button>
                               <Button
                                 size="sm"
                                 variant="outline"
                                 onClick={() => handleCoachToggle(user)}
-                                className={user.es_entrenador ? "bg-blue-100 hover:bg-blue-200 border-blue-400" : "bg-blue-50 hover:bg-blue-100 border-blue-300"}
+                                className={`${user.es_entrenador ? "bg-blue-100 hover:bg-blue-200 border-blue-400" : "bg-blue-50 hover:bg-blue-100 border-blue-300"} text-xs lg:text-sm px-2 py-1 lg:px-4 lg:py-2`}
                               >
-                                {user.es_entrenador ? "✅ Entrenador" : "🎓 Marcar Entrenador"}
+                                {user.es_entrenador ? "✅ Entr." : "🎓 Entr."}
                               </Button>
                               {(isCoordinator || isCoach || isTreasurer) && (
                                 <Button
                                   size="sm"
                                   variant="outline"
                                   onClick={() => handleToggleHijos(user)}
-                                  className={user.tiene_hijos_jugando ? "bg-green-100 hover:bg-green-200 border-green-400" : "bg-slate-50 hover:bg-slate-100 border-slate-300"}
+                                  className={`${user.tiene_hijos_jugando ? "bg-green-100 hover:bg-green-200 border-green-400" : "bg-slate-50 hover:bg-slate-100 border-slate-300"} text-xs lg:text-sm px-2 py-1 lg:px-4 lg:py-2`}
                                 >
-                                  {user.tiene_hijos_jugando ? "✅ Con hijos" : "👨‍👩‍👧 Tiene hijos"}
+                                  {user.tiene_hijos_jugando ? "✅ Hijos" : "👨‍👩‍👧 Hijos"}
                                 </Button>
                               )}
                               <Button
                                 size="sm"
                                 variant="outline"
                                 onClick={() => handleChangeRole(user)}
-                                className="bg-purple-50 hover:bg-purple-100 border-purple-300"
+                                className="bg-purple-50 hover:bg-purple-100 border-purple-300 text-xs lg:text-sm px-2 py-1 lg:px-4 lg:py-2"
                               >
-                                <Shield className="w-4 h-4 mr-1" />
-                                Cambiar Rol
+                                <Shield className="w-3 h-3 lg:w-4 lg:h-4 lg:mr-1" />
+                                <span className="hidden lg:inline">Rol</span>
                               </Button>
                               <Button
                                 size="sm"
                                 variant={hasRestriction ? "default" : "destructive"}
                                 onClick={() => handleRestrictAccess(user)}
-                                className={hasRestriction ? "bg-green-600 hover:bg-green-700" : ""}
+                                className={`${hasRestriction ? "bg-green-600 hover:bg-green-700" : ""} text-xs lg:text-sm px-2 py-1 lg:px-4 lg:py-2`}
                               >
                                 {hasRestriction ? (
                                   <>
-                                    <CheckCircle2 className="w-4 h-4 mr-1" />
-                                    Restaurar
+                                    <CheckCircle2 className="w-3 h-3 lg:w-4 lg:h-4 lg:mr-1" />
+                                    <span className="hidden lg:inline">Restaurar</span>
                                   </>
                                 ) : (
                                   <>
-                                    <Ban className="w-4 h-4 mr-1" />
-                                    Restringir
+                                    <Ban className="w-3 h-3 lg:w-4 lg:h-4 lg:mr-1" />
+                                    <span className="hidden lg:inline">Restringir</span>
                                   </>
                                 )}
                               </Button>
@@ -708,10 +708,10 @@ export default function UserManagement() {
                                 size="sm"
                                 variant="destructive"
                                 onClick={() => handleDeleteUser(user)}
-                                className="bg-slate-700 hover:bg-slate-800"
+                                className="bg-slate-700 hover:bg-slate-800 text-xs lg:text-sm px-2 py-1 lg:px-4 lg:py-2"
                               >
-                                <Trash2 className="w-4 h-4 mr-1" />
-                                Eliminar
+                                <Trash2 className="w-3 h-3 lg:w-4 lg:h-4 lg:mr-1" />
+                                <span className="hidden lg:inline">Eliminar</span>
                               </Button>
                             </>
                           )}
