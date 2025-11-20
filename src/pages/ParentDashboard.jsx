@@ -360,16 +360,23 @@ export default function ParentDashboard() {
         {/* LOTERIA NAVIDAD */}
         {loteriaVisible && (
           <Link to={createPageUrl("ParentLottery")}>
-            <div className="bg-gradient-to-r from-green-600 to-green-700 rounded-2xl p-4 lg:p-5 shadow-xl transition-all hover:scale-105 active:scale-95 border-2 border-green-500">
-              <div className="flex items-center justify-center gap-3">
-                <div className="bg-white/20 backdrop-blur-sm rounded-xl p-2 lg:p-3">
-                  <Clover className="w-6 h-6 lg:w-8 lg:h-8 text-white" />
+            <div className="bg-gradient-to-r from-green-600 via-green-700 to-emerald-600 rounded-3xl p-5 lg:p-6 shadow-2xl transition-all hover:scale-105 active:scale-95 border-4 border-yellow-400 animate-pulse">
+              <div className="flex items-center gap-4">
+                <div className="bg-white/30 backdrop-blur-sm rounded-2xl p-3 lg:p-4 shadow-xl">
+                  <Clover className="w-8 h-8 lg:w-10 lg:h-10 text-white animate-spin-slow" />
                 </div>
                 <div className="text-left flex-1">
-                  <p className="text-white font-bold text-base lg:text-xl">🍀 Lotería de Navidad</p>
-                  <p className="text-green-100 text-xs lg:text-sm">Compra décimos del club • Participa y apoya al equipo</p>
+                  <p className="text-white font-black text-xl lg:text-2xl mb-1 flex items-center gap-2">
+                    🍀 LOTERÍA DE NAVIDAD 🎄
+                  </p>
+                  <p className="text-yellow-100 text-sm lg:text-base font-semibold">
+                    ¡Compra tus décimos y apoya al club! 🎁
+                  </p>
+                  <p className="text-green-100 text-xs mt-2">
+                    👉 Pulsa aquí para realizar tu pedido
+                  </p>
                 </div>
-                <div className="text-4xl">🎄</div>
+                <div className="text-5xl lg:text-6xl animate-bounce">🎄</div>
               </div>
             </div>
           </Link>
