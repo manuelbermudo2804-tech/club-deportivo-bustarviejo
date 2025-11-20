@@ -370,29 +370,35 @@ export default function SeasonManagement() {
 
   // Ejecutar reinicio de temporada
   const handleExecuteReset = async () => {
+    console.log("🚀 Iniciando handleExecuteReset", {
+      currentUser: currentUser?.email,
+      emailConfirmacion: securityCheck.emailConfirmacion,
+      aceptoTerminos: securityCheck.aceptoTerminos,
+      confirmText: confirmText
+    });
+
     // Validaciones de seguridad
     if (!currentUser) {
-      toast.error("Error: No se pudo verificar el usuario");
+      toast.error("❌ Error: No se pudo verificar el usuario");
+      console.error("No hay currentUser");
       return;
     }
 
     if (securityCheck.emailConfirmacion !== currentUser.email) {
-      toast.error("El email de confirmación no coincide");
+      toast.error(`❌ El email de confirmación no coincide. Escribe: ${currentUser.email}`);
+      console.error("Email no coincide", securityCheck.emailConfirmacion, "vs", currentUser.email);
       return;
     }
 
     if (!securityCheck.aceptoTerminos) {
-      toast.error("Debes aceptar los términos");
+      toast.error("❌ Debes aceptar los términos para continuar");
+      console.error("No aceptó términos");
       return;
     }
 
-    // Removed password check
-    // if (!securityCheck.password) {
-    //   toast.error("Debes ingresar tu contraseña");
-    //   return;
-    // }
-
+    console.log("✅ Validaciones pasadas, iniciando proceso...");
     setIsProcessing(true);
+    toast.info("🚀 Iniciando reinicio de temporada...");
 
     try {
       // PASO 1: Generar backup automático
