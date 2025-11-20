@@ -495,9 +495,13 @@ export default function Layout({ children, currentPageName }) {
   const [currentLang, setCurrentLang] = useState(() => {
     return localStorage.getItem('appLanguage') || 'es';
   });
-  const [showWelcome, setShowWelcome] = useState(true);
+  const [showWelcome, setShowWelcome] = useState(() => {
+    return !localStorage.getItem('welcomeScreenSeen');
+  });
   const [loteriaVisible, setLoteriaVisible] = useState(false);
-  const [showPresentation, setShowPresentation] = useState(false);
+  const [showPresentation, setShowPresentation] = useState(() => {
+    return !localStorage.getItem('rolePresentationSeen');
+  });
 
   const handleLanguageChange = (newLang) => {
     setCurrentLang(newLang);
@@ -789,14 +793,17 @@ export default function Layout({ children, currentPageName }) {
 
   if (showWelcome) {
     return <WelcomeScreen onComplete={() => {
+      localStorage.setItem('welcomeScreenSeen', 'true');
       setShowWelcome(false);
-      setShowPresentation(true);
     }} />;
   }
 
   if (showPresentation && user) {
     const userRole = isAdmin ? 'admin' : isCoordinator ? 'coordinador' : isCoach ? 'entrenador' : 'padre';
-    return <RolePresentation userRole={userRole} onComplete={() => setShowPresentation(false)} />;
+    return <RolePresentation userRole={userRole} onComplete={() => {
+      localStorage.setItem('rolePresentationSeen', 'true');
+      setShowPresentation(false);
+    }} />;
   }
 
   if (showSpecialScreen === "restricted") {
