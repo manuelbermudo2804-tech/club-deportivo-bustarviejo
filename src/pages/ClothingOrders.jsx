@@ -232,7 +232,7 @@ export default function ClothingOrders() {
         )}
       </div>
 
-      {!orderPeriodActive && !isAdmin && (
+      {!orderPeriodActive && !isAdmin && seasonConfig?.tienda_ropa_abierta === undefined && (
         <Alert className="bg-orange-50 border-orange-300 border-2">
           <AlertCircle className="h-5 w-5 text-orange-600" />
           <AlertDescription className="text-orange-900">
