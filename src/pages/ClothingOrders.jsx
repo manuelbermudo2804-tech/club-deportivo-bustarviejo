@@ -301,6 +301,89 @@ export default function ClothingOrders() {
     </div>
   );
 
+  const renderGroupedFamilyItems = (familyOrders) => {
+    const itemsMap = {};
+    
+    familyOrders.forEach(order => {
+      if (order.chaqueta_partidos) {
+        const key = `chaqueta_${order.chaqueta_talla}`;
+        itemsMap[key] = itemsMap[key] || { tipo: 'Chaqueta de Partidos', talla: order.chaqueta_talla, precio: 35, cantidad: 0 };
+        itemsMap[key].cantidad++;
+      }
+      if (order.pack_entrenamiento) {
+        const key = 'pack_entrenamiento';
+        itemsMap[key] = itemsMap[key] || { tipo: 'Pack de Entrenamiento', precio: 41, cantidad: 0, detalles: [] };
+        itemsMap[key].cantidad++;
+        itemsMap[key].detalles.push({
+          camiseta: order.pack_camiseta_talla,
+          pantalon: order.pack_pantalon_talla,
+          sudadera: order.pack_sudadera_talla
+        });
+      }
+      if (order.camiseta_individual) {
+        const key = `camiseta_${order.camiseta_individual_talla}`;
+        itemsMap[key] = itemsMap[key] || { tipo: 'Camiseta Individual', talla: order.camiseta_individual_talla, precio: 10, cantidad: 0 };
+        itemsMap[key].cantidad++;
+      }
+      if (order.pantalon_individual) {
+        const key = `pantalon_${order.pantalon_individual_talla}`;
+        itemsMap[key] = itemsMap[key] || { tipo: 'Pantalón Individual', talla: order.pantalon_individual_talla, precio: 17, cantidad: 0 };
+        itemsMap[key].cantidad++;
+      }
+      if (order.sudadera_individual) {
+        const key = `sudadera_${order.sudadera_individual_talla}`;
+        itemsMap[key] = itemsMap[key] || { tipo: 'Sudadera Individual', talla: order.sudadera_individual_talla, precio: 18, cantidad: 0 };
+        itemsMap[key].cantidad++;
+      }
+      if (order.chubasquero) {
+        const key = `chubasquero_${order.chubasquero_talla}`;
+        itemsMap[key] = itemsMap[key] || { tipo: 'Chubasquero', talla: order.chubasquero_talla, precio: 20, cantidad: 0 };
+        itemsMap[key].cantidad++;
+      }
+      if (order.anorak) {
+        const key = `anorak_${order.anorak_talla}`;
+        itemsMap[key] = itemsMap[key] || { tipo: 'Anorak', talla: order.anorak_talla, precio: 40, cantidad: 0 };
+        itemsMap[key].cantidad++;
+      }
+      if (order.mochila) {
+        const key = 'mochila';
+        itemsMap[key] = itemsMap[key] || { tipo: 'Mochila con botero', precio: 22, cantidad: 0 };
+        itemsMap[key].cantidad++;
+      }
+    });
+
+    const totalAmount = familyOrders.reduce((sum, o) => sum + (o.precio_total || 0), 0);
+
+    return (
+      <div className="space-y-2 text-sm">
+        {Object.values(itemsMap).map((item, idx) => {
+          if (item.tipo === 'Pack de Entrenamiento') {
+            return (
+              <div key={idx} className="text-slate-700 bg-blue-50 p-2 rounded border border-blue-200">
+                <p className="font-semibold mb-1">✅ {item.tipo} x{item.cantidad} - {item.precio * item.cantidad}€</p>
+                <div className="text-xs space-y-1 ml-4">
+                  {item.detalles.map((detalle, i) => (
+                    <div key={i}>
+                      <span className="font-medium">Pack {i + 1}:</span> 👕 {detalle.camiseta}, 👖 {detalle.pantalon}, 🧥 {detalle.sudadera}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            );
+          }
+          return (
+            <p key={idx} className="text-slate-700">
+              ✅ <strong>{item.tipo}:</strong> {item.talla || ''} {item.cantidad > 1 && `x${item.cantidad}`} - {item.precio * item.cantidad}€
+            </p>
+          );
+        })}
+        <p className="text-slate-700 font-bold pt-2 border-t border-slate-200">
+          <strong>Total Familia:</strong> {totalAmount}€
+        </p>
+      </div>
+    );
+  };
+
   return (
     <div className="p-6 lg:p-8 space-y-6">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
@@ -435,41 +518,48 @@ export default function ClothingOrders() {
                                 </div>
                               </div>
                             </CardHeader>
-                            <CardContent className="pt-4 space-y-4">
-                              {familyOrders.map(order => (
-                                <div key={order.id} className="p-4 rounded-lg bg-slate-50 border border-slate-200">
-                                  <div className="flex justify-between items-start mb-3">
-                                    <div>
-                                      <h4 className="font-bold text-slate-900">{order.jugador_nombre}</h4>
-                                      <p className="text-sm text-slate-600">{order.jugador_categoria}</p>
+                            <CardContent className="pt-4">
+                              <div className="mb-4 p-4 bg-white rounded-lg border border-slate-200">
+                                <h4 className="font-bold text-slate-900 mb-3">📦 Resumen de Items</h4>
+                                {renderGroupedFamilyItems(familyOrders)}
+                              </div>
+                              <div className="space-y-3">
+                                <h4 className="font-bold text-slate-700 text-sm">Desglose por Jugador:</h4>
+                                {familyOrders.map(order => (
+                                  <div key={order.id} className="p-3 rounded-lg bg-slate-50 border border-slate-200">
+                                    <div className="flex justify-between items-start mb-2">
+                                      <div>
+                                        <h5 className="font-bold text-slate-900 text-sm">{order.jugador_nombre}</h5>
+                                        <p className="text-xs text-slate-600">{order.jugador_categoria}</p>
+                                      </div>
+                                      <div className="flex gap-2">
+                                        <Badge className={statusColors[order.estado]}>
+                                          {statusEmojis[order.estado]} {order.estado}
+                                        </Badge>
+                                        <DropdownMenu>
+                                          <DropdownMenuTrigger asChild>
+                                            <Button variant="ghost" size="sm">
+                                              <MoreVertical className="w-4 h-4" />
+                                            </Button>
+                                          </DropdownMenuTrigger>
+                                          <DropdownMenuContent>
+                                            <DropdownMenuItem onClick={() => updateOrderStatusMutation.mutate({ orderId: order.id, newStatus: "Confirmado", notifyParent: true })}>
+                                              <Check className="w-4 h-4 mr-2" /> Confirmar y notificar
+                                            </DropdownMenuItem>
+                                            <DropdownMenuItem onClick={() => updateOrderStatusMutation.mutate({ orderId: order.id, newStatus: "Preparado", notifyParent: true })}>
+                                              <Package className="w-4 h-4 mr-2" /> Marcar preparado
+                                            </DropdownMenuItem>
+                                            <DropdownMenuItem onClick={() => updateOrderStatusMutation.mutate({ orderId: order.id, newStatus: "Entregado", notifyParent: true })}>
+                                              <Truck className="w-4 h-4 mr-2" /> Marcar entregado
+                                            </DropdownMenuItem>
+                                          </DropdownMenuContent>
+                                        </DropdownMenu>
+                                      </div>
                                     </div>
-                                    <div className="flex gap-2">
-                                      <Badge className={statusColors[order.estado]}>
-                                        {statusEmojis[order.estado]} {order.estado}
-                                      </Badge>
-                                      <DropdownMenu>
-                                        <DropdownMenuTrigger asChild>
-                                          <Button variant="ghost" size="sm">
-                                            <MoreVertical className="w-4 h-4" />
-                                          </Button>
-                                        </DropdownMenuTrigger>
-                                        <DropdownMenuContent>
-                                          <DropdownMenuItem onClick={() => updateOrderStatusMutation.mutate({ orderId: order.id, newStatus: "Confirmado", notifyParent: true })}>
-                                            <Check className="w-4 h-4 mr-2" /> Confirmar y notificar
-                                          </DropdownMenuItem>
-                                          <DropdownMenuItem onClick={() => updateOrderStatusMutation.mutate({ orderId: order.id, newStatus: "Preparado", notifyParent: true })}>
-                                            <Package className="w-4 h-4 mr-2" /> Marcar preparado
-                                          </DropdownMenuItem>
-                                          <DropdownMenuItem onClick={() => updateOrderStatusMutation.mutate({ orderId: order.id, newStatus: "Entregado", notifyParent: true })}>
-                                            <Truck className="w-4 h-4 mr-2" /> Marcar entregado
-                                          </DropdownMenuItem>
-                                        </DropdownMenuContent>
-                                      </DropdownMenu>
-                                    </div>
+                                    {renderOrderDetails(order)}
                                   </div>
-                                  {renderOrderDetails(order)}
-                                </div>
-                              ))}
+                                ))}
+                              </div>
                             </CardContent>
                           </Card>
                         );
