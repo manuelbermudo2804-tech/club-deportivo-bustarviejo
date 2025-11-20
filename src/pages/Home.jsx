@@ -214,7 +214,7 @@ export default function Home() {
           badgeLabel: "pendientes"
         },
         {
-          title: "🎓 Convocatorias",
+          title: "🎓 Crear Convocatorias",
           icon: Bell,
           url: createPageUrl("CoachCallups"),
           gradient: "from-yellow-600 to-yellow-700",
@@ -361,7 +361,7 @@ export default function Home() {
           gradient: "from-green-600 to-green-700",
         },
         {
-          title: "🎓 Convocatorias",
+          title: "🎓 Crear Convocatorias",
           icon: Bell,
           url: createPageUrl("CoachCallups"),
           gradient: "from-yellow-600 to-yellow-700",
