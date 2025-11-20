@@ -161,13 +161,17 @@ export default function CallupForm({ callup, players, coachName, coachEmail, cat
 
               {/* Fecha */}
               <div className="space-y-2">
-                <Label>Fecha *</Label>
+                <Label className="text-base font-semibold text-orange-700">📅 Fecha del Partido *</Label>
                 <Input
                   type="date"
                   value={currentCallup.fecha_partido}
                   onChange={(e) => setCurrentCallup({ ...currentCallup, fecha_partido: e.target.value })}
                   required
+                  className="text-base font-medium border-2 border-orange-200 focus:border-orange-500"
                 />
+                <p className="text-xs text-orange-600 font-medium">
+                  ⚠️ Selecciona la fecha en la que se jugará el partido
+                </p>
               </div>
 
               {/* Hora Partido */}
