@@ -899,21 +899,21 @@ export default function SeasonManagement() {
                   <RadioGroupItem value="completo" id="completo" />
                   <Label htmlFor="completo" className="flex-1 cursor-pointer">
                     <div className="font-semibold">Reinicio Completo</div>
-                    <div className="text-sm text-slate-600">Archiva temporada, resetea pagos, cierra tienda y crea nueva temporada</div> {/* Refined description */}
+                    <div className="text-sm text-slate-600">Cierra temporada actual, archiva pagos al histórico, marca jugadores como "pendientes de renovación" y crea nueva temporada (con cuotas heredadas de CategoryManagement)</div>
                   </Label>
                 </div>
                 <div className="flex items-center space-x-2 p-4 border-2 rounded-lg hover:bg-slate-50 cursor-pointer">
                   <RadioGroupItem value="parcial" id="parcial" />
                   <Label htmlFor="parcial" className="flex-1 cursor-pointer">
                     <div className="font-semibold">Reinicio Parcial</div>
-                    <div className="text-sm text-slate-600">Solo resetea contadores de pago</div>
+                    <div className="text-sm text-slate-600">Solo resetea importes de pagos pendientes (útil si cambiaron las cuotas a mitad de temporada)</div>
                   </Label>
                 </div>
                 <div className="flex items-center space-x-2 p-4 border-2 rounded-lg hover:bg-slate-50 cursor-pointer">
                   <RadioGroupItem value="solo_archivar" id="solo_archivar" />
                   <Label htmlFor="solo_archivar" className="flex-1 cursor-pointer">
                     <div className="font-semibold">Solo Archivar</div>
-                    <div className="text-sm text-slate-600">Mueve registros al histórico</div> {/* Refined description */}
+                    <div className="text-sm text-slate-600">Mueve solo pagos y recordatorios al histórico sin crear nueva temporada (limpieza sin cierre completo)</div>
                   </Label>
                 </div>
               </RadioGroup>
