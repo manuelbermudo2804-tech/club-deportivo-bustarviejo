@@ -161,17 +161,38 @@ Gracias por su atención.
       
       // NOTIFICACIÓN VISUAL EN LA APP
       if (animation) {
-        const notificationMessage = `Tienes un pago pendiente:\n\n${payment.mes} - ${payment.temporada}\nImporte: ${payment.cantidad}€\n\n${data.message.substring(0, 150)}...`;
+        // Obtener todos los pagos pendientes del jugador para mostrar en el banner
+        const allPlayerPayments = allPlayerPayments || payments.filter(p => p.jugador_id === player.id);
+        const pendingPayments = allPlayerPayments.filter(p => p.estado === "Pendiente" || p.estado === "En revisión");
+        
+        const cuotasPendientes = pendingPayments.map(p => ({
+          mes: p.mes,
+          cantidad: p.cantidad
+        }));
+        
+        const totalPendiente = pendingPayments.reduce((sum, p) => sum + (p.cantidad || 0), 0);
+        
+        const notificationMessage = data.reminderType === "all_unpaid"
+          ? `No has registrado ningún pago para la temporada ${payment.temporada}.\n\nPor favor, registra los pagos lo antes posible.`
+          : pendingPayments.length === 1
+            ? `Tienes 1 cuota pendiente por ${payment.cantidad}€`
+            : `Tienes ${pendingPayments.length} cuotas pendientes`;
         
         // Crear notificación para padre
         if (player.email_padre) {
           await base44.entities.AppNotification.create({
             usuario_email: player.email_padre,
-            titulo: `🔔 PAGO URGENTE - ${payment.mes}`,
+            titulo: `🔔 PAGO URGENTE - ${player.nombre}`,
             mensaje: notificationMessage,
             tipo: "urgente",
             icono: "🔔",
-            vista: false
+            vista: false,
+            metadata: {
+              cuotas_pendientes: cuotasPendientes,
+              total_pendiente: totalPendiente,
+              jugador_nombre: player.nombre,
+              temporada: payment.temporada
+            }
           });
         }
         
@@ -179,11 +200,17 @@ Gracias por su atención.
         if (player.email_tutor_2) {
           await base44.entities.AppNotification.create({
             usuario_email: player.email_tutor_2,
-            titulo: `🔔 PAGO URGENTE - ${payment.mes}`,
+            titulo: `🔔 PAGO URGENTE - ${player.nombre}`,
             mensaje: notificationMessage,
             tipo: "urgente",
             icono: "🔔",
-            vista: false
+            vista: false,
+            metadata: {
+              cuotas_pendientes: cuotasPendientes,
+              total_pendiente: totalPendiente,
+              jugador_nombre: player.nombre,
+              temporada: payment.temporada
+            }
           });
         }
         
