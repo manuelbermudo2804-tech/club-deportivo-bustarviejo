@@ -512,8 +512,8 @@ export default function Layout({ children, currentPageName }) {
         setIsCoordinator(currentUser.es_coordinador === true);
         setIsTreasurer(currentUser.es_tesorero === true);
 
-        // Para admin/entrenadores/coordinadores, SOLO usar el campo manual (no verificar BD)
-        if (currentUser.role === "admin" || currentUser.es_entrenador || currentUser.es_coordinador) {
+        // Para admin/entrenadores/coordinadores/tesoreros, SOLO usar el campo manual (no verificar BD)
+        if (currentUser.role === "admin" || currentUser.es_entrenador || currentUser.es_coordinador || currentUser.es_tesorero) {
           const tienehijos = currentUser.tiene_hijos_jugando === true;
           console.log('🔍 DEPURACIÓN:', {
             email: currentUser.email,
