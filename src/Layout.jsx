@@ -890,7 +890,7 @@ export default function Layout({ children, currentPageName }) {
               <div className="text-white">
                 <h1 className="font-bold text-base leading-tight">CD Bustarviejo</h1>
                 <p className="text-xs text-orange-100">
-                  {isAdmin ? "Admin" : isPlayer ? "Jugador" : isCoordinator ? "Coordinador" : isCoach ? "Entrenador" : "Familia"}
+                  {isAdmin ? "Admin" : isPlayer ? "Jugador" : isCoordinator ? "Coordinador" : isTreasurer ? "Tesorero" : isCoach ? "Entrenador" : "Familia"}
                 </p>
               </div>
             </div>
