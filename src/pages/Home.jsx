@@ -305,6 +305,14 @@ export default function Home() {
         }
       );
     } else if (isCoach || isCoordinator) {
+      if (hasPlayers) {
+        items.push({
+          title: "👨‍👩‍👧 Mis Hijos",
+          icon: Users,
+          url: createPageUrl("ParentPlayers"),
+          gradient: "from-orange-600 to-orange-700",
+        });
+      }
       items.push(
         {
           title: "🎓 Plantillas",
