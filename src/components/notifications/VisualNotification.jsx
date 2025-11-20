@@ -40,14 +40,14 @@ export default function VisualNotification({ notification, onDismiss }) {
     <AnimatePresence>
       {isVisible && (
         <motion.div
-          initial={{ opacity: 0, y: -100, scale: 0.8 }}
-          animate={{ opacity: 1, y: 0, scale: 1 }}
-          exit={{ opacity: 0, y: -100, scale: 0.8 }}
-          transition={{ type: "spring", damping: 15, stiffness: 300 }}
-          className="fixed top-24 lg:top-4 left-1/2 -translate-x-1/2 z-[9999] w-[95%] max-w-lg px-2"
-          style={{ zIndex: 9999 }}
+          initial={{ opacity: 0, y: -100 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -100 }}
+          transition={{ duration: 0.3 }}
+          className="fixed inset-x-0 top-24 lg:top-4 z-[9999] flex justify-center px-4"
+          style={{ zIndex: 9999, pointerEvents: 'auto' }}
         >
-          <Card className={`${config.bg} ${config.textColor} shadow-2xl border-none overflow-hidden ring-4 ${config.ringColor}`}>
+          <Card className={`${config.bg} ${config.textColor} shadow-2xl border-none overflow-hidden ring-4 ${config.ringColor} w-full max-w-lg`}>
             <div className="p-4">
               <div className="flex items-start gap-3">
                 <motion.div
