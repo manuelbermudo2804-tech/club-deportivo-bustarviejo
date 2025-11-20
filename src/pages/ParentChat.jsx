@@ -31,33 +31,15 @@ export default function ParentChat() {
 
   useEffect(() => {
     const fetchUser = async () => {
-      const currentUser = await base44.auth.me();
-      setUser(currentUser);
+      try {
+        const currentUser = await base44.auth.me();
+        setUser(currentUser);
+      } catch (error) {
+        console.error("Error fetching user:", error);
+      }
     };
     fetchUser();
   }, []);
-
-  useEffect(() => {
-    if (myGroups.length === 0) return;
-    if (selectedTab) return; // Ya hay uno seleccionado
-    
-    const params = new URLSearchParams(location.search);
-    const groupParam = params.get('group');
-    
-    if (groupParam) {
-      const targetGroup = myGroups.find(g => g.deporte === decodeURIComponent(groupParam));
-      if (targetGroup) {
-        setSelectedTab(targetGroup.id);
-        return;
-      }
-    }
-    
-    // En desktop, seleccionar el primer grupo por defecto
-    // En mobile, no seleccionar ninguno para mostrar la lista
-    if (!isMobile && myGroups.length > 0) {
-      setSelectedTab(myGroups[0].id);
-    }
-  }, [myGroups.length, location.search, isMobile]);
 
   const { data: messages, isLoading: loadingMessages, refetch: refetchMessages } = useQuery({
     queryKey: ['chatMessages'],
@@ -176,7 +158,25 @@ export default function ParentChat() {
     return myGroups.find(g => g.id === selectedTab);
   }, [myGroups, selectedTab]);
 
-
+  useEffect(() => {
+    if (myGroups.length === 0) return;
+    if (selectedTab) return;
+    
+    const params = new URLSearchParams(location.search);
+    const groupParam = params.get('group');
+    
+    if (groupParam) {
+      const targetGroup = myGroups.find(g => g.deporte === decodeURIComponent(groupParam));
+      if (targetGroup) {
+        setSelectedTab(targetGroup.id);
+        return;
+      }
+    }
+    
+    if (!isMobile && myGroups.length > 0) {
+      setSelectedTab(myGroups[0].id);
+    }
+  }, [myGroups.length, location.search, isMobile, selectedTab]);
 
   useEffect(() => {
     if (selectedTab && currentGroup && currentGroup.messages) {
