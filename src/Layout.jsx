@@ -899,11 +899,11 @@ export default function Layout({ children, currentPageName }) {
 
   return (
     <>
-      {showWelcome && <WelcomeScreen onComplete={() => setShowWelcome(false)} />}
       <SessionManager />
       <NotificationBadge />
       {user && <ChatNotificationListener user={user} />}
       {user && <NotificationManager user={user} />}
+      {showWelcome && <WelcomeScreen onComplete={() => setShowWelcome(false)} />}
       
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
         
