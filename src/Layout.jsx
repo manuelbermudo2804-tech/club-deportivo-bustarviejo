@@ -540,8 +540,8 @@ export default function Layout({ children, currentPageName }) {
           setShowSpecialScreen("restricted");
           return;
         }
-        
-        if (currentUser.role !== "admin" && currentUser.role !== "jugador" && !currentUser.es_entrenador) {
+
+        if (currentUser.role !== "admin" && currentUser.role !== "jugador" && !currentUser.es_entrenador && !currentUser.es_tesorero) {
           const period = getPeriodType();
           if (period === "closed") {
             setShowSpecialScreen("closed");
