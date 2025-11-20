@@ -17,7 +17,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { getCuotasPorCategoria, getImportePorCategoriaYMes as getImportePorMes } from "../components/payments/paymentAmounts";
+import { getCuotasPorCategoriaSync, getImportePorCategoriaYMesSync as getImportePorMes } from "../components/payments/paymentAmounts";
 
 import IndividualReminderDialog from "../components/reminders/IndividualReminderDialog";
 import PaymentStatsDashboard from "../components/reminders/PaymentStatsDashboard";
@@ -1073,7 +1073,7 @@ Temporada ${reminder.temporada}
                       return existingPayment;
                     }
                     // Crear un pago virtual pendiente con cantidad correcta
-                    const cuotas = getCuotasPorCategoria(player?.deporte);
+                    const cuotas = getCuotasPorCategoriaSync(player?.deporte);
                     const cantidad = hasPagoUnico 
                       ? cuotas.total 
                       : getImportePorMes(player?.deporte, mes);
