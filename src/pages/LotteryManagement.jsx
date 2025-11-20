@@ -441,5 +441,6 @@ export default function LotteryManagement() {
         })}
       </div>
     </div>
+    </>
   );
 }
