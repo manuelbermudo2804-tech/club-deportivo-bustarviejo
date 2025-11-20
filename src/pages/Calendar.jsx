@@ -13,6 +13,8 @@ import { es } from "date-fns/locale";
 
 import EventForm from "../components/calendar/EventForm";
 import EventCard from "../components/calendar/EventCard";
+import CalendarExport from "../components/calendar/CalendarExport";
+import AgendaView from "../components/calendar/AgendaView";
 
 export default function Calendar() {
   const [showForm, setShowForm] = useState(false);
