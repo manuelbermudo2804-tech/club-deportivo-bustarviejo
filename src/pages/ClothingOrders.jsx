@@ -47,7 +47,11 @@ export default function ClothingOrders() {
   });
 
   const orderPeriodActive = (() => {
-    if (seasonConfig?.tienda_ropa_abierta === true) return true;
+    // Si el admin ha configurado manualmente (true o false), usar ese valor
+    if (seasonConfig?.tienda_ropa_abierta !== undefined && seasonConfig?.tienda_ropa_abierta !== null) {
+      return seasonConfig.tienda_ropa_abierta;
+    }
+    // Si no hay configuración manual, usar lógica automática (junio/julio)
     const currentMonth = new Date().getMonth() + 1;
     return currentMonth === 6 || currentMonth === 7;
   })();
