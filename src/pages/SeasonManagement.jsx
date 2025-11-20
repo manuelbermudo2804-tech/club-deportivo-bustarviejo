@@ -300,6 +300,21 @@ export default function SeasonManagement() {
         });
         await Promise.all(archiveOrdersPromises);
 
+        // Marcar todos los jugadores como pendiente de renovación
+        toast.info("👥 Marcando jugadores pendientes de renovación...");
+        const updatePlayersPromises = players.map(async (player) => {
+          try {
+            await base44.entities.Player.update(player.id, {
+              ...player,
+              estado_renovacion: "pendiente",
+              temporada_renovacion: resetConfig.nombreTemporada
+            });
+          } catch (error) {
+            console.error(`Error updating player ${player.id}:`, error);
+          }
+        });
+        await Promise.all(updatePlayersPromises);
+
         // Crear nueva temporada
         toast.info("✨ Creando nueva temporada..."); // Refined message
         const nuevaTemporada = {
