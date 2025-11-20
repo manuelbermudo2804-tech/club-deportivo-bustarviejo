@@ -98,6 +98,20 @@ export default function ClothingOrders() {
     createOrderMutation.mutate(dataToSubmit);
   };
 
+  const toggleStoreMutation = useMutation({
+    mutationFn: async () => {
+      if (!seasonConfig) return;
+      return base44.entities.SeasonConfig.update(seasonConfig.id, {
+        ...seasonConfig,
+        tienda_ropa_abierta: !seasonConfig.tienda_ropa_abierta
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['seasonConfig'] });
+      toast.success(seasonConfig?.tienda_ropa_abierta ? "Tienda cerrada" : "Tienda abierta");
+    },
+  });
+
   const statusColors = {
     "Pendiente": "bg-red-100 text-red-700",
     "En revisión": "bg-orange-100 text-orange-700",
@@ -178,11 +192,23 @@ export default function ClothingOrders() {
           </p>
           {isAdmin && seasonConfig?.tienda_ropa_abierta && (
             <Badge className="bg-green-600 text-white mt-2">
-              🛍️ Tienda abierta manualmente por admin
+              🛍️ Tienda abierta manualmente
             </Badge>
           )}
         </div>
-        {!isAdmin && (
+        {isAdmin ? (
+          <Button
+            onClick={() => toggleStoreMutation.mutate()}
+            disabled={toggleStoreMutation.isPending || !seasonConfig}
+            className={`shadow-lg ${
+              seasonConfig?.tienda_ropa_abierta 
+                ? 'bg-red-600 hover:bg-red-700' 
+                : 'bg-green-600 hover:bg-green-700'
+            }`}
+          >
+            {seasonConfig?.tienda_ropa_abierta ? '🔒 Cerrar Tienda' : '🛍️ Abrir Tienda'}
+          </Button>
+        ) : (
           <Button
             onClick={() => setShowForm(!showForm)}
             className="bg-orange-600 hover:bg-orange-700 shadow-lg"
