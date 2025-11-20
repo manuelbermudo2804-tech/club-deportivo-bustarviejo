@@ -23,7 +23,8 @@ import {
   Shield,
   Mail,
   Database,
-  Lock
+  Lock,
+  History
 } from "lucide-react";
 import {
   Dialog,
@@ -588,6 +589,41 @@ export default function SeasonManagement() {
           notas: `Temporada creada el ${new Date().toLocaleDateString('es-ES')}` // Refined message
         };
         await base44.entities.SeasonConfig.create(nuevaTemporada);
+
+        // Guardar historial del reset
+        toast.info("📚 Guardando historial del reset...");
+        await base44.entities.ResetHistory.create({
+          fecha_reset: new Date().toISOString(),
+          temporada_anterior: activeSeason.temporada,
+          temporada_nueva: resetConfig.nombreTemporada,
+          usuario_responsable: currentUser.email,
+          datos_borrados: {
+            pagos: payments.length,
+            recordatorios: reminders.length,
+            asistencias: resetConfig.borrarAsistencias ? attendances.length : 0,
+            evaluaciones: resetConfig.borrarEvaluaciones ? evaluations.length : 0,
+            horarios: resetConfig.borrarHorarios ? schedules.length : 0,
+            eventos: resetConfig.borrarCalendario ? events.length : 0,
+            anuncios: resetConfig.borrarAnuncios ? announcements.length : 0,
+            galeria: resetConfig.borrarGaleria ? gallery.length : 0,
+            convocatorias: resetConfig.borrarConvocatorias ? callups.length : 0,
+            chats: resetConfig.borrarChats ? chats.length : 0,
+            encuestas: resetConfig.borrarEncuestas ? surveys.length : 0,
+            respuestas_encuestas: resetConfig.borrarEncuestas ? surveyResponses.length : 0,
+            resultados: resetConfig.borrarResultados ? matchResults.length : 0,
+            pedidos_ropa: resetConfig.borrarPedidosRopa ? clothingOrders.length : 0,
+            pedidos_loteria: resetConfig.borrarPedidosLoteria ? lotteryOrders.length : 0,
+            certificados: resetConfig.borrarCertificados ? certificates.length : 0,
+            notas_internas: resetConfig.borrarNotasInternas ? memberNotes.length : 0,
+            notificaciones: resetConfig.borrarNotificaciones ? appNotifications.length : 0,
+          },
+          datos_archivados: {
+            pagos: payments.length
+          },
+          jugadores_renovacion: players.length,
+          backup_generado: resetConfig.generarBackup,
+          notas: `Reset ejecutado por ${currentUser.full_name}`
+        });
       }
 
       if (resetConfig.tipoReinicio === "parcial") {
@@ -765,6 +801,59 @@ export default function SeasonManagement() {
         <h1 className="text-3xl font-bold text-slate-900">Gestión de Temporadas</h1>
         <p className="text-slate-600 mt-1">Control de temporadas y reinicio anual</p>
       </div>
+
+      {/* Export All Data Button */}
+      <Card className="border-blue-200 bg-blue-50">
+        <CardContent className="pt-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="text-lg font-semibold text-blue-900">💾 Backup Completo</h3>
+              <p className="text-sm text-blue-700 mt-1">Exportar toda la información antes de resetear</p>
+            </div>
+            <Button
+              onClick={() => {
+                const allData = {
+                  fecha_exportacion: new Date().toISOString(),
+                  temporada: activeSeason?.temporada,
+                  jugadores: players,
+                  pagos: payments,
+                  recordatorios: reminders,
+                  asistencias: attendances,
+                  evaluaciones: evaluations,
+                  horarios: schedules,
+                  eventos: events,
+                  anuncios: announcements,
+                  galeria: gallery,
+                  convocatorias: callups,
+                  chats: chats,
+                  encuestas: surveys,
+                  respuestas_encuestas: surveyResponses,
+                  resultados: matchResults,
+                  pedidos_ropa: clothingOrders,
+                  pedidos_loteria: lotteryOrders,
+                  certificados: certificates,
+                  notas_internas: memberNotes,
+                  notificaciones: appNotifications
+                };
+                const blob = new Blob([JSON.stringify(allData, null, 2)], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `backup_completo_${activeSeason?.temporada}_${new Date().toISOString().split('T')[0]}.json`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                toast.success("📦 Backup descargado");
+              }}
+              className="bg-blue-600 hover:bg-blue-700"
+            >
+              <Download className="w-4 h-4 mr-2" />
+              Descargar Backup
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Botón Principal: Iniciar Nueva Temporada */}
       <Card className="border-none shadow-2xl bg-gradient-to-r from-green-500 via-green-600 to-green-700 text-white overflow-hidden relative">
@@ -1108,6 +1197,13 @@ export default function SeasonManagement() {
             <Button variant="outline" onClick={() => setShowResetDialog(false)}>
               Cancelar
             </Button>
+            <Button
+              onClick={() => setShowPreview(true)}
+              disabled={!resetConfig.nombreTemporada}
+              variant="outline"
+            >
+              👁️ Vista Previa
+            </Button>
             <Button onClick={handleProceedToConfirmation} className="bg-green-600 hover:bg-green-700">
               <Shield className="w-4 h-4 mr-2" />
               Continuar a Confirmación
@@ -1115,6 +1211,81 @@ export default function SeasonManagement() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Preview Dialog */}
+      <AlertDialog open={showPreview} onOpenChange={setShowPreview}>
+        <AlertDialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-2xl flex items-center gap-2">
+              👁️ Vista Previa del Reinicio
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              Resumen de lo que se va a eliminar y archivar
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className="space-y-4">
+            <Card className="border-orange-200 bg-orange-50">
+              <CardContent className="pt-4">
+                <p className="font-semibold text-orange-900 mb-2">📦 Datos que se ARCHIVARÁN:</p>
+                <ul className="space-y-1 text-sm text-orange-800">
+                  <li>• Pagos: {payments.length} registros</li>
+                </ul>
+              </CardContent>
+            </Card>
+            
+            <Card className="border-red-200 bg-red-50">
+              <CardContent className="pt-4">
+                <p className="font-semibold text-red-900 mb-2">🗑️ Datos que se ELIMINARÁN:</p>
+                <ul className="space-y-1 text-sm text-red-800">
+                  <li>• Recordatorios: {reminders.length} registros</li>
+                  {resetConfig.borrarAsistencias && <li>• Asistencias: {attendances.length} registros</li>}
+                  {resetConfig.borrarEvaluaciones && <li>• Evaluaciones: {evaluations.length} registros</li>}
+                  {resetConfig.borrarHorarios && <li>• Horarios: {schedules.length} registros</li>}
+                  {resetConfig.borrarCalendario && <li>• Eventos: {events.length} registros</li>}
+                  {resetConfig.borrarAnuncios && <li>• Anuncios: {announcements.length} registros</li>}
+                  {resetConfig.borrarGaleria && <li>• Galerías: {gallery.length} registros</li>}
+                  {resetConfig.borrarConvocatorias && <li>• Convocatorias: {callups.length} registros</li>}
+                  {resetConfig.borrarChats && <li>• Mensajes: {chats.length} registros</li>}
+                  {resetConfig.borrarEncuestas && <li>• Encuestas: {surveys.length} + {surveyResponses.length} respuestas</li>}
+                  {resetConfig.borrarResultados && <li>• Resultados: {matchResults.length} registros</li>}
+                  {resetConfig.borrarPedidosRopa && <li>• Pedidos Ropa: {clothingOrders.length} registros</li>}
+                  {resetConfig.borrarPedidosLoteria && <li>• Pedidos Lotería: {lotteryOrders.length} registros</li>}
+                  {resetConfig.borrarCertificados && <li>• Certificados: {certificates.length} registros</li>}
+                  {resetConfig.borrarNotasInternas && <li>• Notas Internas: {memberNotes.length} registros</li>}
+                  {resetConfig.borrarNotificaciones && <li>• Notificaciones: {appNotifications.length} registros</li>}
+                </ul>
+              </CardContent>
+            </Card>
+
+            <Card className="border-blue-200 bg-blue-50">
+              <CardContent className="pt-4">
+                <p className="font-semibold text-blue-900 mb-2">👥 Jugadores:</p>
+                <p className="text-sm text-blue-800">
+                  {players.length} jugadores serán marcados como PENDIENTES de renovación
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card className="border-green-200 bg-green-50">
+              <CardContent className="pt-4">
+                <p className="font-semibold text-green-900 mb-2">✨ Nueva Temporada:</p>
+                <p className="text-sm text-green-800">
+                  Se creará la temporada <strong>{resetConfig.nombreTemporada}</strong>
+                </p>
+              </CardContent>
+            </Card>
+
+            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+              <p className="text-sm text-yellow-900">
+                ⚠️ Para confirmar, escribe <strong>CONFIRMAR</strong> en el diálogo de seguridad
+              </p>
+            </div>
+          </div>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cerrar</AlertDialogCancel>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {/* Diálogo de Confirmación de Seguridad */}
       <AlertDialog open={showConfirmation} onOpenChange={setShowConfirmation}>
@@ -1145,6 +1316,19 @@ export default function SeasonManagement() {
               </div>
 
               <div className="space-y-3">
+                <div>
+                  <Label className="text-sm font-medium" htmlFor="confirmText">
+                    Para confirmar, escribe: <span className="font-mono bg-red-100 px-2 py-1 rounded">CONFIRMAR</span>
+                  </Label>
+                  <Input
+                    id="confirmText"
+                    value={confirmText}
+                    onChange={(e) => setConfirmText(e.target.value)}
+                    placeholder="Escribe CONFIRMAR"
+                    className="mt-1 border-red-300 focus:border-red-500"
+                  />
+                </div>
+
                 <div>
                   <Label className="text-sm font-medium">Confirma tu email *</Label>
                   <Input
@@ -1191,18 +1375,18 @@ export default function SeasonManagement() {
           <AlertDialogFooter>
             <AlertDialogCancel onClick={() => {
               setShowConfirmation(false);
+              setConfirmText("");
               setSecurityCheck({
                 emailConfirmacion: "",
                 aceptoTerminos: false,
-                // password: "" // Removed password reset
               });
             }}>
               Cancelar
             </AlertDialogCancel>
             <AlertDialogAction
               onClick={handleExecuteReset}
-              disabled={isProcessing}
-              className="bg-red-600 hover:bg-red-700"
+              disabled={isProcessing || confirmText !== "CONFIRMAR"}
+              className="bg-red-600 hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isProcessing ? (
                 <>
@@ -1326,6 +1510,54 @@ export default function SeasonManagement() {
                   </div>
                 );
               })}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Reset History */}
+      {resetHistory.length > 0 && (
+        <Card className="border-purple-200 bg-purple-50">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-purple-900">
+              <History className="w-5 h-5" />
+              Historial de Reinicios
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {resetHistory.slice(0, 5).map((reset) => (
+                <div key={reset.id} className="bg-white rounded-lg p-4 border border-purple-200">
+                  <div className="flex justify-between items-start mb-2">
+                    <div>
+                      <p className="font-semibold text-purple-900">
+                        {reset.temporada_anterior} → {reset.temporada_nueva}
+                      </p>
+                      <p className="text-sm text-slate-600">
+                        {new Date(reset.fecha_reset).toLocaleDateString('es-ES', {
+                          year: 'numeric',
+                          month: 'long',
+                          day: 'numeric',
+                          hour: '2-digit',
+                          minute: '2-digit'
+                        })}
+                      </p>
+                    </div>
+                    <Badge className="bg-purple-100 text-purple-800">
+                      {reset.usuario_responsable.split('@')[0]}
+                    </Badge>
+                  </div>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs text-slate-600">
+                    <div>📋 Asistencias: {reset.datos_borrados?.asistencias || 0}</div>
+                    <div>⭐ Evaluaciones: {reset.datos_borrados?.evaluaciones || 0}</div>
+                    <div>📅 Eventos: {reset.datos_borrados?.eventos || 0}</div>
+                    <div>💬 Mensajes: {reset.datos_borrados?.chats || 0}</div>
+                  </div>
+                  {reset.notas && (
+                    <p className="text-xs text-slate-500 mt-2 italic">{reset.notas}</p>
+                  )}
+                </div>
+              ))}
             </div>
           </CardContent>
         </Card>
