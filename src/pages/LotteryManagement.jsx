@@ -317,8 +317,7 @@ export default function LotteryManagement() {
 
       <div className="p-3 lg:p-8 space-y-4 lg:space-y-6">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3">
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3">
-        <div>
+          <div>
           <h1 className="text-xl lg:text-3xl font-bold text-slate-900">🍀 Gestión Lotería</h1>
           <p className="text-xs lg:text-sm text-slate-600 mt-1">Número: {NUMERO_LOTERIA}</p>
           {user?.role !== "admin" && (
@@ -345,9 +344,9 @@ export default function LotteryManagement() {
             </Button>
           )}
         </div>
-      </div>
+        </div>
 
-      <Card className="border-none shadow-lg bg-gradient-to-br from-orange-50 to-orange-100">
+        <Card className="border-none shadow-lg bg-gradient-to-br from-orange-50 to-orange-100">
         <CardContent className="pt-6">
           <div className="flex justify-between items-center">
             <div>
@@ -364,9 +363,9 @@ export default function LotteryManagement() {
             <Clover className="w-16 h-16 text-orange-400 opacity-50" />
           </div>
         </CardContent>
-      </Card>
+        </Card>
 
-      <div className="space-y-4">
+        <div className="space-y-4">
         {Object.entries(decimosPorCategoria).sort(([a], [b]) => a.localeCompare(b)).map(([categoria, stats]) => {
           const categoryOrders = orders.filter(o => (o.jugador_categoria || "Sin categoría") === categoria);
           
@@ -440,7 +439,7 @@ export default function LotteryManagement() {
             </Card>
           );
         })}
-      </div>
+        </div>
       </div>
     </>
   );
