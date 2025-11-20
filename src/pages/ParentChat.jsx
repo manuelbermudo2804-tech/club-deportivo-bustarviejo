@@ -9,9 +9,6 @@ import { Send, Clock, AlertCircle, X, ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 
-import FileAttachmentButton from "../components/chat/FileAttachmentButton";
-import MessageAttachments from "../components/chat/MessageAttachments";
-
 export default function ParentChat() {
   const location = useLocation();
   const [messageContent, setMessageContent] = useState("");
@@ -325,8 +322,12 @@ export default function ParentChat() {
                             <p className="text-sm leading-relaxed break-words">{msg.mensaje}</p>
                             
                             {msg.archivos_adjuntos?.length > 0 && (
-                              <div className="mt-2">
-                                <MessageAttachments attachments={msg.archivos_adjuntos} />
+                              <div className="mt-2 space-y-1">
+                                {msg.archivos_adjuntos.map((att, idx) => (
+                                  <a key={idx} href={att.url} target="_blank" rel="noopener noreferrer" className="text-xs underline block">
+                                    📎 {att.nombre}
+                                  </a>
+                                ))}
                               </div>
                             )}
                             
@@ -482,8 +483,12 @@ export default function ParentChat() {
                               <p className="text-sm leading-relaxed break-words">{msg.mensaje}</p>
                               
                               {msg.archivos_adjuntos?.length > 0 && (
-                                <div className="mt-2">
-                                  <MessageAttachments attachments={msg.archivos_adjuntos} />
+                                <div className="mt-2 space-y-1">
+                                  {msg.archivos_adjuntos.map((att, idx) => (
+                                    <a key={idx} href={att.url} target="_blank" rel="noopener noreferrer" className="text-xs underline block">
+                                      📎 {att.nombre}
+                                    </a>
+                                  ))}
                                 </div>
                               )}
                               
