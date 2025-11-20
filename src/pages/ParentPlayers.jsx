@@ -10,6 +10,7 @@ import { toast } from "sonner";
 import PlayerCard from "../components/players/PlayerCard";
 import PlayerForm from "../components/players/PlayerForm";
 import ContactCard from "../components/ContactCard";
+import AchievementsBadges from "../components/dashboard/AchievementsBadges";
 
 export default function ParentPlayers() {
   const [showForm, setShowForm] = useState(false);
@@ -45,6 +46,18 @@ export default function ParentPlayers() {
   const { data: schedules } = useQuery({
     queryKey: ['trainingSchedules'],
     queryFn: () => base44.entities.TrainingSchedule.list(),
+    initialData: [],
+  });
+
+  const { data: attendances } = useQuery({
+    queryKey: ['attendances'],
+    queryFn: () => base44.entities.Attendance.list('-fecha'),
+    initialData: [],
+  });
+
+  const { data: evaluations } = useQuery({
+    queryKey: ['evaluations'],
+    queryFn: () => base44.entities.PlayerEvaluation.list('-fecha_evaluacion'),
     initialData: [],
   });
 
@@ -294,16 +307,22 @@ Email: cdbustarviejo@gmail.com
               <h2 className="text-xl lg:text-2xl font-bold text-slate-900 flex items-center gap-2">
                 <span>⚽</span> Fútbol
               </h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 lg:gap-6">
+              <div className="space-y-6">
                 <AnimatePresence>
                   {futbolPlayers.map((player) => (
-                    <PlayerCard 
-                      key={player.id} 
-                      player={player} 
-                      onEdit={handleEdit}
-                      isParent={true}
-                      schedules={schedules}
-                    />
+                    <div key={player.id} className="space-y-4">
+                      <PlayerCard 
+                        player={player} 
+                        onEdit={handleEdit}
+                        isParent={true}
+                        schedules={schedules}
+                      />
+                      <AchievementsBadges 
+                        player={player} 
+                        attendances={attendances}
+                        evaluations={evaluations}
+                      />
+                    </div>
                   ))}
                 </AnimatePresence>
               </div>
@@ -316,16 +335,22 @@ Email: cdbustarviejo@gmail.com
               <h2 className="text-xl lg:text-2xl font-bold text-slate-900 flex items-center gap-2">
                 <span>⚽</span> Fútbol Femenino
               </h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 lg:gap-6">
+              <div className="space-y-6">
                 <AnimatePresence>
                   {futbolFemeninoPlayers.map((player) => (
-                    <PlayerCard 
-                      key={player.id} 
-                      player={player} 
-                      onEdit={handleEdit}
-                      isParent={true}
-                      schedules={schedules}
-                    />
+                    <div key={player.id} className="space-y-4">
+                      <PlayerCard 
+                        player={player} 
+                        onEdit={handleEdit}
+                        isParent={true}
+                        schedules={schedules}
+                      />
+                      <AchievementsBadges 
+                        player={player} 
+                        attendances={attendances}
+                        evaluations={evaluations}
+                      />
+                    </div>
                   ))}
                 </AnimatePresence>
               </div>
@@ -338,16 +363,22 @@ Email: cdbustarviejo@gmail.com
               <h2 className="text-xl lg:text-2xl font-bold text-slate-900 flex items-center gap-2">
                 <span>🏀</span> Baloncesto
               </h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 lg:gap-6">
+              <div className="space-y-6">
                 <AnimatePresence>
                   {baloncestoPlayers.map((player) => (
-                    <PlayerCard 
-                      key={player.id} 
-                      player={player} 
-                      onEdit={handleEdit}
-                      isParent={true}
-                      schedules={schedules}
-                    />
+                    <div key={player.id} className="space-y-4">
+                      <PlayerCard 
+                        player={player} 
+                        onEdit={handleEdit}
+                        isParent={true}
+                        schedules={schedules}
+                      />
+                      <AchievementsBadges 
+                        player={player} 
+                        attendances={attendances}
+                        evaluations={evaluations}
+                      />
+                    </div>
                   ))}
                 </AnimatePresence>
               </div>
