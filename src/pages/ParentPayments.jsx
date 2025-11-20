@@ -40,13 +40,14 @@ export default function ParentPayments() {
   });
 
   const { data: payments, isLoading } = useQuery({
-    queryKey: ['myPayments'],
+    queryKey: ['myPayments', players],
     queryFn: async () => {
+      if (players.length === 0) return [];
       const allPayments = await base44.entities.Payment.list('-created_date');
       const playerIds = players.map(p => p.id);
       return allPayments.filter(payment => playerIds.includes(payment.jugador_id));
     },
-    enabled: players.length > 0,
+    enabled: !!user && players.length > 0,
     initialData: [],
   });
 
