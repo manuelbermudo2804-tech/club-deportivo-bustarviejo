@@ -198,7 +198,13 @@ END:VCALENDAR`;
           Exportar Calendario
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-72">
+      <DropdownMenuContent align="end" className="w-80">
+        <div className="px-3 py-3 border-b border-slate-200 bg-blue-50">
+          <p className="text-sm font-medium text-blue-900 mb-1">¿Para qué sirve?</p>
+          <p className="text-xs text-blue-700 leading-relaxed">
+            📱 Descarga un archivo .ics para importar todos los eventos en Google Calendar, Apple Calendar o Outlook. Así recibirás recordatorios automáticos en tu móvil.
+          </p>
+        </div>
         <DropdownMenuItem onClick={exportToICal} className="cursor-pointer py-3">
           <CalendarIcon className="w-4 h-4 mr-2" />
           <div className="flex-1">
