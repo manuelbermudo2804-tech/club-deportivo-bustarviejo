@@ -16,6 +16,7 @@ import LanguageSelector from "./components/LanguageSelector";
 import ChatNotificationListener from "./components/push/ChatNotificationListener";
 import WelcomeScreen from "./components/WelcomeScreen";
 import NotificationManager from "./components/notifications/NotificationManager";
+import RolePresentation from "./components/onboarding/RolePresentation";
 
 const CLUB_LOGO_URL = "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6911b8e453ca3ac01fb134d6/14072ed7d_logo_cd_bustarviejo_pequeo.jpg";
 
@@ -496,6 +497,7 @@ export default function Layout({ children, currentPageName }) {
   });
   const [showWelcome, setShowWelcome] = useState(true);
   const [loteriaVisible, setLoteriaVisible] = useState(false);
+  const [showPresentation, setShowPresentation] = useState(false);
 
   const handleLanguageChange = (newLang) => {
     setCurrentLang(newLang);
@@ -786,7 +788,15 @@ export default function Layout({ children, currentPageName }) {
   }, [user, isAdmin, isPlayer, isCoach, hasPlayers]);
 
   if (showWelcome) {
-    return <WelcomeScreen onComplete={() => setShowWelcome(false)} />;
+    return <WelcomeScreen onComplete={() => {
+      setShowWelcome(false);
+      setShowPresentation(true);
+    }} />;
+  }
+
+  if (showPresentation && user) {
+    const userRole = isAdmin ? 'admin' : isCoordinator ? 'coordinador' : isCoach ? 'entrenador' : 'padre';
+    return <RolePresentation userRole={userRole} onComplete={() => setShowPresentation(false)} />;
   }
 
   if (showSpecialScreen === "restricted") {
