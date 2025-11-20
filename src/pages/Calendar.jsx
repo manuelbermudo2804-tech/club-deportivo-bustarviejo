@@ -21,7 +21,7 @@ export default function Calendar() {
   const [editingEvent, setEditingEvent] = useState(null);
   const [typeFilter, setTypeFilter] = useState("all");
   const [sportFilter, setSportFilter] = useState("all");
-  const [viewMode, setViewMode] = useState("cards"); // "calendar" o "cards"
+  const [viewMode, setViewMode] = useState("cards"); // "calendar", "cards", or "agenda"
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [isAdmin, setIsAdmin] = useState(false);
   const [user, setUser] = useState(null);
@@ -302,6 +302,13 @@ export default function Calendar() {
           <p className="text-slate-600 mt-1 text-sm">Eventos del club y partidos</p>
         </div>
         <div className="flex items-center gap-2">
+          <CalendarExport 
+            events={events.filter(e => isAdmin || e.publicado)} 
+            callups={visibleCallups}
+            schedules={schedules.filter(s => s.activo && (isAdmin || myPlayersSports.includes(s.categoria)))}
+            userEmail={user?.email}
+            userName={user?.full_name}
+          />
           <div className="flex bg-white rounded-lg shadow-sm p-1">
             <Button
               size="sm"
@@ -310,6 +317,14 @@ export default function Calendar() {
               className={viewMode === "calendar" ? "bg-orange-600 hover:bg-orange-700" : ""}
             >
               <CalendarIcon className="w-4 h-4" />
+            </Button>
+            <Button
+              size="sm"
+              variant={viewMode === "agenda" ? "default" : "ghost"}
+              onClick={() => setViewMode("agenda")}
+              className={viewMode === "agenda" ? "bg-orange-600 hover:bg-orange-700" : ""}
+            >
+              <List className="w-4 h-4" />
             </Button>
             <Button
               size="sm"
@@ -405,6 +420,15 @@ export default function Calendar() {
         <div className="text-center py-12">
           <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-orange-600 border-r-transparent"></div>
         </div>
+      ) : viewMode === "agenda" ? (
+        <AgendaView 
+          items={filteredItems.filter(i => i.type !== 'training')}
+          onItemClick={(item) => {
+            if (item.type === 'event' && isAdmin) {
+              handleEdit(item);
+            }
+          }}
+        />
       ) : viewMode === "calendar" ? (
         <div className="bg-white rounded-xl shadow-lg p-4">
           <div className="flex items-center justify-between mb-4">
