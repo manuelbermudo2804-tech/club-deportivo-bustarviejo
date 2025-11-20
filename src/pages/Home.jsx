@@ -394,6 +394,16 @@ export default function Home() {
         badge: unreadMessages,
         badgeLabel: "nuevos"
       });
+    } else {
+      // Menú para padres normales
+      if (loteriaVisible) {
+        items.push({
+          title: "🍀 Mi Lotería",
+          icon: Clover,
+          url: createPageUrl("ParentLottery"),
+          gradient: "from-green-600 to-green-700",
+        });
+      }
     }
 
     return items;
