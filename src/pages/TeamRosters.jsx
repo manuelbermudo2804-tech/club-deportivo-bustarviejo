@@ -48,7 +48,8 @@ export default function TeamRosters() {
     const matchesSearch = player.nombre?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCategory = selectedCategory === "all" || player.deporte === selectedCategory;
     const isInMyTeams = coachCategories.includes(player.deporte);
-    return matchesSearch && matchesCategory && isInMyTeams && player.activo;
+    const isRenewed = !player.estado_renovacion || player.estado_renovacion === "renovado";
+    return matchesSearch && matchesCategory && isInMyTeams && player.activo && isRenewed;
   });
 
   const activePlayers = filteredPlayers.length;
@@ -135,10 +136,10 @@ export default function TeamRosters() {
                   : "bg-slate-100 text-slate-700 hover:bg-slate-200"
               }`}
             >
-              Todos ({players.filter(p => coachCategories.includes(p.deporte) && p.activo).length})
+              Todos ({players.filter(p => coachCategories.includes(p.deporte) && p.activo && (!p.estado_renovacion || p.estado_renovacion === "renovado")).length})
             </Badge>
             {coachCategories.map((categoria) => {
-              const count = players.filter(p => p.deporte === categoria && p.activo).length;
+              const count = players.filter(p => p.deporte === categoria && p.activo && (!p.estado_renovacion || p.estado_renovacion === "renovado")).length;
               return (
                 <Badge
                   key={categoria}
