@@ -53,15 +53,7 @@ export default function ClothingOrders() {
     refetchInterval: 2000, // Refrescar cada 2 segundos
   });
 
-  const orderPeriodActive = (() => {
-    // Si el admin ha configurado manualmente (true o false), usar ese valor
-    if (seasonConfig?.tienda_ropa_abierta !== undefined && seasonConfig?.tienda_ropa_abierta !== null) {
-      return seasonConfig.tienda_ropa_abierta;
-    }
-    // Si no hay configuración manual, usar lógica automática (junio/julio)
-    const currentMonth = new Date().getMonth() + 1;
-    return currentMonth === 6 || currentMonth === 7;
-  })();
+  const orderPeriodActive = seasonConfig?.tienda_ropa_abierta === true;
 
   const { data: allPlayers, isLoading: loadingAllPlayers } = useQuery({
     queryKey: ['allPlayersForClothing'],
@@ -349,15 +341,19 @@ export default function ClothingOrders() {
         )}
       </div>
 
-      {!orderPeriodActive && !isAdmin && seasonConfig?.tienda_ropa_abierta === undefined && (
-        <Alert className="bg-orange-50 border-orange-300 border-2">
-          <AlertCircle className="h-5 w-5 text-orange-600" />
-          <AlertDescription className="text-orange-900">
-            <strong>⚠️ Periodo de pedidos cerrado</strong>
+      {!isAdmin && (
+        <Alert className="bg-blue-50 border-blue-300 border-2">
+          <AlertCircle className="h-5 w-5 text-blue-600" />
+          <AlertDescription className="text-blue-900">
+            <strong>ℹ️ Información sobre pedidos</strong>
             <p className="mt-2">
-              Los pedidos de equipación no están disponibles en este momento.
-              Los pedidos ya realizados se pueden consultar aquí, pero no se pueden crear nuevos pedidos.
+              Los pedidos de equipación normalmente están disponibles durante los meses de <strong>Junio y Julio</strong>.
             </p>
+            {!orderPeriodActive && (
+              <p className="mt-2 text-orange-700">
+                <strong>Actualmente la tienda está cerrada.</strong> Los pedidos ya realizados se pueden consultar aquí.
+              </p>
+            )}
           </AlertDescription>
         </Alert>
       )}
