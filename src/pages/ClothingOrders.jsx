@@ -232,20 +232,15 @@ export default function ClothingOrders() {
         )}
       </div>
 
-      {!orderPeriodActive && (
+      {!orderPeriodActive && !isAdmin && (
         <Alert className="bg-orange-50 border-orange-300 border-2">
           <AlertCircle className="h-5 w-5 text-orange-600" />
           <AlertDescription className="text-orange-900">
             <strong>⚠️ Periodo de pedidos cerrado</strong>
             <p className="mt-2">
-              Los pedidos de equipación solo están disponibles durante <strong>Junio y Julio</strong>.
-              Los pedidos ya realizados se pueden consultar aquí, pero no se pueden crear nuevos pedidos fuera de este periodo.
+              Los pedidos de equipación no están disponibles en este momento.
+              Los pedidos ya realizados se pueden consultar aquí, pero no se pueden crear nuevos pedidos.
             </p>
-            {isAdmin && (
-              <p className="mt-3 text-xs bg-white rounded p-2 border border-orange-200">
-                💡 <strong>Admin:</strong> Puedes abrir la tienda manualmente desde <strong>Panel Admin → Temporadas → Editar temporada activa → Tienda de Ropa Abierta</strong>
-              </p>
-            )}
           </AlertDescription>
         </Alert>
       )}
