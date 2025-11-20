@@ -19,7 +19,8 @@ export default function LotteryManagement() {
     const checkAdmin = async () => {
       const currentUser = await base44.auth.me();
       setUser(currentUser);
-      setIsAdmin(currentUser.role === "admin" || currentUser.es_entrenador === true);
+      const hasAccess = currentUser.role === "admin" || currentUser.es_entrenador === true || currentUser.es_coordinador === true;
+      setIsAdmin(hasAccess);
     };
     checkAdmin();
   }, []);
@@ -32,12 +33,24 @@ export default function LotteryManagement() {
     },
   });
 
-  const { data: orders = [] } = useQuery({
+  const { data: allOrders = [] } = useQuery({
     queryKey: ['allLotteryOrders'],
     queryFn: () => base44.entities.LotteryOrder.list('-created_date'),
     enabled: isAdmin,
     initialData: [],
   });
+
+  // Filtrar pedidos según el rol del usuario
+  const orders = React.useMemo(() => {
+    if (!user) return [];
+    
+    // Admin ve todo
+    if (user.role === "admin") return allOrders;
+    
+    // Entrenadores/coordinadores solo ven sus categorías
+    const myCategories = user.categorias_entrena || [];
+    return allOrders.filter(order => myCategories.includes(order.jugador_categoria));
+  }, [allOrders, user]);
 
   const updateOrderMutation = useMutation({
     mutationFn: ({ id, data }) => base44.entities.LotteryOrder.update(id, data),
@@ -240,20 +253,29 @@ export default function LotteryManagement() {
         <div>
           <h1 className="text-xl lg:text-3xl font-bold text-slate-900">🍀 Gestión Lotería</h1>
           <p className="text-xs lg:text-sm text-slate-600 mt-1">Número: {NUMERO_LOTERIA}</p>
+          {user?.role !== "admin" && (
+            <Badge className="mt-2 bg-blue-600">
+              🎓 {user?.categorias_entrena?.length || 0} categoría{user?.categorias_entrena?.length > 1 ? 's' : ''}
+            </Badge>
+          )}
         </div>
         <div className="flex gap-2">
-          <Button onClick={exportPDF} size="sm" variant="outline">
-            <FileDown className="w-4 h-4 mr-2" />
-            PDF Completo
-          </Button>
-          <Button
-            onClick={() => toggleLotteryMutation.mutate()}
-            disabled={toggleLotteryMutation.isPending}
-            size="sm"
-            className={seasonConfig?.loteria_navidad_abierta ? 'bg-red-600 hover:bg-red-700' : 'bg-green-600 hover:bg-green-700'}
-          >
-            {seasonConfig?.loteria_navidad_abierta ? '🔒 Cerrar' : '🛍️ Abrir'}
-          </Button>
+          {user?.role === "admin" && (
+            <Button onClick={exportPDF} size="sm" variant="outline">
+              <FileDown className="w-4 h-4 mr-2" />
+              PDF Completo
+            </Button>
+          )}
+          {user?.role === "admin" && (
+            <Button
+              onClick={() => toggleLotteryMutation.mutate()}
+              disabled={toggleLotteryMutation.isPending}
+              size="sm"
+              className={seasonConfig?.loteria_navidad_abierta ? 'bg-red-600 hover:bg-red-700' : 'bg-green-600 hover:bg-green-700'}
+            >
+              {seasonConfig?.loteria_navidad_abierta ? '🔒 Cerrar' : '🛍️ Abrir'}
+            </Button>
+          )}
         </div>
       </div>
 
@@ -261,8 +283,15 @@ export default function LotteryManagement() {
         <CardContent className="pt-6">
           <div className="flex justify-between items-center">
             <div>
-              <p className="text-sm text-slate-600 mb-1">Total Décimos</p>
+              <p className="text-sm text-slate-600 mb-1">
+                {user?.role === "admin" ? "Total Décimos (Club)" : "Total Décimos (Mis Categorías)"}
+              </p>
               <p className="text-4xl font-bold text-orange-600">{totalDecimos}</p>
+              {user?.role !== "admin" && (
+                <p className="text-xs text-slate-600 mt-2">
+                  {Object.keys(decimosPorCategoria).length} categoría{Object.keys(decimosPorCategoria).length > 1 ? 's' : ''}
+                </p>
+              )}
             </div>
             <Clover className="w-16 h-16 text-orange-400 opacity-50" />
           </div>
