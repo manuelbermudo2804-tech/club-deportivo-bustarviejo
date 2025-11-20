@@ -17,9 +17,12 @@ const NUMERO_LOTERIA = "28720";
 export default function ParentLottery() {
   const [showForm, setShowForm] = useState(false);
   const [selectedPlayer, setSelectedPlayer] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("");
   const [numDecimos, setNumDecimos] = useState(1);
   const [notas, setNotas] = useState("");
   const [user, setUser] = useState(null);
+  const [isCoach, setIsCoach] = useState(false);
+  const [hasPlayers, setHasPlayers] = useState(false);
 
   const queryClient = useQueryClient();
 
@@ -27,6 +30,19 @@ export default function ParentLottery() {
     const fetchUser = async () => {
       const currentUser = await base44.auth.me();
       setUser(currentUser);
+      const coachCheck = currentUser.es_entrenador === true || currentUser.es_coordinador === true;
+      setIsCoach(coachCheck);
+      
+      // Verificar si tiene hijos
+      if (coachCheck) {
+        setHasPlayers(currentUser.tiene_hijos_jugando === true);
+      } else {
+        const allPlayers = await base44.entities.Player.list();
+        const myPlayers = allPlayers.filter(p => 
+          p.email_padre === currentUser.email || p.email_tutor_2 === currentUser.email
+        );
+        setHasPlayers(myPlayers.length > 0);
+      }
     };
     fetchUser();
   }, []);
@@ -69,6 +85,7 @@ export default function ParentLottery() {
       queryClient.invalidateQueries({ queryKey: ['myLotteryOrders'] });
       setShowForm(false);
       setSelectedPlayer("");
+      setSelectedCategory("");
       setNumDecimos(1);
       setNotas("");
       toast.success("✅ ¡Pedido registrado! Tu entrenador te entregará los décimos");
@@ -78,28 +95,52 @@ export default function ParentLottery() {
   const handleSubmit = (e) => {
     e.preventDefault();
     
-    const player = players.find(p => p.id === selectedPlayer);
-    if (!player) {
-      toast.error("Selecciona un jugador");
-      return;
-    }
-
     const total = numDecimos * precioDecimo;
 
-    createOrderMutation.mutate({
-      jugador_id: player.id,
-      jugador_nombre: player.nombre,
-      jugador_categoria: player.deporte,
-      email_padre: user.email,
-      telefono: player.telefono,
-      numero_decimos: numDecimos,
-      precio_por_decimo: precioDecimo,
-      total: total,
-      estado: "Solicitado",
-      pagado: false,
-      temporada: new Date().getFullYear().toString(),
-      notas: notas
-    });
+    // Si es entrenador sin hijos, usar categoría directamente
+    if (isCoach && !hasPlayers) {
+      if (!selectedCategory) {
+        toast.error("Selecciona una categoría");
+        return;
+      }
+
+      createOrderMutation.mutate({
+        jugador_id: user.id,
+        jugador_nombre: `Entrenador: ${user.full_name}`,
+        jugador_categoria: selectedCategory,
+        email_padre: user.email,
+        telefono: user.telefono || "",
+        numero_decimos: numDecimos,
+        precio_por_decimo: precioDecimo,
+        total: total,
+        estado: "Solicitado",
+        pagado: false,
+        temporada: new Date().getFullYear().toString(),
+        notas: notas
+      });
+    } else {
+      // Lógica normal para padres con jugadores
+      const player = players.find(p => p.id === selectedPlayer);
+      if (!player) {
+        toast.error("Selecciona un jugador");
+        return;
+      }
+
+      createOrderMutation.mutate({
+        jugador_id: player.id,
+        jugador_nombre: player.nombre,
+        jugador_categoria: player.deporte,
+        email_padre: user.email,
+        telefono: player.telefono,
+        numero_decimos: numDecimos,
+        precio_por_decimo: precioDecimo,
+        total: total,
+        estado: "Solicitado",
+        pagado: false,
+        temporada: new Date().getFullYear().toString(),
+        notas: notas
+      });
+    }
   };
 
   const statusColors = {
@@ -230,21 +271,42 @@ export default function ParentLottery() {
             </CardHeader>
             <CardContent className="pt-6">
               <form onSubmit={handleSubmit} className="space-y-6">
-                <div className="space-y-2">
-                  <Label className="text-lg font-bold text-slate-900">👤 Jugador</Label>
-                  <Select value={selectedPlayer} onValueChange={setSelectedPlayer}>
-                    <SelectTrigger className="border-2 border-red-300 h-12 text-lg">
-                      <SelectValue placeholder="Selecciona un jugador" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {players.map(player => (
-                        <SelectItem key={player.id} value={player.id}>
-                          {player.nombre} - {player.deporte}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+                {isCoach && !hasPlayers ? (
+                  <div className="space-y-2">
+                    <Label className="text-lg font-bold text-slate-900">🎓 Categoría</Label>
+                    <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+                      <SelectTrigger className="border-2 border-red-300 h-12 text-lg">
+                        <SelectValue placeholder="Selecciona tu categoría" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {(user?.categorias_entrena || []).map(cat => (
+                          <SelectItem key={cat} value={cat}>
+                            {cat}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <p className="text-sm text-slate-600 bg-blue-50 p-3 rounded-lg border border-blue-200">
+                      ℹ️ Como entrenador, tu pedido se asociará a esta categoría
+                    </p>
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    <Label className="text-lg font-bold text-slate-900">👤 Jugador</Label>
+                    <Select value={selectedPlayer} onValueChange={setSelectedPlayer}>
+                      <SelectTrigger className="border-2 border-red-300 h-12 text-lg">
+                        <SelectValue placeholder="Selecciona un jugador" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {players.map(player => (
+                          <SelectItem key={player.id} value={player.id}>
+                            {player.nombre} - {player.deporte}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
 
                 <div className="space-y-2">
                   <Label className="text-lg font-bold text-slate-900">🎟️ Número de Décimos</Label>
