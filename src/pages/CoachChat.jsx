@@ -398,7 +398,7 @@ export default function CoachChat() {
   }
 
   return (
-    <div className="fixed inset-0 flex bg-white" style={{ top: isMobile ? '120px' : '0', left: isMobile ? '0' : '288px' }}>
+    <div className="fixed inset-0 flex bg-white overflow-x-hidden" style={{ top: isMobile ? '120px' : '0', left: isMobile ? '0' : '288px' }}>
       {/* Mobile chat list */}
       {isMobile && !selectedTab && (
         <div className="fixed inset-0 bg-white overflow-y-auto" style={{ top: '120px', left: 0 }}>
@@ -482,7 +482,7 @@ export default function CoachChat() {
           </div>
 
           <div 
-            className="flex-1 overflow-y-auto p-4 space-y-2"
+            className="flex-1 overflow-y-auto overflow-x-hidden p-4 space-y-2"
             style={{
               backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23d4c5b9' fill-opacity='0.1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
               backgroundColor: '#e5ddd5'
@@ -536,11 +536,11 @@ export default function CoachChat() {
                   }
                   
                   return (
-                    <div key={msg.id} className={`flex ${isMyMessage ? 'justify-end' : 'justify-start'} mb-1 w-full`}>
-                      <div className={`max-w-[85%] lg:max-w-[75%] rounded-lg shadow-sm ${messageColor}`}>
+                    <div key={msg.id} className={`flex ${isMyMessage ? 'justify-end' : 'justify-start'} mb-1 w-full px-1`}>
+                      <div className={`max-w-[85%] lg:max-w-[75%] rounded-lg shadow-sm ${messageColor} overflow-hidden`}>
                         <div className="px-3 py-2">
                           <div className="flex items-center gap-2 mb-1">
-                            <span className={`text-xs font-semibold ${
+                            <span className={`text-xs font-semibold truncate ${
                               messageColor.includes('blue') ? 'text-blue-100' 
                               : messageColor.includes('purple') ? 'text-purple-100'
                               : messageColor.includes('green') ? 'text-green-100' 
@@ -552,10 +552,10 @@ export default function CoachChat() {
                                 : '👨‍👩‍👧 '}{msg.remitente_nombre}
                             </span>
                             {msg.prioridad !== "Normal" && (
-                              <span className="text-xs">{msg.prioridad === "Urgente" ? "🔴" : "⚠️"}</span>
+                              <span className="text-xs flex-shrink-0">{msg.prioridad === "Urgente" ? "🔴" : "⚠️"}</span>
                             )}
                           </div>
-                          <p className="text-sm leading-relaxed break-words">{msg.mensaje}</p>
+                          <p className="text-sm leading-relaxed break-words overflow-wrap-anywhere">{msg.mensaje}</p>
                           
                           {msg.archivos_adjuntos?.length > 0 && (
                             <div className="mt-2">
