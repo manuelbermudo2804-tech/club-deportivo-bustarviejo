@@ -860,6 +860,8 @@ export default function Layout({ children, currentPageName }) {
       navigationItems = playerNavigationItems;
     } else if (isCoordinator) {
       navigationItems = coordinatorNavigationItems;
+    } else if (isTreasurer) {
+      navigationItems = treasurerNavigationItems;
     } else if (isCoach) {
       navigationItems = coachNavigationItems;
     } else {
