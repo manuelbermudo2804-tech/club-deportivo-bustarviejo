@@ -317,6 +317,7 @@ export default function LotteryManagement() {
 
       <div className="p-3 lg:p-8 space-y-4 lg:space-y-6">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3">
         <div>
           <h1 className="text-xl lg:text-3xl font-bold text-slate-900">🍀 Gestión Lotería</h1>
           <p className="text-xs lg:text-sm text-slate-600 mt-1">Número: {NUMERO_LOTERIA}</p>
@@ -440,7 +441,7 @@ export default function LotteryManagement() {
           );
         })}
       </div>
-    </div>
+      </div>
     </>
   );
 }
