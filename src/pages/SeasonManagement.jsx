@@ -25,7 +25,9 @@ import {
   Database,
   Lock,
   History,
-  Upload
+  Upload,
+  ShoppingBag,
+  Clover
 } from "lucide-react";
 import {
   Dialog,
@@ -255,6 +257,36 @@ export default function SeasonManagement() {
   });
 
   const activeSeason = seasons.find(s => s.activa);
+
+  const updateSeasonMutation = useMutation({
+    mutationFn: ({ id, data }) => base44.entities.SeasonConfig.update(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['seasons'] });
+      toast.success("✅ Temporada actualizada");
+    },
+  });
+
+  const toggleLottery = async () => {
+    if (!activeSeason) return;
+    await updateSeasonMutation.mutateAsync({
+      id: activeSeason.id,
+      data: {
+        ...activeSeason,
+        loteria_navidad_abierta: !activeSeason.loteria_navidad_abierta
+      }
+    });
+  };
+
+  const toggleClothingStore = async () => {
+    if (!activeSeason) return;
+    await updateSeasonMutation.mutateAsync({
+      id: activeSeason.id,
+      data: {
+        ...activeSeason,
+        tienda_ropa_abierta: !activeSeason.tienda_ropa_abierta
+      }
+    });
+  };
 
   // Función para generar backup (exportar a CSV)
   const generateBackup = () => {
@@ -1689,6 +1721,85 @@ export default function SeasonManagement() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Control de Lotería y Tienda */}
+      {activeSeason && (
+        <div className="grid md:grid-cols-2 gap-6">
+          <Card className="border-none shadow-lg bg-gradient-to-br from-green-50 to-green-100 border-2 border-green-300">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-green-900">
+                <Clover className="w-5 h-5" />
+                🍀 Control de Lotería de Navidad
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="bg-white rounded-lg p-4 border-2 border-green-200">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="font-semibold text-slate-900">Estado Actual</p>
+                    <p className="text-sm text-slate-600">
+                      {activeSeason.loteria_navidad_abierta ? "✅ Abierta - Los usuarios pueden hacer pedidos" : "🔒 Cerrada - Pedidos deshabilitados"}
+                    </p>
+                  </div>
+                  <Badge className={activeSeason.loteria_navidad_abierta ? "bg-green-600 text-white text-lg px-4 py-2" : "bg-slate-400 text-white text-lg px-4 py-2"}>
+                    {activeSeason.loteria_navidad_abierta ? "ABIERTA" : "CERRADA"}
+                  </Badge>
+                </div>
+              </div>
+              <Button
+                onClick={toggleLottery}
+                className={`w-full font-bold text-lg py-6 ${
+                  activeSeason.loteria_navidad_abierta 
+                    ? "bg-red-600 hover:bg-red-700" 
+                    : "bg-green-600 hover:bg-green-700"
+                }`}
+              >
+                {activeSeason.loteria_navidad_abierta ? "🔒 Cerrar Lotería" : "🍀 Abrir Lotería"}
+              </Button>
+              <p className="text-xs text-slate-600 text-center">
+                Al abrir, aparecerá el menú "🍀 Lotería" para todos los usuarios
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card className="border-none shadow-lg bg-gradient-to-br from-orange-50 to-orange-100 border-2 border-orange-300">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-orange-900">
+                <ShoppingBag className="w-5 h-5" />
+                🛍️ Control de Tienda de Ropa
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="bg-white rounded-lg p-4 border-2 border-orange-200">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="font-semibold text-slate-900">Estado Actual</p>
+                    <p className="text-sm text-slate-600">
+                      {activeSeason.tienda_ropa_abierta ? "✅ Abierta - Pedidos habilitados" : "🔒 Cerrada - No se pueden hacer pedidos"}
+                    </p>
+                  </div>
+                  <Badge className={activeSeason.tienda_ropa_abierta ? "bg-orange-600 text-white text-lg px-4 py-2" : "bg-slate-400 text-white text-lg px-4 py-2"}>
+                    {activeSeason.tienda_ropa_abierta ? "ABIERTA" : "CERRADA"}
+                  </Badge>
+                </div>
+              </div>
+              <Button
+                onClick={toggleClothingStore}
+                className={`w-full font-bold text-lg py-6 ${
+                  activeSeason.tienda_ropa_abierta 
+                    ? "bg-red-600 hover:bg-red-700" 
+                    : "bg-orange-600 hover:bg-orange-700"
+                }`}
+              >
+                {activeSeason.tienda_ropa_abierta ? "🔒 Cerrar Tienda" : "🛍️ Abrir Tienda"}
+              </Button>
+              <p className="text-xs text-slate-600 text-center">
+                Normalmente abierta solo en Junio-Julio para pedidos de nueva temporada
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+      )}
 
       {/* Información de Temporada Actual */}
       {activeSeason && (
