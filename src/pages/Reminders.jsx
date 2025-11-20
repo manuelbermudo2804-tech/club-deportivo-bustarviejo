@@ -72,6 +72,7 @@ export default function RemindersPage() {
     try {
       const payment = payments.find(p => p.id === data.paymentId);
       const player = players.find(p => p.id === data.playerId);
+      const allPlayerPayments = payments.filter(p => p.jugador_id === player.id);
       
       const { email, chat, animation } = data.methods;
       let sentMethods = [];
@@ -162,7 +163,6 @@ Gracias por su atención.
       // NOTIFICACIÓN VISUAL EN LA APP
       if (animation) {
         // Obtener todos los pagos pendientes del jugador para mostrar en el banner
-        const allPlayerPayments = allPlayerPayments || payments.filter(p => p.jugador_id === player.id);
         const pendingPayments = allPlayerPayments.filter(p => p.estado === "Pendiente" || p.estado === "En revisión");
         
         const cuotasPendientes = pendingPayments.map(p => ({
