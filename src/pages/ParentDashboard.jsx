@@ -25,52 +25,60 @@ export default function ParentDashboard() {
     fetchUser();
   }, []);
 
-  const { data: players } = useQuery({
+  const { data: players, isLoading: loadingPlayers } = useQuery({
     queryKey: ['players'],
     queryFn: () => base44.entities.Player.list(),
     initialData: [],
+    staleTime: 30000,
   });
 
-  const { data: payments } = useQuery({
+  const { data: payments, isLoading: loadingPayments } = useQuery({
     queryKey: ['payments'],
     queryFn: () => base44.entities.Payment.list('-created_date'),
     initialData: [],
+    staleTime: 30000,
   });
 
   const { data: callups } = useQuery({
     queryKey: ['callups'],
     queryFn: () => base44.entities.Convocatoria.list('-created_date'),
     initialData: [],
+    staleTime: 30000,
   });
 
   const { data: messages } = useQuery({
     queryKey: ['messages'],
     queryFn: () => base44.entities.ChatMessage.list('-created_date'),
     initialData: [],
+    staleTime: 10000,
   });
 
-  const { data: seasonConfigs } = useQuery({
+  const { data: seasonConfigs, isLoading: loadingSeasons } = useQuery({
     queryKey: ['seasonConfigs'],
     queryFn: () => base44.entities.SeasonConfig.list(),
     initialData: [],
+    staleTime: 60000,
   });
 
   const { data: surveys } = useQuery({
     queryKey: ['surveys'],
     queryFn: () => base44.entities.Survey.list('-created_date'),
     initialData: [],
+    staleTime: 30000,
   });
 
   const { data: announcements } = useQuery({
     queryKey: ['announcements'],
     queryFn: () => base44.entities.Announcement.list('-created_date'),
     initialData: [],
+    staleTime: 30000,
   });
 
   const { data: clothingOrders } = useQuery({
     queryKey: ['clothingOrders'],
     queryFn: () => base44.entities.ClothingOrder.list('-created_date'),
     initialData: [],
+    staleTime: 30000,
   });
 
   const myPlayers = user ? players.filter(p => 
@@ -78,11 +86,11 @@ export default function ParentDashboard() {
   ) : [];
 
   useEffect(() => {
-    if (myPlayers.length > 0) {
+    if (user && myPlayers.length > 0) {
       const sports = [...new Set(myPlayers.map(p => p.deporte))];
       setMyPlayersSports(sports);
     }
-  }, [myPlayers.length]);
+  }, [user?.email, myPlayers.length]);
 
   const activeSurveys = surveys.filter(s => {
     if (!s.activa || new Date(s.fecha_fin) < new Date()) return false;
@@ -155,43 +163,54 @@ export default function ParentDashboard() {
 
   const calculatePendingPayments = () => {
     const activeSeason = seasonConfigs.find(s => s.activa);
-    if (!activeSeason) return myPayments.filter(p => p.estado === "Pendiente").length;
+    if (!activeSeason || myPlayers.length === 0) return 0;
 
     const currentMonth = new Date().getMonth() + 1;
-    let expectedPayments = 0;
+    let pendingCount = 0;
 
     myPlayers.forEach(player => {
       const playerPayments = myPayments.filter(p => 
         p.jugador_id === player.id && p.temporada === activeSeason.temporada
       );
 
+      // Si no hay pagos registrados, no contamos nada (es responsabilidad del padre registrar)
       if (playerPayments.length === 0) return;
 
+      // Verificar si hay un pago único
       const pagoUnico = playerPayments.find(p => p.tipo_pago === "Único");
+      
       if (pagoUnico) {
-        if (pagoUnico.estado !== "Pagado") {
-          expectedPayments++;
+        // Si tiene pago único y NO está pagado, contar
+        if (pagoUnico.estado === "Pendiente" || pagoUnico.estado === "En revisión") {
+          pendingCount++;
         }
       } else {
-        const mesesRequeridos = ["Junio", "Septiembre", "Diciembre"];
+        // Sistema fraccionado - verificar cada mes requerido
+        const mesesRequeridos = [
+          { nombre: "Junio", num: 6 },
+          { nombre: "Septiembre", num: 9 },
+          { nombre: "Diciembre", num: 12 }
+        ];
+        
         mesesRequeridos.forEach(mes => {
-          const mesNum = mes === "Junio" ? 6 : mes === "Septiembre" ? 9 : 12;
-          
-          if (currentMonth >= mesNum) {
-            const pagoMes = playerPayments.find(p => p.mes === mes);
-            if (!pagoMes || pagoMes.estado !== "Pagado") {
-              expectedPayments++;
+          // Solo contar los meses que ya han pasado o es el mes actual
+          if (currentMonth >= mes.num) {
+            const pagoMes = playerPayments.find(p => p.mes === mes.nombre);
+            // Si existe el pago del mes y NO está pagado, contarlo
+            if (pagoMes && (pagoMes.estado === "Pendiente" || pagoMes.estado === "En revisión")) {
+              pendingCount++;
             }
           }
         });
       }
     });
 
-    return expectedPayments;
+    return pendingCount;
   };
 
-  const pendingPayments = calculatePendingPayments();
-  const hasUnregisteredPayments = myPlayers.length > 0 && myPayments.length === 0;
+  const isDataLoading = loadingPlayers || loadingPayments || loadingSeasons;
+  const pendingPayments = isDataLoading ? 0 : calculatePendingPayments();
+  const hasUnregisteredPayments = !isDataLoading && myPlayers.length > 0 && myPayments.length === 0;
 
   const menuItems = [
     {
@@ -497,17 +516,42 @@ export default function ParentDashboard() {
         )}
 
         {hasUnregisteredPayments && (
-          <div className="bg-orange-500/20 border-2 border-orange-500 rounded-2xl p-4 flex items-start gap-3">
-            <AlertCircle className="w-5 h-5 text-orange-500 flex-shrink-0 mt-0.5" />
-            <div className="flex-1">
-              <p className="text-white font-semibold text-sm">
-                💰 Recuerda registrar los pagos de tus jugadores
-              </p>
-              <p className="text-orange-100 text-xs mt-1">
-                Ve a la sección "Pagos" para registrar las cuotas de la temporada actual
-              </p>
+          <Link to={createPageUrl("ParentPayments")}>
+            <div className="bg-orange-500/20 border-2 border-orange-500 rounded-2xl p-4 flex items-start gap-3 hover:bg-orange-500/30 transition-all cursor-pointer">
+              <AlertCircle className="w-5 h-5 text-orange-500 flex-shrink-0 mt-0.5" />
+              <div className="flex-1">
+                <p className="text-white font-semibold text-sm">
+                  💰 Recuerda registrar los pagos de tus jugadores
+                </p>
+                <p className="text-orange-100 text-xs mt-1">
+                  Pulsa aquí para ir a la sección "Pagos" y registrar las cuotas de la temporada
+                </p>
+              </div>
             </div>
-          </div>
+          </Link>
+        )}
+        
+        {!isDataLoading && pendingPayments > 0 && (
+          <Link to={createPageUrl("ParentPayments")}>
+            <div className="bg-gradient-to-r from-red-600 to-red-700 rounded-2xl p-4 shadow-xl transition-all hover:scale-105 active:scale-95 border-2 border-red-500 animate-pulse">
+              <div className="flex items-start gap-3">
+                <CreditCard className="w-6 h-6 text-white flex-shrink-0 mt-0.5" />
+                <div className="flex-1">
+                  <p className="text-white font-bold text-base lg:text-lg">
+                    💳 ¡Pagos Pendientes de Completar!
+                  </p>
+                  <p className="text-red-100 text-xs lg:text-sm mt-1">
+                    {pendingPayments === 1 
+                      ? "Tienes 1 pago registrado pendiente de justificante" 
+                      : `Tienes ${pendingPayments} pagos registrados pendientes`}
+                  </p>
+                  <p className="text-white text-xs mt-2 font-semibold">
+                    👉 Pulsa aquí para subir justificante o completar
+                  </p>
+                </div>
+              </div>
+            </div>
+          </Link>
         )}
 
         <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6">
