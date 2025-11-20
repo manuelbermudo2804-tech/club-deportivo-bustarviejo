@@ -419,7 +419,7 @@ export default function ParentChat() {
             )}
 
             {selectedTab && currentGroup ? (
-              <div className="bg-white rounded-xl shadow-md border border-slate-200 overflow-hidden" style={{ height: '600px', display: 'flex', flexDirection: 'column' }}>
+              <div className="bg-white rounded-xl shadow-md border border-slate-200 overflow-hidden flex flex-col" style={{ height: 'calc(100vh - 200px)' }}>
                 <div className="bg-gradient-to-r from-orange-600 to-orange-700 p-4 text-white flex items-center gap-3 shadow-md flex-shrink-0">
                   <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
                     <span className="text-xl">{sportEmojis[currentGroup.deporte]}</span>
