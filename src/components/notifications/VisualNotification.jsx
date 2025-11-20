@@ -33,21 +33,23 @@ export default function VisualNotification({ notification, onDismiss }) {
 
   const handleDismiss = () => {
     setIsVisible(false);
-    setTimeout(() => onDismiss(notification.id), 300);
+    setTimeout(() => {
+      onDismiss(notification.id);
+    }, 400);
   };
 
+  if (!isVisible) return null;
+
   return (
-    <AnimatePresence>
-      {isVisible && (
-        <motion.div
-          initial={{ opacity: 0, y: -100 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -100 }}
-          transition={{ duration: 0.3 }}
-          className="fixed inset-x-0 top-24 lg:top-4 z-50 flex justify-center px-4"
-          style={{ pointerEvents: 'none' }}
-        >
-          <Card className={`${config.bg} ${config.textColor} shadow-2xl border-none overflow-hidden ring-4 ${config.ringColor} w-full max-w-lg`} style={{ pointerEvents: 'auto' }}>
+    <motion.div
+      initial={{ opacity: 0, y: -100 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -100 }}
+      transition={{ duration: 0.3 }}
+      className="fixed inset-x-0 top-24 lg:top-4 z-50 flex justify-center px-4"
+      style={{ pointerEvents: 'none' }}
+    >
+      <Card className={`${config.bg} ${config.textColor} shadow-2xl border-none overflow-hidden ring-4 ${config.ringColor} w-full max-w-lg`} style={{ pointerEvents: 'auto' }}>
             <div className="p-4">
               <div className="flex items-start gap-3">
                 <motion.div
@@ -109,9 +111,7 @@ export default function VisualNotification({ notification, onDismiss }) {
               className="h-1 bg-white/30"
               onAnimationComplete={handleDismiss}
             />
-          </Card>
-        </motion.div>
-      )}
-    </AnimatePresence>
+      </Card>
+    </motion.div>
   );
 }
