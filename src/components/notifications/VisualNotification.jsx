@@ -87,7 +87,7 @@ export default function VisualNotification({ notification, onDismiss }) {
             <motion.div
               initial={{ width: "100%" }}
               animate={{ width: "0%" }}
-              transition={{ duration: 10, ease: "linear" }}
+              transition={{ duration: 30, ease: "linear" }}
               className="h-1 bg-white/30"
               onAnimationComplete={handleDismiss}
             />
