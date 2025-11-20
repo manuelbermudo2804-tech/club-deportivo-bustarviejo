@@ -45,6 +45,8 @@ import MemberManagement from './pages/MemberManagement';
 import TeamAttendanceEvaluation from './pages/TeamAttendanceEvaluation';
 import CoachEvaluationReports from './pages/CoachEvaluationReports';
 import CategoryManagement from './pages/CategoryManagement';
+import ParentLottery from './pages/ParentLottery';
+import LotteryManagement from './pages/LotteryManagement';
 import __Layout from './Layout.jsx';
 
 
@@ -96,6 +98,8 @@ export const PAGES = {
     "TeamAttendanceEvaluation": TeamAttendanceEvaluation,
     "CoachEvaluationReports": CoachEvaluationReports,
     "CategoryManagement": CategoryManagement,
+    "ParentLottery": ParentLottery,
+    "LotteryManagement": LotteryManagement,
 }
 
 export const pagesConfig = {
