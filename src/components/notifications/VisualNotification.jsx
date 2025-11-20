@@ -70,7 +70,22 @@ export default function VisualNotification({ notification, onDismiss }) {
                 
                 <div className="flex-1 min-w-0">
                   <h3 className="font-bold text-lg mb-1">{notification.titulo}</h3>
-                  <p className="text-sm opacity-95 whitespace-pre-wrap">{notification.mensaje}</p>
+                  <p className="text-sm opacity-95 whitespace-pre-wrap leading-relaxed">{notification.mensaje}</p>
+                  {notification.metadata?.cuotas_pendientes && (
+                    <div className="mt-3 space-y-1.5 bg-white/20 rounded-lg p-3">
+                      <p className="font-semibold text-sm">💰 Cuotas pendientes:</p>
+                      {notification.metadata.cuotas_pendientes.map((cuota, idx) => (
+                        <div key={idx} className="text-sm font-medium">
+                          • {cuota.mes}: {cuota.cantidad}€
+                        </div>
+                      ))}
+                      {notification.metadata.total_pendiente && (
+                        <div className="text-base font-bold border-t border-white/30 pt-1.5 mt-1.5">
+                          Total: {notification.metadata.total_pendiente}€
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
 
                 <Button
