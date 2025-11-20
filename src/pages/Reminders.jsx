@@ -173,10 +173,10 @@ Gracias por su atención.
         const totalPendiente = pendingPayments.reduce((sum, p) => sum + (p.cantidad || 0), 0);
         
         const notificationMessage = data.reminderType === "all_unpaid"
-          ? `No has registrado ningún pago para la temporada ${payment.temporada}.\n\nPor favor, registra los pagos lo antes posible.`
+          ? `No has registrado ningún pago para la temporada ${payment.temporada}. Por favor, registra los pagos lo antes posible.`
           : pendingPayments.length === 1
-            ? `Tienes 1 cuota pendiente por ${payment.cantidad}€`
-            : `Tienes ${pendingPayments.length} cuotas pendientes`;
+            ? `Debes realizar el pago lo antes posible.`
+            : `Debes realizar los pagos lo antes posible.`;
         
         // Crear notificación para padre
         if (player.email_padre) {

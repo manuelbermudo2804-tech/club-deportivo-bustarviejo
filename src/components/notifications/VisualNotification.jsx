@@ -44,7 +44,8 @@ export default function VisualNotification({ notification, onDismiss }) {
           animate={{ opacity: 1, y: 0, scale: 1 }}
           exit={{ opacity: 0, y: -100, scale: 0.8 }}
           transition={{ type: "spring", damping: 15, stiffness: 300 }}
-          className="fixed top-20 left-1/2 -translate-x-1/2 z-[100] w-[90%] max-w-md"
+          className="fixed top-4 left-1/2 -translate-x-1/2 z-[9999] w-[95%] max-w-lg"
+          style={{ zIndex: 9999 }}
         >
           <Card className={`${config.bg} ${config.textColor} shadow-2xl border-none overflow-hidden ring-4 ${config.ringColor}`}>
             <div className="p-4">
@@ -69,19 +70,21 @@ export default function VisualNotification({ notification, onDismiss }) {
                 </motion.div>
                 
                 <div className="flex-1 min-w-0">
-                  <h3 className="font-bold text-lg mb-1">{notification.titulo}</h3>
-                  <p className="text-sm opacity-95 whitespace-pre-wrap leading-relaxed">{notification.mensaje}</p>
-                  {notification.metadata?.cuotas_pendientes && (
-                    <div className="mt-3 space-y-1.5 bg-white/20 rounded-lg p-3">
-                      <p className="font-semibold text-sm">💰 Cuotas pendientes:</p>
+                  <h3 className="font-bold text-xl mb-2 leading-tight">{notification.titulo}</h3>
+                  <p className="text-base font-medium mb-3 leading-relaxed">{notification.mensaje}</p>
+                  {notification.metadata?.cuotas_pendientes && notification.metadata.cuotas_pendientes.length > 0 && (
+                    <div className="mt-3 space-y-2 bg-white/30 rounded-lg p-4 border-2 border-white/50">
+                      <p className="font-bold text-base">💰 Cuotas pendientes:</p>
                       {notification.metadata.cuotas_pendientes.map((cuota, idx) => (
-                        <div key={idx} className="text-sm font-medium">
-                          • {cuota.mes}: {cuota.cantidad}€
+                        <div key={idx} className="flex justify-between items-center bg-white/40 rounded px-3 py-2">
+                          <span className="font-bold text-base">{cuota.mes}</span>
+                          <span className="font-bold text-xl">{cuota.cantidad}€</span>
                         </div>
                       ))}
                       {notification.metadata.total_pendiente && (
-                        <div className="text-base font-bold border-t border-white/30 pt-1.5 mt-1.5">
-                          Total: {notification.metadata.total_pendiente}€
+                        <div className="flex justify-between items-center bg-white/60 rounded px-3 py-2.5 border-2 border-white/70 mt-3">
+                          <span className="font-bold text-base">TOTAL</span>
+                          <span className="font-bold text-2xl">{notification.metadata.total_pendiente}€</span>
                         </div>
                       )}
                     </div>
