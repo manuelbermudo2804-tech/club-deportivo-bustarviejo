@@ -8,11 +8,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Clover, Plus, X } from "lucide-react";
+import { Gift, Sparkles, Star, PartyPopper, AlertCircle } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { toast } from "sonner";
 
 const NUMERO_LOTERIA = "28720";
-const PRECIO_POR_DECIMO = 20;
 
 export default function ParentLottery() {
   const [showForm, setShowForm] = useState(false);
@@ -31,12 +31,24 @@ export default function ParentLottery() {
     fetchUser();
   }, []);
 
+  const { data: seasonConfig } = useQuery({
+    queryKey: ['seasonConfig'],
+    queryFn: async () => {
+      const configs = await base44.entities.SeasonConfig.list();
+      return configs.find(c => c.activa === true);
+    },
+  });
+
+  const loteriaAbierta = seasonConfig?.loteria_navidad_abierta === true;
+  const precioDecimo = seasonConfig?.precio_decimo_loteria || 22;
+
   const { data: players = [] } = useQuery({
     queryKey: ['myPlayers', user?.email],
     queryFn: async () => {
       const allPlayers = await base44.entities.Player.list();
       return allPlayers.filter(p => 
-        p.email_padre === user?.email || p.email_tutor_2 === user?.email
+        (p.email_padre === user?.email || p.email_tutor_2 === user?.email) &&
+        p.activo !== false
       );
     },
     enabled: !!user?.email,
@@ -59,7 +71,7 @@ export default function ParentLottery() {
       setSelectedPlayer("");
       setNumDecimos(1);
       setNotas("");
-      toast.success("✅ Pedido de lotería registrado");
+      toast.success("✅ ¡Pedido registrado! Tu entrenador te entregará los décimos");
     },
   });
 
@@ -72,7 +84,7 @@ export default function ParentLottery() {
       return;
     }
 
-    const total = numDecimos * PRECIO_POR_DECIMO;
+    const total = numDecimos * precioDecimo;
 
     createOrderMutation.mutate({
       jugador_id: player.id,
@@ -81,7 +93,7 @@ export default function ParentLottery() {
       email_padre: user.email,
       telefono: player.telefono,
       numero_decimos: numDecimos,
-      precio_por_decimo: PRECIO_POR_DECIMO,
+      precio_por_decimo: precioDecimo,
       total: total,
       estado: "Solicitado",
       pagado: false,
@@ -91,151 +103,284 @@ export default function ParentLottery() {
   };
 
   const statusColors = {
-    "Solicitado": "bg-blue-100 text-blue-700",
-    "Entregado": "bg-green-100 text-green-700",
-    "Cancelado": "bg-red-100 text-red-700"
+    "Solicitado": "bg-blue-100 text-blue-700 border-blue-200",
+    "Entregado": "bg-green-100 text-green-700 border-green-200",
+    "Cancelado": "bg-red-100 text-red-700 border-red-200"
   };
 
+  const totalDecimos = orders.reduce((sum, o) => sum + (o.numero_decimos || 0), 0);
+  const totalInvertido = orders.reduce((sum, o) => sum + (o.total || 0), 0);
+
   return (
-    <div className="p-6 lg:p-8 space-y-6">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-        <div>
-          <h1 className="text-3xl font-bold text-slate-900">🍀 Lotería de Navidad</h1>
-          <p className="text-slate-600 mt-1">Número del club: <strong className="text-orange-600">{NUMERO_LOTERIA}</strong></p>
-        </div>
-        <Button
-          onClick={() => setShowForm(!showForm)}
-          className="bg-orange-600 hover:bg-orange-700 shadow-lg"
-        >
-          <Plus className="w-5 h-5 mr-2" />
-          Pedir Lotería
-        </Button>
+    <div className="min-h-screen bg-gradient-to-br from-red-900 via-green-900 to-red-950 p-4 lg:p-8">
+      {/* Animated snowflakes */}
+      <div className="fixed inset-0 pointer-events-none overflow-hidden">
+        {[...Array(20)].map((_, i) => (
+          <div
+            key={i}
+            className="absolute animate-fall text-white opacity-70"
+            style={{
+              left: `${Math.random() * 100}%`,
+              animationDelay: `${Math.random() * 5}s`,
+              animationDuration: `${5 + Math.random() * 10}s`,
+              fontSize: `${10 + Math.random() * 20}px`
+            }}
+          >
+            ❄️
+          </div>
+        ))}
       </div>
 
-      <Card className="border-2 border-orange-300 bg-gradient-to-br from-orange-50 to-yellow-50 shadow-lg">
-        <CardHeader>
-          <CardTitle className="text-orange-900 flex items-center gap-2">
-            <Clover className="w-5 h-5" />
-            Información de la Lotería
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3 text-slate-700">
-          <p>🎟️ <strong>Número:</strong> {NUMERO_LOTERIA}</p>
-          <p>💰 <strong>Precio por décimo:</strong> {PRECIO_POR_DECIMO}€</p>
-          <p>📅 <strong>Sorteo:</strong> 22 de Diciembre</p>
-          <p>👨‍🏫 <strong>Entrega:</strong> Los entrenadores entregarán los décimos en los entrenamientos</p>
-          <p>💳 <strong>Pago:</strong> Paga directamente al entrenador al recibir el décimo</p>
-        </CardContent>
-      </Card>
+      <div className="max-w-5xl mx-auto space-y-6 relative z-10">
+        {/* Header con animación */}
+        <div className="text-center space-y-4 animate-bounce-slow">
+          <div className="flex justify-center gap-3 text-6xl">
+            <span className="animate-spin-slow">🎄</span>
+            <span className="animate-pulse">🎅</span>
+            <span className="animate-spin-slow">🎁</span>
+          </div>
+          <h1 className="text-4xl lg:text-6xl font-bold text-white drop-shadow-2xl">
+            🍀 Lotería de Navidad 🍀
+          </h1>
+          <div className="inline-block bg-gradient-to-r from-yellow-400 via-yellow-300 to-yellow-400 text-red-900 px-8 py-4 rounded-3xl shadow-2xl animate-pulse border-4 border-yellow-500">
+            <p className="text-3xl lg:text-5xl font-black">
+              Número: {NUMERO_LOTERIA}
+            </p>
+          </div>
+        </div>
 
-      {showForm && (
-        <Card className="border-none shadow-lg">
-          <CardHeader className="border-b">
-            <div className="flex justify-between items-center">
-              <CardTitle>Solicitar Décimos</CardTitle>
-              <Button variant="ghost" size="sm" onClick={() => setShowForm(false)}>
-                <X className="w-4 h-4" />
-              </Button>
-            </div>
+        {!loteriaAbierta && (
+          <Alert className="bg-red-800 border-red-600 border-4 shadow-2xl">
+            <AlertCircle className="h-6 w-6 text-yellow-400" />
+            <AlertDescription className="text-white text-lg">
+              <strong>❄️ Los pedidos de lotería están cerrados actualmente.</strong>
+              <br />
+              Podrás consultar tus pedidos anteriores aquí.
+            </AlertDescription>
+          </Alert>
+        )}
+
+        {/* Info Card con tema navideño */}
+        <Card className="border-4 border-yellow-400 bg-gradient-to-br from-white via-red-50 to-green-50 shadow-2xl">
+          <CardHeader className="bg-gradient-to-r from-red-600 via-green-600 to-red-600 border-b-4 border-yellow-400">
+            <CardTitle className="text-white text-2xl flex items-center gap-3 justify-center">
+              <Gift className="w-8 h-8 animate-bounce" />
+              ¡Comparte la Suerte de Navidad!
+              <Star className="w-8 h-8 animate-spin-slow" />
+            </CardTitle>
           </CardHeader>
-          <CardContent className="pt-6">
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="space-y-2">
-                <Label>Jugador</Label>
-                <Select value={selectedPlayer} onValueChange={setSelectedPlayer}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecciona un jugador" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {players.map(player => (
-                      <SelectItem key={player.id} value={player.id}>
-                        {player.nombre} - {player.deporte}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+          <CardContent className="pt-6 space-y-4">
+            <div className="grid md:grid-cols-2 gap-4">
+              <div className="bg-gradient-to-br from-red-100 to-red-200 p-4 rounded-2xl border-2 border-red-300 shadow-lg">
+                <p className="text-2xl font-bold text-red-900 mb-2">🎟️ Sobre la Lotería</p>
+                <div className="space-y-2 text-red-900">
+                  <p>💰 <strong>Precio:</strong> {precioDecimo}€ por décimo</p>
+                  <p>📅 <strong>Sorteo:</strong> 22 de Diciembre</p>
+                  <p>🎁 <strong>Premio Gordo:</strong> 400.000€ al décimo</p>
+                </div>
               </div>
+              
+              <div className="bg-gradient-to-br from-green-100 to-green-200 p-4 rounded-2xl border-2 border-green-300 shadow-lg">
+                <p className="text-2xl font-bold text-green-900 mb-2">👨‍🏫 Cómo Funciona</p>
+                <div className="space-y-2 text-green-900">
+                  <p>1️⃣ Haz tu pedido aquí</p>
+                  <p>2️⃣ Tu entrenador te entregará los décimos</p>
+                  <p>3️⃣ Pagas al entrenador al recibirlos</p>
+                  <p>4️⃣ ¡Y a esperar el sorteo! 🎉</p>
+                </div>
+              </div>
+            </div>
 
-              <div className="space-y-2">
-                <Label>Número de Décimos</Label>
-                <Input
-                  type="number"
-                  min="1"
-                  max="10"
-                  value={numDecimos}
-                  onChange={(e) => setNumDecimos(parseInt(e.target.value) || 1)}
-                />
-                <p className="text-sm text-slate-600">
-                  Total: <strong>{numDecimos * PRECIO_POR_DECIMO}€</strong>
+            {totalDecimos > 0 && (
+              <div className="bg-gradient-to-r from-yellow-400 via-yellow-300 to-yellow-400 p-6 rounded-2xl border-4 border-yellow-500 shadow-2xl text-center">
+                <p className="text-3xl font-black text-red-900 mb-2 animate-pulse">
+                  🌟 ¡Ya tienes {totalDecimos} décimo{totalDecimos > 1 ? 's' : ''}! 🌟
+                </p>
+                <p className="text-xl font-bold text-red-800">
+                  Inversión total: {totalInvertido}€
+                </p>
+                <p className="text-lg text-red-700 mt-2">
+                  ¡Mucha suerte en el sorteo! 🍀
                 </p>
               </div>
-
-              <div className="space-y-2">
-                <Label>Notas (opcional)</Label>
-                <Textarea
-                  value={notas}
-                  onChange={(e) => setNotas(e.target.value)}
-                  placeholder="Alguna nota adicional..."
-                />
-              </div>
-
-              <div className="flex gap-2 justify-end">
-                <Button type="button" variant="outline" onClick={() => setShowForm(false)}>
-                  Cancelar
-                </Button>
-                <Button type="submit" className="bg-orange-600 hover:bg-orange-700">
-                  Solicitar
-                </Button>
-              </div>
-            </form>
+            )}
           </CardContent>
         </Card>
-      )}
 
-      <Card className="border-none shadow-lg">
-        <CardHeader className="border-b">
-          <CardTitle>Mis Pedidos</CardTitle>
-        </CardHeader>
-        <CardContent className="pt-6">
-          {orders.length === 0 ? (
-            <div className="text-center py-12">
-              <Clover className="w-16 h-16 text-slate-300 mx-auto mb-4" />
-              <p className="text-slate-500">No has solicitado lotería todavía</p>
-              <p className="text-sm text-slate-400 mt-2">Haz clic en "Pedir Lotería" para hacer tu pedido</p>
-            </div>
-          ) : (
-            <div className="space-y-4">
-              {orders.map(order => (
-                <Card key={order.id} className="border">
-                  <CardContent className="p-4">
-                    <div className="flex justify-between items-start mb-3">
-                      <div>
-                        <h3 className="font-bold text-slate-900">{order.jugador_nombre}</h3>
-                        <p className="text-sm text-slate-600">{order.jugador_categoria}</p>
+        {loteriaAbierta && (
+          <div className="text-center">
+            <Button
+              onClick={() => setShowForm(!showForm)}
+              size="lg"
+              className="bg-gradient-to-r from-red-600 via-green-600 to-red-600 hover:from-red-700 hover:via-green-700 hover:to-red-700 text-white font-bold text-xl px-12 py-6 rounded-3xl shadow-2xl border-4 border-yellow-400 transform hover:scale-110 transition-all"
+            >
+              <Sparkles className="w-6 h-6 mr-3 animate-spin" />
+              {showForm ? "Cerrar Formulario" : "¡Pedir Décimos Ahora!"}
+              <PartyPopper className="w-6 h-6 ml-3 animate-bounce" />
+            </Button>
+          </div>
+        )}
+
+        {showForm && loteriaAbierta && (
+          <Card className="border-4 border-yellow-400 shadow-2xl bg-white">
+            <CardHeader className="bg-gradient-to-r from-green-600 to-red-600 border-b-4 border-yellow-400">
+              <CardTitle className="text-white text-2xl text-center">
+                🎄 Solicitar Décimos de Lotería 🎄
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="pt-6">
+              <form onSubmit={handleSubmit} className="space-y-6">
+                <div className="space-y-2">
+                  <Label className="text-lg font-bold text-slate-900">👤 Jugador</Label>
+                  <Select value={selectedPlayer} onValueChange={setSelectedPlayer}>
+                    <SelectTrigger className="border-2 border-red-300 h-12 text-lg">
+                      <SelectValue placeholder="Selecciona un jugador" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {players.map(player => (
+                        <SelectItem key={player.id} value={player.id}>
+                          {player.nombre} - {player.deporte}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="text-lg font-bold text-slate-900">🎟️ Número de Décimos</Label>
+                  <Input
+                    type="number"
+                    min="1"
+                    max="10"
+                    value={numDecimos}
+                    onChange={(e) => setNumDecimos(parseInt(e.target.value) || 1)}
+                    className="border-2 border-green-300 h-12 text-lg text-center font-bold"
+                  />
+                  <div className="bg-gradient-to-r from-yellow-400 to-yellow-300 p-4 rounded-xl border-2 border-yellow-500 text-center">
+                    <p className="text-2xl font-black text-red-900">
+                      Total: {numDecimos * precioDecimo}€
+                    </p>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="text-lg font-bold text-slate-900">📝 Notas (opcional)</Label>
+                  <Textarea
+                    value={notas}
+                    onChange={(e) => setNotas(e.target.value)}
+                    placeholder="Alguna nota adicional..."
+                    className="border-2 border-red-300 min-h-[80px]"
+                  />
+                </div>
+
+                <div className="flex gap-3">
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    onClick={() => setShowForm(false)}
+                    className="flex-1 h-12 text-lg border-2"
+                  >
+                    Cancelar
+                  </Button>
+                  <Button 
+                    type="submit" 
+                    className="flex-1 h-12 text-lg bg-gradient-to-r from-green-600 to-red-600 hover:from-green-700 hover:to-red-700 border-2 border-yellow-400 font-bold"
+                    disabled={createOrderMutation.isPending}
+                  >
+                    {createOrderMutation.isPending ? "Enviando..." : "🎁 Confirmar Pedido"}
+                  </Button>
+                </div>
+              </form>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Mis Pedidos */}
+        <Card className="border-4 border-yellow-400 shadow-2xl bg-white">
+          <CardHeader className="bg-gradient-to-r from-red-600 to-green-600 border-b-4 border-yellow-400">
+            <CardTitle className="text-white text-2xl">🎅 Mis Pedidos de Lotería</CardTitle>
+          </CardHeader>
+          <CardContent className="pt-6">
+            {orders.length === 0 ? (
+              <div className="text-center py-12">
+                <div className="text-8xl mb-4 animate-bounce">🎄</div>
+                <p className="text-2xl text-slate-700 font-bold">No has pedido lotería todavía</p>
+                {loteriaAbierta && (
+                  <p className="text-lg text-slate-500 mt-2">¡Haz clic arriba para pedir tus décimos!</p>
+                )}
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {orders.map(order => (
+                  <Card key={order.id} className="border-2 shadow-lg hover:shadow-xl transition-shadow">
+                    <CardContent className="p-6">
+                      <div className="flex justify-between items-start mb-4">
+                        <div>
+                          <h3 className="text-xl font-bold text-slate-900">{order.jugador_nombre}</h3>
+                          <p className="text-sm text-slate-600">{order.jugador_categoria}</p>
+                        </div>
+                        <Badge className={`${statusColors[order.estado]} border-2 text-lg px-4 py-2`}>
+                          {order.estado === "Solicitado" && "🕐 "}
+                          {order.estado === "Entregado" && "✅ "}
+                          {order.estado}
+                        </Badge>
                       </div>
-                      <Badge className={statusColors[order.estado]}>
-                        {order.estado}
-                      </Badge>
-                    </div>
-                    
-                    <div className="space-y-2 text-sm">
-                      <p>🎟️ <strong>Décimos:</strong> {order.numero_decimos}</p>
-                      <p>💰 <strong>Total:</strong> {order.total}€</p>
-                      <p>💳 <strong>Pagado:</strong> {order.pagado ? "✅ Sí" : "❌ No"}</p>
-                      {order.estado === "Entregado" && order.fecha_entrega && (
-                        <p>📅 <strong>Entregado:</strong> {new Date(order.fecha_entrega).toLocaleDateString('es-ES')}</p>
-                      )}
-                      {order.notas && (
-                        <p className="text-slate-600">📝 {order.notas}</p>
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          )}
-        </CardContent>
-      </Card>
+                      
+                      <div className="bg-gradient-to-r from-slate-50 to-slate-100 p-4 rounded-xl space-y-2">
+                        <p className="text-lg">🎟️ <strong>Décimos:</strong> {order.numero_decimos}</p>
+                        <p className="text-lg">💰 <strong>Total:</strong> {order.total}€</p>
+                        <p className="text-lg">💳 <strong>Pagado:</strong> {order.pagado ? "✅ Sí" : "❌ Pendiente"}</p>
+                        {order.estado === "Entregado" && order.fecha_entrega && (
+                          <p className="text-lg">📅 <strong>Entregado:</strong> {new Date(order.fecha_entrega).toLocaleDateString('es-ES')}</p>
+                        )}
+                        {order.notas && (
+                          <p className="text-slate-600 mt-2 border-t pt-2">📝 {order.notas}</p>
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Footer navideño */}
+        <div className="text-center text-white space-y-3 pb-8">
+          <p className="text-2xl font-bold animate-pulse">🎄 ¡Feliz Navidad y Mucha Suerte! 🍀</p>
+          <p className="text-lg">CD Bustarviejo • Sorteo 22 de Diciembre</p>
+          <div className="flex justify-center gap-4 text-4xl">
+            <span className="animate-bounce">⭐</span>
+            <span className="animate-pulse">🎁</span>
+            <span className="animate-bounce">⭐</span>
+          </div>
+        </div>
+      </div>
+
+      <style jsx>{`
+        @keyframes fall {
+          0% {
+            transform: translateY(-100vh) rotate(0deg);
+          }
+          100% {
+            transform: translateY(100vh) rotate(360deg);
+          }
+        }
+        .animate-fall {
+          animation: fall linear infinite;
+        }
+        @keyframes bounce-slow {
+          0%, 100% {
+            transform: translateY(0);
+          }
+          50% {
+            transform: translateY(-10px);
+          }
+        }
+        .animate-bounce-slow {
+          animation: bounce-slow 2s ease-in-out infinite;
+        }
+      `}</style>
     </div>
   );
 }

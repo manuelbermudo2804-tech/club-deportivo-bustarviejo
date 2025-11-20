@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { Clover, Search, Check, X as XIcon, FileDown } from "lucide-react";
+import { Clover, Search, Check, FileDown, Users } from "lucide-react";
 import { toast } from "sonner";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 
@@ -27,6 +27,14 @@ export default function LotteryManagement() {
     checkAdmin();
   }, []);
 
+  const { data: seasonConfig } = useQuery({
+    queryKey: ['seasonConfig'],
+    queryFn: async () => {
+      const configs = await base44.entities.SeasonConfig.list();
+      return configs.find(c => c.activa === true);
+    },
+  });
+
   const { data: orders = [] } = useQuery({
     queryKey: ['allLotteryOrders'],
     queryFn: () => base44.entities.LotteryOrder.list('-created_date'),
@@ -42,45 +50,63 @@ export default function LotteryManagement() {
     },
   });
 
+  const toggleLoteriaOpenMutation = useMutation({
+    mutationFn: async () => {
+      if (seasonConfig) {
+        return base44.entities.SeasonConfig.update(seasonConfig.id, {
+          ...seasonConfig,
+          loteria_navidad_abierta: !seasonConfig.loteria_navidad_abierta
+        });
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['seasonConfig'] });
+      const newState = seasonConfig ? !seasonConfig.loteria_navidad_abierta : true;
+      toast.success(newState ? "✅ Lotería abierta para familias" : "🔒 Lotería cerrada");
+    },
+  });
+
   const handleMarkAsDelivered = (order) => {
     updateOrderMutation.mutate({
       id: order.id,
       data: {
         ...order,
         estado: "Entregado",
+        pagado: true,
         entregado_por: user.email,
         fecha_entrega: new Date().toISOString().split('T')[0]
       }
     });
   };
 
-  const handleMarkAsPaid = (order) => {
-    updateOrderMutation.mutate({
-      id: order.id,
-      data: {
-        ...order,
-        pagado: true
+  const exportByFamily = () => {
+    const ordersByFamily = {};
+    orders.forEach(order => {
+      const key = order.email_padre;
+      if (!ordersByFamily[key]) {
+        ordersByFamily[key] = [];
       }
+      ordersByFamily[key].push(order);
     });
-  };
 
-  const exportCSV = () => {
     const rows = [
-      ['Jugador', 'Categoría', 'Email', 'Teléfono', 'Décimos', 'Total', 'Estado', 'Pagado', 'Entregado Por', 'Fecha Entrega']
+      ['Email Familia', 'Jugadores', 'Total Décimos', 'Total €', 'Estados', 'Pagados']
     ];
 
-    orders.forEach(order => {
+    Object.entries(ordersByFamily).forEach(([email, familyOrders]) => {
+      const jugadores = familyOrders.map(o => o.jugador_nombre).join(' | ');
+      const totalDecimos = familyOrders.reduce((sum, o) => sum + o.numero_decimos, 0);
+      const totalDinero = familyOrders.reduce((sum, o) => sum + o.total, 0);
+      const estados = familyOrders.map(o => `${o.jugador_nombre}: ${o.estado}`).join(' | ');
+      const pagados = familyOrders.filter(o => o.pagado).length;
+
       rows.push([
-        order.jugador_nombre,
-        order.jugador_categoria,
-        order.email_padre,
-        order.telefono || '',
-        order.numero_decimos,
-        `${order.total}€`,
-        order.estado,
-        order.pagado ? 'Sí' : 'No',
-        order.entregado_por || '',
-        order.fecha_entrega || ''
+        email,
+        jugadores,
+        totalDecimos,
+        `${totalDinero}€`,
+        estados,
+        `${pagados}/${familyOrders.length}`
       ]);
     });
 
@@ -91,16 +117,62 @@ export default function LotteryManagement() {
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
     link.href = URL.createObjectURL(blob);
-    link.download = `loteria_navidad_${new Date().toISOString().split('T')[0]}.csv`;
+    link.download = `loteria_por_familia_${new Date().toISOString().split('T')[0]}.csv`;
     link.click();
     URL.revokeObjectURL(link.href);
-    toast.success("CSV exportado");
+    toast.success("CSV por familia exportado");
+  };
+
+  const exportByPlayer = () => {
+    const rows = [
+      ['Email Familia', 'Jugador', 'Categoría', 'Teléfono', 'Décimos', 'Total €', 'Estado', 'Pagado', 'Fecha Entrega', 'Entregado Por']
+    ];
+
+    orders.forEach(order => {
+      rows.push([
+        order.email_padre,
+        order.jugador_nombre,
+        order.jugador_categoria,
+        order.telefono || '',
+        order.numero_decimos,
+        `${order.total}€`,
+        order.estado,
+        order.pagado ? 'Sí' : 'No',
+        order.fecha_entrega || '',
+        order.entregado_por || ''
+      ]);
+    });
+
+    const csvContent = '\ufeff' + rows.map(row => 
+      row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(',')
+    ).join('\r\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `loteria_por_jugador_${new Date().toISOString().split('T')[0]}.csv`;
+    link.click();
+    URL.revokeObjectURL(link.href);
+    toast.success("CSV por jugador exportado");
   };
 
   const filteredOrders = orders.filter(order =>
     order.jugador_nombre?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    order.jugador_categoria?.toLowerCase().includes(searchTerm.toLowerCase())
+    order.email_padre?.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  // Agrupar por familia para vista principal
+  const ordersByFamily = {};
+  filteredOrders.forEach(order => {
+    const key = order.email_padre;
+    if (!ordersByFamily[key]) {
+      ordersByFamily[key] = {
+        email: key,
+        orders: []
+      };
+    }
+    ordersByFamily[key].orders.push(order);
+  });
 
   const pendingOrders = filteredOrders.filter(o => o.estado === "Solicitado");
   const deliveredOrders = filteredOrders.filter(o => o.estado === "Entregado");
@@ -108,6 +180,7 @@ export default function LotteryManagement() {
   const totalDecimos = orders.reduce((sum, o) => sum + (o.numero_decimos || 0), 0);
   const totalRecaudado = orders.filter(o => o.pagado).reduce((sum, o) => sum + (o.total || 0), 0);
   const totalPendienteCobro = orders.filter(o => !o.pagado).reduce((sum, o) => sum + (o.total || 0), 0);
+  const totalFamilias = Object.keys(ordersByFamily).length;
 
   const statusColors = {
     "Solicitado": "bg-blue-100 text-blue-700",
@@ -132,82 +205,87 @@ export default function LotteryManagement() {
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <h1 className="text-3xl font-bold text-slate-900">🍀 Gestión de Lotería</h1>
-          <p className="text-slate-600 mt-1">Número del club: <strong className="text-orange-600">{NUMERO_LOTERIA}</strong></p>
+          <p className="text-slate-600 mt-1">Número: <strong className="text-orange-600">{NUMERO_LOTERIA}</strong></p>
         </div>
-        <Button onClick={exportCSV} variant="outline" className="shadow-lg">
-          <FileDown className="w-5 h-5 mr-2" />
-          Exportar CSV
-        </Button>
+        <div className="flex gap-2">
+          <Button
+            onClick={() => toggleLoteriaOpenMutation.mutate()}
+            disabled={toggleLoteriaOpenMutation.isPending}
+            size="sm"
+            className={`shadow-lg ${
+              seasonConfig?.loteria_navidad_abierta 
+                ? 'bg-red-600 hover:bg-red-700' 
+                : 'bg-green-600 hover:bg-green-700'
+            }`}
+          >
+            {seasonConfig?.loteria_navidad_abierta ? '🔒 Cerrar' : '🛍️ Abrir'}
+          </Button>
+          <Button onClick={exportByFamily} variant="outline" size="sm">
+            <Users className="w-4 h-4 mr-2" />
+            Por Familia
+          </Button>
+          <Button onClick={exportByPlayer} variant="outline" size="sm">
+            <FileDown className="w-4 h-4 mr-2" />
+            Por Jugador
+          </Button>
+        </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
         <Card className="border-none shadow-lg bg-white">
           <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div className="flex-1">
-                <p className="text-sm text-slate-600 mb-1">Total Pedidos</p>
-                <p className="text-3xl font-bold text-slate-900">{orders.length}</p>
-              </div>
-              <span className="text-4xl">🎟️</span>
-            </div>
+            <p className="text-xs text-slate-600 mb-1">Familias</p>
+            <p className="text-2xl font-bold text-slate-900">{totalFamilias}</p>
           </CardContent>
         </Card>
 
         <Card className="border-none shadow-lg bg-white">
           <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div className="flex-1">
-                <p className="text-sm text-slate-600 mb-1">Décimos Totales</p>
-                <p className="text-3xl font-bold text-orange-600">{totalDecimos}</p>
-              </div>
-              <span className="text-4xl">🍀</span>
-            </div>
+            <p className="text-xs text-slate-600 mb-1">Pedidos</p>
+            <p className="text-2xl font-bold text-slate-900">{orders.length}</p>
+          </CardContent>
+        </Card>
+
+        <Card className="border-none shadow-lg bg-white">
+          <CardContent className="pt-6">
+            <p className="text-xs text-slate-600 mb-1">Décimos</p>
+            <p className="text-2xl font-bold text-orange-600">{totalDecimos}</p>
           </CardContent>
         </Card>
 
         <Card className="border-none shadow-lg bg-gradient-to-br from-green-50 to-green-100">
           <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div className="flex-1">
-                <p className="text-sm text-green-900 mb-1">Recaudado</p>
-                <p className="text-3xl font-bold text-green-700">{totalRecaudado}€</p>
-              </div>
-              <span className="text-4xl">💰</span>
-            </div>
+            <p className="text-xs text-green-900 mb-1">Recaudado</p>
+            <p className="text-2xl font-bold text-green-700">{totalRecaudado}€</p>
           </CardContent>
         </Card>
 
         <Card className="border-none shadow-lg bg-gradient-to-br from-red-50 to-red-100">
           <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div className="flex-1">
-                <p className="text-sm text-red-900 mb-1">Pdte. Cobro</p>
-                <p className="text-3xl font-bold text-red-700">{totalPendienteCobro}€</p>
-              </div>
-              <span className="text-4xl">⏳</span>
-            </div>
+            <p className="text-xs text-red-900 mb-1">Pendiente</p>
+            <p className="text-2xl font-bold text-red-700">{totalPendienteCobro}€</p>
           </CardContent>
         </Card>
       </div>
 
-      <Tabs defaultValue="pendientes">
+      <Tabs defaultValue="familias" className="w-full">
         <TabsList className="w-full">
+          <TabsTrigger value="familias" className="flex-1">
+            👨‍👩‍👧 Por Familia ({totalFamilias})
+          </TabsTrigger>
           <TabsTrigger value="pendientes" className="flex-1">
-            Pendientes ({pendingOrders.length})
+            ⏳ Pendientes ({pendingOrders.length})
           </TabsTrigger>
           <TabsTrigger value="entregados" className="flex-1">
-            Entregados ({deliveredOrders.length})
-          </TabsTrigger>
-          <TabsTrigger value="todos" className="flex-1">
-            Todos ({orders.length})
+            ✅ Entregados ({deliveredOrders.length})
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="pendientes" className="space-y-4 mt-6">
+        <TabsContent value="familias" className="space-y-4 mt-6">
           <Card className="border-none shadow-lg">
             <CardHeader className="border-b">
               <div className="flex justify-between items-center">
-                <CardTitle>Pedidos Pendientes de Entrega</CardTitle>
+                <CardTitle>Pedidos Agrupados por Familia</CardTitle>
                 <div className="relative w-64">
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400" />
                   <Input
@@ -218,6 +296,83 @@ export default function LotteryManagement() {
                   />
                 </div>
               </div>
+            </CardHeader>
+            <CardContent className="pt-6">
+              <div className="space-y-4">
+                {Object.values(ordersByFamily).map(family => {
+                  const totalDecimosFamilia = family.orders.reduce((sum, o) => sum + o.numero_decimos, 0);
+                  const totalDineroFamilia = family.orders.reduce((sum, o) => sum + o.total, 0);
+                  const todosPagados = family.orders.every(o => o.pagado);
+                  const todosEntregados = family.orders.every(o => o.estado === "Entregado");
+
+                  return (
+                    <Card key={family.email} className="border-2 hover:shadow-lg transition-shadow">
+                      <CardHeader className="bg-gradient-to-r from-orange-50 to-green-50 border-b pb-3">
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <p className="text-sm text-slate-600 mb-1">📧 {family.email}</p>
+                            <p className="text-lg font-bold text-slate-900">
+                              {family.orders.length} jugador{family.orders.length > 1 ? 'es' : ''} • {totalDecimosFamilia} décimo{totalDecimosFamilia > 1 ? 's' : ''}
+                            </p>
+                            <p className="text-xl font-bold text-orange-600 mt-1">{totalDineroFamilia}€</p>
+                          </div>
+                          <div className="flex flex-col gap-2">
+                            {todosEntregados && (
+                              <Badge className="bg-green-100 text-green-700">✅ Todo Entregado</Badge>
+                            )}
+                            {todosPagados && (
+                              <Badge className="bg-blue-100 text-blue-700">💰 Todo Pagado</Badge>
+                            )}
+                          </div>
+                        </div>
+                      </CardHeader>
+                      <CardContent className="pt-4">
+                        <div className="space-y-3">
+                          {family.orders.map(order => (
+                            <div key={order.id} className="bg-slate-50 p-3 rounded-lg border">
+                              <div className="flex justify-between items-start mb-2">
+                                <div>
+                                  <p className="font-bold text-slate-900">{order.jugador_nombre}</p>
+                                  <p className="text-sm text-slate-600">{order.jugador_categoria}</p>
+                                </div>
+                                <Badge className={statusColors[order.estado]}>
+                                  {order.estado}
+                                </Badge>
+                              </div>
+                              <div className="grid grid-cols-2 gap-2 text-sm">
+                                <p>🎟️ Décimos: {order.numero_decimos}</p>
+                                <p>💰 Total: {order.total}€</p>
+                                <p>💳 Pagado: {order.pagado ? "✅" : "❌"}</p>
+                                {order.fecha_entrega && (
+                                  <p>📅 {new Date(order.fecha_entrega).toLocaleDateString('es-ES')}</p>
+                                )}
+                              </div>
+                              {order.estado === "Solicitado" && (
+                                <Button
+                                  size="sm"
+                                  onClick={() => handleMarkAsDelivered(order)}
+                                  className="w-full mt-3 bg-green-600 hover:bg-green-700"
+                                >
+                                  <Check className="w-4 h-4 mr-2" />
+                                  Marcar como Entregado y Pagado
+                                </Button>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  );
+                })}
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="pendientes" className="space-y-4 mt-6">
+          <Card className="border-none shadow-lg">
+            <CardHeader className="border-b">
+              <CardTitle>Pedidos Pendientes de Entrega</CardTitle>
             </CardHeader>
             <CardContent className="pt-6">
               {pendingOrders.length === 0 ? (
@@ -234,10 +389,7 @@ export default function LotteryManagement() {
                           <div>
                             <h3 className="font-bold text-slate-900">{order.jugador_nombre}</h3>
                             <p className="text-sm text-slate-600">{order.jugador_categoria}</p>
-                            <p className="text-xs text-slate-500">{order.email_padre}</p>
-                            {order.telefono && (
-                              <p className="text-xs text-slate-500">📱 {order.telefono}</p>
-                            )}
+                            <p className="text-xs text-slate-500">📧 {order.email_padre}</p>
                           </div>
                           <Badge className={statusColors[order.estado]}>
                             {order.estado}
@@ -247,33 +399,16 @@ export default function LotteryManagement() {
                         <div className="space-y-2 text-sm mb-3">
                           <p>🎟️ <strong>Décimos:</strong> {order.numero_decimos}</p>
                           <p>💰 <strong>Total:</strong> {order.total}€</p>
-                          <p>💳 <strong>Pagado:</strong> {order.pagado ? "✅ Sí" : "❌ No"}</p>
-                          {order.notas && (
-                            <p className="text-slate-600">📝 {order.notas}</p>
-                          )}
                         </div>
 
-                        <div className="flex gap-2">
-                          {!order.pagado && (
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => handleMarkAsPaid(order)}
-                              className="flex-1"
-                            >
-                              <Check className="w-4 h-4 mr-1" />
-                              Marcar Pagado
-                            </Button>
-                          )}
-                          <Button
-                            size="sm"
-                            onClick={() => handleMarkAsDelivered(order)}
-                            className="flex-1 bg-green-600 hover:bg-green-700"
-                          >
-                            <Check className="w-4 h-4 mr-1" />
-                            Marcar Entregado
-                          </Button>
-                        </div>
+                        <Button
+                          size="sm"
+                          onClick={() => handleMarkAsDelivered(order)}
+                          className="w-full bg-green-600 hover:bg-green-700"
+                        >
+                          <Check className="w-4 h-4 mr-2" />
+                          Marcar Entregado y Pagado
+                        </Button>
                       </CardContent>
                     </Card>
                   ))}
@@ -298,20 +433,20 @@ export default function LotteryManagement() {
                   {deliveredOrders.map(order => (
                     <Card key={order.id} className="border border-green-200 bg-white">
                       <CardContent className="p-4">
-                        <div className="flex justify-between items-start mb-3">
+                        <div className="flex justify-between items-start mb-2">
                           <div>
                             <h3 className="font-bold text-slate-900">{order.jugador_nombre}</h3>
-                            <p className="text-sm text-slate-600">{order.jugador_categoria}</p>
+                            <p className="text-sm text-slate-600">{order.email_padre}</p>
                           </div>
                           <Badge className="bg-green-100 text-green-700">✓ Entregado</Badge>
                         </div>
                         
-                        <div className="space-y-1 text-sm">
-                          <p>🎟️ <strong>Décimos:</strong> {order.numero_decimos}</p>
-                          <p>💰 <strong>Total:</strong> {order.total}€</p>
-                          <p>💳 <strong>Pagado:</strong> {order.pagado ? "✅ Sí" : "❌ No"}</p>
+                        <div className="grid grid-cols-2 gap-2 text-sm">
+                          <p>🎟️ Décimos: {order.numero_decimos}</p>
+                          <p>💰 Total: {order.total}€</p>
+                          <p>💳 Pagado: {order.pagado ? "✅" : "❌"}</p>
                           {order.fecha_entrega && (
-                            <p>📅 <strong>Entregado:</strong> {new Date(order.fecha_entrega).toLocaleDateString('es-ES')}</p>
+                            <p>📅 {new Date(order.fecha_entrega).toLocaleDateString('es-ES')}</p>
                           )}
                         </div>
                       </CardContent>
@@ -319,54 +454,6 @@ export default function LotteryManagement() {
                   ))}
                 </div>
               )}
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="todos" className="space-y-4 mt-6">
-          <Card className="border-none shadow-lg">
-            <CardHeader className="border-b">
-              <div className="flex justify-between items-center">
-                <CardTitle>Todos los Pedidos</CardTitle>
-                <div className="relative w-64">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400" />
-                  <Input
-                    placeholder="Buscar..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-10"
-                  />
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent className="pt-6">
-              <div className="space-y-3">
-                {filteredOrders.map(order => (
-                  <Card key={order.id} className="border">
-                    <CardContent className="p-4">
-                      <div className="flex justify-between items-start mb-3">
-                        <div>
-                          <h3 className="font-bold text-slate-900">{order.jugador_nombre}</h3>
-                          <p className="text-sm text-slate-600">{order.jugador_categoria}</p>
-                          <p className="text-xs text-slate-500">{order.email_padre}</p>
-                        </div>
-                        <Badge className={statusColors[order.estado]}>
-                          {order.estado}
-                        </Badge>
-                      </div>
-                      
-                      <div className="grid grid-cols-2 gap-2 text-sm">
-                        <p>🎟️ Décimos: {order.numero_decimos}</p>
-                        <p>💰 Total: {order.total}€</p>
-                        <p>💳 Pagado: {order.pagado ? "✅" : "❌"}</p>
-                        {order.fecha_entrega && (
-                          <p>📅 {new Date(order.fecha_entrega).toLocaleDateString('es-ES')}</p>
-                        )}
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
             </CardContent>
           </Card>
         </TabsContent>

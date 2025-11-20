@@ -796,7 +796,8 @@ export default function Layout({ children, currentPageName }) {
       { title: "Galería", url: createPageUrl("AdminGallery"), icon: Image },
       { title: "🎓 Crear Convocatorias", url: createPageUrl("CoachCallups"), icon: Bell },
       ...(hasPlayers ? [{ title: "👨‍👩‍👧 Confirmar Mis Hijos", url: createPageUrl("ParentCallups"), icon: ClipboardCheck, badge: pendingCallupsCount > 0 ? pendingCallupsCount : null }] : []),
-      { title: "🍀 Lotería Navidad", url: createPageUrl("LotteryManagement"), icon: ShoppingBag },
+      ...(loteriaVisible && hasPlayers ? [{ title: "🍀 Mi Lotería", url: createPageUrl("ParentLottery"), icon: ShoppingBag }] : []),
+      { title: "🍀 Gestión Lotería", url: createPageUrl("LotteryManagement"), icon: ShoppingBag },
       { title: "🎓 Chat Equipos", url: createPageUrl("CoachChat"), icon: MessageCircle, badge: unreadMessagesCount > 0 ? unreadMessagesCount : null, urgentBadge: urgentMessagesCount > 0 },
     ];
 
@@ -811,6 +812,7 @@ export default function Layout({ children, currentPageName }) {
       { title: "📅 Calendario", url: createPageUrl("Calendar"), icon: Calendar },
       { title: "📢 Anuncios", url: createPageUrl("Announcements"), icon: Megaphone },
       ...(hasPlayers ? [{ title: "👨‍👩‍👧 Confirmar Mis Hijos", url: createPageUrl("ParentCallups"), icon: ClipboardCheck, badge: pendingCallupsCount > 0 ? pendingCallupsCount : null }] : []),
+      ...(loteriaVisible && hasPlayers ? [{ title: "🍀 Mi Lotería", url: createPageUrl("ParentLottery"), icon: ShoppingBag }] : []),
       ...(hasPlayers ? [{ title: "💬 Chat Familiar", url: createPageUrl("ParentChat"), icon: MessageCircle, badge: unreadMessagesCount > 0 ? unreadMessagesCount : null, urgentBadge: urgentMessagesCount > 0 }] : []),
     ];
 
@@ -826,6 +828,8 @@ export default function Layout({ children, currentPageName }) {
       { title: "Galería", url: createPageUrl("AdminGallery"), icon: Image },
       { title: user?.es_entrenador ? "🎓 Crear Convocatorias" : "🎓 Ver Convocatorias", url: createPageUrl("CoachCallups"), icon: Bell },
       ...(hasPlayers ? [{ title: "👨‍👩‍👧 Confirmar Mis Hijos", url: createPageUrl("ParentCallups"), icon: ClipboardCheck, badge: pendingCallupsCount > 0 ? pendingCallupsCount : null }] : []),
+      ...(loteriaVisible && hasPlayers ? [{ title: "🍀 Mi Lotería", url: createPageUrl("ParentLottery"), icon: ShoppingBag }] : []),
+      { title: "🍀 Gestión Lotería", url: createPageUrl("LotteryManagement"), icon: ShoppingBag },
       { title: "🎓 Chat Coordinación", url: createPageUrl("CoachChat"), icon: MessageCircle, badge: unreadMessagesCount > 0 ? unreadMessagesCount : null, urgentBadge: urgentMessagesCount > 0 },
     ];
 
@@ -841,7 +845,7 @@ export default function Layout({ children, currentPageName }) {
     { title: "🏆 Convocatorias", url: createPageUrl("ParentCallups"), icon: Bell, badge: pendingCallupsCount > 0 ? pendingCallupsCount : null, urgentBadge: pendingCallupsCount > 0 },
     { title: "Pagos", url: createPageUrl("ParentPayments"), icon: CreditCard },
     { title: "Pedidos Ropa", url: createPageUrl("ClothingOrders"), icon: ShoppingBag },
-    { title: "🍀 Lotería Navidad", url: createPageUrl("ParentLottery"), icon: ShoppingBag },
+    ...(loteriaVisible ? [{ title: "🍀 Lotería Navidad", url: createPageUrl("ParentLottery"), icon: ShoppingBag }] : []),
     { title: "📋 Encuestas", url: createPageUrl("Surveys"), icon: FileText },
     { title: "Chat", url: createPageUrl("ParentChat"), icon: MessageCircle, badge: unreadMessagesCount > 0 ? unreadMessagesCount : null, urgentBadge: unreadMessagesCount > 0 },
   ];
