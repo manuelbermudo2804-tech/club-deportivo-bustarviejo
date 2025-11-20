@@ -49,6 +49,8 @@ import ParentLottery from './pages/ParentLottery';
 import LotteryManagement from './pages/LotteryManagement';
 import PlayerRenewal from './pages/PlayerRenewal';
 import NotificationPreferences from './pages/NotificationPreferences';
+import EventManagement from './pages/EventManagement';
+import ParentEventRSVP from './pages/ParentEventRSVP';
 import __Layout from './Layout.jsx';
 
 
@@ -104,6 +106,8 @@ export const PAGES = {
     "LotteryManagement": LotteryManagement,
     "PlayerRenewal": PlayerRenewal,
     "NotificationPreferences": NotificationPreferences,
+    "EventManagement": EventManagement,
+    "ParentEventRSVP": ParentEventRSVP,
 }
 
 export const pagesConfig = {
