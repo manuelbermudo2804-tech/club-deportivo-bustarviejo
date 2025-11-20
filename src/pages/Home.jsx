@@ -368,18 +368,16 @@ export default function Home() {
           url: createPageUrl("ClothingOrders"),
           gradient: "from-teal-600 to-teal-700",
         });
-
-        if (loteriaVisible) {
-          items.push({
-            title: "🍀 Mi Lotería",
-            icon: Clover,
-            url: createPageUrl("ParentLottery"),
-            gradient: "from-green-600 to-green-700",
-          });
-        }
       }
 
       if (loteriaVisible) {
+        items.push({
+          title: "🍀 Mi Lotería",
+          icon: Clover,
+          url: createPageUrl("ParentLottery"),
+          gradient: "from-green-600 to-green-700",
+        });
+
         items.push({
           title: "🍀 Gestión Lotería",
           icon: Clover,

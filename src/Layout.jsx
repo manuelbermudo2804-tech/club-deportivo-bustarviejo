@@ -812,8 +812,8 @@ export default function Layout({ children, currentPageName }) {
       { title: "Galería", url: createPageUrl("AdminGallery"), icon: Image },
       { title: "🎓 Crear Convocatorias", url: createPageUrl("CoachCallups"), icon: Bell },
       ...(hasPlayers ? [{ title: "👨‍👩‍👧 Confirmar Mis Hijos", url: createPageUrl("ParentCallups"), icon: ClipboardCheck, badge: pendingCallupsCount > 0 ? pendingCallupsCount : null }] : []),
-      ...(loteriaVisible && hasPlayers ? [{ title: "🍀 Mi Lotería", url: createPageUrl("ParentLottery"), icon: ShoppingBag }] : []),
-      { title: "🍀 Gestión Lotería", url: createPageUrl("LotteryManagement"), icon: ShoppingBag },
+      ...(loteriaVisible ? [{ title: "🍀 Mi Lotería", url: createPageUrl("ParentLottery"), icon: ShoppingBag }] : []),
+      ...(loteriaVisible ? [{ title: "🍀 Gestión Lotería", url: createPageUrl("LotteryManagement"), icon: ShoppingBag }] : []),
       { title: "🎓 Chat Equipos", url: createPageUrl("CoachChat"), icon: MessageCircle, badge: unreadMessagesCount > 0 ? unreadMessagesCount : null, urgentBadge: urgentMessagesCount > 0 },
     ];
 
@@ -844,8 +844,8 @@ export default function Layout({ children, currentPageName }) {
       { title: "Galería", url: createPageUrl("AdminGallery"), icon: Image },
       { title: user?.es_entrenador ? "🎓 Crear Convocatorias" : "🎓 Ver Convocatorias", url: createPageUrl("CoachCallups"), icon: Bell },
       ...(hasPlayers ? [{ title: "👨‍👩‍👧 Confirmar Mis Hijos", url: createPageUrl("ParentCallups"), icon: ClipboardCheck, badge: pendingCallupsCount > 0 ? pendingCallupsCount : null }] : []),
-      ...(loteriaVisible && hasPlayers ? [{ title: "🍀 Mi Lotería", url: createPageUrl("ParentLottery"), icon: ShoppingBag }] : []),
-      { title: "🍀 Gestión Lotería", url: createPageUrl("LotteryManagement"), icon: ShoppingBag },
+      ...(loteriaVisible ? [{ title: "🍀 Mi Lotería", url: createPageUrl("ParentLottery"), icon: ShoppingBag }] : []),
+      ...(loteriaVisible ? [{ title: "🍀 Gestión Lotería", url: createPageUrl("LotteryManagement"), icon: ShoppingBag }] : []),
       { title: "🎓 Chat Coordinación", url: createPageUrl("CoachChat"), icon: MessageCircle, badge: unreadMessagesCount > 0 ? unreadMessagesCount : null, urgentBadge: urgentMessagesCount > 0 },
     ];
 
