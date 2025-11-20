@@ -296,6 +296,10 @@ export default function AdminChat() {
   const handleSendPoll = async (pollData) => {
     if (!user) return;
 
+    const senderName = user.role === "admin" 
+      ? "Administración CD Bustarviejo" 
+      : user.full_name || "Coordinador";
+
     const uniqueParents = new Map();
     
     if (sendToAll) {
@@ -314,7 +318,7 @@ export default function AdminChat() {
     for (const parent of uniqueParents.values()) {
       await base44.entities.ChatMessage.create({
         remitente_email: user.email,
-        remitente_nombre: user.full_name,
+        remitente_nombre: senderName,
         destinatario_email: parent.email,
         destinatario_nombre: `Padre de ${parent.playerName}`,
         mensaje: `📊 ${pollData.question}`,
@@ -348,9 +352,13 @@ export default function AdminChat() {
       return;
     }
 
+    const senderName = user.role === "admin" 
+      ? "Administración CD Bustarviejo" 
+      : user.full_name || "Coordinador";
+
     const messageData = {
       remitente_email: user.email,
-      remitente_nombre: user.full_name || "Administrador",
+      remitente_nombre: senderName,
       mensaje: messageContent.trim() || "(Archivo adjunto)",
       prioridad: priority,
       tipo: "admin_a_grupo",
