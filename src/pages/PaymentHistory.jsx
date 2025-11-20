@@ -156,10 +156,8 @@ export default function PaymentHistory() {
         </CardHeader>
         <CardContent className="p-0">
           {isLoading ? (
-            <div className="p-6 space-y-3">
-              {[...Array(5)].map((_, i) => (
-                <Skeleton key={i} className="h-16 w-full" />
-              ))}
+            <div className="p-6 text-center">
+              <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-orange-600 border-r-transparent"></div>
             </div>
           ) : filteredHistory.length === 0 ? (
             <div className="text-center py-12">
