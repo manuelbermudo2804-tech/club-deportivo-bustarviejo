@@ -55,8 +55,6 @@ export default function SeasonManagement() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
   const [isAdmin, setIsAdmin] = useState(false);
-  const [showEditDialog, setShowEditDialog] = useState(false);
-  const [editForm, setEditForm] = useState(null);
   
   // Configuración del reinicio
   const [resetConfig, setResetConfig] = useState({
@@ -755,29 +753,6 @@ export default function SeasonManagement() {
     const suggested = getSuggestedCategory(age);
     return suggested && suggested !== player.categoria;
   });
-
-  const updateSeasonMutation = useMutation({
-    mutationFn: ({ id, data }) => base44.entities.SeasonConfig.update(id, data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['seasons'] });
-      setShowEditDialog(false);
-      setEditForm(null);
-      toast.success("Temporada actualizada correctamente");
-    },
-  });
-
-  const handleEditSeason = (season) => {
-    setEditForm(season);
-    setShowEditDialog(true);
-  };
-
-  const handleSaveEdit = () => {
-    if (!editForm) return;
-    updateSeasonMutation.mutate({
-      id: editForm.id,
-      data: editForm
-    });
-  };
 
   if (!isAdmin) {
     return (
@@ -1609,22 +1584,12 @@ export default function SeasonManagement() {
                         <span>Fraccionada: <strong>{season.cuota_tres_meses}€/mes</strong></span>
                       </div>
                     </div>
-                    <div className="flex items-center gap-3">
-                      {season.fecha_inicio && season.fecha_fin && (
-                        <div className="text-right text-sm text-slate-600">
-                          <p>{new Date(season.fecha_inicio).toLocaleDateString('es-ES')}</p>
-                          <p>{new Date(season.fecha_fin).toLocaleDateString('es-ES')}</p>
-                        </div>
-                      )}
-                      <Button
-                        onClick={() => handleEditSeason(season)}
-                        variant="outline"
-                        size="sm"
-                        className="ml-4"
-                      >
-                        Editar
-                      </Button>
-                    </div>
+                    {season.fecha_inicio && season.fecha_fin && (
+                      <div className="text-right text-sm text-slate-600">
+                        <p>{new Date(season.fecha_inicio).toLocaleDateString('es-ES')}</p>
+                        <p>{new Date(season.fecha_fin).toLocaleDateString('es-ES')}</p>
+                      </div>
+                    )}
                   </div>
                   {season.notas && (
                     <p className="text-sm text-slate-600 mt-2 italic">{season.notas}</p>
@@ -1635,76 +1600,6 @@ export default function SeasonManagement() {
           )}
         </CardContent>
       </Card>
-
-      {/* Diálogo de Edición */}
-      <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>Editar Temporada</DialogTitle>
-            <DialogDescription>
-              Modifica las cuotas y configuraciones de la temporada
-            </DialogDescription>
-          </DialogHeader>
-
-          {editForm && (
-            <div className="space-y-4 py-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label>Cuota Única (€)</Label>
-                  <Input
-                    type="number"
-                    value={editForm.cuota_unica || ""}
-                    onChange={(e) => setEditForm({...editForm, cuota_unica: parseFloat(e.target.value)})}
-                  />
-                </div>
-                <div>
-                  <Label>Cuota Fraccionada (€)</Label>
-                  <Input
-                    type="number"
-                    value={editForm.cuota_tres_meses || ""}
-                    onChange={(e) => setEditForm({...editForm, cuota_tres_meses: parseFloat(e.target.value)})}
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="edit-notas">Notas</Label>
-                <Textarea
-                  id="edit-notas"
-                  value={editForm.notas || ""}
-                  onChange={(e) => setEditForm({ ...editForm, notas: e.target.value })}
-                  rows={3}
-                />
-              </div>
-
-              <div className="flex items-center space-x-2 bg-orange-50 border border-orange-200 rounded-lg p-4">
-                <Checkbox
-                  id="edit-tienda-abierta"
-                  checked={editForm.tienda_ropa_abierta || false}
-                  onCheckedChange={(checked) => setEditForm({ ...editForm, tienda_ropa_abierta: checked })}
-                />
-                <div className="flex-1">
-                  <Label htmlFor="edit-tienda-abierta" className="font-semibold text-orange-900 cursor-pointer">
-                    🛍️ Tienda de Ropa Abierta
-                  </Label>
-                  <p className="text-xs text-orange-700 mt-1">
-                    Control manual para abrir/cerrar pedidos de ropa (independiente del calendario)
-                  </p>
-                </div>
-              </div>
-            </div>
-          )}
-
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowEditDialog(false)}>
-              Cancelar
-            </Button>
-            <Button onClick={handleSaveEdit} className="bg-green-600 hover:bg-green-700">
-              Guardar Cambios
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
 
       {/* Información de Recuperación */}
       <Card className="border-none shadow-lg bg-blue-50 border-l-4 border-blue-500">
