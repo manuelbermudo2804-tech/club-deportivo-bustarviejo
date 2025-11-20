@@ -37,13 +37,14 @@ export default function ClothingOrders() {
     checkAdmin();
   }, []);
 
-  const { data: seasonConfig } = useQuery({
+  const { data: seasonConfig, refetch: refetchSeasonConfig } = useQuery({
     queryKey: ['seasonConfig'],
     queryFn: async () => {
       const configs = await base44.entities.SeasonConfig.list();
       return configs.find(c => c.activa === true);
     },
     initialData: null,
+    refetchInterval: 2000, // Refrescar cada 2 segundos
   });
 
   const orderPeriodActive = (() => {
@@ -122,10 +123,11 @@ export default function ClothingOrders() {
         });
       }
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['seasonConfig'] });
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ['seasonConfig'] });
+      await refetchSeasonConfig();
       const newState = seasonConfig ? !seasonConfig.tienda_ropa_abierta : true;
-      toast.success(newState ? "✅ Tienda abierta" : "🔒 Tienda cerrada");
+      toast.success(newState ? "✅ Tienda abierta para todas las familias" : "🔒 Tienda cerrada");
     },
   });
 
