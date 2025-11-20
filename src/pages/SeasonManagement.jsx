@@ -53,6 +53,7 @@ export default function SeasonManagement() {
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
+  const [isAdmin, setIsAdmin] = useState(false);
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [editForm, setEditForm] = useState(null);
   
@@ -78,7 +79,14 @@ export default function SeasonManagement() {
     borrarEncuestas: true,
     borrarResultados: true,
     borrarPedidosRopa: true,
+    borrarPedidosLoteria: true,
+    borrarCertificados: true,
+    borrarNotasInternas: true,
+    borrarNotificaciones: true,
   });
+
+  const [confirmText, setConfirmText] = useState("");
+  const [showPreview, setShowPreview] = useState(false);
 
   // Confirmación de seguridad
   const [securityCheck, setSecurityCheck] = useState({
@@ -95,6 +103,7 @@ export default function SeasonManagement() {
       try {
         const user = await base44.auth.me();
         setCurrentUser(user);
+        setIsAdmin(user.role === "admin");
       } catch (error) {
         console.error("Error fetching user:", error);
       }
@@ -201,6 +210,36 @@ export default function SeasonManagement() {
   const { data: clothingOrders } = useQuery({
     queryKey: ['clothingOrders'],
     queryFn: () => base44.entities.ClothingOrder.list(),
+    initialData: [],
+  });
+
+  const { data: lotteryOrders } = useQuery({
+    queryKey: ['lotteryOrders'],
+    queryFn: () => base44.entities.LotteryOrder.list(),
+    initialData: [],
+  });
+
+  const { data: certificates } = useQuery({
+    queryKey: ['certificates'],
+    queryFn: () => base44.entities.Certificate.list(),
+    initialData: [],
+  });
+
+  const { data: memberNotes } = useQuery({
+    queryKey: ['memberNotes'],
+    queryFn: () => base44.entities.MemberNote.list(),
+    initialData: [],
+  });
+
+  const { data: appNotifications } = useQuery({
+    queryKey: ['appNotifications'],
+    queryFn: () => base44.entities.AppNotification.list(),
+    initialData: [],
+  });
+
+  const { data: resetHistory } = useQuery({
+    queryKey: ['resetHistory'],
+    queryFn: () => base44.entities.ResetHistory.list('-fecha_reset'),
     initialData: [],
   });
 
@@ -501,6 +540,42 @@ export default function SeasonManagement() {
           await Promise.all(deleteClothingPromises);
         }
 
+        // Borrar pedidos de lotería
+        if (resetConfig.borrarPedidosLoteria) {
+          toast.info("🍀 Eliminando pedidos de lotería...");
+          const deleteLotteryPromises = lotteryOrders.map(o => 
+            base44.entities.LotteryOrder.delete(o.id).catch(error => console.error(`Error deleting lottery order ${o.id}:`, error))
+          );
+          await Promise.all(deleteLotteryPromises);
+        }
+
+        // Borrar certificados
+        if (resetConfig.borrarCertificados) {
+          toast.info("📜 Eliminando certificados...");
+          const deleteCertificatesPromises = certificates.map(c => 
+            base44.entities.Certificate.delete(c.id).catch(error => console.error(`Error deleting certificate ${c.id}:`, error))
+          );
+          await Promise.all(deleteCertificatesPromises);
+        }
+
+        // Borrar notas internas
+        if (resetConfig.borrarNotasInternas) {
+          toast.info("📝 Eliminando notas internas...");
+          const deleteNotesPromises = memberNotes.map(n => 
+            base44.entities.MemberNote.delete(n.id).catch(error => console.error(`Error deleting note ${n.id}:`, error))
+          );
+          await Promise.all(deleteNotesPromises);
+        }
+
+        // Borrar notificaciones
+        if (resetConfig.borrarNotificaciones) {
+          toast.info("🔔 Eliminando notificaciones...");
+          const deleteNotifPromises = appNotifications.map(n => 
+            base44.entities.AppNotification.delete(n.id).catch(error => console.error(`Error deleting notification ${n.id}:`, error))
+          );
+          await Promise.all(deleteNotifPromises);
+        }
+
         // Crear nueva temporada
         toast.info("✨ Creando nueva temporada..."); // Refined message
         const nuevaTemporada = {
@@ -667,6 +742,22 @@ export default function SeasonManagement() {
       data: editForm
     });
   };
+
+  if (!isAdmin) {
+    return (
+      <div className="p-6 lg:p-8">
+        <Card className="border-red-200 bg-red-50">
+          <CardContent className="pt-6">
+            <div className="text-center space-y-3">
+              <AlertTriangle className="w-16 h-16 text-red-600 mx-auto" />
+              <h2 className="text-2xl font-bold text-red-900">Acceso Restringido</h2>
+              <p className="text-red-700">Solo los administradores pueden acceder a la gestión de temporadas.</p>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="p-6 lg:p-8 space-y-6">
@@ -928,10 +1019,50 @@ export default function SeasonManagement() {
                   />
                   <Label htmlFor="borrarPedidosRopa" className="text-sm cursor-pointer">
                     👕 Pedidos Ropa ({clothingOrders.length})
-                  </Label>
-                </div>
-              </div>
-            </div>
+                    </Label>
+                    </div>
+                    <div className="flex items-center space-x-2 p-3 rounded-lg border">
+                    <Checkbox
+                    id="borrarPedidosLoteria"
+                    checked={resetConfig.borrarPedidosLoteria}
+                    onCheckedChange={(checked) => setResetConfig({...resetConfig, borrarPedidosLoteria: checked})}
+                    />
+                    <Label htmlFor="borrarPedidosLoteria" className="text-sm cursor-pointer">
+                    🍀 Pedidos Lotería ({lotteryOrders.length})
+                    </Label>
+                    </div>
+                    <div className="flex items-center space-x-2 p-3 rounded-lg border">
+                    <Checkbox
+                    id="borrarCertificados"
+                    checked={resetConfig.borrarCertificados}
+                    onCheckedChange={(checked) => setResetConfig({...resetConfig, borrarCertificados: checked})}
+                    />
+                    <Label htmlFor="borrarCertificados" className="text-sm cursor-pointer">
+                    📜 Certificados ({certificates.length})
+                    </Label>
+                    </div>
+                    <div className="flex items-center space-x-2 p-3 rounded-lg border">
+                    <Checkbox
+                    id="borrarNotasInternas"
+                    checked={resetConfig.borrarNotasInternas}
+                    onCheckedChange={(checked) => setResetConfig({...resetConfig, borrarNotasInternas: checked})}
+                    />
+                    <Label htmlFor="borrarNotasInternas" className="text-sm cursor-pointer">
+                    📝 Notas Internas ({memberNotes.length})
+                    </Label>
+                    </div>
+                    <div className="flex items-center space-x-2 p-3 rounded-lg border">
+                    <Checkbox
+                    id="borrarNotificaciones"
+                    checked={resetConfig.borrarNotificaciones}
+                    onCheckedChange={(checked) => setResetConfig({...resetConfig, borrarNotificaciones: checked})}
+                    />
+                    <Label htmlFor="borrarNotificaciones" className="text-sm cursor-pointer">
+                    🔔 Notificaciones ({appNotifications.length})
+                    </Label>
+                    </div>
+                    </div>
+                    </div>
 
             {/* Notificaciones */}
             <div className="space-y-3">
