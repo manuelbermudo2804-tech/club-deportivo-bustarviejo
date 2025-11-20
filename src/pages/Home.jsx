@@ -3,11 +3,12 @@ import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { Users, CreditCard, ShoppingBag, Calendar, Megaphone, Image, Clock, MessageCircle, Bell, Settings, ClipboardCheck, CheckCircle2, Star, TrendingUp, Smartphone, Trophy, FileText, Clover } from "lucide-react";
+import { Users, CreditCard, ShoppingBag, Calendar, Megaphone, Image, Clock, MessageCircle, Bell, Settings, ClipboardCheck, CheckCircle2, Star, TrendingUp, Smartphone, Trophy, FileText, Clover, BookOpen } from "lucide-react";
 
 import Onboarding from "../components/Onboarding";
 import AutomaticReminders from "../components/AutomaticReminders";
 import SocialLinks from "../components/SocialLinks";
+import ManualGenerator from "../components/manuals/ManualGenerator";
 
 const CLUB_LOGO_URL = "https://www.cdbustarviejo.com/uploads/2/4/0/4/2404974/logo-cd-bustarviejo-cuadrado-xpeq_orig.png";
 
@@ -431,6 +432,8 @@ export default function Home() {
       <AutomaticReminders />
       
       <div className="px-4 lg:px-8 py-6 space-y-4 lg:space-y-6">
+        <ManualGenerator userRole={isAdmin ? 'admin' : isCoordinator ? 'coordinador' : isCoach ? 'entrenador' : 'padre'} />
+        
         <SocialLinks />
 
         {isCoach && hasPlayers && activeSurveys.length > 0 && (
