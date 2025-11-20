@@ -495,11 +495,27 @@ export default function Layout({ children, currentPageName }) {
     return localStorage.getItem('appLanguage') || 'es';
   });
   const [showWelcome, setShowWelcome] = useState(false);
+  const [loteriaVisible, setLoteriaVisible] = useState(false);
 
   const handleLanguageChange = (newLang) => {
     setCurrentLang(newLang);
     localStorage.setItem('appLanguage', newLang);
   };
+
+  useEffect(() => {
+    const fetchSeasonConfig = async () => {
+      try {
+        const configs = await base44.entities.SeasonConfig.list();
+        const activeConfig = configs.find(c => c.activa === true);
+        setLoteriaVisible(activeConfig?.loteria_navidad_abierta === true);
+      } catch (error) {
+        console.error("Error fetching season config:", error);
+      }
+    };
+    fetchSeasonConfig();
+    const interval = setInterval(fetchSeasonConfig, 3000);
+    return () => clearInterval(interval);
+  }, []);
 
   useEffect(() => {
     const fetchUser = async () => {
