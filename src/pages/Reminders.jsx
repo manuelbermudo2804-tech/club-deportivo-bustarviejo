@@ -121,8 +121,8 @@ Gracias por su atención.
       // Solo el padre/tutor con ese email verá este mensaje en su chat
       if (chat || animation) {
         const chatMessage = animation
-          ? `🚨🔔 RECORDATORIO URGENTE 🔔🚨\n\n${data.message}\n\n⚠️ POR FAVOR, ATENCIÓN INMEDIATA`
-          : data.message;
+          ? `🚨🔔 RECORDATORIO URGENTE 🔔🚨\n\n${data.message}\n\n⚠️ POR FAVOR, ATENCIÓN INMEDIATA\n\n🔒 Este mensaje es privado, solo tú lo ves`
+          : `${data.message}\n\n🔒 Este mensaje es privado, solo tú lo ves`;
         
         // Enviar mensaje individual al padre principal
         if (player.email_padre) {
@@ -591,8 +591,8 @@ Temporada ${reminder.temporada}
       };
 
       const mensaje = hasJustificante ? 
-        `${urgencyEmoji[reminder.tipo_recordatorio]} RECORDATORIO DE PAGO - ${reminder.mes_pago}\n\nFamilia de ${reminder.jugador_nombre}: Su justificante está en revisión. Pronto confirmaremos su pago.\n\nFecha límite: 15 de ${reminder.mes_pago}` :
-        `${urgencyEmoji[reminder.tipo_recordatorio]} RECORDATORIO DE PAGO - ${reminder.mes_pago}\n\nFamilia de ${reminder.jugador_nombre}: Recuerde realizar el pago de ${reminder.cantidad}€ y subir el justificante en la app.\n\nFecha límite: 15 de ${reminder.mes_pago}\n\nApp → Mis Pagos → ${reminder.mes_pago}`;
+        `${urgencyEmoji[reminder.tipo_recordatorio]} RECORDATORIO DE PAGO - ${reminder.mes_pago}\n\nFamilia de ${reminder.jugador_nombre}: Su justificante está en revisión. Pronto confirmaremos su pago.\n\nFecha límite: 15 de ${reminder.mes_pago}\n\n🔒 Este mensaje es privado, solo tú lo ves` :
+        `${urgencyEmoji[reminder.tipo_recordatorio]} RECORDATORIO DE PAGO - ${reminder.mes_pago}\n\nFamilia de ${reminder.jugador_nombre}: Recuerde realizar el pago de ${reminder.cantidad}€ y subir el justificante en la app.\n\nFecha límite: 15 de ${reminder.mes_pago}\n\nApp → Mis Pagos → ${reminder.mes_pago}\n\n🔒 Este mensaje es privado, solo tú lo ves`;
 
       // IMPORTANTE: Estos mensajes son INDIVIDUALES para cada padre
       // Solo el padre/tutor con ese email verá este mensaje en su chat (destinatario_email)
