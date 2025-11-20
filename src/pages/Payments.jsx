@@ -19,7 +19,7 @@ import ContactCard from "../components/ContactCard";
 import ParentPaymentForm from "../components/payments/ParentPaymentForm";
 import BankReconciliation from "../components/payments/BankReconciliation";
 import ExportButton from "../components/ExportButton";
-import { getCuotasPorCategoria, getImportePorCategoriaYMes as getImportePorMes } from "../components/payments/paymentAmounts";
+import { getCuotasPorCategoriaSync, getImportePorCategoriaYMesSync as getImportePorMes } from "../components/payments/paymentAmounts";
 
 const getCurrentSeason = () => {
   const now = new Date();
@@ -795,7 +795,7 @@ Email: cdbustarviejo@gmail.com
                           return existingPayment;
                         }
                         // Crear un pago virtual pendiente con cantidad correcta
-                        const cuotas = getCuotasPorCategoria(player.deporte);
+                        const cuotas = getCuotasPorCategoriaSync(player.deporte);
                         const cantidad = hasPagoUnico 
                           ? cuotas.total 
                           : getImportePorMes(player.deporte, mes);
