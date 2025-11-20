@@ -3,7 +3,7 @@ import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { Users, CreditCard, ShoppingBag, Calendar, Megaphone, Image, Clock, MessageCircle, Bell, Settings, ClipboardCheck, CheckCircle2, Star, TrendingUp, Smartphone, Trophy, FileText } from "lucide-react";
+import { Users, CreditCard, ShoppingBag, Calendar, Megaphone, Image, Clock, MessageCircle, Bell, Settings, ClipboardCheck, CheckCircle2, Star, TrendingUp, Smartphone, Trophy, FileText, Clover } from "lucide-react";
 
 import Onboarding from "../components/Onboarding";
 import AutomaticReminders from "../components/AutomaticReminders";
@@ -18,6 +18,22 @@ export default function Home() {
   const [isCoordinator, setIsCoordinator] = useState(false);
   const [hasPlayers, setHasPlayers] = useState(false);
   const [userRole, setUserRole] = useState("parent");
+  const [loteriaVisible, setLoteriaVisible] = useState(false);
+
+  useEffect(() => {
+    const fetchSeasonConfig = async () => {
+      try {
+        const configs = await base44.entities.SeasonConfig.list();
+        const activeConfig = configs.find(c => c.activa === true);
+        setLoteriaVisible(activeConfig?.loteria_navidad_abierta === true);
+      } catch (error) {
+        console.error("Error fetching season config:", error);
+      }
+    };
+    fetchSeasonConfig();
+    const interval = setInterval(fetchSeasonConfig, 3000);
+    return () => clearInterval(interval);
+  }, []);
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -254,7 +270,19 @@ export default function Home() {
           icon: ShoppingBag,
           url: createPageUrl("ClothingOrders"),
           gradient: "from-red-600 to-red-700",
-        },
+        }
+      );
+
+      if (loteriaVisible) {
+        items.push({
+          title: "🍀 Gestión Lotería",
+          icon: Clover,
+          url: createPageUrl("LotteryManagement"),
+          gradient: "from-green-600 to-green-700",
+        });
+      }
+
+      items.push(
         {
           title: "Chat Grupos",
           icon: MessageCircle,
@@ -339,6 +367,24 @@ export default function Home() {
           icon: ShoppingBag,
           url: createPageUrl("ClothingOrders"),
           gradient: "from-teal-600 to-teal-700",
+        });
+
+        if (loteriaVisible) {
+          items.push({
+            title: "🍀 Mi Lotería",
+            icon: Clover,
+            url: createPageUrl("ParentLottery"),
+            gradient: "from-green-600 to-green-700",
+          });
+        }
+      }
+
+      if (loteriaVisible) {
+        items.push({
+          title: "🍀 Gestión Lotería",
+          icon: Clover,
+          url: createPageUrl("LotteryManagement"),
+          gradient: "from-orange-600 to-orange-700",
         });
       }
 
