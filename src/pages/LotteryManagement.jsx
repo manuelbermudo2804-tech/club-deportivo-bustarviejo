@@ -298,12 +298,18 @@ export default function LotteryManagement() {
               </div>
             </CardHeader>
             <CardContent className="pt-6">
-              <div className="space-y-4">
-                {Object.values(ordersByFamily).map(family => {
-                  const totalDecimosFamilia = family.orders.reduce((sum, o) => sum + o.numero_decimos, 0);
-                  const totalDineroFamilia = family.orders.reduce((sum, o) => sum + o.total, 0);
-                  const todosPagados = family.orders.every(o => o.pagado);
-                  const todosEntregados = family.orders.every(o => o.estado === "Entregado");
+              {Object.values(ordersByFamily).length === 0 ? (
+                <div className="text-center py-12">
+                  <Clover className="w-16 h-16 text-slate-300 mx-auto mb-4" />
+                  <p className="text-slate-500">No hay pedidos registrados</p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {Object.values(ordersByFamily).map(family => {
+                    const totalDecimosFamilia = family.orders.reduce((sum, o) => sum + o.numero_decimos, 0);
+                    const totalDineroFamilia = family.orders.reduce((sum, o) => sum + o.total, 0);
+                    const todosPagados = family.orders.every(o => o.pagado);
+                    const todosEntregados = family.orders.every(o => o.estado === "Entregado");
 
                   return (
                     <Card key={family.email} className="border-2 hover:shadow-lg transition-shadow">
@@ -362,9 +368,10 @@ export default function LotteryManagement() {
                         </div>
                       </CardContent>
                     </Card>
-                  );
-                })}
-              </div>
+                    );
+                  })}
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
