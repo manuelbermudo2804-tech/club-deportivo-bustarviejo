@@ -35,8 +35,8 @@ export default function CoachEvaluationReports() {
       const currentUser = await base44.auth.me();
       setUser(currentUser);
       
-      // Si es entrenador (no coordinador), pre-seleccionar su primera categoría
-      if (currentUser.es_entrenador && !currentUser.es_coordinador && !currentUser.role === "admin") {
+      // Si es entrenador (no coordinador ni admin), pre-seleccionar su primera categoría
+      if (currentUser.es_entrenador && !currentUser.es_coordinador && currentUser.role !== "admin") {
         const categories = currentUser.categorias_entrena || [];
         if (categories.length === 1) {
           setSelectedCategory(categories[0]);
