@@ -510,6 +510,7 @@ export default function Layout({ children, currentPageName }) {
         setIsPlayer(currentUser.role === "jugador");
         setIsCoach(currentUser.es_entrenador === true && !currentUser.es_coordinador);
         setIsCoordinator(currentUser.es_coordinador === true);
+        setIsTreasurer(currentUser.es_tesorero === true);
 
         // Para admin/entrenadores/coordinadores, SOLO usar el campo manual (no verificar BD)
         if (currentUser.role === "admin" || currentUser.es_entrenador || currentUser.es_coordinador) {
