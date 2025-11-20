@@ -5,12 +5,18 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Bell, Send, CheckCircle2, Calendar, Mail, Loader2, RefreshCw, AlertCircle, MessageCircle, Zap, FileDown, User, Plus } from "lucide-react";
+import { Bell, Send, CheckCircle2, Calendar, Mail, Loader2, RefreshCw, AlertCircle, MessageCircle, Zap, FileDown, User, Plus, Info } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
 import { format, addDays, subDays } from "date-fns";
 import { es } from "date-fns/locale";
 import { toast } from "sonner";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { getCuotasPorCategoria, getImportePorCategoriaYMes as getImportePorMes } from "../components/payments/paymentAmounts";
 
 import IndividualReminderDialog from "../components/reminders/IndividualReminderDialog";
@@ -725,63 +731,116 @@ Temporada ${reminder.temporada}
           <h1 className="text-xl lg:text-3xl font-bold text-slate-900">Recordatorios de Pago</h1>
           <p className="text-xs lg:text-sm text-slate-600 mt-1">Sistema automático</p>
         </div>
-        <div className="flex gap-2 flex-wrap">
-          <Button
-            onClick={exportPaymentsPDF}
-            variant="outline"
-            size="sm"
-            className="shadow-lg text-xs lg:text-sm"
-          >
-            <FileDown className="w-4 h-4 lg:w-5 lg:h-5 lg:mr-2" />
-            <span className="hidden lg:inline">Exportar CSV</span>
-          </Button>
-          <Button
-            onClick={handleRefresh}
-            disabled={isRefreshing}
-            variant="outline"
-            size="sm"
-            className="shadow-lg text-xs lg:text-sm"
-          >
-            <RefreshCw className={`w-4 h-4 lg:w-5 lg:h-5 ${isRefreshing ? 'animate-spin' : ''}`} />
-          </Button>
-          <Button
-            onClick={fixPaymentAmounts}
-            disabled={isGenerating}
-            size="sm"
-            className="bg-purple-600 hover:bg-purple-700 shadow-lg text-xs lg:text-sm"
-          >
-            <RefreshCw className={`w-4 h-4 lg:w-5 lg:h-5 lg:mr-2 ${isGenerating ? 'animate-spin' : ''}`} />
-            <span className="hidden lg:inline">Corregir Cantidades</span>
-          </Button>
-          <Button
-            onClick={generatePaymentsForSeason}
-            disabled={isGenerating}
-            size="sm"
-            className="bg-blue-600 hover:bg-blue-700 shadow-lg text-xs lg:text-sm"
-          >
-            <Plus className={`w-4 h-4 lg:w-5 lg:h-5 lg:mr-2 ${isGenerating ? 'animate-spin' : ''}`} />
-            <span className="hidden lg:inline">Generar Pagos</span>
-          </Button>
-          <Button
-            onClick={generateStaggeredReminders}
-            disabled={isGenerating}
-            size="sm"
-            className="bg-green-600 hover:bg-green-700 shadow-lg text-xs lg:text-sm"
-          >
-            <Zap className={`w-4 h-4 lg:w-5 lg:h-5 lg:mr-2 ${isGenerating ? 'animate-spin' : ''}`} />
-            <span className="hidden lg:inline">Recordatorios</span>
-          </Button>
-          <Button
-            onClick={sendTodayReminders}
-            disabled={dueToday === 0}
-            size="sm"
-            className="bg-orange-600 hover:bg-orange-700 shadow-lg text-xs lg:text-sm"
-          >
-            <Send className="w-4 h-4 lg:w-5 lg:h-5 lg:mr-2" />
-            <span className="hidden lg:inline">Hoy ({dueToday})</span>
-            <span className="lg:hidden">{dueToday}</span>
-          </Button>
-        </div>
+        <TooltipProvider>
+          <div className="flex gap-2 flex-wrap">
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  onClick={exportPaymentsPDF}
+                  variant="outline"
+                  size="sm"
+                  className="shadow-lg text-xs lg:text-sm"
+                >
+                  <FileDown className="w-4 h-4 lg:w-5 lg:h-5 lg:mr-2" />
+                  <span className="hidden lg:inline">Exportar CSV</span>
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Descargar Excel con pagos pendientes</p>
+              </TooltipContent>
+            </Tooltip>
+
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  onClick={handleRefresh}
+                  disabled={isRefreshing}
+                  variant="outline"
+                  size="sm"
+                  className="shadow-lg text-xs lg:text-sm"
+                >
+                  <RefreshCw className={`w-4 h-4 lg:w-5 lg:h-5 ${isRefreshing ? 'animate-spin' : ''}`} />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Actualizar todos los datos</p>
+              </TooltipContent>
+            </Tooltip>
+
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  onClick={fixPaymentAmounts}
+                  disabled={isGenerating}
+                  size="sm"
+                  className="bg-purple-600 hover:bg-purple-700 shadow-lg text-xs lg:text-sm"
+                >
+                  <RefreshCw className={`w-4 h-4 lg:w-5 lg:h-5 lg:mr-2 ${isGenerating ? 'animate-spin' : ''}`} />
+                  <span className="hidden lg:inline">Corregir Cantidades</span>
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent className="max-w-xs">
+                <p className="font-semibold mb-1">💰 Corregir Cantidades</p>
+                <p className="text-xs">Actualiza los importes de pagos existentes según las cuotas configuradas. Usar después de cambiar cuotas en Temporadas.</p>
+              </TooltipContent>
+            </Tooltip>
+
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  onClick={generatePaymentsForSeason}
+                  disabled={isGenerating}
+                  size="sm"
+                  className="bg-blue-600 hover:bg-blue-700 shadow-lg text-xs lg:text-sm"
+                >
+                  <Plus className={`w-4 h-4 lg:w-5 lg:h-5 lg:mr-2 ${isGenerating ? 'animate-spin' : ''}`} />
+                  <span className="hidden lg:inline">Generar Pagos</span>
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent className="max-w-xs">
+                <p className="font-semibold mb-1">➕ Generar Pagos</p>
+                <p className="text-xs">Crear automáticamente pagos (Junio, Septiembre, Diciembre) para todos los jugadores activos. Usar al inicio de temporada o con jugadores nuevos.</p>
+              </TooltipContent>
+            </Tooltip>
+
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  onClick={generateStaggeredReminders}
+                  disabled={isGenerating}
+                  size="sm"
+                  className="bg-green-600 hover:bg-green-700 shadow-lg text-xs lg:text-sm"
+                >
+                  <Zap className={`w-4 h-4 lg:w-5 lg:h-5 lg:mr-2 ${isGenerating ? 'animate-spin' : ''}`} />
+                  <span className="hidden lg:inline">Recordatorios</span>
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent className="max-w-xs">
+                <p className="font-semibold mb-1">🔔 Generar Recordatorios</p>
+                <p className="text-xs">Crear recordatorios escalonados (15, 7, 3 días antes y 1 después) para todos los pagos pendientes. Usar después de Generar Pagos.</p>
+              </TooltipContent>
+            </Tooltip>
+
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  onClick={sendTodayReminders}
+                  disabled={dueToday === 0}
+                  size="sm"
+                  className="bg-orange-600 hover:bg-orange-700 shadow-lg text-xs lg:text-sm"
+                >
+                  <Send className="w-4 h-4 lg:w-5 lg:h-5 lg:mr-2" />
+                  <span className="hidden lg:inline">Hoy ({dueToday})</span>
+                  <span className="lg:hidden">{dueToday}</span>
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent className="max-w-xs">
+                <p className="font-semibold mb-1">📅 Enviar Hoy</p>
+                <p className="text-xs">Enviar todos los recordatorios programados para hoy ({dueToday}). Revisar y enviar diariamente.</p>
+              </TooltipContent>
+            </Tooltip>
+          </div>
+        </TooltipProvider>
       </div>
 
       {/* Statistics Dashboard */}
@@ -856,16 +915,32 @@ Temporada ${reminder.temporada}
           </div>
 
           <div className="bg-gradient-to-r from-orange-50 to-orange-100 rounded-lg p-4 border-2 border-orange-300">
-            <p className="font-bold text-orange-900 mb-2">💡 Cómo Funciona:</p>
-            <ol className="list-decimal list-inside space-y-1 text-sm text-orange-800">
-              <li>Haz clic en "Generar Pagos Temporada" para crear los pagos de Junio, Septiembre y Diciembre para todos los jugadores activos</li>
-              <li>Haz clic en "Generar Recordatorios" para crear los recordatorios automáticos de cada pago pendiente</li>
-              <li>El sistema programa 4 recordatorios por cada pago: 15, 7, 3 días antes y 1 día después del vencimiento</li>
-              <li>Los recordatorios se envían automáticamente en sus fechas programadas</li>
-              <li>También puedes enviar recordatorios individuales con Email, SMS o Chat desde cada jugador</li>
-              <li>Todos los emails incluyen IBAN, concepto de pago e instrucciones</li>
+            <p className="font-bold text-orange-900 mb-2">💡 Guía de Uso Paso a Paso:</p>
+            <ol className="list-decimal list-inside space-y-2 text-sm text-orange-800">
+              <li><strong>Al inicio de temporada:</strong> Ir a "Temporadas" y configurar las cuotas de cada categoría</li>
+              <li><strong>Generar Pagos:</strong> Crear los pagos (Junio, Sep, Dic) para todos los jugadores activos</li>
+              <li><strong>Generar Recordatorios:</strong> Crear los recordatorios escalonados (15, 7, 3 días antes y 1 después)</li>
+              <li><strong>Envío diario:</strong> Cada día pulsar "Hoy (X)" para enviar los recordatorios programados</li>
+              <li><strong>Corregir Cantidades:</strong> Solo si cambias las cuotas en "Temporadas" después de crear pagos</li>
+              <li><strong>Recordatorios individuales:</strong> Usa el botón "Enviar" de cada jugador para casos especiales</li>
             </ol>
           </div>
+          
+          <Alert className="bg-green-50 border-green-300 border-2">
+            <Info className="h-4 w-4 text-green-600" />
+            <AlertDescription className="text-green-900">
+              <p className="font-bold mb-2">⚙️ Gestión de Categorías y Cuotas:</p>
+              <p className="text-sm mb-2">
+                • <strong>Cuotas por categoría:</strong> Se configuran en <strong>"Temporadas"</strong> (menú lateral)
+              </p>
+              <p className="text-sm mb-2">
+                • <strong>Agregar/quitar equipos:</strong> Necesitas modificar las categorías disponibles (contacta con soporte si necesitas nuevas categorías)
+              </p>
+              <p className="text-sm">
+                • <strong>Cambiar cuotas:</strong> Edita en "Temporadas" y luego usa "Corregir Cantidades"
+              </p>
+            </AlertDescription>
+          </Alert>
         </CardContent>
       </Card>
 
