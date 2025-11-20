@@ -57,6 +57,16 @@ export default function SeasonManagement() {
   const [currentUser, setCurrentUser] = useState(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [isRestoring, setIsRestoring] = useState(false);
+  const [showRestoreDialog, setShowRestoreDialog] = useState(false);
+  const [backupToRestore, setBackupToRestore] = useState(null);
+  const [restoreOptions, setRestoreOptions] = useState({
+    pagos: true,
+    recordatorios: true,
+    asistencias: false,
+    evaluaciones: false,
+    eventos: false,
+    anuncios: false,
+  });
   
   // Configuración del reinicio
   const [resetConfig, setResetConfig] = useState({
@@ -764,48 +774,139 @@ export default function SeasonManagement() {
     return suggested && suggested !== player.categoria;
   });
 
-  // Restaurar desde backup JSON
-  const handleRestoreFromBackup = async (event) => {
+  // Leer y validar backup JSON
+  const handleSelectBackupFile = async (event) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
-    setIsRestoring(true);
     try {
       const text = await file.text();
       const backupData = JSON.parse(text);
 
-      toast.info("📦 Iniciando restauración desde backup...");
+      // Validar estructura
+      if (!backupData.fecha_exportacion) {
+        toast.error("❌ Archivo no válido: falta fecha de exportación");
+        return;
+      }
+
+      setBackupToRestore(backupData);
+      setShowRestoreDialog(true);
+    } catch (error) {
+      console.error("Error reading backup:", error);
+      toast.error("❌ Error al leer el archivo. Asegúrate de que sea un JSON válido.");
+    } finally {
+      event.target.value = "";
+    }
+  };
+
+  // Ejecutar restauración
+  const handleExecuteRestore = async () => {
+    if (!backupToRestore) return;
+
+    setIsRestoring(true);
+    setShowRestoreDialog(false);
+
+    try {
+      toast.info("📦 Iniciando restauración...");
 
       // Restaurar pagos
-      if (backupData.pagos?.length > 0) {
-        toast.info(`💰 Restaurando ${backupData.pagos.length} pagos...`);
-        for (const pago of backupData.pagos) {
+      if (restoreOptions.pagos && backupToRestore.pagos?.length > 0) {
+        toast.info(`💰 Restaurando ${backupToRestore.pagos.length} pagos...`);
+        for (const pago of backupToRestore.pagos) {
           const { id, created_date, updated_date, created_by, ...pagoData } = pago;
           await base44.entities.Payment.create(pagoData);
         }
+        queryClient.invalidateQueries({ queryKey: ['payments'] });
       }
 
       // Restaurar recordatorios
-      if (backupData.recordatorios?.length > 0) {
-        toast.info(`🔔 Restaurando ${backupData.recordatorios.length} recordatorios...`);
-        for (const reminder of backupData.recordatorios) {
+      if (restoreOptions.recordatorios && backupToRestore.recordatorios?.length > 0) {
+        toast.info(`🔔 Restaurando ${backupToRestore.recordatorios.length} recordatorios...`);
+        for (const reminder of backupToRestore.recordatorios) {
           const { id, created_date, updated_date, created_by, ...reminderData } = reminder;
           await base44.entities.Reminder.create(reminderData);
         }
+        queryClient.invalidateQueries({ queryKey: ['reminders'] });
       }
 
-      // Invalidar queries
-      queryClient.invalidateQueries({ queryKey: ['payments'] });
-      queryClient.invalidateQueries({ queryKey: ['reminders'] });
+      // Restaurar asistencias
+      if (restoreOptions.asistencias && backupToRestore.asistencias?.length > 0) {
+        toast.info(`📋 Restaurando ${backupToRestore.asistencias.length} asistencias...`);
+        for (const asistencia of backupToRestore.asistencias) {
+          const { id, created_date, updated_date, created_by, ...asistenciaData } = asistencia;
+          await base44.entities.Attendance.create(asistenciaData);
+        }
+        queryClient.invalidateQueries({ queryKey: ['attendances'] });
+      }
 
-      toast.success("✅ Restauración completada con éxito");
+      // Restaurar evaluaciones
+      if (restoreOptions.evaluaciones && backupToRestore.evaluaciones?.length > 0) {
+        toast.info(`⭐ Restaurando ${backupToRestore.evaluaciones.length} evaluaciones...`);
+        for (const evaluacion of backupToRestore.evaluaciones) {
+          const { id, created_date, updated_date, created_by, ...evaluacionData } = evaluacion;
+          await base44.entities.PlayerEvaluation.create(evaluacionData);
+        }
+        queryClient.invalidateQueries({ queryKey: ['evaluations'] });
+      }
+
+      // Restaurar eventos
+      if (restoreOptions.eventos && backupToRestore.eventos?.length > 0) {
+        toast.info(`📅 Restaurando ${backupToRestore.eventos.length} eventos...`);
+        for (const evento of backupToRestore.eventos) {
+          const { id, created_date, updated_date, created_by, ...eventoData } = evento;
+          await base44.entities.Event.create(eventoData);
+        }
+        queryClient.invalidateQueries({ queryKey: ['events'] });
+      }
+
+      // Restaurar anuncios
+      if (restoreOptions.anuncios && backupToRestore.anuncios?.length > 0) {
+        toast.info(`📢 Restaurando ${backupToRestore.anuncios.length} anuncios...`);
+        for (const anuncio of backupToRestore.anuncios) {
+          const { id, created_date, updated_date, created_by, ...anuncioData } = anuncio;
+          await base44.entities.Announcement.create(anuncioData);
+        }
+        queryClient.invalidateQueries({ queryKey: ['announcements'] });
+      }
+
+      toast.success("✅ Restauración completada");
+      setBackupToRestore(null);
+      setRestoreOptions({
+        pagos: true,
+        recordatorios: true,
+        asistencias: false,
+        evaluaciones: false,
+        eventos: false,
+        anuncios: false,
+      });
     } catch (error) {
       console.error("Error restoring backup:", error);
-      toast.error("❌ Error al restaurar el backup. Verifica el archivo JSON.");
+      toast.error("❌ Error al restaurar. Revisa la consola para más detalles.");
     } finally {
       setIsRestoring(false);
-      event.target.value = "";
     }
+  };
+
+  // Exportar temporada específica
+  const exportSeasonBackup = (temporada) => {
+    const seasonPayments = payments.filter(p => p.temporada === temporada);
+    const seasonData = {
+      fecha_exportacion: new Date().toISOString(),
+      temporada: temporada,
+      pagos: seasonPayments,
+      recordatorios: reminders.filter(r => r.temporada === temporada),
+    };
+
+    const blob = new Blob([JSON.stringify(seasonData, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `backup_${temporada.replace('/', '-')}_${new Date().toISOString().split('T')[0]}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    toast.success(`📦 Backup de ${temporada} descargado`);
   };
 
   if (!isAdmin) {
@@ -903,7 +1004,7 @@ export default function SeasonManagement() {
                 type="file"
                 accept=".json"
                 className="hidden"
-                onChange={handleRestoreFromBackup}
+                onChange={handleSelectBackupFile}
               />
             </div>
           </div>
@@ -1342,6 +1443,136 @@ export default function SeasonManagement() {
         </AlertDialogContent>
       </AlertDialog>
 
+      {/* Diálogo de Restauración */}
+      <Dialog open={showRestoreDialog} onOpenChange={setShowRestoreDialog}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="text-2xl flex items-center gap-2">
+              <Upload className="w-6 h-6 text-orange-600" />
+              Restaurar Backup
+            </DialogTitle>
+            <DialogDescription>
+              Selecciona qué datos quieres restaurar del backup
+            </DialogDescription>
+          </DialogHeader>
+
+          {backupToRestore && (
+            <div className="space-y-4">
+              <Card className="border-blue-200 bg-blue-50">
+                <CardContent className="pt-4">
+                  <div className="text-sm space-y-1 text-blue-900">
+                    <p><strong>Temporada:</strong> {backupToRestore.temporada || 'No especificada'}</p>
+                    <p><strong>Fecha backup:</strong> {new Date(backupToRestore.fecha_exportacion).toLocaleString('es-ES')}</p>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <div className="space-y-2">
+                <Label className="text-base font-semibold">Datos disponibles para restaurar:</Label>
+                <div className="grid grid-cols-2 gap-3">
+                  {backupToRestore.pagos?.length > 0 && (
+                    <div className="flex items-center space-x-2 p-3 rounded-lg border">
+                      <Checkbox
+                        id="restore-pagos"
+                        checked={restoreOptions.pagos}
+                        onCheckedChange={(checked) => setRestoreOptions({...restoreOptions, pagos: checked})}
+                      />
+                      <Label htmlFor="restore-pagos" className="text-sm cursor-pointer">
+                        💰 Pagos ({backupToRestore.pagos.length})
+                      </Label>
+                    </div>
+                  )}
+                  {backupToRestore.recordatorios?.length > 0 && (
+                    <div className="flex items-center space-x-2 p-3 rounded-lg border">
+                      <Checkbox
+                        id="restore-recordatorios"
+                        checked={restoreOptions.recordatorios}
+                        onCheckedChange={(checked) => setRestoreOptions({...restoreOptions, recordatorios: checked})}
+                      />
+                      <Label htmlFor="restore-recordatorios" className="text-sm cursor-pointer">
+                        🔔 Recordatorios ({backupToRestore.recordatorios.length})
+                      </Label>
+                    </div>
+                  )}
+                  {backupToRestore.asistencias?.length > 0 && (
+                    <div className="flex items-center space-x-2 p-3 rounded-lg border">
+                      <Checkbox
+                        id="restore-asistencias"
+                        checked={restoreOptions.asistencias}
+                        onCheckedChange={(checked) => setRestoreOptions({...restoreOptions, asistencias: checked})}
+                      />
+                      <Label htmlFor="restore-asistencias" className="text-sm cursor-pointer">
+                        📋 Asistencias ({backupToRestore.asistencias.length})
+                      </Label>
+                    </div>
+                  )}
+                  {backupToRestore.evaluaciones?.length > 0 && (
+                    <div className="flex items-center space-x-2 p-3 rounded-lg border">
+                      <Checkbox
+                        id="restore-evaluaciones"
+                        checked={restoreOptions.evaluaciones}
+                        onCheckedChange={(checked) => setRestoreOptions({...restoreOptions, evaluaciones: checked})}
+                      />
+                      <Label htmlFor="restore-evaluaciones" className="text-sm cursor-pointer">
+                        ⭐ Evaluaciones ({backupToRestore.evaluaciones.length})
+                      </Label>
+                    </div>
+                  )}
+                  {backupToRestore.eventos?.length > 0 && (
+                    <div className="flex items-center space-x-2 p-3 rounded-lg border">
+                      <Checkbox
+                        id="restore-eventos"
+                        checked={restoreOptions.eventos}
+                        onCheckedChange={(checked) => setRestoreOptions({...restoreOptions, eventos: checked})}
+                      />
+                      <Label htmlFor="restore-eventos" className="text-sm cursor-pointer">
+                        📅 Eventos ({backupToRestore.eventos.length})
+                      </Label>
+                    </div>
+                  )}
+                  {backupToRestore.anuncios?.length > 0 && (
+                    <div className="flex items-center space-x-2 p-3 rounded-lg border">
+                      <Checkbox
+                        id="restore-anuncios"
+                        checked={restoreOptions.anuncios}
+                        onCheckedChange={(checked) => setRestoreOptions({...restoreOptions, anuncios: checked})}
+                      />
+                      <Label htmlFor="restore-anuncios" className="text-sm cursor-pointer">
+                        📢 Anuncios ({backupToRestore.anuncios.length})
+                      </Label>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <Alert className="bg-orange-50 border-orange-200">
+                <AlertTriangle className="h-4 w-4 text-orange-600" />
+                <AlertDescription className="text-orange-800 ml-6">
+                  Los datos se <strong>añadirán</strong> a los existentes (no se eliminará nada actual)
+                </AlertDescription>
+              </Alert>
+            </div>
+          )}
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => {
+              setShowRestoreDialog(false);
+              setBackupToRestore(null);
+            }}>
+              Cancelar
+            </Button>
+            <Button
+              onClick={handleExecuteRestore}
+              className="bg-orange-600 hover:bg-orange-700"
+              disabled={!backupToRestore}
+            >
+              <Upload className="w-4 h-4 mr-2" />
+              Restaurar Seleccionados
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       {/* Diálogo de Confirmación de Seguridad */}
       <AlertDialog open={showConfirmation} onOpenChange={setShowConfirmation}>
         <AlertDialogContent className="max-w-2xl">
@@ -1664,12 +1895,25 @@ export default function SeasonManagement() {
                         <span>Fraccionada: <strong>{season.cuota_tres_meses}€/mes</strong></span>
                       </div>
                     </div>
-                    {season.fecha_inicio && season.fecha_fin && (
-                      <div className="text-right text-sm text-slate-600">
-                        <p>{new Date(season.fecha_inicio).toLocaleDateString('es-ES')}</p>
-                        <p>{new Date(season.fecha_fin).toLocaleDateString('es-ES')}</p>
-                      </div>
-                    )}
+                    <div className="flex items-center gap-3">
+                      {season.fecha_inicio && season.fecha_fin && (
+                        <div className="text-right text-sm text-slate-600">
+                          <p>{new Date(season.fecha_inicio).toLocaleDateString('es-ES')}</p>
+                          <p>{new Date(season.fecha_fin).toLocaleDateString('es-ES')}</p>
+                        </div>
+                      )}
+                      {!season.activa && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => exportSeasonBackup(season.temporada)}
+                          className="border-blue-300 hover:bg-blue-50"
+                        >
+                          <Download className="w-4 h-4 mr-1" />
+                          Exportar
+                        </Button>
+                      )}
+                    </div>
                   </div>
                   {season.notas && (
                     <p className="text-sm text-slate-600 mt-2 italic">{season.notas}</p>
