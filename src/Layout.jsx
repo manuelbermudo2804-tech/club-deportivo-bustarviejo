@@ -778,6 +778,7 @@ export default function Layout({ children, currentPageName }) {
     { title: "Chat Grupos", url: createPageUrl("AdminChat"), icon: MessageCircle, badge: unreadMessagesCount > 0 ? unreadMessagesCount : null, urgentBadge: urgentMessagesCount > 0 },
     { title: "📋 Encuestas", url: createPageUrl("Surveys"), icon: FileText },
     { title: "Histórico", url: createPageUrl("PaymentHistory"), icon: Archive },
+    { title: "⚙️ Categorías y Cuotas", url: createPageUrl("CategoryManagement"), icon: Settings },
     { title: "Temporadas", url: createPageUrl("SeasonManagement"), icon: Settings },
     { title: "Usuarios", url: createPageUrl("UserManagement"), icon: Users },
   ];

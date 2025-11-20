@@ -74,22 +74,78 @@ export const CUOTAS_POR_CATEGORIA = {
 };
 
 // Función para obtener las cuotas según la categoría
-export const getCuotasPorCategoria = (categoria) => {
-  console.log("getCuotasPorCategoria llamada con:", categoria);
+// NOTA: Esta función ahora intenta obtener cuotas desde CategoryConfig
+// Si no existe en la BD, usa el fallback hardcoded
+export const getCuotasPorCategoria = async (categoria) => {
+  try {
+    const { base44 } = await import('@/api/base44Client');
+    const categories = await base44.entities.CategoryConfig.list();
+    const categoryConfig = categories.find(c => c.nombre === categoria && c.activa);
+    
+    if (categoryConfig) {
+      return {
+        inscripcion: categoryConfig.cuota_inscripcion,
+        segunda: categoryConfig.cuota_segunda,
+        tercera: categoryConfig.cuota_tercera,
+        total: categoryConfig.cuota_total
+      };
+    }
+  } catch (error) {
+    console.log("Error fetching from CategoryConfig, using fallback:", error);
+  }
+  
+  // Fallback a hardcoded
   const cuotas = CUOTAS_POR_CATEGORIA[categoria] || {
     inscripcion: 0,
     segunda: 0,
     tercera: 0,
     total: 0
   };
-  console.log("Cuotas encontradas:", cuotas);
+  return cuotas;
+};
+
+// Versión sincrónica para compatibilidad
+export const getCuotasPorCategoriaSync = (categoria) => {
+  const cuotas = CUOTAS_POR_CATEGORIA[categoria] || {
+    inscripcion: 0,
+    segunda: 0,
+    tercera: 0,
+    total: 0
+  };
   return cuotas;
 };
 
 // Función para obtener el importe según categoría y mes
-export const getImportePorCategoriaYMes = (categoria, mes) => {
-  console.log("getImportePorCategoriaYMes llamada con:", categoria, mes);
-  const cuotas = getCuotasPorCategoria(categoria);
+// NOTA: Usa primero CategoryConfig, luego fallback hardcoded
+export const getImportePorCategoriaYMes = async (categoria, mes) => {
+  try {
+    const { base44 } = await import('@/api/base44Client');
+    const categories = await base44.entities.CategoryConfig.list();
+    const categoryConfig = categories.find(c => c.nombre === categoria && c.activa);
+    
+    if (categoryConfig) {
+      switch(mes) {
+        case "Junio":
+          return categoryConfig.cuota_inscripcion;
+        case "Septiembre":
+          return categoryConfig.cuota_segunda;
+        case "Diciembre":
+          return categoryConfig.cuota_tercera;
+        default:
+          return 0;
+      }
+    }
+  } catch (error) {
+    console.log("Error fetching from CategoryConfig, using fallback:", error);
+  }
+  
+  // Fallback a hardcoded
+  const cuotas = CUOTAS_POR_CATEGORIA[categoria] || {
+    inscripcion: 0,
+    segunda: 0,
+    tercera: 0,
+    total: 0
+  };
   
   let importe = 0;
   switch(mes) {
@@ -106,7 +162,33 @@ export const getImportePorCategoriaYMes = (categoria, mes) => {
       importe = 0;
   }
   
-  console.log("Importe calculado:", importe);
+  return importe;
+};
+
+// Versión sincrónica para compatibilidad
+export const getImportePorCategoriaYMesSync = (categoria, mes) => {
+  const cuotas = CUOTAS_POR_CATEGORIA[categoria] || {
+    inscripcion: 0,
+    segunda: 0,
+    tercera: 0,
+    total: 0
+  };
+  
+  let importe = 0;
+  switch(mes) {
+    case "Junio":
+      importe = cuotas.inscripcion;
+      break;
+    case "Septiembre":
+      importe = cuotas.segunda;
+      break;
+    case "Diciembre":
+      importe = cuotas.tercera;
+      break;
+    default:
+      importe = 0;
+  }
+  
   return importe;
 };
 
