@@ -212,94 +212,112 @@ export default function ParentDashboard() {
   const pendingPayments = isDataLoading ? 0 : calculatePendingPayments();
   const hasUnregisteredPayments = !isDataLoading && myPlayers.length > 0 && myPayments.length === 0;
 
-  const menuItems = [
-    {
-      title: "Chat Equipo",
-      icon: MessageCircle,
-      url: createPageUrl("ParentChat"),
-      gradient: "from-teal-600 to-teal-700",
-      badge: unreadMessages,
-      badgeLabel: "nuevos"
-    },
-    {
-      title: "Mis Jugadores",
-      icon: Users,
-      url: createPageUrl("ParentPlayers"),
-      gradient: "from-orange-600 to-orange-700",
-      badge: myPlayers.length,
-      badgeLabel: "registrados"
-    },
-    {
-      title: "Pagos",
-      icon: CreditCard,
-      url: createPageUrl("ParentPayments"),
-      gradient: "from-green-600 to-green-700",
-      badge: pendingPayments,
-      badgeLabel: "pendientes"
-    },
-    {
-      title: "🏆 Convocatorias",
-      icon: Bell,
-      url: createPageUrl("ParentCallups"),
-      gradient: "from-yellow-600 to-yellow-700",
-      badge: pendingCallups,
-      badgeLabel: "pendientes"
-    },
-    {
-      title: "Calendario",
-      icon: Calendar,
-      url: createPageUrl("Calendar"),
-      gradient: "from-purple-600 to-purple-700",
-    },
-    {
-      title: "🎉 Eventos Club",
-      icon: Calendar,
-      url: createPageUrl("ParentEventRSVP"),
-      gradient: "from-cyan-600 to-cyan-700",
-    },
-    {
-      title: "Anuncios",
-      icon: Megaphone,
-      url: createPageUrl("Announcements"),
-      gradient: "from-pink-600 to-pink-700",
-    },
-    {
-      title: "Pedidos Ropa",
-      icon: ShoppingBag,
-      url: createPageUrl("ClothingOrders"),
-      gradient: "from-red-600 to-red-700",
-    },
-    {
-      title: "Horarios",
-      icon: Clock,
-      url: createPageUrl("ParentTrainingSchedules"),
-      gradient: "from-blue-600 to-blue-700",
-    },
-    {
-      title: "Galería",
-      icon: Image,
-      url: createPageUrl("ParentGallery"),
-      gradient: "from-indigo-600 to-indigo-700",
-    },
-    {
-      title: "🆔 Carnets",
-      icon: Award,
-      url: createPageUrl("PlayerCards"),
-      gradient: "from-indigo-600 to-indigo-700",
-    },
-    {
-      title: "📜 Certificados",
-      icon: FileText,
-      url: createPageUrl("Certificates"),
-      gradient: "from-blue-600 to-blue-700",
-    },
-    {
-      title: "📋 Encuestas",
-      icon: FileText,
-      url: createPageUrl("Surveys"),
-      gradient: "from-purple-600 to-purple-700",
+  const buildMenuItems = () => {
+    const items = [
+      {
+        title: "Chat Equipo",
+        icon: MessageCircle,
+        url: createPageUrl("ParentChat"),
+        gradient: "from-teal-600 to-teal-700",
+        badge: unreadMessages,
+        badgeLabel: "nuevos"
+      },
+      {
+        title: "Mis Jugadores",
+        icon: Users,
+        url: createPageUrl("ParentPlayers"),
+        gradient: "from-orange-600 to-orange-700",
+        badge: myPlayers.length,
+        badgeLabel: "registrados"
+      },
+      {
+        title: "Pagos",
+        icon: CreditCard,
+        url: createPageUrl("ParentPayments"),
+        gradient: "from-green-600 to-green-700",
+        badge: pendingPayments,
+        badgeLabel: "pendientes"
+      },
+      {
+        title: "🏆 Convocatorias",
+        icon: Bell,
+        url: createPageUrl("ParentCallups"),
+        gradient: "from-yellow-600 to-yellow-700",
+        badge: pendingCallups,
+        badgeLabel: "pendientes"
+      },
+      {
+        title: "Calendario",
+        icon: Calendar,
+        url: createPageUrl("Calendar"),
+        gradient: "from-purple-600 to-purple-700",
+      },
+      {
+        title: "🎉 Eventos Club",
+        icon: Calendar,
+        url: createPageUrl("ParentEventRSVP"),
+        gradient: "from-cyan-600 to-cyan-700",
+      },
+      {
+        title: "Anuncios",
+        icon: Megaphone,
+        url: createPageUrl("Announcements"),
+        gradient: "from-pink-600 to-pink-700",
+      },
+      {
+        title: "Pedidos Ropa",
+        icon: ShoppingBag,
+        url: createPageUrl("ClothingOrders"),
+        gradient: "from-red-600 to-red-700",
+      },
+    ];
+
+    if (loteriaVisible) {
+      items.push({
+        title: "🍀 Lotería Navidad",
+        icon: Clover,
+        url: createPageUrl("ParentLottery"),
+        gradient: "from-green-600 to-green-700",
+      });
     }
-  ];
+
+    items.push(
+      {
+        title: "Horarios",
+        icon: Clock,
+        url: createPageUrl("ParentTrainingSchedules"),
+        gradient: "from-blue-600 to-blue-700",
+      },
+      {
+        title: "Galería",
+        icon: Image,
+        url: createPageUrl("ParentGallery"),
+        gradient: "from-indigo-600 to-indigo-700",
+      },
+      {
+        title: "🆔 Carnets",
+        icon: Award,
+        url: createPageUrl("PlayerCards"),
+        gradient: "from-indigo-600 to-indigo-700",
+      },
+      {
+        title: "📜 Certificados",
+        icon: FileText,
+        url: createPageUrl("Certificates"),
+        gradient: "from-blue-600 to-blue-700",
+      },
+      {
+        title: "📋 Encuestas",
+        icon: FileText,
+        url: createPageUrl("Surveys"),
+        gradient: "from-purple-600 to-purple-700",
+      }
+    );
+
+    return items;
+  };
+
+  const menuItems = buildMenuItems();
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-black pt-4 lg:pt-0">
@@ -360,23 +378,15 @@ export default function ParentDashboard() {
         {/* LOTERIA NAVIDAD */}
         {loteriaVisible && (
           <Link to={createPageUrl("ParentLottery")}>
-            <div className="bg-gradient-to-r from-green-600 via-green-700 to-emerald-600 rounded-3xl p-5 lg:p-6 shadow-2xl transition-all hover:scale-105 active:scale-95 border-4 border-yellow-400 animate-pulse">
-              <div className="flex items-center gap-4">
-                <div className="bg-white/30 backdrop-blur-sm rounded-2xl p-3 lg:p-4 shadow-xl">
-                  <Clover className="w-8 h-8 lg:w-10 lg:h-10 text-white animate-spin-slow" />
+            <div className="bg-gradient-to-r from-green-600 to-green-700 rounded-2xl p-4 shadow-xl transition-all hover:scale-105 active:scale-95 border-2 border-green-500">
+              <div className="flex items-center gap-3">
+                <div className="bg-white/20 backdrop-blur-sm rounded-xl p-2">
+                  <Clover className="w-6 h-6 text-white" />
                 </div>
                 <div className="text-left flex-1">
-                  <p className="text-white font-black text-xl lg:text-2xl mb-1 flex items-center gap-2">
-                    🍀 LOTERÍA DE NAVIDAD 🎄
-                  </p>
-                  <p className="text-yellow-100 text-sm lg:text-base font-semibold">
-                    ¡Compra tus décimos y apoya al club! 🎁
-                  </p>
-                  <p className="text-green-100 text-xs mt-2">
-                    👉 Pulsa aquí para realizar tu pedido
-                  </p>
+                  <p className="text-white font-bold text-base">🍀 Lotería de Navidad</p>
+                  <p className="text-green-100 text-xs">Compra décimos del club 🎄</p>
                 </div>
-                <div className="text-5xl lg:text-6xl animate-bounce">🎄</div>
               </div>
             </div>
           </Link>
