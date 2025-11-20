@@ -39,6 +39,7 @@ export default function ParentChat() {
 
   useEffect(() => {
     if (myGroups.length === 0) return;
+    if (selectedTab) return; // Ya hay uno seleccionado
     
     const params = new URLSearchParams(location.search);
     const groupParam = params.get('group');
@@ -53,10 +54,10 @@ export default function ParentChat() {
     
     // En desktop, seleccionar el primer grupo por defecto
     // En mobile, no seleccionar ninguno para mostrar la lista
-    if (!selectedTab && !isMobile) {
+    if (!isMobile && myGroups.length > 0) {
       setSelectedTab(myGroups[0].id);
     }
-  }, [myGroups, location.search, isMobile]);
+  }, [myGroups.length, location.search, isMobile]);
 
   const { data: messages, isLoading: loadingMessages, refetch: refetchMessages } = useQuery({
     queryKey: ['chatMessages'],
@@ -254,10 +255,10 @@ export default function ParentChat() {
 
   if (loadingMessages || loadingPlayers || !user) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-orange-600 border-r-transparent mb-4"></div>
-          <p className="text-slate-600">Cargando chat...</p>
+      <div className="flex items-center justify-center min-h-screen bg-slate-50">
+        <div className="text-center p-6">
+          <div className="inline-block h-12 w-12 animate-spin rounded-full border-4 border-solid border-orange-600 border-r-transparent mb-4"></div>
+          <p className="text-slate-600 font-medium">Cargando chat...</p>
         </div>
       </div>
     );
@@ -265,18 +266,18 @@ export default function ParentChat() {
 
   if (myGroups.length === 0) {
     return (
-      <div className="flex items-center justify-center min-h-screen p-6">
-        <div className="text-center">
+      <div className="flex items-center justify-center min-h-screen bg-slate-50 p-6">
+        <div className="text-center bg-white rounded-2xl shadow-lg p-8 max-w-md">
           <AlertCircle className="w-16 h-16 text-slate-300 mx-auto mb-4" />
-          <p className="text-slate-500 text-lg">No hay grupos disponibles</p>
-          <p className="text-sm text-slate-400 mt-2">Tus jugadores aparecerán aquí cuando estén registrados</p>
+          <p className="text-slate-700 text-xl font-semibold mb-2">No hay grupos disponibles</p>
+          <p className="text-sm text-slate-500 mt-2">Tus jugadores aparecerán aquí cuando estén registrados en el club</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="p-4 lg:p-6">
+    <div className="p-4 lg:p-6 min-h-screen bg-slate-50">
       {/* Mobile: Show list or chat */}
       {isMobile ? (
         <>
