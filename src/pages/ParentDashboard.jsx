@@ -195,12 +195,72 @@ export default function ParentDashboard() {
 
   const menuItems = [
     {
+      title: "Chat Equipo",
+      icon: MessageCircle,
+      url: createPageUrl("ParentChat"),
+      gradient: "from-teal-600 to-teal-700",
+      badge: unreadMessages,
+      badgeLabel: "nuevos"
+    },
+    {
       title: "Mis Jugadores",
       icon: Users,
       url: createPageUrl("ParentPlayers"),
       gradient: "from-orange-600 to-orange-700",
       badge: myPlayers.length,
       badgeLabel: "registrados"
+    },
+    {
+      title: "Pagos",
+      icon: CreditCard,
+      url: createPageUrl("ParentPayments"),
+      gradient: "from-green-600 to-green-700",
+      badge: pendingPayments,
+      badgeLabel: "pendientes"
+    },
+    {
+      title: "🏆 Convocatorias",
+      icon: Bell,
+      url: createPageUrl("ParentCallups"),
+      gradient: "from-yellow-600 to-yellow-700",
+      badge: pendingCallups,
+      badgeLabel: "pendientes"
+    },
+    {
+      title: "Calendario",
+      icon: Calendar,
+      url: createPageUrl("Calendar"),
+      gradient: "from-purple-600 to-purple-700",
+    },
+    {
+      title: "🎉 Eventos Club",
+      icon: Calendar,
+      url: createPageUrl("ParentEventRSVP"),
+      gradient: "from-cyan-600 to-cyan-700",
+    },
+    {
+      title: "Anuncios",
+      icon: Megaphone,
+      url: createPageUrl("Announcements"),
+      gradient: "from-pink-600 to-pink-700",
+    },
+    {
+      title: "Pedidos Ropa",
+      icon: ShoppingBag,
+      url: createPageUrl("ClothingOrders"),
+      gradient: "from-red-600 to-red-700",
+    },
+    {
+      title: "Horarios",
+      icon: Clock,
+      url: createPageUrl("ParentTrainingSchedules"),
+      gradient: "from-blue-600 to-blue-700",
+    },
+    {
+      title: "Galería",
+      icon: Image,
+      url: createPageUrl("ParentGallery"),
+      gradient: "from-indigo-600 to-indigo-700",
     },
     {
       title: "🆔 Carnets",
@@ -215,70 +275,10 @@ export default function ParentDashboard() {
       gradient: "from-blue-600 to-blue-700",
     },
     {
-      title: "Horarios",
-      icon: Clock,
-      url: createPageUrl("ParentTrainingSchedules"),
-      gradient: "from-blue-600 to-blue-700",
-    },
-    {
-      title: "Calendario",
-      icon: Calendar,
-      url: createPageUrl("Calendar"),
-      gradient: "from-purple-600 to-purple-700",
-    },
-    {
-      title: "Anuncios",
-      icon: Megaphone,
-      url: createPageUrl("Announcements"),
-      gradient: "from-pink-600 to-pink-700",
-    },
-    {
-      title: "Galería",
-      icon: Image,
-      url: createPageUrl("ParentGallery"),
-      gradient: "from-indigo-600 to-indigo-700",
-    },
-    {
-      title: "🏆 Convocatorias",
-      icon: Bell,
-      url: createPageUrl("ParentCallups"),
-      gradient: "from-yellow-600 to-yellow-700",
-      badge: pendingCallups,
-      badgeLabel: "pendientes"
-    },
-    {
-      title: "🎉 Eventos Club",
-      icon: Calendar,
-      url: createPageUrl("ParentEventRSVP"),
-      gradient: "from-cyan-600 to-cyan-700",
-    },
-    {
-      title: "Pagos",
-      icon: CreditCard,
-      url: createPageUrl("ParentPayments"),
-      gradient: "from-green-600 to-green-700",
-      badge: pendingPayments,
-      badgeLabel: "pendientes"
-    },
-    {
-      title: "Pedidos Ropa",
-      icon: ShoppingBag,
-      url: createPageUrl("ClothingOrders"),
-      gradient: "from-red-600 to-red-700",
-    },
-    {
       title: "📋 Encuestas",
       icon: FileText,
       url: createPageUrl("Surveys"),
       gradient: "from-purple-600 to-purple-700",
-    },
-    {
-      title: "Chat Equipo",
-      icon: MessageCircle,
-      url: createPageUrl("ParentChat"),
-      gradient: "from-teal-600 to-teal-700",
-      badge: unreadMessages,
-      badgeLabel: "nuevos"
     }
   ];
 

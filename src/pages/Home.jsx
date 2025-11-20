@@ -187,7 +187,16 @@ export default function Home() {
     const items = [];
 
     if (isAdmin) {
+      // Operaciones Diarias
       items.push(
+        {
+          title: "Chat Grupos",
+          icon: MessageCircle,
+          url: createPageUrl("AdminChat"),
+          gradient: "from-teal-600 to-teal-700",
+          badge: unreadMessages,
+          badgeLabel: "nuevos"
+        },
         {
           title: "Jugadores",
           icon: Users,
@@ -197,22 +206,18 @@ export default function Home() {
           badgeLabel: "activos"
         },
         {
-          title: "📋 Asistencia y Evaluación",
-          icon: CheckCircle2,
-          url: createPageUrl("TeamAttendanceEvaluation"),
+          title: "Pagos",
+          icon: CreditCard,
+          url: createPageUrl("Payments"),
           gradient: "from-green-600 to-green-700",
+          badge: pendingPayments,
+          badgeLabel: "pendientes"
         },
         {
-          title: "📊 Reportes Entrenadores",
-          icon: Star,
-          url: createPageUrl("CoachEvaluationReports"),
-          gradient: "from-purple-600 to-purple-700",
-        },
-        {
-          title: "Horarios",
-          icon: Clock,
-          url: createPageUrl("TrainingSchedules"),
-          gradient: "from-blue-600 to-blue-700",
+          title: "🎓 Convocatorias",
+          icon: Bell,
+          url: createPageUrl("CoachCallups"),
+          gradient: "from-yellow-600 to-yellow-700",
         },
         {
           title: "Calendario",
@@ -225,18 +230,22 @@ export default function Home() {
           icon: Megaphone,
           url: createPageUrl("Announcements"),
           gradient: "from-pink-600 to-pink-700",
+        }
+      );
+
+      // Gestión Deportiva
+      items.push(
+        {
+          title: "📋 Asistencia y Evaluación",
+          icon: CheckCircle2,
+          url: createPageUrl("TeamAttendanceEvaluation"),
+          gradient: "from-green-600 to-green-700",
         },
         {
-          title: "Galería",
-          icon: Image,
-          url: createPageUrl("AdminGallery"),
-          gradient: "from-indigo-600 to-indigo-700",
-        },
-        {
-          title: "🎓 Crear Convocatorias",
-          icon: Bell,
-          url: createPageUrl("CoachCallups"),
-          gradient: "from-yellow-600 to-yellow-700",
+          title: "📊 Reportes Entrenadores",
+          icon: Star,
+          url: createPageUrl("CoachEvaluationReports"),
+          gradient: "from-purple-600 to-purple-700",
         }
       );
 
@@ -253,13 +262,21 @@ export default function Home() {
 
       items.push(
         {
-          title: "Pagos",
-          icon: CreditCard,
-          url: createPageUrl("Payments"),
-          gradient: "from-green-600 to-green-700",
-          badge: pendingPayments,
-          badgeLabel: "pendientes"
+          title: "Horarios",
+          icon: Clock,
+          url: createPageUrl("TrainingSchedules"),
+          gradient: "from-blue-600 to-blue-700",
         },
+        {
+          title: "Galería",
+          icon: Image,
+          url: createPageUrl("AdminGallery"),
+          gradient: "from-indigo-600 to-indigo-700",
+        }
+      );
+
+      // Administrativo
+      items.push(
         {
           title: "Recordatorios",
           icon: Bell,
@@ -285,12 +302,10 @@ export default function Home() {
 
       items.push(
         {
-          title: "Chat Grupos",
-          icon: MessageCircle,
-          url: createPageUrl("AdminChat"),
-          gradient: "from-teal-600 to-teal-700",
-          badge: unreadMessages,
-          badgeLabel: "nuevos"
+          title: "🎉 Gestión Eventos",
+          icon: Calendar,
+          url: createPageUrl("EventManagement"),
+          gradient: "from-indigo-600 to-indigo-700",
         },
         {
           title: "📋 Encuestas",
@@ -299,27 +314,21 @@ export default function Home() {
           gradient: "from-purple-600 to-purple-700",
         },
         {
-          title: "🎉 Gestión Eventos",
-          icon: Calendar,
-          url: createPageUrl("EventManagement"),
-          gradient: "from-indigo-600 to-indigo-700",
-        },
-        {
           title: "📋 Histórico",
           icon: Archive,
           url: createPageUrl("PaymentHistory"),
           gradient: "from-slate-600 to-slate-700",
         },
         {
-          title: "⚙️ Categorías y Cuotas",
+          title: "⚙️ Configuración",
           icon: Settings,
-          url: createPageUrl("CategoryManagement"),
+          url: createPageUrl("SeasonManagement"),
           gradient: "from-slate-600 to-slate-700",
         },
         {
-          title: "Configuración",
+          title: "⚙️ Categorías y Cuotas",
           icon: Settings,
-          url: createPageUrl("SeasonManagement"),
+          url: createPageUrl("CategoryManagement"),
           gradient: "from-slate-600 to-slate-700",
         },
         {
@@ -330,15 +339,15 @@ export default function Home() {
         }
       );
     } else if (isCoach || isCoordinator) {
-      if (hasPlayers) {
-        items.push({
-          title: "👨‍👩‍👧 Mis Hijos",
-          icon: Users,
-          url: createPageUrl("ParentPlayers"),
-          gradient: "from-orange-600 to-orange-700",
-        });
-      }
       items.push(
+        {
+          title: "Chat Equipos",
+          icon: MessageCircle,
+          url: createPageUrl("CoachChat"),
+          gradient: "from-blue-600 to-blue-700",
+          badge: unreadMessages,
+          badgeLabel: "nuevos"
+        },
         {
           title: "🎓 Plantillas",
           icon: Users,
@@ -352,16 +361,10 @@ export default function Home() {
           gradient: "from-green-600 to-green-700",
         },
         {
-          title: "📊 Reportes Entrenadores",
-          icon: Star,
-          url: createPageUrl("CoachEvaluationReports"),
-          gradient: "from-purple-600 to-purple-700",
-        },
-        {
-          title: "Horarios",
-          icon: Clock,
-          url: createPageUrl("TrainingSchedules"),
-          gradient: "from-blue-600 to-blue-700",
+          title: "🎓 Convocatorias",
+          icon: Bell,
+          url: createPageUrl("CoachCallups"),
+          gradient: "from-yellow-600 to-yellow-700",
         },
         {
           title: "Calendario",
@@ -370,10 +373,28 @@ export default function Home() {
           gradient: "from-purple-600 to-purple-700",
         },
         {
-          title: "Anuncios",
-          icon: Megaphone,
-          url: createPageUrl("Announcements"),
-          gradient: "from-pink-600 to-pink-700",
+          title: "📊 Reportes Entrenadores",
+          icon: Star,
+          url: createPageUrl("CoachEvaluationReports"),
+          gradient: "from-purple-600 to-purple-700",
+        }
+      );
+
+      if (hasPlayers) {
+        items.push({
+          title: "👨‍👩‍👧 Mis Hijos",
+          icon: Users,
+          url: createPageUrl("ParentPlayers"),
+          gradient: "from-orange-600 to-orange-700",
+        });
+      }
+
+      items.push(
+        {
+          title: "Horarios",
+          icon: Clock,
+          url: createPageUrl("TrainingSchedules"),
+          gradient: "from-blue-600 to-blue-700",
         },
         {
           title: "Galería",
@@ -382,73 +403,47 @@ export default function Home() {
           gradient: "from-indigo-600 to-indigo-700",
         },
         {
-          title: "🎓 Crear Convocatorias",
-          icon: Bell,
-          url: createPageUrl("CoachCallups"),
-          gradient: "from-yellow-600 to-yellow-700",
-        },
-        {
-          title: "Chat Equipos",
-          icon: MessageCircle,
-          url: createPageUrl("CoachChat"),
-          gradient: "from-blue-600 to-blue-700",
-          badge: unreadMessages,
-          badgeLabel: "nuevos"
+          title: "Anuncios",
+          icon: Megaphone,
+          url: createPageUrl("Announcements"),
+          gradient: "from-pink-600 to-pink-700",
         }
       );
 
       if (hasPlayers) {
-        items.push({
-          title: "👨‍👩‍👧 Confirmar Mis Hijos",
-          icon: ClipboardCheck,
-          url: createPageUrl("ParentCallups"),
-          gradient: "from-green-600 to-green-700",
-          badge: pendingCallups,
-          badgeLabel: "pendientes"
-        });
+        items.push(
+          {
+            title: "Pedidos Ropa",
+            icon: ShoppingBag,
+            url: createPageUrl("ClothingOrders"),
+            gradient: "from-teal-600 to-teal-700",
+          },
+          {
+            title: "👨‍👩‍👧 Confirmar Mis Hijos",
+            icon: ClipboardCheck,
+            url: createPageUrl("ParentCallups"),
+            gradient: "from-green-600 to-green-700",
+            badge: pendingCallups,
+            badgeLabel: "pendientes"
+          }
+        );
       }
 
-      if (hasPlayers) {
-        items.push({
-          title: "Pedidos Ropa",
-          icon: ShoppingBag,
-          url: createPageUrl("ClothingOrders"),
-          gradient: "from-teal-600 to-teal-700",
-        });
-      }
-
-      if (loteriaVisible) {
+      if (loteriaVisible && hasPlayers) {
         items.push({
           title: "🍀 Mi Lotería",
           icon: Clover,
           url: createPageUrl("ParentLottery"),
           gradient: "from-green-600 to-green-700",
         });
+      }
 
+      if (loteriaVisible) {
         items.push({
           title: "🍀 Gestión Lotería",
           icon: Clover,
           url: createPageUrl("LotteryManagement"),
           gradient: "from-orange-600 to-orange-700",
-        });
-      }
-
-      items.push({
-        title: "Chat Equipos",
-        icon: MessageCircle,
-        url: createPageUrl("CoachChat"),
-        gradient: "from-blue-600 to-blue-700",
-        badge: unreadMessages,
-        badgeLabel: "nuevos"
-      });
-    } else {
-      // Menú para padres normales
-      if (loteriaVisible) {
-        items.push({
-          title: "🍀 Mi Lotería",
-          icon: Clover,
-          url: createPageUrl("ParentLottery"),
-          gradient: "from-green-600 to-green-700",
         });
       }
     }
