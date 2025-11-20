@@ -223,6 +223,87 @@ export default function LotteryManagement() {
     toast.success("CSV por categoría exportado");
   };
 
+  const exportPDF = (type) => {
+    let content = '';
+    const date = new Date().toLocaleDateString('es-ES');
+    
+    if (type === 'resumen') {
+      content = `
+CLUB DEPORTIVO BUSTARVIEJO
+RESUMEN LOTERÍA DE NAVIDAD
+Fecha: ${date}
+Número: ${NUMERO_LOTERIA}
+
+═══════════════════════════════════════
+
+RESUMEN GENERAL:
+• Total Décimos: ${totalDecimos}
+• Total Familias: ${totalFamilias}
+• Total Pedidos: ${orders.length}
+• Total Recaudado: ${totalRecaudado}€
+• Pendiente Cobro: ${totalPendienteCobro}€
+
+═══════════════════════════════════════
+
+DESGLOSE POR CATEGORÍA:
+${Object.entries(decimosPorCategoria).map(([cat, stats]) => `
+${cat}
+  • Décimos: ${stats.decimos}
+  • Pedidos: ${stats.pedidos}
+  • Familias: ${stats.familias.size}
+  • Jugadores: ${stats.jugadores.size}
+`).join('\n')}
+
+═══════════════════════════════════════
+
+DETALLE POR JUGADOR:
+${orders.map(o => `
+• ${o.jugador_nombre} (${o.jugador_categoria})
+  Email: ${o.email_padre}
+  Décimos: ${o.numero_decimos} - Total: ${o.total}€
+  Estado: ${o.estado} - Pagado: ${o.pagado ? 'Sí' : 'No'}
+`).join('\n')}
+`;
+    } else if (type === 'categoria') {
+      const sortedCategories = Object.keys(decimosPorCategoria).sort();
+      content = `
+CLUB DEPORTIVO BUSTARVIEJO
+LOTERÍA POR CATEGORÍA
+Fecha: ${date}
+Número: ${NUMERO_LOTERIA}
+
+═══════════════════════════════════════
+${sortedCategories.map(cat => {
+  const categoryOrders = orders.filter(o => (o.jugador_categoria || "Sin categoría") === cat);
+  const ordersByFam = {};
+  categoryOrders.forEach(o => {
+    if (!ordersByFam[o.email_padre]) ordersByFam[o.email_padre] = [];
+    ordersByFam[o.email_padre].push(o);
+  });
+  
+  return `
+📚 ${cat}
+Total Décimos: ${decimosPorCategoria[cat].decimos}
+Familias: ${decimosPorCategoria[cat].familias.size}
+
+${Object.entries(ordersByFam).map(([email, fOrders]) => `
+  👨‍👩‍👧 ${email}
+  ${fOrders.map(o => `    • ${o.jugador_nombre}: ${o.numero_decimos} décimos - ${o.total}€`).join('\n  ')}
+`).join('\n')}
+`;
+}).join('\n═══════════════════════════════════════\n')}
+`;
+    }
+
+    const blob = new Blob([content], { type: 'text/plain;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `loteria_${type}_${new Date().toISOString().split('T')[0]}.txt`;
+    link.click();
+    URL.revokeObjectURL(link.href);
+    toast.success("Reporte descargado");
+  };
+
   const filteredOrders = orders.filter(order =>
     order.jugador_nombre?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     order.email_padre?.toLowerCase().includes(searchTerm.toLowerCase())
@@ -248,6 +329,24 @@ export default function LotteryManagement() {
   const totalRecaudado = orders.filter(o => o.pagado).reduce((sum, o) => sum + (o.total || 0), 0);
   const totalPendienteCobro = orders.filter(o => !o.pagado).reduce((sum, o) => sum + (o.total || 0), 0);
   const totalFamilias = Object.keys(ordersByFamily).length;
+
+  // Estadísticas por categoría
+  const decimosPorCategoria = {};
+  orders.forEach(order => {
+    const cat = order.jugador_categoria || "Sin categoría";
+    if (!decimosPorCategoria[cat]) {
+      decimosPorCategoria[cat] = {
+        decimos: 0,
+        pedidos: 0,
+        familias: new Set(),
+        jugadores: new Set()
+      };
+    }
+    decimosPorCategoria[cat].decimos += order.numero_decimos;
+    decimosPorCategoria[cat].pedidos += 1;
+    decimosPorCategoria[cat].familias.add(order.email_padre);
+    decimosPorCategoria[cat].jugadores.add(order.jugador_nombre);
+  });
 
   const statusColors = {
     "Solicitado": "bg-blue-100 text-blue-700",
@@ -339,15 +438,65 @@ export default function LotteryManagement() {
         </Card>
       </div>
 
+      <Card className="border-none shadow-lg">
+        <CardHeader className="border-b">
+          <div className="flex justify-between items-center">
+            <CardTitle>📊 Estadísticas por Categoría</CardTitle>
+            <div className="flex gap-2">
+              <Button onClick={() => exportPDF('resumen')} size="sm" variant="outline">
+                <FileDown className="w-4 h-4 mr-2" />
+                Resumen PDF
+              </Button>
+              <Button onClick={() => exportPDF('categoria')} size="sm" variant="outline">
+                <FileDown className="w-4 h-4 mr-2" />
+                Por Categoría PDF
+              </Button>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent className="pt-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {Object.entries(decimosPorCategoria).sort(([a], [b]) => a.localeCompare(b)).map(([categoria, stats]) => (
+              <Card key={categoria} className="border-2 border-orange-200 bg-gradient-to-br from-orange-50 to-white">
+                <CardContent className="pt-4">
+                  <h3 className="font-bold text-lg text-slate-900 mb-3">{categoria}</h3>
+                  <div className="space-y-2 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-slate-600">🎟️ Décimos:</span>
+                      <span className="font-bold text-orange-600">{stats.decimos}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-slate-600">📦 Pedidos:</span>
+                      <span className="font-bold">{stats.pedidos}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-slate-600">👨‍👩‍👧 Familias:</span>
+                      <span className="font-bold">{stats.familias.size}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-slate-600">👤 Jugadores:</span>
+                      <span className="font-bold">{stats.jugadores.size}</span>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
       <Tabs defaultValue="familias" className="w-full">
-        <TabsList className="w-full">
-          <TabsTrigger value="familias" className="flex-1">
-            👨‍👩‍👧 Por Familia ({totalFamilias})
+        <TabsList className="w-full grid grid-cols-4">
+          <TabsTrigger value="familias">
+            👨‍👩‍👧 Familias ({totalFamilias})
           </TabsTrigger>
-          <TabsTrigger value="pendientes" className="flex-1">
+          <TabsTrigger value="categorias">
+            📚 Categorías ({Object.keys(decimosPorCategoria).length})
+          </TabsTrigger>
+          <TabsTrigger value="pendientes">
             ⏳ Pendientes ({pendingOrders.length})
           </TabsTrigger>
-          <TabsTrigger value="entregados" className="flex-1">
+          <TabsTrigger value="entregados">
             ✅ Entregados ({deliveredOrders.length})
           </TabsTrigger>
         </TabsList>
@@ -443,6 +592,80 @@ export default function LotteryManagement() {
                   })}
                 </div>
               )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="categorias" className="space-y-4 mt-6">
+          <Card className="border-none shadow-lg">
+            <CardHeader className="border-b">
+              <CardTitle>Pedidos por Categoría y Familia</CardTitle>
+            </CardHeader>
+            <CardContent className="pt-6">
+              <div className="space-y-6">
+                {Object.entries(decimosPorCategoria).sort(([a], [b]) => a.localeCompare(b)).map(([categoria, stats]) => {
+                  const categoryOrders = filteredOrders.filter(o => (o.jugador_categoria || "Sin categoría") === categoria);
+                  const categoryOrdersByFamily = {};
+                  categoryOrders.forEach(order => {
+                    if (!categoryOrdersByFamily[order.email_padre]) {
+                      categoryOrdersByFamily[order.email_padre] = [];
+                    }
+                    categoryOrdersByFamily[order.email_padre].push(order);
+                  });
+
+                  return (
+                    <Card key={categoria} className="border-2 border-orange-300">
+                      <CardHeader className="bg-gradient-to-r from-orange-100 to-orange-50 border-b">
+                        <div className="flex justify-between items-center">
+                          <div>
+                            <h3 className="text-xl font-bold text-slate-900">{categoria}</h3>
+                            <p className="text-sm text-slate-600 mt-1">
+                              {stats.decimos} décimos • {stats.familias.size} familias • {stats.jugadores.size} jugadores
+                            </p>
+                          </div>
+                          <Badge className="bg-orange-600 text-white text-lg px-4 py-2">
+                            {stats.decimos} 🎟️
+                          </Badge>
+                        </div>
+                      </CardHeader>
+                      <CardContent className="pt-4">
+                        <div className="space-y-3">
+                          {Object.entries(categoryOrdersByFamily).map(([email, familyOrders]) => {
+                            const totalDecimosFam = familyOrders.reduce((sum, o) => sum + o.numero_decimos, 0);
+                            const totalDineroFam = familyOrders.reduce((sum, o) => sum + o.total, 0);
+                            
+                            return (
+                              <div key={email} className="bg-slate-50 p-3 rounded-lg border">
+                                <div className="flex justify-between items-start mb-2">
+                                  <div>
+                                    <p className="font-bold text-slate-900">📧 {email}</p>
+                                    <p className="text-sm text-slate-600">
+                                      {familyOrders.length} jugador{familyOrders.length > 1 ? 'es' : ''} • {totalDecimosFam} décimos • {totalDineroFam}€
+                                    </p>
+                                  </div>
+                                </div>
+                                <div className="space-y-2 mt-2">
+                                  {familyOrders.map(order => (
+                                    <div key={order.id} className="flex justify-between items-center text-sm bg-white p-2 rounded">
+                                      <span className="font-medium">{order.jugador_nombre}</span>
+                                      <div className="flex gap-2 items-center">
+                                        <span>{order.numero_decimos} décimos</span>
+                                        <Badge className={statusColors[order.estado]} size="sm">
+                                          {order.estado}
+                                        </Badge>
+                                      </div>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  );
+                })}
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
