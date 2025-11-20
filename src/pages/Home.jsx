@@ -120,7 +120,7 @@ export default function Home() {
   const pendingPayments = payments.filter(p => p.estado === "Pendiente").length;
   const unreadMessages = messages.filter(m => !m.leido && m.tipo === "padre_a_grupo").length;
 
-  const pendingCallupsCount = () => {
+  const pendingCallups = (() => {
     if (!user || !hasPlayers) return 0;
     
     const myPlayers = players.filter(p => 
@@ -143,7 +143,7 @@ export default function Home() {
     });
     
     return pending;
-  };
+  })();
 
   const handleMatchAppClick = () => {
     const userAgent = navigator.userAgent || navigator.vendor || window.opera;
