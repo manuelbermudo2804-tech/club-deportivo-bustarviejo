@@ -24,7 +24,8 @@ import {
   Mail,
   Database,
   Lock,
-  History
+  History,
+  Upload
 } from "lucide-react";
 import {
   Dialog,
@@ -55,6 +56,7 @@ export default function SeasonManagement() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [isRestoring, setIsRestoring] = useState(false);
   
   // Configuración del reinicio
   const [resetConfig, setResetConfig] = useState({
@@ -762,6 +764,50 @@ export default function SeasonManagement() {
     return suggested && suggested !== player.categoria;
   });
 
+  // Restaurar desde backup JSON
+  const handleRestoreFromBackup = async (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    setIsRestoring(true);
+    try {
+      const text = await file.text();
+      const backupData = JSON.parse(text);
+
+      toast.info("📦 Iniciando restauración desde backup...");
+
+      // Restaurar pagos
+      if (backupData.pagos?.length > 0) {
+        toast.info(`💰 Restaurando ${backupData.pagos.length} pagos...`);
+        for (const pago of backupData.pagos) {
+          const { id, created_date, updated_date, created_by, ...pagoData } = pago;
+          await base44.entities.Payment.create(pagoData);
+        }
+      }
+
+      // Restaurar recordatorios
+      if (backupData.recordatorios?.length > 0) {
+        toast.info(`🔔 Restaurando ${backupData.recordatorios.length} recordatorios...`);
+        for (const reminder of backupData.recordatorios) {
+          const { id, created_date, updated_date, created_by, ...reminderData } = reminder;
+          await base44.entities.Reminder.create(reminderData);
+        }
+      }
+
+      // Invalidar queries
+      queryClient.invalidateQueries({ queryKey: ['payments'] });
+      queryClient.invalidateQueries({ queryKey: ['reminders'] });
+
+      toast.success("✅ Restauración completada con éxito");
+    } catch (error) {
+      console.error("Error restoring backup:", error);
+      toast.error("❌ Error al restaurar el backup. Verifica el archivo JSON.");
+    } finally {
+      setIsRestoring(false);
+      event.target.value = "";
+    }
+  };
+
   if (!isAdmin) {
     return (
       <div className="p-6 lg:p-8">
@@ -793,47 +839,73 @@ export default function SeasonManagement() {
               <h3 className="text-lg font-semibold text-blue-900">💾 Backup Completo</h3>
               <p className="text-sm text-blue-700 mt-1">Exportar toda la información antes de resetear</p>
             </div>
-            <Button
-              onClick={() => {
-                const allData = {
-                  fecha_exportacion: new Date().toISOString(),
-                  temporada: activeSeason?.temporada,
-                  jugadores: players,
-                  pagos: payments,
-                  recordatorios: reminders,
-                  asistencias: attendances,
-                  evaluaciones: evaluations,
-                  horarios: schedules,
-                  eventos: events,
-                  anuncios: announcements,
-                  galeria: gallery,
-                  convocatorias: callups,
-                  chats: chats,
-                  encuestas: surveys,
-                  respuestas_encuestas: surveyResponses,
-                  resultados: matchResults,
-                  pedidos_ropa: clothingOrders,
-                  pedidos_loteria: lotteryOrders,
-                  certificados: certificates,
-                  notas_internas: memberNotes,
-                  notificaciones: appNotifications
-                };
-                const blob = new Blob([JSON.stringify(allData, null, 2)], { type: 'application/json' });
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = `backup_completo_${activeSeason?.temporada}_${new Date().toISOString().split('T')[0]}.json`;
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-                URL.revokeObjectURL(url);
-                toast.success("📦 Backup descargado");
-              }}
-              className="bg-blue-600 hover:bg-blue-700"
-            >
-              <Download className="w-4 h-4 mr-2" />
-              Descargar Backup
-            </Button>
+            <div className="flex gap-2">
+              <Button
+                onClick={() => {
+                  const allData = {
+                    fecha_exportacion: new Date().toISOString(),
+                    temporada: activeSeason?.temporada,
+                    jugadores: players,
+                    pagos: payments,
+                    recordatorios: reminders,
+                    asistencias: attendances,
+                    evaluaciones: evaluations,
+                    horarios: schedules,
+                    eventos: events,
+                    anuncios: announcements,
+                    galeria: gallery,
+                    convocatorias: callups,
+                    chats: chats,
+                    encuestas: surveys,
+                    respuestas_encuestas: surveyResponses,
+                    resultados: matchResults,
+                    pedidos_ropa: clothingOrders,
+                    pedidos_loteria: lotteryOrders,
+                    certificados: certificates,
+                    notas_internas: memberNotes,
+                    notificaciones: appNotifications
+                  };
+                  const blob = new Blob([JSON.stringify(allData, null, 2)], { type: 'application/json' });
+                  const url = URL.createObjectURL(blob);
+                  const a = document.createElement('a');
+                  a.href = url;
+                  a.download = `backup_completo_${activeSeason?.temporada}_${new Date().toISOString().split('T')[0]}.json`;
+                  document.body.appendChild(a);
+                  a.click();
+                  document.body.removeChild(a);
+                  URL.revokeObjectURL(url);
+                  toast.success("📦 Backup descargado");
+                }}
+                className="bg-blue-600 hover:bg-blue-700"
+              >
+                <Download className="w-4 h-4 mr-2" />
+                Descargar Backup
+              </Button>
+              <Button
+                disabled={isRestoring}
+                className="bg-orange-600 hover:bg-orange-700"
+                onClick={() => document.getElementById('restore-backup-input')?.click()}
+              >
+                {isRestoring ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Restaurando...
+                  </>
+                ) : (
+                  <>
+                    <Upload className="w-4 h-4 mr-2" />
+                    Restaurar Backup
+                  </>
+                )}
+              </Button>
+              <input
+                id="restore-backup-input"
+                type="file"
+                accept=".json"
+                className="hidden"
+                onChange={handleRestoreFromBackup}
+              />
+            </div>
           </div>
         </CardContent>
       </Card>
