@@ -44,6 +44,7 @@ import MatchApp from './pages/MatchApp';
 import MemberManagement from './pages/MemberManagement';
 import TeamAttendanceEvaluation from './pages/TeamAttendanceEvaluation';
 import CoachEvaluationReports from './pages/CoachEvaluationReports';
+import CategoryManagement from './pages/CategoryManagement';
 import __Layout from './Layout.jsx';
 
 
@@ -94,6 +95,7 @@ export const PAGES = {
     "MemberManagement": MemberManagement,
     "TeamAttendanceEvaluation": TeamAttendanceEvaluation,
     "CoachEvaluationReports": CoachEvaluationReports,
+    "CategoryManagement": CategoryManagement,
 }
 
 export const pagesConfig = {
