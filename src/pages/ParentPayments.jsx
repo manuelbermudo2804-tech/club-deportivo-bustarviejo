@@ -13,7 +13,30 @@ import { AnimatePresence } from "framer-motion";
 
 import ContactCard from "../components/ContactCard";
 import ParentPaymentForm from "../components/payments/ParentPaymentForm";
-import { getCuotasPorCategoria, getImportePorCategoriaYMes as getImportePorMes } from "../components/payments/paymentAmounts";
+
+const CUOTAS = {
+  "Fútbol Aficionado": { inscripcion: 165, segunda: 100, tercera: 95, total: 360 },
+  "Fútbol Juvenil": { inscripcion: 135, segunda: 100, tercera: 95, total: 330 },
+  "Fútbol Cadete": { inscripcion: 135, segunda: 100, tercera: 95, total: 330 },
+  "Fútbol Infantil (Mixto)": { inscripcion: 115, segunda: 83, tercera: 83, total: 281 },
+  "Fútbol Alevín (Mixto)": { inscripcion: 115, segunda: 83, tercera: 83, total: 281 },
+  "Fútbol Benjamín (Mixto)": { inscripcion: 100, segunda: 75, tercera: 75, total: 250 },
+  "Fútbol Pre-Benjamín (Mixto)": { inscripcion: 100, segunda: 75, tercera: 75, total: 250 },
+  "Fútbol Femenino": { inscripcion: 135, segunda: 100, tercera: 95, total: 330 },
+  "Baloncesto (Mixto)": { inscripcion: 50, segunda: 50, tercera: 50, total: 150 }
+};
+
+const getCuotasPorCategoria = (categoria) => {
+  return CUOTAS[categoria] || { inscripcion: 0, segunda: 0, tercera: 0, total: 0 };
+};
+
+const getImportePorMes = (categoria, mes) => {
+  const cuotas = getCuotasPorCategoria(categoria);
+  if (mes === "Junio") return cuotas.inscripcion;
+  if (mes === "Septiembre") return cuotas.segunda;
+  if (mes === "Diciembre") return cuotas.tercera;
+  return 0;
+};
 
 export default function ParentPayments() {
   const [uploadingPaymentId, setUploadingPaymentId] = useState(null);
