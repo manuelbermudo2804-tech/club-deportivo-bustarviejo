@@ -319,8 +319,8 @@ CD Bustarviejo`;
                 <Label htmlFor="chat" className="flex items-center gap-2 cursor-pointer flex-1">
                   <MessageCircle className="w-5 h-5 text-green-600" />
                   <div>
-                    <span className="font-medium">Chat del Grupo</span>
-                    <p className="text-xs text-slate-500">Mensaje en el grupo de la categoría</p>
+                    <span className="font-medium">Chat Individual (privado)</span>
+                    <p className="text-xs text-slate-500">⚠️ Solo este padre lo verá en su chat, no otros padres del grupo</p>
                   </div>
                 </Label>
               </div>
