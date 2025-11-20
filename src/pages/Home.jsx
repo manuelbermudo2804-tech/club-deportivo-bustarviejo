@@ -299,10 +299,34 @@ export default function Home() {
           gradient: "from-purple-600 to-purple-700",
         },
         {
+          title: "🎉 Gestión Eventos",
+          icon: Calendar,
+          url: createPageUrl("EventManagement"),
+          gradient: "from-indigo-600 to-indigo-700",
+        },
+        {
+          title: "📋 Histórico",
+          icon: Archive,
+          url: createPageUrl("PaymentHistory"),
+          gradient: "from-slate-600 to-slate-700",
+        },
+        {
+          title: "⚙️ Categorías y Cuotas",
+          icon: Settings,
+          url: createPageUrl("CategoryManagement"),
+          gradient: "from-slate-600 to-slate-700",
+        },
+        {
           title: "Configuración",
           icon: Settings,
           url: createPageUrl("SeasonManagement"),
           gradient: "from-slate-600 to-slate-700",
+        },
+        {
+          title: "Usuarios",
+          icon: Users,
+          url: createPageUrl("UserManagement"),
+          gradient: "from-blue-600 to-blue-700",
         }
       );
     } else if (isCoach || isCoordinator) {
@@ -362,6 +386,14 @@ export default function Home() {
           icon: Bell,
           url: createPageUrl("CoachCallups"),
           gradient: "from-yellow-600 to-yellow-700",
+        },
+        {
+          title: "Chat Equipos",
+          icon: MessageCircle,
+          url: createPageUrl("CoachChat"),
+          gradient: "from-blue-600 to-blue-700",
+          badge: unreadMessages,
+          badgeLabel: "nuevos"
         }
       );
 

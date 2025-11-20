@@ -200,32 +200,16 @@ export default function ParentDashboard() {
       badgeLabel: "registrados"
     },
     {
-      title: "🏆 Convocatorias",
-      icon: Bell,
-      url: createPageUrl("ParentCallups"),
-      gradient: "from-yellow-600 to-yellow-700",
-      badge: pendingCallups,
-      badgeLabel: "pendientes"
-    },
-    {
-      title: "Pagos",
-      icon: CreditCard,
-      url: createPageUrl("ParentPayments"),
-      gradient: "from-green-600 to-green-700",
-      badge: pendingPayments,
-      badgeLabel: "pendientes"
-    },
-    {
-      title: "Certificados",
-      icon: FileText,
-      url: createPageUrl("Certificates"),
-      gradient: "from-blue-600 to-blue-700",
-    },
-    {
-      title: "Carnets",
+      title: "🆔 Carnets",
       icon: Award,
       url: createPageUrl("PlayerCards"),
       gradient: "from-indigo-600 to-indigo-700",
+    },
+    {
+      title: "📜 Certificados",
+      icon: FileText,
+      url: createPageUrl("Certificates"),
+      gradient: "from-blue-600 to-blue-700",
     },
     {
       title: "Horarios",
@@ -252,12 +236,26 @@ export default function ParentDashboard() {
       gradient: "from-indigo-600 to-indigo-700",
     },
     {
-      title: "Chat Equipo",
-      icon: MessageCircle,
-      url: createPageUrl("ParentChat"),
-      gradient: "from-teal-600 to-teal-700",
-      badge: unreadMessages,
-      badgeLabel: "nuevos"
+      title: "🏆 Convocatorias",
+      icon: Bell,
+      url: createPageUrl("ParentCallups"),
+      gradient: "from-yellow-600 to-yellow-700",
+      badge: pendingCallups,
+      badgeLabel: "pendientes"
+    },
+    {
+      title: "🎉 Eventos Club",
+      icon: Calendar,
+      url: createPageUrl("ParentEventRSVP"),
+      gradient: "from-cyan-600 to-cyan-700",
+    },
+    {
+      title: "Pagos",
+      icon: CreditCard,
+      url: createPageUrl("ParentPayments"),
+      gradient: "from-green-600 to-green-700",
+      badge: pendingPayments,
+      badgeLabel: "pendientes"
     },
     {
       title: "Pedidos Ropa",
@@ -270,6 +268,14 @@ export default function ParentDashboard() {
       icon: FileText,
       url: createPageUrl("Surveys"),
       gradient: "from-purple-600 to-purple-700",
+    },
+    {
+      title: "Chat Equipo",
+      icon: MessageCircle,
+      url: createPageUrl("ParentChat"),
+      gradient: "from-teal-600 to-teal-700",
+      badge: unreadMessages,
+      badgeLabel: "nuevos"
     }
   ];
 

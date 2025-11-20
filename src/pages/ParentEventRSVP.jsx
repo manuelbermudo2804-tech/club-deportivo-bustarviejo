@@ -138,6 +138,16 @@ export default function ParentEventRSVP() {
     return { asistire, totalAcompanantes, total: asistire + totalAcompanantes };
   };
 
+  const handleSubmitRSVP = () => {
+    if (!selectedEvent) return;
+    updateRSVPMutation.mutate({
+      event: selectedEvent,
+      confirmacion: rsvpData.confirmacion,
+      num_acompanantes: parseInt(rsvpData.num_acompanantes) || 0,
+      comentario: rsvpData.comentario
+    });
+  };
+
   return (
     <div className="p-6 lg:p-8 space-y-6">
       <div>
