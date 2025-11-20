@@ -427,15 +427,15 @@ export default function Home() {
             badgeLabel: "pendientes"
           }
         );
-      }
 
-      if (loteriaVisible && hasPlayers) {
-        items.push({
-          title: "🍀 Mi Lotería",
-          icon: Clover,
-          url: createPageUrl("ParentLottery"),
-          gradient: "from-green-600 to-green-700",
-        });
+        if (loteriaVisible) {
+          items.push({
+            title: "🍀 Mi Lotería",
+            icon: Clover,
+            url: createPageUrl("ParentLottery"),
+            gradient: "from-green-600 to-green-700",
+          });
+        }
       }
 
       if (loteriaVisible) {
@@ -463,26 +463,7 @@ export default function Home() {
         
         <SocialLinks />
 
-        {loteriaVisible && (
-          <Link to={createPageUrl("LotteryManagement")}>
-            <div className="bg-gradient-to-r from-green-600 via-green-700 to-emerald-600 rounded-3xl p-6 shadow-2xl transition-all hover:scale-105 active:scale-95 border-4 border-yellow-400 animate-pulse">
-              <div className="flex items-center gap-4">
-                <div className="bg-white/30 backdrop-blur-sm rounded-2xl p-4 shadow-xl">
-                  <Clover className="w-10 h-10 text-white animate-spin-slow" />
-                </div>
-                <div className="text-left flex-1">
-                  <p className="text-white font-black text-2xl mb-1 flex items-center gap-2">
-                    🍀 GESTIÓN LOTERÍA DE NAVIDAD 🎄
-                  </p>
-                  <p className="text-yellow-100 text-base font-semibold">
-                    Gestiona pedidos de décimos del club
-                  </p>
-                </div>
-                <div className="text-6xl animate-bounce">🎄</div>
-              </div>
-            </div>
-          </Link>
-        )}
+
 
         {isCoach && hasPlayers && activeSurveys.length > 0 && (
           <Link to={createPageUrl("Surveys")}>
