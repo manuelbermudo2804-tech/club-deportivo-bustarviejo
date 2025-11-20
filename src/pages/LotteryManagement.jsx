@@ -103,7 +103,7 @@ export default function LotteryManagement() {
     doc.text('CLUB DEPORTIVO BUSTARVIEJO', 105, yPos, { align: 'center' });
     yPos += 8;
     doc.setFontSize(14);
-    doc.text('LOTERIA DE NAVIDAD - POR CATEGORIA Y JUGADOR', 105, yPos, { align: 'center' });
+    doc.text('LOTERIA DE NAVIDAD - TODAS LAS CATEGORIAS', 105, yPos, { align: 'center' });
     yPos += 6;
     doc.setFontSize(10);
     doc.text(`Numero: ${NUMERO_LOTERIA} | Fecha: ${new Date().toLocaleDateString('es-ES')}`, 105, yPos, { align: 'center' });
@@ -163,8 +163,63 @@ export default function LotteryManagement() {
     doc.setFontSize(12);
     doc.text(`TOTAL GENERAL: ${totalDecimos} decimos`, 25, yPos);
 
-    doc.save(`loteria_${new Date().toISOString().split('T')[0]}.pdf`);
-    toast.success("📄 PDF descargado");
+    doc.save(`loteria_completa_${new Date().toISOString().split('T')[0]}.pdf`);
+    toast.success("📄 PDF completo descargado");
+  };
+
+  const exportCategoryPDF = (categoria) => {
+    const doc = new jsPDF();
+    let yPos = 20;
+
+    doc.setFontSize(18);
+    doc.text('CLUB DEPORTIVO BUSTARVIEJO', 105, yPos, { align: 'center' });
+    yPos += 8;
+    doc.setFontSize(14);
+    doc.text('LOTERIA DE NAVIDAD', 105, yPos, { align: 'center' });
+    yPos += 6;
+    doc.setFontSize(10);
+    doc.text(`Numero: ${NUMERO_LOTERIA} | Fecha: ${new Date().toLocaleDateString('es-ES')}`, 105, yPos, { align: 'center' });
+    yPos += 12;
+
+    doc.setFontSize(14);
+    doc.text(`CATEGORIA: ${categoria}`, 20, yPos);
+    yPos += 8;
+
+    const categoryOrders = orders.filter(o => (o.jugador_categoria || "Sin categoría") === categoria);
+    const totalDecimosCat = categoryOrders.reduce((sum, o) => sum + o.numero_decimos, 0);
+
+    doc.setFontSize(12);
+    doc.text(`Total Decimos: ${totalDecimosCat}`, 20, yPos);
+    yPos += 6;
+    doc.text(`Total Jugadores: ${categoryOrders.length}`, 20, yPos);
+    yPos += 12;
+
+    doc.setFontSize(12);
+    doc.text('LISTADO DE JUGADORES:', 20, yPos);
+    yPos += 8;
+
+    categoryOrders.forEach(order => {
+      if (yPos > 270) {
+        doc.addPage();
+        yPos = 20;
+      }
+      doc.setFontSize(11);
+      doc.text(`• ${order.jugador_nombre}`, 25, yPos);
+      yPos += 6;
+      doc.setFontSize(9);
+      doc.text(`  Email: ${order.email_padre}`, 30, yPos);
+      yPos += 5;
+      doc.text(`  Decimos: ${order.numero_decimos} | Total: ${order.total} EUR | Estado: ${order.estado}`, 30, yPos);
+      yPos += 8;
+    });
+
+    yPos += 10;
+    doc.setFontSize(12);
+    doc.text(`TOTAL CATEGORIA ${categoria.toUpperCase()}: ${totalDecimosCat} decimos`, 20, yPos);
+
+    const fileName = categoria.toLowerCase().replace(/\s+/g, '_').replace(/[()]/g, '');
+    doc.save(`loteria_${fileName}_${new Date().toISOString().split('T')[0]}.pdf`);
+    toast.success(`📄 PDF de ${categoria} descargado`);
   };
 
   if (!isAdmin) {
@@ -189,7 +244,7 @@ export default function LotteryManagement() {
         <div className="flex gap-2">
           <Button onClick={exportPDF} size="sm" variant="outline">
             <FileDown className="w-4 h-4 mr-2" />
-            Descargar PDF
+            PDF Completo
           </Button>
           <Button
             onClick={() => toggleLotteryMutation.mutate()}
@@ -228,9 +283,20 @@ export default function LotteryManagement() {
                       {stats.jugadores.size} jugadores
                     </p>
                   </div>
-                  <div className="text-right">
-                    <p className="text-3xl font-bold text-orange-600">{stats.decimos}</p>
-                    <p className="text-xs text-slate-600">décimos</p>
+                  <div className="flex items-center gap-3">
+                    <Button
+                      onClick={() => exportCategoryPDF(categoria)}
+                      size="sm"
+                      variant="outline"
+                      className="bg-white"
+                    >
+                      <FileDown className="w-4 h-4 mr-2" />
+                      PDF
+                    </Button>
+                    <div className="text-right">
+                      <p className="text-3xl font-bold text-orange-600">{stats.decimos}</p>
+                      <p className="text-xs text-slate-600">décimos</p>
+                    </div>
                   </div>
                 </div>
               </CardHeader>
