@@ -120,30 +120,26 @@ export default function Home() {
   const pendingPayments = payments.filter(p => p.estado === "Pendiente").length;
   const unreadMessages = messages.filter(m => !m.leido && m.tipo === "padre_a_grupo").length;
 
-  const pendingCallups = (() => {
-    if (!user || !hasPlayers) return 0;
-    
+  let pendingCallups = 0;
+  if (user && hasPlayers) {
     const myPlayers = players.filter(p => 
       p.email_padre === user.email || 
       p.email_tutor_2 === user.email
     );
     
     const today = new Date().toISOString().split('T')[0];
-    let pending = 0;
     
     callups.forEach(callup => {
       if (callup.publicada && callup.fecha_partido >= today && !callup.cerrada) {
         callup.jugadores_convocados?.forEach(jugador => {
           const isMyPlayer = myPlayers.some(p => p.id === jugador.jugador_id);
           if (isMyPlayer && jugador.confirmacion === "pendiente") {
-            pending++;
+            pendingCallups++;
           }
         });
       }
     });
-    
-    return pending;
-  })();
+  }
 
   const handleMatchAppClick = () => {
     const userAgent = navigator.userAgent || navigator.vendor || window.opera;
