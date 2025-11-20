@@ -32,6 +32,18 @@ export default function NotificationCenter() {
     queryKey: ['messages'],
     queryFn: () => base44.entities.ChatMessage.list('-created_date'),
     initialData: [],
+    refetchInterval: 30000,
+  });
+
+  const { data: allNotifications } = useQuery({
+    queryKey: ['appNotifications', user?.email],
+    queryFn: async () => {
+      const all = await base44.entities.AppNotification.list('-created_date');
+      return all.filter(n => n.usuario_email === user?.email);
+    },
+    enabled: !!user?.email,
+    refetchInterval: 30000,
+    initialData: [],
   });
 
   const { data: callups } = useQuery({
@@ -83,16 +95,29 @@ export default function NotificationCenter() {
 
   const myGroupSports = [...new Set(myPlayers.map(p => p.deporte))];
 
-  // Messages - only last 7 days
+  // Messages - last 30 days for history, 7 days for badge
   const unreadMessages = messages.filter(m => {
     if (!m.leido && m.tipo === "admin_a_grupo" && myGroupSports.includes(m.grupo_id || m.deporte)) {
       const daysAgo = Math.floor((new Date() - new Date(m.created_date)) / (1000 * 60 * 60 * 24));
-      return daysAgo <= 7;
+      return daysAgo <= 30;
     }
     return false;
   });
 
-  const urgentMessages = unreadMessages.filter(m => m.prioridad === "Urgente");
+  const unreadMessagesRecent = unreadMessages.filter(m => {
+    const daysAgo = Math.floor((new Date() - new Date(m.created_date)) / (1000 * 60 * 60 * 24));
+    return daysAgo <= 7;
+  });
+
+  const urgentMessages = unreadMessagesRecent.filter(m => m.prioridad === "Urgente");
+
+  // App notifications - últimas 30 días
+  const recentAppNotifications = (allNotifications || []).filter(n => {
+    const daysAgo = Math.floor((new Date() - new Date(n.created_date)) / (1000 * 60 * 60 * 24));
+    return daysAgo <= 30;
+  });
+
+  const unviewedAppNotifications = recentAppNotifications.filter(n => !n.vista);
 
   // Callups - solo pendientes y futuras (desaparecen el día después del partido)
   const today = new Date();
@@ -166,7 +191,7 @@ export default function NotificationCenter() {
   });
 
   const criticalNotifications = urgentMessages.length + urgentAnnouncements.length + pendingPayments.length;
-  const totalNotifications = unreadMessages.length + pendingCallups.length + pendingPayments.length + recentAnnouncements.length;
+  const totalNotifications = unreadMessagesRecent.length + pendingCallups.length + pendingPayments.length + recentAnnouncements.length + unviewedAppNotifications.length;
 
   const getNotificationIcon = (type) => {
     switch(type) {
@@ -224,12 +249,15 @@ export default function NotificationCenter() {
         </DialogHeader>
 
         <Tabs defaultValue="all" className="w-full">
-          <TabsList className="w-full grid grid-cols-5 gap-1">
+          <TabsList className="w-full grid grid-cols-6 gap-1">
             <TabsTrigger value="all" className="text-xs">
               Todas ({totalNotifications})
             </TabsTrigger>
+            <TabsTrigger value="history" className="text-xs">
+              📜 Historial
+            </TabsTrigger>
             <TabsTrigger value="messages" className="text-xs">
-              💬 ({unreadMessages.length})
+              💬 ({unreadMessagesRecent.length})
             </TabsTrigger>
             <TabsTrigger value="callups" className="text-xs">
               🏆 ({pendingCallups.length})
@@ -252,6 +280,25 @@ export default function NotificationCenter() {
                 </div>
               </div>
             )}
+
+            {/* App Notifications */}
+            {unviewedAppNotifications.map(notif => {
+              const Icon = getNotificationIcon(notif.tipo?.includes("callup") || notif.tipo?.includes("convocatoria") ? "callup" : notif.tipo?.includes("pago") ? "payment" : notif.tipo?.includes("evaluacion") ? "event" : "message");
+              return (
+                <Link key={notif.id} to={notif.url_accion || createPageUrl("Home")} onClick={() => setIsOpen(false)}>
+                  <div className={`flex items-start gap-3 p-3 rounded-lg hover:opacity-80 transition-all ${notif.prioridad === "urgente" ? "border-2 border-orange-300 bg-orange-50" : "bg-slate-50"}`}>
+                    <Icon className={`w-5 h-5 mt-1 ${notif.prioridad === "urgente" ? "text-orange-600" : "text-blue-600"}`} />
+                    <div className="flex-1">
+                      <p className="text-sm font-semibold text-slate-900">{notif.titulo}</p>
+                      <p className="text-sm text-slate-700">{notif.mensaje}</p>
+                      <p className="text-xs text-slate-500 mt-1">
+                        {format(new Date(notif.created_date), "dd MMM, HH:mm", { locale: es })}
+                      </p>
+                    </div>
+                  </div>
+                </Link>
+              );
+            })}
 
             {/* Urgent Messages */}
             {urgentMessages.map(msg => {
@@ -383,6 +430,58 @@ export default function NotificationCenter() {
                 <Check className="w-16 h-16 text-green-500 mx-auto mb-3" />
                 <p className="text-slate-600 font-medium">¡Todo al día!</p>
                 <p className="text-sm text-slate-500">No hay notificaciones pendientes</p>
+              </div>
+            )}
+          </TabsContent>
+
+          <TabsContent value="history" className="space-y-3 mt-4">
+            <div className="text-sm text-slate-600 mb-4">
+              Últimas 30 días • {recentAppNotifications.length + unreadMessages.length + recentAnnouncements.length} notificaciones
+            </div>
+            
+            {recentAppNotifications.map(notif => (
+              <div key={notif.id} className={`flex items-start gap-3 p-3 rounded-lg ${notif.vista ? "bg-slate-50 opacity-60" : "bg-blue-50"}`}>
+                <Bell className="w-5 h-5 text-blue-600 mt-1" />
+                <div className="flex-1">
+                  <p className="text-sm font-semibold text-slate-900">{notif.titulo}</p>
+                  <p className="text-sm text-slate-700">{notif.mensaje}</p>
+                  <p className="text-xs text-slate-500 mt-1">
+                    {format(new Date(notif.created_date), "dd MMM, HH:mm", { locale: es })}
+                  </p>
+                </div>
+                {notif.vista && <Badge variant="outline" className="text-xs">Vista</Badge>}
+              </div>
+            ))}
+
+            {unreadMessages.map(msg => (
+              <div key={msg.id} className="flex items-start gap-3 p-3 bg-blue-50 rounded-lg">
+                <MessageCircle className="w-5 h-5 text-blue-600 mt-1" />
+                <div className="flex-1">
+                  <p className="text-sm font-semibold text-slate-900">{msg.remitente_nombre}</p>
+                  <p className="text-sm text-slate-700">{msg.mensaje.substring(0, 100)}...</p>
+                  <p className="text-xs text-slate-500 mt-1">
+                    {format(new Date(msg.created_date), "dd MMM, HH:mm", { locale: es })}
+                  </p>
+                </div>
+              </div>
+            ))}
+
+            {recentAnnouncements.map(ann => (
+              <div key={ann.id} className="flex items-start gap-3 p-3 bg-purple-50 rounded-lg">
+                <Megaphone className="w-5 h-5 text-purple-600 mt-1" />
+                <div className="flex-1">
+                  <p className="text-sm font-semibold text-slate-900">{ann.titulo}</p>
+                  <p className="text-xs text-slate-500 mt-1">
+                    {format(new Date(ann.fecha_publicacion), "dd MMM, HH:mm", { locale: es })}
+                  </p>
+                </div>
+              </div>
+            ))}
+
+            {recentAppNotifications.length === 0 && unreadMessages.length === 0 && recentAnnouncements.length === 0 && (
+              <div className="text-center py-12">
+                <Bell className="w-16 h-16 text-slate-300 mx-auto mb-3" />
+                <p className="text-slate-600">Sin notificaciones en los últimos 30 días</p>
               </div>
             )}
           </TabsContent>

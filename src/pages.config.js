@@ -48,6 +48,7 @@ import CategoryManagement from './pages/CategoryManagement';
 import ParentLottery from './pages/ParentLottery';
 import LotteryManagement from './pages/LotteryManagement';
 import PlayerRenewal from './pages/PlayerRenewal';
+import NotificationPreferences from './pages/NotificationPreferences';
 import __Layout from './Layout.jsx';
 
 
@@ -102,6 +103,7 @@ export const PAGES = {
     "ParentLottery": ParentLottery,
     "LotteryManagement": LotteryManagement,
     "PlayerRenewal": PlayerRenewal,
+    "NotificationPreferences": NotificationPreferences,
 }
 
 export const pagesConfig = {

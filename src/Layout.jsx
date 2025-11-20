@@ -17,6 +17,8 @@ import ChatNotificationListener from "./components/push/ChatNotificationListener
 import WelcomeScreen from "./components/WelcomeScreen";
 import NotificationManager from "./components/notifications/NotificationManager";
 import RolePresentation from "./components/onboarding/RolePresentation";
+import AutomaticNotificationEngine from "./components/notifications/AutomaticNotificationEngine";
+import EmailNotificationTrigger from "./components/notifications/EmailNotificationTrigger";
 
 const CLUB_LOGO_URL = "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6911b8e453ca3ac01fb134d6/14072ed7d_logo_cd_bustarviejo_pequeo.jpg";
 
@@ -821,6 +823,7 @@ export default function Layout({ children, currentPageName }) {
 
   const adminNavigationItems = [
     { title: "Inicio", url: createPageUrl("Home"), icon: Home },
+    { title: "⚙️ Preferencias Notif.", url: createPageUrl("NotificationPreferences"), icon: Settings },
     { title: "Jugadores", url: createPageUrl("Players"), icon: Users },
     { title: "📋 Asistencia y Evaluación", url: createPageUrl("TeamAttendanceEvaluation"), icon: CheckCircle2 },
     { title: "📊 Reportes Entrenadores", url: createPageUrl("CoachEvaluationReports"), icon: Star },
@@ -844,6 +847,7 @@ export default function Layout({ children, currentPageName }) {
 
   const coachNavigationItems = [
       { title: "🏠 Inicio", url: createPageUrl("Home"), icon: Home },
+      { title: "⚙️ Preferencias Notif.", url: createPageUrl("NotificationPreferences"), icon: Settings },
       ...(hasPlayers ? [{ title: "👨‍👩‍👧 Mis Hijos", url: createPageUrl("ParentPlayers"), icon: Users }] : []),
       { title: "🎓 Plantillas", url: createPageUrl("TeamRosters"), icon: Users },
       { title: "📋 Asistencia y Evaluación", url: createPageUrl("TeamAttendanceEvaluation"), icon: CheckCircle2 },
@@ -861,6 +865,7 @@ export default function Layout({ children, currentPageName }) {
 
   const treasurerNavigationItems = [
       { title: "🏠 Inicio", url: createPageUrl("Home"), icon: Home },
+      { title: "⚙️ Preferencias Notif.", url: createPageUrl("NotificationPreferences"), icon: Settings },
       ...(hasPlayers ? [{ title: "👨‍👩‍👧 Mis Hijos", url: createPageUrl("ParentPlayers"), icon: Users }] : []),
       { title: "💰 Pagos", url: createPageUrl("Payments"), icon: CreditCard },
       { title: "🔔 Recordatorios", url: createPageUrl("Reminders"), icon: Bell },
@@ -876,6 +881,7 @@ export default function Layout({ children, currentPageName }) {
 
   const coordinatorNavigationItems = [
       { title: "🏠 Inicio", url: createPageUrl("Home"), icon: Home },
+      { title: "⚙️ Preferencias Notif.", url: createPageUrl("NotificationPreferences"), icon: Settings },
       ...(hasPlayers ? [{ title: "👨‍👩‍👧 Mis Hijos", url: createPageUrl("ParentPlayers"), icon: Users }] : []),
       { title: "🎓 Plantillas", url: createPageUrl("TeamRosters"), icon: Users },
       { title: "📋 Asistencia y Evaluación", url: createPageUrl("TeamAttendanceEvaluation"), icon: CheckCircle2 },
@@ -945,6 +951,8 @@ export default function Layout({ children, currentPageName }) {
       <NotificationBadge />
       {user && <ChatNotificationListener user={user} />}
       {user && <NotificationManager user={user} />}
+      {user && <AutomaticNotificationEngine user={user} />}
+      {user && <EmailNotificationTrigger user={user} />}
       
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
         
