@@ -6,6 +6,7 @@ import { Card } from "@/components/ui/card";
 
 export default function VisualNotification({ notification, onDismiss }) {
   const [isVisible, setIsVisible] = useState(true);
+  const [isClosing, setIsClosing] = useState(false);
 
   const typeConfig = {
     urgente: {
@@ -28,17 +29,29 @@ export default function VisualNotification({ notification, onDismiss }) {
     }
   };
 
-  const config = typeConfig[notification.tipo] || typeConfig.info;
+  const config = typeConfig[notification?.tipo] || typeConfig.info;
   const Icon = config.icon;
 
   const handleDismiss = () => {
+    if (isClosing) return;
+    setIsClosing(true);
     setIsVisible(false);
     setTimeout(() => {
-      onDismiss(notification.id);
+      if (onDismiss && notification?.id) {
+        onDismiss(notification.id);
+      }
     }, 400);
   };
 
-  if (!isVisible) return null;
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      handleDismiss();
+    }, 30000);
+    
+    return () => clearTimeout(timer);
+  }, []);
+
+  if (!isVisible || !notification) return null;
 
   return (
     <motion.div
@@ -72,15 +85,15 @@ export default function VisualNotification({ notification, onDismiss }) {
                 </motion.div>
                 
                 <div className="flex-1 min-w-0">
-                  <h3 className="font-bold text-xl mb-2 leading-tight">{notification.titulo}</h3>
-                  <p className="text-base font-medium mb-3 leading-relaxed">{notification.mensaje}</p>
-                  {notification.metadata?.cuotas_pendientes && notification.metadata.cuotas_pendientes.length > 0 && (
+                  <h3 className="font-bold text-xl mb-2 leading-tight">{notification?.titulo || ''}</h3>
+                  <p className="text-base font-medium mb-3 leading-relaxed">{notification?.mensaje || ''}</p>
+                  {notification?.metadata?.cuotas_pendientes && notification.metadata.cuotas_pendientes.length > 0 && (
                     <div className="mt-3 space-y-2 bg-white/30 rounded-lg p-4 border-2 border-white/50">
                       <p className="font-bold text-base">💰 Cuotas pendientes:</p>
                       {notification.metadata.cuotas_pendientes.map((cuota, idx) => (
                         <div key={idx} className="flex justify-between items-center bg-white/40 rounded px-3 py-2">
-                          <span className="font-bold text-base">{cuota.mes}</span>
-                          <span className="font-bold text-xl">{cuota.cantidad}€</span>
+                          <span className="font-bold text-base">{cuota?.mes || ''}</span>
+                          <span className="font-bold text-xl">{cuota?.cantidad || 0}€</span>
                         </div>
                       ))}
                       {notification.metadata.total_pendiente && (
@@ -104,13 +117,14 @@ export default function VisualNotification({ notification, onDismiss }) {
               </div>
             </div>
             
-            <motion.div
-              initial={{ width: "100%" }}
-              animate={{ width: "0%" }}
-              transition={{ duration: 30, ease: "linear" }}
-              className="h-1 bg-white/30"
-              onAnimationComplete={handleDismiss}
-            />
+            <div className="h-1 bg-white/30 overflow-hidden">
+              <motion.div
+                initial={{ width: "100%" }}
+                animate={{ width: "0%" }}
+                transition={{ duration: 30, ease: "linear" }}
+                className="h-full bg-white"
+              />
+            </div>
       </Card>
     </motion.div>
   );
