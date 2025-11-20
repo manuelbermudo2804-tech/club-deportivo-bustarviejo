@@ -731,112 +731,123 @@ Temporada ${reminder.temporada}
           <h1 className="text-xl lg:text-3xl font-bold text-slate-900">Recordatorios de Pago</h1>
           <p className="text-xs lg:text-sm text-slate-600 mt-1">Sistema automático</p>
         </div>
-        <TooltipProvider>
-          <div className="flex gap-2 flex-wrap">
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  onClick={exportPaymentsPDF}
-                  variant="outline"
-                  size="sm"
-                  className="shadow-lg text-xs lg:text-sm"
-                >
-                  <FileDown className="w-4 h-4 lg:w-5 lg:h-5 lg:mr-2" />
-                  <span className="hidden lg:inline">Exportar CSV</span>
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>Descarga lista de pagos en Excel</p>
-              </TooltipContent>
-            </Tooltip>
+        <div className="space-y-3">
+          <TooltipProvider>
+            <div className="flex gap-2 flex-wrap">
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    onClick={exportPaymentsPDF}
+                    variant="outline"
+                    size="sm"
+                    className="shadow-lg text-xs lg:text-sm"
+                  >
+                    <FileDown className="w-4 h-4 lg:w-5 lg:h-5 lg:mr-2" />
+                    <span className="hidden lg:inline">Exportar CSV</span>
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Descarga lista de pagos en Excel</p>
+                </TooltipContent>
+              </Tooltip>
 
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  onClick={handleRefresh}
-                  disabled={isRefreshing}
-                  variant="outline"
-                  size="sm"
-                  className="shadow-lg text-xs lg:text-sm"
-                >
-                  <RefreshCw className={`w-4 h-4 lg:w-5 lg:h-5 ${isRefreshing ? 'animate-spin' : ''}`} />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>Recargar datos más recientes</p>
-              </TooltipContent>
-            </Tooltip>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    onClick={handleRefresh}
+                    disabled={isRefreshing}
+                    variant="outline"
+                    size="sm"
+                    className="shadow-lg text-xs lg:text-sm"
+                  >
+                    <RefreshCw className={`w-4 h-4 lg:w-5 lg:h-5 ${isRefreshing ? 'animate-spin' : ''}`} />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Recargar datos más recientes</p>
+                </TooltipContent>
+              </Tooltip>
 
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  onClick={fixPaymentAmounts}
-                  disabled={isGenerating}
-                  size="sm"
-                  className="bg-purple-600 hover:bg-purple-700 shadow-lg text-xs lg:text-sm"
-                >
-                  <RefreshCw className={`w-4 h-4 lg:w-5 lg:h-5 lg:mr-2 ${isGenerating ? 'animate-spin' : ''}`} />
-                  <span className="hidden lg:inline">Corregir Cantidades</span>
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent className="max-w-xs">
-                <p>Actualiza importes de pagos según cuotas de Temporadas</p>
-              </TooltipContent>
-            </Tooltip>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    onClick={fixPaymentAmounts}
+                    disabled={isGenerating}
+                    size="sm"
+                    className="bg-purple-600 hover:bg-purple-700 shadow-lg text-xs lg:text-sm"
+                  >
+                    <RefreshCw className={`w-4 h-4 lg:w-5 lg:h-5 lg:mr-2 ${isGenerating ? 'animate-spin' : ''}`} />
+                    <span className="hidden lg:inline">Corregir Cantidades</span>
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent className="max-w-xs">
+                  <p>Actualiza importes de pagos según cuotas de Temporadas</p>
+                </TooltipContent>
+              </Tooltip>
 
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  onClick={generatePaymentsForSeason}
-                  disabled={isGenerating}
-                  size="sm"
-                  className="bg-blue-600 hover:bg-blue-700 shadow-lg text-xs lg:text-sm"
-                >
-                  <Plus className={`w-4 h-4 lg:w-5 lg:h-5 lg:mr-2 ${isGenerating ? 'animate-spin' : ''}`} />
-                  <span className="hidden lg:inline">Generar Pagos</span>
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent className="max-w-xs">
-                <p>Crea pagos (Junio, Sep, Dic) para todos los jugadores</p>
-              </TooltipContent>
-            </Tooltip>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    onClick={generatePaymentsForSeason}
+                    disabled={isGenerating}
+                    size="sm"
+                    className="bg-blue-600 hover:bg-blue-700 shadow-lg text-xs lg:text-sm"
+                  >
+                    <Plus className={`w-4 h-4 lg:w-5 lg:h-5 lg:mr-2 ${isGenerating ? 'animate-spin' : ''}`} />
+                    <span className="hidden lg:inline">Generar Pagos</span>
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent className="max-w-xs">
+                  <p>Crea pagos (Junio, Sep, Dic) para todos los jugadores</p>
+                </TooltipContent>
+              </Tooltip>
 
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  onClick={generateStaggeredReminders}
-                  disabled={isGenerating}
-                  size="sm"
-                  className="bg-green-600 hover:bg-green-700 shadow-lg text-xs lg:text-sm"
-                >
-                  <Zap className={`w-4 h-4 lg:w-5 lg:h-5 lg:mr-2 ${isGenerating ? 'animate-spin' : ''}`} />
-                  <span className="hidden lg:inline">Recordatorios</span>
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent className="max-w-xs">
-                <p>Crea recordatorios automáticos para pagos pendientes</p>
-              </TooltipContent>
-            </Tooltip>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    onClick={generateStaggeredReminders}
+                    disabled={isGenerating}
+                    size="sm"
+                    className="bg-green-600 hover:bg-green-700 shadow-lg text-xs lg:text-sm"
+                  >
+                    <Zap className={`w-4 h-4 lg:w-5 lg:h-5 lg:mr-2 ${isGenerating ? 'animate-spin' : ''}`} />
+                    <span className="hidden lg:inline">Recordatorios</span>
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent className="max-w-xs">
+                  <p>Crea recordatorios automáticos para pagos pendientes</p>
+                </TooltipContent>
+              </Tooltip>
 
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  onClick={sendTodayReminders}
-                  disabled={dueToday === 0}
-                  size="sm"
-                  className="bg-orange-600 hover:bg-orange-700 shadow-lg text-xs lg:text-sm"
-                >
-                  <Send className="w-4 h-4 lg:w-5 lg:h-5 lg:mr-2" />
-                  <span className="hidden lg:inline">Hoy ({dueToday})</span>
-                  <span className="lg:hidden">{dueToday}</span>
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent className="max-w-xs">
-                <p>Envía recordatorios programados para hoy ({dueToday})</p>
-              </TooltipContent>
-            </Tooltip>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    onClick={sendTodayReminders}
+                    disabled={dueToday === 0}
+                    size="sm"
+                    className="bg-orange-600 hover:bg-orange-700 shadow-lg text-xs lg:text-sm"
+                  >
+                    <Send className="w-4 h-4 lg:w-5 lg:h-5 lg:mr-2" />
+                    <span className="hidden lg:inline">Hoy ({dueToday})</span>
+                    <span className="lg:hidden">{dueToday}</span>
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent className="max-w-xs">
+                  <p>Envía recordatorios programados para hoy ({dueToday})</p>
+                </TooltipContent>
+              </Tooltip>
+            </div>
+          </TooltipProvider>
+
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-xs space-y-1">
+            <p className="text-blue-900"><strong>📥 Exportar CSV:</strong> Descarga lista de pagos en Excel</p>
+            <p className="text-blue-900"><strong>🔄 Actualizar:</strong> Recarga los datos más recientes</p>
+            <p className="text-blue-900"><strong>💰 Corregir Cantidades:</strong> Actualiza importes según cuotas configuradas</p>
+            <p className="text-blue-900"><strong>➕ Generar Pagos:</strong> Crea pagos (Jun, Sep, Dic) para todos los jugadores</p>
+            <p className="text-blue-900"><strong>🔔 Recordatorios:</strong> Crea recordatorios automáticos para pagos pendientes</p>
+            <p className="text-blue-900"><strong>📅 Hoy:</strong> Envía recordatorios programados para hoy</p>
           </div>
-        </TooltipProvider>
+        </div>
       </div>
 
       {/* Statistics Dashboard */}
