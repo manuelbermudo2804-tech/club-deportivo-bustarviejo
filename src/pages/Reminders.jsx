@@ -746,7 +746,7 @@ Temporada ${reminder.temporada}
                 </Button>
               </TooltipTrigger>
               <TooltipContent>
-                <p>Descargar Excel con pagos pendientes</p>
+                <p>Descarga lista de pagos en Excel</p>
               </TooltipContent>
             </Tooltip>
 
@@ -763,7 +763,7 @@ Temporada ${reminder.temporada}
                 </Button>
               </TooltipTrigger>
               <TooltipContent>
-                <p>Actualizar todos los datos</p>
+                <p>Recargar datos más recientes</p>
               </TooltipContent>
             </Tooltip>
 
@@ -780,8 +780,7 @@ Temporada ${reminder.temporada}
                 </Button>
               </TooltipTrigger>
               <TooltipContent className="max-w-xs">
-                <p className="font-semibold mb-1">💰 Corregir Cantidades</p>
-                <p className="text-xs">Actualiza los importes de pagos existentes según las cuotas configuradas. Usar después de cambiar cuotas en Temporadas.</p>
+                <p>Actualiza importes de pagos según cuotas de Temporadas</p>
               </TooltipContent>
             </Tooltip>
 
@@ -798,8 +797,7 @@ Temporada ${reminder.temporada}
                 </Button>
               </TooltipTrigger>
               <TooltipContent className="max-w-xs">
-                <p className="font-semibold mb-1">➕ Generar Pagos</p>
-                <p className="text-xs">Crear automáticamente pagos (Junio, Septiembre, Diciembre) para todos los jugadores activos. Usar al inicio de temporada o con jugadores nuevos.</p>
+                <p>Crea pagos (Junio, Sep, Dic) para todos los jugadores</p>
               </TooltipContent>
             </Tooltip>
 
@@ -816,8 +814,7 @@ Temporada ${reminder.temporada}
                 </Button>
               </TooltipTrigger>
               <TooltipContent className="max-w-xs">
-                <p className="font-semibold mb-1">🔔 Generar Recordatorios</p>
-                <p className="text-xs">Crear recordatorios escalonados (15, 7, 3 días antes y 1 después) para todos los pagos pendientes. Usar después de Generar Pagos.</p>
+                <p>Crea recordatorios automáticos para pagos pendientes</p>
               </TooltipContent>
             </Tooltip>
 
@@ -835,8 +832,7 @@ Temporada ${reminder.temporada}
                 </Button>
               </TooltipTrigger>
               <TooltipContent className="max-w-xs">
-                <p className="font-semibold mb-1">📅 Enviar Hoy</p>
-                <p className="text-xs">Enviar todos los recordatorios programados para hoy ({dueToday}). Revisar y enviar diariamente.</p>
+                <p>Envía recordatorios programados para hoy ({dueToday})</p>
               </TooltipContent>
             </Tooltip>
           </div>
