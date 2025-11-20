@@ -5,7 +5,9 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { CheckCircle2, XCircle, AlertTriangle, Users } from "lucide-react";
+import { CheckCircle2, XCircle, AlertTriangle, Users, UserPlus } from "lucide-react";
+import { Link } from "react-router-dom";
+import { createPageUrl } from "@/utils";
 import { toast } from "sonner";
 import {
   AlertDialog,
@@ -331,6 +333,28 @@ export default function PlayerRenewal() {
             );
           })}
         </div>
+
+        <Card className="border-green-200 bg-green-50">
+          <CardContent className="pt-6">
+            <div className="flex items-start gap-4">
+              <UserPlus className="w-6 h-6 text-green-600 flex-shrink-0 mt-1" />
+              <div className="flex-1">
+                <p className="text-green-900 font-semibold mb-2">
+                  ✅ ¿Ya renovaste todos tus jugadores?
+                </p>
+                <p className="text-green-700 text-sm mb-4">
+                  Si necesitas inscribir un <strong>nuevo jugador</strong> (hermano, familiar, etc.), ve a la sección de jugadores
+                </p>
+                <Link to={createPageUrl("ParentPlayers")}>
+                  <Button className="bg-green-600 hover:bg-green-700">
+                    <UserPlus className="w-4 h-4 mr-2" />
+                    Ir a Mis Jugadores
+                  </Button>
+                </Link>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </>
   );
