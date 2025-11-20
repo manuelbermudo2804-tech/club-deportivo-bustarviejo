@@ -197,17 +197,25 @@ export default function ClothingOrders() {
           )}
         </div>
         {isAdmin ? (
-          <Button
-            onClick={() => toggleStoreMutation.mutate()}
-            disabled={toggleStoreMutation.isPending || !seasonConfig}
-            className={`shadow-lg ${
-              seasonConfig?.tienda_ropa_abierta 
-                ? 'bg-red-600 hover:bg-red-700' 
-                : 'bg-green-600 hover:bg-green-700'
-            }`}
-          >
-            {seasonConfig?.tienda_ropa_abierta ? '🔒 Cerrar Tienda' : '🛍️ Abrir Tienda'}
-          </Button>
+          <div className="flex items-center gap-3">
+            {seasonConfig ? (
+              <Button
+                onClick={() => toggleStoreMutation.mutate()}
+                disabled={toggleStoreMutation.isPending}
+                className={`shadow-lg ${
+                  seasonConfig?.tienda_ropa_abierta 
+                    ? 'bg-red-600 hover:bg-red-700' 
+                    : 'bg-green-600 hover:bg-green-700'
+                }`}
+              >
+                {seasonConfig?.tienda_ropa_abierta ? '🔒 Cerrar Tienda' : '🛍️ Abrir Tienda'}
+              </Button>
+            ) : (
+              <div className="text-sm text-orange-600 bg-orange-50 px-4 py-2 rounded-lg">
+                ⚠️ No hay temporada activa
+              </div>
+            )}
+          </div>
         ) : (
           <Button
             onClick={() => setShowForm(!showForm)}
