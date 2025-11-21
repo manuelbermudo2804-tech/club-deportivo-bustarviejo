@@ -169,40 +169,33 @@ export default function ParentDocuments() {
   };
 
   const handleConfirmExternalSign = (document, player) => {
-    console.log("🔥 CONFIRMAR FIRMA EXTERNA - handleConfirmExternalSign llamado");
-    console.log("📄 Documento:", document.titulo);
-    console.log("👤 Jugador:", player.nombre);
-    console.log("✉️ Usuario:", user?.email);
+    console.log("🔥 CONFIRMAR FIRMA EXTERNA");
+    console.log("📄 Documento ID:", document.id);
+    console.log("👤 Jugador ID:", player.id, "Nombre:", player.nombre);
+    console.log("📧 Email padre:", user?.email);
+    console.log("📋 Firmas actuales:", JSON.stringify(document.firmas, null, 2));
     
     if (!user) {
-      console.error("❌ No hay usuario");
       toast.error("Error: usuario no identificado");
       return;
     }
 
-    // Verificar que el enlace fue visitado
     if (!hasVisitedLink(document.id, player.id)) {
       toast.error("⚠️ Primero debes visitar el enlace de firma externa");
       return;
     }
 
-    toast.info("⏳ Registrando confirmación de firma externa...");
+    toast.info("⏳ Registrando confirmación...");
     
-    // Crear una copia profunda del array de firmas
-    let updatedFirmas = JSON.parse(JSON.stringify(document.firmas || []));
+    // Crear array de firmas actualizado
+    const updatedFirmas = (document.firmas || []).map(f => 
+      f.jugador_id === player.id 
+        ? { ...f, confirmado_firma_externa: true, fecha_confirmacion_externa: new Date().toISOString() }
+        : f
+    );
     
-    const existingFirmaIndex = updatedFirmas.findIndex(f => f.jugador_id === player.id);
-    
-    if (existingFirmaIndex !== -1) {
-      console.log("✏️ Actualizando firma existente para jugador:", player.nombre);
-      updatedFirmas[existingFirmaIndex] = {
-        ...updatedFirmas[existingFirmaIndex],
-        firmado: false,
-        confirmado_firma_externa: true,
-        fecha_confirmacion_externa: new Date().toISOString()
-      };
-    } else {
-      console.log("➕ Creando nueva firma para jugador:", player.nombre);
+    // Si no existía firma para este jugador, agregarla
+    if (!updatedFirmas.some(f => f.jugador_id === player.id)) {
       updatedFirmas.push({
         jugador_id: player.id,
         jugador_nombre: player.nombre,
@@ -213,32 +206,11 @@ export default function ParentDocuments() {
       });
     }
 
-    console.log("📝 Firmas actualizadas:", JSON.stringify(updatedFirmas, null, 2));
-
-    // Crear objeto completo del documento con TODAS las propiedades
-    const updatedDocument = {
-      titulo: document.titulo,
-      descripcion: document.descripcion,
-      tipo: document.tipo,
-      tipo_destinatario: document.tipo_destinatario,
-      categoria_destino: document.categoria_destino,
-      jugadores_destino: document.jugadores_destino,
-      archivo_url: document.archivo_url,
-      enlace_firma_externa: document.enlace_firma_externa,
-      codigo_qr_url: document.codigo_qr_url,
-      requiere_firma: document.requiere_firma,
-      fecha_limite_firma: document.fecha_limite_firma,
-      publicado: document.publicado,
-      firmas: updatedFirmas,
-      enviar_notificacion: document.enviar_notificacion,
-      notificacion_enviada: document.notificacion_enviada
-    };
-
-    console.log("📤 Documento completo a enviar:", JSON.stringify(updatedDocument, null, 2));
+    console.log("✅ Firmas después de actualizar:", JSON.stringify(updatedFirmas, null, 2));
 
     updateDocumentMutation.mutate({
       id: document.id,
-      documentData: updatedDocument
+      documentData: { firmas: updatedFirmas }
     });
   };
 
