@@ -3,10 +3,10 @@ import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Plus, FileText, CheckCircle, Clock, Search } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Plus, FileText, CheckCircle, Clock, Search, Filter } from "lucide-react";
 import { AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 import DocumentForm from "../components/documents/DocumentForm";
 import DocumentCard from "../components/documents/DocumentCard";
@@ -272,27 +272,31 @@ Email: cdbustarviejo@gmail.com
         )}
       </AnimatePresence>
 
-      <div className="space-y-4">
-        <div className="relative">
+      <div className="flex gap-3 flex-wrap">
+        <div className="relative flex-1 min-w-[250px]">
           <Search className="absolute left-3 top-3 h-5 w-5 text-slate-400" />
           <Input
-            placeholder="Buscar documentos por título, descripción o tipo..."
+            placeholder="Buscar por título, descripción o tipo..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="pl-10 h-12 text-base"
+            className="pl-10 h-11"
           />
         </div>
 
-        <Tabs value={filterType} onValueChange={setFilterType}>
-          <TabsList className="bg-white shadow-sm">
-            <TabsTrigger value="all">Todos</TabsTrigger>
-            <TabsTrigger value="requires_signature">Requieren Firma</TabsTrigger>
-            <TabsTrigger value="general">Informativos</TabsTrigger>
-            <TabsTrigger value="Estatutos">Estatutos</TabsTrigger>
-            <TabsTrigger value="Reglamentación">Reglamentación</TabsTrigger>
-            <TabsTrigger value="Normativa Federación">Federación</TabsTrigger>
-          </TabsList>
-        </Tabs>
+        <Select value={filterType} onValueChange={setFilterType}>
+          <SelectTrigger className="w-[200px] h-11">
+            <Filter className="w-4 h-4 mr-2" />
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">📋 Todos</SelectItem>
+            <SelectItem value="requires_signature">📝 Requieren Firma</SelectItem>
+            <SelectItem value="general">ℹ️ Informativos</SelectItem>
+            <SelectItem value="Estatutos">📜 Estatutos</SelectItem>
+            <SelectItem value="Reglamentación">📖 Reglamentación</SelectItem>
+            <SelectItem value="Normativa Federación">🏛️ Federación</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
 
       {isLoading ? (
