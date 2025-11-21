@@ -276,7 +276,7 @@ export default function ParentChat() {
               </div>
 
               <div 
-                className="flex-1 overflow-y-auto p-4 space-y-2"
+                className="flex-1 overflow-y-auto overflow-x-hidden p-4 space-y-2"
                 style={{
                   backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23d4c5b9' fill-opacity='0.1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
                   backgroundColor: '#e5ddd5'
@@ -295,10 +295,10 @@ export default function ParentChat() {
                     .map((msg) => (
                       <div
                         key={msg.id}
-                        className={`flex ${msg.tipo === "padre_a_grupo" ? 'justify-end' : 'justify-start'} mb-1`}
+                        className={`flex ${msg.tipo === "padre_a_grupo" ? 'justify-end' : 'justify-start'} mb-1 w-full px-1`}
                       >
                         <div
-                          className={`max-w-[75%] rounded-lg shadow-sm ${
+                          className={`max-w-[85%] lg:max-w-[75%] rounded-lg shadow-sm overflow-hidden ${
                             msg.tipo === "padre_a_grupo"
                               ? 'bg-gradient-to-r from-green-600 to-green-700 text-white rounded-br-none'
                               : msg.tipo === "coordinador_a_familia"
@@ -308,7 +308,7 @@ export default function ParentChat() {
                         >
                           <div className="px-3 py-2">
                             <div className="flex items-center gap-2 mb-1">
-                              <span className={`text-xs font-semibold ${
+                              <span className={`text-xs font-semibold truncate ${
                                 msg.tipo === "padre_a_grupo" ? 'text-green-100' 
                                 : msg.tipo === "coordinador_a_familia" ? 'text-cyan-100'
                                 : 'text-orange-700'
@@ -316,10 +316,10 @@ export default function ParentChat() {
                                 {msg.tipo === "coordinador_a_familia" ? "🎓 " : ""}{msg.remitente_nombre}
                               </span>
                               {msg.prioridad !== "Normal" && (
-                                <span className="text-xs">{msg.prioridad === "Urgente" ? "🔴" : "⚠️"}</span>
+                                <span className="text-xs flex-shrink-0">{msg.prioridad === "Urgente" ? "🔴" : "⚠️"}</span>
                               )}
                             </div>
-                            <p className="text-sm leading-relaxed break-words">{msg.mensaje}</p>
+                            <p className="text-sm leading-relaxed break-words overflow-wrap-anywhere">{msg.mensaje}</p>
                             
                             {msg.archivos_adjuntos?.length > 0 && (
                               <div className="mt-2 space-y-1">
@@ -437,7 +437,7 @@ export default function ParentChat() {
                 </div>
 
                 <div 
-                  className="flex-1 overflow-y-auto p-4 space-y-2"
+                  className="flex-1 overflow-y-auto overflow-x-hidden p-4 space-y-2"
                   style={{
                     backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23d4c5b9' fill-opacity='0.1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
                     backgroundColor: '#e5ddd5'
@@ -456,10 +456,10 @@ export default function ParentChat() {
                       .map((msg) => (
                         <div
                           key={msg.id}
-                          className={`flex ${msg.tipo === "padre_a_grupo" ? 'justify-end' : 'justify-start'} mb-1`}
+                          className={`flex ${msg.tipo === "padre_a_grupo" ? 'justify-end' : 'justify-start'} mb-1 w-full px-1`}
                         >
                           <div
-                            className={`max-w-[75%] rounded-lg shadow-sm ${
+                            className={`max-w-[85%] lg:max-w-[75%] rounded-lg shadow-sm overflow-hidden ${
                               msg.tipo === "padre_a_grupo"
                                 ? 'bg-gradient-to-r from-green-600 to-green-700 text-white rounded-br-none'
                                 : msg.tipo === "coordinador_a_familia"
@@ -469,7 +469,7 @@ export default function ParentChat() {
                           >
                             <div className="px-3 py-2">
                               <div className="flex items-center gap-2 mb-1">
-                                <span className={`text-xs font-semibold ${
+                                <span className={`text-xs font-semibold truncate ${
                                   msg.tipo === "padre_a_grupo" ? 'text-green-100' 
                                   : msg.tipo === "coordinador_a_familia" ? 'text-cyan-100'
                                   : 'text-orange-700'
@@ -477,10 +477,10 @@ export default function ParentChat() {
                                   {msg.tipo === "coordinador_a_familia" ? "🎓 " : ""}{msg.remitente_nombre}
                                 </span>
                                 {msg.prioridad !== "Normal" && (
-                                  <span className="text-xs">{msg.prioridad === "Urgente" ? "🔴" : "⚠️"}</span>
+                                  <span className="text-xs flex-shrink-0">{msg.prioridad === "Urgente" ? "🔴" : "⚠️"}</span>
                                 )}
                               </div>
-                              <p className="text-sm leading-relaxed break-words">{msg.mensaje}</p>
+                              <p className="text-sm leading-relaxed break-words overflow-wrap-anywhere">{msg.mensaje}</p>
                               
                               {msg.archivos_adjuntos?.length > 0 && (
                                 <div className="mt-2 space-y-1">

@@ -201,7 +201,7 @@ export default function PlayerChat() {
   }
 
   return (
-    <div className="fixed inset-0 flex bg-white" style={{ top: isMobile ? '120px' : '0', left: isMobile ? '0' : '288px' }}>
+    <div className="fixed inset-0 flex bg-white overflow-x-hidden" style={{ top: isMobile ? '120px' : '0', left: isMobile ? '0' : '288px' }}>
       <div className="flex-1 flex flex-col">
         <div className="bg-gradient-to-r from-orange-600 to-orange-700 p-4 text-white flex items-center gap-3 shadow-md flex-shrink-0">
         <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
@@ -222,7 +222,7 @@ export default function PlayerChat() {
       </div>
 
       <div 
-        className="flex-1 overflow-y-auto p-4 space-y-2"
+        className="flex-1 overflow-y-auto overflow-x-hidden p-4 space-y-2"
         style={{
           backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23d4c5b9' fill-opacity='0.1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
           backgroundColor: '#e5ddd5'
@@ -246,10 +246,10 @@ export default function PlayerChat() {
               return (
                 <div
                   key={msg.id}
-                  className={`flex ${isMyMessage ? 'justify-end' : 'justify-start'} mb-1`}
+                  className={`flex ${isMyMessage ? 'justify-end' : 'justify-start'} mb-1 w-full px-1`}
                 >
                   <div
-                    className={`max-w-[75%] rounded-lg shadow-sm ${
+                    className={`max-w-[85%] lg:max-w-[75%] rounded-lg shadow-sm overflow-hidden ${
                       isMyMessage
                         ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-br-none'
                         : isAdmin
@@ -261,16 +261,16 @@ export default function PlayerChat() {
                   >
                     <div className="px-3 py-2">
                       <div className="flex items-center gap-2 mb-1">
-                        <span className={`text-xs font-semibold ${
+                        <span className={`text-xs font-semibold truncate ${
                           isMyMessage ? 'text-blue-100' : isAdmin ? 'text-green-100' : isJugador ? 'text-orange-100' : 'text-slate-700'
                         }`}>
                           {isAdmin ? '🎓 ' : isJugador ? '⚽ ' : '👨‍👩‍👧 '}{msg.remitente_nombre}
                         </span>
                         {msg.prioridad !== "Normal" && (
-                          <span className="text-xs">{msg.prioridad === "Urgente" ? "🔴" : "⚠️"}</span>
+                          <span className="text-xs flex-shrink-0">{msg.prioridad === "Urgente" ? "🔴" : "⚠️"}</span>
                         )}
                       </div>
-                      <p className="text-sm leading-relaxed break-words">{msg.mensaje}</p>
+                      <p className="text-sm leading-relaxed break-words overflow-wrap-anywhere">{msg.mensaje}</p>
                       
                       {msg.archivos_adjuntos?.length > 0 && (
                         <div className="mt-2">
