@@ -518,7 +518,7 @@ export default function Layout({ children, currentPageName }) {
       }
     };
     fetchSeasonConfig();
-    const interval = setInterval(fetchSeasonConfig, 60000);
+    const interval = setInterval(fetchSeasonConfig, 120000);
     return () => clearInterval(interval);
   }, []);
 
@@ -707,7 +707,7 @@ export default function Layout({ children, currentPageName }) {
     };
 
     checkUnreadMessages();
-    const interval = setInterval(checkUnreadMessages, 60000);
+    const interval = setInterval(checkUnreadMessages, 120000);
     
     return () => clearInterval(interval);
   }, [user, isAdmin, isPlayer, isCoach]);
@@ -785,7 +785,7 @@ export default function Layout({ children, currentPageName }) {
     };
 
     checkPendingCallups();
-    const interval = setInterval(checkPendingCallups, 60000);
+    const interval = setInterval(checkPendingCallups, 120000);
     
     return () => clearInterval(interval);
   }, [user, isAdmin, isPlayer, isCoach, hasPlayers]);

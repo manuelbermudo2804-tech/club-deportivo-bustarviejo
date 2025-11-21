@@ -40,14 +40,14 @@ export default function AutomaticNotificationEngine({ user }) {
     queryKey: ['appNotifications'],
     queryFn: () => base44.entities.AppNotification.list(),
     initialData: [],
-    enabled: !!user,
+    enabled: false,
   });
 
   const { data: preferences } = useQuery({
     queryKey: ['notificationPreferences'],
     queryFn: () => base44.entities.NotificationPreference.list(),
     initialData: [],
-    enabled: !!user,
+    enabled: false,
   });
 
   useEffect(() => {
