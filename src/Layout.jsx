@@ -501,6 +501,7 @@ export default function Layout({ children, currentPageName }) {
   const [showWelcome, setShowWelcome] = useState(false);
   const [loteriaVisible, setLoteriaVisible] = useState(false);
   const [showPresentation, setShowPresentation] = useState(false);
+  const [isRedirecting, setIsRedirecting] = useState(false);
 
   const handleLanguageChange = (newLang) => {
     setCurrentLang(newLang);
@@ -582,7 +583,12 @@ export default function Layout({ children, currentPageName }) {
               if (!user) return;
 
               const isRootPath = location.pathname === '/' || location.pathname === '';
-              if (!isRootPath) return;
+              if (!isRootPath) {
+                setIsRedirecting(false);
+                return;
+              }
+
+              setIsRedirecting(true);
 
               // Verificar si tiene jugadores pendientes de renovación
               try {
@@ -1111,7 +1117,16 @@ export default function Layout({ children, currentPageName }) {
         </nav>
 
         <main className="lg:ml-72 min-h-screen pt-[120px] lg:pt-0">
-          {children}
+          {isRedirecting ? (
+            <div className="flex items-center justify-center min-h-screen">
+              <div className="text-center">
+                <div className="inline-block h-12 w-12 animate-spin rounded-full border-4 border-solid border-orange-600 border-r-transparent mb-4"></div>
+                <p className="text-slate-900 text-lg">Cargando...</p>
+              </div>
+            </div>
+          ) : (
+            children
+          )}
         </main>
       </div>
     </>
