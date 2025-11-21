@@ -256,8 +256,28 @@ export default function ParentDocuments() {
 
   const relevantDocuments = documents.filter(isDocumentRelevant);
 
+  const isDocumentFullySigned = (doc) => {
+    if (!doc.requiere_firma) return false;
+
+    const myRelevantPlayers = myPlayers.filter(player => {
+      const isRelevant = doc.tipo_destinatario === "individual" 
+        ? doc.jugadores_destino?.includes(player.id)
+        : (doc.categoria_destino === "Todos" || player.deporte === doc.categoria_destino);
+      return isRelevant;
+    });
+
+    if (myRelevantPlayers.length === 0) return false;
+
+    return myRelevantPlayers.every(player => {
+      const firma = doc.firmas?.find(f => f.jugador_id === player.id);
+      return firma && (firma.firmado || firma.confirmado_firma_externa);
+    });
+  };
+
   const filteredDocuments = filterType === "all" 
-    ? relevantDocuments 
+    ? relevantDocuments.filter(d => !isDocumentFullySigned(d))
+    : filterType === "signed"
+    ? relevantDocuments.filter(d => isDocumentFullySigned(d))
     : filterType === "pending"
     ? relevantDocuments.filter(d => {
         if (!d.requiere_firma) return false;
@@ -326,10 +346,13 @@ export default function ParentDocuments() {
       <Tabs value={filterType} onValueChange={setFilterType}>
         <TabsList className="bg-white shadow-sm flex-wrap h-auto">
           <TabsTrigger value="all">
-            Todos
+            Activos
           </TabsTrigger>
           <TabsTrigger value="pending" className="data-[state=active]:bg-red-100 data-[state=active]:text-red-700">
             Pendientes {pendingCount > 0 && `(${pendingCount})`}
+          </TabsTrigger>
+          <TabsTrigger value="signed" className="data-[state=active]:bg-green-100 data-[state=active]:text-green-700">
+            ✅ Firmados
           </TabsTrigger>
           <TabsTrigger value="Estatutos">Estatutos</TabsTrigger>
           <TabsTrigger value="Reglamentación">Reglamentación</TabsTrigger>

@@ -177,6 +177,14 @@ Email: cdbustarviejo@gmail.com
     }
   };
 
+  const isDocumentFullySigned = (doc) => {
+    if (!doc.requiere_firma) return false;
+    const totalRequired = doc.firmas?.length || 0;
+    if (totalRequired === 0) return false;
+    const signed = doc.firmas?.filter(f => f.firmado || f.confirmado_firma_externa).length || 0;
+    return signed === totalRequired;
+  };
+
   const filteredDocuments = documents
     .filter(d => {
       // Filtro por búsqueda
@@ -187,10 +195,17 @@ Email: cdbustarviejo@gmail.com
         const matchesType = d.tipo?.toLowerCase().includes(searchLower);
         if (!matchesTitle && !matchesDescription && !matchesType) return false;
       }
-      
+
       // Filtro por tipo
-      if (filterType === "all") return true;
-      if (filterType === "requires_signature") return d.requiere_firma;
+      if (filterType === "all") {
+        // En "Todos", ocultar documentos completamente firmados
+        return !isDocumentFullySigned(d);
+      }
+      if (filterType === "signed") {
+        // Nueva pestaña: solo documentos completamente firmados
+        return isDocumentFullySigned(d);
+      }
+      if (filterType === "requires_signature") return d.requiere_firma && !isDocumentFullySigned(d);
       if (filterType === "general") return !d.requiere_firma;
       return d.tipo === filterType;
     });
@@ -289,7 +304,8 @@ Email: cdbustarviejo@gmail.com
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">📋 Todos</SelectItem>
+            <SelectItem value="all">📋 Activos</SelectItem>
+            <SelectItem value="signed">✅ Firmados</SelectItem>
             <SelectItem value="requires_signature">📝 Requieren Firma</SelectItem>
             <SelectItem value="general">ℹ️ Informativos</SelectItem>
             <SelectItem value="Estatutos">📜 Estatutos</SelectItem>
