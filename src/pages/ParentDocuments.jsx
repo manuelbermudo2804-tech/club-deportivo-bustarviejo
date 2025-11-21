@@ -85,43 +85,36 @@ export default function ParentDocuments() {
   });
 
   const updateDocumentMutation = useMutation({
-    mutationFn: async ({ id, documentData }) => {
-      console.log("📤 Enviando actualización al servidor:", { id, documentData });
+    mutationFn: async ({ id, documentData, playerId }) => {
+      console.log("📤 Enviando actualización:", { id, firmas: documentData.firmas });
       const result = await base44.entities.Document.update(id, documentData);
-      console.log("📥 Respuesta del servidor:", result);
-      return result;
+      console.log("📥 Servidor respondió:", result);
+      return { result, playerId };
     },
-    onSuccess: async (data, variables) => {
-      console.log("✅ Documento actualizado con éxito en servidor");
+    onSuccess: async ({ result, playerId }, variables) => {
+      console.log("✅ Guardado en servidor");
       
-      // Limpiar el localStorage para este documento-jugador
-      const key = `${variables.id}_${selectedPlayer?.id}`;
-      const updated = { ...visitedLinks };
-      delete updated[key];
-      setVisitedLinks(updated);
-      localStorage.setItem('visitedExternalLinks', JSON.stringify(updated));
+      if (playerId) {
+        const key = `${variables.id}_${playerId}`;
+        const updated = { ...visitedLinks };
+        delete updated[key];
+        setVisitedLinks(updated);
+        localStorage.setItem('visitedExternalLinks', JSON.stringify(updated));
+      }
       
-      toast.success("✅ Firma confirmada correctamente");
+      toast.success("✅ Firma confirmada");
       
       setShowSignDialog(false);
       setSelectedDocument(null);
       setSelectedPlayer(null);
       setSignComment("");
       
-      // Invalidar y refrescar TODAS las queries
       await queryClient.invalidateQueries({ queryKey: ['documents'] });
-      await queryClient.refetchQueries({ queryKey: ['documents'] });
-      
-      console.log("🔄 Queries refrescadas - recargando página");
-      
-      // Recargar página completa para asegurar actualización
-      setTimeout(() => {
-        window.location.reload();
-      }, 500);
+      await refetch();
     },
     onError: (error) => {
-      console.error("❌ Error al actualizar documento:", error);
-      toast.error("Error al registrar la confirmación. Intenta de nuevo.");
+      console.error("❌ Error:", error);
+      toast.error("Error al confirmar. Intenta de nuevo.");
     },
   });
 
@@ -164,7 +157,8 @@ export default function ParentDocuments() {
       documentData: {
         ...selectedDocument,
         firmas: updatedFirmas
-      }
+      },
+      playerId: selectedPlayer.id
     });
   };
 
@@ -210,7 +204,8 @@ export default function ParentDocuments() {
 
     updateDocumentMutation.mutate({
       id: document.id,
-      documentData: { firmas: updatedFirmas }
+      documentData: { firmas: updatedFirmas },
+      playerId: player.id
     });
   };
 
