@@ -73,7 +73,12 @@ export default function DocumentManagement() {
     try {
       let recipients = [];
       
-      if (data.categoria_destino === "Todos") {
+      if (data.tipo_destinatario === "individual") {
+        players.filter(p => data.jugadores_destino.includes(p.id)).forEach(p => {
+          if (p.email_padre) recipients.push(p.email_padre);
+          if (p.email_tutor_2) recipients.push(p.email_tutor_2);
+        });
+      } else if (data.categoria_destino === "Todos") {
         players.forEach(p => {
           if (p.email_padre) recipients.push(p.email_padre);
           if (p.email_tutor_2) recipients.push(p.email_tutor_2);

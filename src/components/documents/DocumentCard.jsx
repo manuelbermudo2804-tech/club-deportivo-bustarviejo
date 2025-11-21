@@ -47,7 +47,10 @@ export default function DocumentCard({ document, players, onEdit, onDelete, isAd
                   </Badge>
                 )}
                 <Badge variant="outline" className="text-xs">
-                  {document.categoria_destino}
+                  {document.tipo_destinatario === "individual" 
+                    ? `${document.jugadores_destino?.length || 0} jugador${(document.jugadores_destino?.length || 0) !== 1 ? 'es' : ''}`
+                    : document.categoria_destino
+                  }
                 </Badge>
               </div>
               <CardTitle className="text-xl flex items-center gap-2">

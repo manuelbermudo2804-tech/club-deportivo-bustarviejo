@@ -119,6 +119,11 @@ export default function ParentDocuments() {
 
   const isDocumentRelevant = (document) => {
     if (!document.publicado) return false;
+    
+    if (document.tipo_destinatario === "individual") {
+      return myPlayers.some(p => document.jugadores_destino?.includes(p.id));
+    }
+    
     if (document.categoria_destino === "Todos") return true;
     return myPlayers.some(p => p.deporte === document.categoria_destino);
   };

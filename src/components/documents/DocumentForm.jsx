@@ -14,6 +14,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
+import { Checkbox } from "@/components/ui/checkbox";
 import { base44 } from "@/api/base44Client";
 import { toast } from "sonner";
 
@@ -22,7 +23,9 @@ export default function DocumentForm({ document, players, onSubmit, onCancel, is
     titulo: "",
     descripcion: "",
     tipo: "Información General",
+    tipo_destinatario: "categoria",
     categoria_destino: "Todos",
+    jugadores_destino: [],
     archivo_url: "",
     enlace_firma_externa: "",
     codigo_qr_url: "",
@@ -90,19 +93,34 @@ export default function DocumentForm({ document, players, onSubmit, onCancel, is
 
     // Si requiere firma y no tiene enlace externo, inicializar array de firmas
     if (formData.requiere_firma && !formData.enlace_firma_externa && !document) {
-      const firmasIniciales = players
-        .filter(p => {
-          if (formData.categoria_destino === "Todos") return true;
-          return p.deporte === formData.categoria_destino;
-        })
-        .map(p => ({
-          jugador_id: p.id,
-          jugador_nombre: p.nombre,
-          email_padre: p.email_padre,
-          firmado: false,
-          fecha_firma: null,
-          comentario: ""
-        }));
+      let firmasIniciales = [];
+      
+      if (formData.tipo_destinatario === "categoria") {
+        firmasIniciales = players
+          .filter(p => {
+            if (formData.categoria_destino === "Todos") return true;
+            return p.deporte === formData.categoria_destino;
+          })
+          .map(p => ({
+            jugador_id: p.id,
+            jugador_nombre: p.nombre,
+            email_padre: p.email_padre,
+            firmado: false,
+            fecha_firma: null,
+            comentario: ""
+          }));
+      } else {
+        firmasIniciales = players
+          .filter(p => formData.jugadores_destino.includes(p.id))
+          .map(p => ({
+            jugador_id: p.id,
+            jugador_nombre: p.nombre,
+            email_padre: p.email_padre,
+            firmado: false,
+            fecha_firma: null,
+            comentario: ""
+          }));
+      }
       
       formData.firmas = firmasIniciales;
     }
@@ -148,27 +166,51 @@ export default function DocumentForm({ document, players, onSubmit, onCancel, is
               />
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="tipo">Tipo de Documento</Label>
-                <Select value={formData.tipo} onValueChange={(value) => setFormData({ ...formData, tipo: value })}>
-                  <SelectTrigger id="tipo">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Estatutos">Estatutos</SelectItem>
-                    <SelectItem value="Reglamentación">Reglamentación</SelectItem>
-                    <SelectItem value="Normativa Federación">Normativa Federación</SelectItem>
-                    <SelectItem value="Autorización">Autorización</SelectItem>
-                    <SelectItem value="Consentimiento">Consentimiento</SelectItem>
-                    <SelectItem value="Información General">Información General</SelectItem>
-                    <SelectItem value="Otro">Otro</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+            <div className="space-y-2">
+              <Label htmlFor="tipo">Tipo de Documento</Label>
+              <Select value={formData.tipo} onValueChange={(value) => setFormData({ ...formData, tipo: value })}>
+                <SelectTrigger id="tipo">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Estatutos">Estatutos</SelectItem>
+                  <SelectItem value="Reglamentación">Reglamentación</SelectItem>
+                  <SelectItem value="Normativa Federación">Normativa Federación</SelectItem>
+                  <SelectItem value="Autorización">Autorización</SelectItem>
+                  <SelectItem value="Consentimiento">Consentimiento</SelectItem>
+                  <SelectItem value="Información General">Información General</SelectItem>
+                  <SelectItem value="Otro">Otro</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
 
+            <div className="space-y-3">
+              <Label>Tipo de Destinatarios</Label>
+              <div className="flex gap-4">
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="radio"
+                    checked={formData.tipo_destinatario === "categoria"}
+                    onChange={() => setFormData({ ...formData, tipo_destinatario: "categoria", jugadores_destino: [] })}
+                    className="w-4 h-4"
+                  />
+                  <span className="text-sm">Por Categoría</span>
+                </label>
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="radio"
+                    checked={formData.tipo_destinatario === "individual"}
+                    onChange={() => setFormData({ ...formData, tipo_destinatario: "individual" })}
+                    className="w-4 h-4"
+                  />
+                  <span className="text-sm">Jugadores Individuales</span>
+                </label>
+              </div>
+            </div>
+
+            {formData.tipo_destinatario === "categoria" ? (
               <div className="space-y-2">
-                <Label htmlFor="categoria">Destinatarios</Label>
+                <Label htmlFor="categoria">Categoría Destino</Label>
                 <Select value={formData.categoria_destino} onValueChange={(value) => setFormData({ ...formData, categoria_destino: value })}>
                   <SelectTrigger id="categoria">
                     <SelectValue />
@@ -187,7 +229,42 @@ export default function DocumentForm({ document, players, onSubmit, onCancel, is
                   </SelectContent>
                 </Select>
               </div>
-            </div>
+            ) : (
+              <div className="space-y-2">
+                <Label>Seleccionar Jugadores</Label>
+                <div className="border rounded-lg p-4 max-h-64 overflow-y-auto space-y-2">
+                  {players.length === 0 ? (
+                    <p className="text-sm text-slate-500">No hay jugadores disponibles</p>
+                  ) : (
+                    players.map((player) => (
+                      <label key={player.id} className="flex items-center gap-2 cursor-pointer hover:bg-slate-50 p-2 rounded">
+                        <Checkbox
+                          checked={formData.jugadores_destino.includes(player.id)}
+                          onCheckedChange={(checked) => {
+                            if (checked) {
+                              setFormData({
+                                ...formData,
+                                jugadores_destino: [...formData.jugadores_destino, player.id]
+                              });
+                            } else {
+                              setFormData({
+                                ...formData,
+                                jugadores_destino: formData.jugadores_destino.filter(id => id !== player.id)
+                              });
+                            }
+                          }}
+                        />
+                        <span className="text-sm flex-1">{player.nombre}</span>
+                        <span className="text-xs text-slate-500">{player.deporte}</span>
+                      </label>
+                    ))
+                  )}
+                </div>
+                <p className="text-xs text-slate-500">
+                  Seleccionados: {formData.jugadores_destino.length} jugador{formData.jugadores_destino.length !== 1 ? 'es' : ''}
+                </p>
+              </div>
+            )}
 
             <div className="space-y-2">
               <Label htmlFor="archivo">Archivo PDF</Label>
