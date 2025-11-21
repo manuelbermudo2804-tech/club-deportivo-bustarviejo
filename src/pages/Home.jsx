@@ -440,21 +440,20 @@ export default function Home() {
         );
       }
 
-      if (hasPlayers && loteriaVisible) {
-        items.push({
-          title: "🍀 Mi Lotería",
-          icon: Clover,
-          url: createPageUrl("ParentLottery"),
-          gradient: "from-green-600 to-green-700",
-        });
-      }
-
       if (loteriaVisible) {
+        if (hasPlayers) {
+          items.push({
+            title: "🍀 Mi Lotería",
+            icon: Clover,
+            url: createPageUrl("ParentLottery"),
+            gradient: "from-green-600 to-red-600",
+          });
+        }
         items.push({
           title: "🍀 Gestión Lotería",
           icon: Clover,
           url: createPageUrl("LotteryManagement"),
-          gradient: "from-orange-600 to-orange-700",
+          gradient: "from-green-600 to-green-700",
         });
       }
     }
