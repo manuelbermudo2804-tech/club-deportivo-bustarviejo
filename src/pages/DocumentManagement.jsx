@@ -21,6 +21,8 @@ export default function DocumentManagement() {
     queryKey: ['documents'],
     queryFn: () => base44.entities.Document.list('-created_date'),
     initialData: [],
+    staleTime: 0,
+    refetchInterval: 5000,
   });
 
   const { data: players } = useQuery({
@@ -184,7 +186,7 @@ Email: cdbustarviejo@gmail.com
   const pendingSignatures = documents.filter(d => 
     d.requiere_firma && 
     d.publicado &&
-    d.firmas?.some(f => !f.firmado)
+    d.firmas?.some(f => !f.firmado && !f.confirmado_firma_externa)
   ).length;
 
   return (
