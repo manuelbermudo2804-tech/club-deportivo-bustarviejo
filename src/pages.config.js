@@ -53,6 +53,7 @@ import EventManagement from './pages/EventManagement';
 import ParentEventRSVP from './pages/ParentEventRSVP';
 import DocumentManagement from './pages/DocumentManagement';
 import ParentDocuments from './pages/ParentDocuments';
+import PWASetup from './pages/PWASetup';
 import __Layout from './Layout.jsx';
 
 
@@ -112,6 +113,7 @@ export const PAGES = {
     "ParentEventRSVP": ParentEventRSVP,
     "DocumentManagement": DocumentManagement,
     "ParentDocuments": ParentDocuments,
+    "PWASetup": PWASetup,
 }
 
 export const pagesConfig = {
