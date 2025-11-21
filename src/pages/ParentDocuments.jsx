@@ -344,6 +344,13 @@ export default function ParentDocuments() {
                       
                       <div className="space-y-2">
                         {myPlayers.map((player) => {
+                          // Verificar si este documento es relevante para este jugador específico
+                          const isRelevantForPlayer = document.tipo_destinatario === "individual" 
+                            ? document.jugadores_destino?.includes(player.id)
+                            : (document.categoria_destino === "Todos" || player.deporte === document.categoria_destino);
+                          
+                          if (!isRelevantForPlayer) return null;
+                          
                           const firma = getPlayerSignatureStatus(document, player.id);
                           const isSigned = firma?.firmado;
                           const confirmedExternal = firma?.confirmado_firma_externa;
