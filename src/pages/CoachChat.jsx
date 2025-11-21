@@ -44,7 +44,7 @@ export default function CoachChat() {
     queryKey: ['chatMessages'],
     queryFn: () => base44.entities.ChatMessage.list('-created_date'),
     initialData: [],
-    refetchInterval: 2000,
+    refetchInterval: 5000,
   });
 
   const { data: allPlayers, isLoading: loadingPlayers } = useQuery({

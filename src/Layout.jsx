@@ -518,7 +518,7 @@ export default function Layout({ children, currentPageName }) {
       }
     };
     fetchSeasonConfig();
-    const interval = setInterval(fetchSeasonConfig, 3000);
+    const interval = setInterval(fetchSeasonConfig, 30000);
     return () => clearInterval(interval);
   }, []);
 
@@ -634,9 +634,9 @@ export default function Layout({ children, currentPageName }) {
             }, [user, isAdmin, isCoach, isCoordinator, isTreasurer, isPlayer, location.pathname, navigate]);
 
   useEffect(() => {
+    if (!user) return;
+    
     const checkUnreadMessages = async () => {
-      if (!user) return;
-      
       try {
         const allMessages = await base44.entities.ChatMessage.list();
         let unread = 0;
@@ -707,15 +707,15 @@ export default function Layout({ children, currentPageName }) {
     };
 
     checkUnreadMessages();
-    const interval = setInterval(checkUnreadMessages, 5000);
+    const interval = setInterval(checkUnreadMessages, 15000);
     
     return () => clearInterval(interval);
   }, [user, isAdmin, isPlayer, isCoach]);
 
   useEffect(() => {
+    if (!user) return;
+    
     const checkPendingCallups = async () => {
-      if (!user) return;
-      
       try {
         const allCallups = await base44.entities.Convocatoria.list();
         const today = new Date().toISOString().split('T')[0];
@@ -785,7 +785,7 @@ export default function Layout({ children, currentPageName }) {
     };
 
     checkPendingCallups();
-    const interval = setInterval(checkPendingCallups, 10000);
+    const interval = setInterval(checkPendingCallups, 30000);
     
     return () => clearInterval(interval);
   }, [user, isAdmin, isPlayer, isCoach, hasPlayers]);
