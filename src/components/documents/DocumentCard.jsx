@@ -1,11 +1,126 @@
-import React from "react";
+import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { motion } from "framer-motion";
-import { FileText, Download, ExternalLink, Edit, Trash2, CheckCircle, Clock, Users, AlertCircle } from "lucide-react";
+import { FileText, Download, ExternalLink, Edit, Trash2, CheckCircle, Clock, Users, AlertCircle, Search } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
+
+function DocumentSignatureList({ firmas }) {
+  const [search, setSearch] = useState("");
+  const [filter, setFilter] = useState("all");
+
+  const filtered = firmas.filter(f => {
+    const matchesSearch = f.jugador_nombre.toLowerCase().includes(search.toLowerCase()) || 
+                          f.email_padre.toLowerCase().includes(search.toLowerCase());
+    
+    if (filter === "all") return matchesSearch;
+    if (filter === "firmado") return matchesSearch && f.firmado;
+    if (filter === "confirmado") return matchesSearch && f.confirmado_firma_externa && !f.firmado;
+    if (filter === "pendiente") return matchesSearch && !f.firmado && !f.confirmado_firma_externa;
+    return matchesSearch;
+  });
+
+  const counts = {
+    firmado: firmas.filter(f => f.firmado).length,
+    confirmado: firmas.filter(f => f.confirmado_firma_externa && !f.firmado).length,
+    pendiente: firmas.filter(f => !f.firmado && !f.confirmado_firma_externa).length
+  };
+
+  return (
+    <div className="space-y-3">
+      <div className="flex gap-2 items-center">
+        <div className="relative flex-1">
+          <Search className="absolute left-2 top-2.5 h-4 w-4 text-slate-400" />
+          <Input
+            placeholder="Buscar jugador o email..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="pl-8 h-9 text-sm"
+          />
+        </div>
+      </div>
+
+      <div className="flex gap-1 flex-wrap">
+        <Button
+          variant={filter === "all" ? "default" : "outline"}
+          size="sm"
+          onClick={() => setFilter("all")}
+          className="text-xs h-7"
+        >
+          Todos ({firmas.length})
+        </Button>
+        <Button
+          variant={filter === "firmado" ? "default" : "outline"}
+          size="sm"
+          onClick={() => setFilter("firmado")}
+          className="text-xs h-7 bg-green-50 hover:bg-green-100 text-green-700 border-green-200"
+        >
+          ✅ Firmado ({counts.firmado})
+        </Button>
+        <Button
+          variant={filter === "confirmado" ? "default" : "outline"}
+          size="sm"
+          onClick={() => setFilter("confirmado")}
+          className="text-xs h-7 bg-blue-50 hover:bg-blue-100 text-blue-700 border-blue-200"
+        >
+          🔵 Confirmado ({counts.confirmado})
+        </Button>
+        <Button
+          variant={filter === "pendiente" ? "default" : "outline"}
+          size="sm"
+          onClick={() => setFilter("pendiente")}
+          className="text-xs h-7 bg-orange-50 hover:bg-orange-100 text-orange-700 border-orange-200"
+        >
+          ⏳ Pendiente ({counts.pendiente})
+        </Button>
+      </div>
+
+      <div className="max-h-80 overflow-y-auto space-y-1.5">
+        {filtered.length === 0 ? (
+          <div className="text-center py-4 text-sm text-slate-500">
+            No hay resultados
+          </div>
+        ) : (
+          filtered.map((firma, idx) => (
+            <div key={idx} className="flex items-center justify-between gap-2 p-2 bg-slate-50 rounded-lg hover:bg-slate-100 transition-colors">
+              <div className="flex items-center gap-2 flex-1 min-w-0">
+                {firma.firmado ? (
+                  <CheckCircle className="w-4 h-4 text-green-600 flex-shrink-0" />
+                ) : firma.confirmado_firma_externa ? (
+                  <AlertCircle className="w-4 h-4 text-blue-600 flex-shrink-0" />
+                ) : (
+                  <Clock className="w-4 h-4 text-orange-600 flex-shrink-0" />
+                )}
+                <div className="min-w-0 flex-1">
+                  <p className="font-medium text-slate-900 text-xs truncate">{firma.jugador_nombre}</p>
+                  <p className="text-[10px] text-slate-500 truncate">{firma.email_padre}</p>
+                </div>
+              </div>
+              <div className="text-right flex-shrink-0">
+                {firma.firmado ? (
+                  <div>
+                    <p className="text-green-700 font-semibold text-[10px]">✅ Firmado</p>
+                    <p className="text-[9px] text-slate-500">{format(new Date(firma.fecha_firma), "d/MM HH:mm")}</p>
+                  </div>
+                ) : firma.confirmado_firma_externa ? (
+                  <div>
+                    <p className="text-blue-700 font-semibold text-[10px]">🔵 Confirmado</p>
+                    <p className="text-[9px] text-slate-500">{format(new Date(firma.fecha_confirmacion_externa), "d/MM HH:mm")}</p>
+                  </div>
+                ) : (
+                  <p className="text-orange-600 font-semibold text-[10px]">⏳ Pendiente</p>
+                )}
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+    </div>
+  );
+}
 
 export default function DocumentCard({ document, players, onEdit, onDelete, isAdmin }) {
   const typeColors = {
@@ -178,43 +293,7 @@ export default function DocumentCard({ document, players, onEdit, onDelete, isAd
                 </p>
               </div>
 
-              <div className="max-h-80 overflow-y-auto space-y-2">
-                {document.firmas?.map((firma, idx) => (
-                  <div key={idx} className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 p-3 bg-white rounded-lg border-l-4 shadow-sm" style={{ borderColor: firma.firmado ? '#16a34a' : firma.confirmado_firma_externa ? '#2563eb' : '#ea580c' }}>
-                    <div className="flex items-center gap-3 flex-1">
-                      {firma.firmado ? (
-                        <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0" />
-                      ) : firma.confirmado_firma_externa ? (
-                        <AlertCircle className="w-5 h-5 text-blue-600 flex-shrink-0" />
-                      ) : (
-                        <Clock className="w-5 h-5 text-orange-600 flex-shrink-0" />
-                      )}
-                      <div className="min-w-0">
-                        <p className="font-semibold text-slate-900 text-sm">{firma.jugador_nombre}</p>
-                        <p className="text-xs text-slate-600 truncate">{firma.email_padre}</p>
-                      </div>
-                    </div>
-                    <div className="text-right w-full sm:w-auto">
-                      {firma.firmado ? (
-                        <div>
-                          <p className="text-green-700 font-semibold text-sm">✅ Firmado</p>
-                          <p className="text-xs text-slate-600">{format(new Date(firma.fecha_firma), "d/MM/yy HH:mm", { locale: es })}</p>
-                        </div>
-                      ) : firma.confirmado_firma_externa ? (
-                        <div>
-                          <p className="text-blue-700 font-semibold text-sm">🔵 Confirmó firma externa</p>
-                          <p className="text-xs text-slate-600">{format(new Date(firma.fecha_confirmacion_externa), "d/MM/yy HH:mm", { locale: es })}</p>
-                        </div>
-                      ) : (
-                        <p className="text-orange-600 font-semibold text-sm">⏳ Pendiente</p>
-                      )}
-                      {firma.comentario && (
-                        <p className="text-xs text-slate-600 italic mt-1">"{firma.comentario}"</p>
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
+              <DocumentSignatureList firmas={document.firmas || []} />
             </div>
           )}
 
