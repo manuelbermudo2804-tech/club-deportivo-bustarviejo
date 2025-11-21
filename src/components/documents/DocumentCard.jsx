@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
-import { FileText, Download, ExternalLink, Edit, Trash2, CheckCircle, Clock, Users } from "lucide-react";
+import { FileText, Download, ExternalLink, Edit, Trash2, CheckCircle, Clock, Users, AlertCircle } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 
@@ -19,6 +19,7 @@ export default function DocumentCard({ document, players, onEdit, onDelete, isAd
   };
 
   const signedCount = document.firmas?.filter(f => f.firmado).length || 0;
+  const confirmedExternalCount = document.firmas?.filter(f => f.confirmado_firma_externa && !f.firmado).length || 0;
   const totalRequired = document.firmas?.length || 0;
   const signatureProgress = totalRequired > 0 ? (signedCount / totalRequired) * 100 : 0;
 
@@ -141,9 +142,19 @@ export default function DocumentCard({ document, players, onEdit, onDelete, isAd
                   <Users className="w-5 h-5 text-orange-600" />
                   <span className="font-semibold text-slate-900">Estado de Firmas:</span>
                 </div>
-                <span className="text-sm font-semibold text-slate-700">
-                  {signedCount} / {totalRequired}
-                </span>
+                <div className="flex items-center gap-3 text-sm">
+                  <span className="font-semibold text-green-700">
+                    ✅ {signedCount} firmados
+                  </span>
+                  {confirmedExternalCount > 0 && (
+                    <span className="font-semibold text-blue-700">
+                      🔵 {confirmedExternalCount} confirmaron firma externa
+                    </span>
+                  )}
+                  <span className="font-semibold text-orange-600">
+                    ⏳ {totalRequired - signedCount - confirmedExternalCount} pendientes
+                  </span>
+                </div>
               </div>
 
               <div className="w-full bg-slate-200 rounded-full h-3">
