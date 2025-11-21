@@ -579,57 +579,60 @@ export default function Layout({ children, currentPageName }) {
 
           useEffect(() => {
             const checkAndRedirect = async () => {
-              if (user && (location.pathname === '/' || location.pathname === '')) {
-                // Verificar si tiene jugadores pendientes de renovación
+              if (!user) return;
+
+              const isRootPath = location.pathname === '/' || location.pathname === '';
+              if (!isRootPath) return;
+
+              // Verificar si tiene jugadores pendientes de renovación
+              try {
+                const allPlayers = await base44.entities.Player.list();
+                const seasonConfigs = await base44.entities.SeasonConfig.list();
+                const activeSeason = seasonConfigs.find(c => c.activa === true);
+
+                const myPendingPlayers = allPlayers.filter(p => 
+                  (p.email_padre === user.email || p.email_tutor_2 === user.email) &&
+                  p.estado_renovacion === "pendiente" &&
+                  p.temporada_renovacion === activeSeason?.temporada
+                );
+
+                // Si tiene jugadores pendientes de renovación, redirigir a página de renovación
+                if (myPendingPlayers.length > 0 && user.role !== "admin" && !user.es_entrenador && !user.es_coordinador && !user.es_tesorero) {
+                  navigate(createPageUrl('PlayerRenewal'), { replace: true });
+                  return;
+                }
+              } catch (error) {
+                console.error('Error checking pending renewals:', error);
+              }
+
+              // Si es entrenador/coordinador/tesorero, verificar si es email_tutor_2 de algún jugador
+              if (isCoach || isCoordinator || isTreasurer) {
                 try {
                   const allPlayers = await base44.entities.Player.list();
-                  const seasonConfigs = await base44.entities.SeasonConfig.list();
-                  const activeSeason = seasonConfigs.find(c => c.activa === true);
+                  const isSecondParent = allPlayers.some(p => p.email_tutor_2 === user.email);
 
-                  const myPendingPlayers = allPlayers.filter(p => 
-                    (p.email_padre === user.email || p.email_tutor_2 === user.email) &&
-                    p.estado_renovacion === "pendiente" &&
-                    p.temporada_renovacion === activeSeason?.temporada
-                  );
-
-                  // Si tiene jugadores pendientes de renovación, redirigir a página de renovación
-                  if (myPendingPlayers.length > 0 && user.role !== "admin" && !user.es_entrenador && !user.es_coordinador && !user.es_tesorero) {
-                    navigate(createPageUrl('PlayerRenewal'));
+                  if (isSecondParent) {
+                    // Si es segundo progenitor, redirigir al panel de familia
+                    navigate(createPageUrl('ParentDashboard'), { replace: true });
                     return;
                   }
                 } catch (error) {
-                  console.error('Error checking pending renewals:', error);
+                  console.error('Error checking parent status:', error);
                 }
+              }
 
-                // Si es entrenador/coordinador/tesorero, verificar si es email_tutor_2 de algún jugador
-                if (isCoach || isCoordinator || isTreasurer) {
-                  try {
-                    const allPlayers = await base44.entities.Player.list();
-                    const isSecondParent = allPlayers.some(p => p.email_tutor_2 === user.email);
-
-                    if (isSecondParent) {
-                      // Si es segundo progenitor, redirigir al panel de familia
-                      navigate(createPageUrl('ParentDashboard'));
-                      return;
-                    }
-                  } catch (error) {
-                    console.error('Error checking parent status:', error);
-                  }
-                }
-
-                // Lógica de redirección normal
-                if (isAdmin || isCoach || isCoordinator || isTreasurer) {
-                  navigate(createPageUrl('Home'));
-                } else if (isPlayer) {
-                  navigate(createPageUrl('PlayerDashboard'));
-                } else {
-                  navigate(createPageUrl('ParentDashboard'));
-                }
+              // Lógica de redirección normal
+              if (isAdmin || isCoach || isCoordinator || isTreasurer) {
+                navigate(createPageUrl('Home'), { replace: true });
+              } else if (isPlayer) {
+                navigate(createPageUrl('PlayerDashboard'), { replace: true });
+              } else {
+                navigate(createPageUrl('ParentDashboard'), { replace: true });
               }
             };
 
             checkAndRedirect();
-            }, [user, isAdmin, isCoach, isCoordinator, isTreasurer, isPlayer, location.pathname, navigate]);
+          }, [user, isAdmin, isCoach, isCoordinator, isTreasurer, isPlayer, location.pathname, navigate]);
 
   useEffect(() => {
     if (!user) return;
