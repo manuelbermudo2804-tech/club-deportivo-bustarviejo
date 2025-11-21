@@ -97,6 +97,15 @@ export default function ParentDashboard() {
     enabled: !!user,
   });
 
+  const { data: allDocuments } = useQuery({
+    queryKey: ['documents'],
+    queryFn: () => base44.entities.Document.list('-created_date'),
+    initialData: [],
+    staleTime: 60000,
+    refetchOnWindowFocus: false,
+    enabled: !!user,
+  });
+
   const myPlayers = user && players ? players.filter(p => 
     p.email_padre === user.email || p.email_tutor_2 === user.email
   ) : [];
@@ -178,6 +187,21 @@ export default function ParentDashboard() {
 
   const activeSeason = seasonConfigs ? seasonConfigs.find(s => s.activa) : null;
   const loteriaVisible = activeSeason?.loteria_navidad_abierta === true;
+
+  const pendingDocuments = allDocuments && myPlayers.length > 0 ? allDocuments.filter(doc => {
+    if (!doc.publicado || !doc.requiere_firma) return false;
+    
+    const isRelevant = doc.tipo_destinatario === "individual" 
+      ? myPlayers.some(p => doc.jugadores_destino?.includes(p.id))
+      : (doc.categoria_destino === "Todos" || myPlayers.some(p => p.deporte === doc.categoria_destino));
+    
+    if (!isRelevant) return false;
+    
+    return myPlayers.some(player => {
+      const firma = doc.firmas?.find(f => f.jugador_id === player.id);
+      return firma && !firma.firmado;
+    });
+  }) : [];
 
   const calculatePendingPayments = () => {
     const activeSeason = seasonConfigs.find(s => s.activa);
@@ -417,6 +441,30 @@ export default function ParentDashboard() {
                 <div className="text-left flex-1">
                   <p className="text-white font-bold text-base">🍀 Lotería de Navidad</p>
                   <p className="text-green-100 text-xs">Compra décimos del club 🎄</p>
+                </div>
+              </div>
+            </div>
+          </Link>
+        )}
+
+        {/* DOCUMENTOS PENDIENTES */}
+        {pendingDocuments.length > 0 && (
+          <Link to={createPageUrl("ParentDocuments")}>
+            <div className="bg-gradient-to-r from-red-600 to-red-700 rounded-2xl p-4 shadow-xl transition-all hover:scale-105 active:scale-95 border-2 border-red-500 animate-pulse">
+              <div className="flex items-start gap-3">
+                <FileText className="w-6 h-6 text-white flex-shrink-0 mt-0.5" />
+                <div className="flex-1">
+                  <p className="text-white font-bold text-base lg:text-lg">
+                    📄 ¡Documentos Pendientes de Firma!
+                  </p>
+                  <p className="text-red-100 text-xs lg:text-sm mt-1">
+                    {pendingDocuments.length === 1 
+                      ? "Tienes 1 documento que requiere tu firma" 
+                      : `Tienes ${pendingDocuments.length} documentos que requieren tu firma`}
+                  </p>
+                  <p className="text-white text-xs mt-2 font-semibold">
+                    👉 Pulsa aquí para firmar
+                  </p>
                 </div>
               </div>
             </div>

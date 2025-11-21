@@ -154,16 +154,6 @@ export default function ParentDocuments() {
         <p className="text-slate-600 mt-1">Consulta y firma los documentos necesarios</p>
       </div>
 
-      {pendingDocuments.length > 0 && (
-        <Alert className="bg-red-50 border-red-300 border-2">
-          <AlertCircle className="h-5 w-5 text-red-600" />
-          <AlertDescription className="text-red-900 ml-6">
-            <strong className="text-lg">⚠️ Tienes {pendingDocuments.length} documento{pendingDocuments.length !== 1 ? 's' : ''} pendiente{pendingDocuments.length !== 1 ? 's' : ''} de firma</strong>
-            <p className="text-sm mt-1">Por favor, revisa y firma los documentos lo antes posible.</p>
-          </AlertDescription>
-        </Alert>
-      )}
-
       {pendingCount > 0 && (
         <div className="bg-gradient-to-r from-red-50 to-orange-50 border-2 border-red-300 rounded-xl p-6">
           <div className="flex items-start gap-4">
