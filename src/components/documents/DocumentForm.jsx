@@ -237,7 +237,7 @@ export default function DocumentForm({ document, players, onSubmit, onCancel, is
                     <p className="text-sm text-slate-500">No hay jugadores disponibles</p>
                   ) : (
                     players.map((player) => (
-                      <label key={player.id} className="flex items-center gap-2 cursor-pointer hover:bg-slate-50 p-2 rounded">
+                      <label key={player.id} className="flex items-start gap-2 cursor-pointer hover:bg-slate-50 p-3 rounded border border-transparent hover:border-slate-200">
                         <Checkbox
                           checked={formData.jugadores_destino.includes(player.id)}
                           onCheckedChange={(checked) => {
@@ -253,9 +253,17 @@ export default function DocumentForm({ document, players, onSubmit, onCancel, is
                               });
                             }
                           }}
+                          className="mt-1"
                         />
-                        <span className="text-sm flex-1">{player.nombre}</span>
-                        <span className="text-xs text-slate-500">{player.deporte}</span>
+                        <div className="flex-1">
+                          <div className="flex items-center justify-between gap-2">
+                            <span className="text-sm font-medium">{player.nombre}</span>
+                            <span className="text-xs text-slate-500">{player.deporte}</span>
+                          </div>
+                          <div className="text-xs text-slate-500 mt-1">
+                            👤 {player.email_padre}
+                          </div>
+                        </div>
                       </label>
                     ))
                   )}
