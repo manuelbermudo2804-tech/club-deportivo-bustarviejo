@@ -17,7 +17,7 @@ export default function NotificationManager({ user }) {
       );
     },
     enabled: !!user?.email,
-    refetchInterval: 5000,
+    refetchInterval: 30000,
     initialData: [],
   });
 

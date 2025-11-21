@@ -9,7 +9,7 @@ export default function EventReminderEngine() {
     queryKey: ['events'],
     queryFn: () => base44.entities.Event.list(),
     initialData: [],
-    refetchInterval: 60000, // Check every minute
+    refetchInterval: 300000, // Check every 5 minutes
   });
 
   useEffect(() => {

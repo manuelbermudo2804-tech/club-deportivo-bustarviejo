@@ -9,7 +9,7 @@ export default function AutomaticNotificationEngine({ user }) {
     queryKey: ['callups'],
     queryFn: () => base44.entities.Convocatoria.list(),
     initialData: [],
-    refetchInterval: 60000, // Check every minute
+    refetchInterval: 300000, // Check every 5 minutes
     enabled: !!user,
   });
 
@@ -17,7 +17,7 @@ export default function AutomaticNotificationEngine({ user }) {
     queryKey: ['payments'],
     queryFn: () => base44.entities.Payment.list(),
     initialData: [],
-    refetchInterval: 60000,
+    refetchInterval: 300000,
     enabled: !!user,
   });
 
@@ -25,7 +25,7 @@ export default function AutomaticNotificationEngine({ user }) {
     queryKey: ['evaluations'],
     queryFn: () => base44.entities.PlayerEvaluation.list(),
     initialData: [],
-    refetchInterval: 60000,
+    refetchInterval: 300000,
     enabled: !!user,
   });
 
