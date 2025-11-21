@@ -28,8 +28,36 @@ export default function ParentDocuments() {
   const [selectedDocument, setSelectedDocument] = useState(null);
   const [selectedPlayer, setSelectedPlayer] = useState(null);
   const [signComment, setSignComment] = useState("");
+  const [visitedLinks, setVisitedLinks] = useState({});
 
   const queryClient = useQueryClient();
+
+  // Cargar enlaces visitados desde localStorage al montar
+  useEffect(() => {
+    const stored = localStorage.getItem('visitedExternalLinks');
+    if (stored) {
+      try {
+        setVisitedLinks(JSON.parse(stored));
+      } catch (e) {
+        console.error('Error loading visited links:', e);
+      }
+    }
+  }, []);
+
+  // Marcar enlace como visitado
+  const markLinkAsVisited = (documentId, playerId) => {
+    const key = `${documentId}_${playerId}`;
+    const updated = { ...visitedLinks, [key]: true };
+    setVisitedLinks(updated);
+    localStorage.setItem('visitedExternalLinks', JSON.stringify(updated));
+    console.log(`✅ Enlace marcado como visitado: ${key}`);
+  };
+
+  // Verificar si el enlace fue visitado
+  const hasVisitedLink = (documentId, playerId) => {
+    const key = `${documentId}_${playerId}`;
+    return visitedLinks[key] === true;
+  };
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -143,7 +171,7 @@ export default function ParentDocuments() {
   };
 
   const handleConfirmExternalSign = (document, player) => {
-    console.log("🔥 BOTÓN PULSADO - handleConfirmExternalSign llamado");
+    console.log("🔥 CONFIRMAR FIRMA EXTERNA - handleConfirmExternalSign llamado");
     console.log("📄 Documento:", document.titulo);
     console.log("👤 Jugador:", player.nombre);
     console.log("✉️ Usuario:", user?.email);
@@ -154,13 +182,20 @@ export default function ParentDocuments() {
       return;
     }
 
-    toast.info("⏳ Registrando confirmación...");
+    // Verificar que el enlace fue visitado
+    if (!hasVisitedLink(document.id, player.id)) {
+      toast.error("⚠️ Primero debes visitar el enlace de firma externa");
+      return;
+    }
+
+    toast.info("⏳ Registrando confirmación de firma externa...");
     
     const updatedFirmas = (document.firmas || []).map(f => {
       if (f.jugador_id === player.id) {
         console.log("✏️ Actualizando firma existente para jugador:", player.nombre);
         return {
           ...f,
+          firmado: false,
           confirmado_firma_externa: true,
           fecha_confirmacion_externa: new Date().toISOString()
         };
@@ -180,7 +215,7 @@ export default function ParentDocuments() {
       });
     }
 
-    console.log("📝 Firmas finales:", JSON.stringify(updatedFirmas, null, 2));
+    console.log("📝 Firmas actualizadas:", JSON.stringify(updatedFirmas, null, 2));
 
     updateDocumentMutation.mutate({
       id: document.id,
@@ -189,6 +224,17 @@ export default function ParentDocuments() {
         firmas: updatedFirmas
       }
     });
+  };
+
+  const handleOpenExternalLink = (url, documentId, playerId) => {
+    console.log("🔗 Abriendo enlace externo:", url);
+    window.open(url, '_blank');
+    
+    // Marcar como visitado inmediatamente al hacer clic
+    setTimeout(() => {
+      markLinkAsVisited(documentId, playerId);
+      toast.success("✅ Enlace visitado - ya puedes confirmar la firma");
+    }, 1000);
   };
 
   const getPlayerSignatureStatus = (document, playerId) => {
@@ -344,7 +390,7 @@ export default function ParentDocuments() {
                         📱 Escanea el código QR para firmar
                       </p>
                       <p className="text-xs text-blue-700 mb-4">
-                        ℹ️ Después de firmar en la plataforma externa, pulsa "✅ Ya Firmé" para confirmar
+                        ℹ️ Después de firmar en la plataforma externa, vuelve aquí y pulsa "✅ Confirmar Firma"
                       </p>
                       <div className="flex justify-center mb-4">
                         <img 
@@ -353,18 +399,28 @@ export default function ParentDocuments() {
                           className="w-48 h-48 border-4 border-white rounded-xl shadow-lg"
                         />
                       </div>
-                      {document.enlace_firma_externa && (
-                        <a
-                          href={document.enlace_firma_externa}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                        >
-                          <Button className="bg-blue-600 hover:bg-blue-700 w-full sm:w-auto">
-                            <ExternalLink className="w-4 h-4 mr-2" />
-                            O haz clic aquí para firmar
-                          </Button>
-                        </a>
-                      )}
+                      {document.enlace_firma_externa && myPlayers.map(player => {
+                        const isRelevantForPlayer = document.tipo_destinatario === "individual" 
+                          ? document.jugadores_destino?.includes(player.id)
+                          : (document.categoria_destino === "Todos" || player.deporte === document.categoria_destino);
+
+                        if (!isRelevantForPlayer) return null;
+
+                        const firma = getPlayerSignatureStatus(document, player.id);
+                        if (firma?.firmado || firma?.confirmado_firma_externa) return null;
+
+                        return (
+                          <div key={player.id} className="mb-2">
+                            <Button 
+                              onClick={() => handleOpenExternalLink(document.enlace_firma_externa, document.id, player.id)}
+                              className="bg-blue-600 hover:bg-blue-700 w-full sm:w-auto"
+                            >
+                              <ExternalLink className="w-4 h-4 mr-2" />
+                              Ir a firmar para {player.nombre}
+                            </Button>
+                          </div>
+                        );
+                      })}
                     </div>
                   )}
 
@@ -384,17 +440,29 @@ export default function ParentDocuments() {
                     )}
                     
                     {document.enlace_firma_externa && !document.codigo_qr_url && (
-                      <a
-                        href={document.enlace_firma_externa}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex-1"
-                      >
-                        <Button className="w-full bg-blue-600 hover:bg-blue-700">
-                          <ExternalLink className="w-4 h-4 mr-2" />
-                          Firmar en Plataforma Externa
-                        </Button>
-                      </a>
+                      <div className="flex-1 space-y-2">
+                        {myPlayers.map(player => {
+                          const isRelevantForPlayer = document.tipo_destinatario === "individual" 
+                            ? document.jugadores_destino?.includes(player.id)
+                            : (document.categoria_destino === "Todos" || player.deporte === document.categoria_destino);
+
+                          if (!isRelevantForPlayer) return null;
+
+                          const firma = getPlayerSignatureStatus(document, player.id);
+                          if (firma?.firmado || firma?.confirmado_firma_externa) return null;
+
+                          return (
+                            <Button 
+                              key={player.id}
+                              onClick={() => handleOpenExternalLink(document.enlace_firma_externa, document.id, player.id)}
+                              className="w-full bg-blue-600 hover:bg-blue-700"
+                            >
+                              <ExternalLink className="w-4 h-4 mr-2" />
+                              Ir a firmar para {player.nombre}
+                            </Button>
+                          );
+                        })}
+                      </div>
                     )}
                   </div>
 
@@ -483,20 +551,23 @@ export default function ParentDocuments() {
                                     onClick={(e) => {
                                       e.preventDefault();
                                       e.stopPropagation();
-                                      console.log("🖱️ CLICK detectado en botón");
                                       handleConfirmExternalSign(document, player);
                                     }}
-                                    onTouchEnd={(e) => {
-                                      e.preventDefault();
-                                      e.stopPropagation();
-                                      console.log("👆 TOUCH detectado en botón");
-                                      handleConfirmExternalSign(document, player);
-                                    }}
-                                    disabled={updateDocumentMutation.isPending}
-                                    className="bg-green-600 hover:bg-green-700 w-full sm:w-auto min-h-[44px] px-6 text-base font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
-                                    title="Pulsa aquí después de firmar en la plataforma externa"
+                                    disabled={updateDocumentMutation.isPending || !hasVisitedLink(document.id, player.id)}
+                                    className={`w-full sm:w-auto min-h-[44px] px-6 text-base font-semibold transition-all ${
+                                      hasVisitedLink(document.id, player.id)
+                                        ? 'bg-green-600 hover:bg-green-700 animate-pulse'
+                                        : 'bg-gray-400 cursor-not-allowed opacity-60'
+                                    } disabled:opacity-50`}
+                                    title={hasVisitedLink(document.id, player.id) 
+                                      ? "Pulsa para confirmar que has firmado" 
+                                      : "Primero debes visitar el enlace de firma"}
                                   >
-                                    {updateDocumentMutation.isPending ? "⏳ Confirmando..." : "✅ Confirmar Firma"}
+                                    {updateDocumentMutation.isPending 
+                                      ? "⏳ Confirmando..." 
+                                      : hasVisitedLink(document.id, player.id)
+                                      ? "✅ Confirmar Firma"
+                                      : "⚠️ Visita enlace primero"}
                                   </Button>
                                 )}
                                 {!isSigned && document.enlace_firma_externa && confirmedExternal && (
