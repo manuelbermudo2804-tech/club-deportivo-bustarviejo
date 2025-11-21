@@ -61,18 +61,28 @@ export default function ParentDocuments() {
     onSuccess: async () => {
       console.log("✅ Documento actualizado con éxito");
       
-      // Invalidar TODAS las queries de documents en toda la app
-      await queryClient.invalidateQueries({ queryKey: ['documents'] });
-      await queryClient.refetchQueries({ queryKey: ['documents'] });
+      // Invalidar y refrescar TODAS las queries de documents
+      queryClient.invalidateQueries({ queryKey: ['documents'], refetchType: 'all' });
       
-      console.log("🔄 Queries invalidadas y refrescadas");
+      // Esperar a que se refresque
+      await queryClient.refetchQueries({ queryKey: ['documents'], type: 'all' });
       
-      toast.success("✅ Confirmación registrada correctamente");
+      // Refrescar también los players (por si la UI los usa para calcular pendientes)
+      queryClient.invalidateQueries({ queryKey: ['players'], refetchType: 'all' });
+      
+      console.log("🔄 Todas las queries refrescadas");
+      
+      toast.success("✅ Firma confirmada - avisos actualizados");
       
       setShowSignDialog(false);
       setSelectedDocument(null);
       setSelectedPlayer(null);
       setSignComment("");
+      
+      // Forzar un re-render esperando 500ms
+      setTimeout(() => {
+        window.location.reload();
+      }, 1000);
     },
     onError: (error) => {
       console.error("❌ Error al actualizar documento:", error);
