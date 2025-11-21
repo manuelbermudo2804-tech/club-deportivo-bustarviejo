@@ -203,38 +203,15 @@ export default function Calendar() {
       color: 'blue',
     }));
 
-    const trainingItems = [];
-    const start = new Date();
-    start.setMonth(start.getMonth() - 1);
-    const end = new Date();
-    end.setMonth(end.getMonth() + 3);
-    
-    for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
-      const trainings = getTrainingsForWeek(d);
-      trainings.forEach(training => {
-        trainingItems.push({
-          id: `training-${format(d, 'yyyy-MM-dd')}-${training.id}`,
-          type: 'training',
-          date: format(d, 'yyyy-MM-dd'),
-          title: `🏃 ${training.categoria}`,
-          category: training.categoria,
-          hora_inicio: training.hora_inicio,
-          ubicacion: training.ubicacion,
-          color: 'green',
-        });
-      });
-    }
-
-    return [...eventItems, ...callupItems, ...trainingItems].sort((a, b) => 
+    return [...eventItems, ...callupItems].sort((a, b) => 
       a.date.localeCompare(b.date)
     );
-  }, [events, visibleCallups, schedules, isAdmin, myPlayersSports]);
+  }, [events, visibleCallups, isAdmin]);
 
   const filteredItems = allCalendarItems.filter(item => {
     const matchesType = typeFilter === "all" || 
       (item.type === 'event' && item.tipo === typeFilter) ||
-      (item.type === 'callup' && typeFilter === "Partido") ||
-      (item.type === 'training' && typeFilter === "Entrenamiento");
+      (item.type === 'callup' && typeFilter === "Partido");
     const matchesSport = sportFilter === "all" || 
       item.category === sportFilter || 
       (item.type === 'event' && item.deporte === "Todos");
@@ -242,8 +219,8 @@ export default function Calendar() {
   });
 
   const today = new Date().toISOString().split('T')[0];
-  const upcomingItems = filteredItems.filter(e => e.date >= today && e.type !== 'training');
-  const pastItems = filteredItems.filter(e => e.date < today && e.type !== 'training').sort((a, b) => b.date.localeCompare(a.date));
+  const upcomingItems = filteredItems.filter(e => e.date >= today);
+  const pastItems = filteredItems.filter(e => e.date < today).sort((a, b) => b.date.localeCompare(a.date));
 
   const daysInMonth = useMemo(() => {
     const start = startOfMonth(currentMonth);
@@ -265,16 +242,10 @@ export default function Calendar() {
   const eventTypes = [
     "all",
     "Partido",
-    "Entrenamiento",
     "Reunión",
     "Torneo",
-    "Inicio Temporada",
     "Gestion Club",
-    "Pago",
-    "Inscripción",
-    "Pedido Ropa",
     "Fiesta Club",
-    "Fin Temporada",
     "Otro"
   ];
 
@@ -365,55 +336,51 @@ export default function Calendar() {
       </AnimatePresence>
 
       {/* Filtros compactos */}
-      <div className="space-y-3">
-        <div className="flex flex-wrap gap-2">
+      <div className="flex flex-wrap gap-2">
+        <Button
+          size="sm"
+          variant={sportFilter === "all" ? "default" : "outline"}
+          onClick={() => setSportFilter("all")}
+          className={sportFilter === "all" ? "bg-orange-600 hover:bg-orange-700 h-9 text-xs" : "h-9 text-xs"}
+        >
+          Todos
+        </Button>
+        <Button
+          size="sm"
+          variant={sportFilter === "Fútbol Masculino" ? "default" : "outline"}
+          onClick={() => setSportFilter("Fútbol Masculino")}
+          className={sportFilter === "Fútbol Masculino" ? "bg-blue-600 hover:bg-blue-700 h-9 text-xs" : "h-9 text-xs"}
+        >
+          ⚽ Fútbol M
+        </Button>
+        <Button
+          size="sm"
+          variant={sportFilter === "Fútbol Femenino" ? "default" : "outline"}
+          onClick={() => setSportFilter("Fútbol Femenino")}
+          className={sportFilter === "Fútbol Femenino" ? "bg-pink-600 hover:bg-pink-700 h-9 text-xs" : "h-9 text-xs"}
+        >
+          ⚽ Fútbol F
+        </Button>
+        <Button
+          size="sm"
+          variant={sportFilter === "Baloncesto" ? "default" : "outline"}
+          onClick={() => setSportFilter("Baloncesto")}
+          className={sportFilter === "Baloncesto" ? "bg-orange-600 hover:bg-orange-700 h-9 text-xs" : "h-9 text-xs"}
+        >
+          🏀 Basket
+        </Button>
+        <div className="h-9 w-px bg-slate-300 mx-1"></div>
+        {eventTypes.map((type) => (
           <Button
+            key={type}
             size="sm"
-            variant={sportFilter === "all" ? "default" : "outline"}
-            onClick={() => setSportFilter("all")}
-            className={sportFilter === "all" ? "bg-orange-600 hover:bg-orange-700 h-8 text-xs" : "h-8 text-xs"}
+            variant={typeFilter === type ? "default" : "outline"}
+            onClick={() => setTypeFilter(type)}
+            className={typeFilter === type ? "bg-orange-600 hover:bg-orange-700 h-9 text-xs" : "h-9 text-xs"}
           >
-            🏃 Todos
+            {type === "all" ? "Todos" : type}
           </Button>
-          <Button
-            size="sm"
-            variant={sportFilter === "Fútbol Masculino" ? "default" : "outline"}
-            onClick={() => setSportFilter("Fútbol Masculino")}
-            className={sportFilter === "Fútbol Masculino" ? "bg-blue-600 hover:bg-blue-700 h-8 text-xs" : "h-8 text-xs"}
-          >
-            ⚽ Fútbol M
-          </Button>
-          <Button
-            size="sm"
-            variant={sportFilter === "Fútbol Femenino" ? "default" : "outline"}
-            onClick={() => setSportFilter("Fútbol Femenino")}
-            className={sportFilter === "Fútbol Femenino" ? "bg-pink-600 hover:bg-pink-700 h-8 text-xs" : "h-8 text-xs"}
-          >
-            ⚽ Fútbol F
-          </Button>
-          <Button
-            size="sm"
-            variant={sportFilter === "Baloncesto" ? "default" : "outline"}
-            onClick={() => setSportFilter("Baloncesto")}
-            className={sportFilter === "Baloncesto" ? "bg-orange-600 hover:bg-orange-700 h-8 text-xs" : "h-8 text-xs"}
-          >
-            🏀 Basket
-          </Button>
-        </div>
-
-        <Tabs value={typeFilter} onValueChange={setTypeFilter}>
-          <TabsList className="bg-white shadow-sm flex-wrap h-auto p-1">
-            {eventTypes.map((type) => (
-              <TabsTrigger
-                key={type}
-                value={type}
-                className="data-[state=active]:bg-orange-100 data-[state=active]:text-orange-700 text-xs px-2 py-1"
-              >
-                {type === "all" ? "Todos" : type}
-              </TabsTrigger>
-            ))}
-          </TabsList>
-        </Tabs>
+        ))}
       </div>
 
       {isLoading ? (
@@ -465,45 +432,49 @@ export default function Calendar() {
               const isToday = isSameDay(day, new Date());
               const events = dayItems.filter(i => i.type === 'event');
               const callups = dayItems.filter(i => i.type === 'callup');
-              const trainings = dayItems.filter(i => i.type === 'training');
-              
+              const totalItems = events.length + callups.length;
+
               return (
                 <div
                   key={day.toISOString()}
-                  className={`min-h-[80px] lg:min-h-[120px] border-2 rounded-lg p-1 lg:p-2 ${
+                  className={`min-h-[60px] lg:min-h-[100px] border-2 rounded-lg p-1 lg:p-2 ${
                     isToday ? 'bg-orange-50 border-orange-500' : 'bg-white border-slate-200'
-                  } hover:border-orange-400 transition-colors overflow-hidden`}
+                  } hover:border-orange-400 transition-colors overflow-hidden cursor-pointer`}
+                  onClick={() => {
+                    if (totalItems > 0) {
+                      setCurrentMonth(day);
+                      setViewMode("cards");
+                    }
+                  }}
                 >
-                  <div className={`text-sm lg:text-lg font-bold mb-1 ${isToday ? 'text-orange-600' : 'text-slate-800'}`}>
+                  <div className={`text-xs lg:text-base font-bold mb-1 ${isToday ? 'text-orange-600' : 'text-slate-800'}`}>
                     {format(day, 'd')}
                   </div>
-                  <div className="space-y-0.5 lg:space-y-1">
-                    {callups.map((c, idx) => {
-                      const categoryName = c.categoria.replace('Fútbol ', '').replace(' (Mixto)', '').replace('Baloncesto', 'Basket');
-                      return (
-                        <div key={`callup-${idx}`} className="text-[10px] lg:text-xs px-1 lg:px-2 py-0.5 lg:py-1 rounded bg-blue-600 text-white font-bold truncate shadow-sm" title={`${c.categoria} vs ${c.rival || 'Rival'}`}>
-                          ⚽ {categoryName} vs {c.rival || 'TBD'}
-                        </div>
-                      );
-                    })}
-                    {events.filter(e => e.importante).map((e, idx) => (
-                      <div key={`important-${idx}`} className="text-[10px] lg:text-xs px-1 lg:px-2 py-0.5 lg:py-1 rounded bg-red-600 text-white font-bold truncate shadow-sm" title={e.titulo}>
-                        ⭐ {e.titulo.substring(0, 15)}
+                  <div className="space-y-0.5">
+                    {totalItems > 0 ? (
+                      <div className="flex flex-col gap-0.5">
+                        {callups.slice(0, 1).map((c, idx) => (
+                          <div key={`callup-${idx}`} className="text-[9px] lg:text-[10px] px-1 py-0.5 rounded bg-blue-600 text-white font-medium truncate" title={`Partido: ${c.categoria}`}>
+                            ⚽ Partido
+                          </div>
+                        ))}
+                        {events.filter(e => e.importante).slice(0, 1).map((e, idx) => (
+                          <div key={`important-${idx}`} className="text-[9px] lg:text-[10px] px-1 py-0.5 rounded bg-red-600 text-white font-medium truncate" title={e.titulo}>
+                            ⭐ {e.titulo.substring(0, 8)}
+                          </div>
+                        ))}
+                        {events.filter(e => !e.importante).slice(0, 1).map((e, idx) => (
+                          <div key={`event-${idx}`} className="text-[9px] lg:text-[10px] px-1 py-0.5 rounded bg-orange-600 text-white font-medium truncate" title={e.titulo}>
+                            {e.titulo.substring(0, 8)}
+                          </div>
+                        ))}
+                        {totalItems > 2 && (
+                          <div className="text-[9px] lg:text-[10px] text-slate-500 font-medium text-center">
+                            +{totalItems - 2} más
+                          </div>
+                        )}
                       </div>
-                    ))}
-                    {events.filter(e => !e.importante).map((e, idx) => (
-                      <div key={`event-${idx}`} className="text-[10px] lg:text-xs px-1 lg:px-2 py-0.5 lg:py-1 rounded bg-orange-600 text-white font-bold truncate shadow-sm" title={e.titulo}>
-                        📅 {e.titulo.substring(0, 15)}
-                      </div>
-                    ))}
-                    {trainings.map((t, idx) => {
-                      const categoryName = t.category.replace('Fútbol ', '').replace(' (Mixto)', '').replace('Baloncesto', 'Basket');
-                      return (
-                        <div key={`training-${idx}`} className="text-[10px] lg:text-xs px-1 lg:px-2 py-0.5 lg:py-1 rounded bg-green-600 text-white font-bold truncate" title={t.category}>
-                          🏃 {categoryName}
-                        </div>
-                      );
-                    })}
+                    ) : null}
                   </div>
                 </div>
               );
