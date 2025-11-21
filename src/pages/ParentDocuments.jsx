@@ -58,33 +58,42 @@ export default function ParentDocuments() {
 
   const updateDocumentMutation = useMutation({
     mutationFn: ({ id, documentData }) => base44.entities.Document.update(id, documentData),
+    onMutate: async ({ id, documentData }) => {
+      // Cancelar refetches para evitar sobrescribir el optimistic update
+      await queryClient.cancelQueries({ queryKey: ['documents'] });
+      
+      // Guardar el snapshot anterior
+      const previousDocuments = queryClient.getQueryData(['documents']);
+      
+      // Actualizar optimísticamente el caché
+      queryClient.setQueryData(['documents'], (old) => {
+        return old.map(doc => doc.id === id ? documentData : doc);
+      });
+      
+      return { previousDocuments };
+    },
     onSuccess: async () => {
-      console.log("✅ Documento actualizado con éxito");
+      console.log("✅ Documento actualizado con éxito en servidor");
+      toast.success("✅ Firma confirmada correctamente");
       
-      // Invalidar y refrescar TODAS las queries de documents
-      queryClient.invalidateQueries({ queryKey: ['documents'], refetchType: 'all' });
-      
-      // Esperar a que se refresque
-      await queryClient.refetchQueries({ queryKey: ['documents'], type: 'all' });
-      
-      // Refrescar también los players (por si la UI los usa para calcular pendientes)
-      queryClient.invalidateQueries({ queryKey: ['players'], refetchType: 'all' });
-      
-      console.log("🔄 Todas las queries refrescadas");
-      
-      toast.success("✅ Firma confirmada - avisos actualizados");
+      // Forzar recarga completa de todos los datos
+      await queryClient.invalidateQueries({ queryKey: ['documents'] });
       
       setShowSignDialog(false);
       setSelectedDocument(null);
       setSelectedPlayer(null);
       setSignComment("");
       
-      // Forzar un re-render esperando 500ms
+      // Recargar la página después de 500ms para asegurar que todo se actualiza
       setTimeout(() => {
         window.location.reload();
-      }, 1000);
+      }, 500);
     },
-    onError: (error) => {
+    onError: (error, variables, context) => {
+      // Revertir al snapshot anterior en caso de error
+      if (context?.previousDocuments) {
+        queryClient.setQueryData(['documents'], context.previousDocuments);
+      }
       console.error("❌ Error al actualizar documento:", error);
       toast.error("Error al registrar la confirmación");
     },
