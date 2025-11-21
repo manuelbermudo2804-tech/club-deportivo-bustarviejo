@@ -5,7 +5,13 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { motion } from "framer-motion";
-import { X, Upload, Loader2 } from "lucide-react";
+import { X, Upload, Loader2, Bell, AlertCircle } from "lucide-react";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 import {
   Select,
   SelectContent,
@@ -33,7 +39,10 @@ export default function DocumentForm({ document, players, onSubmit, onCancel, is
     fecha_limite_firma: "",
     publicado: true,
     enviar_notificacion: false,
-    firmas: []
+    firmas: [],
+    frecuencia_recordatorios_dias: 3,
+    dias_antes_alerta_admin: 3,
+    porcentaje_alerta_admin: 50
   });
 
   const [uploading, setUploading] = useState(false);
@@ -383,6 +392,95 @@ export default function DocumentForm({ document, players, onSubmit, onCancel, is
                 Enviar notificación por email a las familias
               </Label>
             </div>
+
+            {formData.requiere_firma && (
+              <Accordion type="single" collapsible className="w-full border rounded-lg">
+                <AccordionItem value="notifications" className="border-none">
+                  <AccordionTrigger className="px-4 hover:no-underline">
+                    <div className="flex items-center gap-2">
+                      <Bell className="w-5 h-5 text-orange-600" />
+                      <span className="font-semibold">Notificaciones Automáticas</span>
+                    </div>
+                  </AccordionTrigger>
+                  <AccordionContent className="px-4 pb-4 space-y-4">
+                    <div className="bg-blue-50 border-l-4 border-blue-500 p-3 rounded">
+                      <p className="text-sm text-blue-900">
+                        <AlertCircle className="w-4 h-4 inline mr-2" />
+                        Configura recordatorios a familias y alertas para admins
+                      </p>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label>Frecuencia de recordatorios a familias (días)</Label>
+                      <Select
+                        value={formData.frecuencia_recordatorios_dias.toString()}
+                        onValueChange={(value) => setFormData({...formData, frecuencia_recordatorios_dias: parseInt(value)})}
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="0">🔕 Desactivado</SelectItem>
+                          <SelectItem value="1">📧 Cada día</SelectItem>
+                          <SelectItem value="2">📧 Cada 2 días</SelectItem>
+                          <SelectItem value="3">📧 Cada 3 días (recomendado)</SelectItem>
+                          <SelectItem value="5">📧 Cada 5 días</SelectItem>
+                          <SelectItem value="7">📧 Cada semana</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label>Alertar admins X días antes del vencimiento</Label>
+                        <Select
+                          value={formData.dias_antes_alerta_admin.toString()}
+                          onValueChange={(value) => setFormData({...formData, dias_antes_alerta_admin: parseInt(value)})}
+                        >
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="1">1 día antes</SelectItem>
+                            <SelectItem value="2">2 días antes</SelectItem>
+                            <SelectItem value="3">3 días antes</SelectItem>
+                            <SelectItem value="5">5 días antes</SelectItem>
+                            <SelectItem value="7">1 semana antes</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label>Alertar admins si % pendiente supera</Label>
+                        <Select
+                          value={formData.porcentaje_alerta_admin.toString()}
+                          onValueChange={(value) => setFormData({...formData, porcentaje_alerta_admin: parseInt(value)})}
+                        >
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="30">30%</SelectItem>
+                            <SelectItem value="40">40%</SelectItem>
+                            <SelectItem value="50">50%</SelectItem>
+                            <SelectItem value="60">60%</SelectItem>
+                            <SelectItem value="70">70%</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+
+                    <div className="bg-slate-50 border border-slate-200 p-3 rounded">
+                      <p className="text-xs text-slate-700">
+                        📋 Recordatorios cada <strong>{formData.frecuencia_recordatorios_dias === 0 ? 'nunca' : `${formData.frecuencia_recordatorios_dias} día${formData.frecuencia_recordatorios_dias !== 1 ? 's' : ''}`}</strong>. 
+                        Alertas a admins <strong>{formData.dias_antes_alerta_admin} día${formData.dias_antes_alerta_admin !== 1 ? 's' : ''}</strong> antes del vencimiento 
+                        o si hay más del <strong>{formData.porcentaje_alerta_admin}%</strong> pendiente.
+                      </p>
+                    </div>
+                  </AccordionContent>
+                </AccordionItem>
+              </Accordion>
+            )}
 
             <div className="flex justify-end gap-3 pt-4">
               <Button type="button" variant="outline" onClick={onCancel}>
