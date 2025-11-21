@@ -252,7 +252,7 @@ export default function AutomaticNotificationEngine({ user }) {
     };
 
     checkAndCreateNotifications();
-  }, [callups, payments, evaluations, players, notifications, user]);
+  }, [callups, payments, evaluations, players, notifications, documents, user]);
 
   return null;
 }
