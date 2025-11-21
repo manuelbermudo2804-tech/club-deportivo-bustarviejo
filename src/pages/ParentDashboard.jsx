@@ -110,8 +110,8 @@ export default function ParentDashboard() {
     queryKey: ['documents'],
     queryFn: () => base44.entities.Document.list('-created_date'),
     initialData: [],
-    staleTime: 60000,
-    refetchOnWindowFocus: false,
+    staleTime: 0,
+    refetchOnWindowFocus: true,
     enabled: !!user,
   });
 
