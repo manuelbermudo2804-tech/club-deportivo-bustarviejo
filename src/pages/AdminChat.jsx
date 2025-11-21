@@ -49,7 +49,7 @@ export default function AdminChat() {
     queryKey: ['chatMessages'],
     queryFn: () => base44.entities.ChatMessage.list('-created_date'),
     initialData: [],
-    refetchInterval: 2000,
+    refetchInterval: 5000,
   });
 
   const { data: players } = useQuery({
@@ -577,10 +577,10 @@ export default function AdminChat() {
                   return (
                     <div
                       key={msg.id}
-                      className={`flex ${isAdmin ? 'justify-end' : 'justify-start'} mb-1 group`}
+                      className={`flex ${isAdmin ? 'justify-end' : 'justify-start'} mb-1 w-full px-1 group`}
                     >
                       <div
-                        className={`max-w-[75%] rounded-lg shadow-sm relative ${
+                        className={`max-w-[85%] lg:max-w-[75%] rounded-lg shadow-sm overflow-hidden relative ${
                           isAdmin
                             ? 'bg-gradient-to-r from-green-600 to-green-700 text-white rounded-br-none'
                             : isJugador
@@ -600,23 +600,23 @@ export default function AdminChat() {
                         </button>
                         <div className="px-3 py-2">
                           <div className="flex items-center gap-2 mb-1 flex-wrap">
-                            <span className={`text-xs font-semibold ${
+                            <span className={`text-xs font-semibold truncate ${
                               isAdmin ? 'text-green-100' : isJugador ? 'text-blue-100' : 'text-orange-700'
                             }`}>
                               {isAdmin ? '🎓 ' : isJugador ? '⚽ ' : '👨‍👩‍👧 '}{msg.remitente_nombre}
                             </span>
                             {msg.destinatario_nombre && (
-                              <span className={`text-[10px] px-1.5 py-0.5 rounded ${
+                              <span className={`text-[10px] px-1.5 py-0.5 rounded truncate ${
                                 isAdmin ? 'bg-green-800 text-green-100' : 'bg-slate-200 text-slate-700'
                               }`}>
                                 → {msg.destinatario_nombre}
                               </span>
                             )}
                             {msg.prioridad !== "Normal" && (
-                              <span className="text-xs">{msg.prioridad === "Urgente" ? "🔴" : "⚠️"}</span>
+                              <span className="text-xs flex-shrink-0">{msg.prioridad === "Urgente" ? "🔴" : "⚠️"}</span>
                             )}
                           </div>
-                          <p className="text-sm leading-relaxed break-words">{msg.mensaje}</p>
+                          <p className="text-sm leading-relaxed break-words overflow-wrap-anywhere">{msg.mensaje}</p>
 
                           {msg.poll && (
                             <div className="mt-3">
