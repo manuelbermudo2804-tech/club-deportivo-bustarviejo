@@ -65,8 +65,7 @@ export default function ParentDashboard() {
     queryKey: ['seasonConfigs'],
     queryFn: () => base44.entities.SeasonConfig.list(),
     initialData: [],
-    staleTime: Infinity,
-    refetchOnWindowFocus: false,
+    staleTime: 30000,
     enabled: !!user,
   });
 
