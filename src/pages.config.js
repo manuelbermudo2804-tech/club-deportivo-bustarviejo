@@ -51,6 +51,8 @@ import PlayerRenewal from './pages/PlayerRenewal';
 import NotificationPreferences from './pages/NotificationPreferences';
 import EventManagement from './pages/EventManagement';
 import ParentEventRSVP from './pages/ParentEventRSVP';
+import DocumentManagement from './pages/DocumentManagement';
+import ParentDocuments from './pages/ParentDocuments';
 import __Layout from './Layout.jsx';
 
 
@@ -108,6 +110,8 @@ export const PAGES = {
     "NotificationPreferences": NotificationPreferences,
     "EventManagement": EventManagement,
     "ParentEventRSVP": ParentEventRSVP,
+    "DocumentManagement": DocumentManagement,
+    "ParentDocuments": ParentDocuments,
 }
 
 export const pagesConfig = {
