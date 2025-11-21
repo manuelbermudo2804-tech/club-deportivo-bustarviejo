@@ -91,7 +91,7 @@ export default function PlayerForm({ player, onSubmit, onCancel, isSubmitting, i
       grupo_sanguineo: "",
       contacto_emergencia_nombre: "",
       contacto_emergencia_telefono: "",
-      seguro_medico: "",
+      lesiones: "",
       observaciones_medicas: ""
     }
   });
@@ -774,17 +774,18 @@ export default function PlayerForm({ player, onSubmit, onCancel, isSubmitting, i
                   />
                 </div>
 
-                {/* Seguro Médico */}
+                {/* Lesiones */}
                 <div className="space-y-2 md:col-span-2">
-                  <Label htmlFor="seguro">Seguro Médico</Label>
-                  <Input
-                    id="seguro"
-                    value={currentPlayer.ficha_medica?.seguro_medico || ""}
+                  <Label htmlFor="lesiones">Lesiones</Label>
+                  <Textarea
+                    id="lesiones"
+                    value={currentPlayer.ficha_medica?.lesiones || ""}
                     onChange={(e) => setCurrentPlayer({
                       ...currentPlayer,
-                      ficha_medica: {...(currentPlayer.ficha_medica || {}), seguro_medico: e.target.value}
+                      ficha_medica: {...(currentPlayer.ficha_medica || {}), lesiones: e.target.value}
                     })}
-                    placeholder="Compañía y número de póliza"
+                    placeholder="Lesiones actuales o historial relevante..."
+                    rows={2}
                   />
                 </div>
 
