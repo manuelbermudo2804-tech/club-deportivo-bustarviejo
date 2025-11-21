@@ -32,7 +32,7 @@ export default function ParentChat() {
   const { data: messages = [], isLoading: loadingMessages, refetch: refetchMessages } = useQuery({
     queryKey: ['chatMessages'],
     queryFn: () => base44.entities.ChatMessage.list('-created_date'),
-    refetchInterval: 5000,
+    refetchInterval: 10000,
   });
 
   const { data: players = [], isLoading: loadingPlayers } = useQuery({

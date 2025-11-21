@@ -32,7 +32,7 @@ export default function NotificationCenter() {
     queryKey: ['messages'],
     queryFn: () => base44.entities.ChatMessage.list('-created_date'),
     initialData: [],
-    refetchInterval: 30000,
+    refetchInterval: 60000,
   });
 
   const { data: allNotifications } = useQuery({
@@ -42,7 +42,7 @@ export default function NotificationCenter() {
       return all.filter(n => n.usuario_email === user?.email);
     },
     enabled: !!user?.email,
-    refetchInterval: 30000,
+    refetchInterval: 60000,
     initialData: [],
   });
 
