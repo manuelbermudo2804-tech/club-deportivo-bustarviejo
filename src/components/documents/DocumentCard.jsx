@@ -3,8 +3,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { motion } from "framer-motion";
-import { FileText, Download, ExternalLink, Edit, Trash2, CheckCircle, Clock, Users, AlertCircle, Search } from "lucide-react";
+import { FileText, Download, ExternalLink, Edit, Trash2, CheckCircle, Clock, Users, AlertCircle, Search, Filter } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 
@@ -41,41 +42,18 @@ function DocumentSignatureList({ firmas }) {
             className="pl-8 h-9 text-sm"
           />
         </div>
-      </div>
-
-      <div className="flex gap-1 flex-wrap">
-        <Button
-          variant={filter === "all" ? "default" : "outline"}
-          size="sm"
-          onClick={() => setFilter("all")}
-          className="text-xs h-7"
-        >
-          Todos ({firmas.length})
-        </Button>
-        <Button
-          variant={filter === "firmado" ? "default" : "outline"}
-          size="sm"
-          onClick={() => setFilter("firmado")}
-          className="text-xs h-7 bg-green-50 hover:bg-green-100 text-green-700 border-green-200"
-        >
-          ✅ Firmado ({counts.firmado})
-        </Button>
-        <Button
-          variant={filter === "confirmado" ? "default" : "outline"}
-          size="sm"
-          onClick={() => setFilter("confirmado")}
-          className="text-xs h-7 bg-blue-50 hover:bg-blue-100 text-blue-700 border-blue-200"
-        >
-          🔵 Confirmado ({counts.confirmado})
-        </Button>
-        <Button
-          variant={filter === "pendiente" ? "default" : "outline"}
-          size="sm"
-          onClick={() => setFilter("pendiente")}
-          className="text-xs h-7 bg-orange-50 hover:bg-orange-100 text-orange-700 border-orange-200"
-        >
-          ⏳ Pendiente ({counts.pendiente})
-        </Button>
+        <Select value={filter} onValueChange={setFilter}>
+          <SelectTrigger className="w-[180px] h-9 text-sm">
+            <Filter className="w-4 h-4 mr-2" />
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Todos ({firmas.length})</SelectItem>
+            <SelectItem value="firmado">✅ Firmado ({counts.firmado})</SelectItem>
+            <SelectItem value="confirmado">🔵 Confirmado ({counts.confirmado})</SelectItem>
+            <SelectItem value="pendiente">⏳ Pendiente ({counts.pendiente})</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
 
       <div className="max-h-80 overflow-y-auto space-y-1.5">
