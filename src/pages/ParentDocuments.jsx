@@ -111,7 +111,14 @@ export default function ParentDocuments() {
     });
   };
 
-  const handleConfirmExternalSign = (document, player) => {
+  const handleConfirmExternalSign = async (document, player) => {
+    if (!user) {
+      toast.error("Error: usuario no identificado");
+      return;
+    }
+
+    console.log("🔍 Confirmando firma externa:", { document: document.titulo, player: player.nombre });
+    
     const updatedFirmas = (document.firmas || []).map(f => {
       if (f.jugador_id === player.id) {
         return {
@@ -134,13 +141,22 @@ export default function ParentDocuments() {
       });
     }
 
-    updateDocumentMutation.mutate({
-      id: document.id,
-      documentData: {
-        ...document,
-        firmas: updatedFirmas
-      }
-    });
+    console.log("📝 Firmas actualizadas:", updatedFirmas);
+
+    try {
+      await updateDocumentMutation.mutateAsync({
+        id: document.id,
+        documentData: {
+          ...document,
+          firmas: updatedFirmas
+        }
+      });
+      toast.success("✅ Confirmación registrada correctamente");
+      console.log("✅ Confirmación guardada con éxito");
+    } catch (error) {
+      console.error("❌ Error al confirmar firma externa:", error);
+      toast.error("Error al registrar la confirmación");
+    }
   };
 
   const getPlayerSignatureStatus = (document, playerId) => {
