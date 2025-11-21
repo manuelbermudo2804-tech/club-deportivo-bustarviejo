@@ -50,6 +50,14 @@ export default function AutomaticNotificationEngine({ user }) {
     enabled: false,
   });
 
+  const { data: documents } = useQuery({
+    queryKey: ['documents'],
+    queryFn: () => base44.entities.Document.list(),
+    initialData: [],
+    refetchInterval: 300000,
+    enabled: !!user,
+  });
+
   useEffect(() => {
     if (!user) return;
 
@@ -172,6 +180,73 @@ export default function AutomaticNotificationEngine({ user }) {
             referencia_id: notifKey,
             vista: false
           });
+        }
+      }
+
+      // 4. Documentos pendientes de firma (últimas 48h)
+      const twoDaysAgo = new Date(now - 48 * 60 * 60 * 1000);
+      for (const document of documents) {
+        if (!document.publicado || !document.requiere_firma) continue;
+        
+        const docDate = new Date(document.created_date);
+        if (docDate < twoDaysAgo) continue;
+
+        // Verificar si es relevante para este usuario
+        const isRelevant = document.tipo_destinatario === "individual" 
+          ? myPlayers.some(p => document.jugadores_destino?.includes(p.id))
+          : (document.categoria_destino === "Todos" || myPlayers.some(p => p.deporte === document.categoria_destino));
+
+        if (!isRelevant) continue;
+
+        // Verificar si tiene firmas pendientes de mis jugadores
+        const pendingSignatures = myPlayers.filter(player => {
+          const isRelevantForPlayer = document.tipo_destinatario === "individual" 
+            ? document.jugadores_destino?.includes(player.id)
+            : (document.categoria_destino === "Todos" || player.deporte === document.categoria_destino);
+          
+          if (!isRelevantForPlayer) return false;
+          
+          const firma = document.firmas?.find(f => f.jugador_id === player.id);
+          return !firma?.firmado && !firma?.confirmado_firma_externa;
+        });
+
+        if (pendingSignatures.length === 0) continue;
+
+        const notifKey = `document-pending-${document.id}-${user.email}`;
+        const exists = notifications.some(n => n.tipo === "documento_pendiente" && n.referencia_id === notifKey);
+
+        if (!exists) {
+          await base44.entities.AppNotification.create({
+            usuario_email: user.email,
+            tipo: "documento_pendiente",
+            titulo: "📄 Documento pendiente de firma",
+            mensaje: `Tienes ${pendingSignatures.length} jugador${pendingSignatures.length !== 1 ? 'es' : ''} con firma pendiente: ${document.titulo}`,
+            prioridad: "importante",
+            url_accion: "/ParentDocuments",
+            referencia_id: notifKey,
+            vista: false
+          });
+
+          // Email automático
+          await base44.integrations.Core.SendEmail({
+            to: user.email,
+            subject: `📄 Documento pendiente de firma - ${document.titulo}`,
+            body: `
+              <h2>Documento pendiente de firma</h2>
+              <p>Tienes un nuevo documento que requiere tu firma:</p>
+              <div style="background: #fef3c7; border-left: 4px solid #f59e0b; padding: 16px; margin: 16px 0;">
+                <p><strong>📄 Documento:</strong> ${document.titulo}</p>
+                <p><strong>📋 Tipo:</strong> ${document.tipo}</p>
+                ${document.fecha_limite_firma ? `<p><strong>⏰ Fecha límite:</strong> ${new Date(document.fecha_limite_firma).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' })}</p>` : ''}
+              </div>
+              <p><strong>Jugadores pendientes de firma:</strong></p>
+              <ul>
+                ${pendingSignatures.map(p => `<li>${p.nombre}</li>`).join('')}
+              </ul>
+              <p>Por favor, entra a la aplicación para revisar y firmar el documento.</p>
+              <p style="margin-top: 24px; color: #64748b; font-size: 14px;">CD Bustarviejo - Gestión Documental</p>
+            `
+          }).catch(err => console.error("Error sending document email:", err));
         }
       }
     };
