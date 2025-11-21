@@ -111,6 +111,38 @@ export default function ParentDocuments() {
     });
   };
 
+  const handleConfirmExternalSign = (document, player) => {
+    const updatedFirmas = (document.firmas || []).map(f => {
+      if (f.jugador_id === player.id) {
+        return {
+          ...f,
+          confirmado_firma_externa: true,
+          fecha_confirmacion_externa: new Date().toISOString()
+        };
+      }
+      return f;
+    });
+
+    if (!updatedFirmas.some(f => f.jugador_id === player.id)) {
+      updatedFirmas.push({
+        jugador_id: player.id,
+        jugador_nombre: player.nombre,
+        email_padre: user.email,
+        firmado: false,
+        confirmado_firma_externa: true,
+        fecha_confirmacion_externa: new Date().toISOString()
+      });
+    }
+
+    updateDocumentMutation.mutate({
+      id: document.id,
+      documentData: {
+        ...document,
+        firmas: updatedFirmas
+      }
+    });
+  };
+
   const getPlayerSignatureStatus = (document, playerId) => {
     if (!document.requiere_firma) return null;
     const firma = document.firmas?.find(f => f.jugador_id === playerId);
@@ -314,6 +346,7 @@ export default function ParentDocuments() {
                         {myPlayers.map((player) => {
                           const firma = getPlayerSignatureStatus(document, player.id);
                           const isSigned = firma?.firmado;
+                          const confirmedExternal = firma?.confirmado_firma_externa;
 
                           return (
                             <div key={player.id} className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
@@ -325,6 +358,13 @@ export default function ParentDocuments() {
                                       <CheckCircle className="w-4 h-4 text-green-600" />
                                       <span className="text-sm text-green-600">
                                         Firmado el {format(new Date(firma.fecha_firma), "d/MM/yyyy HH:mm", { locale: es })}
+                                      </span>
+                                    </>
+                                  ) : confirmedExternal ? (
+                                    <>
+                                      <AlertCircle className="w-4 h-4 text-blue-600" />
+                                      <span className="text-sm text-blue-600">
+                                        ✅ Confirmado firma externa el {format(new Date(firma.fecha_confirmacion_externa), "d/MM/yyyy HH:mm", { locale: es })}
                                       </span>
                                     </>
                                   ) : (
@@ -340,15 +380,26 @@ export default function ParentDocuments() {
                                   </p>
                                 )}
                               </div>
-                              {!isSigned && !document.enlace_firma_externa && (
-                                <Button
-                                  onClick={() => handleSignDocument(document, player)}
-                                  size="sm"
-                                  className="bg-orange-600 hover:bg-orange-700"
-                                >
-                                  Firmar
-                                </Button>
-                              )}
+                              <div className="flex gap-2">
+                                {!isSigned && !document.enlace_firma_externa && (
+                                  <Button
+                                    onClick={() => handleSignDocument(document, player)}
+                                    size="sm"
+                                    className="bg-orange-600 hover:bg-orange-700"
+                                  >
+                                    Firmar
+                                  </Button>
+                                )}
+                                {!isSigned && document.enlace_firma_externa && !confirmedExternal && (
+                                  <Button
+                                    onClick={() => handleConfirmExternalSign(document, player)}
+                                    size="sm"
+                                    className="bg-blue-600 hover:bg-blue-700"
+                                  >
+                                    ✅ Ya Firmé
+                                  </Button>
+                                )}
+                              </div>
                             </div>
                           );
                         })}
