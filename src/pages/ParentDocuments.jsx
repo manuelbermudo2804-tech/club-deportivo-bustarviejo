@@ -486,8 +486,8 @@ export default function ParentDocuments() {
                         <div className="bg-blue-50 border-l-4 border-blue-500 p-3 mb-3 rounded">
                           <p className="text-xs text-blue-800">
                             💡 <strong>Importante:</strong> Este documento se firma en una plataforma externa. 
-                            Después de completar la firma online, vuelve aquí y pulsa el botón "✅ Ya Firmé" 
-                            del jugador correspondiente para confirmar que has firmado.
+                            Después de completar la firma online, vuelve aquí y pulsa el botón "✅ Confirmar Firma" 
+                            del jugador correspondiente para registrar que has firmado.
                           </p>
                         </div>
                       )}
