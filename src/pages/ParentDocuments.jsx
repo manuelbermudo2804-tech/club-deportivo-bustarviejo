@@ -261,33 +261,33 @@ export default function ParentDocuments() {
     : filterType === "pending"
     ? relevantDocuments.filter(d => {
         if (!d.requiere_firma) return false;
-        
+
         return myPlayers.some(player => {
           const isRelevantForPlayer = d.tipo_destinatario === "individual" 
             ? d.jugadores_destino?.includes(player.id)
             : (d.categoria_destino === "Todos" || player.deporte === d.categoria_destino);
-          
+
           if (!isRelevantForPlayer) return false;
-          
+
           const firma = getPlayerSignatureStatus(d, player.id);
-          // Documento pendiente solo si NO está firmado Y NO está confirmada firma externa
-          return firma && !firma.firmado && !firma.confirmado_firma_externa;
+          // Pendiente si no existe firma O si existe pero no está firmado ni confirmado
+          return !firma || (!firma.firmado && !firma.confirmado_firma_externa);
         });
       })
     : relevantDocuments.filter(d => d.tipo === filterType);
 
   const pendingCount = relevantDocuments.filter(d => {
     if (!d.requiere_firma) return false;
-    
+
     return myPlayers.some(player => {
       const isRelevantForPlayer = d.tipo_destinatario === "individual" 
         ? d.jugadores_destino?.includes(player.id)
         : (d.categoria_destino === "Todos" || player.deporte === d.categoria_destino);
-      
+
       if (!isRelevantForPlayer) return false;
-      
+
       const firma = getPlayerSignatureStatus(d, player.id);
-      return !firma?.firmado && !firma?.confirmado_firma_externa;
+      return !firma || (!firma.firmado && !firma.confirmado_firma_externa);
     });
   }).length;
 
