@@ -58,13 +58,10 @@ export default function ParentDocuments() {
 
   const updateDocumentMutation = useMutation({
     mutationFn: ({ id, documentData }) => base44.entities.Document.update(id, documentData),
-    onSuccess: async () => {
+    onSuccess: () => {
       console.log("✅ Documento actualizado con éxito");
+      queryClient.invalidateQueries({ queryKey: ['documents'] });
       toast.success("✅ Confirmación registrada correctamente");
-      
-      // Refetch inmediato
-      await refetch();
-      console.log("🔄 Datos refrescados");
       
       setShowSignDialog(false);
       setSelectedDocument(null);
@@ -453,21 +450,28 @@ export default function ParentDocuments() {
                                     onClick={(e) => {
                                       e.preventDefault();
                                       e.stopPropagation();
-                                      console.log("🖱️ CLICK detectado en botón Ya Firmé");
+                                      console.log("🖱️ CLICK detectado en botón");
                                       handleConfirmExternalSign(document, player);
                                     }}
                                     onTouchEnd={(e) => {
                                       e.preventDefault();
                                       e.stopPropagation();
-                                      console.log("👆 TOUCH detectado en botón Ya Firmé");
+                                      console.log("👆 TOUCH detectado en botón");
                                       handleConfirmExternalSign(document, player);
                                     }}
                                     disabled={updateDocumentMutation.isPending}
-                                    className="bg-blue-600 hover:bg-blue-700 w-full sm:w-auto min-h-[44px] px-6 text-base font-semibold disabled:opacity-50"
+                                    className="bg-green-600 hover:bg-green-700 w-full sm:w-auto min-h-[44px] px-6 text-base font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
                                     title="Pulsa aquí después de firmar en la plataforma externa"
                                   >
-                                    {updateDocumentMutation.isPending ? "⏳ Registrando..." : "✅ Ya Firmé"}
+                                    {updateDocumentMutation.isPending ? "⏳ Confirmando..." : "✅ Confirmar Firma"}
                                   </Button>
+                                )}
+                                {!isSigned && document.enlace_firma_externa && confirmedExternal && (
+                                  <div className="bg-green-100 border-2 border-green-500 rounded-lg px-4 py-2 w-full sm:w-auto">
+                                    <p className="text-green-700 font-bold text-sm text-center">
+                                      ✅ Firma Confirmada
+                                    </p>
+                                  </div>
                                 )}
                               </div>
                             </div>
