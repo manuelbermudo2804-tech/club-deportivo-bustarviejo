@@ -213,8 +213,16 @@ export default function ParentDashboard() {
     
     if (!isRelevant) return false;
     
+    // Verificar si hay algún jugador con firma pendiente (ni firmado ni confirmado externa)
     return myPlayers.some(player => {
+      const isRelevantForPlayer = doc.tipo_destinatario === "individual" 
+        ? doc.jugadores_destino?.includes(player.id)
+        : (doc.categoria_destino === "Todos" || player.deporte === doc.categoria_destino);
+      
+      if (!isRelevantForPlayer) return false;
+      
       const firma = doc.firmas?.find(f => f.jugador_id === player.id);
+      // Pendiente solo si existe firma Y no está firmado Y no está confirmada externa
       return firma && !firma.firmado && !firma.confirmado_firma_externa;
     });
   }) : [];
