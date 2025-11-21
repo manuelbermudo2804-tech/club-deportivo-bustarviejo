@@ -232,6 +232,33 @@ export default function ParentDocuments() {
                 </CardHeader>
 
                 <CardContent className="pt-6 space-y-4">
+                  {document.codigo_qr_url && (
+                    <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-blue-200 rounded-xl p-6 text-center">
+                      <p className="text-sm font-semibold text-blue-900 mb-4">
+                        📱 Escanea el código QR para firmar
+                      </p>
+                      <div className="flex justify-center mb-4">
+                        <img 
+                          src={document.codigo_qr_url} 
+                          alt="Código QR para firma" 
+                          className="w-48 h-48 border-4 border-white rounded-xl shadow-lg"
+                        />
+                      </div>
+                      {document.enlace_firma_externa && (
+                        <a
+                          href={document.enlace_firma_externa}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          <Button className="bg-blue-600 hover:bg-blue-700 w-full sm:w-auto">
+                            <ExternalLink className="w-4 h-4 mr-2" />
+                            O haz clic aquí para firmar
+                          </Button>
+                        </a>
+                      )}
+                    </div>
+                  )}
+
                   <div className="flex gap-4 flex-wrap">
                     {document.archivo_url && (
                       <a
@@ -247,7 +274,7 @@ export default function ParentDocuments() {
                       </a>
                     )}
                     
-                    {document.enlace_firma_externa && (
+                    {document.enlace_firma_externa && !document.codigo_qr_url && (
                       <a
                         href={document.enlace_firma_externa}
                         target="_blank"

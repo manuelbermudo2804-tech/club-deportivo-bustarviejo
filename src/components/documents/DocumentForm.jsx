@@ -25,6 +25,7 @@ export default function DocumentForm({ document, players, onSubmit, onCancel, is
     categoria_destino: "Todos",
     archivo_url: "",
     enlace_firma_externa: "",
+    codigo_qr_url: "",
     requiere_firma: false,
     fecha_limite_firma: "",
     publicado: true,
@@ -33,6 +34,7 @@ export default function DocumentForm({ document, players, onSubmit, onCancel, is
   });
 
   const [uploading, setUploading] = useState(false);
+  const [uploadingQR, setUploadingQR] = useState(false);
 
   const handleFileUpload = async (e) => {
     const file = e.target.files[0];
@@ -53,6 +55,28 @@ export default function DocumentForm({ document, players, onSubmit, onCancel, is
       toast.error("Error al subir el archivo");
     } finally {
       setUploading(false);
+    }
+  };
+
+  const handleQRUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      toast.error("Solo se permiten imágenes");
+      return;
+    }
+
+    setUploadingQR(true);
+    try {
+      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+      setFormData({ ...formData, codigo_qr_url: file_url });
+      toast.success("Código QR subido correctamente");
+    } catch (error) {
+      console.error("Error uploading QR:", error);
+      toast.error("Error al subir el código QR");
+    } finally {
+      setUploadingQR(false);
     }
   };
 
@@ -216,6 +240,32 @@ export default function DocumentForm({ document, players, onSubmit, onCancel, is
                 </div>
 
                 <div className="space-y-2">
+                  <Label htmlFor="codigo_qr">Código QR (opcional)</Label>
+                  <div className="flex gap-2">
+                    <Input
+                      id="codigo_qr"
+                      type="file"
+                      accept="image/*"
+                      onChange={handleQRUpload}
+                      disabled={uploadingQR}
+                    />
+                    {uploadingQR && <Loader2 className="w-5 h-5 animate-spin text-orange-600" />}
+                  </div>
+                  {formData.codigo_qr_url && (
+                    <div className="mt-2">
+                      <img 
+                        src={formData.codigo_qr_url} 
+                        alt="Código QR" 
+                        className="w-32 h-32 border rounded-lg"
+                      />
+                    </div>
+                  )}
+                  <p className="text-xs text-slate-500">
+                    Sube la imagen del código QR generado por la federación para que las familias puedan escanearlo.
+                  </p>
+                </div>
+
+                <div className="space-y-2">
                   <Label htmlFor="fecha_limite">Fecha Límite (opcional)</Label>
                   <Input
                     id="fecha_limite"
@@ -255,7 +305,7 @@ export default function DocumentForm({ document, players, onSubmit, onCancel, is
               </Button>
               <Button
                 type="submit"
-                disabled={isSubmitting || uploading}
+                disabled={isSubmitting || uploading || uploadingQR}
                 className="bg-orange-600 hover:bg-orange-700"
               >
                 {isSubmitting ? (

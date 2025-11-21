@@ -82,6 +82,20 @@ export default function DocumentCard({ document, players, onEdit, onDelete, isAd
         </CardHeader>
 
         <CardContent className="pt-4 space-y-4">
+          {document.codigo_qr_url && (
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 flex items-center gap-4">
+              <img 
+                src={document.codigo_qr_url} 
+                alt="Código QR" 
+                className="w-24 h-24 border-2 border-white rounded-lg shadow"
+              />
+              <div className="flex-1">
+                <p className="text-sm font-semibold text-blue-900">Código QR disponible</p>
+                <p className="text-xs text-blue-700">Las familias pueden escanearlo para firmar</p>
+              </div>
+            </div>
+          )}
+
           <div className="flex gap-3 flex-wrap">
             {document.archivo_url && (
               <a
