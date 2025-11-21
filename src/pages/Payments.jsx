@@ -789,7 +789,7 @@ Email: cdbustarviejo@gmail.com
                         : ["Junio", "Septiembre", "Diciembre"];
 
                       // Crear pagos virtuales para los meses que faltan
-                      const displayPayments = allMonths.map(mes => {
+                      let displayPayments = allMonths.map(mes => {
                         const existingPayment = playerPayments.find(p => p.mes === mes);
                         if (existingPayment) {
                           return existingPayment;
@@ -812,6 +812,11 @@ Email: cdbustarviejo@gmail.com
                           isVirtual: true
                         };
                       });
+
+                      // Si hay filtro de estado activo, filtrar displayPayments también
+                      if (estadoFilter !== "all") {
+                        displayPayments = displayPayments.filter(p => p.estado === estadoFilter);
+                      }
                       
                       // Contar solo pagos REALES (no virtuales)
                       const realPayments = displayPayments.filter(p => !p.isVirtual);
