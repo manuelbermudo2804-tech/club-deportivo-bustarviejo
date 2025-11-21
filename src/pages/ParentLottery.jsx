@@ -281,7 +281,17 @@ export default function ParentLottery() {
                         <SelectValue placeholder="Selecciona tu categoría" />
                       </SelectTrigger>
                       <SelectContent>
-                        {(user?.categorias_entrena || []).map(cat => (
+                        {(user?.categorias_entrena && user.categorias_entrena.length > 0 ? user.categorias_entrena : [
+                          "Fútbol Pre-Benjamín (Mixto)",
+                          "Fútbol Benjamín (Mixto)",
+                          "Fútbol Alevín (Mixto)",
+                          "Fútbol Infantil (Mixto)",
+                          "Fútbol Cadete",
+                          "Fútbol Juvenil",
+                          "Fútbol Aficionado",
+                          "Fútbol Femenino",
+                          "Baloncesto (Mixto)"
+                        ]).map(cat => (
                           <SelectItem key={cat} value={cat}>
                             {cat}
                           </SelectItem>
@@ -289,7 +299,7 @@ export default function ParentLottery() {
                       </SelectContent>
                     </Select>
                     <p className="text-sm text-slate-600 bg-blue-50 p-3 rounded-lg border border-blue-200">
-                      ℹ️ Como entrenador, tu pedido se asociará a esta categoría
+                      ℹ️ Como entrenador/coordinador, tu pedido se asociará a esta categoría
                     </p>
                   </div>
                 ) : (
