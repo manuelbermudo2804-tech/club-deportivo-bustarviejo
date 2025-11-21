@@ -25,7 +25,7 @@ export default function ParentDashboard() {
     fetchUser();
   }, []);
 
-  const { data: players } = useQuery({
+  const { data: players, isLoading: playersLoading } = useQuery({
     queryKey: ['players'],
     queryFn: () => base44.entities.Player.list(),
     initialData: [],
@@ -336,6 +336,18 @@ export default function ParentDashboard() {
   };
 
   const menuItems = buildMenuItems();
+
+  // Mostrar loading mientras se cargan los datos iniciales
+  if (!user || playersLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-black flex items-center justify-center">
+        <div className="text-center">
+          <div className="inline-block h-12 w-12 animate-spin rounded-full border-4 border-solid border-orange-600 border-r-transparent mb-4"></div>
+          <p className="text-white text-lg">Cargando panel...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-black pt-4 lg:pt-0">
