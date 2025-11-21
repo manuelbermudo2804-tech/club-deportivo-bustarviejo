@@ -188,20 +188,20 @@ export default function ParentDocuments() {
 
     toast.info("⏳ Registrando confirmación de firma externa...");
     
-    const updatedFirmas = (document.firmas || []).map(f => {
-      if (f.jugador_id === player.id) {
-        console.log("✏️ Actualizando firma existente para jugador:", player.nombre);
-        return {
-          ...f,
-          firmado: false,
-          confirmado_firma_externa: true,
-          fecha_confirmacion_externa: new Date().toISOString()
-        };
-      }
-      return f;
-    });
-
-    if (!updatedFirmas.some(f => f.jugador_id === player.id)) {
+    // Crear una copia profunda del array de firmas
+    let updatedFirmas = JSON.parse(JSON.stringify(document.firmas || []));
+    
+    const existingFirmaIndex = updatedFirmas.findIndex(f => f.jugador_id === player.id);
+    
+    if (existingFirmaIndex !== -1) {
+      console.log("✏️ Actualizando firma existente para jugador:", player.nombre);
+      updatedFirmas[existingFirmaIndex] = {
+        ...updatedFirmas[existingFirmaIndex],
+        firmado: false,
+        confirmado_firma_externa: true,
+        fecha_confirmacion_externa: new Date().toISOString()
+      };
+    } else {
       console.log("➕ Creando nueva firma para jugador:", player.nombre);
       updatedFirmas.push({
         jugador_id: player.id,
@@ -215,12 +215,30 @@ export default function ParentDocuments() {
 
     console.log("📝 Firmas actualizadas:", JSON.stringify(updatedFirmas, null, 2));
 
+    // Crear objeto completo del documento con TODAS las propiedades
+    const updatedDocument = {
+      titulo: document.titulo,
+      descripcion: document.descripcion,
+      tipo: document.tipo,
+      tipo_destinatario: document.tipo_destinatario,
+      categoria_destino: document.categoria_destino,
+      jugadores_destino: document.jugadores_destino,
+      archivo_url: document.archivo_url,
+      enlace_firma_externa: document.enlace_firma_externa,
+      codigo_qr_url: document.codigo_qr_url,
+      requiere_firma: document.requiere_firma,
+      fecha_limite_firma: document.fecha_limite_firma,
+      publicado: document.publicado,
+      firmas: updatedFirmas,
+      enviar_notificacion: document.enviar_notificacion,
+      notificacion_enviada: document.notificacion_enviada
+    };
+
+    console.log("📤 Documento completo a enviar:", JSON.stringify(updatedDocument, null, 2));
+
     updateDocumentMutation.mutate({
       id: document.id,
-      documentData: {
-        ...document,
-        firmas: updatedFirmas
-      }
+      documentData: updatedDocument
     });
   };
 
