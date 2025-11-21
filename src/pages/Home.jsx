@@ -236,6 +236,12 @@ export default function Home() {
           icon: Megaphone,
           url: createPageUrl("Announcements"),
           gradient: "from-pink-600 to-pink-700",
+        },
+        {
+          title: "📄 Documentos",
+          icon: FileText,
+          url: createPageUrl("DocumentManagement"),
+          gradient: "from-slate-600 to-slate-700",
         }
       );
 
@@ -426,6 +432,12 @@ export default function Home() {
 
       if (hasPlayers) {
         items.push(
+          {
+            title: "📄 Documentos",
+            icon: FileText,
+            url: createPageUrl("ParentDocuments"),
+            gradient: "from-slate-600 to-slate-700",
+          },
           {
             title: "Pedidos Ropa",
             icon: ShoppingBag,
