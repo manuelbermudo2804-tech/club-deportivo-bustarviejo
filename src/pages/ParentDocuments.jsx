@@ -271,8 +271,11 @@ export default function ParentDocuments() {
                 <CardContent className="pt-6 space-y-4">
                   {document.codigo_qr_url && (
                     <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-blue-200 rounded-xl p-6 text-center">
-                      <p className="text-sm font-semibold text-blue-900 mb-4">
+                      <p className="text-sm font-semibold text-blue-900 mb-2">
                         📱 Escanea el código QR para firmar
+                      </p>
+                      <p className="text-xs text-blue-700 mb-4">
+                        ℹ️ Después de firmar en la plataforma externa, pulsa "✅ Ya Firmé" para confirmar
                       </p>
                       <div className="flex justify-center mb-4">
                         <img 
@@ -341,6 +344,16 @@ export default function ParentDocuments() {
                         <Users className="w-5 h-5 text-orange-600" />
                         <span className="font-semibold text-slate-900">Estado de Firma por Jugador:</span>
                       </div>
+
+                      {document.enlace_firma_externa && (
+                        <div className="bg-blue-50 border-l-4 border-blue-500 p-3 mb-3 rounded">
+                          <p className="text-xs text-blue-800">
+                            💡 <strong>Importante:</strong> Este documento se firma en una plataforma externa. 
+                            Después de completar la firma online, vuelve aquí y pulsa el botón "✅ Ya Firmé" 
+                            del jugador correspondiente para confirmar que has firmado.
+                          </p>
+                        </div>
+                      )}
                       
                       <div className="space-y-2">
                         {myPlayers.map((player) => {
@@ -402,6 +415,7 @@ export default function ParentDocuments() {
                                     onClick={() => handleConfirmExternalSign(document, player)}
                                     size="sm"
                                     className="bg-blue-600 hover:bg-blue-700"
+                                    title="Pulsa aquí después de firmar en la plataforma externa"
                                   >
                                     ✅ Ya Firmé
                                   </Button>
