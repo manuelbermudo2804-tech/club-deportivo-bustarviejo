@@ -1,42 +1,95 @@
 import React, { useState, useEffect } from "react";
-import { Moon, Sun } from "lucide-react";
+import { Moon, Sun, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 export default function ThemeToggle() {
-  const [isDark, setIsDark] = useState(false);
+  const [theme, setTheme] = useState("auto");
 
   useEffect(() => {
-    const theme = localStorage.getItem("theme");
-    if (theme === "dark") {
-      document.documentElement.classList.add("dark");
-      setIsDark(true);
-    }
+    const savedTheme = localStorage.getItem("theme") || "auto";
+    setTheme(savedTheme);
+    applyTheme(savedTheme);
   }, []);
 
-  const toggleTheme = () => {
-    if (isDark) {
-      document.documentElement.classList.remove("dark");
-      localStorage.setItem("theme", "light");
-      setIsDark(false);
+  const applyTheme = (selectedTheme) => {
+    const body = document.body;
+    const root = document.documentElement;
+    
+    // Añadir transición suave
+    body.style.transition = "background 0.3s ease, color 0.3s ease";
+    
+    if (selectedTheme === "auto") {
+      const hour = new Date().getHours();
+      const isNight = hour >= 20 || hour < 7;
+      
+      if (isNight) {
+        root.classList.add("dark");
+        body.classList.remove("theme-light");
+        body.classList.add("theme-dark");
+      } else {
+        root.classList.remove("dark");
+        body.classList.remove("theme-dark");
+        body.classList.add("theme-light");
+      }
+    } else if (selectedTheme === "dark") {
+      root.classList.add("dark");
+      body.classList.remove("theme-light");
+      body.classList.add("theme-dark");
     } else {
-      document.documentElement.classList.add("dark");
-      localStorage.setItem("theme", "dark");
-      setIsDark(true);
+      root.classList.remove("dark");
+      body.classList.remove("theme-dark");
+      body.classList.add("theme-light");
     }
+    
+    // Remover transición después
+    setTimeout(() => {
+      body.style.transition = "";
+    }, 300);
+  };
+
+  const changeTheme = (newTheme) => {
+    setTheme(newTheme);
+    localStorage.setItem("theme", newTheme);
+    applyTheme(newTheme);
+  };
+
+  const getIcon = () => {
+    if (theme === "dark") return <Moon className="w-5 h-5 text-blue-400" />;
+    if (theme === "light") return <Sun className="w-5 h-5 text-yellow-500" />;
+    return <Clock className="w-5 h-5 text-purple-500" />;
   };
 
   return (
-    <Button
-      variant="ghost"
-      size="icon"
-      onClick={toggleTheme}
-      className="rounded-full min-w-[44px] min-h-[44px]"
-    >
-      {isDark ? (
-        <Sun className="w-6 h-6 text-yellow-500" />
-      ) : (
-        <Moon className="w-6 h-6 text-slate-600" />
-      )}
-    </Button>
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="rounded-full min-w-[44px] min-h-[44px] transition-all hover:scale-110"
+        >
+          {getIcon()}
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="w-36">
+        <DropdownMenuItem onClick={() => changeTheme("light")} className="cursor-pointer">
+          <Sun className="w-4 h-4 mr-2 text-yellow-500" />
+          Claro
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => changeTheme("dark")} className="cursor-pointer">
+          <Moon className="w-4 h-4 mr-2 text-blue-400" />
+          Oscuro
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => changeTheme("auto")} className="cursor-pointer">
+          <Clock className="w-4 h-4 mr-2 text-purple-500" />
+          Automático
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }
