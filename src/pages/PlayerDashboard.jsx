@@ -45,7 +45,7 @@ export default function PlayerDashboard() {
       const configs = await base44.entities.SeasonConfig.list();
       return configs.find(c => c.activa === true);
     },
-    staleTime: Infinity,
+    staleTime: 10000,
   });
 
   const unreadMessages = messages.filter(m => 

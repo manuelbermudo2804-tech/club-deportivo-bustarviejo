@@ -21,18 +21,21 @@ export default function Home() {
   const [userRole, setUserRole] = useState("parent");
   const [loteriaVisible, setLoteriaVisible] = useState(false);
 
+  const { data: seasonConfig } = useQuery({
+    queryKey: ['seasonConfig'],
+    queryFn: async () => {
+      const configs = await base44.entities.SeasonConfig.list();
+      return configs.find(c => c.activa === true);
+    },
+    staleTime: 10000,
+    enabled: !!user,
+  });
+
   useEffect(() => {
-    const fetchSeasonConfig = async () => {
-      try {
-        const configs = await base44.entities.SeasonConfig.list();
-        const activeConfig = configs.find(c => c.activa === true);
-        setLoteriaVisible(activeConfig?.loteria_navidad_abierta === true);
-      } catch (error) {
-        console.error("Error fetching season config:", error);
-      }
-    };
-    fetchSeasonConfig();
-  }, []);
+    if (seasonConfig) {
+      setLoteriaVisible(seasonConfig.loteria_navidad_abierta === true);
+    }
+  }, [seasonConfig]);
 
   useEffect(() => {
     const fetchUser = async () => {
