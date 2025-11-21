@@ -21,7 +21,8 @@ export default function DocumentCard({ document, players, onEdit, onDelete, isAd
   const signedCount = document.firmas?.filter(f => f.firmado).length || 0;
   const confirmedExternalCount = document.firmas?.filter(f => f.confirmado_firma_externa && !f.firmado).length || 0;
   const totalRequired = document.firmas?.length || 0;
-  const signatureProgress = totalRequired > 0 ? (signedCount / totalRequired) * 100 : 0;
+  const totalCompleted = signedCount + confirmedExternalCount;
+  const signatureProgress = totalRequired > 0 ? (totalCompleted / totalRequired) * 100 : 0;
 
   return (
     <motion.div

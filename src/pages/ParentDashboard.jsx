@@ -215,7 +215,7 @@ export default function ParentDashboard() {
     
     return myPlayers.some(player => {
       const firma = doc.firmas?.find(f => f.jugador_id === player.id);
-      return firma && !firma.firmado;
+      return firma && !firma.firmado && !firma.confirmado_firma_externa;
     });
   }) : [];
 

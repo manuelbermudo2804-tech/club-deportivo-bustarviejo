@@ -193,7 +193,10 @@ export default function ParentDocuments() {
     : filterType === "pending"
     ? relevantDocuments.filter(d => 
         d.requiere_firma && 
-        myPlayers.some(p => !getPlayerSignatureStatus(d, p.id)?.firmado)
+        myPlayers.some(p => {
+          const firma = getPlayerSignatureStatus(d, p.id);
+          return firma && !firma.firmado && !firma.confirmado_firma_externa;
+        })
       )
     : relevantDocuments.filter(d => d.tipo === filterType);
 
@@ -417,12 +420,12 @@ export default function ParentDocuments() {
                                       </span>
                                     </>
                                   ) : confirmedExternal ? (
-                                    <>
-                                      <AlertCircle className="w-4 h-4 text-blue-600" />
-                                      <span className="text-sm text-blue-600">
-                                        ✅ Confirmado firma externa el {format(new Date(firma.fecha_confirmacion_externa), "d/MM/yyyy HH:mm", { locale: es })}
-                                      </span>
-                                    </>
+                                   <>
+                                     <CheckCircle className="w-4 h-4 text-blue-600" />
+                                     <span className="text-sm text-blue-600 font-semibold">
+                                       ✅ Confirmado firma externa el {format(new Date(firma.fecha_confirmacion_externa), "d/MM/yyyy HH:mm", { locale: es })}
+                                     </span>
+                                   </>
                                   ) : (
                                     <>
                                       <Clock className="w-4 h-4 text-orange-600" />
