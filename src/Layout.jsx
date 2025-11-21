@@ -518,8 +518,6 @@ export default function Layout({ children, currentPageName }) {
       }
     };
     fetchSeasonConfig();
-    const interval = setInterval(fetchSeasonConfig, 120000);
-    return () => clearInterval(interval);
   }, []);
 
   useEffect(() => {
@@ -707,9 +705,6 @@ export default function Layout({ children, currentPageName }) {
     };
 
     checkUnreadMessages();
-    const interval = setInterval(checkUnreadMessages, 120000);
-    
-    return () => clearInterval(interval);
   }, [user, isAdmin, isPlayer, isCoach]);
 
   useEffect(() => {
@@ -785,9 +780,6 @@ export default function Layout({ children, currentPageName }) {
     };
 
     checkPendingCallups();
-    const interval = setInterval(checkPendingCallups, 120000);
-    
-    return () => clearInterval(interval);
   }, [user, isAdmin, isPlayer, isCoach, hasPlayers]);
 
 
@@ -938,10 +930,7 @@ export default function Layout({ children, currentPageName }) {
       <SessionManager />
       <NotificationBadge />
       {user && <ChatNotificationListener user={user} />}
-      {user && <NotificationManager user={user} />}
-      {user && <AutomaticNotificationEngine user={user} />}
       {user && <EmailNotificationTrigger user={user} />}
-      <EventReminderEngine />
       
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
         
