@@ -9,7 +9,7 @@ export default function ChatNotificationListener({ user }) {
     queryKey: ['chatMessages'],
     queryFn: () => base44.entities.ChatMessage.list(),
     initialData: [],
-    refetchInterval: 5000,
+    refetchInterval: 30000,
     enabled: !!user,
   });
 

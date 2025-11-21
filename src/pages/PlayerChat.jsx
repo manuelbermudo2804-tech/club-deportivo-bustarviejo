@@ -43,7 +43,7 @@ export default function PlayerChat() {
     queryKey: ['chatMessages'],
     queryFn: () => base44.entities.ChatMessage.list('-created_date'),
     initialData: [],
-    refetchInterval: 15000,
+    refetchInterval: 30000,
   });
 
   const { data: teamPlayers } = useQuery({

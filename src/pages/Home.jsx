@@ -459,7 +459,6 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-black pt-4 lg:pt-0">
       {user && <Onboarding userRole={userRole} />}
-      <AutomaticReminders />
       
       <div className="px-4 lg:px-8 py-6 space-y-4 lg:space-y-6">
         <ManualGenerator userRole={isAdmin ? 'admin' : isCoordinator ? 'coordinador' : isCoach ? 'entrenador' : 'padre'} />
