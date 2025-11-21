@@ -437,7 +437,7 @@ export default function Calendar() {
               return (
                 <div
                   key={day.toISOString()}
-                  className={`min-h-[60px] lg:min-h-[100px] border-2 rounded-lg p-1 lg:p-2 ${
+                  className={`min-h-[80px] lg:min-h-[100px] border-2 rounded-lg p-1.5 lg:p-2 ${
                     isToday ? 'bg-orange-50 border-orange-500' : 'bg-white border-slate-200'
                   } hover:border-orange-400 transition-colors overflow-hidden cursor-pointer`}
                   onClick={() => {
@@ -447,29 +447,29 @@ export default function Calendar() {
                     }
                   }}
                 >
-                  <div className={`text-xs lg:text-base font-bold mb-1 ${isToday ? 'text-orange-600' : 'text-slate-800'}`}>
+                  <div className={`text-sm lg:text-base font-bold mb-1 ${isToday ? 'text-orange-600' : 'text-slate-800'}`}>
                     {format(day, 'd')}
                   </div>
-                  <div className="space-y-0.5">
+                  <div className="space-y-1">
                     {totalItems > 0 ? (
-                      <div className="flex flex-col gap-0.5">
+                      <div className="flex flex-col gap-1">
                         {callups.slice(0, 1).map((c, idx) => (
-                          <div key={`callup-${idx}`} className="text-[9px] lg:text-[10px] px-1 py-0.5 rounded bg-blue-600 text-white font-medium truncate" title={`Partido: ${c.categoria}`}>
+                          <div key={`callup-${idx}`} className="text-[10px] lg:text-xs px-1.5 py-1 rounded bg-blue-600 text-white font-semibold truncate" title={`Partido: ${c.categoria}`}>
                             ⚽ Partido
                           </div>
                         ))}
                         {events.filter(e => e.importante).slice(0, 1).map((e, idx) => (
-                          <div key={`important-${idx}`} className="text-[9px] lg:text-[10px] px-1 py-0.5 rounded bg-red-600 text-white font-medium truncate" title={e.titulo}>
-                            ⭐ {e.titulo.substring(0, 8)}
+                          <div key={`important-${idx}`} className="text-[10px] lg:text-xs px-1.5 py-1 rounded bg-red-600 text-white font-semibold truncate" title={e.titulo}>
+                            ⭐ {e.titulo.substring(0, 10)}
                           </div>
                         ))}
                         {events.filter(e => !e.importante).slice(0, 1).map((e, idx) => (
-                          <div key={`event-${idx}`} className="text-[9px] lg:text-[10px] px-1 py-0.5 rounded bg-orange-600 text-white font-medium truncate" title={e.titulo}>
-                            {e.titulo.substring(0, 8)}
+                          <div key={`event-${idx}`} className="text-[10px] lg:text-xs px-1.5 py-1 rounded bg-orange-600 text-white font-semibold truncate" title={e.titulo}>
+                            {e.titulo.substring(0, 10)}
                           </div>
                         ))}
                         {totalItems > 2 && (
-                          <div className="text-[9px] lg:text-[10px] text-slate-500 font-medium text-center">
+                          <div className="text-[10px] lg:text-xs text-slate-500 font-semibold text-center mt-0.5">
                             +{totalItems - 2} más
                           </div>
                         )}
