@@ -369,8 +369,8 @@ export default function ParentDocuments() {
                           const confirmedExternal = firma?.confirmado_firma_externa;
 
                           return (
-                            <div key={player.id} className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
-                              <div className="flex-1">
+                            <div key={player.id} className="flex flex-col sm:flex-row items-start sm:items-center gap-3 p-4 bg-slate-50 rounded-lg">
+                              <div className="flex-1 w-full">
                                 <p className="font-medium text-slate-900">{player.nombre}</p>
                                 <div className="flex items-center gap-2 mt-1">
                                   {isSigned ? (
@@ -400,12 +400,11 @@ export default function ParentDocuments() {
                                   </p>
                                 )}
                               </div>
-                              <div className="flex gap-2">
+                              <div className="flex gap-2 w-full sm:w-auto">
                                 {!isSigned && !document.enlace_firma_externa && (
                                   <Button
                                     onClick={() => handleSignDocument(document, player)}
-                                    size="sm"
-                                    className="bg-orange-600 hover:bg-orange-700"
+                                    className="bg-orange-600 hover:bg-orange-700 w-full sm:w-auto min-h-[44px] px-6"
                                   >
                                     Firmar
                                   </Button>
@@ -413,8 +412,7 @@ export default function ParentDocuments() {
                                 {!isSigned && document.enlace_firma_externa && !confirmedExternal && (
                                   <Button
                                     onClick={() => handleConfirmExternalSign(document, player)}
-                                    size="sm"
-                                    className="bg-blue-600 hover:bg-blue-700"
+                                    className="bg-blue-600 hover:bg-blue-700 w-full sm:w-auto min-h-[44px] px-6 text-base font-semibold"
                                     title="Pulsa aquí después de firmar en la plataforma externa"
                                   >
                                     ✅ Ya Firmé
