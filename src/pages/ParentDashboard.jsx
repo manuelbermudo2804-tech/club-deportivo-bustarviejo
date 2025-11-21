@@ -79,6 +79,15 @@ export default function ParentDashboard() {
     enabled: !!user,
   });
 
+  const { data: surveyResponses } = useQuery({
+    queryKey: ['surveyResponses'],
+    queryFn: () => base44.entities.SurveyResponse.list(),
+    initialData: [],
+    staleTime: 60000,
+    refetchOnWindowFocus: false,
+    enabled: !!user,
+  });
+
   const { data: announcements } = useQuery({
     queryKey: ['announcements'],
     queryFn: () => base44.entities.Announcement.list('-created_date'),
@@ -117,8 +126,15 @@ export default function ParentDashboard() {
     }
   }, [user?.email, myPlayers.length]);
 
-  const activeSurveys = surveys && myPlayersSports ? surveys.filter(s => {
+  const activeSurveys = surveys && myPlayersSports && user ? surveys.filter(s => {
     if (!s.activa || new Date(s.fecha_fin) < new Date()) return false;
+    
+    // Verificar si ya respondió esta encuesta
+    const alreadyResponded = surveyResponses.some(r => 
+      r.survey_id === s.id && r.respondente_email === user.email
+    );
+    if (alreadyResponded) return false;
+    
     if (s.destinatarios === "Todos") return true;
     return myPlayersSports.includes(s.destinatarios);
   }) : [];

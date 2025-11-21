@@ -187,10 +187,20 @@ export default function ParentDocuments() {
       )
     : relevantDocuments.filter(d => d.tipo === filterType);
 
-  const pendingCount = relevantDocuments.filter(d => 
-    d.requiere_firma && 
-    myPlayers.some(p => !getPlayerSignatureStatus(d, p.id)?.firmado)
-  ).length;
+  const pendingCount = relevantDocuments.filter(d => {
+    if (!d.requiere_firma) return false;
+    
+    return myPlayers.some(player => {
+      const isRelevantForPlayer = d.tipo_destinatario === "individual" 
+        ? d.jugadores_destino?.includes(player.id)
+        : (d.categoria_destino === "Todos" || player.deporte === d.categoria_destino);
+      
+      if (!isRelevantForPlayer) return false;
+      
+      const firma = getPlayerSignatureStatus(d, player.id);
+      return !firma?.firmado && !firma?.confirmado_firma_externa;
+    });
+  }).length;
 
   return (
     <div className="p-6 lg:p-8 space-y-6">
