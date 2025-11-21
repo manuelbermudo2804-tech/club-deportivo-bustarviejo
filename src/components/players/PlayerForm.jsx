@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -10,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Switch } from "@/components/ui/switch";
-import { Upload, X, Loader2, AlertCircle, Lock, Users, Shield, Camera, UserCheck, UserX, RefreshCw, User as UserIcon } from "lucide-react"; // Added UserIcon
+import { Upload, X, Loader2, AlertCircle, Lock, Users, Shield, Camera, UserCheck, UserX, RefreshCw, User as UserIcon, Heart } from "lucide-react";
 import { toast } from "sonner";
 import { base44 } from "@/api/base44Client";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -76,15 +75,25 @@ export default function PlayerForm({ player, onSubmit, onCancel, isSubmitting, i
     email_padre: "",
     telefono_tutor_2: "",
     email_tutor_2: "",
-    email_jugador: "", // New field
-    acceso_jugador_autorizado: false, // New field
-    fecha_autorizacion_jugador: null, // New field, not passed in 'player' but needed for state logic
+    email_jugador: "",
+    acceso_jugador_autorizado: false,
+    fecha_autorizacion_jugador: null,
     direccion: "",
     activo: true,
     observaciones: "",
     acepta_politica_privacidad: false,
     fecha_aceptacion_privacidad: null,
-    autorizacion_fotografia: ""
+    autorizacion_fotografia: "",
+    ficha_medica: {
+      alergias: "",
+      medicacion_habitual: "",
+      condiciones_medicas: "",
+      grupo_sanguineo: "",
+      contacto_emergencia_nombre: "",
+      contacto_emergencia_telefono: "",
+      seguro_medico: "",
+      observaciones_medicas: ""
+    }
   });
 
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
@@ -648,6 +657,152 @@ export default function PlayerForm({ player, onSubmit, onCancel, isSubmitting, i
                   </p>
                 </div>
               )}
+            </div>
+
+            {/* FICHA MÉDICA */}
+            <div className="space-y-4 border-2 border-red-200 rounded-lg p-6 bg-red-50">
+              <div className="flex items-center gap-2 mb-4">
+                <Heart className="w-6 h-6 text-red-600" />
+                <h3 className="text-lg font-bold text-red-900">Ficha Médica (Opcional)</h3>
+              </div>
+              
+              <Alert className="bg-white border-red-200">
+                <AlertCircle className="h-4 w-4 text-red-600" />
+                <AlertDescription className="text-red-800 text-sm">
+                  <strong>🏥 Información importante:</strong> Esta información será confidencial y solo visible para administradores y entrenadores en caso de emergencia.
+                </AlertDescription>
+              </Alert>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Alergias */}
+                <div className="space-y-2">
+                  <Label htmlFor="alergias">Alergias</Label>
+                  <Textarea
+                    id="alergias"
+                    value={currentPlayer.ficha_medica?.alergias || ""}
+                    onChange={(e) => setCurrentPlayer({
+                      ...currentPlayer,
+                      ficha_medica: {...(currentPlayer.ficha_medica || {}), alergias: e.target.value}
+                    })}
+                    placeholder="Alimentos, medicamentos..."
+                    rows={2}
+                  />
+                </div>
+
+                {/* Grupo Sanguíneo */}
+                <div className="space-y-2">
+                  <Label htmlFor="grupo_sanguineo">Grupo Sanguíneo</Label>
+                  <Select
+                    value={currentPlayer.ficha_medica?.grupo_sanguineo || ""}
+                    onValueChange={(value) => setCurrentPlayer({
+                      ...currentPlayer,
+                      ficha_medica: {...(currentPlayer.ficha_medica || {}), grupo_sanguineo: value}
+                    })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Seleccionar..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="A+">A+</SelectItem>
+                      <SelectItem value="A-">A-</SelectItem>
+                      <SelectItem value="B+">B+</SelectItem>
+                      <SelectItem value="B-">B-</SelectItem>
+                      <SelectItem value="AB+">AB+</SelectItem>
+                      <SelectItem value="AB-">AB-</SelectItem>
+                      <SelectItem value="O+">O+</SelectItem>
+                      <SelectItem value="O-">O-</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Medicación Habitual */}
+                <div className="space-y-2">
+                  <Label htmlFor="medicacion">Medicación Habitual</Label>
+                  <Textarea
+                    id="medicacion"
+                    value={currentPlayer.ficha_medica?.medicacion_habitual || ""}
+                    onChange={(e) => setCurrentPlayer({
+                      ...currentPlayer,
+                      ficha_medica: {...(currentPlayer.ficha_medica || {}), medicacion_habitual: e.target.value}
+                    })}
+                    placeholder="Medicamentos que toma regularmente..."
+                    rows={2}
+                  />
+                </div>
+
+                {/* Condiciones Médicas */}
+                <div className="space-y-2">
+                  <Label htmlFor="condiciones">Condiciones Médicas</Label>
+                  <Textarea
+                    id="condiciones"
+                    value={currentPlayer.ficha_medica?.condiciones_medicas || ""}
+                    onChange={(e) => setCurrentPlayer({
+                      ...currentPlayer,
+                      ficha_medica: {...(currentPlayer.ficha_medica || {}), condiciones_medicas: e.target.value}
+                    })}
+                    placeholder="Asma, diabetes, epilepsia..."
+                    rows={2}
+                  />
+                </div>
+
+                {/* Contacto Emergencia Nombre */}
+                <div className="space-y-2">
+                  <Label htmlFor="contacto_nombre">Contacto Emergencia (Nombre)</Label>
+                  <Input
+                    id="contacto_nombre"
+                    value={currentPlayer.ficha_medica?.contacto_emergencia_nombre || ""}
+                    onChange={(e) => setCurrentPlayer({
+                      ...currentPlayer,
+                      ficha_medica: {...(currentPlayer.ficha_medica || {}), contacto_emergencia_nombre: e.target.value}
+                    })}
+                    placeholder="Nombre completo"
+                  />
+                </div>
+
+                {/* Contacto Emergencia Teléfono */}
+                <div className="space-y-2">
+                  <Label htmlFor="contacto_telefono">Contacto Emergencia (Teléfono)</Label>
+                  <Input
+                    id="contacto_telefono"
+                    type="tel"
+                    value={currentPlayer.ficha_medica?.contacto_emergencia_telefono || ""}
+                    onChange={(e) => setCurrentPlayer({
+                      ...currentPlayer,
+                      ficha_medica: {...(currentPlayer.ficha_medica || {}), contacto_emergencia_telefono: e.target.value}
+                    })}
+                    placeholder="600123456"
+                  />
+                </div>
+
+                {/* Seguro Médico */}
+                <div className="space-y-2 md:col-span-2">
+                  <Label htmlFor="seguro">Seguro Médico</Label>
+                  <Input
+                    id="seguro"
+                    value={currentPlayer.ficha_medica?.seguro_medico || ""}
+                    onChange={(e) => setCurrentPlayer({
+                      ...currentPlayer,
+                      ficha_medica: {...(currentPlayer.ficha_medica || {}), seguro_medico: e.target.value}
+                    })}
+                    placeholder="Compañía y número de póliza"
+                  />
+                </div>
+
+                {/* Observaciones Médicas */}
+                <div className="space-y-2 md:col-span-2">
+                  <Label htmlFor="obs_medicas">Observaciones Médicas</Label>
+                  <Textarea
+                    id="obs_medicas"
+                    value={currentPlayer.ficha_medica?.observaciones_medicas || ""}
+                    onChange={(e) => setCurrentPlayer({
+                      ...currentPlayer,
+                      ficha_medica: {...(currentPlayer.ficha_medica || {}), observaciones_medicas: e.target.value}
+                    })}
+                    placeholder="Otra información relevante sobre la salud del jugador..."
+                    rows={2}
+                  />
+                </div>
+              </div>
             </div>
 
             {/* Observaciones */}
