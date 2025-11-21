@@ -202,9 +202,26 @@ export default function ParentDocuments() {
 
     console.log("✅ Firmas después de actualizar:", JSON.stringify(updatedFirmas, null, 2));
 
+    // Enviar documento COMPLETO para asegurar persistencia
     updateDocumentMutation.mutate({
       id: document.id,
-      documentData: { firmas: updatedFirmas },
+      documentData: {
+        titulo: document.titulo,
+        descripcion: document.descripcion,
+        tipo: document.tipo,
+        tipo_destinatario: document.tipo_destinatario,
+        categoria_destino: document.categoria_destino,
+        jugadores_destino: document.jugadores_destino,
+        archivo_url: document.archivo_url,
+        enlace_firma_externa: document.enlace_firma_externa,
+        codigo_qr_url: document.codigo_qr_url,
+        requiere_firma: document.requiere_firma,
+        fecha_limite_firma: document.fecha_limite_firma,
+        publicado: document.publicado,
+        firmas: updatedFirmas,
+        enviar_notificacion: document.enviar_notificacion,
+        notificacion_enviada: document.notificacion_enviada
+      },
       playerId: player.id
     });
   };
