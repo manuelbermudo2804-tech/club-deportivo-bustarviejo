@@ -750,12 +750,33 @@ Email: cdbustarviejo@gmail.com
                  // Filtro de categoría
                  const matchesCategoria = categoriaFilter === "all" || player.deporte === categoriaFilter;
 
-                 // Filtro por si tiene pagos en la temporada seleccionada
-                 const hasPaymentsInSeason = isAdmin 
-                   ? filteredPayments.some(p => p.jugador_id === player.id)
-                   : true; // Para no-admin mostrar todos
+                 // Filtro por estado - verificar si el jugador tiene pagos del estado buscado
+                 let matchesEstado = true;
+                 if (estadoFilter !== "all") {
+                   const playerPayments = payments.filter(p => p.jugador_id === player.id && p.temporada === temporadaFilter);
+                   
+                   // Si filtramos por "Pendiente", verificar si le falta algún pago
+                   if (estadoFilter === "Pendiente") {
+                     const hasPagoUnico = playerPayments.some(p => 
+                       (p.tipo_pago === "Único" || p.tipo_pago === "único") && 
+                       (p.estado === "Pagado" || p.estado === "En revisión")
+                     );
+                     
+                     if (hasPagoUnico) {
+                       matchesEstado = false; // No mostrar si ya pagó todo con pago único
+                     } else {
+                       const mesesPagados = playerPayments
+                         .filter(p => p.tipo_pago === "Tres meses" && p.estado !== "Pendiente")
+                         .map(p => p.mes);
+                       matchesEstado = mesesPagados.length < 3; // Mostrar si le faltan pagos
+                     }
+                   } else {
+                     // Para otros estados, mostrar si tiene al menos un pago con ese estado
+                     matchesEstado = playerPayments.some(p => p.estado === estadoFilter);
+                   }
+                 }
 
-                 return matchesSearch && matchesCategoria && hasPaymentsInSeason;
+                 return matchesSearch && matchesCategoria && matchesEstado;
                 });
 
                 if (playersToShow.length === 0) {
