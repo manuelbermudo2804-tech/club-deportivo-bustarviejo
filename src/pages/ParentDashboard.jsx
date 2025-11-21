@@ -308,6 +308,14 @@ export default function ParentDashboard() {
         gradient: "from-pink-600 to-pink-700",
       },
       {
+        title: "📄 Documentos",
+        icon: FileText,
+        url: createPageUrl("ParentDocuments"),
+        gradient: "from-slate-600 to-slate-700",
+        badge: pendingDocuments.length,
+        badgeLabel: "pendientes"
+      },
+      {
         title: "Pedidos Ropa",
         icon: ShoppingBag,
         url: createPageUrl("ClothingOrders"),
