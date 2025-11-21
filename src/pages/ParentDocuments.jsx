@@ -58,14 +58,18 @@ export default function ParentDocuments() {
 
   const updateDocumentMutation = useMutation({
     mutationFn: ({ id, documentData }) => base44.entities.Document.update(id, documentData),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['documents'] });
+    onSuccess: async () => {
+      console.log("✅ Documento actualizado con éxito");
+      toast.success("✅ Confirmación registrada correctamente");
+      
+      // Refetch inmediato
+      await refetch();
+      console.log("🔄 Datos refrescados");
+      
       setShowSignDialog(false);
       setSelectedDocument(null);
       setSelectedPlayer(null);
       setSignComment("");
-      toast.success("✅ Confirmación registrada correctamente");
-      console.log("✅ Documento actualizado con éxito");
     },
     onError: (error) => {
       console.error("❌ Error al actualizar documento:", error);
