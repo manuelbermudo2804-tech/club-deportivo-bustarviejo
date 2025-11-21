@@ -351,7 +351,16 @@ export default function ParentDocuments() {
         <div className="space-y-4">
           {filteredDocuments.map((document) => {
             const hasPendingSignatures = document.requiere_firma && 
-              myPlayers.some(p => !getPlayerSignatureStatus(document, p.id)?.firmado);
+              myPlayers.some(p => {
+                const isRelevantForPlayer = document.tipo_destinatario === "individual" 
+                  ? document.jugadores_destino?.includes(p.id)
+                  : (document.categoria_destino === "Todos" || p.deporte === document.categoria_destino);
+                
+                if (!isRelevantForPlayer) return false;
+                
+                const firma = getPlayerSignatureStatus(document, p.id);
+                return !firma || (!firma.firmado && !firma.confirmado_firma_externa);
+              });
 
             return (
               <Card key={document.id} className={`border-2 ${
