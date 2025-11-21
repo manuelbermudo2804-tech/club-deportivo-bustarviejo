@@ -793,43 +793,48 @@ export default function Layout({ children, currentPageName }) {
     }, [user, isAdmin, isPlayer, isCoach, hasPlayers]);
 
     useEffect(() => {
-    if (!user || isAdmin || isCoach || isCoordinator || isTreasurer) return;
+      if (!user || isAdmin) return;
 
-    const checkPendingDocuments = async () => {
-      try {
-        const allDocuments = await base44.entities.Document.list();
-        const allPlayers = await base44.entities.Player.list();
-        const myPlayers = allPlayers.filter(p => 
-          p.email_padre === user.email || p.email_tutor_2 === user.email
-        );
+      const checkPendingDocuments = async () => {
+        try {
+          const allDocuments = await base44.entities.Document.list();
+          const allPlayers = await base44.entities.Player.list();
+          const myPlayers = allPlayers.filter(p => 
+            p.email_padre === user.email || p.email_tutor_2 === user.email
+          );
 
-        let pending = 0;
-
-        allDocuments.forEach(doc => {
-          if (!doc.publicado || !doc.requiere_firma) return;
-
-          const isRelevant = doc.tipo_destinatario === "individual" 
-            ? myPlayers.some(p => doc.jugadores_destino?.includes(p.id))
-            : (doc.categoria_destino === "Todos" || myPlayers.some(p => p.deporte === doc.categoria_destino));
-
-          if (isRelevant) {
-            myPlayers.forEach(player => {
-              const firma = doc.firmas?.find(f => f.jugador_id === player.id);
-              if (firma && !firma.firmado) {
-                pending++;
-              }
-            });
+          if (myPlayers.length === 0) {
+            setPendingDocumentsCount(0);
+            return;
           }
-        });
 
-        setPendingDocumentsCount(pending);
-      } catch (error) {
-        console.error("Error checking pending documents:", error);
-      }
-    };
+          let pending = 0;
 
-    checkPendingDocuments();
-    }, [user, isAdmin, isCoach, isCoordinator, isTreasurer]);
+          allDocuments.forEach(doc => {
+            if (!doc.publicado || !doc.requiere_firma) return;
+
+            const isRelevant = doc.tipo_destinatario === "individual" 
+              ? myPlayers.some(p => doc.jugadores_destino?.includes(p.id))
+              : (doc.categoria_destino === "Todos" || myPlayers.some(p => p.deporte === doc.categoria_destino));
+
+            if (isRelevant) {
+              myPlayers.forEach(player => {
+                const firma = doc.firmas?.find(f => f.jugador_id === player.id);
+                if (firma && !firma.firmado) {
+                  pending++;
+                }
+              });
+            }
+          });
+
+          setPendingDocumentsCount(pending);
+        } catch (error) {
+          console.error("Error checking pending documents:", error);
+        }
+      };
+
+      checkPendingDocuments();
+    }, [user, isAdmin]);
 
 
 
@@ -902,6 +907,7 @@ export default function Layout({ children, currentPageName }) {
       { title: "⚙️ Temporadas", url: createPageUrl("SeasonManagement"), icon: Settings },
       { title: "📅 Calendario", url: createPageUrl("Calendar"), icon: Calendar },
       { title: "📢 Anuncios", url: createPageUrl("Announcements"), icon: Megaphone },
+      ...(hasPlayers ? [{ title: "📄 Documentos", url: createPageUrl("ParentDocuments"), icon: FileText, badge: pendingDocumentsCount > 0 ? pendingDocumentsCount : null, urgentBadge: pendingDocumentsCount > 0 }] : []),
       ...(hasPlayers ? [{ title: "👨‍👩‍👧 Confirmar Mis Hijos", url: createPageUrl("ParentCallups"), icon: ClipboardCheck, badge: pendingCallupsCount > 0 ? pendingCallupsCount : null }] : []),
       ...(loteriaVisible && hasPlayers ? [{ title: "🍀 Mi Lotería", url: createPageUrl("ParentLottery"), icon: ShoppingBag }] : []),
       ...(hasPlayers ? [{ title: "💬 Chat Familiar", url: createPageUrl("ParentChat"), icon: MessageCircle, badge: unreadMessagesCount > 0 ? unreadMessagesCount : null, urgentBadge: urgentMessagesCount > 0 }] : []),
