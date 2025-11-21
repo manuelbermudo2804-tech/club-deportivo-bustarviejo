@@ -295,6 +295,14 @@ export default function Home() {
       );
 
       if (loteriaVisible) {
+        if (hasPlayers) {
+          items.push({
+            title: "🍀 Mi Lotería",
+            icon: Clover,
+            url: createPageUrl("ParentLottery"),
+            gradient: "from-green-600 to-red-600",
+          });
+        }
         items.push({
           title: "🍀 Gestión Lotería",
           icon: Clover,

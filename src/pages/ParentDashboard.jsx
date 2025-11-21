@@ -296,7 +296,7 @@ export default function ParentDashboard() {
         title: "🍀 Lotería Navidad",
         icon: Clover,
         url: createPageUrl("ParentLottery"),
-        gradient: "from-green-600 to-green-700",
+        gradient: "from-green-600 to-red-600",
       });
     }
 
