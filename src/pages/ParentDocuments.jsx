@@ -117,15 +117,22 @@ export default function ParentDocuments() {
   };
 
   const handleConfirmExternalSign = (document, player) => {
+    console.log("🔥 BOTÓN PULSADO - handleConfirmExternalSign llamado");
+    console.log("📄 Documento:", document.titulo);
+    console.log("👤 Jugador:", player.nombre);
+    console.log("✉️ Usuario:", user?.email);
+    
     if (!user) {
+      console.error("❌ No hay usuario");
       toast.error("Error: usuario no identificado");
       return;
     }
 
-    console.log("🔍 Confirmando firma externa:", { document: document.titulo, player: player.nombre });
+    toast.info("⏳ Registrando confirmación...");
     
     const updatedFirmas = (document.firmas || []).map(f => {
       if (f.jugador_id === player.id) {
+        console.log("✏️ Actualizando firma existente para jugador:", player.nombre);
         return {
           ...f,
           confirmado_firma_externa: true,
@@ -136,6 +143,7 @@ export default function ParentDocuments() {
     });
 
     if (!updatedFirmas.some(f => f.jugador_id === player.id)) {
+      console.log("➕ Creando nueva firma para jugador:", player.nombre);
       updatedFirmas.push({
         jugador_id: player.id,
         jugador_nombre: player.nombre,
@@ -146,7 +154,7 @@ export default function ParentDocuments() {
       });
     }
 
-    console.log("📝 Firmas actualizadas:", updatedFirmas);
+    console.log("📝 Firmas finales:", JSON.stringify(updatedFirmas, null, 2));
 
     updateDocumentMutation.mutate({
       id: document.id,
@@ -435,11 +443,23 @@ export default function ParentDocuments() {
                                 )}
                                 {!isSigned && document.enlace_firma_externa && !confirmedExternal && (
                                   <Button
-                                    onClick={() => handleConfirmExternalSign(document, player)}
-                                    className="bg-blue-600 hover:bg-blue-700 w-full sm:w-auto min-h-[44px] px-6 text-base font-semibold"
+                                    onClick={(e) => {
+                                      e.preventDefault();
+                                      e.stopPropagation();
+                                      console.log("🖱️ CLICK detectado en botón Ya Firmé");
+                                      handleConfirmExternalSign(document, player);
+                                    }}
+                                    onTouchEnd={(e) => {
+                                      e.preventDefault();
+                                      e.stopPropagation();
+                                      console.log("👆 TOUCH detectado en botón Ya Firmé");
+                                      handleConfirmExternalSign(document, player);
+                                    }}
+                                    disabled={updateDocumentMutation.isPending}
+                                    className="bg-blue-600 hover:bg-blue-700 w-full sm:w-auto min-h-[44px] px-6 text-base font-semibold disabled:opacity-50"
                                     title="Pulsa aquí después de firmar en la plataforma externa"
                                   >
-                                    ✅ Ya Firmé
+                                    {updateDocumentMutation.isPending ? "⏳ Registrando..." : "✅ Ya Firmé"}
                                   </Button>
                                 )}
                               </div>
