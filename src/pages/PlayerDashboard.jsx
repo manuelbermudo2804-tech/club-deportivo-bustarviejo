@@ -3,7 +3,7 @@ import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { Users, Calendar, Megaphone, Image, Clock, MessageCircle, Trophy, User as UserIcon, ClipboardCheck } from "lucide-react";
+import { Users, Calendar, Megaphone, Image, Clock, MessageCircle, Trophy, User as UserIcon, ClipboardCheck, Clover } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 
 import MatchAppLink from "../components/MatchAppLink";
@@ -39,6 +39,15 @@ export default function PlayerDashboard() {
     initialData: [],
   });
 
+  const { data: seasonConfig } = useQuery({
+    queryKey: ['seasonConfig'],
+    queryFn: async () => {
+      const configs = await base44.entities.SeasonConfig.list();
+      return configs.find(c => c.activa === true);
+    },
+    staleTime: Infinity,
+  });
+
   const unreadMessages = messages.filter(m => 
     !m.leido && 
     m.tipo === "admin_a_grupo" && 
@@ -62,6 +71,8 @@ export default function PlayerDashboard() {
     
     return pending;
   };
+
+  const loteriaVisible = seasonConfig?.loteria_navidad_abierta === true;
 
   const menuItems = [
     {
@@ -110,6 +121,12 @@ export default function PlayerDashboard() {
       badge: unreadMessages,
       badgeLabel: "nuevos"
     },
+    ...(loteriaVisible ? [{
+      title: "🍀 Lotería Navidad",
+      icon: Clover,
+      url: createPageUrl("ParentLottery"),
+      gradient: "from-green-600 to-red-600",
+    }] : []),
   ];
 
   return (
