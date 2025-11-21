@@ -64,7 +64,12 @@ export default function ParentDocuments() {
       setSelectedDocument(null);
       setSelectedPlayer(null);
       setSignComment("");
-      toast.success("Firma registrada correctamente");
+      toast.success("✅ Confirmación registrada correctamente");
+      console.log("✅ Documento actualizado con éxito");
+    },
+    onError: (error) => {
+      console.error("❌ Error al actualizar documento:", error);
+      toast.error("Error al registrar la confirmación");
     },
   });
 
@@ -111,7 +116,7 @@ export default function ParentDocuments() {
     });
   };
 
-  const handleConfirmExternalSign = async (document, player) => {
+  const handleConfirmExternalSign = (document, player) => {
     if (!user) {
       toast.error("Error: usuario no identificado");
       return;
@@ -143,20 +148,13 @@ export default function ParentDocuments() {
 
     console.log("📝 Firmas actualizadas:", updatedFirmas);
 
-    try {
-      await updateDocumentMutation.mutateAsync({
-        id: document.id,
-        documentData: {
-          ...document,
-          firmas: updatedFirmas
-        }
-      });
-      toast.success("✅ Confirmación registrada correctamente");
-      console.log("✅ Confirmación guardada con éxito");
-    } catch (error) {
-      console.error("❌ Error al confirmar firma externa:", error);
-      toast.error("Error al registrar la confirmación");
-    }
+    updateDocumentMutation.mutate({
+      id: document.id,
+      documentData: {
+        ...document,
+        firmas: updatedFirmas
+      }
+    });
   };
 
   const getPlayerSignatureStatus = (document, playerId) => {
