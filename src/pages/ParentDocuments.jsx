@@ -50,7 +50,7 @@ export default function ParentDocuments() {
     fetchUser();
   }, []);
 
-  const { data: documents, isLoading } = useQuery({
+  const { data: documents, isLoading, refetch } = useQuery({
     queryKey: ['documents'],
     queryFn: () => base44.entities.Document.list('-created_date'),
     initialData: [],
