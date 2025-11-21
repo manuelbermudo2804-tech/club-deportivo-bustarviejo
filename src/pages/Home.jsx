@@ -32,8 +32,6 @@ export default function Home() {
       }
     };
     fetchSeasonConfig();
-    const interval = setInterval(fetchSeasonConfig, 3000);
-    return () => clearInterval(interval);
   }, []);
 
   useEffect(() => {

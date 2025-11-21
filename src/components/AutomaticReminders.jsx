@@ -125,9 +125,9 @@ CF Bustarviejo
       }
     };
 
-    // Check every 30 minutes
+    // Check every 5 minutes
     checkAndSendReminders();
-    const interval = setInterval(checkAndSendReminders, 30 * 60 * 1000);
+    const interval = setInterval(checkAndSendReminders, 5 * 60 * 1000);
 
     return () => clearInterval(interval);
   }, []);

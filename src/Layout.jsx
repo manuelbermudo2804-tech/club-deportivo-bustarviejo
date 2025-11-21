@@ -930,7 +930,6 @@ export default function Layout({ children, currentPageName }) {
       <SessionManager />
       <NotificationBadge />
       {user && <ChatNotificationListener user={user} />}
-      {user && <EmailNotificationTrigger user={user} />}
       
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
         
