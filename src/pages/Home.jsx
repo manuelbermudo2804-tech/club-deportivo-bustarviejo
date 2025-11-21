@@ -1,14 +1,13 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo, lazy, Suspense } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { Users, CreditCard, ShoppingBag, Calendar, Megaphone, Image, Clock, MessageCircle, Bell, Settings, ClipboardCheck, CheckCircle2, Star, TrendingUp, Smartphone, Trophy, FileText, Clover, BookOpen, Archive } from "lucide-react";
 
-import Onboarding from "../components/Onboarding";
-import AutomaticReminders from "../components/AutomaticReminders";
-import SocialLinks from "../components/SocialLinks";
-import ManualGenerator from "../components/manuals/ManualGenerator";
+const Onboarding = lazy(() => import("../components/Onboarding"));
+const SocialLinks = lazy(() => import("../components/SocialLinks"));
+const ManualGenerator = lazy(() => import("../components/manuals/ManualGenerator"));
 
 const CLUB_LOGO_URL = "https://www.cdbustarviejo.com/uploads/2/4/0/4/2404974/logo-cd-bustarviejo-cuadrado-xpeq_orig.png";
 
@@ -120,51 +119,55 @@ export default function Home() {
     enabled: !!user && (isCoach || isCoordinator) && hasPlayers,
   });
 
-  const myPlayers = user && isCoach && hasPlayers && players
-    ? players.filter(p => p.email_padre === user.email || p.email_tutor_2 === user.email)
-    : [];
+  const myPlayers = useMemo(() => {
+    if (!user || !isCoach || !hasPlayers || !players) return [];
+    return players.filter(p => p.email_padre === user.email || p.email_tutor_2 === user.email);
+  }, [user, isCoach, hasPlayers, players]);
 
-  const myPlayersSports = [...new Set(myPlayers.map(p => p.deporte))];
+  const myPlayersSports = useMemo(() => {
+    return [...new Set(myPlayers.map(p => p.deporte))];
+  }, [myPlayers]);
 
-  const activeSurveys = isCoach && hasPlayers && surveys && surveyResponses
-    ? surveys.filter(s => {
-        if (!s.activa || new Date(s.fecha_fin) < new Date()) return false;
-        if (s.destinatarios === "Todos" || myPlayersSports.includes(s.destinatarios)) {
-          const alreadyResponded = surveyResponses.some(r => 
-            r.survey_id === s.id && r.respondente_email === user.email
-          );
-          return !alreadyResponded;
-        }
-        return false;
-      })
-    : [];
-
-  const activePlayers = players ? players.filter(p => p.activo).length : 0;
-  const pendingPayments = payments ? payments.filter(p => p.estado === "Pendiente").length : 0;
-  const unreadMessages = messages ? messages.filter(m => !m.leido && m.tipo === "padre_a_grupo").length : 0;
-
-  let pendingCallups = 0;
-  if (user && hasPlayers && players && callups) {
-    const myPlayers = players.filter(p => 
-      p.email_padre === user.email || 
-      p.email_tutor_2 === user.email
-    );
-    
-    const today = new Date().toISOString().split('T')[0];
-    
-    callups.forEach(callup => {
-      if (callup.publicada && callup.fecha_partido >= today && !callup.cerrada) {
-        callup.jugadores_convocados?.forEach(jugador => {
-          const isMyPlayer = myPlayers.some(p => p.id === jugador.jugador_id);
-          if (isMyPlayer && jugador.confirmacion === "pendiente") {
-            pendingCallups++;
-          }
-        });
+  const activeSurveys = useMemo(() => {
+    if (!isCoach || !hasPlayers || !surveys || !surveyResponses || !user) return [];
+    const now = new Date();
+    return surveys.filter(s => {
+      if (!s.activa || new Date(s.fecha_fin) < now) return false;
+      if (s.destinatarios === "Todos" || myPlayersSports.includes(s.destinatarios)) {
+        return !surveyResponses.some(r => r.survey_id === s.id && r.respondente_email === user.email);
       }
+      return false;
     });
-  }
+  }, [isCoach, hasPlayers, surveys, surveyResponses, user, myPlayersSports]);
 
-  const handleMatchAppClick = () => {
+  const stats = useMemo(() => {
+    const activePlayers = players?.filter(p => p.activo).length || 0;
+    const pendingPayments = payments?.filter(p => p.estado === "Pendiente").length || 0;
+    const paidPayments = payments?.filter(p => p.estado === "Pagado").length || 0;
+    const unreadMessages = messages?.filter(m => !m.leido && m.tipo === "padre_a_grupo").length || 0;
+
+    let pendingCallups = 0;
+    if (user && hasPlayers && players && callups) {
+      const myPlayersList = players.filter(p => 
+        p.email_padre === user.email || p.email_tutor_2 === user.email
+      );
+      const today = new Date().toISOString().split('T')[0];
+      
+      callups.forEach(callup => {
+        if (callup.publicada && callup.fecha_partido >= today && !callup.cerrada) {
+          callup.jugadores_convocados?.forEach(jugador => {
+            if (myPlayersList.some(p => p.id === jugador.jugador_id) && jugador.confirmacion === "pendiente") {
+              pendingCallups++;
+            }
+          });
+        }
+      });
+    }
+
+    return { activePlayers, pendingPayments, paidPayments, unreadMessages, pendingCallups };
+  }, [players, payments, messages, callups, user, hasPlayers]);
+
+  const handleMatchAppClick = useMemo(() => () => {
     const userAgent = navigator.userAgent || navigator.vendor || window.opera;
     const isIOS = /iPad|iPhone|iPod/.test(userAgent) && !window.MSStream;
     const isAndroid = /android/i.test(userAgent);
@@ -187,9 +190,9 @@ export default function Home() {
     } else {
       window.open("https://www.matchapp.com", "_blank");
     }
-  };
+  }, []);
 
-  const buildMenuItems = () => {
+  const menuItems = useMemo(() => {
     const items = [];
 
     if (isAdmin) {
@@ -200,7 +203,7 @@ export default function Home() {
           icon: MessageCircle,
           url: createPageUrl("AdminChat"),
           gradient: "from-teal-600 to-teal-700",
-          badge: unreadMessages,
+          badge: stats.unreadMessages,
           badgeLabel: "nuevos"
         },
         {
@@ -208,7 +211,7 @@ export default function Home() {
           icon: Users,
           url: createPageUrl("Players"),
           gradient: "from-orange-600 to-orange-700",
-          badge: activePlayers,
+          badge: stats.activePlayers,
           badgeLabel: "activos"
         },
         {
@@ -216,7 +219,7 @@ export default function Home() {
           icon: CreditCard,
           url: createPageUrl("Payments"),
           gradient: "from-green-600 to-green-700",
-          badge: pendingPayments,
+          badge: stats.pendingPayments,
           badgeLabel: "pendientes"
         },
         {
@@ -267,7 +270,7 @@ export default function Home() {
           icon: ClipboardCheck,
           url: createPageUrl("ParentCallups"),
           gradient: "from-green-600 to-green-700",
-          badge: pendingCallups,
+          badge: stats.pendingCallups,
           badgeLabel: "pendientes"
         });
       }
@@ -365,7 +368,7 @@ export default function Home() {
           icon: MessageCircle,
           url: createPageUrl("CoachChat"),
           gradient: "from-blue-600 to-blue-700",
-          badge: unreadMessages,
+          badge: stats.unreadMessages,
           badgeLabel: "nuevos"
         },
         {
@@ -449,7 +452,7 @@ export default function Home() {
             icon: ClipboardCheck,
             url: createPageUrl("ParentCallups"),
             gradient: "from-green-600 to-green-700",
-            badge: pendingCallups,
+            badge: stats.pendingCallups,
             badgeLabel: "pendientes"
           }
         );
@@ -474,18 +477,22 @@ export default function Home() {
     }
 
     return items;
-  };
-
-  const menuItems = buildMenuItems();
+  }, [isAdmin, isCoach, isCoordinator, hasPlayers, loteriaVisible, stats]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-black pt-4 lg:pt-0">
-      {user && <Onboarding userRole={userRole} />}
+      <Suspense fallback={null}>
+        {user && <Onboarding userRole={userRole} />}
+      </Suspense>
       
       <div className="px-4 lg:px-8 py-6 space-y-4 lg:space-y-6">
-        <ManualGenerator userRole={isAdmin ? 'admin' : isCoordinator ? 'coordinador' : isCoach ? 'entrenador' : 'padre'} />
+        <Suspense fallback={null}>
+          <ManualGenerator userRole={isAdmin ? 'admin' : isCoordinator ? 'coordinador' : isCoach ? 'entrenador' : 'padre'} />
+        </Suspense>
         
-        <SocialLinks />
+        <Suspense fallback={null}>
+          <SocialLinks />
+        </Suspense>
 
 
 
@@ -562,25 +569,25 @@ export default function Home() {
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
             <div className="text-center">
               <div className="text-2xl lg:text-4xl font-bold text-orange-500 mb-1">
-                {activePlayers}
+                {stats.activePlayers}
               </div>
               <div className="text-slate-400 text-[10px] lg:text-sm">Jugadores Activos</div>
             </div>
             <div className="text-center">
               <div className="text-2xl lg:text-4xl font-bold text-red-500 mb-1">
-                {pendingPayments}
+                {stats.pendingPayments}
               </div>
               <div className="text-slate-400 text-[10px] lg:text-sm">Pagos Pendientes</div>
             </div>
             <div className="text-center">
               <div className="text-2xl lg:text-4xl font-bold text-green-500 mb-1">
-                {payments.filter(p => p.estado === "Pagado").length}
+                {stats.paidPayments}
               </div>
               <div className="text-slate-400 text-[10px] lg:text-sm">Pagos Confirmados</div>
             </div>
             <div className="text-center">
               <div className="text-2xl lg:text-4xl font-bold text-blue-500 mb-1">
-                {unreadMessages}
+                {stats.unreadMessages}
               </div>
               <div className="text-slate-400 text-[10px] lg:text-sm">Mensajes Nuevos</div>
             </div>
