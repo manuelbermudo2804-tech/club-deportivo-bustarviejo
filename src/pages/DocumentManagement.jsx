@@ -2,7 +2,8 @@ import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
-import { Plus, FileText, CheckCircle, Clock } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Plus, FileText, CheckCircle, Clock, Search } from "lucide-react";
 import { AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -14,6 +15,7 @@ export default function DocumentManagement() {
   const [showForm, setShowForm] = useState(false);
   const [editingDocument, setEditingDocument] = useState(null);
   const [filterType, setFilterType] = useState("all");
+  const [search, setSearch] = useState("");
   
   const queryClient = useQueryClient();
 
@@ -175,13 +177,23 @@ Email: cdbustarviejo@gmail.com
     }
   };
 
-  const filteredDocuments = filterType === "all" 
-    ? documents 
-    : documents.filter(d => {
-        if (filterType === "requires_signature") return d.requiere_firma;
-        if (filterType === "general") return !d.requiere_firma;
-        return d.tipo === filterType;
-      });
+  const filteredDocuments = documents
+    .filter(d => {
+      // Filtro por búsqueda
+      if (search) {
+        const searchLower = search.toLowerCase();
+        const matchesTitle = d.titulo?.toLowerCase().includes(searchLower);
+        const matchesDescription = d.descripcion?.toLowerCase().includes(searchLower);
+        const matchesType = d.tipo?.toLowerCase().includes(searchLower);
+        if (!matchesTitle && !matchesDescription && !matchesType) return false;
+      }
+      
+      // Filtro por tipo
+      if (filterType === "all") return true;
+      if (filterType === "requires_signature") return d.requiere_firma;
+      if (filterType === "general") return !d.requiere_firma;
+      return d.tipo === filterType;
+    });
 
   const pendingSignatures = documents.filter(d => 
     d.requiere_firma && 
@@ -260,16 +272,28 @@ Email: cdbustarviejo@gmail.com
         )}
       </AnimatePresence>
 
-      <Tabs value={filterType} onValueChange={setFilterType}>
-        <TabsList className="bg-white shadow-sm">
-          <TabsTrigger value="all">Todos</TabsTrigger>
-          <TabsTrigger value="requires_signature">Requieren Firma</TabsTrigger>
-          <TabsTrigger value="general">Informativos</TabsTrigger>
-          <TabsTrigger value="Estatutos">Estatutos</TabsTrigger>
-          <TabsTrigger value="Reglamentación">Reglamentación</TabsTrigger>
-          <TabsTrigger value="Normativa Federación">Federación</TabsTrigger>
-        </TabsList>
-      </Tabs>
+      <div className="space-y-4">
+        <div className="relative">
+          <Search className="absolute left-3 top-3 h-5 w-5 text-slate-400" />
+          <Input
+            placeholder="Buscar documentos por título, descripción o tipo..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="pl-10 h-12 text-base"
+          />
+        </div>
+
+        <Tabs value={filterType} onValueChange={setFilterType}>
+          <TabsList className="bg-white shadow-sm">
+            <TabsTrigger value="all">Todos</TabsTrigger>
+            <TabsTrigger value="requires_signature">Requieren Firma</TabsTrigger>
+            <TabsTrigger value="general">Informativos</TabsTrigger>
+            <TabsTrigger value="Estatutos">Estatutos</TabsTrigger>
+            <TabsTrigger value="Reglamentación">Reglamentación</TabsTrigger>
+            <TabsTrigger value="Normativa Federación">Federación</TabsTrigger>
+          </TabsList>
+        </Tabs>
+      </div>
 
       {isLoading ? (
         <div className="text-center py-12">
