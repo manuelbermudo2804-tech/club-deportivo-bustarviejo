@@ -820,9 +820,15 @@ export default function Layout({ children, currentPageName }) {
 
             if (isRelevant) {
               myPlayers.forEach(player => {
-                const firma = doc.firmas?.find(f => f.jugador_id === player.id);
-                if (firma && !firma.firmado) {
-                  pending++;
+                const isRelevantForPlayer = doc.tipo_destinatario === "individual" 
+                  ? doc.jugadores_destino?.includes(player.id)
+                  : (doc.categoria_destino === "Todos" || player.deporte === doc.categoria_destino);
+
+                if (isRelevantForPlayer) {
+                  const firma = doc.firmas?.find(f => f.jugador_id === player.id);
+                  if (!firma || (!firma.firmado && !firma.confirmado_firma_externa)) {
+                    pending++;
+                  }
                 }
               });
             }
