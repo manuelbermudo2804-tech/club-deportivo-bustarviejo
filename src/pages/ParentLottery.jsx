@@ -33,16 +33,12 @@ export default function ParentLottery() {
       const coachCheck = currentUser.es_entrenador === true || currentUser.es_coordinador === true;
       setIsCoach(coachCheck);
       
-      // Verificar si tiene hijos
-      if (coachCheck) {
-        setHasPlayers(currentUser.tiene_hijos_jugando === true);
-      } else {
-        const allPlayers = await base44.entities.Player.list();
-        const myPlayers = allPlayers.filter(p => 
-          p.email_padre === currentUser.email || p.email_tutor_2 === currentUser.email
-        );
-        setHasPlayers(myPlayers.length > 0);
-      }
+      // Verificar si tiene hijos jugadores reales
+      const allPlayers = await base44.entities.Player.list();
+      const myPlayers = allPlayers.filter(p => 
+        p.email_padre === currentUser.email || p.email_tutor_2 === currentUser.email
+      );
+      setHasPlayers(myPlayers.length > 0);
     };
     fetchUser();
   }, []);
