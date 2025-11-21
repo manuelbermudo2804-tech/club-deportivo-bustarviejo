@@ -170,6 +170,50 @@ export default function DocumentCard({ document, players, onEdit, onDelete, isAd
                   <span className="font-semibold">Todos han firmado</span>
                 </div>
               )}
+
+              <div className="bg-slate-50 border-l-4 border-orange-500 p-3 rounded mb-3">
+                <p className="text-xs text-slate-700 font-semibold mb-2">
+                  ℹ️ Leyenda: ✅ Firmado en app | 🔵 Confirmó firma externa | ⏳ Pendiente
+                </p>
+              </div>
+
+              <div className="max-h-80 overflow-y-auto space-y-2">
+                {document.firmas?.map((firma, idx) => (
+                  <div key={idx} className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 p-3 bg-white rounded-lg border-l-4 shadow-sm" style={{ borderColor: firma.firmado ? '#16a34a' : firma.confirmado_firma_externa ? '#2563eb' : '#ea580c' }}>
+                    <div className="flex items-center gap-3 flex-1">
+                      {firma.firmado ? (
+                        <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0" />
+                      ) : firma.confirmado_firma_externa ? (
+                        <AlertCircle className="w-5 h-5 text-blue-600 flex-shrink-0" />
+                      ) : (
+                        <Clock className="w-5 h-5 text-orange-600 flex-shrink-0" />
+                      )}
+                      <div className="min-w-0">
+                        <p className="font-semibold text-slate-900 text-sm">{firma.jugador_nombre}</p>
+                        <p className="text-xs text-slate-600 truncate">{firma.email_padre}</p>
+                      </div>
+                    </div>
+                    <div className="text-right w-full sm:w-auto">
+                      {firma.firmado ? (
+                        <div>
+                          <p className="text-green-700 font-semibold text-sm">✅ Firmado</p>
+                          <p className="text-xs text-slate-600">{format(new Date(firma.fecha_firma), "d/MM/yy HH:mm", { locale: es })}</p>
+                        </div>
+                      ) : firma.confirmado_firma_externa ? (
+                        <div>
+                          <p className="text-blue-700 font-semibold text-sm">🔵 Confirmó firma externa</p>
+                          <p className="text-xs text-slate-600">{format(new Date(firma.fecha_confirmacion_externa), "d/MM/yy HH:mm", { locale: es })}</p>
+                        </div>
+                      ) : (
+                        <p className="text-orange-600 font-semibold text-sm">⏳ Pendiente</p>
+                      )}
+                      {firma.comentario && (
+                        <p className="text-xs text-slate-600 italic mt-1">"{firma.comentario}"</p>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
           )}
 
