@@ -9,8 +9,9 @@ export default function ChatNotificationListener({ user }) {
     queryKey: ['chatMessages'],
     queryFn: () => base44.entities.ChatMessage.list(),
     initialData: [],
-    refetchOnWindowFocus: false,
-    enabled: false,
+    refetchInterval: 30000, // Check every 30 seconds
+    refetchOnWindowFocus: true,
+    enabled: !!user && Notification.permission === 'granted',
   });
 
   // DirectMessage entity doesn't exist, so we skip it

@@ -28,28 +28,43 @@ export default function ParentDocuments() {
   const [selectedDocument, setSelectedDocument] = useState(null);
   const [selectedPlayer, setSelectedPlayer] = useState(null);
   const [signComment, setSignComment] = useState("");
-  const [visitedLinks, setVisitedLinks] = useState({});
+  const [visitedLinks, setVisitedLinks] = useState(() => {
+    try {
+      const stored = localStorage.getItem('visitedExternalLinks');
+      return stored ? JSON.parse(stored) : {};
+    } catch (e) {
+      console.error('Error loading visited links:', e);
+      return {};
+    }
+  });
 
   const queryClient = useQueryClient();
 
-  // Cargar enlaces visitados desde localStorage al montar
+  // Sincronizar con localStorage en cada cambio
   useEffect(() => {
-    const stored = localStorage.getItem('visitedExternalLinks');
-    if (stored) {
-      try {
-        setVisitedLinks(JSON.parse(stored));
-      } catch (e) {
-        console.error('Error loading visited links:', e);
+    localStorage.setItem('visitedExternalLinks', JSON.stringify(visitedLinks));
+  }, [visitedLinks]);
+
+  // Escuchar cambios de storage entre tabs
+  useEffect(() => {
+    const handleStorageChange = (e) => {
+      if (e.key === 'visitedExternalLinks' && e.newValue) {
+        try {
+          setVisitedLinks(JSON.parse(e.newValue));
+        } catch (err) {
+          console.error('Error syncing visited links:', err);
+        }
       }
-    }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
   }, []);
 
   // Marcar enlace como visitado
   const markLinkAsVisited = (documentId, playerId) => {
     const key = `${documentId}_${playerId}`;
-    const updated = { ...visitedLinks, [key]: true };
-    setVisitedLinks(updated);
-    localStorage.setItem('visitedExternalLinks', JSON.stringify(updated));
+    setVisitedLinks(prev => ({ ...prev, [key]: true }));
     console.log(`✅ Enlace marcado como visitado: ${key}`);
   };
 
@@ -93,13 +108,13 @@ export default function ParentDocuments() {
     },
     onSuccess: async ({ result, playerId }, variables) => {
       console.log("✅ Guardado en servidor");
-      
+
       if (playerId) {
-        const key = `${variables.id}_${playerId}`;
-        const updated = { ...visitedLinks };
-        delete updated[key];
-        setVisitedLinks(updated);
-        localStorage.setItem('visitedExternalLinks', JSON.stringify(updated));
+        setVisitedLinks(prev => {
+          const updated = { ...prev };
+          delete updated[`${variables.id}_${playerId}`];
+          return updated;
+        });
       }
       
       toast.success("✅ Firma confirmada");

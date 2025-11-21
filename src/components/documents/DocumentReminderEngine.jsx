@@ -37,7 +37,11 @@ export default function DocumentReminderEngine({ user }) {
       if (lastCheckRef.current && (now - lastCheckRef.current) < 5 * 60 * 1000) {
         return;
       }
-      lastCheckRef.current = now;
+      
+      // Verificar si ya hay un check en progreso
+      if (lastCheckRef.current === 'processing') return;
+      
+      lastCheckRef.current = 'processing';
 
       for (const document of documents) {
         if (!document.publicado || !document.requiere_firma) continue;
@@ -64,10 +68,16 @@ export default function DocumentReminderEngine({ user }) {
           await checkAdminAlerts(document, players, adminUsers, now);
         }
       }
+      
+      // Marcar como completado
+      lastCheckRef.current = now;
     };
 
-    checkDocumentReminders();
-  }, [documents, players, adminUsers, user]);
+    // Ejecutar inmediatamente y luego cada 5 minutos
+    const timer = setTimeout(checkDocumentReminders, 0);
+    
+    return () => clearTimeout(timer);
+  }, [documents.length, players.length, adminUsers?.length, user?.role]);
 
   return null;
 }
