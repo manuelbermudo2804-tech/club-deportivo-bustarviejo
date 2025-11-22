@@ -537,6 +537,7 @@ export default function Layout({ children, currentPageName }) {
     const fetchUser = async () => {
       try {
         const currentUser = await base44.auth.me();
+        console.log('👤 USUARIO CARGADO:', currentUser.email);
         setUser(currentUser);
         setIsAdmin(currentUser.role === "admin");
         setIsPlayer(currentUser.role === "jugador");
@@ -551,7 +552,8 @@ export default function Layout({ children, currentPageName }) {
           isCoach: currentUser.es_entrenador === true && !currentUser.es_coordinador,
           isCoordinator: currentUser.es_coordinador === true,
           isTreasurer: currentUser.es_tesorero === true,
-          es_tesorero_RAW: currentUser.es_tesorero
+          es_tesorero_RAW: currentUser.es_tesorero,
+          role_RAW: currentUser.role
         });
 
         // Para admin/entrenadores/coordinadores/tesoreros, SOLO usar el campo manual (no verificar BD)
@@ -607,14 +609,19 @@ export default function Layout({ children, currentPageName }) {
 
           useEffect(() => {
             const checkAndRedirect = async () => {
-              if (!user) return;
+              if (!user) {
+                console.log('⏳ Esperando usuario...');
+                return;
+              }
 
               const isRootPath = location.pathname === '/' || location.pathname === '';
+              console.log('📍 Ruta actual:', location.pathname, 'isRoot:', isRootPath);
               if (!isRootPath) {
                 setIsRedirecting(false);
                 return;
               }
 
+              console.log('🔄 Iniciando redirección...');
               setIsRedirecting(true);
 
               // Verificar si tiene jugadores pendientes de renovación
@@ -655,13 +662,19 @@ export default function Layout({ children, currentPageName }) {
               }
 
               // Lógica de redirección normal
+              console.log('🎯 Roles para redirección:', { isAdmin, isCoach, isCoordinator, isTreasurer, isPlayer });
               if (isAdmin || isCoach || isCoordinator || isTreasurer) {
+                console.log('✅ Redirigiendo a Home (admin/coach/coordinator/treasurer)');
                 navigate(createPageUrl('Home'), { replace: true });
               } else if (isPlayer) {
+                console.log('✅ Redirigiendo a PlayerDashboard');
                 navigate(createPageUrl('PlayerDashboard'), { replace: true });
               } else {
+                console.log('✅ Redirigiendo a ParentDashboard');
                 navigate(createPageUrl('ParentDashboard'), { replace: true });
               }
+              
+              setTimeout(() => setIsRedirecting(false), 100);
             };
 
             checkAndRedirect();
