@@ -443,6 +443,12 @@ export default function Home() {
             gradient: "from-orange-600 to-orange-700",
           },
           {
+            title: "💳 Pagos Mis Hijos",
+            icon: CreditCard,
+            url: createPageUrl("ParentPayments"),
+            gradient: "from-blue-600 to-blue-700",
+          },
+          {
             title: "📄 Documentos",
             icon: FileText,
             url: createPageUrl("ParentDocuments"),
