@@ -73,15 +73,14 @@ export default function SeasonManagement() {
   
   // Configuración del reinicio
   const [resetConfig, setResetConfig] = useState({
-    tipoReinicio: "completo", // completo, parcial, solo_archivar
+    tipoReinicio: "completo",
     nombreTemporada: "",
-    mesApertura: "9", // Septiembre
-    mesCierre: "6", // Junio
+    mesApertura: "9",
+    mesCierre: "6",
     generarBackup: true,
     notificarAdmins: true,
     notificarPadres: false,
     mensajePadres: "¡Bienvenidos a la nueva temporada! La aplicación ha sido actualizada. Por favor, revisa los datos de tus jugadores.",
-    // Opciones de borrado/archivo
     borrarAsistencias: true,
     borrarEvaluaciones: true,
     borrarHorarios: true,
@@ -386,8 +385,29 @@ export default function SeasonManagement() {
   // Abrir diálogo de configuración
   const handleOpenResetDialog = () => {
     setResetConfig({
-      ...resetConfig,
-      nombreTemporada: getNextSeason()
+      tipoReinicio: "completo",
+      nombreTemporada: getNextSeason(),
+      mesApertura: "9",
+      mesCierre: "6",
+      generarBackup: true,
+      notificarAdmins: true,
+      notificarPadres: false,
+      mensajePadres: "¡Bienvenidos a la nueva temporada! La aplicación ha sido actualizada. Por favor, revisa los datos de tus jugadores.",
+      borrarAsistencias: true,
+      borrarEvaluaciones: true,
+      borrarHorarios: true,
+      borrarCalendario: true,
+      borrarAnuncios: true,
+      borrarGaleria: true,
+      borrarConvocatorias: true,
+      borrarChats: true,
+      borrarEncuestas: true,
+      borrarResultados: true,
+      borrarPedidosRopa: true,
+      borrarPedidosLoteria: true,
+      borrarCertificados: true,
+      borrarNotasInternas: true,
+      borrarNotificaciones: true,
     });
     setShowResetDialog(true);
   };
