@@ -10,7 +10,7 @@ import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 
-export default function GlobalSearch({ isAdmin, isCoach }) {
+export default function GlobalSearch({ isAdmin = false, isCoach = false, isTreasurer = false }) {
   const [isOpen, setIsOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [activeTab, setActiveTab] = useState("all");
@@ -38,7 +38,7 @@ export default function GlobalSearch({ isAdmin, isCoach }) {
     queryKey: ['payments'],
     queryFn: () => base44.entities.Payment.list(),
     initialData: [],
-    enabled: isOpen && isAdmin,
+    enabled: isOpen && (isAdmin || isTreasurer),
   });
 
   const { data: callups } = useQuery({
@@ -81,7 +81,7 @@ export default function GlobalSearch({ isAdmin, isCoach }) {
 
   const allResults = [
     ...filteredPlayers.map(p => ({ type: 'player', item: p })),
-    ...(isAdmin ? filteredPayments.map(p => ({ type: 'payment', item: p })) : []),
+    ...((isAdmin || isTreasurer) ? filteredPayments.map(p => ({ type: 'payment', item: p })) : []),
     ...filteredCallups.map(c => ({ type: 'callup', item: c })),
     ...filteredAnnouncements.map(a => ({ type: 'announcement', item: a })),
     ...filteredEvents.map(e => ({ type: 'event', item: e }))
@@ -102,7 +102,7 @@ export default function GlobalSearch({ isAdmin, isCoach }) {
     switch(type) {
       case 'player': return createPageUrl("Players");
       case 'payment': return createPageUrl("Payments") + `?jugador_id=${item.jugador_id}`;
-      case 'callup': return isAdmin || isCoach ? createPageUrl("CoachCallups") : createPageUrl("ParentCallups");
+      case 'callup': return (isAdmin || isCoach) ? createPageUrl("CoachCallups") : createPageUrl("ParentCallups");
       case 'announcement': return createPageUrl("Announcements");
       case 'event': return createPageUrl("Calendar");
       default: return "#";
@@ -213,7 +213,7 @@ export default function GlobalSearch({ isAdmin, isCoach }) {
             <TabsList>
               <TabsTrigger value="all">Todo ({allResults.length})</TabsTrigger>
               <TabsTrigger value="players">Jugadores ({filteredPlayers.length})</TabsTrigger>
-              {isAdmin && <TabsTrigger value="payments">Pagos ({filteredPayments.length})</TabsTrigger>}
+              {(isAdmin || isTreasurer) && <TabsTrigger value="payments">Pagos ({filteredPayments.length})</TabsTrigger>}
               <TabsTrigger value="callups">Convocatorias ({filteredCallups.length})</TabsTrigger>
               <TabsTrigger value="events">Eventos ({filteredEvents.length})</TabsTrigger>
             </TabsList>
@@ -252,7 +252,7 @@ export default function GlobalSearch({ isAdmin, isCoach }) {
               </div>
             )}
 
-            {isAdmin && activeTab === "payments" && (
+            {(isAdmin || isTreasurer) && activeTab === "payments" && (
               <div className="space-y-1">
                 {filteredPayments.length === 0 ? (
                   <div className="text-center py-12">
