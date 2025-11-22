@@ -12,6 +12,7 @@ import PlayerForm from "../components/players/PlayerForm";
 import ContactCard from "../components/ContactCard";
 import AchievementsBadges from "../components/dashboard/AchievementsBadges";
 import PlayerCardSkeleton from "../components/skeletons/PlayerCardSkeleton";
+import { CheckmarkAnimation } from "../components/animations/SuccessAnimation";
 
 export default function ParentPlayers() {
   const [showForm, setShowForm] = useState(false);
@@ -403,7 +404,7 @@ Email: cdbustarviejo@gmail.com
       )}
 
       <ContactCard />
-      </div>
-      </>
-      );
-      }
+    </div>
+  </>
+  );
+}
