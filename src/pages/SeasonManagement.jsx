@@ -880,14 +880,17 @@ export default function SeasonManagement() {
       queryClient.invalidateQueries({ queryKey: ['reminders'] });
       queryClient.invalidateQueries({ queryKey: ['orders'] });
 
-      toast.success("🎉 ¡Reinicio completado!"); // Refined message
+      // Mostrar mensaje de éxito final
+      toast.success("✅ ¡Temporada cerrada con éxito!", { duration: 5000 });
+      toast.info(`🎉 Nueva temporada ${resetConfig.nombreTemporada} creada`, { duration: 5000 });
+      toast.info("📧 Los padres deberán renovar sus jugadores para la nueva temporada", { duration: 7000 });
       
       // Resetear estados
       setShowConfirmation(false);
+      setConfirmText("");
       setSecurityCheck({
         emailConfirmacion: "",
         aceptoTerminos: false,
-        // password: "" // Removed password reset
       });
     } catch (error) {
       console.error("Error executing season reset:", error);

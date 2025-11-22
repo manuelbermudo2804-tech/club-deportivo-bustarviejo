@@ -7,6 +7,7 @@ import { Users, Calendar, Bell, MessageCircle, CreditCard, Image, Megaphone, Clo
 
 import SocialLinks from "../components/SocialLinks";
 import PushNotificationManager from "../components/push/PushNotificationManager";
+import NewSeasonWelcome from "../components/NewSeasonWelcome";
 
 export default function ParentDashboard() {
   const navigate = useNavigate();
@@ -404,6 +405,11 @@ export default function ParentDashboard() {
         </div>
       </div>
     );
+  }
+
+  // Mostrar pantalla de nueva temporada si no hay jugadores activos
+  if (myPlayers.length === 0 && activeSeason) {
+    return <NewSeasonWelcome seasonName={activeSeason.temporada} />;
   }
 
   return (
