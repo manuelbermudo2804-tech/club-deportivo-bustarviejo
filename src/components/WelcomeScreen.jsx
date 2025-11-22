@@ -10,7 +10,6 @@ export default function WelcomeScreen({ onComplete }) {
     const timer = setTimeout(() => {
       setShow(false);
       setTimeout(() => {
-        sessionStorage.setItem('hasSeenWelcome', 'true');
         onComplete();
       }, 500);
     }, 3500);

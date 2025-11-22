@@ -500,11 +500,7 @@ export default function Layout({ children, currentPageName }) {
   const [currentLang, setCurrentLang] = useState(() => {
     return localStorage.getItem('appLanguage') || 'es';
   });
-  const [showWelcome, setShowWelcome] = useState(() => {
-    // Solo mostrar pantalla de bienvenida una vez por sesión
-    const hasSeenWelcome = sessionStorage.getItem('hasSeenWelcome');
-    return hasSeenWelcome === 'true';
-  });
+  const [showWelcome, setShowWelcome] = useState(false);
   const [loteriaVisible, setLoteriaVisible] = useState(false);
   const [showPresentation, setShowPresentation] = useState(false);
   const [isRedirecting, setIsRedirecting] = useState(false);
