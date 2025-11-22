@@ -10,7 +10,7 @@ export default function WelcomeScreen({ onComplete }) {
     const timer = setTimeout(() => {
       setShow(false);
       setTimeout(onComplete, 500);
-    }, 3000);
+    }, 3500);
 
     return () => clearTimeout(timer);
   }, [onComplete]);
@@ -26,72 +26,106 @@ export default function WelcomeScreen({ onComplete }) {
         className="fixed inset-0 z-[99999] bg-gradient-to-br from-orange-600 via-orange-700 to-green-700 flex items-center justify-center p-4 overflow-hidden"
         style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0 }}
       >
-        {/* Balones flotantes animados */}
+        {/* Balones flotantes animados con más deportes */}
         <motion.div
           animate={{ 
-            x: [0, 100, 0],
-            y: [0, -80, 0],
-            rotate: 360
+            x: [0, 120, 0],
+            y: [0, -100, 0],
+            rotate: [0, 360, 0]
           }}
           transition={{ 
-            duration: 3,
+            duration: 4,
             repeat: Infinity,
             ease: "easeInOut"
           }}
-          className="absolute top-20 left-10 text-6xl"
+          className="absolute top-10 left-5 text-7xl md:text-8xl opacity-90"
         >
           ⚽
         </motion.div>
         
         <motion.div
           animate={{ 
-            x: [0, -120, 0],
-            y: [0, 70, 0],
-            rotate: -360
+            x: [0, -140, 0],
+            y: [0, 80, 0],
+            rotate: [0, -360, 0]
           }}
           transition={{ 
-            duration: 2.5,
+            duration: 3.5,
             repeat: Infinity,
             ease: "easeInOut",
             delay: 0.5
           }}
-          className="absolute top-40 right-16 text-5xl"
+          className="absolute top-32 right-10 text-6xl md:text-7xl opacity-80"
         >
           🏀
         </motion.div>
 
         <motion.div
           animate={{ 
-            x: [0, 80, 0],
-            y: [0, 90, 0],
-            rotate: 180
+            x: [0, 100, 0],
+            y: [0, 100, 0],
+            rotate: [0, 180, 0]
           }}
           transition={{ 
-            duration: 2.8,
+            duration: 3.8,
             repeat: Infinity,
             ease: "easeInOut",
             delay: 0.3
           }}
-          className="absolute bottom-32 left-20 text-5xl"
+          className="absolute bottom-24 left-12 text-6xl md:text-7xl opacity-85"
         >
           🎾
         </motion.div>
 
         <motion.div
           animate={{ 
-            x: [0, -90, 0],
-            y: [0, -60, 0],
-            scale: [1, 1.2, 1]
+            x: [0, -110, 0],
+            y: [0, -70, 0],
+            scale: [1, 1.3, 1]
           }}
           transition={{ 
-            duration: 2.2,
+            duration: 3.2,
             repeat: Infinity,
             ease: "easeInOut",
             delay: 0.7
           }}
-          className="absolute bottom-20 right-24 text-4xl"
+          className="absolute bottom-16 right-16 text-5xl md:text-6xl opacity-90"
         >
           🏐
+        </motion.div>
+
+        <motion.div
+          animate={{ 
+            x: [0, 90, 0],
+            y: [0, -50, 0],
+            rotate: [0, 270, 0]
+          }}
+          transition={{ 
+            duration: 3.6,
+            repeat: Infinity,
+            ease: "easeInOut",
+            delay: 1
+          }}
+          className="absolute top-1/2 left-8 text-5xl md:text-6xl opacity-75"
+        >
+          🥅
+        </motion.div>
+
+        <motion.div
+          animate={{ 
+            x: [0, -100, 0],
+            y: [0, 60, 0],
+            scale: [1, 1.2, 1]
+          }}
+          transition={{ 
+            duration: 3.4,
+            repeat: Infinity,
+            ease: "easeInOut",
+            delay: 1.2
+          }}
+          className="absolute top-1/2 right-12 text-5xl md:text-6xl opacity-80"
+        >
+          🏆
         </motion.div>
 
         {/* Contenido principal */}
@@ -113,13 +147,36 @@ export default function WelcomeScreen({ onComplete }) {
             }}
             className="mb-8"
           >
-            {CLUB_LOGO_URL ? (
+            <motion.div
+              className="relative"
+              animate={{ 
+                y: [0, -15, 0],
+                rotate: [0, 3, 0, -3, 0]
+              }}
+              transition={{ 
+                duration: 3,
+                repeat: Infinity,
+                ease: "easeInOut"
+              }}
+            >
               <motion.img 
                 src={CLUB_LOGO_URL} 
                 alt="CD Bustarviejo"
-                className="w-48 h-48 md:w-64 md:h-64 mx-auto drop-shadow-2xl object-contain"
+                className="w-52 h-52 md:w-72 md:h-72 mx-auto drop-shadow-2xl object-contain filter brightness-110"
+                initial={{ scale: 0, rotate: -180 }}
+                animate={{ scale: 1, rotate: 0 }}
+                transition={{ 
+                  duration: 1.2,
+                  ease: "backOut",
+                  type: "spring",
+                  stiffness: 100
+                }}
+              />
+              <motion.div
+                className="absolute inset-0 rounded-full bg-white/20"
                 animate={{ 
-                  y: [0, -10, 0]
+                  scale: [1, 1.2, 1],
+                  opacity: [0.3, 0, 0.3]
                 }}
                 transition={{ 
                   duration: 2,
@@ -127,25 +184,7 @@ export default function WelcomeScreen({ onComplete }) {
                   ease: "easeInOut"
                 }}
               />
-            ) : (
-              <motion.div
-                className="w-48 h-48 md:w-64 md:h-64 mx-auto bg-white/10 rounded-3xl flex items-center justify-center"
-                animate={{ 
-                  y: [0, -10, 0],
-                  scale: [1, 1.05, 1]
-                }}
-                transition={{ 
-                  duration: 2,
-                  repeat: Infinity,
-                  ease: "easeInOut"
-                }}
-              >
-                <div className="text-center">
-                  <div className="text-6xl mb-2">⚽</div>
-                  <div className="text-6xl">🏀</div>
-                </div>
-              </motion.div>
-            )}
+            </motion.div>
           </motion.div>
           
           <motion.div
