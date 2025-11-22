@@ -357,8 +357,10 @@ export default function Players() {
       </Card>
 
       {isLoading ? (
-        <div className="text-center py-12">
-          <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-orange-600 border-r-transparent"></div>
+        <div className="space-y-6">
+          {[1, 2, 3].map((i) => (
+            <PlayerCardSkeleton key={i} />
+          ))}
         </div>
       ) : filteredPlayers.length === 0 ? (
         <div className="text-center py-12">

@@ -9,6 +9,7 @@ const Onboarding = lazy(() => import("../components/Onboarding"));
 const SocialLinks = lazy(() => import("../components/SocialLinks"));
 const ManualGenerator = lazy(() => import("../components/manuals/ManualGenerator"));
 const ClubStats = lazy(() => import("../components/dashboard/ClubStats"));
+const DashboardCardSkeleton = lazy(() => import("../components/skeletons/DashboardCardSkeleton"));
 
 const CLUB_LOGO_URL = "https://www.cdbustarviejo.com/uploads/2/4/0/4/2404974/logo-cd-bustarviejo-cuadrado-xpeq_orig.png";
 
@@ -565,7 +566,16 @@ export default function Home() {
         </button>
 
         <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3 lg:gap-6">
-          {menuItems.map((item, index) => (
+          {!user || !menuItems.length ? (
+            <>
+              {[1, 2, 3, 4, 5, 6].map((i) => (
+                <Suspense key={i} fallback={null}>
+                  <DashboardCardSkeleton />
+                </Suspense>
+              ))}
+            </>
+          ) : (
+            menuItems.map((item, index) => (
             <Link key={index} to={item.url} className="group">
               <div className="relative bg-slate-800 rounded-3xl overflow-hidden shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105 active:scale-95 border-2 border-slate-700 hover:border-orange-500">
                 <div className="absolute inset-0 bg-gradient-to-br from-slate-700/50 to-black/80 opacity-60"></div>
@@ -591,7 +601,8 @@ export default function Home() {
                 </div>
               </div>
             </Link>
-          ))}
+          ))
+          )}
         </div>
 
         <div className="bg-slate-800 rounded-3xl p-4 lg:p-6 shadow-2xl border-2 border-slate-700">

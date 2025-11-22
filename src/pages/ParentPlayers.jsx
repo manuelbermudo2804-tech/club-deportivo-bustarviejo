@@ -11,6 +11,7 @@ import PlayerCard from "../components/players/PlayerCard";
 import PlayerForm from "../components/players/PlayerForm";
 import ContactCard from "../components/ContactCard";
 import AchievementsBadges from "../components/dashboard/AchievementsBadges";
+import PlayerCardSkeleton from "../components/skeletons/PlayerCardSkeleton";
 
 export default function ParentPlayers() {
   const [showForm, setShowForm] = useState(false);
@@ -290,8 +291,10 @@ Email: cdbustarviejo@gmail.com
       </AnimatePresence>
 
       {isLoading ? (
-        <div className="text-center py-12">
-          <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-orange-600 border-r-transparent"></div>
+        <div className="space-y-6">
+          {[1, 2].map((i) => (
+            <PlayerCardSkeleton key={i} />
+          ))}
         </div>
       ) : players.length === 0 ? (
         <div className="text-center py-12 bg-white rounded-xl shadow-lg">
