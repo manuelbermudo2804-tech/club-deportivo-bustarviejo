@@ -263,8 +263,32 @@ export default function ClothingOrders() {
     "Entregado": "🟢"
   };
 
+  const markAsPaidMutation = useMutation({
+    mutationFn: async (orderId) => {
+      const order = orders.find(o => o.id === orderId);
+      return base44.entities.ClothingOrder.update(orderId, {
+        ...order,
+        pagado: true
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['myClothingOrders'] });
+      toast.success("Marcado como pagado");
+    },
+  });
+
   const renderOrderDetails = (order) => (
     <div className="space-y-1.5 lg:space-y-2 text-xs lg:text-sm">
+      {isAdmin && order.metodo_pago && (
+        <div className="mb-3 pb-3 border-b border-slate-200">
+          <p className="text-slate-900 font-semibold">
+            💳 <strong>Método de pago:</strong> {order.metodo_pago}
+          </p>
+          {order.pagado && (
+            <Badge className="bg-green-600 text-white mt-1">✅ PAGADO</Badge>
+          )}
+        </div>
+      )}
       {order.chaqueta_partidos && (
         <p className="text-slate-700">✅ <strong>Chaqueta:</strong> {order.chaqueta_talla} - 35€</p>
       )}
@@ -560,7 +584,12 @@ export default function ClothingOrders() {
                                         <h5 className="font-bold text-slate-900 text-sm">{order.jugador_nombre}</h5>
                                         <p className="text-xs text-slate-600">{order.jugador_categoria}</p>
                                       </div>
-                                      <div className="flex gap-2">
+                                      <div className="flex gap-2 flex-wrap">
+                                        {order.pagado && (
+                                          <Badge className="bg-green-600 text-white">
+                                            💰 Pagado
+                                          </Badge>
+                                        )}
                                         <Badge className={statusColors[order.estado]}>
                                           {statusEmojis[order.estado]} {order.estado}
                                         </Badge>
@@ -571,6 +600,11 @@ export default function ClothingOrders() {
                                             </Button>
                                           </DropdownMenuTrigger>
                                           <DropdownMenuContent>
+                                            {!order.pagado && (
+                                              <DropdownMenuItem onClick={() => markAsPaidMutation.mutate(order.id)}>
+                                                <Check className="w-4 h-4 mr-2 text-green-600" /> Marcar como pagado
+                                              </DropdownMenuItem>
+                                            )}
                                             <DropdownMenuItem onClick={() => updateOrderStatusMutation.mutate({ orderId: order.id, newStatus: "Confirmado", notifyParent: true })}>
                                               <Check className="w-4 h-4 mr-2" /> Confirmar y notificar
                                             </DropdownMenuItem>
@@ -844,10 +878,17 @@ export default function ClothingOrders() {
                               <h3 className="font-bold text-sm lg:text-lg text-slate-900 truncate">{order.jugador_nombre}</h3>
                               <p className="text-xs lg:text-sm text-slate-600">{order.jugador_categoria}</p>
                             </div>
-                            <Badge className={`${statusColors[order.estado]} text-xs whitespace-nowrap flex-shrink-0`}>
-                              <span className="mr-1">{statusEmojis[order.estado]}</span>
-                              <span className="hidden sm:inline">{order.estado}</span>
-                            </Badge>
+                            <div className="flex gap-1 flex-wrap flex-shrink-0">
+                              {order.pagado && (
+                                <Badge className="bg-green-600 text-white text-xs">
+                                  💰 Pagado
+                                </Badge>
+                              )}
+                              <Badge className={`${statusColors[order.estado]} text-xs whitespace-nowrap`}>
+                                <span className="mr-1">{statusEmojis[order.estado]}</span>
+                                <span className="hidden sm:inline">{order.estado}</span>
+                              </Badge>
+                            </div>
                           </div>
                           {renderOrderDetails(order)}
                         </div>
