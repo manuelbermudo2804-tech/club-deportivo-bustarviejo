@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Pencil, CreditCard, Mail, Phone, User, Eye, Clock, Heart, AlertTriangle } from "lucide-react";
+import { Pencil, CreditCard, Mail, Phone, User, Eye, Clock, Heart, AlertTriangle, FileText } from "lucide-react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import PlayerDetailDialog from "./PlayerDetailDialog";
@@ -45,7 +45,7 @@ const DIAS_ORDEN = {
   "Viernes": 5
 };
 
-export default function PlayerCard({ player, onEdit, isParent = false, readOnly = false, schedules = [], isCoachOrCoordinator = false }) {
+export default function PlayerCard({ player, onEdit, onViewProfile, isParent = false, readOnly = false, schedules = [], isCoachOrCoordinator = false }) {
   const [showDetail, setShowDetail] = useState(false);
   
   // Determinar la página de pagos según si es padre o admin
@@ -182,28 +182,35 @@ export default function PlayerCard({ player, onEdit, isParent = false, readOnly 
           )}
 
           <div className="flex gap-2 pt-2">
-            {readOnly ? (
+            {onViewProfile && (
               <Button
                 variant="outline"
                 size="sm"
-                className="flex-1 hover:bg-slate-50"
-                disabled
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onViewProfile(player);
+                }}
+                className="flex-1 hover:bg-purple-50 hover:text-purple-700"
               >
-                <Eye className="w-4 h-4 mr-1" />
-                Solo Lectura
+                <FileText className="w-4 h-4 mr-1" />
+                Perfil
               </Button>
-            ) : (
+            )}
+            {!readOnly && onEdit && (
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => onEdit(player)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onEdit(player);
+                }}
                 className="flex-1 hover:bg-orange-50 hover:text-orange-700"
               >
                 <Pencil className="w-4 h-4 mr-1" />
-                {isParent ? "Ver/Editar" : "Editar"}
+                Editar
               </Button>
             )}
-            <Link to={`${createPageUrl(paymentsPage)}?jugador_id=${player.id}`} className="flex-1">
+            <Link to={`${createPageUrl(paymentsPage)}?jugador_id=${player.id}`} className="flex-1" onClick={(e) => e.stopPropagation()}>
               <Button
                 variant="outline"
                 size="sm"

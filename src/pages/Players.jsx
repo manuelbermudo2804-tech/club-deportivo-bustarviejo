@@ -3,12 +3,15 @@ import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Plus, Search } from "lucide-react";
+import { Plus, Search, Filter, X } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AnimatePresence } from "framer-motion";
+import { Card, CardContent } from "@/components/ui/card";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 import PlayerCard from "../components/players/PlayerCard";
 import PlayerForm from "../components/players/PlayerForm";
+import PlayerProfileDialog from "../components/players/PlayerProfileDialog";
 
 export default function Players() {
   const [showForm, setShowForm] = useState(false);
@@ -18,6 +21,8 @@ export default function Players() {
   const [statusFilter, setStatusFilter] = useState("all");
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
+  const [selectedPlayer, setSelectedPlayer] = useState(null);
+  const [showProfileDialog, setShowProfileDialog] = useState(false);
   const [user, setUser] = useState(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [isCoach, setIsCoach] = useState(false);
@@ -43,6 +48,24 @@ export default function Players() {
   const { data: schedules } = useQuery({
     queryKey: ['trainingSchedules'],
     queryFn: () => base44.entities.TrainingSchedule.list(),
+    initialData: [],
+  });
+
+  const { data: payments } = useQuery({
+    queryKey: ['payments'],
+    queryFn: () => base44.entities.Payment.list(),
+    initialData: [],
+  });
+
+  const { data: evaluations } = useQuery({
+    queryKey: ['evaluations'],
+    queryFn: () => base44.entities.PlayerEvaluation.list(),
+    initialData: [],
+  });
+
+  const { data: attendances } = useQuery({
+    queryKey: ['attendances'],
+    queryFn: () => base44.entities.Attendance.list(),
     initialData: [],
   });
 
@@ -121,8 +144,16 @@ export default function Players() {
     setShowForm(true);
   };
 
+  const handleViewProfile = (player) => {
+    setSelectedPlayer(player);
+    setShowProfileDialog(true);
+  };
+
   const filteredPlayers = players.filter(player => {
-    const matchesSearch = player.nombre?.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSearch = searchTerm === "" || 
+      player.nombre?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      player.email_padre?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      player.telefono?.includes(searchTerm);
     const matchesSport = sportFilter === "all" || player.deporte === sportFilter;
     const matchesStatus = statusFilter === "all" || 
       (statusFilter === "active" && player.activo) ||
@@ -182,143 +213,96 @@ export default function Players() {
         )}
       </AnimatePresence>
 
-      {/* Búsqueda */}
-      <div className="relative flex-1">
-        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-slate-400" />
-        <Input
-          placeholder="Buscar por nombre..."
-          value={searchTerm}
-          onChange={(e) => e.target && setSearchTerm(e.target.value)}
-          className="pl-10 bg-white shadow-sm"
-        />
-      </div>
-
-      {/* Botón de Filtros Avanzados */}
-      <Button
-        variant="outline"
-        onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
-        className="shadow-sm"
-      >
-        {showAdvancedFilters ? "Ocultar Filtros" : "Filtros Avanzados"}
-      </Button>
-
-      {/* Panel de Filtros Avanzados */}
-      {showAdvancedFilters && (
-        <div className="bg-white rounded-xl shadow-lg border-2 border-orange-200 p-6 space-y-4">
-          <h3 className="font-bold text-slate-900 mb-4">Filtros Avanzados</h3>
-          
-          {/* Filtro por Estado */}
-          <div className="space-y-2">
-            <label className="text-sm font-semibold text-slate-700">Estado del Jugador</label>
-            <div className="flex flex-wrap gap-2">
-              <Button
-                variant={statusFilter === "all" ? "default" : "outline"}
-                size="sm"
-                onClick={() => setStatusFilter("all")}
-                className={statusFilter === "all" ? "bg-orange-600 hover:bg-orange-700" : ""}
-              >
-                Todos ({allCount})
-              </Button>
-              <Button
-                variant={statusFilter === "active" ? "default" : "outline"}
-                size="sm"
-                onClick={() => setStatusFilter("active")}
-                className={statusFilter === "active" ? "bg-green-600 hover:bg-green-700" : ""}
-              >
-                ✅ Activos ({activeCount})
-              </Button>
-              <Button
-                variant={statusFilter === "inactive" ? "default" : "outline"}
-                size="sm"
-                onClick={() => setStatusFilter("inactive")}
-                className={statusFilter === "inactive" ? "bg-slate-600 hover:bg-slate-700" : ""}
-              >
-                ❌ Inactivos ({inactiveCount})
-              </Button>
+      {/* Búsqueda Avanzada */}
+      <Card className="border-none shadow-lg">
+        <CardContent className="p-6 space-y-4">
+          <div className="flex items-center gap-3">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-slate-400" />
+              <Input
+                placeholder="Buscar por nombre, email o teléfono..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10 bg-white"
+              />
             </div>
+            <Button
+              variant={showAdvancedFilters ? "default" : "outline"}
+              onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
+              className={showAdvancedFilters ? "bg-orange-600 hover:bg-orange-700" : ""}
+            >
+              <Filter className="w-4 h-4 mr-2" />
+              Filtros
+            </Button>
+            {(searchTerm || sportFilter !== "all" || statusFilter !== "all" || categoryFilter !== "all") && (
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={() => {
+                  setSearchTerm("");
+                  setSportFilter("all");
+                  setStatusFilter("all");
+                  setCategoryFilter("all");
+                }}
+              >
+                <X className="w-4 h-4" />
+              </Button>
+            )}
           </div>
 
-          {/* Filtro por Deporte */}
-          <div className="space-y-2">
-            <label className="text-sm font-semibold text-slate-700">Deporte</label>
-            <div className="flex flex-wrap gap-2">
-              <Button
-                variant={sportFilter === "all" ? "default" : "outline"}
-                size="sm"
-                onClick={() => setSportFilter("all")}
-                className={sportFilter === "all" ? "bg-orange-600 hover:bg-orange-700" : ""}
-              >
-                Todos
-              </Button>
-              <Button
-                variant={sportFilter === "Fútbol" ? "default" : "outline"}
-                size="sm"
-                onClick={() => setSportFilter("Fútbol")}
-                className={sportFilter === "Fútbol" ? "bg-blue-600 hover:bg-blue-700" : ""}
-              >
-                ⚽ Fútbol ({futbolCount})
-              </Button>
-              <Button
-                variant={sportFilter === "Fútbol Femenino" ? "default" : "outline"}
-                size="sm"
-                onClick={() => setSportFilter("Fútbol Femenino")}
-                className={sportFilter === "Fútbol Femenino" ? "bg-pink-600 hover:bg-pink-700" : ""}
-              >
-                ⚽ Fútbol Femenino ({futbolFemeninoCount})
-              </Button>
-              <Button
-                variant={sportFilter === "Baloncesto" ? "default" : "outline"}
-                size="sm"
-                onClick={() => setSportFilter("Baloncesto")}
-                className={sportFilter === "Baloncesto" ? "bg-orange-600 hover:bg-orange-700" : ""}
-              >
-                🏀 Baloncesto ({baloncestoCount})
-              </Button>
-            </div>
-          </div>
+          {showAdvancedFilters && (
+            <div className="pt-4 border-t space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="space-y-2">
+                  <label className="text-sm font-semibold text-slate-700">Estado</label>
+                  <Select value={statusFilter} onValueChange={setStatusFilter}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Todos ({allCount})</SelectItem>
+                      <SelectItem value="active">✅ Activos ({activeCount})</SelectItem>
+                      <SelectItem value="inactive">❌ Inactivos ({inactiveCount})</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
 
-          {/* Filtro por Categoría Específica */}
-          <div className="space-y-2">
-            <label className="text-sm font-semibold text-slate-700">Categoría Específica</label>
-            <div className="flex flex-wrap gap-2">
-              <Button
-                variant={categoryFilter === "all" ? "default" : "outline"}
-                size="sm"
-                onClick={() => setCategoryFilter("all")}
-                className={categoryFilter === "all" ? "bg-orange-600 hover:bg-orange-700" : ""}
-              >
-                Todas
-              </Button>
-              {allCategories.map(cat => (
-                <Button
-                  key={cat}
-                  variant={categoryFilter === cat ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setCategoryFilter(cat)}
-                  className={categoryFilter === cat ? "bg-purple-600 hover:bg-purple-700" : ""}
-                >
-                  {cat} ({players.filter(p => p.deporte === cat).length})
-                </Button>
-              ))}
-            </div>
-          </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-semibold text-slate-700">Deporte</label>
+                  <Select value={sportFilter} onValueChange={setSportFilter}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Todos</SelectItem>
+                      <SelectItem value="Fútbol">⚽ Fútbol ({futbolCount})</SelectItem>
+                      <SelectItem value="Fútbol Femenino">⚽ Fútbol Femenino ({futbolFemeninoCount})</SelectItem>
+                      <SelectItem value="Baloncesto">🏀 Baloncesto ({baloncestoCount})</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
 
-          {/* Botón limpiar filtros */}
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => {
-              setSearchTerm("");
-              setSportFilter("all");
-              setStatusFilter("all");
-              setCategoryFilter("all");
-            }}
-            className="w-full"
-          >
-            Limpiar Filtros
-          </Button>
-        </div>
-      )}
+                <div className="space-y-2">
+                  <label className="text-sm font-semibold text-slate-700">Categoría</label>
+                  <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Todas</SelectItem>
+                      {allCategories.map(cat => (
+                        <SelectItem key={cat} value={cat}>
+                          {cat} ({players.filter(p => p.deporte === cat).length})
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
       {isLoading ? (
         <div className="text-center py-12">
@@ -336,12 +320,26 @@ export default function Players() {
                 key={player.id} 
                 player={player} 
                 onEdit={isAdmin ? handleEdit : null}
+                onViewProfile={handleViewProfile}
                 schedules={schedules}
                 isCoachOrCoordinator={isCoach || user?.es_coordinador}
               />
             ))}
           </AnimatePresence>
         </div>
+      )}
+
+      {selectedPlayer && (
+        <PlayerProfileDialog
+          player={selectedPlayer}
+          open={showProfileDialog}
+          onOpenChange={setShowProfileDialog}
+          onEdit={isAdmin ? handleEdit : null}
+          payments={payments}
+          evaluations={evaluations}
+          attendances={attendances}
+          isAdmin={isAdmin}
+        />
       )}
     </div>
   );
