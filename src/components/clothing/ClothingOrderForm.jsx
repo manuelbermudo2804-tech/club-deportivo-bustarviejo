@@ -35,6 +35,7 @@ export default function ClothingOrderForm({ players, onSubmit, onCancel, isSubmi
   const [selectedPlayer, setSelectedPlayer] = useState(null);
   const [uploadingFile, setUploadingFile] = useState(false);
   const [seasonConfig, setSeasonConfig] = useState(null);
+  const [user, setUser] = useState(null);
   
   const [orderData, setOrderData] = useState({
     jugador_id: "", jugador_nombre: "", jugador_categoria: "", email_padre: "", telefono: "",
@@ -51,14 +52,17 @@ export default function ClothingOrderForm({ players, onSubmit, onCancel, isSubmi
     estado: "Pendiente", temporada: getCurrentSeason(), notas: ""
   });
 
-  // Fetch season config for Bizum availability
+  // Fetch season config and user
   useEffect(() => {
-    const fetchConfig = async () => {
+    const fetchData = async () => {
       const configs = await base44.entities.SeasonConfig.list();
       const active = configs.find(c => c.activa === true);
       setSeasonConfig(active);
+      
+      const currentUser = await base44.auth.me();
+      setUser(currentUser);
     };
-    fetchConfig();
+    fetchData();
   }, []);
 
   const canOrderJacket = selectedPlayer && !selectedPlayer.deporte?.includes("Aficionado") && !selectedPlayer.deporte?.includes("Baloncesto");
