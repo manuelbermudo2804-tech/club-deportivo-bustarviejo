@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Gift, Sparkles, Star, PartyPopper, AlertCircle } from "lucide-react";
+import { Gift, Sparkles, Star, PartyPopper, AlertCircle, Upload, X, Loader2 } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { toast } from "sonner";
 
@@ -20,6 +20,9 @@ export default function ParentLottery() {
   const [selectedCategory, setSelectedCategory] = useState("");
   const [numDecimos, setNumDecimos] = useState(1);
   const [notas, setNotas] = useState("");
+  const [metodoPago, setMetodoPago] = useState("Transferencia");
+  const [justificanteUrl, setJustificanteUrl] = useState("");
+  const [uploadingFile, setUploadingFile] = useState(false);
   const [user, setUser] = useState(null);
   const [isCoach, setIsCoach] = useState(false);
   const [hasPlayers, setHasPlayers] = useState(false);
@@ -86,12 +89,36 @@ export default function ParentLottery() {
       setSelectedCategory("");
       setNumDecimos(1);
       setNotas("");
+      setMetodoPago("Transferencia");
+      setJustificanteUrl("");
       toast.success("✅ ¡Pedido registrado! Tu entrenador te entregará los décimos");
     },
   });
 
+  const handleFileUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploadingFile(true);
+    try {
+      const response = await base44.integrations.Core.UploadFile({ file });
+      setJustificanteUrl(response.file_url);
+      toast.success("Justificante subido correctamente");
+    } catch (error) {
+      console.error("Error uploading file:", error);
+      toast.error("Error al subir el justificante");
+    } finally {
+      setUploadingFile(false);
+    }
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
+    
+    if (!justificanteUrl) {
+      toast.error("Debes subir el justificante de pago");
+      return;
+    }
     
     const total = numDecimos * precioDecimo;
 
@@ -113,6 +140,8 @@ export default function ParentLottery() {
         total: total,
         estado: "Solicitado",
         pagado: false,
+        metodo_pago: metodoPago,
+        justificante_url: justificanteUrl,
         temporada: new Date().getFullYear().toString(),
         notas: notas
       });
@@ -135,6 +164,8 @@ export default function ParentLottery() {
         total: total,
         estado: "Solicitado",
         pagado: false,
+        metodo_pago: metodoPago,
+        justificante_url: justificanteUrl,
         temporada: new Date().getFullYear().toString(),
         notas: notas
       });
@@ -334,6 +365,85 @@ export default function ParentLottery() {
                 </div>
 
                 <div className="space-y-2">
+                  <Label className="text-lg font-bold text-slate-900">💳 Método de Pago</Label>
+                  <Select value={metodoPago} onValueChange={setMetodoPago}>
+                    <SelectTrigger className="border-2 border-red-300 h-12 text-lg">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Transferencia">💳 Transferencia Bancaria</SelectItem>
+                      {seasonConfig?.bizum_activo && (
+                        <SelectItem value="Bizum">📱 Bizum</SelectItem>
+                      )}
+                    </SelectContent>
+                  </Select>
+                  {metodoPago === "Bizum" && seasonConfig?.bizum_telefono && (
+                    <div className="bg-white rounded-lg p-3 border-2 border-green-300">
+                      <p className="text-sm text-slate-900">
+                        📱 <strong>Enviar Bizum al:</strong> {seasonConfig.bizum_telefono}
+                      </p>
+                      <p className="text-xs text-slate-600 mt-1">
+                        Concepto: Lotería {selectedPlayer ? players.find(p => p.id === selectedPlayer)?.nombre : user?.full_name}
+                      </p>
+                    </div>
+                  )}
+                </div>
+
+                <div className="space-y-3 p-4 bg-orange-50 rounded-lg border-2 border-orange-200">
+                  <Label className="text-base font-semibold text-orange-900">
+                    📎 Justificante de Pago * (Obligatorio)
+                  </Label>
+                  <p className="text-sm text-orange-800">
+                    {metodoPago === "Bizum" 
+                      ? "Sube una captura del justificante de Bizum" 
+                      : "Sube una captura o foto del justificante de tu transferencia bancaria"}
+                  </p>
+                  <div className="flex gap-3">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => document.getElementById('lottery-file-upload').click()}
+                      disabled={uploadingFile}
+                      className="flex-1 bg-white"
+                    >
+                      {uploadingFile ? (
+                        <>
+                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                          Subiendo...
+                        </>
+                      ) : (
+                        <>
+                          <Upload className="w-4 h-4 mr-2" />
+                          {justificanteUrl ? "Cambiar justificante" : "Subir justificante"}
+                        </>
+                      )}
+                    </Button>
+                    {justificanteUrl && (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => setJustificanteUrl("")}
+                        className="bg-white"
+                      >
+                        <X className="w-4 h-4" />
+                      </Button>
+                    )}
+                  </div>
+                  <input
+                    id="lottery-file-upload"
+                    type="file"
+                    accept="image/*,.pdf"
+                    onChange={handleFileUpload}
+                    className="hidden"
+                  />
+                  {justificanteUrl ? (
+                    <p className="text-sm text-green-600 font-medium">✓ Justificante subido correctamente</p>
+                  ) : (
+                    <p className="text-sm text-red-600 font-medium">⚠️ Debes subir el justificante para continuar</p>
+                  )}
+                </div>
+
+                <div className="space-y-2">
                   <Label className="text-lg font-bold text-slate-900">📝 Notas (opcional)</Label>
                   <Textarea
                     value={notas}
@@ -355,7 +465,7 @@ export default function ParentLottery() {
                   <Button 
                     type="submit" 
                     className="flex-1 h-12 text-lg bg-gradient-to-r from-green-600 to-red-600 hover:from-green-700 hover:to-red-700 border-2 border-yellow-400 font-bold"
-                    disabled={createOrderMutation.isPending}
+                    disabled={createOrderMutation.isPending || !justificanteUrl}
                   >
                     {createOrderMutation.isPending ? "Enviando..." : "🎁 Confirmar Pedido"}
                   </Button>
