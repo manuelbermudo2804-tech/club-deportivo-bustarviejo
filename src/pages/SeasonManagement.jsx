@@ -84,10 +84,10 @@ export default function SeasonManagement() {
     // Opciones de borrado/archivo
     borrarAsistencias: true,
     borrarEvaluaciones: true,
-    borrarHorarios: false,
+    borrarHorarios: true,
     borrarCalendario: true,
     borrarAnuncios: true,
-    borrarGaleria: false,
+    borrarGaleria: true,
     borrarConvocatorias: true,
     borrarChats: true,
     borrarEncuestas: true,
