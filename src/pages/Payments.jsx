@@ -483,11 +483,16 @@ Email: cdbustarviejo@gmail.com
           )}
           <Button
             onClick={async () => {
-              await queryClient.invalidateQueries({ queryKey: ['myPayments'] });
-              await queryClient.invalidateQueries({ queryKey: ['myPlayers', user?.email] });
-              await queryClient.refetchQueries({ queryKey: ['myPayments'] });
-              await queryClient.refetchQueries({ queryKey: ['myPlayers', user?.email] });
-              toast.success("Datos actualizados");
+              toast.loading("Actualizando datos...", { id: "refresh" });
+              try {
+                await queryClient.invalidateQueries({ queryKey: ['myPayments'] });
+                await queryClient.invalidateQueries({ queryKey: ['myPlayers', user?.email] });
+                await queryClient.refetchQueries({ queryKey: ['myPayments'] });
+                await queryClient.refetchQueries({ queryKey: ['myPlayers', user?.email] });
+                toast.success("Datos actualizados", { id: "refresh" });
+              } catch (error) {
+                toast.error("Error al actualizar", { id: "refresh" });
+              }
             }}
             variant="outline"
             className="shadow-lg"
