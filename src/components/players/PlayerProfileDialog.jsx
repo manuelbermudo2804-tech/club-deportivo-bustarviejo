@@ -200,6 +200,15 @@ export default function PlayerProfileDialog({
                     </div>
                   </div>
                 </div>
+
+                {player.autorizacion_fotografia && (
+                  <div className="mt-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                    <p className="text-xs text-blue-700 font-semibold mb-1">📸 Autorización de Fotografías y Videos</p>
+                    <Badge className={player.autorizacion_fotografia === "SI AUTORIZO" ? "bg-green-500 text-white" : "bg-red-500 text-white"}>
+                      {player.autorizacion_fotografia}
+                    </Badge>
+                  </div>
+                )}
               </CardContent>
             </Card>
 
