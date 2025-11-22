@@ -909,9 +909,16 @@ export default function ClothingOrders() {
                               <h3 className="font-bold text-sm lg:text-lg text-slate-900 truncate">{order.jugador_nombre}</h3>
                               <p className="text-xs lg:text-sm text-slate-600">{order.jugador_categoria}</p>
                             </div>
-                            <Badge className="bg-green-100 text-green-700 text-xs whitespace-nowrap flex-shrink-0">
-                              ✅ Entregado
-                            </Badge>
+                            <div className="flex gap-1 flex-wrap flex-shrink-0">
+                              {order.pagado && (
+                                <Badge className="bg-green-600 text-white text-xs">
+                                  💰 Pagado
+                                </Badge>
+                              )}
+                              <Badge className="bg-green-100 text-green-700 text-xs whitespace-nowrap">
+                                ✅ Entregado
+                              </Badge>
+                            </div>
                           </div>
                           {renderOrderDetails(order)}
                         </div>
