@@ -27,6 +27,13 @@ export default function DocumentReminderEngine({ user }) {
     enabled: !!user && user.role === "admin",
   });
 
+  const { data: notifications } = useQuery({
+    queryKey: ['documentNotifications'],
+    queryFn: () => base44.entities.AppNotification.list(),
+    initialData: [],
+    enabled: !!user,
+  });
+
   useEffect(() => {
     if (!user || !documents.length || !players.length) return;
 
@@ -54,6 +61,7 @@ export default function DocumentReminderEngine({ user }) {
           
           if (shouldSendReminder) {
             await sendFamilyReminders(document, pendingFamilies);
+            await createInAppNotifications(document, pendingFamilies);
             
             // Actualizar fecha del último recordatorio
             await base44.entities.Document.update(document.id, {
@@ -172,6 +180,31 @@ async function sendFamilyReminders(document, families) {
 
     // Pequeña pausa entre emails
     await new Promise(resolve => setTimeout(resolve, 300));
+  }
+}
+
+// Crear notificaciones in-app para familias
+async function createInAppNotifications(document, families) {
+  for (const family of families) {
+    try {
+      await base44.entities.AppNotification.create({
+        usuario_email: family.email,
+        tipo: "documento_pendiente",
+        titulo: "📄 Documento pendiente de firma",
+        mensaje: `Tienes pendiente firmar: ${document.titulo}`,
+        leido: false,
+        accion_url: "/ParentDocuments",
+        fecha_expiracion: document.fecha_limite_firma || null,
+        prioridad: document.fecha_limite_firma ? "alta" : "media",
+        metadata: {
+          document_id: document.id,
+          document_title: document.titulo,
+          players: family.players
+        }
+      });
+    } catch (error) {
+      console.error(`Error creating notification for ${family.email}:`, error);
+    }
   }
 }
 

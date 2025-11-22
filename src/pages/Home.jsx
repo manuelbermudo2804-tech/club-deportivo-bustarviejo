@@ -3,11 +3,12 @@ import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { Users, CreditCard, ShoppingBag, Calendar, Megaphone, Image, Clock, MessageCircle, Bell, Settings, ClipboardCheck, CheckCircle2, Star, TrendingUp, Smartphone, Trophy, FileText, Clover, BookOpen, Archive } from "lucide-react";
+import { Users, CreditCard, ShoppingBag, Calendar, Megaphone, Image, Clock, MessageCircle, Bell, Settings, ClipboardCheck, CheckCircle2, Star, TrendingUp, Smartphone, Trophy, FileText, Clover, BookOpen, Archive, BarChart3 } from "lucide-react";
 
 const Onboarding = lazy(() => import("../components/Onboarding"));
 const SocialLinks = lazy(() => import("../components/SocialLinks"));
 const ManualGenerator = lazy(() => import("../components/manuals/ManualGenerator"));
+const ClubStats = lazy(() => import("../components/dashboard/ClubStats"));
 
 const CLUB_LOGO_URL = "https://www.cdbustarviejo.com/uploads/2/4/0/4/2404974/logo-cd-bustarviejo-cuadrado-xpeq_orig.png";
 
@@ -99,6 +100,24 @@ export default function Home() {
     staleTime: 60000,
     refetchOnWindowFocus: false,
     enabled: !!user,
+  });
+
+  const { data: attendances } = useQuery({
+    queryKey: ['attendances'],
+    queryFn: () => base44.entities.Attendance.list(),
+    initialData: [],
+    staleTime: 60000,
+    refetchOnWindowFocus: false,
+    enabled: !!user && isAdmin,
+  });
+
+  const { data: evaluations } = useQuery({
+    queryKey: ['evaluations'],
+    queryFn: () => base44.entities.PlayerEvaluation.list(),
+    initialData: [],
+    staleTime: 60000,
+    refetchOnWindowFocus: false,
+    enabled: !!user && isAdmin,
   });
 
   const { data: surveys } = useQuery({
@@ -494,7 +513,17 @@ export default function Home() {
           <SocialLinks />
         </Suspense>
 
-
+        {/* Estadísticas del Club - Solo Admin */}
+        {isAdmin && (
+          <Suspense fallback={<div className="text-white text-center">Cargando estadísticas...</div>}>
+            <ClubStats 
+              players={players} 
+              payments={payments} 
+              attendances={attendances}
+              evaluations={evaluations}
+            />
+          </Suspense>
+        )}
 
         {isCoach && hasPlayers && activeSurveys.length > 0 && (
           <Link to={createPageUrl("Surveys")}>

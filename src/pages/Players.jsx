@@ -3,7 +3,7 @@ import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Plus, Search, Filter, X } from "lucide-react";
+import { Plus, Search, Filter, X, Download } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AnimatePresence } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
@@ -149,6 +149,46 @@ export default function Players() {
     setShowProfileDialog(true);
   };
 
+  const handleExportPlayers = () => {
+    const dataToExport = filteredPlayers.map(player => ({
+      "Nombre": player.nombre,
+      "Categoría": player.deporte,
+      "Fecha Nacimiento": player.fecha_nacimiento ? new Date(player.fecha_nacimiento).toLocaleDateString('es-ES') : '',
+      "Email Padre/Tutor 1": player.email_padre,
+      "Teléfono 1": player.telefono,
+      "Email Tutor 2": player.email_tutor_2 || '',
+      "Teléfono 2": player.telefono_tutor_2 || '',
+      "Dirección": player.direccion || '',
+      "Estado": player.activo ? "Activo" : "Inactivo",
+      "Tipo Inscripción": player.tipo_inscripcion,
+      "Autorización Fotos": player.autorizacion_fotografia || ''
+    }));
+
+    // Convertir a CSV
+    const headers = Object.keys(dataToExport[0]);
+    const csvContent = [
+      headers.join(','),
+      ...dataToExport.map(row => 
+        headers.map(header => {
+          const value = row[header] || '';
+          // Escapar comas y comillas
+          return `"${String(value).replace(/"/g, '""')}"`;
+        }).join(',')
+      )
+    ].join('\n');
+
+    // Descargar archivo
+    const blob = new Blob(['\ufeff' + csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `jugadores_${categoryFilter !== 'all' ? categoryFilter : 'todos'}_${new Date().toISOString().split('T')[0]}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   const filteredPlayers = players.filter(player => {
     const matchesSearch = searchTerm === "" || 
       player.nombre?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -184,18 +224,30 @@ export default function Players() {
             {isAdmin ? "Gestión de fichas y plantilla" : "Jugadores registrados a tu nombre"}
           </p>
         </div>
-        {isAdmin && (
-          <Button
-            onClick={() => {
-              setEditingPlayer(null);
-              setShowForm(!showForm);
-            }}
-            className="bg-orange-600 hover:bg-orange-700 shadow-lg"
-          >
-            <Plus className="w-5 h-5 mr-2" />
-            Nuevo Jugador
-          </Button>
-        )}
+        <div className="flex gap-3">
+          {isAdmin && filteredPlayers.length > 0 && (
+            <Button
+              onClick={handleExportPlayers}
+              variant="outline"
+              className="border-green-600 text-green-600 hover:bg-green-50"
+            >
+              <Download className="w-5 h-5 mr-2" />
+              Exportar ({filteredPlayers.length})
+            </Button>
+          )}
+          {isAdmin && (
+            <Button
+              onClick={() => {
+                setEditingPlayer(null);
+                setShowForm(!showForm);
+              }}
+              className="bg-orange-600 hover:bg-orange-700 shadow-lg"
+            >
+              <Plus className="w-5 h-5 mr-2" />
+              Nuevo Jugador
+            </Button>
+          )}
+        </div>
       </div>
 
       <AnimatePresence>
