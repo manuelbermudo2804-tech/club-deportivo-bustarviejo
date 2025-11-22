@@ -141,7 +141,7 @@ export default function ParentLottery() {
         total: total,
         estado: "Solicitado",
         pagado: false,
-        metodo_pago: metodoPago,
+        metodo_pago: requierePagoAdelantado ? metodoPago : null,
         justificante_url: justificanteUrl,
         temporada: new Date().getFullYear().toString(),
         notas: notas
@@ -165,7 +165,7 @@ export default function ParentLottery() {
         total: total,
         estado: "Solicitado",
         pagado: false,
-        metodo_pago: metodoPago,
+        metodo_pago: requierePagoAdelantado ? metodoPago : null,
         justificante_url: justificanteUrl,
         temporada: new Date().getFullYear().toString(),
         notas: notas
