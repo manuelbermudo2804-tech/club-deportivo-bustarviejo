@@ -230,6 +230,7 @@ export default function Players() {
                 player={player} 
                 onEdit={isAdmin ? handleEdit : null}
                 schedules={schedules}
+                isCoachOrCoordinator={isCoach || user?.es_coordinador}
               />
             ))}
           </AnimatePresence>
