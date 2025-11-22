@@ -845,9 +845,7 @@ export default function PlayerForm({ player, onSubmit, onCancel, isSubmitting, i
                   <li>Ambos progenitores recibirán todas las notificaciones por email</li>
                   <li>Para acceder a la app, cada uno debe registrarse con su email respectivo</li>
                   <li className="font-semibold text-purple-700">Los jugadores pueden tener su propia cuenta con acceso limitado</li>
-                  {!player && currentPlayer.tipo_inscripcion === "Renovación" && (
-                    <li className="font-semibold text-green-700">En renovación puedes cambiar la categoría si el jugador ha subido de edad</li>
-                  )}
+
                   {!player && (
                     <li className="font-semibold text-red-700">Debes aceptar las autorizaciones de protección de datos para continuar</li>
                   )}
