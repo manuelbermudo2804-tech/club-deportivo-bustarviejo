@@ -8,17 +8,23 @@ import { Users, Calendar, Bell, MessageCircle, CreditCard, Image, Megaphone, Clo
 import SocialLinks from "../components/SocialLinks";
 import PushNotificationManager from "../components/push/PushNotificationManager";
 import NewSeasonWelcome from "../components/NewSeasonWelcome";
+import ParentOnboarding from "../components/onboarding/ParentOnboarding";
 
 export default function ParentDashboard() {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
   const [myPlayersSports, setMyPlayersSports] = useState([]);
+  const [showOnboarding, setShowOnboarding] = useState(false);
 
   useEffect(() => {
     const fetchUser = async () => {
       try {
         const currentUser = await base44.auth.me();
         setUser(currentUser);
+        // Mostrar onboarding si no lo ha completado
+        if (!currentUser.onboarding_completado) {
+          setShowOnboarding(true);
+        }
       } catch (error) {
         console.error("Error fetching user:", error);
       }
@@ -414,6 +420,12 @@ export default function ParentDashboard() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-black pt-4 lg:pt-0">
+      {/* Onboarding Tutorial */}
+      <ParentOnboarding 
+        open={showOnboarding} 
+        onComplete={() => setShowOnboarding(false)} 
+      />
+
       <div className="px-4 lg:px-8 py-6 space-y-4 lg:space-y-6">
         <SocialLinks />
 
