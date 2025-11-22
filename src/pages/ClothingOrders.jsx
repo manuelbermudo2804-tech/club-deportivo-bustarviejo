@@ -99,7 +99,8 @@ export default function ClothingOrders() {
       const order = orders.find(o => o.id === orderId);
       const updatedOrder = await base44.entities.ClothingOrder.update(orderId, {
         ...order,
-        estado: newStatus
+        estado: newStatus,
+        pagado: newStatus === "Confirmado" ? true : order.pagado
       });
       
       if (notifyParent && order.email_padre) {
