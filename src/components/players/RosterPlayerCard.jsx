@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { User, Phone, Mail, Heart, Eye } from "lucide-react";
-import PlayerDetailDialog from "./PlayerDetailDialog";
+import PlayerDetailDialog from "../players/PlayerDetailDialog";
 
 const sportIcons = {
   "Fútbol Masculino": "⚽",
