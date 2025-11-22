@@ -31,7 +31,6 @@ import AutomaticNotificationEngine from "./components/notifications/AutomaticNot
 import EmailNotificationTrigger from "./components/notifications/EmailNotificationTrigger";
 import EventReminderEngine from "./components/events/EventReminderEngine";
 import DocumentReminderEngine from "./components/documents/DocumentReminderEngine";
-import RenewalReminderEngine from "./components/renewals/RenewalReminderEngine";
 
 const CLUB_LOGO_URL = `https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6911b8e453ca3ac01fb134d6/e3f0a8e26_logo_cd_bustarviejo_mediano.jpg?t=${Date.now()}`;
 
@@ -1013,7 +1012,6 @@ export default function Layout({ children, currentPageName }) {
       <NotificationBadge />
       {user && <ChatNotificationListener user={user} />}
       {user && <DocumentReminderEngine user={user} />}
-      {user && !isAdmin && !isCoach && <RenewalReminderEngine user={user} />}
 
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
         
