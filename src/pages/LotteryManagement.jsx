@@ -24,6 +24,7 @@ export default function LotteryManagement() {
   const [isAdmin, setIsAdmin] = useState(false);
   const [user, setUser] = useState(null);
   const [confirmDialog, setConfirmDialog] = useState({ open: false, orderId: null, action: null });
+  const [statusFilter, setStatusFilter] = useState("all");
   const queryClient = useQueryClient();
 
   useEffect(() => {
@@ -162,9 +163,18 @@ export default function LotteryManagement() {
     }
   };
 
+  // Filtrar pedidos según el estado
+  const filteredOrders = React.useMemo(() => {
+    if (statusFilter === "all") return orders;
+    if (statusFilter === "pending_payment") return orders.filter(o => !o.pagado);
+    if (statusFilter === "paid") return orders.filter(o => o.pagado && o.estado !== "Entregado");
+    if (statusFilter === "delivered") return orders.filter(o => o.estado === "Entregado");
+    return orders;
+  }, [orders, statusFilter]);
+
   // Calcular estadísticas por categoría
   const decimosPorCategoria = {};
-  orders.forEach(order => {
+  filteredOrders.forEach(order => {
     const cat = order.jugador_categoria || "Sin categoría";
     if (!decimosPorCategoria[cat]) {
       decimosPorCategoria[cat] = {
@@ -178,6 +188,9 @@ export default function LotteryManagement() {
 
   const totalDecimos = orders.reduce((sum, o) => sum + (o.numero_decimos || 0), 0);
   const gananciasClub = totalDecimos * 2;
+  const pendingPaymentCount = orders.filter(o => !o.pagado).length;
+  const paidNotDeliveredCount = orders.filter(o => o.pagado && o.estado !== "Entregado").length;
+  const deliveredCount = orders.filter(o => o.estado === "Entregado").length;
 
   const exportPDF = () => {
     const doc = new jsPDF();
@@ -208,7 +221,7 @@ export default function LotteryManagement() {
       doc.text(`Total Decimos: ${decimosPorCategoria[cat].decimos} | Jugadores: ${decimosPorCategoria[cat].jugadores.size}`, 20, yPos);
       yPos += 10;
 
-      const categoryOrders = orders.filter(o => (o.jugador_categoria || "Sin categoría") === cat);
+      const categoryOrders = filteredOrders.filter(o => (o.jugador_categoria || "Sin categoría") === cat);
 
       categoryOrders.forEach(order => {
         if (yPos > 270) {
