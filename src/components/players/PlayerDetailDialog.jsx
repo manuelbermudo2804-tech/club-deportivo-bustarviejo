@@ -184,9 +184,10 @@ export default function PlayerDetailDialog({ player, open, onOpenChange }) {
                         </p>
                       )}
                       {player.ficha_medica.contacto_emergencia_telefono && (
-                        <p className="text-slate-700 text-sm">
-                          <strong>Teléfono:</strong> {player.ficha_medica.contacto_emergencia_telefono}
-                        </p>
+                        <a href={`tel:${player.ficha_medica.contacto_emergencia_telefono}`} className="text-slate-700 text-sm hover:text-red-600 flex items-center gap-2">
+                          <Phone className="w-4 h-4" />
+                          <span><strong>Teléfono:</strong> {player.ficha_medica.contacto_emergencia_telefono}</span>
+                        </a>
                       )}
                     </div>
                   </div>
