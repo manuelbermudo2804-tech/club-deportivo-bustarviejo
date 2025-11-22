@@ -216,6 +216,7 @@ export default function PlayerCard({ player, onEdit, isParent = false, readOnly 
           </div>
         </CardContent>
       </Card>
+    </motion.div>
     </>
   );
 }
