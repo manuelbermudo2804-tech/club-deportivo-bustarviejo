@@ -1,7 +1,7 @@
 import React from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { User, Phone, Mail } from "lucide-react";
+import { User, Phone, Mail, Heart, AlertTriangle } from "lucide-react";
 
 const sportIcons = {
   "Fútbol Masculino": "⚽",
@@ -50,6 +50,45 @@ export default function RosterPlayerCard({ player }) {
             )}
           </div>
         </div>
+
+        {/* Información Médica Compacta */}
+        {player.ficha_medica && Object.values(player.ficha_medica).some(val => val) && (
+          <div className="bg-red-50 border border-red-200 rounded p-2 space-y-1">
+            <div className="flex items-center gap-1 mb-1">
+              <Heart className="w-3 h-3 text-red-600" />
+              <span className="text-xs font-bold text-red-900">Info Médica</span>
+            </div>
+            <div className="space-y-0.5 text-xs">
+              {player.ficha_medica.alergias && (
+                <div className="flex items-start gap-1">
+                  <span className="font-semibold text-red-700">🚨</span>
+                  <span className="text-slate-700 line-clamp-2">{player.ficha_medica.alergias}</span>
+                </div>
+              )}
+              {player.ficha_medica.grupo_sanguineo && (
+                <div className="flex items-center justify-between">
+                  <span className="font-semibold text-red-700">🩸</span>
+                  <span className="text-slate-700 font-bold">{player.ficha_medica.grupo_sanguineo}</span>
+                </div>
+              )}
+              {player.ficha_medica.lesiones && (
+                <div className="flex items-start gap-1 bg-yellow-50 px-1 py-0.5 rounded border border-yellow-200">
+                  <AlertTriangle className="w-3 h-3 text-yellow-700 flex-shrink-0 mt-0.5" />
+                  <span className="text-slate-700 line-clamp-1">{player.ficha_medica.lesiones}</span>
+                </div>
+              )}
+              {(player.ficha_medica.contacto_emergencia_nombre || player.ficha_medica.contacto_emergencia_telefono) && (
+                <div className="flex items-start gap-1 text-xs">
+                  <span className="font-semibold text-red-700">📞</span>
+                  <span className="text-slate-700 line-clamp-1">
+                    {player.ficha_medica.contacto_emergencia_nombre}
+                    {player.ficha_medica.contacto_emergencia_telefono && ` - ${player.ficha_medica.contacto_emergencia_telefono}`}
+                  </span>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
 
         <div className="space-y-1 text-xs text-slate-600">
           {player.email_padre && (
