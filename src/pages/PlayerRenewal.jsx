@@ -20,6 +20,8 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 
+import RenewalWithPayment from "../components/renewals/RenewalWithPayment";
+
 const CATEGORIAS = [
   "Fútbol Pre-Benjamín (Mixto)",
   "Fútbol Benjamín (Mixto)",
@@ -59,6 +61,7 @@ export default function PlayerRenewal() {
   const [user, setUser] = useState(null);
   const [selectedCategories, setSelectedCategories] = useState({});
   const [confirmDialog, setConfirmDialog] = useState({ open: false, playerId: null, action: null });
+  const [renewingWithPayment, setRenewingWithPayment] = useState(null);
   const queryClient = useQueryClient();
 
   useEffect(() => {
@@ -136,14 +139,20 @@ export default function PlayerRenewal() {
 
   const handleConfirmAction = () => {
     if (confirmDialog.action === 'renew') {
+      const player = players.find(p => p.id === confirmDialog.playerId);
       const newCategory = selectedCategories[confirmDialog.playerId];
-      renewPlayerMutation.mutate({ 
-        playerId: confirmDialog.playerId, 
-        newCategory 
-      });
+      
+      // Abrir flujo de renovación con pago integrado
+      setRenewingWithPayment({ player, category: newCategory });
+      setConfirmDialog({ open: false, playerId: null, action: null });
     } else if (confirmDialog.action === 'not_renew') {
       notRenewMutation.mutate(confirmDialog.playerId);
     }
+  };
+
+  const handleRenewalComplete = () => {
+    queryClient.invalidateQueries({ queryKey: ['myPlayers'] });
+    setRenewingWithPayment(null);
   };
 
   if (!seasonConfig) {
@@ -244,6 +253,19 @@ export default function PlayerRenewal() {
             const suggestedCat = suggestCategory(player.fecha_nacimiento);
             const selectedCat = selectedCategories[player.id] || player.deporte;
             const categoryChanged = selectedCat !== player.deporte;
+
+            // Si este jugador está en proceso de renovación con pago, mostrar el componente especial
+            if (renewingWithPayment?.player?.id === player.id) {
+              return (
+                <RenewalWithPayment
+                  key={player.id}
+                  player={player}
+                  selectedCategory={renewingWithPayment.category}
+                  onRenewalComplete={handleRenewalComplete}
+                  seasonConfig={seasonConfig}
+                />
+              );
+            }
 
             return (
               <Card key={player.id} className="border-2 border-slate-200 shadow-lg hover:shadow-xl transition-shadow">
