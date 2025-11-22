@@ -7,7 +7,9 @@ export default function WelcomeScreen({ onComplete }) {
   const [show, setShow] = useState(true);
 
   useEffect(() => {
+    console.log('🎬 WelcomeScreen montada - Logo cargando...');
     const timer = setTimeout(() => {
+      console.log('⏱️ Timer completado, cerrando bienvenida');
       setShow(false);
       setTimeout(() => {
         onComplete();
@@ -16,8 +18,6 @@ export default function WelcomeScreen({ onComplete }) {
 
     return () => clearTimeout(timer);
   }, [onComplete]);
-
-  if (!show) return null;
 
   return (
     <AnimatePresence>
