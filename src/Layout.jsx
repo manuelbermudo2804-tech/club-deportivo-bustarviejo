@@ -608,76 +608,21 @@ export default function Layout({ children, currentPageName }) {
           }, []);
 
           useEffect(() => {
-            const checkAndRedirect = async () => {
-              if (!user) {
-                console.log('⏳ Esperando usuario...');
-                return;
-              }
-
-              const isRootPath = location.pathname === '/' || location.pathname === '';
-              console.log('📍 Ruta actual:', location.pathname, 'isRoot:', isRootPath);
-              if (!isRootPath) {
-                setIsRedirecting(false);
-                return;
-              }
-
-              console.log('🔄 Iniciando redirección...');
-              setIsRedirecting(true);
-
-              // Verificar si tiene jugadores pendientes de renovación
-              try {
-                const allPlayers = await base44.entities.Player.list();
-                const seasonConfigs = await base44.entities.SeasonConfig.list();
-                const activeSeason = seasonConfigs.find(c => c.activa === true);
-
-                const myPendingPlayers = allPlayers.filter(p => 
-                  (p.email_padre === user.email || p.email_tutor_2 === user.email) &&
-                  p.estado_renovacion === "pendiente" &&
-                  p.temporada_renovacion === activeSeason?.temporada
-                );
-
-                // Si tiene jugadores pendientes de renovación, redirigir a página de renovación
-                if (myPendingPlayers.length > 0 && user.role !== "admin" && !user.es_entrenador && !user.es_coordinador && !user.es_tesorero) {
-                  navigate(createPageUrl('PlayerRenewal'), { replace: true });
-                  return;
-                }
-              } catch (error) {
-                console.error('Error checking pending renewals:', error);
-              }
-
-              // Si es entrenador/coordinador/tesorero, verificar si es email_tutor_2 de algún jugador
-              if (isCoach || isCoordinator || isTreasurer) {
-                try {
-                  const allPlayers = await base44.entities.Player.list();
-                  const isSecondParent = allPlayers.some(p => p.email_tutor_2 === user.email);
-
-                  if (isSecondParent) {
-                    // Si es segundo progenitor, redirigir al panel de familia
-                    navigate(createPageUrl('ParentDashboard'), { replace: true });
-                    return;
-                  }
-                } catch (error) {
-                  console.error('Error checking parent status:', error);
-                }
-              }
-
-              // Lógica de redirección normal
-              console.log('🎯 Roles para redirección:', { isAdmin, isCoach, isCoordinator, isTreasurer, isPlayer });
-              if (isAdmin || isCoach || isCoordinator || isTreasurer) {
-                console.log('✅ Redirigiendo a Home (admin/coach/coordinator/treasurer)');
-                navigate(createPageUrl('Home'), { replace: true });
-              } else if (isPlayer) {
-                console.log('✅ Redirigiendo a PlayerDashboard');
-                navigate(createPageUrl('PlayerDashboard'), { replace: true });
-              } else {
-                console.log('✅ Redirigiendo a ParentDashboard');
-                navigate(createPageUrl('ParentDashboard'), { replace: true });
-              }
-              
-              setTimeout(() => setIsRedirecting(false), 100);
-            };
-
-            checkAndRedirect();
+            if (!user) return;
+            
+            const isRootPath = location.pathname === '/' || location.pathname === '';
+            if (!isRootPath) return;
+            
+            // Redirección inmediata sin async
+            console.log('🎯 Redirigiendo:', { isAdmin, isCoach, isCoordinator, isTreasurer, isPlayer });
+            
+            if (isAdmin || isCoach || isCoordinator || isTreasurer) {
+              navigate(createPageUrl('Home'), { replace: true });
+            } else if (isPlayer) {
+              navigate(createPageUrl('PlayerDashboard'), { replace: true });
+            } else {
+              navigate(createPageUrl('ParentDashboard'), { replace: true });
+            }
           }, [user, isAdmin, isCoach, isCoordinator, isTreasurer, isPlayer, location.pathname, navigate]);
 
   useEffect(() => {
@@ -1218,16 +1163,7 @@ export default function Layout({ children, currentPageName }) {
         </nav>
 
         <main className="lg:ml-72 min-h-screen pt-[120px] lg:pt-0">
-          {isRedirecting ? (
-            <div className="flex items-center justify-center min-h-screen">
-              <div className="text-center">
-                <div className="inline-block h-12 w-12 animate-spin rounded-full border-4 border-solid border-orange-600 border-r-transparent mb-4"></div>
-                <p className="text-slate-900 text-lg">Cargando...</p>
-              </div>
-            </div>
-          ) : (
-            children
-          )}
+          {children}
         </main>
       </div>
     </>
