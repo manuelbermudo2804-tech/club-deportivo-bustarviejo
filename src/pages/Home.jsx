@@ -18,6 +18,7 @@ export default function Home() {
   const [isAdmin, setIsAdmin] = useState(false);
   const [isCoach, setIsCoach] = useState(false);
   const [isCoordinator, setIsCoordinator] = useState(false);
+  const [isTreasurer, setIsTreasurer] = useState(false);
   const [hasPlayers, setHasPlayers] = useState(false);
   const [userRole, setUserRole] = useState("parent");
   const [loteriaVisible, setLoteriaVisible] = useState(false);
@@ -45,17 +46,20 @@ export default function Home() {
         setUser(currentUser);
         const adminCheck = currentUser.role === "admin";
         const coordinatorCheck = currentUser.es_coordinador === true;
+        const treasurerCheck = currentUser.es_tesorero === true;
         const coachCheck = currentUser.es_entrenador === true && !coordinatorCheck && !adminCheck;
         setIsAdmin(adminCheck);
         setIsCoordinator(coordinatorCheck);
+        setIsTreasurer(treasurerCheck);
         setIsCoach(coachCheck);
 
         if (adminCheck) setUserRole("admin");
         else if (coordinatorCheck) setUserRole("coordinator");
+        else if (treasurerCheck) setUserRole("treasurer");
         else if (coachCheck) setUserRole("coach");
         else setUserRole("parent");
 
-        if (adminCheck || currentUser.es_entrenador || currentUser.es_coordinador) {
+        if (adminCheck || currentUser.es_entrenador || currentUser.es_coordinador || currentUser.es_tesorero) {
           // Para admin/entrenadores/coordinadores, SOLO usar el campo manual
           const tienehijos = currentUser.tiene_hijos_jugando === true;
           setHasPlayers(tienehijos);
@@ -82,7 +86,7 @@ export default function Home() {
     initialData: [],
     staleTime: 60000,
     refetchOnWindowFocus: false,
-    enabled: !!user && isAdmin,
+    enabled: !!user && (isAdmin || isTreasurer),
   });
 
   const { data: messages } = useQuery({
@@ -91,7 +95,7 @@ export default function Home() {
     initialData: [],
     staleTime: 60000,
     refetchOnWindowFocus: false,
-    enabled: !!user && isAdmin,
+    enabled: !!user && (isAdmin || isTreasurer),
   });
 
   const { data: callups } = useQuery({
@@ -381,6 +385,88 @@ export default function Home() {
           gradient: "from-blue-600 to-blue-700",
         }
       );
+    } else if (isTreasurer) {
+      // Tesorero - Acceso financiero
+      items.push(
+        {
+          title: "💰 Pagos",
+          icon: CreditCard,
+          url: createPageUrl("Payments"),
+          gradient: "from-green-600 to-green-700",
+          badge: stats.pendingPayments,
+          badgeLabel: "pendientes"
+        },
+        {
+          title: "🔔 Recordatorios",
+          icon: Bell,
+          url: createPageUrl("Reminders"),
+          gradient: "from-red-600 to-orange-700",
+        },
+        {
+          title: "📋 Histórico Pagos",
+          icon: Archive,
+          url: createPageUrl("PaymentHistory"),
+          gradient: "from-slate-600 to-slate-700",
+        },
+        {
+          title: "🛍️ Pedidos Ropa",
+          icon: ShoppingBag,
+          url: createPageUrl("ClothingOrders"),
+          gradient: "from-red-600 to-red-700",
+        },
+        {
+          title: "⚙️ Temporadas",
+          icon: Settings,
+          url: createPageUrl("SeasonManagement"),
+          gradient: "from-slate-600 to-slate-700",
+        },
+        {
+          title: "📅 Calendario",
+          icon: Calendar,
+          url: createPageUrl("Calendar"),
+          gradient: "from-purple-600 to-purple-700",
+        },
+        {
+          title: "📢 Anuncios",
+          icon: Megaphone,
+          url: createPageUrl("Announcements"),
+          gradient: "from-pink-600 to-pink-700",
+        }
+      );
+
+      if (hasPlayers) {
+        items.push(
+          {
+            title: "👨‍👩‍👧 Mis Hijos",
+            icon: Users,
+            url: createPageUrl("ParentPlayers"),
+            gradient: "from-orange-600 to-orange-700",
+          },
+          {
+            title: "📄 Documentos",
+            icon: FileText,
+            url: createPageUrl("ParentDocuments"),
+            gradient: "from-slate-600 to-slate-700",
+          },
+          {
+            title: "👨‍👩‍👧 Confirmar Mis Hijos",
+            icon: ClipboardCheck,
+            url: createPageUrl("ParentCallups"),
+            gradient: "from-green-600 to-green-700",
+            badge: stats.pendingCallups,
+            badgeLabel: "pendientes"
+          }
+        );
+      }
+
+      if (loteriaVisible && hasPlayers) {
+        items.push({
+          title: "🍀 Mi Lotería",
+          icon: Clover,
+          url: createPageUrl("ParentLottery"),
+          gradient: "from-green-600 to-red-600",
+        });
+      }
     } else if (isCoach || isCoordinator) {
       items.push(
         {
@@ -497,7 +583,7 @@ export default function Home() {
     }
 
     return items;
-  }, [isAdmin, isCoach, isCoordinator, hasPlayers, loteriaVisible, stats]);
+  }, [isAdmin, isCoach, isCoordinator, isTreasurer, hasPlayers, loteriaVisible, stats]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-black pt-4 lg:pt-0">
