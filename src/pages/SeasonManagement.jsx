@@ -1739,7 +1739,7 @@ export default function SeasonManagement() {
 
       {/* Diálogo de Confirmación de Seguridad */}
       <AlertDialog open={showConfirmation} onOpenChange={setShowConfirmation}>
-        <AlertDialogContent className="max-w-2xl">
+        <AlertDialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <AlertDialogHeader>
             <AlertDialogTitle className="text-2xl flex items-center gap-2">
               <Lock className="w-6 h-6 text-red-600" />
