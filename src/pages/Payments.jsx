@@ -85,12 +85,11 @@ export default function Payments() {
 
         if (adminCheck) {
           const allPlayers = await base44.entities.Player.list();
-          setMyPlayers(allPlayers);
+          setMyPlayers(allPlayers.filter(p => p.activo === true));
         } else if (coachCheck) {
           const allPlayers = await base44.entities.Player.list();
           const userPlayers = allPlayers.filter(p =>
-            p.email_padre === currentUser.email ||
-            p.email_tutor_2 === currentUser.email
+            (p.email_padre === currentUser.email || p.email_tutor_2 === currentUser.email) && p.activo === true
           );
           setMyPlayers(userPlayers);
         }
@@ -117,12 +116,12 @@ export default function Payments() {
   const { data: players } = useQuery({
     queryKey: ['myPlayers', user?.email],
     queryFn: async () => {
+      const allPlayers = await base44.entities.Player.list();
       if (isAdmin) {
-        return await base44.entities.Player.list();
+        return allPlayers.filter(p => p.activo === true);
       } else if (isCoach) {
-        const allPlayers = await base44.entities.Player.list();
         return allPlayers.filter(p =>
-          p.email_padre === user?.email || p.email_tutor_2 === user?.email
+          (p.email_padre === user?.email || p.email_tutor_2 === user?.email) && p.activo === true
         );
       }
       return [];

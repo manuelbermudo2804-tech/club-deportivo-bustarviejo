@@ -46,12 +46,11 @@ export default function Players() {
     initialData: [],
   });
 
-  // Filter players based on role
+  // Filter players based on role - solo mostrar activos
   const players = isAdmin 
-    ? allPlayers 
+    ? allPlayers.filter(p => p.activo === true)
     : allPlayers.filter(p => 
-        p.email_padre === user?.email || 
-        p.email_tutor_2 === user?.email
+        (p.email_padre === user?.email || p.email_tutor_2 === user?.email) && p.activo === true
       );
 
   const createPlayerMutation = useMutation({
