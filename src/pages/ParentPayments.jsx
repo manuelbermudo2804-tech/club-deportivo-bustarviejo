@@ -13,6 +13,7 @@ import { AnimatePresence } from "framer-motion";
 
 import ContactCard from "../components/ContactCard";
 import ParentPaymentForm from "../components/payments/ParentPaymentForm";
+import { CheckmarkAnimation } from "../components/animations/SuccessAnimation";
 
 const CUOTAS = {
   "Fútbol Aficionado": { inscripcion: 165, segunda: 100, tercera: 95, total: 360 },
@@ -43,6 +44,8 @@ export default function ParentPayments() {
   const [searchTerm, setSearchTerm] = useState("");
   const [showForm, setShowForm] = useState(false);
   const [selectedPlayerId, setSelectedPlayerId] = useState(null);
+  const [showSuccess, setShowSuccess] = useState(false);
+  const [successMessage, setSuccessMessage] = useState("");
   const queryClient = useQueryClient();
 
   const { data: user } = useQuery({
@@ -168,7 +171,9 @@ Email: cdbustarviejo@gmail.com
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['myPayments'] });
       setShowForm(false);
-      toast.success("Pago registrado correctamente");
+      setSuccessMessage("¡Pago registrado!");
+      setShowSuccess(true);
+      setTimeout(() => toast.success("Pago registrado correctamente"), 2000);
     },
     onError: () => {
       toast.error("Error al registrar el pago");
@@ -261,8 +266,10 @@ Email: cdbustarviejo@gmail.com
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['myPayments'] });
-      toast.success("Justificante subido correctamente. El pago está en revisión.");
       setUploadingPaymentId(null);
+      setSuccessMessage("¡Justificante subido!");
+      setShowSuccess(true);
+      setTimeout(() => toast.success("Justificante subido correctamente. El pago está en revisión."), 2000);
     },
     onError: () => {
       toast.error("Error al subir el justificante");
@@ -303,7 +310,13 @@ Email: cdbustarviejo@gmail.com
   const currentSeason = getCurrentSeason();
 
   return (
-    <div className="p-6 lg:p-8 space-y-6">
+    <>
+      <CheckmarkAnimation 
+        show={showSuccess} 
+        onComplete={() => setShowSuccess(false)}
+        message={successMessage}
+      />
+      <div className="p-6 lg:p-8 space-y-6">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <h1 className="text-3xl font-bold text-slate-900">Mis Pagos</h1>
@@ -522,6 +535,7 @@ Email: cdbustarviejo@gmail.com
           </p>
         </CardContent>
       </Card>
-    </div>
-  );
-}
+      </div>
+      </>
+      );
+      }

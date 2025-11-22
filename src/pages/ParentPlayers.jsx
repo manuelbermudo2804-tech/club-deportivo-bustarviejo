@@ -16,6 +16,8 @@ import PlayerCardSkeleton from "../components/skeletons/PlayerCardSkeleton";
 export default function ParentPlayers() {
   const [showForm, setShowForm] = useState(false);
   const [editingPlayer, setEditingPlayer] = useState(null);
+  const [showSuccess, setShowSuccess] = useState(false);
+  const [successMessage, setSuccessMessage] = useState("");
   
   const queryClient = useQueryClient();
 
@@ -159,7 +161,9 @@ Email: cdbustarviejo@gmail.com
       queryClient.invalidateQueries({ queryKey: ['allPlayersForRenewal'] });
       setShowForm(false);
       setEditingPlayer(null);
-      toast.success("Jugador registrado correctamente");
+      setSuccessMessage("¡Jugador registrado!");
+      setShowSuccess(true);
+      setTimeout(() => toast.success("Jugador registrado correctamente"), 2000);
     },
     onError: (error) => {
       console.error("Error creating player:", error);
@@ -180,7 +184,9 @@ Email: cdbustarviejo@gmail.com
       queryClient.invalidateQueries({ queryKey: ['players'] });
       setShowForm(false);
       setEditingPlayer(null);
-      toast.success("Jugador actualizado correctamente");
+      setSuccessMessage("¡Datos actualizados!");
+      setShowSuccess(true);
+      setTimeout(() => toast.success("Jugador actualizado correctamente"), 2000);
     },
     onError: (error) => {
       console.error("Error updating player:", error);
@@ -208,7 +214,13 @@ Email: cdbustarviejo@gmail.com
   const baloncestoPlayers = players.filter(p => p.deporte?.includes("Baloncesto"));
 
   return (
-    <div className="p-4 lg:p-8 space-y-4 lg:space-y-6">
+    <>
+      <CheckmarkAnimation 
+        show={showSuccess} 
+        onComplete={() => setShowSuccess(false)}
+        message={successMessage}
+      />
+      <div className="p-4 lg:p-8 space-y-4 lg:space-y-6">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 lg:gap-4">
         <div>
           <h1 className="text-2xl lg:text-3xl font-bold text-slate-900">Mis Jugadores</h1>
@@ -391,6 +403,7 @@ Email: cdbustarviejo@gmail.com
       )}
 
       <ContactCard />
-    </div>
-  );
-}
+      </div>
+      </>
+      );
+      }

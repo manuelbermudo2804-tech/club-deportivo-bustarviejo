@@ -27,6 +27,8 @@ export default function Players() {
   const [user, setUser] = useState(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [isCoach, setIsCoach] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const ITEMS_PER_PAGE = 20;
   
   const queryClient = useQueryClient();
 
@@ -203,6 +205,17 @@ export default function Players() {
     return matchesSearch && matchesSport && matchesStatus && matchesCategory;
   });
 
+  // Paginación
+  const totalPages = Math.ceil(filteredPlayers.length / ITEMS_PER_PAGE);
+  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+  const endIndex = startIndex + ITEMS_PER_PAGE;
+  const paginatedPlayers = filteredPlayers.slice(startIndex, endIndex);
+
+  // Reset page when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, sportFilter, statusFilter, categoryFilter]);
+
   // Obtener todas las categorías únicas
   const allCategories = [...new Set(players.map(p => p.deporte).filter(Boolean))].sort();
 
@@ -368,20 +381,79 @@ export default function Players() {
           <p className="text-slate-500">No se encontraron jugadores</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          <AnimatePresence>
-            {filteredPlayers.map((player) => (
-              <PlayerCard 
-                key={player.id} 
-                player={player} 
-                onEdit={isAdmin ? handleEdit : null}
-                onViewProfile={handleViewProfile}
-                schedules={schedules}
-                isCoachOrCoordinator={isCoach || user?.es_coordinador}
-              />
-            ))}
-          </AnimatePresence>
-        </div>
+        <>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            <AnimatePresence>
+              {paginatedPlayers.map((player) => (
+                <PlayerCard 
+                  key={player.id} 
+                  player={player} 
+                  onEdit={isAdmin ? handleEdit : null}
+                  onViewProfile={handleViewProfile}
+                  schedules={schedules}
+                  isCoachOrCoordinator={isCoach || user?.es_coordinador}
+                />
+              ))}
+            </AnimatePresence>
+          </div>
+
+          {/* Paginación */}
+          {totalPages > 1 && (
+            <div className="flex items-center justify-center gap-2 mt-8">
+              <Button
+                variant="outline"
+                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                disabled={currentPage === 1}
+                className="min-w-[100px]"
+              >
+                ← Anterior
+              </Button>
+              
+              <div className="flex items-center gap-2">
+                {Array.from({ length: totalPages }, (_, i) => i + 1)
+                  .filter(page => {
+                    // Show first, last, current, and adjacent pages
+                    return page === 1 || 
+                           page === totalPages || 
+                           Math.abs(page - currentPage) <= 1;
+                  })
+                  .map((page, index, array) => {
+                    // Add ellipsis
+                    const prevPage = array[index - 1];
+                    const showEllipsis = prevPage && page - prevPage > 1;
+                    
+                    return (
+                      <React.Fragment key={page}>
+                        {showEllipsis && (
+                          <span className="text-slate-400 px-2">...</span>
+                        )}
+                        <Button
+                          variant={currentPage === page ? "default" : "outline"}
+                          onClick={() => setCurrentPage(page)}
+                          className={currentPage === page ? "bg-orange-600 hover:bg-orange-700" : ""}
+                        >
+                          {page}
+                        </Button>
+                      </React.Fragment>
+                    );
+                  })}
+              </div>
+
+              <Button
+                variant="outline"
+                onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                disabled={currentPage === totalPages}
+                className="min-w-[100px]"
+              >
+                Siguiente →
+              </Button>
+            </div>
+          )}
+
+          <div className="text-center text-sm text-slate-600">
+            Mostrando {startIndex + 1}-{Math.min(endIndex, filteredPlayers.length)} de {filteredPlayers.length} jugadores
+          </div>
+        </>
       )}
 
       {selectedPlayer && (
