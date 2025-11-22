@@ -22,7 +22,7 @@ import EmailNotificationTrigger from "./components/notifications/EmailNotificati
 import EventReminderEngine from "./components/events/EventReminderEngine";
 import DocumentReminderEngine from "./components/documents/DocumentReminderEngine";
 
-const CLUB_LOGO_URL = "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6911b8e453ca3ac01fb134d6/e3f0a8e26_logo_cd_bustarviejo_mediano.jpg";
+const CLUB_LOGO_URL = "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6911b8e453ca3ac01fb134d6/e3f0a8e26_logo_cd_bustarviejo_mediano.jpg?v=2";
 
 const getCurrentSeason = () => {
   const now = new Date();
@@ -500,7 +500,11 @@ export default function Layout({ children, currentPageName }) {
   const [currentLang, setCurrentLang] = useState(() => {
     return localStorage.getItem('appLanguage') || 'es';
   });
-  const [showWelcome, setShowWelcome] = useState(false);
+  const [showWelcome, setShowWelcome] = useState(() => {
+    // Solo mostrar pantalla de bienvenida una vez por sesión
+    const hasSeenWelcome = sessionStorage.getItem('hasSeenWelcome');
+    return hasSeenWelcome === 'true';
+  });
   const [loteriaVisible, setLoteriaVisible] = useState(false);
   const [showPresentation, setShowPresentation] = useState(false);
   const [isRedirecting, setIsRedirecting] = useState(false);
@@ -998,7 +1002,11 @@ export default function Layout({ children, currentPageName }) {
       <NotificationBadge />
       {user && <ChatNotificationListener user={user} />}
       {user && <DocumentReminderEngine user={user} />}
-      
+
+      {!showWelcome && showSpecialScreen === null && (
+        <WelcomeScreen onComplete={() => setShowWelcome(true)} />
+      )}
+
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
         
         <header className="lg:hidden fixed top-0 left-0 right-0 z-50 bg-gradient-to-r from-orange-600 to-orange-700 shadow-lg">
