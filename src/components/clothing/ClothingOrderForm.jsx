@@ -358,11 +358,24 @@ Email: cdbustarviejo@gmail.com
                 </div>
 
                 {orderData.precio_total > 0 && (
-                  <>
-                    <div className="space-y-4 border-2 border-blue-200 rounded-lg p-6 bg-blue-50">
-                      <h3 className="text-lg font-bold text-blue-900">Información de Pago</h3>
-                      <div className="space-y-2">
-                        <Label>Método de Pago *</Label>
+                 <>
+                   <div className="space-y-4 border-2 border-blue-200 rounded-lg p-6 bg-blue-50">
+                     <h3 className="text-lg font-bold text-blue-900">Información de Pago</h3>
+
+                     <Alert className="bg-white border-blue-300">
+                       <AlertCircle className="h-4 w-4 text-blue-600" />
+                       <AlertDescription className="text-blue-800">
+                         <p className="font-semibold mb-1">💳 Métodos de pago disponibles:</p>
+                         {seasonConfig?.bizum_activo ? (
+                           <p className="text-sm">Puedes pagar por <strong>transferencia bancaria</strong> o por <strong>Bizum</strong>. Sube el justificante correspondiente.</p>
+                         ) : (
+                           <p className="text-sm">El pago se realiza por <strong>transferencia bancaria</strong>. Sube el justificante de la transferencia.</p>
+                         )}
+                       </AlertDescription>
+                     </Alert>
+
+                     <div className="space-y-2">
+                       <Label>Método de Pago *</Label>
                         <Select
                           value={orderData.metodo_pago}
                           onValueChange={(value) => setOrderData({...orderData, metodo_pago: value})}
