@@ -11,6 +11,8 @@ import RosterPlayerCard from "../components/players/RosterPlayerCard";
 export default function TeamRosters() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
   const [user, setUser] = useState(null);
   const [coachCategories, setCoachCategories] = useState([]);
 
@@ -49,10 +51,18 @@ export default function TeamRosters() {
     const matchesCategory = selectedCategory === "all" || player.deporte === selectedCategory;
     const isInMyTeams = coachCategories.includes(player.deporte);
     const isRenewed = !player.estado_renovacion || player.estado_renovacion === "renovado";
-    return matchesSearch && matchesCategory && isInMyTeams && player.activo && isRenewed;
+    
+    // Aplicar filtro de estado
+    const matchesStatus = statusFilter === "all" || 
+      (statusFilter === "active" && player.activo) ||
+      (statusFilter === "inactive" && !player.activo);
+    
+    return matchesSearch && matchesCategory && isInMyTeams && isRenewed && matchesStatus;
   });
 
   const activePlayers = filteredPlayers.length;
+  const totalActiveInTeams = players.filter(p => coachCategories.includes(p.deporte) && p.activo && (!p.estado_renovacion || p.estado_renovacion === "renovado")).length;
+  const totalInactiveInTeams = players.filter(p => coachCategories.includes(p.deporte) && !p.activo).length;
 
   if (!user || coachCategories.length === 0) {
     return (
@@ -117,44 +127,109 @@ export default function TeamRosters() {
       {/* Search and Filters */}
       <Card className="border-none shadow-lg bg-white">
         <CardContent className="pt-4 lg:pt-6 space-y-3 lg:space-y-4">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 lg:w-5 lg:h-5 text-slate-400" />
-            <Input
-              placeholder="Buscar jugador..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-9 lg:pl-10 text-sm lg:text-base"
-            />
+          <div className="flex gap-2">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 lg:w-5 lg:h-5 text-slate-400" />
+              <Input
+                placeholder="Buscar jugador..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-9 lg:pl-10 text-sm lg:text-base"
+              />
+            </div>
+            <button
+              onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
+              className="px-4 py-2 text-sm font-medium bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors whitespace-nowrap"
+            >
+              {showAdvancedFilters ? "Ocultar" : "Filtros"}
+            </button>
           </div>
 
-          <div className="flex flex-wrap gap-2">
-            <Badge
-              onClick={() => setSelectedCategory("all")}
-              className={`cursor-pointer px-3 py-1 text-xs lg:text-sm ${
-                selectedCategory === "all"
-                  ? "bg-blue-600 text-white"
-                  : "bg-slate-100 text-slate-700 hover:bg-slate-200"
-              }`}
-            >
-              Todos ({players.filter(p => coachCategories.includes(p.deporte) && p.activo && (!p.estado_renovacion || p.estado_renovacion === "renovado")).length})
-            </Badge>
-            {coachCategories.map((categoria) => {
-              const count = players.filter(p => p.deporte === categoria && p.activo && (!p.estado_renovacion || p.estado_renovacion === "renovado")).length;
-              return (
-                <Badge
-                  key={categoria}
-                  onClick={() => setSelectedCategory(categoria)}
-                  className={`cursor-pointer px-3 py-1 text-xs lg:text-sm ${
-                    selectedCategory === categoria
-                      ? "bg-blue-600 text-white"
-                      : "bg-slate-100 text-slate-700 hover:bg-slate-200"
-                  }`}
-                >
-                  {categoria} ({count})
-                </Badge>
-              );
-            })}
-          </div>
+          {showAdvancedFilters && (
+            <div className="space-y-3 pt-2 border-t">
+              {/* Filtro por Estado */}
+              <div className="space-y-2">
+                <label className="text-xs lg:text-sm font-semibold text-slate-700">Estado</label>
+                <div className="flex flex-wrap gap-2">
+                  <Badge
+                    onClick={() => setStatusFilter("all")}
+                    className={`cursor-pointer px-3 py-1 text-xs ${
+                      statusFilter === "all"
+                        ? "bg-orange-600 text-white"
+                        : "bg-slate-100 text-slate-700 hover:bg-slate-200"
+                    }`}
+                  >
+                    Todos
+                  </Badge>
+                  <Badge
+                    onClick={() => setStatusFilter("active")}
+                    className={`cursor-pointer px-3 py-1 text-xs ${
+                      statusFilter === "active"
+                        ? "bg-green-600 text-white"
+                        : "bg-slate-100 text-slate-700 hover:bg-slate-200"
+                    }`}
+                  >
+                    ✅ Activos ({totalActiveInTeams})
+                  </Badge>
+                  <Badge
+                    onClick={() => setStatusFilter("inactive")}
+                    className={`cursor-pointer px-3 py-1 text-xs ${
+                      statusFilter === "inactive"
+                        ? "bg-slate-600 text-white"
+                        : "bg-slate-100 text-slate-700 hover:bg-slate-200"
+                    }`}
+                  >
+                    ❌ Inactivos ({totalInactiveInTeams})
+                  </Badge>
+                </div>
+              </div>
+
+              {/* Filtro por Categoría */}
+              <div className="space-y-2">
+                <label className="text-xs lg:text-sm font-semibold text-slate-700">Categoría</label>
+                <div className="flex flex-wrap gap-2">
+                  <Badge
+                    onClick={() => setSelectedCategory("all")}
+                    className={`cursor-pointer px-3 py-1 text-xs ${
+                      selectedCategory === "all"
+                        ? "bg-blue-600 text-white"
+                        : "bg-slate-100 text-slate-700 hover:bg-slate-200"
+                    }`}
+                  >
+                    Todas
+                  </Badge>
+                  {coachCategories.map((categoria) => {
+                    const count = players.filter(p => p.deporte === categoria && p.activo && (!p.estado_renovacion || p.estado_renovacion === "renovado")).length;
+                    return (
+                      <Badge
+                        key={categoria}
+                        onClick={() => setSelectedCategory(categoria)}
+                        className={`cursor-pointer px-3 py-1 text-xs ${
+                          selectedCategory === categoria
+                            ? "bg-blue-600 text-white"
+                            : "bg-slate-100 text-slate-700 hover:bg-slate-200"
+                        }`}
+                      >
+                        {categoria} ({count})
+                      </Badge>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Botón limpiar */}
+              <button
+                onClick={() => {
+                  setSearchTerm("");
+                  setSelectedCategory("all");
+                  setStatusFilter("all");
+                }}
+                className="w-full px-4 py-2 text-sm bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 transition-colors"
+              >
+                Limpiar Filtros
+              </button>
+            </div>
+          )}
         </CardContent>
       </Card>
 
