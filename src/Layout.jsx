@@ -22,7 +22,7 @@ import EmailNotificationTrigger from "./components/notifications/EmailNotificati
 import EventReminderEngine from "./components/events/EventReminderEngine";
 import DocumentReminderEngine from "./components/documents/DocumentReminderEngine";
 
-const CLUB_LOGO_URL = "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6911b8e453ca3ac01fb134d6/e3f0a8e26_logo_cd_bustarviejo_mediano.jpg?v=2";
+const CLUB_LOGO_URL = "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6911b8e453ca3ac01fb134d6/e3f0a8e26_logo_cd_bustarviejo_mediano.jpg?v=3";
 
 const getCurrentSeason = () => {
   const now = new Date();
@@ -500,7 +500,11 @@ export default function Layout({ children, currentPageName }) {
   const [currentLang, setCurrentLang] = useState(() => {
     return localStorage.getItem('appLanguage') || 'es';
   });
-  const [showWelcome, setShowWelcome] = useState(false);
+  // Limpiar caché de bienvenida y forzar que se muestre siempre
+  const [showWelcome, setShowWelcome] = useState(() => {
+    sessionStorage.removeItem('hasSeenWelcome');
+    return false;
+  });
   const [loteriaVisible, setLoteriaVisible] = useState(false);
   const [showPresentation, setShowPresentation] = useState(false);
   const [isRedirecting, setIsRedirecting] = useState(false);
