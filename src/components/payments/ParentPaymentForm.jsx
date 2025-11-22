@@ -504,6 +504,7 @@ export default function ParentPaymentForm({ players, payments = [], onSubmit, on
                     id="file-upload"
                     type="file"
                     accept="image/*,.pdf"
+                    capture="environment"
                     onChange={handleFileUpload}
                     className="hidden"
                   />
