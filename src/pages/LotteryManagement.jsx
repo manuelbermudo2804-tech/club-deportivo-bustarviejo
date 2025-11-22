@@ -92,7 +92,7 @@ export default function LotteryManagement() {
       return base44.entities.LotteryOrder.update(orderId, {
         ...order,
         estado: "Entregado",
-        pagado: true,
+        pagado: user?.role === "admin" ? order.pagado : false,
         entregado_por: user.email,
         fecha_entrega: new Date().toISOString().split('T')[0]
       });
@@ -418,12 +418,32 @@ export default function LotteryManagement() {
                 <div className="space-y-2">
                   {categoryOrders.map(order => (
                     <div key={order.id} className="flex justify-between items-center p-3 bg-white rounded-lg border hover:border-orange-300 transition-colors">
-                      <div>
+                      <div className="flex-1">
                         <p className="font-bold text-slate-900">{order.jugador_nombre}</p>
                         <p className="text-xs text-slate-600">{order.email_padre}</p>
-                        <Badge className="mt-1 bg-blue-100 text-blue-700 text-xs">
-                          {order.metodo_pago === "Bizum" ? "📱 Bizum" : order.metodo_pago === "Transferencia" ? "💳 Transferencia" : "❓ No especificado"}
-                        </Badge>
+                        <div className="flex items-center gap-2 mt-1">
+                          {user?.role === "admin" && order.metodo_pago && (
+                            <Badge className="bg-blue-100 text-blue-700 text-xs">
+                              {order.metodo_pago === "Bizum" ? "📱 Bizum" : "💳 Transferencia"}
+                            </Badge>
+                          )}
+                          {user?.role === "admin" && order.justificante_url && (
+                            <a 
+                              href={order.justificante_url} 
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                              className="text-xs text-blue-600 hover:text-blue-800 underline"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              Ver justificante
+                            </a>
+                          )}
+                          {(user?.es_entrenador || user?.es_coordinador) && order.pagado && (
+                            <Badge className="bg-green-100 text-green-700 text-xs">
+                              💰 Pagado
+                            </Badge>
+                          )}
+                        </div>
                       </div>
                       <div className="flex items-center gap-3">
                         <div className="text-right">
@@ -433,14 +453,16 @@ export default function LotteryManagement() {
                         {order.estado === "Entregado" ? (
                           <div className="flex gap-2">
                             <Badge className="bg-green-100 text-green-700">✅</Badge>
-                            <Button
-                              onClick={() => setConfirmDialog({ open: true, orderId: order.id, action: 'revert' })}
-                              size="sm"
-                              variant="outline"
-                              className="border-orange-300 hover:bg-orange-50"
-                            >
-                              <RotateCcw className="w-4 h-4" />
-                            </Button>
+                            {user?.role === "admin" && (
+                              <Button
+                                onClick={() => setConfirmDialog({ open: true, orderId: order.id, action: 'revert' })}
+                                size="sm"
+                                variant="outline"
+                                className="border-orange-300 hover:bg-orange-50"
+                              >
+                                <RotateCcw className="w-4 h-4" />
+                              </Button>
+                            )}
                           </div>
                         ) : (
                           <Button
