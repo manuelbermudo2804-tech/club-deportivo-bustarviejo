@@ -211,6 +211,13 @@ export default function ParentPaymentForm({ players, payments = [], onSubmit, on
     const file = e.target.files?.[0];
     if (!file) return;
 
+    // Validar tamaño de archivo (max 10MB)
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error("El archivo es demasiado grande. Máximo 10MB");
+      e.target.value = ''; // Reset input
+      return;
+    }
+
     setUploadingFile(true);
     try {
       const response = await base44.integrations.Core.UploadFile({ file });
@@ -221,9 +228,10 @@ export default function ParentPaymentForm({ players, payments = [], onSubmit, on
       toast.success("Justificante subido correctamente");
     } catch (error) {
       console.error("Error uploading file:", error);
-      toast.error("Error al subir el justificante");
+      toast.error("Error al subir el justificante. Intenta con un archivo más pequeño.");
     } finally {
       setUploadingFile(false);
+      e.target.value = ''; // Reset input
     }
   };
 
@@ -503,8 +511,7 @@ export default function ParentPaymentForm({ players, payments = [], onSubmit, on
                   <input
                     id="file-upload"
                     type="file"
-                    accept="image/*,.pdf"
-                    capture="environment"
+                    accept="image/jpeg,image/jpg,image/png,image/heic,image/heif,application/pdf"
                     onChange={handleFileUpload}
                     className="hidden"
                   />

@@ -98,15 +98,25 @@ export default function ClothingOrderForm({ players, onSubmit, onCancel, isSubmi
   const handleFileUpload = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
+
+    // Validar tamaño de archivo (max 10MB)
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error("El archivo es demasiado grande. Máximo 10MB");
+      e.target.value = ''; // Reset input
+      return;
+    }
+
     setUploadingFile(true);
     try {
       const response = await base44.integrations.Core.UploadFile({ file });
       setOrderData({ ...orderData, justificante_url: response.file_url });
       toast.success("Justificante subido correctamente");
     } catch (error) {
-      toast.error("Error al subir el justificante");
+      console.error("Error uploading file:", error);
+      toast.error("Error al subir el justificante. Intenta con un archivo más pequeño.");
     } finally {
       setUploadingFile(false);
+      e.target.value = ''; // Reset input
     }
   };
 
@@ -435,7 +445,7 @@ Email: cdbustarviejo@gmail.com
                         </Button>
                         {orderData.justificante_url && <Button type="button" variant="outline" onClick={() => setOrderData({...orderData, justificante_url: ""})} className="bg-white"><X className="w-4 h-4" /></Button>}
                       </div>
-                      <input id="file-upload" type="file" accept="image/*,.pdf" onChange={handleFileUpload} className="hidden" />
+                      <input id="file-upload" type="file" accept="image/jpeg,image/jpg,image/png,image/heic,image/heif,application/pdf" onChange={handleFileUpload} className="hidden" />
                       {orderData.justificante_url ? <p className="text-sm text-green-600 font-medium">✓ Justificante subido correctamente</p> : <p className="text-sm text-red-600 font-medium">⚠️ Debes subir el justificante para continuar</p>}
                     </div>
 

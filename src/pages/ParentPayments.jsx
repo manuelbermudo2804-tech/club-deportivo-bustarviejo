@@ -281,6 +281,12 @@ Email: cdbustarviejo@gmail.com
     const file = e.target.files?.[0];
     if (!file) return;
 
+    // Validar tamaño de archivo (max 10MB)
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error("El archivo es demasiado grande. Máximo 10MB");
+      return;
+    }
+
     setUploadingPaymentId(paymentId);
     uploadJustificanteMutation.mutate({ paymentId, file });
   };
