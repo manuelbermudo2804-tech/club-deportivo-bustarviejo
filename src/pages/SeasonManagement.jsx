@@ -1755,7 +1755,12 @@ export default function SeasonManagement() {
             </AlertDialogCancel>
             <AlertDialogAction
               onClick={handleExecuteReset}
-              disabled={isProcessing || confirmText !== "CONFIRMAR"}
+              disabled={
+                isProcessing || 
+                confirmText !== "CONFIRMAR" || 
+                securityCheck.emailConfirmacion !== currentUser?.email ||
+                !securityCheck.aceptoTerminos
+              }
               className="bg-red-600 hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isProcessing ? (
@@ -1766,7 +1771,7 @@ export default function SeasonManagement() {
               ) : (
                 <>
                   <CheckCircle2 className="w-4 h-4 mr-2" />
-                  Confirmar
+                  Ejecutar Reinicio
                 </>
               )}
             </AlertDialogAction>
