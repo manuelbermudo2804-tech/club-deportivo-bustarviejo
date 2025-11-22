@@ -102,8 +102,23 @@ export default function PlayerForm({ player, onSubmit, onCancel, isSubmitting, i
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
   const [selectedPreviousPlayer, setSelectedPreviousPlayer] = useState(null);
+  const [seasonConfig, setSeasonConfig] = useState(null);
 
   const categories = getCategoriesWithYears();
+
+  // Obtener configuración de la temporada
+  useEffect(() => {
+    const fetchSeasonConfig = async () => {
+      try {
+        const configs = await base44.entities.SeasonConfig.list();
+        const active = configs.find(c => c.activa === true);
+        setSeasonConfig(active);
+      } catch (error) {
+        console.error("Error fetching season config:", error);
+      }
+    };
+    fetchSeasonConfig();
+  }, []);
 
   // Scroll al formulario cuando se monta
   useEffect(() => {
@@ -264,6 +279,97 @@ export default function PlayerForm({ player, onSubmit, onCancel, isSubmitting, i
           )}
 
           <form onSubmit={handleSubmit} className="space-y-6">
+            {/* Tipo de Inscripción - Solo para nuevos jugadores */}
+            {!player && seasonConfig?.permitir_renovaciones && (
+              <>
+                <div className="space-y-4 border-2 border-blue-200 rounded-lg p-6 bg-blue-50">
+                  <div className="flex items-center gap-2 mb-4">
+                    <AlertCircle className="w-6 h-6 text-blue-600" />
+                    <h3 className="text-lg font-bold text-blue-900">¿Se trata de una nueva inscripción o una renovación? *</h3>
+                  </div>
+                  
+                  <RadioGroup
+                    value={currentPlayer.tipo_inscripcion}
+                    onValueChange={(value) => {
+                      setCurrentPlayer({...currentPlayer, tipo_inscripcion: value});
+                      if (value === "Nueva Inscripción") {
+                        setSelectedPreviousPlayer(null);
+                      }
+                    }}
+                    className="space-y-3"
+                    required
+                  >
+                    <div className="flex items-center space-x-3 p-4 bg-white rounded-lg border-2 border-blue-200 hover:bg-blue-50 transition-colors">
+                      <RadioGroupItem value="Nueva Inscripción" id="nueva-inscripcion" />
+                      <Label htmlFor="nueva-inscripcion" className="font-semibold cursor-pointer flex-1">
+                        Nueva Inscripción
+                      </Label>
+                    </div>
+                    <div className="flex items-center space-x-3 p-4 bg-white rounded-lg border-2 border-blue-200 hover:bg-blue-50 transition-colors">
+                      <RadioGroupItem value="Renovación" id="renovacion" />
+                      <Label htmlFor="renovacion" className="font-semibold cursor-pointer flex-1 flex items-center gap-2">
+                        <RefreshCw className="w-4 h-4" />
+                        Renovación
+                      </Label>
+                    </div>
+                  </RadioGroup>
+                </div>
+
+                {/* Selector de Jugador Previo - Solo si es Renovación */}
+                {currentPlayer.tipo_inscripcion === "Renovación" && (
+                  <div className="space-y-4 border-2 border-green-200 rounded-lg p-6 bg-green-50">
+                    <div className="flex items-center gap-2 mb-4">
+                      <RefreshCw className="w-6 h-6 text-green-600" />
+                      <h3 className="text-lg font-bold text-green-900">Selecciona el jugador a renovar *</h3>
+                    </div>
+                    
+                    <Alert className="bg-white border-green-200">
+                      <AlertCircle className="h-4 w-4 text-green-600" />
+                      <AlertDescription className="text-green-800 text-sm">
+                        Selecciona un jugador de temporadas anteriores para renovar su inscripción. Sus datos se rellenarán automáticamente y podrás modificar la categoría si ha cambiado de edad.
+                      </AlertDescription>
+                    </Alert>
+
+                    <Select
+                      value={selectedPreviousPlayer?.id}
+                      onValueChange={handlePreviousPlayerSelect}
+                      required
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecciona un jugador..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {availablePlayersForRenewal.length === 0 ? (
+                          <SelectItem value="none" disabled>
+                            No hay jugadores disponibles para renovar
+                          </SelectItem>
+                        ) : (
+                          availablePlayersForRenewal.map(p => (
+                            <SelectItem key={p.id} value={p.id}>
+                              {p.nombre} - {p.deporte} {!p.activo && "(Inactivo)"}
+                            </SelectItem>
+                          ))
+                        )}
+                      </SelectContent>
+                    </Select>
+
+                    {selectedPreviousPlayer && (
+                      <div className="bg-white rounded-lg p-4 border-2 border-green-300">
+                        <p className="text-sm text-green-900 mb-2">
+                          <strong>✅ Jugador seleccionado:</strong>
+                        </p>
+                        <p className="text-sm text-slate-700">
+                          {selectedPreviousPlayer.nombre} - {selectedPreviousPlayer.deporte}
+                        </p>
+                        <p className="text-xs text-slate-600 mt-2">
+                          Los datos se han cargado automáticamente. Puedes modificar la categoría si es necesario.
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </>
+            )}
 
 
             {/* Foto del Jugador */}
@@ -845,6 +951,9 @@ export default function PlayerForm({ player, onSubmit, onCancel, isSubmitting, i
                   <li>Ambos progenitores recibirán todas las notificaciones por email</li>
                   <li>Para acceder a la app, cada uno debe registrarse con su email respectivo</li>
                   <li className="font-semibold text-purple-700">Los jugadores pueden tener su propia cuenta con acceso limitado</li>
+                  {!player && currentPlayer.tipo_inscripcion === "Renovación" && (
+                    <li className="font-semibold text-green-700">En renovación puedes cambiar la categoría si el jugador ha subido de edad</li>
+                  )}
 
                   {!player && (
                     <li className="font-semibold text-red-700">Debes aceptar las autorizaciones de protección de datos para continuar</li>
