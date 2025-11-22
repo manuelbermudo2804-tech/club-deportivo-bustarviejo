@@ -57,6 +57,7 @@ export default function ParentLottery() {
   });
 
   const loteriaAbierta = seasonConfig?.loteria_navidad_abierta === true;
+  const requierePagoAdelantado = seasonConfig?.loteria_requiere_pago_adelantado === true;
   const precioDecimo = seasonConfig?.precio_decimo_loteria || 22;
 
   const { data: players = [] } = useQuery({
@@ -115,7 +116,7 @@ export default function ParentLottery() {
   const handleSubmit = (e) => {
     e.preventDefault();
     
-    if (!justificanteUrl) {
+    if (requierePagoAdelantado && !justificanteUrl) {
       toast.error("Debes subir el justificante de pago");
       return;
     }
@@ -254,9 +255,20 @@ export default function ParentLottery() {
                 <p className="text-2xl font-bold text-green-900 mb-2">👨‍🏫 Cómo Funciona</p>
                 <div className="space-y-2 text-green-900">
                   <p>1️⃣ Haz tu pedido aquí</p>
-                  <p>2️⃣ Tu entrenador te entregará los décimos</p>
-                  <p>3️⃣ Pagas al entrenador al recibirlos</p>
-                  <p>4️⃣ ¡Y a esperar el sorteo! 🎉</p>
+                  {requierePagoAdelantado ? (
+                    <>
+                      <p>2️⃣ Realiza el pago por transferencia o Bizum</p>
+                      <p>3️⃣ Sube el justificante de pago</p>
+                      <p>4️⃣ Tu entrenador te entregará los décimos</p>
+                      <p>5️⃣ ¡Y a esperar el sorteo! 🎉</p>
+                    </>
+                  ) : (
+                    <>
+                      <p>2️⃣ Tu entrenador te entregará los décimos</p>
+                      <p>3️⃣ Pagas al entrenador al recibirlos</p>
+                      <p>4️⃣ ¡Y a esperar el sorteo! 🎉</p>
+                    </>
+                  )}
                 </div>
               </div>
             </div>
@@ -364,84 +376,88 @@ export default function ParentLottery() {
                   </div>
                 </div>
 
-                <div className="space-y-2">
-                  <Label className="text-lg font-bold text-slate-900">💳 Método de Pago</Label>
-                  <Select value={metodoPago} onValueChange={setMetodoPago}>
-                    <SelectTrigger className="border-2 border-red-300 h-12 text-lg">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="Transferencia">💳 Transferencia Bancaria</SelectItem>
-                      {seasonConfig?.bizum_activo && (
-                        <SelectItem value="Bizum">📱 Bizum</SelectItem>
+{requierePagoAdelantado && (
+                  <>
+                    <div className="space-y-2">
+                      <Label className="text-lg font-bold text-slate-900">💳 Método de Pago</Label>
+                      <Select value={metodoPago} onValueChange={setMetodoPago}>
+                        <SelectTrigger className="border-2 border-red-300 h-12 text-lg">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="Transferencia">💳 Transferencia Bancaria</SelectItem>
+                          {seasonConfig?.bizum_activo && (
+                            <SelectItem value="Bizum">📱 Bizum</SelectItem>
+                          )}
+                        </SelectContent>
+                      </Select>
+                      {metodoPago === "Bizum" && seasonConfig?.bizum_telefono && (
+                        <div className="bg-white rounded-lg p-3 border-2 border-green-300">
+                          <p className="text-sm text-slate-900">
+                            📱 <strong>Enviar Bizum al:</strong> {seasonConfig.bizum_telefono}
+                          </p>
+                          <p className="text-xs text-slate-600 mt-1">
+                            Concepto: Lotería {selectedPlayer ? players.find(p => p.id === selectedPlayer)?.nombre : user?.full_name}
+                          </p>
+                        </div>
                       )}
-                    </SelectContent>
-                  </Select>
-                  {metodoPago === "Bizum" && seasonConfig?.bizum_telefono && (
-                    <div className="bg-white rounded-lg p-3 border-2 border-green-300">
-                      <p className="text-sm text-slate-900">
-                        📱 <strong>Enviar Bizum al:</strong> {seasonConfig.bizum_telefono}
-                      </p>
-                      <p className="text-xs text-slate-600 mt-1">
-                        Concepto: Lotería {selectedPlayer ? players.find(p => p.id === selectedPlayer)?.nombre : user?.full_name}
-                      </p>
                     </div>
-                  )}
-                </div>
 
-                <div className="space-y-3 p-4 bg-orange-50 rounded-lg border-2 border-orange-200">
-                  <Label className="text-base font-semibold text-orange-900">
-                    📎 Justificante de Pago * (Obligatorio)
-                  </Label>
-                  <p className="text-sm text-orange-800">
-                    {metodoPago === "Bizum" 
-                      ? "Sube una captura del justificante de Bizum" 
-                      : "Sube una captura o foto del justificante de tu transferencia bancaria"}
-                  </p>
-                  <div className="flex gap-3">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={() => document.getElementById('lottery-file-upload').click()}
-                      disabled={uploadingFile}
-                      className="flex-1 bg-white"
-                    >
-                      {uploadingFile ? (
-                        <>
-                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                          Subiendo...
-                        </>
+                    <div className="space-y-3 p-4 bg-orange-50 rounded-lg border-2 border-orange-200">
+                      <Label className="text-base font-semibold text-orange-900">
+                        📎 Justificante de Pago * (Obligatorio)
+                      </Label>
+                      <p className="text-sm text-orange-800">
+                        {metodoPago === "Bizum" 
+                          ? "Sube una captura del justificante de Bizum" 
+                          : "Sube una captura o foto del justificante de tu transferencia bancaria"}
+                      </p>
+                      <div className="flex gap-3">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={() => document.getElementById('lottery-file-upload').click()}
+                          disabled={uploadingFile}
+                          className="flex-1 bg-white"
+                        >
+                          {uploadingFile ? (
+                            <>
+                              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                              Subiendo...
+                            </>
+                          ) : (
+                            <>
+                              <Upload className="w-4 h-4 mr-2" />
+                              {justificanteUrl ? "Cambiar justificante" : "Subir justificante"}
+                            </>
+                          )}
+                        </Button>
+                        {justificanteUrl && (
+                          <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => setJustificanteUrl("")}
+                            className="bg-white"
+                          >
+                            <X className="w-4 h-4" />
+                          </Button>
+                        )}
+                      </div>
+                      <input
+                        id="lottery-file-upload"
+                        type="file"
+                        accept="image/*,.pdf"
+                        onChange={handleFileUpload}
+                        className="hidden"
+                      />
+                      {justificanteUrl ? (
+                        <p className="text-sm text-green-600 font-medium">✓ Justificante subido correctamente</p>
                       ) : (
-                        <>
-                          <Upload className="w-4 h-4 mr-2" />
-                          {justificanteUrl ? "Cambiar justificante" : "Subir justificante"}
-                        </>
+                        <p className="text-sm text-red-600 font-medium">⚠️ Debes subir el justificante para continuar</p>
                       )}
-                    </Button>
-                    {justificanteUrl && (
-                      <Button
-                        type="button"
-                        variant="outline"
-                        onClick={() => setJustificanteUrl("")}
-                        className="bg-white"
-                      >
-                        <X className="w-4 h-4" />
-                      </Button>
-                    )}
-                  </div>
-                  <input
-                    id="lottery-file-upload"
-                    type="file"
-                    accept="image/*,.pdf"
-                    onChange={handleFileUpload}
-                    className="hidden"
-                  />
-                  {justificanteUrl ? (
-                    <p className="text-sm text-green-600 font-medium">✓ Justificante subido correctamente</p>
-                  ) : (
-                    <p className="text-sm text-red-600 font-medium">⚠️ Debes subir el justificante para continuar</p>
-                  )}
-                </div>
+                    </div>
+                  </>
+                )}
 
                 <div className="space-y-2">
                   <Label className="text-lg font-bold text-slate-900">📝 Notas (opcional)</Label>
@@ -465,7 +481,7 @@ export default function ParentLottery() {
                   <Button 
                     type="submit" 
                     className="flex-1 h-12 text-lg bg-gradient-to-r from-green-600 to-red-600 hover:from-green-700 hover:to-red-700 border-2 border-yellow-400 font-bold"
-                    disabled={createOrderMutation.isPending || !justificanteUrl}
+                    disabled={createOrderMutation.isPending || (requierePagoAdelantado && !justificanteUrl)}
                   >
                     {createOrderMutation.isPending ? "Enviando..." : "🎁 Confirmar Pedido"}
                   </Button>
