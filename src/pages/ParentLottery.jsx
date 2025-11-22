@@ -515,19 +515,30 @@ export default function ParentLottery() {
                           <h3 className="text-xl font-bold text-slate-900">{order.jugador_nombre}</h3>
                           <p className="text-sm text-slate-600">{order.jugador_categoria}</p>
                         </div>
-                        <Badge className={`${statusColors[order.estado]} border-2 text-lg px-4 py-2`}>
-                          {order.estado === "Solicitado" && "🕐 "}
-                          {order.estado === "Entregado" && "✅ "}
-                          {order.estado}
-                        </Badge>
+                        <div className="flex flex-col gap-2 items-end">
+                          {order.pagado && (
+                            <Badge className="bg-green-100 text-green-700 border-2 border-green-300 text-base px-4 py-2">
+                              💰 PAGADO
+                            </Badge>
+                          )}
+                          {order.estado === "Entregado" && (
+                            <Badge className="bg-purple-100 text-purple-700 border-2 border-purple-300 text-base px-4 py-2">
+                              ✅ ENTREGADO
+                            </Badge>
+                          )}
+                          {!order.pagado && order.estado !== "Entregado" && (
+                            <Badge className="bg-orange-100 text-orange-700 border-2 border-orange-300 text-base px-4 py-2">
+                              🕐 PENDIENTE
+                            </Badge>
+                          )}
+                        </div>
                       </div>
-                      
+
                       <div className="bg-gradient-to-r from-slate-50 to-slate-100 p-4 rounded-xl space-y-2">
                         <p className="text-lg">🎟️ <strong>Décimos:</strong> {order.numero_decimos}</p>
                         <p className="text-lg">💰 <strong>Total:</strong> {order.total}€</p>
-                        <p className="text-lg">💳 <strong>Pagado:</strong> {order.pagado ? "✅ Sí" : "❌ Pendiente"}</p>
                         {order.estado === "Entregado" && order.fecha_entrega && (
-                          <p className="text-lg">📅 <strong>Entregado:</strong> {new Date(order.fecha_entrega).toLocaleDateString('es-ES')}</p>
+                          <p className="text-lg">📅 <strong>Fecha entrega:</strong> {new Date(order.fecha_entrega).toLocaleDateString('es-ES')}</p>
                         )}
                         {order.notas && (
                           <p className="text-slate-600 mt-2 border-t pt-2">📝 {order.notas}</p>
