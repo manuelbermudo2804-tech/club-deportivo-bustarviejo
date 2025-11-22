@@ -457,9 +457,7 @@ export default function ParentPaymentForm({ players, payments = [], onSubmit, on
                     📎 Justificante de Pago * (Obligatorio)
                   </Label>
                   <p className="text-sm text-orange-800">
-                    {currentPayment.metodo_pago === "Bizum" 
-                      ? "Sube una captura del justificante de Bizum" 
-                      : "Sube una captura o foto del justificante de tu transferencia bancaria"}
+                    Sube una captura o foto del justificante de pago
                   </p>
                   {currentPayment.metodo_pago === "Bizum" && seasonConfig?.bizum_telefono && (
                     <div className="bg-white rounded-lg p-3 border border-orange-300">
