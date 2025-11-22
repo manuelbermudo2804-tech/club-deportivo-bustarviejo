@@ -716,10 +716,17 @@ export default function ClothingOrders() {
                             <p className="text-sm text-slate-600">{order.jugador_categoria}</p>
                             <p className="text-xs text-slate-500 mt-1">{order.email_padre}</p>
                           </div>
-                          <Badge className={statusColors[order.estado]}>
-                            <span className="mr-1">{statusEmojis[order.estado]}</span>
-                            {order.estado}
-                          </Badge>
+                          <div className="flex gap-2 flex-wrap">
+                            {order.pagado && (
+                              <Badge className="bg-green-600 text-white">
+                                💰 Pagado
+                              </Badge>
+                            )}
+                            <Badge className={statusColors[order.estado]}>
+                              <span className="mr-1">{statusEmojis[order.estado]}</span>
+                              {order.estado}
+                            </Badge>
+                          </div>
                         </div>
                         {renderOrderDetails(order)}
                       </div>
