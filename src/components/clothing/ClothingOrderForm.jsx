@@ -159,7 +159,7 @@ export default function ClothingOrderForm({ players, onSubmit, onCancel, isSubmi
         from_name: "CD Bustarviejo - Sistema de Pedidos",
         to: "cdbustarviejo@gmail.com",
         subject: `Nuevo Pedido de Equipación - ${orderData.jugador_nombre}`,
-        body: `<h2>Nuevo Pedido de Equipación</h2><p><strong>Jugador:</strong> ${orderData.jugador_nombre}</p><p><strong>Categoría:</strong> ${orderData.jugador_categoria}</p><p><strong>Email:</strong> ${orderData.email_padre}</p><p><strong>Teléfono:</strong> ${orderData.telefono}</p><hr><h3>Productos:</h3>${productsHTML}<hr><p><strong>Total:</strong> ${orderData.precio_total}€</p><p><strong>Concepto:</strong> ${orderData.concepto_pago}</p><p><strong>Fecha Pago:</strong> ${orderData.fecha_pago}</p><p><strong>Justificante:</strong> <a href="${orderData.justificante_url}">Ver</a></p>${orderData.notas ? `<p><strong>Notas:</strong> ${orderData.notas}</p>` : ''}<hr><p><strong>Temporada:</strong> ${orderData.temporada}</p>`
+        body: `<h2>Nuevo Pedido de Equipación</h2><p><strong>Jugador:</strong> ${orderData.jugador_nombre}</p><p><strong>Categoría:</strong> ${orderData.jugador_categoria}</p><p><strong>Email:</strong> ${orderData.email_padre}</p><p><strong>Teléfono:</strong> ${orderData.telefono}</p><hr><h3>Productos:</h3>${productsHTML}<hr><p><strong>Total:</strong> ${orderData.precio_total}€</p><p><strong>Método de Pago:</strong> ${orderData.metodo_pago}</p><p><strong>Concepto:</strong> ${orderData.concepto_pago}</p><p><strong>Fecha Pago:</strong> ${orderData.fecha_pago}</p><p><strong>Justificante:</strong> <a href="${orderData.justificante_url}" target="_blank">Ver Justificante</a></p>${orderData.notas ? `<p><strong>Notas:</strong> ${orderData.notas}</p>` : ''}<hr><p><strong>Temporada:</strong> ${orderData.temporada}</p>`
       });
       
       // Get player to send confirmation to both parents
@@ -248,12 +248,7 @@ Email: cdbustarviejo@gmail.com
           </div>
         </CardHeader>
         <CardContent className="pt-6">
-          <Alert className="mb-6 bg-blue-50 border-blue-200">
-            <AlertCircle className="h-4 w-4 text-blue-600" />
-            <AlertDescription className="text-blue-800">
-              <strong>Importante:</strong> Realiza la transferencia y sube el justificante. Email: <strong>CDBUSTARVIEJO@GMAIL.COM</strong>
-            </AlertDescription>
-          </Alert>
+
 
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="space-y-2">
@@ -404,16 +399,31 @@ Email: cdbustarviejo@gmail.com
                       </div>
                     </div>
 
-                    <div className="space-y-2">
-                      <Label className="text-base font-semibold">Justificante de Pago *</Label>
+                    <div className="space-y-3 p-4 bg-orange-50 rounded-lg border-2 border-orange-200">
+                      <Label htmlFor="justificante" className="text-base font-semibold text-orange-900">
+                        📎 Justificante de Pago * (Obligatorio)
+                      </Label>
+                      <p className="text-sm text-orange-800">
+                        Sube una captura o foto del justificante de pago
+                      </p>
+                      {orderData.metodo_pago === "Bizum" && seasonConfig?.bizum_telefono && (
+                        <div className="bg-white rounded-lg p-3 border border-orange-300">
+                          <p className="text-sm text-slate-900">
+                            📱 <strong>Enviar Bizum al:</strong> {seasonConfig.bizum_telefono}
+                          </p>
+                          <p className="text-xs text-slate-600 mt-1">
+                            Concepto: Equipación {selectedPlayer?.nombre}
+                          </p>
+                        </div>
+                      )}
                       <div className="flex gap-3">
-                        <Button type="button" variant="outline" onClick={() => document.getElementById('file-upload').click()} disabled={uploadingFile} className="flex-1">
-                          {uploadingFile ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Subiendo...</> : <><Upload className="w-4 h-4 mr-2" />{orderData.justificante_url ? "Cambiar" : "Subir"}</>}
+                        <Button type="button" variant="outline" onClick={() => document.getElementById('file-upload').click()} disabled={uploadingFile} className="flex-1 bg-white">
+                          {uploadingFile ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Subiendo...</> : <><Upload className="w-4 h-4 mr-2" />{orderData.justificante_url ? "Cambiar justificante" : "Subir justificante"}</>}
                         </Button>
-                        {orderData.justificante_url && <Button type="button" variant="outline" onClick={() => setOrderData({...orderData, justificante_url: ""})}><X className="w-4 h-4" /></Button>}
+                        {orderData.justificante_url && <Button type="button" variant="outline" onClick={() => setOrderData({...orderData, justificante_url: ""})} className="bg-white"><X className="w-4 h-4" /></Button>}
                       </div>
                       <input id="file-upload" type="file" accept="image/*,.pdf" onChange={handleFileUpload} className="hidden" />
-                      {orderData.justificante_url ? <p className="text-sm text-green-600 font-medium">✓ Subido</p> : <p className="text-sm text-red-600 font-medium">⚠️ Obligatorio</p>}
+                      {orderData.justificante_url ? <p className="text-sm text-green-600 font-medium">✓ Justificante subido correctamente</p> : <p className="text-sm text-red-600 font-medium">⚠️ Debes subir el justificante para continuar</p>}
                     </div>
 
                     <div className="space-y-2">
