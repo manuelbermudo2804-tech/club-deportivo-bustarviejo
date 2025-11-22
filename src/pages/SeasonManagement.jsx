@@ -451,8 +451,8 @@ export default function SeasonManagement() {
       // PASO 3: Ejecutar reinicio según tipo
       if (resetConfig.tipoReinicio === "completo" || resetConfig.tipoReinicio === "solo_archivar") {
         // Archivar pagos
-        toast.info("📁 Archivando pagos..."); // Refined message
-        const archivePaymentsPromises = payments.map(async (payment) => {
+        toast.info(`📁 Archivando ${payments.length} pagos...`);
+        for (const payment of payments) {
           try {
             await base44.entities.PaymentHistory.create({
               temporada: payment.temporada,
@@ -471,50 +471,52 @@ export default function SeasonManagement() {
             await base44.entities.Payment.delete(payment.id);
           } catch (error) {
             console.error(`Error archiving payment ${payment.id}:`, error);
+            toast.error(`Error archivando pago de ${payment.jugador_nombre}`);
           }
-        });
-        await Promise.all(archivePaymentsPromises);
-
+        }
+        toast.success(`✅ ${payments.length} pagos archivados`);
 
         // Eliminar recordatorios
-        toast.info("🗑️ Limpiando recordatorios..."); // Refined message
-        const deleteRemindersPromises = reminders.map(reminder => {
-          return base44.entities.Reminder.delete(reminder.id).catch(error => {
+        toast.info(`🗑️ Eliminando ${reminders.length} recordatorios...`);
+        for (const reminder of reminders) {
+          try {
+            await base44.entities.Reminder.delete(reminder.id);
+          } catch (error) {
             console.error(`Error deleting reminder ${reminder.id}:`, error);
-          });
-        });
-        await Promise.all(deleteRemindersPromises);
+          }
+        }
+        toast.success(`✅ ${reminders.length} recordatorios eliminados`);
 
         // Desactivar temporada actual
         if (activeSeason) {
-          toast.info("🔚 Cerrando temporada anterior..."); // Refined message
+          toast.info("🔚 Cerrando temporada anterior...");
           await base44.entities.SeasonConfig.update(activeSeason.id, {
             ...activeSeason,
             activa: false
           });
+          toast.success("✅ Temporada anterior cerrada");
         }
       }
 
       if (resetConfig.tipoReinicio === "completo") {
         // Archivar pedidos (cerrar tienda)
-        toast.info("🛍️ Archivando pedidos..."); // Refined message
-        const archiveOrdersPromises = orders.map(async (order) => {
-          if (order.estado !== "Entregado") {
-            try {
-              await base44.entities.Order.update(order.id, {
-                ...order,
-                estado: "Archivado"
-              });
-            } catch (error) {
-              console.error(`Error archiving order ${order.id}:`, error);
-            }
+        const ordersToArchive = orders.filter(o => o.estado !== "Entregado");
+        toast.info(`🛍️ Archivando ${ordersToArchive.length} pedidos...`);
+        for (const order of ordersToArchive) {
+          try {
+            await base44.entities.Order.update(order.id, {
+              ...order,
+              estado: "Archivado"
+            });
+          } catch (error) {
+            console.error(`Error archiving order ${order.id}:`, error);
           }
-        });
-        await Promise.all(archiveOrdersPromises);
+        }
+        toast.success(`✅ ${ordersToArchive.length} pedidos archivados`);
 
         // Marcar todos los jugadores como pendiente de renovación
-        toast.info("👥 Marcando jugadores pendientes de renovación...");
-        const updatePlayersPromises = players.map(async (player) => {
+        toast.info(`👥 Marcando ${players.length} jugadores como pendientes...`);
+        for (const player of players) {
           try {
             await base44.entities.Player.update(player.id, {
               ...player,
@@ -523,146 +525,212 @@ export default function SeasonManagement() {
             });
           } catch (error) {
             console.error(`Error updating player ${player.id}:`, error);
+            toast.error(`Error actualizando ${player.nombre}`);
           }
-        });
-        await Promise.all(updatePlayersPromises);
+        }
+        toast.success(`✅ ${players.length} jugadores marcados como pendientes`);
 
         // Borrar asistencias
-        if (resetConfig.borrarAsistencias) {
-          toast.info("📋 Eliminando asistencias...");
-          const deleteAttendancesPromises = attendances.map(a => 
-            base44.entities.Attendance.delete(a.id).catch(error => console.error(`Error deleting attendance ${a.id}:`, error))
-          );
-          await Promise.all(deleteAttendancesPromises);
+        if (resetConfig.borrarAsistencias && attendances.length > 0) {
+          toast.info(`📋 Eliminando ${attendances.length} asistencias...`);
+          for (const attendance of attendances) {
+            try {
+              await base44.entities.Attendance.delete(attendance.id);
+            } catch (error) {
+              console.error(`Error deleting attendance ${attendance.id}:`, error);
+            }
+          }
+          toast.success(`✅ ${attendances.length} asistencias eliminadas`);
         }
 
         // Borrar evaluaciones
-        if (resetConfig.borrarEvaluaciones) {
-          toast.info("⭐ Eliminando evaluaciones...");
-          const deleteEvaluationsPromises = evaluations.map(e => 
-            base44.entities.PlayerEvaluation.delete(e.id).catch(error => console.error(`Error deleting evaluation ${e.id}:`, error))
-          );
-          await Promise.all(deleteEvaluationsPromises);
+        if (resetConfig.borrarEvaluaciones && evaluations.length > 0) {
+          toast.info(`⭐ Eliminando ${evaluations.length} evaluaciones...`);
+          for (const evaluation of evaluations) {
+            try {
+              await base44.entities.PlayerEvaluation.delete(evaluation.id);
+            } catch (error) {
+              console.error(`Error deleting evaluation ${evaluation.id}:`, error);
+            }
+          }
+          toast.success(`✅ ${evaluations.length} evaluaciones eliminadas`);
         }
 
         // Borrar horarios
-        if (resetConfig.borrarHorarios) {
-          toast.info("⏰ Eliminando horarios...");
-          const deleteSchedulesPromises = schedules.map(s => 
-            base44.entities.TrainingSchedule.delete(s.id).catch(error => console.error(`Error deleting schedule ${s.id}:`, error))
-          );
-          await Promise.all(deleteSchedulesPromises);
+        if (resetConfig.borrarHorarios && schedules.length > 0) {
+          toast.info(`⏰ Eliminando ${schedules.length} horarios...`);
+          for (const schedule of schedules) {
+            try {
+              await base44.entities.TrainingSchedule.delete(schedule.id);
+            } catch (error) {
+              console.error(`Error deleting schedule ${schedule.id}:`, error);
+            }
+          }
+          toast.success(`✅ ${schedules.length} horarios eliminados`);
         }
 
         // Borrar calendario
-        if (resetConfig.borrarCalendario) {
-          toast.info("📅 Eliminando eventos...");
-          const deleteEventsPromises = events.map(e => 
-            base44.entities.Event.delete(e.id).catch(error => console.error(`Error deleting event ${e.id}:`, error))
-          );
-          await Promise.all(deleteEventsPromises);
+        if (resetConfig.borrarCalendario && events.length > 0) {
+          toast.info(`📅 Eliminando ${events.length} eventos...`);
+          for (const event of events) {
+            try {
+              await base44.entities.Event.delete(event.id);
+            } catch (error) {
+              console.error(`Error deleting event ${event.id}:`, error);
+            }
+          }
+          toast.success(`✅ ${events.length} eventos eliminados`);
         }
 
         // Borrar anuncios
-        if (resetConfig.borrarAnuncios) {
-          toast.info("📢 Eliminando anuncios...");
-          const deleteAnnouncementsPromises = announcements.map(a => 
-            base44.entities.Announcement.delete(a.id).catch(error => console.error(`Error deleting announcement ${a.id}:`, error))
-          );
-          await Promise.all(deleteAnnouncementsPromises);
+        if (resetConfig.borrarAnuncios && announcements.length > 0) {
+          toast.info(`📢 Eliminando ${announcements.length} anuncios...`);
+          for (const announcement of announcements) {
+            try {
+              await base44.entities.Announcement.delete(announcement.id);
+            } catch (error) {
+              console.error(`Error deleting announcement ${announcement.id}:`, error);
+            }
+          }
+          toast.success(`✅ ${announcements.length} anuncios eliminados`);
         }
 
         // Borrar galería
-        if (resetConfig.borrarGaleria) {
-          toast.info("🖼️ Eliminando galería...");
-          const deleteGalleryPromises = gallery.map(g => 
-            base44.entities.PhotoGallery.delete(g.id).catch(error => console.error(`Error deleting gallery ${g.id}:`, error))
-          );
-          await Promise.all(deleteGalleryPromises);
+        if (resetConfig.borrarGaleria && gallery.length > 0) {
+          toast.info(`🖼️ Eliminando ${gallery.length} álbumes...`);
+          for (const album of gallery) {
+            try {
+              await base44.entities.PhotoGallery.delete(album.id);
+            } catch (error) {
+              console.error(`Error deleting gallery ${album.id}:`, error);
+            }
+          }
+          toast.success(`✅ ${gallery.length} álbumes eliminados`);
         }
 
         // Borrar convocatorias
-        if (resetConfig.borrarConvocatorias) {
-          toast.info("🎓 Eliminando convocatorias...");
-          const deleteCallupsPromises = callups.map(c => 
-            base44.entities.Convocatoria.delete(c.id).catch(error => console.error(`Error deleting callup ${c.id}:`, error))
-          );
-          await Promise.all(deleteCallupsPromises);
+        if (resetConfig.borrarConvocatorias && callups.length > 0) {
+          toast.info(`🎓 Eliminando ${callups.length} convocatorias...`);
+          for (const callup of callups) {
+            try {
+              await base44.entities.Convocatoria.delete(callup.id);
+            } catch (error) {
+              console.error(`Error deleting callup ${callup.id}:`, error);
+            }
+          }
+          toast.success(`✅ ${callups.length} convocatorias eliminadas`);
         }
 
         // Borrar chats
-        if (resetConfig.borrarChats) {
-          toast.info("💬 Eliminando mensajes...");
-          const deleteChatsPromises = chats.map(c => 
-            base44.entities.ChatMessage.delete(c.id).catch(error => console.error(`Error deleting chat ${c.id}:`, error))
-          );
-          await Promise.all(deleteChatsPromises);
+        if (resetConfig.borrarChats && chats.length > 0) {
+          toast.info(`💬 Eliminando ${chats.length} mensajes...`);
+          for (const chat of chats) {
+            try {
+              await base44.entities.ChatMessage.delete(chat.id);
+            } catch (error) {
+              console.error(`Error deleting chat ${chat.id}:`, error);
+            }
+          }
+          toast.success(`✅ ${chats.length} mensajes eliminados`);
         }
 
         // Borrar encuestas y respuestas
         if (resetConfig.borrarEncuestas) {
-          toast.info("📋 Eliminando encuestas...");
-          const deleteSurveysPromises = surveys.map(s => 
-            base44.entities.Survey.delete(s.id).catch(error => console.error(`Error deleting survey ${s.id}:`, error))
-          );
-          const deleteResponsesPromises = surveyResponses.map(r => 
-            base44.entities.SurveyResponse.delete(r.id).catch(error => console.error(`Error deleting response ${r.id}:`, error))
-          );
-          await Promise.all([...deleteSurveysPromises, ...deleteResponsesPromises]);
+          const totalSurveys = surveys.length + surveyResponses.length;
+          toast.info(`📋 Eliminando ${totalSurveys} encuestas y respuestas...`);
+          for (const survey of surveys) {
+            try {
+              await base44.entities.Survey.delete(survey.id);
+            } catch (error) {
+              console.error(`Error deleting survey ${survey.id}:`, error);
+            }
+          }
+          for (const response of surveyResponses) {
+            try {
+              await base44.entities.SurveyResponse.delete(response.id);
+            } catch (error) {
+              console.error(`Error deleting response ${response.id}:`, error);
+            }
+          }
+          toast.success(`✅ ${totalSurveys} encuestas eliminadas`);
         }
 
         // Borrar resultados
-        if (resetConfig.borrarResultados) {
-          toast.info("⚽ Eliminando resultados...");
-          const deleteResultsPromises = matchResults.map(m => 
-            base44.entities.MatchResult.delete(m.id).catch(error => console.error(`Error deleting result ${m.id}:`, error))
-          );
-          await Promise.all(deleteResultsPromises);
+        if (resetConfig.borrarResultados && matchResults.length > 0) {
+          toast.info(`⚽ Eliminando ${matchResults.length} resultados...`);
+          for (const result of matchResults) {
+            try {
+              await base44.entities.MatchResult.delete(result.id);
+            } catch (error) {
+              console.error(`Error deleting result ${result.id}:`, error);
+            }
+          }
+          toast.success(`✅ ${matchResults.length} resultados eliminados`);
         }
 
         // Borrar pedidos de ropa
-        if (resetConfig.borrarPedidosRopa) {
-          toast.info("👕 Eliminando pedidos de ropa...");
-          const deleteClothingPromises = clothingOrders.map(o => 
-            base44.entities.ClothingOrder.delete(o.id).catch(error => console.error(`Error deleting clothing order ${o.id}:`, error))
-          );
-          await Promise.all(deleteClothingPromises);
+        if (resetConfig.borrarPedidosRopa && clothingOrders.length > 0) {
+          toast.info(`👕 Eliminando ${clothingOrders.length} pedidos de ropa...`);
+          for (const order of clothingOrders) {
+            try {
+              await base44.entities.ClothingOrder.delete(order.id);
+            } catch (error) {
+              console.error(`Error deleting clothing order ${order.id}:`, error);
+            }
+          }
+          toast.success(`✅ ${clothingOrders.length} pedidos de ropa eliminados`);
         }
 
         // Borrar pedidos de lotería
-        if (resetConfig.borrarPedidosLoteria) {
-          toast.info("🍀 Eliminando pedidos de lotería...");
-          const deleteLotteryPromises = lotteryOrders.map(o => 
-            base44.entities.LotteryOrder.delete(o.id).catch(error => console.error(`Error deleting lottery order ${o.id}:`, error))
-          );
-          await Promise.all(deleteLotteryPromises);
+        if (resetConfig.borrarPedidosLoteria && lotteryOrders.length > 0) {
+          toast.info(`🍀 Eliminando ${lotteryOrders.length} pedidos de lotería...`);
+          for (const order of lotteryOrders) {
+            try {
+              await base44.entities.LotteryOrder.delete(order.id);
+            } catch (error) {
+              console.error(`Error deleting lottery order ${order.id}:`, error);
+            }
+          }
+          toast.success(`✅ ${lotteryOrders.length} pedidos de lotería eliminados`);
         }
 
         // Borrar certificados
-        if (resetConfig.borrarCertificados) {
-          toast.info("📜 Eliminando certificados...");
-          const deleteCertificatesPromises = certificates.map(c => 
-            base44.entities.Certificate.delete(c.id).catch(error => console.error(`Error deleting certificate ${c.id}:`, error))
-          );
-          await Promise.all(deleteCertificatesPromises);
+        if (resetConfig.borrarCertificados && certificates.length > 0) {
+          toast.info(`📜 Eliminando ${certificates.length} certificados...`);
+          for (const cert of certificates) {
+            try {
+              await base44.entities.Certificate.delete(cert.id);
+            } catch (error) {
+              console.error(`Error deleting certificate ${cert.id}:`, error);
+            }
+          }
+          toast.success(`✅ ${certificates.length} certificados eliminados`);
         }
 
         // Borrar notas internas
-        if (resetConfig.borrarNotasInternas) {
-          toast.info("📝 Eliminando notas internas...");
-          const deleteNotesPromises = memberNotes.map(n => 
-            base44.entities.MemberNote.delete(n.id).catch(error => console.error(`Error deleting note ${n.id}:`, error))
-          );
-          await Promise.all(deleteNotesPromises);
+        if (resetConfig.borrarNotasInternas && memberNotes.length > 0) {
+          toast.info(`📝 Eliminando ${memberNotes.length} notas...`);
+          for (const note of memberNotes) {
+            try {
+              await base44.entities.MemberNote.delete(note.id);
+            } catch (error) {
+              console.error(`Error deleting note ${note.id}:`, error);
+            }
+          }
+          toast.success(`✅ ${memberNotes.length} notas eliminadas`);
         }
 
         // Borrar notificaciones
-        if (resetConfig.borrarNotificaciones) {
-          toast.info("🔔 Eliminando notificaciones...");
-          const deleteNotifPromises = appNotifications.map(n => 
-            base44.entities.AppNotification.delete(n.id).catch(error => console.error(`Error deleting notification ${n.id}:`, error))
-          );
-          await Promise.all(deleteNotifPromises);
+        if (resetConfig.borrarNotificaciones && appNotifications.length > 0) {
+          toast.info(`🔔 Eliminando ${appNotifications.length} notificaciones...`);
+          for (const notif of appNotifications) {
+            try {
+              await base44.entities.AppNotification.delete(notif.id);
+            } catch (error) {
+              console.error(`Error deleting notification ${notif.id}:`, error);
+            }
+          }
+          toast.success(`✅ ${appNotifications.length} notificaciones eliminadas`);
         }
 
         // Crear nueva temporada
