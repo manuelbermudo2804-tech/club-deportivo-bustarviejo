@@ -1224,7 +1224,7 @@ export default function SeasonManagement() {
             </DialogDescription> {/* Refined description */}
           </DialogHeader>
 
-          <div className="space-y-6 py-4">
+          <div className="space-y-6 py-4 overflow-y-auto flex-1">
             {/* Tipo de Reinicio */}
             <div className="space-y-3">
               <Label className="text-base font-semibold flex items-center gap-2">
