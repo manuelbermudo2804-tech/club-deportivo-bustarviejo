@@ -893,6 +893,7 @@ export default function Layout({ children, currentPageName }) {
       { title: "⚙️ Preferencias Notif.", url: createPageUrl("NotificationPreferences"), icon: Settings },
       ...(hasPlayers ? [{ title: "👨‍👩‍👧 Mis Hijos", url: createPageUrl("ParentPlayers"), icon: Users }] : []),
       { title: "💰 Pagos", url: createPageUrl("Payments"), icon: CreditCard },
+      ...(hasPlayers ? [{ title: "💳 Pagos Mis Hijos", url: createPageUrl("ParentPayments"), icon: CreditCard }] : []),
       { title: "🔔 Recordatorios", url: createPageUrl("Reminders"), icon: Bell },
       { title: "📋 Histórico Pagos", url: createPageUrl("PaymentHistory"), icon: Archive },
       { title: "🛍️ Pedidos Ropa", url: createPageUrl("ClothingOrders"), icon: ShoppingBag },
@@ -901,7 +902,7 @@ export default function Layout({ children, currentPageName }) {
       { title: "📢 Anuncios", url: createPageUrl("Announcements"), icon: Megaphone },
       ...(hasPlayers ? [{ title: "📄 Documentos", url: createPageUrl("ParentDocuments"), icon: FileText, badge: pendingDocumentsCount > 0 ? pendingDocumentsCount : null, urgentBadge: pendingDocumentsCount > 0 }] : []),
       ...(hasPlayers ? [{ title: "👨‍👩‍👧 Confirmar Mis Hijos", url: createPageUrl("ParentCallups"), icon: ClipboardCheck, badge: pendingCallupsCount > 0 ? pendingCallupsCount : null }] : []),
-      ...(loteriaVisible && hasPlayers ? [{ title: "🍀 Mi Lotería", url: createPageUrl("ParentLottery"), icon: ShoppingBag }] : []),
+      ...(loteriaVisible && hasPlayers ? [{ title: "🍀 Mi Lotería", url: createPageUrl("ParentLottery"), icon: Clover }] : []),
       ...(hasPlayers ? [{ title: "💬 Chat Familiar", url: createPageUrl("ParentChat"), icon: MessageCircle, badge: unreadMessagesCount > 0 ? unreadMessagesCount : null, urgentBadge: urgentMessagesCount > 0 }] : []),
     ];
 
