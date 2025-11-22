@@ -1,27 +1,18 @@
-import React, { useEffect, useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import React, { useEffect } from "react";
+import { motion } from "framer-motion";
 
-const CLUB_LOGO_URL = "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6911b8e453ca3ac01fb134d6/e3f0a8e26_logo_cd_bustarviejo_mediano.jpg?v=3";
+const CLUB_LOGO_URL = `https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6911b8e453ca3ac01fb134d6/e3f0a8e26_logo_cd_bustarviejo_mediano.jpg?t=${Date.now()}`;
 
 export default function WelcomeScreen({ onComplete }) {
-  const [show, setShow] = useState(true);
-
   useEffect(() => {
-    console.log('🎬 WelcomeScreen montada - Logo cargando...');
     const timer = setTimeout(() => {
-      console.log('⏱️ Timer completado, cerrando bienvenida');
-      setShow(false);
-      setTimeout(() => {
-        onComplete();
-      }, 500);
-    }, 3500);
-
+      onComplete();
+    }, 3000);
     return () => clearTimeout(timer);
   }, [onComplete]);
 
   return (
-    <AnimatePresence>
-      <motion.div
+    <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
@@ -262,7 +253,7 @@ export default function WelcomeScreen({ onComplete }) {
             </motion.span>
           </motion.div>
         </motion.div>
-      </motion.div>
-    </AnimatePresence>
-  );
-}
+        </motion.div>
+        </motion.div>
+        );
+        }
