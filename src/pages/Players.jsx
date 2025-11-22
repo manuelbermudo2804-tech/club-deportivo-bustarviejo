@@ -12,6 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import PlayerCard from "../components/players/PlayerCard";
 import PlayerForm from "../components/players/PlayerForm";
 import PlayerProfileDialog from "../components/players/PlayerProfileDialog";
+import PlayerCardSkeleton from "../components/skeletons/PlayerCardSkeleton";
 
 export default function Players() {
   const [showForm, setShowForm] = useState(false);
