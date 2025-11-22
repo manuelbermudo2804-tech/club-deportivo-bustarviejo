@@ -421,6 +421,11 @@ export default function LotteryManagement() {
                       <div>
                         <p className="font-bold text-slate-900">{order.jugador_nombre}</p>
                         <p className="text-xs text-slate-600">{order.email_padre}</p>
+                        {order.metodo_pago && (
+                          <Badge className="mt-1 bg-blue-100 text-blue-700 text-xs">
+                            {order.metodo_pago === "Bizum" ? "📱 Bizum" : "💳 Transferencia"}
+                          </Badge>
+                        )}
                       </div>
                       <div className="flex items-center gap-3">
                         <div className="text-right">
