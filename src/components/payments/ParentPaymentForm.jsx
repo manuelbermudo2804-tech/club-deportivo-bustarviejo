@@ -7,6 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { Upload, X, Loader2, Info } from "lucide-react";
+import { useEffect } from "react";
 import { toast } from "sonner";
 import { base44 } from "@/api/base44Client";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -75,6 +76,17 @@ export default function ParentPaymentForm({ players, payments = [], onSubmit, on
   const [existingPayments, setExistingPayments] = useState([]);
   const [pagoUnicoPagado, setPagoUnicoPagado] = useState(false);
   const [tipoPagoFijado, setTipoPagoFijado] = useState(null);
+  const [seasonConfig, setSeasonConfig] = useState(null);
+
+  // Fetch season config for Bizum availability
+  useEffect(() => {
+    const fetchConfig = async () => {
+      const configs = await base44.entities.SeasonConfig.list();
+      const active = configs.find(c => c.activa === true);
+      setSeasonConfig(active);
+    };
+    fetchConfig();
+  }, []);
 
   useEffect(() => {
     if (players && players.length > 0 && !currentPayment.jugador_id) {
@@ -394,7 +406,26 @@ export default function ParentPaymentForm({ players, payments = [], onSubmit, on
                     )}
                   </div>
 
-                  <div className="space-y-2 md:col-span-2">
+                  <div className="space-y-2">
+                    <Label htmlFor="metodo_pago">Método de Pago *</Label>
+                    <Select
+                      value={currentPayment.metodo_pago}
+                      onValueChange={(value) => setCurrentPayment(prev => ({...prev, metodo_pago: value}))}
+                      required
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Transferencia">💳 Transferencia Bancaria</SelectItem>
+                        {seasonConfig?.bizum_activo && (
+                          <SelectItem value="Bizum">📱 Bizum</SelectItem>
+                        )}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
                     <Label htmlFor="fecha_pago">Fecha del Pago *</Label>
                     <Input
                       type="date"
@@ -424,11 +455,23 @@ export default function ParentPaymentForm({ players, payments = [], onSubmit, on
 
                 <div className="space-y-3 p-4 bg-orange-50 rounded-lg border-2 border-orange-200">
                   <Label htmlFor="justificante" className="text-base font-semibold text-orange-900">
-                    📎 Justificante de Transferencia * (Obligatorio)
+                    📎 Justificante de Pago * (Obligatorio)
                   </Label>
                   <p className="text-sm text-orange-800">
-                    Sube una captura o foto del justificante de tu transferencia bancaria
+                    {currentPayment.metodo_pago === "Bizum" 
+                      ? "Sube una captura del justificante de Bizum" 
+                      : "Sube una captura o foto del justificante de tu transferencia bancaria"}
                   </p>
+                  {currentPayment.metodo_pago === "Bizum" && seasonConfig?.bizum_telefono && (
+                    <div className="bg-white rounded-lg p-3 border border-orange-300">
+                      <p className="text-sm text-slate-900">
+                        📱 <strong>Enviar Bizum al:</strong> {seasonConfig.bizum_telefono}
+                      </p>
+                      <p className="text-xs text-slate-600 mt-1">
+                        Concepto: {selectedPlayer?.nombre} - {currentPayment.mes}
+                      </p>
+                    </div>
+                  )}
                   <div className="flex gap-3">
                     <Button
                       type="button"

@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useEffect } from "react";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Upload, X, Loader2, AlertCircle, ShoppingBag, Info, Ruler } from "lucide-react";
@@ -34,6 +35,7 @@ const getCurrentSeason = () => {
 export default function ClothingOrderForm({ players, onSubmit, onCancel, isSubmitting }) {
   const [selectedPlayer, setSelectedPlayer] = useState(null);
   const [uploadingFile, setUploadingFile] = useState(false);
+  const [seasonConfig, setSeasonConfig] = useState(null);
   
   const [orderData, setOrderData] = useState({
     jugador_id: "", jugador_nombre: "", jugador_categoria: "", email_padre: "", telefono: "",
@@ -49,6 +51,16 @@ export default function ClothingOrderForm({ players, onSubmit, onCancel, isSubmi
     fecha_pago: new Date().toISOString().split('T')[0],
     estado: "Pendiente", temporada: getCurrentSeason(), notas: ""
   });
+
+  // Fetch season config for Bizum availability
+  useEffect(() => {
+    const fetchConfig = async () => {
+      const configs = await base44.entities.SeasonConfig.list();
+      const active = configs.find(c => c.activa === true);
+      setSeasonConfig(active);
+    };
+    fetchConfig();
+  }, []);
 
   const canOrderJacket = selectedPlayer && !selectedPlayer.deporte?.includes("Aficionado") && !selectedPlayer.deporte?.includes("Baloncesto");
 
@@ -356,7 +368,35 @@ Email: cdbustarviejo@gmail.com
                     <div className="space-y-4 border-2 border-blue-200 rounded-lg p-6 bg-blue-50">
                       <h3 className="text-lg font-bold text-blue-900">Información de Pago</h3>
                       <div className="space-y-2">
-                        <Label>Concepto de Transferencia *</Label>
+                        <Label>Método de Pago *</Label>
+                        <Select
+                          value={orderData.metodo_pago}
+                          onValueChange={(value) => setOrderData({...orderData, metodo_pago: value})}
+                          required
+                        >
+                          <SelectTrigger className="bg-white">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="Transferencia">💳 Transferencia Bancaria</SelectItem>
+                            {seasonConfig?.bizum_activo && (
+                              <SelectItem value="Bizum">📱 Bizum</SelectItem>
+                            )}
+                          </SelectContent>
+                        </Select>
+                        {orderData.metodo_pago === "Bizum" && seasonConfig?.bizum_telefono && (
+                          <div className="bg-white rounded-lg p-3 border border-blue-300">
+                            <p className="text-sm text-slate-900">
+                              📱 <strong>Enviar Bizum al:</strong> {seasonConfig.bizum_telefono}
+                            </p>
+                            <p className="text-xs text-slate-600 mt-1">
+                              Concepto: Pedido ropa {selectedPlayer?.nombre}
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Concepto de Pago *</Label>
                         <Input value={orderData.concepto_pago} onChange={(e) => setOrderData({...orderData, concepto_pago: e.target.value})} required className="font-mono text-sm bg-white" />
                       </div>
                       <div className="space-y-2">
@@ -366,7 +406,7 @@ Email: cdbustarviejo@gmail.com
                     </div>
 
                     <div className="space-y-2">
-                      <Label className="text-base font-semibold">Justificante de Transferencia *</Label>
+                      <Label className="text-base font-semibold">Justificante de Pago *</Label>
                       <div className="flex gap-3">
                         <Button type="button" variant="outline" onClick={() => document.getElementById('file-upload').click()} disabled={uploadingFile} className="flex-1">
                           {uploadingFile ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Subiendo...</> : <><Upload className="w-4 h-4 mr-2" />{orderData.justificante_url ? "Cambiar" : "Subir"}</>}

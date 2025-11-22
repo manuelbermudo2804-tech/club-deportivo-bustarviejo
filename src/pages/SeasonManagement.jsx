@@ -288,6 +288,28 @@ export default function SeasonManagement() {
     });
   };
 
+  const toggleBizum = async () => {
+    if (!activeSeason) return;
+    await updateSeasonMutation.mutateAsync({
+      id: activeSeason.id,
+      data: {
+        ...activeSeason,
+        bizum_activo: !activeSeason.bizum_activo
+      }
+    });
+  };
+
+  const updateBizumPhone = async (phone) => {
+    if (!activeSeason) return;
+    await updateSeasonMutation.mutateAsync({
+      id: activeSeason.id,
+      data: {
+        ...activeSeason,
+        bizum_telefono: phone
+      }
+    });
+  };
+
   // Función para generar backup (exportar a CSV)
   const generateBackup = () => {
     const timestamp = new Date().toISOString().split('T')[0];
@@ -1739,6 +1761,63 @@ export default function SeasonManagement() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Control de Bizum */}
+      {activeSeason && (
+        <Card className="border-none shadow-lg bg-gradient-to-br from-blue-50 to-blue-100 border-2 border-blue-300">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-blue-900">
+              📱 Control de Bizum
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="bg-white rounded-lg p-4 border-2 border-blue-200">
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <p className="font-semibold text-slate-900">Estado Actual</p>
+                  <p className="text-sm text-slate-600">
+                    {activeSeason.bizum_activo ? "✅ Bizum disponible para usuarios" : "🔒 Bizum deshabilitado"}
+                  </p>
+                </div>
+                <Badge className={activeSeason.bizum_activo ? "bg-blue-600 text-white text-lg px-4 py-2" : "bg-slate-400 text-white text-lg px-4 py-2"}>
+                  {activeSeason.bizum_activo ? "ACTIVO" : "INACTIVO"}
+                </Badge>
+              </div>
+              <div className="space-y-2">
+                <Label className="text-sm">Teléfono del Club para Bizum</Label>
+                <div className="flex gap-2">
+                  <Input
+                    type="tel"
+                    placeholder="Ej: 612345678"
+                    defaultValue={activeSeason.bizum_telefono || ""}
+                    onBlur={(e) => {
+                      if (e.target.value !== activeSeason.bizum_telefono) {
+                        updateBizumPhone(e.target.value);
+                      }
+                    }}
+                  />
+                </div>
+                <p className="text-xs text-slate-500">
+                  Este número se mostrará a los usuarios cuando paguen con Bizum
+                </p>
+              </div>
+            </div>
+            <Button
+              onClick={toggleBizum}
+              className={`w-full font-bold text-lg py-6 ${
+                activeSeason.bizum_activo 
+                  ? "bg-red-600 hover:bg-red-700" 
+                  : "bg-blue-600 hover:bg-blue-700"
+              }`}
+            >
+              {activeSeason.bizum_activo ? "🔒 Desactivar Bizum" : "📱 Activar Bizum"}
+            </Button>
+            <p className="text-xs text-slate-600 text-center">
+              Los usuarios podrán pagar con Bizum en: cuotas, pedidos de ropa y lotería
+            </p>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Control de Lotería y Tienda */}
       {activeSeason && (
