@@ -264,19 +264,7 @@ export default function ClothingOrders() {
     "Entregado": "🟢"
   };
 
-  const markAsPaidMutation = useMutation({
-    mutationFn: async (orderId) => {
-      const order = orders.find(o => o.id === orderId);
-      return base44.entities.ClothingOrder.update(orderId, {
-        ...order,
-        pagado: true
-      });
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['myClothingOrders'] });
-      toast.success("Marcado como pagado");
-    },
-  });
+
 
   const renderOrderDetails = (order) => (
     <div className="space-y-1.5 lg:space-y-2 text-xs lg:text-sm">
@@ -601,11 +589,6 @@ export default function ClothingOrders() {
                                             </Button>
                                           </DropdownMenuTrigger>
                                           <DropdownMenuContent>
-                                            {!order.pagado && (
-                                              <DropdownMenuItem onClick={() => markAsPaidMutation.mutate(order.id)}>
-                                                <Check className="w-4 h-4 mr-2 text-green-600" /> Marcar como pagado
-                                              </DropdownMenuItem>
-                                            )}
                                             <DropdownMenuItem onClick={() => updateOrderStatusMutation.mutate({ orderId: order.id, newStatus: "Confirmado", notifyParent: true })}>
                                               <Check className="w-4 h-4 mr-2" /> Confirmar y notificar
                                             </DropdownMenuItem>
