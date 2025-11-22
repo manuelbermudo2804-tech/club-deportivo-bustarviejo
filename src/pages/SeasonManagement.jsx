@@ -514,12 +514,13 @@ export default function SeasonManagement() {
         }
         toast.success(`✅ ${ordersToArchive.length} pedidos archivados`);
 
-        // Marcar todos los jugadores como pendiente de renovación
+        // Marcar todos los jugadores como pendiente de renovación y DESACTIVARLOS
         toast.info(`👥 Marcando ${players.length} jugadores como pendientes...`);
         for (const player of players) {
           try {
             await base44.entities.Player.update(player.id, {
               ...player,
+              activo: false,
               estado_renovacion: "pendiente",
               temporada_renovacion: resetConfig.nombreTemporada
             });
@@ -528,7 +529,7 @@ export default function SeasonManagement() {
             toast.error(`Error actualizando ${player.nombre}`);
           }
         }
-        toast.success(`✅ ${players.length} jugadores marcados como pendientes`);
+        toast.success(`✅ ${players.length} jugadores desactivados y marcados como pendientes`);
 
         // Borrar asistencias
         if (resetConfig.borrarAsistencias && attendances.length > 0) {
