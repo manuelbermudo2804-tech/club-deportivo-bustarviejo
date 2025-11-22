@@ -65,35 +65,38 @@ const getCategoriesWithYears = () => {
 export default function PlayerForm({ player, onSubmit, onCancel, isSubmitting, isParent = false, allPlayers = [] }) {
   const formRef = useRef(null);
   
-  const [currentPlayer, setCurrentPlayer] = useState(player || {
-    nombre: "",
-    foto_url: "",
-    deporte: "Fútbol Pre-Benjamín (Mixto)",
-    tipo_inscripcion: "Nueva Inscripción",
-    fecha_nacimiento: "",
-    telefono: "",
-    email_padre: "",
-    telefono_tutor_2: "",
-    email_tutor_2: "",
-    email_jugador: "",
-    acceso_jugador_autorizado: false,
-    fecha_autorizacion_jugador: null,
-    direccion: "",
-    activo: true,
-    observaciones: "",
-    acepta_politica_privacidad: false,
-    fecha_aceptacion_privacidad: null,
-    autorizacion_fotografia: "",
-    ficha_medica: {
-      alergias: "",
-      medicacion_habitual: "",
-      condiciones_medicas: "",
-      grupo_sanguineo: "",
-      contacto_emergencia_nombre: "",
-      contacto_emergencia_telefono: "",
-      lesiones: "",
-      observaciones_medicas: ""
-    }
+  const [currentPlayer, setCurrentPlayer] = useState(() => {
+    if (player) return player;
+    return {
+      nombre: "",
+      foto_url: "",
+      deporte: "Fútbol Pre-Benjamín (Mixto)",
+      tipo_inscripcion: "Nueva Inscripción",
+      fecha_nacimiento: "",
+      telefono: "",
+      email_padre: "",
+      telefono_tutor_2: "",
+      email_tutor_2: "",
+      email_jugador: "",
+      acceso_jugador_autorizado: false,
+      fecha_autorizacion_jugador: null,
+      direccion: "",
+      activo: true,
+      observaciones: "",
+      acepta_politica_privacidad: false,
+      fecha_aceptacion_privacidad: null,
+      autorizacion_fotografia: "",
+      ficha_medica: {
+        alergias: "",
+        medicacion_habitual: "",
+        condiciones_medicas: "",
+        grupo_sanguineo: "",
+        contacto_emergencia_nombre: "",
+        contacto_emergencia_telefono: "",
+        lesiones: "",
+        observaciones_medicas: ""
+      }
+    };
   });
 
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
