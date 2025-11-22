@@ -86,13 +86,27 @@ export default function LotteryManagement() {
     },
   });
 
+  const markAsPaidMutation = useMutation({
+    mutationFn: (orderId) => {
+      const order = orders.find(o => o.id === orderId);
+      return base44.entities.LotteryOrder.update(orderId, {
+        ...order,
+        pagado: true
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['allLotteryOrders'] });
+      setConfirmDialog({ open: false, orderId: null, action: null });
+      toast.success("✅ Marcado como pagado");
+    },
+  });
+
   const markAsDeliveredMutation = useMutation({
     mutationFn: (orderId) => {
       const order = orders.find(o => o.id === orderId);
       return base44.entities.LotteryOrder.update(orderId, {
         ...order,
         estado: "Entregado",
-        pagado: user?.role === "admin" ? order.pagado : false,
         entregado_por: user.email,
         fecha_entrega: new Date().toISOString().split('T')[0]
       });
@@ -104,13 +118,27 @@ export default function LotteryManagement() {
     },
   });
 
+  const revertPaidMutation = useMutation({
+    mutationFn: (orderId) => {
+      const order = orders.find(o => o.id === orderId);
+      return base44.entities.LotteryOrder.update(orderId, {
+        ...order,
+        pagado: false
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['allLotteryOrders'] });
+      setConfirmDialog({ open: false, orderId: null, action: null });
+      toast.success("↩️ Pago revertido");
+    },
+  });
+
   const revertDeliveryMutation = useMutation({
     mutationFn: (orderId) => {
       const order = orders.find(o => o.id === orderId);
       return base44.entities.LotteryOrder.update(orderId, {
         ...order,
         estado: "Solicitado",
-        pagado: false,
         entregado_por: null,
         fecha_entrega: null
       });
@@ -125,8 +153,12 @@ export default function LotteryManagement() {
   const handleConfirmAction = () => {
     if (confirmDialog.action === 'deliver') {
       markAsDeliveredMutation.mutate(confirmDialog.orderId);
-    } else if (confirmDialog.action === 'revert') {
+    } else if (confirmDialog.action === 'revert_delivery') {
       revertDeliveryMutation.mutate(confirmDialog.orderId);
+    } else if (confirmDialog.action === 'mark_paid') {
+      markAsPaidMutation.mutate(confirmDialog.orderId);
+    } else if (confirmDialog.action === 'revert_paid') {
+      revertPaidMutation.mutate(confirmDialog.orderId);
     }
   };
 
@@ -292,12 +324,16 @@ export default function LotteryManagement() {
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>
-              {confirmDialog.action === 'deliver' ? '✅ Confirmar Entrega' : '↩️ Revertir Entrega'}
+              {confirmDialog.action === 'deliver' && '✅ Confirmar Entrega'}
+              {confirmDialog.action === 'revert_delivery' && '↩️ Revertir Entrega'}
+              {confirmDialog.action === 'mark_paid' && '💰 Confirmar Pago'}
+              {confirmDialog.action === 'revert_paid' && '↩️ Revertir Pago'}
             </AlertDialogTitle>
             <AlertDialogDescription>
-              {confirmDialog.action === 'deliver' 
-                ? '¿Confirmas que has entregado los décimos de lotería a este jugador/entrenador? Esta acción puede revertirse después si fue un error.'
-                : '¿Deseas revertir esta entrega y marcarla como pendiente? Esto deshará el registro de entrega.'}
+              {confirmDialog.action === 'deliver' && '¿Confirmas que has entregado los décimos de lotería a este jugador/entrenador?'}
+              {confirmDialog.action === 'revert_delivery' && '¿Deseas revertir esta entrega y marcarla como pendiente?'}
+              {confirmDialog.action === 'mark_paid' && '¿Confirmas que has verificado el pago de este pedido? (justificante subido)'}
+              {confirmDialog.action === 'revert_paid' && '¿Deseas revertir la verificación de pago de este pedido?'}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -307,10 +343,13 @@ export default function LotteryManagement() {
             </AlertDialogCancel>
             <AlertDialogAction
               onClick={handleConfirmAction}
-              className={confirmDialog.action === 'deliver' ? 'bg-green-600 hover:bg-green-700' : 'bg-orange-600 hover:bg-orange-700'}
+              className={confirmDialog.action?.includes('revert') ? 'bg-orange-600 hover:bg-orange-700' : 'bg-green-600 hover:bg-green-700'}
             >
-              {confirmDialog.action === 'deliver' ? <Check className="w-4 h-4 mr-2" /> : <RotateCcw className="w-4 h-4 mr-2" />}
-              {confirmDialog.action === 'deliver' ? 'Marcar Entregado' : 'Revertir'}
+              {confirmDialog.action?.includes('revert') ? <RotateCcw className="w-4 h-4 mr-2" /> : <Check className="w-4 h-4 mr-2" />}
+              {confirmDialog.action === 'deliver' && 'Marcar Entregado'}
+              {confirmDialog.action === 'revert_delivery' && 'Revertir Entrega'}
+              {confirmDialog.action === 'mark_paid' && 'Marcar Pagado'}
+              {confirmDialog.action === 'revert_paid' && 'Revertir Pago'}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -421,13 +460,13 @@ export default function LotteryManagement() {
                       <div className="flex-1">
                         <p className="font-bold text-slate-900">{order.jugador_nombre}</p>
                         <p className="text-xs text-slate-600">{order.email_padre}</p>
-                        <div className="flex items-center gap-2 mt-1">
-                          {user?.role === "admin" && order.metodo_pago && (
+                        <div className="flex items-center gap-2 mt-1 flex-wrap">
+                          {order.metodo_pago && (
                             <Badge className="bg-blue-100 text-blue-700 text-xs">
                               {order.metodo_pago === "Bizum" ? "📱 Bizum" : "💳 Transferencia"}
                             </Badge>
                           )}
-                          {user?.role === "admin" && order.justificante_url && (
+                          {order.justificante_url && user?.role === "admin" && (
                             <a 
                               href={order.justificante_url} 
                               target="_blank" 
@@ -438,41 +477,73 @@ export default function LotteryManagement() {
                               Ver justificante
                             </a>
                           )}
-                          {(user?.es_entrenador || user?.es_coordinador) && order.pagado && (
-                            <Badge className="bg-green-100 text-green-700 text-xs">
-                              💰 Pagado
+                          {order.pagado && (
+                            <Badge className="bg-green-100 text-green-700 text-xs font-bold">
+                              💰 PAGADO
+                            </Badge>
+                          )}
+                          {order.estado === "Entregado" && (
+                            <Badge className="bg-purple-100 text-purple-700 text-xs font-bold">
+                              📦 ENTREGADO
                             </Badge>
                           )}
                         </div>
                       </div>
-                      <div className="flex items-center gap-3">
+                      <div className="flex items-center gap-2">
                         <div className="text-right">
                           <p className="font-bold text-lg text-orange-600">{order.numero_decimos}</p>
                           <p className="text-xs text-slate-600">{order.total}€</p>
                         </div>
-                        {order.estado === "Entregado" ? (
+                        
+                        {user?.role === "admin" ? (
                           <div className="flex gap-2">
-                            <Badge className="bg-green-100 text-green-700">✅</Badge>
-                            {user?.role === "admin" && (
+                            {order.pagado ? (
                               <Button
-                                onClick={() => setConfirmDialog({ open: true, orderId: order.id, action: 'revert' })}
+                                onClick={() => setConfirmDialog({ open: true, orderId: order.id, action: 'revert_paid' })}
                                 size="sm"
                                 variant="outline"
                                 className="border-orange-300 hover:bg-orange-50"
+                                title="Revertir pago"
                               >
                                 <RotateCcw className="w-4 h-4" />
+                              </Button>
+                            ) : (
+                              <Button
+                                onClick={() => setConfirmDialog({ open: true, orderId: order.id, action: 'mark_paid' })}
+                                size="sm"
+                                variant="outline"
+                                className="border-green-300 hover:bg-green-50"
+                                title="Marcar como pagado"
+                              >
+                                💰
                               </Button>
                             )}
                           </div>
                         ) : (
-                          <Button
-                            onClick={() => setConfirmDialog({ open: true, orderId: order.id, action: 'deliver' })}
-                            size="sm"
-                            variant="outline"
-                            className="border-green-300 hover:bg-green-50"
-                          >
-                            <Check className="w-4 h-4" />
-                          </Button>
+                          <div className="flex gap-2">
+                            {order.estado === "Entregado" ? (
+                              <Button
+                                onClick={() => setConfirmDialog({ open: true, orderId: order.id, action: 'revert_delivery' })}
+                                size="sm"
+                                variant="outline"
+                                className="border-orange-300 hover:bg-orange-50"
+                                title="Revertir entrega"
+                              >
+                                <RotateCcw className="w-4 h-4" />
+                              </Button>
+                            ) : (
+                              <Button
+                                onClick={() => setConfirmDialog({ open: true, orderId: order.id, action: 'deliver' })}
+                                size="sm"
+                                variant="outline"
+                                className="border-green-300 hover:bg-green-50"
+                                disabled={!order.pagado}
+                                title={order.pagado ? "Marcar como entregado" : "Debe estar pagado primero"}
+                              >
+                                <Check className="w-4 h-4" />
+                              </Button>
+                            )}
+                          </div>
                         )}
                       </div>
                     </div>
