@@ -996,16 +996,16 @@ export default function Layout({ children, currentPageName }) {
     base44.auth.logout();
   };
 
+  if (!showWelcome) {
+    return <WelcomeScreen onComplete={() => setShowWelcome(true)} />;
+  }
+
   return (
     <>
       <SessionManager />
       <NotificationBadge />
       {user && <ChatNotificationListener user={user} />}
       {user && <DocumentReminderEngine user={user} />}
-
-      {!showWelcome && showSpecialScreen === null && (
-        <WelcomeScreen onComplete={() => setShowWelcome(true)} />
-      )}
 
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
         
