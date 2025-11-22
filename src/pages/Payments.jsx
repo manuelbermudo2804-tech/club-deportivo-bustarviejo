@@ -78,12 +78,13 @@ export default function Payments() {
       try {
         const currentUser = await base44.auth.me();
         const adminCheck = currentUser.role === "admin";
+        const treasurerCheck = currentUser.es_tesorero === true;
         const coachCheck = currentUser.es_entrenador === true && !adminCheck;
 
-        setIsAdmin(adminCheck);
+        setIsAdmin(adminCheck || treasurerCheck);
         setIsCoach(coachCheck);
 
-        if (adminCheck) {
+        if (adminCheck || treasurerCheck) {
           const allPlayers = await base44.entities.Player.list();
           setMyPlayers(allPlayers.filter(p => p.activo === true));
         } else if (coachCheck) {
