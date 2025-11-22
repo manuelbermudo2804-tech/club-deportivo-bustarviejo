@@ -28,7 +28,7 @@ export default function ParentPlayers() {
     queryFn: async () => {
       const allPlayers = await base44.entities.Player.list();
       return allPlayers.filter(p => 
-        p.email_padre === user?.email || p.email_tutor_2 === user?.email
+        (p.email_padre === user?.email || p.email_tutor_2 === user?.email) && p.activo === true
       );
     },
     enabled: !!user?.email,
