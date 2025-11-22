@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
-const CLUB_LOGO_URL = "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6911b8e453ca3ac01fb134d6/14072ed7d_logo_cd_bustarviejo_pequeo.jpg";
+// LOGO DE ALTA CALIDAD - Actualizar con el nuevo logo
+const CLUB_LOGO_URL = "";
 
 export default function WelcomeScreen({ onComplete }) {
   const [show, setShow] = useState(true);
@@ -105,19 +106,47 @@ export default function WelcomeScreen({ onComplete }) {
           className="text-center w-full max-w-md relative z-10"
         >
           <motion.div
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
+            initial={{ scale: 0, rotate: -180 }}
+            animate={{ scale: 1, rotate: 0 }}
             transition={{ 
-              duration: 0.8,
+              duration: 1,
               ease: "backOut"
             }}
-            className="mb-6"
+            className="mb-8"
           >
-            <img 
-              src={CLUB_LOGO_URL} 
-              alt="CD Bustarviejo"
-              className="w-40 h-40 md:w-56 md:h-56 mx-auto drop-shadow-2xl rounded-3xl bg-white/95 p-2"
-            />
+            {CLUB_LOGO_URL ? (
+              <motion.img 
+                src={CLUB_LOGO_URL} 
+                alt="CD Bustarviejo"
+                className="w-48 h-48 md:w-64 md:h-64 mx-auto drop-shadow-2xl object-contain"
+                animate={{ 
+                  y: [0, -10, 0]
+                }}
+                transition={{ 
+                  duration: 2,
+                  repeat: Infinity,
+                  ease: "easeInOut"
+                }}
+              />
+            ) : (
+              <motion.div
+                className="w-48 h-48 md:w-64 md:h-64 mx-auto bg-white/10 rounded-3xl flex items-center justify-center"
+                animate={{ 
+                  y: [0, -10, 0],
+                  scale: [1, 1.05, 1]
+                }}
+                transition={{ 
+                  duration: 2,
+                  repeat: Infinity,
+                  ease: "easeInOut"
+                }}
+              >
+                <div className="text-center">
+                  <div className="text-6xl mb-2">⚽</div>
+                  <div className="text-6xl">🏀</div>
+                </div>
+              </motion.div>
+            )}
           </motion.div>
           
           <motion.div
