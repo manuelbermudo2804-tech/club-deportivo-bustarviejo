@@ -544,6 +544,16 @@ export default function Layout({ children, currentPageName }) {
         setIsCoordinator(currentUser.es_coordinador === true);
         setIsTreasurer(currentUser.es_tesorero === true);
 
+        console.log('🔍 ROLES DETECTADOS:', {
+          email: currentUser.email,
+          isAdmin: currentUser.role === "admin",
+          isPlayer: currentUser.role === "jugador",
+          isCoach: currentUser.es_entrenador === true && !currentUser.es_coordinador,
+          isCoordinator: currentUser.es_coordinador === true,
+          isTreasurer: currentUser.es_tesorero === true,
+          es_tesorero_RAW: currentUser.es_tesorero
+        });
+
         // Para admin/entrenadores/coordinadores/tesoreros, SOLO usar el campo manual (no verificar BD)
         if (currentUser.role === "admin" || currentUser.es_entrenador || currentUser.es_coordinador || currentUser.es_tesorero) {
           const tienehijos = currentUser.tiene_hijos_jugando === true;
@@ -573,7 +583,12 @@ export default function Layout({ children, currentPageName }) {
           return;
         }
 
-        if (currentUser.role !== "admin" && currentUser.role !== "jugador" && !currentUser.es_entrenador && !currentUser.es_tesorero) {
+        // Solo aplicar pantallas especiales a padres sin roles (NO a entrenadores, coordinadores o tesoreros)
+        if (currentUser.role !== "admin" && 
+            currentUser.role !== "jugador" && 
+            !currentUser.es_entrenador && 
+            !currentUser.es_coordinador && 
+            !currentUser.es_tesorero) {
           const period = getPeriodType();
           if (period === "closed") {
             setShowSpecialScreen("closed");
@@ -1109,11 +1124,11 @@ export default function Layout({ children, currentPageName }) {
             <div className="space-y-2">
             {user && (
               <div className="w-full">
-                <GlobalSearch isAdmin={isAdmin} isCoach={isCoach} />
+                <GlobalSearch isAdmin={isAdmin} isCoach={isCoach} isTreasurer={isTreasurer} />
               </div>
             )}
             <div className="flex items-center gap-1">
-              {!isAdmin && !isCoach && <NotificationCenter />}
+              {!isAdmin && !isCoach && !isTreasurer && <NotificationCenter />}
               <ThemeToggle />
               <LanguageSelector currentLang={currentLang} onLanguageChange={handleLanguageChange} />
             </div>
