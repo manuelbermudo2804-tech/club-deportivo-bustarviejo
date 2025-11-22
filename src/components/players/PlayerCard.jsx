@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { motion } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Pencil, CreditCard, Mail, Phone, User, Eye, Clock, Heart, AlertTriangle } from "lucide-react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
+import PlayerDetailDialog from "./PlayerDetailDialog";
 
 const categoryColors = {
   "Prebenjamín": "bg-purple-100 text-purple-700",
@@ -45,6 +46,8 @@ const DIAS_ORDEN = {
 };
 
 export default function PlayerCard({ player, onEdit, isParent = false, readOnly = false, schedules = [], isCoachOrCoordinator = false }) {
+  const [showDetail, setShowDetail] = useState(false);
+  
   // Determinar la página de pagos según si es padre o admin
   const paymentsPage = isParent ? "ParentPayments" : "Payments";
   
@@ -52,15 +55,31 @@ export default function PlayerCard({ player, onEdit, isParent = false, readOnly 
   const playerSchedules = schedules
     .filter(s => s.categoria === player.deporte && s.activo)
     .sort((a, b) => DIAS_ORDEN[a.dia_semana] - DIAS_ORDEN[b.dia_semana]);
+
+  const hasMedicalInfo = player.ficha_medica && Object.values(player.ficha_medica).some(val => val);
   
   return (
+    <>
+      <PlayerDetailDialog
+        player={player}
+        open={showDetail}
+        onOpenChange={setShowDetail}
+      />
     <motion.div
       initial={{ opacity: 0, scale: 0.95 }}
       animate={{ opacity: 1, scale: 1 }}
       exit={{ opacity: 0, scale: 0.95 }}
       transition={{ duration: 0.2 }}
     >
-      <Card className="border-none shadow-lg hover:shadow-xl transition-all duration-300 bg-white/90 backdrop-blur-sm overflow-hidden">
+      <Card 
+        className="border-none shadow-lg hover:shadow-xl transition-all duration-300 bg-white/90 backdrop-blur-sm overflow-hidden cursor-pointer hover:ring-2 hover:ring-blue-400"
+        onClick={(e) => {
+          // Solo abrir el modal si no se hizo click en un botón o link
+          if (!e.target.closest('button') && !e.target.closest('a')) {
+            setShowDetail(true);
+          }
+        }}
+      >
         <div className="relative">
           {player.foto_url ? (
             <img
@@ -108,68 +127,23 @@ export default function PlayerCard({ player, onEdit, isParent = false, readOnly 
                   {player.posicion}
                 </Badge>
               )}
+              {isCoachOrCoordinator && hasMedicalInfo && (
+                <Badge className="bg-red-100 text-red-700 flex items-center gap-1">
+                  <Heart className="w-3 h-3" />
+                  Ficha Médica
+                </Badge>
+              )}
             </div>
           </div>
 
-          {/* Información Médica - Solo para entrenadores/coordinadores */}
-          {isCoachOrCoordinator && player.ficha_medica && (
-            Object.values(player.ficha_medica).some(val => val) ? (
-              <div className="bg-gradient-to-r from-red-50 to-red-100 border-2 border-red-300 rounded-lg p-3 space-y-2">
-                <div className="flex items-center gap-2 mb-2">
-                  <Heart className="w-4 h-4 text-red-700" />
-                  <p className="text-xs font-bold text-red-900">Ficha Médica:</p>
-                </div>
-                <div className="space-y-1.5 text-xs">
-                  {player.ficha_medica.alergias && (
-                    <div className="bg-white rounded px-2 py-1.5 border border-red-200">
-                      <span className="font-semibold text-red-800">🚨 Alergias:</span>
-                      <p className="text-slate-700 mt-0.5">{player.ficha_medica.alergias}</p>
-                    </div>
-                  )}
-                  {player.ficha_medica.grupo_sanguineo && (
-                    <div className="bg-white rounded px-2 py-1 border border-red-200 flex items-center justify-between">
-                      <span className="font-semibold text-red-800">🩸 Grupo:</span>
-                      <span className="text-slate-700 font-bold">{player.ficha_medica.grupo_sanguineo}</span>
-                    </div>
-                  )}
-                  {player.ficha_medica.medicacion_habitual && (
-                    <div className="bg-white rounded px-2 py-1.5 border border-red-200">
-                      <span className="font-semibold text-red-800">💊 Medicación:</span>
-                      <p className="text-slate-700 mt-0.5">{player.ficha_medica.medicacion_habitual}</p>
-                    </div>
-                  )}
-                  {player.ficha_medica.condiciones_medicas && (
-                    <div className="bg-white rounded px-2 py-1.5 border border-red-200">
-                      <span className="font-semibold text-red-800">⚕️ Condiciones:</span>
-                      <p className="text-slate-700 mt-0.5">{player.ficha_medica.condiciones_medicas}</p>
-                    </div>
-                  )}
-                  {player.ficha_medica.lesiones && (
-                    <div className="bg-yellow-50 rounded px-2 py-1.5 border border-yellow-300">
-                      <span className="font-semibold text-yellow-800 flex items-center gap-1">
-                        <AlertTriangle className="w-3 h-3" /> Lesiones:
-                      </span>
-                      <p className="text-slate-700 mt-0.5">{player.ficha_medica.lesiones}</p>
-                    </div>
-                  )}
-                  {(player.ficha_medica.contacto_emergencia_nombre || player.ficha_medica.contacto_emergencia_telefono) && (
-                    <div className="bg-white rounded px-2 py-1.5 border border-red-200">
-                      <span className="font-semibold text-red-800">📞 Emergencia:</span>
-                      <p className="text-slate-700 mt-0.5">
-                        {player.ficha_medica.contacto_emergencia_nombre}
-                        {player.ficha_medica.contacto_emergencia_telefono && ` - ${player.ficha_medica.contacto_emergencia_telefono}`}
-                      </p>
-                    </div>
-                  )}
-                  {player.ficha_medica.observaciones_medicas && (
-                    <div className="bg-white rounded px-2 py-1.5 border border-red-200">
-                      <span className="font-semibold text-red-800">📋 Observaciones:</span>
-                      <p className="text-slate-700 mt-0.5">{player.ficha_medica.observaciones_medicas}</p>
-                    </div>
-                  )}
-                </div>
+          {/* Click para ver detalles */}
+          {isCoachOrCoordinator && hasMedicalInfo && (
+            <div className="bg-gradient-to-r from-blue-50 to-blue-100 border-2 border-blue-300 rounded-lg p-2">
+              <div className="flex items-center justify-center gap-2 text-sm text-blue-700 font-medium">
+                <Eye className="w-4 h-4" />
+                <span>Click para ver ficha médica completa</span>
               </div>
-            ) : null
+            </div>
           )}
 
           {/* Horarios de Entrenamientos */}
@@ -242,6 +216,6 @@ export default function PlayerCard({ player, onEdit, isParent = false, readOnly 
           </div>
         </CardContent>
       </Card>
-    </motion.div>
+    </>
   );
 }
