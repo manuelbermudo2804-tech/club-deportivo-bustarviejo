@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Pencil, CreditCard, Mail, Phone, User, Eye, Clock } from "lucide-react";
+import { Pencil, CreditCard, Mail, Phone, User, Eye, Clock, Heart, AlertTriangle } from "lucide-react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 
@@ -44,7 +44,7 @@ const DIAS_ORDEN = {
   "Viernes": 5
 };
 
-export default function PlayerCard({ player, onEdit, isParent = false, readOnly = false, schedules = [] }) {
+export default function PlayerCard({ player, onEdit, isParent = false, readOnly = false, schedules = [], isCoachOrCoordinator = false }) {
   // Determinar la página de pagos según si es padre o admin
   const paymentsPage = isParent ? "ParentPayments" : "Payments";
   
@@ -110,6 +110,67 @@ export default function PlayerCard({ player, onEdit, isParent = false, readOnly 
               )}
             </div>
           </div>
+
+          {/* Información Médica - Solo para entrenadores/coordinadores */}
+          {isCoachOrCoordinator && player.ficha_medica && (
+            Object.values(player.ficha_medica).some(val => val) ? (
+              <div className="bg-gradient-to-r from-red-50 to-red-100 border-2 border-red-300 rounded-lg p-3 space-y-2">
+                <div className="flex items-center gap-2 mb-2">
+                  <Heart className="w-4 h-4 text-red-700" />
+                  <p className="text-xs font-bold text-red-900">Ficha Médica:</p>
+                </div>
+                <div className="space-y-1.5 text-xs">
+                  {player.ficha_medica.alergias && (
+                    <div className="bg-white rounded px-2 py-1.5 border border-red-200">
+                      <span className="font-semibold text-red-800">🚨 Alergias:</span>
+                      <p className="text-slate-700 mt-0.5">{player.ficha_medica.alergias}</p>
+                    </div>
+                  )}
+                  {player.ficha_medica.grupo_sanguineo && (
+                    <div className="bg-white rounded px-2 py-1 border border-red-200 flex items-center justify-between">
+                      <span className="font-semibold text-red-800">🩸 Grupo:</span>
+                      <span className="text-slate-700 font-bold">{player.ficha_medica.grupo_sanguineo}</span>
+                    </div>
+                  )}
+                  {player.ficha_medica.medicacion_habitual && (
+                    <div className="bg-white rounded px-2 py-1.5 border border-red-200">
+                      <span className="font-semibold text-red-800">💊 Medicación:</span>
+                      <p className="text-slate-700 mt-0.5">{player.ficha_medica.medicacion_habitual}</p>
+                    </div>
+                  )}
+                  {player.ficha_medica.condiciones_medicas && (
+                    <div className="bg-white rounded px-2 py-1.5 border border-red-200">
+                      <span className="font-semibold text-red-800">⚕️ Condiciones:</span>
+                      <p className="text-slate-700 mt-0.5">{player.ficha_medica.condiciones_medicas}</p>
+                    </div>
+                  )}
+                  {player.ficha_medica.lesiones && (
+                    <div className="bg-yellow-50 rounded px-2 py-1.5 border border-yellow-300">
+                      <span className="font-semibold text-yellow-800 flex items-center gap-1">
+                        <AlertTriangle className="w-3 h-3" /> Lesiones:
+                      </span>
+                      <p className="text-slate-700 mt-0.5">{player.ficha_medica.lesiones}</p>
+                    </div>
+                  )}
+                  {(player.ficha_medica.contacto_emergencia_nombre || player.ficha_medica.contacto_emergencia_telefono) && (
+                    <div className="bg-white rounded px-2 py-1.5 border border-red-200">
+                      <span className="font-semibold text-red-800">📞 Emergencia:</span>
+                      <p className="text-slate-700 mt-0.5">
+                        {player.ficha_medica.contacto_emergencia_nombre}
+                        {player.ficha_medica.contacto_emergencia_telefono && ` - ${player.ficha_medica.contacto_emergencia_telefono}`}
+                      </p>
+                    </div>
+                  )}
+                  {player.ficha_medica.observaciones_medicas && (
+                    <div className="bg-white rounded px-2 py-1.5 border border-red-200">
+                      <span className="font-semibold text-red-800">📋 Observaciones:</span>
+                      <p className="text-slate-700 mt-0.5">{player.ficha_medica.observaciones_medicas}</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            ) : null
+          )}
 
           {/* Horarios de Entrenamientos */}
           {playerSchedules.length > 0 && (
