@@ -43,27 +43,11 @@ export default function Home() {
     const fetchUser = async () => {
       try {
         const currentUser = await base44.auth.me();
-        console.log('📊 [Home] Usuario detectado:', {
-          email: currentUser.email,
-          role: currentUser.role,
-          es_tesorero: currentUser.es_tesorero,
-          es_coordinador: currentUser.es_coordinador,
-          es_entrenador: currentUser.es_entrenador
-        });
-        
         setUser(currentUser);
         const adminCheck = currentUser.role === "admin";
         const coordinatorCheck = currentUser.es_coordinador === true;
         const treasurerCheck = currentUser.es_tesorero === true;
         const coachCheck = currentUser.es_entrenador === true && !coordinatorCheck && !adminCheck;
-        
-        console.log('📊 [Home] Roles calculados:', {
-          adminCheck,
-          coordinatorCheck,
-          treasurerCheck,
-          coachCheck
-        });
-        
         setIsAdmin(adminCheck);
         setIsCoordinator(coordinatorCheck);
         setIsTreasurer(treasurerCheck);

@@ -655,18 +655,11 @@ export default function Layout({ children, currentPageName }) {
               }
 
               // Lógica de redirección normal
-              console.log('🔄 Redirigiendo usuario:', {
-                isAdmin, isCoach, isCoordinator, isTreasurer, isPlayer
-              });
-              
               if (isAdmin || isCoach || isCoordinator || isTreasurer) {
-                console.log('✅ Redirigiendo a Home');
                 navigate(createPageUrl('Home'), { replace: true });
               } else if (isPlayer) {
-                console.log('✅ Redirigiendo a PlayerDashboard');
                 navigate(createPageUrl('PlayerDashboard'), { replace: true });
               } else {
-                console.log('✅ Redirigiendo a ParentDashboard');
                 navigate(createPageUrl('ParentDashboard'), { replace: true });
               }
             };
