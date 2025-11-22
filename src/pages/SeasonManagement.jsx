@@ -299,6 +299,17 @@ export default function SeasonManagement() {
     });
   };
 
+  const toggleRenewalMode = async () => {
+    if (!activeSeason) return;
+    await updateSeasonMutation.mutateAsync({
+      id: activeSeason.id,
+      data: {
+        ...activeSeason,
+        permitir_renovaciones: !activeSeason.permitir_renovaciones
+      }
+    });
+  };
+
   const toggleLotteryPaymentRequired = async () => {
     if (!activeSeason) return;
     await updateSeasonMutation.mutateAsync({
@@ -1870,6 +1881,50 @@ export default function SeasonManagement() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Control de Modo Renovación */}
+      {activeSeason && (
+        <Card className="border-none shadow-lg bg-gradient-to-br from-purple-50 to-purple-100 border-2 border-purple-300">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-purple-900">
+              <RefreshCw className="w-5 h-5" />
+              🔄 Permitir Renovaciones
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="bg-white rounded-lg p-4 border-2 border-purple-200">
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <p className="font-semibold text-slate-900">Estado Actual</p>
+                  <p className="text-sm text-slate-600">
+                    {activeSeason.permitir_renovaciones ? "✅ Renovaciones habilitadas" : "🔒 Solo nuevas inscripciones"}
+                  </p>
+                </div>
+                <Badge className={activeSeason.permitir_renovaciones ? "bg-purple-600 text-white text-lg px-4 py-2" : "bg-slate-400 text-white text-lg px-4 py-2"}>
+                  {activeSeason.permitir_renovaciones ? "ACTIVO" : "INACTIVO"}
+                </Badge>
+              </div>
+            </div>
+            <Button
+              onClick={toggleRenewalMode}
+              className={`w-full font-bold text-lg py-6 ${
+                activeSeason.permitir_renovaciones 
+                  ? "bg-red-600 hover:bg-red-700" 
+                  : "bg-purple-600 hover:bg-purple-700"
+              }`}
+            >
+              {activeSeason.permitir_renovaciones ? "🔒 Desactivar Renovaciones" : "🔄 Activar Renovaciones"}
+            </Button>
+            <Alert className="bg-yellow-50 border-yellow-300">
+              <AlertTriangle className="h-4 w-4 text-yellow-600" />
+              <AlertDescription className="text-yellow-800 text-sm">
+                <strong>💡 Uso:</strong> Activa esta opción cuando quieras permitir que los padres puedan renovar jugadores de temporadas anteriores. 
+                Úsalo para hacer pruebas o cuando tengas datos de temporadas previas.
+              </AlertDescription>
+            </Alert>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Control de Bizum */}
       {activeSeason && (
