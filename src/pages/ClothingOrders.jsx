@@ -2,13 +2,15 @@ import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
-import { Plus, ShoppingBag, AlertCircle, MoreVertical, Check, Package, Truck, Users, Download, FileDown } from "lucide-react";
-import { AnimatePresence } from "framer-motion";
+import { Plus, ShoppingBag, AlertCircle, MoreVertical, Check, Package, Truck, Users, Download, FileDown, History, ChevronDown, ChevronUp, Filter, Search } from "lucide-react";
+import { AnimatePresence, motion } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { toast } from "sonner";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -23,6 +25,14 @@ import ContactCard from "../components/ContactCard";
 export default function ClothingOrders() {
   const [showForm, setShowForm] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [expandedOrders, setExpandedOrders] = useState({});
+  const [historyFilters, setHistoryFilters] = useState({
+    search: '',
+    estado: 'todos',
+    metodo_pago: 'todos',
+    fecha_desde: '',
+    fecha_hasta: ''
+  });
   
   const queryClient = useQueryClient();
 
@@ -498,12 +508,13 @@ export default function ClothingOrders() {
 
       {isAdmin ? (
         <Tabs defaultValue="summary" className="w-full">
-          <TabsList className="bg-white shadow-sm grid grid-cols-3 lg:grid-cols-5 h-auto gap-1 p-1">
+          <TabsList className="bg-white shadow-sm grid grid-cols-3 lg:grid-cols-6 h-auto gap-1 p-1">
             <TabsTrigger value="summary" className="text-xs lg:text-sm py-2">📊 Resumen</TabsTrigger>
             <TabsTrigger value="families" className="text-xs lg:text-sm py-2">👨‍👩‍👧 Familia</TabsTrigger>
             <TabsTrigger value="players" className="text-xs lg:text-sm py-2">👤 Jugador</TabsTrigger>
             <TabsTrigger value="orders" className="text-xs lg:text-sm py-2">📋 Activos</TabsTrigger>
             <TabsTrigger value="delivered" className="text-xs lg:text-sm py-2">✅ Entregados</TabsTrigger>
+            <TabsTrigger value="history" className="text-xs lg:text-sm py-2">📜 Historial</TabsTrigger>
           </TabsList>
 
           <TabsContent value="summary" className="mt-6">
@@ -776,6 +787,192 @@ export default function ClothingOrders() {
                     ))}
                   </div>
                 )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="history" className="mt-3 lg:mt-6">
+            <Card className="border-none shadow-lg">
+              <CardHeader className="p-3 lg:p-6 border-b">
+                <div className="flex justify-between items-center gap-2 mb-4">
+                  <CardTitle className="flex items-center gap-2 text-base lg:text-xl">
+                    <History className="w-4 h-4 lg:w-5 lg:h-5 text-orange-600" />
+                    Historial Completo de Pedidos
+                  </CardTitle>
+                  <Button onClick={exportPlayersCSV} variant="outline" size="sm" className="text-xs">
+                    <FileDown className="w-3 h-3 lg:w-4 lg:h-4 lg:mr-2" />
+                    <span className="hidden lg:inline">Exportar</span>
+                  </Button>
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-3">
+                  <div className="lg:col-span-2">
+                    <div className="relative">
+                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                      <Input
+                        placeholder="Buscar jugador o email..."
+                        value={historyFilters.search}
+                        onChange={(e) => setHistoryFilters({...historyFilters, search: e.target.value})}
+                        className="pl-10"
+                      />
+                    </div>
+                  </div>
+                  
+                  <Select 
+                    value={historyFilters.estado} 
+                    onValueChange={(value) => setHistoryFilters({...historyFilters, estado: value})}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Estado" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="todos">Todos los estados</SelectItem>
+                      <SelectItem value="Pendiente">Pendiente</SelectItem>
+                      <SelectItem value="En revisión">En revisión</SelectItem>
+                      <SelectItem value="Confirmado">Confirmado</SelectItem>
+                      <SelectItem value="Preparado">Preparado</SelectItem>
+                      <SelectItem value="Entregado">Entregado</SelectItem>
+                    </SelectContent>
+                  </Select>
+
+                  <Select 
+                    value={historyFilters.metodo_pago} 
+                    onValueChange={(value) => setHistoryFilters({...historyFilters, metodo_pago: value})}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Método de pago" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="todos">Todos los métodos</SelectItem>
+                      <SelectItem value="Transferencia">Transferencia</SelectItem>
+                      <SelectItem value="Bizum">Bizum</SelectItem>
+                    </SelectContent>
+                  </Select>
+
+                  <Button 
+                    variant="outline" 
+                    onClick={() => setHistoryFilters({search: '', estado: 'todos', metodo_pago: 'todos', fecha_desde: '', fecha_hasta: ''})}
+                    className="text-xs"
+                  >
+                    Limpiar filtros
+                  </Button>
+                </div>
+              </CardHeader>
+              
+              <CardContent className="p-3 lg:p-6">
+                {(() => {
+                  let filteredOrders = orders;
+                  
+                  if (historyFilters.search) {
+                    const searchLower = historyFilters.search.toLowerCase();
+                    filteredOrders = filteredOrders.filter(o => 
+                      o.jugador_nombre?.toLowerCase().includes(searchLower) ||
+                      o.email_padre?.toLowerCase().includes(searchLower) ||
+                      o.jugador_categoria?.toLowerCase().includes(searchLower)
+                    );
+                  }
+                  
+                  if (historyFilters.estado !== 'todos') {
+                    filteredOrders = filteredOrders.filter(o => o.estado === historyFilters.estado);
+                  }
+                  
+                  if (historyFilters.metodo_pago !== 'todos') {
+                    filteredOrders = filteredOrders.filter(o => o.metodo_pago === historyFilters.metodo_pago);
+                  }
+
+                  if (filteredOrders.length === 0) {
+                    return (
+                      <div className="text-center py-12">
+                        <History className="w-16 h-16 text-slate-300 mx-auto mb-4" />
+                        <p className="text-slate-500">No se encontraron pedidos con estos filtros</p>
+                      </div>
+                    );
+                  }
+
+                  return (
+                    <div className="space-y-3">
+                      {filteredOrders.map((order) => (
+                        <motion.div
+                          key={order.id}
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          className="border border-slate-200 rounded-lg bg-white hover:border-orange-300 transition-colors"
+                        >
+                          <div 
+                            className="p-4 cursor-pointer"
+                            onClick={() => setExpandedOrders({...expandedOrders, [order.id]: !expandedOrders[order.id]})}
+                          >
+                            <div className="flex justify-between items-start gap-3">
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-start gap-2 mb-2">
+                                  <h3 className="font-bold text-slate-900 truncate">{order.jugador_nombre}</h3>
+                                  <Badge className={`${statusColors[order.estado]} text-xs whitespace-nowrap flex-shrink-0`}>
+                                    {statusEmojis[order.estado]} {order.estado}
+                                  </Badge>
+                                </div>
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-2 text-xs text-slate-600">
+                                  <div>📧 {order.email_padre}</div>
+                                  <div>🏆 {order.jugador_categoria}</div>
+                                  <div>💰 {order.precio_total}€ • {order.metodo_pago}</div>
+                                </div>
+                                <div className="text-xs text-slate-500 mt-1">
+                                  📅 {new Date(order.created_date).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                                </div>
+                              </div>
+                              <div className="flex gap-2 items-start flex-shrink-0">
+                                {order.pagado && (
+                                  <Badge className="bg-green-600 text-white text-xs">
+                                    ✅ Pagado
+                                  </Badge>
+                                )}
+                                <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                                  {expandedOrders[order.id] ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                                </Button>
+                              </div>
+                            </div>
+                          </div>
+
+                          <AnimatePresence>
+                            {expandedOrders[order.id] && (
+                              <motion.div
+                                initial={{ height: 0, opacity: 0 }}
+                                animate={{ height: 'auto', opacity: 1 }}
+                                exit={{ height: 0, opacity: 0 }}
+                                transition={{ duration: 0.2 }}
+                                className="overflow-hidden"
+                              >
+                                <div className="px-4 pb-4 border-t border-slate-100 pt-4">
+                                  {renderOrderDetails(order)}
+                                  <div className="flex gap-2 mt-4 pt-4 border-t border-slate-100">
+                                    <DropdownMenu>
+                                      <DropdownMenuTrigger asChild>
+                                        <Button size="sm" variant="outline">
+                                          <MoreVertical className="w-4 h-4 mr-2" />
+                                          Acciones
+                                        </Button>
+                                      </DropdownMenuTrigger>
+                                      <DropdownMenuContent>
+                                        <DropdownMenuItem onClick={() => updateOrderStatusMutation.mutate({ orderId: order.id, newStatus: "Confirmado", notifyParent: true })}>
+                                          <Check className="w-4 h-4 mr-2" /> Confirmar y notificar
+                                        </DropdownMenuItem>
+                                        <DropdownMenuItem onClick={() => updateOrderStatusMutation.mutate({ orderId: order.id, newStatus: "Preparado", notifyParent: true })}>
+                                          <Package className="w-4 h-4 mr-2" /> Marcar preparado
+                                        </DropdownMenuItem>
+                                        <DropdownMenuItem onClick={() => updateOrderStatusMutation.mutate({ orderId: order.id, newStatus: "Entregado", notifyParent: true })}>
+                                          <Truck className="w-4 h-4 mr-2" /> Marcar entregado
+                                        </DropdownMenuItem>
+                                      </DropdownMenuContent>
+                                    </DropdownMenu>
+                                  </div>
+                                </div>
+                              </motion.div>
+                            )}
+                          </AnimatePresence>
+                        </motion.div>
+                      ))}
+                    </div>
+                  );
+                })()}
               </CardContent>
             </Card>
           </TabsContent>
