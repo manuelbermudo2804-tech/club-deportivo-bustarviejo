@@ -27,7 +27,8 @@ import {
   History,
   Upload,
   ShoppingBag,
-  Clover
+  Clover,
+  CreditCard
 } from "lucide-react";
 import {
   Dialog,
@@ -295,6 +296,17 @@ export default function SeasonManagement() {
       data: {
         ...activeSeason,
         bizum_activo: !activeSeason.bizum_activo
+      }
+    });
+  };
+
+  const toggleLotteryPaymentRequired = async () => {
+    if (!activeSeason) return;
+    await updateSeasonMutation.mutateAsync({
+      id: activeSeason.id,
+      data: {
+        ...activeSeason,
+        loteria_requiere_pago_adelantado: !activeSeason.loteria_requiere_pago_adelantado
       }
     });
   };
@@ -1843,6 +1855,23 @@ export default function SeasonManagement() {
                   </Badge>
                 </div>
               </div>
+              
+              <div className="bg-white rounded-lg p-4 border-2 border-purple-200">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="font-semibold text-slate-900">Modalidad de Pago</p>
+                    <p className="text-sm text-slate-600">
+                      {activeSeason.loteria_requiere_pago_adelantado 
+                        ? "💳 Requiere pago adelantado (transferencia/Bizum)" 
+                        : "👨‍🏫 Pago al entrenador al recibir"}
+                    </p>
+                  </div>
+                  <Badge className={activeSeason.loteria_requiere_pago_adelantado ? "bg-purple-600 text-white text-lg px-4 py-2" : "bg-slate-400 text-white text-lg px-4 py-2"}>
+                    {activeSeason.loteria_requiere_pago_adelantado ? "PAGO ADELANTADO" : "PAGO AL RECIBIR"}
+                  </Badge>
+                </div>
+              </div>
+
               <Button
                 onClick={toggleLottery}
                 className={`w-full font-bold text-lg py-6 ${
@@ -1853,6 +1882,16 @@ export default function SeasonManagement() {
               >
                 {activeSeason.loteria_navidad_abierta ? "🔒 Cerrar Lotería" : "🍀 Abrir Lotería"}
               </Button>
+              
+              <Button
+                onClick={toggleLotteryPaymentRequired}
+                variant="outline"
+                className="w-full font-bold text-base py-4 border-2 border-purple-300 hover:bg-purple-50"
+                disabled={!activeSeason.loteria_navidad_abierta}
+              >
+                {activeSeason.loteria_requiere_pago_adelantado ? "👨‍🏫 Cambiar a Pago al Recibir" : "💳 Cambiar a Pago Adelantado"}
+              </Button>
+              
               <p className="text-xs text-slate-600 text-center">
                 Al abrir, aparecerá el menú "🍀 Lotería" para todos los usuarios
               </p>
