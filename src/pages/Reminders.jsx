@@ -668,10 +668,23 @@ Temporada ${reminder.temporada}
       return;
     }
 
-    toast.info(`📤 Enviando ${todayReminders.length} recordatorios...`);
+    toast.info(`📤 Procesando ${todayReminders.length} recordatorios...`);
+
+    let enviados = 0;
+    let omitidos = 0;
 
     for (const reminder of todayReminders) {
+      // Verificar si el pago ya está completado
+      const payment = payments.find(p => p.id === reminder.pago_id);
+      if (payment && payment.estado === "Pagado") {
+        // Eliminar recordatorio de pago ya completado
+        await base44.entities.Reminder.delete(reminder.id);
+        omitidos++;
+        continue;
+      }
+
       await sendReminderEmail(reminder);
+      enviados++;
       await new Promise(resolve => setTimeout(resolve, 500));
       
       // Enviar al chat si es 7 días antes o menos
@@ -681,7 +694,13 @@ Temporada ${reminder.temporada}
       }
     }
 
-    toast.success("✅ Todos los recordatorios de hoy han sido enviados");
+    queryClient.invalidateQueries({ queryKey: ['reminders'] });
+    
+    if (omitidos > 0) {
+      toast.success(`✅ ${enviados} enviados, ${omitidos} omitidos (ya pagados)`);
+    } else {
+      toast.success("✅ Todos los recordatorios de hoy han sido enviados");
+    }
   };
 
   const paymentsWithoutJustificante = reminders.filter(r => {
