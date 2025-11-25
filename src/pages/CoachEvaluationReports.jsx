@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -9,8 +9,8 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
-import { Calendar, User, Star, Search, AlertCircle, Send, Mail, MessageCircle } from "lucide-react";
-import { format } from "date-fns";
+import { Calendar, User, Star, Search, AlertCircle, Send, Mail, MessageCircle, ChevronDown, ChevronUp, ChevronLeft, ChevronRight } from "lucide-react";
+import { format, startOfMonth, endOfMonth, isWithinInterval, parseISO } from "date-fns";
 import { es } from "date-fns/locale";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { toast } from "sonner";
