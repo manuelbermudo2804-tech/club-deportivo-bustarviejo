@@ -144,11 +144,10 @@ export default function ParentChat() {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [currentAnnouncements, privateMessages]);
 
-  // Verificar si el remitente es entrenador (no admin)
-  const isCoachSender = (email) => {
-    const staffUser = allUsers.find(u => u.email === email);
-    // Solo permitir si es entrenador o coordinador, NO si es admin
-    return staffUser?.es_entrenador || staffUser?.es_coordinador;
+  // Verificar si el remitente es entrenador (siempre true para mensajes admin_a_grupo ya que vienen de entrenadores)
+  const isCoachSender = (msg) => {
+    // Todos los mensajes admin_a_grupo en equipos son de entrenadores/coordinadores
+    return msg.tipo === "admin_a_grupo";
   };
 
   // Crear o abrir chat privado con el remitente de un anuncio
@@ -412,7 +411,7 @@ export default function ParentChat() {
                             <div className="px-4 py-3">
                               <div className="flex items-center gap-2 mb-2">
                                 <span className="text-xs font-bold text-orange-700">
-                                  🎓 {msg.remitente_nombre}
+                                  🏃 Entrenador
                                 </span>
                                 {msg.prioridad !== "Normal" && (
                                   <Badge className={msg.prioridad === "Urgente" ? "bg-red-500" : "bg-yellow-500"}>
@@ -432,8 +431,8 @@ export default function ParentChat() {
                               )}
                             </div>
                             
-                            {/* Botón responder en privado */}
-                            {isCoachSender(msg.remitente_email) && (
+                            {/* Botón responder en privado - siempre mostrar para mensajes de grupo */}
+                            {isCoachSender(msg) && (
                               <div className="bg-slate-50 px-4 py-2 border-t">
                                 <Button
                                   variant="ghost"
