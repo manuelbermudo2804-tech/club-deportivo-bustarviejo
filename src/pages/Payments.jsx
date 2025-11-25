@@ -68,8 +68,8 @@ export default function Payments() {
   const [playerFilter, setPlayerFilter] = useState(jugadorIdFromUrl || "all");
   const [previewImage, setPreviewImage] = useState(null);
   
-  // Filtros avanzados
-  const [temporadaFilter, setTemporadaFilter] = useState("all");
+  // Filtros avanzados - iniciar con la temporada actual
+  const [temporadaFilter, setTemporadaFilter] = useState(() => getCurrentSeason());
   const [categoriaFilter, setCategoriaFilter] = useState("all");
   const [estadoFilter, setEstadoFilter] = useState("all");
   const [showOverdueOnly, setShowOverdueOnly] = useState(false);
