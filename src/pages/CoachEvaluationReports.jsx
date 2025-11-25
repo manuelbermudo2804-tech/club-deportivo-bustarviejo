@@ -16,6 +16,282 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import ExportButton from "../components/ExportButton";
 
+// Componente para el detalle cronológico con agrupación por mes y paginación
+function ChronologicalDetail({ evaluations }) {
+  const [currentMonth, setCurrentMonth] = useState(() => {
+    // Empezar con el mes más reciente que tenga evaluaciones
+    if (evaluations.length > 0) {
+      const sortedEvals = [...evaluations].sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
+      return startOfMonth(parseISO(sortedEvals[0].fecha));
+    }
+    return startOfMonth(new Date());
+  });
+  const [expandedDates, setExpandedDates] = useState({});
+  const [playerFilter, setPlayerFilter] = useState("all");
+
+  // Obtener todos los meses disponibles
+  const availableMonths = useMemo(() => {
+    const months = new Set();
+    evaluations.forEach(ev => {
+      const monthStart = startOfMonth(parseISO(ev.fecha));
+      months.add(monthStart.toISOString());
+    });
+    return Array.from(months)
+      .map(m => new Date(m))
+      .sort((a, b) => b - a); // Más reciente primero
+  }, [evaluations]);
+
+  // Filtrar evaluaciones del mes actual
+  const monthEvaluations = useMemo(() => {
+    const monthEnd = endOfMonth(currentMonth);
+    return evaluations
+      .filter(ev => {
+        const evalDate = parseISO(ev.fecha);
+        const inMonth = isWithinInterval(evalDate, { start: currentMonth, end: monthEnd });
+        const matchesPlayer = playerFilter === "all" || ev.jugador_id === playerFilter;
+        return inMonth && matchesPlayer;
+      })
+      .sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
+  }, [evaluations, currentMonth, playerFilter]);
+
+  // Agrupar por fecha
+  const groupedByDate = useMemo(() => {
+    const groups = {};
+    monthEvaluations.forEach(ev => {
+      if (!groups[ev.fecha]) {
+        groups[ev.fecha] = [];
+      }
+      groups[ev.fecha].push(ev);
+    });
+    return groups;
+  }, [monthEvaluations]);
+
+  const sortedDates = Object.keys(groupedByDate).sort((a, b) => new Date(b) - new Date(a));
+
+  // Jugadores únicos para filtro
+  const uniquePlayers = useMemo(() => {
+    const players = {};
+    evaluations.forEach(ev => {
+      if (!players[ev.jugador_id]) {
+        players[ev.jugador_id] = ev.jugador;
+      }
+    });
+    return Object.values(players).sort((a, b) => a.nombre.localeCompare(b.nombre));
+  }, [evaluations]);
+
+  const toggleDate = (date) => {
+    setExpandedDates(prev => ({
+      ...prev,
+      [date]: !prev[date]
+    }));
+  };
+
+  const goToPreviousMonth = () => {
+    const currentIndex = availableMonths.findIndex(m => m.getTime() === currentMonth.getTime());
+    if (currentIndex < availableMonths.length - 1) {
+      setCurrentMonth(availableMonths[currentIndex + 1]);
+      setExpandedDates({});
+    }
+  };
+
+  const goToNextMonth = () => {
+    const currentIndex = availableMonths.findIndex(m => m.getTime() === currentMonth.getTime());
+    if (currentIndex > 0) {
+      setCurrentMonth(availableMonths[currentIndex - 1]);
+      setExpandedDates({});
+    }
+  };
+
+  const currentIndex = availableMonths.findIndex(m => m.getTime() === currentMonth.getTime());
+  const hasPrevious = currentIndex < availableMonths.length - 1;
+  const hasNext = currentIndex > 0;
+
+  if (evaluations.length === 0) {
+    return (
+      <Card>
+        <CardContent className="py-12 text-center">
+          <p className="text-slate-500">No hay evaluaciones disponibles</p>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      {/* Navegación de mes y filtro de jugador */}
+      <Card>
+        <CardContent className="py-4">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={goToPreviousMonth}
+                disabled={!hasPrevious}
+              >
+                <ChevronLeft className="w-4 h-4" />
+              </Button>
+              <div className="min-w-[180px] text-center">
+                <h3 className="text-lg font-bold text-slate-900 capitalize">
+                  {format(currentMonth, "MMMM yyyy", { locale: es })}
+                </h3>
+                <p className="text-xs text-slate-500">
+                  {monthEvaluations.length} evaluaciones
+                </p>
+              </div>
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={goToNextMonth}
+                disabled={!hasNext}
+              >
+                <ChevronRight className="w-4 h-4" />
+              </Button>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <label className="text-sm text-slate-600">Filtrar jugador:</label>
+              <Select value={playerFilter} onValueChange={setPlayerFilter}>
+                <SelectTrigger className="w-[200px]">
+                  <SelectValue placeholder="Todos los jugadores" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos los jugadores</SelectItem>
+                  {uniquePlayers.map(player => (
+                    <SelectItem key={player.id} value={player.id}>
+                      {player.nombre}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Lista agrupada por fecha */}
+      {sortedDates.length === 0 ? (
+        <Card>
+          <CardContent className="py-8 text-center">
+            <p className="text-slate-500">No hay evaluaciones en este mes</p>
+          </CardContent>
+        </Card>
+      ) : (
+        <div className="space-y-2">
+          {sortedDates.map(date => {
+            const dateEvals = groupedByDate[date];
+            const isExpanded = expandedDates[date];
+            const avgActitud = (dateEvals.reduce((sum, ev) => sum + (ev.actitud || 0), 0) / dateEvals.length).toFixed(1);
+
+            return (
+              <Card key={date} className="overflow-hidden">
+                <button
+                  onClick={() => toggleDate(date)}
+                  className="w-full p-4 flex items-center justify-between hover:bg-slate-50 transition-colors"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-lg bg-orange-100 flex items-center justify-center">
+                      <Calendar className="w-5 h-5 text-orange-600" />
+                    </div>
+                    <div className="text-left">
+                      <p className="font-semibold text-slate-900">
+                        {format(parseISO(date), "EEEE, d 'de' MMMM", { locale: es })}
+                      </p>
+                      <p className="text-xs text-slate-500">
+                        {dateEvals.length} jugadores evaluados • Actitud media: {avgActitud}/5
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Badge className="bg-orange-100 text-orange-700">
+                      {dateEvals.length}
+                    </Badge>
+                    {isExpanded ? (
+                      <ChevronUp className="w-5 h-5 text-slate-400" />
+                    ) : (
+                      <ChevronDown className="w-5 h-5 text-slate-400" />
+                    )}
+                  </div>
+                </button>
+
+                {isExpanded && (
+                  <div className="border-t bg-slate-50">
+                    <div className="divide-y">
+                      {dateEvals.map((ev, idx) => (
+                        <div key={idx} className="p-3 flex items-center justify-between hover:bg-white transition-colors">
+                          <div className="flex items-center gap-3">
+                            {ev.jugador.foto_url ? (
+                              <img src={ev.jugador.foto_url} className="w-9 h-9 rounded-full object-cover" alt="" />
+                            ) : (
+                              <div className="w-9 h-9 rounded-full bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center text-white text-xs font-bold">
+                                {ev.jugador.nombre.charAt(0)}
+                              </div>
+                            )}
+                            <div>
+                              <p className="text-sm font-medium text-slate-900">{ev.jugador.nombre}</p>
+                              <p className="text-xs text-slate-500">{ev.categoria}</p>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-4">
+                            <div className="text-right hidden md:block">
+                              <p className="text-xs text-slate-500">Entrenador</p>
+                              <p className="text-xs font-medium">{ev.entrenador_nombre}</p>
+                            </div>
+                            <div className="inline-flex items-center gap-1 bg-orange-100 px-2 py-1 rounded">
+                              <Star className="w-4 h-4 text-orange-500 fill-orange-500" />
+                              <span className="text-sm font-bold text-orange-600">{ev.actitud}/5</span>
+                            </div>
+                            {ev.observaciones && (
+                              <div className="max-w-[200px] hidden lg:block">
+                                <p className="text-xs text-slate-600 truncate" title={ev.observaciones}>
+                                  {ev.observaciones}
+                                </p>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </Card>
+            );
+          })}
+        </div>
+      )}
+
+      {/* Indicador de navegación rápida */}
+      {availableMonths.length > 1 && (
+        <div className="flex justify-center">
+          <div className="flex gap-1">
+            {availableMonths.slice(0, 6).map((month, idx) => (
+              <button
+                key={month.toISOString()}
+                onClick={() => {
+                  setCurrentMonth(month);
+                  setExpandedDates({});
+                }}
+                className={`px-3 py-1 text-xs rounded-full transition-colors ${
+                  month.getTime() === currentMonth.getTime()
+                    ? 'bg-orange-600 text-white'
+                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                }`}
+              >
+                {format(month, "MMM", { locale: es })}
+              </button>
+            ))}
+            {availableMonths.length > 6 && (
+              <span className="px-2 text-xs text-slate-400 flex items-center">
+                +{availableMonths.length - 6} más
+              </span>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function CoachEvaluationReports() {
   const [user, setUser] = useState(null);
   const [selectedCategory, setSelectedCategory] = useState("all");
