@@ -899,7 +899,7 @@ Temporada ${reminder.temporada}
                 <div>
                   <p className="font-semibold text-orange-900">7 días antes del vencimiento</p>
                   <p className="text-orange-700">• Email con datos bancarios</p>
-                  <p className="text-orange-700">• Mensaje al chat del grupo</p>
+                  <p className="text-orange-700">• Mensaje privado al chat (solo lo ve esa familia)</p>
                 </div>
               </div>
               <div className="flex items-start gap-3 p-2 bg-red-50 rounded">
@@ -907,7 +907,7 @@ Temporada ${reminder.temporada}
                 <div>
                   <p className="font-semibold text-red-900">3 días antes del vencimiento</p>
                   <p className="text-red-700">• Email urgente con datos bancarios</p>
-                  <p className="text-red-700">• Mensaje urgente al chat del grupo</p>
+                  <p className="text-red-700">• Mensaje privado urgente al chat (solo lo ve esa familia)</p>
                 </div>
               </div>
               <div className="flex items-start gap-3 p-2 bg-purple-50 rounded">
@@ -915,7 +915,7 @@ Temporada ${reminder.temporada}
                 <div>
                   <p className="font-semibold text-purple-900">1 día después del vencimiento</p>
                   <p className="text-purple-700">• Email de pago vencido</p>
-                  <p className="text-purple-700">• Mensaje al chat del grupo</p>
+                  <p className="text-purple-700">• Mensaje privado al chat (solo lo ve esa familia)</p>
                 </div>
               </div>
             </div>
