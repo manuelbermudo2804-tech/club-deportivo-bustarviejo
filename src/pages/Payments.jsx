@@ -350,9 +350,10 @@ Email: cdbustarviejo@gmail.com
     "Anulado": "⚪️"
   };
 
-  // Estadísticas mejoradas
-  const inReviewCount = payments.filter(p => p.estado === "En revisión" && p.temporada === temporadaFilter).length;
-  const paidCount = payments.filter(p => p.estado === "Pagado" && p.temporada === temporadaFilter).length;
+  // Estadísticas mejoradas - si el filtro es "all", contar todos
+  const statsTemporada = temporadaFilter === "all" ? null : temporadaFilter;
+  const inReviewCount = payments.filter(p => p.estado === "En revisión" && (statsTemporada === null || p.temporada === statsTemporada)).length;
+  const paidCount = payments.filter(p => p.estado === "Pagado" && (statsTemporada === null || p.temporada === statsTemporada)).length;
   
   // Calcular pendientes: cuántas cuotas faltan por pagar de todos los jugadores
   const pendingCount = React.useMemo(() => {
