@@ -184,7 +184,10 @@ export default function ParentChat() {
 
   // Cuando se selecciona Coordinación Deportiva, abrir chat privado con coordinador
   useEffect(() => {
-    if (selectedCategory === "Coordinación Deportiva" && user && coordinator) {
+    // Esperar a que todo esté cargado
+    if (loadingUsers || loadingConversations || !user) return;
+    
+    if (selectedCategory === "Coordinación Deportiva" && coordinator) {
       // Si ya tenemos un chat activo con el coordinador en esta categoría, no hacer nada
       if (activePrivateChat && 
           activePrivateChat.participante_staff_email === coordinator.email && 
@@ -204,7 +207,7 @@ export default function ParentChat() {
         createOrOpenPrivateChat.mutate({ staffEmail: coordinator.email, categoria: "Coordinación Deportiva" });
       }
     }
-  }, [selectedCategory, user, coordinator, privateConversations]);
+  }, [selectedCategory, user, coordinator, privateConversations, loadingUsers, loadingConversations]);
 
   const handleReplyPrivate = (staffEmail) => {
     createOrOpenPrivateChat.mutate({ staffEmail, categoria: selectedCategory });
