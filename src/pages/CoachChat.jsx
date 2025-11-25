@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Send, Clock, AlertCircle, X, Search, ArrowLeft, Users, MessageCircle, User } from "lucide-react";
+import { Send, Clock, AlertCircle, X, Search, ArrowLeft, Users, MessageCircle, User, Archive, Filter, Inbox } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
@@ -27,6 +27,7 @@ export default function CoachChat() {
   const [isMobile, setIsMobile] = useState(false);
   const [chatMode, setChatMode] = useState("grupos"); // "grupos" o "privados"
   const [selectedConversation, setSelectedConversation] = useState(null);
+  const [privateFilter, setPrivateFilter] = useState("activas"); // "activas", "no_leidas", "archivadas"
   const messagesEndRef = useRef(null);
   const queryClient = useQueryClient();
   const [user, setUser] = useState(null);
@@ -83,14 +84,51 @@ export default function CoachChat() {
     return user.categorias_entrena || [];
   }, [user, allPlayers, isAdmin]);
 
-  // Conversaciones privadas filtradas por categoría seleccionada
+  // Conversaciones privadas filtradas - SOLO las que tienen mensajes (activas)
   const filteredPrivateConversations = useMemo(() => {
-    if (!selectedCategory) return [];
-    return privateConversations.filter(conv => {
-      if (isAdmin) return conv.categoria === selectedCategory;
-      return conv.categoria === selectedCategory && conv.participante_staff_email === user?.email;
+    let convs = privateConversations.filter(conv => {
+      // Filtrar por staff
+      if (!isAdmin && conv.participante_staff_email !== user?.email) return false;
+      // Filtrar por categoría si está seleccionada
+      if (selectedCategory && conv.categoria !== selectedCategory) return false;
+      return true;
     });
-  }, [privateConversations, selectedCategory, isAdmin, user]);
+    
+    // Aplicar filtro de estado
+    if (privateFilter === "activas") {
+      convs = convs.filter(c => !c.archivada);
+    } else if (privateFilter === "no_leidas") {
+      convs = convs.filter(c => !c.archivada && (c.no_leidos_staff || 0) > 0);
+    } else if (privateFilter === "archivadas") {
+      convs = convs.filter(c => c.archivada);
+    }
+    
+    return convs;
+  }, [privateConversations, selectedCategory, isAdmin, user, privateFilter]);
+
+  // Contadores para badges
+  const privateStats = useMemo(() => {
+    const myConvs = privateConversations.filter(conv => 
+      isAdmin || conv.participante_staff_email === user?.email
+    );
+    return {
+      activas: myConvs.filter(c => !c.archivada).length,
+      noLeidas: myConvs.filter(c => !c.archivada && (c.no_leidos_staff || 0) > 0).length,
+      archivadas: myConvs.filter(c => c.archivada).length
+    };
+  }, [privateConversations, isAdmin, user]);
+
+  // Mutation para archivar/desarchivar
+  const archiveConversationMutation = useMutation({
+    mutationFn: async ({ convId, archive }) => {
+      await base44.entities.PrivateConversation.update(convId, { archivada: archive });
+    },
+    onSuccess: () => {
+      refetchConversations();
+      toast.success(selectedConversation?.archivada ? "Conversación restaurada" : "Conversación archivada");
+      setSelectedConversation(null);
+    }
+  });
 
   const sendMessageMutation = useMutation({
     mutationFn: async (messageData) => {
