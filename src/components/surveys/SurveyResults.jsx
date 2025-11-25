@@ -1,15 +1,20 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { base44 } from "@/api/base44Client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Download, TrendingUp, Star } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { ArrowLeft, Download, TrendingUp, Star, FileText, User, Filter } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
+import { format } from "date-fns";
+import { es } from "date-fns/locale";
 
 const COLORS = ['#ef4444', '#f97316', '#eab308', '#84cc16', '#22c55e'];
 
 export default function SurveyResults({ survey, onBack }) {
   const [responses, setResponses] = useState([]);
+  const [selectedUser, setSelectedUser] = useState("all");
+  const [showUserResponses, setShowUserResponses] = useState(false);
 
   useEffect(() => {
     const fetchResponses = async () => {
@@ -19,6 +24,28 @@ export default function SurveyResults({ survey, onBack }) {
     };
     fetchResponses();
   }, [survey.id]);
+
+  // Lista de usuarios únicos que respondieron
+  const uniqueUsers = useMemo(() => {
+    if (survey.anonima) return [];
+    const users = {};
+    responses.forEach(r => {
+      if (r.respondente_email && !users[r.respondente_email]) {
+        users[r.respondente_email] = {
+          email: r.respondente_email,
+          nombre: r.respondente_nombre,
+          fecha: r.fecha_respuesta
+        };
+      }
+    });
+    return Object.values(users).sort((a, b) => a.nombre?.localeCompare(b.nombre || ''));
+  }, [responses, survey.anonima]);
+
+  // Respuesta del usuario seleccionado
+  const selectedUserResponse = useMemo(() => {
+    if (selectedUser === "all") return null;
+    return responses.find(r => r.respondente_email === selectedUser);
+  }, [responses, selectedUser]);
 
   const exportToCSV = () => {
     let csv = "Fecha,Respondente,";
@@ -36,6 +63,112 @@ export default function SurveyResults({ survey, onBack }) {
     a.href = url;
     a.download = `resultados_${survey.titulo.replace(/\s+/g, '_')}.csv`;
     a.click();
+  };
+
+  const exportToPDF = async () => {
+    // Generar HTML para el reporte
+    const ratingStats = survey.preguntas
+      .map((q, idx) => {
+        if (q.tipo_respuesta === "rating") {
+          return { pregunta: q.pregunta, promedio: getRatingAverage(idx) };
+        }
+        return null;
+      })
+      .filter(Boolean);
+
+    const globalAvg = ratingStats.length > 0 
+      ? (ratingStats.reduce((sum, s) => sum + parseFloat(s.promedio), 0) / ratingStats.length).toFixed(2)
+      : 'N/A';
+
+    let htmlContent = `
+      <html>
+      <head>
+        <style>
+          body { font-family: Arial, sans-serif; padding: 40px; color: #333; }
+          h1 { color: #ea580c; border-bottom: 3px solid #ea580c; padding-bottom: 10px; }
+          h2 { color: #475569; margin-top: 30px; }
+          .stats { display: flex; gap: 20px; margin: 20px 0; }
+          .stat-box { background: #f8fafc; padding: 20px; border-radius: 8px; text-align: center; flex: 1; }
+          .stat-value { font-size: 32px; font-weight: bold; color: #ea580c; }
+          .stat-label { font-size: 14px; color: #64748b; }
+          .question { background: #f8fafc; padding: 15px; margin: 15px 0; border-radius: 8px; border-left: 4px solid #ea580c; }
+          .question-title { font-weight: bold; margin-bottom: 10px; }
+          .rating-bar { display: flex; align-items: center; gap: 10px; margin: 5px 0; }
+          .rating-label { width: 80px; }
+          .rating-count { font-weight: bold; }
+          .text-response { background: white; padding: 10px; margin: 5px 0; border-radius: 4px; border: 1px solid #e2e8f0; }
+          .footer { margin-top: 40px; padding-top: 20px; border-top: 1px solid #e2e8f0; color: #64748b; font-size: 12px; }
+          table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+          th, td { padding: 10px; text-align: left; border-bottom: 1px solid #e2e8f0; }
+          th { background: #f8fafc; font-weight: bold; }
+        </style>
+      </head>
+      <body>
+        <h1>📊 Reporte de Encuesta</h1>
+        <h2>${survey.titulo}</h2>
+        <p>${survey.descripcion || ''}</p>
+        <p><strong>Destinatarios:</strong> ${survey.destinatarios}</p>
+        <p><strong>Periodo:</strong> ${format(new Date(survey.fecha_inicio), 'dd/MM/yyyy')} - ${format(new Date(survey.fecha_fin), 'dd/MM/yyyy')}</p>
+        
+        <div class="stats">
+          <div class="stat-box">
+            <div class="stat-value">${responses.length}</div>
+            <div class="stat-label">Total Respuestas</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-value">${globalAvg} ⭐</div>
+            <div class="stat-label">Promedio Global</div>
+          </div>
+        </div>
+
+        <h2>Resumen de Valoraciones</h2>
+        <table>
+          <tr><th>Pregunta</th><th>Promedio</th></tr>
+          ${ratingStats.map(s => `<tr><td>${s.pregunta}</td><td>${s.promedio} ⭐</td></tr>`).join('')}
+        </table>
+
+        <h2>Detalle por Pregunta</h2>
+    `;
+
+    survey.preguntas.forEach((q, idx) => {
+      htmlContent += `<div class="question"><div class="question-title">${idx + 1}. ${q.pregunta}</div>`;
+      
+      if (q.tipo_respuesta === "rating") {
+        const data = getRatingData(idx);
+        htmlContent += `<p><strong>Promedio: ${getRatingAverage(idx)} ⭐</strong></p>`;
+        data.forEach(d => {
+          htmlContent += `<div class="rating-bar"><span class="rating-label">${d.estrellas} estrella(s):</span> <span class="rating-count">${d.count} respuestas</span></div>`;
+        });
+      } else if (q.tipo_respuesta === "texto") {
+        const textResponses = getTextResponses(idx);
+        htmlContent += `<p><strong>${textResponses.length} respuestas</strong></p>`;
+        textResponses.slice(0, 10).forEach(r => {
+          htmlContent += `<div class="text-response">"${r.respuesta}" ${!survey.anonima ? `<em>- ${r.nombre}</em>` : ''}</div>`;
+        });
+        if (textResponses.length > 10) {
+          htmlContent += `<p><em>... y ${textResponses.length - 10} respuestas más</em></p>`;
+        }
+      }
+      htmlContent += `</div>`;
+    });
+
+    htmlContent += `
+        <div class="footer">
+          <p>Reporte generado el ${format(new Date(), "d 'de' MMMM yyyy 'a las' HH:mm", { locale: es })}</p>
+          <p>CD Bustarviejo - Sistema de Gestión</p>
+        </div>
+      </body>
+      </html>
+    `;
+
+    // Abrir en nueva ventana para imprimir como PDF
+    const printWindow = window.open('', '_blank');
+    printWindow.document.write(htmlContent);
+    printWindow.document.close();
+    printWindow.focus();
+    setTimeout(() => {
+      printWindow.print();
+    }, 500);
   };
 
   const getRatingData = (questionIndex) => {
@@ -96,16 +229,99 @@ export default function SurveyResults({ survey, onBack }) {
 
   return (
     <div className="p-6 lg:p-8 space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
         <Button variant="outline" onClick={onBack}>
           <ArrowLeft className="w-4 h-4 mr-2" />
           Volver
         </Button>
-        <Button onClick={exportToCSV} className="bg-green-600 hover:bg-green-700">
-          <Download className="w-4 h-4 mr-2" />
-          Exportar CSV
-        </Button>
+        <div className="flex gap-2">
+          <Button onClick={exportToPDF} className="bg-orange-600 hover:bg-orange-700">
+            <FileText className="w-4 h-4 mr-2" />
+            Exportar PDF
+          </Button>
+          <Button onClick={exportToCSV} className="bg-green-600 hover:bg-green-700">
+            <Download className="w-4 h-4 mr-2" />
+            Exportar CSV
+          </Button>
+        </div>
       </div>
+
+      {/* Filtro por usuario */}
+      {!survey.anonima && uniqueUsers.length > 0 && (
+        <Card className="border-blue-200 bg-blue-50">
+          <CardContent className="pt-6">
+            <div className="flex flex-col md:flex-row items-start md:items-center gap-4">
+              <div className="flex items-center gap-2">
+                <Filter className="w-5 h-5 text-blue-600" />
+                <span className="font-medium text-blue-900">Ver respuesta individual:</span>
+              </div>
+              <Select value={selectedUser} onValueChange={setSelectedUser}>
+                <SelectTrigger className="w-full md:w-[300px] bg-white">
+                  <SelectValue placeholder="Seleccionar usuario..." />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">📊 Ver resumen general</SelectItem>
+                  {uniqueUsers.map(user => (
+                    <SelectItem key={user.email} value={user.email}>
+                      <div className="flex items-center gap-2">
+                        <User className="w-4 h-4" />
+                        {user.nombre || user.email}
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Vista de respuesta individual */}
+      {selectedUser !== "all" && selectedUserResponse && (
+        <Card className="border-2 border-blue-300">
+          <CardHeader className="bg-blue-50">
+            <div className="flex items-center justify-between">
+              <CardTitle className="flex items-center gap-2">
+                <User className="w-5 h-5 text-blue-600" />
+                Respuesta de: {selectedUserResponse.respondente_nombre || selectedUserResponse.respondente_email}
+              </CardTitle>
+              <Badge className="bg-blue-600">
+                {format(new Date(selectedUserResponse.fecha_respuesta), "dd/MM/yyyy HH:mm")}
+              </Badge>
+            </div>
+          </CardHeader>
+          <CardContent className="pt-6 space-y-4">
+            {selectedUserResponse.respuestas.map((resp, idx) => (
+              <div key={idx} className="p-4 bg-slate-50 rounded-lg">
+                <p className="font-semibold text-slate-900 mb-2">
+                  {idx + 1}. {survey.preguntas[idx]?.pregunta || resp.pregunta}
+                </p>
+                <div className="mt-2">
+                  {survey.preguntas[idx]?.tipo_respuesta === "rating" ? (
+                    <div className="flex items-center gap-2">
+                      {[1, 2, 3, 4, 5].map(star => (
+                        <Star 
+                          key={star} 
+                          className={`w-6 h-6 ${parseInt(resp.respuesta) >= star ? 'text-yellow-500 fill-yellow-500' : 'text-slate-300'}`} 
+                        />
+                      ))}
+                      <span className="ml-2 font-bold text-orange-600">{resp.respuesta}/5</span>
+                    </div>
+                  ) : (
+                    <p className="text-slate-700 bg-white p-3 rounded border">
+                      {resp.respuesta || <span className="text-slate-400 italic">Sin respuesta</span>}
+                    </p>
+                  )}
+                </div>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Vista general (solo si no hay usuario seleccionado) */}
+      {selectedUser === "all" && (
+        <>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
         <Card>
@@ -282,6 +498,8 @@ export default function SurveyResults({ survey, onBack }) {
           ))}
         </CardContent>
       </Card>
+      </>
+      )}
     </div>
   );
 }
