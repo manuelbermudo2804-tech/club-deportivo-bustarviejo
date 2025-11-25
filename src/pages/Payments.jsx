@@ -393,11 +393,12 @@ Email: cdbustarviejo@gmail.com
   // Calcular vencidos: cuotas que pasaron su fecha de vencimiento
   const overdueCount = React.useMemo(() => {
     let totalVencidos = 0;
+    const targetTemporada = temporadaFilter === "all" ? null : temporadaFilter;
     
     players.forEach(player => {
       const playerPayments = payments.filter(p => 
         p.jugador_id === player.id && 
-        p.temporada === temporadaFilter
+        (targetTemporada === null || p.temporada === targetTemporada)
       );
       
       // Verificar si tiene pago único pagado
