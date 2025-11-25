@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Star, Loader2 } from "lucide-react";
+import { Star, Loader2, CheckCircle2, Heart } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
@@ -13,6 +13,7 @@ import { useQueryClient } from "@tanstack/react-query";
 export default function SurveyResponseForm({ survey, onClose }) {
   const [responses, setResponses] = useState({});
   const [submitting, setSubmitting] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
   const queryClient = useQueryClient();
 
   const handleSubmit = async (e) => {
@@ -42,14 +43,55 @@ export default function SurveyResponseForm({ survey, onClose }) {
       });
 
       queryClient.invalidateQueries({ queryKey: ['surveys'] });
-      toast.success("✅ Respuesta enviada. ¡Gracias por tu feedback!");
-      onClose();
+      queryClient.invalidateQueries({ queryKey: ['surveyResponses', survey.id] });
+      setSubmitted(true);
     } catch (error) {
       console.error("Error submitting survey:", error);
       toast.error("Error al enviar la respuesta");
     }
     setSubmitting(false);
   };
+
+  // Pantalla de agradecimiento
+  if (submitted) {
+    return (
+      <Card className="border-2 border-green-300 bg-gradient-to-br from-green-50 to-white">
+        <CardContent className="pt-12 pb-12 text-center space-y-6">
+          <div className="relative mx-auto w-24 h-24">
+            <div className="absolute inset-0 bg-green-100 rounded-full animate-ping opacity-30"></div>
+            <div className="relative w-24 h-24 bg-gradient-to-br from-green-400 to-green-600 rounded-full flex items-center justify-center">
+              <CheckCircle2 className="w-12 h-12 text-white" />
+            </div>
+          </div>
+          
+          <div className="space-y-3">
+            <h2 className="text-3xl font-bold text-green-800">¡Muchas Gracias!</h2>
+            <p className="text-lg text-green-700">
+              Tu opinión es muy valiosa para nosotros
+            </p>
+            <div className="flex items-center justify-center gap-2 text-green-600">
+              <Heart className="w-5 h-5 fill-current" />
+              <span className="text-sm font-medium">CD Bustarviejo</span>
+              <Heart className="w-5 h-5 fill-current" />
+            </div>
+          </div>
+
+          <div className="bg-white rounded-xl p-4 border border-green-200 max-w-sm mx-auto">
+            <p className="text-sm text-slate-600">
+              Hemos recibido tu respuesta a la encuesta <strong className="text-green-700">"{survey.titulo}"</strong>
+            </p>
+          </div>
+
+          <Button 
+            onClick={onClose}
+            className="bg-green-600 hover:bg-green-700 px-8 py-3 text-lg"
+          >
+            Cerrar
+          </Button>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card className="border-2 border-orange-200">

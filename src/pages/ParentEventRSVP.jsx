@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, MapPin, Clock, Users, CheckCircle2, XCircle, HelpCircle, Info } from "lucide-react";
+import { Calendar, MapPin, Clock, Users, CheckCircle2, XCircle, HelpCircle, Info, Heart } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { toast } from "sonner";
@@ -53,6 +53,9 @@ export default function ParentEventRSVP() {
     initialData: [],
   });
 
+  const [showThankYou, setShowThankYou] = useState(false);
+  const [confirmedResponse, setConfirmedResponse] = useState(null);
+
   const updateRSVPMutation = useMutation({
     mutationFn: async ({ event, confirmacion, num_acompanantes, comentario }) => {
       const confirmaciones = event.confirmaciones || [];
@@ -79,10 +82,10 @@ export default function ParentEventRSVP() {
         confirmaciones
       });
     },
-    onSuccess: () => {
+    onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['events'] });
-      setShowRSVPDialog(false);
-      toast.success("✅ Confirmación registrada");
+      setConfirmedResponse(variables.confirmacion);
+      setShowThankYou(true);
     },
   });
 
@@ -101,7 +104,7 @@ export default function ParentEventRSVP() {
     e.requiere_confirmacion && 
     e.publicado && 
     e.fecha >= today &&
-    (e.deporte === "Todos" || myPlayersSports.includes(e.deporte))
+    (e.destinatario_categoria === "Todos" || myPlayersSports.includes(e.destinatario_categoria) || e.deporte === "Todos" || myPlayersSports.includes(e.deporte))
   );
 
   const handleOpenRSVP = (event) => {
@@ -245,111 +248,155 @@ export default function ParentEventRSVP() {
         </div>
       )}
 
-      <Dialog open={showRSVPDialog} onOpenChange={setShowRSVPDialog}>
+      <Dialog open={showRSVPDialog} onOpenChange={(open) => {
+        if (!open) {
+          setShowThankYou(false);
+          setConfirmedResponse(null);
+        }
+        setShowRSVPDialog(open);
+      }}>
         <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Confirmar Asistencia</DialogTitle>
-            <DialogDescription>
-              {selectedEvent?.titulo}
-            </DialogDescription>
-          </DialogHeader>
-
-          {selectedEvent && (
-            <div className="space-y-4">
-              <div className="bg-slate-50 rounded-lg p-4 space-y-2 text-sm">
-                <div className="flex items-center gap-2">
-                  <Calendar className="w-4 h-4 text-slate-600" />
-                  {format(new Date(selectedEvent.fecha), "d 'de' MMMM yyyy", { locale: es })}
+          {showThankYou ? (
+            <div className="py-8 text-center space-y-6">
+              <div className="relative mx-auto w-20 h-20">
+                <div className="absolute inset-0 bg-green-100 rounded-full animate-ping opacity-30"></div>
+                <div className="relative w-20 h-20 bg-gradient-to-br from-green-400 to-green-600 rounded-full flex items-center justify-center">
+                  <CheckCircle2 className="w-10 h-10 text-white" />
                 </div>
-                {selectedEvent.hora && (
-                  <div className="flex items-center gap-2">
-                    <Clock className="w-4 h-4 text-slate-600" />
-                    {selectedEvent.hora}
-                  </div>
-                )}
-                {selectedEvent.ubicacion && (
-                  <div className="flex items-center gap-2">
-                    <MapPin className="w-4 h-4 text-slate-600" />
-                    {selectedEvent.ubicacion}
-                  </div>
-                )}
               </div>
-
-              <div className="space-y-3">
-                <Label>Tu respuesta *</Label>
-                <RadioGroup value={rsvpData.confirmacion} onValueChange={(value) => setRsvpData({...rsvpData, confirmacion: value})}>
-                  <div className="flex items-center space-x-2 p-3 border rounded-lg hover:bg-green-50 cursor-pointer">
-                    <RadioGroupItem value="asistire" id="asistire" />
-                    <Label htmlFor="asistire" className="flex-1 cursor-pointer flex items-center gap-2">
-                      <CheckCircle2 className="w-4 h-4 text-green-600" />
-                      Sí, asistiré
-                    </Label>
-                  </div>
-                  <div className="flex items-center space-x-2 p-3 border rounded-lg hover:bg-red-50 cursor-pointer">
-                    <RadioGroupItem value="no_asistire" id="no_asistire" />
-                    <Label htmlFor="no_asistire" className="flex-1 cursor-pointer flex items-center gap-2">
-                      <XCircle className="w-4 h-4 text-red-600" />
-                      No podré asistir
-                    </Label>
-                  </div>
-                  <div className="flex items-center space-x-2 p-3 border rounded-lg hover:bg-yellow-50 cursor-pointer">
-                    <RadioGroupItem value="quizas" id="quizas" />
-                    <Label htmlFor="quizas" className="flex-1 cursor-pointer flex items-center gap-2">
-                      <HelpCircle className="w-4 h-4 text-yellow-600" />
-                      Aún no lo sé
-                    </Label>
-                  </div>
-                </RadioGroup>
-              </div>
-
-              {rsvpData.confirmacion === "asistire" && (
-                <div className="space-y-2">
-                  <Label htmlFor="acompanantes">¿Traerás acompañantes?</Label>
-                  <Input
-                    id="acompanantes"
-                    type="number"
-                    min="0"
-                    max="5"
-                    value={rsvpData.num_acompanantes}
-                    onChange={(e) => setRsvpData({...rsvpData, num_acompanantes: e.target.value})}
-                  />
-                  <p className="text-xs text-slate-500">Número de personas adicionales que te acompañarán</p>
-                </div>
-              )}
-
+              
               <div className="space-y-2">
-                <Label htmlFor="comentario">Comentario (opcional)</Label>
-                <Textarea
-                  id="comentario"
-                  placeholder="Alguna observación o comentario..."
-                  value={rsvpData.comentario}
-                  onChange={(e) => setRsvpData({...rsvpData, comentario: e.target.value})}
-                  rows={3}
-                />
+                <h2 className="text-2xl font-bold text-green-800">¡Muchas Gracias!</h2>
+                <p className="text-green-700">
+                  {confirmedResponse === "asistire" && "¡Te esperamos! Hemos registrado tu asistencia."}
+                  {confirmedResponse === "no_asistire" && "Gracias por avisarnos. ¡Será en otra ocasión!"}
+                  {confirmedResponse === "quizas" && "De acuerdo, puedes cambiar tu respuesta cuando lo sepas."}
+                </p>
+                <div className="flex items-center justify-center gap-2 text-green-600 mt-4">
+                  <Heart className="w-4 h-4 fill-current" />
+                  <span className="text-sm font-medium">CD Bustarviejo</span>
+                  <Heart className="w-4 h-4 fill-current" />
+                </div>
               </div>
 
-              {selectedEvent.capacidad_maxima && (
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 flex items-start gap-2">
-                  <Info className="w-4 h-4 text-blue-600 mt-0.5" />
-                  <p className="text-sm text-blue-900">
-                    Capacidad limitada: {getEventStats(selectedEvent).total}/{selectedEvent.capacidad_maxima} plazas ocupadas
-                  </p>
+              <Button 
+                onClick={() => {
+                  setShowRSVPDialog(false);
+                  setShowThankYou(false);
+                  setConfirmedResponse(null);
+                }}
+                className="bg-green-600 hover:bg-green-700 px-8"
+              >
+                Cerrar
+              </Button>
+            </div>
+          ) : (
+            <>
+              <DialogHeader>
+                <DialogTitle>Confirmar Asistencia</DialogTitle>
+                <DialogDescription>
+                  {selectedEvent?.titulo}
+                </DialogDescription>
+              </DialogHeader>
+
+              {selectedEvent && (
+                <div className="space-y-4">
+                  <div className="bg-slate-50 rounded-lg p-4 space-y-2 text-sm">
+                    <div className="flex items-center gap-2">
+                      <Calendar className="w-4 h-4 text-slate-600" />
+                      {format(new Date(selectedEvent.fecha), "d 'de' MMMM yyyy", { locale: es })}
+                    </div>
+                    {selectedEvent.hora && (
+                      <div className="flex items-center gap-2">
+                        <Clock className="w-4 h-4 text-slate-600" />
+                        {selectedEvent.hora}
+                      </div>
+                    )}
+                    {selectedEvent.ubicacion && (
+                      <div className="flex items-center gap-2">
+                        <MapPin className="w-4 h-4 text-slate-600" />
+                        {selectedEvent.ubicacion}
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="space-y-3">
+                    <Label>Tu respuesta *</Label>
+                    <RadioGroup value={rsvpData.confirmacion} onValueChange={(value) => setRsvpData({...rsvpData, confirmacion: value})}>
+                      <div className="flex items-center space-x-2 p-3 border rounded-lg hover:bg-green-50 cursor-pointer">
+                        <RadioGroupItem value="asistire" id="asistire" />
+                        <Label htmlFor="asistire" className="flex-1 cursor-pointer flex items-center gap-2">
+                          <CheckCircle2 className="w-4 h-4 text-green-600" />
+                          Sí, asistiré
+                        </Label>
+                      </div>
+                      <div className="flex items-center space-x-2 p-3 border rounded-lg hover:bg-red-50 cursor-pointer">
+                        <RadioGroupItem value="no_asistire" id="no_asistire" />
+                        <Label htmlFor="no_asistire" className="flex-1 cursor-pointer flex items-center gap-2">
+                          <XCircle className="w-4 h-4 text-red-600" />
+                          No podré asistir
+                        </Label>
+                      </div>
+                      <div className="flex items-center space-x-2 p-3 border rounded-lg hover:bg-yellow-50 cursor-pointer">
+                        <RadioGroupItem value="quizas" id="quizas" />
+                        <Label htmlFor="quizas" className="flex-1 cursor-pointer flex items-center gap-2">
+                          <HelpCircle className="w-4 h-4 text-yellow-600" />
+                          Aún no lo sé
+                        </Label>
+                      </div>
+                    </RadioGroup>
+                  </div>
+
+                  {rsvpData.confirmacion === "asistire" && (
+                    <div className="space-y-2">
+                      <Label htmlFor="acompanantes">¿Traerás acompañantes?</Label>
+                      <Input
+                        id="acompanantes"
+                        type="number"
+                        min="0"
+                        max="5"
+                        value={rsvpData.num_acompanantes}
+                        onChange={(e) => setRsvpData({...rsvpData, num_acompanantes: e.target.value})}
+                      />
+                      <p className="text-xs text-slate-500">Número de personas adicionales que te acompañarán</p>
+                    </div>
+                  )}
+
+                  <div className="space-y-2">
+                    <Label htmlFor="comentario">Comentario (opcional)</Label>
+                    <Textarea
+                      id="comentario"
+                      placeholder="Alguna observación o comentario..."
+                      value={rsvpData.comentario}
+                      onChange={(e) => setRsvpData({...rsvpData, comentario: e.target.value})}
+                      rows={3}
+                    />
+                  </div>
+
+                  {selectedEvent.capacidad_maxima && (
+                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 flex items-start gap-2">
+                      <Info className="w-4 h-4 text-blue-600 mt-0.5" />
+                      <p className="text-sm text-blue-900">
+                        Capacidad limitada: {getEventStats(selectedEvent).total}/{selectedEvent.capacidad_maxima} plazas ocupadas
+                      </p>
+                    </div>
+                  )}
                 </div>
               )}
-            </div>
-          )}
 
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowRSVPDialog(false)}>
-              Cancelar
-            </Button>
-            <Button 
-              onClick={handleSubmitRSVP}
-              disabled={updateRSVPMutation.isPending || rsvpData.confirmacion === "pendiente"}
-            >
-              Confirmar Respuesta
-            </Button>
-          </DialogFooter>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setShowRSVPDialog(false)}>
+                  Cancelar
+                </Button>
+                <Button 
+                  onClick={handleSubmitRSVP}
+                  disabled={updateRSVPMutation.isPending || rsvpData.confirmacion === "pendiente"}
+                >
+                  Confirmar Respuesta
+                </Button>
+              </DialogFooter>
+            </>
+          )}
         </DialogContent>
       </Dialog>
     </div>
