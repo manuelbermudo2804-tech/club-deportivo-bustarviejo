@@ -89,12 +89,8 @@ export default function CoachChat() {
     
     if (isAdmin) {
       categories = [...categories, ...new Set(allPlayers.map(p => p.deporte).filter(Boolean))];
-    } else if (isCoordinator) {
-      // Coordinadores ven todas las categorías + las que entrenan
-      const allSports = new Set(allPlayers.map(p => p.deporte).filter(Boolean));
-      categories = [...categories, ...allSports];
     } else {
-      // Entrenadores solo ven sus equipos
+      // Coordinadores y entrenadores solo ven los equipos que entrenan
       categories = [...categories, ...(user.categorias_entrena || [])];
     }
     
