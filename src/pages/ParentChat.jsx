@@ -1,19 +1,25 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Send, Clock, AlertCircle, X, ArrowLeft } from "lucide-react";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Send, Clock, AlertCircle, X, ArrowLeft, Users, MessageCircle, User } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
+import { es } from "date-fns/locale";
+
+import PrivateChatPanel from "../components/chat/PrivateChatPanel";
 
 export default function ParentChat() {
   const location = useLocation();
   const [messageContent, setMessageContent] = useState("");
   const [selectedTab, setSelectedTab] = useState(null);
   const [attachments, setAttachments] = useState([]);
+  const [chatMode, setChatMode] = useState("anuncios"); // "anuncios" o "privado"
+  const [selectedConversation, setSelectedConversation] = useState(null);
   const messagesEndRef = useRef(null);
   const queryClient = useQueryClient();
   const [user, setUser] = useState(null);
