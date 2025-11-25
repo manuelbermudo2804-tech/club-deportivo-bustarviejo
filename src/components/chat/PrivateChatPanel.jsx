@@ -204,6 +204,7 @@ export default function PrivateChatPanel({
             onChange={(e) => setMessageContent(e.target.value)}
             placeholder="Escribe un mensaje privado..."
             className="flex-1 rounded-full"
+            disabled={sendMessageMutation.isPending}
             onKeyDown={(e) => {
               if (e.key === 'Enter' && !e.shiftKey) {
                 e.preventDefault();
