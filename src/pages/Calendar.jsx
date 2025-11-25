@@ -21,7 +21,7 @@ export default function Calendar() {
   const [editingEvent, setEditingEvent] = useState(null);
   const [typeFilter, setTypeFilter] = useState("all");
   const [sportFilter, setSportFilter] = useState("all");
-  const [viewMode, setViewMode] = useState("cards"); // "calendar", "cards", or "agenda"
+  const [viewMode, setViewMode] = useState("calendar"); // "calendar", "cards", or "agenda"
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [isAdmin, setIsAdmin] = useState(false);
   const [user, setUser] = useState(null);
@@ -185,7 +185,7 @@ export default function Calendar() {
 
   const allCalendarItems = useMemo(() => {
     const eventItems = events
-      .filter(event => isAdmin || event.publicado)
+      .filter(event => (isAdmin || event.publicado) && event.tipo !== 'Partido')
       .map(event => ({
         ...event,
         type: 'event',

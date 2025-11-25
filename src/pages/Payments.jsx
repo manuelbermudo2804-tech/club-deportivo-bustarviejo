@@ -337,7 +337,8 @@ Email: cdbustarviejo@gmail.com
   const statusEmojis = {
     "Pagado": "🟢",
     "En revisión": "🟠",
-    "Pendiente": "🔴"
+    "Pendiente": "🔴",
+    "Anulado": "⚪️"
   };
 
   // Estadísticas mejoradas

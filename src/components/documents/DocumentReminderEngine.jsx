@@ -163,10 +163,7 @@ async function sendFamilyReminders(document, families) {
             ${family.players.map(p => `<li>${p}</li>`).join('')}
           </ul>
 
-          ${document.enlace_firma_externa ? 
-            `<p>Para firmar el documento, accede al siguiente enlace: <a href="${document.enlace_firma_externa}" style="color: #ea580c; font-weight: bold;">${document.enlace_firma_externa}</a></p>` :
-            `<p>Por favor, accede a la aplicación del club para revisar y firmar el documento.</p>`
-          }
+           <p>Por favor, accede a la aplicación del club para revisar y firmar el documento en la sección 'Documentos'.</p>
 
           <p style="margin-top: 24px; color: #64748b; font-size: 14px;">
             CD Bustarviejo - Gestión Documental<br>

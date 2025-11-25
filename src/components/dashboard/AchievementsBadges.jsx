@@ -79,25 +79,38 @@ export default function AchievementsBadges({ player, attendances, evaluations })
     });
   }
 
-  // 🎯 COMPROMISO TOTAL
-  if (presentCount >= 20) {
+  // 🎯 COMPROMISO
+  if (presentCount >= 75) {
+    achievements.push({
+      icon: Award,
+      title: "Leyenda del Club 🏅",
+      description: `${presentCount} entrenamientos completados`,
+      color: "from-indigo-500 to-indigo-700",
+      level: "platinum"
+    });
+  } else if (presentCount >= 50) {
     achievements.push({
       icon: Target,
-      title: "Compromiso Total 🎯",
+      title: "Compromiso de Oro 🎯",
       description: `${presentCount} entrenamientos completados`,
       color: "from-cyan-500 to-cyan-700",
       level: "gold"
     });
-  }
-
-  // 🏅 VETERANO
-  if (presentCount >= 50) {
+  } else if (presentCount >= 25) {
     achievements.push({
-      icon: Award,
-      title: "Veterano del Club 🏅",
-      description: `+50 entrenamientos`,
-      color: "from-indigo-500 to-indigo-700",
-      level: "platinum"
+      icon: Target,
+      title: "Compromiso de Plata 🎯",
+      description: `${presentCount} entrenamientos completados`,
+      color: "from-blue-500 to-blue-700",
+      level: "silver"
+    });
+  } else if (presentCount >= 10) {
+    achievements.push({
+      icon: Target,
+      title: "Compromiso de Bronce 🎯",
+      description: `${presentCount} entrenamientos completados`,
+      color: "from-orange-500 to-red-600",
+      level: "bronze"
     });
   }
 
@@ -143,7 +156,8 @@ export default function AchievementsBadges({ player, attendances, evaluations })
                   </p>
                   <Badge className="mt-2 bg-white/20 text-white text-[10px]">
                     {achievement.level === "platinum" ? "PLATINO" : 
-                     achievement.level === "gold" ? "ORO" : "PLATA"}
+                     achievement.level === "gold" ? "ORO" : 
+                     achievement.level === "silver" ? "PLATA" : "BRONCE"}
                   </Badge>
                 </div>
               </div>

@@ -5,10 +5,7 @@ const CLUB_LOGO_URL = `https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/objec
 
 export default function WelcomeScreen({ onComplete }) {
   useEffect(() => {
-    const timer = setTimeout(() => {
-      onComplete();
-    }, 3000);
-    return () => clearTimeout(timer);
+    onComplete();
   }, [onComplete]);
 
   return (
