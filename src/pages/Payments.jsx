@@ -358,11 +358,12 @@ Email: cdbustarviejo@gmail.com
   // Calcular pendientes: cuántas cuotas faltan por pagar de todos los jugadores
   const pendingCount = React.useMemo(() => {
     let totalPendientes = 0;
+    const targetTemporada = temporadaFilter === "all" ? null : temporadaFilter;
     
     players.forEach(player => {
       const playerPayments = payments.filter(p => 
         p.jugador_id === player.id && 
-        p.temporada === temporadaFilter
+        (targetTemporada === null || p.temporada === targetTemporada)
       );
       
       // Verificar si tiene pago único pagado o en revisión
