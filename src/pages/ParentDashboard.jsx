@@ -8,7 +8,7 @@ import { Users, Calendar, Bell, MessageCircle, CreditCard, Image, Megaphone, Clo
 import SocialLinks from "../components/SocialLinks";
 import PushNotificationManager from "../components/push/PushNotificationManager";
 import NewSeasonWelcome from "../components/NewSeasonWelcome";
-import ParentOnboarding from "../components/onboarding/ParentOnboarding";
+import ParentOnboarding from "@/components/onboarding/ParentOnboarding";
 
 export default function ParentDashboard() {
   const navigate = useNavigate();
@@ -402,7 +402,7 @@ export default function ParentDashboard() {
   const menuItems = buildMenuItems();
 
   // Mostrar loading mientras se cargan los datos iniciales
-  if (!user) {
+  if (!user || playersLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-black flex items-center justify-center">
         <div className="text-center">
