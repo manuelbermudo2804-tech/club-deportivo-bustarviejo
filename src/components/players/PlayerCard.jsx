@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -202,6 +203,53 @@ export default function PlayerCard({ player, onEdit, onViewProfile, isParent = f
             </div>
           )}
 
+          {/* Estado de Pagos */}
+          <div className="bg-slate-50 rounded-lg p-2 border">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-medium text-slate-600">Pagos {currentSeason}:</span>
+              {allPaid ? (
+                <Badge className="bg-green-100 text-green-700 text-xs flex items-center gap-1">
+                  <CheckCircle2 className="w-3 h-3" />
+                  Completo
+                </Badge>
+              ) : reviewCount > 0 ? (
+                <Badge className="bg-orange-100 text-orange-700 text-xs flex items-center gap-1">
+                  <Loader2 className="w-3 h-3" />
+                  {reviewCount} en revisión
+                </Badge>
+              ) : hasPending ? (
+                <Badge className="bg-red-100 text-red-700 text-xs flex items-center gap-1">
+                  <AlertCircle className="w-3 h-3" />
+                  Pendiente
+                </Badge>
+              ) : (
+                <Badge className="bg-slate-100 text-slate-600 text-xs">
+                  Sin datos
+                </Badge>
+              )}
+            </div>
+            {!allPaid && (
+              <div className="flex gap-1 mt-1">
+                {["Junio", "Septiembre", "Diciembre"].map(mes => {
+                  const pago = playerPayments.find(p => p.mes === mes);
+                  const isPaid = pago?.estado === "Pagado";
+                  const isReview = pago?.estado === "En revisión";
+                  return (
+                    <div 
+                      key={mes} 
+                      className={`flex-1 h-1.5 rounded-full ${
+                        isPaid ? 'bg-green-500' : 
+                        isReview ? 'bg-orange-400' : 
+                        'bg-red-300'
+                      }`}
+                      title={`${mes}: ${isPaid ? 'Pagado' : isReview ? 'En revisión' : 'Pendiente'}`}
+                    />
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
           <div className="flex gap-2 pt-2">
             {onViewProfile && (
               <Button
@@ -209,7 +257,7 @@ export default function PlayerCard({ player, onEdit, onViewProfile, isParent = f
                 size="sm"
                 onClick={(e) => {
                   e.stopPropagation();
-                  onViewProfile(player);
+                  onViewProfile(player, 'pagos');
                 }}
                 className="flex-1 hover:bg-purple-50 hover:text-purple-700"
               >
@@ -231,16 +279,6 @@ export default function PlayerCard({ player, onEdit, onViewProfile, isParent = f
                 Editar
               </Button>
             )}
-            <Link to={`${createPageUrl(paymentsPage)}?jugador_id=${player.id}`} className="flex-1" onClick={(e) => e.stopPropagation()}>
-              <Button
-                variant="outline"
-                size="sm"
-                className="w-full hover:bg-blue-50 hover:text-blue-700"
-              >
-                <CreditCard className="w-4 h-4 mr-1" />
-                Pagos
-              </Button>
-            </Link>
           </div>
         </CardContent>
       </Card>
