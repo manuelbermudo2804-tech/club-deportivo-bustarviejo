@@ -939,7 +939,7 @@ Email: cdbustarviejo@gmail.com
                               </div>
                             </div>
 
-                            {displayPayments.length === 0 ? (
+                            {playerPayments.length === 0 ? (
                               <div className="text-center py-4 bg-slate-100 rounded-lg">
                                 <p className="text-slate-600 text-sm font-medium">
                                   ❌ No hay pagos realizados
