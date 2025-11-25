@@ -435,6 +435,42 @@ export default function LotteryManagement() {
           )}
         </div>
 
+        {/* Filtros de estado */}
+        <div className="flex flex-wrap gap-2">
+          <Button
+            onClick={() => setStatusFilter("all")}
+            variant={statusFilter === "all" ? "default" : "outline"}
+            size="sm"
+            className={statusFilter === "all" ? "bg-slate-700" : ""}
+          >
+            📋 Todos ({orders.length})
+          </Button>
+          <Button
+            onClick={() => setStatusFilter("pending_payment")}
+            variant={statusFilter === "pending_payment" ? "default" : "outline"}
+            size="sm"
+            className={statusFilter === "pending_payment" ? "bg-red-600 hover:bg-red-700" : "border-red-300 text-red-700 hover:bg-red-50"}
+          >
+            💳 Pendientes Pago ({pendingPaymentCount})
+          </Button>
+          <Button
+            onClick={() => setStatusFilter("paid")}
+            variant={statusFilter === "paid" ? "default" : "outline"}
+            size="sm"
+            className={statusFilter === "paid" ? "bg-green-600 hover:bg-green-700" : "border-green-300 text-green-700 hover:bg-green-50"}
+          >
+            💰 Pagados ({paidNotDeliveredCount})
+          </Button>
+          <Button
+            onClick={() => setStatusFilter("delivered")}
+            variant={statusFilter === "delivered" ? "default" : "outline"}
+            size="sm"
+            className={statusFilter === "delivered" ? "bg-purple-600 hover:bg-purple-700" : "border-purple-300 text-purple-700 hover:bg-purple-50"}
+          >
+            📦 Entregados ({deliveredCount})
+          </Button>
+        </div>
+
         <div className="space-y-4">
         {Object.entries(decimosPorCategoria).sort(([a], [b]) => a.localeCompare(b)).map(([categoria, stats]) => {
           const categoryOrders = orders.filter(o => (o.jugador_categoria || "Sin categoría") === categoria);
