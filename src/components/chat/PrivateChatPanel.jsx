@@ -166,7 +166,9 @@ export default function PrivateChatPanel({
                     <div className="px-3 py-2">
                       <div className="flex items-center gap-2 mb-1">
                         <span className={`text-xs font-semibold ${isMyMessage ? 'text-blue-100' : 'text-slate-600'}`}>
-                          {msg.remitente_nombre}
+                          {conversation.categoria === "Coordinación Deportiva" && msg.remitente_tipo === "staff" 
+                            ? "🎓 Coordinador" 
+                            : msg.remitente_nombre}
                         </span>
                       </div>
                       <p className="text-sm leading-relaxed break-words">{msg.mensaje}</p>
