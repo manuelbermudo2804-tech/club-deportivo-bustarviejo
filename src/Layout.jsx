@@ -18,15 +18,15 @@ import LanguageSelector from "./components/LanguageSelector";
 import ChatNotificationListener from "./components/push/ChatNotificationListener";
 import WelcomeScreen from "./components/WelcomeScreen";
 import NotificationManager from "./components/notifications/NotificationManager";
+import AutomaticNotificationEngine from "./components/notifications/AutomaticNotificationEngine";
+import EmailNotificationTrigger from "./components/notifications/EmailNotificationTrigger";
+import EventReminderEngine from "./components/events/EventReminderEngine";
+import DocumentReminderEngine from "./components/documents/DocumentReminderEngine";
 import ParentOnboarding from "./components/onboarding/ParentOnboarding";
 import AdminOnboarding from "./components/onboarding/AdminOnboarding";
 import CoachOnboarding from "./components/onboarding/CoachOnboarding";
 import CoordinatorOnboarding from "./components/onboarding/CoordinatorOnboarding";
 import TreasurerOnboarding from "./components/onboarding/TreasurerOnboarding";
-import AutomaticNotificationEngine from "./components/notifications/AutomaticNotificationEngine";
-import EmailNotificationTrigger from "./components/notifications/EmailNotificationTrigger";
-import EventReminderEngine from "./components/events/EventReminderEngine";
-import DocumentReminderEngine from "./components/documents/DocumentReminderEngine";
 
 const CLUB_LOGO_URL = `https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6911b8e453ca3ac01fb134d6/e3f0a8e26_logo_cd_bustarviejo_mediano.jpg?t=${Date.now()}`;
 
