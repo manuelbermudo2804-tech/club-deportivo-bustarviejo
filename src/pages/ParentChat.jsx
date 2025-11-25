@@ -12,6 +12,7 @@ import { format } from "date-fns";
 import { es } from "date-fns/locale";
 
 import PrivateChatPanel from "../components/chat/PrivateChatPanel";
+import StartPrivateConversationDialog from "../components/chat/StartPrivateConversationDialog";
 
 export default function ParentChat() {
   const location = useLocation();
@@ -20,6 +21,7 @@ export default function ParentChat() {
   const [attachments, setAttachments] = useState([]);
   const [chatMode, setChatMode] = useState("anuncios"); // "anuncios" o "privado"
   const [selectedConversation, setSelectedConversation] = useState(null);
+  const [showNewConversation, setShowNewConversation] = useState(false);
   const messagesEndRef = useRef(null);
   const queryClient = useQueryClient();
   const [user, setUser] = useState(null);
