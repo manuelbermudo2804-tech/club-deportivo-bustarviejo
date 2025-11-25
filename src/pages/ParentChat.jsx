@@ -251,8 +251,8 @@ export default function ParentChat() {
     );
   }
 
-  // Si hay chat privado activo, mostrar solo eso
-  if (activePrivateChat) {
+  // Si hay chat privado activo (NO coordinación), mostrar solo eso
+  if (activePrivateChat && selectedCategory !== "Coordinación Deportiva") {
     return (
       <div className="p-4 lg:p-6 min-h-screen bg-slate-50">
         <div className="max-w-3xl mx-auto">
