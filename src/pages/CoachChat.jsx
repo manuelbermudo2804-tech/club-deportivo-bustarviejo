@@ -84,6 +84,9 @@ export default function CoachChat() {
     
     if (isAdmin) {
       categories = [...categories, ...new Set(allPlayers.map(p => p.deporte).filter(Boolean))];
+    } else if (isCoordinator) {
+      // Coordinadores ven todas las categorías
+      categories = [...categories, ...new Set(allPlayers.map(p => p.deporte).filter(Boolean))];
     } else {
       categories = [...categories, ...(user.categorias_entrena || [])];
     }
