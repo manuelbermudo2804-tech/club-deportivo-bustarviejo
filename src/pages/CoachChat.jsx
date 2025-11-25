@@ -223,128 +223,137 @@ export default function CoachChat() {
 
   return (
     <div className="p-4 lg:p-6 space-y-4">
-      {/* Header con tabs */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-        <div>
-          <h1 className="text-2xl lg:text-3xl font-bold text-slate-900">
-            {isAdmin ? "Chat del Club" : "Chat de Equipos"}
-          </h1>
-          <p className="text-slate-600 text-sm">
-            {chatMode === "grupos" ? "Anuncios a grupos" : "Conversaciones privadas con familias"}
-          </p>
-        </div>
-        
-        <Tabs value={chatMode} onValueChange={setChatMode} className="w-full md:w-auto">
-          <TabsList className="w-full md:w-auto">
-            <TabsTrigger value="grupos" className="flex-1 md:flex-none gap-2">
-              <Users className="w-4 h-4" />
-              Grupos
-            </TabsTrigger>
-            <TabsTrigger value="privados" className="flex-1 md:flex-none gap-2">
-              <MessageCircle className="w-4 h-4" />
-              Privados
-              {totalPrivateUnread > 0 && (
-                <Badge className="bg-red-500 text-white text-xs ml-1">{totalPrivateUnread}</Badge>
-              )}
-            </TabsTrigger>
-          </TabsList>
-        </Tabs>
+      {/* Header */}
+      <div>
+        <h1 className="text-2xl lg:text-3xl font-bold text-slate-900">
+          {isAdmin ? "Chat del Club" : isCoordinator ? "Chat Coordinación" : "Chat de Equipos"}
+        </h1>
+        <p className="text-slate-600 text-sm">
+          Selecciona una categoría para ver anuncios y mensajes privados
+        </p>
       </div>
 
-      {chatMode === "grupos" ? (
-        /* MODO GRUPOS - Anuncios */
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
-          {/* Lista de grupos */}
-          <div className="lg:col-span-1 bg-white rounded-xl shadow-md border overflow-hidden">
-            <div className="p-4 bg-gradient-to-r from-blue-600 to-blue-700 text-white">
-              <h3 className="font-bold">Grupos</h3>
-              <p className="text-xs text-blue-100">{myGroups.length} disponibles</p>
-            </div>
-            <div className="divide-y max-h-[60vh] overflow-y-auto">
-              {myGroups.map(group => (
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
+        {/* Lista de categorías */}
+        <div className="lg:col-span-1 bg-white rounded-xl shadow-md border overflow-hidden">
+          <div className="p-4 bg-gradient-to-r from-orange-600 to-orange-700 text-white">
+            <h3 className="font-bold">Mis Equipos</h3>
+            <p className="text-xs text-orange-100">{myCategories.length} categorías</p>
+          </div>
+          <div className="divide-y max-h-[60vh] overflow-y-auto">
+            {myCategories.map(cat => {
+              const unread = getUnreadCountForCategory(cat);
+              return (
                 <button
-                  key={group.id}
-                  onClick={() => setSelectedTab(group.id)}
+                  key={cat}
+                  onClick={() => {
+                    setSelectedCategory(cat);
+                    setChatSubMode("anuncios");
+                    setSelectedConversation(null);
+                  }}
                   className={`w-full p-3 flex items-center gap-3 transition-colors text-left ${
-                    selectedTab === group.id ? 'bg-blue-50 border-l-4 border-l-blue-600' : 'hover:bg-slate-50 border-l-4 border-l-transparent'
+                    selectedCategory === cat ? 'bg-orange-50 border-l-4 border-l-orange-600' : 'hover:bg-slate-50 border-l-4 border-l-transparent'
                   }`}
                 >
                   <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                    group.tipo === 'interno' ? 'bg-purple-100' : 'bg-blue-100'
+                    selectedCategory === cat ? 'bg-orange-600 text-white' : 'bg-orange-100'
                   }`}>
-                    <span className="text-lg">{sportEmojis[group.deporte] || "📢"}</span>
+                    <span className="text-lg">{sportEmojis[cat] || "⚽"}</span>
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="font-semibold text-slate-900 truncate text-sm">{group.deporte}</div>
-                    <div className="text-xs text-slate-500">{group.messages.length} anuncios</div>
-                  </div>
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Chat del grupo */}
-          <div className="lg:col-span-3 bg-white rounded-xl shadow-md border overflow-hidden flex flex-col" style={{ height: '70vh' }}>
-            {currentGroup ? (
-              <>
-                <div className={`p-4 text-white flex items-center gap-3 flex-shrink-0 ${
-                  currentGroup.tipo === 'interno' ? 'bg-gradient-to-r from-purple-600 to-purple-700' : 'bg-gradient-to-r from-blue-600 to-blue-700'
-                }`}>
-                  <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
-                    <span className="text-xl">{sportEmojis[currentGroup.deporte] || "📢"}</span>
-                  </div>
-                  <div className="flex-1">
-                    <h2 className="font-bold">{currentGroup.deporte}</h2>
-                    <p className="text-xs opacity-90">
-                      {currentGroup.tipo === 'interno' ? 'Chat privado entre entrenadores' : 'Anuncios al grupo (todos ven)'}
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex-1 overflow-y-auto p-4 space-y-2" style={{ backgroundColor: '#e5ddd5' }}>
-                  {currentGroup.messages.length === 0 ? (
-                    <div className="flex items-center justify-center h-full">
-                      <div className="text-center text-slate-500 bg-white/80 rounded-xl p-6">
-                        <AlertCircle className="w-12 h-12 mx-auto mb-2 opacity-50" />
-                        <p className="text-sm">No hay anuncios</p>
-                      </div>
+                    <div className="font-semibold text-slate-900 truncate text-sm">{cat}</div>
+                    <div className="text-xs text-slate-500">
+                      {allPlayers.filter(p => p.deporte === cat && p.activo).length} jugadores
                     </div>
-                  ) : (
-                    currentGroup.messages
-                      .sort((a, b) => new Date(a.created_date) - new Date(b.created_date))
-                      .map((msg) => (
-                        <div key={msg.id} className="flex justify-end mb-1">
-                          <div className={`max-w-[80%] rounded-lg shadow-sm overflow-hidden ${
-                            currentGroup.tipo === 'interno' 
-                              ? 'bg-gradient-to-r from-purple-600 to-purple-700 text-white' 
-                              : 'bg-gradient-to-r from-blue-600 to-blue-700 text-white'
-                          } rounded-br-none`}>
-                            <div className="px-3 py-2">
-                              <div className="flex items-center gap-2 mb-1">
-                                <span className="text-xs font-semibold opacity-80">{msg.remitente_nombre}</span>
-                                {msg.prioridad !== "Normal" && (
-                                  <span className="text-xs">{msg.prioridad === "Urgente" ? "🔴" : "⚠️"}</span>
-                                )}
-                              </div>
-                              <p className="text-sm leading-relaxed">{msg.mensaje}</p>
-                              {msg.archivos_adjuntos?.length > 0 && (
-                                <div className="mt-2">
-                                  <MessageAttachments attachments={msg.archivos_adjuntos} />
+                  </div>
+                  {unread > 0 && (
+                    <Badge className="bg-red-500 text-white text-xs animate-pulse">{unread}</Badge>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Panel principal */}
+        <div className="lg:col-span-3 space-y-4">
+          {selectedCategory ? (
+            <>
+              {/* Sub-tabs dentro de cada categoría */}
+              <div className="bg-white rounded-xl shadow-md border p-3">
+                <div className="flex items-center justify-between mb-2">
+                  <h2 className="font-bold text-lg text-slate-900">
+                    {sportEmojis[selectedCategory] || "⚽"} {selectedCategory}
+                  </h2>
+                </div>
+                <Tabs value={chatSubMode} onValueChange={(v) => { setChatSubMode(v); setSelectedConversation(null); }}>
+                  <TabsList className="w-full">
+                    <TabsTrigger value="anuncios" className="flex-1 gap-2">
+                      <Users className="w-4 h-4" />
+                      📢 Anuncios Grupo
+                      <span className="text-[10px] text-slate-500 hidden md:inline">(todos ven)</span>
+                    </TabsTrigger>
+                    <TabsTrigger value="privado" className="flex-1 gap-2">
+                      <MessageCircle className="w-4 h-4" />
+                      🔒 Privado Familias
+                      {getUnreadCountForCategory(selectedCategory) > 0 && (
+                        <Badge className="bg-red-500 text-white text-xs ml-1">{getUnreadCountForCategory(selectedCategory)}</Badge>
+                      )}
+                    </TabsTrigger>
+                  </TabsList>
+                </Tabs>
+              </div>
+
+              {chatSubMode === "anuncios" ? (
+                /* SUB-MODO ANUNCIOS */
+                <div className="bg-white rounded-xl shadow-md border overflow-hidden flex flex-col" style={{ height: 'calc(70vh - 100px)' }}>
+                  <div className="bg-gradient-to-r from-blue-600 to-blue-700 p-3 text-white flex items-center gap-3 flex-shrink-0">
+                    <Users className="w-5 h-5" />
+                    <div>
+                      <h3 className="font-bold text-sm">Anuncios para {selectedCategory}</h3>
+                      <p className="text-xs text-blue-100">Todos los padres del grupo verán estos mensajes</p>
+                    </div>
+                  </div>
+
+                  <div className="flex-1 overflow-y-auto p-4 space-y-2" style={{ backgroundColor: '#e5ddd5' }}>
+                    {currentGroupMessages.length === 0 ? (
+                      <div className="flex items-center justify-center h-full">
+                        <div className="text-center text-slate-500 bg-white/80 rounded-xl p-6">
+                          <AlertCircle className="w-12 h-12 mx-auto mb-2 opacity-50" />
+                          <p className="text-sm">No hay anuncios</p>
+                        </div>
+                      </div>
+                    ) : (
+                      currentGroupMessages
+                        .sort((a, b) => new Date(a.created_date) - new Date(b.created_date))
+                        .map((msg) => (
+                          <div key={msg.id} className="flex justify-end mb-1">
+                            <div className="max-w-[80%] rounded-lg shadow-sm bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-br-none">
+                              <div className="px-3 py-2">
+                                <div className="flex items-center gap-2 mb-1">
+                                  <span className="text-xs font-semibold opacity-80">{msg.remitente_nombre}</span>
+                                  {msg.prioridad !== "Normal" && (
+                                    <span className="text-xs">{msg.prioridad === "Urgente" ? "🔴" : "⚠️"}</span>
+                                  )}
                                 </div>
-                              )}
-                              <div className="text-right mt-1">
-                                <span className="text-[10px] opacity-70">{format(new Date(msg.created_date), "HH:mm")}</span>
+                                <p className="text-sm leading-relaxed">{msg.mensaje}</p>
+                                {msg.archivos_adjuntos?.length > 0 && (
+                                  <div className="mt-2">
+                                    <MessageAttachments attachments={msg.archivos_adjuntos} />
+                                  </div>
+                                )}
+                                <div className="text-right mt-1">
+                                  <span className="text-[10px] opacity-70">{format(new Date(msg.created_date), "HH:mm")}</span>
+                                </div>
                               </div>
                             </div>
                           </div>
-                        </div>
-                      ))
-                  )}
-                  <div ref={messagesEndRef} />
-                </div>
+                        ))
+                    )}
+                    <div ref={messagesEndRef} />
+                  </div>
 
-                <div className="bg-white border-t p-3 flex-shrink-0">
-                  {currentGroup.tipo !== 'interno' && (
+                  <div className="bg-white border-t p-3 flex-shrink-0">
                     <div className="mb-2">
                       <Select value={priority} onValueChange={setPriority}>
                         <SelectTrigger className="h-9 text-sm">
@@ -357,209 +366,119 @@ export default function CoachChat() {
                         </SelectContent>
                       </Select>
                     </div>
-                  )}
-                  <div className="flex gap-2 items-end">
-                    <FileAttachmentButton
-                      onFileUploaded={(att) => setAttachments(prev => [...prev, att])}
-                      disabled={sendMessageMutation.isPending}
-                    />
-                    <Input
-                      value={messageContent}
-                      onChange={(e) => setMessageContent(e.target.value)}
-                      placeholder="Escribe un anuncio para el grupo..."
-                      className="flex-1 rounded-full"
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter' && !e.shiftKey) {
-                          e.preventDefault();
-                          handleSendGroupMessage();
-                        }
-                      }}
-                    />
-                    <Button
-                      onClick={handleSendGroupMessage}
-                      disabled={(!messageContent.trim() && attachments.length === 0) || sendMessageMutation.isPending}
-                      className={`rounded-full w-10 h-10 p-0 ${
-                        currentGroup.tipo === 'interno' 
-                          ? 'bg-purple-600 hover:bg-purple-700' 
-                          : 'bg-blue-600 hover:bg-blue-700'
-                      }`}
-                    >
-                      <Send className="w-4 h-4" />
-                    </Button>
+                    <div className="flex gap-2 items-end">
+                      <FileAttachmentButton
+                        onFileUploaded={(att) => setAttachments(prev => [...prev, att])}
+                        disabled={sendMessageMutation.isPending}
+                      />
+                      <Input
+                        value={messageContent}
+                        onChange={(e) => setMessageContent(e.target.value)}
+                        placeholder="Escribe un anuncio para el grupo..."
+                        className="flex-1 rounded-full"
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' && !e.shiftKey) {
+                            e.preventDefault();
+                            handleSendGroupMessage();
+                          }
+                        }}
+                      />
+                      <Button
+                        onClick={handleSendGroupMessage}
+                        disabled={(!messageContent.trim() && attachments.length === 0) || sendMessageMutation.isPending}
+                        className="rounded-full w-10 h-10 p-0 bg-blue-600 hover:bg-blue-700"
+                      >
+                        <Send className="w-4 h-4" />
+                      </Button>
+                    </div>
                   </div>
                 </div>
-              </>
-            ) : (
-              <div className="flex items-center justify-center h-full text-slate-500">
-                <div className="text-center">
-                  <Users className="w-16 h-16 mx-auto mb-4 opacity-30" />
-                  <p>Selecciona un grupo</p>
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-      ) : (
-        /* MODO PRIVADOS - Conversaciones 1 a 1 */
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
-          {/* Filtros y lista de conversaciones */}
-          <div className="lg:col-span-1 space-y-4">
-            {/* Filtros rápidos */}
-            <div className="bg-white rounded-xl shadow-md border overflow-hidden">
-              <div className="p-4 bg-gradient-to-r from-green-600 to-green-700 text-white">
-                <h3 className="font-bold">Conversaciones</h3>
-                <p className="text-xs text-green-100">{privateStats.activas} activas • {privateStats.noLeidas} sin leer</p>
-              </div>
-              <div className="p-2 border-b bg-slate-50">
-                <div className="flex gap-1">
-                  <Button
-                    size="sm"
-                    variant={privateFilter === "no_leidas" ? "default" : "ghost"}
-                    onClick={() => setPrivateFilter("no_leidas")}
-                    className={`flex-1 text-xs ${privateFilter === "no_leidas" ? "bg-red-600 hover:bg-red-700" : ""}`}
-                  >
-                    <Inbox className="w-3 h-3 mr-1" />
-                    Sin leer
-                    {privateStats.noLeidas > 0 && (
-                      <Badge className="ml-1 bg-white text-red-600 text-[10px] h-4 px-1">{privateStats.noLeidas}</Badge>
-                    )}
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant={privateFilter === "activas" ? "default" : "ghost"}
-                    onClick={() => setPrivateFilter("activas")}
-                    className={`flex-1 text-xs ${privateFilter === "activas" ? "bg-green-600 hover:bg-green-700" : ""}`}
-                  >
-                    <MessageCircle className="w-3 h-3 mr-1" />
-                    Activas
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant={privateFilter === "archivadas" ? "default" : "ghost"}
-                    onClick={() => setPrivateFilter("archivadas")}
-                    className={`flex-1 text-xs ${privateFilter === "archivadas" ? "bg-slate-600 hover:bg-slate-700" : ""}`}
-                  >
-                    <Archive className="w-3 h-3 mr-1" />
-                    Archivo
-                  </Button>
-                </div>
-              </div>
-              
-              {/* Filtro por categoría opcional */}
-              <div className="p-2 border-b">
-                <Select value={selectedCategory || "todas"} onValueChange={(v) => setSelectedCategory(v === "todas" ? null : v)}>
-                  <SelectTrigger className="h-8 text-xs">
-                    <SelectValue placeholder="Todas las categorías" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="todas">📋 Todas las categorías</SelectItem>
-                    {myCategories.filter(c => c !== "Chat Interno Entrenadores").map(cat => (
-                      <SelectItem key={cat} value={cat}>
-                        {sportEmojis[cat] || "📋"} {cat}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {/* Lista de conversaciones */}
-              <div className="divide-y max-h-[calc(70vh-220px)] overflow-y-auto">
-                {filteredPrivateConversations.length === 0 ? (
-                  <div className="p-6 text-center text-slate-500">
-                    <MessageCircle className="w-10 h-10 mx-auto mb-2 opacity-30" />
-                    <p className="text-sm font-medium">
-                      {privateFilter === "no_leidas" ? "No hay mensajes sin leer" :
-                       privateFilter === "archivadas" ? "No hay conversaciones archivadas" :
-                       "No hay conversaciones activas"}
-                    </p>
-                    <p className="text-xs mt-1">Las familias aparecerán aquí cuando te escriban</p>
-                  </div>
-                ) : (
-                  filteredPrivateConversations.map(conv => (
-                    <button
-                      key={conv.id}
-                      onClick={() => setSelectedConversation(conv)}
-                      className={`w-full p-3 flex items-center gap-3 transition-colors text-left ${
-                        selectedConversation?.id === conv.id 
-                          ? 'bg-green-50 border-l-4 border-l-green-600' 
-                          : 'hover:bg-slate-50 border-l-4 border-l-transparent'
-                      }`}
-                    >
-                      <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${
-                        (conv.no_leidos_staff || 0) > 0 ? 'bg-green-600 text-white' : 'bg-slate-200'
-                      }`}>
-                        <User className="w-5 h-5" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="font-semibold text-slate-900 truncate text-sm">
-                          {conv.participante_familia_nombre || conv.participante_familia_email?.split('@')[0]}
+              ) : (
+                /* SUB-MODO PRIVADO */
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                  {/* Lista de conversaciones privadas */}
+                  <div className="lg:col-span-1 bg-white rounded-xl shadow-md border overflow-hidden" style={{ height: 'calc(70vh - 100px)' }}>
+                    <div className="bg-gradient-to-r from-green-600 to-green-700 p-3 text-white">
+                      <h3 className="font-bold text-sm">Familias con chat activo</h3>
+                      <p className="text-xs text-green-100">Solo aparecen las que te escribieron</p>
+                    </div>
+                    <div className="divide-y overflow-y-auto" style={{ maxHeight: 'calc(100% - 60px)' }}>
+                      {categoryPrivateConversations.length === 0 ? (
+                        <div className="p-6 text-center text-slate-500">
+                          <MessageCircle className="w-10 h-10 mx-auto mb-2 opacity-30" />
+                          <p className="text-sm font-medium">Sin mensajes privados</p>
+                          <p className="text-xs mt-1">Las familias pueden escribirte desde su app</p>
                         </div>
-                        <div className="text-[10px] text-slate-500 truncate">
-                          {sportEmojis[conv.categoria] || "📋"} {conv.categoria}
-                        </div>
-                        {conv.ultimo_mensaje && (
-                          <div className="text-xs text-slate-400 truncate">
-                            {conv.ultimo_mensaje_de === 'staff' ? '↩️ ' : '📩 '}{conv.ultimo_mensaje}
-                          </div>
-                        )}
-                      </div>
-                      {(conv.no_leidos_staff || 0) > 0 && (
-                        <Badge className="bg-green-600 text-white text-xs animate-pulse">{conv.no_leidos_staff}</Badge>
+                      ) : (
+                        categoryPrivateConversations.map(conv => (
+                          <button
+                            key={conv.id}
+                            onClick={() => setSelectedConversation(conv)}
+                            className={`w-full p-3 flex items-center gap-3 transition-colors text-left ${
+                              selectedConversation?.id === conv.id 
+                                ? 'bg-green-50 border-l-4 border-l-green-600' 
+                                : 'hover:bg-slate-50 border-l-4 border-l-transparent'
+                            }`}
+                          >
+                            <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${
+                              (conv.no_leidos_staff || 0) > 0 ? 'bg-green-600 text-white' : 'bg-slate-200'
+                            }`}>
+                              <User className="w-5 h-5" />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <div className="font-semibold text-slate-900 truncate text-sm">
+                                {conv.participante_familia_nombre || conv.participante_familia_email?.split('@')[0]}
+                              </div>
+                              {conv.ultimo_mensaje && (
+                                <div className="text-xs text-slate-400 truncate">
+                                  {conv.ultimo_mensaje_de === 'staff' ? '↩️ ' : '📩 '}{conv.ultimo_mensaje}
+                                </div>
+                              )}
+                            </div>
+                            {(conv.no_leidos_staff || 0) > 0 && (
+                              <Badge className="bg-green-600 text-white text-xs animate-pulse">{conv.no_leidos_staff}</Badge>
+                            )}
+                          </button>
+                        ))
                       )}
-                    </button>
-                  ))
-                )}
-              </div>
-            </div>
-          </div>
+                    </div>
+                  </div>
 
-          {/* Chat privado */}
-          <div className="lg:col-span-3 bg-white rounded-xl shadow-md border overflow-hidden flex flex-col" style={{ height: '70vh' }}>
-            {selectedConversation ? (
-              <>
-                <PrivateChatPanel
-                  conversation={selectedConversation}
-                  messages={privateMessages}
-                  user={user}
-                  isStaff={true}
-                  onClose={() => setSelectedConversation(null)}
-                  onMessageSent={handlePrivateMessageSent}
-                />
-                {/* Botón archivar/restaurar */}
-                <div className="bg-slate-50 border-t p-2 flex justify-end">
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={() => archiveConversationMutation.mutate({ 
-                      convId: selectedConversation.id, 
-                      archive: !selectedConversation.archivada 
-                    })}
-                    className={selectedConversation.archivada ? "text-green-600 hover:text-green-700" : "text-slate-500 hover:text-slate-700"}
-                  >
-                    <Archive className="w-4 h-4 mr-2" />
-                    {selectedConversation.archivada ? "Restaurar conversación" : "Archivar conversación"}
-                  </Button>
+                  {/* Chat privado */}
+                  <div className="lg:col-span-2 bg-white rounded-xl shadow-md border overflow-hidden" style={{ height: 'calc(70vh - 100px)' }}>
+                    {selectedConversation ? (
+                      <PrivateChatPanel
+                        conversation={selectedConversation}
+                        messages={privateMessages}
+                        user={user}
+                        isStaff={true}
+                        onClose={() => setSelectedConversation(null)}
+                        onMessageSent={handlePrivateMessageSent}
+                      />
+                    ) : (
+                      <div className="flex items-center justify-center h-full text-slate-500">
+                        <div className="text-center">
+                          <MessageCircle className="w-12 h-12 mx-auto mb-3 opacity-30" />
+                          <p className="font-medium">Mensajes Privados</p>
+                          <p className="text-xs mt-2 max-w-xs mx-auto">
+                            Solo tú y la familia ven estos mensajes. Selecciona una conversación de la izquierda.
+                          </p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 </div>
-              </>
-            ) : (
-              <div className="flex items-center justify-center h-full text-slate-500">
-                <div className="text-center">
-                  <MessageCircle className="w-16 h-16 mx-auto mb-4 opacity-30" />
-                  <p className="font-medium">Chats Privados con Familias</p>
-                  <p className="text-sm mt-2">
-                    {privateStats.noLeidas > 0 
-                      ? `Tienes ${privateStats.noLeidas} mensaje(s) sin leer`
-                      : "No tienes mensajes pendientes"}
-                  </p>
-                  <p className="text-xs text-slate-400 mt-4 max-w-xs mx-auto">
-                    Las familias pueden escribirte desde su app. Solo verás las conversaciones activas (no las 120 familias).
-                  </p>
-                </div>
-              </div>
-            )}
-          </div>
+              )}
+            </>
+          ) : (
+            <div className="bg-white rounded-xl shadow-md border p-12 text-center">
+              <Users className="w-16 h-16 mx-auto mb-4 text-slate-300" />
+              <p className="text-slate-600 font-medium">Selecciona una categoría</p>
+              <p className="text-sm text-slate-400 mt-2">Elige un equipo de la izquierda para ver sus chats</p>
+            </div>
+          )}
         </div>
-      )}
+      </div>
     </div>
   );
 }
