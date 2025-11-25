@@ -25,7 +25,16 @@ const getCurrentSeason = () => {
   const now = new Date();
   const year = now.getFullYear();
   const month = now.getMonth() + 1;
+  // Formato consistente con los datos: "2025/2026" (no "2024/2025")
   return month >= 9 ? `${year}/${year + 1}` : `${year - 1}/${year}`;
+};
+
+// Obtener todas las temporadas únicas de los pagos para usar como default
+const getDefaultSeason = (payments) => {
+  if (!payments || payments.length === 0) return getCurrentSeason();
+  const seasons = [...new Set(payments.map(p => p.temporada).filter(Boolean))];
+  // Si hay pagos, usar la temporada más reciente
+  return seasons.sort().reverse()[0] || getCurrentSeason();
 };
 
 const calculateDaysOverdue = (mes) => {
