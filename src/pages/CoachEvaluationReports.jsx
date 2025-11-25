@@ -601,72 +601,7 @@ CD Bustarviejo
         </TabsContent>
 
         <TabsContent value="detalle" className="space-y-4">
-          {allEvaluations.length === 0 ? (
-            <Card>
-              <CardContent className="py-12 text-center">
-                <p className="text-slate-500">No hay evaluaciones disponibles</p>
-              </CardContent>
-            </Card>
-          ) : (
-            <Card>
-              <CardContent className="p-0">
-                <div className="overflow-x-auto">
-                  <table className="w-full">
-                    <thead className="bg-slate-100 border-b">
-                      <tr>
-                        <th className="p-3 text-left text-xs font-semibold text-slate-700">Fecha</th>
-                        <th className="p-3 text-left text-xs font-semibold text-slate-700">Jugador</th>
-                        <th className="p-3 text-left text-xs font-semibold text-slate-700">Categoría</th>
-                        <th className="p-3 text-left text-xs font-semibold text-slate-700">Entrenador</th>
-                        <th className="p-3 text-center text-xs font-semibold text-slate-700">Actitud</th>
-                        <th className="p-3 text-left text-xs font-semibold text-slate-700">Observaciones</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {allEvaluations.map((ev, idx) => (
-                        <tr key={idx} className="border-b hover:bg-slate-50">
-                          <td className="p-3 text-xs">
-                            <div className="flex items-center gap-2">
-                              <Calendar className="w-4 h-4 text-slate-400" />
-                              {format(new Date(ev.fecha), "dd MMM yyyy", { locale: es })}
-                            </div>
-                          </td>
-                          <td className="p-3">
-                            <div className="flex items-center gap-2">
-                              {ev.jugador.foto_url ? (
-                                <img src={ev.jugador.foto_url} className="w-8 h-8 rounded-full object-cover" alt="" />
-                              ) : (
-                                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center text-white text-xs font-bold">
-                                  {ev.jugador.nombre.charAt(0)}
-                                </div>
-                              )}
-                              <span className="text-xs font-medium">{ev.jugador.nombre}</span>
-                            </div>
-                          </td>
-                          <td className="p-3 text-xs text-slate-600">{ev.categoria}</td>
-                          <td className="p-3">
-                            <div className="flex items-center gap-2">
-                              <User className="w-4 h-4 text-slate-400" />
-                              <span className="text-xs">{ev.entrenador_nombre}</span>
-                            </div>
-                          </td>
-                          <td className="p-3 text-center">
-                            <div className="inline-flex items-center gap-1 bg-orange-50 px-2 py-1 rounded">
-                              <Star className="w-4 h-4 text-orange-500 fill-orange-500" />
-                              <span className="text-xs font-bold text-orange-600">{ev.actitud}/5</span>
-                            </div>
-                          </td>
-                          <td className="p-3 text-xs text-slate-600">
-                            {ev.observaciones || <span className="text-slate-400">-</span>}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </CardContent>
-            </Card>
-          )}
+          <ChronologicalDetail evaluations={allEvaluations} />
         </TabsContent>
       </Tabs>
     </div>
