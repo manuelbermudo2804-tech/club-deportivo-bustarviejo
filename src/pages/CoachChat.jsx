@@ -220,15 +220,8 @@ export default function CoachChat() {
   // Verificar si es chat interno staff
   const isStaffChat = selectedCategory === "Chat Interno Staff";
 
-  // Para coordinación, forzar modo privado; para staff chat, forzar anuncios
-  // Solo ejecutar cuando cambia la categoría seleccionada
-  useEffect(() => {
-    if (selectedCategory === "Coordinación Deportiva") {
-      setChatSubMode("privado");
-    } else if (selectedCategory === "Chat Interno Staff") {
-      setChatSubMode("anuncios");
-    }
-  }, [selectedCategory]);
+  // Determinar el modo efectivo del chat (forzado para coordinación y staff)
+  const effectiveChatMode = isCoordinationChat ? "privado" : (isStaffChat ? "anuncios" : chatSubMode);
 
   const handleSendGroupMessage = () => {
     if (!user || !selectedCategory) return;
@@ -378,7 +371,7 @@ export default function CoachChat() {
                 )}
               </div>
 
-              {chatSubMode === "anuncios" ? (
+              {effectiveChatMode === "anuncios" ? (
                 /* SUB-MODO ANUNCIOS */
                 <div className="bg-white rounded-xl shadow-md border overflow-hidden flex flex-col" style={{ height: 'calc(70vh - 100px)' }}>
                   <div className={`p-3 text-white flex items-center gap-3 flex-shrink-0 ${
