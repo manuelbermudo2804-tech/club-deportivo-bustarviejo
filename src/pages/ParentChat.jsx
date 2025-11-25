@@ -46,19 +46,48 @@ export default function ParentChat() {
 
   const { data: allUsers = [], isLoading: loadingUsers } = useQuery({
     queryKey: ['allUsers'],
-    queryFn: () => base44.entities.User.list(),
+    queryFn: async () => {
+      try {
+        // Intentar obtener todos los usuarios (funciona para admins)
+        const users = await base44.entities.User.list();
+        return users;
+      } catch (error) {
+        // Si falla por permisos, buscar solo coordinadores
+        console.log('No se pudo listar usuarios, buscando coordinador específico');
+        return [];
+      }
+    },
   });
 
-  // Encontrar al coordinador
+  // Query específica para encontrar al coordinador (usando filter que puede tener permisos diferentes)
+  const { data: coordinatorData = [], isLoading: loadingCoordinator } = useQuery({
+    queryKey: ['coordinator'],
+    queryFn: async () => {
+      try {
+        const coordinators = await base44.entities.User.filter({ es_coordinador: true });
+        return coordinators;
+      } catch (error) {
+        console.log('Error buscando coordinador:', error);
+        return [];
+      }
+    },
+  });
+
+  // Encontrar al coordinador - primero busca en la query específica, luego en allUsers
   const coordinator = useMemo(() => {
+    // Primero intentar desde la query específica de coordinadores
+    if (coordinatorData.length > 0) {
+      console.log('✅ Coordinador encontrado via filter:', coordinatorData[0].email);
+      return coordinatorData[0];
+    }
+    // Fallback a buscar en allUsers
     const found = allUsers.find(u => u.es_coordinador === true);
-    console.log('🔍 Buscando coordinador:', { 
+    console.log('🔍 Buscando coordinador en allUsers:', { 
       totalUsers: allUsers.length, 
-      found: found?.email,
-      allUsersWithCoord: allUsers.filter(u => u.es_coordinador).map(u => u.email)
+      found: found?.email
     });
     return found;
-  }, [allUsers]);
+  }, [allUsers, coordinatorData]);
 
   const { data: privateConversations = [], refetch: refetchConversations, isLoading: loadingConversations } = useQuery({
     queryKey: ['myPrivateConversations', user?.email],
@@ -237,7 +266,7 @@ export default function ParentChat() {
     "Baloncesto (Mixto)": "🏀"
   };
 
-  if (loadingMessages || loadingPlayers || loadingConversations || loadingUsers || !user) {
+  if (loadingMessages || loadingPlayers || loadingConversations || loadingUsers || loadingCoordinator || !user) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-slate-50">
         <div className="text-center p-6">
