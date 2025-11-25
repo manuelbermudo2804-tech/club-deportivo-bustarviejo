@@ -774,17 +774,17 @@ Email: cdbustarviejo@gmail.com
                       <td className="p-2">
                         <div className="flex gap-1 justify-center">
                           {[
-                            { value: 'presente', icon: CheckCircle2, color: 'text-green-600', bg: 'bg-green-100', label: 'Presente' },
-                            { value: 'ausente', icon: XCircle, color: 'text-red-600', bg: 'bg-red-100', label: 'Ausente' },
-                            { value: 'justificado', icon: Clock, color: 'text-blue-600', bg: 'bg-blue-100', label: 'Justificado' },
-                            { value: 'tardanza', icon: Clock, color: 'text-orange-600', bg: 'bg-orange-100', label: 'Tardanza' }
-                          ].map(({ value, icon: Icon, color, bg, label }) => {
+                            { value: 'presente', icon: CheckCircle2, color: 'text-green-600', bg: 'bg-green-100', label: 'Presente', tooltip: '✅ Asistió al entrenamiento' },
+                            { value: 'ausente', icon: XCircle, color: 'text-red-600', bg: 'bg-red-100', label: 'Ausente', tooltip: '❌ No asistió sin justificación' },
+                            { value: 'justificado', icon: Clock, color: 'text-blue-600', bg: 'bg-blue-100', label: 'Justificado', tooltip: '📝 Falta con justificación (médico, etc.)' },
+                            { value: 'tardanza', icon: Clock, color: 'text-orange-600', bg: 'bg-orange-100', label: 'Tardanza', tooltip: '⏰ Llegó tarde al entrenamiento' }
+                          ].map(({ value, icon: Icon, color, bg, label, tooltip }) => {
                             const isSelected = playerData.asistencia === value;
                             return (
                               <button
                                 key={value}
                                 onClick={() => handleChange(player.id, 'asistencia', value)}
-                                title={label}
+                                title={tooltip}
                                 className={`p-2 rounded transition-all ${
                                   isSelected ? `${bg} ${color} ring-2 ring-offset-1` : 'bg-slate-100 text-slate-400 hover:bg-slate-200'
                                 }`}
