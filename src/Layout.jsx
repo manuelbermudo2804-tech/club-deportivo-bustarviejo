@@ -508,7 +508,7 @@ export default function Layout({ children, currentPageName }) {
   });
   const [showWelcome, setShowWelcome] = useState(false);
   const [loteriaVisible, setLoteriaVisible] = useState(false);
-  
+  const [showOnboarding, setShowOnboarding] = useState(false);
   const [isRedirecting, setIsRedirecting] = useState(false);
 
   const handleLanguageChange = (newLang) => {
