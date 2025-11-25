@@ -54,7 +54,7 @@ export default function ParentChat() {
     return allUsers.find(u => u.es_coordinador === true);
   }, [allUsers]);
 
-  const { data: privateConversations = [], refetch: refetchConversations } = useQuery({
+  const { data: privateConversations = [], refetch: refetchConversations, isLoading: loadingConversations } = useQuery({
     queryKey: ['myPrivateConversations', user?.email],
     queryFn: () => user ? base44.entities.PrivateConversation.filter({ participante_familia_email: user.email }, '-ultimo_mensaje_fecha') : [],
     enabled: !!user?.email,
