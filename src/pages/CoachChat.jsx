@@ -525,55 +525,115 @@ export default function CoachChat() {
       ) : (
         /* MODO PRIVADOS - Conversaciones 1 a 1 */
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
-          {/* Selector de categoría */}
+          {/* Filtros y lista de conversaciones */}
           <div className="lg:col-span-1 space-y-4">
+            {/* Filtros rápidos */}
             <div className="bg-white rounded-xl shadow-md border overflow-hidden">
               <div className="p-4 bg-gradient-to-r from-green-600 to-green-700 text-white">
-                <h3 className="font-bold">Categorías</h3>
-                <p className="text-xs text-green-100">Selecciona un equipo</p>
+                <h3 className="font-bold">Conversaciones</h3>
+                <p className="text-xs text-green-100">{privateStats.activas} activas • {privateStats.noLeidas} sin leer</p>
               </div>
-              <div className="divide-y max-h-40 overflow-y-auto">
-                {myCategories.filter(c => c !== "Chat Interno Entrenadores").map(cat => {
-                  const catConvs = privateConversations.filter(c => c.categoria === cat);
-                  const catUnread = catConvs.reduce((sum, c) => sum + (c.no_leidos_staff || 0), 0);
-                  
-                  return (
+              <div className="p-2 border-b bg-slate-50">
+                <div className="flex gap-1">
+                  <Button
+                    size="sm"
+                    variant={privateFilter === "no_leidas" ? "default" : "ghost"}
+                    onClick={() => setPrivateFilter("no_leidas")}
+                    className={`flex-1 text-xs ${privateFilter === "no_leidas" ? "bg-red-600 hover:bg-red-700" : ""}`}
+                  >
+                    <Inbox className="w-3 h-3 mr-1" />
+                    Sin leer
+                    {privateStats.noLeidas > 0 && (
+                      <Badge className="ml-1 bg-white text-red-600 text-[10px] h-4 px-1">{privateStats.noLeidas}</Badge>
+                    )}
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant={privateFilter === "activas" ? "default" : "ghost"}
+                    onClick={() => setPrivateFilter("activas")}
+                    className={`flex-1 text-xs ${privateFilter === "activas" ? "bg-green-600 hover:bg-green-700" : ""}`}
+                  >
+                    <MessageCircle className="w-3 h-3 mr-1" />
+                    Activas
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant={privateFilter === "archivadas" ? "default" : "ghost"}
+                    onClick={() => setPrivateFilter("archivadas")}
+                    className={`flex-1 text-xs ${privateFilter === "archivadas" ? "bg-slate-600 hover:bg-slate-700" : ""}`}
+                  >
+                    <Archive className="w-3 h-3 mr-1" />
+                    Archivo
+                  </Button>
+                </div>
+              </div>
+              
+              {/* Filtro por categoría opcional */}
+              <div className="p-2 border-b">
+                <Select value={selectedCategory || "todas"} onValueChange={(v) => setSelectedCategory(v === "todas" ? null : v)}>
+                  <SelectTrigger className="h-8 text-xs">
+                    <SelectValue placeholder="Todas las categorías" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="todas">📋 Todas las categorías</SelectItem>
+                    {myCategories.filter(c => c !== "Chat Interno Entrenadores").map(cat => (
+                      <SelectItem key={cat} value={cat}>
+                        {sportEmojis[cat] || "📋"} {cat}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Lista de conversaciones */}
+              <div className="divide-y max-h-[calc(70vh-220px)] overflow-y-auto">
+                {filteredPrivateConversations.length === 0 ? (
+                  <div className="p-6 text-center text-slate-500">
+                    <MessageCircle className="w-10 h-10 mx-auto mb-2 opacity-30" />
+                    <p className="text-sm font-medium">
+                      {privateFilter === "no_leidas" ? "No hay mensajes sin leer" :
+                       privateFilter === "archivadas" ? "No hay conversaciones archivadas" :
+                       "No hay conversaciones activas"}
+                    </p>
+                    <p className="text-xs mt-1">Las familias aparecerán aquí cuando te escriban</p>
+                  </div>
+                ) : (
+                  filteredPrivateConversations.map(conv => (
                     <button
-                      key={cat}
-                      onClick={() => {
-                        setSelectedCategory(cat);
-                        setSelectedConversation(null);
-                      }}
-                      className={`w-full p-3 flex items-center gap-2 text-left transition-colors ${
-                        selectedCategory === cat ? 'bg-green-50 border-l-4 border-l-green-600' : 'hover:bg-slate-50 border-l-4 border-l-transparent'
+                      key={conv.id}
+                      onClick={() => setSelectedConversation(conv)}
+                      className={`w-full p-3 flex items-center gap-3 transition-colors text-left ${
+                        selectedConversation?.id === conv.id 
+                          ? 'bg-green-50 border-l-4 border-l-green-600' 
+                          : 'hover:bg-slate-50 border-l-4 border-l-transparent'
                       }`}
                     >
-                      <span>{sportEmojis[cat] || "📋"}</span>
-                      <span className="flex-1 text-sm font-medium truncate">{cat}</span>
-                      {catUnread > 0 && (
-                        <Badge className="bg-red-500 text-white text-xs">{catUnread}</Badge>
+                      <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${
+                        (conv.no_leidos_staff || 0) > 0 ? 'bg-green-600 text-white' : 'bg-slate-200'
+                      }`}>
+                        <User className="w-5 h-5" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="font-semibold text-slate-900 truncate text-sm">
+                          {conv.participante_familia_nombre || conv.participante_familia_email?.split('@')[0]}
+                        </div>
+                        <div className="text-[10px] text-slate-500 truncate">
+                          {sportEmojis[conv.categoria] || "📋"} {conv.categoria}
+                        </div>
+                        {conv.ultimo_mensaje && (
+                          <div className="text-xs text-slate-400 truncate">
+                            {conv.ultimo_mensaje_de === 'staff' ? '↩️ ' : '📩 '}{conv.ultimo_mensaje}
+                          </div>
+                        )}
+                      </div>
+                      {(conv.no_leidos_staff || 0) > 0 && (
+                        <Badge className="bg-green-600 text-white text-xs animate-pulse">{conv.no_leidos_staff}</Badge>
                       )}
                     </button>
-                  );
-                })}
+                  ))
+                )}
               </div>
             </div>
-
-            {/* Lista de familias */}
-            {selectedCategory && (
-              <div className="bg-white rounded-xl shadow-md border overflow-hidden" style={{ height: 'calc(70vh - 200px)' }}>
-                <FamilyListPanel
-                  conversations={filteredPrivateConversations}
-                  families={[]}
-                  players={allPlayers}
-                  categoria={selectedCategory}
-                  user={user}
-                  selectedConversationId={selectedConversation?.id}
-                  onSelectConversation={setSelectedConversation}
-                  onStartNewConversation={handleStartNewConversation}
-                />
-              </div>
-            )}
           </div>
 
           {/* Chat privado */}
