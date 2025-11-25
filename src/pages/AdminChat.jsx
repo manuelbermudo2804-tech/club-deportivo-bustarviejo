@@ -207,6 +207,30 @@ export default function AdminChat() {
   const groups = useMemo(() => {
     const groupsMap = {};
     
+    // Agregar Chat Interno Entrenadores para que admin lo vea
+    groupsMap["Chat Interno Entrenadores"] = {
+      id: "Chat Interno Entrenadores",
+      deporte: "Chat Interno Entrenadores",
+      players: [],
+      messages: [],
+      unreadCount: 0,
+      urgentCount: 0,
+      lastMessageDate: null,
+      tipo: 'interno'
+    };
+
+    // Agregar Coordinación Deportiva para que admin lo vea
+    groupsMap["Coordinación Deportiva"] = {
+      id: "Coordinación Deportiva",
+      deporte: "Coordinación Deportiva",
+      players: [],
+      messages: [],
+      unreadCount: 0,
+      urgentCount: 0,
+      lastMessageDate: null,
+      tipo: 'coordinacion'
+    };
+    
     players.forEach(player => {
       const deporteNormalizado = normalizeDeporte(player.deporte);
       if (!deporteNormalizado) return;
@@ -231,9 +255,6 @@ export default function AdminChat() {
       
       if (!deporteNormalizado) return;
       
-      // Filtrar grupo de Coordinación Deportiva (es solo para padres)
-      if (deporteNormalizado === "Coordinación Deportiva") return;
-      
       if (!groupsMap[deporteNormalizado]) {
         groupsMap[deporteNormalizado] = {
           id: deporteNormalizado,
@@ -249,10 +270,20 @@ export default function AdminChat() {
       if (!groupsMap[deporteNormalizado].messages.find(m => m.id === msg.id)) {
         groupsMap[deporteNormalizado].messages.push(msg);
         
-        if (!msg.leido && msg.tipo === "padre_a_grupo") {
-          groupsMap[deporteNormalizado].unreadCount++;
-          if (msg.prioridad === "Urgente") {
-            groupsMap[deporteNormalizado].urgentCount++;
+        // Contar no leídos según el tipo de grupo
+        const esInterno = deporteNormalizado === "Chat Interno Entrenadores";
+        const esCoordinacion = deporteNormalizado === "Coordinación Deportiva";
+        
+        if (!msg.leido) {
+          if (esInterno && msg.remitente_email !== user?.email) {
+            groupsMap[deporteNormalizado].unreadCount++;
+          } else if (esCoordinacion && msg.tipo === "padre_a_grupo") {
+            groupsMap[deporteNormalizado].unreadCount++;
+          } else if (!esInterno && !esCoordinacion && msg.tipo === "padre_a_grupo") {
+            groupsMap[deporteNormalizado].unreadCount++;
+            if (msg.prioridad === "Urgente") {
+              groupsMap[deporteNormalizado].urgentCount++;
+            }
           }
         }
         
@@ -264,7 +295,7 @@ export default function AdminChat() {
     });
 
     return groupsMap;
-  }, [messages, players]);
+  }, [messages, players, user]);
 
   const sortedGroups = useMemo(() => {
     return Object.values(groups).sort((a, b) => {
