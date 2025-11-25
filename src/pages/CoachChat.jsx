@@ -79,51 +79,26 @@ export default function CoachChat() {
     return user.categorias_entrena || [];
   }, [user, allPlayers, isAdmin]);
 
-  // Conversaciones privadas filtradas - SOLO las que tienen mensajes (activas)
-  const filteredPrivateConversations = useMemo(() => {
-    let convs = privateConversations.filter(conv => {
-      // Filtrar por staff
+  // Conversaciones privadas de la categoría seleccionada (solo activas, no archivadas)
+  const categoryPrivateConversations = useMemo(() => {
+    if (!selectedCategory) return [];
+    return privateConversations.filter(conv => {
       if (!isAdmin && conv.participante_staff_email !== user?.email) return false;
-      // Filtrar por categoría si está seleccionada
-      if (selectedCategory && conv.categoria !== selectedCategory) return false;
+      if (conv.categoria !== selectedCategory) return false;
+      if (conv.archivada) return false;
       return true;
     });
-    
-    // Aplicar filtro de estado
-    if (privateFilter === "activas") {
-      convs = convs.filter(c => !c.archivada);
-    } else if (privateFilter === "no_leidas") {
-      convs = convs.filter(c => !c.archivada && (c.no_leidos_staff || 0) > 0);
-    } else if (privateFilter === "archivadas") {
-      convs = convs.filter(c => c.archivada);
-    }
-    
-    return convs;
-  }, [privateConversations, selectedCategory, isAdmin, user, privateFilter]);
+  }, [privateConversations, selectedCategory, isAdmin, user]);
 
-  // Contadores para badges
-  const privateStats = useMemo(() => {
-    const myConvs = privateConversations.filter(conv => 
-      isAdmin || conv.participante_staff_email === user?.email
-    );
-    return {
-      activas: myConvs.filter(c => !c.archivada).length,
-      noLeidas: myConvs.filter(c => !c.archivada && (c.no_leidos_staff || 0) > 0).length,
-      archivadas: myConvs.filter(c => c.archivada).length
-    };
-  }, [privateConversations, isAdmin, user]);
-
-  // Mutation para archivar/desarchivar
-  const archiveConversationMutation = useMutation({
-    mutationFn: async ({ convId, archive }) => {
-      await base44.entities.PrivateConversation.update(convId, { archivada: archive });
-    },
-    onSuccess: () => {
-      refetchConversations();
-      toast.success(selectedConversation?.archivada ? "Conversación restaurada" : "Conversación archivada");
-      setSelectedConversation(null);
-    }
-  });
+  // Contador de no leídos por categoría
+  const getUnreadCountForCategory = (categoria) => {
+    return privateConversations.filter(c => 
+      c.categoria === categoria && 
+      !c.archivada && 
+      (c.no_leidos_staff || 0) > 0 &&
+      (isAdmin || c.participante_staff_email === user?.email)
+    ).reduce((sum, c) => sum + (c.no_leidos_staff || 0), 0);
+  };
 
   const sendMessageMutation = useMutation({
     mutationFn: async (messageData) => {
