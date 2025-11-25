@@ -64,25 +64,6 @@ export default function PrivateChatPanel({
       };
       await base44.entities.PrivateConversation.update(conversation.id, updateConv);
       
-      // Enviar email de notificación al destinatario
-      const destinatarioEmail = isStaff 
-        ? conversation.participante_familia_email 
-        : conversation.participante_staff_email;
-      const destinatarioNombre = isStaff 
-        ? conversation.participante_familia_nombre 
-        : conversation.participante_staff_nombre;
-      const remitenteRol = isStaff 
-        ? (conversation.categoria === "Coordinación Deportiva" ? "el Coordinador Deportivo" : "el Entrenador")
-        : "una familia";
-      
-      if (destinatarioEmail) {
-        base44.integrations.Core.SendEmail({
-          to: destinatarioEmail,
-          subject: `💬 CD Bustarviejo - Nuevo mensaje privado`,
-          body: `Hola ${destinatarioNombre || ''},\n\nTienes un nuevo mensaje privado de ${remitenteRol} en la app del CD Bustarviejo.\n\n"${messageData.mensaje.substring(0, 200)}${messageData.mensaje.length > 200 ? '...' : ''}"\n\nAccede a la app para ver y responder.\n\n---\nCD Bustarviejo`
-        }).catch(console.error);
-      }
-      
       return newMessage;
     },
     onSuccess: () => {
