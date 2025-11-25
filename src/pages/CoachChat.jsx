@@ -637,28 +637,45 @@ export default function CoachChat() {
           </div>
 
           {/* Chat privado */}
-          <div className="lg:col-span-3 bg-white rounded-xl shadow-md border overflow-hidden" style={{ height: '70vh' }}>
+          <div className="lg:col-span-3 bg-white rounded-xl shadow-md border overflow-hidden flex flex-col" style={{ height: '70vh' }}>
             {selectedConversation ? (
-              <PrivateChatPanel
-                conversation={selectedConversation}
-                messages={privateMessages}
-                user={user}
-                isStaff={true}
-                onClose={() => setSelectedConversation(null)}
-                onMessageSent={handlePrivateMessageSent}
-              />
+              <>
+                <PrivateChatPanel
+                  conversation={selectedConversation}
+                  messages={privateMessages}
+                  user={user}
+                  isStaff={true}
+                  onClose={() => setSelectedConversation(null)}
+                  onMessageSent={handlePrivateMessageSent}
+                />
+                {/* Botón archivar/restaurar */}
+                <div className="bg-slate-50 border-t p-2 flex justify-end">
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => archiveConversationMutation.mutate({ 
+                      convId: selectedConversation.id, 
+                      archive: !selectedConversation.archivada 
+                    })}
+                    className={selectedConversation.archivada ? "text-green-600 hover:text-green-700" : "text-slate-500 hover:text-slate-700"}
+                  >
+                    <Archive className="w-4 h-4 mr-2" />
+                    {selectedConversation.archivada ? "Restaurar conversación" : "Archivar conversación"}
+                  </Button>
+                </div>
+              </>
             ) : (
               <div className="flex items-center justify-center h-full text-slate-500">
                 <div className="text-center">
                   <MessageCircle className="w-16 h-16 mx-auto mb-4 opacity-30" />
-                  <p className="font-medium">Chats Privados</p>
+                  <p className="font-medium">Chats Privados con Familias</p>
                   <p className="text-sm mt-2">
-                    {selectedCategory 
-                      ? "Selecciona una familia para chatear" 
-                      : "Selecciona una categoría primero"}
+                    {privateStats.noLeidas > 0 
+                      ? `Tienes ${privateStats.noLeidas} mensaje(s) sin leer`
+                      : "No tienes mensajes pendientes"}
                   </p>
                   <p className="text-xs text-slate-400 mt-4 max-w-xs mx-auto">
-                    Los mensajes privados solo los ve la familia seleccionada, no el resto del grupo
+                    Las familias pueden escribirte desde su app. Solo verás las conversaciones activas (no las 120 familias).
                   </p>
                 </div>
               </div>
