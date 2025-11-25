@@ -93,6 +93,8 @@ export default function PlayerForm({ player, onSubmit, onCancel, isSubmitting, i
         grupo_sanguineo: "",
         contacto_emergencia_nombre: "",
         contacto_emergencia_telefono: "",
+        contacto_emergencia_2_nombre: "",
+        contacto_emergencia_2_telefono: "",
         lesiones: "",
         observaciones_medicas: ""
       }
@@ -764,9 +766,9 @@ export default function PlayerForm({ player, onSubmit, onCancel, isSubmitting, i
                   />
                 </div>
 
-                {/* Contacto Emergencia Nombre */}
+                {/* Contacto Emergencia 1 - Nombre */}
                 <div className="space-y-2">
-                  <Label htmlFor="contacto_nombre">Contacto Emergencia (Nombre)</Label>
+                  <Label htmlFor="contacto_nombre">1er Contacto Emergencia (Nombre)</Label>
                   <Input
                     id="contacto_nombre"
                     value={currentPlayer.ficha_medica?.contacto_emergencia_nombre || ""}
@@ -778,9 +780,9 @@ export default function PlayerForm({ player, onSubmit, onCancel, isSubmitting, i
                   />
                 </div>
 
-                {/* Contacto Emergencia Teléfono */}
+                {/* Contacto Emergencia 1 - Teléfono */}
                 <div className="space-y-2">
-                  <Label htmlFor="contacto_telefono">Contacto Emergencia (Teléfono)</Label>
+                  <Label htmlFor="contacto_telefono">1er Contacto Emergencia (Teléfono)</Label>
                   <Input
                     id="contacto_telefono"
                     type="tel"
@@ -790,6 +792,35 @@ export default function PlayerForm({ player, onSubmit, onCancel, isSubmitting, i
                       ficha_medica: {...(currentPlayer.ficha_medica || {}), contacto_emergencia_telefono: e.target.value}
                     })}
                     placeholder="600123456"
+                  />
+                </div>
+
+                {/* Contacto Emergencia 2 - Nombre */}
+                <div className="space-y-2">
+                  <Label htmlFor="contacto_nombre_2">2º Contacto Emergencia (Nombre)</Label>
+                  <Input
+                    id="contacto_nombre_2"
+                    value={currentPlayer.ficha_medica?.contacto_emergencia_2_nombre || ""}
+                    onChange={(e) => setCurrentPlayer({
+                      ...currentPlayer,
+                      ficha_medica: {...(currentPlayer.ficha_medica || {}), contacto_emergencia_2_nombre: e.target.value}
+                    })}
+                    placeholder="Nombre completo (opcional)"
+                  />
+                </div>
+
+                {/* Contacto Emergencia 2 - Teléfono */}
+                <div className="space-y-2">
+                  <Label htmlFor="contacto_telefono_2">2º Contacto Emergencia (Teléfono)</Label>
+                  <Input
+                    id="contacto_telefono_2"
+                    type="tel"
+                    value={currentPlayer.ficha_medica?.contacto_emergencia_2_telefono || ""}
+                    onChange={(e) => setCurrentPlayer({
+                      ...currentPlayer,
+                      ficha_medica: {...(currentPlayer.ficha_medica || {}), contacto_emergencia_2_telefono: e.target.value}
+                    })}
+                    placeholder="600654321 (opcional)"
                   />
                 </div>
 
