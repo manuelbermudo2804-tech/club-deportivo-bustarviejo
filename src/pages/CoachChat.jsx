@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Send, AlertCircle, Users, MessageCircle, User, Archive } from "lucide-react";
+import { Send, AlertCircle, Users, MessageCircle, User, Archive, ArchiveRestore, Filter } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
@@ -23,6 +23,7 @@ export default function CoachChat() {
   const [priority, setPriority] = useState("Normal");
   const [isMobile, setIsMobile] = useState(false);
   const [selectedConversation, setSelectedConversation] = useState(null);
+  const [showArchived, setShowArchived] = useState(false);
   const messagesEndRef = useRef(null);
   const queryClient = useQueryClient();
   const [user, setUser] = useState(null);
@@ -79,16 +80,39 @@ export default function CoachChat() {
     return user.categorias_entrena || [];
   }, [user, allPlayers, isAdmin]);
 
-  // Conversaciones privadas de la categoría seleccionada (solo activas, no archivadas)
+  // Conversaciones privadas de la categoría seleccionada
   const categoryPrivateConversations = useMemo(() => {
     if (!selectedCategory) return [];
     return privateConversations.filter(conv => {
       if (!isAdmin && conv.participante_staff_email !== user?.email) return false;
       if (conv.categoria !== selectedCategory) return false;
-      if (conv.archivada) return false;
-      return true;
+      // Filtrar por archivadas o activas
+      if (showArchived) return conv.archivada === true;
+      return !conv.archivada;
     });
+  }, [privateConversations, selectedCategory, isAdmin, user, showArchived]);
+
+  // Contador de archivadas para mostrar en el filtro
+  const archivedCount = useMemo(() => {
+    if (!selectedCategory) return 0;
+    return privateConversations.filter(conv => {
+      if (!isAdmin && conv.participante_staff_email !== user?.email) return false;
+      if (conv.categoria !== selectedCategory) return false;
+      return conv.archivada === true;
+    }).length;
   }, [privateConversations, selectedCategory, isAdmin, user]);
+
+  // Mutación para archivar/desarchivar
+  const archiveConversationMutation = useMutation({
+    mutationFn: async ({ convId, archive }) => {
+      await base44.entities.PrivateConversation.update(convId, { archivada: archive });
+    },
+    onSuccess: (_, { archive }) => {
+      refetchConversations();
+      setSelectedConversation(null);
+      toast.success(archive ? "Conversación archivada" : "Conversación restaurada");
+    },
+  });
 
   // Contador de no leídos por categoría
   const getUnreadCountForCategory = (categoria) => {
@@ -447,14 +471,43 @@ export default function CoachChat() {
                   {/* Chat privado */}
                   <div className="lg:col-span-2 bg-white rounded-xl shadow-md border overflow-hidden" style={{ height: 'calc(70vh - 100px)' }}>
                     {selectedConversation ? (
-                      <PrivateChatPanel
-                        conversation={selectedConversation}
-                        messages={privateMessages}
-                        user={user}
-                        isStaff={true}
-                        onClose={() => setSelectedConversation(null)}
-                        onMessageSent={handlePrivateMessageSent}
-                      />
+                      <div className="flex flex-col h-full">
+                        {/* Botón archivar/restaurar */}
+                        <div className="bg-slate-50 border-b px-3 py-2 flex justify-end">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => archiveConversationMutation.mutate({ 
+                              convId: selectedConversation.id, 
+                              archive: !selectedConversation.archivada 
+                            })}
+                            disabled={archiveConversationMutation.isPending}
+                            className={`text-xs gap-1 ${selectedConversation.archivada ? 'text-green-600 hover:text-green-700' : 'text-slate-600 hover:text-slate-700'}`}
+                          >
+                            {selectedConversation.archivada ? (
+                              <>
+                                <ArchiveRestore className="w-3 h-3" />
+                                Restaurar
+                              </>
+                            ) : (
+                              <>
+                                <Archive className="w-3 h-3" />
+                                Archivar
+                              </>
+                            )}
+                          </Button>
+                        </div>
+                        <div className="flex-1 overflow-hidden">
+                          <PrivateChatPanel
+                            conversation={selectedConversation}
+                            messages={privateMessages}
+                            user={user}
+                            isStaff={true}
+                            onClose={() => setSelectedConversation(null)}
+                            onMessageSent={handlePrivateMessageSent}
+                          />
+                        </div>
+                      </div>
                     ) : (
                       <div className="flex items-center justify-center h-full text-slate-500">
                         <div className="text-center">
