@@ -398,6 +398,24 @@ export default function ParentChat() {
                     <h2 className="font-bold">{selectedCategory}</h2>
                     <p className="text-xs text-blue-100">📢 Mensajes del entrenador</p>
                   </div>
+                  {/* Indicador de mensajes privados sin leer */}
+                  {getPrivateUnreadCount(selectedCategory) > 0 && (
+                    <Button
+                      size="sm"
+                      onClick={() => {
+                        const conv = privateConversations.find(c => 
+                          c.categoria === selectedCategory && 
+                          !c.archivada && 
+                          (c.no_leidos_familia || 0) > 0
+                        );
+                        if (conv) setActivePrivateChat(conv);
+                      }}
+                      className="bg-green-500 hover:bg-green-600 text-white gap-2 animate-pulse"
+                    >
+                      <MessageCircle className="w-4 h-4" />
+                      {getPrivateUnreadCount(selectedCategory)} respuesta(s) privada(s)
+                    </Button>
+                  )}
                 </div>
 
                 <div className="flex-1 overflow-y-auto p-4 space-y-3" style={{ backgroundColor: '#e5ddd5' }}>
@@ -460,9 +478,27 @@ export default function ParentChat() {
                 </div>
 
                 <div className="bg-blue-50 border-t px-4 py-3 flex-shrink-0">
-                  <p className="text-xs text-blue-700 text-center">
-                    💬 Usa "Responder en privado" para hablar directamente con el entrenador
-                  </p>
+                  {getPrivateUnreadCount(selectedCategory) > 0 ? (
+                    <Button
+                      variant="ghost"
+                      onClick={() => {
+                        const conv = privateConversations.find(c => 
+                          c.categoria === selectedCategory && 
+                          !c.archivada && 
+                          (c.no_leidos_familia || 0) > 0
+                        );
+                        if (conv) setActivePrivateChat(conv);
+                      }}
+                      className="w-full text-green-700 hover:bg-green-100 gap-2"
+                    >
+                      <MessageCircle className="w-4 h-4" />
+                      ✉️ Tienes {getPrivateUnreadCount(selectedCategory)} respuesta(s) del entrenador - Pulsa para ver
+                    </Button>
+                  ) : (
+                    <p className="text-xs text-blue-700 text-center">
+                      💬 Usa "Responder en privado" para hablar directamente con el entrenador
+                    </p>
+                  )}
                 </div>
               </div>
             )
