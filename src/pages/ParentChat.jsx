@@ -521,8 +521,10 @@ export default function ParentChat() {
             </div>
           )}
         </>
+        </>
       ) : (
-        <div className="flex gap-4 h-screen">
+        /* MODO ANUNCIOS - Desktop */
+        <div className="flex gap-4" style={{ height: '70vh' }}>
           <div className="flex-1 flex flex-col">
             {groups.length > 1 && (
               <div className="bg-white border-b overflow-x-auto flex-shrink-0 rounded-t-xl mb-4">
