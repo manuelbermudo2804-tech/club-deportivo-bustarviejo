@@ -830,9 +830,10 @@ Email: cdbustarviejo@gmail.com
                           size="sm"
                           variant="outline"
                           className="h-8 text-xs"
+                          title={`Envía reporte privado SOLO a los padres de ${player.nombre}`}
                         >
                           <Mail className="w-3 h-3 mr-1" />
-                          Enviar
+                          📩 Enviar
                         </Button>
                       </td>
                     </tr>
