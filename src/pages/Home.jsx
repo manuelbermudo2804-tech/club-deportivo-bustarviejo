@@ -1,12 +1,11 @@
-import React, { useState, useEffect, useMemo, lazy, Suspense } from "react";
+import React, { useState, useEffect, useMemo, Suspense } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { Users, CreditCard, ShoppingBag, Calendar, Megaphone, Image, Clock, MessageCircle, Bell, Settings, ClipboardCheck, CheckCircle2, Star, TrendingUp, Smartphone, Trophy, FileText, Clover, BookOpen, Archive, BarChart3 } from "lucide-react";
 
-const Onboarding = lazy(() => import("../components/Onboarding"));
-const SocialLinks = lazy(() => import("../components/SocialLinks"));
+import SocialLinks from "../components/SocialLinks";
 
 import ClubStats from "../components/dashboard/ClubStats";
 import DashboardCardSkeleton from "../components/skeletons/DashboardCardSkeleton";
