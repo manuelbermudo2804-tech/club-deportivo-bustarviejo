@@ -121,23 +121,7 @@ export default function ParentChat() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['chatMessages'] }),
   });
 
-  // Cuando se selecciona Coordinación Deportiva, abrir chat privado con coordinador
-  useEffect(() => {
-    if (selectedCategory === "Coordinación Deportiva" && user && coordinator) {
-      // Buscar si ya existe conversación privada con coordinador
-      const existingConv = privateConversations.find(c => 
-        c.participante_staff_email === coordinator.email && 
-        c.categoria === "Coordinación Deportiva"
-      );
-      
-      if (existingConv && !activePrivateChat) {
-        setActivePrivateChat(existingConv);
-      } else if (!existingConv && !activePrivateChat && !createOrOpenPrivateChat.isPending) {
-        // Crear nueva conversación solo si no hay una existente y no está ya creando
-        createOrOpenPrivateChat.mutate(coordinator.email);
-      }
-    }
-  }, [selectedCategory, user, coordinator, privateConversations]);
+
 
   // Marcar como leídos al ver
   useEffect(() => {
@@ -162,11 +146,11 @@ export default function ParentChat() {
 
   // Crear o abrir chat privado con el remitente de un anuncio
   const createOrOpenPrivateChat = useMutation({
-    mutationFn: async (staffEmail) => {
+    mutationFn: async ({ staffEmail, categoria }) => {
       // Buscar si ya existe conversación
       const existing = privateConversations.find(c => 
         c.participante_staff_email === staffEmail && 
-        c.categoria === selectedCategory
+        c.categoria === categoria
       );
       
       if (existing) return existing;
@@ -183,9 +167,9 @@ export default function ParentChat() {
         participante_staff_email: staffEmail,
         participante_staff_nombre: staffName,
         participante_staff_rol: staffRole,
-        categoria: selectedCategory,
+        categoria: categoria,
         jugadores_relacionados: myPlayers
-          .filter(p => normalizeDeporte(p.deporte) === selectedCategory)
+          .filter(p => normalizeDeporte(p.deporte) === categoria || categoria === "Coordinación Deportiva")
           .map(p => ({ jugador_id: p.id, jugador_nombre: p.nombre })),
         archivada: false
       });
@@ -195,12 +179,28 @@ export default function ParentChat() {
     onSuccess: (conversation) => {
       refetchConversations();
       setActivePrivateChat(conversation);
-      toast.success("Chat privado abierto");
     },
   });
 
+  // Cuando se selecciona Coordinación Deportiva, abrir chat privado con coordinador
+  useEffect(() => {
+    if (selectedCategory === "Coordinación Deportiva" && user && coordinator && !activePrivateChat) {
+      // Buscar si ya existe conversación privada con coordinador
+      const existingConv = privateConversations.find(c => 
+        c.participante_staff_email === coordinator.email && 
+        c.categoria === "Coordinación Deportiva"
+      );
+      
+      if (existingConv) {
+        setActivePrivateChat(existingConv);
+      } else if (!createOrOpenPrivateChat.isPending) {
+        createOrOpenPrivateChat.mutate({ staffEmail: coordinator.email, categoria: "Coordinación Deportiva" });
+      }
+    }
+  }, [selectedCategory, user, coordinator, privateConversations, activePrivateChat]);
+
   const handleReplyPrivate = (staffEmail) => {
-    createOrOpenPrivateChat.mutate(staffEmail);
+    createOrOpenPrivateChat.mutate({ staffEmail, categoria: selectedCategory });
   };
 
   const handlePrivateMessageSent = () => {
