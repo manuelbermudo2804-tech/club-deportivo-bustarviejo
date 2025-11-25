@@ -141,15 +141,19 @@ export default function Payments() {
   });
 
   const { data: payments = [], isLoading } = useQuery({
-    queryKey: ['myPayments'],
+    queryKey: ['myPayments', isAdmin, isCoach],
     queryFn: async () => {
       try {
         const allPayments = await base44.entities.Payment.list('-created_date');
         if (isAdmin) {
           return allPayments || [];
         } else if (isCoach) {
-          const playerIds = players.map(p => p.id);
-          return allPayments.filter(payment => playerIds.includes(payment.jugador_id)) || [];
+          const allPlayers = await base44.entities.Player.list();
+          const currentUser = await base44.auth.me();
+          const myPlayerIds = allPlayers
+            .filter(p => p.email_padre === currentUser.email || p.email_tutor_2 === currentUser.email)
+            .map(p => p.id);
+          return allPayments.filter(payment => myPlayerIds.includes(payment.jugador_id)) || [];
         }
         return [];
       } catch (error) {
@@ -157,11 +161,11 @@ export default function Payments() {
         return [];
       }
     },
-    enabled: players.length > 0,
+    enabled: isAdmin || isCoach,
     initialData: [],
     staleTime: 0,
     refetchOnWindowFocus: true,
-    refetchOnMount: true,
+    refetchOnMount: 'always',
   });
 
   const createPaymentMutation = useMutation({
