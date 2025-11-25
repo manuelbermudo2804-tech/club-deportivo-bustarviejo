@@ -52,21 +52,14 @@ export default function ParentChat() {
   const [allUsers, setAllUsers] = useState([]);
   const [loadingUsers, setLoadingUsers] = useState(false);
 
-  // Encontrar al coordinador - primero busca en la query específica, luego en allUsers
+  // Coordinador hardcodeado ya que los padres no pueden listar usuarios
   const coordinator = useMemo(() => {
-    // Primero intentar desde la query específica de coordinadores
-    if (coordinatorData.length > 0) {
-      console.log('✅ Coordinador encontrado via filter:', coordinatorData[0].email);
-      return coordinatorData[0];
-    }
-    // Fallback a buscar en allUsers
-    const found = allUsers.find(u => u.es_coordinador === true);
-    console.log('🔍 Buscando coordinador en allUsers:', { 
-      totalUsers: allUsers.length, 
-      found: found?.email
-    });
-    return found;
-  }, [allUsers, coordinatorData]);
+    return {
+      email: COORDINATOR_EMAIL,
+      full_name: COORDINATOR_NAME,
+      es_coordinador: true
+    };
+  }, []);
 
   const { data: privateConversations = [], refetch: refetchConversations, isLoading: loadingConversations } = useQuery({
     queryKey: ['myPrivateConversations', user?.email],
