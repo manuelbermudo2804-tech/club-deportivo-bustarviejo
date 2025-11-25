@@ -822,9 +822,16 @@ Email: cdbustarviejo@gmail.com
                         ? ["Junio"]
                         : ["Junio", "Septiembre", "Diciembre"];
 
+                      // Obtener TODOS los pagos reales del jugador para la temporada (sin filtros)
+                      const allRealPayments = payments.filter(p => 
+                        p.jugador_id === player.id && 
+                        p.temporada === temporadaFilter
+                      );
+
                       // Crear pagos virtuales para los meses que faltan
                       let displayPayments = allMonths.map(mes => {
-                        const existingPayment = playerPayments.find(p => p.mes === mes);
+                        // Buscar en TODOS los pagos reales, no solo los filtrados
+                        const existingPayment = allRealPayments.find(p => p.mes === mes);
                         if (existingPayment) {
                           return existingPayment;
                         }
