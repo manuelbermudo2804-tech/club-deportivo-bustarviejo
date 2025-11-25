@@ -7,7 +7,7 @@ import { Users, CreditCard, ShoppingBag, Calendar, Megaphone, Image, Clock, Mess
 
 const Onboarding = lazy(() => import("../components/Onboarding"));
 const SocialLinks = lazy(() => import("../components/SocialLinks"));
-const ManualGenerator = lazy(() => import("../components/manuals/ManualGenerator"));
+
 const ClubStats = lazy(() => import("../components/dashboard/ClubStats"));
 const DashboardCardSkeleton = lazy(() => import("../components/skeletons/DashboardCardSkeleton"));
 
