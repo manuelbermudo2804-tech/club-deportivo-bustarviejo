@@ -44,34 +44,13 @@ export default function ParentChat() {
     queryFn: () => base44.entities.Player.list(),
   });
 
-  const { data: allUsers = [], isLoading: loadingUsers } = useQuery({
-    queryKey: ['allUsers'],
-    queryFn: async () => {
-      try {
-        // Intentar obtener todos los usuarios (funciona para admins)
-        const users = await base44.entities.User.list();
-        return users;
-      } catch (error) {
-        // Si falla por permisos, buscar solo coordinadores
-        console.log('No se pudo listar usuarios, buscando coordinador específico');
-        return [];
-      }
-    },
-  });
-
-  // Query específica para encontrar al coordinador (usando filter que puede tener permisos diferentes)
-  const { data: coordinatorData = [], isLoading: loadingCoordinator } = useQuery({
-    queryKey: ['coordinator'],
-    queryFn: async () => {
-      try {
-        const coordinators = await base44.entities.User.filter({ es_coordinador: true });
-        return coordinators;
-      } catch (error) {
-        console.log('Error buscando coordinador:', error);
-        return [];
-      }
-    },
-  });
+  // Para padres: no podemos listar usuarios por permisos, usamos email hardcoded del coordinador
+  // o buscamos en conversaciones existentes
+  const COORDINATOR_EMAIL = "manuel.bermudo@gvcgaesco.es";
+  const COORDINATOR_NAME = "Manuel Bermudo";
+  
+  const [allUsers, setAllUsers] = useState([]);
+  const [loadingUsers, setLoadingUsers] = useState(false);
 
   // Encontrar al coordinador - primero busca en la query específica, luego en allUsers
   const coordinator = useMemo(() => {
