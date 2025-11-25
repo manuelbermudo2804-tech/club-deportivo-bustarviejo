@@ -203,16 +203,12 @@ export default function CoachChat() {
     "Fútbol Juvenil": "⚽",
     "Fútbol Aficionado": "⚽",
     "Fútbol Femenino": "⚽",
-    "Baloncesto (Mixto)": "🏀",
-    "Chat Interno Entrenadores": "💼"
+    "Baloncesto (Mixto)": "🏀"
   };
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [currentGroup?.messages, privateMessages]);
-
-  // Total mensajes privados sin leer
-  const totalPrivateUnread = privateConversations.reduce((sum, c) => sum + (c.no_leidos_staff || 0), 0);
+  }, [currentGroupMessages, privateMessages]);
 
   if (loadingPlayers || !user) {
     return (
