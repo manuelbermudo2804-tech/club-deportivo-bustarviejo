@@ -872,10 +872,22 @@ Email: cdbustarviejo@gmail.com
                         totalPaymentsDue = allMonths.filter(mes => !mesesConPagoOK.includes(mes)).length;
                       }
                       
-                      // Total pendiente en euros
-                      const totalPending = displayPayments
-                        .filter(p => p.estado === "Pendiente")
-                        .reduce((sum, p) => sum + (p.cantidad || 0), 0);
+                      // Total pendiente en euros - calcular basado en meses que faltan
+                      let totalPending = 0;
+                      if (!hasPagoUnico && totalPaymentsDue > 0) {
+                        const playerPaymentsTemporada = payments.filter(p => 
+                          p.jugador_id === player.id && 
+                          p.temporada === temporadaFilter
+                        );
+                        const mesesConPagoOK = playerPaymentsTemporada
+                          .filter(p => p.estado === "Pagado" || p.estado === "En revisión")
+                          .map(p => p.mes);
+                        const mesesPendientes = allMonths.filter(mes => !mesesConPagoOK.includes(mes));
+                        
+                        mesesPendientes.forEach(mes => {
+                          totalPending += getImportePorMes(player.deporte, mes);
+                        });
+                      }
 
                       return (
                         <Card key={player.id} className="border hover:shadow-lg transition-shadow">
