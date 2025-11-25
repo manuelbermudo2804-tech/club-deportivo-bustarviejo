@@ -270,7 +270,21 @@ export default function ParentChat() {
     refetchConversations();
   };
 
+  const handleConversationCreated = (conversation) => {
+    refetchConversations();
+    setSelectedConversation(conversation);
+  };
+
   return (
+    <>
+      <StartPrivateConversationDialog
+        open={showNewConversation}
+        onOpenChange={setShowNewConversation}
+        user={user}
+        myPlayers={myPlayers}
+        existingConversations={privateConversations}
+        onConversationCreated={handleConversationCreated}
+      />
     <div className="p-4 lg:p-6 min-h-screen bg-slate-50">
       {/* Header con tabs */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-4">
