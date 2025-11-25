@@ -46,6 +46,27 @@ export default function ParentChat() {
     queryFn: () => base44.entities.Player.list(),
   });
 
+  // Conversaciones privadas del padre
+  const { data: privateConversations = [], refetch: refetchConversations } = useQuery({
+    queryKey: ['myPrivateConversations', user?.email],
+    queryFn: () => user ? base44.entities.PrivateConversation.filter({ participante_familia_email: user.email }, '-ultimo_mensaje_fecha') : [],
+    enabled: !!user?.email,
+  });
+
+  const { data: privateMessages = [], refetch: refetchPrivateMessages } = useQuery({
+    queryKey: ['privateMessages', selectedConversation?.id],
+    queryFn: () => selectedConversation 
+      ? base44.entities.PrivateMessage.filter({ conversacion_id: selectedConversation.id }, '-created_date')
+      : [],
+    enabled: !!selectedConversation?.id,
+  });
+
+  // Total mensajes privados sin leer
+  const totalPrivateUnread = useMemo(() => 
+    privateConversations.reduce((sum, c) => sum + (c.no_leidos_familia || 0), 0),
+    [privateConversations]
+  );
+
   const sendMessageMutation = useMutation({
     mutationFn: async (messageData) => {
       const newMessage = await base44.entities.ChatMessage.create(messageData);
