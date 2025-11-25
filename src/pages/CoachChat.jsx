@@ -423,10 +423,32 @@ export default function CoachChat() {
                   {/* Lista de conversaciones privadas */}
                   <div className="lg:col-span-1 bg-white rounded-xl shadow-md border overflow-hidden" style={{ height: 'calc(70vh - 100px)' }}>
                     <div className="bg-gradient-to-r from-green-600 to-green-700 p-3 text-white">
-                      <h3 className="font-bold text-sm">Familias con chat activo</h3>
-                      <p className="text-xs text-green-100">Solo aparecen las que te escribieron</p>
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <h3 className="font-bold text-sm">{showArchived ? "Archivadas" : "Conversaciones activas"}</h3>
+                          <p className="text-xs text-green-100">{categoryPrivateConversations.length} conversaciones</p>
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setShowArchived(!showArchived)}
+                          className="text-white hover:bg-white/20 gap-1 text-xs h-8 px-2"
+                        >
+                          {showArchived ? (
+                            <>
+                              <MessageCircle className="w-3 h-3" />
+                              Activas
+                            </>
+                          ) : (
+                            <>
+                              <Archive className="w-3 h-3" />
+                              {archivedCount > 0 && `(${archivedCount})`}
+                            </>
+                          )}
+                        </Button>
+                      </div>
                     </div>
-                    <div className="divide-y overflow-y-auto" style={{ maxHeight: 'calc(100% - 60px)' }}>
+                    <div className="divide-y overflow-y-auto" style={{ maxHeight: 'calc(100% - 70px)' }}>
                       {categoryPrivateConversations.length === 0 ? (
                         <div className="p-6 text-center text-slate-500">
                           <MessageCircle className="w-10 h-10 mx-auto mb-2 opacity-30" />
