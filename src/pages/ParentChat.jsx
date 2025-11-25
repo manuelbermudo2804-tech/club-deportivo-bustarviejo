@@ -318,7 +318,10 @@ export default function ParentChat() {
               return (
                 <button
                   key={cat}
-                  onClick={() => setSelectedCategory(cat)}
+                  onClick={() => {
+                    setActivePrivateChat(null); // Limpiar chat privado al cambiar categoría
+                    setSelectedCategory(cat);
+                  }}
                   className={`w-full p-3 flex items-center gap-3 transition-colors text-left ${
                     selectedCategory === cat ? 'bg-orange-50 border-l-4 border-l-orange-600' : 'hover:bg-slate-50 border-l-4 border-l-transparent'
                   }`}
