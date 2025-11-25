@@ -337,39 +337,41 @@ export default function ParentChat() {
         {/* Panel de anuncios */}
         <div className="lg:col-span-3">
           {selectedCategory ? (
-            selectedCategory === "Coordinación Deportiva" && activePrivateChat ? (
-              /* Chat privado con coordinador */
-              <div className="bg-white rounded-xl shadow-md border overflow-hidden" style={{ height: '70vh' }}>
-                <PrivateChatPanel
-                  conversation={activePrivateChat}
-                  messages={privateMessages}
-                  user={user}
-                  isStaff={false}
-                  onClose={() => {
-                    setActivePrivateChat(null);
-                    setSelectedCategory(null);
-                  }}
-                  onMessageSent={handlePrivateMessageSent}
-                />
-              </div>
-            ) : selectedCategory === "Coordinación Deportiva" ? (
-              /* Cargando chat con coordinador */
-              <div className="bg-white rounded-xl shadow-md border overflow-hidden flex items-center justify-center" style={{ height: '70vh' }}>
-                <div className="text-center">
-                  {coordinator ? (
-                    <>
-                      <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-green-600 border-r-transparent mb-4"></div>
-                      <p className="text-slate-600">Abriendo chat con coordinación...</p>
-                    </>
-                  ) : (
-                    <>
-                      <AlertCircle className="w-12 h-12 text-slate-300 mx-auto mb-4" />
-                      <p className="text-slate-600 font-medium">No hay coordinador disponible</p>
-                      <p className="text-sm text-slate-400 mt-2">Contacta con el club para más información</p>
-                    </>
-                  )}
+            selectedCategory === "Coordinación Deportiva" ? (
+              /* Chat con coordinador - siempre abierto para escribir */
+              activePrivateChat ? (
+                <div className="bg-white rounded-xl shadow-md border overflow-hidden" style={{ height: '70vh' }}>
+                  <PrivateChatPanel
+                    conversation={activePrivateChat}
+                    messages={privateMessages}
+                    user={user}
+                    isStaff={false}
+                    onClose={() => {
+                      setActivePrivateChat(null);
+                      setSelectedCategory(null);
+                    }}
+                    onMessageSent={handlePrivateMessageSent}
+                  />
                 </div>
-              </div>
+              ) : (
+                /* Cargando chat con coordinador */
+                <div className="bg-white rounded-xl shadow-md border overflow-hidden flex items-center justify-center" style={{ height: '70vh' }}>
+                  <div className="text-center">
+                    {coordinator ? (
+                      <>
+                        <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-green-600 border-r-transparent mb-4"></div>
+                        <p className="text-slate-600">Abriendo chat con coordinación...</p>
+                      </>
+                    ) : (
+                      <>
+                        <AlertCircle className="w-12 h-12 text-slate-300 mx-auto mb-4" />
+                        <p className="text-slate-600 font-medium">No hay coordinador disponible</p>
+                        <p className="text-sm text-slate-400 mt-2">Contacta con el club para más información</p>
+                      </>
+                    )}
+                  </div>
+                </div>
+              )
             ) : (
               /* Chat de equipos normal */
               <div className="bg-white rounded-xl shadow-md border overflow-hidden flex flex-col" style={{ height: '70vh' }}>
