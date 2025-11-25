@@ -74,11 +74,22 @@ export default function CoachChat() {
   // Categorías que este usuario puede ver
   const myCategories = useMemo(() => {
     if (!user) return [];
-    if (isAdmin) {
-      return [...new Set(allPlayers.map(p => p.deporte).filter(Boolean))];
+    
+    let categories = [];
+    
+    // Los coordinadores y admins ven "Coordinación Deportiva"
+    if (isAdmin || isCoordinator) {
+      categories.push("Coordinación Deportiva");
     }
-    return user.categorias_entrena || [];
-  }, [user, allPlayers, isAdmin]);
+    
+    if (isAdmin) {
+      categories = [...categories, ...new Set(allPlayers.map(p => p.deporte).filter(Boolean))];
+    } else {
+      categories = [...categories, ...(user.categorias_entrena || [])];
+    }
+    
+    return [...new Set(categories)];
+  }, [user, allPlayers, isAdmin, isCoordinator]);
 
   // Conversaciones privadas de la categoría seleccionada
   const categoryPrivateConversations = useMemo(() => {
@@ -188,9 +199,16 @@ export default function CoachChat() {
     if (!selectedCategory) return [];
     return messages.filter(msg => {
       const msgDeporte = normalizeDeporte(msg.grupo_id || msg.deporte);
+      // En coordinación mostrar todos los mensajes (de padres y staff)
+      if (selectedCategory === "Coordinación Deportiva") {
+        return msgDeporte === selectedCategory;
+      }
       return msgDeporte === selectedCategory && msg.tipo === "admin_a_grupo";
     });
   }, [messages, selectedCategory]);
+
+  // Verificar si es chat de coordinación (bidireccional)
+  const isCoordinationChat = selectedCategory === "Coordinación Deportiva";
 
   const handleSendGroupMessage = () => {
     if (!user || !selectedCategory) return;
@@ -219,6 +237,7 @@ export default function CoachChat() {
   };
 
   const sportEmojis = {
+    "Coordinación Deportiva": "🎓",
     "Fútbol Pre-Benjamín (Mixto)": "⚽",
     "Fútbol Benjamín (Mixto)": "⚽",
     "Fútbol Alevín (Mixto)": "⚽",
@@ -331,11 +350,21 @@ export default function CoachChat() {
               {chatSubMode === "anuncios" ? (
                 /* SUB-MODO ANUNCIOS */
                 <div className="bg-white rounded-xl shadow-md border overflow-hidden flex flex-col" style={{ height: 'calc(70vh - 100px)' }}>
-                  <div className="bg-gradient-to-r from-blue-600 to-blue-700 p-3 text-white flex items-center gap-3 flex-shrink-0">
+                  <div className={`p-3 text-white flex items-center gap-3 flex-shrink-0 ${
+                    isCoordinationChat 
+                      ? 'bg-gradient-to-r from-green-600 to-green-700' 
+                      : 'bg-gradient-to-r from-blue-600 to-blue-700'
+                  }`}>
                     <Users className="w-5 h-5" />
                     <div>
-                      <h3 className="font-bold text-sm">Anuncios para {selectedCategory}</h3>
-                      <p className="text-xs text-blue-100">Todos los padres del grupo verán estos mensajes</p>
+                      <h3 className="font-bold text-sm">
+                        {isCoordinationChat ? "Chat de Coordinación" : `Anuncios para ${selectedCategory}`}
+                      </h3>
+                      <p className="text-xs opacity-80">
+                        {isCoordinationChat 
+                          ? "Mensajes de familias - responde directamente aquí" 
+                          : "Todos los padres del grupo verán estos mensajes"}
+                      </p>
                     </div>
                   </div>
 
@@ -350,29 +379,42 @@ export default function CoachChat() {
                     ) : (
                       currentGroupMessages
                         .sort((a, b) => new Date(a.created_date) - new Date(b.created_date))
-                        .map((msg) => (
-                          <div key={msg.id} className="flex justify-end mb-1">
-                            <div className="max-w-[80%] rounded-lg shadow-sm bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-br-none">
-                              <div className="px-3 py-2">
-                                <div className="flex items-center gap-2 mb-1">
-                                  <span className="text-xs font-semibold opacity-80">{msg.remitente_nombre}</span>
-                                  {msg.prioridad !== "Normal" && (
-                                    <span className="text-xs">{msg.prioridad === "Urgente" ? "🔴" : "⚠️"}</span>
-                                  )}
-                                </div>
-                                <p className="text-sm leading-relaxed">{msg.mensaje}</p>
-                                {msg.archivos_adjuntos?.length > 0 && (
-                                  <div className="mt-2">
-                                    <MessageAttachments attachments={msg.archivos_adjuntos} />
+                        .map((msg) => {
+                          const isMyMessage = msg.remitente_email === user?.email || msg.tipo === "admin_a_grupo";
+                          const isFromFamily = msg.tipo === "padre_a_grupo";
+                          
+                          return (
+                            <div key={msg.id} className={`flex ${isCoordinationChat && isFromFamily ? 'justify-start' : 'justify-end'} mb-1`}>
+                              <div className={`max-w-[80%] rounded-lg shadow-sm ${
+                                isCoordinationChat && isFromFamily 
+                                  ? 'bg-white text-slate-900 rounded-bl-none' 
+                                  : 'bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-br-none'
+                              }`}>
+                                <div className="px-3 py-2">
+                                  <div className="flex items-center gap-2 mb-1">
+                                    <span className={`text-xs font-semibold ${isCoordinationChat && isFromFamily ? 'text-orange-600' : 'opacity-80'}`}>
+                                      {isCoordinationChat && isFromFamily ? '👤 ' : ''}{msg.remitente_nombre}
+                                    </span>
+                                    {msg.prioridad !== "Normal" && (
+                                      <span className="text-xs">{msg.prioridad === "Urgente" ? "🔴" : "⚠️"}</span>
+                                    )}
                                   </div>
-                                )}
-                                <div className="text-right mt-1">
-                                  <span className="text-[10px] opacity-70">{format(new Date(msg.created_date), "HH:mm")}</span>
+                                  <p className="text-sm leading-relaxed">{msg.mensaje}</p>
+                                  {msg.archivos_adjuntos?.length > 0 && (
+                                    <div className="mt-2">
+                                      <MessageAttachments attachments={msg.archivos_adjuntos} />
+                                    </div>
+                                  )}
+                                  <div className="text-right mt-1">
+                                    <span className={`text-[10px] ${isCoordinationChat && isFromFamily ? 'text-slate-400' : 'opacity-70'}`}>
+                                      {format(new Date(msg.created_date), "HH:mm")}
+                                    </span>
+                                  </div>
                                 </div>
                               </div>
                             </div>
-                          </div>
-                        ))
+                          );
+                        })
                     )}
                     <div ref={messagesEndRef} />
                   </div>
@@ -398,7 +440,7 @@ export default function CoachChat() {
                       <Input
                         value={messageContent}
                         onChange={(e) => setMessageContent(e.target.value)}
-                        placeholder="Escribe un anuncio para el grupo..."
+                        placeholder={isCoordinationChat ? "Responde a las familias..." : "Escribe un anuncio para el grupo..."}
                         className="flex-1 rounded-full"
                         onKeyDown={(e) => {
                           if (e.key === 'Enter' && !e.shiftKey) {
@@ -410,7 +452,7 @@ export default function CoachChat() {
                       <Button
                         onClick={handleSendGroupMessage}
                         disabled={(!messageContent.trim() && attachments.length === 0) || sendMessageMutation.isPending}
-                        className="rounded-full w-10 h-10 p-0 bg-blue-600 hover:bg-blue-700"
+                        className={`rounded-full w-10 h-10 p-0 ${isCoordinationChat ? 'bg-green-600 hover:bg-green-700' : 'bg-blue-600 hover:bg-blue-700'}`}
                       >
                         <Send className="w-4 h-4" />
                       </Button>
