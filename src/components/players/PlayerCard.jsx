@@ -43,11 +43,8 @@ const DIAS_ORDEN = {
   "Viernes": 5
 };
 
-export default function PlayerCard({ player, onEdit, onViewProfile, isParent = false, readOnly = false, schedules = [], isCoachOrCoordinator = false }) {
+export default function PlayerCard({ player, onEdit, onViewProfile, isParent = false, readOnly = false, schedules = [], isCoachOrCoordinator = false, payments = [] }) {
   const [showDetail, setShowDetail] = useState(false);
-  
-  // Determinar la página de pagos según si es padre o admin
-  const paymentsPage = isParent ? "ParentPayments" : "Payments";
   
   // Filtrar horarios del jugador según su categoría/deporte
   const playerSchedules = schedules
@@ -55,6 +52,32 @@ export default function PlayerCard({ player, onEdit, onViewProfile, isParent = f
     .sort((a, b) => DIAS_ORDEN[a.dia_semana] - DIAS_ORDEN[b.dia_semana]);
 
   const hasMedicalInfo = player.ficha_medica && Object.values(player.ficha_medica).some(val => val);
+  
+  // Calcular estado de pagos del jugador
+  const getCurrentSeason = () => {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = now.getMonth() + 1;
+    return month >= 9 ? `${year}/${year + 1}` : `${year - 1}/${year}`;
+  };
+  
+  const currentSeason = getCurrentSeason();
+  const playerPayments = payments.filter(p => p.jugador_id === player.id && p.temporada === currentSeason);
+  
+  // Verificar si tiene pago único pagado
+  const hasPagoUnico = playerPayments.some(p => 
+    (p.tipo_pago === "Único" || p.tipo_pago === "único") && 
+    p.estado === "Pagado"
+  );
+  
+  // Contar estados de pago
+  const paidCount = playerPayments.filter(p => p.estado === "Pagado").length;
+  const reviewCount = playerPayments.filter(p => p.estado === "En revisión").length;
+  
+  // Calcular cuotas esperadas (3 para tres meses, 1 para único)
+  const expectedPayments = hasPagoUnico ? 1 : 3;
+  const allPaid = hasPagoUnico || paidCount >= 3;
+  const hasPending = !allPaid && (paidCount + reviewCount) < expectedPayments;
   
   return (
     <>
