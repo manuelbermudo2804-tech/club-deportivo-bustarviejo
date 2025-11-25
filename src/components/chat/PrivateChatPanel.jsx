@@ -123,7 +123,7 @@ export default function PrivateChatPanel({
             conversation.categoria === "Coordinación Deportiva" ? "text-green-100" : "text-blue-100"
           }`}>
             {conversation.categoria === "Coordinación Deportiva" 
-              ? "📢 Tu mensaje llegará a TODAS las familias del club" 
+              ? "🔒 Chat privado con el coordinador - Consultas, dudas o sugerencias" 
               : `${conversation.categoria} • Chat privado`}
           </p>
         </div>
