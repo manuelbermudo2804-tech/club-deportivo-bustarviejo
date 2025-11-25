@@ -77,7 +77,12 @@ export default function CoachChat() {
     
     let categories = [];
     
-    // Los coordinadores y admins ven "Coordinación Deportiva"
+    // Chat interno staff - visible para entrenadores, coordinadores y admins
+    if (isAdmin || isCoordinator || isCoach) {
+      categories.push("Chat Interno Staff");
+    }
+    
+    // Los coordinadores y admins ven "Coordinación Deportiva" (mensajes de familias)
     if (isAdmin || isCoordinator) {
       categories.push("Coordinación Deportiva");
     }
@@ -85,14 +90,16 @@ export default function CoachChat() {
     if (isAdmin) {
       categories = [...categories, ...new Set(allPlayers.map(p => p.deporte).filter(Boolean))];
     } else if (isCoordinator) {
-      // Coordinadores ven todas las categorías
-      categories = [...categories, ...new Set(allPlayers.map(p => p.deporte).filter(Boolean))];
+      // Coordinadores ven todas las categorías + las que entrenan
+      const allSports = new Set(allPlayers.map(p => p.deporte).filter(Boolean));
+      categories = [...categories, ...allSports];
     } else {
+      // Entrenadores solo ven sus equipos
       categories = [...categories, ...(user.categorias_entrena || [])];
     }
     
     return [...new Set(categories)];
-  }, [user, allPlayers, isAdmin, isCoordinator]);
+  }, [user, allPlayers, isAdmin, isCoordinator, isCoach]);
 
   // Conversaciones privadas de la categoría seleccionada
   const categoryPrivateConversations = useMemo(() => {
@@ -241,6 +248,7 @@ export default function CoachChat() {
   };
 
   const sportEmojis = {
+    "Chat Interno Staff": "👥",
     "Coordinación Deportiva": "🎓",
     "Fútbol Pre-Benjamín (Mixto)": "⚽",
     "Fútbol Benjamín (Mixto)": "⚽",
@@ -252,6 +260,9 @@ export default function CoachChat() {
     "Fútbol Femenino": "⚽",
     "Baloncesto (Mixto)": "🏀"
   };
+
+  // Verificar si es chat interno staff
+  const isStaffChat = selectedCategory === "Chat Interno Staff";
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -326,6 +337,9 @@ export default function CoachChat() {
         <div className="lg:col-span-3 space-y-4">
           {selectedCategory ? (
             <>
+              {/* Forzar modo anuncios para chat interno staff */}
+              {isStaffChat && chatSubMode !== "anuncios" && setChatSubMode("anuncios")}
+              
               {/* Sub-tabs dentro de cada categoría */}
               <div className="bg-white rounded-xl shadow-md border p-3">
                 <div className="flex items-center justify-between mb-2">
@@ -333,41 +347,51 @@ export default function CoachChat() {
                     {sportEmojis[selectedCategory] || "⚽"} {selectedCategory}
                   </h2>
                 </div>
-                <Tabs value={chatSubMode} onValueChange={(v) => { setChatSubMode(v); setSelectedConversation(null); }}>
-                  <TabsList className="w-full">
-                    <TabsTrigger value="anuncios" className="flex-1 gap-2">
-                      <Users className="w-4 h-4" />
-                      📢 Anuncios Grupo
-                      <span className="text-[10px] text-slate-500 hidden md:inline">(todos ven)</span>
-                    </TabsTrigger>
-                    <TabsTrigger value="privado" className="flex-1 gap-2">
-                      <MessageCircle className="w-4 h-4" />
-                      🔒 Privado Familias
-                      {getUnreadCountForCategory(selectedCategory) > 0 && (
-                        <Badge className="bg-red-500 text-white text-xs ml-1">{getUnreadCountForCategory(selectedCategory)}</Badge>
-                      )}
-                    </TabsTrigger>
-                  </TabsList>
-                </Tabs>
+                {!isStaffChat && (
+                  <Tabs value={chatSubMode} onValueChange={(v) => { setChatSubMode(v); setSelectedConversation(null); }}>
+                    <TabsList className="w-full">
+                      <TabsTrigger value="anuncios" className="flex-1 gap-2">
+                        <Users className="w-4 h-4" />
+                        📢 Anuncios Grupo
+                        <span className="text-[10px] text-slate-500 hidden md:inline">(todos ven)</span>
+                      </TabsTrigger>
+                      <TabsTrigger value="privado" className="flex-1 gap-2">
+                        <MessageCircle className="w-4 h-4" />
+                        🔒 Privado Familias
+                        {getUnreadCountForCategory(selectedCategory) > 0 && (
+                          <Badge className="bg-red-500 text-white text-xs ml-1">{getUnreadCountForCategory(selectedCategory)}</Badge>
+                        )}
+                      </TabsTrigger>
+                    </TabsList>
+                  </Tabs>
+                )}
               </div>
 
               {chatSubMode === "anuncios" ? (
                 /* SUB-MODO ANUNCIOS */
                 <div className="bg-white rounded-xl shadow-md border overflow-hidden flex flex-col" style={{ height: 'calc(70vh - 100px)' }}>
                   <div className={`p-3 text-white flex items-center gap-3 flex-shrink-0 ${
-                    isCoordinationChat 
-                      ? 'bg-gradient-to-r from-green-600 to-green-700' 
-                      : 'bg-gradient-to-r from-blue-600 to-blue-700'
+                    isStaffChat
+                      ? 'bg-gradient-to-r from-purple-600 to-purple-700'
+                      : isCoordinationChat 
+                        ? 'bg-gradient-to-r from-green-600 to-green-700' 
+                        : 'bg-gradient-to-r from-blue-600 to-blue-700'
                   }`}>
                     <Users className="w-5 h-5" />
                     <div>
                       <h3 className="font-bold text-sm">
-                        {isCoordinationChat ? "Chat de Coordinación" : `Anuncios para ${selectedCategory}`}
+                        {isStaffChat 
+                          ? "Chat Interno - Entrenadores y Coordinación" 
+                          : isCoordinationChat 
+                            ? "Chat de Coordinación" 
+                            : `Anuncios para ${selectedCategory}`}
                       </h3>
                       <p className="text-xs opacity-80">
-                        {isCoordinationChat 
-                          ? "Mensajes de familias - responde directamente aquí" 
-                          : "Todos los padres del grupo verán estos mensajes"}
+                        {isStaffChat
+                          ? "Solo entrenadores y coordinador ven estos mensajes"
+                          : isCoordinationChat 
+                            ? "Mensajes de familias - responde directamente aquí" 
+                            : "Todos los padres del grupo verán estos mensajes"}
                       </p>
                     </div>
                   </div>
@@ -444,7 +468,7 @@ export default function CoachChat() {
                       <Input
                         value={messageContent}
                         onChange={(e) => setMessageContent(e.target.value)}
-                        placeholder={isCoordinationChat ? "Responde a las familias..." : "Escribe un anuncio para el grupo..."}
+                        placeholder={isStaffChat ? "Escribe a los entrenadores..." : isCoordinationChat ? "Responde a las familias..." : "Escribe un anuncio para el grupo..."}
                         className="flex-1 rounded-full"
                         onKeyDown={(e) => {
                           if (e.key === 'Enter' && !e.shiftKey) {
@@ -456,7 +480,7 @@ export default function CoachChat() {
                       <Button
                         onClick={handleSendGroupMessage}
                         disabled={(!messageContent.trim() && attachments.length === 0) || sendMessageMutation.isPending}
-                        className={`rounded-full w-10 h-10 p-0 ${isCoordinationChat ? 'bg-green-600 hover:bg-green-700' : 'bg-blue-600 hover:bg-blue-700'}`}
+                        className={`rounded-full w-10 h-10 p-0 ${isStaffChat ? 'bg-purple-600 hover:bg-purple-700' : isCoordinationChat ? 'bg-green-600 hover:bg-green-700' : 'bg-blue-600 hover:bg-blue-700'}`}
                       >
                         <Send className="w-4 h-4" />
                       </Button>
