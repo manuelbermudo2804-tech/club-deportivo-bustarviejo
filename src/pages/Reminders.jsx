@@ -438,7 +438,10 @@ Gracias por su atención.
     try {
       const payment = payments.find(p => p.id === reminder.pago_id);
       if (payment && payment.estado === "Pagado") {
-        toast.info("Este pago ya está marcado como pagado");
+        // Eliminar el recordatorio ya que el pago está completado
+        await base44.entities.Reminder.delete(reminder.id);
+        queryClient.invalidateQueries({ queryKey: ['reminders'] });
+        toast.info("Pago ya completado - recordatorio eliminado");
         setSendingReminder(null);
         return;
       }
