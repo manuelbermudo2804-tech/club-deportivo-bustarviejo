@@ -216,13 +216,16 @@ export default function CoachChat() {
 
   // Verificar si es chat de coordinación (bidireccional)
   const isCoordinationChat = selectedCategory === "Coordinación Deportiva";
+  
+  // Verificar si es chat interno staff
+  const isStaffChat = selectedCategory === "Chat Interno Staff";
 
   // Para coordinación, forzar modo privado; para staff chat, forzar anuncios
   // Solo ejecutar cuando cambia la categoría seleccionada
   useEffect(() => {
-    if (isCoordinationChat) {
+    if (selectedCategory === "Coordinación Deportiva") {
       setChatSubMode("privado");
-    } else if (isStaffChat) {
+    } else if (selectedCategory === "Chat Interno Staff") {
       setChatSubMode("anuncios");
     }
   }, [selectedCategory]);
@@ -266,9 +269,6 @@ export default function CoachChat() {
     "Fútbol Femenino": "⚽",
     "Baloncesto (Mixto)": "🏀"
   };
-
-  // Verificar si es chat interno staff
-  const isStaffChat = selectedCategory === "Chat Interno Staff";
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
