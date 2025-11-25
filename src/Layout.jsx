@@ -986,6 +986,7 @@ export default function Layout({ children, currentPageName }) {
       <NotificationBadge />
       {user && <ChatNotificationListener user={user} />}
       {user && <DocumentReminderEngine user={user} />}
+      {user && <NotificationManager user={user} />}
 
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
         
