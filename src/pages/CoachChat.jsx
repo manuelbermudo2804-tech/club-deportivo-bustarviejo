@@ -350,7 +350,8 @@ export default function CoachChat() {
                     {sportEmojis[selectedCategory] || "⚽"} {selectedCategory}
                   </h2>
                 </div>
-                {!isStaffChat && (
+                {/* Coordinación Deportiva solo tiene chat privado, no anuncios de grupo */}
+                {!isStaffChat && !isCoordinationChat && (
                   <Tabs value={chatSubMode} onValueChange={(v) => { setChatSubMode(v); setSelectedConversation(null); }}>
                     <TabsList className="w-full">
                       <TabsTrigger value="anuncios" className="flex-1 gap-2">
@@ -367,6 +368,12 @@ export default function CoachChat() {
                       </TabsTrigger>
                     </TabsList>
                   </Tabs>
+                )}
+                {isCoordinationChat && (
+                  <div className="bg-green-50 rounded-lg p-3 text-sm text-green-800">
+                    <p className="font-medium">💬 Mensajes privados de las familias</p>
+                    <p className="text-xs text-green-600 mt-1">Cada familia tiene su conversación privada contigo. Selecciona una para responder.</p>
+                  </div>
                 )}
               </div>
 
