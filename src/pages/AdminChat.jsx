@@ -469,7 +469,15 @@ export default function AdminChat() {
     "Fútbol Juvenil": "⚽",
     "Fútbol Aficionado": "⚽",
     "Fútbol Femenino": "⚽",
-    "Baloncesto (Mixto)": "🏀"
+    "Baloncesto (Mixto)": "🏀",
+    "Chat Interno Entrenadores": "💼",
+    "Coordinación Deportiva": "🎓"
+  };
+
+  const getParentName = (email) => {
+    const parents = getGroupParents();
+    const parent = parents.find(p => p.email === email);
+    return parent?.name || email;
   };
 
   useEffect(() => {
