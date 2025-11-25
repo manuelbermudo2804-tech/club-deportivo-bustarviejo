@@ -939,17 +939,7 @@ Email: cdbustarviejo@gmail.com
                               </div>
                             </div>
 
-                            {playerPayments.length === 0 ? (
-                              <div className="text-center py-4 bg-slate-100 rounded-lg">
-                                <p className="text-slate-600 text-sm font-medium">
-                                  ❌ No hay pagos realizados
-                                </p>
-                                <p className="text-slate-500 text-xs mt-1">
-                                  Este jugador no ha registrado ningún pago para {temporadaFilter}
-                                </p>
-                              </div>
-                            ) : (
-                              <div className="space-y-1.5">
+                            <div className="space-y-1.5">
                                 {displayPayments.map(payment => {
                                   const daysOverdue = calculateDaysOverdue(payment.mes);
                                   const isOverdue = payment.estado !== "Pagado" && daysOverdue > 0;
