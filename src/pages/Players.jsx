@@ -147,8 +147,11 @@ export default function Players() {
     setShowForm(true);
   };
 
-  const handleViewProfile = (player) => {
+  const [initialTab, setInitialTab] = useState("info");
+
+  const handleViewProfile = (player, tab = "info") => {
     setSelectedPlayer(player);
+    setInitialTab(tab);
     setShowProfileDialog(true);
   };
 
@@ -407,6 +410,7 @@ export default function Players() {
                   onEdit={isAdmin ? handleEdit : null}
                   onViewProfile={handleViewProfile}
                   schedules={schedules}
+                  payments={payments}
                   isCoachOrCoordinator={isCoach || user?.es_coordinador}
                 />
               ))}
@@ -482,6 +486,7 @@ export default function Players() {
           evaluations={evaluations}
           attendances={attendances}
           isAdmin={isAdmin}
+          initialTab={initialTab}
         />
       )}
     </div>
