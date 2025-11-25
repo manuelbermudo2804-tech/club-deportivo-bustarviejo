@@ -696,3 +696,5 @@ export default function ParentChat() {
     </div>
   );
 }
+
+// Eliminar el cierre extra del ternario
