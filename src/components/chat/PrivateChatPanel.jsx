@@ -95,7 +95,11 @@ export default function PrivateChatPanel({
   return (
     <div className="flex flex-col h-full bg-white">
       {/* Header */}
-      <div className="bg-gradient-to-r from-blue-600 to-blue-700 p-4 text-white flex items-center gap-3 shadow-md flex-shrink-0">
+      <div className={`p-4 text-white flex items-center gap-3 shadow-md flex-shrink-0 ${
+        conversation.categoria === "Coordinación Deportiva" 
+          ? "bg-gradient-to-r from-green-600 to-green-700" 
+          : "bg-gradient-to-r from-blue-600 to-blue-700"
+      }`}>
         <button
           onClick={onClose}
           className="p-2 hover:bg-white/20 rounded-lg transition-colors"
@@ -103,15 +107,27 @@ export default function PrivateChatPanel({
           <ArrowLeft className="w-5 h-5" />
         </button>
         <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
-          <User className="w-5 h-5" />
+          {conversation.categoria === "Coordinación Deportiva" ? (
+            <span className="text-xl">🎓</span>
+          ) : (
+            <User className="w-5 h-5" />
+          )}
         </div>
         <div className="flex-1 min-w-0">
-          <h2 className="font-bold text-base truncate">{otherParticipant.nombre}</h2>
-          <p className="text-xs text-blue-100 truncate">
-            {conversation.categoria} • Chat privado
+          <h2 className="font-bold text-base truncate">
+            {conversation.categoria === "Coordinación Deportiva" 
+              ? "Coordinación Deportiva" 
+              : otherParticipant.nombre}
+          </h2>
+          <p className={`text-xs truncate ${
+            conversation.categoria === "Coordinación Deportiva" ? "text-green-100" : "text-blue-100"
+          }`}>
+            {conversation.categoria === "Coordinación Deportiva" 
+              ? "📢 Tu mensaje llegará a TODAS las familias del club" 
+              : `${conversation.categoria} • Chat privado`}
           </p>
         </div>
-        {conversation.jugadores_relacionados?.length > 0 && (
+        {conversation.jugadores_relacionados?.length > 0 && conversation.categoria !== "Coordinación Deportiva" && (
           <Badge className="bg-white/20 text-white text-xs">
             {conversation.jugadores_relacionados.map(j => j.jugador_nombre).join(", ")}
           </Badge>
