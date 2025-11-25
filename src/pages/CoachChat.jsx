@@ -217,6 +217,13 @@ export default function CoachChat() {
   // Verificar si es chat de coordinación (bidireccional)
   const isCoordinationChat = selectedCategory === "Coordinación Deportiva";
 
+  // Para coordinación, forzar modo privado siempre (las familias escriben en privado)
+  useEffect(() => {
+    if (isCoordinationChat && chatSubMode === "anuncios") {
+      setChatSubMode("privado");
+    }
+  }, [isCoordinationChat, chatSubMode]);
+
   const handleSendGroupMessage = () => {
     if (!user || !selectedCategory) return;
     if (!messageContent.trim() && attachments.length === 0) {
