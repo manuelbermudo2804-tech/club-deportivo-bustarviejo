@@ -204,11 +204,20 @@ export default function Players() {
       player.nombre?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       player.email_padre?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       player.telefono?.includes(searchTerm);
-    const matchesSport = sportFilter === "all" || player.deporte === sportFilter;
+    
+    // Filtro de deporte: buscar si el deporte del jugador CONTIENE el texto del filtro
+    const matchesSport = sportFilter === "all" || 
+      (sportFilter === "Fútbol" && player.deporte?.includes("Fútbol") && !player.deporte?.includes("Femenino")) ||
+      (sportFilter === "Fútbol Femenino" && player.deporte === "Fútbol Femenino") ||
+      (sportFilter === "Baloncesto" && player.deporte?.includes("Baloncesto"));
+    
     const matchesStatus = statusFilter === "all" || 
       (statusFilter === "active" && player.activo) ||
       (statusFilter === "inactive" && !player.activo);
+    
+    // Filtro de categoría: comparación exacta con la categoría completa
     const matchesCategory = categoryFilter === "all" || player.deporte === categoryFilter;
+    
     return matchesSearch && matchesSport && matchesStatus && matchesCategory;
   });
 
