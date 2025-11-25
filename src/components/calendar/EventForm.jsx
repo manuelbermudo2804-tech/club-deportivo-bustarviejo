@@ -15,6 +15,7 @@ export default function EventForm({ event, onSubmit, onCancel, isSubmitting }) {
     titulo: "",
     descripcion: "",
     tipo: "Partido",
+    destinatario_categoria: "Todos",
     deporte: "Todos",
     categoria: "Todas",
     fecha: "",
@@ -100,45 +101,27 @@ export default function EventForm({ event, onSubmit, onCancel, isSubmitting }) {
                 </Select>
               </div>
 
-              {/* Deporte */}
-              <div className="space-y-2">
-                <Label>Deporte</Label>
+              {/* Categoría Destinataria */}
+              <div className="space-y-2 md:col-span-2">
+                <Label>¿A quién va dirigido este evento? *</Label>
                 <Select
-                  value={currentEvent.deporte}
-                  onValueChange={(value) => setCurrentEvent({ ...currentEvent, deporte: value })}
+                  value={currentEvent.destinatario_categoria || "Todos"}
+                  onValueChange={(value) => setCurrentEvent({ ...currentEvent, destinatario_categoria: value })}
                 >
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="Todos">Todos</SelectItem>
-                    <SelectItem value="Fútbol Masculino">⚽ Fútbol Masculino</SelectItem>
+                    <SelectItem value="Todos">📢 Todos (Todo el club)</SelectItem>
+                    <SelectItem value="Fútbol Pre-Benjamín (Mixto)">⚽ Fútbol Pre-Benjamín (Mixto)</SelectItem>
+                    <SelectItem value="Fútbol Benjamín (Mixto)">⚽ Fútbol Benjamín (Mixto)</SelectItem>
+                    <SelectItem value="Fútbol Alevín (Mixto)">⚽ Fútbol Alevín (Mixto)</SelectItem>
+                    <SelectItem value="Fútbol Infantil (Mixto)">⚽ Fútbol Infantil (Mixto)</SelectItem>
+                    <SelectItem value="Fútbol Cadete">⚽ Fútbol Cadete</SelectItem>
+                    <SelectItem value="Fútbol Juvenil">⚽ Fútbol Juvenil</SelectItem>
+                    <SelectItem value="Fútbol Aficionado">⚽ Fútbol Aficionado</SelectItem>
                     <SelectItem value="Fútbol Femenino">⚽ Fútbol Femenino</SelectItem>
-                    <SelectItem value="Baloncesto">🏀 Baloncesto</SelectItem>
-                    <SelectItem value="Paddle">🎾 Paddle</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {/* Categoría */}
-              <div className="space-y-2">
-                <Label>Categoría</Label>
-                <Select
-                  value={currentEvent.categoria}
-                  onValueChange={(value) => setCurrentEvent({ ...currentEvent, categoria: value })}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Todas">Todas</SelectItem>
-                    <SelectItem value="Prebenjamín">Prebenjamín</SelectItem>
-                    <SelectItem value="Benjamín">Benjamín</SelectItem>
-                    <SelectItem value="Alevín">Alevín</SelectItem>
-                    <SelectItem value="Infantil">Infantil</SelectItem>
-                    <SelectItem value="Cadete">Cadete</SelectItem>
-                    <SelectItem value="Juvenil">Juvenil</SelectItem>
-                    <SelectItem value="Senior">Senior</SelectItem>
+                    <SelectItem value="Baloncesto (Mixto)">🏀 Baloncesto (Mixto)</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

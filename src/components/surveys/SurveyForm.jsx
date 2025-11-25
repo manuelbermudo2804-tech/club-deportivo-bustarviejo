@@ -220,14 +220,16 @@ export default function SurveyForm({ survey, onSubmit, onCancel, isSubmitting })
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="Todos">Todas las Categorías</SelectItem>
-                    <SelectItem value="Fútbol Pre-Benjamín (Mixto)">Pre-Benjamín</SelectItem>
-                    <SelectItem value="Fútbol Benjamín (Mixto)">Benjamín</SelectItem>
-                    <SelectItem value="Fútbol Alevín (Mixto)">Alevín</SelectItem>
-                    <SelectItem value="Fútbol Infantil (Mixto)">Infantil</SelectItem>
-                    <SelectItem value="Fútbol Cadete">Cadete</SelectItem>
-                    <SelectItem value="Fútbol Juvenil">Juvenil</SelectItem>
-                    <SelectItem value="Baloncesto (Mixto)">Baloncesto</SelectItem>
+                    <SelectItem value="Todos">📢 Todas las Categorías</SelectItem>
+                    <SelectItem value="Fútbol Pre-Benjamín (Mixto)">⚽ Pre-Benjamín</SelectItem>
+                    <SelectItem value="Fútbol Benjamín (Mixto)">⚽ Benjamín</SelectItem>
+                    <SelectItem value="Fútbol Alevín (Mixto)">⚽ Alevín</SelectItem>
+                    <SelectItem value="Fútbol Infantil (Mixto)">⚽ Infantil</SelectItem>
+                    <SelectItem value="Fútbol Cadete">⚽ Cadete</SelectItem>
+                    <SelectItem value="Fútbol Juvenil">⚽ Juvenil</SelectItem>
+                    <SelectItem value="Fútbol Aficionado">⚽ Aficionado</SelectItem>
+                    <SelectItem value="Fútbol Femenino">⚽ Femenino</SelectItem>
+                    <SelectItem value="Baloncesto (Mixto)">🏀 Baloncesto</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
