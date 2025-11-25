@@ -402,7 +402,7 @@ export default function ParentDashboard() {
   const menuItems = buildMenuItems();
 
   // Mostrar loading mientras se cargan los datos iniciales
-  if (!user || playersLoading) {
+  if (!user) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-black flex items-center justify-center">
         <div className="text-center">
