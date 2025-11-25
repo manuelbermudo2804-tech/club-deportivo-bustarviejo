@@ -735,5 +735,6 @@ export default function ParentChat() {
         </div>
       )}
     </div>
+    </>
   );
 }
