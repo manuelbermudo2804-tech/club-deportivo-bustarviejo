@@ -123,10 +123,26 @@ export default function ParentChat() {
 
   const myGroupSports = [...new Set(myPlayers.map(p => normalizeDeporte(p.deporte)).filter(Boolean))];
 
+  // Filtrar mensajes: solo los del staff (admin/coordinador) + los propios del usuario
+  const filterMessagesForFamily = (msgs, deporte) => {
+    return msgs.filter(msg => {
+      const matchesGroup = normalizeDeporte(msg.grupo_id || msg.deporte) === deporte;
+      if (!matchesGroup) return false;
+      
+      // Siempre mostrar mensajes del staff
+      if (msg.tipo === "admin_a_grupo" || msg.tipo === "coordinador_a_familia") return true;
+      
+      // Solo mostrar mensajes propios del padre (no de otras familias)
+      if (msg.tipo === "padre_a_grupo" && msg.remitente_email === user?.email) return true;
+      
+      return false;
+    });
+  };
+
   const groups = [{
     id: "Coordinación Deportiva",
     deporte: "Coordinación Deportiva",
-    messages: messages.filter(msg => normalizeDeporte(msg.grupo_id || msg.deporte) === "Coordinación Deportiva"),
+    messages: filterMessagesForFamily(messages, "Coordinación Deportiva"),
     unreadCount: messages.filter(msg => 
       !msg.leido && 
       (msg.tipo === "coordinador_a_familia" || msg.tipo === "admin_a_grupo") && 
@@ -135,7 +151,7 @@ export default function ParentChat() {
   }];
 
   myGroupSports.forEach(deporte => {
-    const groupMessages = messages.filter(msg => normalizeDeporte(msg.grupo_id || msg.deporte) === deporte);
+    const groupMessages = filterMessagesForFamily(messages, deporte);
     groups.push({
       id: deporte,
       deporte,
