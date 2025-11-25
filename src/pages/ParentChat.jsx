@@ -49,6 +49,11 @@ export default function ParentChat() {
     queryFn: () => base44.entities.User.list(),
   });
 
+  // Encontrar al coordinador
+  const coordinator = useMemo(() => {
+    return allUsers.find(u => u.es_coordinador === true);
+  }, [allUsers]);
+
   const { data: privateConversations = [], refetch: refetchConversations } = useQuery({
     queryKey: ['myPrivateConversations', user?.email],
     queryFn: () => user ? base44.entities.PrivateConversation.filter({ participante_familia_email: user.email }, '-ultimo_mensaje_fecha') : [],
@@ -116,35 +121,23 @@ export default function ParentChat() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['chatMessages'] }),
   });
 
-  // Enviar mensaje al chat de coordinación
-  const sendCoordinationMessage = useMutation({
-    mutationFn: async (messageData) => {
-      return await base44.entities.ChatMessage.create(messageData);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['chatMessages'] });
-      setMessageContent("");
-      setAttachments([]);
-      toast.success("Mensaje enviado");
-    },
-  });
-
-  const handleSendCoordinationMessage = () => {
-    if (!user || !messageContent.trim() && attachments.length === 0) return;
-    
-    sendCoordinationMessage.mutate({
-      remitente_email: user.email,
-      remitente_nombre: user.full_name || user.email.split('@')[0],
-      mensaje: messageContent || "(Archivo adjunto)",
-      prioridad: "Normal",
-      tipo: "padre_a_grupo",
-      deporte: "Coordinación Deportiva",
-      categoria: "",
-      grupo_id: "Coordinación Deportiva",
-      leido: false,
-      archivos_adjuntos: attachments,
-    });
-  };
+  // Cuando se selecciona Coordinación Deportiva, abrir chat privado con coordinador
+  useEffect(() => {
+    if (selectedCategory === "Coordinación Deportiva" && user && coordinator && !activePrivateChat) {
+      // Buscar si ya existe conversación privada con coordinador
+      const existingConv = privateConversations.find(c => 
+        c.participante_staff_email === coordinator.email && 
+        c.categoria === "Coordinación Deportiva"
+      );
+      
+      if (existingConv) {
+        setActivePrivateChat(existingConv);
+      } else {
+        // Crear nueva conversación
+        createOrOpenPrivateChat.mutate(coordinator.email);
+      }
+    }
+  }, [selectedCategory, user, coordinator]);
 
   // Marcar como leídos al ver
   useEffect(() => {
@@ -337,68 +330,71 @@ export default function ParentChat() {
         {/* Panel de anuncios */}
         <div className="lg:col-span-3">
           {selectedCategory ? (
-            <div className="bg-white rounded-xl shadow-md border overflow-hidden flex flex-col" style={{ height: '70vh' }}>
-              <div className="bg-gradient-to-r from-blue-600 to-blue-700 p-4 text-white flex items-center gap-3 flex-shrink-0">
-                <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
-                  <span className="text-xl">{sportEmojis[selectedCategory] || "⚽"}</span>
-                </div>
-                <div className="flex-1">
-                  <h2 className="font-bold">{selectedCategory}</h2>
-                  <p className="text-xs text-blue-100">
-                    {selectedCategory === "Coordinación Deportiva" 
-                      ? "🔒 Chat privado con coordinación" 
-                      : "📢 Mensajes del entrenador"}
-                  </p>
+            selectedCategory === "Coordinación Deportiva" && activePrivateChat ? (
+              /* Chat privado con coordinador */
+              <div className="bg-white rounded-xl shadow-md border overflow-hidden" style={{ height: '70vh' }}>
+                <PrivateChatPanel
+                  conversation={activePrivateChat}
+                  messages={privateMessages}
+                  user={user}
+                  isStaff={false}
+                  onClose={() => {
+                    setActivePrivateChat(null);
+                    setSelectedCategory(null);
+                  }}
+                  onMessageSent={handlePrivateMessageSent}
+                />
+              </div>
+            ) : selectedCategory === "Coordinación Deportiva" ? (
+              /* Cargando chat con coordinador */
+              <div className="bg-white rounded-xl shadow-md border overflow-hidden flex items-center justify-center" style={{ height: '70vh' }}>
+                <div className="text-center">
+                  <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-green-600 border-r-transparent mb-4"></div>
+                  <p className="text-slate-600">Abriendo chat con coordinación...</p>
                 </div>
               </div>
-
-              <div className="flex-1 overflow-y-auto p-4 space-y-3" style={{ backgroundColor: '#e5ddd5' }}>
-                {currentAnnouncements.length === 0 ? (
-                  <div className="flex items-center justify-center h-full">
-                    <div className="text-center text-slate-500 bg-white/80 rounded-xl p-6">
-                      <AlertCircle className="w-12 h-12 mx-auto mb-2 opacity-50" />
-                      <p className="text-sm">
-                        {selectedCategory === "Coordinación Deportiva" 
-                          ? "No hay mensajes de coordinación" 
-                          : "No hay mensajes del entrenador"}
-                      </p>
-                    </div>
+            ) : (
+              /* Chat de equipos normal */
+              <div className="bg-white rounded-xl shadow-md border overflow-hidden flex flex-col" style={{ height: '70vh' }}>
+                <div className="bg-gradient-to-r from-blue-600 to-blue-700 p-4 text-white flex items-center gap-3 flex-shrink-0">
+                  <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
+                    <span className="text-xl">{sportEmojis[selectedCategory] || "⚽"}</span>
                   </div>
-                ) : (
-                  currentAnnouncements
-                    .sort((a, b) => new Date(a.created_date) - new Date(b.created_date))
-                    .map((msg) => {
-                      const isMyMessage = msg.remitente_email === user?.email;
-                      const isCoordinacion = selectedCategory === "Coordinación Deportiva";
-                      
-                      return (
-                        <div key={msg.id} className={`flex ${isCoordinacion && isMyMessage ? 'justify-end' : 'justify-start'}`}>
-                          <div className={`max-w-[90%] rounded-xl shadow-sm overflow-hidden ${
-                            isCoordinacion && isMyMessage 
-                              ? 'bg-green-600 text-white' 
-                              : 'bg-white'
-                          }`}>
+                  <div className="flex-1">
+                    <h2 className="font-bold">{selectedCategory}</h2>
+                    <p className="text-xs text-blue-100">📢 Mensajes del entrenador</p>
+                  </div>
+                </div>
+
+                <div className="flex-1 overflow-y-auto p-4 space-y-3" style={{ backgroundColor: '#e5ddd5' }}>
+                  {currentAnnouncements.length === 0 ? (
+                    <div className="flex items-center justify-center h-full">
+                      <div className="text-center text-slate-500 bg-white/80 rounded-xl p-6">
+                        <AlertCircle className="w-12 h-12 mx-auto mb-2 opacity-50" />
+                        <p className="text-sm">No hay mensajes del entrenador</p>
+                      </div>
+                    </div>
+                  ) : (
+                    currentAnnouncements
+                      .sort((a, b) => new Date(a.created_date) - new Date(b.created_date))
+                      .map((msg) => (
+                        <div key={msg.id} className="flex justify-start">
+                          <div className="max-w-[90%] rounded-xl shadow-sm overflow-hidden bg-white">
                             <div className="px-4 py-3">
                               <div className="flex items-center gap-2 mb-2">
-                                <span className={`text-xs font-bold ${
-                                  isCoordinacion && isMyMessage ? 'text-green-100' : 'text-orange-700'
-                                }`}>
-                                  {isCoordinacion && isMyMessage ? '👤' : '🎓'} {msg.remitente_nombre}
+                                <span className="text-xs font-bold text-orange-700">
+                                  🎓 {msg.remitente_nombre}
                                 </span>
                                 {msg.prioridad !== "Normal" && (
                                   <Badge className={msg.prioridad === "Urgente" ? "bg-red-500" : "bg-yellow-500"}>
                                     {msg.prioridad}
                                   </Badge>
                                 )}
-                                <span className={`text-[10px] ml-auto ${
-                                  isCoordinacion && isMyMessage ? 'text-green-100' : 'text-slate-400'
-                                }`}>
+                                <span className="text-[10px] ml-auto text-slate-400">
                                   {format(new Date(msg.created_date), "d MMM HH:mm", { locale: es })}
                                 </span>
                               </div>
-                              <p className={`text-sm leading-relaxed whitespace-pre-wrap ${
-                                isCoordinacion && isMyMessage ? 'text-white' : 'text-slate-800'
-                              }`}>{msg.mensaje}</p>
+                              <p className="text-sm leading-relaxed whitespace-pre-wrap text-slate-800">{msg.mensaje}</p>
                               
                               {msg.archivos_adjuntos?.length > 0 && (
                                 <div className="mt-2">
@@ -407,8 +403,8 @@ export default function ParentChat() {
                               )}
                             </div>
                             
-                            {/* Botón responder en privado - solo en equipos, no en coordinación */}
-                            {!isCoordinacion && isCoachSender(msg.remitente_email) && (
+                            {/* Botón responder en privado */}
+                            {isCoachSender(msg.remitente_email) && (
                               <div className="bg-slate-50 px-4 py-2 border-t">
                                 <Button
                                   variant="ghost"
@@ -424,63 +420,18 @@ export default function ParentChat() {
                             )}
                           </div>
                         </div>
-                      );
-                    })
-                )}
-                <div ref={messagesEndRef} />
-              </div>
-
-              {/* Input para Coordinación Deportiva */}
-              {selectedCategory === "Coordinación Deportiva" ? (
-                <div className="bg-white border-t p-3 flex-shrink-0">
-                  {attachments.length > 0 && (
-                    <div className="mb-2 flex flex-wrap gap-2">
-                      {attachments.map((att, index) => (
-                        <div key={index} className="bg-slate-100 rounded-lg px-3 py-1.5 text-sm flex items-center gap-2">
-                          <span className="text-xs truncate max-w-[150px]">{att.nombre}</span>
-                          <button onClick={() => setAttachments(prev => prev.filter((_, i) => i !== index))} className="text-slate-500 hover:text-red-600">×</button>
-                        </div>
-                      ))}
-                    </div>
+                      ))
                   )}
-                  <div className="flex gap-2 items-end">
-                    <FileAttachmentButton
-                      onFileUploaded={(att) => setAttachments(prev => [...prev, att])}
-                      disabled={sendCoordinationMessage.isPending}
-                    />
-                    <Input
-                      value={messageContent}
-                      onChange={(e) => setMessageContent(e.target.value)}
-                      placeholder="Escribe tu mensaje a coordinación..."
-                      className="flex-1 rounded-full"
-                      disabled={sendCoordinationMessage.isPending}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter' && !e.shiftKey) {
-                          e.preventDefault();
-                          handleSendCoordinationMessage();
-                        }
-                      }}
-                    />
-                    <Button
-                      onClick={handleSendCoordinationMessage}
-                      disabled={(!messageContent.trim() && attachments.length === 0) || sendCoordinationMessage.isPending}
-                      className="rounded-full w-10 h-10 p-0 bg-green-600 hover:bg-green-700"
-                    >
-                      <Send className="w-4 h-4" />
-                    </Button>
-                  </div>
-                  <p className="text-xs text-green-700 text-center mt-2">
-                    🔒 Chat privado con la coordinación deportiva del club
-                  </p>
+                  <div ref={messagesEndRef} />
                 </div>
-              ) : (
+
                 <div className="bg-blue-50 border-t px-4 py-3 flex-shrink-0">
                   <p className="text-xs text-blue-700 text-center">
                     💬 Usa "Responder en privado" para hablar directamente con el entrenador
                   </p>
                 </div>
-              )}
-            </div>
+              </div>
+            )
           ) : (
             <div className="bg-white rounded-xl shadow-md border p-12 text-center" style={{ height: '70vh' }}>
               <div className="flex flex-col items-center justify-center h-full">
