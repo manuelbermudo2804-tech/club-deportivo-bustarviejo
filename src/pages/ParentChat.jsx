@@ -308,11 +308,21 @@ export default function ParentChat() {
               <p className="text-xs text-green-100">{privateConversations.length} chats privados</p>
             </div>
             <div className="divide-y max-h-[60vh] overflow-y-auto">
+              <div className="p-3 border-b">
+                <Button
+                  onClick={() => setShowNewConversation(true)}
+                  className="w-full bg-green-600 hover:bg-green-700 text-white"
+                  size="sm"
+                >
+                  <MessageCircle className="w-4 h-4 mr-2" />
+                  Nueva conversación
+                </Button>
+              </div>
               {privateConversations.length === 0 ? (
                 <div className="p-6 text-center text-slate-500">
                   <MessageCircle className="w-12 h-12 mx-auto mb-2 opacity-30" />
                   <p className="text-sm">No tienes conversaciones privadas</p>
-                  <p className="text-xs mt-2">Cuando un entrenador te escriba, aparecerá aquí</p>
+                  <p className="text-xs mt-2">Inicia una conversación con el entrenador</p>
                 </div>
               ) : (
                 privateConversations.map(conv => (
