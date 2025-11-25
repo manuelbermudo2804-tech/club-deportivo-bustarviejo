@@ -247,16 +247,121 @@ export default function ParentChat() {
     );
   }
 
+  const handlePrivateMessageSent = () => {
+    refetchPrivateMessages();
+    refetchConversations();
+  };
+
   return (
     <div className="p-4 lg:p-6 min-h-screen bg-slate-50">
-      {isMobile ? (
+      {/* Header con tabs */}
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-4">
+        <div>
+          <h2 className="text-2xl font-bold text-slate-900">Chats</h2>
+          <p className="text-sm text-slate-600">
+            {chatMode === "anuncios" ? "Anuncios del equipo" : "Conversaciones privadas"}
+          </p>
+        </div>
+        
+        <Tabs value={chatMode} onValueChange={(v) => { setChatMode(v); setSelectedTab(null); setSelectedConversation(null); }} className="w-full md:w-auto">
+          <TabsList className="w-full md:w-auto">
+            <TabsTrigger value="anuncios" className="flex-1 md:flex-none gap-2">
+              <Users className="w-4 h-4" />
+              Anuncios
+            </TabsTrigger>
+            <TabsTrigger value="privado" className="flex-1 md:flex-none gap-2">
+              <MessageCircle className="w-4 h-4" />
+              Privado
+              {totalPrivateUnread > 0 && (
+                <Badge className="bg-red-500 text-white text-xs ml-1">{totalPrivateUnread}</Badge>
+              )}
+            </TabsTrigger>
+          </TabsList>
+        </Tabs>
+      </div>
+
+      {chatMode === "privado" ? (
+        /* MODO PRIVADO */
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+          {/* Lista de conversaciones privadas */}
+          <div className="lg:col-span-1 bg-white rounded-xl shadow-md border overflow-hidden">
+            <div className="p-4 bg-gradient-to-r from-green-600 to-green-700 text-white">
+              <h3 className="font-bold">Conversaciones</h3>
+              <p className="text-xs text-green-100">{privateConversations.length} chats privados</p>
+            </div>
+            <div className="divide-y max-h-[60vh] overflow-y-auto">
+              {privateConversations.length === 0 ? (
+                <div className="p-6 text-center text-slate-500">
+                  <MessageCircle className="w-12 h-12 mx-auto mb-2 opacity-30" />
+                  <p className="text-sm">No tienes conversaciones privadas</p>
+                  <p className="text-xs mt-2">Cuando un entrenador te escriba, aparecerá aquí</p>
+                </div>
+              ) : (
+                privateConversations.map(conv => (
+                  <button
+                    key={conv.id}
+                    onClick={() => setSelectedConversation(conv)}
+                    className={`w-full p-4 flex items-center gap-3 transition-colors text-left ${
+                      selectedConversation?.id === conv.id ? 'bg-green-50 border-l-4 border-l-green-600' : 'hover:bg-slate-50 border-l-4 border-l-transparent'
+                    }`}
+                  >
+                    <div className={`w-12 h-12 rounded-full flex items-center justify-center ${
+                      conv.no_leidos_familia > 0 ? 'bg-green-600 text-white' : 'bg-slate-200'
+                    }`}>
+                      <User className="w-5 h-5" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="font-semibold text-slate-900 truncate">
+                        {conv.participante_staff_nombre}
+                      </div>
+                      <div className="text-xs text-slate-500 truncate">
+                        {conv.participante_staff_rol === 'entrenador' ? '🎓 Entrenador' : conv.participante_staff_rol === 'coordinador' ? '📋 Coordinador' : '👤 Admin'} • {conv.categoria}
+                      </div>
+                      {conv.ultimo_mensaje && (
+                        <div className="text-xs text-slate-400 truncate mt-1">
+                          {conv.ultimo_mensaje_de === 'familia' ? '↩️ ' : ''}{conv.ultimo_mensaje}
+                        </div>
+                      )}
+                    </div>
+                    {conv.no_leidos_familia > 0 && (
+                      <Badge className="bg-green-600 text-white">{conv.no_leidos_familia}</Badge>
+                    )}
+                  </button>
+                ))
+              )}
+            </div>
+          </div>
+
+          {/* Chat privado */}
+          <div className="lg:col-span-2 bg-white rounded-xl shadow-md border overflow-hidden" style={{ height: '70vh' }}>
+            {selectedConversation ? (
+              <PrivateChatPanel
+                conversation={selectedConversation}
+                messages={privateMessages}
+                user={user}
+                isStaff={false}
+                onClose={() => setSelectedConversation(null)}
+                onMessageSent={handlePrivateMessageSent}
+              />
+            ) : (
+              <div className="flex items-center justify-center h-full text-slate-500">
+                <div className="text-center">
+                  <MessageCircle className="w-16 h-16 mx-auto mb-4 opacity-30" />
+                  <p className="font-medium">Chats Privados</p>
+                  <p className="text-sm mt-2">Selecciona una conversación</p>
+                  <p className="text-xs text-slate-400 mt-4 max-w-xs mx-auto">
+                    Aquí puedes hablar directamente con el entrenador o coordinador de tu hijo
+                  </p>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      ) : isMobile ? (
+        /* MODO ANUNCIOS - Mobile */
         <>
           {!selectedTab ? (
             <div>
-              <div className="mb-4">
-                <h2 className="text-2xl font-bold text-slate-900">Chats</h2>
-                <p className="text-sm text-slate-600">{groups.length} grupos disponibles</p>
-              </div>
               <div className="space-y-2">
                 {groups.map(group => (
                   <button
