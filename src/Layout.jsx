@@ -542,15 +542,20 @@ export default function Layout({ children, currentPageName }) {
         setIsTreasurer(currentUser.es_tesorero === true);
 
         console.log('🔍 ROLES DETECTADOS:', {
-          email: currentUser.email,
-          isAdmin: currentUser.role === "admin",
-          isPlayer: currentUser.role === "jugador",
-          isCoach: currentUser.es_entrenador === true && !currentUser.es_coordinador,
-          isCoordinator: currentUser.es_coordinador === true,
-          isTreasurer: currentUser.es_tesorero === true,
-          es_tesorero_RAW: currentUser.es_tesorero,
-          role_RAW: currentUser.role
-        });
+                        email: currentUser.email,
+                        isAdmin: currentUser.role === "admin",
+                        isPlayer: currentUser.role === "jugador",
+                        isCoach: currentUser.es_entrenador === true && !currentUser.es_coordinador,
+                        isCoordinator: currentUser.es_coordinador === true,
+                        isTreasurer: currentUser.es_tesorero === true,
+                        es_tesorero_RAW: currentUser.es_tesorero,
+                        role_RAW: currentUser.role
+                      });
+
+                      // Check if user needs onboarding
+                      if (!currentUser.onboarding_completado) {
+                        setShowOnboarding(true);
+                      }
 
         // Para admin/entrenadores/coordinadores/tesoreros, SOLO usar el campo manual (no verificar BD)
         if (currentUser.role === "admin" || currentUser.es_entrenador || currentUser.es_coordinador || currentUser.es_tesorero) {
