@@ -98,23 +98,24 @@ export default function CoachChat() {
   const categoryPrivateConversations = useMemo(() => {
     if (!selectedCategory) return [];
     return privateConversations.filter(conv => {
-      if (!isAdmin && conv.participante_staff_email !== user?.email) return false;
+      // Admin y coordinador ven todas las conversaciones, entrenadores solo las suyas
+      if (!isAdmin && !isCoordinator && conv.participante_staff_email !== user?.email) return false;
       if (conv.categoria !== selectedCategory) return false;
       // Filtrar por archivadas o activas
       if (showArchived) return conv.archivada === true;
       return !conv.archivada;
     });
-  }, [privateConversations, selectedCategory, isAdmin, user, showArchived]);
+  }, [privateConversations, selectedCategory, isAdmin, isCoordinator, user, showArchived]);
 
   // Contador de archivadas para mostrar en el filtro
   const archivedCount = useMemo(() => {
     if (!selectedCategory) return 0;
     return privateConversations.filter(conv => {
-      if (!isAdmin && conv.participante_staff_email !== user?.email) return false;
+      if (!isAdmin && !isCoordinator && conv.participante_staff_email !== user?.email) return false;
       if (conv.categoria !== selectedCategory) return false;
       return conv.archivada === true;
     }).length;
-  }, [privateConversations, selectedCategory, isAdmin, user]);
+  }, [privateConversations, selectedCategory, isAdmin, isCoordinator, user]);
 
   // Mutación para archivar/desarchivar
   const archiveConversationMutation = useMutation({
@@ -134,7 +135,7 @@ export default function CoachChat() {
       c.categoria === categoria && 
       !c.archivada && 
       (c.no_leidos_staff || 0) > 0 &&
-      (isAdmin || c.participante_staff_email === user?.email)
+      (isAdmin || isCoordinator || c.participante_staff_email === user?.email)
     ).reduce((sum, c) => sum + (c.no_leidos_staff || 0), 0);
   };
 
