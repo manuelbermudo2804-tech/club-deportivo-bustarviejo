@@ -861,7 +861,12 @@ Email: cdbustarviejo@gmail.com
                       // Si no, contar meses sin pago o con pago pendiente
                       let totalPaymentsDue = 0;
                       if (!hasPagoUnico) {
-                        const mesesConPagoOK = allPlayerPayments
+                        // Filtrar pagos de la temporada actual del jugador (no de filteredPayments que puede estar filtrado)
+                        const playerPaymentsTemporada = payments.filter(p => 
+                          p.jugador_id === player.id && 
+                          p.temporada === temporadaFilter
+                        );
+                        const mesesConPagoOK = playerPaymentsTemporada
                           .filter(p => p.estado === "Pagado" || p.estado === "En revisión")
                           .map(p => p.mes);
                         totalPaymentsDue = allMonths.filter(mes => !mesesConPagoOK.includes(mes)).length;
