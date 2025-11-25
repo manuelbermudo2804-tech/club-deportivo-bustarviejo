@@ -852,15 +852,25 @@ Email: cdbustarviejo@gmail.com
                         displayPayments = displayPayments.filter(p => p.estado === estadoFilter);
                       }
                       
-                      // Contar solo pagos REALES (no virtuales)
-                      const realPayments = displayPayments.filter(p => !p.isVirtual);
-                      const pendingPayments = realPayments.filter(p => p.estado === "Pendiente");
-                      const reviewPayments = realPayments.filter(p => p.estado === "En revisión");
-                      const paidPayments = realPayments.filter(p => p.estado === "Pagado");
+                      // Contar pagos por estado (reales + virtuales para mostrar correctamente)
+                      const reviewPayments = displayPayments.filter(p => p.estado === "En revisión");
+                      const paidPayments = displayPayments.filter(p => p.estado === "Pagado");
                       
-                      // Contar cuántos pagos faltan (incluyendo virtuales)
-                      const totalPaymentsDue = displayPayments.filter(p => p.estado === "Pendiente").length;
-                      const totalPending = pendingPayments.reduce((sum, p) => sum + (p.cantidad || 0), 0);
+                      // Calcular cuántos pagos REALMENTE faltan
+                      // Si tiene pago único pagado/revisión = 0 pendientes
+                      // Si no, contar meses sin pago o con pago pendiente
+                      let totalPaymentsDue = 0;
+                      if (!hasPagoUnico) {
+                        const mesesConPagoOK = allPlayerPayments
+                          .filter(p => p.estado === "Pagado" || p.estado === "En revisión")
+                          .map(p => p.mes);
+                        totalPaymentsDue = allMonths.filter(mes => !mesesConPagoOK.includes(mes)).length;
+                      }
+                      
+                      // Total pendiente en euros
+                      const totalPending = displayPayments
+                        .filter(p => p.estado === "Pendiente")
+                        .reduce((sum, p) => sum + (p.cantidad || 0), 0);
 
                       return (
                         <Card key={player.id} className="border hover:shadow-lg transition-shadow">
