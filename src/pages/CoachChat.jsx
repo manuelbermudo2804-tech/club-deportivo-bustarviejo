@@ -265,7 +265,7 @@ export default function CoachChat() {
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [currentGroupMessages, privateMessages]);
+  }, [currentGroupMessages.length, privateMessages.length]);
 
   if (loadingPlayers || !user) {
     return (
@@ -304,9 +304,11 @@ export default function CoachChat() {
                 <button
                   key={cat}
                   onClick={() => {
-                    setSelectedCategory(cat);
-                    setChatSubMode("anuncios");
-                    setSelectedConversation(null);
+                    if (selectedCategory !== cat) {
+                      setSelectedCategory(cat);
+                      setChatSubMode("anuncios");
+                      setSelectedConversation(null);
+                    }
                   }}
                   className={`w-full p-3 flex items-center gap-3 transition-colors text-left ${
                     selectedCategory === cat ? 'bg-orange-50 border-l-4 border-l-orange-600' : 'hover:bg-slate-50 border-l-4 border-l-transparent'
