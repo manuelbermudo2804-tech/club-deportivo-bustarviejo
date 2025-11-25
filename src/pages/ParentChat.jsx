@@ -521,7 +521,6 @@ export default function ParentChat() {
             </div>
           )}
         </>
-        </>
       ) : (
         /* MODO ANUNCIOS - Desktop */
         <div className="flex gap-4" style={{ height: '70vh' }}>
