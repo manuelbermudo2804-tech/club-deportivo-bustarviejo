@@ -112,11 +112,10 @@ export default function ParentChat() {
     }).length;
   };
 
-  // Contador privados no leídos
+  // Contador privados no leídos para familias
   const getPrivateUnreadCount = (categoria) => {
-    return privateConversations
-      .filter(c => c.categoria === categoria && !c.archivada)
-      .reduce((sum, c) => sum + (c.no_leidos_familia || 0), 0);
+    const convs = privateConversations.filter(c => c.categoria === categoria && !c.archivada);
+    return convs.reduce((sum, c) => sum + (c.no_leidos_familia || 0), 0);
   };
 
   const markAsReadMutation = useMutation({
@@ -319,8 +318,10 @@ export default function ParentChat() {
                 <button
                   key={cat}
                   onClick={() => {
-                    setActivePrivateChat(null); // Limpiar chat privado al cambiar categoría
-                    setSelectedCategory(cat);
+                    if (selectedCategory !== cat) {
+                      setActivePrivateChat(null); // Limpiar chat privado al cambiar categoría
+                      setSelectedCategory(cat);
+                    }
                   }}
                   className={`w-full p-3 flex items-center gap-3 transition-colors text-left ${
                     selectedCategory === cat ? 'bg-orange-50 border-l-4 border-l-orange-600' : 'hover:bg-slate-50 border-l-4 border-l-transparent'
@@ -334,7 +335,9 @@ export default function ParentChat() {
                   <div className="flex-1 min-w-0">
                     <div className="font-semibold text-slate-900 truncate text-sm">{cat}</div>
                     <div className="text-xs text-slate-500">
-                      {myPlayers.filter(p => normalizeDeporte(p.deporte) === cat).map(p => p.nombre.split(' ')[0]).join(', ')}
+                      {cat === "Coordinación Deportiva" 
+                        ? "Chat con el coordinador" 
+                        : myPlayers.filter(p => normalizeDeporte(p.deporte) === cat).map(p => p.nombre.split(' ')[0]).join(', ')}
                     </div>
                   </div>
                   {totalUnread > 0 && (
