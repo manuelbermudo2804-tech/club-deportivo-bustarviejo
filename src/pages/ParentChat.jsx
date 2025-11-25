@@ -68,7 +68,11 @@ export default function ParentChat() {
     p.email_padre === user.email || p.email_tutor_2 === user.email
   ) : [];
 
-  const myCategories = [...new Set(myPlayers.map(p => normalizeDeporte(p.deporte)).filter(Boolean))];
+  // Añadir "Coordinación Deportiva" siempre + las categorías de mis hijos
+  const myCategories = [
+    "Coordinación Deportiva",
+    ...new Set(myPlayers.map(p => normalizeDeporte(p.deporte)).filter(Boolean))
+  ];
 
   // Anuncios del grupo seleccionado
   const currentAnnouncements = useMemo(() => {
@@ -116,6 +120,13 @@ export default function ParentChat() {
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [currentAnnouncements, privateMessages]);
+
+  // Verificar si el remitente es entrenador (no admin)
+  const isCoachSender = (email) => {
+    const staffUser = allUsers.find(u => u.email === email);
+    // Solo permitir si es entrenador o coordinador, NO si es admin
+    return staffUser?.es_entrenador || staffUser?.es_coordinador;
+  };
 
   // Crear o abrir chat privado con el remitente de un anuncio
   const createOrOpenPrivateChat = useMutation({
@@ -166,6 +177,7 @@ export default function ParentChat() {
   };
 
   const sportEmojis = {
+    "Coordinación Deportiva": "🎓",
     "Fútbol Pre-Benjamín (Mixto)": "⚽",
     "Fútbol Benjamín (Mixto)": "⚽",
     "Fútbol Alevín (Mixto)": "⚽",
@@ -339,19 +351,21 @@ export default function ParentChat() {
                             )}
                           </div>
                           
-                          {/* Botón responder en privado */}
-                          <div className="bg-slate-50 px-4 py-2 border-t">
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleReplyPrivate(msg.remitente_email)}
-                              disabled={createOrOpenPrivateChat.isPending}
-                              className="text-green-700 hover:text-green-800 hover:bg-green-50 w-full justify-center gap-2"
-                            >
-                              <Lock className="w-3 h-3" />
-                              💬 Responder en privado
-                            </Button>
-                          </div>
+                          {/* Botón responder en privado - solo si es entrenador/coordinador, no admin */}
+                          {isCoachSender(msg.remitente_email) && (
+                            <div className="bg-slate-50 px-4 py-2 border-t">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleReplyPrivate(msg.remitente_email)}
+                                disabled={createOrOpenPrivateChat.isPending}
+                                className="text-green-700 hover:text-green-800 hover:bg-green-50 w-full justify-center gap-2"
+                              >
+                                <Lock className="w-3 h-3" />
+                                💬 Responder en privado
+                              </Button>
+                            </div>
+                          )}
                         </div>
                       </div>
                     ))
