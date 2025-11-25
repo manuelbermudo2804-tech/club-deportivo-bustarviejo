@@ -731,9 +731,10 @@ Email: cdbustarviejo@gmail.com
                     size="sm"
                     variant="outline"
                     className="w-full"
+                    title="Envía un reporte privado SOLO a los padres de este jugador"
                   >
                     <Mail className="w-4 h-4 mr-2" />
-                    Enviar Reporte Individual
+                    📩 Enviar Reporte a Padres de {player.nombre.split(' ')[0]}
                   </Button>
                 </div>
               );
