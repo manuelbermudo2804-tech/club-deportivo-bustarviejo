@@ -430,12 +430,13 @@ Email: cdbustarviejo@gmail.com
   }, [players, payments, temporadaFilter]);
   
   const overduePayments = payments.filter(p => {
-    if (p.estado === "Pagado" || p.temporada !== temporadaFilter) return false;
+    if (p.estado === "Pagado") return false;
+    if (temporadaFilter !== "all" && p.temporada !== temporadaFilter) return false;
     return calculateDaysOverdue(p.mes) > 0;
   });
   
   const totalRecaudado = payments
-    .filter(p => p.estado === "Pagado" && p.temporada === temporadaFilter)
+    .filter(p => p.estado === "Pagado" && (temporadaFilter === "all" || p.temporada === temporadaFilter))
     .reduce((sum, p) => sum + (p.cantidad || 0), 0);
 
   // Temporadas únicas
