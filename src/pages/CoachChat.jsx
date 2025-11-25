@@ -218,14 +218,14 @@ export default function CoachChat() {
   const isCoordinationChat = selectedCategory === "Coordinación Deportiva";
 
   // Para coordinación, forzar modo privado; para staff chat, forzar anuncios
+  // Solo ejecutar cuando cambia la categoría seleccionada
   useEffect(() => {
-    if (isCoordinationChat && chatSubMode === "anuncios") {
+    if (isCoordinationChat) {
       setChatSubMode("privado");
-    }
-    if (isStaffChat && chatSubMode !== "anuncios") {
+    } else if (isStaffChat) {
       setChatSubMode("anuncios");
     }
-  }, [isCoordinationChat, isStaffChat, chatSubMode]);
+  }, [selectedCategory]);
 
   const handleSendGroupMessage = () => {
     if (!user || !selectedCategory) return;
