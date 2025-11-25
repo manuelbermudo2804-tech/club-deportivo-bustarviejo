@@ -20,9 +20,16 @@ export default function PlayerProfileDialog({
   payments = [],
   evaluations = [],
   attendances = [],
-  isAdmin = false
+  isAdmin = false,
+  initialTab = "info"
 }) {
-  const [activeTab, setActiveTab] = useState("info");
+  const [activeTab, setActiveTab] = useState(initialTab);
+
+  useEffect(() => {
+    if (open) {
+      setActiveTab(initialTab);
+    }
+  }, [open, initialTab]);
 
   // Filtrar datos del jugador
   const playerPayments = payments.filter(p => p.jugador_id === player.id);

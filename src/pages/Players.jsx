@@ -152,6 +152,13 @@ export default function Players() {
     setShowProfileDialog(true);
   };
 
+  const handleViewPayments = (player) => {
+    setSelectedPlayer(player);
+    // Implement logic to open profile with payments tab active
+    // For now, it opens the standard profile
+    setShowProfileDialog(true); 
+  };
+
   const handleExportPlayers = () => {
     const dataToExport = filteredPlayers.map(player => ({
       "Nombre": player.nombre,
