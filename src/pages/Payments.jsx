@@ -774,7 +774,7 @@ Email: cdbustarviejo@gmail.com
                  // Filtro por estado - verificar si el jugador tiene pagos del estado buscado
                  let matchesEstado = true;
                  if (estadoFilter !== "all") {
-                   const playerPayments = payments.filter(p => p.jugador_id === player.id && p.temporada === temporadaFilter);
+                   const playerPayments = payments.filter(p => p.jugador_id === player.id && (temporadaFilter === "all" || p.temporada === temporadaFilter));
                    
                    // Si filtramos por "Pendiente", verificar si le falta algún pago
                    if (estadoFilter === "Pendiente") {
@@ -839,34 +839,42 @@ Email: cdbustarviejo@gmail.com
                       // Obtener TODOS los pagos reales del jugador para la temporada (sin filtros)
                       const allRealPayments = payments.filter(p => 
                         p.jugador_id === player.id && 
-                        p.temporada === temporadaFilter
+                        (temporadaFilter === "all" || p.temporada === temporadaFilter)
                       );
 
-                      // Crear pagos virtuales para los meses que faltan
-                      let displayPayments = allMonths.map(mes => {
-                        // Buscar en TODOS los pagos reales, no solo los filtrados
-                        const existingPayment = allRealPayments.find(p => p.mes === mes);
-                        if (existingPayment) {
-                          return existingPayment;
-                        }
-                        // Crear un pago virtual pendiente con cantidad correcta
-                        const cuotas = getCuotasPorCategoriaSync(player.deporte);
-                        const cantidad = hasPagoUnico 
-                          ? cuotas.total 
-                          : getImportePorMes(player.deporte, mes);
-                        
-                        return {
-                          id: `virtual-${player.id}-${mes}`,
-                          jugador_id: player.id,
-                          jugador_nombre: player.nombre,
-                          mes: mes,
-                          temporada: temporadaFilter,
-                          estado: "Pendiente",
-                          cantidad: cantidad,
-                          tipo_pago: hasPagoUnico ? "Único" : "Tres meses",
-                          isVirtual: true
-                        };
-                      });
+                      // Si temporadaFilter es "all", mostrar los pagos reales sin crear virtuales
+                      // Si hay filtro de temporada, crear pagos virtuales para los meses que faltan
+                      let displayPayments;
+                      if (temporadaFilter === "all") {
+                        // Solo mostrar pagos reales cuando el filtro es "all"
+                        displayPayments = allRealPayments;
+                      } else {
+                        // Crear pagos virtuales para los meses que faltan
+                        displayPayments = allMonths.map(mes => {
+                          // Buscar en TODOS los pagos reales, no solo los filtrados
+                          const existingPayment = allRealPayments.find(p => p.mes === mes);
+                          if (existingPayment) {
+                            return existingPayment;
+                          }
+                          // Crear un pago virtual pendiente con cantidad correcta
+                          const cuotas = getCuotasPorCategoriaSync(player.deporte);
+                          const cantidad = hasPagoUnico 
+                            ? cuotas.total 
+                            : getImportePorMes(player.deporte, mes);
+                          
+                          return {
+                            id: `virtual-${player.id}-${mes}`,
+                            jugador_id: player.id,
+                            jugador_nombre: player.nombre,
+                            mes: mes,
+                            temporada: temporadaFilter,
+                            estado: "Pendiente",
+                            cantidad: cantidad,
+                            tipo_pago: hasPagoUnico ? "Único" : "Tres meses",
+                            isVirtual: true
+                          };
+                        });
+                      }
 
                       // Si hay filtro de estado activo, filtrar displayPayments también
                       if (estadoFilter !== "all") {
@@ -885,7 +893,7 @@ Email: cdbustarviejo@gmail.com
                         // Filtrar pagos de la temporada actual del jugador (no de filteredPayments que puede estar filtrado)
                         const playerPaymentsTemporada = payments.filter(p => 
                           p.jugador_id === player.id && 
-                          p.temporada === temporadaFilter
+                          (temporadaFilter === "all" || p.temporada === temporadaFilter)
                         );
                         const mesesConPagoOK = playerPaymentsTemporada
                           .filter(p => p.estado === "Pagado" || p.estado === "En revisión")
@@ -898,7 +906,7 @@ Email: cdbustarviejo@gmail.com
                       if (!hasPagoUnico && totalPaymentsDue > 0) {
                         const playerPaymentsTemporada = payments.filter(p => 
                           p.jugador_id === player.id && 
-                          p.temporada === temporadaFilter
+                          (temporadaFilter === "all" || p.temporada === temporadaFilter)
                         );
                         const mesesConPagoOK = playerPaymentsTemporada
                           .filter(p => p.estado === "Pagado" || p.estado === "En revisión")
