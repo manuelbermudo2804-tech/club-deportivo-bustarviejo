@@ -250,8 +250,8 @@ export default function ParentChat() {
   return (
     <div className="p-4 lg:p-6 min-h-screen bg-slate-50">
       <div className="mb-4">
-        <h1 className="text-2xl lg:text-3xl font-bold text-slate-900">📢 Anuncios del Club</h1>
-        <p className="text-slate-600 text-sm">Mensajes del entrenador para tu equipo</p>
+        <h1 className="text-2xl lg:text-3xl font-bold text-slate-900">💬 Chat del Club</h1>
+        <p className="text-slate-600 text-sm">Comunicación con entrenadores y coordinación</p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
@@ -305,7 +305,11 @@ export default function ParentChat() {
                 </div>
                 <div className="flex-1">
                   <h2 className="font-bold">{selectedCategory}</h2>
-                  <p className="text-xs text-blue-100">📢 Anuncios del entrenador</p>
+                  <p className="text-xs text-blue-100">
+                    {selectedCategory === "Coordinación Deportiva" 
+                      ? "🔒 Chat privado con coordinación" 
+                      : "📢 Mensajes del entrenador"}
+                  </p>
                 </div>
               </div>
 
@@ -314,7 +318,11 @@ export default function ParentChat() {
                   <div className="flex items-center justify-center h-full">
                     <div className="text-center text-slate-500 bg-white/80 rounded-xl p-6">
                       <AlertCircle className="w-12 h-12 mx-auto mb-2 opacity-50" />
-                      <p className="text-sm">No hay anuncios del entrenador</p>
+                      <p className="text-sm">
+                        {selectedCategory === "Coordinación Deportiva" 
+                          ? "No hay mensajes de coordinación" 
+                          : "No hay mensajes del entrenador"}
+                      </p>
                     </div>
                   </div>
                 ) : (
@@ -376,7 +384,9 @@ export default function ParentChat() {
               {/* Info footer */}
               <div className="bg-blue-50 border-t px-4 py-3 flex-shrink-0">
                 <p className="text-xs text-blue-700 text-center">
-                  📢 Este es el tablón de anuncios. Usa "Responder en privado" para hablar directamente con el entrenador.
+                  {selectedCategory === "Coordinación Deportiva" 
+                    ? "🔒 Chat privado con la coordinación deportiva del club"
+                    : "💬 Usa \"Responder en privado\" para hablar directamente con el entrenador"}
                 </p>
               </div>
             </div>
