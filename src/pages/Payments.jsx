@@ -69,7 +69,7 @@ export default function Payments() {
   const [previewImage, setPreviewImage] = useState(null);
   
   // Filtros avanzados
-  const [temporadaFilter, setTemporadaFilter] = useState(getCurrentSeason());
+  const [temporadaFilter, setTemporadaFilter] = useState("all");
   const [categoriaFilter, setCategoriaFilter] = useState("all");
   const [estadoFilter, setEstadoFilter] = useState("all");
   const [showOverdueOnly, setShowOverdueOnly] = useState(false);
