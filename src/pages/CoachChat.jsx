@@ -6,28 +6,23 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Send, Clock, AlertCircle, X, Search, ArrowLeft, Users, MessageCircle, User, Archive, Filter, Inbox } from "lucide-react";
+import { Send, AlertCircle, Users, MessageCircle, User, Archive } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 
 import FileAttachmentButton from "../components/chat/FileAttachmentButton";
 import MessageAttachments from "../components/chat/MessageAttachments";
-import FamilyListPanel from "../components/chat/FamilyListPanel";
 import PrivateChatPanel from "../components/chat/PrivateChatPanel";
 
 export default function CoachChat() {
   const [messageContent, setMessageContent] = useState("");
-  const [selectedTab, setSelectedTab] = useState(null);
-  const [selectedCategory, setSelectedCategory] = useState(null);
+  const [selectedCategory, setSelectedCategory] = useState(null); // Categoría seleccionada
+  const [chatSubMode, setChatSubMode] = useState("anuncios"); // "anuncios" o "privado" dentro de cada categoría
   const [attachments, setAttachments] = useState([]);
   const [priority, setPriority] = useState("Normal");
-  const [searchTerm, setSearchTerm] = useState("");
-  const [selectedRecipient, setSelectedRecipient] = useState("all");
   const [isMobile, setIsMobile] = useState(false);
-  const [chatMode, setChatMode] = useState("grupos"); // "grupos" o "privados"
   const [selectedConversation, setSelectedConversation] = useState(null);
-  const [privateFilter, setPrivateFilter] = useState("activas"); // "activas", "no_leidas", "archivadas"
   const messagesEndRef = useRef(null);
   const queryClient = useQueryClient();
   const [user, setUser] = useState(null);
