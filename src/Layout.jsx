@@ -18,7 +18,7 @@ import LanguageSelector from "./components/LanguageSelector";
 import ChatNotificationListener from "./components/push/ChatNotificationListener";
 import WelcomeScreen from "./components/WelcomeScreen";
 import NotificationManager from "./components/notifications/NotificationManager";
-import RolePresentation from "./components/onboarding/RolePresentation";
+
 import AutomaticNotificationEngine from "./components/notifications/AutomaticNotificationEngine";
 import EmailNotificationTrigger from "./components/notifications/EmailNotificationTrigger";
 import EventReminderEngine from "./components/events/EventReminderEngine";
