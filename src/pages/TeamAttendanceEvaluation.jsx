@@ -637,14 +637,14 @@ Email: cdbustarviejo@gmail.com
               disabled={sendReportsMutation.isPending}
               variant="outline"
               className="flex-1 h-9 text-sm"
-              title="Envía un reporte personalizado a TODOS los padres de la categoría con los datos de asistencia de su hijo"
+              title="🔒 PRIVADO: Envía un reporte personalizado a CADA familia de la categoría. Cada padre recibe SOLO los datos de su hijo en su chat privado o email. NUNCA se envía al chat grupal."
             >
               <Send className="w-4 h-4 mr-1" />
-              📨 Enviar Reportes Masivos a Todos los Padres
+              📨 Enviar Reportes a Todas las Familias (Privado)
             </Button>
-            <p className="text-xs text-slate-500 text-center">
-              ℹ️ Los reportes se envían de forma <strong>privada e individual</strong> a cada familia con los datos de su hijo
-            </p>
+            <div className="bg-green-50 border border-green-200 rounded-lg p-2 text-xs text-green-800 text-center">
+              🔒 <strong>100% Privado:</strong> Cada familia recibe SOLO el reporte de su hijo en su chat privado o email personal. Nunca se envía nada al chat del grupo.
+            </div>
           </div>
         </CardContent>
       </Card>
