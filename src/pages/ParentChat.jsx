@@ -44,7 +44,7 @@ export default function ParentChat() {
     queryFn: () => base44.entities.Player.list(),
   });
 
-  const { data: allUsers = [] } = useQuery({
+  const { data: allUsers = [], isLoading: loadingUsers } = useQuery({
     queryKey: ['allUsers'],
     queryFn: () => base44.entities.User.list(),
   });
