@@ -617,16 +617,20 @@ Email: cdbustarviejo@gmail.com
             />
           </div>
 
-          <div className="flex gap-2 pt-2 border-t">
+          <div className="flex flex-col gap-2 pt-2 border-t">
             <Button 
               onClick={() => setShowBulkDialog(true)}
               disabled={sendReportsMutation.isPending}
               variant="outline"
               className="flex-1 h-9 text-sm"
+              title="Envía un reporte personalizado a TODOS los padres de la categoría con los datos de asistencia de su hijo"
             >
               <Send className="w-4 h-4 mr-1" />
-              Enviar Reportes Masivos
+              📨 Enviar Reportes Masivos a Todos los Padres
             </Button>
+            <p className="text-xs text-slate-500 text-center">
+              ℹ️ Los reportes se envían de forma <strong>privada e individual</strong> a cada familia con los datos de su hijo
+            </p>
           </div>
         </CardContent>
       </Card>
@@ -662,16 +666,17 @@ Email: cdbustarviejo@gmail.com
                     <label className="text-xs font-medium text-slate-600 mb-2 block">Asistencia</label>
                     <div className="grid grid-cols-4 gap-2">
                       {[
-                        { value: 'presente', icon: CheckCircle2, color: 'text-green-600', bg: 'bg-green-100', label: '✅ Presente' },
-                        { value: 'ausente', icon: XCircle, color: 'text-red-600', bg: 'bg-red-100', label: '❌ Ausente' },
-                        { value: 'justificado', icon: Clock, color: 'text-blue-600', bg: 'bg-blue-100', label: '📝 Justificado' },
-                        { value: 'tardanza', icon: Clock, color: 'text-orange-600', bg: 'bg-orange-100', label: '⏰ Tardanza' }
-                      ].map(({ value, icon: Icon, color, bg, label }) => {
+                        { value: 'presente', icon: CheckCircle2, color: 'text-green-600', bg: 'bg-green-100', label: '✅ Presente', tooltip: 'Asistió al entrenamiento' },
+                        { value: 'ausente', icon: XCircle, color: 'text-red-600', bg: 'bg-red-100', label: '❌ Ausente', tooltip: 'No asistió sin justificación' },
+                        { value: 'justificado', icon: Clock, color: 'text-blue-600', bg: 'bg-blue-100', label: '📝 Justificado', tooltip: 'Falta con justificación (médico, etc.)' },
+                        { value: 'tardanza', icon: Clock, color: 'text-orange-600', bg: 'bg-orange-100', label: '⏰ Tardanza', tooltip: 'Llegó tarde al entrenamiento' }
+                      ].map(({ value, icon: Icon, color, bg, label, tooltip }) => {
                         const isSelected = playerData.asistencia === value;
                         return (
                           <button
                             key={value}
                             onClick={() => handleChange(player.id, 'asistencia', value)}
+                            title={tooltip}
                             className={`p-3 rounded-lg transition-all flex flex-col items-center gap-1 ${
                               isSelected ? `${bg} ${color} ring-2 ring-offset-1` : 'bg-slate-50 text-slate-400'
                             }`}
