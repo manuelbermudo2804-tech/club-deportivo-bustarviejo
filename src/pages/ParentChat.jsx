@@ -238,7 +238,7 @@ export default function ParentChat() {
     "Baloncesto (Mixto)": "🏀"
   };
 
-  if (loadingMessages || loadingPlayers || loadingConversations || loadingUsers || loadingCoordinator || !user) {
+  if (loadingMessages || loadingPlayers || loadingConversations || !user) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-slate-50">
         <div className="text-center p-6">
