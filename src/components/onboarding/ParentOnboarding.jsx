@@ -1,200 +1,130 @@
 import React, { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { X, ChevronRight, CheckCircle } from "lucide-react";
 import { base44 } from "@/api/base44Client";
+import { Users, CreditCard, Bell, MessageCircle, Calendar, ChevronRight, ChevronLeft, CheckCircle2 } from "lucide-react";
 
-const CLUB_LOGO_URL = `https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6911b8e453ca3ac01fb134d6/e3f0a8e26_logo_cd_bustarviejo_mediano.jpg?t=${Date.now()}`;
-
-const ONBOARDING_STEPS = [
+const steps = [
   {
-    id: 1,
-    title: "¡Bienvenido a CD Bustarviejo! 🎉",
-    description: "Estamos encantados de tenerte en nuestra familia deportiva. Esta guía rápida te ayudará a familiarizarte con la aplicación en solo 5 pasos.",
-    icon: "🏆",
+    title: "¡Bienvenido a CD Bustarviejo!",
+    description: "Te guiaremos por las funciones principales de la aplicación para que puedas gestionar todo lo relacionado con tus hijos en el club.",
+    icon: CheckCircle2,
+    color: "from-orange-500 to-orange-600"
   },
   {
-    id: 2,
-    title: "Registra a tus jugadores ⚽",
-    description: "Lo primero es registrar a tu hijo/a en el sistema. Ve a 'Mis Jugadores' y pulsa 'Nuevo Jugador' para completar sus datos.",
-    icon: "👨‍👩‍👧",
+    title: "Mis Jugadores",
+    description: "Aquí puedes ver y gestionar la información de tus hijos: datos personales, ficha médica y estado de inscripción.",
+    icon: Users,
+    color: "from-blue-500 to-blue-600"
   },
   {
-    id: 3,
-    title: "Gestiona los pagos 💳",
-    description: "En la sección 'Pagos' podrás registrar los pagos de cuotas y subir los justificantes. El club los revisará y confirmará.",
-    icon: "💰",
+    title: "Pagos y Cuotas",
+    description: "Gestiona los pagos de las cuotas del club. Puedes subir justificantes de transferencia y ver el estado de cada pago.",
+    icon: CreditCard,
+    color: "from-green-500 to-green-600"
   },
   {
-    id: 4,
-    title: "Confirma convocatorias 🏆",
-    description: "Cuando tu hijo/a sea convocado para un partido, recibirás una notificación. Confirma su asistencia en 'Convocatorias'.",
-    icon: "📋",
+    title: "Convocatorias",
+    description: "Recibe las convocatorias de partidos y confirma la asistencia de tus hijos. ¡No olvides confirmar a tiempo!",
+    icon: Bell,
+    color: "from-yellow-500 to-yellow-600"
   },
   {
-    id: 5,
-    title: "Mantente conectado 💬",
-    description: "Usa el 'Chat Equipo' para comunicarte con los entrenadores y otros padres. También recibirás anuncios importantes del club.",
-    icon: "📱",
+    title: "Chat del Equipo",
+    description: "Comunícate con los entrenadores y recibe anuncios importantes del club a través del chat.",
+    icon: MessageCircle,
+    color: "from-purple-500 to-purple-600"
   },
   {
-    id: 6,
-    title: "¡Todo listo! 🎊",
-    description: "Ya conoces lo básico. Explora el calendario, la galería de fotos, los documentos y todas las funcionalidades. ¡Bienvenido al equipo!",
-    icon: "✅",
-  },
+    title: "Calendario",
+    description: "Consulta todos los eventos del club: partidos, entrenamientos, reuniones y eventos especiales.",
+    icon: Calendar,
+    color: "from-cyan-500 to-cyan-600"
+  }
 ];
 
 export default function ParentOnboarding({ open, onComplete }) {
   const [currentStep, setCurrentStep] = useState(0);
-  const [isCompleting, setIsCompleting] = useState(false);
 
   const handleNext = () => {
-    if (currentStep < ONBOARDING_STEPS.length - 1) {
+    if (currentStep < steps.length - 1) {
       setCurrentStep(currentStep + 1);
     } else {
       handleComplete();
     }
   };
 
-  const handleSkip = async () => {
-    setIsCompleting(true);
-    try {
-      await base44.auth.updateMe({ onboarding_completado: true });
-      onComplete();
-    } catch (error) {
-      console.error("Error skipping onboarding:", error);
-      setIsCompleting(false);
+  const handlePrevious = () => {
+    if (currentStep > 0) {
+      setCurrentStep(currentStep - 1);
     }
   };
 
   const handleComplete = async () => {
-    setIsCompleting(true);
     try {
       await base44.auth.updateMe({ onboarding_completado: true });
-      onComplete();
     } catch (error) {
-      console.error("Error completing onboarding:", error);
-      setIsCompleting(false);
+      console.error("Error updating onboarding status:", error);
     }
+    onComplete();
   };
 
-  const progress = ((currentStep + 1) / ONBOARDING_STEPS.length) * 100;
-  const step = ONBOARDING_STEPS[currentStep];
-  const isLastStep = currentStep === ONBOARDING_STEPS.length - 1;
+  const handleSkip = async () => {
+    await handleComplete();
+  };
+
+  const step = steps[currentStep];
+  const Icon = step.icon;
 
   return (
-    <Dialog open={open} onOpenChange={handleSkip}>
-      <DialogContent className="max-w-2xl p-0 overflow-hidden border-none">
-        <div className="relative bg-gradient-to-br from-orange-50 to-green-50">
-          <div className="bg-gradient-to-r from-orange-600 to-orange-700 p-6 text-white relative">
-            <button
-              onClick={handleSkip}
-              disabled={isCompleting}
-              className="absolute top-4 right-4 text-white/80 hover:text-white transition-colors disabled:opacity-50"
-            >
-              <X className="w-6 h-6" />
-            </button>
-            
-            <div className="flex items-center gap-4 mb-4">
-              <img src={CLUB_LOGO_URL} alt="CD Bustarviejo" className="w-16 h-16 rounded-xl shadow-lg object-cover" />
-              <div>
-                <h2 className="text-2xl font-bold">Tutorial de Bienvenida</h2>
-                <p className="text-orange-100 text-sm">CD Bustarviejo</p>
-              </div>
-            </div>
-
-            <div className="relative w-full h-2 bg-orange-900/30 rounded-full overflow-hidden">
-              <motion.div
-                className="absolute top-0 left-0 h-full bg-white rounded-full"
-                initial={{ width: 0 }}
-                animate={{ width: `${progress}%` }}
-                transition={{ duration: 0.3 }}
-              />
-            </div>
-            <p className="text-xs text-orange-100 mt-2">
-              Paso {currentStep + 1} de {ONBOARDING_STEPS.length}
-            </p>
+    <Dialog open={open} onOpenChange={() => {}}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <div className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${step.color} flex items-center justify-center mx-auto mb-4 shadow-lg`}>
+            <Icon className="w-8 h-8 text-white" />
           </div>
+          <DialogTitle className="text-center text-xl">{step.title}</DialogTitle>
+          <DialogDescription className="text-center text-base">
+            {step.description}
+          </DialogDescription>
+        </DialogHeader>
 
-          <div className="p-8">
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={step.id}
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -20 }}
-                transition={{ duration: 0.3 }}
-                className="space-y-6"
-              >
-                <div className="text-center">
-                  <div className="text-6xl mb-4">{step.icon}</div>
-                  <h3 className="text-2xl font-bold text-slate-900 mb-3">
-                    {step.title}
-                  </h3>
-                  <p className="text-slate-600 text-lg leading-relaxed max-w-xl mx-auto">
-                    {step.description}
-                  </p>
-                </div>
+        <div className="flex justify-center gap-2 my-4">
+          {steps.map((_, index) => (
+            <div
+              key={index}
+              className={`w-2 h-2 rounded-full transition-all ${
+                index === currentStep ? "bg-orange-500 w-6" : "bg-slate-300"
+              }`}
+            />
+          ))}
+        </div>
 
-                {currentStep === 0 && (
-                  <div className="bg-blue-50 border-2 border-blue-200 rounded-2xl p-6">
-                    <p className="text-sm text-blue-900 font-semibold mb-2">💡 Consejos rápidos:</p>
-                    <ul className="space-y-2 text-sm text-blue-800">
-                      <li className="flex items-start gap-2">
-                        <span className="text-green-600 mt-0.5">✓</span>
-                        <span>Puedes saltar este tutorial en cualquier momento</span>
-                      </li>
-                      <li className="flex items-start gap-2">
-                        <span className="text-green-600 mt-0.5">✓</span>
-                        <span>Solo tardarás 1 minuto en completarlo</span>
-                      </li>
-                      <li className="flex items-start gap-2">
-                        <span className="text-green-600 mt-0.5">✓</span>
-                        <span>Te ayudará a usar la app como un experto</span>
-                      </li>
-                    </ul>
-                  </div>
-                )}
-              </motion.div>
-            </AnimatePresence>
-          </div>
-
-          <div className="bg-white border-t p-6 flex items-center justify-between">
-            <Button
-              variant="ghost"
-              onClick={handleSkip}
-              disabled={isCompleting}
-              className="text-slate-600 hover:text-slate-900"
-            >
-              Omitir tutorial
-            </Button>
-
-            <Button
-              onClick={handleNext}
-              disabled={isCompleting}
-              className="bg-gradient-to-r from-orange-600 to-orange-700 hover:from-orange-700 hover:to-orange-800 text-white px-8"
-            >
-              {isCompleting ? (
-                <>
-                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
-                  Guardando...
-                </>
-              ) : isLastStep ? (
-                <>
-                  <CheckCircle className="w-4 h-4 mr-2" />
-                  Empezar a usar la app
-                </>
-              ) : (
+        <DialogFooter className="flex-col sm:flex-row gap-2">
+          <div className="flex gap-2 w-full">
+            {currentStep > 0 && (
+              <Button variant="outline" onClick={handlePrevious} className="flex-1">
+                <ChevronLeft className="w-4 h-4 mr-1" />
+                Anterior
+              </Button>
+            )}
+            <Button onClick={handleNext} className="flex-1 bg-orange-600 hover:bg-orange-700">
+              {currentStep < steps.length - 1 ? (
                 <>
                   Siguiente
-                  <ChevronRight className="w-4 h-4 ml-2" />
+                  <ChevronRight className="w-4 h-4 ml-1" />
                 </>
+              ) : (
+                "¡Empezar!"
               )}
             </Button>
           </div>
-        </div>
+          {currentStep === 0 && (
+            <Button variant="ghost" onClick={handleSkip} className="text-slate-500">
+              Saltar tutorial
+            </Button>
+          )}
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );
