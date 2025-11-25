@@ -772,10 +772,16 @@ Email: cdbustarviejo@gmail.com
                      if (hasPagoUnico) {
                        matchesEstado = false; // No mostrar si ya pagó todo con pago único
                      } else {
-                       const mesesPagados = playerPayments
-                         .filter(p => p.tipo_pago === "Tres meses" && p.estado !== "Pendiente")
+                       // Contar meses que YA están pagados o en revisión
+                       const mesesPagadosORevision = playerPayments
+                         .filter(p => p.estado === "Pagado" || p.estado === "En revisión")
                          .map(p => p.mes);
-                       matchesEstado = mesesPagados.length < 3; // Mostrar si le faltan pagos
+                       
+                       // Verificar si hay meses sin pagar (considerando los 3 meses: Junio, Sep, Dic)
+                       const allMonths = ["Junio", "Septiembre", "Diciembre"];
+                       const mesesSinPagar = allMonths.filter(mes => !mesesPagadosORevision.includes(mes));
+                       
+                       matchesEstado = mesesSinPagar.length > 0; // Mostrar si le falta al menos 1 pago
                      }
                    } else {
                      // Para otros estados, mostrar si tiene al menos un pago con ese estado
