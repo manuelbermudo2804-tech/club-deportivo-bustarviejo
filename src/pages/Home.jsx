@@ -8,8 +8,8 @@ import { Users, CreditCard, ShoppingBag, Calendar, Megaphone, Image, Clock, Mess
 const Onboarding = lazy(() => import("../components/Onboarding"));
 const SocialLinks = lazy(() => import("../components/SocialLinks"));
 
-const ClubStats = lazy(() => import("../components/dashboard/ClubStats"));
-const DashboardCardSkeleton = lazy(() => import("../components/skeletons/DashboardCardSkeleton"));
+import ClubStats from "../components/dashboard/ClubStats";
+import DashboardCardSkeleton from "../components/skeletons/DashboardCardSkeleton";
 
 const CLUB_LOGO_URL = "https://www.cdbustarviejo.com/uploads/2/4/0/4/2404974/logo-cd-bustarviejo-cuadrado-xpeq_orig.png";
 
@@ -603,7 +603,7 @@ export default function Home() {
         </Suspense>
 
         {/* Estadísticas del Club - Solo Admin */}
-        {isAdmin && (
+        {isAdmin && players && payments && (
           <Suspense fallback={<div className="text-white text-center">Cargando estadísticas...</div>}>
             <ClubStats 
               players={players} 
