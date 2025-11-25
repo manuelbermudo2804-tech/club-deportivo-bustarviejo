@@ -154,128 +154,39 @@ export default function CoachChat() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['chatMessages'] }),
   });
 
-  const createConversationMutation = useMutation({
-    mutationFn: async (family) => {
-      const jugadoresRelacionados = family.jugadores?.map(j => ({
-        jugador_id: j.id || j.jugador_id,
-        jugador_nombre: j.nombre || j.jugador_nombre
-      })) || [];
-
-      return base44.entities.PrivateConversation.create({
-        participante_familia_email: family.email,
-        participante_familia_nombre: family.nombre || family.email.split('@')[0],
-        participante_staff_email: user.email,
-        participante_staff_nombre: user.full_name,
-        participante_staff_rol: isAdmin ? "admin" : isCoordinator ? "coordinador" : "entrenador",
-        categoria: selectedCategory,
-        jugadores_relacionados: jugadoresRelacionados,
-        no_leidos_familia: 0,
-        no_leidos_staff: 0
-      });
-    },
-    onSuccess: (newConv) => {
-      refetchConversations();
-      setSelectedConversation(newConv);
-    },
-  });
-
   const normalizeDeporte = (deporte) => {
     if (!deporte) return null;
     return deporte.trim().replace(/_undefined$/, '').replace(/_$/, '');
   };
 
-  // Grupos de chat (anuncios grupales)
-  const getGroups = () => {
-    if (!user) return [];
-    const groups = [];
-    
-    // Chat Interno Entrenadores (para coordinadores, entrenadores y admins)
-    if (isAdmin || isCoordinator || isCoach) {
-      const chatInternoMessages = messages.filter(msg => 
-        normalizeDeporte(msg.grupo_id) === "Chat Interno Entrenadores"
-      );
-      const unreadCount = chatInternoMessages.filter(msg => 
-        !msg.leido && msg.remitente_email !== user.email
-      ).length;
-      
-      groups.push({
-        id: "Chat Interno Entrenadores",
-        deporte: "Chat Interno Entrenadores",
-        tipo: 'interno',
-        messages: chatInternoMessages,
-        unreadCount,
-        urgentCount: 0
-      });
-    }
-    
-    // Grupos por categoría
-    myCategories.forEach(categoria => {
-      const deporteNormalizado = normalizeDeporte(categoria);
-      if (deporteNormalizado && deporteNormalizado !== "Chat Interno Entrenadores") {
-        const groupMessages = messages.filter(msg => {
-          const msgDeporte = normalizeDeporte(msg.grupo_id || msg.deporte);
-          return msgDeporte === deporteNormalizado && msg.tipo === "admin_a_grupo";
-        });
-        
-        groups.push({
-          id: deporteNormalizado,
-          deporte: deporteNormalizado,
-          tipo: 'grupo',
-          messages: groupMessages,
-          unreadCount: 0,
-          urgentCount: 0
-        });
-      }
+  // Mensajes del grupo seleccionado (anuncios)
+  const currentGroupMessages = useMemo(() => {
+    if (!selectedCategory) return [];
+    return messages.filter(msg => {
+      const msgDeporte = normalizeDeporte(msg.grupo_id || msg.deporte);
+      return msgDeporte === selectedCategory && msg.tipo === "admin_a_grupo";
     });
-    
-    return groups;
-  };
-
-  const myGroups = useMemo(() => getGroups(), [messages, user, myCategories]);
-  const currentGroup = useMemo(() => myGroups.find(g => g.id === selectedTab), [myGroups, selectedTab]);
-
-  useEffect(() => {
-    if (selectedTab && currentGroup) {
-      const unreadIds = currentGroup.messages.filter(msg => 
-        !msg.leido && msg.remitente_email !== user?.email
-      ).map(msg => msg.id);
-      
-      if (unreadIds.length > 0) {
-        markAsReadMutation.mutate(unreadIds);
-      }
-    }
-  }, [selectedTab, currentGroup?.messages?.length]);
-
-  const isBusinessHours = () => {
-    const hour = new Date().getHours();
-    return hour >= 10 && hour < 20;
-  };
+  }, [messages, selectedCategory]);
 
   const handleSendGroupMessage = () => {
-    if (!user || !selectedTab) return;
+    if (!user || !selectedCategory) return;
     if (!messageContent.trim() && attachments.length === 0) {
       toast.error("Escribe un mensaje");
       return;
     }
-
-    const tipoMensaje = currentGroup?.tipo === 'interno' ? "interno_entrenadores" : "admin_a_grupo";
     
     sendMessageMutation.mutate({
       remitente_email: user.email,
       remitente_nombre: user.full_name || "Staff",
       mensaje: messageContent || "(Archivo adjunto)",
       prioridad: priority,
-      tipo: tipoMensaje,
-      deporte: selectedTab,
+      tipo: "admin_a_grupo",
+      deporte: selectedCategory,
       categoria: "",
-      grupo_id: selectedTab,
+      grupo_id: selectedCategory,
       leido: false,
       archivos_adjuntos: attachments,
     });
-  };
-
-  const handleStartNewConversation = (family) => {
-    createConversationMutation.mutate(family);
   };
 
   const handlePrivateMessageSent = () => {
