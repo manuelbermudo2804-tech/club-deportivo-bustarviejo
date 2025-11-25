@@ -8,7 +8,7 @@ import { Users, Calendar, Bell, MessageCircle, CreditCard, Image, Megaphone, Clo
 import SocialLinks from "../components/SocialLinks";
 import PushNotificationManager from "../components/push/PushNotificationManager";
 import NewSeasonWelcome from "../components/NewSeasonWelcome";
-import ParentOnboarding from "@/components/onboarding/ParentOnboarding.js";
+import ParentOnboarding from "../components/onboarding/ParentOnboarding";
 
 export default function ParentDashboard() {
   const navigate = useNavigate();

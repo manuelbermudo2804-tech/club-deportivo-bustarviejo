@@ -22,11 +22,11 @@ import AutomaticNotificationEngine from "./components/notifications/AutomaticNot
 import EmailNotificationTrigger from "./components/notifications/EmailNotificationTrigger";
 import EventReminderEngine from "./components/events/EventReminderEngine";
 import DocumentReminderEngine from "./components/documents/DocumentReminderEngine";
-import ParentOnboarding from "@/components/onboarding/ParentOnboarding.js";
-import AdminOnboarding from "@/components/onboarding/AdminOnboarding.js";
-import CoachOnboarding from "@/components/onboarding/CoachOnboarding.js";
-import CoordinatorOnboarding from "@/components/onboarding/CoordinatorOnboarding.js";
-import TreasurerOnboarding from "@/components/onboarding/TreasurerOnboarding.js";
+import ParentOnboarding from "./components/onboarding/ParentOnboarding.js";
+import AdminOnboarding from "./components/onboarding/AdminOnboarding.js";
+import CoachOnboarding from "./components/onboarding/CoachOnboarding.js";
+import CoordinatorOnboarding from "./components/onboarding/CoordinatorOnboarding.js";
+import TreasurerOnboarding from "./components/onboarding/TreasurerOnboarding.js";
 
 const CLUB_LOGO_URL = `https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6911b8e453ca3ac01fb134d6/e3f0a8e26_logo_cd_bustarviejo_mediano.jpg?t=${Date.now()}`;
 
