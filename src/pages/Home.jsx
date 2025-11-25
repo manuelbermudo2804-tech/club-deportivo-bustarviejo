@@ -599,10 +599,6 @@ export default function Home() {
       
       <div className="px-4 lg:px-8 py-6 space-y-4 lg:space-y-6">
         <Suspense fallback={null}>
-          <ManualGenerator userRole={isAdmin ? 'admin' : isCoordinator ? 'coordinador' : isCoach ? 'entrenador' : 'padre'} />
-        </Suspense>
-        
-        <Suspense fallback={null}>
           <SocialLinks />
         </Suspense>
 
