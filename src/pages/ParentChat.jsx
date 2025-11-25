@@ -51,7 +51,13 @@ export default function ParentChat() {
 
   // Encontrar al coordinador
   const coordinator = useMemo(() => {
-    return allUsers.find(u => u.es_coordinador === true);
+    const found = allUsers.find(u => u.es_coordinador === true);
+    console.log('🔍 Buscando coordinador:', { 
+      totalUsers: allUsers.length, 
+      found: found?.email,
+      allUsersWithCoord: allUsers.filter(u => u.es_coordinador).map(u => u.email)
+    });
+    return found;
   }, [allUsers]);
 
   const { data: privateConversations = [], refetch: refetchConversations, isLoading: loadingConversations } = useQuery({
