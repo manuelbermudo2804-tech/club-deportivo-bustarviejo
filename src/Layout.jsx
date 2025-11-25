@@ -986,12 +986,33 @@ export default function Layout({ children, currentPageName }) {
   };
 
   if (!showWelcome) {
-    return <WelcomeScreen onComplete={() => setShowWelcome(true)} />;
-  }
+        return <WelcomeScreen onComplete={() => setShowWelcome(true)} />;
+      }
 
-  return (
-    <>
-      <SessionManager />
+      // Render onboarding based on role
+      const renderOnboarding = () => {
+        if (!showOnboarding) return null;
+
+        const handleOnboardingComplete = () => setShowOnboarding(false);
+
+        if (isAdmin) {
+          return <AdminOnboarding open={showOnboarding} onComplete={handleOnboardingComplete} />;
+        } else if (isCoordinator) {
+          return <CoordinatorOnboarding open={showOnboarding} onComplete={handleOnboardingComplete} />;
+        } else if (isTreasurer) {
+          return <TreasurerOnboarding open={showOnboarding} onComplete={handleOnboardingComplete} />;
+        } else if (isCoach) {
+          return <CoachOnboarding open={showOnboarding} onComplete={handleOnboardingComplete} />;
+        } else if (!isPlayer) {
+          return <ParentOnboarding open={showOnboarding} onComplete={handleOnboardingComplete} />;
+        }
+        return null;
+      };
+
+      return (
+        <>
+          {renderOnboarding()}
+          <SessionManager />
       <NotificationBadge />
       {user && <ChatNotificationListener user={user} />}
       {user && <DocumentReminderEngine user={user} />}
