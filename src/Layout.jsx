@@ -869,6 +869,7 @@ export default function Layout({ children, currentPageName }) {
     { title: "Histórico", url: createPageUrl("PaymentHistory"), icon: Archive },
     { title: "⚙️ Configuración", url: createPageUrl("SeasonManagement"), icon: Settings },
     { title: "⚙️ Categorías y Cuotas", url: createPageUrl("CategoryManagement"), icon: Settings },
+    { title: "💰 Patrocinios", url: createPageUrl("Sponsorships"), icon: CreditCard },
     { title: "📱 Configurar PWA", url: createPageUrl("PWASetup"), icon: Settings },
     { title: "Usuarios", url: createPageUrl("UserManagement"), icon: Users },
     ];
