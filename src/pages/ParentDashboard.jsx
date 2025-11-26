@@ -235,6 +235,29 @@ export default function ParentDashboard() {
     });
   }) : [];
 
+  // Calcular firmas de federación pendientes
+  const calcularEdad = (fechaNac) => {
+    if (!fechaNac) return null;
+    const hoy = new Date();
+    const nacimiento = new Date(fechaNac);
+    let edad = hoy.getFullYear() - nacimiento.getFullYear();
+    const m = hoy.getMonth() - nacimiento.getMonth();
+    if (m < 0 || (m === 0 && hoy.getDate() < nacimiento.getDate())) edad--;
+    return edad;
+  };
+
+  const pendingFederationSignatures = myPlayers.reduce((count, player) => {
+    const hasEnlaceJugador = !!player.enlace_firma_jugador;
+    const hasEnlaceTutor = !!player.enlace_firma_tutor;
+    const firmaJugadorOk = player.firma_jugador_completada === true;
+    const firmaTutorOk = player.firma_tutor_completada === true;
+    const esMayorDeEdad = calcularEdad(player.fecha_nacimiento) >= 18;
+    
+    if (hasEnlaceJugador && !firmaJugadorOk) count++;
+    if (hasEnlaceTutor && !firmaTutorOk && !esMayorDeEdad) count++;
+    return count;
+  }, 0);
+
   const calculatePendingPayments = () => {
     const activeSeason = seasonConfigs.find(s => s.activa);
     if (!activeSeason || myPlayers.length === 0) return 0;
@@ -319,6 +342,14 @@ export default function ParentDashboard() {
         url: createPageUrl("ParentCallups"),
         gradient: "from-yellow-600 to-yellow-700",
         badge: pendingCallups,
+        badgeLabel: "pendientes"
+      },
+      {
+        title: "🖊️ Firmas Federación",
+        icon: FileSignature,
+        url: createPageUrl("FederationSignatures"),
+        gradient: "from-yellow-600 to-orange-600",
+        badge: pendingFederationSignatures,
         badgeLabel: "pendientes"
       },
       {
@@ -529,6 +560,30 @@ export default function ParentDashboard() {
                 <div className="text-left flex-1">
                   <p className="text-white font-bold text-base">🍀 Lotería de Navidad</p>
                   <p className="text-green-100 text-xs">Compra décimos del club 🎄</p>
+                </div>
+              </div>
+            </div>
+          </Link>
+        )}
+
+        {/* FIRMAS FEDERACIÓN PENDIENTES */}
+        {pendingFederationSignatures > 0 && (
+          <Link to={createPageUrl("FederationSignatures")}>
+            <div className="bg-gradient-to-r from-yellow-600 to-orange-600 rounded-2xl p-4 shadow-xl transition-all hover:scale-105 active:scale-95 border-2 border-yellow-500 animate-pulse">
+              <div className="flex items-start gap-3">
+                <FileSignature className="w-6 h-6 text-white flex-shrink-0 mt-0.5" />
+                <div className="flex-1">
+                  <p className="text-white font-bold text-base lg:text-lg">
+                    🖊️ ¡Firmas de Federación Pendientes!
+                  </p>
+                  <p className="text-yellow-100 text-xs lg:text-sm mt-1">
+                    {pendingFederationSignatures === 1 
+                      ? "Tienes 1 firma pendiente de completar" 
+                      : `Tienes ${pendingFederationSignatures} firmas pendientes de completar`}
+                  </p>
+                  <p className="text-white text-xs mt-2 font-semibold">
+                    👉 Pulsa aquí para firmar
+                  </p>
                 </div>
               </div>
             </div>
