@@ -755,5 +755,6 @@ export default function CoachChat() {
         </div>
       </div>
     </div>
+    </>
   );
 }
