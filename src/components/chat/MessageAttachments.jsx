@@ -1,5 +1,5 @@
 import React from "react";
-import { FileText, Download, Image as ImageIcon, Music, Video } from "lucide-react";
+import { FileText, Download, Image as ImageIcon, Music, Video, MapPin, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 const getFileIcon = (tipo) => {
@@ -30,6 +30,7 @@ export default function MessageAttachments({ attachments }) {
         const isImage = attachment.tipo === 'imagen';
         const isAudio = attachment.tipo === 'audio';
         const isVideo = attachment.tipo === 'video';
+        const isLocation = attachment.tipo === 'ubicacion';
 
         return (
           <div key={index}>
@@ -72,7 +73,27 @@ export default function MessageAttachments({ attachments }) {
               </div>
             )}
 
-            {!isImage && !isAudio && !isVideo && (
+            {isLocation && (
+              <a
+                href={attachment.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="block bg-gradient-to-r from-teal-50 to-teal-100 rounded-lg p-3 border-2 border-teal-300 hover:border-teal-400 transition-colors max-w-xs"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-teal-500 flex items-center justify-center flex-shrink-0">
+                    <MapPin className="w-5 h-5 text-white" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-bold text-teal-900">📍 Ubicación compartida</p>
+                    <p className="text-xs text-teal-700">Toca para abrir en Google Maps</p>
+                  </div>
+                  <ExternalLink className="w-4 h-4 text-teal-600 flex-shrink-0" />
+                </div>
+              </a>
+            )}
+
+            {!isImage && !isAudio && !isVideo && !isLocation && (
               <div className="bg-slate-50 rounded-lg p-3 border border-slate-200 flex items-center justify-between max-w-xs">
                 <div className="flex items-center gap-2 flex-1 min-w-0">
                   {getFileIcon(attachment.tipo)}
