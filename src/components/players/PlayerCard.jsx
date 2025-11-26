@@ -344,7 +344,7 @@ export default function PlayerCard({ player, onEdit, onViewProfile, isParent = f
             )}
           </div>
 
-          <div className="flex gap-2 pt-2">
+          <div className="flex gap-2 pt-2 flex-wrap">
             {onViewProfile && (
               <Button
                 variant="outline"
@@ -374,6 +374,13 @@ export default function PlayerCard({ player, onEdit, onViewProfile, isParent = f
               </Button>
             )}
           </div>
+          
+          {/* Botón de descarga de documentos */}
+          {(player.foto_url || player.dni_jugador_url || player.libro_familia_url || player.dni_tutor_legal_url) && (
+            <div className="pt-2 border-t" onClick={(e) => e.stopPropagation()}>
+              <PlayerDocumentDownload player={player} variant="dropdown" showLabels={true} />
+            </div>
+          )}
         </CardContent>
       </Card>
     </motion.div>
