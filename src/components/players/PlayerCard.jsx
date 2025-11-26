@@ -306,68 +306,38 @@ export default function PlayerCard({ player, onEdit, onViewProfile, isParent = f
             </div>
           )}
 
-          {/* Estado de Pagos con Barras de Progreso */}
+          {/* Estado de Pagos - Barra única con 3 segmentos */}
           <div className="bg-slate-50 rounded-lg p-3 border">
             <div className="flex items-center justify-between mb-2">
               <span className="text-xs font-bold text-slate-700">💳 Pagos {currentSeason}:</span>
               {allPaid ? (
-                <Badge className="bg-green-100 text-green-700 text-xs flex items-center gap-1">
-                  <CheckCircle2 className="w-3 h-3" />
-                  ✅ Completo
-                </Badge>
-              ) : reviewCount > 0 && paidCount === 0 ? (
-                <Badge className="bg-orange-100 text-orange-700 text-xs flex items-center gap-1">
-                  <Loader2 className="w-3 h-3 animate-spin" />
-                  En revisión
-                </Badge>
-              ) : paidCount > 0 || reviewCount > 0 ? (
-                <Badge className="bg-yellow-100 text-yellow-700 text-xs">
-                  {paidCount + reviewCount}/3
-                </Badge>
+                <Badge className="bg-green-100 text-green-700 text-xs">✅ Completo</Badge>
               ) : playerPayments.length === 0 ? (
-                <Badge className="bg-slate-200 text-slate-600 text-xs">
-                  Sin registrar
-                </Badge>
+                <Badge className="bg-slate-200 text-slate-600 text-xs">Sin registrar</Badge>
               ) : (
-                <Badge className="bg-red-100 text-red-700 text-xs">
-                  Pendientes
-                </Badge>
+                <Badge className="bg-yellow-100 text-yellow-700 text-xs">{paidCount}/3</Badge>
               )}
             </div>
             
-            {/* Barras de progreso por mes - siempre visibles si no es pago único pagado */}
+            {/* Barra única con 3 segmentos lado a lado */}
             {!hasPagoUnico && (
-              <div className="space-y-1.5">
-                {["Junio", "Septiembre", "Diciembre"].map(mes => {
-                  const pago = playerPayments.find(p => p.mes === mes);
+              <div className="flex gap-1 h-6 rounded-lg overflow-hidden bg-slate-200">
+                {["Jun", "Sep", "Dic"].map((mes, idx) => {
+                  const mesCompleto = ["Junio", "Septiembre", "Diciembre"][idx];
+                  const pago = playerPayments.find(p => p.mes === mesCompleto);
                   const isPaid = pago?.estado === "Pagado";
                   const isReview = pago?.estado === "En revisión";
-                  const isPending = pago?.estado === "Pendiente";
                   
                   return (
-                    <div key={mes} className="flex items-center gap-2">
-                      <span className="text-[10px] text-slate-500 w-12">{mes.substring(0, 3)}</span>
-                      <div className="flex-1 h-2.5 bg-slate-200 rounded-full overflow-hidden">
-                        <div 
-                          className={`h-full rounded-full transition-all ${
-                            isPaid ? 'bg-green-500 w-full' : 
-                            isReview ? 'bg-orange-400 w-3/4 animate-pulse' : 
-                            isPending ? 'bg-red-400 w-1/4' :
-                            'bg-slate-300 w-0'
-                          }`}
-                        />
-                      </div>
-                      <span className={`text-[10px] font-medium w-16 text-right ${
-                        isPaid ? 'text-green-600' : 
-                        isReview ? 'text-orange-600' : 
-                        isPending ? 'text-red-600' :
-                        'text-slate-400'
-                      }`}>
-                        {isPaid ? '✅ Pagado' : 
-                         isReview ? '🔄 Revisión' : 
-                         isPending ? '❌ Pend.' :
-                         '—'}
-                      </span>
+                    <div 
+                      key={mes}
+                      className={`flex-1 flex items-center justify-center text-[10px] font-bold transition-all ${
+                        isPaid ? 'bg-green-500 text-white' : 
+                        isReview ? 'bg-orange-400 text-white animate-pulse' : 
+                        'bg-slate-300 text-slate-500'
+                      }`}
+                    >
+                      {mes} {isPaid ? '✓' : isReview ? '○' : ''}
                     </div>
                   );
                 })}
@@ -376,12 +346,10 @@ export default function PlayerCard({ player, onEdit, onViewProfile, isParent = f
             
             {/* Si es pago único pagado */}
             {hasPagoUnico && (
-              <div className="flex items-center gap-2">
-                <span className="text-[10px] text-slate-500">Pago Único</span>
-                <div className="flex-1 h-2.5 bg-slate-200 rounded-full overflow-hidden">
-                  <div className="h-full bg-green-500 w-full rounded-full" />
+              <div className="flex h-6 rounded-lg overflow-hidden">
+                <div className="flex-1 bg-green-500 flex items-center justify-center text-white text-xs font-bold">
+                  Pago Único ✓
                 </div>
-                <span className="text-[10px] font-medium text-green-600">✅ Pagado</span>
               </div>
             )}
           </div>
