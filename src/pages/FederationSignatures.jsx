@@ -99,9 +99,41 @@ export default function FederationSignatures() {
     return jugadorOk && tutorOk;
   });
 
+  // Obtener configuración de temporada
+  const { data: seasonConfig } = useQuery({
+    queryKey: ['seasonConfig'],
+    queryFn: async () => {
+      const configs = await base44.entities.SeasonConfig.list();
+      return configs.find(c => c.activa === true);
+    },
+  });
+
   const updatePlayerMutation = useMutation({
-    mutationFn: async ({ id, data }) => {
-      return await base44.entities.Player.update(id, data);
+    mutationFn: async ({ id, data, playerName, signatureType }) => {
+      const result = await base44.entities.Player.update(id, data);
+      
+      // Notificar al admin si las notificaciones están activas
+      if (seasonConfig?.notificaciones_admin_email) {
+        try {
+          await base44.integrations.Core.SendEmail({
+            from_name: "CD Bustarviejo - Firmas",
+            to: "cdbustarviejo@gmail.com",
+            subject: `✍️ Firma Completada - ${playerName}`,
+            body: `
+              <h2>Firma de Federación Completada</h2>
+              <p><strong>Jugador:</strong> ${playerName}</p>
+              <p><strong>Tipo de firma:</strong> ${signatureType === "jugador" ? "Firma del Jugador" : "Firma del Tutor"}</p>
+              <p><strong>Marcado por:</strong> ${user?.email}</p>
+              <hr>
+              <p style="font-size: 12px; color: #666;">Completado el ${new Date().toLocaleString('es-ES')}</p>
+            `
+          });
+        } catch (error) {
+          console.error("Error sending signature notification:", error);
+        }
+      }
+      
+      return result;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['players'] });
@@ -118,7 +150,12 @@ export default function FederationSignatures() {
       ? { firma_jugador_completada: true }
       : { firma_tutor_completada: true };
     
-    updatePlayerMutation.mutate({ id: player.id, data: updateData });
+    updatePlayerMutation.mutate({ 
+      id: player.id, 
+      data: updateData, 
+      playerName: player.nombre,
+      signatureType: type 
+    });
   };
 
   const calcularEdad = (fechaNac) => {
