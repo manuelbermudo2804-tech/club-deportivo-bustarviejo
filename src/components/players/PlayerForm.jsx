@@ -591,37 +591,42 @@ export default function PlayerForm({ player, onSubmit, onCancel, isSubmitting, i
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="space-y-2">
-                    <Label htmlFor="dni_tutor_legal">DNI del Tutor Legal *</Label>
-                    <Input id="dni_tutor_legal" value={currentPlayer.dni_tutor_legal || ""} onChange={(e) => setCurrentPlayer({...currentPlayer, dni_tutor_legal: e.target.value})} placeholder="12345678A" required />
-                  </div>
+                      <div className="space-y-2 md:col-span-2">
+                        <Label htmlFor="nombre_tutor_legal">Nombre y Apellidos del Padre/Madre/Tutor Legal *</Label>
+                        <Input id="nombre_tutor_legal" value={currentPlayer.nombre_tutor_legal || ""} onChange={(e) => setCurrentPlayer({...currentPlayer, nombre_tutor_legal: e.target.value})} placeholder="Ej: María García López" required />
+                      </div>
 
-                  <div className="space-y-2">
-                    <Label>Subir DNI Tutor (escaneado)</Label>
-                    <div className="flex items-center gap-2">
-                      <input type="file" accept="image/*,application/pdf" onChange={handleDNITutorUpload} className="hidden" id="dni-tutor-upload" />
-                      <Button type="button" variant="outline" onClick={() => document.getElementById('dni-tutor-upload').click()} disabled={uploadingDNITutor} className="flex-1">
-                        {uploadingDNITutor ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Upload className="w-4 h-4 mr-2" />}
-                        {currentPlayer.dni_tutor_legal_url ? "Cambiar DNI" : "Subir DNI Tutor"}
-                      </Button>
-                      {currentPlayer.dni_tutor_legal_url && (
-                        <a href={currentPlayer.dni_tutor_legal_url} target="_blank" rel="noopener noreferrer">
-                          <Button type="button" variant="ghost" size="icon"><Download className="w-4 h-4" /></Button>
-                        </a>
-                      )}
+                      <div className="space-y-2">
+                        <Label htmlFor="dni_tutor_legal">DNI del Tutor Legal *</Label>
+                        <Input id="dni_tutor_legal" value={currentPlayer.dni_tutor_legal || ""} onChange={(e) => setCurrentPlayer({...currentPlayer, dni_tutor_legal: e.target.value})} placeholder="12345678A" required />
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label>Subir DNI Tutor (escaneado)</Label>
+                        <div className="flex items-center gap-2">
+                          <input type="file" accept="image/*,application/pdf" onChange={handleDNITutorUpload} className="hidden" id="dni-tutor-upload" />
+                          <Button type="button" variant="outline" onClick={() => document.getElementById('dni-tutor-upload').click()} disabled={uploadingDNITutor} className="flex-1">
+                            {uploadingDNITutor ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Upload className="w-4 h-4 mr-2" />}
+                            {currentPlayer.dni_tutor_legal_url ? "Cambiar DNI" : "Subir DNI Tutor"}
+                          </Button>
+                          {currentPlayer.dni_tutor_legal_url && (
+                            <a href={currentPlayer.dni_tutor_legal_url} target="_blank" rel="noopener noreferrer">
+                              <Button type="button" variant="ghost" size="icon"><Download className="w-4 h-4" /></Button>
+                            </a>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="email_padre">Correo Electrónico Tutor *</Label>
+                        <Input id="email_padre" type="email" value={currentPlayer.email_padre} onChange={(e) => setCurrentPlayer({...currentPlayer, email_padre: e.target.value})} required disabled={isParent} className={isParent ? "bg-slate-100" : ""} />
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="telefono">Teléfono Tutor *</Label>
+                        <Input id="telefono" type="tel" value={currentPlayer.telefono} onChange={(e) => setCurrentPlayer({...currentPlayer, telefono: e.target.value})} required placeholder="600123456" />
+                      </div>
                     </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="email_padre">Correo Electrónico Tutor *</Label>
-                    <Input id="email_padre" type="email" value={currentPlayer.email_padre} onChange={(e) => setCurrentPlayer({...currentPlayer, email_padre: e.target.value})} required disabled={isParent} className={isParent ? "bg-slate-100" : ""} />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="telefono">Teléfono Tutor *</Label>
-                    <Input id="telefono" type="tel" value={currentPlayer.telefono} onChange={(e) => setCurrentPlayer({...currentPlayer, telefono: e.target.value})} required placeholder="600123456" />
-                  </div>
-                </div>
               </div>
             )}
 
@@ -848,9 +853,13 @@ export default function PlayerForm({ player, onSubmit, onCancel, isSubmitting, i
                   </AlertDescription>
                 </Alert>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-2 md:col-span-2">
+                    <Label htmlFor="nombre_tutor_2">Nombre y Apellidos</Label>
+                    <Input id="nombre_tutor_2" value={currentPlayer.nombre_tutor_2 || ""} onChange={(e) => setCurrentPlayer({...currentPlayer, nombre_tutor_2: e.target.value})} placeholder="Ej: Pedro García López" />
+                  </div>
                   <div className="space-y-2">
                     <Label htmlFor="email_tutor_2">Correo Electrónico</Label>
-                    <Input id="email_tutor_2" type="email" value={currentPlayer.email_tutor_2} onChange={(e) => setCurrentPlayer({...currentPlayer, email_tutor_2: e.target.value})} placeholder="madre@ejemplo.com" />
+                    <Input id="email_tutor_2" type="email" value={currentPlayer.email_tutor_2} onChange={(e) => setCurrentPlayer({...currentPlayer, email_tutor_2: e.target.value})} placeholder="padre@ejemplo.com" />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="telefono_tutor_2">Teléfono</Label>
