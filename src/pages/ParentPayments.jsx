@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Upload, FileText, Loader2, Search, Plus, X } from "lucide-react";
+import { Upload, FileText, Loader2, Search, Plus, X, Gift } from "lucide-react";
 import { toast } from "sonner";
 import { AnimatePresence } from "framer-motion";
 
@@ -467,6 +467,20 @@ Email: cdbustarviejo@gmail.com
                     </div>
                   </CardHeader>
                   <CardContent className="p-6">
+                    {/* Alerta de descuento por hermano */}
+                    {player.tiene_descuento_hermano && player.descuento_aplicado > 0 && (
+                      <div className="mb-4 p-3 bg-gradient-to-r from-purple-50 to-pink-50 border-2 border-purple-300 rounded-lg">
+                        <div className="flex items-center gap-2">
+                          <Gift className="w-5 h-5 text-purple-600" />
+                          <p className="text-sm font-bold text-purple-900">🎉 Descuento Familiar Aplicado</p>
+                        </div>
+                        <p className="text-xs text-purple-700 mt-1">
+                          Este jugador tiene <strong>{player.descuento_aplicado}€</strong> de descuento por tener hermanos mayores inscritos. 
+                          El descuento se aplica en la cuota de inscripción (Junio).
+                        </p>
+                      </div>
+                    )}
+
                     {playerPayments.length === 0 ? (
                       <div className="text-center py-8 text-slate-500">
                         <p>No hay pagos registrados para este jugador</p>
