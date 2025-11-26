@@ -9,6 +9,7 @@ import SocialLinks from "../components/SocialLinks";
 import PushNotificationManager from "../components/push/PushNotificationManager";
 import NewSeasonWelcome from "../components/NewSeasonWelcome";
 import ParentOnboarding from "@/components/onboarding/ParentOnboarding";
+import AlertCenter from "../components/dashboard/AlertCenter";
 
 export default function ParentDashboard() {
   const navigate = useNavigate();
@@ -432,6 +433,19 @@ export default function ParentDashboard() {
         <div className="lg:hidden">
           <PushNotificationManager />
         </div>
+
+        {/* CENTRO DE ALERTAS */}
+        <AlertCenter 
+          pendingCallups={pendingCallups}
+          pendingDocuments={pendingDocuments.length}
+          pendingPayments={pendingPayments}
+          unreadMessages={unreadMessages}
+          pendingSurveys={activeSurveys.length}
+          upcomingEvents={0}
+          isAdmin={false}
+          isCoach={false}
+          isParent={true}
+        />
 
         {/* COORDINADOR DEPORTIVO BANNER */}
         <div className="bg-gradient-to-r from-blue-600 via-blue-700 to-cyan-600 rounded-2xl p-4 lg:p-6 shadow-xl border-2 border-blue-500">
