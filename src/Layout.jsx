@@ -830,6 +830,10 @@ export default function Layout({ children, currentPageName }) {
       };
 
       checkPendingSignatures();
+      
+      // Refrescar cada 5 segundos para detectar cambios en firmas
+      const interval = setInterval(checkPendingSignatures, 5000);
+      return () => clearInterval(interval);
     }, [user, isAdmin]);
 
 
