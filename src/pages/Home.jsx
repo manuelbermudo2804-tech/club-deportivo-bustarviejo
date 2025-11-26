@@ -499,6 +499,16 @@ export default function Home() {
             badgeLabel: "pendientes"
           }
         );
+        if (stats.pendingSignatures > 0) {
+          items.push({
+            title: "🖊️ Firmas Federación",
+            icon: FileSignature,
+            url: createPageUrl("FederationSignatures"),
+            gradient: "from-yellow-600 to-orange-600",
+            badge: stats.pendingSignatures,
+            badgeLabel: "pendientes"
+          });
+        }
       }
 
       if (loteriaVisible && hasPlayers) {
