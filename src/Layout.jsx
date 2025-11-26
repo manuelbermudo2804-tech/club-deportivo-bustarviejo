@@ -4,7 +4,7 @@ import { createPageUrl } from "@/utils";
 import { base44 } from "@/api/base44Client";
 
 
-import { Home, Users, CreditCard, ShoppingBag, Menu, Bell, LogOut, Calendar, Megaphone, Mail, Archive, Settings, MessageCircle, Clock, Image, X, User as UserIcon, CheckCircle2, ClipboardCheck, Star, Award, FileText, Clover } from "lucide-react";
+import { Home, Users, CreditCard, ShoppingBag, Menu, Bell, LogOut, Calendar, Megaphone, Mail, Archive, Settings, MessageCircle, Clock, Image, X, User as UserIcon, CheckCircle2, ClipboardCheck, Star, Award, FileText, Clover, UserCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
@@ -875,6 +875,7 @@ export default function Layout({ children, currentPageName }) {
 
   const coachNavigationItems = [
       { title: "🏠 Inicio", url: createPageUrl("Home"), icon: Home },
+      { title: "👤 Mi Perfil Entrenador", url: createPageUrl("CoachProfile"), icon: UserCircle },
       { title: "⚙️ Preferencias Notif.", url: createPageUrl("NotificationPreferences"), icon: Settings },
       { title: "Chat Equipos", url: createPageUrl("CoachChat"), icon: MessageCircle, badge: unreadMessagesCount > 0 ? unreadMessagesCount : null, urgentBadge: urgentMessagesCount > 0 },
       { title: "🎓 Plantillas", url: createPageUrl("TeamRosters"), icon: Users },
@@ -917,6 +918,7 @@ export default function Layout({ children, currentPageName }) {
 
   const coordinatorNavigationItems = [
       { title: "🏠 Inicio", url: createPageUrl("Home"), icon: Home },
+      { title: "👤 Mi Perfil Entrenador", url: createPageUrl("CoachProfile"), icon: UserCircle },
       { title: "⚙️ Preferencias Notif.", url: createPageUrl("NotificationPreferences"), icon: Settings },
       { title: "Chat Coordinación", url: createPageUrl("CoachChat"), icon: MessageCircle, badge: unreadMessagesCount > 0 ? unreadMessagesCount : null, urgentBadge: urgentMessagesCount > 0 },
       { title: "🎓 Plantillas", url: createPageUrl("TeamRosters"), icon: Users },

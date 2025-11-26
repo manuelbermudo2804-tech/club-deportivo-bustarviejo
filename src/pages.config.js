@@ -54,6 +54,7 @@ import ParentEventRSVP from './pages/ParentEventRSVP';
 import DocumentManagement from './pages/DocumentManagement';
 import ParentDocuments from './pages/ParentDocuments';
 import PWASetup from './pages/PWASetup';
+import CoachProfile from './pages/CoachProfile';
 import __Layout from './Layout.jsx';
 
 
@@ -114,6 +115,7 @@ export const PAGES = {
     "DocumentManagement": DocumentManagement,
     "ParentDocuments": ParentDocuments,
     "PWASetup": PWASetup,
+    "CoachProfile": CoachProfile,
 }
 
 export const pagesConfig = {

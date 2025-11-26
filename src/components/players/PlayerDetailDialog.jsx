@@ -1,4 +1,5 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
+import { base44 } from "@/api/base44Client";
 import {
   Dialog,
   DialogContent,
@@ -11,6 +12,24 @@ import { format } from "date-fns";
 import { es } from "date-fns/locale";
 
 export default function PlayerDetailDialog({ player, open, onOpenChange }) {
+  const [coach, setCoach] = useState(null);
+
+  useEffect(() => {
+    const fetchCoach = async () => {
+      if (!player?.deporte || !open) return;
+      try {
+        const users = await base44.entities.User.list();
+        const coachUser = users.find(u => 
+          u.es_entrenador && 
+          u.categorias_entrena?.includes(player.deporte)
+        );
+        setCoach(coachUser || null);
+      } catch (error) {
+        console.error("Error fetching coach:", error);
+      }
+    };
+    fetchCoach();
+  }, [player?.deporte, open]);
   if (!player) return null;
 
   const hasMedicalInfo = player.ficha_medica && Object.values(player.ficha_medica).some(val => val);
@@ -202,6 +221,66 @@ export default function PlayerDetailDialog({ player, open, onOpenChange }) {
                   </div>
                 )}
               </div>
+            </div>
+          )}
+
+          {/* Entrenador */}
+          {coach && (
+            <div className="bg-green-50 rounded-lg p-4 space-y-3 border border-green-200">
+              <h3 className="font-bold text-green-900 flex items-center gap-2">
+                🏃 Entrenador
+              </h3>
+              <div className="flex items-center gap-3">
+                {coach.foto_perfil_url ? (
+                  <img
+                    src={coach.foto_perfil_url}
+                    alt={coach.full_name}
+                    className="w-14 h-14 rounded-full object-cover border-2 border-green-300"
+                  />
+                ) : (
+                  <div className="w-14 h-14 rounded-full bg-gradient-to-br from-green-500 to-green-700 flex items-center justify-center text-white text-lg font-bold">
+                    {coach.full_name?.charAt(0).toUpperCase()}
+                  </div>
+                )}
+                <div className="flex-1">
+                  <p className="font-semibold text-green-900">{coach.full_name}</p>
+                  {coach.bio_entrenador && (
+                    <p className="text-xs text-green-700 italic mt-0.5">"{coach.bio_entrenador}"</p>
+                  )}
+                  <div className="flex flex-wrap gap-1 mt-1">
+                    {coach.categorias_entrena?.map(cat => (
+                      <Badge key={cat} className="bg-green-100 text-green-700 text-[10px]">
+                        {cat}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+              </div>
+              
+              {/* Contacto del entrenador - solo si lo permite */}
+              {(coach.mostrar_email_publico || coach.mostrar_telefono_publico) && (
+                <div className="pt-2 border-t border-green-200 space-y-1">
+                  <p className="text-xs font-semibold text-green-800">Contacto:</p>
+                  {coach.mostrar_email_publico && coach.email && (
+                    <a href={`mailto:${coach.email}`} className="flex items-center gap-2 text-sm text-green-700 hover:text-green-900">
+                      <Mail className="w-4 h-4" />
+                      {coach.email}
+                    </a>
+                  )}
+                  {coach.mostrar_telefono_publico && coach.telefono_contacto && (
+                    <a href={`tel:${coach.telefono_contacto}`} className="flex items-center gap-2 text-sm text-green-700 hover:text-green-900">
+                      <Phone className="w-4 h-4" />
+                      {coach.telefono_contacto}
+                    </a>
+                  )}
+                </div>
+              )}
+              
+              {!coach.mostrar_email_publico && !coach.mostrar_telefono_publico && (
+                <p className="text-xs text-green-600 italic">
+                  💬 Contacta a través del chat de la app
+                </p>
+              )}
             </div>
           )}
 
