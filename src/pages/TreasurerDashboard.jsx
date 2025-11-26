@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
+import { jsPDF } from "jspdf";
 
 const COLORS = {
   pagado: '#16a34a',
@@ -252,6 +253,177 @@ export default function TreasurerDashboard() {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+  };
+
+  const exportToPDF = (type) => {
+    const doc = new jsPDF();
+    const pageWidth = doc.internal.pageSize.getWidth();
+    let y = 20;
+
+    // Header
+    doc.setFontSize(18);
+    doc.setTextColor(234, 88, 12); // Orange
+    doc.text("CD Bustarviejo", pageWidth / 2, y, { align: "center" });
+    y += 10;
+
+    doc.setFontSize(10);
+    doc.setTextColor(100);
+    doc.text(`Temporada: ${selectedSeason === "all" ? "Todas" : selectedSeason}`, pageWidth / 2, y, { align: "center" });
+    y += 5;
+    doc.text(`Generado: ${format(new Date(), "d MMM yyyy HH:mm", { locale: es })}`, pageWidth / 2, y, { align: "center" });
+    y += 15;
+
+    let filename = "";
+
+    if (type === "resumen") {
+      doc.setFontSize(14);
+      doc.setTextColor(0);
+      doc.text("Resumen Financiero", 20, y);
+      y += 10;
+
+      doc.setFontSize(10);
+      doc.setTextColor(50);
+      
+      // Table header
+      doc.setFillColor(240, 240, 240);
+      doc.rect(20, y, pageWidth - 40, 8, 'F');
+      doc.text("Concepto", 25, y + 5);
+      doc.text("Cobrado", 80, y + 5);
+      doc.text("Pendiente", 120, y + 5);
+      doc.text("Total", 160, y + 5);
+      y += 12;
+
+      // Data rows
+      const rows = [
+        { concepto: "Cuotas", cobrado: stats.cuotas.pagadas, pendiente: stats.cuotas.pendientes + stats.cuotas.revision },
+        { concepto: "Ropa", cobrado: stats.ropa.pagada, pendiente: stats.ropa.pendiente },
+        { concepto: "Loteria", cobrado: stats.loteria.pagada, pendiente: stats.loteria.pendiente },
+        { concepto: "Patrocinios", cobrado: stats.patrocinios, pendiente: 0 },
+        { concepto: "Socios", cobrado: stats.socios?.pagados || 0, pendiente: stats.socios?.pendientes || 0 }
+      ];
+
+      rows.forEach(row => {
+        doc.text(row.concepto, 25, y);
+        doc.setTextColor(22, 163, 74); // Green
+        doc.text(`${row.cobrado.toLocaleString()} EUR`, 80, y);
+        doc.setTextColor(220, 38, 38); // Red
+        doc.text(`${row.pendiente.toLocaleString()} EUR`, 120, y);
+        doc.setTextColor(50);
+        doc.text(`${(row.cobrado + row.pendiente).toLocaleString()} EUR`, 160, y);
+        y += 8;
+      });
+
+      // Total
+      y += 5;
+      doc.setDrawColor(200);
+      doc.line(20, y, pageWidth - 20, y);
+      y += 8;
+      doc.setFontSize(11);
+      doc.setTextColor(0);
+      doc.text("TOTAL", 25, y);
+      doc.setTextColor(22, 163, 74);
+      doc.text(`${stats.totalIngresos.toLocaleString()} EUR`, 80, y);
+      doc.setTextColor(220, 38, 38);
+      doc.text(`${stats.totalPendiente.toLocaleString()} EUR`, 120, y);
+      doc.setTextColor(0);
+      doc.text(`${(stats.totalIngresos + stats.totalPendiente).toLocaleString()} EUR`, 160, y);
+
+      filename = `resumen_financiero_${selectedSeason === "all" ? "todas" : selectedSeason}.pdf`;
+
+    } else if (type === "deudas") {
+      doc.setFontSize(14);
+      doc.setTextColor(0);
+      doc.text("Listado de Deudas", 20, y);
+      y += 10;
+
+      doc.setFontSize(10);
+      doc.setTextColor(50);
+
+      if (pendingDebts.length === 0) {
+        doc.text("No hay deudas pendientes", 20, y);
+      } else {
+        // Table header
+        doc.setFillColor(254, 226, 226);
+        doc.rect(20, y, pageWidth - 40, 8, 'F');
+        doc.text("Jugador", 25, y + 5);
+        doc.text("Deporte", 90, y + 5);
+        doc.text("Deuda", 150, y + 5);
+        y += 12;
+
+        pendingDebts.forEach((debt, idx) => {
+          if (y > 270) {
+            doc.addPage();
+            y = 20;
+          }
+          doc.text(debt.jugador_nombre?.substring(0, 30) || "", 25, y);
+          doc.text(debt.deporte?.substring(0, 25) || "", 90, y);
+          doc.setTextColor(220, 38, 38);
+          doc.text(`${debt.deuda_total.toLocaleString()} EUR`, 150, y);
+          doc.setTextColor(50);
+          y += 7;
+        });
+
+        // Total
+        y += 5;
+        doc.setDrawColor(200);
+        doc.line(20, y, pageWidth - 20, y);
+        y += 8;
+        doc.setFontSize(11);
+        doc.setTextColor(220, 38, 38);
+        const totalDeuda = pendingDebts.reduce((sum, d) => sum + d.deuda_total, 0);
+        doc.text(`Total deuda: ${totalDeuda.toLocaleString()} EUR (${pendingDebts.length} jugadores)`, 25, y);
+      }
+
+      filename = `deudas_pendientes_${selectedSeason === "all" ? "todas" : selectedSeason}.pdf`;
+
+    } else if (type === "transacciones") {
+      doc.setFontSize(14);
+      doc.setTextColor(0);
+      doc.text("Historial de Transacciones", 20, y);
+      y += 10;
+
+      doc.setFontSize(10);
+      doc.setTextColor(50);
+
+      if (recentTransactions.length === 0) {
+        doc.text("No hay transacciones recientes", 20, y);
+      } else {
+        // Table header
+        doc.setFillColor(220, 252, 231);
+        doc.rect(20, y, pageWidth - 40, 8, 'F');
+        doc.text("Fecha", 25, y + 5);
+        doc.text("Concepto", 60, y + 5);
+        doc.text("Cantidad", 160, y + 5);
+        y += 12;
+
+        recentTransactions.forEach((t, idx) => {
+          if (y > 270) {
+            doc.addPage();
+            y = 20;
+          }
+          doc.text(t.fecha ? format(new Date(t.fecha), "dd/MM/yy") : "-", 25, y);
+          doc.text(t.concepto?.substring(0, 45) || "", 60, y);
+          doc.setTextColor(22, 163, 74);
+          doc.text(`+${t.cantidad?.toLocaleString()} EUR`, 160, y);
+          doc.setTextColor(50);
+          y += 7;
+        });
+
+        // Total
+        y += 5;
+        doc.setDrawColor(200);
+        doc.line(20, y, pageWidth - 20, y);
+        y += 8;
+        doc.setFontSize(11);
+        doc.setTextColor(22, 163, 74);
+        const totalTrans = recentTransactions.reduce((sum, t) => sum + (t.cantidad || 0), 0);
+        doc.text(`Total: ${totalTrans.toLocaleString()} EUR`, 25, y);
+      }
+
+      filename = `transacciones_${selectedSeason === "all" ? "todas" : selectedSeason}.pdf`;
+    }
+
+    doc.save(filename);
   };
 
   const tipoIcons = {
@@ -614,45 +786,63 @@ export default function TreasurerDashboard() {
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <Card className="border-2 border-dashed border-blue-300 hover:border-blue-500 transition-colors cursor-pointer" onClick={() => exportToCSV("resumen")}>
+                <Card className="border-2 border-dashed border-blue-300 hover:border-blue-500 transition-colors">
                   <CardContent className="pt-6 text-center">
                     <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3">
                       <DollarSign className="w-6 h-6 text-blue-600" />
                     </div>
                     <h3 className="font-semibold text-slate-900 mb-1">Resumen Financiero</h3>
                     <p className="text-xs text-slate-600 mb-3">Ingresos y pendientes por concepto</p>
-                    <Button className="w-full bg-blue-600 hover:bg-blue-700">
-                      <Download className="w-4 h-4 mr-2" />
-                      Descargar CSV
-                    </Button>
+                    <div className="flex gap-2">
+                      <Button className="flex-1 bg-blue-600 hover:bg-blue-700" size="sm" onClick={() => exportToCSV("resumen")}>
+                        <Download className="w-3 h-3 mr-1" />
+                        CSV
+                      </Button>
+                      <Button className="flex-1 bg-blue-800 hover:bg-blue-900" size="sm" onClick={() => exportToPDF("resumen")}>
+                        <FileText className="w-3 h-3 mr-1" />
+                        PDF
+                      </Button>
+                    </div>
                   </CardContent>
                 </Card>
 
-                <Card className="border-2 border-dashed border-red-300 hover:border-red-500 transition-colors cursor-pointer" onClick={() => exportToCSV("deudas")}>
+                <Card className="border-2 border-dashed border-red-300 hover:border-red-500 transition-colors">
                   <CardContent className="pt-6 text-center">
                     <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-3">
                       <AlertCircle className="w-6 h-6 text-red-600" />
                     </div>
                     <h3 className="font-semibold text-slate-900 mb-1">Listado de Deudas</h3>
                     <p className="text-xs text-slate-600 mb-3">Jugadores con pagos pendientes</p>
-                    <Button className="w-full bg-red-600 hover:bg-red-700">
-                      <Download className="w-4 h-4 mr-2" />
-                      Descargar CSV
-                    </Button>
+                    <div className="flex gap-2">
+                      <Button className="flex-1 bg-red-600 hover:bg-red-700" size="sm" onClick={() => exportToCSV("deudas")}>
+                        <Download className="w-3 h-3 mr-1" />
+                        CSV
+                      </Button>
+                      <Button className="flex-1 bg-red-800 hover:bg-red-900" size="sm" onClick={() => exportToPDF("deudas")}>
+                        <FileText className="w-3 h-3 mr-1" />
+                        PDF
+                      </Button>
+                    </div>
                   </CardContent>
                 </Card>
 
-                <Card className="border-2 border-dashed border-green-300 hover:border-green-500 transition-colors cursor-pointer" onClick={() => exportToCSV("transacciones")}>
+                <Card className="border-2 border-dashed border-green-300 hover:border-green-500 transition-colors">
                   <CardContent className="pt-6 text-center">
                     <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3">
                       <Receipt className="w-6 h-6 text-green-600" />
                     </div>
                     <h3 className="font-semibold text-slate-900 mb-1">Transacciones</h3>
                     <p className="text-xs text-slate-600 mb-3">Historial de cobros recientes</p>
-                    <Button className="w-full bg-green-600 hover:bg-green-700">
-                      <Download className="w-4 h-4 mr-2" />
-                      Descargar CSV
-                    </Button>
+                    <div className="flex gap-2">
+                      <Button className="flex-1 bg-green-600 hover:bg-green-700" size="sm" onClick={() => exportToCSV("transacciones")}>
+                        <Download className="w-3 h-3 mr-1" />
+                        CSV
+                      </Button>
+                      <Button className="flex-1 bg-green-800 hover:bg-green-900" size="sm" onClick={() => exportToPDF("transacciones")}>
+                        <FileText className="w-3 h-3 mr-1" />
+                        PDF
+                      </Button>
+                    </div>
                   </CardContent>
                 </Card>
               </div>
