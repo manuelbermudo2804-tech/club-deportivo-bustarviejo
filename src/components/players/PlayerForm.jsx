@@ -454,14 +454,52 @@ export default function PlayerForm({ player, onSubmit, onCancel, isSubmitting, i
                       <Camera className="w-8 h-8" />
                     </div>
                   )}
-                  <input type="file" accept="image/*" onChange={handlePhotoUpload} className="hidden" id="photo-upload" />
-                  <label htmlFor="photo-upload">
-                    <Button type="button" size="sm" variant="outline" className="absolute bottom-0 right-0 rounded-full" disabled={uploadingPhoto} onClick={() => document.getElementById('photo-upload').click()}>
-                      {uploadingPhoto ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
-                    </Button>
-                  </label>
                 </div>
-                <p className="text-sm text-orange-700 font-medium">Foto tipo carnet de frente, fondo claro</p>
+                
+                {/* Input con capture="environment" para abrir cámara en móvil */}
+                <input 
+                  type="file" 
+                  accept="image/*" 
+                  capture="environment"
+                  onChange={handlePhotoUpload} 
+                  className="hidden" 
+                  id="photo-upload-camera" 
+                />
+                <input 
+                  type="file" 
+                  accept="image/*" 
+                  onChange={handlePhotoUpload} 
+                  className="hidden" 
+                  id="photo-upload-gallery" 
+                />
+                
+                <div className="flex flex-col sm:flex-row gap-2 w-full">
+                  <Button 
+                    type="button" 
+                    variant="default"
+                    className="flex-1 bg-orange-600 hover:bg-orange-700"
+                    disabled={uploadingPhoto} 
+                    onClick={() => document.getElementById('photo-upload-camera').click()}
+                  >
+                    {uploadingPhoto ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Camera className="w-4 h-4 mr-2" />}
+                    📸 Hacer Foto
+                  </Button>
+                  <Button 
+                    type="button" 
+                    variant="outline"
+                    className="flex-1"
+                    disabled={uploadingPhoto} 
+                    onClick={() => document.getElementById('photo-upload-gallery').click()}
+                  >
+                    {uploadingPhoto ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Upload className="w-4 h-4 mr-2" />}
+                    Subir desde galería
+                  </Button>
+                </div>
+                
+                <p className="text-sm text-orange-700 font-medium text-center">
+                  Foto tipo carnet de frente, fondo claro<br/>
+                  <span className="text-xs text-orange-600">En móvil pulsa "Hacer Foto" para abrir la cámara</span>
+                </p>
               </div>
             </div>
 
@@ -626,28 +664,86 @@ export default function PlayerForm({ player, onSubmit, onCancel, isSubmitting, i
                 <FileText className="w-6 h-6 text-yellow-600" />
                 <h3 className="text-lg font-bold text-yellow-900">Enlaces de Firma de Federación</h3>
               </div>
-              <p className="text-sm text-yellow-800">Estos enlaces serán proporcionados por la federación para la firma digital.</p>
+              
+              <Alert className="bg-yellow-100 border-yellow-300">
+                <AlertCircle className="w-4 h-4 text-yellow-700" />
+                <AlertDescription className="text-yellow-800 text-sm">
+                  <strong>¿Cómo funciona?</strong><br/>
+                  1. El club te enviará los enlaces de firma por email o chat cuando estén disponibles<br/>
+                  2. Pulsa en el enlace para firmar digitalmente<br/>
+                  3. Marca la casilla "Firma completada" cuando hayas terminado<br/>
+                  <span className="text-xs text-yellow-700 mt-1 block">
+                    ⏳ Si aún no tienes los enlaces, deja estos campos vacíos. El club los añadirá después.
+                  </span>
+                </AlertDescription>
+              </Alert>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-2">
-                  <Label htmlFor="enlace_firma_jugador">Enlace Firma Jugador</Label>
-                  <Input id="enlace_firma_jugador" value={currentPlayer.enlace_firma_jugador || ""} onChange={(e) => setCurrentPlayer({...currentPlayer, enlace_firma_jugador: e.target.value})} placeholder="https://..." />
+              <div className="grid grid-cols-1 gap-6">
+                {/* Firma del Jugador */}
+                <div className="space-y-3 bg-white rounded-lg p-4 border border-yellow-300">
+                  <Label className="font-semibold text-yellow-900">🖊️ Enlace Firma del Jugador</Label>
+                  <Input 
+                    id="enlace_firma_jugador" 
+                    value={currentPlayer.enlace_firma_jugador || ""} 
+                    onChange={(e) => setCurrentPlayer({...currentPlayer, enlace_firma_jugador: e.target.value})} 
+                    placeholder="https://federacion.es/firma/..." 
+                  />
                   {currentPlayer.enlace_firma_jugador && (
-                    <div className="flex items-center gap-2">
-                      <Checkbox checked={currentPlayer.firma_jugador_completada} onCheckedChange={(c) => setCurrentPlayer({...currentPlayer, firma_jugador_completada: c})} />
-                      <span className="text-sm">Firma completada</span>
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+                      <a 
+                        href={currentPlayer.enlace_firma_jugador} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-2 px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition-colors text-sm font-medium"
+                      >
+                        <FileText className="w-4 h-4" />
+                        Abrir enlace para firmar
+                      </a>
+                      <div className="flex items-center gap-2">
+                        <Checkbox 
+                          id="firma_jugador_ok"
+                          checked={currentPlayer.firma_jugador_completada} 
+                          onCheckedChange={(c) => setCurrentPlayer({...currentPlayer, firma_jugador_completada: c})} 
+                        />
+                        <label htmlFor="firma_jugador_ok" className="text-sm font-medium cursor-pointer">
+                          ✅ Firma completada
+                        </label>
+                      </div>
                     </div>
                   )}
                 </div>
 
+                {/* Firma del Tutor (solo menores) */}
                 {!isMayorDeEdad && (
-                  <div className="space-y-2">
-                    <Label htmlFor="enlace_firma_tutor">Enlace Firma Tutor Legal</Label>
-                    <Input id="enlace_firma_tutor" value={currentPlayer.enlace_firma_tutor || ""} onChange={(e) => setCurrentPlayer({...currentPlayer, enlace_firma_tutor: e.target.value})} placeholder="https://..." />
+                  <div className="space-y-3 bg-white rounded-lg p-4 border border-yellow-300">
+                    <Label className="font-semibold text-yellow-900">🖊️ Enlace Firma del Padre/Tutor Legal</Label>
+                    <Input 
+                      id="enlace_firma_tutor" 
+                      value={currentPlayer.enlace_firma_tutor || ""} 
+                      onChange={(e) => setCurrentPlayer({...currentPlayer, enlace_firma_tutor: e.target.value})} 
+                      placeholder="https://federacion.es/firma-tutor/..." 
+                    />
                     {currentPlayer.enlace_firma_tutor && (
-                      <div className="flex items-center gap-2">
-                        <Checkbox checked={currentPlayer.firma_tutor_completada} onCheckedChange={(c) => setCurrentPlayer({...currentPlayer, firma_tutor_completada: c})} />
-                        <span className="text-sm">Firma completada</span>
+                      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+                        <a 
+                          href={currentPlayer.enlace_firma_tutor} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-2 px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition-colors text-sm font-medium"
+                        >
+                          <FileText className="w-4 h-4" />
+                          Abrir enlace para firmar
+                        </a>
+                        <div className="flex items-center gap-2">
+                          <Checkbox 
+                            id="firma_tutor_ok"
+                            checked={currentPlayer.firma_tutor_completada} 
+                            onCheckedChange={(c) => setCurrentPlayer({...currentPlayer, firma_tutor_completada: c})} 
+                          />
+                          <label htmlFor="firma_tutor_ok" className="text-sm font-medium cursor-pointer">
+                            ✅ Firma completada
+                          </label>
+                        </div>
                       </div>
                     )}
                   </div>
@@ -763,28 +859,98 @@ export default function PlayerForm({ player, onSubmit, onCancel, isSubmitting, i
                     <Shield className="w-6 h-6 text-red-600" />
                     <h3 className="text-lg font-bold text-red-900">AUTORIZACIÓN TRATAMIENTO DE DATOS *</h3>
                   </div>
-                  <div className="bg-white rounded-lg p-4 text-sm max-h-48 overflow-y-auto border">
-                    <p>Autorizo a que CLUB DEPORTIVO BUSTARVIEJO conserve en ficheros informáticos los datos personales proporcionados...</p>
+                  <div className="bg-white rounded-lg p-4 text-sm max-h-64 overflow-y-auto border text-slate-700 space-y-3">
+                    <p className="font-semibold text-slate-900">POLÍTICA DE PROTECCIÓN DE DATOS - CLUB DEPORTIVO BUSTARVIEJO</p>
+                    <p>
+                      En cumplimiento de lo dispuesto en el Reglamento (UE) 2016/679 del Parlamento Europeo y del Consejo, 
+                      de 27 de abril de 2016, relativo a la protección de las personas físicas en lo que respecta al 
+                      tratamiento de datos personales y a la libre circulación de estos datos (RGPD), le informamos de que:
+                    </p>
+                    <p>
+                      <strong>Responsable del tratamiento:</strong> CLUB DEPORTIVO BUSTARVIEJO<br/>
+                      <strong>Finalidad:</strong> Gestión de la inscripción deportiva, comunicaciones relacionadas con la 
+                      actividad del club, gestión administrativa y deportiva.
+                    </p>
+                    <p>
+                      <strong>Legitimación:</strong> Consentimiento del interesado y/o ejecución de un contrato.
+                    </p>
+                    <p>
+                      <strong>Destinatarios:</strong> Los datos podrán ser comunicados a:<br/>
+                      • Federaciones deportivas correspondientes para la tramitación de licencias<br/>
+                      • Compañías de seguros para la cobertura de accidentes deportivos<br/>
+                      • Administraciones públicas cuando sea legalmente requerido
+                    </p>
+                    <p>
+                      <strong>Conservación:</strong> Los datos se conservarán durante el tiempo necesario para cumplir 
+                      con la finalidad para la que se recabaron y para determinar las posibles responsabilidades que 
+                      se pudieran derivar.
+                    </p>
+                    <p>
+                      <strong>Derechos:</strong> Puede ejercer sus derechos de acceso, rectificación, supresión, 
+                      limitación del tratamiento, portabilidad y oposición dirigiéndose a: 
+                      <strong> cdbustarviejo@gmail.com</strong>
+                    </p>
+                    <p className="text-xs text-slate-500">
+                      También tiene derecho a presentar una reclamación ante la Agencia Española de Protección de Datos (www.aepd.es).
+                    </p>
                   </div>
                   <div className="flex items-start gap-3 p-4 bg-white rounded-lg border-2 border-red-300">
-                    <Checkbox id="acepta" checked={currentPlayer.acepta_politica_privacidad} onCheckedChange={(c) => setCurrentPlayer({...currentPlayer, acepta_politica_privacidad: c})} />
-                    <label htmlFor="acepta" className="text-sm font-semibold cursor-pointer">HE LEÍDO Y ACEPTO LA POLÍTICA DE PRIVACIDAD</label>
+                    <Checkbox 
+                      id="acepta" 
+                      checked={currentPlayer.acepta_politica_privacidad} 
+                      onCheckedChange={(c) => setCurrentPlayer({...currentPlayer, acepta_politica_privacidad: c})} 
+                    />
+                    <label htmlFor="acepta" className="text-sm font-semibold cursor-pointer text-red-900">
+                      ✅ HE LEÍDO Y ACEPTO LA POLÍTICA DE PRIVACIDAD Y PROTECCIÓN DE DATOS
+                    </label>
                   </div>
                 </div>
 
                 <div className="space-y-4 border-2 border-orange-200 rounded-lg p-6 bg-orange-50">
                   <div className="flex items-center gap-2">
                     <Camera className="w-6 h-6 text-orange-600" />
-                    <h3 className="text-lg font-bold text-orange-900">AUTORIZACIÓN FOTOGRAFÍAS/VIDEOS *</h3>
+                    <h3 className="text-lg font-bold text-orange-900">AUTORIZACIÓN FOTOGRAFÍAS Y VÍDEOS *</h3>
                   </div>
-                  <RadioGroup value={currentPlayer.autorizacion_fotografia} onValueChange={(v) => setCurrentPlayer({...currentPlayer, autorizacion_fotografia: v})} className="space-y-3">
-                    <div className="flex items-center space-x-3 p-4 bg-white rounded-lg border-2 border-orange-200">
-                      <RadioGroupItem value="SI AUTORIZO" id="si" />
-                      <Label htmlFor="si" className="font-semibold cursor-pointer">SI AUTORIZO</Label>
+                  <div className="bg-white rounded-lg p-4 text-sm max-h-48 overflow-y-auto border text-slate-700 space-y-2">
+                    <p>
+                      El CLUB DEPORTIVO BUSTARVIEJO podrá realizar fotografías y/o grabaciones de vídeo durante las 
+                      actividades deportivas (entrenamientos, partidos, torneos, eventos del club) con las siguientes finalidades:
+                    </p>
+                    <ul className="list-disc list-inside space-y-1 text-xs">
+                      <li>Publicación en la página web y redes sociales oficiales del club (Facebook, Instagram, etc.)</li>
+                      <li>Publicación en la aplicación móvil del club</li>
+                      <li>Elaboración de materiales promocionales del club</li>
+                      <li>Publicación en medios de comunicación locales</li>
+                      <li>Memoria anual de actividades del club</li>
+                    </ul>
+                    <p className="text-xs text-slate-500 mt-2">
+                      Esta autorización puede ser revocada en cualquier momento comunicándolo por escrito al club.
+                    </p>
+                  </div>
+                  <RadioGroup 
+                    value={currentPlayer.autorizacion_fotografia} 
+                    onValueChange={(v) => setCurrentPlayer({...currentPlayer, autorizacion_fotografia: v})} 
+                    className="space-y-3"
+                  >
+                    <div className="flex items-start space-x-3 p-4 bg-white rounded-lg border-2 border-green-300 hover:bg-green-50 transition-colors">
+                      <RadioGroupItem value="SI AUTORIZO" id="si" className="mt-1" />
+                      <Label htmlFor="si" className="cursor-pointer">
+                        <span className="font-bold text-green-800">✅ SÍ AUTORIZO</span>
+                        <p className="text-xs text-slate-600 mt-1">
+                          Autorizo la captación, reproducción y publicación de imágenes y vídeos de mi hijo/a (o propias si soy mayor de edad) 
+                          en los medios indicados.
+                        </p>
+                      </Label>
                     </div>
-                    <div className="flex items-center space-x-3 p-4 bg-white rounded-lg border-2 border-orange-200">
-                      <RadioGroupItem value="NO AUTORIZO" id="no" />
-                      <Label htmlFor="no" className="font-semibold cursor-pointer">NO AUTORIZO</Label>
+                    <div className="flex items-start space-x-3 p-4 bg-white rounded-lg border-2 border-red-300 hover:bg-red-50 transition-colors">
+                      <RadioGroupItem value="NO AUTORIZO" id="no" className="mt-1" />
+                      <Label htmlFor="no" className="cursor-pointer">
+                        <span className="font-bold text-red-800">❌ NO AUTORIZO</span>
+                        <p className="text-xs text-slate-600 mt-1">
+                          No autorizo la captación ni publicación de imágenes. El club evitará en la medida de lo posible 
+                          la aparición del jugador/a en fotografías y vídeos.
+                        </p>
+                      </Label>
                     </div>
                   </RadioGroup>
                 </div>
