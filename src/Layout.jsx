@@ -506,7 +506,10 @@ export default function Layout({ children, currentPageName }) {
   const [currentLang, setCurrentLang] = useState(() => {
     return localStorage.getItem('appLanguage') || 'es';
   });
-  const [showWelcome, setShowWelcome] = useState(false);
+  const [showWelcome, setShowWelcome] = useState(() => {
+    // Solo mostrar una vez por sesión
+    return sessionStorage.getItem('welcomeShown') === 'true';
+  });
   const [loteriaVisible, setLoteriaVisible] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [isRedirecting, setIsRedirecting] = useState(false);
@@ -986,7 +989,10 @@ export default function Layout({ children, currentPageName }) {
   };
 
   if (!showWelcome) {
-        return <WelcomeScreen onComplete={() => setShowWelcome(true)} />;
+        return <WelcomeScreen onComplete={() => {
+          sessionStorage.setItem('welcomeShown', 'true');
+          setShowWelcome(true);
+        }} />;
       }
 
       // Render onboarding based on role

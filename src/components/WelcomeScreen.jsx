@@ -5,7 +5,12 @@ const CLUB_LOGO_URL = `https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/objec
 
 export default function WelcomeScreen({ onComplete }) {
   useEffect(() => {
-    onComplete();
+    // Mostrar animación por 2.5 segundos
+    const timer = setTimeout(() => {
+      onComplete();
+    }, 2500);
+    
+    return () => clearTimeout(timer);
   }, [onComplete]);
 
   return (
