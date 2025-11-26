@@ -481,7 +481,7 @@ Email: cdbustarviejo@gmail.com
                       </div>
                     )}
 
-                    {playerPayments.length === 0 ? (
+                    {allPlayerPayments.length === 0 ? (
                       <div className="text-center py-8 text-slate-500">
                         <p>No hay pagos registrados para este jugador</p>
                         <Button
