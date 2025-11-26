@@ -851,6 +851,7 @@ export default function Layout({ children, currentPageName }) {
 
   const adminNavigationItems = [
     { title: "Inicio", url: createPageUrl("Home"), icon: Home },
+    { title: "📊 Panel Financiero", url: createPageUrl("TreasurerDashboard"), icon: CreditCard },
     { title: "⚙️ Preferencias Notif.", url: createPageUrl("NotificationPreferences"), icon: Settings },
     { title: "Chat Grupos", url: createPageUrl("AdminChat"), icon: MessageCircle, badge: unreadMessagesCount > 0 ? unreadMessagesCount : null, urgentBadge: urgentMessagesCount > 0 },
     { title: "Jugadores", url: createPageUrl("Players"), icon: Users },
