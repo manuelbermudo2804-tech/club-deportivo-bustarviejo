@@ -835,6 +835,12 @@ export default function PlayerForm({ player, onSubmit, onCancel, isSubmitting, i
                   <Users className="w-5 h-5 text-slate-600" />
                   <h3 className="text-lg font-semibold text-slate-900">Segundo Progenitor/Tutor (Opcional)</h3>
                 </div>
+                <Alert className="bg-green-50 border-green-200">
+                  <AlertCircle className="h-4 w-4 text-green-600" />
+                  <AlertDescription className="text-green-800 text-sm">
+                    <strong>👥 Acceso compartido:</strong> Si añades el email del segundo progenitor, podrá acceder a la app con su propia cuenta y <strong>verá exactamente la misma información</strong> del jugador: pagos, convocatorias, documentos, chat del equipo, etc.
+                  </AlertDescription>
+                </Alert>
                 <Alert className="bg-blue-50 border-blue-200">
                   <AlertCircle className="h-4 w-4 text-blue-600" />
                   <AlertDescription className="text-blue-800 text-sm">
