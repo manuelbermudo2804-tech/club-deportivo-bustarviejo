@@ -610,6 +610,16 @@ export default function Home() {
         }
       );
 
+      // Firmas Federación para coordinadores o entrenadores con permiso
+      if (isCoordinator || user?.puede_gestionar_firmas) {
+        items.push({
+          title: "🖊️ Firmas Federación",
+          icon: FileSignature,
+          url: createPageUrl("FederationSignaturesAdmin"),
+          gradient: "from-yellow-600 to-orange-600",
+        });
+      }
+
       if (hasPlayers) {
         items.push({
           title: "👨‍👩‍👧 Mis Hijos",
