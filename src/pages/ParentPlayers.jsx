@@ -73,6 +73,54 @@ export default function ParentPlayers() {
       };
       const newPlayer = await base44.entities.Player.create(dataWithParentEmail);
       
+      // Recalcular descuentos de TODOS los hermanos de la familia
+      try {
+        const familyPlayers = allPlayers.filter(p => 
+          (p.email_padre === user?.email || p.email_padre === dataWithParentEmail.email_padre) &&
+          p.activo &&
+          p.id !== newPlayer.id
+        );
+        
+        if (familyPlayers.length > 0) {
+          // Incluir el nuevo jugador en el cálculo
+          const allFamilyBirthDates = [
+            ...familyPlayers.map(p => ({ id: p.id, fecha: p.fecha_nacimiento })),
+            { id: newPlayer.id, fecha: newPlayer.fecha_nacimiento }
+          ].filter(p => p.fecha);
+          
+          // Ordenar por fecha (el mayor primero - fecha más antigua)
+          allFamilyBirthDates.sort((a, b) => new Date(a.fecha) - new Date(b.fecha));
+          
+          // El mayor (primera posición) no tiene descuento, los demás sí
+          const oldestPlayerId = allFamilyBirthDates[0]?.id;
+          
+          // Actualizar descuentos de todos los hermanos existentes
+          for (const sibling of familyPlayers) {
+            const shouldHaveDiscount = sibling.id !== oldestPlayerId;
+            const currentHasDiscount = sibling.tiene_descuento_hermano === true;
+            
+            if (shouldHaveDiscount !== currentHasDiscount) {
+              await base44.entities.Player.update(sibling.id, {
+                tiene_descuento_hermano: shouldHaveDiscount,
+                descuento_aplicado: shouldHaveDiscount ? 25 : 0
+              });
+              console.log(`📋 Descuento actualizado para ${sibling.nombre}: ${shouldHaveDiscount ? '25€' : 'sin descuento'}`);
+            }
+          }
+          
+          // Actualizar el nuevo jugador si corresponde
+          const newPlayerShouldHaveDiscount = newPlayer.id !== oldestPlayerId;
+          if (newPlayerShouldHaveDiscount !== newPlayer.tiene_descuento_hermano) {
+            await base44.entities.Player.update(newPlayer.id, {
+              tiene_descuento_hermano: newPlayerShouldHaveDiscount,
+              descuento_aplicado: newPlayerShouldHaveDiscount ? 25 : 0
+            });
+          }
+        }
+      } catch (error) {
+        console.error("Error recalculando descuentos familiares:", error);
+      }
+      
       try {
         console.log('📧 [ParentPlayers] Enviando notificación de inscripción a admin');
         await base44.integrations.Core.SendEmail({
