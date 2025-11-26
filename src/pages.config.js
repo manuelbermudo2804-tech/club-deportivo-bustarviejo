@@ -59,6 +59,8 @@ import ClubMembership from './pages/ClubMembership';
 import FederationSignatures from './pages/FederationSignatures';
 import FederationSignaturesAdmin from './pages/FederationSignaturesAdmin';
 import FinancialConfiguration from './pages/FinancialConfiguration';
+import SeasonManagement from './pages/SeasonManagement';
+import CategoryManagement from './pages/CategoryManagement';
 import __Layout from './Layout.jsx';
 
 
@@ -124,6 +126,8 @@ export const PAGES = {
     "FederationSignatures": FederationSignatures,
     "FederationSignaturesAdmin": FederationSignaturesAdmin,
     "FinancialConfiguration": FinancialConfiguration,
+    "SeasonManagement": SeasonManagement,
+    "CategoryManagement": CategoryManagement,
 }
 
 export const pagesConfig = {
