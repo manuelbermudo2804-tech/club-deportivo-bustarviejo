@@ -34,8 +34,6 @@ export default function SeasonManagementContent() {
   const [showPreviewDialog, setShowPreviewDialog] = useState(false);
   const [showSecurityDialog, setShowSecurityDialog] = useState(false);
   const [showRestoreDialog, setShowRestoreDialog] = useState(false);
-  const [showEditQuotasDialog, setShowEditQuotasDialog] = useState(false);
-  const [editingQuotas, setEditingQuotas] = useState({ cuota_unica: 0, cuota_tres_meses: 0 });
   const [isProcessing, setIsProcessing] = useState(false);
   const [processingStep, setProcessingStep] = useState("");
   const [processingProgress, setProcessingProgress] = useState(0);
@@ -502,53 +500,21 @@ export default function SeasonManagementContent() {
               </Badge>
             </div>
           </CardHeader>
-          <CardContent className="space-y-4">
-            {/* Cuotas con botón de editar */}
-            <div className="bg-white rounded-xl p-4 shadow-sm border-2 border-orange-200">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="font-bold text-lg text-slate-900 flex items-center gap-2">
-                  💰 Cuotas de la Temporada
-                </h3>
-                <Button
-                  size="sm"
-                  onClick={() => {
-                    setEditingQuotas({
-                      cuota_unica: activeSeason.cuota_unica || 200,
-                      cuota_tres_meses: activeSeason.cuota_tres_meses || 75
-                    });
-                    setShowEditQuotasDialog(true);
-                  }}
-                  className="bg-orange-600 hover:bg-orange-700"
-                >
-                  ✏️ Editar Cuotas
-                </Button>
+          <CardContent>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="bg-white rounded-lg p-3 shadow-sm">
+                <p className="text-xs text-slate-600">Cuota Única</p>
+                <p className="text-lg font-bold text-green-700">{activeSeason.cuota_unica}€</p>
               </div>
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-lg p-4 border border-green-200 text-center">
-                  <p className="text-xs text-green-700 font-medium mb-1">Cuota Única</p>
-                  <p className="text-3xl font-bold text-green-800">{activeSeason.cuota_unica}€</p>
-                  <p className="text-[10px] text-green-600 mt-1">Pago único en Junio</p>
-                </div>
-                <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-4 border border-blue-200 text-center">
-                  <p className="text-xs text-blue-700 font-medium mb-1">Cuota Fraccionada</p>
-                  <p className="text-3xl font-bold text-blue-800">{activeSeason.cuota_tres_meses}€</p>
-                  <p className="text-[10px] text-blue-600 mt-1">x3 meses (Jun/Sep/Dic)</p>
-                </div>
-                <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg p-4 border border-purple-200 text-center">
-                  <p className="text-xs text-purple-700 font-medium mb-1">Descuento Hermano</p>
-                  <p className="text-3xl font-bold text-purple-800">25€</p>
-                  <p className="text-[10px] text-purple-600 mt-1">Se aplica automáticamente</p>
-                </div>
+              <div className="bg-white rounded-lg p-3 shadow-sm">
+                <p className="text-xs text-slate-600">Cuota Fraccionada</p>
+                <p className="text-lg font-bold text-green-700">{activeSeason.cuota_tres_meses}€ x3</p>
               </div>
-            </div>
-
-            {/* Estadísticas */}
-            <div className="grid grid-cols-2 gap-4">
-              <div className="bg-white rounded-lg p-3 shadow-sm border">
+              <div className="bg-white rounded-lg p-3 shadow-sm">
                 <p className="text-xs text-slate-600">Jugadores Activos</p>
                 <p className="text-lg font-bold text-blue-700">{currentStats.players}</p>
               </div>
-              <div className="bg-white rounded-lg p-3 shadow-sm border">
+              <div className="bg-white rounded-lg p-3 shadow-sm">
                 <p className="text-xs text-slate-600">Pagos Registrados</p>
                 <p className="text-lg font-bold text-orange-700">{currentStats.payments}</p>
               </div>
@@ -1091,80 +1057,6 @@ export default function SeasonManagementContent() {
             </Button>
             <Button onClick={executeRestore} className="bg-blue-600 hover:bg-blue-700">
               Restaurar Seleccionados
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Dialog: Editar Cuotas */}
-      <Dialog open={showEditQuotasDialog} onOpenChange={setShowEditQuotasDialog}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              💰 Editar Cuotas de la Temporada
-            </DialogTitle>
-            <DialogDescription>
-              Modifica las cuotas para la temporada {activeSeason?.temporada}
-            </DialogDescription>
-          </DialogHeader>
-
-          <div className="space-y-4 py-4">
-            <Alert className="bg-yellow-50 border-yellow-200">
-              <AlertTriangle className="w-4 h-4 text-yellow-600" />
-              <AlertDescription className="text-yellow-800 ml-2 text-sm">
-                <strong>Nota:</strong> Los cambios en las cuotas solo afectan a los nuevos pagos. 
-                Los pagos ya creados mantienen su importe original.
-              </AlertDescription>
-            </Alert>
-
-            <div className="space-y-4">
-              <div>
-                <Label className="text-base font-medium">Cuota Única (€)</Label>
-                <p className="text-xs text-slate-500 mb-2">Importe para pago único en Junio</p>
-                <Input
-                  type="number"
-                  value={editingQuotas.cuota_unica}
-                  onChange={(e) => setEditingQuotas(prev => ({ ...prev, cuota_unica: Number(e.target.value) }))}
-                  className="text-xl font-bold"
-                />
-              </div>
-              
-              <div>
-                <Label className="text-base font-medium">Cuota Fraccionada (€)</Label>
-                <p className="text-xs text-slate-500 mb-2">Importe por cada pago (Junio, Septiembre, Diciembre)</p>
-                <Input
-                  type="number"
-                  value={editingQuotas.cuota_tres_meses}
-                  onChange={(e) => setEditingQuotas(prev => ({ ...prev, cuota_tres_meses: Number(e.target.value) }))}
-                  className="text-xl font-bold"
-                />
-                <p className="text-sm text-blue-600 mt-2">
-                  Total fraccionado: <strong>{editingQuotas.cuota_tres_meses * 3}€</strong> (3 pagos)
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowEditQuotasDialog(false)}>
-              Cancelar
-            </Button>
-            <Button 
-              onClick={() => {
-                if (activeSeason) {
-                  updateSeasonMutation.mutate({
-                    id: activeSeason.id,
-                    data: {
-                      cuota_unica: editingQuotas.cuota_unica,
-                      cuota_tres_meses: editingQuotas.cuota_tres_meses
-                    }
-                  });
-                  setShowEditQuotasDialog(false);
-                }
-              }}
-              className="bg-green-600 hover:bg-green-700"
-            >
-              💾 Guardar Cuotas
             </Button>
           </DialogFooter>
         </DialogContent>
