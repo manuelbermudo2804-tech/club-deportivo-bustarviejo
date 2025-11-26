@@ -620,7 +620,7 @@ export default function Home() {
             icon: FileSignature,
             url: createPageUrl("FederationSignatures"),
             gradient: "from-yellow-600 to-orange-600",
-            badge: stats.pendingSignatures,
+            badge: stats.pendingSignatures > 0 ? stats.pendingSignatures : undefined,
             badgeLabel: "pendientes"
           },
           {
