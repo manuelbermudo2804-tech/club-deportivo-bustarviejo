@@ -348,6 +348,19 @@ Email: cdbustarviejo@gmail.com
         </AlertDescription>
       </Alert>
 
+      <Alert className="bg-green-50 border-green-200">
+        <Info className="h-4 w-4 text-green-600" />
+        <AlertDescription className="text-green-800 ml-6 text-xs lg:text-sm">
+          <strong>💡 Consejo para familias con varios hijos:</strong> Si vas a inscribir a varios hermanos, 
+          te recomendamos <strong>inscribir primero al hermano MAYOR</strong> y después a los menores. 
+          De esta forma, el descuento de 25€ por hermano se aplicará automáticamente en la cuota de inscripción de los hermanos menores.
+          <br />
+          <span className="text-[10px] lg:text-xs text-green-600 mt-1 block">
+            ℹ️ Si ya inscribiste primero a un hermano menor, no te preocupes: el sistema recalculará los descuentos automáticamente cuando inscribas a los demás.
+          </span>
+        </AlertDescription>
+      </Alert>
+
       {/* Stats */}
       <div className="grid grid-cols-3 gap-3 lg:gap-6">
         <div className="bg-white rounded-xl shadow-lg p-3 lg:p-6 border-l-4 border-orange-500">
