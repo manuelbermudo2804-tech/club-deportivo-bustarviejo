@@ -334,10 +334,10 @@ export default function PlayerCard({ player, onEdit, onViewProfile, isParent = f
                       className={`flex-1 flex items-center justify-center text-[10px] font-bold transition-all ${
                         isPaid ? 'bg-green-500 text-white' : 
                         isReview ? 'bg-orange-400 text-white animate-pulse' : 
-                        'bg-slate-300 text-slate-500'
+                        'bg-red-400 text-white'
                       }`}
                     >
-                      {mes} {isPaid ? '✓' : isReview ? '○' : ''}
+                      {mes} {isPaid ? '✓' : isReview ? '○' : '✗'}
                     </div>
                   );
                 })}
