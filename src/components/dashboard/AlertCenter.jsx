@@ -13,7 +13,8 @@ import {
   Star,
   Calendar,
   AlertTriangle,
-  ChevronRight
+  ChevronRight,
+  FileSignature
 } from "lucide-react";
 
 export default function AlertCenter({ 
@@ -24,6 +25,7 @@ export default function AlertCenter({
   pendingAttendance = 0,
   pendingEvaluations = 0,
   pendingSurveys = 0,
+  pendingSignatures = 0,
   upcomingEvents = 0,
   isAdmin = false,
   isCoach = false,
@@ -75,6 +77,17 @@ export default function AlertCenter({
         url: createPageUrl("Surveys"),
         color: "bg-purple-500",
         priority: 4
+      });
+    }
+    if (pendingSignatures > 0) {
+      alerts.push({
+        id: "signatures",
+        icon: FileSignature,
+        title: "Firmas de Federación",
+        description: `${pendingSignatures} firma${pendingSignatures > 1 ? 's' : ''} pendiente${pendingSignatures > 1 ? 's' : ''}`,
+        url: createPageUrl("FederationSignatures"),
+        color: "bg-yellow-500",
+        priority: 2
       });
     }
   }
