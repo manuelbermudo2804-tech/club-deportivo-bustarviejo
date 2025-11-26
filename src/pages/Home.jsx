@@ -3,7 +3,7 @@ import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { Users, CreditCard, ShoppingBag, Calendar, Megaphone, Image, Clock, MessageCircle, Bell, Settings, ClipboardCheck, CheckCircle2, Star, TrendingUp, Smartphone, Trophy, FileText, Clover, BookOpen, Archive, BarChart3 } from "lucide-react";
+import { Users, CreditCard, ShoppingBag, Calendar, Megaphone, Image, Clock, MessageCircle, Bell, Settings, ClipboardCheck, CheckCircle2, Star, TrendingUp, Smartphone, Trophy, FileText, Clover, BookOpen, Archive, BarChart3, FileSignature } from "lucide-react";
 
 import SocialLinks from "../components/SocialLinks";
 
