@@ -21,10 +21,22 @@ export default function ToastContainer({ user, isAdmin, isCoach }) {
     payments: null
   });
 
-  // Cargar preferencias del usuario
+  // Cargar preferencias del usuario (solo staff puede personalizar, padres reciben todo)
+  const isStaff = isAdmin || isCoach || user?.es_coordinador || user?.es_tesorero;
+  
   const { data: preferences } = useQuery({
     queryKey: ['notificationPrefs', user?.email],
     queryFn: async () => {
+      // Si no es staff, siempre recibe todas las notificaciones
+      if (!isStaff) {
+        return {
+          notif_mensajes: true,
+          notif_convocatorias: true,
+          notif_pagos: true,
+          notif_anuncios: true,
+          notif_eventos: true
+        };
+      }
       const prefs = await base44.entities.NotificationPreference.list();
       return prefs.find(p => p.usuario_email === user?.email) || {
         notif_mensajes: true,
