@@ -320,6 +320,11 @@ export default function PlayerCard({ player, onEdit, onViewProfile, isParent = f
                   <Loader2 className="w-3 h-3" />
                   {reviewCount} en revisión
                 </Badge>
+              ) : paidCount > 0 ? (
+                <Badge className="bg-yellow-100 text-yellow-700 text-xs flex items-center gap-1">
+                  <AlertCircle className="w-3 h-3" />
+                  {paidCount}/3 pagados
+                </Badge>
               ) : hasPending ? (
                 <Badge className="bg-red-100 text-red-700 text-xs flex items-center gap-1">
                   <AlertCircle className="w-3 h-3" />
@@ -331,7 +336,7 @@ export default function PlayerCard({ player, onEdit, onViewProfile, isParent = f
                 </Badge>
               )}
             </div>
-            {!allPaid && (
+            {!allPaid && playerPayments.length > 0 && (
               <div className="flex gap-1 mt-1">
                 {["Junio", "Septiembre", "Diciembre"].map(mes => {
                   const pago = playerPayments.find(p => p.mes === mes);
