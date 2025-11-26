@@ -469,17 +469,103 @@ export default function PlayerForm({ player, onSubmit, onCancel, isSubmitting, i
                 </div>
 
                 {currentPlayer.tipo_inscripcion === "Renovación" && (
-                  <div className="space-y-4 border-2 border-green-200 rounded-lg p-6 bg-green-50">
-                    <h3 className="text-lg font-bold text-green-900">Selecciona el jugador a renovar *</h3>
-                    <Select value={selectedPreviousPlayer?.id} onValueChange={handlePreviousPlayerSelect}>
-                      <SelectTrigger><SelectValue placeholder="Selecciona un jugador..." /></SelectTrigger>
-                      <SelectContent>
-                        {availablePlayersForRenewal.map(p => (
-                          <SelectItem key={p.id} value={p.id}>{p.nombre} - {p.deporte}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
+                <div className="space-y-4 border-2 border-green-200 rounded-lg p-6 bg-green-50">
+                  <h3 className="text-lg font-bold text-green-900">Selecciona el jugador a renovar *</h3>
+                  <Select value={selectedPreviousPlayer?.id} onValueChange={handlePreviousPlayerSelect}>
+                    <SelectTrigger><SelectValue placeholder="Selecciona un jugador..." /></SelectTrigger>
+                    <SelectContent>
+                      {availablePlayersForRenewal.map(p => (
+                        <SelectItem key={p.id} value={p.id}>{p.nombre} - {p.deporte}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+
+                  {/* Mostrar documentos existentes del jugador seleccionado */}
+                  {selectedPreviousPlayer && (
+                    <div className="mt-4 space-y-3">
+                      <Alert className="bg-blue-50 border-blue-200">
+                        <AlertCircle className="h-4 w-4 text-blue-600" />
+                        <AlertDescription className="text-blue-800">
+                          <strong>📄 Documentos del año pasado:</strong> Los documentos ya subidos se mantienen. Solo sube nuevos si necesitas actualizarlos.
+                        </AlertDescription>
+                      </Alert>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        {/* Foto existente */}
+                        {selectedPreviousPlayer.foto_url && (
+                          <div className="bg-white rounded-lg p-3 border-2 border-green-200">
+                            <div className="flex items-center justify-between mb-2">
+                              <span className="text-sm font-medium text-green-800">📸 Foto Carnet</span>
+                              <Badge className="bg-green-100 text-green-700">✓ Subida</Badge>
+                            </div>
+                            <div className="flex gap-2">
+                              <a href={selectedPreviousPlayer.foto_url} target="_blank" rel="noopener noreferrer" className="flex-1">
+                                <Button type="button" variant="outline" size="sm" className="w-full text-xs">
+                                  <Eye className="w-3 h-3 mr-1" /> Ver
+                                </Button>
+                              </a>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* DNI Jugador existente */}
+                        {selectedPreviousPlayer.dni_jugador_url && (
+                          <div className="bg-white rounded-lg p-3 border-2 border-green-200">
+                            <div className="flex items-center justify-between mb-2">
+                              <span className="text-sm font-medium text-green-800">🪪 DNI Jugador</span>
+                              <Badge className="bg-green-100 text-green-700">✓ Subido</Badge>
+                            </div>
+                            <div className="flex gap-2">
+                              <a href={selectedPreviousPlayer.dni_jugador_url} target="_blank" rel="noopener noreferrer" className="flex-1">
+                                <Button type="button" variant="outline" size="sm" className="w-full text-xs">
+                                  <Eye className="w-3 h-3 mr-1" /> Ver
+                                </Button>
+                              </a>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Libro de Familia existente */}
+                        {selectedPreviousPlayer.libro_familia_url && (
+                          <div className="bg-white rounded-lg p-3 border-2 border-green-200">
+                            <div className="flex items-center justify-between mb-2">
+                              <span className="text-sm font-medium text-green-800">📖 Libro Familia</span>
+                              <Badge className="bg-green-100 text-green-700">✓ Subido</Badge>
+                            </div>
+                            <div className="flex gap-2">
+                              <a href={selectedPreviousPlayer.libro_familia_url} target="_blank" rel="noopener noreferrer" className="flex-1">
+                                <Button type="button" variant="outline" size="sm" className="w-full text-xs">
+                                  <Eye className="w-3 h-3 mr-1" /> Ver
+                                </Button>
+                              </a>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* DNI Tutor existente */}
+                        {selectedPreviousPlayer.dni_tutor_legal_url && (
+                          <div className="bg-white rounded-lg p-3 border-2 border-green-200">
+                            <div className="flex items-center justify-between mb-2">
+                              <span className="text-sm font-medium text-green-800">🪪 DNI Tutor</span>
+                              <Badge className="bg-green-100 text-green-700">✓ Subido</Badge>
+                            </div>
+                            <div className="flex gap-2">
+                              <a href={selectedPreviousPlayer.dni_tutor_legal_url} target="_blank" rel="noopener noreferrer" className="flex-1">
+                                <Button type="button" variant="outline" size="sm" className="w-full text-xs">
+                                  <Eye className="w-3 h-3 mr-1" /> Ver
+                                </Button>
+                              </a>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+
+                      <p className="text-xs text-green-700 text-center mt-2">
+                        ⬇️ Si necesitas actualizar algún documento, puedes hacerlo más abajo en el formulario
+                      </p>
+                    </div>
+                  )}
+                </div>
                 )}
               </>
             )}
