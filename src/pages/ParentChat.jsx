@@ -435,7 +435,7 @@ export default function ParentChat() {
                             <div className="px-4 py-3">
                               <div className="flex items-center gap-2 mb-2">
                                 <span className="text-xs font-bold text-orange-700">
-                                  🏃 Entrenador
+                                  🏃 {msg.remitente_nombre || "Entrenador"}
                                 </span>
                                 {msg.prioridad !== "Normal" && (
                                   <Badge className={msg.prioridad === "Urgente" ? "bg-red-500" : "bg-yellow-500"}>
