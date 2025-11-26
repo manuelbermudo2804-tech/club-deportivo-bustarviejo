@@ -306,54 +306,82 @@ export default function PlayerCard({ player, onEdit, onViewProfile, isParent = f
             </div>
           )}
 
-          {/* Estado de Pagos */}
-          <div className="bg-slate-50 rounded-lg p-2 border">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-medium text-slate-600">Pagos {currentSeason}:</span>
+          {/* Estado de Pagos con Barras de Progreso */}
+          <div className="bg-slate-50 rounded-lg p-3 border">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs font-bold text-slate-700">💳 Pagos {currentSeason}:</span>
               {allPaid ? (
                 <Badge className="bg-green-100 text-green-700 text-xs flex items-center gap-1">
                   <CheckCircle2 className="w-3 h-3" />
-                  Completo
+                  ✅ Completo
                 </Badge>
-              ) : reviewCount > 0 ? (
+              ) : reviewCount > 0 && paidCount === 0 ? (
                 <Badge className="bg-orange-100 text-orange-700 text-xs flex items-center gap-1">
-                  <Loader2 className="w-3 h-3" />
-                  {reviewCount} en revisión
+                  <Loader2 className="w-3 h-3 animate-spin" />
+                  En revisión
                 </Badge>
-              ) : paidCount > 0 ? (
-                <Badge className="bg-yellow-100 text-yellow-700 text-xs flex items-center gap-1">
-                  <AlertCircle className="w-3 h-3" />
-                  {paidCount}/3 pagados
+              ) : paidCount > 0 || reviewCount > 0 ? (
+                <Badge className="bg-yellow-100 text-yellow-700 text-xs">
+                  {paidCount + reviewCount}/3
                 </Badge>
-              ) : hasPending ? (
-                <Badge className="bg-red-100 text-red-700 text-xs flex items-center gap-1">
-                  <AlertCircle className="w-3 h-3" />
-                  Pendiente
+              ) : playerPayments.length === 0 ? (
+                <Badge className="bg-slate-200 text-slate-600 text-xs">
+                  Sin registrar
                 </Badge>
               ) : (
-                <Badge className="bg-slate-100 text-slate-600 text-xs">
-                  Sin datos
+                <Badge className="bg-red-100 text-red-700 text-xs">
+                  Pendientes
                 </Badge>
               )}
             </div>
-            {!allPaid && playerPayments.length > 0 && (
-              <div className="flex gap-1 mt-1">
+            
+            {/* Barras de progreso por mes - siempre visibles si no es pago único pagado */}
+            {!hasPagoUnico && (
+              <div className="space-y-1.5">
                 {["Junio", "Septiembre", "Diciembre"].map(mes => {
                   const pago = playerPayments.find(p => p.mes === mes);
                   const isPaid = pago?.estado === "Pagado";
                   const isReview = pago?.estado === "En revisión";
+                  const isPending = pago?.estado === "Pendiente";
+                  
                   return (
-                    <div 
-                      key={mes} 
-                      className={`flex-1 h-1.5 rounded-full ${
-                        isPaid ? 'bg-green-500' : 
-                        isReview ? 'bg-orange-400' : 
-                        'bg-red-300'
-                      }`}
-                      title={`${mes}: ${isPaid ? 'Pagado' : isReview ? 'En revisión' : 'Pendiente'}`}
-                    />
+                    <div key={mes} className="flex items-center gap-2">
+                      <span className="text-[10px] text-slate-500 w-12">{mes.substring(0, 3)}</span>
+                      <div className="flex-1 h-2.5 bg-slate-200 rounded-full overflow-hidden">
+                        <div 
+                          className={`h-full rounded-full transition-all ${
+                            isPaid ? 'bg-green-500 w-full' : 
+                            isReview ? 'bg-orange-400 w-3/4 animate-pulse' : 
+                            isPending ? 'bg-red-400 w-1/4' :
+                            'bg-slate-300 w-0'
+                          }`}
+                        />
+                      </div>
+                      <span className={`text-[10px] font-medium w-16 text-right ${
+                        isPaid ? 'text-green-600' : 
+                        isReview ? 'text-orange-600' : 
+                        isPending ? 'text-red-600' :
+                        'text-slate-400'
+                      }`}>
+                        {isPaid ? '✅ Pagado' : 
+                         isReview ? '🔄 Revisión' : 
+                         isPending ? '❌ Pend.' :
+                         '—'}
+                      </span>
+                    </div>
                   );
                 })}
+              </div>
+            )}
+            
+            {/* Si es pago único pagado */}
+            {hasPagoUnico && (
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] text-slate-500">Pago Único</span>
+                <div className="flex-1 h-2.5 bg-slate-200 rounded-full overflow-hidden">
+                  <div className="h-full bg-green-500 w-full rounded-full" />
+                </div>
+                <span className="text-[10px] font-medium text-green-600">✅ Pagado</span>
               </div>
             )}
           </div>
