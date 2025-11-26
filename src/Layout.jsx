@@ -1024,6 +1024,7 @@ export default function Layout({ children, currentPageName }) {
       {user && <ChatNotificationListener user={user} />}
       {user && <DocumentReminderEngine user={user} />}
       {user && <NotificationManager user={user} />}
+        {user && <ToastContainer user={user} isAdmin={isAdmin} isCoach={isCoach} />}
 
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
         
