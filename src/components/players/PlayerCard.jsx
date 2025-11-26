@@ -112,7 +112,16 @@ export default function PlayerCard({ player, onEdit, onViewProfile, isParent = f
   };
   
   const currentSeason = getCurrentSeason();
-  const playerPayments = payments.filter(p => p.jugador_id === player.id && p.temporada === currentSeason);
+  // Normalizar temporada: soportar formatos "2024/2025", "2024-2025", etc.
+  const normalizeTemporada = (temp) => {
+    if (!temp) return "";
+    return temp.replace(/-/g, "/").trim();
+  };
+  const normalizedCurrentSeason = normalizeTemporada(currentSeason);
+  const playerPayments = payments.filter(p => 
+    p.jugador_id === player.id && 
+    normalizeTemporada(p.temporada) === normalizedCurrentSeason
+  );
   
   // Verificar si tiene pago único pagado
   const hasPagoUnico = playerPayments.some(p => 
