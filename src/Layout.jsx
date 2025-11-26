@@ -514,7 +514,8 @@ export default function Layout({ children, currentPageName }) {
   });
   const [loteriaVisible, setLoteriaVisible] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(false);
-  const [isRedirecting, setIsRedirecting] = useState(false);
+      const [isRedirecting, setIsRedirecting] = useState(false);
+      const [sponsorBannerVisible, setSponsorBannerVisible] = useState(false);
 
   const handleLanguageChange = (newLang) => {
     setCurrentLang(newLang);
@@ -522,17 +523,18 @@ export default function Layout({ children, currentPageName }) {
   };
 
   useEffect(() => {
-    const fetchSeasonConfig = async () => {
-      try {
-        const configs = await base44.entities.SeasonConfig.list();
-        const activeConfig = configs.find(c => c.activa === true);
-        setLoteriaVisible(activeConfig?.loteria_navidad_abierta === true);
-      } catch (error) {
-        console.error("Error fetching season config:", error);
-      }
-    };
-    fetchSeasonConfig();
-  }, []);
+        const fetchSeasonConfig = async () => {
+          try {
+            const configs = await base44.entities.SeasonConfig.list();
+            const activeConfig = configs.find(c => c.activa === true);
+            setLoteriaVisible(activeConfig?.loteria_navidad_abierta === true);
+            setSponsorBannerVisible(activeConfig?.mostrar_patrocinadores === true);
+          } catch (error) {
+            console.error("Error fetching season config:", error);
+          }
+        };
+        fetchSeasonConfig();
+      }, []);
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -1206,18 +1208,14 @@ export default function Layout({ children, currentPageName }) {
           </div>
         </nav>
 
-        <main className="lg:ml-72 min-h-screen pt-[120px] lg:pt-0 pb-20 lg:pb-0">
+        <main className={`lg:ml-72 min-h-screen pt-[120px] lg:pt-0 ${sponsorBannerVisible ? 'pb-20 lg:pb-16' : ''}`}>
           {children}
         </main>
 
-        {/* Banner de Patrocinadores - Footer fijo en móvil */}
-        {loteriaVisible === false && null}
-        {user && (
+        {/* Banner de Patrocinadores - Footer fijo */}
+        {sponsorBannerVisible && (
           <div className="lg:ml-72 fixed bottom-0 left-0 right-0 z-40">
-            {(() => {
-              // Solo mostrar si mostrar_patrocinadores está activo (se lee de loteriaVisible que viene del mismo useEffect)
-              return null; // Se controla por el estado sponsorBannerVisible
-            })()}
+            <SponsorBanner />
           </div>
         )}
       </div>
