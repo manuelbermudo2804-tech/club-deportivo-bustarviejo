@@ -980,8 +980,6 @@ export default function Layout({ children, currentPageName }) {
   let navigationItems;
     if (isAdmin) {
       navigationItems = adminNavigationItems;
-    } else if (isPlayer) {
-      navigationItems = playerNavigationItems;
     } else if (isCoordinator) {
       navigationItems = coordinatorNavigationItems;
     } else if (isTreasurer) {
