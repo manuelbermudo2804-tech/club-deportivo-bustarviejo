@@ -129,9 +129,20 @@ export default function Players() {
     mutationFn: async ({ id, playerData, originalPlayer }) => {
       const updatedPlayer = await base44.entities.Player.update(id, playerData);
       
-      // Detectar si se añadieron NUEVOS enlaces de firma (no existían antes)
-      const newEnlaceJugador = playerData.enlace_firma_jugador && !originalPlayer?.enlace_firma_jugador;
-      const newEnlaceTutor = playerData.enlace_firma_tutor && !originalPlayer?.enlace_firma_tutor;
+      // Detectar si se añadieron NUEVOS enlaces de firma (no existían antes O cambiaron)
+      const newEnlaceJugador = playerData.enlace_firma_jugador && 
+        playerData.enlace_firma_jugador !== originalPlayer?.enlace_firma_jugador;
+      const newEnlaceTutor = playerData.enlace_firma_tutor && 
+        playerData.enlace_firma_tutor !== originalPlayer?.enlace_firma_tutor;
+      
+      console.log('🔍 Verificando firmas:', {
+        jugadorNuevo: playerData.enlace_firma_jugador,
+        jugadorOriginal: originalPlayer?.enlace_firma_jugador,
+        tutorNuevo: playerData.enlace_firma_tutor,
+        tutorOriginal: originalPlayer?.enlace_firma_tutor,
+        enviarEmailJugador: newEnlaceJugador,
+        enviarEmailTutor: newEnlaceTutor
+      });
       
       if (newEnlaceJugador || newEnlaceTutor) {
         // Enviar notificación al padre/tutor
