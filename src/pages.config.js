@@ -56,6 +56,7 @@ import ParentDocuments from './pages/ParentDocuments';
 import PWASetup from './pages/PWASetup';
 import CoachProfile from './pages/CoachProfile';
 import Sponsorships from './pages/Sponsorships';
+import TreasurerDashboard from './pages/TreasurerDashboard';
 import __Layout from './Layout.jsx';
 
 
@@ -118,6 +119,7 @@ export const PAGES = {
     "PWASetup": PWASetup,
     "CoachProfile": CoachProfile,
     "Sponsorships": Sponsorships,
+    "TreasurerDashboard": TreasurerDashboard,
 }
 
 export const pagesConfig = {
