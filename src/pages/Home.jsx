@@ -335,6 +335,14 @@ export default function Home() {
           icon: FileText,
           url: createPageUrl("DocumentManagement"),
           gradient: "from-slate-600 to-slate-700",
+        },
+        {
+          title: "🖊️ Firmas Federación",
+          icon: FileSignature,
+          url: createPageUrl("FederationSignaturesAdmin"),
+          gradient: "from-yellow-600 to-orange-600",
+          badge: stats.adminPendingSignatures,
+          badgeLabel: "pendientes"
         }
       );
 
