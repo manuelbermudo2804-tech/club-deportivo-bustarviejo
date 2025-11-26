@@ -12,6 +12,7 @@ import { es } from "date-fns/locale";
 import PrivateChatPanel from "../components/chat/PrivateChatPanel";
 import FileAttachmentButton from "../components/chat/FileAttachmentButton";
 import MessageAttachments from "../components/chat/MessageAttachments";
+import PollMessage from "../components/chat/PollMessage";
 
 export default function ParentChat() {
   const [selectedCategory, setSelectedCategory] = useState(null);
@@ -120,11 +121,52 @@ export default function ParentChat() {
 
   const markAsReadMutation = useMutation({
     mutationFn: async (messageIds) => {
-      await Promise.all(messageIds.map(id => 
-        base44.entities.ChatMessage.update(id, { leido: true })
-      ));
+      await Promise.all(messageIds.map(async (id) => {
+        const msg = messages.find(m => m.id === id);
+        const leido_por = msg?.leido_por || [];
+        
+        // Añadir confirmación de lectura si no existe
+        if (!leido_por.find(r => r.email === user?.email)) {
+          leido_por.push({
+            email: user.email,
+            nombre: user.full_name,
+            fecha: new Date().toISOString()
+          });
+        }
+        
+        await base44.entities.ChatMessage.update(id, { 
+          leido: true,
+          leido_por: leido_por
+        });
+      }));
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['chatMessages'] }),
+  });
+
+  const voteOnPollMutation = useMutation({
+    mutationFn: async ({ messageId, optionIndex }) => {
+      const message = messages.find(m => m.id === messageId);
+      if (!message || !message.poll) return;
+
+      const votes = message.poll.votes || [];
+      const existingVote = votes.find(v => v.user_email === user.email);
+      
+      if (!existingVote) {
+        votes.push({
+          user_email: user.email,
+          user_name: user.full_name,
+          option_index: optionIndex,
+          voted_at: new Date().toISOString()
+        });
+
+        const updatedPoll = { ...message.poll, votes };
+        await base44.entities.ChatMessage.update(messageId, { poll: updatedPoll });
+        toast.success("✅ Voto registrado");
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['chatMessages'] });
+    },
   });
 
 
@@ -449,7 +491,16 @@ export default function ParentChat() {
                                 </span>
                               </div>
                               <p className="text-sm leading-relaxed whitespace-pre-wrap text-slate-800">{msg.mensaje}</p>
-                              
+
+                              {msg.poll && (
+                                <PollMessage 
+                                  poll={msg.poll} 
+                                  onVote={(msgId, optIdx) => voteOnPollMutation.mutate({ messageId: msgId, optionIndex: optIdx })}
+                                  userEmail={user?.email}
+                                  messageId={msg.id}
+                                />
+                              )}
+
                               {msg.archivos_adjuntos?.length > 0 && (
                                 <div className="mt-2">
                                   <MessageAttachments attachments={msg.archivos_adjuntos} />
