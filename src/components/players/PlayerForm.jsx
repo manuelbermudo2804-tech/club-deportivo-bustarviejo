@@ -866,45 +866,98 @@ export default function PlayerForm({ player, onSubmit, onCancel, isSubmitting, i
               </ul>
             </div>
 
-            {/* FICHA MÉDICA */}
-            <div className="space-y-4 border-2 border-red-200 rounded-lg p-6 bg-red-50">
-              <div className="flex items-center gap-2">
-                <Heart className="w-6 h-6 text-red-600" />
-                <h3 className="text-lg font-bold text-red-900">Ficha Médica (Opcional)</h3>
+            {/* FICHA MÉDICA - Desplegable */}
+            <Collapsible>
+              <div className="border-2 border-red-200 rounded-lg overflow-hidden">
+                <CollapsibleTrigger asChild>
+                  <button type="button" className="w-full p-4 bg-red-50 hover:bg-red-100 transition-colors flex items-center justify-between text-left">
+                    <div className="flex items-center gap-2">
+                      <Heart className="w-6 h-6 text-red-600" />
+                      <span className="font-bold text-red-900">Ficha Médica y Contactos de Emergencia (Opcional)</span>
+                    </div>
+                    <ChevronDown className="w-5 h-5 text-red-500" />
+                  </button>
+                </CollapsibleTrigger>
+                <CollapsibleContent>
+                  <div className="p-6 bg-white border-t space-y-6">
+                    {/* Anotaciones médicas */}
+                    <div className="space-y-4">
+                      <h4 className="font-semibold text-red-800 flex items-center gap-2">
+                        🏥 Anotaciones de Ficha Médica
+                      </h4>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="alergias">Alergias</Label>
+                          <Textarea id="alergias" value={currentPlayer.ficha_medica?.alergias || ""} onChange={(e) => setCurrentPlayer({...currentPlayer, ficha_medica: {...(currentPlayer.ficha_medica || {}), alergias: e.target.value}})} rows={2} placeholder="Alimentos, medicamentos, etc." />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="grupo_sanguineo">Grupo Sanguíneo</Label>
+                          <Select value={currentPlayer.ficha_medica?.grupo_sanguineo || ""} onValueChange={(v) => setCurrentPlayer({...currentPlayer, ficha_medica: {...(currentPlayer.ficha_medica || {}), grupo_sanguineo: v}})}>
+                            <SelectTrigger><SelectValue placeholder="Seleccionar..." /></SelectTrigger>
+                            <SelectContent>
+                              {["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"].map(g => <SelectItem key={g} value={g}>{g}</SelectItem>)}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div className="space-y-2">
+                          <Label>Medicación Habitual</Label>
+                          <Textarea value={currentPlayer.ficha_medica?.medicacion_habitual || ""} onChange={(e) => setCurrentPlayer({...currentPlayer, ficha_medica: {...(currentPlayer.ficha_medica || {}), medicacion_habitual: e.target.value}})} rows={2} placeholder="Medicamentos que toma regularmente" />
+                        </div>
+                        <div className="space-y-2">
+                          <Label>Condiciones Médicas</Label>
+                          <Textarea value={currentPlayer.ficha_medica?.condiciones_medicas || ""} onChange={(e) => setCurrentPlayer({...currentPlayer, ficha_medica: {...(currentPlayer.ficha_medica || {}), condiciones_medicas: e.target.value}})} rows={2} placeholder="Asma, diabetes, epilepsia, etc." />
+                        </div>
+                        <div className="space-y-2 md:col-span-2">
+                          <Label>Lesiones o Historial Relevante</Label>
+                          <Textarea value={currentPlayer.ficha_medica?.lesiones || ""} onChange={(e) => setCurrentPlayer({...currentPlayer, ficha_medica: {...(currentPlayer.ficha_medica || {}), lesiones: e.target.value}})} rows={2} placeholder="Lesiones previas o actuales" />
+                        </div>
+                        <div className="space-y-2 md:col-span-2">
+                          <Label>Observaciones Médicas Adicionales</Label>
+                          <Textarea value={currentPlayer.ficha_medica?.observaciones_medicas || ""} onChange={(e) => setCurrentPlayer({...currentPlayer, ficha_medica: {...(currentPlayer.ficha_medica || {}), observaciones_medicas: e.target.value}})} rows={2} placeholder="Cualquier otra información médica relevante" />
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Contactos de Emergencia */}
+                    <div className="space-y-4 pt-4 border-t border-red-200">
+                      <h4 className="font-semibold text-red-800 flex items-center gap-2">
+                        📞 Contactos de Emergencia
+                      </h4>
+
+                      {/* Contacto 1 */}
+                      <div className="bg-red-50 rounded-lg p-4 space-y-3">
+                        <p className="text-sm font-medium text-red-700">Contacto de Emergencia 1</p>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <Label>Nombre</Label>
+                            <Input value={currentPlayer.ficha_medica?.contacto_emergencia_nombre || ""} onChange={(e) => setCurrentPlayer({...currentPlayer, ficha_medica: {...(currentPlayer.ficha_medica || {}), contacto_emergencia_nombre: e.target.value}})} placeholder="Nombre completo" />
+                          </div>
+                          <div className="space-y-2">
+                            <Label>Teléfono</Label>
+                            <Input type="tel" value={currentPlayer.ficha_medica?.contacto_emergencia_telefono || ""} onChange={(e) => setCurrentPlayer({...currentPlayer, ficha_medica: {...(currentPlayer.ficha_medica || {}), contacto_emergencia_telefono: e.target.value}})} placeholder="600 123 456" />
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Contacto 2 */}
+                      <div className="bg-red-50 rounded-lg p-4 space-y-3">
+                        <p className="text-sm font-medium text-red-700">Contacto de Emergencia 2</p>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <Label>Nombre</Label>
+                            <Input value={currentPlayer.ficha_medica?.contacto_emergencia_2_nombre || ""} onChange={(e) => setCurrentPlayer({...currentPlayer, ficha_medica: {...(currentPlayer.ficha_medica || {}), contacto_emergencia_2_nombre: e.target.value}})} placeholder="Nombre completo" />
+                          </div>
+                          <div className="space-y-2">
+                            <Label>Teléfono</Label>
+                            <Input type="tel" value={currentPlayer.ficha_medica?.contacto_emergencia_2_telefono || ""} onChange={(e) => setCurrentPlayer({...currentPlayer, ficha_medica: {...(currentPlayer.ficha_medica || {}), contacto_emergencia_2_telefono: e.target.value}})} placeholder="600 654 321" />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </CollapsibleContent>
               </div>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="alergias">Alergias</Label>
-                  <Textarea id="alergias" value={currentPlayer.ficha_medica?.alergias || ""} onChange={(e) => setCurrentPlayer({...currentPlayer, ficha_medica: {...(currentPlayer.ficha_medica || {}), alergias: e.target.value}})} rows={2} />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="grupo_sanguineo">Grupo Sanguíneo</Label>
-                  <Select value={currentPlayer.ficha_medica?.grupo_sanguineo || ""} onValueChange={(v) => setCurrentPlayer({...currentPlayer, ficha_medica: {...(currentPlayer.ficha_medica || {}), grupo_sanguineo: v}})}>
-                    <SelectTrigger><SelectValue placeholder="Seleccionar..." /></SelectTrigger>
-                    <SelectContent>
-                      {["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"].map(g => <SelectItem key={g} value={g}>{g}</SelectItem>)}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label>Medicación Habitual</Label>
-                  <Textarea value={currentPlayer.ficha_medica?.medicacion_habitual || ""} onChange={(e) => setCurrentPlayer({...currentPlayer, ficha_medica: {...(currentPlayer.ficha_medica || {}), medicacion_habitual: e.target.value}})} rows={2} />
-                </div>
-                <div className="space-y-2">
-                  <Label>Condiciones Médicas</Label>
-                  <Textarea value={currentPlayer.ficha_medica?.condiciones_medicas || ""} onChange={(e) => setCurrentPlayer({...currentPlayer, ficha_medica: {...(currentPlayer.ficha_medica || {}), condiciones_medicas: e.target.value}})} rows={2} />
-                </div>
-                <div className="space-y-2">
-                  <Label>Contacto Emergencia (Nombre)</Label>
-                  <Input value={currentPlayer.ficha_medica?.contacto_emergencia_nombre || ""} onChange={(e) => setCurrentPlayer({...currentPlayer, ficha_medica: {...(currentPlayer.ficha_medica || {}), contacto_emergencia_nombre: e.target.value}})} />
-                </div>
-                <div className="space-y-2">
-                  <Label>Contacto Emergencia (Teléfono)</Label>
-                  <Input type="tel" value={currentPlayer.ficha_medica?.contacto_emergencia_telefono || ""} onChange={(e) => setCurrentPlayer({...currentPlayer, ficha_medica: {...(currentPlayer.ficha_medica || {}), contacto_emergencia_telefono: e.target.value}})} />
-                </div>
-              </div>
-            </div>
+            </Collapsible>
 
             {/* Observaciones */}
             <div className="space-y-2">
