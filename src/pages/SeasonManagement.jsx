@@ -333,6 +333,17 @@ export default function SeasonManagement() {
     });
   };
 
+  const toggleAdminEmailNotifications = async () => {
+    if (!activeSeason) return;
+    await updateSeasonMutation.mutateAsync({
+      id: activeSeason.id,
+      data: {
+        ...activeSeason,
+        notificaciones_admin_email: !activeSeason.notificaciones_admin_email
+      }
+    });
+  };
+
   const updateBizumPhone = async (phone) => {
     if (!activeSeason) return;
     await updateSeasonMutation.mutateAsync({
@@ -2035,6 +2046,62 @@ export default function SeasonManagement() {
             <p className="text-xs text-slate-600 text-center">
               Muestra los logos de patrocinadores activos en el footer de la app
             </p>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Control de Notificaciones Email Administrador */}
+      {activeSeason && (
+        <Card className="border-none shadow-lg bg-gradient-to-br from-indigo-50 to-indigo-100 border-2 border-indigo-300">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-indigo-900">
+              <Mail className="w-5 h-5" />
+              📧 Notificaciones Email al Administrador
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="bg-white rounded-lg p-4 border-2 border-indigo-200">
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <p className="font-semibold text-slate-900">Estado Actual</p>
+                  <p className="text-sm text-slate-600">
+                    {activeSeason.notificaciones_admin_email 
+                      ? "✅ Correos automáticos activados" 
+                      : "🔒 Correos automáticos desactivados"}
+                  </p>
+                </div>
+                <Badge className={activeSeason.notificaciones_admin_email ? "bg-indigo-600 text-white text-lg px-4 py-2" : "bg-slate-400 text-white text-lg px-4 py-2"}>
+                  {activeSeason.notificaciones_admin_email ? "ACTIVO" : "INACTIVO"}
+                </Badge>
+              </div>
+              <div className="bg-indigo-50 rounded-lg p-3 text-sm text-indigo-800">
+                <p className="font-semibold mb-2">📬 Se enviarán correos a cdbustarviejo@gmail.com cuando:</p>
+                <ul className="space-y-1 text-xs">
+                  <li>• 💳 Se registre un nuevo pago o justificante</li>
+                  <li>• 👕 Se realice un nuevo pedido de ropa</li>
+                  <li>• 🍀 Se realice un nuevo pedido de lotería</li>
+                  <li>• ✍️ Se complete una firma de federación</li>
+                  <li>• 🎫 Un nuevo socio se registre</li>
+                </ul>
+              </div>
+            </div>
+            <Button
+              onClick={toggleAdminEmailNotifications}
+              className={`w-full font-bold text-lg py-6 ${
+                activeSeason.notificaciones_admin_email 
+                  ? "bg-red-600 hover:bg-red-700" 
+                  : "bg-indigo-600 hover:bg-indigo-700"
+              }`}
+            >
+              {activeSeason.notificaciones_admin_email ? "🔒 Desactivar Notificaciones" : "📧 Activar Notificaciones"}
+            </Button>
+            <Alert className="bg-yellow-50 border-yellow-300">
+              <AlertTriangle className="h-4 w-4 text-yellow-600" />
+              <AlertDescription className="text-yellow-800 text-sm">
+                <strong>💡 Consejo:</strong> Desactiva esta opción durante pruebas para evitar recibir muchos correos. 
+                Actívala cuando la app esté en producción.
+              </AlertDescription>
+            </Alert>
           </CardContent>
         </Card>
       )}
