@@ -393,8 +393,6 @@ Email: cdbustarviejo@gmail.com
             .map((player) => {
               const allPlayerPayments = payments.filter(p => p.jugador_id === player.id);
               
-              console.log('DEBUG pagos de', player.nombre, ':', allPlayerPayments.length, allPlayerPayments.map(p => ({mes: p.mes, estado: p.estado, temporada: p.temporada})));
-              
               // Si tiene pago único pagado o en revisión, solo mostrar Junio
               const hasPagoUnico = allPlayerPayments.some(p => 
                 (p.tipo_pago === "Único" || p.tipo_pago === "único") && 
