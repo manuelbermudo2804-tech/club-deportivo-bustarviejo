@@ -58,7 +58,6 @@ import TreasurerDashboard from './pages/TreasurerDashboard';
 import ClubMembership from './pages/ClubMembership';
 import FederationSignatures from './pages/FederationSignatures';
 import FederationSignaturesAdmin from './pages/FederationSignaturesAdmin';
-import FinancialConfiguration from './pages/FinancialConfiguration';
 import SeasonManagement from './pages/SeasonManagement';
 import CategoryManagement from './pages/CategoryManagement';
 import Schedules from './pages/Schedules';
@@ -127,7 +126,6 @@ export const PAGES = {
     "ClubMembership": ClubMembership,
     "FederationSignatures": FederationSignatures,
     "FederationSignaturesAdmin": FederationSignaturesAdmin,
-    "FinancialConfiguration": FinancialConfiguration,
     "SeasonManagement": SeasonManagement,
     "CategoryManagement": CategoryManagement,
     "Schedules": Schedules,
