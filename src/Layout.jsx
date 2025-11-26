@@ -962,6 +962,7 @@ export default function Layout({ children, currentPageName }) {
     { title: "Galería", url: createPageUrl("ParentGallery"), icon: Image },
     { title: "🆔 Carnets", url: createPageUrl("PlayerCards"), icon: Award },
     { title: "📜 Certificados", url: createPageUrl("Certificates"), icon: FileText },
+    { title: "🎫 Hacerse Socio", url: createPageUrl("ClubMembership"), icon: Users },
   ];
 
   const playerNavigationItems = [
