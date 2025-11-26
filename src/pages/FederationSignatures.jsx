@@ -168,6 +168,10 @@ export default function FederationSignatures() {
                     href={player.enlace_firma_jugador} 
                     target="_blank" 
                     rel="noopener noreferrer"
+                    onClick={() => {
+                      // Marcar que el enlace fue visitado
+                      localStorage.setItem(`firma_jugador_visited_${player.id}`, 'true');
+                    }}
                     className="flex items-center justify-center gap-2 w-full p-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
                   >
                     <ExternalLink className="w-4 h-4" />
@@ -175,12 +179,18 @@ export default function FederationSignatures() {
                   </a>
                   <Button
                     onClick={() => handleMarkSignatureComplete(player, "jugador")}
-                    disabled={updatePlayerMutation.isPending}
-                    className="w-full bg-green-600 hover:bg-green-700"
+                    disabled={updatePlayerMutation.isPending || !localStorage.getItem(`firma_jugador_visited_${player.id}`)}
+                    className={`w-full ${localStorage.getItem(`firma_jugador_visited_${player.id}`) ? 'bg-green-600 hover:bg-green-700' : 'bg-gray-400 cursor-not-allowed'}`}
+                    title={!localStorage.getItem(`firma_jugador_visited_${player.id}`) ? 'Primero debes abrir el enlace azul para firmar' : ''}
                   >
                     <CheckCircle2 className="w-4 h-4 mr-2" />
                     Ya he firmado - Marcar como completada
                   </Button>
+                  {!localStorage.getItem(`firma_jugador_visited_${player.id}`) && (
+                    <p className="text-xs text-center text-slate-500">
+                      ⬆️ Primero pulsa el botón azul para abrir el enlace de firma
+                    </p>
+                  )}
                 </div>
               )}
             </div>
@@ -211,6 +221,10 @@ export default function FederationSignatures() {
                     href={player.enlace_firma_tutor} 
                     target="_blank" 
                     rel="noopener noreferrer"
+                    onClick={() => {
+                      // Marcar que el enlace fue visitado
+                      localStorage.setItem(`firma_tutor_visited_${player.id}`, 'true');
+                    }}
                     className="flex items-center justify-center gap-2 w-full p-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
                   >
                     <ExternalLink className="w-4 h-4" />
@@ -218,12 +232,18 @@ export default function FederationSignatures() {
                   </a>
                   <Button
                     onClick={() => handleMarkSignatureComplete(player, "tutor")}
-                    disabled={updatePlayerMutation.isPending}
-                    className="w-full bg-green-600 hover:bg-green-700"
+                    disabled={updatePlayerMutation.isPending || !localStorage.getItem(`firma_tutor_visited_${player.id}`)}
+                    className={`w-full ${localStorage.getItem(`firma_tutor_visited_${player.id}`) ? 'bg-green-600 hover:bg-green-700' : 'bg-gray-400 cursor-not-allowed'}`}
+                    title={!localStorage.getItem(`firma_tutor_visited_${player.id}`) ? 'Primero debes abrir el enlace azul para firmar' : ''}
                   >
                     <CheckCircle2 className="w-4 h-4 mr-2" />
                     Ya he firmado - Marcar como completada
                   </Button>
+                  {!localStorage.getItem(`firma_tutor_visited_${player.id}`) && (
+                    <p className="text-xs text-center text-slate-500">
+                      ⬆️ Primero pulsa el botón azul para abrir el enlace de firma
+                    </p>
+                  )}
                 </div>
               )}
             </div>
