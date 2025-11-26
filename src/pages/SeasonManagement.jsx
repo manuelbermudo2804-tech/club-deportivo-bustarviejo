@@ -557,7 +557,7 @@ export default function SeasonManagement() {
         }
         toast.success(`✅ ${ordersToArchive.length} pedidos archivados`);
 
-        // Marcar todos los jugadores como pendiente de renovación y DESACTIVARLOS
+        // Marcar todos los jugadores como pendiente de renovación, DESACTIVARLOS y resetear firmas de federación
         toast.info(`👥 Marcando ${players.length} jugadores como pendientes...`);
         for (const player of players) {
           try {
@@ -565,14 +565,19 @@ export default function SeasonManagement() {
               ...player,
               activo: false,
               estado_renovacion: "pendiente",
-              temporada_renovacion: resetConfig.nombreTemporada
+              temporada_renovacion: resetConfig.nombreTemporada,
+              // Resetear firmas de federación para la nueva temporada
+              enlace_firma_jugador: "",
+              enlace_firma_tutor: "",
+              firma_jugador_completada: false,
+              firma_tutor_completada: false
             });
           } catch (error) {
             console.error(`Error updating player ${player.id}:`, error);
             toast.error(`Error actualizando ${player.nombre}`);
           }
         }
-        toast.success(`✅ ${players.length} jugadores desactivados y marcados como pendientes`);
+        toast.success(`✅ ${players.length} jugadores desactivados, firmas reseteadas y marcados como pendientes`);
 
         // Borrar asistencias
         if (resetConfig.borrarAsistencias && attendances.length > 0) {
