@@ -307,8 +307,10 @@ export default function CoachChat() {
                   onClick={() => {
                     if (selectedCategory !== cat) {
                       setSelectedCategory(cat);
-                      setChatSubMode("anuncios");
+                      setChatSubMode(cat === "Chat Interno Staff" ? "anuncios" : "privado");
                       setSelectedConversation(null);
+                      // Scroll hacia arriba al seleccionar categoría
+                      window.scrollTo({ top: 0, behavior: 'smooth' });
                     }
                   }}
                   className={`w-full p-3 flex items-center gap-3 transition-colors text-left ${
@@ -351,17 +353,17 @@ export default function CoachChat() {
                 {!isStaffChat && (
                   <Tabs value={chatSubMode} onValueChange={(v) => { setChatSubMode(v); setSelectedConversation(null); }}>
                     <TabsList className="w-full">
-                      <TabsTrigger value="anuncios" className="flex-1 gap-2">
-                        <Users className="w-4 h-4" />
-                        📢 Anuncios Grupo
-                        <span className="text-[10px] text-slate-500 hidden md:inline">(todos ven)</span>
-                      </TabsTrigger>
                       <TabsTrigger value="privado" className="flex-1 gap-2">
                         <MessageCircle className="w-4 h-4" />
                         🔒 Privado Familias
                         {getUnreadCountForCategory(selectedCategory) > 0 && (
                           <Badge className="bg-red-500 text-white text-xs ml-1">{getUnreadCountForCategory(selectedCategory)}</Badge>
                         )}
+                      </TabsTrigger>
+                      <TabsTrigger value="anuncios" className="flex-1 gap-2">
+                        <Users className="w-4 h-4" />
+                        📢 Anuncios Grupo
+                        <span className="text-[10px] text-slate-500 hidden md:inline">(todos ven)</span>
                       </TabsTrigger>
                     </TabsList>
                   </Tabs>
