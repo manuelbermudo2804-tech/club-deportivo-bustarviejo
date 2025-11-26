@@ -221,8 +221,8 @@ export default function CoachChat() {
   // Verificar si es chat interno staff
   const isStaffChat = selectedCategory === "Chat Interno Staff";
 
-  // Determinar el modo efectivo del chat (forzado para coordinación y staff)
-  const effectiveChatMode = isCoordinationChat ? "privado" : (isStaffChat ? "anuncios" : chatSubMode);
+  // Determinar el modo efectivo del chat (staff siempre anuncios, resto usa tabs)
+  const effectiveChatMode = isStaffChat ? "anuncios" : chatSubMode;
 
   const handleSendGroupMessage = () => {
     if (!user || !selectedCategory) return;
