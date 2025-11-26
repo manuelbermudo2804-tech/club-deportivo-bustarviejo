@@ -126,7 +126,66 @@ export default function Players() {
   });
 
   const updatePlayerMutation = useMutation({
-    mutationFn: ({ id, playerData }) => base44.entities.Player.update(id, playerData),
+    mutationFn: async ({ id, playerData, originalPlayer }) => {
+      const updatedPlayer = await base44.entities.Player.update(id, playerData);
+      
+      // Detectar si se añadieron NUEVOS enlaces de firma (no existían antes)
+      const newEnlaceJugador = playerData.enlace_firma_jugador && !originalPlayer?.enlace_firma_jugador;
+      const newEnlaceTutor = playerData.enlace_firma_tutor && !originalPlayer?.enlace_firma_tutor;
+      
+      if (newEnlaceJugador || newEnlaceTutor) {
+        // Enviar notificación al padre/tutor
+        try {
+          const enlacesInfo = [];
+          if (newEnlaceJugador) enlacesInfo.push("Firma del Jugador");
+          if (newEnlaceTutor) enlacesInfo.push("Firma del Padre/Tutor");
+          
+          await base44.integrations.Core.SendEmail({
+            from_name: "CD Bustarviejo - Federación",
+            to: playerData.email_padre,
+            subject: `🖊️ Enlaces de Firma Disponibles - ${playerData.nombre}`,
+            body: `
+              <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+                <div style="background: linear-gradient(135deg, #f59e0b, #ea580c); padding: 20px; text-align: center; border-radius: 10px 10px 0 0;">
+                  <h1 style="color: white; margin: 0;">🖊️ Firma Digital Requerida</h1>
+                </div>
+                <div style="background: #fff; padding: 30px; border: 1px solid #e5e7eb;">
+                  <p style="font-size: 16px;">Estimado/a padre/madre/tutor,</p>
+                  <p>Los <strong>enlaces de firma de federación</strong> para <strong>${playerData.nombre}</strong> ya están disponibles.</p>
+                  
+                  <div style="background: #fef3c7; border: 2px solid #f59e0b; border-radius: 10px; padding: 20px; margin: 20px 0;">
+                    <h3 style="color: #92400e; margin-top: 0;">📋 Firmas pendientes:</h3>
+                    <ul style="margin: 0; padding-left: 20px;">
+                      ${newEnlaceJugador ? `<li style="margin: 10px 0;"><strong>Firma del Jugador</strong><br/><a href="${playerData.enlace_firma_jugador}" style="color: #ea580c;">Pulsa aquí para firmar →</a></li>` : ''}
+                      ${newEnlaceTutor ? `<li style="margin: 10px 0;"><strong>Firma del Padre/Tutor Legal</strong><br/><a href="${playerData.enlace_firma_tutor}" style="color: #ea580c;">Pulsa aquí para firmar →</a></li>` : ''}
+                    </ul>
+                  </div>
+                  
+                  <div style="background: #f0fdf4; border-left: 4px solid #22c55e; padding: 15px; margin: 20px 0;">
+                    <p style="margin: 0; font-size: 14px;"><strong>¿Cómo firmar?</strong></p>
+                    <ol style="margin: 10px 0 0 0; padding-left: 20px; font-size: 14px;">
+                      <li>Pulsa en el enlace correspondiente</li>
+                      <li>Sigue las instrucciones de la federación</li>
+                      <li>Una vez firmado, entra en la app del club y marca "Firma completada"</li>
+                    </ol>
+                  </div>
+                  
+                  <p style="font-size: 14px; color: #6b7280;">También puedes acceder a los enlaces desde la aplicación del club, en la ficha del jugador.</p>
+                </div>
+                <div style="background: #1e293b; color: white; padding: 15px; text-align: center; border-radius: 0 0 10px 10px;">
+                  <p style="margin: 0; font-size: 12px;">CD Bustarviejo - Temporada 2024/2025</p>
+                </div>
+              </div>
+            `
+          });
+          console.log('📧 Notificación de enlaces de firma enviada a:', playerData.email_padre);
+        } catch (error) {
+          console.error("Error enviando notificación de firma:", error);
+        }
+      }
+      
+      return updatedPlayer;
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['players'] });
       setShowForm(false);
@@ -136,7 +195,7 @@ export default function Players() {
 
   const handleSubmit = async (playerData) => {
     if (editingPlayer) {
-      updatePlayerMutation.mutate({ id: editingPlayer.id, playerData });
+      updatePlayerMutation.mutate({ id: editingPlayer.id, playerData, originalPlayer: editingPlayer });
     } else {
       createPlayerMutation.mutate(playerData);
     }
