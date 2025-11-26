@@ -57,6 +57,7 @@ import PWASetup from './pages/PWASetup';
 import CoachProfile from './pages/CoachProfile';
 import Sponsorships from './pages/Sponsorships';
 import TreasurerDashboard from './pages/TreasurerDashboard';
+import ClubMembership from './pages/ClubMembership';
 import __Layout from './Layout.jsx';
 
 
@@ -120,6 +121,7 @@ export const PAGES = {
     "CoachProfile": CoachProfile,
     "Sponsorships": Sponsorships,
     "TreasurerDashboard": TreasurerDashboard,
+    "ClubMembership": ClubMembership,
 }
 
 export const pagesConfig = {
