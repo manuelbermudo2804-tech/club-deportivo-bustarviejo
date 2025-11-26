@@ -46,12 +46,18 @@ const getCuotasPorCategoria = (categoria) => {
   return CUOTAS[categoria] || { inscripcion: 0, segunda: 0, tercera: 0, total: 0 };
 };
 
-const getImportePorMes = (categoria, mes) => {
+const getImportePorMes = (categoria, mes, descuento = 0) => {
   const cuotas = getCuotasPorCategoria(categoria);
-  if (mes === "Junio") return cuotas.inscripcion;
+  // El descuento solo se aplica en la cuota de inscripción (Junio)
+  if (mes === "Junio") return cuotas.inscripcion - descuento;
   if (mes === "Septiembre") return cuotas.segunda;
   if (mes === "Diciembre") return cuotas.tercera;
   return 0;
+};
+
+const getTotalConDescuento = (categoria, descuento = 0) => {
+  const cuotas = getCuotasPorCategoria(categoria);
+  return cuotas.total - descuento;
 };
 
 export default function ParentPaymentForm({ players, payments = [], onSubmit, onCancel, isSubmitting, isAdmin = false, preselectedPlayerId = null }) {
