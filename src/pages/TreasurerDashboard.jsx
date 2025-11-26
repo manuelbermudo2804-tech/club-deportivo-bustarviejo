@@ -57,6 +57,11 @@ export default function TreasurerDashboard() {
     queryFn: () => base44.entities.Sponsor.list(),
   });
 
+  const { data: clubMembers = [] } = useQuery({
+    queryKey: ['clubMembers'],
+    queryFn: () => base44.entities.ClubMember.list(),
+  });
+
   const { data: seasons = [] } = useQuery({
     queryKey: ['seasons'],
     queryFn: () => base44.entities.SeasonConfig.list('-created_date'),
@@ -98,26 +103,32 @@ export default function TreasurerDashboard() {
     const patrociniosActivos = sponsors.filter(s => s.estado === "Activo");
     const patrociniosTotal = patrociniosActivos.reduce((sum, s) => sum + (s.monto || 0), 0);
 
+    // Socios
+    const sociosPagados = clubMembers.filter(m => m.estado_pago === "Pagado").reduce((sum, m) => sum + (m.cuota_socio || 25), 0);
+    const sociosPendientes = clubMembers.filter(m => m.estado_pago === "Pendiente" || m.estado_pago === "En revisión").reduce((sum, m) => sum + (m.cuota_socio || 25), 0);
+
     // Totales
-    const totalIngresos = cuotasPagadas + ropaPagada + loteriaPagada + patrociniosTotal;
-    const totalPendiente = cuotasPendientes + cuotasRevision + ropaPendiente + loteriaPendiente;
+    const totalIngresos = cuotasPagadas + ropaPagada + loteriaPagada + patrociniosTotal + sociosPagados;
+    const totalPendiente = cuotasPendientes + cuotasRevision + ropaPendiente + loteriaPendiente + sociosPendientes;
 
     return {
       cuotas: { pagadas: cuotasPagadas, pendientes: cuotasPendientes, revision: cuotasRevision },
       ropa: { pagada: ropaPagada, pendiente: ropaPendiente },
       loteria: { pagada: loteriaPagada, pendiente: loteriaPendiente },
       patrocinios: patrociniosTotal,
+      socios: { pagados: sociosPagados, pendientes: sociosPendientes },
       totalIngresos,
       totalPendiente
     };
-  }, [filteredPayments, filteredClothingOrders, lotteryOrders, sponsors]);
+  }, [filteredPayments, filteredClothingOrders, lotteryOrders, sponsors, clubMembers]);
 
   // Income by concept for pie chart
   const incomeByConceptData = [
     { name: 'Cuotas', value: stats.cuotas.pagadas, color: COLORS.cuotas },
     { name: 'Ropa', value: stats.ropa.pagada, color: COLORS.ropa },
     { name: 'Lotería', value: stats.loteria.pagada, color: COLORS.loteria },
-    { name: 'Patrocinios', value: stats.patrocinios, color: COLORS.patrocinios }
+    { name: 'Patrocinios', value: stats.patrocinios, color: COLORS.patrocinios },
+    { name: 'Socios', value: stats.socios?.pagados || 0, color: '#ec4899' }
   ].filter(d => d.value > 0);
 
   // Deudas pendientes (jugadores con pagos atrasados)
@@ -391,7 +402,7 @@ export default function TreasurerDashboard() {
           </div>
 
           {/* Concept Breakdown */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
             <Card className="border-l-4 border-l-blue-500">
               <CardContent className="pt-4">
                 <div className="flex items-center gap-2 mb-2">
@@ -463,6 +474,29 @@ export default function TreasurerDashboard() {
                   <div className="flex justify-between">
                     <span className="text-slate-600">Activos:</span>
                     <span className="font-medium">{sponsors.filter(s => s.estado === "Activo").length}</span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="border-l-4 border-l-pink-500">
+              <CardContent className="pt-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <Users className="w-5 h-5 text-pink-600" />
+                  <span className="font-semibold text-slate-900">Socios</span>
+                </div>
+                <div className="space-y-1 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-slate-600">Cobrado:</span>
+                    <span className="font-medium text-green-600">{(stats.socios?.pagados || 0).toLocaleString()}€</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-600">Pendiente:</span>
+                    <span className="font-medium text-red-600">{(stats.socios?.pendientes || 0).toLocaleString()}€</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-600">Total socios:</span>
+                    <span className="font-medium">{clubMembers.length}</span>
                   </div>
                 </div>
               </CardContent>

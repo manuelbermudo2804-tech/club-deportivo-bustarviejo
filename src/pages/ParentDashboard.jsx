@@ -3,7 +3,7 @@ import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
 import { Link, useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { Users, Calendar, Bell, MessageCircle, CreditCard, Image, Megaphone, Clock, ShoppingBag, FileText, Award, AlertCircle, Clover } from "lucide-react";
+import { Users, Calendar, Bell, MessageCircle, CreditCard, Image, Megaphone, Clock, ShoppingBag, FileText, Award, AlertCircle, Clover, Heart } from "lucide-react";
 
 import SocialLinks from "../components/SocialLinks";
 import PushNotificationManager from "../components/push/PushNotificationManager";
@@ -394,6 +394,12 @@ export default function ParentDashboard() {
         icon: FileText,
         url: createPageUrl("Surveys"),
         gradient: "from-purple-600 to-purple-700",
+      },
+      {
+        title: "🎫 Hacerse Socio",
+        icon: Heart,
+        url: createPageUrl("ClubMembership"),
+        gradient: "from-pink-600 to-pink-700",
       }
     );
 
@@ -493,6 +499,24 @@ export default function ParentDashboard() {
             </div>
           </div>
         </div>
+
+        {/* HAZTE SOCIO BANNER */}
+        <Link to={createPageUrl("ClubMembership")}>
+          <div className="bg-gradient-to-r from-pink-500 via-purple-500 to-orange-500 rounded-2xl p-4 shadow-xl transition-all hover:scale-105 active:scale-95 border-2 border-pink-400">
+            <div className="flex items-center gap-3">
+              <div className="bg-white/20 backdrop-blur-sm rounded-xl p-3">
+                <Heart className="w-7 h-7 text-white" />
+              </div>
+              <div className="text-left flex-1">
+                <p className="text-white font-bold text-lg">🎉 ¡Hazte Socio!</p>
+                <p className="text-pink-100 text-xs">Invita a familiares y amigos • Solo 25€/temporada</p>
+              </div>
+              <div className="bg-white/20 backdrop-blur-sm rounded-full px-3 py-1">
+                <span className="text-white text-sm font-bold">→</span>
+              </div>
+            </div>
+          </div>
+        </Link>
 
         {/* LOTERIA NAVIDAD */}
         {loteriaVisible && (
