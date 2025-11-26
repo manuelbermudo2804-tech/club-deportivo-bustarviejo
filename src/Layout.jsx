@@ -883,7 +883,7 @@ export default function Layout({ children, currentPageName }) {
       { title: "⚙️ Preferencias Notif.", url: createPageUrl("NotificationPreferences"), icon: Settings },
       { title: "Chat Equipos", url: createPageUrl("CoachChat"), icon: MessageCircle, badge: unreadMessagesCount > 0 ? unreadMessagesCount : null, urgentBadge: urgentMessagesCount > 0 },
       { title: "🎓 Plantillas", url: createPageUrl("TeamRosters"), icon: Users },
-      { title: "🖊️ Firmas Federación", url: createPageUrl("FederationSignaturesAdmin"), icon: FileSignature },
+      ...(user?.puede_gestionar_firmas ? [{ title: "🖊️ Firmas Federación", url: createPageUrl("FederationSignaturesAdmin"), icon: FileSignature }] : []),
       { title: "📋 Asistencia y Evaluación", url: createPageUrl("TeamAttendanceEvaluation"), icon: CheckCircle2 },
       { title: "🎓 Convocatorias", url: createPageUrl("CoachCallups"), icon: Bell },
       { title: "Calendario", url: createPageUrl("Calendar"), icon: Calendar },
