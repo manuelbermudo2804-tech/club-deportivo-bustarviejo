@@ -87,10 +87,11 @@ export default function CoachChat() {
       categories.push("Coordinación Deportiva");
     }
     
-    if (isAdmin) {
+    // Admin y Coordinador ven TODAS las categorías de equipos
+    if (isAdmin || isCoordinator) {
       categories = [...categories, ...new Set(allPlayers.map(p => p.deporte).filter(Boolean))];
     } else {
-      // Coordinadores y entrenadores solo ven los equipos que entrenan
+      // Entrenadores solo ven los equipos que entrenan
       categories = [...categories, ...(user.categorias_entrena || [])];
     }
     
