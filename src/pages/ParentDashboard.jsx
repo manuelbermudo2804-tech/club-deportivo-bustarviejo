@@ -478,6 +478,7 @@ export default function ParentDashboard() {
           pendingPayments={pendingPayments}
           unreadMessages={unreadMessages}
           pendingSurveys={activeSurveys.length}
+          pendingSignatures={pendingFederationSignatures}
           upcomingEvents={0}
           isAdmin={false}
           isCoach={false}
@@ -560,30 +561,6 @@ export default function ParentDashboard() {
                 <div className="text-left flex-1">
                   <p className="text-white font-bold text-base">🍀 Lotería de Navidad</p>
                   <p className="text-green-100 text-xs">Compra décimos del club 🎄</p>
-                </div>
-              </div>
-            </div>
-          </Link>
-        )}
-
-        {/* FIRMAS FEDERACIÓN PENDIENTES */}
-        {pendingFederationSignatures > 0 && (
-          <Link to={createPageUrl("FederationSignatures")}>
-            <div className="bg-gradient-to-r from-yellow-600 to-orange-600 rounded-2xl p-4 shadow-xl transition-all hover:scale-105 active:scale-95 border-2 border-yellow-500 animate-pulse">
-              <div className="flex items-start gap-3">
-                <FileSignature className="w-6 h-6 text-white flex-shrink-0 mt-0.5" />
-                <div className="flex-1">
-                  <p className="text-white font-bold text-base lg:text-lg">
-                    🖊️ ¡Firmas de Federación Pendientes!
-                  </p>
-                  <p className="text-yellow-100 text-xs lg:text-sm mt-1">
-                    {pendingFederationSignatures === 1 
-                      ? "Tienes 1 firma pendiente de completar" 
-                      : `Tienes ${pendingFederationSignatures} firmas pendientes de completar`}
-                  </p>
-                  <p className="text-white text-xs mt-2 font-semibold">
-                    👉 Pulsa aquí para firmar
-                  </p>
                 </div>
               </div>
             </div>
