@@ -322,6 +322,17 @@ export default function SeasonManagement() {
     });
   };
 
+  const toggleSponsorBanner = async () => {
+    if (!activeSeason) return;
+    await updateSeasonMutation.mutateAsync({
+      id: activeSeason.id,
+      data: {
+        ...activeSeason,
+        mostrar_patrocinadores: !activeSeason.mostrar_patrocinadores
+      }
+    });
+  };
+
   const updateBizumPhone = async (phone) => {
     if (!activeSeason) return;
     await updateSeasonMutation.mutateAsync({
@@ -1979,6 +1990,45 @@ export default function SeasonManagement() {
             </Button>
             <p className="text-xs text-slate-600 text-center">
               Los usuarios podrán pagar con Bizum en: cuotas, pedidos de ropa y lotería
+            </p>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Control de Patrocinadores */}
+      {activeSeason && (
+        <Card className="border-none shadow-lg bg-gradient-to-br from-amber-50 to-amber-100 border-2 border-amber-300">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-amber-900">
+              💰 Banner de Patrocinadores
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="bg-white rounded-lg p-4 border-2 border-amber-200">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="font-semibold text-slate-900">Estado Actual</p>
+                  <p className="text-sm text-slate-600">
+                    {activeSeason.mostrar_patrocinadores ? "✅ Banner visible en toda la app" : "🔒 Banner oculto"}
+                  </p>
+                </div>
+                <Badge className={activeSeason.mostrar_patrocinadores ? "bg-amber-600 text-white text-lg px-4 py-2" : "bg-slate-400 text-white text-lg px-4 py-2"}>
+                  {activeSeason.mostrar_patrocinadores ? "VISIBLE" : "OCULTO"}
+                </Badge>
+              </div>
+            </div>
+            <Button
+              onClick={toggleSponsorBanner}
+              className={`w-full font-bold text-lg py-6 ${
+                activeSeason.mostrar_patrocinadores 
+                  ? "bg-red-600 hover:bg-red-700" 
+                  : "bg-amber-600 hover:bg-amber-700"
+              }`}
+            >
+              {activeSeason.mostrar_patrocinadores ? "🔒 Ocultar Patrocinadores" : "💰 Mostrar Patrocinadores"}
+            </Button>
+            <p className="text-xs text-slate-600 text-center">
+              Muestra los logos de patrocinadores activos en el footer de la app
             </p>
           </CardContent>
         </Card>
