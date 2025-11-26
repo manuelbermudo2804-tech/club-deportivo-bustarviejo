@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Pencil, Mail, Phone, User, Eye, Clock, Heart, FileText, CheckCircle2, AlertCircle, Loader2 } from "lucide-react";
+import { Pencil, Mail, Phone, User, Eye, Clock, Heart, FileText, CheckCircle2, AlertCircle, Loader2, FileSignature } from "lucide-react";
 import PlayerDetailDialog from "./PlayerDetailDialog";
 
 const categoryColors = {
@@ -53,6 +53,54 @@ export default function PlayerCard({ player, onEdit, onViewProfile, isParent = f
     .sort((a, b) => DIAS_ORDEN[a.dia_semana] - DIAS_ORDEN[b.dia_semana]);
 
   const hasMedicalInfo = player.ficha_medica && Object.values(player.ficha_medica).some(val => val);
+  
+  // Calcular estado de firmas de federación
+  const hasEnlaceFirmaJugador = !!player.enlace_firma_jugador;
+  const hasEnlaceFirmaTutor = !!player.enlace_firma_tutor;
+  const firmaJugadorOk = player.firma_jugador_completada === true;
+  const firmaTutorOk = player.firma_tutor_completada === true;
+  
+  // Determinar si es mayor de edad (no necesita firma de tutor)
+  const calcularEdad = (fechaNac) => {
+    if (!fechaNac) return null;
+    const hoy = new Date();
+    const nacimiento = new Date(fechaNac);
+    let edad = hoy.getFullYear() - nacimiento.getFullYear();
+    const m = hoy.getMonth() - nacimiento.getMonth();
+    if (m < 0 || (m === 0 && hoy.getDate() < nacimiento.getDate())) edad--;
+    return edad;
+  };
+  const esMayorDeEdad = calcularEdad(player.fecha_nacimiento) >= 18;
+  
+  // Estado de firmas: 
+  // - "none": No hay enlaces asignados
+  // - "pending": Hay enlaces pero faltan firmas
+  // - "complete": Todas las firmas necesarias están completadas
+  const getFirmasStatus = () => {
+    const tieneAlgunEnlace = hasEnlaceFirmaJugador || hasEnlaceFirmaTutor;
+    if (!tieneAlgunEnlace) return "none";
+    
+    if (esMayorDeEdad) {
+      // Solo necesita firma del jugador
+      if (hasEnlaceFirmaJugador && !firmaJugadorOk) return "pending";
+      if (hasEnlaceFirmaJugador && firmaJugadorOk) return "complete";
+      return "none";
+    } else {
+      // Necesita ambas firmas
+      const firmasRequeridas = [];
+      if (hasEnlaceFirmaJugador) firmasRequeridas.push({ tipo: "jugador", ok: firmaJugadorOk });
+      if (hasEnlaceFirmaTutor) firmasRequeridas.push({ tipo: "tutor", ok: firmaTutorOk });
+      
+      if (firmasRequeridas.length === 0) return "none";
+      const todasOk = firmasRequeridas.every(f => f.ok);
+      return todasOk ? "complete" : "pending";
+    }
+  };
+  
+  const firmasStatus = getFirmasStatus();
+  const firmasPendientes = [];
+  if (hasEnlaceFirmaJugador && !firmaJugadorOk) firmasPendientes.push("Jugador");
+  if (hasEnlaceFirmaTutor && !firmaTutorOk && !esMayorDeEdad) firmasPendientes.push("Tutor");
   
   // Calcular estado de pagos del jugador
   const getCurrentSeason = () => {
@@ -198,6 +246,51 @@ export default function PlayerCard({ player, onEdit, onViewProfile, isParent = f
                 <div className="flex items-center gap-2">
                   <Phone className="w-4 h-4" />
                   <span>{player.telefono}</span>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Estado de Firmas de Federación */}
+          {firmasStatus !== "none" && (
+            <div className={`rounded-lg p-2 border ${
+              firmasStatus === "complete" ? "bg-green-50 border-green-200" : "bg-yellow-50 border-yellow-200"
+            }`}>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-1.5">
+                  <FileSignature className={`w-3.5 h-3.5 ${
+                    firmasStatus === "complete" ? "text-green-600" : "text-yellow-600"
+                  }`} />
+                  <span className="text-xs font-medium text-slate-700">Firmas Federación:</span>
+                </div>
+                {firmasStatus === "complete" ? (
+                  <Badge className="bg-green-100 text-green-700 text-xs flex items-center gap-1">
+                    <CheckCircle2 className="w-3 h-3" />
+                    Completadas
+                  </Badge>
+                ) : (
+                  <Badge className="bg-yellow-100 text-yellow-700 text-xs flex items-center gap-1">
+                    <AlertCircle className="w-3 h-3" />
+                    Pendiente
+                  </Badge>
+                )}
+              </div>
+              {firmasStatus === "pending" && firmasPendientes.length > 0 && (
+                <div className="flex gap-2 mt-1.5">
+                  {hasEnlaceFirmaJugador && (
+                    <div className={`flex items-center gap-1 text-xs px-2 py-0.5 rounded-full ${
+                      firmaJugadorOk ? "bg-green-100 text-green-700" : "bg-yellow-100 text-yellow-700"
+                    }`}>
+                      {firmaJugadorOk ? "✅" : "⏳"} Jugador
+                    </div>
+                  )}
+                  {hasEnlaceFirmaTutor && !esMayorDeEdad && (
+                    <div className={`flex items-center gap-1 text-xs px-2 py-0.5 rounded-full ${
+                      firmaTutorOk ? "bg-green-100 text-green-700" : "bg-yellow-100 text-yellow-700"
+                    }`}>
+                      {firmaTutorOk ? "✅" : "⏳"} Tutor
+                    </div>
+                  )}
                 </div>
               )}
             </div>
