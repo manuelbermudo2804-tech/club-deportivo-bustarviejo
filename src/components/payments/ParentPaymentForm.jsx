@@ -158,6 +158,7 @@ export default function ParentPaymentForm({ players, payments = [], onSubmit, on
       }
       
       const cuotas = getCuotasPorCategoria(player.deporte);
+      const descuento = player.tiene_descuento_hermano ? (player.descuento_aplicado || 0) : 0;
       
       // Seleccionar el primer mes disponible si el actual está pagado
       let mesSeleccionado = currentPayment.mes;
@@ -170,8 +171,8 @@ export default function ParentPaymentForm({ players, payments = [], onSubmit, on
       const tipoPago = primerPago ? primerPago.tipo_pago : currentPayment.tipo_pago;
       
       const cantidad = tipoPago === "Único" 
-        ? cuotas.total 
-        : getImportePorMes(player.deporte, mesSeleccionado);
+        ? getTotalConDescuento(player.deporte, descuento)
+        : getImportePorMes(player.deporte, mesSeleccionado, descuento);
       
       setCurrentPayment(prev => ({
         ...prev,
