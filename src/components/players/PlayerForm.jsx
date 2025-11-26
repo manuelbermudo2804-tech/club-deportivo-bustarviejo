@@ -804,6 +804,30 @@ export default function PlayerForm({ player, onSubmit, onCancel, isSubmitting, i
               </ul>
             </div>
 
+            {/* INFO FIRMAS FEDERACIÓN */}
+            <div className="bg-yellow-50 border-2 border-yellow-300 rounded-lg p-4">
+              <h4 className="font-bold text-yellow-900 mb-2 flex items-center gap-2">
+                <FileText className="w-5 h-5" />
+                🖊️ Sobre las Firmas de Federación
+              </h4>
+              <div className="text-sm text-yellow-800 space-y-2">
+                <p>
+                  Una vez completada la inscripción, <strong>recibirás dos enlaces por email</strong> para firmar digitalmente la documentación de la federación:
+                </p>
+                <ul className="list-disc list-inside space-y-1 ml-2">
+                  <li><strong>Enlace para el jugador/a:</strong> Firma del jugador (obligatoria)</li>
+                  {!isMayorDeEdad && <li><strong>Enlace para padre/madre/tutor:</strong> Firma del tutor legal (obligatoria para menores)</li>}
+                </ul>
+                <p className="mt-2">
+                  📧 <strong>¿Dónde firmar?</strong> Los enlaces te llegarán por email cuando el club los suba. 
+                  También podrás acceder desde la sección <strong>"Firmas Federación"</strong> del menú de la app.
+                </p>
+                <p className="text-xs text-yellow-700 mt-2">
+                  ⚠️ Sin las firmas completadas no se puede tramitar la ficha federativa ni el seguro.
+                </p>
+              </div>
+            </div>
+
             {/* FICHA MÉDICA - Desplegable */}
             <Collapsible>
               <div className="border-2 border-red-200 rounded-lg overflow-hidden">

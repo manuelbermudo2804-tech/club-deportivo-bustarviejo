@@ -265,6 +265,16 @@ export default function UserManagement() {
     });
   };
 
+  const handleToggleFirmas = async (user) => {
+    const newValue = !user.puede_gestionar_firmas;
+    updateUserMutation.mutate({
+      userId: user.id,
+      userData: {
+        puede_gestionar_firmas: newValue
+      }
+    });
+  };
+
   const toggleCategory = (category) => {
     setCoachData(prev => {
       const current = prev.categorias_entrena || [];
@@ -585,13 +595,14 @@ export default function UserManagement() {
                         )}
 
                         {user.es_entrenador && user.categorias_entrena && user.categorias_entrena.length > 0 && (
-                          <div className="text-sm text-blue-700 bg-blue-100 rounded p-2 mb-2">
-                            <strong>🏃 {isCoordinator ? "También Entrena:" : "Entrena:"}</strong> {user.categorias_entrena.join(", ")}
-                            {user.telefono_entrenador && ` • 📱 ${user.telefono_entrenador}`}
-                            {!isCoordinator && user.tiene_hijos_jugando && (
-                              <span className="ml-2">• 👨‍👩‍👧 Con hijos jugando</span>
-                            )}
-                          </div>
+                        <div className="text-sm text-blue-700 bg-blue-100 rounded p-2 mb-2">
+                          <strong>🏃 {isCoordinator ? "También Entrena:" : "Entrena:"}</strong> {user.categorias_entrena.join(", ")}
+                          {user.telefono_entrenador && ` • 📱 ${user.telefono_entrenador}`}
+                          {user.puede_gestionar_firmas && <span className="ml-2">• 🖊️ Gestión Firmas</span>}
+                          {!isCoordinator && user.tiene_hijos_jugando && (
+                            <span className="ml-2">• 👨‍👩‍👧 Con hijos jugando</span>
+                          )}
+                        </div>
                         )}
 
                         {user.role === "jugador" && linkedPlayer && (
@@ -667,6 +678,16 @@ export default function UserManagement() {
                               >
                                 {user.es_entrenador ? "✅ Entr." : "🎓 Entr."}
                               </Button>
+                              {user.es_entrenador && !isCoordinator && (
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => handleToggleFirmas(user)}
+                                  className={`${user.puede_gestionar_firmas ? "bg-yellow-100 hover:bg-yellow-200 border-yellow-400" : "bg-yellow-50 hover:bg-yellow-100 border-yellow-300"} text-xs lg:text-sm px-2 py-1 lg:px-4 lg:py-2`}
+                                >
+                                  {user.puede_gestionar_firmas ? "✅ Firmas" : "🖊️ Firmas"}
+                                </Button>
+                              )}
                               {(isCoordinator || isCoach || isTreasurer) && (
                                 <Button
                                   size="sm"
