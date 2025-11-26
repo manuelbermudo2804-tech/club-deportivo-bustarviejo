@@ -27,6 +27,7 @@ export default function FileAttachmentButton({ onFileUploaded, disabled }) {
 
     setUploading(true);
     try {
+      console.log(`⬆️ Subiendo ${tipo}: ${file.name} (${(file.size / 1024 / 1024).toFixed(2)}MB)`);
       const { file_url } = await base44.integrations.Core.UploadFile({ file });
       
       const attachment = {
@@ -37,10 +38,21 @@ export default function FileAttachmentButton({ onFileUploaded, disabled }) {
       };
 
       onFileUploaded(attachment);
-      toast.success(`${tipo === 'imagen' ? 'Imagen' : tipo === 'audio' ? 'Audio' : 'Documento'} cargado correctamente`);
+      const tipoLabel = {
+        'imagen': 'Imagen',
+        'audio': 'Audio',
+        'video': 'Video',
+        'documento': 'Documento'
+      };
+      toast.success(`✅ ${tipoLabel[tipo] || 'Archivo'} cargado correctamente`);
     } catch (error) {
       console.error("Error uploading file:", error);
-      toast.error("Error al cargar el archivo");
+      const sizeMB = (file.size / 1024 / 1024).toFixed(1);
+      if (file.size > 50 * 1024 * 1024) {
+        toast.error(`Error: El archivo es muy grande (${sizeMB}MB). Intenta con uno más pequeño.`);
+      } else {
+        toast.error(`Error al cargar el archivo. Intenta de nuevo.`);
+      }
     } finally {
       setUploading(false);
     }
@@ -76,25 +88,39 @@ export default function FileAttachmentButton({ onFileUploaded, disabled }) {
 
   const handleVideoSelect = async (e) => {
     const file = e.target.files?.[0];
-    if (file) {
-      // Validar tamaño (max 50MB para videos)
-      if (file.size > 50 * 1024 * 1024) {
-        toast.error("El video es demasiado grande. Máximo 50MB");
-        return;
-      }
-      await handleFileUpload(file, 'video');
+    if (!file) return;
+    
+    const sizeMB = (file.size / (1024 * 1024)).toFixed(1);
+    console.log(`📹 Video seleccionado: ${file.name}, tamaño: ${sizeMB}MB`);
+    
+    // Validar tamaño (max 100MB para videos)
+    if (file.size > 100 * 1024 * 1024) {
+      toast.error(`El video es demasiado grande (${sizeMB}MB). Máximo 100MB`);
+      e.target.value = ''; // Reset input
+      return;
     }
+    
+    toast.info(`📹 Subiendo video (${sizeMB}MB)... Por favor espera`);
+    await handleFileUpload(file, 'video');
+    e.target.value = ''; // Reset input después de subir
   };
 
   const handleVideoCapture = async (e) => {
     const file = e.target.files?.[0];
-    if (file) {
-      if (file.size > 50 * 1024 * 1024) {
-        toast.error("El video es demasiado grande. Máximo 50MB");
-        return;
-      }
-      await handleFileUpload(file, 'video');
+    if (!file) return;
+    
+    const sizeMB = (file.size / (1024 * 1024)).toFixed(1);
+    console.log(`📹 Video grabado: ${file.name}, tamaño: ${sizeMB}MB`);
+    
+    if (file.size > 100 * 1024 * 1024) {
+      toast.error(`El video es demasiado grande (${sizeMB}MB). Máximo 100MB`);
+      e.target.value = '';
+      return;
     }
+    
+    toast.info(`📹 Subiendo video (${sizeMB}MB)... Por favor espera`);
+    await handleFileUpload(file, 'video');
+    e.target.value = '';
   };
 
   const handleLocationShare = () => {
