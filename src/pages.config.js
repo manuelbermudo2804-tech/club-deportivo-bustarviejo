@@ -61,6 +61,8 @@ import FederationSignaturesAdmin from './pages/FederationSignaturesAdmin';
 import FinancialConfiguration from './pages/FinancialConfiguration';
 import SeasonManagement from './pages/SeasonManagement';
 import CategoryManagement from './pages/CategoryManagement';
+import Schedules from './pages/Schedules';
+import Gallery from './pages/Gallery';
 import __Layout from './Layout.jsx';
 
 
@@ -128,6 +130,8 @@ export const PAGES = {
     "FinancialConfiguration": FinancialConfiguration,
     "SeasonManagement": SeasonManagement,
     "CategoryManagement": CategoryManagement,
+    "Schedules": Schedules,
+    "Gallery": Gallery,
 }
 
 export const pagesConfig = {
