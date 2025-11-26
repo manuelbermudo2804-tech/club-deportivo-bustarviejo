@@ -883,7 +883,7 @@ export default function PlayerForm({ player, onSubmit, onCancel, isSubmitting, i
                       Autorizo a que <strong>CLUB DEPORTIVO BUSTARVIEJO</strong> conserve en ficheros informáticos y/o en cualquier otro soporte físico los datos personales que le han sido proporcionados de forma voluntaria, y a tratar esa información con el objeto que le han sido facilitados, es decir, para la administración y gestión. Así mismo, el firmante declara conocer y aceptar las normas generales de funcionamiento del CLUB DEPORTIVO.
                     </p>
                     <p>
-                      Autorizo al Club Deportivo Bustarviejo a que me envíen información relevante para el desarrollo de las actividades, ofertas y noticias relacionadas con la actividad de dicho club en forma de correo ordinario, correo electrónico, whatsapp o envío sms.
+                      Autorizo al Club Deportivo Bustarviejo a que me envíen información relevante para el desarrollo de las actividades, ofertas y noticias relacionadas con la actividad de dicho club en forma de correo ordinario, correo electrónico, WhatsApp, envío SMS o notificaciones a través de la app del club.
                     </p>
                     <p>
                       Por su parte, CLUB DEPORTIVO BUSTARVIEJO informa que podrá solicitar el contenido exacto de su información personal y podrá ejercer los derechos de rectificación, anulación o modificación que pudiera corresponderle, así como modificar esta autorización en cualquier sentido. Para ello puede ponerse en contacto con la directiva del Club en:
