@@ -65,6 +65,12 @@ export default function ParentPlayers() {
     initialData: [],
   });
 
+  const { data: payments } = useQuery({
+    queryKey: ['payments'],
+    queryFn: () => base44.entities.Payment.list('-created_date'),
+    initialData: [],
+  });
+
   const createPlayerMutation = useMutation({
     mutationFn: async (playerData) => {
       const dataWithParentEmail = {
@@ -442,6 +448,7 @@ Email: cdbustarviejo@gmail.com
                         onEdit={handleEdit}
                         isParent={true}
                         schedules={schedules}
+                        payments={payments}
                       />
                       <AchievementsBadges 
                         player={player} 
@@ -470,6 +477,7 @@ Email: cdbustarviejo@gmail.com
                         onEdit={handleEdit}
                         isParent={true}
                         schedules={schedules}
+                        payments={payments}
                       />
                       <AchievementsBadges 
                         player={player} 
@@ -498,6 +506,7 @@ Email: cdbustarviejo@gmail.com
                         onEdit={handleEdit}
                         isParent={true}
                         schedules={schedules}
+                        payments={payments}
                       />
                       <AchievementsBadges 
                         player={player} 
