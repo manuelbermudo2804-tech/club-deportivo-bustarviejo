@@ -170,24 +170,51 @@ export default function Home() {
     const unreadMessages = messages?.filter(m => !m.leido && m.tipo === "padre_a_grupo").length || 0;
 
     let pendingCallups = 0;
-    if (user && hasPlayers && players && callups) {
+    let pendingSignatures = 0;
+    
+    if (user && hasPlayers && players) {
       const myPlayersList = players.filter(p => 
         p.email_padre === user.email || p.email_tutor_2 === user.email
       );
       const today = new Date().toISOString().split('T')[0];
       
-      callups.forEach(callup => {
-        if (callup.publicada && callup.fecha_partido >= today && !callup.cerrada) {
-          callup.jugadores_convocados?.forEach(jugador => {
-            if (myPlayersList.some(p => p.id === jugador.jugador_id) && jugador.confirmacion === "pendiente") {
-              pendingCallups++;
-            }
-          });
-        }
+      // Calcular convocatorias pendientes
+      if (callups) {
+        callups.forEach(callup => {
+          if (callup.publicada && callup.fecha_partido >= today && !callup.cerrada) {
+            callup.jugadores_convocados?.forEach(jugador => {
+              if (myPlayersList.some(p => p.id === jugador.jugador_id) && jugador.confirmacion === "pendiente") {
+                pendingCallups++;
+              }
+            });
+          }
+        });
+      }
+      
+      // Calcular firmas pendientes
+      const calcularEdad = (fechaNac) => {
+        if (!fechaNac) return null;
+        const hoy = new Date();
+        const nacimiento = new Date(fechaNac);
+        let edad = hoy.getFullYear() - nacimiento.getFullYear();
+        const m = hoy.getMonth() - nacimiento.getMonth();
+        if (m < 0 || (m === 0 && hoy.getDate() < nacimiento.getDate())) edad--;
+        return edad;
+      };
+      
+      myPlayersList.forEach(player => {
+        const hasEnlaceJugador = !!player.enlace_firma_jugador;
+        const hasEnlaceTutor = !!player.enlace_firma_tutor;
+        const firmaJugadorOk = player.firma_jugador_completada === true;
+        const firmaTutorOk = player.firma_tutor_completada === true;
+        const esMayorDeEdad = calcularEdad(player.fecha_nacimiento) >= 18;
+        
+        if (hasEnlaceJugador && !firmaJugadorOk) pendingSignatures++;
+        if (hasEnlaceTutor && !firmaTutorOk && !esMayorDeEdad) pendingSignatures++;
       });
     }
 
-    return { activePlayers, pendingPayments, paidPayments, unreadMessages, pendingCallups };
+    return { activePlayers, pendingPayments, paidPayments, unreadMessages, pendingCallups, pendingSignatures };
   }, [players, payments, messages, callups, user, hasPlayers]);
 
   const handleMatchAppClick = useMemo(() => () => {
