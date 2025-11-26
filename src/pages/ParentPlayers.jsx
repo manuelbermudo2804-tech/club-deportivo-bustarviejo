@@ -84,8 +84,8 @@ export default function ParentPlayers() {
         if (familyPlayers.length > 0) {
           // Incluir el nuevo jugador en el cálculo
           const allFamilyBirthDates = [
-            ...familyPlayers.map(p => ({ id: p.id, fecha: p.fecha_nacimiento })),
-            { id: newPlayer.id, fecha: newPlayer.fecha_nacimiento }
+            ...familyPlayers.map(p => ({ id: p.id, nombre: p.nombre, fecha: p.fecha_nacimiento })),
+            { id: newPlayer.id, nombre: newPlayer.nombre, fecha: newPlayer.fecha_nacimiento }
           ].filter(p => p.fecha);
           
           // Ordenar por fecha (el mayor primero - fecha más antigua)
@@ -94,17 +94,49 @@ export default function ParentPlayers() {
           // El mayor (primera posición) no tiene descuento, los demás sí
           const oldestPlayerId = allFamilyBirthDates[0]?.id;
           
+          // Obtener todos los pagos pendientes de la familia
+          const allPayments = await base44.entities.Payment.list();
+          
           // Actualizar descuentos de todos los hermanos existentes
           for (const sibling of familyPlayers) {
             const shouldHaveDiscount = sibling.id !== oldestPlayerId;
             const currentHasDiscount = sibling.tiene_descuento_hermano === true;
             
             if (shouldHaveDiscount !== currentHasDiscount) {
+              // Actualizar el jugador
               await base44.entities.Player.update(sibling.id, {
                 tiene_descuento_hermano: shouldHaveDiscount,
                 descuento_aplicado: shouldHaveDiscount ? 25 : 0
               });
               console.log(`📋 Descuento actualizado para ${sibling.nombre}: ${shouldHaveDiscount ? '25€' : 'sin descuento'}`);
+              
+              // Recalcular pagos PENDIENTES de este hermano (solo el de Junio/inscripción)
+              const siblingPendingPayments = allPayments.filter(p => 
+                p.jugador_id === sibling.id && 
+                p.estado === "Pendiente" &&
+                p.mes === "Junio"
+              );
+              
+              for (const payment of siblingPendingPayments) {
+                const currentAmount = payment.cantidad || 0;
+                let newAmount = currentAmount;
+                
+                if (shouldHaveDiscount && !currentHasDiscount) {
+                  // Ahora tiene descuento, restar 25€
+                  newAmount = currentAmount - 25;
+                } else if (!shouldHaveDiscount && currentHasDiscount) {
+                  // Ya no tiene descuento, sumar 25€
+                  newAmount = currentAmount + 25;
+                }
+                
+                if (newAmount !== currentAmount && newAmount > 0) {
+                  await base44.entities.Payment.update(payment.id, {
+                    cantidad: newAmount,
+                    notas: `${payment.notas || ''} [Descuento hermano ${shouldHaveDiscount ? 'aplicado' : 'removido'} automáticamente]`.trim()
+                  });
+                  console.log(`💰 Pago de ${sibling.nombre} actualizado: ${currentAmount}€ → ${newAmount}€`);
+                }
+              }
             }
           }
           
