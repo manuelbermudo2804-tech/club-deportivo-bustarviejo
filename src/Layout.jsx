@@ -4,7 +4,7 @@ import { createPageUrl } from "@/utils";
 import { base44 } from "@/api/base44Client";
 
 
-import { Home, Users, CreditCard, ShoppingBag, Menu, Bell, LogOut, Calendar, Megaphone, Mail, Archive, Settings, MessageCircle, Clock, Image, X, User as UserIcon, CheckCircle2, ClipboardCheck, Star, Award, FileText, Clover, UserCircle } from "lucide-react";
+import { Home, Users, CreditCard, ShoppingBag, Menu, Bell, LogOut, Calendar, Megaphone, Mail, Archive, Settings, MessageCircle, Clock, Image, X, User as UserIcon, CheckCircle2, ClipboardCheck, Star, Award, FileText, Clover, UserCircle, FileSignature } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
@@ -503,6 +503,7 @@ export default function Layout({ children, currentPageName }) {
   const [urgentMessagesCount, setUrgentMessagesCount] = useState(0);
   const [pendingCallupsCount, setPendingCallupsCount] = useState(0);
   const [pendingDocumentsCount, setPendingDocumentsCount] = useState(0);
+  const [pendingSignaturesCount, setPendingSignaturesCount] = useState(0);
   const [showSpecialScreen, setShowSpecialScreen] = useState(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [currentLang, setCurrentLang] = useState(() => {
@@ -787,51 +788,48 @@ export default function Layout({ children, currentPageName }) {
     useEffect(() => {
       if (!user || isAdmin) return;
 
-      const checkPendingDocuments = async () => {
+      const checkPendingSignatures = async () => {
         try {
-          const allDocuments = await base44.entities.Document.list();
           const allPlayers = await base44.entities.Player.list();
           const myPlayers = allPlayers.filter(p => 
             p.email_padre === user.email || p.email_tutor_2 === user.email
           );
 
           if (myPlayers.length === 0) {
-            setPendingDocumentsCount(0);
+            setPendingSignaturesCount(0);
             return;
           }
 
           let pending = 0;
 
-          allDocuments.forEach(doc => {
-            if (!doc.publicado || !doc.requiere_firma) return;
+          const calcularEdad = (fechaNac) => {
+            if (!fechaNac) return null;
+            const hoy = new Date();
+            const nacimiento = new Date(fechaNac);
+            let edad = hoy.getFullYear() - nacimiento.getFullYear();
+            const m = hoy.getMonth() - nacimiento.getMonth();
+            if (m < 0 || (m === 0 && hoy.getDate() < nacimiento.getDate())) edad--;
+            return edad;
+          };
 
-            const isRelevant = doc.tipo_destinatario === "individual" 
-              ? myPlayers.some(p => doc.jugadores_destino?.includes(p.id))
-              : (doc.categoria_destino === "Todos" || myPlayers.some(p => p.deporte === doc.categoria_destino));
+          myPlayers.forEach(player => {
+            const hasEnlaceJugador = !!player.enlace_firma_jugador;
+            const hasEnlaceTutor = !!player.enlace_firma_tutor;
+            const firmaJugadorOk = player.firma_jugador_completada === true;
+            const firmaTutorOk = player.firma_tutor_completada === true;
+            const esMayorDeEdad = calcularEdad(player.fecha_nacimiento) >= 18;
 
-            if (isRelevant) {
-              myPlayers.forEach(player => {
-                const isRelevantForPlayer = doc.tipo_destinatario === "individual" 
-                  ? doc.jugadores_destino?.includes(player.id)
-                  : (doc.categoria_destino === "Todos" || player.deporte === doc.categoria_destino);
-
-                if (isRelevantForPlayer) {
-                  const firma = doc.firmas?.find(f => f.jugador_id === player.id);
-                  if (!firma || (!firma.firmado && !firma.confirmado_firma_externa)) {
-                    pending++;
-                  }
-                }
-              });
-            }
+            if (hasEnlaceJugador && !firmaJugadorOk) pending++;
+            if (hasEnlaceTutor && !firmaTutorOk && !esMayorDeEdad) pending++;
           });
 
-          setPendingDocumentsCount(pending);
+          setPendingSignaturesCount(pending);
         } catch (error) {
-          console.error("Error checking pending documents:", error);
+          console.error("Error checking pending signatures:", error);
         }
       };
 
-      checkPendingDocuments();
+      checkPendingSignatures();
     }, [user, isAdmin]);
 
 
@@ -952,11 +950,12 @@ export default function Layout({ children, currentPageName }) {
     { title: "Jugadores", url: createPageUrl("ParentPlayers"), icon: Users },
     { title: "Pagos", url: createPageUrl("ParentPayments"), icon: CreditCard },
     { title: "🏆 Convocatorias", url: createPageUrl("ParentCallups"), icon: Bell, badge: pendingCallupsCount > 0 ? pendingCallupsCount : null, urgentBadge: pendingCallupsCount > 0 },
+    { title: "🖊️ Firmas Federación", url: createPageUrl("FederationSignatures"), icon: FileSignature, badge: pendingSignaturesCount > 0 ? pendingSignaturesCount : null, urgentBadge: pendingSignaturesCount > 0 },
     { title: "Calendario", url: createPageUrl("Calendar"), icon: Calendar },
     { title: "🎉 Eventos Club", url: createPageUrl("ParentEventRSVP"), icon: Calendar },
     { title: "📋 Encuestas", url: createPageUrl("Surveys"), icon: FileText },
     { title: "Anuncios", url: createPageUrl("Announcements"), icon: Megaphone },
-    { title: "📄 Documentos", url: createPageUrl("ParentDocuments"), icon: FileText, badge: pendingDocumentsCount > 0 ? pendingDocumentsCount : null, urgentBadge: pendingDocumentsCount > 0 },
+    { title: "📄 Documentos", url: createPageUrl("ParentDocuments"), icon: FileText },
     { title: "Pedidos Ropa", url: createPageUrl("ClothingOrders"), icon: ShoppingBag },
     ...(loteriaVisible ? [{ title: "🍀 Lotería Navidad", url: createPageUrl("ParentLottery"), icon: Clover }] : []),
     { title: "Horarios", url: createPageUrl("ParentTrainingSchedules"), icon: Clock },
