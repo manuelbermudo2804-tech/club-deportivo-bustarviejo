@@ -87,18 +87,28 @@ export default function ParentPayments() {
     }
   }, []);
 
+  // Obtener configuración de temporada para verificar si notificaciones están activas
+  const { data: seasonConfig } = useQuery({
+    queryKey: ['seasonConfig'],
+    queryFn: async () => {
+      const configs = await base44.entities.SeasonConfig.list();
+      return configs.find(c => c.activa === true);
+    },
+  });
+
   const createPaymentMutation = useMutation({
     mutationFn: async (paymentData) => {
       const payment = await base44.entities.Payment.create(paymentData);
       
-      // Send email to club
+      // Send email to club (solo si notificaciones están activadas)
       const player = players.find(p => p.id === paymentData.jugador_id);
       try {
-        console.log('📧 [ParentPayments] Enviando notificación de pago a admin');
-        await base44.integrations.Core.SendEmail({
-          from_name: "CD Bustarviejo - Sistema de Pagos",
-          to: "cdbustarviejo@gmail.com",
-          subject: `Nuevo Pago Registrado - ${paymentData.jugador_nombre}`,
+        if (seasonConfig?.notificaciones_admin_email) {
+          console.log('📧 [ParentPayments] Enviando notificación de pago a admin');
+          await base44.integrations.Core.SendEmail({
+            from_name: "CD Bustarviejo - Sistema de Pagos",
+            to: "cdbustarviejo@gmail.com",
+            subject: `Nuevo Pago Registrado - ${paymentData.jugador_nombre}`,
           body: `
             <h2>Nuevo Pago Registrado</h2>
             <p><strong>Jugador:</strong> ${paymentData.jugador_nombre}</p>
@@ -116,7 +126,8 @@ export default function ParentPayments() {
             <hr>
             <p style="font-size: 12px; color: #666;">Registrado el ${new Date().toLocaleString('es-ES')}</p>
           `
-        });
+          });
+        }
         
         // Send confirmation to parents
         const confirmBody = `Estimados padres/tutores,
@@ -193,11 +204,12 @@ Email: cdbustarviejo@gmail.com
       const player = players.find(p => p.id === payment.jugador_id);
       
       try {
-        console.log('📧 [ParentPayments] Enviando notificación de justificante a admin');
-        await base44.integrations.Core.SendEmail({
-          from_name: "CD Bustarviejo - Sistema de Pagos",
-          to: "cdbustarviejo@gmail.com",
-          subject: `Justificante de Pago Recibido - ${payment.jugador_nombre}`,
+        if (seasonConfig?.notificaciones_admin_email) {
+          console.log('📧 [ParentPayments] Enviando notificación de justificante a admin');
+          await base44.integrations.Core.SendEmail({
+            from_name: "CD Bustarviejo - Sistema de Pagos",
+            to: "cdbustarviejo@gmail.com",
+            subject: `Justificante de Pago Recibido - ${payment.jugador_nombre}`,
           body: `
             <h2>Nuevo Justificante de Pago Subido</h2>
             <p><strong>Jugador:</strong> ${payment.jugador_nombre}</p>
@@ -214,7 +226,8 @@ Email: cdbustarviejo@gmail.com
             <hr>
             <p style="font-size: 12px; color: #666;">Justificante subido el ${new Date().toLocaleString('es-ES')}</p>
           `
-        });
+          });
+        }
         
         // Send confirmation to parents
         const confirmBody = `Estimados padres/tutores,
