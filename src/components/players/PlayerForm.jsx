@@ -107,6 +107,7 @@ export default function PlayerForm({ player, onSubmit, onCancel, isSubmitting, i
   const [currentUser, setCurrentUser] = useState(null);
   const [selectedPreviousPlayer, setSelectedPreviousPlayer] = useState(null);
   const [seasonConfig, setSeasonConfig] = useState(null);
+  const [showCondiciones, setShowCondiciones] = useState(false);
 
   const categories = getCategoriesWithYears();
 
