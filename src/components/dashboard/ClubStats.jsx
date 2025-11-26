@@ -38,28 +38,42 @@ export default function ClubStats({ players = [], payments = [], attendances = [
 
   // Ingresos por mes
   const monthlyRevenue = useMemo(() => {
-    const monthRevenue = {};
     const now = new Date();
+    const months = [];
     
+    // Crear array ordenado de los últimos 6 meses
     for (let i = 5; i >= 0; i--) {
       const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
-      const monthKey = date.toLocaleDateString('es-ES', { month: 'short', year: '2-digit' });
-      monthRevenue[monthKey] = 0;
+      months.push({
+        date,
+        key: `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`,
+        label: date.toLocaleDateString('es-ES', { month: 'short', year: '2-digit' }),
+        ingresos: 0
+      });
     }
 
+    // Sumar ingresos de pagos confirmados
     payments.forEach(payment => {
-      if (payment.estado === "Pagado" && payment.fecha_pago) {
-        const paymentDate = new Date(payment.fecha_pago);
-        const monthKey = paymentDate.toLocaleDateString('es-ES', { month: 'short', year: '2-digit' });
-        if (monthRevenue[monthKey] !== undefined) {
-          monthRevenue[monthKey] += payment.cantidad || 0;
+      if (payment.estado === "Pagado") {
+        // Intentar obtener fecha del pago (fecha_pago o created_date)
+        const dateStr = payment.fecha_pago || payment.created_date;
+        if (!dateStr) return;
+        
+        const paymentDate = new Date(dateStr);
+        if (isNaN(paymentDate.getTime())) return;
+        
+        const paymentKey = `${paymentDate.getFullYear()}-${String(paymentDate.getMonth() + 1).padStart(2, '0')}`;
+        
+        const monthData = months.find(m => m.key === paymentKey);
+        if (monthData) {
+          monthData.ingresos += Number(payment.cantidad) || 0;
         }
       }
     });
 
-    return Object.entries(monthRevenue).map(([month, amount]) => ({
-      month,
-      ingresos: Math.round(amount)
+    return months.map(m => ({
+      month: m.label,
+      ingresos: Math.round(m.ingresos)
     }));
   }, [payments]);
 
@@ -82,16 +96,23 @@ export default function ClubStats({ players = [], payments = [], attendances = [
     const status = {
       "Pagado": 0,
       "Pendiente": 0,
-      "En revisión": 0
+      "En revisión": 0,
+      "Anulado": 0
     };
 
     payments.forEach(payment => {
-      if (status[payment.estado] !== undefined) {
-        status[payment.estado]++;
+      const estado = payment.estado || "Pendiente";
+      if (status[estado] !== undefined) {
+        status[estado]++;
+      } else {
+        status["Pendiente"]++;
       }
     });
 
-    return Object.entries(status).map(([name, value]) => ({ name, value }));
+    // Filtrar estados con valor 0 para mejor visualización, excepto los principales
+    return Object.entries(status)
+      .filter(([name, value]) => value > 0 || name === "Pagado" || name === "Pendiente")
+      .map(([name, value]) => ({ name, value }));
   }, [payments]);
 
   // Estadísticas rápidas
