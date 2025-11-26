@@ -190,6 +190,7 @@ export default function Home() {
   const stats = useMemo(() => {
     const activePlayers = players?.filter(p => p.activo).length || 0;
     const pendingPayments = payments?.filter(p => p.estado === "Pendiente").length || 0;
+    const reviewPayments = payments?.filter(p => p.estado === "En revisión").length || 0;
     const paidPayments = payments?.filter(p => p.estado === "Pagado").length || 0;
     const unreadMessages = messages?.filter(m => !m.leido && m.tipo === "padre_a_grupo").length || 0;
 
@@ -254,7 +255,7 @@ export default function Home() {
       });
     }
 
-    return { activePlayers, pendingPayments, paidPayments, unreadMessages, pendingCallups, pendingSignatures, adminPendingSignatures };
+    return { activePlayers, pendingPayments, reviewPayments, paidPayments, unreadMessages, pendingCallups, pendingSignatures, adminPendingSignatures };
   }, [players, payments, messages, callups, user, hasPlayers, isAdmin]);
 
   const handleMatchAppClick = useMemo(() => () => {
