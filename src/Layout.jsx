@@ -876,9 +876,11 @@ export default function Layout({ children, currentPageName }) {
     { title: "Histórico", url: createPageUrl("PaymentHistory"), icon: Archive },
     { title: "⚙️ Configuración Financiera", url: createPageUrl("FinancialConfiguration"), icon: Settings },
     { title: "💰 Patrocinios", url: createPageUrl("Sponsorships"), icon: CreditCard },
-    { title: "📱 Configurar PWA", url: createPageUrl("PWASetup"), icon: Settings },
-    { title: "Usuarios", url: createPageUrl("UserManagement"), icon: Users },
-    ];
+              { title: "⚙️ Temporadas", url: createPageUrl("SeasonManagement"), icon: Settings },
+              { title: "🏷️ Categorías", url: createPageUrl("CategoryManagement"), icon: Settings },
+              { title: "📱 Configurar PWA", url: createPageUrl("PWASetup"), icon: Settings },
+              { title: "Usuarios", url: createPageUrl("UserManagement"), icon: Users },
+              ];
 
   const coachNavigationItems = [
       { title: "🏠 Inicio", url: createPageUrl("Home"), icon: Home },
