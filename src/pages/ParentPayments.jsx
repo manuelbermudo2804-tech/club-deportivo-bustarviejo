@@ -310,7 +310,8 @@ Email: cdbustarviejo@gmail.com
     const now = new Date();
     const year = now.getFullYear();
     const month = now.getMonth() + 1;
-    return month >= 9 ? `${year}/${year + 1}` : `${year - 1}/${year}`;
+    // Junio (6) inicia inscripciones para la siguiente temporada
+    return month >= 6 ? `${year}/${year + 1}` : `${year - 1}/${year}`;
   };
   
   const currentSeason = getCurrentSeason();
