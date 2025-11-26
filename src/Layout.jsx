@@ -28,6 +28,7 @@ import AdminOnboarding from "@/components/onboarding/AdminOnboarding";
 import CoachOnboarding from "@/components/onboarding/CoachOnboarding";
 import CoordinatorOnboarding from "@/components/onboarding/CoordinatorOnboarding";
 import TreasurerOnboarding from "@/components/onboarding/TreasurerOnboarding";
+import SponsorBanner from "./components/sponsors/SponsorBanner";
 
 const CLUB_LOGO_URL = `https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6911b8e453ca3ac01fb134d6/e3f0a8e26_logo_cd_bustarviejo_mediano.jpg?t=${Date.now()}`;
 
@@ -1205,9 +1206,20 @@ export default function Layout({ children, currentPageName }) {
           </div>
         </nav>
 
-        <main className="lg:ml-72 min-h-screen pt-[120px] lg:pt-0">
+        <main className="lg:ml-72 min-h-screen pt-[120px] lg:pt-0 pb-20 lg:pb-0">
           {children}
         </main>
+
+        {/* Banner de Patrocinadores - Footer fijo en móvil */}
+        {loteriaVisible === false && null}
+        {user && (
+          <div className="lg:ml-72 fixed bottom-0 left-0 right-0 z-40">
+            {(() => {
+              // Solo mostrar si mostrar_patrocinadores está activo (se lee de loteriaVisible que viene del mismo useEffect)
+              return null; // Se controla por el estado sponsorBannerVisible
+            })()}
+          </div>
+        )}
       </div>
     </>
   );
