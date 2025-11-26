@@ -452,15 +452,9 @@ export default function Home() {
           gradient: "from-slate-600 to-slate-700",
         },
         {
-          title: "⚙️ Configuración",
+          title: "⚙️ Configuración Financiera",
           icon: Settings,
-          url: createPageUrl("SeasonManagement"),
-          gradient: "from-slate-600 to-slate-700",
-        },
-        {
-          title: "⚙️ Categorías y Cuotas",
-          icon: Settings,
-          url: createPageUrl("CategoryManagement"),
+          url: createPageUrl("FinancialConfiguration"),
           gradient: "from-slate-600 to-slate-700",
         },
         {
@@ -538,15 +532,9 @@ export default function Home() {
           gradient: "from-amber-600 to-amber-700",
         },
         {
-          title: "⚙️ Temporadas",
+          title: "⚙️ Configuración Financiera",
           icon: Settings,
-          url: createPageUrl("SeasonManagement"),
-          gradient: "from-slate-600 to-slate-700",
-        },
-        {
-          title: "⚙️ Categorías y Cuotas",
-          icon: Settings,
-          url: createPageUrl("CategoryManagement"),
+          url: createPageUrl("FinancialConfiguration"),
           gradient: "from-slate-600 to-slate-700",
         },
         {
