@@ -4,8 +4,9 @@ import { motion } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Pencil, Mail, Phone, User, Eye, Clock, Heart, FileText, CheckCircle2, AlertCircle, Loader2, FileSignature } from "lucide-react";
+import { Pencil, Mail, Phone, User, Eye, Clock, Heart, FileText, CheckCircle2, AlertCircle, Loader2, FileSignature, Download } from "lucide-react";
 import PlayerDetailDialog from "./PlayerDetailDialog";
+import PlayerDocumentDownload from "./PlayerDocumentDownload";
 
 const categoryColors = {
   "Prebenjamín": "bg-purple-100 text-purple-700",
