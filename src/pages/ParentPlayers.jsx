@@ -110,31 +110,48 @@ export default function ParentPlayers() {
               });
               console.log(`📋 Descuento actualizado para ${sibling.nombre}: ${shouldHaveDiscount ? '25€' : 'sin descuento'}`);
               
-              // Recalcular pagos PENDIENTES de este hermano (solo el de Junio/inscripción)
-              const siblingPendingPayments = allPayments.filter(p => 
-                p.jugador_id === sibling.id && 
-                p.estado === "Pendiente" &&
-                p.mes === "Junio"
-              );
-              
-              for (const payment of siblingPendingPayments) {
-                const currentAmount = payment.cantidad || 0;
-                let newAmount = currentAmount;
+              // Buscar dónde aplicar el descuento de 25€
+              if (shouldHaveDiscount && !currentHasDiscount) {
+                // El hermano ahora tiene derecho a descuento - buscar dónde aplicarlo
                 
-                if (shouldHaveDiscount && !currentHasDiscount) {
-                  // Ahora tiene descuento, restar 25€
-                  newAmount = currentAmount - 25;
-                } else if (!shouldHaveDiscount && currentHasDiscount) {
-                  // Ya no tiene descuento, sumar 25€
-                  newAmount = currentAmount + 25;
-                }
+                // Primero intentar en Junio si está pendiente
+                const junioPendiente = allPayments.find(p => 
+                  p.jugador_id === sibling.id && 
+                  p.estado === "Pendiente" &&
+                  p.mes === "Junio"
+                );
                 
-                if (newAmount !== currentAmount && newAmount > 0) {
-                  await base44.entities.Payment.update(payment.id, {
-                    cantidad: newAmount,
-                    notas: `${payment.notas || ''} [Descuento hermano ${shouldHaveDiscount ? 'aplicado' : 'removido'} automáticamente]`.trim()
-                  });
-                  console.log(`💰 Pago de ${sibling.nombre} actualizado: ${currentAmount}€ → ${newAmount}€`);
+                if (junioPendiente) {
+                  // Aplicar descuento en Junio
+                  const newAmount = (junioPendiente.cantidad || 0) - 25;
+                  if (newAmount > 0) {
+                    await base44.entities.Payment.update(junioPendiente.id, {
+                      cantidad: newAmount,
+                      notas: `${junioPendiente.notas || ''} [Descuento hermano 25€ aplicado]`.trim()
+                    });
+                    console.log(`💰 Descuento aplicado en Junio de ${sibling.nombre}: -25€`);
+                  }
+                } else {
+                  // Junio ya está pagado/en revisión - aplicar en siguiente cuota pendiente
+                  const siguienteCuotaPendiente = allPayments.find(p => 
+                    p.jugador_id === sibling.id && 
+                    p.estado === "Pendiente" &&
+                    (p.mes === "Septiembre" || p.mes === "Diciembre")
+                  );
+                  
+                  if (siguienteCuotaPendiente) {
+                    const newAmount = (siguienteCuotaPendiente.cantidad || 0) - 25;
+                    if (newAmount > 0) {
+                      await base44.entities.Payment.update(siguienteCuotaPendiente.id, {
+                        cantidad: newAmount,
+                        notas: `${siguienteCuotaPendiente.notas || ''} [Descuento hermano 25€ aplicado - trasladado de inscripción]`.trim()
+                      });
+                      console.log(`💰 Descuento trasladado a ${siguienteCuotaPendiente.mes} de ${sibling.nombre}: -25€`);
+                    }
+                  } else {
+                    // No hay cuotas pendientes - guardar nota en el jugador para aplicar manualmente
+                    console.log(`⚠️ ${sibling.nombre} tiene derecho a 25€ de descuento pero no hay cuotas pendientes`);
+                  }
                 }
               }
             }
