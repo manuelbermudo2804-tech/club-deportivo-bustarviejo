@@ -647,7 +647,7 @@ export default function PlayerForm({ player, onSubmit, onCancel, isSubmitting, i
                           👨‍👩‍👧‍👦 ¿Tienes otro hijo/a inscrito?
                         </p>
                         <p className="text-xs text-blue-700">
-                          Carga los datos del tutor de un jugador ya registrado para no repetir
+                          Carga los datos de los tutores de un jugador ya registrado para no repetir
                         </p>
                       </div>
                       {!usePreviousTutorData ? (
@@ -671,7 +671,7 @@ export default function PlayerForm({ player, onSubmit, onCancel, isSubmitting, i
                     </div>
                     {usePreviousTutorData && (
                       <p className="text-xs text-green-700 mt-2">
-                        ✅ Datos cargados. Puedes modificar cualquier campo si es necesario.
+                        ✅ Datos cargados (tutor principal y segundo progenitor). Puedes modificar cualquier campo si es necesario.
                       </p>
                     )}
                   </div>
@@ -931,6 +931,12 @@ export default function PlayerForm({ player, onSubmit, onCancel, isSubmitting, i
                   <AlertCircle className="h-4 w-4 text-green-600" />
                   <AlertDescription className="text-green-800 text-sm">
                     <strong>👥 Acceso compartido:</strong> Si añades el email del segundo progenitor, podrá acceder a la app con su propia cuenta y <strong>verá exactamente la misma información</strong> del jugador: pagos, convocatorias, documentos, chat del equipo, etc.
+                  </AlertDescription>
+                </Alert>
+                <Alert className="bg-amber-50 border-amber-200">
+                  <AlertCircle className="h-4 w-4 text-amber-600" />
+                  <AlertDescription className="text-amber-800 text-sm">
+                    <strong>💡 Nota:</strong> Si el segundo progenitor ya está registrado en la app de otro hijo, <strong>automáticamente verá a todos sus hijos</strong> en su panel. Solo es necesario añadirlo aquí si es diferente al registrado anteriormente (ej: hijos de padres/madres diferentes).
                   </AlertDescription>
                 </Alert>
                 <Alert className="bg-blue-50 border-blue-200">
