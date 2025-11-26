@@ -82,7 +82,35 @@ export default function ParentLottery() {
   });
 
   const createOrderMutation = useMutation({
-    mutationFn: (orderData) => base44.entities.LotteryOrder.create(orderData),
+    mutationFn: async (orderData) => {
+      const order = await base44.entities.LotteryOrder.create(orderData);
+      
+      // Notificar al admin si las notificaciones están activas
+      if (seasonConfig?.notificaciones_admin_email) {
+        try {
+          await base44.integrations.Core.SendEmail({
+            from_name: "CD Bustarviejo - Lotería",
+            to: "cdbustarviejo@gmail.com",
+            subject: `🍀 Nuevo Pedido de Lotería - ${orderData.jugador_nombre}`,
+            body: `
+              <h2>Nuevo Pedido de Lotería de Navidad</h2>
+              <p><strong>Solicitante:</strong> ${orderData.jugador_nombre}</p>
+              <p><strong>Categoría:</strong> ${orderData.jugador_categoria}</p>
+              <p><strong>Email:</strong> ${orderData.email_padre}</p>
+              <p><strong>Décimos:</strong> ${orderData.numero_decimos}</p>
+              <p><strong>Total:</strong> ${orderData.total}€</p>
+              ${orderData.justificante_url ? `<p><strong>Justificante:</strong> <a href="${orderData.justificante_url}">Ver</a></p>` : '<p><strong>Pago:</strong> Pendiente (al entrenador)</p>'}
+              <hr>
+              <p style="font-size: 12px; color: #666;">Registrado el ${new Date().toLocaleString('es-ES')}</p>
+            `
+          });
+        } catch (error) {
+          console.error("Error sending lottery order notification:", error);
+        }
+      }
+      
+      return order;
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['myLotteryOrders'] });
       setShowForm(false);

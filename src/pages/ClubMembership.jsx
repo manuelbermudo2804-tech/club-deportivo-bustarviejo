@@ -80,12 +80,14 @@ export default function ClubMembership() {
         activo: true
       });
 
-      // Notificar al admin
-      await base44.integrations.Core.SendEmail({
-        to: "cdbustarviejo@gmail.com",
-        subject: `🎉 Nueva solicitud de socio: ${data.nombre_completo}`,
-        body: `Se ha recibido una nueva solicitud de socio:\n\nNombre: ${data.nombre_completo}\nDNI: ${data.dni}\nEmail: ${data.email}\nTeléfono: ${data.telefono}\nTipo: ${data.tipo_inscripcion}\nEs segundo progenitor: ${data.es_segundo_progenitor ? "Sí" : "No"}\n\nPago: ${data.justificante_url ? "Justificante subido - revisar" : "Pendiente"}\n\nAccede al panel de administración para gestionar.`
-      });
+      // Notificar al admin (solo si notificaciones están activas)
+      if (seasonConfig?.notificaciones_admin_email) {
+        await base44.integrations.Core.SendEmail({
+          to: "cdbustarviejo@gmail.com",
+          subject: `🎉 Nueva solicitud de socio: ${data.nombre_completo}`,
+          body: `Se ha recibido una nueva solicitud de socio:\n\nNombre: ${data.nombre_completo}\nDNI: ${data.dni}\nEmail: ${data.email}\nTeléfono: ${data.telefono}\nTipo: ${data.tipo_inscripcion}\nEs segundo progenitor: ${data.es_segundo_progenitor ? "Sí" : "No"}\n\nPago: ${data.justificante_url ? "Justificante subido - revisar" : "Pendiente"}\n\nAccede al panel de administración para gestionar.`
+        });
+      }
 
       return membership;
     },
