@@ -700,6 +700,28 @@ export default function Home() {
 
 
 
+        {/* Banner de Firmas Pendientes para Admin */}
+        {isAdmin && stats.adminPendingSignatures > 0 && (
+          <Link to={createPageUrl("FederationSignaturesAdmin")}>
+            <div className="bg-gradient-to-r from-yellow-600 to-orange-600 rounded-2xl p-3 lg:p-4 shadow-xl transition-all hover:scale-105 active:scale-95 border-2 border-yellow-500 animate-pulse">
+              <div className="flex items-start gap-2 lg:gap-3">
+                <FileSignature className="w-5 h-5 lg:w-6 lg:h-6 text-white flex-shrink-0 mt-0.5" />
+                <div className="flex-1">
+                  <p className="text-white font-bold text-sm lg:text-lg">
+                    🖊️ Firmas de Federación Pendientes
+                  </p>
+                  <p className="text-yellow-100 text-xs lg:text-sm mt-1">
+                    Hay {stats.adminPendingSignatures} {stats.adminPendingSignatures === 1 ? 'firma pendiente' : 'firmas pendientes'} en el club
+                  </p>
+                  <p className="text-white text-xs mt-2 font-semibold">
+                    👉 Pulsa aquí para gestionar
+                  </p>
+                </div>
+              </div>
+            </div>
+          </Link>
+        )}
+
         {isCoach && hasPlayers && activeSurveys.length > 0 && (
           <Link to={createPageUrl("Surveys")}>
             <div className="bg-gradient-to-r from-purple-600 to-purple-700 rounded-2xl p-3 lg:p-4 shadow-xl transition-all hover:scale-105 active:scale-95 border-2 border-purple-500 animate-pulse">
