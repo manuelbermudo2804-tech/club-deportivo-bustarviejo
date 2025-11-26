@@ -6,6 +6,8 @@ import {
   FileText, 
   Mic, 
   Camera,
+  Video,
+  MapPin,
   Loader2 
 } from "lucide-react";
 import {
@@ -72,6 +74,62 @@ export default function FileAttachmentButton({ onFileUploaded, disabled }) {
     }
   };
 
+  const handleVideoSelect = async (e) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      // Validar tamaño (max 50MB para videos)
+      if (file.size > 50 * 1024 * 1024) {
+        toast.error("El video es demasiado grande. Máximo 50MB");
+        return;
+      }
+      await handleFileUpload(file, 'video');
+    }
+  };
+
+  const handleVideoCapture = async (e) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 50 * 1024 * 1024) {
+        toast.error("El video es demasiado grande. Máximo 50MB");
+        return;
+      }
+      await handleFileUpload(file, 'video');
+    }
+  };
+
+  const handleLocationShare = () => {
+    if (!navigator.geolocation) {
+      toast.error("Tu navegador no soporta geolocalización");
+      return;
+    }
+
+    setUploading(true);
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const { latitude, longitude } = position.coords;
+        const mapsUrl = `https://www.google.com/maps?q=${latitude},${longitude}`;
+        
+        const attachment = {
+          url: mapsUrl,
+          nombre: "📍 Ubicación compartida",
+          tipo: "ubicacion",
+          tamano: 0,
+          coords: { lat: latitude, lng: longitude }
+        };
+
+        onFileUploaded(attachment);
+        toast.success("📍 Ubicación compartida");
+        setUploading(false);
+      },
+      (error) => {
+        console.error("Error getting location:", error);
+        toast.error("No se pudo obtener la ubicación. Verifica los permisos.");
+        setUploading(false);
+      },
+      { enableHighAccuracy: true, timeout: 10000 }
+    );
+  };
+
   return (
     <>
       <input
@@ -101,6 +159,21 @@ export default function FileAttachmentButton({ onFileUploaded, disabled }) {
         id="audio-input"
         accept="audio/*"
         onChange={handleAudioSelect}
+        className="hidden"
+      />
+      <input
+        type="file"
+        id="video-input"
+        accept="video/*"
+        onChange={handleVideoSelect}
+        className="hidden"
+      />
+      <input
+        type="file"
+        id="video-capture-input"
+        accept="video/*"
+        capture="environment"
+        onChange={handleVideoCapture}
         className="hidden"
       />
 
@@ -144,6 +217,22 @@ export default function FileAttachmentButton({ onFileUploaded, disabled }) {
           >
             <Mic className="w-4 h-4 mr-2 text-purple-600" />
             Audio
+          </DropdownMenuItem>
+          <DropdownMenuItem
+            onClick={() => document.getElementById('video-capture-input').click()}
+          >
+            <Video className="w-4 h-4 mr-2 text-red-600" />
+            Grabar Video
+          </DropdownMenuItem>
+          <DropdownMenuItem
+            onClick={() => document.getElementById('video-input').click()}
+          >
+            <Video className="w-4 h-4 mr-2 text-pink-600" />
+            Seleccionar Video
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={handleLocationShare}>
+            <MapPin className="w-4 h-4 mr-2 text-teal-600" />
+            Compartir Ubicación
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
