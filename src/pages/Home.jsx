@@ -676,32 +676,13 @@ export default function Home() {
           )}
         </div>
 
+        {/* Resumen de jugadores */}
         <div className="bg-slate-800 rounded-3xl p-4 lg:p-6 shadow-2xl border-2 border-slate-700">
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
-            <div className="text-center">
-              <div className="text-2xl lg:text-4xl font-bold text-orange-500 mb-1">
-                {stats.activePlayers}
-              </div>
-              <div className="text-slate-400 text-[10px] lg:text-sm">Jugadores Activos</div>
+          <div className="text-center">
+            <div className="text-3xl lg:text-5xl font-bold text-orange-500 mb-2">
+              {stats.activePlayers}
             </div>
-            <div className="text-center">
-              <div className="text-2xl lg:text-4xl font-bold text-red-500 mb-1">
-                {stats.pendingPayments}
-              </div>
-              <div className="text-slate-400 text-[10px] lg:text-sm">Pagos Pendientes</div>
-            </div>
-            <div className="text-center">
-              <div className="text-2xl lg:text-4xl font-bold text-green-500 mb-1">
-                {stats.paidPayments}
-              </div>
-              <div className="text-slate-400 text-[10px] lg:text-sm">Pagos Confirmados</div>
-            </div>
-            <div className="text-center">
-              <div className="text-2xl lg:text-4xl font-bold text-blue-500 mb-1">
-                {stats.unreadMessages}
-              </div>
-              <div className="text-slate-400 text-[10px] lg:text-sm">Mensajes Nuevos</div>
-            </div>
+            <div className="text-slate-400 text-sm lg:text-base">Jugadores Activos</div>
           </div>
         </div>
       </div>
