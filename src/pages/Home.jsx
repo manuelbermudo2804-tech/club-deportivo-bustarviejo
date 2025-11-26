@@ -672,14 +672,14 @@ export default function Home() {
             badge: stats.pendingCallups,
             badgeLabel: "pendientes"
           },
-          ...(stats.pendingSignatures > 0 ? [{
-            title: "🖊️ Firmas Federación",
+          {
+            title: "🖊️ Firmas Mis Hijos",
             icon: FileSignature,
             url: createPageUrl("FederationSignatures"),
             gradient: "from-yellow-600 to-orange-600",
             badge: stats.pendingSignatures,
             badgeLabel: "pendientes"
-          }] : [])
+          }
         );
       }
 
