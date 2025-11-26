@@ -71,6 +71,14 @@ export default function ParentPlayers() {
     initialData: [],
   });
 
+  const { data: seasonConfig } = useQuery({
+    queryKey: ['seasonConfig'],
+    queryFn: async () => {
+      const configs = await base44.entities.SeasonConfig.list();
+      return configs.find(c => c.activa === true);
+    },
+  });
+
   const createPlayerMutation = useMutation({
     mutationFn: async (playerData) => {
       const dataWithParentEmail = {
@@ -177,8 +185,9 @@ export default function ParentPlayers() {
       }
       
       try {
-        console.log('📧 [ParentPlayers] Enviando notificación de inscripción a admin');
-        await base44.integrations.Core.SendEmail({
+        if (seasonConfig?.notificaciones_admin_email) {
+          console.log('📧 [ParentPlayers] Enviando notificación de inscripción a admin');
+          await base44.integrations.Core.SendEmail({
           from_name: "CD Bustarviejo - Sistema de Inscripciones",
           to: "cdbustarviejo@gmail.com",
           subject: `Nueva Inscripción de Jugador - ${playerData.nombre}`,
@@ -205,7 +214,8 @@ export default function ParentPlayers() {
             <hr>
             <p style="font-size: 12px; color: #666;">Inscripción registrada el ${new Date().toLocaleString('es-ES')}</p>
           `
-        });
+          });
+        }
         // Send confirmation to parents
         try {
           console.log('📧 [ParentPlayers] Enviando confirmación de inscripción a padres:', { padre: playerData.email_padre, tutor2: playerData.email_tutor_2 });
