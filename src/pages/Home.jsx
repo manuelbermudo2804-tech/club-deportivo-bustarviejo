@@ -701,14 +701,51 @@ export default function Home() {
 
 
 
-        {/* Banner de Tareas Pendientes para Admin (sus propios hijos) */}
+        {/* Banner de Tareas Pendientes del Club para Admin */}
+        {isAdmin && (stats.reviewPayments > 0 || stats.adminPendingSignatures > 0 || stats.unreadMessages > 0) && (
+          <div className="bg-gradient-to-r from-red-600 to-orange-600 rounded-2xl p-3 lg:p-4 shadow-xl border-2 border-red-500">
+            <div className="flex items-start gap-2 lg:gap-3">
+              <Bell className="w-5 h-5 lg:w-6 lg:h-6 text-white flex-shrink-0 mt-0.5 animate-bounce" />
+              <div className="flex-1">
+                <p className="text-white font-bold text-sm lg:text-lg">
+                  📋 Tareas Pendientes del Club
+                </p>
+                <div className="flex flex-wrap gap-2 mt-2">
+                  {stats.reviewPayments > 0 && (
+                    <Link to={createPageUrl("Payments")}>
+                      <span className="inline-flex items-center gap-1 bg-green-500 text-white text-xs px-2 py-1 rounded-full font-semibold hover:bg-green-600 transition-colors">
+                        💳 {stats.reviewPayments} pagos por revisar
+                      </span>
+                    </Link>
+                  )}
+                  {stats.adminPendingSignatures > 0 && (
+                    <Link to={createPageUrl("FederationSignaturesAdmin")}>
+                      <span className="inline-flex items-center gap-1 bg-yellow-500 text-white text-xs px-2 py-1 rounded-full font-semibold hover:bg-yellow-600 transition-colors">
+                        🖊️ {stats.adminPendingSignatures} firmas pendientes
+                      </span>
+                    </Link>
+                  )}
+                  {stats.unreadMessages > 0 && (
+                    <Link to={createPageUrl("AdminChat")}>
+                      <span className="inline-flex items-center gap-1 bg-blue-500 text-white text-xs px-2 py-1 rounded-full font-semibold hover:bg-blue-600 transition-colors">
+                        💬 {stats.unreadMessages} mensajes sin leer
+                      </span>
+                    </Link>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Banner de Tareas Pendientes para Admin CON hijos */}
         {isAdmin && hasPlayers && (stats.pendingSignatures > 0 || stats.pendingCallups > 0) && (
           <div className="bg-gradient-to-r from-purple-600 to-indigo-600 rounded-2xl p-3 lg:p-4 shadow-xl border-2 border-purple-500">
             <div className="flex items-start gap-2 lg:gap-3">
-              <Bell className="w-5 h-5 lg:w-6 lg:h-6 text-white flex-shrink-0 mt-0.5" />
+              <Users className="w-5 h-5 lg:w-6 lg:h-6 text-white flex-shrink-0 mt-0.5" />
               <div className="flex-1">
                 <p className="text-white font-bold text-sm lg:text-lg">
-                  👨‍👩‍👧 Tareas Pendientes de Mis Hijos
+                  👨‍👩‍👧 Tareas de Mis Hijos
                 </p>
                 <div className="flex flex-wrap gap-2 mt-2">
                   {stats.pendingSignatures > 0 && (
@@ -729,28 +766,6 @@ export default function Home() {
               </div>
             </div>
           </div>
-        )}
-
-        {/* Banner de Firmas Pendientes del Club para Admin */}
-        {isAdmin && stats.adminPendingSignatures > 0 && (
-          <Link to={createPageUrl("FederationSignaturesAdmin")}>
-            <div className="bg-gradient-to-r from-yellow-600 to-orange-600 rounded-2xl p-3 lg:p-4 shadow-xl transition-all hover:scale-105 active:scale-95 border-2 border-yellow-500">
-              <div className="flex items-start gap-2 lg:gap-3">
-                <FileSignature className="w-5 h-5 lg:w-6 lg:h-6 text-white flex-shrink-0 mt-0.5" />
-                <div className="flex-1">
-                  <p className="text-white font-bold text-sm lg:text-lg">
-                    🖊️ Firmas Pendientes en el Club
-                  </p>
-                  <p className="text-yellow-100 text-xs lg:text-sm mt-1">
-                    Hay {stats.adminPendingSignatures} {stats.adminPendingSignatures === 1 ? 'firma pendiente' : 'firmas pendientes'} de familias
-                  </p>
-                  <p className="text-white text-xs mt-2 font-semibold">
-                    👉 Pulsa aquí para gestionar
-                  </p>
-                </div>
-              </div>
-            </div>
-          </Link>
         )}
 
         {/* Banner de Tareas Pendientes para Entrenadores/Coordinadores/Tesoreros con hijos */}
