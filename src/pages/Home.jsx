@@ -595,17 +595,7 @@ export default function Home() {
       <div className="px-4 lg:px-8 py-6 space-y-4 lg:space-y-6">
         <SocialLinks />
 
-        {/* Estadísticas del Club - Solo Admin */}
-        {isAdmin && players && payments && (
-          <Suspense fallback={<div className="text-white text-center">Cargando estadísticas...</div>}>
-            <ClubStats 
-              players={players} 
-              payments={payments} 
-              attendances={attendances}
-              evaluations={evaluations}
-            />
-          </Suspense>
-        )}
+
 
         {isCoach && hasPlayers && activeSurveys.length > 0 && (
           <Link to={createPageUrl("Surveys")}>
