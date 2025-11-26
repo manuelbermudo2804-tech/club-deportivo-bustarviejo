@@ -471,8 +471,22 @@ export default function Home() {
         }
       );
     } else if (isTreasurer) {
-      // Tesorero - Acceso financiero
+      // Tesorero - Acceso financiero completo
       items.push(
+        {
+          title: "📊 Panel Financiero",
+          icon: TrendingUp,
+          url: createPageUrl("TreasurerDashboard"),
+          gradient: "from-emerald-600 to-emerald-700",
+        },
+        {
+          title: "👥 Jugadores",
+          icon: Users,
+          url: createPageUrl("Players"),
+          gradient: "from-orange-600 to-orange-700",
+          badge: stats.activePlayers,
+          badgeLabel: "activos"
+        },
         {
           title: "💰 Pagos",
           icon: CreditCard,
@@ -498,11 +512,41 @@ export default function Home() {
           icon: ShoppingBag,
           url: createPageUrl("ClothingOrders"),
           gradient: "from-red-600 to-red-700",
+        }
+      );
+
+      if (loteriaVisible) {
+        items.push({
+          title: "🍀 Gestión Lotería",
+          icon: Clover,
+          url: createPageUrl("LotteryManagement"),
+          gradient: "from-green-600 to-green-700",
+        });
+      }
+
+      items.push(
+        {
+          title: "🎫 Socios Club",
+          icon: Users,
+          url: createPageUrl("ClubMembership"),
+          gradient: "from-purple-600 to-purple-700",
+        },
+        {
+          title: "💰 Patrocinios",
+          icon: CreditCard,
+          url: createPageUrl("Sponsorships"),
+          gradient: "from-amber-600 to-amber-700",
         },
         {
           title: "⚙️ Temporadas",
           icon: Settings,
           url: createPageUrl("SeasonManagement"),
+          gradient: "from-slate-600 to-slate-700",
+        },
+        {
+          title: "⚙️ Categorías y Cuotas",
+          icon: Settings,
+          url: createPageUrl("CategoryManagement"),
           gradient: "from-slate-600 to-slate-700",
         },
         {
@@ -512,10 +556,34 @@ export default function Home() {
           gradient: "from-purple-600 to-purple-700",
         },
         {
+          title: "🎉 Eventos Club",
+          icon: Calendar,
+          url: createPageUrl("ParentEventRSVP"),
+          gradient: "from-indigo-600 to-indigo-700",
+        },
+        {
+          title: "📋 Encuestas",
+          icon: FileText,
+          url: createPageUrl("Surveys"),
+          gradient: "from-teal-600 to-teal-700",
+        },
+        {
           title: "📢 Anuncios",
           icon: Megaphone,
           url: createPageUrl("Announcements"),
           gradient: "from-pink-600 to-pink-700",
+        },
+        {
+          title: "⏰ Horarios",
+          icon: Clock,
+          url: createPageUrl("TrainingSchedules"),
+          gradient: "from-blue-600 to-blue-700",
+        },
+        {
+          title: "🖼️ Galería",
+          icon: Image,
+          url: createPageUrl("AdminGallery"),
+          gradient: "from-indigo-600 to-indigo-700",
         }
       );
 
@@ -546,18 +614,22 @@ export default function Home() {
             gradient: "from-green-600 to-green-700",
             badge: stats.pendingCallups,
             badgeLabel: "pendientes"
-          }
-        );
-        if (stats.pendingSignatures > 0) {
-          items.push({
-            title: "🖊️ Firmas Federación",
+          },
+          {
+            title: "🖊️ Firmas Mis Hijos",
             icon: FileSignature,
             url: createPageUrl("FederationSignatures"),
             gradient: "from-yellow-600 to-orange-600",
             badge: stats.pendingSignatures,
             badgeLabel: "pendientes"
-          });
-        }
+          },
+          {
+            title: "💬 Chat Familiar",
+            icon: MessageCircle,
+            url: createPageUrl("ParentChat"),
+            gradient: "from-teal-600 to-teal-700",
+          }
+        );
       }
 
       if (loteriaVisible && hasPlayers) {
