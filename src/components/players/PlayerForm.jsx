@@ -341,6 +341,57 @@ export default function PlayerForm({ player, onSubmit, onCancel, isSubmitting, i
           )}
 
           <form onSubmit={handleSubmit} className="space-y-6">
+            {/* Condiciones Generales de la Inscripción */}
+            <Collapsible open={showCondiciones} onOpenChange={setShowCondiciones}>
+              <div className="border-2 border-slate-200 rounded-lg overflow-hidden">
+                <CollapsibleTrigger asChild>
+                  <button type="button" className="w-full p-4 bg-slate-50 hover:bg-slate-100 transition-colors flex items-center justify-between text-left">
+                    <div className="flex items-center gap-2">
+                      <FileText className="w-5 h-5 text-slate-600" />
+                      <span className="font-bold text-slate-900">Condiciones Generales de la Inscripción</span>
+                    </div>
+                    {showCondiciones ? <ChevronUp className="w-5 h-5 text-slate-500" /> : <ChevronDown className="w-5 h-5 text-slate-500" />}
+                  </button>
+                </CollapsibleTrigger>
+                <CollapsibleContent>
+                  <div className="p-4 bg-white border-t space-y-3 text-sm text-slate-700">
+                    <ul className="list-disc list-outside ml-5 space-y-2">
+                      <li>
+                        La inscripción <strong>incluye la cuota de socios</strong> para la unidad familiar y se asignará al padre, madre o tutor en el caso de jugadores/as menores de 18 años. Las familias que lo deseen pueden inscribir como socios a más personas a través del apartado <strong>"Hacerse Socio"</strong> en el menú de la aplicación. <strong>Cuota de socio: 25 €</strong>
+                      </li>
+                      <li>
+                        En el caso de <strong>familias con más de un jugador/a</strong> se aplica un <strong>descuento de 25 €</strong> sobre la cuota de inscripción para los jugadores/as de menor edad.
+                      </li>
+                      <li>
+                        La inscripción incluye un <strong>seguro de accidentes</strong> o <strong>ficha federativa</strong>.
+                      </li>
+                      <li>
+                        Se realizarán <strong>dos entrenamientos a la semana + partido</strong> (si es grupo inscrito en la federación).
+                      </li>
+                      <li>
+                        En función de las condiciones climatológicas, es posible que se suspenda alguno de los entrenamientos durante el año.
+                      </li>
+                      <li>
+                        La imposibilidad de asistir a los entrenamientos no supondrá, en ningún caso, la disminución o exención del pago de las cuotas por temporada.
+                      </li>
+                      <li>
+                        <strong>La inscripción NO incluye la equipación y el pack de ropa de entrenamiento.</strong> Puedes realizar tus pedidos en el apartado <strong>"Pedidos Ropa"</strong> del menú.
+                      </li>
+                      <li>
+                        No se tramitará la ficha federativa, ni el seguro de accidentes, si no está entregada la ficha de inscripción y el importe correspondiente. Los jugadores/as no podrán realizar la actividad hasta no cumplir con estos requisitos.
+                      </li>
+                      <li>
+                        Si alguna familia se encuentra con dificultades económicas para realizar el pago en los plazos establecidos, rogamos que lo ponga en conocimiento de la Junta Directiva o Coordinador para buscar una solución. <strong>El objetivo del club es que nadie quede excluido por este motivo.</strong>
+                      </li>
+                      <li>
+                        Las fichas federativas se harán por riguroso orden de presentación de las inscripciones y pagos.
+                      </li>
+                    </ul>
+                  </div>
+                </CollapsibleContent>
+              </div>
+            </Collapsible>
+
             {/* Tipo de Inscripción */}
             {!player && seasonConfig?.permitir_renovaciones && (
               <>
