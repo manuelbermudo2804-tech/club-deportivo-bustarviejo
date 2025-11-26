@@ -74,8 +74,11 @@ export default function Home() {
     queryKey: ['players'],
     queryFn: () => base44.entities.Player.list(),
     initialData: [],
-    staleTime: 60000,
+    staleTime: 300000, // 5 minutos
+    gcTime: 600000, // 10 minutos
     refetchOnWindowFocus: false,
+    refetchOnMount: false,
+    refetchInterval: false,
     enabled: !!user,
   });
 
@@ -83,8 +86,11 @@ export default function Home() {
     queryKey: ['payments'],
     queryFn: () => base44.entities.Payment.list(),
     initialData: [],
-    staleTime: 60000,
+    staleTime: 300000,
+    gcTime: 600000,
     refetchOnWindowFocus: false,
+    refetchOnMount: false,
+    refetchInterval: false,
     enabled: !!user && (isAdmin || isTreasurer),
   });
 
@@ -92,8 +98,11 @@ export default function Home() {
     queryKey: ['chatMessages'],
     queryFn: () => base44.entities.ChatMessage.list(),
     initialData: [],
-    staleTime: 60000,
+    staleTime: 300000,
+    gcTime: 600000,
     refetchOnWindowFocus: false,
+    refetchOnMount: false,
+    refetchInterval: false,
     enabled: !!user && (isAdmin || isTreasurer),
   });
 
@@ -101,8 +110,11 @@ export default function Home() {
     queryKey: ['callups'],
     queryFn: () => base44.entities.Convocatoria.list(),
     initialData: [],
-    staleTime: 60000,
+    staleTime: 300000,
+    gcTime: 600000,
     refetchOnWindowFocus: false,
+    refetchOnMount: false,
+    refetchInterval: false,
     enabled: !!user,
   });
 
@@ -110,8 +122,11 @@ export default function Home() {
     queryKey: ['attendances'],
     queryFn: () => base44.entities.Attendance.list(),
     initialData: [],
-    staleTime: 60000,
+    staleTime: 300000,
+    gcTime: 600000,
     refetchOnWindowFocus: false,
+    refetchOnMount: false,
+    refetchInterval: false,
     enabled: !!user && isAdmin,
   });
 
@@ -119,8 +134,11 @@ export default function Home() {
     queryKey: ['evaluations'],
     queryFn: () => base44.entities.PlayerEvaluation.list(),
     initialData: [],
-    staleTime: 60000,
+    staleTime: 300000,
+    gcTime: 600000,
     refetchOnWindowFocus: false,
+    refetchOnMount: false,
+    refetchInterval: false,
     enabled: !!user && isAdmin,
   });
 
@@ -128,8 +146,11 @@ export default function Home() {
     queryKey: ['surveys'],
     queryFn: () => base44.entities.Survey.list('-created_date'),
     initialData: [],
-    staleTime: 60000,
+    staleTime: 300000,
+    gcTime: 600000,
     refetchOnWindowFocus: false,
+    refetchOnMount: false,
+    refetchInterval: false,
     enabled: !!user && (isCoach || isCoordinator) && hasPlayers,
   });
 
@@ -137,8 +158,11 @@ export default function Home() {
     queryKey: ['surveyResponses'],
     queryFn: () => base44.entities.SurveyResponse.list(),
     initialData: [],
-    staleTime: 60000,
+    staleTime: 300000,
+    gcTime: 600000,
     refetchOnWindowFocus: false,
+    refetchOnMount: false,
+    refetchInterval: false,
     enabled: !!user && (isCoach || isCoordinator) && hasPlayers,
   });
 
