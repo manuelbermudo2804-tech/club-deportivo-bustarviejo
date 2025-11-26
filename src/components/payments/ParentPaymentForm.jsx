@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
-import { Upload, X, Loader2, Info } from "lucide-react";
+import { Upload, X, Loader2, Info, Gift } from "lucide-react";
 import { toast } from "sonner";
 import { base44 } from "@/api/base44Client";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -443,17 +443,45 @@ export default function ParentPaymentForm({ players, payments = [], onSubmit, on
                   </div>
                 </div>
 
+                {/* Alerta de descuento por hermano */}
+                {selectedPlayer?.tiene_descuento_hermano && selectedPlayer?.descuento_aplicado > 0 && (
+                  <Alert className="bg-gradient-to-r from-purple-50 to-pink-50 border-2 border-purple-300">
+                    <Gift className="h-5 w-5 text-purple-600" />
+                    <AlertDescription className="text-purple-900">
+                      <p className="font-bold text-lg mb-1">🎉 ¡Descuento Familiar Aplicado!</p>
+                      <p className="text-sm">
+                        <strong>{selectedPlayer.nombre}</strong> tiene un descuento de <strong className="text-purple-700">{selectedPlayer.descuento_aplicado}€</strong> por tener hermanos mayores inscritos en el club.
+                      </p>
+                      <p className="text-xs mt-2 text-purple-700">
+                        Este descuento se aplica en la cuota de inscripción (Junio). El importe mostrado ya incluye el descuento.
+                      </p>
+                    </AlertDescription>
+                  </Alert>
+                )}
+
                 {cuotas && (
                   <Alert className="bg-green-50 border-green-300">
                     <Info className="h-4 w-4 text-green-600" />
                     <AlertDescription className="text-green-800">
                       <strong>📊 Cuotas para {selectedPlayer?.deporte}:</strong>
                       <div className="mt-2 space-y-1 text-sm">
-                        <p>• <strong>Inscripción (hasta 30 junio):</strong> {cuotas.inscripcion}€</p>
+                        <p>
+                          • <strong>Inscripción (hasta 30 junio):</strong> {cuotas.inscripcion}€
+                          {selectedPlayer?.tiene_descuento_hermano && selectedPlayer?.descuento_aplicado > 0 && (
+                            <span className="ml-2 text-purple-700 font-bold">
+                              → {cuotas.inscripcion - selectedPlayer.descuento_aplicado}€ (con descuento hermano)
+                            </span>
+                          )}
+                        </p>
                         <p>• <strong>Segunda Cuota (hasta 15 sept):</strong> {cuotas.segunda}€</p>
                         <p>• <strong>Tercera Cuota (hasta 15 dic):</strong> {cuotas.tercera}€</p>
                         <p className="pt-2 border-t border-green-300 mt-2">
                           <strong>Total Temporada (pago único):</strong> {cuotas.total}€
+                          {selectedPlayer?.tiene_descuento_hermano && selectedPlayer?.descuento_aplicado > 0 && (
+                            <span className="ml-2 text-purple-700 font-bold">
+                              → {cuotas.total - selectedPlayer.descuento_aplicado}€ (con descuento)
+                            </span>
+                          )}
                         </p>
                       </div>
                     </AlertDescription>
