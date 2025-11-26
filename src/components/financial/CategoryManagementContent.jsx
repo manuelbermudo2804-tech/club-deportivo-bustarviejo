@@ -223,18 +223,47 @@ export default function CategoryManagementContent() {
   return (
     <div className="space-y-6">
       {/* Información general */}
+      <Alert className="bg-gradient-to-r from-orange-50 to-orange-100 border-orange-300">
+        <Euro className="w-5 h-5 text-orange-600" />
+        <AlertDescription className="text-orange-900 ml-2">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div>
+              <strong className="text-lg">💰 Cuotas de la Temporada {activeSeason?.temporada || "actual"}</strong>
+              <div className="mt-2 grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div className="bg-white rounded-lg p-3 border border-orange-200">
+                  <p className="text-xs text-slate-500">Cuota Única</p>
+                  <p className="text-2xl font-bold text-green-600">{activeSeason?.cuota_unica || 200}€</p>
+                </div>
+                <div className="bg-white rounded-lg p-3 border border-orange-200">
+                  <p className="text-xs text-slate-500">Cuota Fraccionada</p>
+                  <p className="text-2xl font-bold text-blue-600">{activeSeason?.cuota_tres_meses || 75}€ <span className="text-sm font-normal">x3</span></p>
+                </div>
+                <div className="bg-white rounded-lg p-3 border border-orange-200">
+                  <p className="text-xs text-slate-500">Dto. Hermano</p>
+                  <p className="text-2xl font-bold text-purple-600">25€</p>
+                </div>
+              </div>
+            </div>
+            <div className="text-center">
+              <p className="text-xs text-orange-700 mb-2">Para cambiar estas cuotas:</p>
+              <Badge className="bg-orange-600 text-white">
+                👆 Pestaña "Temporadas"
+              </Badge>
+            </div>
+          </div>
+        </AlertDescription>
+      </Alert>
+
+      {/* Explicación de categorías */}
       <Alert className="bg-blue-50 border-blue-200">
         <Info className="w-4 h-4 text-blue-600" />
         <AlertDescription className="text-blue-800 ml-2">
-          <strong>Cuotas por defecto (Temporada {activeSeason?.temporada || "actual"}):</strong>
-          <br />
-          • Cuota única: <strong>{activeSeason?.cuota_unica || 200}€</strong>
-          <br />
-          • Cuota fraccionada: <strong>{activeSeason?.cuota_tres_meses || 75}€</strong> x 3 meses
-          <br />
-          • Descuento hermano: <strong>25€</strong> (se aplica automáticamente al hermano menor)
-          <br />
-          <span className="text-xs">Las cuotas generales se configuran en la pestaña "Temporadas". Aquí puedes crear categorías con cuotas personalizadas.</span>
+          <strong>ℹ️ ¿Cómo funcionan las categorías?</strong>
+          <ul className="mt-2 text-sm space-y-1">
+            <li>• Las <strong>categorías del sistema</strong> (Pre-Benjamín, Benjamín, etc.) usan las cuotas de la temporada activa.</li>
+            <li>• Puedes crear <strong>categorías personalizadas</strong> con cuotas diferentes si lo necesitas.</li>
+            <li>• Para <strong>modificar las cuotas generales</strong>, ve a la pestaña "Temporadas" y edita la temporada activa.</li>
+          </ul>
         </AlertDescription>
       </Alert>
 
