@@ -2077,6 +2077,7 @@ export default function SeasonManagement() {
               <div className="bg-indigo-50 rounded-lg p-3 text-sm text-indigo-800">
                 <p className="font-semibold mb-2">📬 Se enviarán correos a cdbustarviejo@gmail.com cuando:</p>
                 <ul className="space-y-1 text-xs">
+                  <li>• 👤 Se registre una nueva inscripción de jugador</li>
                   <li>• 💳 Se registre un nuevo pago o justificante</li>
                   <li>• 👕 Se realice un nuevo pedido de ropa</li>
                   <li>• 🍀 Se realice un nuevo pedido de lotería</li>
