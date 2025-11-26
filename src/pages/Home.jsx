@@ -612,7 +612,15 @@ export default function Home() {
             gradient: "from-green-600 to-green-700",
             badge: stats.pendingCallups,
             badgeLabel: "pendientes"
-          }
+          },
+          ...(stats.pendingSignatures > 0 ? [{
+            title: "🖊️ Firmas Federación",
+            icon: FileSignature,
+            url: createPageUrl("FederationSignatures"),
+            gradient: "from-yellow-600 to-orange-600",
+            badge: stats.pendingSignatures,
+            badgeLabel: "pendientes"
+          }] : [])
         );
       }
 
