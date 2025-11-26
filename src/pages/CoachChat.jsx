@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Send, AlertCircle, Users, MessageCircle, User, Archive, ArchiveRestore, Filter } from "lucide-react";
+import { Send, AlertCircle, Users, MessageCircle, User, Archive, ArchiveRestore, Filter, BarChart3, Check, CheckCheck } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
@@ -14,6 +14,9 @@ import { es } from "date-fns/locale";
 import FileAttachmentButton from "../components/chat/FileAttachmentButton";
 import MessageAttachments from "../components/chat/MessageAttachments";
 import PrivateChatPanel from "../components/chat/PrivateChatPanel";
+import QuickPollDialog from "../components/chat/QuickPollDialog";
+import PollMessage from "../components/chat/PollMessage";
+import ReadConfirmation from "../components/chat/ReadConfirmation";
 
 export default function CoachChat() {
   const [messageContent, setMessageContent] = useState("");
@@ -24,6 +27,7 @@ export default function CoachChat() {
   const [isMobile, setIsMobile] = useState(false);
   const [selectedConversation, setSelectedConversation] = useState(null);
   const [showArchived, setShowArchived] = useState(false);
+  const [showPollDialog, setShowPollDialog] = useState(false);
   const messagesEndRef = useRef(null);
   const queryClient = useQueryClient();
   const [user, setUser] = useState(null);
@@ -188,6 +192,67 @@ export default function CoachChat() {
     },
   });
 
+  const voteOnPollMutation = useMutation({
+    mutationFn: async ({ messageId, optionIndex }) => {
+      const message = messages.find(m => m.id === messageId);
+      if (!message || !message.poll) return;
+
+      const votes = message.poll.votes || [];
+      const existingVote = votes.find(v => v.user_email === user.email);
+      
+      if (!existingVote) {
+        votes.push({
+          user_email: user.email,
+          user_name: user.full_name,
+          option_index: optionIndex,
+          voted_at: new Date().toISOString()
+        });
+
+        const updatedPoll = { ...message.poll, votes };
+        await base44.entities.ChatMessage.update(messageId, { poll: updatedPoll });
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['chatMessages'] });
+    },
+  });
+
+  // Contar destinatarios del grupo para confirmaciones de lectura
+  const getGroupRecipientCount = (categoria) => {
+    const groupPlayers = allPlayers.filter(p => p.deporte === categoria);
+    const uniqueParents = new Set();
+    groupPlayers.forEach(p => {
+      if (p.email_padre) uniqueParents.add(p.email_padre);
+      if (p.email_tutor_2) uniqueParents.add(p.email_tutor_2);
+    });
+    return uniqueParents.size;
+  };
+
+  const handleSendPoll = async (pollData) => {
+    if (!user || !selectedCategory) return;
+
+    const senderName = user.full_name || "Entrenador";
+
+    await base44.entities.ChatMessage.create({
+      remitente_email: user.email,
+      remitente_nombre: senderName,
+      mensaje: `📊 ${pollData.question}`,
+      prioridad: "Normal",
+      tipo: "admin_a_grupo",
+      deporte: selectedCategory,
+      grupo_id: selectedCategory,
+      leido: false,
+      poll: {
+        question: pollData.question,
+        options: pollData.options,
+        votes: []
+      }
+    });
+
+    toast.success("📊 Encuesta enviada al grupo");
+    refetchMessages();
+  };
+
   const markAsReadMutation = useMutation({
     mutationFn: async (messageIds) => {
       await Promise.all(messageIds.map(id => 
@@ -280,6 +345,14 @@ export default function CoachChat() {
   }
 
   return (
+    <>
+    <QuickPollDialog
+      isOpen={showPollDialog}
+      onClose={() => setShowPollDialog(false)}
+      onSend={handleSendPoll}
+      groupName={selectedCategory}
+    />
+    
     <div className="p-4 lg:p-6 space-y-4">
       {/* Header */}
       <div>
@@ -457,15 +530,32 @@ export default function CoachChat() {
                                     )}
                                   </div>
                                   <p className="text-sm leading-relaxed">{msg.mensaje}</p>
+
+                                  {msg.poll && (
+                                    <PollMessage 
+                                      poll={msg.poll} 
+                                      onVote={(msgId, optIdx) => voteOnPollMutation.mutate({ messageId: msgId, optionIndex: optIdx })}
+                                      userEmail={user?.email}
+                                      messageId={msg.id}
+                                    />
+                                  )}
+
                                   {msg.archivos_adjuntos?.length > 0 && (
                                     <div className="mt-2">
                                       <MessageAttachments attachments={msg.archivos_adjuntos} />
                                     </div>
                                   )}
-                                  <div className="text-right mt-1">
+                                  <div className="flex items-center justify-end gap-1 mt-1">
                                     <span className={`text-[10px] ${isCoordinationChat && isFromFamily ? 'text-slate-400' : 'opacity-70'}`}>
                                       {format(new Date(msg.created_date), "HH:mm")}
                                     </span>
+                                    {msg.tipo === "admin_a_grupo" && (
+                                      <ReadConfirmation 
+                                        message={msg} 
+                                        totalRecipients={getGroupRecipientCount(selectedCategory)}
+                                        isAdmin={true}
+                                      />
+                                    )}
                                   </div>
                                 </div>
                               </div>
@@ -494,6 +584,17 @@ export default function CoachChat() {
                         onFileUploaded={(att) => setAttachments(prev => [...prev, att])}
                         disabled={sendMessageMutation.isPending}
                       />
+                      {!isStaffChat && (
+                        <Button
+                          onClick={() => setShowPollDialog(true)}
+                          variant="ghost"
+                          size="icon"
+                          className="text-slate-600 hover:text-orange-600 hover:bg-orange-50"
+                          title="Crear encuesta rápida"
+                        >
+                          <BarChart3 className="w-5 h-5" />
+                        </Button>
+                      )}
                       <Input
                         value={messageContent}
                         onChange={(e) => setMessageContent(e.target.value)}
