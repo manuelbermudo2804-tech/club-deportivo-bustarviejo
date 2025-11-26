@@ -195,7 +195,33 @@ export default function Home() {
 
     let pendingCallups = 0;
     let pendingSignatures = 0;
+    let adminPendingSignatures = 0;
     
+    const calcularEdad = (fechaNac) => {
+      if (!fechaNac) return null;
+      const hoy = new Date();
+      const nacimiento = new Date(fechaNac);
+      let edad = hoy.getFullYear() - nacimiento.getFullYear();
+      const m = hoy.getMonth() - nacimiento.getMonth();
+      if (m < 0 || (m === 0 && hoy.getDate() < nacimiento.getDate())) edad--;
+      return edad;
+    };
+    
+    // Para admin: calcular TODAS las firmas pendientes del club
+    if (isAdmin && players) {
+      players.filter(p => p.activo).forEach(player => {
+        const hasEnlaceJugador = !!player.enlace_firma_jugador;
+        const hasEnlaceTutor = !!player.enlace_firma_tutor;
+        const firmaJugadorOk = player.firma_jugador_completada === true;
+        const firmaTutorOk = player.firma_tutor_completada === true;
+        const esMayorDeEdad = calcularEdad(player.fecha_nacimiento) >= 18;
+        
+        if (hasEnlaceJugador && !firmaJugadorOk) adminPendingSignatures++;
+        if (hasEnlaceTutor && !firmaTutorOk && !esMayorDeEdad) adminPendingSignatures++;
+      });
+    }
+    
+    // Para usuarios con hijos: calcular firmas de sus hijos
     if (user && hasPlayers && players) {
       const myPlayersList = players.filter(p => 
         p.email_padre === user.email || p.email_tutor_2 === user.email
@@ -215,17 +241,7 @@ export default function Home() {
         });
       }
       
-      // Calcular firmas pendientes
-      const calcularEdad = (fechaNac) => {
-        if (!fechaNac) return null;
-        const hoy = new Date();
-        const nacimiento = new Date(fechaNac);
-        let edad = hoy.getFullYear() - nacimiento.getFullYear();
-        const m = hoy.getMonth() - nacimiento.getMonth();
-        if (m < 0 || (m === 0 && hoy.getDate() < nacimiento.getDate())) edad--;
-        return edad;
-      };
-      
+      // Calcular firmas pendientes de mis hijos
       myPlayersList.forEach(player => {
         const hasEnlaceJugador = !!player.enlace_firma_jugador;
         const hasEnlaceTutor = !!player.enlace_firma_tutor;
@@ -238,8 +254,8 @@ export default function Home() {
       });
     }
 
-    return { activePlayers, pendingPayments, paidPayments, unreadMessages, pendingCallups, pendingSignatures };
-  }, [players, payments, messages, callups, user, hasPlayers]);
+    return { activePlayers, pendingPayments, paidPayments, unreadMessages, pendingCallups, pendingSignatures, adminPendingSignatures };
+  }, [players, payments, messages, callups, user, hasPlayers, isAdmin]);
 
   const handleMatchAppClick = useMemo(() => () => {
     const userAgent = navigator.userAgent || navigator.vendor || window.opera;
