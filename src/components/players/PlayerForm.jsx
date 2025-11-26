@@ -63,6 +63,7 @@ export default function PlayerForm({ player, onSubmit, onCancel, isSubmitting, i
       dni_jugador: "",
       dni_jugador_url: "",
       libro_familia_url: "",
+      nombre_tutor_legal: "",
       dni_tutor_legal: "",
       dni_tutor_legal_url: "",
       enlace_firma_jugador: "",
@@ -72,6 +73,7 @@ export default function PlayerForm({ player, onSubmit, onCancel, isSubmitting, i
       documentos_adicionales: [],
       telefono: "",
       email_padre: "",
+      nombre_tutor_2: "",
       telefono_tutor_2: "",
       email_tutor_2: "",
       direccion: "",
@@ -100,6 +102,8 @@ export default function PlayerForm({ player, onSubmit, onCancel, isSubmitting, i
     };
   });
 
+  const [usePreviousTutorData, setUsePreviousTutorData] = useState(false);
+
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
   const [uploadingDNI, setUploadingDNI] = useState(false);
   const [uploadingLibroFamilia, setUploadingLibroFamilia] = useState(false);
@@ -110,6 +114,48 @@ export default function PlayerForm({ player, onSubmit, onCancel, isSubmitting, i
   const [showCondiciones, setShowCondiciones] = useState(false);
 
   const categories = getCategoriesWithYears();
+
+  // Buscar jugadores existentes de la misma familia para reutilizar datos
+  const existingFamilyPlayers = allPlayers.filter(p => 
+    currentUser && (p.email_padre === currentUser.email || p.email_tutor_2 === currentUser.email)
+  );
+
+  const handleLoadPreviousTutorData = (playerId) => {
+    const sourcePlayer = allPlayers.find(p => p.id === playerId);
+    if (sourcePlayer) {
+      setCurrentPlayer(prev => ({
+        ...prev,
+        nombre_tutor_legal: sourcePlayer.nombre_tutor_legal || "",
+        dni_tutor_legal: sourcePlayer.dni_tutor_legal || "",
+        dni_tutor_legal_url: sourcePlayer.dni_tutor_legal_url || "",
+        telefono: sourcePlayer.telefono || "",
+        email_padre: sourcePlayer.email_padre || "",
+        nombre_tutor_2: sourcePlayer.nombre_tutor_2 || "",
+        telefono_tutor_2: sourcePlayer.telefono_tutor_2 || "",
+        email_tutor_2: sourcePlayer.email_tutor_2 || "",
+        direccion: sourcePlayer.direccion || "",
+        municipio: sourcePlayer.municipio || ""
+      }));
+      setUsePreviousTutorData(true);
+    }
+  };
+
+  const handleClearTutorData = () => {
+    setCurrentPlayer(prev => ({
+      ...prev,
+      nombre_tutor_legal: "",
+      dni_tutor_legal: "",
+      dni_tutor_legal_url: "",
+      telefono: "",
+      email_padre: isParent && currentUser ? currentUser.email : "",
+      nombre_tutor_2: "",
+      telefono_tutor_2: "",
+      email_tutor_2: "",
+      direccion: "",
+      municipio: ""
+    }));
+    setUsePreviousTutorData(false);
+  };
 
   // Calcular edad del jugador
   const playerAge = useMemo(() => calculateAge(currentPlayer.fecha_nacimiento), [currentPlayer.fecha_nacimiento]);
@@ -585,10 +631,51 @@ export default function PlayerForm({ player, onSubmit, onCancel, isSubmitting, i
             {/* DATOS DEL TUTOR LEGAL (solo si menor de edad) */}
             {!isMayorDeEdad && (
               <div className="space-y-4 border-2 border-green-200 rounded-lg p-6 bg-green-50">
-                <div className="flex items-center gap-2">
-                  <Users className="w-6 h-6 text-green-600" />
-                  <h3 className="text-lg font-bold text-green-900">Datos del Padre/Madre/Tutor Legal *</h3>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Users className="w-6 h-6 text-green-600" />
+                    <h3 className="text-lg font-bold text-green-900">Datos del Padre/Madre/Tutor Legal *</h3>
+                  </div>
                 </div>
+
+                {/* Opción para cargar datos de otro jugador de la familia */}
+                {!player && existingFamilyPlayers.length > 0 && (
+                  <div className="bg-white rounded-lg p-4 border-2 border-blue-200">
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+                      <div className="flex-1">
+                        <p className="text-sm font-semibold text-blue-900">
+                          👨‍👩‍👧‍👦 ¿Tienes otro hijo/a inscrito?
+                        </p>
+                        <p className="text-xs text-blue-700">
+                          Carga los datos del tutor de un jugador ya registrado para no repetir
+                        </p>
+                      </div>
+                      {!usePreviousTutorData ? (
+                        <Select onValueChange={handleLoadPreviousTutorData}>
+                          <SelectTrigger className="w-full sm:w-64">
+                            <SelectValue placeholder="Cargar datos de..." />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {existingFamilyPlayers.map(p => (
+                              <SelectItem key={p.id} value={p.id}>
+                                {p.nombre}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      ) : (
+                        <Button type="button" variant="outline" size="sm" onClick={handleClearTutorData} className="text-red-600 border-red-300 hover:bg-red-50">
+                          <X className="w-4 h-4 mr-1" /> Limpiar y rellenar de nuevo
+                        </Button>
+                      )}
+                    </div>
+                    {usePreviousTutorData && (
+                      <p className="text-xs text-green-700 mt-2">
+                        ✅ Datos cargados. Puedes modificar cualquier campo si es necesario.
+                      </p>
+                    )}
+                  </div>
+                )}
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <div className="space-y-2 md:col-span-2">
