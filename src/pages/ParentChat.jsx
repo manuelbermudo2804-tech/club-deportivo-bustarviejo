@@ -321,6 +321,8 @@ export default function ParentChat() {
                     if (selectedCategory !== cat) {
                       setActivePrivateChat(null); // Limpiar chat privado al cambiar categoría
                       setSelectedCategory(cat);
+                      // Scroll hacia arriba al seleccionar categoría
+                      window.scrollTo({ top: 0, behavior: 'smooth' });
                     }
                   }}
                   className={`w-full p-3 flex items-center gap-3 transition-colors text-left ${
