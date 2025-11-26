@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Send, AlertCircle, Users, MessageCircle, User, Archive, ArchiveRestore, Filter, BarChart3, Check, CheckCheck } from "lucide-react";
+import { Send, AlertCircle, Users, MessageCircle, User, Archive, ArchiveRestore, Filter, BarChart3, Check, CheckCheck, Search, Pin, Image, MoreVertical } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
@@ -17,6 +17,9 @@ import PrivateChatPanel from "../components/chat/PrivateChatPanel";
 import QuickPollDialog from "../components/chat/QuickPollDialog";
 import PollMessage from "../components/chat/PollMessage";
 import ReadConfirmation from "../components/chat/ReadConfirmation";
+import ChatSearchDialog from "../components/chat/ChatSearchDialog";
+import PinnedMessagesDialog from "../components/chat/PinnedMessagesDialog";
+import MediaGalleryDialog from "../components/chat/MediaGalleryDialog";
 
 export default function CoachChat() {
   const [messageContent, setMessageContent] = useState("");
@@ -28,6 +31,9 @@ export default function CoachChat() {
   const [selectedConversation, setSelectedConversation] = useState(null);
   const [showArchived, setShowArchived] = useState(false);
   const [showPollDialog, setShowPollDialog] = useState(false);
+  const [showSearchDialog, setShowSearchDialog] = useState(false);
+  const [showPinnedDialog, setShowPinnedDialog] = useState(false);
+  const [showMediaDialog, setShowMediaDialog] = useState(false);
   const messagesEndRef = useRef(null);
   const queryClient = useQueryClient();
   const [user, setUser] = useState(null);
@@ -262,6 +268,20 @@ export default function CoachChat() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['chatMessages'] }),
   });
 
+  const togglePinMutation = useMutation({
+    mutationFn: async ({ messageId, pin }) => {
+      await base44.entities.ChatMessage.update(messageId, { 
+        anclado: pin,
+        anclado_por: pin ? user.email : null,
+        anclado_fecha: pin ? new Date().toISOString() : null
+      });
+    },
+    onSuccess: (_, { pin }) => {
+      refetchMessages();
+      toast.success(pin ? "📌 Mensaje anclado" : "Mensaje desanclado");
+    },
+  });
+
   const normalizeDeporte = (deporte) => {
     if (!deporte) return null;
     return deporte.trim().replace(/_undefined$/, '').replace(/_$/, '');
@@ -351,6 +371,23 @@ export default function CoachChat() {
       onClose={() => setShowPollDialog(false)}
       onSend={handleSendPoll}
       groupName={selectedCategory}
+    />
+    <ChatSearchDialog
+      isOpen={showSearchDialog}
+      onClose={() => setShowSearchDialog(false)}
+      messages={currentGroupMessages}
+    />
+    <PinnedMessagesDialog
+      isOpen={showPinnedDialog}
+      onClose={() => setShowPinnedDialog(false)}
+      messages={currentGroupMessages}
+      onUnpin={(msgId) => togglePinMutation.mutate({ messageId: msgId, pin: false })}
+      isAdmin={true}
+    />
+    <MediaGalleryDialog
+      isOpen={showMediaDialog}
+      onClose={() => setShowMediaDialog(false)}
+      messages={currentGroupMessages}
     />
     
     <div className="p-4 lg:p-6 space-y-4">
@@ -480,7 +517,7 @@ export default function CoachChat() {
                         : 'bg-gradient-to-r from-blue-600 to-blue-700'
                   }`}>
                     <Users className="w-5 h-5" />
-                    <div>
+                    <div className="flex-1">
                       <h3 className="font-bold text-sm">
                         {isStaffChat 
                           ? "Chat Interno - Entrenadores y Coordinación" 
@@ -495,6 +532,35 @@ export default function CoachChat() {
                             ? "Mensajes de familias - responde directamente aquí" 
                             : "Todos los padres del grupo verán estos mensajes"}
                       </p>
+                    </div>
+                    {/* Botones de herramientas */}
+                    <div className="flex items-center gap-1">
+                      <button
+                        onClick={() => setShowSearchDialog(true)}
+                        className="p-2 rounded-full hover:bg-white/20 transition-colors"
+                        title="Buscar mensajes"
+                      >
+                        <Search className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={() => setShowPinnedDialog(true)}
+                        className="p-2 rounded-full hover:bg-white/20 transition-colors relative"
+                        title="Mensajes anclados"
+                      >
+                        <Pin className="w-4 h-4" />
+                        {currentGroupMessages.filter(m => m.anclado).length > 0 && (
+                          <span className="absolute -top-1 -right-1 w-4 h-4 bg-orange-500 rounded-full text-[10px] flex items-center justify-center">
+                            {currentGroupMessages.filter(m => m.anclado).length}
+                          </span>
+                        )}
+                      </button>
+                      <button
+                        onClick={() => setShowMediaDialog(true)}
+                        className="p-2 rounded-full hover:bg-white/20 transition-colors"
+                        title="Galería de medios"
+                      >
+                        <Image className="w-4 h-4" />
+                      </button>
                     </div>
                   </div>
 
@@ -549,12 +615,22 @@ export default function CoachChat() {
                                     <span className={`text-[10px] ${isCoordinationChat && isFromFamily ? 'text-slate-400' : 'opacity-70'}`}>
                                       {format(new Date(msg.created_date), "HH:mm")}
                                     </span>
+                                    {msg.anclado && <Pin className="w-3 h-3 opacity-70" />}
                                     {msg.tipo === "admin_a_grupo" && (
                                       <ReadConfirmation 
                                         message={msg} 
                                         totalRecipients={getGroupRecipientCount(selectedCategory)}
                                         isAdmin={true}
                                       />
+                                    )}
+                                    {msg.tipo === "admin_a_grupo" && (
+                                      <button
+                                        onClick={() => togglePinMutation.mutate({ messageId: msg.id, pin: !msg.anclado })}
+                                        className="p-1 rounded hover:bg-white/20 transition-colors opacity-70 hover:opacity-100"
+                                        title={msg.anclado ? "Desanclar" : "Anclar mensaje"}
+                                      >
+                                        <Pin className={`w-3 h-3 ${msg.anclado ? 'text-orange-300' : ''}`} />
+                                      </button>
                                     )}
                                   </div>
                                 </div>
