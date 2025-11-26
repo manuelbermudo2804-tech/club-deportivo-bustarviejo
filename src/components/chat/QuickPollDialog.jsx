@@ -1,9 +1,8 @@
 import React, { useState } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { X, Plus, Send } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Plus, X, BarChart3 } from "lucide-react";
 import { toast } from "sonner";
 
 export default function QuickPollDialog({ isOpen, onClose, onSend, groupName }) {
@@ -11,7 +10,7 @@ export default function QuickPollDialog({ isOpen, onClose, onSend, groupName }) 
   const [options, setOptions] = useState(["", ""]);
 
   const handleAddOption = () => {
-    if (options.length < 10) {
+    if (options.length < 5) {
       setOptions([...options, ""]);
     }
   };
@@ -34,9 +33,9 @@ export default function QuickPollDialog({ isOpen, onClose, onSend, groupName }) 
       return;
     }
 
-    const validOptions = options.filter(opt => opt.trim());
+    const validOptions = options.filter(o => o.trim());
     if (validOptions.length < 2) {
-      toast.error("Debes tener al menos 2 opciones");
+      toast.error("Añade al menos 2 opciones");
       return;
     }
 
@@ -53,36 +52,39 @@ export default function QuickPollDialog({ isOpen, onClose, onSend, groupName }) 
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            📊 Crear Encuesta Rápida
+            <BarChart3 className="w-5 h-5 text-orange-600" />
+            Crear Encuesta Rápida
           </DialogTitle>
-          <p className="text-xs text-slate-600">Para: {groupName}</p>
         </DialogHeader>
 
         <div className="space-y-4">
-          <div className="space-y-2">
-            <Label>Pregunta *</Label>
+          <div>
+            <label className="text-sm font-medium text-slate-700 mb-1 block">
+              Pregunta
+            </label>
             <Input
               value={question}
               onChange={(e) => setQuestion(e.target.value)}
-              placeholder="¿Cuál es tu opinión sobre...?"
-              maxLength={200}
+              placeholder="¿Cuál es tu pregunta?"
+              className="w-full"
             />
-            <p className="text-xs text-slate-500">{question.length}/200</p>
           </div>
 
-          <div className="space-y-2">
-            <Label>Opciones de respuesta</Label>
+          <div>
+            <label className="text-sm font-medium text-slate-700 mb-2 block">
+              Opciones de respuesta
+            </label>
             <div className="space-y-2">
               {options.map((option, index) => (
-                <div key={index} className="flex items-center gap-2">
+                <div key={index} className="flex gap-2">
                   <Input
                     value={option}
                     onChange={(e) => handleOptionChange(index, e.target.value)}
                     placeholder={`Opción ${index + 1}`}
-                    maxLength={100}
+                    className="flex-1"
                   />
                   {options.length > 2 && (
                     <Button
@@ -90,6 +92,7 @@ export default function QuickPollDialog({ isOpen, onClose, onSend, groupName }) 
                       variant="ghost"
                       size="icon"
                       onClick={() => handleRemoveOption(index)}
+                      className="text-red-500 hover:text-red-700 hover:bg-red-50"
                     >
                       <X className="w-4 h-4" />
                     </Button>
@@ -98,30 +101,35 @@ export default function QuickPollDialog({ isOpen, onClose, onSend, groupName }) 
               ))}
             </div>
 
-            {options.length < 10 && (
+            {options.length < 5 && (
               <Button
                 type="button"
-                variant="outline"
-                size="sm"
+                variant="ghost"
                 onClick={handleAddOption}
-                className="w-full"
+                className="mt-2 text-orange-600 hover:text-orange-700 hover:bg-orange-50 w-full"
               >
                 <Plus className="w-4 h-4 mr-2" />
-                Añadir opción ({options.length}/10)
+                Añadir opción
               </Button>
             )}
           </div>
 
-          <div className="flex justify-end gap-2 pt-4">
-            <Button variant="outline" onClick={onClose}>
-              Cancelar
-            </Button>
-            <Button onClick={handleSend} className="bg-orange-600 hover:bg-orange-700">
-              <Send className="w-4 h-4 mr-2" />
-              Enviar Encuesta
-            </Button>
-          </div>
+          {groupName && (
+            <p className="text-xs text-slate-500 bg-slate-50 p-2 rounded-lg">
+              📊 La encuesta se enviará a: <strong>{groupName}</strong>
+            </p>
+          )}
         </div>
+
+        <DialogFooter>
+          <Button variant="outline" onClick={onClose}>
+            Cancelar
+          </Button>
+          <Button onClick={handleSend} className="bg-orange-600 hover:bg-orange-700">
+            <BarChart3 className="w-4 h-4 mr-2" />
+            Enviar Encuesta
+          </Button>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );
