@@ -58,6 +58,7 @@ import CoachProfile from './pages/CoachProfile';
 import Sponsorships from './pages/Sponsorships';
 import TreasurerDashboard from './pages/TreasurerDashboard';
 import ClubMembership from './pages/ClubMembership';
+import FederationSignatures from './pages/FederationSignatures';
 import __Layout from './Layout.jsx';
 
 
@@ -122,6 +123,7 @@ export const PAGES = {
     "Sponsorships": Sponsorships,
     "TreasurerDashboard": TreasurerDashboard,
     "ClubMembership": ClubMembership,
+    "FederationSignatures": FederationSignatures,
 }
 
 export const pagesConfig = {
