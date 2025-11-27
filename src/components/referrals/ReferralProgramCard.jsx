@@ -53,10 +53,11 @@ const REWARD_TIERS = [
   }
 ];
 
-export default function ReferralProgramCard({ seasonConfig, userReferrals = 0, userCredit = 0, userRaffleEntries = 0, userEmail = "", userName = "" }) {
+export default function ReferralProgramCard({ seasonConfig, userReferrals = 0, userCredit = 0, userRaffleEntries = 0, userEmail = "", userName = "", hasPlayersInClub = false }) {
         const [copied, setCopied] = useState(false);
 
-        if (!seasonConfig?.programa_referidos_activo) return null;
+        // Solo mostrar a padres con hijos en el club
+        if (!seasonConfig?.programa_referidos_activo || !hasPlayersInClub) return null;
 
         // Generar código de referido único (basado en el ID del usuario, no el email)
         const baseUrl = window.location.origin;
