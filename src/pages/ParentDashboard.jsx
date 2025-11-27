@@ -312,30 +312,16 @@ export default function ParentDashboard() {
 
   const buildMenuItems = () => {
     const items = [
+      // 💬 COMUNICACIÓN (uso diario)
       {
-        title: "Chat Equipo",
+        title: "💬 Chat Equipo",
         icon: MessageCircle,
         url: createPageUrl("ParentChat"),
         gradient: "from-teal-600 to-teal-700",
         badge: unreadMessages,
         badgeLabel: "nuevos"
       },
-      {
-        title: "Mis Jugadores",
-        icon: Users,
-        url: createPageUrl("ParentPlayers"),
-        gradient: "from-orange-600 to-orange-700",
-        badge: myPlayers.length,
-        badgeLabel: "registrados"
-      },
-      {
-        title: "Pagos",
-        icon: CreditCard,
-        url: createPageUrl("ParentPayments"),
-        gradient: "from-green-600 to-green-700",
-        badge: pendingPayments,
-        badgeLabel: "pendientes"
-      },
+      // ⚽ ACCIONES URGENTES
       {
         title: "🏆 Convocatorias",
         icon: Bell,
@@ -352,8 +338,26 @@ export default function ParentDashboard() {
         badge: pendingFederationSignatures,
         badgeLabel: "pendientes"
       },
+      // 💰 PAGOS Y JUGADORES
       {
-        title: "Calendario",
+        title: "💳 Pagos",
+        icon: CreditCard,
+        url: createPageUrl("ParentPayments"),
+        gradient: "from-green-600 to-green-700",
+        badge: pendingPayments,
+        badgeLabel: "pendientes"
+      },
+      {
+        title: "👥 Mis Jugadores",
+        icon: Users,
+        url: createPageUrl("ParentPlayers"),
+        gradient: "from-orange-600 to-orange-700",
+        badge: myPlayers.length,
+        badgeLabel: "registrados"
+      },
+      // 📅 CALENDARIO Y EVENTOS
+      {
+        title: "📅 Calendario",
         icon: Calendar,
         url: createPageUrl("Calendar"),
         gradient: "from-purple-600 to-purple-700",
@@ -364,11 +368,18 @@ export default function ParentDashboard() {
         url: createPageUrl("ParentEventRSVP"),
         gradient: "from-cyan-600 to-cyan-700",
       },
+      // 📢 INFORMACIÓN
       {
-        title: "Anuncios",
+        title: "📢 Anuncios",
         icon: Megaphone,
         url: createPageUrl("Announcements"),
         gradient: "from-pink-600 to-pink-700",
+      },
+      {
+        title: "⏰ Horarios",
+        icon: Clock,
+        url: createPageUrl("ParentTrainingSchedules"),
+        gradient: "from-blue-600 to-blue-700",
       },
       {
         title: "📄 Documentos",
@@ -378,8 +389,9 @@ export default function ParentDashboard() {
         badge: pendingDocuments.length,
         badgeLabel: "pendientes"
       },
+      // 🛍️ PEDIDOS
       {
-        title: "Pedidos Ropa",
+        title: "🛍️ Pedidos Ropa",
         icon: ShoppingBag,
         url: createPageUrl("ClothingOrders"),
         gradient: "from-red-600 to-red-700",
@@ -395,19 +407,18 @@ export default function ParentDashboard() {
       });
     }
 
+    // 🖼️ CONTENIDO
     items.push(
       {
-        title: "Horarios",
-        icon: Clock,
-        url: createPageUrl("ParentTrainingSchedules"),
-        gradient: "from-blue-600 to-blue-700",
-      },
-      {
-        title: "Galería",
+        title: "🖼️ Galería",
         icon: Image,
         url: createPageUrl("ParentGallery"),
         gradient: "from-indigo-600 to-indigo-700",
-      },
+      }
+    );
+
+    // 📋 EXTRAS
+    items.push(
       {
         title: "🆔 Carnets",
         icon: Award,
