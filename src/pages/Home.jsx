@@ -452,11 +452,11 @@ export default function Home() {
           gradient: "from-slate-600 to-slate-700",
         },
         {
-          title: "⚙️ Temporadas y Categorías",
+          title: "⚙️ Configuración",
           icon: Settings,
           url: createPageUrl("SeasonManagement"),
           gradient: "from-slate-600 to-slate-700",
-        },
+          },
         {
           title: "Usuarios",
           icon: Users,
@@ -532,11 +532,11 @@ export default function Home() {
           gradient: "from-amber-600 to-amber-700",
         },
         {
-          title: "⚙️ Temporadas y Categorías",
+          title: "⚙️ Configuración",
           icon: Settings,
           url: createPageUrl("SeasonManagement"),
           gradient: "from-slate-600 to-slate-700",
-        },
+          },
         {
           title: "📅 Calendario",
           icon: Calendar,
