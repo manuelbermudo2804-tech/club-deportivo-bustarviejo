@@ -218,8 +218,8 @@ export default function PlayerDocumentsAndCards() {
     <div className="p-6 lg:p-8 space-y-6">
       <div>
         <h1 className="text-3xl font-bold text-slate-900 flex items-center gap-2">
-          <FileText className="w-8 h-8 text-orange-600" />
-          Documentos y Carnets
+          <Award className="w-8 h-8 text-orange-600" />
+          Certificados y Carnets
         </h1>
         <p className="text-slate-600 mt-1">Genera certificados oficiales o carnets digitales de tus jugadores</p>
       </div>
