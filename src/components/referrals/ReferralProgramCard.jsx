@@ -181,7 +181,7 @@ export default function ReferralProgramCard({ seasonConfig, userReferrals = 0, u
           </div>
         )}
 
-        {/* Tabla de premios */}
+        {/* Tabla de premios - solo tiers activos */}
         <div className="bg-white rounded-2xl p-4 text-slate-900">
           <h3 className="font-bold text-lg mb-3 flex items-center gap-2 text-purple-700">
             <Gift className="w-5 h-5" />
@@ -189,7 +189,15 @@ export default function ReferralProgramCard({ seasonConfig, userReferrals = 0, u
           </h3>
           
           <div className="space-y-2">
-            {REWARD_TIERS.map((tier) => {
+            {REWARD_TIERS.filter(tier => {
+              // Verificar si el tier está activo en la configuración
+              if (tier.count === 1 && seasonConfig.tier_1_activo === false) return false;
+              if (tier.count === 3 && seasonConfig.tier_3_activo === false) return false;
+              if (tier.count === 5 && seasonConfig.tier_5_activo === false) return false;
+              if (tier.count === 10 && seasonConfig.tier_10_activo === false) return false;
+              if (tier.count === 15 && seasonConfig.tier_15_activo === false) return false;
+              return true;
+            }).map((tier) => {
               const reward = getRewardForTier(tier.count);
               const isAchieved = userReferrals >= tier.count;
               const isNext = nextTier === tier.count;
@@ -274,15 +282,15 @@ export default function ReferralProgramCard({ seasonConfig, userReferrals = 0, u
           </ol>
         </div>
 
-        {/* Lista de premios del sorteo */}
-        {seasonConfig.sorteo_premios && seasonConfig.sorteo_premios.length > 0 && (
+        {/* Lista de premios del sorteo - solo los activos */}
+        {seasonConfig.sorteo_premios && seasonConfig.sorteo_premios.filter(p => p.activo !== false).length > 0 && (
           <div className="bg-white rounded-2xl p-4 text-slate-900">
             <h3 className="font-bold text-lg mb-3 flex items-center gap-2 text-yellow-700">
               <span className="text-2xl">🎰</span>
               ¿Qué puedes ganar en los sorteos?
             </h3>
             <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-              {seasonConfig.sorteo_premios.map((prize, index) => (
+              {seasonConfig.sorteo_premios.filter(p => p.activo !== false).map((prize, index) => (
                 <div key={index} className="bg-gradient-to-br from-yellow-50 to-orange-50 rounded-xl p-3 text-center border-2 border-yellow-200">
                   <span className="text-3xl block mb-1">{prize.emoji}</span>
                   <p className="font-bold text-sm text-slate-900">{prize.nombre}</p>
