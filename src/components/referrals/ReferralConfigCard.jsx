@@ -99,16 +99,16 @@ export default function ReferralConfigCard({ seasonConfig, onUpdate, isUpdating 
               <Gift className="w-5 h-5 text-white" />
             </div>
             <div>
-              <CardTitle className="text-lg flex items-center gap-2">
-                Programa de Referidos
-                {localConfig.programa_referidos_activo && (
-                  <Badge className="bg-purple-600 text-white">
-                    <Sparkles className="w-3 h-3 mr-1" /> Activo
-                  </Badge>
-                )}
-              </CardTitle>
-              <p className="text-xs text-slate-600">Incentivos para socios que traigan nuevos miembros</p>
-            </div>
+                <CardTitle className="text-lg flex items-center gap-2">
+                  Trae un Socio Amigo
+                  {localConfig.programa_referidos_activo && (
+                    <Badge className="bg-purple-600 text-white">
+                      <Sparkles className="w-3 h-3 mr-1" /> Activo
+                    </Badge>
+                  )}
+                </CardTitle>
+                <p className="text-xs text-slate-600">Incentivos para socios que traigan amigos y familiares</p>
+              </div>
           </div>
           <div className="flex items-center gap-3">
             <Switch

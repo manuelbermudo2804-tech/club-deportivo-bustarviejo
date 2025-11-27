@@ -266,16 +266,16 @@ export default function ReferralManagement() {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
-          <h1 className="text-2xl lg:text-3xl font-bold text-slate-900 flex items-center gap-2">
-            <Gift className="w-8 h-8 text-purple-600" />
-            Gestión de Referidos
-          </h1>
-          <p className="text-slate-600">Controla premios y participaciones del programa de referidos</p>
-        </div>
+              <h1 className="text-2xl lg:text-3xl font-bold text-slate-900 flex items-center gap-2">
+                <Gift className="w-8 h-8 text-purple-600" />
+                Trae un Socio Amigo
+              </h1>
+              <p className="text-slate-600">Controla premios y participaciones del programa de incentivos</p>
+            </div>
         <div className="flex gap-2">
           <Button onClick={() => setShowAddReferralDialog(true)} className="bg-purple-600 hover:bg-purple-700 gap-2">
             <UserPlus className="w-4 h-4" />
-            Añadir Referido
+            Añadir Socio Amigo
           </Button>
           <Button onClick={exportData} variant="outline" className="gap-2">
             <Download className="w-4 h-4" />
@@ -292,12 +292,12 @@ export default function ReferralManagement() {
               <HelpCircle className="w-6 h-6 text-purple-600" />
             </div>
             <div className="space-y-3">
-              <h3 className="font-bold text-purple-900 text-lg">¿Cómo funciona el Programa de Referidos?</h3>
+              <h3 className="font-bold text-purple-900 text-lg">¿Cómo funciona "Trae un Socio Amigo"?</h3>
               <div className="grid md:grid-cols-2 gap-4 text-sm">
                 <div className="space-y-2">
                   <p className="flex items-start gap-2 text-slate-700">
                     <span className="text-lg">1️⃣</span>
-                    <span>Un socio <strong>invita a alguien</strong> a hacerse socio del club</span>
+                    <span>Un socio <strong>invita a un amigo o familiar</strong> a hacerse socio del club</span>
                   </p>
                   <p className="flex items-start gap-2 text-slate-700">
                     <span className="text-lg">2️⃣</span>
@@ -309,14 +309,14 @@ export default function ReferralManagement() {
                   </p>
                 </div>
                 <div className="bg-white rounded-xl p-3 border border-purple-200">
-                  <p className="font-semibold text-purple-800 mb-2">📊 Premios por nivel:</p>
-                  <div className="space-y-1 text-xs">
-                    <p>🎁 <strong>1 socio:</strong> 5€ en ropa</p>
-                    <p>⭐ <strong>3 socios:</strong> 15€ + 1 participación sorteo</p>
-                    <p>🏆 <strong>5 socios:</strong> 25€ + 3 participaciones</p>
-                    <p>👑 <strong>10 socios:</strong> 50€ + 5 participaciones</p>
-                    <p>🏨 <strong>15 socios:</strong> 50€ + 10 participaciones + HOTEL</p>
-                  </div>
+                  <p className="font-semibold text-purple-800 mb-2">📊 Premios por amigos:</p>
+                    <div className="space-y-1 text-xs">
+                      <p>🎁 <strong>1 amigo:</strong> 5€ en ropa</p>
+                      <p>⭐ <strong>3 amigos:</strong> 15€ + 1 participación sorteo</p>
+                      <p>🏆 <strong>5 amigos:</strong> 25€ + 3 participaciones</p>
+                      <p>👑 <strong>10 amigos:</strong> 50€ + 5 participaciones</p>
+                      <p>🏨 <strong>15 amigos:</strong> 50€ + 10 participaciones + HOTEL</p>
+                    </div>
                 </div>
               </div>
               <Alert className="bg-blue-50 border-blue-200">
@@ -393,9 +393,9 @@ export default function ReferralManagement() {
         <CardHeader>
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <CardTitle className="flex items-center gap-2">
-              <Award className="w-5 h-5 text-yellow-500" />
-              Ranking de Referidos
-            </CardTitle>
+                <Award className="w-5 h-5 text-yellow-500" />
+                Ranking de Socios Amigos
+              </CardTitle>
             <div className="relative w-full md:w-64">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
               <Input
@@ -411,8 +411,8 @@ export default function ReferralManagement() {
           {filteredUsers.length === 0 ? (
             <div className="text-center py-12 text-slate-500">
               <Gift className="w-16 h-16 mx-auto mb-4 opacity-30" />
-              <p className="text-lg">No hay participantes en el programa de referidos</p>
-              <p className="text-sm">Los usuarios aparecerán aquí cuando refieran nuevos socios</p>
+              <p className="text-lg">No hay participantes en el programa</p>
+              <p className="text-sm">Los usuarios aparecerán aquí cuando traigan nuevos socios amigos</p>
             </div>
           ) : (
             <div className="overflow-x-auto">
@@ -421,7 +421,7 @@ export default function ReferralManagement() {
                   <TableRow>
                     <TableHead className="w-12">#</TableHead>
                     <TableHead>Usuario</TableHead>
-                    <TableHead className="text-center">Referidos</TableHead>
+                    <TableHead className="text-center">Amigos</TableHead>
                     <TableHead className="text-center">Nivel</TableHead>
                     <TableHead className="text-center">Crédito Ropa</TableHead>
                     <TableHead className="text-center">Sorteos</TableHead>
@@ -718,26 +718,26 @@ export default function ReferralManagement() {
         </DialogContent>
       </Dialog>
 
-      {/* Dialog para añadir referido manualmente */}
+      {/* Dialog para añadir socio amigo manualmente */}
       <Dialog open={showAddReferralDialog} onOpenChange={setShowAddReferralDialog}>
         <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <UserPlus className="w-5 h-5 text-purple-600" />
-              Añadir Referido Manualmente
+              Añadir Socio Amigo Manualmente
             </DialogTitle>
           </DialogHeader>
-          
+
           <div className="space-y-4 py-4">
             <Alert className="bg-amber-50 border-amber-200">
               <AlertCircle className="w-4 h-4 text-amber-600" />
               <AlertDescription className="text-amber-800 text-sm">
-                Usa esto para añadir referidos que no se registraron indicando el nombre del referente, o para corregir errores.
+                Usa esto para añadir socios amigos que no se registraron indicando el nombre de quien les invitó, o para corregir errores.
               </AlertDescription>
             </Alert>
 
             <div className="space-y-2">
-              <Label>¿Quién refirió? (el que gana el premio)</Label>
+              <Label>¿Quién le invitó? (el que gana el premio)</Label>
               <Select 
                 value={newReferral.referrer_email} 
                 onValueChange={(v) => setNewReferral(prev => ({ ...prev, referrer_email: v }))}
@@ -756,7 +756,7 @@ export default function ReferralManagement() {
             </div>
 
             <div className="space-y-2">
-              <Label>Nombre del nuevo socio referido</Label>
+              <Label>Nombre del nuevo socio amigo</Label>
               <Input
                 value={newReferral.referred_name}
                 onChange={(e) => setNewReferral(prev => ({ ...prev, referred_name: e.target.value }))}
@@ -778,15 +778,15 @@ export default function ReferralManagement() {
               Cancelar
             </Button>
             <Button 
-              onClick={() => addReferralMutation.mutate({
-                referrerEmail: newReferral.referrer_email,
-                referredName: newReferral.referred_name
-              })}
-              disabled={!newReferral.referrer_email || !newReferral.referred_name || addReferralMutation.isPending}
-              className="bg-purple-600 hover:bg-purple-700"
-            >
-              {addReferralMutation.isPending ? "Añadiendo..." : "Añadir Referido"}
-            </Button>
+                onClick={() => addReferralMutation.mutate({
+                  referrerEmail: newReferral.referrer_email,
+                  referredName: newReferral.referred_name
+                })}
+                disabled={!newReferral.referrer_email || !newReferral.referred_name || addReferralMutation.isPending}
+                className="bg-purple-600 hover:bg-purple-700"
+              >
+                {addReferralMutation.isPending ? "Añadiendo..." : "Añadir Socio Amigo"}
+              </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

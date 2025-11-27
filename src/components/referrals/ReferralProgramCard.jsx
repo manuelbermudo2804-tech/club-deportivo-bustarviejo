@@ -127,10 +127,10 @@ export default function ReferralProgramCard({ seasonConfig, userReferrals = 0, u
           </div>
           <div>
             <CardTitle className="text-2xl font-bold flex items-center gap-2">
-              ¡PROGRAMA DE REFERIDOS! 
+              ¡TRAE UN SOCIO AMIGO! 
               <Sparkles className="w-6 h-6 text-yellow-300 animate-pulse" />
             </CardTitle>
-            <p className="text-white/90 text-sm">Trae amigos y gana premios increíbles</p>
+            <p className="text-white/90 text-sm">Invita amigos y familiares, ¡y gana premios!</p>
           </div>
         </div>
       </CardHeader>
@@ -139,11 +139,11 @@ export default function ReferralProgramCard({ seasonConfig, userReferrals = 0, u
         {/* Mensaje motivador */}
         <div className="bg-white/20 backdrop-blur-sm rounded-2xl p-4 text-center">
           <p className="text-lg font-semibold mb-1">
-            🔥 ¡Cuantos más socios traigas, más premios ganas! 🔥
-          </p>
-          <p className="text-sm text-white/90">
-            Invita a familiares, amigos, vecinos... ¡Todos suman!
-          </p>
+                    🔥 ¡Cuantos más amigos traigas, más premios ganas! 🔥
+                  </p>
+                  <p className="text-sm text-white/90">
+                    Invita a familiares, amigos, vecinos... ¡Cada nuevo socio cuenta!
+                  </p>
         </div>
 
         {/* Estado actual del usuario */}
@@ -152,7 +152,7 @@ export default function ReferralProgramCard({ seasonConfig, userReferrals = 0, u
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
                 <Users className="w-5 h-5 text-purple-600" />
-                <span className="font-bold">Tus Referidos:</span>
+                <span className="font-bold">Socios que has traído:</span>
               </div>
               <Badge className="bg-purple-600 text-white text-lg px-3">{userReferrals}</Badge>
             </div>
@@ -174,7 +174,7 @@ export default function ReferralProgramCard({ seasonConfig, userReferrals = 0, u
               <div className="mt-3 bg-gradient-to-r from-purple-100 to-pink-100 rounded-xl p-3 text-center border-2 border-purple-200">
                 <p className="text-sm text-purple-800">
                   <Zap className="w-4 h-4 inline mr-1" />
-                  ¡Te faltan solo <strong className="text-purple-900">{referralsToNext}</strong> socio(s) para el siguiente nivel!
+                  ¡Te faltan solo <strong className="text-purple-900">{referralsToNext}</strong> amigo(s) para el siguiente nivel!
                 </p>
               </div>
             )}
@@ -258,7 +258,7 @@ export default function ReferralProgramCard({ seasonConfig, userReferrals = 0, u
               ¡PREMIO ESTRELLA!
             </h4>
             <p className="text-pink-700 font-medium">
-              Consigue <strong>15 nuevos socios</strong> y gana una
+              Trae <strong>15 socios amigos</strong> y gana una
             </p>
             <p className="text-2xl font-bold text-pink-900 mt-1">
               🌙 NOCHE DE HOTEL PARA DOS 🌙
@@ -276,8 +276,8 @@ export default function ReferralProgramCard({ seasonConfig, userReferrals = 0, u
             ¿Cómo participar?
           </h4>
           <ol className="text-sm space-y-1 text-white/95">
-            <li>1️⃣ Invita a alguien a hacerse socio del club</li>
-            <li>2️⃣ Al registrarse, que indique <strong>TU NOMBRE</strong> como referente</li>
+            <li>1️⃣ Invita a un amigo o familiar a hacerse socio</li>
+            <li>2️⃣ Al registrarse, que indique <strong>TU NOMBRE</strong> como quien le invitó</li>
             <li>3️⃣ Una vez confirmado, ¡tus premios se acumulan automáticamente!</li>
           </ol>
         </div>
