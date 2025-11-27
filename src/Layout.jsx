@@ -1045,8 +1045,7 @@ export default function Layout({ children, currentPageName }) {
     { title: "🖼️ Galería", url: createPageUrl("Gallery"), icon: Image },
 
     // 📋 EXTRAS
-    { title: "🆔 Carnets", url: createPageUrl("PlayerCards"), icon: Award },
-    { title: "📜 Certificados", url: createPageUrl("Certificates"), icon: FileText },
+    { title: "📜 Documentos y Carnets", url: createPageUrl("PlayerDocumentsAndCards"), icon: FileText },
     { title: "📋 Encuestas", url: createPageUrl("Surveys"), icon: FileText },
     { title: "🎫 Hacerse Socio", url: createPageUrl("ClubMembership"), icon: Users },
   ];

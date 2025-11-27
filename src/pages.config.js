@@ -32,8 +32,6 @@ import CoachAttendance from './pages/CoachAttendance';
 import PlayerEvaluations from './pages/PlayerEvaluations';
 import ClubStats from './pages/ClubStats';
 import PaymentsDashboard from './pages/PaymentsDashboard';
-import Certificates from './pages/Certificates';
-import PlayerCards from './pages/PlayerCards';
 import Surveys from './pages/Surveys';
 import AdminStats from './pages/AdminStats';
 import MatchResults from './pages/MatchResults';
@@ -63,6 +61,7 @@ import Schedules from './pages/Schedules';
 import Gallery from './pages/Gallery';
 import ClubMembersManagement from './pages/ClubMembersManagement';
 import CalendarAndSchedules from './pages/CalendarAndSchedules';
+import PlayerDocumentsAndCards from './pages/PlayerDocumentsAndCards';
 import __Layout from './Layout.jsx';
 
 
@@ -101,8 +100,6 @@ export const PAGES = {
     "PlayerEvaluations": PlayerEvaluations,
     "ClubStats": ClubStats,
     "PaymentsDashboard": PaymentsDashboard,
-    "Certificates": Certificates,
-    "PlayerCards": PlayerCards,
     "Surveys": Surveys,
     "AdminStats": AdminStats,
     "MatchResults": MatchResults,
@@ -132,6 +129,7 @@ export const PAGES = {
     "Gallery": Gallery,
     "ClubMembersManagement": ClubMembersManagement,
     "CalendarAndSchedules": CalendarAndSchedules,
+    "PlayerDocumentsAndCards": PlayerDocumentsAndCards,
 }
 
 export const pagesConfig = {
