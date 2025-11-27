@@ -1,7 +1,9 @@
-import React from "react";
+import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Gift, Star, Trophy, Hotel, Shirt, Ticket, Sparkles, Heart, Users, Crown, Zap, PartyPopper } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Gift, Star, Trophy, Hotel, Shirt, Ticket, Sparkles, Heart, Users, Crown, Zap, PartyPopper, Share2, MessageCircle, Copy, Check } from "lucide-react";
+import { toast } from "sonner";
 
 const REWARD_TIERS = [
   {
@@ -51,8 +53,32 @@ const REWARD_TIERS = [
   }
 ];
 
-export default function ReferralProgramCard({ seasonConfig, userReferrals = 0, userCredit = 0, userRaffleEntries = 0 }) {
-  if (!seasonConfig?.programa_referidos_activo) return null;
+export default function ReferralProgramCard({ seasonConfig, userReferrals = 0, userCredit = 0, userRaffleEntries = 0, userEmail = "", userName = "" }) {
+        const [copied, setCopied] = useState(false);
+
+        if (!seasonConfig?.programa_referidos_activo) return null;
+
+        // Generar enlace único para este usuario
+        const baseUrl = window.location.origin;
+        const referralLink = `${baseUrl}/ClubMembership?invita=${encodeURIComponent(userEmail)}`;
+
+        // Mensaje predefinido para WhatsApp
+        const whatsappMessage = `¡Hola! 👋 Te invito a hacerte socio del CD Bustarviejo ⚽🏀
+
+Por solo 25€/temporada ayudas a nuestros jóvenes deportistas y formas parte de la familia del club.
+
+👉 Regístrate aquí: ${referralLink}
+
+¡Gracias por tu apoyo! 💪🎉`;
+
+        const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(whatsappMessage)}`;
+
+        const copyLink = () => {
+          navigator.clipboard.writeText(referralLink);
+          setCopied(true);
+          toast.success("¡Enlace copiado!");
+          setTimeout(() => setCopied(false), 3000);
+        };
 
   const getRewardForTier = (count) => {
     switch (count) {
@@ -276,11 +302,42 @@ export default function ReferralProgramCard({ seasonConfig, userReferrals = 0, u
             ¿Cómo participar?
           </h4>
           <ol className="text-sm space-y-1 text-white/95">
-            <li>1️⃣ Invita a un amigo o familiar a hacerse socio</li>
-            <li>2️⃣ Al registrarse, que indique <strong>TU NOMBRE</strong> como quien le invitó</li>
-            <li>3️⃣ Una vez confirmado, ¡tus premios se acumulan automáticamente!</li>
+            <li>1️⃣ Comparte tu enlace único por WhatsApp o redes</li>
+            <li>2️⃣ Cuando alguien se registre con tu enlace, ¡se te asigna automáticamente!</li>
+            <li>3️⃣ ¡Tus premios se acumulan con cada nuevo socio!</li>
           </ol>
-        </div>
+          </div>
+
+          {/* Botones de compartir */}
+          {userEmail && (
+          <div className="space-y-3 mt-4">
+            <p className="text-sm font-semibold text-center">📤 ¡Comparte tu enlace único!</p>
+            <div className="flex flex-col sm:flex-row gap-2">
+              <a 
+                href={whatsappUrl} 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="flex-1"
+              >
+                <Button className="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-3 gap-2">
+                  <MessageCircle className="w-5 h-5" />
+                  Enviar por WhatsApp
+                </Button>
+              </a>
+              <Button 
+                onClick={copyLink}
+                variant="outline"
+                className="flex-1 bg-white/20 border-white/40 text-white hover:bg-white/30 py-3 gap-2"
+              >
+                {copied ? <Check className="w-5 h-5" /> : <Copy className="w-5 h-5" />}
+                {copied ? "¡Copiado!" : "Copiar enlace"}
+              </Button>
+            </div>
+            <p className="text-xs text-white/70 text-center">
+              Este enlace es único para ti. Cuando alguien se registre usándolo, recibirás tu premio automáticamente.
+            </p>
+          </div>
+          )}
 
         {/* Lista de premios del sorteo - solo los activos */}
         {seasonConfig.sorteo_premios && seasonConfig.sorteo_premios.filter(p => p.activo !== false).length > 0 && (
