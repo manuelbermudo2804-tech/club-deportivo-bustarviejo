@@ -57,7 +57,8 @@ export default function ReferralProgramCard({ seasonConfig, userReferrals = 0, u
         const [copied, setCopied] = useState(false);
 
         // Solo mostrar a padres con hijos en el club
-        if (!seasonConfig?.programa_referidos_activo || !hasPlayersInClub) return null;
+        if (!seasonConfig?.programa_referidos_activo) return null;
+        if (hasPlayersInClub !== true) return null;
 
         // Generar código de referido único (basado en el ID del usuario, no el email)
         const baseUrl = window.location.origin;
