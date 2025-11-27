@@ -891,7 +891,6 @@ export default function Layout({ children, currentPageName }) {
     // ⚙️ CONFIGURACIÓN
     { title: "⚙️ Temporadas y Categorías", url: createPageUrl("SeasonManagement"), icon: Settings },
     { title: "🔔 Preferencias Notif.", url: createPageUrl("NotificationPreferences"), icon: Settings },
-    { title: "📱 Configurar PWA", url: createPageUrl("PWASetup"), icon: Settings },
   ];
 
   const coachNavigationItems = [
