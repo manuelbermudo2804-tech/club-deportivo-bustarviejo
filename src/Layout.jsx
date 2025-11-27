@@ -905,8 +905,7 @@ export default function Layout({ children, currentPageName }) {
       { title: "🎓 Plantillas", url: createPageUrl("TeamRosters"), icon: Users },
 
       // 📅 CALENDARIO
-      { title: "📅 Calendario", url: createPageUrl("Calendar"), icon: Calendar },
-      { title: "⏰ Horarios", url: createPageUrl("Schedules"), icon: Clock },
+      { title: "📅 Calendario y Horarios", url: createPageUrl("CalendarAndSchedules"), icon: Calendar },
 
       // 📊 REPORTES
       { title: "📊 Reportes Entrenadores", url: createPageUrl("CoachEvaluationReports"), icon: Star },
