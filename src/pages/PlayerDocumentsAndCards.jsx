@@ -15,10 +15,17 @@ const getCurrentSeason = () => {
   const now = new Date();
   const currentYear = now.getFullYear();
   const currentMonth = now.getMonth() + 1;
-  if (currentMonth >= 9) {
+  // Desde junio ya empieza la siguiente temporada (inscripciones)
+  if (currentMonth >= 6) {
     return `${currentYear}/${currentYear + 1}`;
   }
   return `${currentYear - 1}/${currentYear}`;
+};
+
+// Función para normalizar temporada (acepta formatos como "2025/2026" o "2025-2026")
+const normalizeSeasonFormat = (season) => {
+  if (!season) return "";
+  return season.replace("-", "/");
 };
 
 export default function PlayerDocumentsAndCards() {
