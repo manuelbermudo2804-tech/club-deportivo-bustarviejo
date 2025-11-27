@@ -249,6 +249,7 @@ export default function TreasurerDashboard() {
       csvContent += `Ropa,${stats.ropa.pagada},${stats.ropa.pendiente},${stats.ropa.pagada + stats.ropa.pendiente}\n`;
       csvContent += `Lotería,${stats.loteria.pagada},${stats.loteria.pendiente},${stats.loteria.pagada + stats.loteria.pendiente}\n`;
       csvContent += `Patrocinios,${stats.patrocinios},0,${stats.patrocinios}\n`;
+      csvContent += `Socios,${stats.socios?.pagados || 0},${stats.socios?.pendientes || 0},${(stats.socios?.pagados || 0) + (stats.socios?.pendientes || 0)}\n`;
       csvContent += `TOTAL,${stats.totalIngresos},${stats.totalPendiente},${stats.totalIngresos + stats.totalPendiente}\n`;
       filename = `resumen_financiero_${selectedSeason === "all" ? "todas" : selectedSeason}.csv`;
     } else if (type === "deudas") {
