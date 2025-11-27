@@ -38,17 +38,29 @@ export default function ClubMembership() {
 
   const queryClient = useQueryClient();
 
-  // Leer parámetro "invita" de la URL
+  // Función para generar el mismo código de referido que en ReferralProgramCard
+  const generateReferralCode = (email) => {
+    let hash = 0;
+    for (let i = 0; i < email.length; i++) {
+      const char = email.charCodeAt(i);
+      hash = ((hash << 5) - hash) + char;
+      hash = hash & hash;
+    }
+    return Math.abs(hash).toString(36).toUpperCase().slice(0, 8);
+  };
+
+  // Leer parámetro "ref" de la URL (código de referido)
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
-    const invitaEmail = urlParams.get('invita');
+    const refCode = urlParams.get('ref');
     
-    if (invitaEmail) {
-      // Buscar el usuario que invita para mostrar su nombre
+    if (refCode) {
+      // Buscar el usuario que tiene ese código de referido
       const fetchInviter = async () => {
         try {
           const allUsers = await base44.entities.User.list();
-          const inviter = allUsers.find(u => u.email === invitaEmail);
+          // Buscar el usuario cuyo código coincida
+          const inviter = allUsers.find(u => generateReferralCode(u.email) === refCode);
           if (inviter) {
             setInvitadoPor(inviter);
             setFormData(prev => ({ ...prev, referido_por: inviter.full_name }));
