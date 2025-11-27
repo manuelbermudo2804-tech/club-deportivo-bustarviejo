@@ -450,8 +450,8 @@ export default function ParentDashboard() {
     });
   }
 
-  // Mostrar loading mientras se cargan los datos iniciales
-  if (!user || playersLoading) {
+  // Solo mostrar loading si no hay usuario (pero no bloquear por playersLoading)
+  if (!user) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-black flex items-center justify-center">
         <div className="text-center">
