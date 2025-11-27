@@ -31,10 +31,12 @@ const getCurrentSeason = () => {
   return currentMonth >= 9 ? `${currentYear}/${currentYear + 1}` : `${currentYear - 1}/${currentYear}`;
 };
 
-export default function ClothingOrderForm({ players, onSubmit, onCancel, isSubmitting }) {
+export default function ClothingOrderForm({ players, onSubmit, onCancel, isSubmitting, userCredit = 0, onCreditUsed }) {
   const [selectedPlayer, setSelectedPlayer] = useState(null);
   const [uploadingFile, setUploadingFile] = useState(false);
   const [seasonConfig, setSeasonConfig] = useState(null);
+  const [useCredit, setUseCredit] = useState(userCredit > 0); // Auto-activar si tiene crédito
+  const [creditToUse, setCreditToUse] = useState(0);
   
   const [orderData, setOrderData] = useState({
     jugador_id: "", jugador_nombre: "", jugador_categoria: "", email_padre: "", telefono: "",
@@ -74,13 +76,20 @@ export default function ClothingOrderForm({ players, onSubmit, onCancel, isSubmi
     if (orderData.anorak) total += PRECIOS.anorak;
     if (orderData.mochila) total += PRECIOS.mochila;
     
+    // Calcular crédito a usar (máximo el total del pedido o el crédito disponible)
+    const maxCredit = useCredit ? Math.min(userCredit, total) : 0;
+    setCreditToUse(maxCredit);
+    
     setOrderData(prev => ({
-      ...prev, precio_total: total,
+      ...prev, 
+      precio_total: total,
+      precio_con_descuento: total - maxCredit,
+      credito_aplicado: maxCredit,
       concepto_pago: `Pedido ropa ${selectedPlayer?.nombre || ''} - Temporada ${getCurrentSeason()}`
     }));
   }, [orderData.chaqueta_partidos, orderData.pack_entrenamiento, orderData.camiseta_individual,
       orderData.pantalon_individual, orderData.sudadera_individual, orderData.chubasquero,
-      orderData.anorak, orderData.mochila, selectedPlayer]);
+      orderData.anorak, orderData.mochila, selectedPlayer, useCredit, userCredit]);
 
   const handlePlayerChange = (playerId) => {
     const player = players.find(p => p.id === playerId);
@@ -148,7 +157,9 @@ export default function ClothingOrderForm({ players, onSubmit, onCancel, isSubmi
     if (orderData.chubasquero && !orderData.chubasquero_talla) return toast.error("Selecciona la talla del chubasquero");
     if (orderData.anorak && !orderData.anorak_talla) return toast.error("Selecciona la talla del anorak");
 
-    if (!orderData.justificante_url) {
+    // Solo requerir justificante si hay algo que pagar
+    const totalAPagar = orderData.precio_total - creditToUse;
+    if (totalAPagar > 0 && !orderData.justificante_url) {
       toast.error("Debes subir el justificante de transferencia");
       return;
     }
@@ -222,7 +233,19 @@ Email: cdbustarviejo@gmail.com
       console.error("Error sending email:", error);
     }
 
-    onSubmit(orderData);
+    // Pasar datos con crédito aplicado
+    const finalData = {
+      ...orderData,
+      credito_aplicado: creditToUse,
+      precio_final: orderData.precio_total - creditToUse
+    };
+    
+    // Notificar al padre para actualizar el crédito del usuario
+    if (creditToUse > 0 && onCreditUsed) {
+      onCreditUsed(creditToUse);
+    }
+    
+    onSubmit(finalData);
   };
 
   const ProductCheckbox = ({ id, checked, onChange, label, price, talla, onTallaChange }) => (
@@ -361,13 +384,63 @@ Email: cdbustarviejo@gmail.com
                   </div>
 
                   {orderData.precio_total > 0 && (
-                    <div className="bg-green-50 border-2 border-green-300 rounded-lg p-4">
-                      <p className="text-2xl font-bold text-green-900">Total: {orderData.precio_total}€</p>
+                    <div className="space-y-3">
+                      {/* Crédito disponible del programa de referidos */}
+                      {userCredit > 0 && (
+                        <div className="bg-gradient-to-r from-purple-50 to-pink-50 border-2 border-purple-300 rounded-lg p-4">
+                          <div className="flex items-center justify-between mb-2">
+                            <div className="flex items-center gap-2">
+                              <span className="text-2xl">🎁</span>
+                              <div>
+                                <p className="font-bold text-purple-900">¡Tienes crédito disponible!</p>
+                                <p className="text-sm text-purple-700">Del programa "Trae un Socio Amigo"</p>
+                              </div>
+                            </div>
+                            <span className="text-2xl font-bold text-purple-600">{userCredit}€</span>
+                          </div>
+                          <div className="flex items-center space-x-3 mt-3 pt-3 border-t border-purple-200">
+                            <Checkbox 
+                              id="useCredit" 
+                              checked={useCredit} 
+                              onCheckedChange={setUseCredit} 
+                            />
+                            <label htmlFor="useCredit" className="text-sm font-medium text-purple-800 cursor-pointer">
+                              Usar mi crédito en este pedido (-{creditToUse}€)
+                            </label>
+                          </div>
+                        </div>
+                      )}
+                      
+                      <div className="bg-green-50 border-2 border-green-300 rounded-lg p-4">
+                        {creditToUse > 0 ? (
+                          <div className="space-y-2">
+                            <div className="flex justify-between text-slate-700">
+                              <span>Subtotal:</span>
+                              <span>{orderData.precio_total}€</span>
+                            </div>
+                            <div className="flex justify-between text-purple-600 font-medium">
+                              <span>🎁 Crédito aplicado:</span>
+                              <span>-{creditToUse}€</span>
+                            </div>
+                            <div className="flex justify-between pt-2 border-t border-green-300">
+                              <span className="text-xl font-bold text-green-900">Total a pagar:</span>
+                              <span className="text-2xl font-bold text-green-900">{orderData.precio_total - creditToUse}€</span>
+                            </div>
+                            {orderData.precio_total - creditToUse === 0 && (
+                              <p className="text-sm text-green-700 mt-2 bg-green-100 p-2 rounded">
+                                ✅ ¡Tu crédito cubre el pedido completo! No necesitas subir justificante.
+                              </p>
+                            )}
+                          </div>
+                        ) : (
+                          <p className="text-2xl font-bold text-green-900">Total: {orderData.precio_total}€</p>
+                        )}
+                      </div>
                     </div>
                   )}
                 </div>
 
-                {orderData.precio_total > 0 && (
+                {orderData.precio_total > 0 && (orderData.precio_total - creditToUse) > 0 && (
                  <>
                    <div className="space-y-4 border-2 border-blue-200 rounded-lg p-6 bg-blue-50">
                      <h3 className="text-lg font-bold text-blue-900">Información de Pago</h3>
@@ -455,12 +528,33 @@ Email: cdbustarviejo@gmail.com
                     </div>
                   </>
                 )}
+
+                {/* Pedido cubierto por crédito - solo notas */}
+                {orderData.precio_total > 0 && (orderData.precio_total - creditToUse) === 0 && (
+                  <div className="space-y-4 border-2 border-green-200 rounded-lg p-6 bg-green-50">
+                    <div className="flex items-center gap-3">
+                      <span className="text-3xl">🎉</span>
+                      <div>
+                        <h3 className="text-lg font-bold text-green-900">¡Pedido cubierto por tu crédito!</h3>
+                        <p className="text-sm text-green-700">No necesitas realizar ningún pago adicional</p>
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Notas (opcional)</Label>
+                      <Textarea value={orderData.notas} onChange={(e) => setOrderData({...orderData, notas: e.target.value})} placeholder="Información adicional..." rows={3} />
+                    </div>
+                  </div>
+                )}
               </>
             )}
 
             <div className="flex justify-end gap-3 pt-4 border-t">
               <Button type="button" variant="outline" onClick={onCancel} disabled={isSubmitting}>Cancelar</Button>
-              <Button type="submit" className="bg-orange-600 hover:bg-orange-700" disabled={isSubmitting || !orderData.justificante_url || orderData.precio_total === 0}>
+              <Button 
+                type="submit" 
+                className="bg-orange-600 hover:bg-orange-700" 
+                disabled={isSubmitting || ((orderData.precio_total - creditToUse) > 0 && !orderData.justificante_url) || orderData.precio_total === 0}
+              >
                 {isSubmitting ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Enviando...</> : "Confirmar Pedido"}
               </Button>
             </div>
