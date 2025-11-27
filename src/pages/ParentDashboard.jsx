@@ -10,6 +10,7 @@ import PushNotificationManager from "../components/push/PushNotificationManager"
 import NewSeasonWelcome from "../components/NewSeasonWelcome";
 import ParentOnboarding from "@/components/onboarding/ParentOnboarding";
 import AlertCenter from "../components/dashboard/AlertCenter";
+import ContactCard from "../components/ContactCard";
 
 export default function ParentDashboard() {
   const navigate = useNavigate();
@@ -805,6 +806,8 @@ export default function ParentDashboard() {
             </div>
           </div>
         </div>
+
+        <ContactCard />
       </div>
     </div>
   );
