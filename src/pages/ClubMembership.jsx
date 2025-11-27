@@ -505,7 +505,7 @@ export default function ClubMembership() {
         </Card>
       ) : null}
 
-      {/* Programa Trae un Socio Amigo */}
+      {/* Programa Trae un Socio Amigo - Solo visible para padres con hijos en el club */}
       <ReferralProgramCard 
         seasonConfig={seasonConfig}
         userReferrals={user?.referrals_count || 0}
@@ -513,6 +513,7 @@ export default function ClubMembership() {
         userRaffleEntries={user?.raffle_entries_total || 0}
         userEmail={user?.email || ""}
         userName={user?.full_name || ""}
+        hasPlayersInClub={myPlayers.length > 0}
       />
 
       {/* Invitar familiares y amigos */}
