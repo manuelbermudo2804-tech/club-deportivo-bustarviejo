@@ -85,6 +85,11 @@ export default function TreasurerDashboard() {
     return clothingOrders.filter(o => o.temporada === selectedSeason);
   }, [clothingOrders, selectedSeason]);
 
+  const filteredClubMembers = useMemo(() => {
+    if (selectedSeason === "all") return clubMembers;
+    return clubMembers.filter(m => m.temporada === selectedSeason);
+  }, [clubMembers, selectedSeason]);
+
   // Calculate financial stats
   const stats = useMemo(() => {
     // Cuotas
