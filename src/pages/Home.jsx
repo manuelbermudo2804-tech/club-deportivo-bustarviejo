@@ -28,7 +28,11 @@ export default function Home() {
       const configs = await base44.entities.SeasonConfig.list();
       return configs.find(c => c.activa === true);
     },
-    staleTime: 10000,
+    staleTime: 300000, // 5 minutos
+    gcTime: 600000, // 10 minutos
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
+    refetchInterval: false,
     enabled: !!user,
   });
 
