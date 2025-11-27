@@ -730,11 +730,18 @@ export default function PlayerForm({ player, onSubmit, onCancel, isSubmitting, i
                 </Label>
                 <Input 
                   id="nombre" 
+                  name="name"
+                  autoComplete="name"
                   value={currentPlayer.nombre} 
                   onChange={(e) => {
                     setCurrentPlayer({...currentPlayer, nombre: e.target.value});
                     if (fieldErrors.nombre) setFieldErrors(prev => ({...prev, nombre: null}));
-                  }} 
+                  }}
+                  onBlur={(e) => {
+                    if (e.target.value !== currentPlayer.nombre) {
+                      setCurrentPlayer({...currentPlayer, nombre: e.target.value});
+                    }
+                  }}
                   required 
                   placeholder="Ej: Juan García López" 
                   className={fieldErrors.nombre ? "border-2 border-red-500 bg-red-50" : ""}
@@ -787,16 +794,23 @@ export default function PlayerForm({ player, onSubmit, onCancel, isSubmitting, i
                     DNI del Jugador {requiresDNI ? "*" : "(opcional si menor de 14)"} {fieldErrors.dni_jugador && <span className="text-red-500 text-xs ml-1">⚠️</span>}
                   </Label>
                   <Input 
-                    id="dni_jugador" 
-                    value={currentPlayer.dni_jugador || ""} 
-                    onChange={(e) => {
-                      setCurrentPlayer({...currentPlayer, dni_jugador: e.target.value});
-                      if (fieldErrors.dni_jugador) setFieldErrors(prev => ({...prev, dni_jugador: null}));
-                    }} 
-                    placeholder="12345678A" 
-                    required={requiresDNI} 
-                    className={fieldErrors.dni_jugador ? "border-2 border-red-500 bg-red-50" : ""}
-                  />
+                        id="dni_jugador" 
+                        name="dni"
+                        autoComplete="off"
+                        value={currentPlayer.dni_jugador || ""} 
+                        onChange={(e) => {
+                          setCurrentPlayer({...currentPlayer, dni_jugador: e.target.value});
+                          if (fieldErrors.dni_jugador) setFieldErrors(prev => ({...prev, dni_jugador: null}));
+                        }}
+                        onBlur={(e) => {
+                          if (e.target.value !== (currentPlayer.dni_jugador || "")) {
+                            setCurrentPlayer({...currentPlayer, dni_jugador: e.target.value});
+                          }
+                        }}
+                        placeholder="12345678A" 
+                        required={requiresDNI} 
+                        className={fieldErrors.dni_jugador ? "border-2 border-red-500 bg-red-50" : ""}
+                      />
                   {fieldErrors.dni_jugador && <p className="text-xs text-red-600 font-medium">{fieldErrors.dni_jugador}</p>}
                 </div>
 
@@ -896,11 +910,18 @@ export default function PlayerForm({ player, onSubmit, onCancel, isSubmitting, i
                         </Label>
                         <Input 
                           id="nombre_tutor_legal" 
+                          name="parent-name"
+                          autoComplete="name"
                           value={currentPlayer.nombre_tutor_legal || ""} 
                           onChange={(e) => {
                             setCurrentPlayer({...currentPlayer, nombre_tutor_legal: e.target.value});
                             if (fieldErrors.nombre_tutor_legal) setFieldErrors(prev => ({...prev, nombre_tutor_legal: null}));
-                          }} 
+                          }}
+                          onBlur={(e) => {
+                            if (e.target.value !== (currentPlayer.nombre_tutor_legal || "")) {
+                              setCurrentPlayer({...currentPlayer, nombre_tutor_legal: e.target.value});
+                            }
+                          }}
                           placeholder="Ej: María García López" 
                           required 
                           className={fieldErrors.nombre_tutor_legal ? "border-2 border-red-500 bg-red-50" : ""}
@@ -914,11 +935,18 @@ export default function PlayerForm({ player, onSubmit, onCancel, isSubmitting, i
                         </Label>
                         <Input 
                           id="dni_tutor_legal" 
+                          name="parent-dni"
+                          autoComplete="off"
                           value={currentPlayer.dni_tutor_legal || ""} 
                           onChange={(e) => {
                             setCurrentPlayer({...currentPlayer, dni_tutor_legal: e.target.value});
                             if (fieldErrors.dni_tutor_legal) setFieldErrors(prev => ({...prev, dni_tutor_legal: null}));
-                          }} 
+                          }}
+                          onBlur={(e) => {
+                            if (e.target.value !== (currentPlayer.dni_tutor_legal || "")) {
+                              setCurrentPlayer({...currentPlayer, dni_tutor_legal: e.target.value});
+                            }
+                          }}
                           placeholder="12345678A" 
                           required 
                           className={fieldErrors.dni_tutor_legal ? "border-2 border-red-500 bg-red-50" : ""}
@@ -948,12 +976,19 @@ export default function PlayerForm({ player, onSubmit, onCancel, isSubmitting, i
                         </Label>
                         <Input 
                           id="email_padre" 
+                          name="email"
                           type="email" 
+                          autoComplete="email"
                           value={currentPlayer.email_padre} 
                           onChange={(e) => {
                             setCurrentPlayer({...currentPlayer, email_padre: e.target.value});
                             if (fieldErrors.email_padre) setFieldErrors(prev => ({...prev, email_padre: null}));
-                          }} 
+                          }}
+                          onBlur={(e) => {
+                            if (e.target.value !== currentPlayer.email_padre) {
+                              setCurrentPlayer({...currentPlayer, email_padre: e.target.value});
+                            }
+                          }}
                           required 
                           disabled={isParent} 
                           className={`${isParent ? "bg-slate-100" : ""} ${fieldErrors.email_padre ? "border-2 border-red-500 bg-red-50" : ""}`} 
@@ -967,12 +1002,19 @@ export default function PlayerForm({ player, onSubmit, onCancel, isSubmitting, i
                         </Label>
                         <Input 
                           id="telefono" 
+                          name="tel"
                           type="tel" 
+                          autoComplete="tel"
                           value={currentPlayer.telefono} 
                           onChange={(e) => {
                             setCurrentPlayer({...currentPlayer, telefono: e.target.value});
                             if (fieldErrors.telefono) setFieldErrors(prev => ({...prev, telefono: null}));
-                          }} 
+                          }}
+                          onBlur={(e) => {
+                            if (e.target.value !== currentPlayer.telefono) {
+                              setCurrentPlayer({...currentPlayer, telefono: e.target.value});
+                            }
+                          }}
                           required 
                           placeholder="600123456" 
                           className={fieldErrors.telefono ? "border-2 border-red-500 bg-red-50" : ""}
@@ -994,11 +1036,38 @@ export default function PlayerForm({ player, onSubmit, onCancel, isSubmitting, i
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2">
                     <Label htmlFor="email_padre">Correo Electrónico *</Label>
-                    <Input id="email_padre" type="email" value={currentPlayer.email_padre} onChange={(e) => setCurrentPlayer({...currentPlayer, email_padre: e.target.value})} required disabled={isParent} />
+                    <Input 
+                      id="email_padre" 
+                      name="email"
+                      type="email" 
+                      autoComplete="email"
+                      value={currentPlayer.email_padre} 
+                      onChange={(e) => setCurrentPlayer({...currentPlayer, email_padre: e.target.value})}
+                      onBlur={(e) => {
+                        if (e.target.value !== currentPlayer.email_padre) {
+                          setCurrentPlayer({...currentPlayer, email_padre: e.target.value});
+                        }
+                      }}
+                      required 
+                      disabled={isParent} 
+                    />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="telefono">Teléfono *</Label>
-                    <Input id="telefono" type="tel" value={currentPlayer.telefono} onChange={(e) => setCurrentPlayer({...currentPlayer, telefono: e.target.value})} required />
+                    <Input 
+                      id="telefono" 
+                      name="tel"
+                      type="tel" 
+                      autoComplete="tel"
+                      value={currentPlayer.telefono} 
+                      onChange={(e) => setCurrentPlayer({...currentPlayer, telefono: e.target.value})}
+                      onBlur={(e) => {
+                        if (e.target.value !== currentPlayer.telefono) {
+                          setCurrentPlayer({...currentPlayer, telefono: e.target.value});
+                        }
+                      }}
+                      required 
+                    />
                   </div>
                 </div>
               </div>
@@ -1012,11 +1081,18 @@ export default function PlayerForm({ player, onSubmit, onCancel, isSubmitting, i
                 </Label>
                 <Input 
                   id="direccion" 
+                  name="street-address"
+                  autoComplete="street-address"
                   value={currentPlayer.direccion} 
                   onChange={(e) => {
                     setCurrentPlayer({...currentPlayer, direccion: e.target.value});
                     if (fieldErrors.direccion) setFieldErrors(prev => ({...prev, direccion: null}));
-                  }} 
+                  }}
+                  onBlur={(e) => {
+                    if (e.target.value !== currentPlayer.direccion) {
+                      setCurrentPlayer({...currentPlayer, direccion: e.target.value});
+                    }
+                  }}
                   placeholder="Calle, número, piso..." 
                   required 
                   className={fieldErrors.direccion ? "border-2 border-red-500 bg-red-50" : ""}
@@ -1029,11 +1105,18 @@ export default function PlayerForm({ player, onSubmit, onCancel, isSubmitting, i
                 </Label>
                 <Input 
                   id="municipio" 
+                  name="address-level2"
+                  autoComplete="address-level2"
                   value={currentPlayer.municipio || ""} 
                   onChange={(e) => {
                     setCurrentPlayer({...currentPlayer, municipio: e.target.value});
                     if (fieldErrors.municipio) setFieldErrors(prev => ({...prev, municipio: null}));
-                  }} 
+                  }}
+                  onBlur={(e) => {
+                    if (e.target.value !== (currentPlayer.municipio || "")) {
+                      setCurrentPlayer({...currentPlayer, municipio: e.target.value});
+                    }
+                  }}
                   placeholder="Bustarviejo" 
                   required 
                   className={fieldErrors.municipio ? "border-2 border-red-500 bg-red-50" : ""}
@@ -1070,15 +1153,53 @@ export default function PlayerForm({ player, onSubmit, onCancel, isSubmitting, i
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2 md:col-span-2">
                     <Label htmlFor="nombre_tutor_2">Nombre y Apellidos</Label>
-                    <Input id="nombre_tutor_2" value={currentPlayer.nombre_tutor_2 || ""} onChange={(e) => setCurrentPlayer({...currentPlayer, nombre_tutor_2: e.target.value})} placeholder="Ej: Pedro García López" />
+                    <Input 
+                      id="nombre_tutor_2" 
+                      name="tutor2-name"
+                      autoComplete="name"
+                      value={currentPlayer.nombre_tutor_2 || ""} 
+                      onChange={(e) => setCurrentPlayer({...currentPlayer, nombre_tutor_2: e.target.value})}
+                      onBlur={(e) => {
+                        if (e.target.value !== (currentPlayer.nombre_tutor_2 || "")) {
+                          setCurrentPlayer({...currentPlayer, nombre_tutor_2: e.target.value});
+                        }
+                      }}
+                      placeholder="Ej: Pedro García López" 
+                    />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="email_tutor_2">Correo Electrónico</Label>
-                    <Input id="email_tutor_2" type="email" value={currentPlayer.email_tutor_2} onChange={(e) => setCurrentPlayer({...currentPlayer, email_tutor_2: e.target.value})} placeholder="padre@ejemplo.com" />
+                    <Input 
+                      id="email_tutor_2" 
+                      name="tutor2-email"
+                      type="email" 
+                      autoComplete="email"
+                      value={currentPlayer.email_tutor_2} 
+                      onChange={(e) => setCurrentPlayer({...currentPlayer, email_tutor_2: e.target.value})}
+                      onBlur={(e) => {
+                        if (e.target.value !== currentPlayer.email_tutor_2) {
+                          setCurrentPlayer({...currentPlayer, email_tutor_2: e.target.value});
+                        }
+                      }}
+                      placeholder="padre@ejemplo.com" 
+                    />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="telefono_tutor_2">Teléfono</Label>
-                    <Input id="telefono_tutor_2" type="tel" value={currentPlayer.telefono_tutor_2} onChange={(e) => setCurrentPlayer({...currentPlayer, telefono_tutor_2: e.target.value})} placeholder="600654321" />
+                    <Input 
+                      id="telefono_tutor_2" 
+                      name="tutor2-tel"
+                      type="tel" 
+                      autoComplete="tel"
+                      value={currentPlayer.telefono_tutor_2} 
+                      onChange={(e) => setCurrentPlayer({...currentPlayer, telefono_tutor_2: e.target.value})}
+                      onBlur={(e) => {
+                        if (e.target.value !== currentPlayer.telefono_tutor_2) {
+                          setCurrentPlayer({...currentPlayer, telefono_tutor_2: e.target.value});
+                        }
+                      }}
+                      placeholder="600654321" 
+                    />
                   </div>
                 </div>
               </div>
@@ -1183,11 +1304,34 @@ export default function PlayerForm({ player, onSubmit, onCancel, isSubmitting, i
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                           <div className="space-y-2">
                             <Label>Nombre</Label>
-                            <Input value={currentPlayer.ficha_medica?.contacto_emergencia_nombre || ""} onChange={(e) => setCurrentPlayer({...currentPlayer, ficha_medica: {...(currentPlayer.ficha_medica || {}), contacto_emergencia_nombre: e.target.value}})} placeholder="Nombre completo" />
+                            <Input 
+                              name="emergency1-name"
+                              autoComplete="name"
+                              value={currentPlayer.ficha_medica?.contacto_emergencia_nombre || ""} 
+                              onChange={(e) => setCurrentPlayer({...currentPlayer, ficha_medica: {...(currentPlayer.ficha_medica || {}), contacto_emergencia_nombre: e.target.value}})}
+                              onBlur={(e) => {
+                                if (e.target.value !== (currentPlayer.ficha_medica?.contacto_emergencia_nombre || "")) {
+                                  setCurrentPlayer({...currentPlayer, ficha_medica: {...(currentPlayer.ficha_medica || {}), contacto_emergencia_nombre: e.target.value}});
+                                }
+                              }}
+                              placeholder="Nombre completo" 
+                            />
                           </div>
                           <div className="space-y-2">
                             <Label>Teléfono</Label>
-                            <Input type="tel" value={currentPlayer.ficha_medica?.contacto_emergencia_telefono || ""} onChange={(e) => setCurrentPlayer({...currentPlayer, ficha_medica: {...(currentPlayer.ficha_medica || {}), contacto_emergencia_telefono: e.target.value}})} placeholder="600 123 456" />
+                            <Input 
+                              name="emergency1-tel"
+                              type="tel" 
+                              autoComplete="tel"
+                              value={currentPlayer.ficha_medica?.contacto_emergencia_telefono || ""} 
+                              onChange={(e) => setCurrentPlayer({...currentPlayer, ficha_medica: {...(currentPlayer.ficha_medica || {}), contacto_emergencia_telefono: e.target.value}})}
+                              onBlur={(e) => {
+                                if (e.target.value !== (currentPlayer.ficha_medica?.contacto_emergencia_telefono || "")) {
+                                  setCurrentPlayer({...currentPlayer, ficha_medica: {...(currentPlayer.ficha_medica || {}), contacto_emergencia_telefono: e.target.value}});
+                                }
+                              }}
+                              placeholder="600 123 456" 
+                            />
                           </div>
                         </div>
                       </div>
@@ -1198,11 +1342,34 @@ export default function PlayerForm({ player, onSubmit, onCancel, isSubmitting, i
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                           <div className="space-y-2">
                             <Label>Nombre</Label>
-                            <Input value={currentPlayer.ficha_medica?.contacto_emergencia_2_nombre || ""} onChange={(e) => setCurrentPlayer({...currentPlayer, ficha_medica: {...(currentPlayer.ficha_medica || {}), contacto_emergencia_2_nombre: e.target.value}})} placeholder="Nombre completo" />
+                            <Input 
+                              name="emergency2-name"
+                              autoComplete="name"
+                              value={currentPlayer.ficha_medica?.contacto_emergencia_2_nombre || ""} 
+                              onChange={(e) => setCurrentPlayer({...currentPlayer, ficha_medica: {...(currentPlayer.ficha_medica || {}), contacto_emergencia_2_nombre: e.target.value}})}
+                              onBlur={(e) => {
+                                if (e.target.value !== (currentPlayer.ficha_medica?.contacto_emergencia_2_nombre || "")) {
+                                  setCurrentPlayer({...currentPlayer, ficha_medica: {...(currentPlayer.ficha_medica || {}), contacto_emergencia_2_nombre: e.target.value}});
+                                }
+                              }}
+                              placeholder="Nombre completo" 
+                            />
                           </div>
                           <div className="space-y-2">
                             <Label>Teléfono</Label>
-                            <Input type="tel" value={currentPlayer.ficha_medica?.contacto_emergencia_2_telefono || ""} onChange={(e) => setCurrentPlayer({...currentPlayer, ficha_medica: {...(currentPlayer.ficha_medica || {}), contacto_emergencia_2_telefono: e.target.value}})} placeholder="600 654 321" />
+                            <Input 
+                              name="emergency2-tel"
+                              type="tel" 
+                              autoComplete="tel"
+                              value={currentPlayer.ficha_medica?.contacto_emergencia_2_telefono || ""} 
+                              onChange={(e) => setCurrentPlayer({...currentPlayer, ficha_medica: {...(currentPlayer.ficha_medica || {}), contacto_emergencia_2_telefono: e.target.value}})}
+                              onBlur={(e) => {
+                                if (e.target.value !== (currentPlayer.ficha_medica?.contacto_emergencia_2_telefono || "")) {
+                                  setCurrentPlayer({...currentPlayer, ficha_medica: {...(currentPlayer.ficha_medica || {}), contacto_emergencia_2_telefono: e.target.value}});
+                                }
+                              }}
+                              placeholder="600 654 321" 
+                            />
                           </div>
                         </div>
                       </div>
