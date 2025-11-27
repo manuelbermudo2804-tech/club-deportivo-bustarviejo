@@ -157,14 +157,25 @@ export default function ClubMembership() {
       try {
         const isAuthenticated = await base44.auth.isAuthenticated();
         if (isAuthenticated) {
-          const currentUser = await base44.auth.me();
-          setUser(currentUser);
+          try {
+            const currentUser = await base44.auth.me();
+            setUser(currentUser);
+          } catch (userError) {
+            // Token existe pero usuario no está en BD - acceso público
+            console.log("Usuario con token pero no en BD, acceso público");
+            setUser(null);
+            setIsPublicAccess(true);
+          }
         } else {
+          // No autenticado - marcar como acceso público
           setUser(null);
+          setIsPublicAccess(true);
         }
       } catch (error) {
-        // Usuario no autenticado - permitir acceso a la página
+        // Error general - permitir acceso público
+        console.log("Error auth, permitiendo acceso público:", error);
         setUser(null);
+        setIsPublicAccess(true);
       } finally {
         setIsCheckingAuth(false);
       }
