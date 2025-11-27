@@ -405,46 +405,60 @@ export default function ParentLottery() {
                 </div>
 
 {/* Sección de Pago */}
-                {requierePagoAdelantado ? (
-                  <>
-                    <div className="space-y-2">
-                      <Label className="text-lg font-bold text-slate-900">💳 Método de Pago</Label>
-                      <Select value={metodoPago} onValueChange={setMetodoPago}>
-                        <SelectTrigger className="border-2 border-red-300 h-12 text-lg">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="Transferencia">💳 Transferencia Bancaria</SelectItem>
-                          {seasonConfig?.bizum_activo && (
-                            <SelectItem value="Bizum">📱 Bizum</SelectItem>
-                          )}
-                        </SelectContent>
-                      </Select>
-                      {metodoPago === "Bizum" && seasonConfig?.bizum_telefono && (
-                        <div className="bg-white rounded-lg p-3 border-2 border-green-300">
-                          <p className="text-sm text-slate-900">
-                            📱 <strong>Enviar Bizum al:</strong> {seasonConfig.bizum_telefono}
-                          </p>
-                          <p className="text-xs text-slate-600 mt-1">
-                            Concepto: Lotería {selectedPlayer ? players.find(p => p.id === selectedPlayer)?.nombre : user?.full_name}
-                          </p>
-                        </div>
+                <div className="space-y-4">
+                  <Label className="text-lg font-bold text-slate-900">💳 Método de Pago</Label>
+                  <Select value={metodoPago} onValueChange={setMetodoPago}>
+                    <SelectTrigger className="border-2 border-red-300 h-12 text-lg">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Entrenador">👨‍🏫 Pago directo al Entrenador</SelectItem>
+                      <SelectItem value="Transferencia">💳 Transferencia Bancaria</SelectItem>
+                      {seasonConfig?.bizum_activo && (
+                        <SelectItem value="Bizum">📱 Bizum</SelectItem>
                       )}
-                      {metodoPago === "Transferencia" && (
-                        <div className="bg-white rounded-lg p-3 border-2 border-blue-300">
-                          <p className="text-sm text-slate-900">
-                            🏦 <strong>Transferencia a:</strong> ES12 1234 5678 1234 5678 9012
-                          </p>
-                          <p className="text-xs text-slate-600 mt-1">
-                            Concepto: Lotería {selectedPlayer ? players.find(p => p.id === selectedPlayer)?.nombre : user?.full_name}
-                          </p>
-                        </div>
-                      )}
-                    </div>
+                    </SelectContent>
+                  </Select>
 
+                  {metodoPago === "Entrenador" && (
+                    <div className="bg-gradient-to-r from-green-100 to-green-200 p-4 rounded-xl border-2 border-green-300">
+                      <p className="text-green-900 font-bold text-lg mb-2">👨‍🏫 Pago al Entrenador</p>
+                      <p className="text-green-800 text-sm">
+                        Tu entrenador te entregará los décimos y le pagarás directamente cuando los recibas.
+                      </p>
+                      <p className="text-green-700 text-xs mt-2">
+                        💡 Importe a pagar: <strong>{numDecimos * precioDecimo}€</strong>
+                      </p>
+                    </div>
+                  )}
+
+                  {metodoPago === "Bizum" && seasonConfig?.bizum_telefono && (
+                    <div className="bg-white rounded-lg p-3 border-2 border-green-300">
+                      <p className="text-sm text-slate-900">
+                        📱 <strong>Enviar Bizum al:</strong> {seasonConfig.bizum_telefono}
+                      </p>
+                      <p className="text-xs text-slate-600 mt-1">
+                        Concepto: Lotería {selectedPlayer ? players.find(p => p.id === selectedPlayer)?.nombre : user?.full_name}
+                      </p>
+                    </div>
+                  )}
+
+                  {metodoPago === "Transferencia" && (
+                    <div className="bg-white rounded-lg p-3 border-2 border-blue-300">
+                      <p className="text-sm text-slate-900">
+                        🏦 <strong>Transferencia a:</strong> ES12 1234 5678 1234 5678 9012
+                      </p>
+                      <p className="text-xs text-slate-600 mt-1">
+                        Concepto: Lotería {selectedPlayer ? players.find(p => p.id === selectedPlayer)?.nombre : user?.full_name}
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Justificante solo para Transferencia o Bizum */}
+                  {(metodoPago === "Transferencia" || metodoPago === "Bizum") && (
                     <div className="space-y-3 p-4 bg-orange-50 rounded-lg border-2 border-orange-200">
                       <Label className="text-base font-semibold text-orange-900">
-                        📎 Justificante de Pago * (Obligatorio)
+                        📎 Justificante de Pago {requierePagoAdelantado ? "* (Obligatorio)" : "(Opcional)"}
                       </Label>
                       <p className="text-sm text-orange-800">
                         {metodoPago === "Bizum" 
@@ -491,22 +505,14 @@ export default function ParentLottery() {
                       />
                       {justificanteUrl ? (
                         <p className="text-sm text-green-600 font-medium">✓ Justificante subido correctamente</p>
-                      ) : (
+                      ) : requierePagoAdelantado ? (
                         <p className="text-sm text-red-600 font-medium">⚠️ Debes subir el justificante para continuar</p>
+                      ) : (
+                        <p className="text-sm text-slate-500">Puedes subir el justificante ahora o después</p>
                       )}
                     </div>
-                  </>
-                ) : (
-                  <div className="bg-gradient-to-r from-green-100 to-green-200 p-4 rounded-xl border-2 border-green-300">
-                    <p className="text-green-900 font-bold text-lg mb-2">💵 Pago al Entrenador</p>
-                    <p className="text-green-800 text-sm">
-                      No necesitas pagar ahora. Tu entrenador te entregará los décimos y le pagarás directamente cuando los recibas.
-                    </p>
-                    <p className="text-green-700 text-xs mt-2">
-                      💡 Importe a pagar: <strong>{numDecimos * precioDecimo}€</strong>
-                    </p>
-                  </div>
-                )}
+                  )}
+                </div>
 
                 <div className="space-y-2">
                   <Label className="text-lg font-bold text-slate-900">📝 Notas (opcional)</Label>
