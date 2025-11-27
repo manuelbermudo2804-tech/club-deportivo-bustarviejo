@@ -452,9 +452,9 @@ export default function Home() {
           gradient: "from-slate-600 to-slate-700",
         },
         {
-          title: "⚙️ Configuración Financiera",
+          title: "⚙️ Temporadas y Categorías",
           icon: Settings,
-          url: createPageUrl("FinancialConfiguration"),
+          url: createPageUrl("SeasonManagement"),
           gradient: "from-slate-600 to-slate-700",
         },
         {
@@ -532,9 +532,9 @@ export default function Home() {
           gradient: "from-amber-600 to-amber-700",
         },
         {
-          title: "⚙️ Configuración Financiera",
+          title: "⚙️ Temporadas y Categorías",
           icon: Settings,
-          url: createPageUrl("FinancialConfiguration"),
+          url: createPageUrl("SeasonManagement"),
           gradient: "from-slate-600 to-slate-700",
         },
         {
