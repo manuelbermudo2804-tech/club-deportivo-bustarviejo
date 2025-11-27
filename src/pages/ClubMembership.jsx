@@ -202,6 +202,7 @@ export default function ClubMembership() {
       const configs = await base44.entities.SeasonConfig.list();
       return configs.find(c => c.activa === true);
     },
+    enabled: !isCheckingAuth, // Solo ejecutar después de verificar auth
   });
 
   // Función para generar número de socio único
