@@ -110,8 +110,10 @@ export default function TreasurerDashboard() {
     const patrociniosTotal = patrociniosActivos.reduce((sum, s) => sum + (s.monto || 0), 0);
 
     // Socios
-    const sociosPagados = clubMembers.filter(m => m.estado_pago === "Pagado").reduce((sum, m) => sum + (m.cuota_socio || 25), 0);
-    const sociosPendientes = clubMembers.filter(m => m.estado_pago === "Pendiente" || m.estado_pago === "En revisión").reduce((sum, m) => sum + (m.cuota_socio || 25), 0);
+    const sociosPagados = filteredClubMembers.filter(m => m.estado_pago === "Pagado").reduce((sum, m) => sum + (m.cuota_socio || 25), 0);
+    const sociosPendientes = filteredClubMembers.filter(m => m.estado_pago === "Pendiente" || m.estado_pago === "En revisión").reduce((sum, m) => sum + (m.cuota_socio || 25), 0);
+    const sociosRevision = filteredClubMembers.filter(m => m.estado_pago === "En revisión").length;
+    const sociosCount = filteredClubMembers.length;
 
     // Totales
     const totalIngresos = cuotasPagadas + ropaPagada + loteriaPagada + patrociniosTotal + sociosPagados;
