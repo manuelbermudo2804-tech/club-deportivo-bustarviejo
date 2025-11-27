@@ -28,11 +28,10 @@ export default function Home() {
       const configs = await base44.entities.SeasonConfig.list();
       return configs.find(c => c.activa === true);
     },
-    staleTime: 300000, // 5 minutos
-    gcTime: 600000, // 10 minutos
-    refetchOnWindowFocus: false,
-    refetchOnMount: false,
-    refetchInterval: false,
+    staleTime: 5000,
+    gcTime: 60000,
+    refetchOnWindowFocus: true,
+    refetchOnMount: true,
     enabled: !!user,
   });
 
@@ -928,6 +927,22 @@ export default function Home() {
                     👉 Pulsa aquí para participar
                   </p>
                 </div>
+              </div>
+            </div>
+          </Link>
+        )}
+
+        {/* Banner de Lotería de Navidad */}
+        {loteriaVisible && (
+          <Link to={createPageUrl("ParentLottery")}>
+            <div className="bg-gradient-to-r from-red-600 via-green-600 to-red-600 rounded-2xl p-4 shadow-xl transition-all hover:scale-105 active:scale-95 border-4 border-yellow-400 animate-pulse">
+              <div className="flex items-center justify-center gap-3">
+                <span className="text-3xl">🎄</span>
+                <div className="text-center">
+                  <p className="text-white font-bold text-lg lg:text-xl">🍀 ¡Lotería de Navidad Abierta!</p>
+                  <p className="text-yellow-200 text-xs lg:text-sm">Pide tus décimos del club • Número: 28720</p>
+                </div>
+                <span className="text-3xl">🎅</span>
               </div>
             </div>
           </Link>
