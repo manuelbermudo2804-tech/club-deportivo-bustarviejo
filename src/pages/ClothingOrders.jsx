@@ -36,7 +36,7 @@ export default function ClothingOrders() {
   
   const queryClient = useQueryClient();
 
-  const { data: user } = useQuery({
+  const { data: user, refetch: refetchUser } = useQuery({
     queryKey: ['currentUser'],
     queryFn: () => base44.auth.me(),
   });
@@ -98,11 +98,21 @@ export default function ClothingOrders() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['myClothingOrders'] });
       queryClient.invalidateQueries({ queryKey: ['allPlayersForClothing'] });
+      queryClient.invalidateQueries({ queryKey: ['currentUser'] });
       setShowForm(false);
       window.scrollTo({ top: 0, behavior: 'smooth' });
       toast.success("✅ Pedido registrado correctamente");
     },
   });
+
+  // Función para actualizar el crédito del usuario cuando se usa
+  const handleCreditUsed = async (creditUsed) => {
+    if (creditUsed > 0 && user) {
+      const newBalance = Math.max(0, (user.clothing_credit_balance || 0) - creditUsed);
+      await base44.auth.updateMe({ clothing_credit_balance: newBalance });
+      refetchUser();
+    }
+  };
 
   const updateOrderStatusMutation = useMutation({
     mutationFn: async ({ orderId, newStatus, notifyParent }) => {
@@ -491,20 +501,41 @@ export default function ClothingOrders() {
       </div>
 
       {!isAdmin && (
-        <Alert className="bg-blue-50 border-blue-300 border-2">
-          <AlertCircle className="h-5 w-5 text-blue-600" />
-          <AlertDescription className="text-blue-900">
-            <strong>ℹ️ Información sobre pedidos</strong>
-            <p className="mt-2">
-              Los pedidos de equipación normalmente están disponibles durante los meses de <strong>Junio y Julio</strong>.
-            </p>
-            {!orderPeriodActive && (
-              <p className="mt-2 text-orange-700">
-                <strong>Actualmente la tienda está cerrada.</strong> Los pedidos ya realizados se pueden consultar aquí.
+        <>
+          {/* Banner de crédito disponible */}
+          {user?.clothing_credit_balance > 0 && (
+            <div className="bg-gradient-to-r from-purple-500 via-pink-500 to-orange-500 rounded-2xl p-1">
+              <div className="bg-white rounded-xl p-4 flex items-center justify-between gap-4">
+                <div className="flex items-center gap-3">
+                  <span className="text-3xl">🎁</span>
+                  <div>
+                    <p className="font-bold text-slate-900">¡Tienes crédito disponible!</p>
+                    <p className="text-sm text-slate-600">Del programa "Trae un Socio Amigo" - válido para equipación</p>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <p className="text-3xl font-bold text-purple-600">{user.clothing_credit_balance}€</p>
+                  <p className="text-xs text-slate-500">para usar en pedidos</p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          <Alert className="bg-blue-50 border-blue-300 border-2">
+            <AlertCircle className="h-5 w-5 text-blue-600" />
+            <AlertDescription className="text-blue-900">
+              <strong>ℹ️ Información sobre pedidos</strong>
+              <p className="mt-2">
+                Los pedidos de equipación normalmente están disponibles durante los meses de <strong>Junio y Julio</strong>.
               </p>
-            )}
-          </AlertDescription>
-        </Alert>
+              {!orderPeriodActive && (
+                <p className="mt-2 text-orange-700">
+                  <strong>Actualmente la tienda está cerrada.</strong> Los pedidos ya realizados se pueden consultar aquí.
+                </p>
+              )}
+            </AlertDescription>
+          </Alert>
+        </>
       )}
 
       {players.length === 0 && orderPeriodActive && !isAdmin && (
@@ -527,6 +558,8 @@ export default function ClothingOrders() {
             onSubmit={handleSubmit}
             onCancel={() => setShowForm(false)}
             isSubmitting={createOrderMutation.isPending}
+            userCredit={user?.clothing_credit_balance || 0}
+            onCreditUsed={handleCreditUsed}
           />
         )}
       </AnimatePresence>
