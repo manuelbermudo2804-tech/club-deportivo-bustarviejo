@@ -673,9 +673,15 @@ export default function TreasurerDashboard() {
                     <span className="text-slate-600">Pendiente:</span>
                     <span className="font-medium text-red-600">{(stats.socios?.pendientes || 0).toLocaleString()}€</span>
                   </div>
+                  {stats.socios?.revision > 0 && (
+                    <div className="flex justify-between">
+                      <span className="text-slate-600">En revisión:</span>
+                      <span className="font-medium text-yellow-600">{stats.socios.revision}</span>
+                    </div>
+                  )}
                   <div className="flex justify-between">
                     <span className="text-slate-600">Total socios:</span>
-                    <span className="font-medium">{clubMembers.length}</span>
+                    <span className="font-medium">{stats.socios?.total || 0}</span>
                   </div>
                 </div>
               </CardContent>
