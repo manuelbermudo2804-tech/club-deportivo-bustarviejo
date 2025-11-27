@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, Upload, AlertCircle, CheckCircle2, Users, CreditCard, Download, Heart, Star, Trophy, PartyPopper, Sparkles, Gift, UserPlus } from "lucide-react";
+import { Loader2, Upload, AlertCircle, CheckCircle2, Users, CreditCard, Download, Heart, Star, PartyPopper, Sparkles, UserPlus } from "lucide-react";
 import { toast } from "sonner";
 
 const CUOTA_SOCIO = 25;
@@ -85,7 +85,7 @@ export default function ClubMembership() {
         await base44.integrations.Core.SendEmail({
           to: "cdbustarviejo@gmail.com",
           subject: `🎉 Nueva solicitud de socio: ${data.nombre_completo}`,
-          body: `Se ha recibido una nueva solicitud de socio:\n\nNombre: ${data.nombre_completo}\nDNI: ${data.dni}\nEmail: ${data.email}\nTeléfono: ${data.telefono}\nTipo: ${data.tipo_inscripcion}\nEs segundo progenitor: ${data.es_segundo_progenitor ? "Sí" : "No"}\n\nPago: ${data.justificante_url ? "Justificante subido - revisar" : "Pendiente"}\n\nAccede al panel de administración para gestionar.`
+          body: `Se ha recibido una nueva solicitud de socio:\n\nNombre: ${data.nombre_completo}\nDNI: ${data.dni}\nEmail: ${data.email}\nTeléfono: ${data.telefono}\nMétodo de pago: ${data.metodo_pago}\nTipo: ${data.tipo_inscripcion}\nEs segundo progenitor: ${data.es_segundo_progenitor ? "Sí" : "No"}\n\nPago: Justificante subido - REVISAR\n\nAccede al panel de administración para gestionar.`
         });
       }
 
@@ -134,6 +134,10 @@ export default function ClubMembership() {
     e.preventDefault();
     if (!formData.nombre_completo || !formData.dni || !formData.telefono || !formData.email || !formData.direccion || !formData.municipio) {
       toast.error("Por favor, rellena todos los campos obligatorios");
+      return;
+    }
+    if (!formData.justificante_url) {
+      toast.error("Por favor, sube el justificante de pago");
       return;
     }
     createMembershipMutation.mutate(formData);
@@ -193,21 +197,21 @@ export default function ClubMembership() {
         <CardContent className="relative space-y-3">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             <div className="flex items-start gap-3 bg-white rounded-xl p-3 shadow-sm">
-              <div className="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center flex-shrink-0">
-                <Trophy className="w-5 h-5 text-orange-600" />
-              </div>
-              <div>
-                <p className="font-semibold text-slate-900">Apoya a tus hijos</p>
-                <p className="text-xs text-slate-600">Tu cuota ayuda a mejorar instalaciones y equipamiento</p>
-              </div>
-            </div>
-            <div className="flex items-start gap-3 bg-white rounded-xl p-3 shadow-sm">
               <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0">
                 <Heart className="w-5 h-5 text-green-600" />
               </div>
               <div>
-                <p className="font-semibold text-slate-900">Parte de la familia</p>
-                <p className="text-xs text-slate-600">Forma parte de la comunidad deportiva del pueblo</p>
+                <p className="font-semibold text-slate-900">Apoyo esencial al club</p>
+                <p className="text-xs text-slate-600">Tu aportación es vital para el desarrollo de nuestros jóvenes deportistas</p>
+              </div>
+            </div>
+            <div className="flex items-start gap-3 bg-white rounded-xl p-3 shadow-sm">
+              <div className="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center flex-shrink-0">
+                <Users className="w-5 h-5 text-orange-600" />
+              </div>
+              <div>
+                <p className="font-semibold text-slate-900">Fuerza para la comunidad</p>
+                <p className="text-xs text-slate-600">Únete a la gran familia del club y vive la pasión por el deporte en Bustarviejo</p>
               </div>
             </div>
             <div className="flex items-start gap-3 bg-white rounded-xl p-3 shadow-sm">
@@ -215,17 +219,17 @@ export default function ClubMembership() {
                 <PartyPopper className="w-5 h-5 text-blue-600" />
               </div>
               <div>
-                <p className="font-semibold text-slate-900">Eventos exclusivos</p>
-                <p className="text-xs text-slate-600">Acceso prioritario a eventos y celebraciones del club</p>
+                <p className="font-semibold text-slate-900">Eventos y momentos inolvidables</p>
+                <p className="text-xs text-slate-600">Participa en las actividades del club y comparte experiencias únicas</p>
               </div>
             </div>
             <div className="flex items-start gap-3 bg-white rounded-xl p-3 shadow-sm">
               <div className="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center flex-shrink-0">
-                <Gift className="w-5 h-5 text-purple-600" />
+                <Sparkles className="w-5 h-5 text-purple-600" />
               </div>
               <div>
-                <p className="font-semibold text-slate-900">Descuentos</p>
-                <p className="text-xs text-slate-600">Descuentos en equipación y eventos especiales</p>
+                <p className="font-semibold text-slate-900">Compromiso con el deporte base</p>
+                <p className="text-xs text-slate-600">Contribuye directamente al crecimiento y formación de nuestros deportistas</p>
               </div>
             </div>
           </div>
@@ -358,7 +362,7 @@ export default function ClubMembership() {
                   <Label htmlFor="segundo_progenitor" className="cursor-pointer">
                     <span className="font-semibold text-orange-900">👫 Soy el segundo progenitor de un jugador inscrito</span>
                     <p className="text-xs text-orange-700 mt-1">
-                      Marca esta casilla si tu pareja ya ha inscrito a vuestro/s hijo/s y quieres hacerte socio
+                      Marca esta casilla si el jugador principal ya ha sido inscrito por otro tutor y quieres ser socio
                     </p>
                   </Label>
                 </div>
@@ -482,10 +486,10 @@ export default function ClubMembership() {
 
                 {/* Subir justificante */}
                 <div className="space-y-2">
-                  <Label className="font-semibold">Subir Justificante de Pago (opcional)</Label>
-                  <p className="text-xs text-slate-600">Puedes subir el justificante ahora o hacerlo más tarde</p>
+                  <Label className="font-semibold">Subir Justificante de Pago *</Label>
+                  <p className="text-xs text-slate-600">Obligatorio: sube el comprobante de tu transferencia o Bizum</p>
                   <div className="flex items-center gap-2">
-                    <input type="file" accept="image/*,application/pdf" onChange={handleJustificanteUpload} className="hidden" id="justificante-upload" />
+                    <input type="file" accept="image/*,application/pdf" onChange={handleJustificanteUpload} className="hidden" id="justificante-upload" required />
                     <Button 
                       type="button" 
                       variant="outline" 

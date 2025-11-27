@@ -949,7 +949,7 @@ export default function Layout({ children, currentPageName }) {
     { title: "👥 Jugadores", url: createPageUrl("Players"), icon: Users },
     { title: "🛍️ Pedidos Ropa", url: createPageUrl("ClothingOrders"), icon: ShoppingBag },
     ...(loteriaVisible ? [{ title: "🍀 Gestión Lotería", url: createPageUrl("LotteryManagement"), icon: Clover }] : []),
-    { title: "🎫 Socios Club", url: createPageUrl("ClubMembership"), icon: Users },
+    { title: "🎫 Gestión Socios", url: createPageUrl("ClubMembersManagement"), icon: Users },
     { title: "💰 Patrocinios", url: createPageUrl("Sponsorships"), icon: CreditCard },
 
     // ⚙️ CONFIGURACIÓN

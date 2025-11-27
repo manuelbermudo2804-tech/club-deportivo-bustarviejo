@@ -62,6 +62,7 @@ import SeasonManagement from './pages/SeasonManagement';
 import CategoryManagement from './pages/CategoryManagement';
 import Schedules from './pages/Schedules';
 import Gallery from './pages/Gallery';
+import ClubMembersManagement from './pages/ClubMembersManagement';
 import __Layout from './Layout.jsx';
 
 
@@ -130,6 +131,7 @@ export const PAGES = {
     "CategoryManagement": CategoryManagement,
     "Schedules": Schedules,
     "Gallery": Gallery,
+    "ClubMembersManagement": ClubMembersManagement,
 }
 
 export const pagesConfig = {
