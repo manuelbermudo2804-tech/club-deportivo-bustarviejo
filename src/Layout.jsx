@@ -881,9 +881,10 @@ export default function Layout({ children, currentPageName }) {
     { title: "🛍️ Pedidos Ropa", url: createPageUrl("ClothingOrders"), icon: ShoppingBag },
     ...(loteriaVisible ? [{ title: "🍀 Lotería Navidad", url: createPageUrl("LotteryManagement"), icon: Clover }] : []),
     { title: "🎫 Gestión Socios", url: createPageUrl("ClubMembersManagement"), icon: Users },
-    { title: "💰 Patrocinios", url: createPageUrl("Sponsorships"), icon: CreditCard },
+            { title: "💰 Patrocinios", url: createPageUrl("Sponsorships"), icon: CreditCard },
+            { title: "🎁 Gestión Referidos", url: createPageUrl("ReferralManagement"), icon: Gift },
 
-    // 🎉 CONTENIDO
+            // 🎉 CONTENIDO
     { title: "🎉 Gestión Eventos", url: createPageUrl("EventManagement"), icon: Calendar },
     { title: "🖼️ Galería", url: createPageUrl("Gallery"), icon: Image },
 
