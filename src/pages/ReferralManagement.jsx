@@ -8,10 +8,11 @@ import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   Users, Gift, Shirt, Ticket, Hotel, Trophy, Search, 
   CheckCircle2, Clock, Crown, Star, Sparkles, Download,
-  Eye, Award, PartyPopper
+  Eye, Award, PartyPopper, Dices, Play, History, Package
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -36,8 +37,11 @@ export default function ReferralManagement() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedUser, setSelectedUser] = useState(null);
   const [showDetailsDialog, setShowDetailsDialog] = useState(false);
-  const [showClaimDialog, setShowClaimDialog] = useState(false);
-  const [claimNotes, setClaimNotes] = useState("");
+  const [showRaffleDialog, setShowRaffleDialog] = useState(false);
+  const [selectedPrize, setSelectedPrize] = useState(null);
+  const [isDrawing, setIsDrawing] = useState(false);
+  const [winner, setWinner] = useState(null);
+  const [activeTab, setActiveTab] = useState("ranking");
   const queryClient = useQueryClient();
 
   // Fetch data
@@ -59,16 +63,26 @@ export default function ReferralManagement() {
     },
   });
 
-  // Mutation para marcar premio como entregado
-  const claimRewardMutation = useMutation({
-    mutationFn: async ({ oderId, data }) => {
-      await base44.entities.User.update(userId, data);
-    },
+  const { data: raffleDraws = [] } = useQuery({
+    queryKey: ['raffleDraws'],
+    queryFn: () => base44.entities.RaffleDraw.list(),
+  });
+
+  // Mutation para crear sorteo
+  const createDrawMutation = useMutation({
+    mutationFn: (data) => base44.entities.RaffleDraw.create(data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['allUsers'] });
+      queryClient.invalidateQueries({ queryKey: ['raffleDraws'] });
+      toast.success("🎉 ¡Sorteo registrado!");
+    }
+  });
+
+  // Mutation para marcar premio como entregado
+  const markDeliveredMutation = useMutation({
+    mutationFn: ({ id, data }) => base44.entities.RaffleDraw.update(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['raffleDraws'] });
       toast.success("Premio marcado como entregado");
-      setShowClaimDialog(false);
-      setClaimNotes("");
     }
   });
 
@@ -93,6 +107,64 @@ export default function ReferralManagement() {
   const getUserReferrals = (email) => {
     return referralRewards.filter(r => r.referrer_email === email);
   };
+
+  // Usuarios elegibles para sorteo (con participaciones)
+  const eligibleUsers = usersWithReferrals.filter(u => (u.raffle_entries_total || 0) > 0);
+
+  // Función para hacer el sorteo
+  const performDraw = async (prize) => {
+    if (eligibleUsers.length === 0) {
+      toast.error("No hay participantes con papeletas para el sorteo");
+      return;
+    }
+
+    setSelectedPrize(prize);
+    setShowRaffleDialog(true);
+    setIsDrawing(true);
+    setWinner(null);
+
+    // Crear pool de participaciones
+    const pool = [];
+    eligibleUsers.forEach(user => {
+      const entries = user.raffle_entries_total || 0;
+      for (let i = 0; i < entries; i++) {
+        pool.push(user);
+      }
+    });
+
+    // Animación de sorteo
+    let iterations = 0;
+    const maxIterations = 20;
+    const interval = setInterval(() => {
+      const randomUser = pool[Math.floor(Math.random() * pool.length)];
+      setWinner(randomUser);
+      iterations++;
+
+      if (iterations >= maxIterations) {
+        clearInterval(interval);
+        // Seleccionar ganador final
+        const finalWinner = pool[Math.floor(Math.random() * pool.length)];
+        setWinner(finalWinner);
+        setIsDrawing(false);
+
+        // Guardar el sorteo
+        createDrawMutation.mutate({
+          temporada: seasonConfig?.temporada,
+          premio_nombre: prize.nombre,
+          premio_emoji: prize.emoji,
+          premio_descripcion: prize.descripcion,
+          ganador_email: finalWinner.email,
+          ganador_nombre: finalWinner.full_name,
+          participaciones_ganador: finalWinner.raffle_entries_total || 0,
+          total_participaciones: pool.length,
+          fecha_sorteo: new Date().toISOString()
+        });
+      }
+    }, 100);
+  };
+
+  // Sorteos de la temporada actual
+  const currentSeasonDraws = raffleDraws.filter(d => d.temporada === seasonConfig?.temporada);
 
   // Exportar datos
   const exportData = () => {
@@ -142,6 +214,25 @@ export default function ReferralManagement() {
           Exportar CSV
         </Button>
       </div>
+
+      {/* Tabs */}
+      <Tabs value={activeTab} onValueChange={setActiveTab}>
+        <TabsList className="grid w-full grid-cols-3">
+          <TabsTrigger value="ranking" className="gap-2">
+            <Trophy className="w-4 h-4" />
+            Ranking
+          </TabsTrigger>
+          <TabsTrigger value="sorteo" className="gap-2">
+            <Dices className="w-4 h-4" />
+            Sorteo
+          </TabsTrigger>
+          <TabsTrigger value="historial" className="gap-2">
+            <History className="w-4 h-4" />
+            Historial
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="ranking" className="space-y-6 mt-6">
 
       {/* Estadísticas */}
       <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
@@ -283,28 +374,234 @@ export default function ReferralManagement() {
         </CardContent>
       </Card>
 
-      {/* Premios del sorteo configurados */}
-      {seasonConfig?.sorteo_premios && seasonConfig.sorteo_premios.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Sparkles className="w-5 h-5 text-yellow-500" />
-              Premios del Sorteo Configurados
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
-              {seasonConfig.sorteo_premios.map((prize, index) => (
-                <div key={index} className="bg-gradient-to-br from-yellow-50 to-orange-50 rounded-xl p-4 text-center border-2 border-yellow-200">
-                  <span className="text-4xl block mb-2">{prize.emoji}</span>
-                  <p className="font-bold text-slate-900">{prize.nombre}</p>
-                  <p className="text-xs text-slate-600">{prize.descripcion}</p>
+        </TabsContent>
+
+        {/* TAB SORTEO */}
+        <TabsContent value="sorteo" className="space-y-6 mt-6">
+          {/* Info de participantes */}
+          <Card className="bg-gradient-to-r from-purple-50 to-pink-50 border-2 border-purple-200">
+            <CardContent className="pt-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="font-bold text-purple-900 text-lg">Participantes en el Sorteo</h3>
+                  <p className="text-purple-700">
+                    <strong>{eligibleUsers.length}</strong> usuarios con <strong>{totalRaffleEntries}</strong> papeletas totales
+                  </p>
                 </div>
-              ))}
+                <Dices className="w-12 h-12 text-purple-400" />
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Premios para sortear */}
+          {seasonConfig?.sorteo_premios && seasonConfig.sorteo_premios.length > 0 ? (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Sparkles className="w-5 h-5 text-yellow-500" />
+                  Selecciona un Premio para Sortear
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {seasonConfig.sorteo_premios.map((prize, index) => {
+                    const alreadyDrawn = currentSeasonDraws.some(d => d.premio_nombre === prize.nombre);
+                    return (
+                      <div 
+                        key={index} 
+                        className={`rounded-xl p-6 text-center border-2 transition-all ${
+                          alreadyDrawn 
+                            ? "bg-slate-100 border-slate-300 opacity-60" 
+                            : "bg-gradient-to-br from-yellow-50 to-orange-50 border-yellow-300 hover:border-yellow-500 hover:shadow-lg cursor-pointer"
+                        }`}
+                      >
+                        <span className="text-5xl block mb-3">{prize.emoji}</span>
+                        <p className="font-bold text-lg text-slate-900">{prize.nombre}</p>
+                        <p className="text-sm text-slate-600 mb-4">{prize.descripcion}</p>
+                        {alreadyDrawn ? (
+                          <Badge className="bg-slate-500">
+                            <CheckCircle2 className="w-3 h-3 mr-1" />
+                            Ya sorteado
+                          </Badge>
+                        ) : (
+                          <Button 
+                            onClick={() => performDraw(prize)}
+                            className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
+                          >
+                            <Play className="w-4 h-4 mr-2" />
+                            ¡Sortear!
+                          </Button>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </CardContent>
+            </Card>
+          ) : (
+            <Card>
+              <CardContent className="py-12 text-center text-slate-500">
+                <Gift className="w-16 h-16 mx-auto mb-4 opacity-30" />
+                <p>No hay premios configurados</p>
+                <p className="text-sm">Ve a Temporadas para añadir premios al sorteo</p>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Lista de participantes */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Participantes con Papeletas</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2 max-h-96 overflow-y-auto">
+                {eligibleUsers.map((user, idx) => (
+                  <div key={user.id} className="flex items-center justify-between bg-slate-50 rounded-lg p-3">
+                    <div className="flex items-center gap-3">
+                      <span className="text-lg font-bold text-slate-400">#{idx + 1}</span>
+                      <div>
+                        <p className="font-medium text-slate-900">{user.full_name}</p>
+                        <p className="text-xs text-slate-500">{user.email}</p>
+                      </div>
+                    </div>
+                    <Badge className="bg-orange-500 text-lg px-3">
+                      <Ticket className="w-4 h-4 mr-1" />
+                      {user.raffle_entries_total || 0}
+                    </Badge>
+                  </div>
+                ))}
+                {eligibleUsers.length === 0 && (
+                  <p className="text-center text-slate-500 py-8">No hay participantes con papeletas</p>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* TAB HISTORIAL */}
+        <TabsContent value="historial" className="space-y-6 mt-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <History className="w-5 h-5 text-slate-600" />
+                Historial de Sorteos
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {raffleDraws.length === 0 ? (
+                <div className="text-center py-12 text-slate-500">
+                  <Dices className="w-16 h-16 mx-auto mb-4 opacity-30" />
+                  <p>No hay sorteos realizados</p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {raffleDraws.sort((a, b) => new Date(b.fecha_sorteo) - new Date(a.fecha_sorteo)).map((draw) => (
+                    <div 
+                      key={draw.id} 
+                      className={`rounded-xl p-4 border-2 ${
+                        draw.entregado 
+                          ? "bg-green-50 border-green-200" 
+                          : "bg-yellow-50 border-yellow-200"
+                      }`}
+                    >
+                      <div className="flex items-start justify-between">
+                        <div className="flex items-start gap-4">
+                          <span className="text-4xl">{draw.premio_emoji}</span>
+                          <div>
+                            <p className="font-bold text-lg text-slate-900">{draw.premio_nombre}</p>
+                            <p className="text-sm text-slate-600">{draw.premio_descripcion}</p>
+                            <div className="mt-2">
+                              <Badge className="bg-purple-600">
+                                🏆 Ganador: {draw.ganador_nombre}
+                              </Badge>
+                            </div>
+                            <p className="text-xs text-slate-500 mt-2">
+                              {new Date(draw.fecha_sorteo).toLocaleDateString('es-ES', { 
+                                day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' 
+                              })}
+                              {" • "}{draw.participaciones_ganador} de {draw.total_participaciones} papeletas
+                            </p>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          {draw.entregado ? (
+                            <Badge className="bg-green-600">
+                              <CheckCircle2 className="w-3 h-3 mr-1" />
+                              Entregado
+                            </Badge>
+                          ) : (
+                            <Button
+                              size="sm"
+                              onClick={() => markDeliveredMutation.mutate({
+                                id: draw.id,
+                                data: { entregado: true, fecha_entrega: new Date().toISOString() }
+                              })}
+                              className="bg-green-600 hover:bg-green-700"
+                            >
+                              <Package className="w-4 h-4 mr-1" />
+                              Marcar Entregado
+                            </Button>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
+
+      {/* Dialog de sorteo */}
+      <Dialog open={showRaffleDialog} onOpenChange={setShowRaffleDialog}>
+        <DialogContent className="max-w-md text-center">
+          <DialogHeader>
+            <DialogTitle className="text-2xl flex items-center justify-center gap-2">
+              <Dices className={`w-6 h-6 text-purple-600 ${isDrawing ? 'animate-spin' : ''}`} />
+              {isDrawing ? "¡Sorteando!" : "🎉 ¡Tenemos Ganador!"}
+            </DialogTitle>
+          </DialogHeader>
+          
+          {selectedPrize && (
+            <div className="space-y-6 py-4">
+              {/* Premio */}
+              <div className="bg-gradient-to-r from-yellow-100 to-orange-100 rounded-2xl p-6 border-2 border-yellow-300">
+                <span className="text-6xl block mb-2">{selectedPrize.emoji}</span>
+                <p className="font-bold text-xl text-slate-900">{selectedPrize.nombre}</p>
+                <p className="text-slate-600">{selectedPrize.descripcion}</p>
+              </div>
+
+              {/* Ganador */}
+              {winner && (
+                <div className={`bg-gradient-to-r from-purple-100 to-pink-100 rounded-2xl p-6 border-2 border-purple-300 ${isDrawing ? 'animate-pulse' : ''}`}>
+                  <PartyPopper className="w-12 h-12 mx-auto mb-3 text-purple-600" />
+                  <p className="text-2xl font-bold text-purple-900">{winner.full_name}</p>
+                  <p className="text-purple-600">{winner.email}</p>
+                  <Badge className="mt-2 bg-orange-500">
+                    <Ticket className="w-3 h-3 mr-1" />
+                    {winner.raffle_entries_total || 0} papeletas
+                  </Badge>
+                </div>
+              )}
             </div>
-          </CardContent>
-        </Card>
-      )}
+          )}
+
+          <DialogFooter>
+            <Button 
+              variant="outline" 
+              onClick={() => {
+                setShowRaffleDialog(false);
+                setWinner(null);
+                setSelectedPrize(null);
+              }}
+              disabled={isDrawing}
+            >
+              {isDrawing ? "Sorteando..." : "Cerrar"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Dialog de detalles */}
       <Dialog open={showDetailsDialog} onOpenChange={setShowDetailsDialog}>
