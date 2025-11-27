@@ -180,6 +180,7 @@ export default function ClubMembership() {
   const { data: allMemberships = [] } = useQuery({
     queryKey: ['allMemberships'],
     queryFn: () => base44.entities.ClubMember.list(),
+    enabled: !isCheckingAuth, // Solo ejecutar después de verificar auth
   });
 
   const { data: myPlayers = [] } = useQuery({
