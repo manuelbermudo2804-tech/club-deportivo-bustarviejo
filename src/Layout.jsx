@@ -537,9 +537,22 @@ export default function Layout({ children, currentPageName }) {
         fetchSeasonConfig();
       }, []);
 
+  // Detectar si estamos en página pública (ClubMembership)
+  const isPublicPage = location.pathname.includes('ClubMembership');
+
   useEffect(() => {
     const fetchUser = async () => {
       try {
+        // Si es página pública, verificar si hay usuario autenticado sin forzar login
+        if (isPublicPage) {
+          const isAuthenticated = await base44.auth.isAuthenticated();
+          if (!isAuthenticated) {
+            // Usuario no autenticado en página pública - permitir acceso sin login
+            setUser(null);
+            return;
+          }
+        }
+
         const currentUser = await base44.auth.me();
         console.log('👤 USUARIO CARGADO:', currentUser.email);
         setUser(currentUser);
@@ -614,7 +627,7 @@ export default function Layout({ children, currentPageName }) {
           }
           };
           fetchUser();
-          }, []);
+          }, [isPublicPage]);
 
           useEffect(() => {
             if (!user) return;
