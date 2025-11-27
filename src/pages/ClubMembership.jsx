@@ -167,7 +167,13 @@ export default function ClubMembership() {
   }
 
   return (
-    <div className="p-4 lg:p-6 max-w-4xl mx-auto space-y-6">
+    <>
+      <CheckmarkAnimation 
+        show={showSuccess} 
+        onComplete={() => setShowSuccess(false)}
+        message={`¡Bienvenido/a, ${lastRegisteredName}!`}
+      />
+      <div className="p-4 lg:p-6 max-w-4xl mx-auto space-y-6">
       {/* Header festivo */}
       <div className="text-center space-y-2">
         <div className="flex justify-center gap-2 text-4xl animate-bounce">
