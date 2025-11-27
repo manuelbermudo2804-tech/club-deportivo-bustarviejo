@@ -274,6 +274,25 @@ export default function ReferralProgramCard({ seasonConfig, userReferrals = 0, u
           </ol>
         </div>
 
+        {/* Lista de premios del sorteo */}
+        {seasonConfig.sorteo_premios && seasonConfig.sorteo_premios.length > 0 && (
+          <div className="bg-white rounded-2xl p-4 text-slate-900">
+            <h3 className="font-bold text-lg mb-3 flex items-center gap-2 text-yellow-700">
+              <span className="text-2xl">🎰</span>
+              ¿Qué puedes ganar en los sorteos?
+            </h3>
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+              {seasonConfig.sorteo_premios.map((prize, index) => (
+                <div key={index} className="bg-gradient-to-br from-yellow-50 to-orange-50 rounded-xl p-3 text-center border-2 border-yellow-200">
+                  <span className="text-3xl block mb-1">{prize.emoji}</span>
+                  <p className="font-bold text-sm text-slate-900">{prize.nombre}</p>
+                  <p className="text-xs text-slate-600">{prize.descripcion}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         <p className="text-center text-xs text-white/70">
           * Los premios se pueden usar en pedidos de ropa del club. Los sorteos se realizan al final de la temporada.
         </p>

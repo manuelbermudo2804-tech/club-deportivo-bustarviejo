@@ -5,7 +5,16 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
-import { Gift, Users, Shirt, Ticket, Hotel, Save, ChevronDown, ChevronUp, Sparkles } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
+import { Gift, Users, Shirt, Ticket, Hotel, Save, ChevronDown, ChevronUp, Sparkles, Trophy, Plus, Trash2, UtensilsCrossed, Gamepad2, ShoppingBag, Star } from "lucide-react";
+
+const DEFAULT_PRIZES = [
+  { nombre: "Cena para dos", descripcion: "Cena en restaurante local", emoji: "🍽️" },
+  { nombre: "Entradas fútbol", descripcion: "Entradas para partido profesional", emoji: "⚽" },
+  { nombre: "Material deportivo", descripcion: "Balón, mochila o equipamiento", emoji: "🎒" },
+  { nombre: "Experiencia aventura", descripcion: "Karting, escape room, etc.", emoji: "🎮" },
+  { nombre: "Vale de compra", descripcion: "Vale en tiendas locales", emoji: "🛍️" }
+];
 
 export default function ReferralConfigCard({ seasonConfig, onUpdate, isUpdating }) {
   const [expanded, setExpanded] = useState(false);
@@ -20,8 +29,34 @@ export default function ReferralConfigCard({ seasonConfig, onUpdate, isUpdating 
     referidos_sorteo_10: seasonConfig?.referidos_sorteo_10 || 5,
     referidos_premio_15: seasonConfig?.referidos_premio_15 || 50,
     referidos_sorteo_15: seasonConfig?.referidos_sorteo_15 || 10,
-    referidos_premio_hotel: seasonConfig?.referidos_premio_hotel !== false
+    referidos_premio_hotel: seasonConfig?.referidos_premio_hotel !== false,
+    sorteo_premios: seasonConfig?.sorteo_premios || DEFAULT_PRIZES
   });
+
+  const [newPrize, setNewPrize] = useState({ nombre: "", descripcion: "", emoji: "🎁" });
+
+  const addPrize = () => {
+    if (!newPrize.nombre) return;
+    setLocalConfig(prev => ({
+      ...prev,
+      sorteo_premios: [...(prev.sorteo_premios || []), { ...newPrize }]
+    }));
+    setNewPrize({ nombre: "", descripcion: "", emoji: "🎁" });
+  };
+
+  const removePrize = (index) => {
+    setLocalConfig(prev => ({
+      ...prev,
+      sorteo_premios: prev.sorteo_premios.filter((_, i) => i !== index)
+    }));
+  };
+
+  const updatePrize = (index, field, value) => {
+    setLocalConfig(prev => ({
+      ...prev,
+      sorteo_premios: prev.sorteo_premios.map((p, i) => i === index ? { ...p, [field]: value } : p)
+    }));
+  };
 
   const handleSave = () => {
     onUpdate(localConfig);
@@ -38,7 +73,8 @@ export default function ReferralConfigCard({ seasonConfig, onUpdate, isUpdating 
     referidos_sorteo_10: seasonConfig?.referidos_sorteo_10 || 5,
     referidos_premio_15: seasonConfig?.referidos_premio_15 || 50,
     referidos_sorteo_15: seasonConfig?.referidos_sorteo_15 || 10,
-    referidos_premio_hotel: seasonConfig?.referidos_premio_hotel !== false
+    referidos_premio_hotel: seasonConfig?.referidos_premio_hotel !== false,
+    sorteo_premios: seasonConfig?.sorteo_premios || DEFAULT_PRIZES
   });
 
   return (
@@ -220,6 +256,83 @@ export default function ReferralConfigCard({ seasonConfig, onUpdate, isUpdating 
                   onCheckedChange={(checked) => setLocalConfig(prev => ({ ...prev, referidos_premio_hotel: checked }))}
                 />
               </div>
+            </div>
+          </div>
+
+          {/* Premios del Sorteo */}
+          <div className="bg-gradient-to-r from-yellow-50 to-orange-50 rounded-xl p-4 border-2 border-yellow-300">
+            <div className="flex items-center gap-2 mb-4">
+              <Trophy className="w-5 h-5 text-yellow-600" />
+              <h3 className="font-bold text-yellow-900">🎰 Premios del Sorteo</h3>
+            </div>
+            <p className="text-xs text-yellow-700 mb-4">
+              Estos son los premios que se sortearán entre los participantes. Puedes añadir, editar o eliminar premios.
+            </p>
+
+            {/* Lista de premios existentes */}
+            <div className="space-y-2 mb-4">
+              {(localConfig.sorteo_premios || []).map((prize, index) => (
+                <div key={index} className="flex items-center gap-2 bg-white rounded-lg p-2 border">
+                  <Input
+                    value={prize.emoji}
+                    onChange={(e) => updatePrize(index, 'emoji', e.target.value)}
+                    className="w-14 text-center text-lg"
+                    maxLength={2}
+                  />
+                  <Input
+                    value={prize.nombre}
+                    onChange={(e) => updatePrize(index, 'nombre', e.target.value)}
+                    placeholder="Nombre del premio"
+                    className="flex-1"
+                  />
+                  <Input
+                    value={prize.descripcion}
+                    onChange={(e) => updatePrize(index, 'descripcion', e.target.value)}
+                    placeholder="Descripción"
+                    className="flex-1"
+                  />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => removePrize(index)}
+                    className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
+                </div>
+              ))}
+            </div>
+
+            {/* Añadir nuevo premio */}
+            <div className="flex items-center gap-2 bg-yellow-100 rounded-lg p-2 border-2 border-dashed border-yellow-400">
+              <Input
+                value={newPrize.emoji}
+                onChange={(e) => setNewPrize(prev => ({ ...prev, emoji: e.target.value }))}
+                placeholder="🎁"
+                className="w-14 text-center text-lg bg-white"
+                maxLength={2}
+              />
+              <Input
+                value={newPrize.nombre}
+                onChange={(e) => setNewPrize(prev => ({ ...prev, nombre: e.target.value }))}
+                placeholder="Nombre del premio"
+                className="flex-1 bg-white"
+              />
+              <Input
+                value={newPrize.descripcion}
+                onChange={(e) => setNewPrize(prev => ({ ...prev, descripcion: e.target.value }))}
+                placeholder="Descripción"
+                className="flex-1 bg-white"
+              />
+              <Button
+                type="button"
+                onClick={addPrize}
+                disabled={!newPrize.nombre}
+                className="bg-yellow-600 hover:bg-yellow-700"
+              >
+                <Plus className="w-4 h-4" />
+              </Button>
             </div>
           </div>
 
