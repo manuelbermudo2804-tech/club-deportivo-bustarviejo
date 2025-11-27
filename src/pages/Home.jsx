@@ -367,15 +367,9 @@ export default function Home() {
           gradient: "from-purple-600 to-purple-700",
         },
         {
-          title: "⏰ Horarios",
-          icon: Clock,
-          url: createPageUrl("TrainingSchedules"),
-          gradient: "from-blue-600 to-blue-700",
-        },
-        {
-          title: "📅 Calendario",
+          title: "📅 Calendario y Horarios",
           icon: Calendar,
-          url: createPageUrl("Calendar"),
+          url: createPageUrl("CalendarAndSchedules"),
           gradient: "from-purple-600 to-purple-700",
         }
       );
@@ -470,7 +464,7 @@ export default function Home() {
         {
           title: "🖼️ Galería",
           icon: Image,
-          url: createPageUrl("AdminGallery"),
+          url: createPageUrl("Gallery"),
           gradient: "from-indigo-600 to-indigo-700",
         }
       );
@@ -566,9 +560,9 @@ export default function Home() {
       // 📅 CALENDARIO E INFO
       items.push(
         {
-          title: "📅 Calendario",
+          title: "📅 Calendario y Horarios",
           icon: Calendar,
-          url: createPageUrl("Calendar"),
+          url: createPageUrl("CalendarAndSchedules"),
           gradient: "from-purple-600 to-purple-700",
         },
         {
@@ -584,15 +578,9 @@ export default function Home() {
           gradient: "from-pink-600 to-pink-700",
         },
         {
-          title: "⏰ Horarios",
-          icon: Clock,
-          url: createPageUrl("TrainingSchedules"),
-          gradient: "from-blue-600 to-blue-700",
-        },
-        {
           title: "🖼️ Galería",
           icon: Image,
-          url: createPageUrl("AdminGallery"),
+          url: createPageUrl("Gallery"),
           gradient: "from-indigo-600 to-indigo-700",
         },
         {
@@ -705,16 +693,10 @@ export default function Home() {
       // 📅 CALENDARIO
       items.push(
         {
-          title: "📅 Calendario",
+          title: "📅 Calendario y Horarios",
           icon: Calendar,
-          url: createPageUrl("Calendar"),
+          url: createPageUrl("CalendarAndSchedules"),
           gradient: "from-purple-600 to-purple-700",
-        },
-        {
-          title: "⏰ Horarios",
-          icon: Clock,
-          url: createPageUrl("TrainingSchedules"),
-          gradient: "from-blue-600 to-blue-700",
         }
       );
 
@@ -739,7 +721,7 @@ export default function Home() {
         {
           title: "🖼️ Galería",
           icon: Image,
-          url: createPageUrl("AdminGallery"),
+          url: createPageUrl("Gallery"),
           gradient: "from-indigo-600 to-indigo-700",
         }
       );
