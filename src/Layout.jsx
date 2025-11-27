@@ -852,32 +852,45 @@ export default function Layout({ children, currentPageName }) {
   }
 
   const adminNavigationItems = [
-    { title: "Inicio", url: createPageUrl("Home"), icon: Home },
+    // 📊 INICIO Y FINANZAS
+    { title: "🏠 Inicio", url: createPageUrl("Home"), icon: Home },
     { title: "📊 Panel Financiero", url: createPageUrl("TreasurerDashboard"), icon: CreditCard },
-    { title: "⚙️ Preferencias Notif.", url: createPageUrl("NotificationPreferences"), icon: Settings },
-    { title: "Chat Grupos", url: createPageUrl("AdminChat"), icon: MessageCircle, badge: unreadMessagesCount > 0 ? unreadMessagesCount : null, urgentBadge: urgentMessagesCount > 0 },
-    { title: "Jugadores", url: createPageUrl("Players"), icon: Users },
+    { title: "💳 Pagos", url: createPageUrl("Payments"), icon: CreditCard },
+    { title: "🔔 Recordatorios", url: createPageUrl("Reminders"), icon: Bell },
+    { title: "📁 Histórico", url: createPageUrl("PaymentHistory"), icon: Archive },
+
+    // 👥 GESTIÓN DE PERSONAS
+    { title: "👥 Jugadores", url: createPageUrl("Players"), icon: Users },
     { title: "🖊️ Firmas Federación", url: createPageUrl("FederationSignaturesAdmin"), icon: FileSignature },
-    { title: "Pagos", url: createPageUrl("Payments"), icon: CreditCard },
-    { title: "🎓 Crear Convocatorias", url: createPageUrl("CoachCallups"), icon: Bell },
-    { title: "Calendario", url: createPageUrl("Calendar"), icon: Calendar },
-    { title: "Anuncios", url: createPageUrl("Announcements"), icon: Megaphone },
-    { title: "📄 Documentos", url: createPageUrl("DocumentManagement"), icon: FileText },
+    { title: "👤 Usuarios", url: createPageUrl("UserManagement"), icon: Users },
+
+    // ⚽ DEPORTIVO
+    { title: "🎓 Convocatorias", url: createPageUrl("CoachCallups"), icon: Bell },
     { title: "📋 Asistencia y Evaluación", url: createPageUrl("TeamAttendanceEvaluation"), icon: CheckCircle2 },
     { title: "📊 Reportes Entrenadores", url: createPageUrl("CoachEvaluationReports"), icon: Star },
+    { title: "⏰ Horarios", url: createPageUrl("Schedules"), icon: Clock },
+    { title: "📅 Calendario", url: createPageUrl("Calendar"), icon: Calendar },
     ...(hasPlayers ? [{ title: "👨‍👩‍👧 Confirmar Mis Hijos", url: createPageUrl("ParentCallups"), icon: ClipboardCheck, badge: pendingCallupsCount > 0 ? pendingCallupsCount : null }] : []),
-    { title: "Horarios", url: createPageUrl("Schedules"), icon: Clock },
-    { title: "Galería", url: createPageUrl("Gallery"), icon: Image },
-    { title: "Recordatorios", url: createPageUrl("Reminders"), icon: Bell },
-    { title: "Pedidos Ropa", url: createPageUrl("ClothingOrders"), icon: ShoppingBag },
-    ...(loteriaVisible ? [{ title: "🍀 Lotería Navidad", url: createPageUrl("LotteryManagement"), icon: Clover }] : []),
-    { title: "🎉 Gestión Eventos", url: createPageUrl("EventManagement"), icon: Calendar },
+
+    // 💬 COMUNICACIÓN
+    { title: "💬 Chat Grupos", url: createPageUrl("AdminChat"), icon: MessageCircle, badge: unreadMessagesCount > 0 ? unreadMessagesCount : null, urgentBadge: urgentMessagesCount > 0 },
+    { title: "📢 Anuncios", url: createPageUrl("Announcements"), icon: Megaphone },
+    { title: "📄 Documentos", url: createPageUrl("DocumentManagement"), icon: FileText },
     { title: "📋 Encuestas", url: createPageUrl("Surveys"), icon: FileText },
-    { title: "Histórico", url: createPageUrl("PaymentHistory"), icon: Archive },
-    { title: "⚙️ Temporadas y Categorías", url: createPageUrl("SeasonManagement"), icon: Settings },
+
+    // 🛍️ PEDIDOS Y EXTRAS
+    { title: "🛍️ Pedidos Ropa", url: createPageUrl("ClothingOrders"), icon: ShoppingBag },
+    ...(loteriaVisible ? [{ title: "🍀 Lotería Navidad", url: createPageUrl("LotteryManagement"), icon: Clover }] : []),
     { title: "💰 Patrocinios", url: createPageUrl("Sponsorships"), icon: CreditCard },
+
+    // 🎉 CONTENIDO
+    { title: "🎉 Gestión Eventos", url: createPageUrl("EventManagement"), icon: Calendar },
+    { title: "🖼️ Galería", url: createPageUrl("Gallery"), icon: Image },
+
+    // ⚙️ CONFIGURACIÓN
+    { title: "⚙️ Temporadas y Categorías", url: createPageUrl("SeasonManagement"), icon: Settings },
+    { title: "🔔 Preferencias Notif.", url: createPageUrl("NotificationPreferences"), icon: Settings },
     { title: "📱 Configurar PWA", url: createPageUrl("PWASetup"), icon: Settings },
-    { title: "Usuarios", url: createPageUrl("UserManagement"), icon: Users },
   ];
 
   const coachNavigationItems = [
