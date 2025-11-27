@@ -6,7 +6,6 @@ import Reminders from './pages/Reminders';
 import ParentDashboard from './pages/ParentDashboard';
 import ParentPayments from './pages/ParentPayments';
 import ParentPlayers from './pages/ParentPlayers';
-import Calendar from './pages/Calendar';
 import Announcements from './pages/Announcements';
 import PaymentHistory from './pages/PaymentHistory';
 import AdminChat from './pages/AdminChat';
@@ -76,7 +75,6 @@ export const PAGES = {
     "ParentDashboard": ParentDashboard,
     "ParentPayments": ParentPayments,
     "ParentPlayers": ParentPlayers,
-    "Calendar": Calendar,
     "Announcements": Announcements,
     "PaymentHistory": PaymentHistory,
     "AdminChat": AdminChat,

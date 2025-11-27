@@ -868,7 +868,6 @@ export default function Layout({ children, currentPageName }) {
     { title: "🎓 Convocatorias", url: createPageUrl("CoachCallups"), icon: Bell },
     { title: "📋 Asistencia y Evaluación", url: createPageUrl("TeamAttendanceEvaluation"), icon: CheckCircle2 },
     { title: "📊 Reportes Entrenadores", url: createPageUrl("CoachEvaluationReports"), icon: Star },
-    { title: "⏰ Horarios", url: createPageUrl("Schedules"), icon: Clock },
     { title: "📅 Calendario y Horarios", url: createPageUrl("CalendarAndSchedules"), icon: Calendar },
     ...(hasPlayers ? [{ title: "👨‍👩‍👧 Confirmar Mis Hijos", url: createPageUrl("ParentCallups"), icon: ClipboardCheck, badge: pendingCallupsCount > 0 ? pendingCallupsCount : null }] : []),
 
@@ -956,10 +955,9 @@ export default function Layout({ children, currentPageName }) {
     { title: "⚙️ Temporadas y Categorías", url: createPageUrl("SeasonManagement"), icon: Settings },
 
     // 📅 CALENDARIO E INFO
-    { title: "📅 Calendario", url: createPageUrl("Calendar"), icon: Calendar },
+    { title: "📅 Calendario y Horarios", url: createPageUrl("CalendarAndSchedules"), icon: Calendar },
     { title: "🎉 Eventos Club", url: createPageUrl("ParentEventRSVP"), icon: Calendar },
     { title: "📢 Anuncios", url: createPageUrl("Announcements"), icon: Megaphone },
-    { title: "⏰ Horarios", url: createPageUrl("Schedules"), icon: Clock },
     { title: "🖼️ Galería", url: createPageUrl("Gallery"), icon: Image },
     { title: "📋 Encuestas", url: createPageUrl("Surveys"), icon: FileText },
 
@@ -993,8 +991,7 @@ export default function Layout({ children, currentPageName }) {
       { title: "📊 Reportes Entrenadores", url: createPageUrl("CoachEvaluationReports"), icon: Star },
 
       // 📅 CALENDARIO
-      { title: "📅 Calendario", url: createPageUrl("Calendar"), icon: Calendar },
-      { title: "⏰ Horarios", url: createPageUrl("Schedules"), icon: Clock },
+      { title: "📅 Calendario y Horarios", url: createPageUrl("CalendarAndSchedules"), icon: Calendar },
 
       // 👤 PERFIL
       { title: "👤 Mi Perfil Entrenador", url: createPageUrl("CoachProfile"), icon: UserCircle },
@@ -1034,12 +1031,11 @@ export default function Layout({ children, currentPageName }) {
     { title: "👥 Mis Jugadores", url: createPageUrl("ParentPlayers"), icon: Users },
 
     // 📅 CALENDARIO Y EVENTOS
-    { title: "📅 Calendario", url: createPageUrl("Calendar"), icon: Calendar },
+    { title: "📅 Calendario y Horarios", url: createPageUrl("CalendarAndSchedules"), icon: Calendar },
     { title: "🎉 Eventos Club", url: createPageUrl("ParentEventRSVP"), icon: Calendar },
 
     // 📢 INFORMACIÓN
     { title: "📢 Anuncios", url: createPageUrl("Announcements"), icon: Megaphone },
-    { title: "⏰ Horarios", url: createPageUrl("Schedules"), icon: Clock },
     { title: "📄 Documentos", url: createPageUrl("ParentDocuments"), icon: FileText },
 
     // 🛍️ PEDIDOS
@@ -1059,8 +1055,7 @@ export default function Layout({ children, currentPageName }) {
   const playerNavigationItems = [
     { title: "Inicio", url: createPageUrl("PlayerDashboard"), icon: Home },
     { title: "Mi Perfil", url: createPageUrl("PlayerProfile"), icon: UserIcon },
-    { title: "Horarios", url: createPageUrl("Schedules"), icon: Clock },
-    { title: "Calendario", url: createPageUrl("Calendar"), icon: Calendar },
+    { title: "📅 Calendario y Horarios", url: createPageUrl("CalendarAndSchedules"), icon: Calendar },
     { title: "🎉 Eventos Club", url: createPageUrl("ParentEventRSVP"), icon: Calendar },
     { title: "📋 Encuestas", url: createPageUrl("Surveys"), icon: FileText },
     { title: "Anuncios", url: createPageUrl("Announcements"), icon: Megaphone },
