@@ -315,6 +315,24 @@ export default function ClubMembership() {
         </CardContent>
       </Card>
 
+      {/* Mensaje de éxito tras registro */}
+      {showSuccess && (
+        <Card className="border-none shadow-2xl bg-gradient-to-br from-green-100 to-green-200 border-4 border-green-500 animate-pulse">
+          <CardContent className="py-8 text-center">
+            <div className="text-6xl mb-4">🎉</div>
+            <h2 className="text-2xl font-bold text-green-900 mb-2">
+              ¡Bienvenido/a a la familia, {lastRegisteredName}!
+            </h2>
+            <p className="text-green-800 mb-4">
+              Tu solicitud de socio ha sido enviada correctamente.
+            </p>
+            <p className="text-sm text-green-700">
+              ¿Quieres inscribir a otro familiar? Rellena el formulario de nuevo 👇
+            </p>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Botón para hacerse socio o formulario */}
       {!showForm ? (
         <div className="space-y-4">
