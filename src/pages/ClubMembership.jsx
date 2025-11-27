@@ -451,17 +451,17 @@ export default function ClubMembership() {
                 </div>
               </div>
 
-              {/* Campo de Referido */}
+              {/* Campo de quién te invitó */}
               {seasonConfig?.programa_referidos_activo && (
                 <div className="p-4 bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl border-2 border-purple-200">
                   <div className="flex items-start gap-3">
                     <Gift className="w-6 h-6 text-purple-600 mt-1 flex-shrink-0" />
                     <div className="flex-1">
                       <Label htmlFor="referido_por" className="font-semibold text-purple-900 flex items-center gap-2">
-                        🎁 ¿Alguien te ha invitado a hacerte socio?
+                        🎁 ¿Quién te ha invitado a hacerte socio?
                       </Label>
                       <p className="text-xs text-purple-700 mt-1 mb-2">
-                        Si alguien te recomendó hacerte socio, escribe su nombre para que reciba su premio
+                        Si un amigo o familiar te invitó, escribe su nombre para que reciba su premio
                       </p>
                       <Input 
                         id="referido_por"
