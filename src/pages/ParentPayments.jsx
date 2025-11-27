@@ -522,7 +522,15 @@ Email: cdbustarviejo@gmail.com
                       </div>
                     ) : (
                       <div className="space-y-3">
-                        {displayPayments.map((payment) => (
+                        {displayPayments.map((payment, index) => {
+                            // Lógica para mostrar botón "Pagar" solo si la cuota anterior está pagada
+                            const ordenMeses = ["Junio", "Septiembre", "Diciembre"];
+                            const mesIndex = ordenMeses.indexOf(payment.mes);
+                            const cuotaAnteriorPagada = mesIndex === 0 || 
+                              displayPayments.find(p => p.mes === ordenMeses[mesIndex - 1])?.estado === "Pagado";
+                            const mostrarBotonPagar = payment.estado === "Pendiente" && !payment.isVirtual && cuotaAnteriorPagada;
+
+                            return (
                             <div key={payment.id} className={`border-l-4 p-3 rounded ${
                               payment.estado === "Pagado" ? "border-green-500 bg-green-50" :
                               payment.estado === "En revisión" ? "border-orange-500 bg-orange-50" :
@@ -538,7 +546,7 @@ Email: cdbustarviejo@gmail.com
                                   <p className="text-xs text-slate-600">{payment.estado}</p>
                                 </div>
                                 <div className="flex items-center gap-2">
-                                  {payment.estado === "Pendiente" && !payment.isVirtual && (
+                                  {mostrarBotonPagar && (
                                     <Button
                                       size="sm"
                                       onClick={() => {
@@ -571,7 +579,7 @@ Email: cdbustarviejo@gmail.com
                                 </div>
                               </div>
                             </div>
-                          ))}
+                          );})}
                       </div>
                     )}
                   </CardContent>
