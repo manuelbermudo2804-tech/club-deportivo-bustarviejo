@@ -218,7 +218,7 @@ export default function TreasurerDashboard() {
       .filter(t => t.fecha)
       .sort((a, b) => new Date(b.fecha) - new Date(a.fecha))
       .slice(0, 15);
-  }, [filteredPayments, filteredClothingOrders, lotteryOrders]);
+  }, [filteredPayments, filteredClothingOrders, lotteryOrders, filteredClubMembers]);
 
   // Monthly income data for chart
   const monthlyIncomeData = useMemo(() => {
