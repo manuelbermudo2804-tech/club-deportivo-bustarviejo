@@ -539,16 +539,38 @@ export default function Layout({ children, currentPageName }) {
 
   // Detectar si estamos en página pública (ClubMembership)
   const isPublicPage = location.pathname.includes('ClubMembership');
+  const [authChecked, setAuthChecked] = useState(false);
 
   useEffect(() => {
     const fetchUser = async () => {
       try {
         // Si es página pública, verificar si hay usuario autenticado sin forzar login
         if (isPublicPage) {
-          const isAuthenticated = await base44.auth.isAuthenticated();
-          if (!isAuthenticated) {
-            // Usuario no autenticado en página pública - permitir acceso sin login
+          try {
+            const isAuthenticated = await base44.auth.isAuthenticated();
+            if (!isAuthenticated) {
+              // Usuario no autenticado en página pública - permitir acceso sin login
+              setUser(null);
+              setAuthChecked(true);
+              return;
+            }
+            // Intentar obtener usuario, pero si falla, permitir acceso anónimo
+            try {
+              const currentUser = await base44.auth.me();
+              setUser(currentUser);
+              setAuthChecked(true);
+            } catch (userError) {
+              // Usuario autenticado pero no existe en la BD - permitir acceso anónimo
+              console.log("Usuario no encontrado en BD, acceso anónimo permitido");
+              setUser(null);
+              setAuthChecked(true);
+              return;
+            }
+            return;
+          } catch (authError) {
+            // Error al verificar autenticación - permitir acceso anónimo
             setUser(null);
+            setAuthChecked(true);
             return;
           }
         }
