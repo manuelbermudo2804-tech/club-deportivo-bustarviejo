@@ -44,7 +44,7 @@ export default function ReferralConfigCard({ seasonConfig, onUpdate, isUpdating 
     if (!newPrize.nombre) return;
     setLocalConfig(prev => ({
       ...prev,
-      sorteo_premios: [...(prev.sorteo_premios || []), { ...newPrize }]
+      sorteo_premios: [...(prev.sorteo_premios || []), { ...newPrize, activo: true }]
     }));
     setNewPrize({ nombre: "", descripcion: "", emoji: "🎁" });
   };
@@ -329,24 +329,31 @@ export default function ReferralConfigCard({ seasonConfig, onUpdate, isUpdating 
             {/* Lista de premios existentes */}
             <div className="space-y-2 mb-4">
               {(localConfig.sorteo_premios || []).map((prize, index) => (
-                <div key={index} className="flex items-center gap-2 bg-white rounded-lg p-2 border">
+                <div key={index} className={`flex items-center gap-2 rounded-lg p-2 border transition-all ${prize.activo !== false ? 'bg-white border-yellow-300' : 'bg-slate-100 border-slate-200 opacity-60'}`}>
+                  <Switch
+                    checked={prize.activo !== false}
+                    onCheckedChange={(checked) => updatePrize(index, 'activo', checked)}
+                  />
                   <Input
                     value={prize.emoji}
                     onChange={(e) => updatePrize(index, 'emoji', e.target.value)}
                     className="w-14 text-center text-lg"
                     maxLength={2}
+                    disabled={prize.activo === false}
                   />
                   <Input
                     value={prize.nombre}
                     onChange={(e) => updatePrize(index, 'nombre', e.target.value)}
                     placeholder="Nombre del premio"
                     className="flex-1"
+                    disabled={prize.activo === false}
                   />
                   <Input
                     value={prize.descripcion}
                     onChange={(e) => updatePrize(index, 'descripcion', e.target.value)}
                     placeholder="Descripción"
                     className="flex-1"
+                    disabled={prize.activo === false}
                   />
                   <Button
                     type="button"
