@@ -8,7 +8,8 @@ import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, Upload, AlertCircle, CheckCircle2, Users, CreditCard, Download, Heart, Star, PartyPopper, Sparkles, UserPlus, Trophy, Gift } from "lucide-react";
+import { Loader2, Upload, AlertCircle, CheckCircle2, Users, CreditCard, Download, Heart, Star, PartyPopper, Sparkles, UserPlus, Trophy, Gift, CreditCard as CardIcon } from "lucide-react";
+import { sendMemberCard } from "../components/members/MemberCardEmail";
 import ReferralProgramCard from "../components/referrals/ReferralProgramCard";
 import { CheckmarkAnimation } from "../components/animations/SuccessAnimation";
 import { toast } from "sonner";
@@ -160,16 +161,40 @@ export default function ClubMembership() {
     },
   });
 
+  // Función para generar número de socio único
+  const generateNumeroSocio = async () => {
+    const allMembers = await base44.entities.ClubMember.list();
+    const currentYear = new Date().getFullYear();
+    const membersThisYear = allMembers.filter(m => m.numero_socio?.includes(`CDB-${currentYear}`));
+    const nextNumber = membersThisYear.length + 1;
+    return `CDB-${currentYear}-${String(nextNumber).padStart(4, '0')}`;
+  };
+
   const createMembershipMutation = useMutation({
     mutationFn: async (data) => {
+      // Generar número de socio único
+      const numeroSocio = await generateNumeroSocio();
+      
       const membership = await base44.entities.ClubMember.create({
         ...data,
+        numero_socio: numeroSocio,
         cuota_socio: CUOTA_SOCIO,
         estado_pago: data.justificante_url ? "En revisión" : "Pendiente",
         temporada: seasonConfig?.temporada || new Date().getFullYear() + "-" + (new Date().getFullYear() + 1),
         jugadores_relacionados: myPlayers.map(p => ({ jugador_id: p.id, jugador_nombre: p.nombre })),
         activo: true
       });
+
+      // Enviar carnet virtual por email
+      try {
+        await sendMemberCard(membership, seasonConfig, base44);
+        await base44.entities.ClubMember.update(membership.id, {
+          carnet_enviado: true,
+          fecha_carnet_enviado: new Date().toISOString()
+        });
+      } catch (emailError) {
+        console.error("Error enviando carnet:", emailError);
+      }
 
       // Si tiene referido_por y el programa está activo, registrar la referencia
       if (data.referido_por && seasonConfig?.programa_referidos_activo) {
@@ -243,19 +268,25 @@ export default function ClubMembership() {
       setShowSuccess(true);
       
       // Limpiar formulario para nuevo registro
-                  setFormData({
-                    tipo_inscripcion: "Nueva Inscripción",
-                    nombre_completo: "",
-                    dni: "",
-                    telefono: "",
-                    email: "",
-                    direccion: "",
-                    municipio: "",
-                    metodo_pago: "Transferencia",
-                    justificante_url: "",
-                    es_segundo_progenitor: false,
-                    referido_por: ""
-                  });
+      setFormData({
+        tipo_inscripcion: "Nueva Inscripción",
+        nombre_completo: "",
+        dni: "",
+        telefono: "",
+        email: "",
+        direccion: "",
+        municipio: "",
+        metodo_pago: "Transferencia",
+        justificante_url: "",
+        es_segundo_progenitor: false,
+        referido_por: ""
+      });
+
+      // Si era renovación, limpiar estado
+      if (isRenewal) {
+        setIsRenewal(false);
+        setRenewalMember(null);
+      }
       
       // Ocultar mensaje de éxito después de 4 segundos
       setTimeout(() => {
