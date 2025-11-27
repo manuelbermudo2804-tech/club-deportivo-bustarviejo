@@ -359,9 +359,9 @@ export default function ParentDashboard() {
       },
       // 📅 CALENDARIO Y EVENTOS
       {
-        title: "📅 Calendario",
+        title: "📅 Calendario y Horarios",
         icon: Calendar,
-        url: createPageUrl("Calendar"),
+        url: createPageUrl("CalendarAndSchedules"),
         gradient: "from-purple-600 to-purple-700",
       },
       {
@@ -376,12 +376,6 @@ export default function ParentDashboard() {
         icon: Megaphone,
         url: createPageUrl("Announcements"),
         gradient: "from-pink-600 to-pink-700",
-      },
-      {
-        title: "⏰ Horarios",
-        icon: Clock,
-        url: createPageUrl("ParentTrainingSchedules"),
-        gradient: "from-blue-600 to-blue-700",
       },
       {
         title: "📄 Documentos",
@@ -422,16 +416,10 @@ export default function ParentDashboard() {
     // 📋 EXTRAS
     items.push(
       {
-        title: "🆔 Carnets",
+        title: "📜 Certificados y Carnets",
         icon: Award,
-        url: createPageUrl("PlayerCards"),
+        url: createPageUrl("PlayerDocumentsAndCards"),
         gradient: "from-indigo-600 to-indigo-700",
-      },
-      {
-        title: "📜 Certificados",
-        icon: FileText,
-        url: createPageUrl("Certificates"),
-        gradient: "from-blue-600 to-blue-700",
       },
       {
         title: "📋 Encuestas",
