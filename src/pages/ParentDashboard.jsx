@@ -312,133 +312,143 @@ export default function ParentDashboard() {
     (p.estado === "Pendiente" || p.estado === "En revisión")
   ).length : 0;
 
-  const buildMenuItems = () => {
-    const items = [
-      // 💬 COMUNICACIÓN (uso diario)
-      {
-        title: "💬 Chat Equipo",
-        icon: MessageCircle,
-        url: createPageUrl("ParentChat"),
-        gradient: "from-teal-600 to-teal-700",
-        badge: unreadMessages,
-        badgeLabel: "nuevos"
-      },
-      // ⚽ ACCIONES URGENTES
-      {
-        title: "🏆 Convocatorias",
-        icon: Bell,
-        url: createPageUrl("ParentCallups"),
-        gradient: "from-yellow-600 to-yellow-700",
-        badge: pendingCallups,
-        badgeLabel: "pendientes"
-      },
-      {
-        title: "🖊️ Firmas Federación",
-        icon: FileSignature,
-        url: createPageUrl("FederationSignatures"),
-        gradient: "from-yellow-600 to-orange-600",
-        badge: pendingFederationSignatures,
-        badgeLabel: "pendientes"
-      },
-      // 💰 PAGOS Y JUGADORES
-      {
-        title: "💳 Pagos",
-        icon: CreditCard,
-        url: createPageUrl("ParentPayments"),
-        gradient: "from-green-600 to-green-700",
-        badge: pendingPayments,
-        badgeLabel: "pendientes"
-      },
-      {
-        title: "👥 Mis Jugadores",
-        icon: Users,
-        url: createPageUrl("ParentPlayers"),
-        gradient: "from-orange-600 to-orange-700",
-        badge: myPlayers.length,
-        badgeLabel: "registrados"
-      },
-      // 📅 CALENDARIO Y EVENTOS
-      {
-        title: "📅 Calendario y Horarios",
-        icon: Calendar,
-        url: createPageUrl("CalendarAndSchedules"),
-        gradient: "from-purple-600 to-purple-700",
-      },
-      {
-        title: "🎉 Eventos Club",
-        icon: Calendar,
-        url: createPageUrl("ParentEventRSVP"),
-        gradient: "from-cyan-600 to-cyan-700",
-      },
-      // 📢 INFORMACIÓN
-      {
-        title: "📢 Anuncios",
-        icon: Megaphone,
-        url: createPageUrl("Announcements"),
-        gradient: "from-pink-600 to-pink-700",
-      },
-      {
-        title: "📄 Documentos",
-        icon: FileText,
-        url: createPageUrl("ParentDocuments"),
-        gradient: "from-slate-600 to-slate-700",
-        badge: pendingDocuments.length,
-        badgeLabel: "pendientes"
-      },
-      // 🛍️ PEDIDOS
-      {
-        title: "🛍️ Pedidos Ropa",
-        icon: ShoppingBag,
-        url: createPageUrl("ClothingOrders"),
-        gradient: "from-red-600 to-red-700",
-      },
-    ];
-
-    if (loteriaVisible) {
-      items.push({
-        title: "🍀 Lotería Navidad",
-        icon: Clover,
-        url: createPageUrl("ParentLottery"),
-        gradient: "from-green-600 to-red-600",
-      });
-    }
-
+  // Menú base que siempre se muestra (sin depender de datos cargados)
+  const baseMenuItems = [
+    // 💬 COMUNICACIÓN (uso diario)
+    {
+      title: "💬 Chat Equipo",
+      icon: MessageCircle,
+      url: createPageUrl("ParentChat"),
+      gradient: "from-teal-600 to-teal-700",
+    },
+    // ⚽ ACCIONES URGENTES
+    {
+      title: "🏆 Convocatorias",
+      icon: Bell,
+      url: createPageUrl("ParentCallups"),
+      gradient: "from-yellow-600 to-yellow-700",
+    },
+    {
+      title: "🖊️ Firmas Federación",
+      icon: FileSignature,
+      url: createPageUrl("FederationSignatures"),
+      gradient: "from-yellow-600 to-orange-600",
+    },
+    // 💰 PAGOS Y JUGADORES
+    {
+      title: "💳 Pagos",
+      icon: CreditCard,
+      url: createPageUrl("ParentPayments"),
+      gradient: "from-green-600 to-green-700",
+    },
+    {
+      title: "👥 Mis Jugadores",
+      icon: Users,
+      url: createPageUrl("ParentPlayers"),
+      gradient: "from-orange-600 to-orange-700",
+    },
+    // 📅 CALENDARIO Y EVENTOS
+    {
+      title: "📅 Calendario y Horarios",
+      icon: Calendar,
+      url: createPageUrl("CalendarAndSchedules"),
+      gradient: "from-purple-600 to-purple-700",
+    },
+    {
+      title: "🎉 Eventos Club",
+      icon: Calendar,
+      url: createPageUrl("ParentEventRSVP"),
+      gradient: "from-cyan-600 to-cyan-700",
+    },
+    // 📢 INFORMACIÓN
+    {
+      title: "📢 Anuncios",
+      icon: Megaphone,
+      url: createPageUrl("Announcements"),
+      gradient: "from-pink-600 to-pink-700",
+    },
+    {
+      title: "📄 Documentos",
+      icon: FileText,
+      url: createPageUrl("ParentDocuments"),
+      gradient: "from-slate-600 to-slate-700",
+    },
+    // 🛍️ PEDIDOS
+    {
+      title: "🛍️ Pedidos Ropa",
+      icon: ShoppingBag,
+      url: createPageUrl("ClothingOrders"),
+      gradient: "from-red-600 to-red-700",
+    },
     // 🖼️ CONTENIDO
-    items.push(
-      {
-        title: "🖼️ Galería",
-        icon: Image,
-        url: createPageUrl("ParentGallery"),
-        gradient: "from-indigo-600 to-indigo-700",
-      }
-    );
-
+    {
+      title: "🖼️ Galería",
+      icon: Image,
+      url: createPageUrl("ParentGallery"),
+      gradient: "from-indigo-600 to-indigo-700",
+    },
     // 📋 EXTRAS
-    items.push(
-      {
-        title: "📜 Certificados y Carnets",
-        icon: Award,
-        url: createPageUrl("PlayerDocumentsAndCards"),
-        gradient: "from-indigo-600 to-indigo-700",
-      },
-      {
-        title: "📋 Encuestas",
-        icon: FileText,
-        url: createPageUrl("Surveys"),
-        gradient: "from-purple-600 to-purple-700",
-      },
-      {
-        title: "🎫 Hacerse Socio",
-        icon: Heart,
-        url: createPageUrl("ClubMembership"),
-        gradient: "from-pink-600 to-pink-700",
-      }
-    );
+    {
+      title: "📜 Certificados y Carnets",
+      icon: Award,
+      url: createPageUrl("PlayerDocumentsAndCards"),
+      gradient: "from-indigo-600 to-indigo-700",
+    },
+    {
+      title: "📋 Encuestas",
+      icon: FileText,
+      url: createPageUrl("Surveys"),
+      gradient: "from-purple-600 to-purple-700",
+    },
+    {
+      title: "🎫 Hacerse Socio",
+      icon: Heart,
+      url: createPageUrl("ClubMembership"),
+      gradient: "from-pink-600 to-pink-700",
+    },
+  ];
 
-    return items;
-  };
+  // Añadir badges dinámicos cuando los datos estén disponibles
+  const menuItems = baseMenuItems.map(item => {
+    const updated = { ...item };
+    
+    if (item.title === "💬 Chat Equipo" && unreadMessages > 0) {
+      updated.badge = unreadMessages;
+      updated.badgeLabel = "nuevos";
+    }
+    if (item.title === "🏆 Convocatorias" && pendingCallups > 0) {
+      updated.badge = pendingCallups;
+      updated.badgeLabel = "pendientes";
+    }
+    if (item.title === "🖊️ Firmas Federación" && pendingFederationSignatures > 0) {
+      updated.badge = pendingFederationSignatures;
+      updated.badgeLabel = "pendientes";
+    }
+    if (item.title === "💳 Pagos" && pendingPayments > 0) {
+      updated.badge = pendingPayments;
+      updated.badgeLabel = "pendientes";
+    }
+    if (item.title === "👥 Mis Jugadores" && myPlayers.length > 0) {
+      updated.badge = myPlayers.length;
+      updated.badgeLabel = "registrados";
+    }
+    if (item.title === "📄 Documentos" && pendingDocuments.length > 0) {
+      updated.badge = pendingDocuments.length;
+      updated.badgeLabel = "pendientes";
+    }
+    
+    return updated;
+  });
 
-  const menuItems = buildMenuItems();
+  // Añadir lotería si está visible
+  if (loteriaVisible) {
+    menuItems.splice(10, 0, {
+      title: "🍀 Lotería Navidad",
+      icon: Clover,
+      url: createPageUrl("ParentLottery"),
+      gradient: "from-green-600 to-red-600",
+    });
+  }
 
   // Mostrar loading mientras se cargan los datos iniciales
   if (!user || playersLoading) {
