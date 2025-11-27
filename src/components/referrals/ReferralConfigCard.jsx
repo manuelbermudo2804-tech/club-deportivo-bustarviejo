@@ -123,7 +123,11 @@ export default function ReferralConfigCard({ seasonConfig, onUpdate, isUpdating 
           <div className="flex items-center gap-3">
             <Switch
               checked={localConfig.programa_referidos_activo}
-              onCheckedChange={(checked) => setLocalConfig(prev => ({ ...prev, programa_referidos_activo: checked }))}
+              onCheckedChange={(checked) => {
+                setLocalConfig(prev => ({ ...prev, programa_referidos_activo: checked }));
+                // Guardar inmediatamente al cambiar el switch principal
+                onUpdate({ programa_referidos_activo: checked });
+              }}
               onClick={(e) => e.stopPropagation()}
             />
             {expanded ? <ChevronUp className="w-5 h-5 text-slate-400" /> : <ChevronDown className="w-5 h-5 text-slate-400" />}
