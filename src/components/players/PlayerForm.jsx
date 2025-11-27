@@ -112,6 +112,7 @@ export default function PlayerForm({ player, onSubmit, onCancel, isSubmitting, i
   const [selectedPreviousPlayer, setSelectedPreviousPlayer] = useState(null);
   const [seasonConfig, setSeasonConfig] = useState(null);
   const [showCondiciones, setShowCondiciones] = useState(false);
+  const [fieldErrors, setFieldErrors] = useState({});
 
   const categories = getCategoriesWithYears();
 
@@ -300,28 +301,111 @@ export default function PlayerForm({ player, onSubmit, onCancel, isSubmitting, i
     if (url) setCurrentPlayer({ ...currentPlayer, dni_tutor_legal_url: url });
   };
 
+  const scrollToField = (fieldId) => {
+    const element = document.getElementById(fieldId);
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      element.focus();
+      // Añadir animación de highlight
+      element.classList.add('ring-2', 'ring-red-500', 'ring-offset-2');
+      setTimeout(() => {
+        element.classList.remove('ring-2', 'ring-red-500', 'ring-offset-2');
+      }, 3000);
+    }
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
     
-    // Validaciones
-    if (!player && !currentPlayer.acepta_politica_privacidad) {
-      toast.error("Debes aceptar la política de privacidad");
-      return;
+    // Resetear errores
+    setFieldErrors({});
+    const errors = {};
+    let firstErrorField = null;
+
+    // Validaciones con mensajes descriptivos
+    if (!currentPlayer.nombre?.trim()) {
+      errors.nombre = "El nombre del jugador es obligatorio";
+      if (!firstErrorField) firstErrorField = 'nombre';
     }
-    if (!player && !currentPlayer.autorizacion_fotografia) {
-      toast.error("Debes seleccionar una opción para la autorización de fotografías");
-      return;
+
+    if (!currentPlayer.fecha_nacimiento) {
+      errors.fecha_nacimiento = "La fecha de nacimiento es obligatoria";
+      if (!firstErrorField) firstErrorField = 'fecha_nacimiento';
     }
+
     if (!currentPlayer.foto_url) {
-      toast.error("La foto tipo carnet es obligatoria");
-      return;
+      errors.foto_url = "La foto tipo carnet es obligatoria";
+      if (!firstErrorField) firstErrorField = 'photo-upload-gallery';
     }
-    if (requiresDNI && !currentPlayer.dni_jugador) {
-      toast.error("El DNI del jugador es obligatorio para mayores de 14 años");
-      return;
+
+    if (requiresDNI && !currentPlayer.dni_jugador?.trim()) {
+      errors.dni_jugador = "El DNI del jugador es obligatorio para mayores de 14 años";
+      if (!firstErrorField) firstErrorField = 'dni_jugador';
     }
-    if (!isMayorDeEdad && !currentPlayer.dni_tutor_legal) {
-      toast.error("El DNI del padre/tutor legal es obligatorio");
+
+    if (!isMayorDeEdad) {
+      if (!currentPlayer.nombre_tutor_legal?.trim()) {
+        errors.nombre_tutor_legal = "El nombre del padre/madre/tutor es obligatorio";
+        if (!firstErrorField) firstErrorField = 'nombre_tutor_legal';
+      }
+      if (!currentPlayer.dni_tutor_legal?.trim()) {
+        errors.dni_tutor_legal = "El DNI del padre/madre/tutor es obligatorio";
+        if (!firstErrorField) firstErrorField = 'dni_tutor_legal';
+      }
+    }
+
+    if (!currentPlayer.email_padre?.trim()) {
+      errors.email_padre = "El correo electrónico es obligatorio";
+      if (!firstErrorField) firstErrorField = 'email_padre';
+    }
+
+    if (!currentPlayer.telefono?.trim()) {
+      errors.telefono = "El teléfono de contacto es obligatorio";
+      if (!firstErrorField) firstErrorField = 'telefono';
+    }
+
+    if (!currentPlayer.direccion?.trim()) {
+      errors.direccion = "La dirección es obligatoria";
+      if (!firstErrorField) firstErrorField = 'direccion';
+    }
+
+    if (!currentPlayer.municipio?.trim()) {
+      errors.municipio = "El municipio es obligatorio";
+      if (!firstErrorField) firstErrorField = 'municipio';
+    }
+
+    if (!player && !currentPlayer.acepta_politica_privacidad) {
+      errors.acepta_politica_privacidad = "Debes aceptar la política de privacidad";
+      if (!firstErrorField) firstErrorField = 'acepta';
+    }
+
+    if (!player && !currentPlayer.autorizacion_fotografia) {
+      errors.autorizacion_fotografia = "Debes seleccionar una opción para la autorización de fotografías";
+      if (!firstErrorField) firstErrorField = 'si';
+    }
+
+    // Si hay errores, mostrarlos y hacer scroll al primer campo
+    if (Object.keys(errors).length > 0) {
+      setFieldErrors(errors);
+      
+      // Construir mensaje de error descriptivo
+      const errorMessages = Object.values(errors);
+      const mainError = errorMessages[0];
+      const additionalCount = errorMessages.length - 1;
+      
+      if (additionalCount > 0) {
+        toast.error(`${mainError} (y ${additionalCount} campo${additionalCount > 1 ? 's' : ''} más)`, {
+          duration: 5000,
+          description: "Los campos obligatorios están marcados en rojo"
+        });
+      } else {
+        toast.error(mainError, { duration: 5000 });
+      }
+
+      // Scroll al primer campo con error
+      if (firstErrorField) {
+        setTimeout(() => scrollToField(firstErrorField), 100);
+      }
       return;
     }
 
@@ -571,11 +655,14 @@ export default function PlayerForm({ player, onSubmit, onCancel, isSubmitting, i
             )}
 
             {/* FOTO TIPO CARNET (OBLIGATORIA) */}
-            <div className="space-y-4 border-2 border-orange-300 rounded-lg p-6 bg-orange-50">
+            <div className={`space-y-4 border-2 rounded-lg p-6 ${fieldErrors.foto_url ? 'border-red-500 bg-red-50 animate-pulse' : 'border-orange-300 bg-orange-50'}`}>
               <div className="flex items-center gap-2">
-                <Camera className="w-6 h-6 text-orange-600" />
-                <h3 className="text-lg font-bold text-orange-900">Foto Tipo Carnet * (OBLIGATORIA)</h3>
+                <Camera className={`w-6 h-6 ${fieldErrors.foto_url ? 'text-red-600' : 'text-orange-600'}`} />
+                <h3 className={`text-lg font-bold ${fieldErrors.foto_url ? 'text-red-900' : 'text-orange-900'}`}>
+                  Foto Tipo Carnet * (OBLIGATORIA) {fieldErrors.foto_url && <span className="text-red-500 text-xs ml-1">⚠️ Falta la foto</span>}
+                </h3>
               </div>
+              {fieldErrors.foto_url && <p className="text-xs text-red-600 font-medium bg-red-100 p-2 rounded">⚠️ {fieldErrors.foto_url}</p>}
               
               <div className="flex flex-col items-center space-y-4">
                 <div className="relative">
@@ -638,12 +725,38 @@ export default function PlayerForm({ player, onSubmit, onCancel, isSubmitting, i
             {/* Datos básicos */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
-                <Label htmlFor="nombre">Nombre y Apellidos del Jugador *</Label>
-                <Input id="nombre" value={currentPlayer.nombre} onChange={(e) => setCurrentPlayer({...currentPlayer, nombre: e.target.value})} required placeholder="Ej: Juan García López" />
+                <Label htmlFor="nombre" className={fieldErrors.nombre ? "text-red-600 font-bold" : ""}>
+                  Nombre y Apellidos del Jugador * {fieldErrors.nombre && <span className="text-red-500 text-xs ml-1">⚠️ Obligatorio</span>}
+                </Label>
+                <Input 
+                  id="nombre" 
+                  value={currentPlayer.nombre} 
+                  onChange={(e) => {
+                    setCurrentPlayer({...currentPlayer, nombre: e.target.value});
+                    if (fieldErrors.nombre) setFieldErrors(prev => ({...prev, nombre: null}));
+                  }} 
+                  required 
+                  placeholder="Ej: Juan García López" 
+                  className={fieldErrors.nombre ? "border-2 border-red-500 bg-red-50" : ""}
+                />
+                {fieldErrors.nombre && <p className="text-xs text-red-600 font-medium">{fieldErrors.nombre}</p>}
               </div>
               <div className="space-y-2">
-                <Label htmlFor="fecha_nacimiento">Fecha de Nacimiento *</Label>
-                <Input id="fecha_nacimiento" type="date" value={currentPlayer.fecha_nacimiento} onChange={(e) => setCurrentPlayer({...currentPlayer, fecha_nacimiento: e.target.value})} required />
+                <Label htmlFor="fecha_nacimiento" className={fieldErrors.fecha_nacimiento ? "text-red-600 font-bold" : ""}>
+                  Fecha de Nacimiento * {fieldErrors.fecha_nacimiento && <span className="text-red-500 text-xs ml-1">⚠️ Obligatorio</span>}
+                </Label>
+                <Input 
+                  id="fecha_nacimiento" 
+                  type="date" 
+                  value={currentPlayer.fecha_nacimiento} 
+                  onChange={(e) => {
+                    setCurrentPlayer({...currentPlayer, fecha_nacimiento: e.target.value});
+                    if (fieldErrors.fecha_nacimiento) setFieldErrors(prev => ({...prev, fecha_nacimiento: null}));
+                  }} 
+                  required 
+                  className={fieldErrors.fecha_nacimiento ? "border-2 border-red-500 bg-red-50" : ""}
+                />
+                {fieldErrors.fecha_nacimiento && <p className="text-xs text-red-600 font-medium">{fieldErrors.fecha_nacimiento}</p>}
                 {playerAge !== null && (
                   <p className="text-xs text-slate-600">Edad: <strong>{playerAge} años</strong> {isMayorDeEdad ? "(Mayor de edad)" : requiresDNI ? "(Requiere DNI)" : "(Menor de 14)"}</p>
                 )}
@@ -670,8 +783,21 @@ export default function PlayerForm({ player, onSubmit, onCancel, isSubmitting, i
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* DNI del Jugador */}
                 <div className="space-y-2">
-                  <Label htmlFor="dni_jugador">DNI del Jugador {requiresDNI ? "*" : "(opcional si menor de 14)"}</Label>
-                  <Input id="dni_jugador" value={currentPlayer.dni_jugador || ""} onChange={(e) => setCurrentPlayer({...currentPlayer, dni_jugador: e.target.value})} placeholder="12345678A" required={requiresDNI} />
+                  <Label htmlFor="dni_jugador" className={fieldErrors.dni_jugador ? "text-red-600 font-bold" : ""}>
+                    DNI del Jugador {requiresDNI ? "*" : "(opcional si menor de 14)"} {fieldErrors.dni_jugador && <span className="text-red-500 text-xs ml-1">⚠️</span>}
+                  </Label>
+                  <Input 
+                    id="dni_jugador" 
+                    value={currentPlayer.dni_jugador || ""} 
+                    onChange={(e) => {
+                      setCurrentPlayer({...currentPlayer, dni_jugador: e.target.value});
+                      if (fieldErrors.dni_jugador) setFieldErrors(prev => ({...prev, dni_jugador: null}));
+                    }} 
+                    placeholder="12345678A" 
+                    required={requiresDNI} 
+                    className={fieldErrors.dni_jugador ? "border-2 border-red-500 bg-red-50" : ""}
+                  />
+                  {fieldErrors.dni_jugador && <p className="text-xs text-red-600 font-medium">{fieldErrors.dni_jugador}</p>}
                 </div>
 
                 <div className="space-y-2">
@@ -765,13 +891,39 @@ export default function PlayerForm({ player, onSubmit, onCancel, isSubmitting, i
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <div className="space-y-2 md:col-span-2">
-                        <Label htmlFor="nombre_tutor_legal">Nombre y Apellidos del Padre/Madre/Tutor Legal *</Label>
-                        <Input id="nombre_tutor_legal" value={currentPlayer.nombre_tutor_legal || ""} onChange={(e) => setCurrentPlayer({...currentPlayer, nombre_tutor_legal: e.target.value})} placeholder="Ej: María García López" required />
+                        <Label htmlFor="nombre_tutor_legal" className={fieldErrors.nombre_tutor_legal ? "text-red-600 font-bold" : ""}>
+                          Nombre y Apellidos del Padre/Madre/Tutor Legal * {fieldErrors.nombre_tutor_legal && <span className="text-red-500 text-xs ml-1">⚠️ Obligatorio</span>}
+                        </Label>
+                        <Input 
+                          id="nombre_tutor_legal" 
+                          value={currentPlayer.nombre_tutor_legal || ""} 
+                          onChange={(e) => {
+                            setCurrentPlayer({...currentPlayer, nombre_tutor_legal: e.target.value});
+                            if (fieldErrors.nombre_tutor_legal) setFieldErrors(prev => ({...prev, nombre_tutor_legal: null}));
+                          }} 
+                          placeholder="Ej: María García López" 
+                          required 
+                          className={fieldErrors.nombre_tutor_legal ? "border-2 border-red-500 bg-red-50" : ""}
+                        />
+                        {fieldErrors.nombre_tutor_legal && <p className="text-xs text-red-600 font-medium">{fieldErrors.nombre_tutor_legal}</p>}
                       </div>
 
                       <div className="space-y-2">
-                        <Label htmlFor="dni_tutor_legal">DNI del Tutor Legal *</Label>
-                        <Input id="dni_tutor_legal" value={currentPlayer.dni_tutor_legal || ""} onChange={(e) => setCurrentPlayer({...currentPlayer, dni_tutor_legal: e.target.value})} placeholder="12345678A" required />
+                        <Label htmlFor="dni_tutor_legal" className={fieldErrors.dni_tutor_legal ? "text-red-600 font-bold" : ""}>
+                          DNI del Tutor Legal * {fieldErrors.dni_tutor_legal && <span className="text-red-500 text-xs ml-1">⚠️ Obligatorio</span>}
+                        </Label>
+                        <Input 
+                          id="dni_tutor_legal" 
+                          value={currentPlayer.dni_tutor_legal || ""} 
+                          onChange={(e) => {
+                            setCurrentPlayer({...currentPlayer, dni_tutor_legal: e.target.value});
+                            if (fieldErrors.dni_tutor_legal) setFieldErrors(prev => ({...prev, dni_tutor_legal: null}));
+                          }} 
+                          placeholder="12345678A" 
+                          required 
+                          className={fieldErrors.dni_tutor_legal ? "border-2 border-red-500 bg-red-50" : ""}
+                        />
+                        {fieldErrors.dni_tutor_legal && <p className="text-xs text-red-600 font-medium">{fieldErrors.dni_tutor_legal}</p>}
                       </div>
 
                       <div className="space-y-2">
@@ -791,13 +943,41 @@ export default function PlayerForm({ player, onSubmit, onCancel, isSubmitting, i
                       </div>
 
                       <div className="space-y-2">
-                        <Label htmlFor="email_padre">Correo Electrónico Tutor *</Label>
-                        <Input id="email_padre" type="email" value={currentPlayer.email_padre} onChange={(e) => setCurrentPlayer({...currentPlayer, email_padre: e.target.value})} required disabled={isParent} className={isParent ? "bg-slate-100" : ""} />
+                        <Label htmlFor="email_padre" className={fieldErrors.email_padre ? "text-red-600 font-bold" : ""}>
+                          Correo Electrónico Tutor * {fieldErrors.email_padre && <span className="text-red-500 text-xs ml-1">⚠️ Obligatorio</span>}
+                        </Label>
+                        <Input 
+                          id="email_padre" 
+                          type="email" 
+                          value={currentPlayer.email_padre} 
+                          onChange={(e) => {
+                            setCurrentPlayer({...currentPlayer, email_padre: e.target.value});
+                            if (fieldErrors.email_padre) setFieldErrors(prev => ({...prev, email_padre: null}));
+                          }} 
+                          required 
+                          disabled={isParent} 
+                          className={`${isParent ? "bg-slate-100" : ""} ${fieldErrors.email_padre ? "border-2 border-red-500 bg-red-50" : ""}`} 
+                        />
+                        {fieldErrors.email_padre && <p className="text-xs text-red-600 font-medium">{fieldErrors.email_padre}</p>}
                       </div>
 
                       <div className="space-y-2">
-                        <Label htmlFor="telefono">Teléfono Tutor *</Label>
-                        <Input id="telefono" type="tel" value={currentPlayer.telefono} onChange={(e) => setCurrentPlayer({...currentPlayer, telefono: e.target.value})} required placeholder="600123456" />
+                        <Label htmlFor="telefono" className={fieldErrors.telefono ? "text-red-600 font-bold" : ""}>
+                          Teléfono Tutor * {fieldErrors.telefono && <span className="text-red-500 text-xs ml-1">⚠️ Obligatorio</span>}
+                        </Label>
+                        <Input 
+                          id="telefono" 
+                          type="tel" 
+                          value={currentPlayer.telefono} 
+                          onChange={(e) => {
+                            setCurrentPlayer({...currentPlayer, telefono: e.target.value});
+                            if (fieldErrors.telefono) setFieldErrors(prev => ({...prev, telefono: null}));
+                          }} 
+                          required 
+                          placeholder="600123456" 
+                          className={fieldErrors.telefono ? "border-2 border-red-500 bg-red-50" : ""}
+                        />
+                        {fieldErrors.telefono && <p className="text-xs text-red-600 font-medium">{fieldErrors.telefono}</p>}
                       </div>
                     </div>
               </div>
@@ -827,12 +1007,38 @@ export default function PlayerForm({ player, onSubmit, onCancel, isSubmitting, i
             {/* DIRECCIÓN */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
-                <Label htmlFor="direccion">Dirección Completa *</Label>
-                <Input id="direccion" value={currentPlayer.direccion} onChange={(e) => setCurrentPlayer({...currentPlayer, direccion: e.target.value})} placeholder="Calle, número, piso..." required />
+                <Label htmlFor="direccion" className={fieldErrors.direccion ? "text-red-600 font-bold" : ""}>
+                  Dirección Completa * {fieldErrors.direccion && <span className="text-red-500 text-xs ml-1">⚠️ Obligatorio</span>}
+                </Label>
+                <Input 
+                  id="direccion" 
+                  value={currentPlayer.direccion} 
+                  onChange={(e) => {
+                    setCurrentPlayer({...currentPlayer, direccion: e.target.value});
+                    if (fieldErrors.direccion) setFieldErrors(prev => ({...prev, direccion: null}));
+                  }} 
+                  placeholder="Calle, número, piso..." 
+                  required 
+                  className={fieldErrors.direccion ? "border-2 border-red-500 bg-red-50" : ""}
+                />
+                {fieldErrors.direccion && <p className="text-xs text-red-600 font-medium">{fieldErrors.direccion}</p>}
               </div>
               <div className="space-y-2">
-                <Label htmlFor="municipio">Municipio *</Label>
-                <Input id="municipio" value={currentPlayer.municipio || ""} onChange={(e) => setCurrentPlayer({...currentPlayer, municipio: e.target.value})} placeholder="Bustarviejo" required />
+                <Label htmlFor="municipio" className={fieldErrors.municipio ? "text-red-600 font-bold" : ""}>
+                  Municipio * {fieldErrors.municipio && <span className="text-red-500 text-xs ml-1">⚠️ Obligatorio</span>}
+                </Label>
+                <Input 
+                  id="municipio" 
+                  value={currentPlayer.municipio || ""} 
+                  onChange={(e) => {
+                    setCurrentPlayer({...currentPlayer, municipio: e.target.value});
+                    if (fieldErrors.municipio) setFieldErrors(prev => ({...prev, municipio: null}));
+                  }} 
+                  placeholder="Bustarviejo" 
+                  required 
+                  className={fieldErrors.municipio ? "border-2 border-red-500 bg-red-50" : ""}
+                />
+                {fieldErrors.municipio && <p className="text-xs text-red-600 font-medium">{fieldErrors.municipio}</p>}
               </div>
             </div>
 
@@ -898,15 +1104,14 @@ export default function PlayerForm({ player, onSubmit, onCancel, isSubmitting, i
               </h4>
               <div className="text-sm text-yellow-800 space-y-2">
                 <p>
-                  Una vez completada la inscripción, <strong>recibirás dos enlaces por email</strong> para firmar digitalmente la documentación de la federación:
+                  Una vez completada la inscripción, cuando el club suba la documentación de federación, <strong>recibirás un aviso por email</strong> indicando que los documentos están listos para firmar.
                 </p>
                 <ul className="list-disc list-inside space-y-1 ml-2">
-                  <li><strong>Enlace para el jugador/a:</strong> Firma del jugador (obligatoria)</li>
-                  {!isMayorDeEdad && <li><strong>Enlace para padre/madre/tutor:</strong> Firma del tutor legal (obligatoria para menores)</li>}
+                  <li><strong>Firma del jugador/a:</strong> Obligatoria</li>
+                  {!isMayorDeEdad && <li><strong>Firma del padre/madre/tutor:</strong> Obligatoria para menores</li>}
                 </ul>
                 <p className="mt-2">
-                  📧 <strong>¿Dónde firmar?</strong> Los enlaces te llegarán por email cuando el club los suba. 
-                  También podrás acceder desde la sección <strong>"Firmas Federación"</strong> del menú de la app.
+                  📱 <strong>¿Dónde firmar?</strong> Debes acceder a la sección <strong>"🖊️ Firmas Federación"</strong> en el menú de la app para completar las firmas. El email solo es un aviso.
                 </p>
                 <p className="text-xs text-yellow-700 mt-2">
                   ⚠️ Sin las firmas completadas no se puede tramitar la ficha federativa ni el seguro.
@@ -1072,22 +1277,28 @@ export default function PlayerForm({ player, onSubmit, onCancel, isSubmitting, i
                       También tiene derecho a presentar una reclamación ante la Agencia Española de Protección de Datos (www.aepd.es).
                     </p>
                   </div>
-                  <div className="flex items-start gap-3 p-4 bg-white rounded-lg border-2 border-red-300">
+                  <div className={`flex items-start gap-3 p-4 bg-white rounded-lg border-2 ${fieldErrors.acepta_politica_privacidad ? 'border-red-500 bg-red-50 animate-pulse' : 'border-red-300'}`}>
                     <Checkbox 
                       id="acepta" 
                       checked={currentPlayer.acepta_politica_privacidad} 
-                      onCheckedChange={(c) => setCurrentPlayer({...currentPlayer, acepta_politica_privacidad: c})} 
+                      onCheckedChange={(c) => {
+                        setCurrentPlayer({...currentPlayer, acepta_politica_privacidad: c});
+                        if (fieldErrors.acepta_politica_privacidad) setFieldErrors(prev => ({...prev, acepta_politica_privacidad: null}));
+                      }} 
                     />
-                    <label htmlFor="acepta" className="text-sm font-semibold cursor-pointer text-red-900">
+                    <label htmlFor="acepta" className={`text-sm font-semibold cursor-pointer ${fieldErrors.acepta_politica_privacidad ? 'text-red-600' : 'text-red-900'}`}>
                       ✅ HE LEÍDO Y ACEPTO LA POLÍTICA DE PRIVACIDAD Y PROTECCIÓN DE DATOS
+                      {fieldErrors.acepta_politica_privacidad && <span className="block text-xs text-red-500 mt-1">⚠️ Debes aceptar para continuar</span>}
                     </label>
                   </div>
                 </div>
 
-                <div className="space-y-4 border-2 border-orange-200 rounded-lg p-6 bg-orange-50">
+                <div className={`space-y-4 border-2 rounded-lg p-6 ${fieldErrors.autorizacion_fotografia ? 'border-red-500 bg-red-50' : 'border-orange-200 bg-orange-50'}`}>
                   <div className="flex items-center gap-2">
-                    <Camera className="w-6 h-6 text-orange-600" />
-                    <h3 className="text-lg font-bold text-orange-900">AUTORIZACIÓN FOTOGRAFÍAS Y VÍDEOS *</h3>
+                    <Camera className={`w-6 h-6 ${fieldErrors.autorizacion_fotografia ? 'text-red-600' : 'text-orange-600'}`} />
+                    <h3 className={`text-lg font-bold ${fieldErrors.autorizacion_fotografia ? 'text-red-900' : 'text-orange-900'}`}>
+                      AUTORIZACIÓN FOTOGRAFÍAS Y VÍDEOS * {fieldErrors.autorizacion_fotografia && <span className="text-red-500 text-xs ml-1">⚠️ Obligatorio</span>}
+                    </h3>
                   </div>
                   <div className="bg-white rounded-lg p-4 text-sm max-h-48 overflow-y-auto border text-slate-700 space-y-2">
                     <p>
@@ -1105,9 +1316,13 @@ export default function PlayerForm({ player, onSubmit, onCancel, isSubmitting, i
                       Esta autorización puede ser revocada en cualquier momento comunicándolo por escrito al club.
                     </p>
                   </div>
+                  {fieldErrors.autorizacion_fotografia && <p className="text-xs text-red-600 font-medium bg-red-100 p-2 rounded">⚠️ {fieldErrors.autorizacion_fotografia}</p>}
                   <RadioGroup 
                     value={currentPlayer.autorizacion_fotografia} 
-                    onValueChange={(v) => setCurrentPlayer({...currentPlayer, autorizacion_fotografia: v})} 
+                    onValueChange={(v) => {
+                      setCurrentPlayer({...currentPlayer, autorizacion_fotografia: v});
+                      if (fieldErrors.autorizacion_fotografia) setFieldErrors(prev => ({...prev, autorizacion_fotografia: null}));
+                    }} 
                     className="space-y-3"
                   >
                     <div className="flex items-start space-x-3 p-4 bg-white rounded-lg border-2 border-green-300 hover:bg-green-50 transition-colors">
