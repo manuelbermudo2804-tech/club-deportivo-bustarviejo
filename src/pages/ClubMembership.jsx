@@ -67,7 +67,11 @@ export default function ClubMembership() {
   };
 
   // Leer parámetros de la URL: "ref" (referido) o "renew" (renovación)
+  // Solo ejecutar después de verificar autenticación
   useEffect(() => {
+    // Esperar a que termine la verificación de auth
+    if (isCheckingAuth) return;
+    
     const urlParams = new URLSearchParams(window.location.search);
     const refCode = urlParams.get('ref');
     const renewCode = urlParams.get('renew');
@@ -108,6 +112,13 @@ export default function ClubMembership() {
       fetchMemberForRenewal();
     } else if (refCode) {
       // Buscar el usuario que tiene ese código de referido Y que sea padre con hijos en el club
+      // NOTA: Esta búsqueda solo funciona si hay usuario autenticado
+      if (!user) {
+        // Para usuarios no autenticados, simplemente guardamos el código y lo procesamos después
+        setFormData(prev => ({ ...prev, referido_por: `REF:${refCode}` }));
+        return;
+      }
+      
       const fetchInviter = async () => {
         try {
           const [allUsers, allPlayers] = await Promise.all([
@@ -138,7 +149,7 @@ export default function ClubMembership() {
       };
       fetchInviter();
     }
-  }, []);
+  }, [isCheckingAuth, user]);
 
   useEffect(() => {
     const fetchUser = async () => {
