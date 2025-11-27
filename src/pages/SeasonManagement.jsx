@@ -16,8 +16,10 @@ import {
   Calendar, Settings, AlertTriangle, CheckCircle2, Clock, Download, Upload,
   RefreshCw, Trash2, Archive, Users, CreditCard, ShoppingBag, Bell, 
   Clover, Building2, FileText, Shield, Lock, Unlock, Eye, EyeOff,
-  ChevronDown, ChevronUp, Info, Smartphone, Mail, Image, Edit
+  ChevronDown, ChevronUp, Info, Smartphone, Mail, Image, Edit, Euro
 } from "lucide-react";
+import { Link } from "react-router-dom";
+import { createPageUrl } from "@/utils";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
@@ -521,43 +523,22 @@ export default function SeasonManagement() {
             </div>
           </CardHeader>
           <CardContent className="space-y-4">
-            {/* Cuotas con botón de editar */}
-            <div className="bg-white rounded-xl p-4 shadow-sm border-2 border-orange-200">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="font-bold text-lg text-slate-900 flex items-center gap-2">
-                  💰 Cuotas de la Temporada
-                </h3>
-                <Button
-                  size="sm"
-                  onClick={() => {
-                    setEditingQuotas({
-                      cuota_unica: activeSeason.cuota_unica || 200,
-                      cuota_tres_meses: activeSeason.cuota_tres_meses || 75
-                    });
-                    setShowEditQuotasDialog(true);
-                  }}
-                  className="bg-orange-600 hover:bg-orange-700"
-                >
-                  <Edit className="w-4 h-4 mr-2" />
-                  Editar Cuotas
-                </Button>
-              </div>
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-lg p-4 border border-green-200 text-center">
-                  <p className="text-xs text-green-700 font-medium mb-1">Cuota Única</p>
-                  <p className="text-3xl font-bold text-green-800">{activeSeason.cuota_unica}€</p>
-                  <p className="text-[10px] text-green-600 mt-1">Pago único en Junio</p>
+            {/* Acceso a Gestión de Categorías y Cuotas */}
+            <div className="bg-gradient-to-r from-orange-50 to-yellow-50 rounded-xl p-4 shadow-sm border-2 border-orange-300">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <Euro className="w-8 h-8 text-orange-600" />
+                  <div>
+                    <h3 className="font-bold text-lg text-slate-900">💰 Cuotas por Categoría</h3>
+                    <p className="text-sm text-slate-600">Gestiona las cuotas de inscripción, segunda y tercera cuota para cada categoría</p>
+                  </div>
                 </div>
-                <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-4 border border-blue-200 text-center">
-                  <p className="text-xs text-blue-700 font-medium mb-1">Cuota Fraccionada</p>
-                  <p className="text-3xl font-bold text-blue-800">{activeSeason.cuota_tres_meses}€</p>
-                  <p className="text-[10px] text-blue-600 mt-1">x3 meses (Jun/Sep/Dic)</p>
-                </div>
-                <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg p-4 border border-purple-200 text-center">
-                  <p className="text-xs text-purple-700 font-medium mb-1">Descuento Hermano</p>
-                  <p className="text-3xl font-bold text-purple-800">25€</p>
-                  <p className="text-[10px] text-purple-600 mt-1">Se aplica automáticamente</p>
-                </div>
+                <Link to={createPageUrl("CategoryManagement")}>
+                  <Button className="bg-orange-600 hover:bg-orange-700">
+                    <Edit className="w-4 h-4 mr-2" />
+                    Gestionar Cuotas
+                  </Button>
+                </Link>
               </div>
             </div>
 
