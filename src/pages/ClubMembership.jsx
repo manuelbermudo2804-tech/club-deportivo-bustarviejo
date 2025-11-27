@@ -19,6 +19,7 @@ export default function ClubMembership() {
   const [user, setUser] = useState(null);
   const [showForm, setShowForm] = useState(false);
   const [uploadingJustificante, setUploadingJustificante] = useState(false);
+  const [invitadoPor, setInvitadoPor] = useState(null); // Datos del socio que invita
   const [formData, setFormData] = useState({
     tipo_inscripcion: "Nueva Inscripción",
     nombre_completo: "",
@@ -36,6 +37,29 @@ export default function ClubMembership() {
   const [lastRegisteredName, setLastRegisteredName] = useState("");
 
   const queryClient = useQueryClient();
+
+  // Leer parámetro "invita" de la URL
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const invitaEmail = urlParams.get('invita');
+    
+    if (invitaEmail) {
+      // Buscar el usuario que invita para mostrar su nombre
+      const fetchInviter = async () => {
+        try {
+          const allUsers = await base44.entities.User.list();
+          const inviter = allUsers.find(u => u.email === invitaEmail);
+          if (inviter) {
+            setInvitadoPor(inviter);
+            setFormData(prev => ({ ...prev, referido_por: inviter.full_name }));
+          }
+        } catch (error) {
+          console.error("Error fetching inviter:", error);
+        }
+      };
+      fetchInviter();
+    }
+  }, []);
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -348,12 +372,14 @@ export default function ClubMembership() {
         </Card>
       ) : null}
 
-      {/* Programa de Referidos */}
+      {/* Programa Trae un Socio Amigo */}
       <ReferralProgramCard 
         seasonConfig={seasonConfig}
         userReferrals={user?.referrals_count || 0}
         userCredit={user?.clothing_credit_balance || 0}
         userRaffleEntries={user?.raffle_entries_total || 0}
+        userEmail={user?.email || ""}
+        userName={user?.full_name || ""}
       />
 
       {/* Invitar familiares y amigos */}
@@ -453,23 +479,39 @@ export default function ClubMembership() {
 
               {/* Campo de quién te invitó */}
               {seasonConfig?.programa_referidos_activo && (
-                <div className="p-4 bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl border-2 border-purple-200">
+                <div className={`p-4 rounded-xl border-2 ${invitadoPor ? 'bg-gradient-to-r from-green-50 to-green-100 border-green-300' : 'bg-gradient-to-r from-purple-50 to-pink-50 border-purple-200'}`}>
                   <div className="flex items-start gap-3">
-                    <Gift className="w-6 h-6 text-purple-600 mt-1 flex-shrink-0" />
+                    <Gift className={`w-6 h-6 mt-1 flex-shrink-0 ${invitadoPor ? 'text-green-600' : 'text-purple-600'}`} />
                     <div className="flex-1">
-                      <Label htmlFor="referido_por" className="font-semibold text-purple-900 flex items-center gap-2">
-                        🎁 ¿Quién te ha invitado a hacerte socio?
-                      </Label>
-                      <p className="text-xs text-purple-700 mt-1 mb-2">
-                        Si un amigo o familiar te invitó, escribe su nombre para que reciba su premio
-                      </p>
-                      <Input 
-                        id="referido_por"
-                        value={formData.referido_por}
-                        onChange={(e) => setFormData({...formData, referido_por: e.target.value})}
-                        placeholder="Nombre de quien te invitó (opcional)"
-                        className="bg-white"
-                      />
+                      {invitadoPor ? (
+                        <>
+                          <Label className="font-semibold text-green-900 flex items-center gap-2">
+                            ✅ ¡Te ha invitado {invitadoPor.full_name}!
+                          </Label>
+                          <p className="text-xs text-green-700 mt-1 mb-2">
+                            Al registrarte, {invitadoPor.full_name} recibirá su premio automáticamente 🎉
+                          </p>
+                          <div className="bg-white rounded-lg p-2 border border-green-200">
+                            <p className="text-sm font-medium text-green-800">{invitadoPor.full_name}</p>
+                          </div>
+                        </>
+                      ) : (
+                        <>
+                          <Label htmlFor="referido_por" className="font-semibold text-purple-900 flex items-center gap-2">
+                            🎁 ¿Quién te ha invitado a hacerte socio?
+                          </Label>
+                          <p className="text-xs text-purple-700 mt-1 mb-2">
+                            Si un amigo o familiar te invitó, escribe su nombre para que reciba su premio
+                          </p>
+                          <Input 
+                            id="referido_por"
+                            value={formData.referido_por}
+                            onChange={(e) => setFormData({...formData, referido_por: e.target.value})}
+                            placeholder="Nombre de quien te invitó (opcional)"
+                            className="bg-white"
+                          />
+                        </>
+                      )}
                     </div>
                   </div>
                 </div>
