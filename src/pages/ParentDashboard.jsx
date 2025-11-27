@@ -462,8 +462,8 @@ export default function ParentDashboard() {
     );
   }
 
-  // Mostrar pantalla de nueva temporada si no hay jugadores activos
-  if (myPlayers.length === 0 && activeSeason) {
+  // Mostrar pantalla de nueva temporada si no hay jugadores activos (solo después de cargar)
+  if (!playersLoading && myPlayers.length === 0 && activeSeason) {
     return <NewSeasonWelcome seasonName={activeSeason.temporada} />;
   }
 
