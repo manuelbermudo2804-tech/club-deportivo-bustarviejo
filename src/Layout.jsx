@@ -869,7 +869,7 @@ export default function Layout({ children, currentPageName }) {
     { title: "📋 Asistencia y Evaluación", url: createPageUrl("TeamAttendanceEvaluation"), icon: CheckCircle2 },
     { title: "📊 Reportes Entrenadores", url: createPageUrl("CoachEvaluationReports"), icon: Star },
     { title: "⏰ Horarios", url: createPageUrl("Schedules"), icon: Clock },
-    { title: "📅 Calendario", url: createPageUrl("Calendar"), icon: Calendar },
+    { title: "📅 Calendario y Horarios", url: createPageUrl("CalendarAndSchedules"), icon: Calendar },
     ...(hasPlayers ? [{ title: "👨‍👩‍👧 Confirmar Mis Hijos", url: createPageUrl("ParentCallups"), icon: ClipboardCheck, badge: pendingCallupsCount > 0 ? pendingCallupsCount : null }] : []),
 
     // 💬 COMUNICACIÓN

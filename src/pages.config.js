@@ -63,6 +63,7 @@ import CategoryManagement from './pages/CategoryManagement';
 import Schedules from './pages/Schedules';
 import Gallery from './pages/Gallery';
 import ClubMembersManagement from './pages/ClubMembersManagement';
+import CalendarAndSchedules from './pages/CalendarAndSchedules';
 import __Layout from './Layout.jsx';
 
 
@@ -132,6 +133,7 @@ export const PAGES = {
     "Schedules": Schedules,
     "Gallery": Gallery,
     "ClubMembersManagement": ClubMembersManagement,
+    "CalendarAndSchedules": CalendarAndSchedules,
 }
 
 export const pagesConfig = {
