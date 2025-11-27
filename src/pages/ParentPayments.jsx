@@ -44,6 +44,7 @@ export default function ParentPayments() {
   const [searchTerm, setSearchTerm] = useState("");
   const [showForm, setShowForm] = useState(false);
   const [selectedPlayerId, setSelectedPlayerId] = useState(null);
+  const [selectedPaymentMonth, setSelectedPaymentMonth] = useState(null);
   const [showSuccess, setShowSuccess] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
   const queryClient = useQueryClient();
@@ -370,16 +371,18 @@ Email: cdbustarviejo@gmail.com
         <AnimatePresence>
           {showForm && (
             <ParentPaymentForm
-              players={players}
-              payments={payments}
-              onSubmit={handleSubmitPayment}
-              onCancel={() => {
-                setShowForm(false);
-                setSelectedPlayerId(null);
-              }}
-              isSubmitting={createPaymentMutation.isPending}
-              preselectedPlayerId={selectedPlayerId}
-            />
+                players={players}
+                payments={payments}
+                onSubmit={handleSubmitPayment}
+                onCancel={() => {
+                  setShowForm(false);
+                  setSelectedPlayerId(null);
+                  setSelectedPaymentMonth(null);
+                }}
+                isSubmitting={createPaymentMutation.isPending}
+                preselectedPlayerId={selectedPlayerId}
+                preselectedMonth={selectedPaymentMonth}
+              />
           )}
         </AnimatePresence>
       </div>
@@ -520,34 +523,55 @@ Email: cdbustarviejo@gmail.com
                     ) : (
                       <div className="space-y-3">
                         {displayPayments.map((payment) => (
-                          <div key={payment.id} className={`border-l-4 p-3 rounded ${
-                            payment.estado === "Pagado" ? "border-green-500 bg-green-50" :
-                            payment.estado === "En revisión" ? "border-orange-500 bg-orange-50" :
-                            "border-red-500 bg-red-50"
-                          }`}>
-                            <div className="flex items-center justify-between gap-3">
-                              <div className="flex-1">
-                                <div className="flex items-center gap-2 mb-1">
-                                  <span className="font-bold text-slate-900">{payment.mes}</span>
-                                  <span className="text-2xl">{statusEmojis[payment.estado]}</span>
-                                  <span className="text-lg font-bold">{payment.cantidad}€</span>
+                            <div key={payment.id} className={`border-l-4 p-3 rounded ${
+                              payment.estado === "Pagado" ? "border-green-500 bg-green-50" :
+                              payment.estado === "En revisión" ? "border-orange-500 bg-orange-50" :
+                              "border-red-500 bg-red-50"
+                            }`}>
+                              <div className="flex items-center justify-between gap-3">
+                                <div className="flex-1">
+                                  <div className="flex items-center gap-2 mb-1">
+                                    <span className="font-bold text-slate-900">{payment.mes}</span>
+                                    <span className="text-2xl">{statusEmojis[payment.estado]}</span>
+                                    <span className="text-lg font-bold">{payment.cantidad}€</span>
+                                  </div>
+                                  <p className="text-xs text-slate-600">{payment.estado}</p>
                                 </div>
-                                <p className="text-xs text-slate-600">{payment.estado}</p>
+                                <div className="flex items-center gap-2">
+                                  {payment.estado === "Pendiente" && !payment.isVirtual && (
+                                    <Button
+                                      size="sm"
+                                      onClick={() => {
+                                        setSelectedPlayerId(player.id);
+                                        setSelectedPaymentMonth(payment.mes);
+                                        setShowForm(true);
+                                        setTimeout(() => {
+                                          const formElement = document.querySelector('[data-payment-form]');
+                                          if (formElement) {
+                                            formElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                                          }
+                                        }, 100);
+                                      }}
+                                      className="bg-orange-600 hover:bg-orange-700 text-white"
+                                    >
+                                      💳 Pagar
+                                    </Button>
+                                  )}
+                                  {payment.justificante_url && (
+                                    <Button
+                                      size="sm"
+                                      variant="ghost"
+                                      onClick={() => window.open(payment.justificante_url, '_blank')}
+                                      className={payment.estado === "Pagado" ? "text-green-600 hover:text-green-700" : "text-orange-600 hover:text-orange-700"}
+                                    >
+                                      <FileText className="w-4 h-4 mr-1" />
+                                      Ver
+                                    </Button>
+                                  )}
+                                </div>
                               </div>
-                              {payment.justificante_url && (
-                                <Button
-                                  size="sm"
-                                  variant="ghost"
-                                  onClick={() => window.open(payment.justificante_url, '_blank')}
-                                  className={payment.estado === "Pagado" ? "text-green-600 hover:text-green-700" : "text-orange-600 hover:text-orange-700"}
-                                >
-                                  <FileText className="w-4 h-4 mr-1" />
-                                  Ver
-                                </Button>
-                              )}
                             </div>
-                          </div>
-                        ))}
+                          ))}
                       </div>
                     )}
                   </CardContent>

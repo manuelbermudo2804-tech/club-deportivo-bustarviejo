@@ -60,7 +60,7 @@ const getTotalConDescuento = (categoria, descuento = 0) => {
   return cuotas.total - descuento;
 };
 
-export default function ParentPaymentForm({ players, payments = [], onSubmit, onCancel, isSubmitting, isAdmin = false, preselectedPlayerId = null }) {
+export default function ParentPaymentForm({ players, payments = [], onSubmit, onCancel, isSubmitting, isAdmin = false, preselectedPlayerId = null, preselectedMonth = null }) {
   const currentSeason = getCurrentSeason();
   const [currentPayment, setCurrentPayment] = useState({
     jugador_id: "",
@@ -95,11 +95,11 @@ export default function ParentPaymentForm({ players, payments = [], onSubmit, on
 
   useEffect(() => {
     if (players && players.length > 0 && !currentPayment.jugador_id) {
-      // Primero prioridad a preselectedPlayerId (desde botón "Registrar Primer Pago")
+      // Primero prioridad a preselectedPlayerId (desde botón "Registrar Primer Pago" o "Pagar")
       if (preselectedPlayerId) {
         const player = players.find(p => p.id === preselectedPlayerId);
         if (player) {
-          handlePlayerChange(player.id);
+          handlePlayerChange(player.id, preselectedMonth);
           return;
         }
       }
@@ -115,9 +115,9 @@ export default function ParentPaymentForm({ players, payments = [], onSubmit, on
         }
       }
     }
-  }, [players, payments, preselectedPlayerId]);
+  }, [players, payments, preselectedPlayerId, preselectedMonth]);
 
-  const handlePlayerChange = (playerId) => {
+  const handlePlayerChange = (playerId, forcedMonth = null) => {
     const player = players.find(p => p.id === playerId);
     if (player) {
       setSelectedPlayer(player);
@@ -160,9 +160,11 @@ export default function ParentPaymentForm({ players, payments = [], onSubmit, on
       const cuotas = getCuotasPorCategoria(player.deporte);
       const descuento = player.tiene_descuento_hermano ? (player.descuento_aplicado || 0) : 0;
       
-      // Seleccionar el primer mes disponible si el actual está pagado
-      let mesSeleccionado = currentPayment.mes;
-      if (mesesPagados.includes(currentPayment.mes)) {
+      // Si viene un mes forzado (desde botón "Pagar"), usarlo
+      let mesSeleccionado = forcedMonth || currentPayment.mes;
+      
+      // Si el mes seleccionado ya está pagado, seleccionar otro disponible
+      if (mesesPagados.includes(mesSeleccionado)) {
         const mesesDisponibles = ["Junio", "Septiembre", "Diciembre"].filter(m => !mesesPagados.includes(m));
         mesSeleccionado = mesesDisponibles[0] || "Junio";
       }
