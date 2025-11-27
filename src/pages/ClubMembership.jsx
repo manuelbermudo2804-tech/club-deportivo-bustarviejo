@@ -599,6 +599,7 @@ export default function ClubMembership() {
           </CardContent>
         </Card>
       )}
-    </div>
+      </div>
+    </>
   );
 }
