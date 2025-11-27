@@ -13,27 +13,28 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { 
   Plus, Edit, Trash2, Save, X, Users, CreditCard, 
-  AlertTriangle, CheckCircle2, Info, Settings, Euro
+  AlertTriangle, CheckCircle2, Info, Settings, Euro, Calendar
 } from "lucide-react";
 import { toast } from "sonner";
 
-// Categorías predefinidas del sistema
-const SYSTEM_CATEGORIES = [
-  "Fútbol Pre-Benjamín (Mixto)",
-  "Fútbol Benjamín (Mixto)",
-  "Fútbol Alevín (Mixto)",
-  "Fútbol Infantil (Mixto)",
-  "Fútbol Cadete",
-  "Fútbol Juvenil",
-  "Fútbol Aficionado",
-  "Fútbol Femenino",
-  "Baloncesto (Mixto)"
-];
+// Cuotas por defecto basadas en la tabla proporcionada
+const DEFAULT_QUOTAS = {
+  "AFICIONADO": { inscripcion: 165, segunda: 100, tercera: 95, total: 360 },
+  "JUVENIL": { inscripcion: 135, segunda: 100, tercera: 95, total: 330 },
+  "CADETE": { inscripcion: 135, segunda: 100, tercera: 95, total: 330 },
+  "INFANTIL": { inscripcion: 115, segunda: 83, tercera: 83, total: 281 },
+  "ALEVIN": { inscripcion: 115, segunda: 83, tercera: 83, total: 281 },
+  "BENJAMIN": { inscripcion: 100, segunda: 75, tercera: 75, total: 250 },
+  "PRE-BENJAMIN": { inscripcion: 100, segunda: 75, tercera: 75, total: 250 },
+  "FEMENINO": { inscripcion: 135, segunda: 100, tercera: 95, total: 330 },
+  "BALONCESTO": { inscripcion: 50, segunda: 50, tercera: 50, total: 150 }
+};
 
 export default function CategoryManagement() {
   const queryClient = useQueryClient();
   const [user, setUser] = useState(null);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [isTreasurer, setIsTreasurer] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [editingCategory, setEditingCategory] = useState(null);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
@@ -43,14 +44,12 @@ export default function CategoryManagement() {
   const [formData, setFormData] = useState({
     nombre: "",
     deporte: "Fútbol",
-    edad_minima: null,
-    edad_maxima: null,
-    cuota_unica: 200,
-    cuota_fraccionada: 75,
-    descuento_hermano: 25,
-    incluye_seguro: true,
-    incluye_ficha_federativa: true,
+    cuota_inscripcion: 100,
+    cuota_segunda: 75,
+    cuota_tercera: 75,
+    cuota_total: 250,
     activa: true,
+    orden: 0,
     notas: ""
   });
 
@@ -60,6 +59,7 @@ export default function CategoryManagement() {
         const currentUser = await base44.auth.me();
         setUser(currentUser);
         setIsAdmin(currentUser.role === "admin");
+        setIsTreasurer(currentUser.es_tesorero === true);
       } catch (error) {
         console.error("Error fetching user:", error);
       }
@@ -67,7 +67,7 @@ export default function CategoryManagement() {
     fetchUser();
   }, []);
 
-  // Query para categorías personalizadas
+  // Query para categorías
   const { data: categories = [], isLoading } = useQuery({
     queryKey: ['categoryConfigs'],
     queryFn: () => base44.entities.CategoryConfig.list(),
@@ -132,14 +132,12 @@ export default function CategoryManagement() {
     setFormData({
       nombre: "",
       deporte: "Fútbol",
-      edad_minima: null,
-      edad_maxima: null,
-      cuota_unica: activeSeason?.cuota_unica || 200,
-      cuota_fraccionada: activeSeason?.cuota_tres_meses || 75,
-      descuento_hermano: 25,
-      incluye_seguro: true,
-      incluye_ficha_federativa: true,
+      cuota_inscripcion: 100,
+      cuota_segunda: 75,
+      cuota_tercera: 75,
+      cuota_total: 250,
       activa: true,
+      orden: 0,
       notas: ""
     });
     setShowForm(false);
@@ -151,14 +149,12 @@ export default function CategoryManagement() {
     setFormData({
       nombre: category.nombre || "",
       deporte: category.deporte || "Fútbol",
-      edad_minima: category.edad_minima || null,
-      edad_maxima: category.edad_maxima || null,
-      cuota_unica: category.cuota_unica || 200,
-      cuota_fraccionada: category.cuota_fraccionada || 75,
-      descuento_hermano: category.descuento_hermano || 25,
-      incluye_seguro: category.incluye_seguro !== false,
-      incluye_ficha_federativa: category.incluye_ficha_federativa !== false,
+      cuota_inscripcion: category.cuota_inscripcion || 100,
+      cuota_segunda: category.cuota_segunda || 75,
+      cuota_tercera: category.cuota_tercera || 75,
+      cuota_total: category.cuota_total || 250,
       activa: category.activa !== false,
+      orden: category.orden || 0,
       notas: category.notas || ""
     });
     setShowForm(true);
@@ -170,10 +166,16 @@ export default function CategoryManagement() {
       return;
     }
 
+    // Calcular total automáticamente
+    const dataToSave = {
+      ...formData,
+      cuota_total: formData.cuota_inscripcion + formData.cuota_segunda + formData.cuota_tercera
+    };
+
     if (editingCategory) {
-      updateCategoryMutation.mutate({ id: editingCategory.id, data: formData });
+      updateCategoryMutation.mutate({ id: editingCategory.id, data: dataToSave });
     } else {
-      createCategoryMutation.mutate(formData);
+      createCategoryMutation.mutate(dataToSave);
     }
   };
 
@@ -188,39 +190,68 @@ export default function CategoryManagement() {
     }
   };
 
+  // Crear categorías por defecto
+  const createDefaultCategories = async () => {
+    const defaultCategories = [
+      { nombre: "AFICIONADO", deporte: "Fútbol", ...DEFAULT_QUOTAS["AFICIONADO"], orden: 1 },
+      { nombre: "JUVENIL", deporte: "Fútbol", ...DEFAULT_QUOTAS["JUVENIL"], orden: 2 },
+      { nombre: "CADETE", deporte: "Fútbol", ...DEFAULT_QUOTAS["CADETE"], orden: 3 },
+      { nombre: "INFANTIL", deporte: "Fútbol", ...DEFAULT_QUOTAS["INFANTIL"], orden: 4 },
+      { nombre: "ALEVIN", deporte: "Fútbol", ...DEFAULT_QUOTAS["ALEVIN"], orden: 5 },
+      { nombre: "BENJAMIN", deporte: "Fútbol", ...DEFAULT_QUOTAS["BENJAMIN"], orden: 6 },
+      { nombre: "PRE-BENJAMIN", deporte: "Fútbol", ...DEFAULT_QUOTAS["PRE-BENJAMIN"], orden: 7 },
+      { nombre: "FEMENINO", deporte: "Fútbol", ...DEFAULT_QUOTAS["FEMENINO"], orden: 8 },
+      { nombre: "BALONCESTO", deporte: "Baloncesto", ...DEFAULT_QUOTAS["BALONCESTO"], orden: 9, notas: "(*) Cuota reducida" }
+    ];
+
+    for (const cat of defaultCategories) {
+      const exists = categories.find(c => c.nombre === cat.nombre);
+      if (!exists) {
+        await base44.entities.CategoryConfig.create({
+          ...cat,
+          cuota_inscripcion: cat.inscripcion,
+          cuota_segunda: cat.segunda,
+          cuota_tercera: cat.tercera,
+          cuota_total: cat.total,
+          activa: true
+        });
+      }
+    }
+    queryClient.invalidateQueries({ queryKey: ['categoryConfigs'] });
+    toast.success("Categorías por defecto creadas");
+  };
+
   // Contar jugadores por categoría
   const getPlayerCount = (categoryName) => {
-    return players.filter(p => p.deporte === categoryName && p.activo).length;
+    // Mapeo de nombres de categoría a deportes en la BD
+    const categoryMapping = {
+      "AFICIONADO": "Fútbol Aficionado",
+      "JUVENIL": "Fútbol Juvenil",
+      "CADETE": "Fútbol Cadete",
+      "INFANTIL": "Fútbol Infantil (Mixto)",
+      "ALEVIN": "Fútbol Alevín (Mixto)",
+      "BENJAMIN": "Fútbol Benjamín (Mixto)",
+      "PRE-BENJAMIN": "Fútbol Pre-Benjamín (Mixto)",
+      "FEMENINO": "Fútbol Femenino",
+      "BALONCESTO": "Baloncesto (Mixto)"
+    };
+    
+    const mappedName = categoryMapping[categoryName] || categoryName;
+    return players.filter(p => p.deporte === mappedName && p.activo).length;
   };
 
-  // Combinar categorías del sistema con personalizadas
-  const allCategories = [
-    ...SYSTEM_CATEGORIES.map(name => ({
-      nombre: name,
-      isSystem: true,
-      cuota_unica: activeSeason?.cuota_unica || 200,
-      cuota_fraccionada: activeSeason?.cuota_tres_meses || 75,
-      playerCount: getPlayerCount(name)
-    })),
-    ...categories.map(cat => ({
-      ...cat,
-      isSystem: false,
-      playerCount: getPlayerCount(cat.nombre)
-    }))
-  ];
+  // Ordenar categorías
+  const sortedCategories = [...categories].sort((a, b) => (a.orden || 0) - (b.orden || 0));
 
   // Agrupar por deporte
-  const groupedCategories = {
-    futbol: allCategories.filter(c => c.nombre?.includes("Fútbol") && !c.nombre?.includes("Femenino")),
-    futbolFemenino: allCategories.filter(c => c.nombre?.includes("Femenino")),
-    baloncesto: allCategories.filter(c => c.nombre?.includes("Baloncesto")),
-    otras: categories.filter(c => 
-      !c.nombre?.includes("Fútbol") && 
-      !c.nombre?.includes("Baloncesto")
-    )
-  };
+  const futbolCategories = sortedCategories.filter(c => c.deporte === "Fútbol" && c.nombre !== "FEMENINO");
+  const femeninoCategories = sortedCategories.filter(c => c.nombre === "FEMENINO");
+  const baloncestoCategories = sortedCategories.filter(c => c.deporte === "Baloncesto");
+  const otrasCategories = sortedCategories.filter(c => c.deporte === "Otro");
 
-  if (!isAdmin) {
+  const canEdit = isAdmin || isTreasurer;
+
+  if (!canEdit) {
     return (
       <div className="p-6">
         <Alert className="bg-red-50 border-red-200">
@@ -235,39 +266,22 @@ export default function CategoryManagement() {
 
   return (
     <div className="p-6 space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between flex-wrap gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-slate-900">🏷️ Gestión de Categorías</h1>
-          <p className="text-slate-600 mt-1">Configura las categorías y cuotas del club</p>
+          <h1 className="text-3xl font-bold text-slate-900">🏷️ Gestión de Categorías y Cuotas</h1>
+          <p className="text-slate-600 mt-1">Configura las categorías del club y sus cuotas por temporada</p>
         </div>
-      </div>
-
-      {/* Información de cuotas de temporada */}
-      <Alert className="bg-gradient-to-r from-green-50 to-green-100 border-green-300">
-        <Euro className="w-5 h-5 text-green-600" />
-        <AlertDescription className="text-green-900 ml-2">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-            <div>
-              <strong className="text-lg">💰 Cuotas Generales - Temporada {activeSeason?.temporada || "actual"}</strong>
-              <p className="text-sm mt-1">Las categorías del sistema usan estas cuotas. Puedes crear categorías personalizadas con cuotas diferentes.</p>
-            </div>
-            <div className="flex gap-4">
-              <div className="bg-white rounded-lg p-3 border border-green-200 text-center">
-                <p className="text-xs text-slate-500">Cuota Única</p>
-                <p className="text-2xl font-bold text-green-600">{activeSeason?.cuota_unica || 200}€</p>
-              </div>
-              <div className="bg-white rounded-lg p-3 border border-green-200 text-center">
-                <p className="text-xs text-slate-500">Cuota Fraccionada</p>
-                <p className="text-2xl font-bold text-blue-600">{activeSeason?.cuota_tres_meses || 75}€ <span className="text-sm font-normal">x3</span></p>
-              </div>
-            </div>
-          </div>
-        </AlertDescription>
-      </Alert>
-
-      {/* Botón para añadir categoría */}
-      {isAdmin && (
-        <div className="flex justify-end">
+        <div className="flex gap-2">
+          {categories.length === 0 && (
+            <Button
+              onClick={createDefaultCategories}
+              variant="outline"
+              className="border-green-500 text-green-700 hover:bg-green-50"
+            >
+              <CheckCircle2 className="w-4 h-4 mr-2" />
+              Crear Categorías por Defecto
+            </Button>
+          )}
           <Button
             onClick={() => {
               resetForm();
@@ -276,10 +290,29 @@ export default function CategoryManagement() {
             className="bg-orange-600 hover:bg-orange-700"
           >
             <Plus className="w-4 h-4 mr-2" />
-            Nueva Categoría Personalizada
+            Nueva Categoría
           </Button>
         </div>
-      )}
+      </div>
+
+      {/* Info de fechas de pago */}
+      <Alert className="bg-gradient-to-r from-blue-50 to-blue-100 border-blue-300">
+        <Calendar className="w-5 h-5 text-blue-600" />
+        <AlertDescription className="text-blue-900 ml-2">
+          <strong>📅 Fechas límite de pago:</strong>
+          <div className="mt-2 grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+            <div className="bg-white rounded-lg p-2 border border-blue-200">
+              <span className="font-medium text-green-700">INSCRIPCIÓN:</span> hasta el 30 de junio
+            </div>
+            <div className="bg-white rounded-lg p-2 border border-blue-200">
+              <span className="font-medium text-orange-700">SEGUNDA CUOTA:</span> hasta el 15 de septiembre
+            </div>
+            <div className="bg-white rounded-lg p-2 border border-blue-200">
+              <span className="font-medium text-red-700">TERCER PAGO:</span> hasta el 15 de diciembre
+            </div>
+          </div>
+        </AlertDescription>
+      </Alert>
 
       {/* Formulario */}
       {showForm && (
@@ -291,13 +324,13 @@ export default function CategoryManagement() {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
                 <Label>Nombre de la categoría *</Label>
                 <Input
                   value={formData.nombre}
-                  onChange={(e) => setFormData(prev => ({ ...prev, nombre: e.target.value }))}
-                  placeholder="Ej: Fútbol Veteranos"
+                  onChange={(e) => setFormData(prev => ({ ...prev, nombre: e.target.value.toUpperCase() }))}
+                  placeholder="Ej: VETERANOS"
                 />
               </div>
               <div>
@@ -312,65 +345,86 @@ export default function CategoryManagement() {
                   <SelectContent>
                     <SelectItem value="Fútbol">Fútbol</SelectItem>
                     <SelectItem value="Baloncesto">Baloncesto</SelectItem>
-                    <SelectItem value="Paddle">Paddle</SelectItem>
                     <SelectItem value="Otro">Otro</SelectItem>
                   </SelectContent>
                 </Select>
+              </div>
+              <div>
+                <Label>Orden de visualización</Label>
+                <Input
+                  type="number"
+                  value={formData.orden}
+                  onChange={(e) => setFormData(prev => ({ ...prev, orden: Number(e.target.value) }))}
+                  placeholder="0"
+                />
               </div>
             </div>
 
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <div>
-                <Label>Edad mínima</Label>
+                <Label className="text-green-700">Inscripción (€)</Label>
                 <Input
                   type="number"
-                  value={formData.edad_minima || ""}
-                  onChange={(e) => setFormData(prev => ({ ...prev, edad_minima: e.target.value ? Number(e.target.value) : null }))}
-                  placeholder="Ej: 6"
+                  value={formData.cuota_inscripcion}
+                  onChange={(e) => {
+                    const val = Number(e.target.value);
+                    setFormData(prev => ({ 
+                      ...prev, 
+                      cuota_inscripcion: val,
+                      cuota_total: val + prev.cuota_segunda + prev.cuota_tercera
+                    }));
+                  }}
+                  className="border-green-300"
                 />
+                <p className="text-xs text-slate-500 mt-1">Hasta 30 junio</p>
               </div>
               <div>
-                <Label>Edad máxima</Label>
+                <Label className="text-orange-700">2ª Cuota (€)</Label>
                 <Input
                   type="number"
-                  value={formData.edad_maxima || ""}
-                  onChange={(e) => setFormData(prev => ({ ...prev, edad_maxima: e.target.value ? Number(e.target.value) : null }))}
-                  placeholder="Ej: 8"
+                  value={formData.cuota_segunda}
+                  onChange={(e) => {
+                    const val = Number(e.target.value);
+                    setFormData(prev => ({ 
+                      ...prev, 
+                      cuota_segunda: val,
+                      cuota_total: prev.cuota_inscripcion + val + prev.cuota_tercera
+                    }));
+                  }}
+                  className="border-orange-300"
                 />
+                <p className="text-xs text-slate-500 mt-1">Hasta 15 sept</p>
               </div>
               <div>
-                <Label>Cuota única (€)</Label>
+                <Label className="text-red-700">3er Pago (€)</Label>
                 <Input
                   type="number"
-                  value={formData.cuota_unica}
-                  onChange={(e) => setFormData(prev => ({ ...prev, cuota_unica: Number(e.target.value) }))}
+                  value={formData.cuota_tercera}
+                  onChange={(e) => {
+                    const val = Number(e.target.value);
+                    setFormData(prev => ({ 
+                      ...prev, 
+                      cuota_tercera: val,
+                      cuota_total: prev.cuota_inscripcion + prev.cuota_segunda + val
+                    }));
+                  }}
+                  className="border-red-300"
                 />
+                <p className="text-xs text-slate-500 mt-1">Hasta 15 dic</p>
               </div>
               <div>
-                <Label>Cuota fraccionada (€)</Label>
+                <Label className="text-blue-700 font-bold">TOTAL (€)</Label>
                 <Input
                   type="number"
-                  value={formData.cuota_fraccionada}
-                  onChange={(e) => setFormData(prev => ({ ...prev, cuota_fraccionada: Number(e.target.value) }))}
+                  value={formData.cuota_inscripcion + formData.cuota_segunda + formData.cuota_tercera}
+                  disabled
+                  className="bg-blue-50 border-blue-300 font-bold text-blue-700"
                 />
+                <p className="text-xs text-slate-500 mt-1">Calculado</p>
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="flex items-center gap-2 p-3 bg-slate-50 rounded-lg">
-                <Switch
-                  checked={formData.incluye_seguro}
-                  onCheckedChange={(checked) => setFormData(prev => ({ ...prev, incluye_seguro: checked }))}
-                />
-                <Label className="text-sm">Incluye seguro de accidentes</Label>
-              </div>
-              <div className="flex items-center gap-2 p-3 bg-slate-50 rounded-lg">
-                <Switch
-                  checked={formData.incluye_ficha_federativa}
-                  onCheckedChange={(checked) => setFormData(prev => ({ ...prev, incluye_ficha_federativa: checked }))}
-                />
-                <Label className="text-sm">Incluye ficha federativa</Label>
-              </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="flex items-center gap-2 p-3 bg-slate-50 rounded-lg">
                 <Switch
                   checked={formData.activa}
@@ -378,16 +432,14 @@ export default function CategoryManagement() {
                 />
                 <Label className="text-sm">Categoría activa</Label>
               </div>
-            </div>
-
-            <div>
-              <Label>Notas adicionales</Label>
-              <Textarea
-                value={formData.notas}
-                onChange={(e) => setFormData(prev => ({ ...prev, notas: e.target.value }))}
-                placeholder="Información adicional sobre esta categoría..."
-                rows={2}
-              />
+              <div>
+                <Label>Notas adicionales</Label>
+                <Input
+                  value={formData.notas}
+                  onChange={(e) => setFormData(prev => ({ ...prev, notas: e.target.value }))}
+                  placeholder="Ej: (*) Cuota reducida"
+                />
+              </div>
             </div>
 
             <div className="flex gap-2 justify-end">
@@ -408,203 +460,160 @@ export default function CategoryManagement() {
         </Card>
       )}
 
-      {/* Categorías de Fútbol */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            ⚽ Fútbol Masculino/Mixto
-          </CardTitle>
-          <CardDescription>
-            {groupedCategories.futbol.reduce((sum, c) => sum + (c.playerCount || 0), 0)} jugadores en total
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-            {groupedCategories.futbol.map((category, idx) => (
-              <div 
-                key={idx}
-                className={`p-4 rounded-lg border-2 ${
-                  category.isSystem 
-                    ? 'bg-slate-50 border-slate-200' 
-                    : 'bg-orange-50 border-orange-200'
-                }`}
-              >
-                <div className="flex items-start justify-between mb-2">
-                  <div>
-                    <p className="font-medium text-slate-900">{category.nombre}</p>
-                    {category.isSystem && (
-                      <Badge variant="outline" className="text-[10px] mt-1">Sistema</Badge>
-                    )}
-                  </div>
-                  <Badge className="bg-blue-100 text-blue-700">
-                    <Users className="w-3 h-3 mr-1" />
-                    {category.playerCount}
-                  </Badge>
-                </div>
-                <div className="text-xs text-slate-600 space-y-1">
-                  <p className="flex items-center gap-1">
-                    <Euro className="w-3 h-3" />
-                    Única: {category.cuota_unica}€ | Fracc: {category.cuota_fraccionada}€ x3
-                  </p>
-                </div>
-                {!category.isSystem && isAdmin && (
-                  <div className="flex gap-2 mt-3 pt-3 border-t">
-                    <Button size="sm" variant="outline" onClick={() => handleEdit(category)}>
-                      <Edit className="w-3 h-3 mr-1" /> Editar
-                    </Button>
-                    <Button size="sm" variant="outline" className="text-red-600" onClick={() => handleDelete(category)}>
-                      <Trash2 className="w-3 h-3 mr-1" /> Eliminar
-                    </Button>
-                  </div>
-                )}
+      {/* Tabla de categorías */}
+      {categories.length > 0 ? (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Euro className="w-5 h-5 text-green-600" />
+              Cuotas por Categoría - Temporada {activeSeason?.temporada || "Actual"}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="overflow-x-auto">
+              <table className="w-full border-collapse">
+                <thead>
+                  <tr className="bg-slate-100">
+                    <th className="border p-3 text-left font-bold text-slate-700">CATEGORÍA</th>
+                    <th className="border p-3 text-center font-bold text-green-700">
+                      INSCRIPCIÓN<br/>
+                      <span className="text-xs font-normal">(hasta 30 junio)</span>
+                    </th>
+                    <th className="border p-3 text-center font-bold text-orange-700">
+                      2ª CUOTA<br/>
+                      <span className="text-xs font-normal">(hasta 15 sept)</span>
+                    </th>
+                    <th className="border p-3 text-center font-bold text-red-700">
+                      3er PAGO<br/>
+                      <span className="text-xs font-normal">(hasta 15 dic)</span>
+                    </th>
+                    <th className="border p-3 text-center font-bold text-blue-700">TOTAL</th>
+                    <th className="border p-3 text-center font-bold text-slate-700">JUGADORES</th>
+                    <th className="border p-3 text-center font-bold text-slate-700">ACCIONES</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {sortedCategories.map((category) => (
+                    <tr key={category.id} className={`hover:bg-slate-50 ${!category.activa ? 'opacity-50 bg-red-50' : ''}`}>
+                      <td className="border p-3">
+                        <div className="flex items-center gap-2">
+                          <span className="font-semibold text-orange-700">{category.nombre}</span>
+                          {category.notas && (
+                            <span className="text-xs text-slate-500">{category.notas}</span>
+                          )}
+                          {!category.activa && (
+                            <Badge className="bg-red-100 text-red-700 text-xs">Inactiva</Badge>
+                          )}
+                        </div>
+                      </td>
+                      <td className="border p-3 text-center font-medium text-green-700">
+                        {category.cuota_inscripcion?.toFixed(2)} €
+                      </td>
+                      <td className="border p-3 text-center font-medium text-orange-700">
+                        {category.cuota_segunda?.toFixed(2)} €
+                      </td>
+                      <td className="border p-3 text-center font-medium text-red-700">
+                        {category.cuota_tercera?.toFixed(2)} €
+                      </td>
+                      <td className="border p-3 text-center font-bold text-blue-700">
+                        {category.cuota_total?.toFixed(2)} €
+                      </td>
+                      <td className="border p-3 text-center">
+                        <Badge className="bg-blue-100 text-blue-700">
+                          <Users className="w-3 h-3 mr-1" />
+                          {getPlayerCount(category.nombre)}
+                        </Badge>
+                      </td>
+                      <td className="border p-3 text-center">
+                        <div className="flex gap-1 justify-center">
+                          <Button size="sm" variant="outline" onClick={() => handleEdit(category)}>
+                            <Edit className="w-3 h-3" />
+                          </Button>
+                          <Button 
+                            size="sm" 
+                            variant="outline" 
+                            className="text-red-600 hover:bg-red-50"
+                            onClick={() => handleDelete(category)}
+                          >
+                            <Trash2 className="w-3 h-3" />
+                          </Button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </CardContent>
+        </Card>
+      ) : (
+        <Card className="border-2 border-dashed border-slate-300">
+          <CardContent className="py-12 text-center">
+            <Euro className="w-16 h-16 text-slate-300 mx-auto mb-4" />
+            <h3 className="text-lg font-semibold text-slate-700 mb-2">No hay categorías configuradas</h3>
+            <p className="text-slate-500 mb-4">
+              Crea las categorías del club con sus respectivas cuotas
+            </p>
+            <Button
+              onClick={createDefaultCategories}
+              className="bg-green-600 hover:bg-green-700"
+            >
+              <CheckCircle2 className="w-4 h-4 mr-2" />
+              Crear Categorías por Defecto
+            </Button>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Resumen por deporte */}
+      {categories.length > 0 && (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <Card className="bg-gradient-to-br from-green-50 to-green-100 border-green-200">
+            <CardContent className="pt-6">
+              <div className="text-center">
+                <span className="text-4xl">⚽</span>
+                <h3 className="font-bold text-green-900 mt-2">Fútbol</h3>
+                <p className="text-2xl font-bold text-green-700 mt-1">
+                  {futbolCategories.length + femeninoCategories.length} categorías
+                </p>
+                <p className="text-sm text-green-600">
+                  {futbolCategories.reduce((sum, c) => sum + getPlayerCount(c.nombre), 0) + 
+                   femeninoCategories.reduce((sum, c) => sum + getPlayerCount(c.nombre), 0)} jugadores
+                </p>
               </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
+            </CardContent>
+          </Card>
 
-      {/* Fútbol Femenino */}
-      {groupedCategories.futbolFemenino.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              ⚽ Fútbol Femenino
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-              {groupedCategories.futbolFemenino.map((category, idx) => (
-                <div 
-                  key={idx}
-                  className={`p-4 rounded-lg border-2 ${
-                    category.isSystem 
-                      ? 'bg-pink-50 border-pink-200' 
-                      : 'bg-orange-50 border-orange-200'
-                  }`}
-                >
-                  <div className="flex items-start justify-between mb-2">
-                    <div>
-                      <p className="font-medium text-slate-900">{category.nombre}</p>
-                      {category.isSystem && (
-                        <Badge variant="outline" className="text-[10px] mt-1">Sistema</Badge>
-                      )}
-                    </div>
-                    <Badge className="bg-pink-100 text-pink-700">
-                      <Users className="w-3 h-3 mr-1" />
-                      {category.playerCount}
-                    </Badge>
-                  </div>
-                  <div className="text-xs text-slate-600">
-                    <p className="flex items-center gap-1">
-                      <Euro className="w-3 h-3" />
-                      Única: {category.cuota_unica}€ | Fracc: {category.cuota_fraccionada}€ x3
-                    </p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      )}
+          <Card className="bg-gradient-to-br from-orange-50 to-orange-100 border-orange-200">
+            <CardContent className="pt-6">
+              <div className="text-center">
+                <span className="text-4xl">🏀</span>
+                <h3 className="font-bold text-orange-900 mt-2">Baloncesto</h3>
+                <p className="text-2xl font-bold text-orange-700 mt-1">
+                  {baloncestoCategories.length} categorías
+                </p>
+                <p className="text-sm text-orange-600">
+                  {baloncestoCategories.reduce((sum, c) => sum + getPlayerCount(c.nombre), 0)} jugadores
+                </p>
+              </div>
+            </CardContent>
+          </Card>
 
-      {/* Baloncesto */}
-      {groupedCategories.baloncesto.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              🏀 Baloncesto
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-              {groupedCategories.baloncesto.map((category, idx) => (
-                <div 
-                  key={idx}
-                  className={`p-4 rounded-lg border-2 ${
-                    category.isSystem 
-                      ? 'bg-orange-50 border-orange-200' 
-                      : 'bg-yellow-50 border-yellow-200'
-                  }`}
-                >
-                  <div className="flex items-start justify-between mb-2">
-                    <div>
-                      <p className="font-medium text-slate-900">{category.nombre}</p>
-                      {category.isSystem && (
-                        <Badge variant="outline" className="text-[10px] mt-1">Sistema</Badge>
-                      )}
-                    </div>
-                    <Badge className="bg-orange-100 text-orange-700">
-                      <Users className="w-3 h-3 mr-1" />
-                      {category.playerCount}
-                    </Badge>
-                  </div>
-                  <div className="text-xs text-slate-600">
-                    <p className="flex items-center gap-1">
-                      <Euro className="w-3 h-3" />
-                      Única: {category.cuota_unica}€ | Fracc: {category.cuota_fraccionada}€ x3
-                    </p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Categorías personalizadas */}
-      {groupedCategories.otras.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              🏆 Categorías Personalizadas
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-              {groupedCategories.otras.map((category) => (
-                <div 
-                  key={category.id}
-                  className="p-4 rounded-lg border-2 bg-purple-50 border-purple-200"
-                >
-                  <div className="flex items-start justify-between mb-2">
-                    <div>
-                      <p className="font-medium text-slate-900">{category.nombre}</p>
-                      <Badge className="text-[10px] bg-purple-100 text-purple-700 mt-1">
-                        {category.deporte}
-                      </Badge>
-                    </div>
-                    <Badge className="bg-purple-100 text-purple-700">
-                      <Users className="w-3 h-3 mr-1" />
-                      {category.playerCount || 0}
-                    </Badge>
-                  </div>
-                  <div className="text-xs text-slate-600 space-y-1">
-                    <p className="flex items-center gap-1">
-                      <Euro className="w-3 h-3" />
-                      Única: {category.cuota_unica}€ | Fracc: {category.cuota_fraccionada}€ x3
-                    </p>
-                    {(category.edad_minima || category.edad_maxima) && (
-                      <p>Edades: {category.edad_minima || "?"} - {category.edad_maxima || "?"} años</p>
-                    )}
-                  </div>
-                  {!category.activa && (
-                    <Badge className="mt-2 bg-red-100 text-red-700">Inactiva</Badge>
-                  )}
-                  {isAdmin && (
-                    <div className="flex gap-2 mt-3 pt-3 border-t">
-                      <Button size="sm" variant="outline" onClick={() => handleEdit(category)}>
-                        <Edit className="w-3 h-3 mr-1" /> Editar
-                      </Button>
-                      <Button size="sm" variant="outline" className="text-red-600" onClick={() => handleDelete(category)}>
-                        <Trash2 className="w-3 h-3 mr-1" /> Eliminar
-                      </Button>
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
+          <Card className="bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200">
+            <CardContent className="pt-6">
+              <div className="text-center">
+                <span className="text-4xl">💰</span>
+                <h3 className="font-bold text-blue-900 mt-2">Total Categorías</h3>
+                <p className="text-2xl font-bold text-blue-700 mt-1">
+                  {categories.length}
+                </p>
+                <p className="text-sm text-blue-600">
+                  {categories.filter(c => c.activa).length} activas
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
       )}
 
       {/* Dialog de confirmación para eliminar */}
