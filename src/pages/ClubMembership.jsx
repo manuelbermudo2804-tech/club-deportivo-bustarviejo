@@ -29,6 +29,8 @@ export default function ClubMembership() {
     justificante_url: "",
     es_segundo_progenitor: false
   });
+  const [showSuccess, setShowSuccess] = useState(false);
+  const [lastRegisteredName, setLastRegisteredName] = useState("");
 
   const queryClient = useQueryClient();
 
