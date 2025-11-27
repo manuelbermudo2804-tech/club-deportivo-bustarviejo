@@ -202,6 +202,18 @@ export default function TreasurerDashboard() {
       });
     });
 
+    // Socios pagados
+    filteredClubMembers.filter(m => m.estado_pago === "Pagado" && m.fecha_pago).slice(0, 5).forEach(m => {
+      transactions.push({
+        id: m.id,
+        tipo: 'socio',
+        concepto: `Cuota Socio - ${m.nombre_completo}`,
+        cantidad: m.cuota_socio || 25,
+        fecha: m.fecha_pago,
+        estado: 'completado'
+      });
+    });
+
     return transactions
       .filter(t => t.fecha)
       .sort((a, b) => new Date(b.fecha) - new Date(a.fecha))
