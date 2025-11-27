@@ -96,7 +96,12 @@ export default function ClubMembership() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['myMemberships'] });
       queryClient.invalidateQueries({ queryKey: ['allMemberships'] });
-      setShowForm(false);
+      
+      // Guardar nombre y mostrar mensaje de éxito
+      setLastRegisteredName(formData.nombre_completo);
+      setShowSuccess(true);
+      
+      // Limpiar formulario para nuevo registro
       setFormData({
         tipo_inscripcion: "Nueva Inscripción",
         nombre_completo: "",
@@ -109,7 +114,11 @@ export default function ClubMembership() {
         justificante_url: "",
         es_segundo_progenitor: false
       });
-      toast.success("🎉 ¡Solicitud de socio enviada! ¡Bienvenido/a a la familia!");
+      
+      // Ocultar mensaje de éxito después de 4 segundos
+      setTimeout(() => {
+        setShowSuccess(false);
+      }, 4000);
     },
     onError: (error) => {
       toast.error("Error al enviar solicitud: " + error.message);
