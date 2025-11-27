@@ -91,12 +91,24 @@ function ExternalMembersTab({ clubMembers, players, seasonConfig, searchTerm, se
     
     const message = `¡Hola ${member.nombre_completo}! 👋
 
-Es hora de renovar tu membresía de socio del CD Bustarviejo para la temporada ${getNextSeason()}.
+Desde el CD Bustarviejo queremos darte las GRACIAS de corazón 💚
 
-Renueva aquí en 2 minutos (tus datos ya están guardados):
+Gracias a socios como tú, más de 200 niños y niñas de nuestro pueblo pueden disfrutar del fútbol y baloncesto cada semana. Tu apoyo no es solo una cuota, es un voto de confianza en el futuro de nuestra comunidad.
+
+🏆 Desde 1980, más de 40 años formando deportistas y personas en la sierra norte de Madrid.
+
+Es hora de renovar tu membresía para la temporada ${getNextSeason()}:
+
 👉 ${renewalLink}
 
-¡Gracias por tu apoyo al club! ⚽🏀💪`;
+(Tus datos ya están guardados, ¡solo confirma y listo!)
+
+Tu número de socio: ${member.numero_socio || 'Se asignará al renovar'}
+
+¡GRACIAS por ser parte de nuestra familia! ⚽🏀💪
+
+Con cariño,
+CD Bustarviejo 🧡💚`;
 
     return `https://wa.me/${member.telefono?.replace(/\D/g, '')}?text=${encodeURIComponent(message)}`;
   };
