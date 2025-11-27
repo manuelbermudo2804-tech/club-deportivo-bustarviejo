@@ -35,6 +35,9 @@ export default function ClubMembership() {
   });
   const [showSuccess, setShowSuccess] = useState(false);
   const [lastRegisteredName, setLastRegisteredName] = useState("");
+  const [isRenewal, setIsRenewal] = useState(false);
+  const [renewalMember, setRenewalMember] = useState(null);
+  const [loadingRenewal, setLoadingRenewal] = useState(false);
 
   const queryClient = useQueryClient();
 
@@ -49,12 +52,59 @@ export default function ClubMembership() {
     return Math.abs(hash).toString(36).toUpperCase().slice(0, 8);
   };
 
-  // Leer parámetro "ref" de la URL (código de referido)
+  // Función para generar código de renovación (igual que en ReferralManagement)
+  const generateRenewalCode = (memberId) => {
+    let hash = 0;
+    const str = memberId + "renewal";
+    for (let i = 0; i < str.length; i++) {
+      const char = str.charCodeAt(i);
+      hash = ((hash << 5) - hash) + char;
+      hash = hash & hash;
+    }
+    return Math.abs(hash).toString(36).toUpperCase().slice(0, 8);
+  };
+
+  // Leer parámetros de la URL: "ref" (referido) o "renew" (renovación)
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     const refCode = urlParams.get('ref');
+    const renewCode = urlParams.get('renew');
     
-    if (refCode) {
+    if (renewCode) {
+      // Modo renovación: buscar el socio por código
+      setLoadingRenewal(true);
+      const fetchMemberForRenewal = async () => {
+        try {
+          const allMembers = await base44.entities.ClubMember.list();
+          // Buscar el socio cuyo código de renovación coincida
+          const member = allMembers.find(m => generateRenewalCode(m.id) === renewCode);
+          if (member) {
+            setRenewalMember(member);
+            setIsRenewal(true);
+            setShowForm(true);
+            // Precargar datos del socio
+            setFormData({
+              tipo_inscripcion: "Renovación",
+              nombre_completo: member.nombre_completo || "",
+              dni: member.dni || "",
+              telefono: member.telefono || "",
+              email: member.email || "",
+              direccion: member.direccion || "",
+              municipio: member.municipio || "",
+              metodo_pago: member.metodo_pago || "Transferencia",
+              justificante_url: "",
+              es_segundo_progenitor: member.es_segundo_progenitor || false,
+              referido_por: ""
+            });
+          }
+        } catch (error) {
+          console.error("Error fetching member for renewal:", error);
+        } finally {
+          setLoadingRenewal(false);
+        }
+      };
+      fetchMemberForRenewal();
+    } else if (refCode) {
       // Buscar el usuario que tiene ese código de referido
       const fetchInviter = async () => {
         try {
@@ -249,7 +299,7 @@ export default function ClubMembership() {
   const currentSeasonMembership = myMemberships.find(m => m.temporada === seasonConfig?.temporada);
   const totalSocios = allMemberships.filter(m => m.temporada === seasonConfig?.temporada && m.activo).length;
 
-  if (isLoading) {
+  if (isLoading || loadingRenewal) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <Loader2 className="w-8 h-8 animate-spin text-orange-600" />
@@ -262,7 +312,7 @@ export default function ClubMembership() {
       <CheckmarkAnimation 
         show={showSuccess} 
         onComplete={() => setShowSuccess(false)}
-        message={`¡Bienvenido/a, ${lastRegisteredName}!`}
+        message={isRenewal ? `¡Renovación completada, ${lastRegisteredName}!` : `¡Bienvenido/a, ${lastRegisteredName}!`}
       />
       <div className="p-4 lg:p-6 max-w-4xl mx-auto space-y-6">
       {/* Header festivo */}
@@ -274,10 +324,35 @@ export default function ClubMembership() {
           <span>🎉</span>
         </div>
         <h1 className="text-3xl lg:text-4xl font-bold bg-gradient-to-r from-orange-600 via-green-600 to-orange-600 bg-clip-text text-transparent">
-          ¡Hazte Socio del CD Bustarviejo!
+          {isRenewal ? `¡Renueva tu Membresía!` : `¡Hazte Socio del CD Bustarviejo!`}
         </h1>
-        <p className="text-slate-600 text-sm lg:text-base">Forma parte de nuestra gran familia deportiva</p>
+        <p className="text-slate-600 text-sm lg:text-base">
+          {isRenewal 
+            ? `Hola ${renewalMember?.nombre_completo}, renueva tu membresía para la nueva temporada` 
+            : `Forma parte de nuestra gran familia deportiva`}
+        </p>
       </div>
+
+      {/* Banner de renovación */}
+      {isRenewal && renewalMember && (
+        <Card className="border-2 border-green-400 bg-gradient-to-r from-green-50 to-green-100">
+          <CardContent className="pt-6">
+            <div className="flex items-center gap-4">
+              <div className="w-16 h-16 rounded-full bg-green-600 flex items-center justify-center">
+                <CheckCircle2 className="w-8 h-8 text-white" />
+              </div>
+              <div>
+                <h3 className="font-bold text-green-900 text-xl">
+                  🔄 Renovación de Membresía
+                </h3>
+                <p className="text-green-700">
+                  Tus datos ya están guardados. Solo revísalos, sube el justificante y ¡listo!
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Contador de socios */}
       <div className="bg-gradient-to-r from-orange-500 via-green-500 to-orange-500 rounded-2xl p-1">
@@ -426,7 +501,7 @@ export default function ClubMembership() {
 
 
       {/* Botón para hacerse socio o formulario */}
-      {!showForm ? (
+      {!showForm && !isRenewal ? (
         <div className="space-y-4">
           <Button 
             onClick={() => setShowForm(true)} 
@@ -441,12 +516,12 @@ export default function ClubMembership() {
         </div>
       ) : (
         <Card className="border-none shadow-xl">
-          <CardHeader className="bg-gradient-to-r from-orange-600 to-green-600 text-white rounded-t-xl">
-            <CardTitle className="flex items-center gap-2">
-              <Users className="w-5 h-5" />
-              Formulario de Inscripción como Socio
-            </CardTitle>
-          </CardHeader>
+            <CardHeader className={`${isRenewal ? 'bg-gradient-to-r from-green-600 to-green-700' : 'bg-gradient-to-r from-orange-600 to-green-600'} text-white rounded-t-xl`}>
+              <CardTitle className="flex items-center gap-2">
+                <Users className="w-5 h-5" />
+                {isRenewal ? 'Renovar Membresía de Socio' : 'Formulario de Inscripción como Socio'}
+              </CardTitle>
+            </CardHeader>
           <CardContent className="pt-6">
             <form onSubmit={handleSubmit} className="space-y-6">
               {/* Tipo */}
@@ -690,16 +765,20 @@ export default function ClubMembership() {
 
               {/* Botones */}
               <div className="flex flex-col sm:flex-row justify-end gap-3 pt-4">
-                <Button type="button" variant="outline" onClick={() => setShowForm(false)} className="order-2 sm:order-1">
-                  Cancelar
-                </Button>
+                {!isRenewal && (
+                  <Button type="button" variant="outline" onClick={() => setShowForm(false)} className="order-2 sm:order-1">
+                    Cancelar
+                  </Button>
+                )}
                 <Button 
                   type="submit" 
-                  className="order-1 sm:order-2 bg-gradient-to-r from-orange-600 to-green-600 hover:from-orange-700 hover:to-green-700 py-6 text-lg font-bold" 
+                  className={`order-1 sm:order-2 ${isRenewal ? 'bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800' : 'bg-gradient-to-r from-orange-600 to-green-600 hover:from-orange-700 hover:to-green-700'} py-6 text-lg font-bold`} 
                   disabled={createMembershipMutation.isPending}
                 >
                   {createMembershipMutation.isPending ? (
                     <><Loader2 className="w-5 h-5 animate-spin mr-2" />Enviando...</>
+                  ) : isRenewal ? (
+                    <>🔄 Renovar Membresía</>
                   ) : (
                     <>🎉 Enviar Solicitud</>
                   )}
