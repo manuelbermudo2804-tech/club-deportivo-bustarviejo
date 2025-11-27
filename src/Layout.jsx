@@ -881,6 +881,7 @@ export default function Layout({ children, currentPageName }) {
     // 🛍️ PEDIDOS Y EXTRAS
     { title: "🛍️ Pedidos Ropa", url: createPageUrl("ClothingOrders"), icon: ShoppingBag },
     ...(loteriaVisible ? [{ title: "🍀 Lotería Navidad", url: createPageUrl("LotteryManagement"), icon: Clover }] : []),
+    { title: "🎫 Gestión Socios", url: createPageUrl("ClubMembersManagement"), icon: Users },
     { title: "💰 Patrocinios", url: createPageUrl("Sponsorships"), icon: CreditCard },
 
     // 🎉 CONTENIDO
