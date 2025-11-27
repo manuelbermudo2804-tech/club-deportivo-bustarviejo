@@ -124,11 +124,11 @@ export default function TreasurerDashboard() {
       ropa: { pagada: ropaPagada, pendiente: ropaPendiente },
       loteria: { pagada: loteriaPagada, pendiente: loteriaPendiente },
       patrocinios: patrociniosTotal,
-      socios: { pagados: sociosPagados, pendientes: sociosPendientes },
+      socios: { pagados: sociosPagados, pendientes: sociosPendientes, revision: sociosRevision, total: sociosCount },
       totalIngresos,
       totalPendiente
     };
-  }, [filteredPayments, filteredClothingOrders, lotteryOrders, sponsors, clubMembers]);
+  }, [filteredPayments, filteredClothingOrders, lotteryOrders, sponsors, filteredClubMembers]);
 
   // Income by concept for pie chart
   const incomeByConceptData = [
