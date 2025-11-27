@@ -449,7 +449,8 @@ export default function TreasurerDashboard() {
     cuota: <CreditCard className="w-4 h-4 text-blue-600" />,
     ropa: <ShoppingBag className="w-4 h-4 text-orange-600" />,
     loteria: <Clover className="w-4 h-4 text-green-600" />,
-    patrocinio: <Building2 className="w-4 h-4 text-purple-600" />
+    patrocinio: <Building2 className="w-4 h-4 text-purple-600" />,
+    socio: <Users className="w-4 h-4 text-pink-600" />
   };
 
   return (
