@@ -118,15 +118,31 @@ export default function PlayerDocumentsAndCards() {
         detalles.push(`Categoría: ${player.deporte}`);
         detalles.push(`Temporada: ${season}`);
       } else if (tipo === "Pagos al Día") {
-        const playerPayments = payments.filter(p => p.jugador_id === player.id && p.temporada === season);
-        const pendientes = playerPayments.filter(p => p.estado === "Pendiente").length;
+        // Buscar pagos del jugador en la temporada actual (normalizando formato)
+        const playerPayments = payments.filter(p => 
+          p.jugador_id === player.id && 
+          normalizeSeasonFormat(p.temporada) === normalizeSeasonFormat(season)
+        );
+        
+        console.log(`[Certificado Pagos] Jugador: ${player.nombre}, Temporada: ${season}`);
+        console.log(`[Certificado Pagos] Pagos encontrados:`, playerPayments);
+        
+        const pendientes = playerPayments.filter(p => p.estado === "Pendiente" || p.estado === "En revisión").length;
         if (pendientes > 0) {
           toast.error(`No se puede generar: ${player.nombre} tiene ${pendientes} pago(s) pendiente(s)`);
           setGenerating(false);
           return;
         }
-        const pagosRealizados = playerPayments.filter(p => p.estado === "Pagado").length;
-        const totalPagado = playerPayments.filter(p => p.estado === "Pagado").reduce((sum, p) => sum + p.cantidad, 0);
+        const pagosPagados = playerPayments.filter(p => p.estado === "Pagado");
+        const pagosRealizados = pagosPagados.length;
+        const totalPagado = pagosPagados.reduce((sum, p) => sum + (p.cantidad || 0), 0);
+        
+        if (pagosRealizados === 0) {
+          toast.error(`No se puede generar: ${player.nombre} no tiene pagos registrados en la temporada ${season}`);
+          setGenerating(false);
+          return;
+        }
+        
         mensaje = `No tiene pagos pendientes con el Club Deportivo Bustarviejo para la temporada ${season}.`;
         detalles.push(`Pagos realizados: ${pagosRealizados}`);
         detalles.push(`Total pagado: ${totalPagado}€`);
