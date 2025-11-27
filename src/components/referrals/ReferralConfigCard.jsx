@@ -125,6 +125,23 @@ export default function ReferralConfigCard({ seasonConfig, onUpdate, isUpdating 
 
       {expanded && (
         <CardContent className="space-y-6 pt-0">
+          {/* Opción de WhatsApp para padres */}
+          <div className="bg-green-50 rounded-xl p-4 border-2 border-green-200">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <MessageCircle className="w-6 h-6 text-green-600" />
+                <div>
+                  <Label className="font-semibold text-green-900">Permitir a padres compartir por WhatsApp</Label>
+                  <p className="text-xs text-green-700">Si está desactivado, los padres no verán el botón de compartir su enlace por WhatsApp en la tarjeta de referidos</p>
+                </div>
+              </div>
+              <Switch
+                checked={localConfig.referidos_permitir_whatsapp_padres}
+                onCheckedChange={(checked) => setLocalConfig(prev => ({ ...prev, referidos_permitir_whatsapp_padres: checked }))}
+              />
+            </div>
+          </div>
+
           {/* Tier 1: 1 socio */}
           <div className={`rounded-xl p-4 border-2 transition-all ${localConfig.tier_1_activo ? 'bg-blue-50 border-blue-200' : 'bg-slate-100 border-slate-200 opacity-60'}`}>
             <div className="flex items-center justify-between mb-3">
