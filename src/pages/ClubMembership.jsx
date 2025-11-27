@@ -106,12 +106,27 @@ export default function ClubMembership() {
       };
       fetchMemberForRenewal();
     } else if (refCode) {
-      // Buscar el usuario que tiene ese código de referido
+      // Buscar el usuario que tiene ese código de referido Y que sea padre con hijos en el club
       const fetchInviter = async () => {
         try {
-          const allUsers = await base44.entities.User.list();
-          // Buscar el usuario cuyo código coincida
-          const inviter = allUsers.find(u => generateReferralCode(u.email) === refCode);
+          const [allUsers, allPlayers] = await Promise.all([
+            base44.entities.User.list(),
+            base44.entities.Player.list()
+          ]);
+          
+          // Obtener emails de padres con jugadores
+          const parentEmails = new Set();
+          allPlayers.forEach(p => {
+            if (p.email_padre) parentEmails.add(p.email_padre.toLowerCase());
+            if (p.email_tutor_2) parentEmails.add(p.email_tutor_2.toLowerCase());
+          });
+          
+          // Buscar el usuario cuyo código coincida Y sea padre con hijos
+          const inviter = allUsers.find(u => 
+            generateReferralCode(u.email) === refCode && 
+            parentEmails.has(u.email.toLowerCase())
+          );
+          
           if (inviter) {
             setInvitadoPor(inviter);
             setFormData(prev => ({ ...prev, referido_por: inviter.full_name }));
