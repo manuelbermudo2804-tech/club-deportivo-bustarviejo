@@ -865,6 +865,48 @@ export default function SeasonManagement() {
               />
             </div>
 
+            {/* Lotería Pago Adelantado - Solo visible si lotería está activa */}
+            {activeSeason?.loteria_navidad_abierta && (
+              <div className="ml-8 flex items-center justify-between p-4 bg-green-50 rounded-lg border-2 border-green-200">
+                <div className="flex items-center gap-3">
+                  <CreditCard className="w-5 h-5 text-green-600" />
+                  <div>
+                    <p className="font-medium">Lotería: Requiere Pago Adelantado</p>
+                    <p className="text-xs text-slate-600">
+                      {activeSeason?.loteria_requiere_pago_adelantado 
+                        ? "Los padres deben pagar por transferencia/Bizum y subir justificante"
+                        : "Los padres pagan al entrenador cuando reciben los décimos"}
+                    </p>
+                  </div>
+                </div>
+                <Switch
+                  checked={activeSeason?.loteria_requiere_pago_adelantado || false}
+                  onCheckedChange={(checked) => toggleFeature('loteria_requiere_pago_adelantado', checked)}
+                />
+              </div>
+            )}
+
+            {/* Precio décimo lotería - Solo visible si lotería está activa */}
+            {activeSeason?.loteria_navidad_abierta && (
+              <div className="ml-8 flex items-center gap-2">
+                <Label className="text-sm">Precio del décimo (€):</Label>
+                <Input
+                  type="number"
+                  value={activeSeason?.precio_decimo_loteria || 22}
+                  onChange={(e) => {
+                    if (activeSeason) {
+                      updateSeasonMutation.mutate({
+                        id: activeSeason.id,
+                        data: { precio_decimo_loteria: Number(e.target.value) }
+                      });
+                    }
+                  }}
+                  placeholder="22"
+                  className="w-24"
+                />
+              </div>
+            )}
+
             {/* Patrocinadores */}
             <div className="flex items-center justify-between p-4 bg-slate-50 rounded-lg">
               <div className="flex items-center gap-3">
