@@ -404,7 +404,8 @@ export default function ParentLottery() {
                   </div>
                 </div>
 
-{requierePagoAdelantado && (
+{/* Sección de Pago */}
+                {requierePagoAdelantado ? (
                   <>
                     <div className="space-y-2">
                       <Label className="text-lg font-bold text-slate-900">💳 Método de Pago</Label>
@@ -423,6 +424,16 @@ export default function ParentLottery() {
                         <div className="bg-white rounded-lg p-3 border-2 border-green-300">
                           <p className="text-sm text-slate-900">
                             📱 <strong>Enviar Bizum al:</strong> {seasonConfig.bizum_telefono}
+                          </p>
+                          <p className="text-xs text-slate-600 mt-1">
+                            Concepto: Lotería {selectedPlayer ? players.find(p => p.id === selectedPlayer)?.nombre : user?.full_name}
+                          </p>
+                        </div>
+                      )}
+                      {metodoPago === "Transferencia" && (
+                        <div className="bg-white rounded-lg p-3 border-2 border-blue-300">
+                          <p className="text-sm text-slate-900">
+                            🏦 <strong>Transferencia a:</strong> ES12 1234 5678 1234 5678 9012
                           </p>
                           <p className="text-xs text-slate-600 mt-1">
                             Concepto: Lotería {selectedPlayer ? players.find(p => p.id === selectedPlayer)?.nombre : user?.full_name}
@@ -485,6 +496,16 @@ export default function ParentLottery() {
                       )}
                     </div>
                   </>
+                ) : (
+                  <div className="bg-gradient-to-r from-green-100 to-green-200 p-4 rounded-xl border-2 border-green-300">
+                    <p className="text-green-900 font-bold text-lg mb-2">💵 Pago al Entrenador</p>
+                    <p className="text-green-800 text-sm">
+                      No necesitas pagar ahora. Tu entrenador te entregará los décimos y le pagarás directamente cuando los recibas.
+                    </p>
+                    <p className="text-green-700 text-xs mt-2">
+                      💡 Importe a pagar: <strong>{numDecimos * precioDecimo}€</strong>
+                    </p>
+                  </div>
                 )}
 
                 <div className="space-y-2">
