@@ -803,25 +803,22 @@ export default function CalendarAndSchedules() {
                                 </span>
                               </div>
 
-                              {isParentOrPlayer ? (
-                                <a
-                                  href={UBICACION_MAPS_URL}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="flex items-start gap-2 text-slate-600 bg-green-50 rounded-lg p-2 border border-green-200 hover:bg-green-100 transition-colors cursor-pointer"
-                                >
-                                  <MapPin className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" />
-                                  <div className="flex-1">
-                                    <span className="text-xs font-medium">{schedule.ubicacion}</span>
-                                  </div>
-                                  <ExternalLink className="w-3 h-3 text-green-600 flex-shrink-0" />
-                                </a>
-                              ) : (
-                                <div className="flex items-center gap-2 text-slate-600">
-                                  <MapPin className="w-4 h-4 text-green-600" />
-                                  <span className="text-xs">{schedule.ubicacion}</span>
+                              <a
+                                href={UBICACION_MAPS_URL}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className={`flex items-start gap-2 text-slate-600 rounded-lg p-2 border hover:bg-green-100 transition-colors cursor-pointer ${
+                                  isParentOrPlayer 
+                                    ? 'bg-green-50 border-green-200' 
+                                    : 'bg-slate-50 border-slate-200 hover:border-green-300'
+                                }`}
+                              >
+                                <MapPin className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" />
+                                <div className="flex-1">
+                                  <span className="text-xs font-medium">{schedule.ubicacion || "Campo Municipal de Bustarviejo"}</span>
                                 </div>
-                              )}
+                                <ExternalLink className="w-3 h-3 text-green-600 flex-shrink-0" />
+                              </a>
 
                               {schedule.notas && (
                                 <div className={`mt-2 pt-2 border-t ${isParentOrPlayer ? 'border-orange-200 bg-blue-50 rounded-lg p-2' : 'border-slate-200'}`}>
