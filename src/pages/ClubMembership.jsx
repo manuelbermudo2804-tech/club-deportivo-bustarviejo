@@ -361,7 +361,7 @@ export default function ClubMembership() {
   const currentSeasonMembership = myMemberships.find(m => m.temporada === seasonConfig?.temporada);
   const totalSocios = allMemberships.filter(m => m.temporada === seasonConfig?.temporada && m.activo).length;
 
-  if (isLoading || loadingRenewal) {
+  if (isCheckingAuth || loadingRenewal) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <Loader2 className="w-8 h-8 animate-spin text-orange-600" />
