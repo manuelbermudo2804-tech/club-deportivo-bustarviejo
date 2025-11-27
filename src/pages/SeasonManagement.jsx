@@ -59,11 +59,23 @@ export default function SeasonManagement() {
     archivePayments: true,
     deleteReminders: true,
     resetPlayerStatus: true,
-    deleteAttendances: false,
-    deleteEvaluations: false,
+    deleteAttendances: true,
+    deleteEvaluations: true,
     deleteCallups: true,
-    deleteClothingOrders: false,
+    deleteClothingOrders: true,
     deleteLotteryOrders: true,
+    deleteTrainingSchedules: true,
+    deletePhotoGallery: true,
+    deleteEvents: true,
+    deleteAnnouncements: true,
+    deleteChatMessages: true,
+    deleteConvocatorias: true,
+    deleteSurveys: true,
+    deleteSurveyResponses: true,
+    deleteMatchResults: true,
+    deleteMedicalRecords: false,
+    deleteDocuments: false,
+    deletePrivateMessages: true,
     newSeasonName: "",
     cuotaUnica: 200,
     cuotaTresMeses: 75,
@@ -370,10 +382,9 @@ export default function SeasonManagement() {
       }
 
       // 4. Eliminar convocatorias
-      if (resetConfig.deleteCallups) {
+      if (resetConfig.deleteCallups || resetConfig.deleteConvocatorias) {
         setProcessingStep("Eliminando convocatorias...");
-        const callups = await base44.entities.Convocatoria.list();
-        for (const callup of callups) {
+        for (const callup of convocatorias) {
           await base44.entities.Convocatoria.delete(callup.id);
         }
         currentStep++;
@@ -385,6 +396,129 @@ export default function SeasonManagement() {
         setProcessingStep("Eliminando pedidos de lotería...");
         for (const order of lotteryOrders) {
           await base44.entities.LotteryOrder.delete(order.id);
+        }
+        currentStep++;
+        setProcessingProgress((currentStep / totalSteps) * 100);
+      }
+
+      // 6. Eliminar asistencias
+      if (resetConfig.deleteAttendances) {
+        setProcessingStep("Eliminando registros de asistencia...");
+        for (const attendance of attendances) {
+          await base44.entities.Attendance.delete(attendance.id);
+        }
+        currentStep++;
+        setProcessingProgress((currentStep / totalSteps) * 100);
+      }
+
+      // 7. Eliminar evaluaciones
+      if (resetConfig.deleteEvaluations) {
+        setProcessingStep("Eliminando evaluaciones de jugadores...");
+        for (const evaluation of evaluations) {
+          await base44.entities.PlayerEvaluation.delete(evaluation.id);
+        }
+        currentStep++;
+        setProcessingProgress((currentStep / totalSteps) * 100);
+      }
+
+      // 8. Eliminar horarios de entrenamiento
+      if (resetConfig.deleteTrainingSchedules) {
+        setProcessingStep("Eliminando horarios de entrenamiento...");
+        for (const schedule of trainingSchedules) {
+          await base44.entities.TrainingSchedule.delete(schedule.id);
+        }
+        currentStep++;
+        setProcessingProgress((currentStep / totalSteps) * 100);
+      }
+
+      // 9. Eliminar galería de fotos
+      if (resetConfig.deletePhotoGallery) {
+        setProcessingStep("Eliminando álbumes de fotos...");
+        for (const album of photoGallery) {
+          await base44.entities.PhotoGallery.delete(album.id);
+        }
+        currentStep++;
+        setProcessingProgress((currentStep / totalSteps) * 100);
+      }
+
+      // 10. Eliminar eventos
+      if (resetConfig.deleteEvents) {
+        setProcessingStep("Eliminando eventos del calendario...");
+        for (const event of events) {
+          await base44.entities.Event.delete(event.id);
+        }
+        currentStep++;
+        setProcessingProgress((currentStep / totalSteps) * 100);
+      }
+
+      // 11. Eliminar anuncios
+      if (resetConfig.deleteAnnouncements) {
+        setProcessingStep("Eliminando anuncios...");
+        for (const announcement of announcements) {
+          await base44.entities.Announcement.delete(announcement.id);
+        }
+        currentStep++;
+        setProcessingProgress((currentStep / totalSteps) * 100);
+      }
+
+      // 12. Eliminar mensajes de chat
+      if (resetConfig.deleteChatMessages) {
+        setProcessingStep("Eliminando mensajes de chat...");
+        for (const message of chatMessages) {
+          await base44.entities.ChatMessage.delete(message.id);
+        }
+        currentStep++;
+        setProcessingProgress((currentStep / totalSteps) * 100);
+      }
+
+      // 13. Eliminar encuestas y respuestas
+      if (resetConfig.deleteSurveys) {
+        setProcessingStep("Eliminando encuestas...");
+        for (const response of surveyResponses) {
+          await base44.entities.SurveyResponse.delete(response.id);
+        }
+        for (const survey of surveys) {
+          await base44.entities.Survey.delete(survey.id);
+        }
+        currentStep++;
+        setProcessingProgress((currentStep / totalSteps) * 100);
+      }
+
+      // 14. Eliminar resultados de partidos
+      if (resetConfig.deleteMatchResults) {
+        setProcessingStep("Eliminando resultados de partidos...");
+        for (const result of matchResults) {
+          await base44.entities.MatchResult.delete(result.id);
+        }
+        currentStep++;
+        setProcessingProgress((currentStep / totalSteps) * 100);
+      }
+
+      // 15. Eliminar documentos (opcional - normalmente no se borran)
+      if (resetConfig.deleteDocuments) {
+        setProcessingStep("Eliminando documentos...");
+        for (const doc of documents) {
+          await base44.entities.Document.delete(doc.id);
+        }
+        currentStep++;
+        setProcessingProgress((currentStep / totalSteps) * 100);
+      }
+
+      // 16. Eliminar mensajes privados
+      if (resetConfig.deletePrivateMessages) {
+        setProcessingStep("Eliminando conversaciones privadas...");
+        for (const msg of privateMessages) {
+          await base44.entities.PrivateMessage.delete(msg.id);
+        }
+        currentStep++;
+        setProcessingProgress((currentStep / totalSteps) * 100);
+      }
+
+      // 17. Eliminar pedidos de ropa
+      if (resetConfig.deleteClothingOrders) {
+        setProcessingStep("Eliminando pedidos de ropa...");
+        for (const order of clothingOrders) {
+          await base44.entities.ClothingOrder.delete(order.id);
         }
         currentStep++;
         setProcessingProgress((currentStep / totalSteps) * 100);
@@ -467,6 +601,72 @@ export default function SeasonManagement() {
     }
   };
 
+  // Queries adicionales para estadísticas
+  const { data: attendances = [] } = useQuery({
+    queryKey: ['attendances'],
+    queryFn: () => base44.entities.Attendance.list(),
+  });
+
+  const { data: evaluations = [] } = useQuery({
+    queryKey: ['evaluations'],
+    queryFn: () => base44.entities.PlayerEvaluation.list(),
+  });
+
+  const { data: trainingSchedules = [] } = useQuery({
+    queryKey: ['trainingSchedules'],
+    queryFn: () => base44.entities.TrainingSchedule.list(),
+  });
+
+  const { data: photoGallery = [] } = useQuery({
+    queryKey: ['photoGallery'],
+    queryFn: () => base44.entities.PhotoGallery.list(),
+  });
+
+  const { data: events = [] } = useQuery({
+    queryKey: ['events'],
+    queryFn: () => base44.entities.Event.list(),
+  });
+
+  const { data: announcements = [] } = useQuery({
+    queryKey: ['announcements'],
+    queryFn: () => base44.entities.Announcement.list(),
+  });
+
+  const { data: chatMessages = [] } = useQuery({
+    queryKey: ['chatMessages'],
+    queryFn: () => base44.entities.ChatMessage.list(),
+  });
+
+  const { data: surveys = [] } = useQuery({
+    queryKey: ['surveys'],
+    queryFn: () => base44.entities.Survey.list(),
+  });
+
+  const { data: surveyResponses = [] } = useQuery({
+    queryKey: ['surveyResponses'],
+    queryFn: () => base44.entities.SurveyResponse.list(),
+  });
+
+  const { data: matchResults = [] } = useQuery({
+    queryKey: ['matchResults'],
+    queryFn: () => base44.entities.MatchResult.list(),
+  });
+
+  const { data: documents = [] } = useQuery({
+    queryKey: ['documents'],
+    queryFn: () => base44.entities.Document.list(),
+  });
+
+  const { data: privateMessages = [] } = useQuery({
+    queryKey: ['privateMessages'],
+    queryFn: () => base44.entities.PrivateMessage.list(),
+  });
+
+  const { data: convocatorias = [] } = useQuery({
+    queryKey: ['convocatorias'],
+    queryFn: () => base44.entities.Convocatoria.list(),
+  });
+
   // Estadísticas actuales
   const currentStats = {
     payments: payments.length,
@@ -474,7 +674,20 @@ export default function SeasonManagement() {
     players: players.filter(p => p.activo).length,
     reminders: reminders.length,
     clothingOrders: clothingOrders.length,
-    lotteryOrders: lotteryOrders.length
+    lotteryOrders: lotteryOrders.length,
+    attendances: attendances.length,
+    evaluations: evaluations.length,
+    trainingSchedules: trainingSchedules.length,
+    photoGallery: photoGallery.length,
+    events: events.length,
+    announcements: announcements.length,
+    chatMessages: chatMessages.length,
+    surveys: surveys.length,
+    surveyResponses: surveyResponses.length,
+    matchResults: matchResults.length,
+    documents: documents.length,
+    privateMessages: privateMessages.length,
+    convocatorias: convocatorias.length
   };
 
   if (!isAdmin) {
@@ -768,27 +981,55 @@ export default function SeasonManagement() {
               </Alert>
 
               <div className="bg-slate-50 rounded-lg p-4">
-                <p className="text-sm font-medium text-slate-700 mb-2">Datos actuales que serán afectados:</p>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-2 text-sm">
-                  <div className="flex items-center gap-2">
-                    <CreditCard className="w-4 h-4 text-blue-600" />
+                <p className="text-sm font-medium text-slate-700 mb-2">Datos actuales en el sistema:</p>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs">
+                  <div className="flex items-center gap-1">
+                    <CreditCard className="w-3 h-3 text-green-600" />
                     <span>{currentStats.payments} pagos</span>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <Bell className="w-4 h-4 text-yellow-600" />
+                  <div className="flex items-center gap-1">
+                    <Bell className="w-3 h-3 text-yellow-600" />
                     <span>{currentStats.reminders} recordatorios</span>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <Users className="w-4 h-4 text-green-600" />
+                  <div className="flex items-center gap-1">
+                    <Users className="w-3 h-3 text-blue-600" />
                     <span>{currentStats.players} jugadores</span>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <ShoppingBag className="w-4 h-4 text-orange-600" />
-                    <span>{currentStats.clothingOrders} pedidos ropa</span>
+                  <div className="flex items-center gap-1">
+                    <ShoppingBag className="w-3 h-3 text-orange-600" />
+                    <span>{currentStats.clothingOrders} ropa</span>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <Clover className="w-4 h-4 text-green-600" />
-                    <span>{currentStats.lotteryOrders} pedidos lotería</span>
+                  <div className="flex items-center gap-1">
+                    <Clover className="w-3 h-3 text-green-600" />
+                    <span>{currentStats.lotteryOrders} lotería</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <CheckCircle2 className="w-3 h-3 text-blue-600" />
+                    <span>{currentStats.attendances} asistencias</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <FileText className="w-3 h-3 text-purple-600" />
+                    <span>{currentStats.evaluations} evaluaciones</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <Clock className="w-3 h-3 text-blue-600" />
+                    <span>{currentStats.trainingSchedules} horarios</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <Image className="w-3 h-3 text-pink-600" />
+                    <span>{currentStats.photoGallery} álbumes</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <Calendar className="w-3 h-3 text-indigo-600" />
+                    <span>{currentStats.events} eventos</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <Bell className="w-3 h-3 text-pink-600" />
+                    <span>{currentStats.announcements} anuncios</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <Mail className="w-3 h-3 text-teal-600" />
+                    <span>{currentStats.chatMessages} chats</span>
                   </div>
                 </div>
               </div>
@@ -965,55 +1206,109 @@ export default function SeasonManagement() {
               </div>
             </div>
 
-            <div className="space-y-3">
-              <p className="font-medium text-sm">Acciones a realizar:</p>
-              
-              <div className="flex items-center gap-2">
-                <Checkbox
-                  checked={resetConfig.archivePayments}
-                  onCheckedChange={(checked) => setResetConfig(prev => ({ ...prev, archivePayments: checked }))}
-                />
-                <Label className="text-sm">Archivar pagos actuales</Label>
+            <div className="space-y-4">
+              <p className="font-medium text-sm">Selecciona qué datos eliminar:</p>
+
+              {/* Sección: Datos Financieros */}
+              <div className="bg-green-50 rounded-lg p-3 space-y-2">
+                <p className="text-xs font-bold text-green-800 mb-2">💰 DATOS FINANCIEROS</p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                  <div className="flex items-center gap-2">
+                    <Checkbox checked={resetConfig.archivePayments} onCheckedChange={(c) => setResetConfig(prev => ({ ...prev, archivePayments: c }))} />
+                    <Label className="text-xs">Archivar pagos ({currentStats.payments})</Label>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Checkbox checked={resetConfig.deleteReminders} onCheckedChange={(c) => setResetConfig(prev => ({ ...prev, deleteReminders: c }))} />
+                    <Label className="text-xs">Eliminar recordatorios ({currentStats.reminders})</Label>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Checkbox checked={resetConfig.deleteClothingOrders} onCheckedChange={(c) => setResetConfig(prev => ({ ...prev, deleteClothingOrders: c }))} />
+                    <Label className="text-xs">Eliminar pedidos ropa ({currentStats.clothingOrders})</Label>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Checkbox checked={resetConfig.deleteLotteryOrders} onCheckedChange={(c) => setResetConfig(prev => ({ ...prev, deleteLotteryOrders: c }))} />
+                    <Label className="text-xs">Eliminar pedidos lotería ({currentStats.lotteryOrders})</Label>
+                  </div>
+                </div>
               </div>
 
-              <div className="flex items-center gap-2">
-                <Checkbox
-                  checked={resetConfig.deleteReminders}
-                  onCheckedChange={(checked) => setResetConfig(prev => ({ ...prev, deleteReminders: checked }))}
-                />
-                <Label className="text-sm">Eliminar recordatorios</Label>
+              {/* Sección: Datos Deportivos */}
+              <div className="bg-blue-50 rounded-lg p-3 space-y-2">
+                <p className="text-xs font-bold text-blue-800 mb-2">⚽ DATOS DEPORTIVOS</p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                  <div className="flex items-center gap-2">
+                    <Checkbox checked={resetConfig.resetPlayerStatus} onCheckedChange={(c) => setResetConfig(prev => ({ ...prev, resetPlayerStatus: c }))} />
+                    <Label className="text-xs">Resetear estado jugadores ({currentStats.players})</Label>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Checkbox checked={resetConfig.deleteCallups} onCheckedChange={(c) => setResetConfig(prev => ({ ...prev, deleteCallups: c }))} />
+                    <Label className="text-xs">Eliminar convocatorias ({currentStats.convocatorias})</Label>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Checkbox checked={resetConfig.deleteAttendances} onCheckedChange={(c) => setResetConfig(prev => ({ ...prev, deleteAttendances: c }))} />
+                    <Label className="text-xs">Eliminar asistencias ({currentStats.attendances})</Label>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Checkbox checked={resetConfig.deleteEvaluations} onCheckedChange={(c) => setResetConfig(prev => ({ ...prev, deleteEvaluations: c }))} />
+                    <Label className="text-xs">Eliminar evaluaciones ({currentStats.evaluations})</Label>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Checkbox checked={resetConfig.deleteTrainingSchedules} onCheckedChange={(c) => setResetConfig(prev => ({ ...prev, deleteTrainingSchedules: c }))} />
+                    <Label className="text-xs">Eliminar horarios ({currentStats.trainingSchedules})</Label>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Checkbox checked={resetConfig.deleteMatchResults} onCheckedChange={(c) => setResetConfig(prev => ({ ...prev, deleteMatchResults: c }))} />
+                    <Label className="text-xs">Eliminar resultados partidos ({currentStats.matchResults})</Label>
+                  </div>
+                </div>
               </div>
 
-              <div className="flex items-center gap-2">
-                <Checkbox
-                  checked={resetConfig.resetPlayerStatus}
-                  onCheckedChange={(checked) => setResetConfig(prev => ({ ...prev, resetPlayerStatus: checked }))}
-                />
-                <Label className="text-sm">Resetear estado de renovación de jugadores</Label>
+              {/* Sección: Comunicaciones */}
+              <div className="bg-purple-50 rounded-lg p-3 space-y-2">
+                <p className="text-xs font-bold text-purple-800 mb-2">💬 COMUNICACIONES</p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                  <div className="flex items-center gap-2">
+                    <Checkbox checked={resetConfig.deleteChatMessages} onCheckedChange={(c) => setResetConfig(prev => ({ ...prev, deleteChatMessages: c }))} />
+                    <Label className="text-xs">Eliminar chat grupos ({currentStats.chatMessages})</Label>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Checkbox checked={resetConfig.deletePrivateMessages} onCheckedChange={(c) => setResetConfig(prev => ({ ...prev, deletePrivateMessages: c }))} />
+                    <Label className="text-xs">Eliminar chat privados ({currentStats.privateMessages})</Label>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Checkbox checked={resetConfig.deleteAnnouncements} onCheckedChange={(c) => setResetConfig(prev => ({ ...prev, deleteAnnouncements: c }))} />
+                    <Label className="text-xs">Eliminar anuncios ({currentStats.announcements})</Label>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Checkbox checked={resetConfig.deleteSurveys} onCheckedChange={(c) => setResetConfig(prev => ({ ...prev, deleteSurveys: c }))} />
+                    <Label className="text-xs">Eliminar encuestas ({currentStats.surveys})</Label>
+                  </div>
+                </div>
               </div>
 
-              <div className="flex items-center gap-2">
-                <Checkbox
-                  checked={resetConfig.deleteCallups}
-                  onCheckedChange={(checked) => setResetConfig(prev => ({ ...prev, deleteCallups: checked }))}
-                />
-                <Label className="text-sm">Eliminar convocatorias</Label>
+              {/* Sección: Contenido */}
+              <div className="bg-orange-50 rounded-lg p-3 space-y-2">
+                <p className="text-xs font-bold text-orange-800 mb-2">📅 CONTENIDO Y EVENTOS</p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                  <div className="flex items-center gap-2">
+                    <Checkbox checked={resetConfig.deleteEvents} onCheckedChange={(c) => setResetConfig(prev => ({ ...prev, deleteEvents: c }))} />
+                    <Label className="text-xs">Eliminar eventos ({currentStats.events})</Label>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Checkbox checked={resetConfig.deletePhotoGallery} onCheckedChange={(c) => setResetConfig(prev => ({ ...prev, deletePhotoGallery: c }))} />
+                    <Label className="text-xs">Eliminar galería fotos ({currentStats.photoGallery})</Label>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Checkbox checked={resetConfig.deleteDocuments} onCheckedChange={(c) => setResetConfig(prev => ({ ...prev, deleteDocuments: c }))} />
+                    <Label className="text-xs text-slate-500">Eliminar documentos ({currentStats.documents})</Label>
+                  </div>
+                </div>
               </div>
 
-              <div className="flex items-center gap-2">
-                <Checkbox
-                  checked={resetConfig.deleteLotteryOrders}
-                  onCheckedChange={(checked) => setResetConfig(prev => ({ ...prev, deleteLotteryOrders: checked }))}
-                />
-                <Label className="text-sm">Eliminar pedidos de lotería</Label>
-              </div>
-
-              <div className="flex items-center gap-2">
-                <Checkbox
-                  checked={resetConfig.notifyParents}
-                  onCheckedChange={(checked) => setResetConfig(prev => ({ ...prev, notifyParents: checked }))}
-                />
-                <Label className="text-sm">Notificar al administrador</Label>
+              {/* Notificación */}
+              <div className="flex items-center gap-2 pt-2 border-t">
+                <Checkbox checked={resetConfig.notifyParents} onCheckedChange={(c) => setResetConfig(prev => ({ ...prev, notifyParents: c }))} />
+                <Label className="text-sm font-medium">📧 Notificar al administrador por email</Label>
               </div>
             </div>
           </div>
@@ -1048,14 +1343,26 @@ export default function SeasonManagement() {
               </div>
             </div>
 
-            <div className="bg-orange-50 p-4 rounded-lg">
+            <div className="bg-orange-50 p-4 rounded-lg max-h-64 overflow-y-auto">
               <p className="font-medium text-orange-900 mb-2">Acciones que se realizarán:</p>
               <ul className="text-sm text-orange-700 space-y-1">
                 {resetConfig.archivePayments && <li>✓ Archivar {currentStats.payments} pagos</li>}
                 {resetConfig.deleteReminders && <li>✓ Eliminar {currentStats.reminders} recordatorios</li>}
                 {resetConfig.resetPlayerStatus && <li>✓ Actualizar {currentStats.players} jugadores</li>}
-                {resetConfig.deleteCallups && <li>✓ Eliminar convocatorias</li>}
-                {resetConfig.deleteLotteryOrders && <li>✓ Eliminar {currentStats.lotteryOrders} pedidos de lotería</li>}
+                {resetConfig.deleteCallups && <li>✓ Eliminar {currentStats.convocatorias} convocatorias</li>}
+                {resetConfig.deleteLotteryOrders && <li>✓ Eliminar {currentStats.lotteryOrders} pedidos lotería</li>}
+                {resetConfig.deleteClothingOrders && <li>✓ Eliminar {currentStats.clothingOrders} pedidos ropa</li>}
+                {resetConfig.deleteAttendances && <li>✓ Eliminar {currentStats.attendances} asistencias</li>}
+                {resetConfig.deleteEvaluations && <li>✓ Eliminar {currentStats.evaluations} evaluaciones</li>}
+                {resetConfig.deleteTrainingSchedules && <li>✓ Eliminar {currentStats.trainingSchedules} horarios</li>}
+                {resetConfig.deletePhotoGallery && <li>✓ Eliminar {currentStats.photoGallery} álbumes</li>}
+                {resetConfig.deleteEvents && <li>✓ Eliminar {currentStats.events} eventos</li>}
+                {resetConfig.deleteAnnouncements && <li>✓ Eliminar {currentStats.announcements} anuncios</li>}
+                {resetConfig.deleteChatMessages && <li>✓ Eliminar {currentStats.chatMessages} mensajes chat</li>}
+                {resetConfig.deletePrivateMessages && <li>✓ Eliminar {currentStats.privateMessages} mensajes privados</li>}
+                {resetConfig.deleteSurveys && <li>✓ Eliminar {currentStats.surveys} encuestas</li>}
+                {resetConfig.deleteMatchResults && <li>✓ Eliminar {currentStats.matchResults} resultados</li>}
+                {resetConfig.deleteDocuments && <li>✓ Eliminar {currentStats.documents} documentos</li>}
               </ul>
             </div>
           </div>
