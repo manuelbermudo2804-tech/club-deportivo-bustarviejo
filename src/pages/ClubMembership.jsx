@@ -376,8 +376,11 @@ export default function ClubMembership() {
                     <Label htmlFor="nombre">Nombre y Apellidos *</Label>
                     <Input 
                       id="nombre" 
+                      name="name"
+                      autoComplete="name"
                       value={formData.nombre_completo} 
                       onChange={(e) => setFormData({...formData, nombre_completo: e.target.value})} 
+                      onBlur={(e) => setFormData({...formData, nombre_completo: e.target.value})}
                       placeholder="Ej: Juan García López"
                       required 
                     />
@@ -386,8 +389,11 @@ export default function ClubMembership() {
                     <Label htmlFor="dni">DNI *</Label>
                     <Input 
                       id="dni" 
+                      name="dni"
+                      autoComplete="off"
                       value={formData.dni} 
                       onChange={(e) => setFormData({...formData, dni: e.target.value})} 
+                      onBlur={(e) => setFormData({...formData, dni: e.target.value})}
                       placeholder="12345678A" 
                       required 
                     />
@@ -396,9 +402,12 @@ export default function ClubMembership() {
                     <Label htmlFor="telefono">Teléfono Móvil *</Label>
                     <Input 
                       id="telefono" 
+                      name="tel"
                       type="tel" 
+                      autoComplete="tel"
                       value={formData.telefono} 
                       onChange={(e) => setFormData({...formData, telefono: e.target.value})} 
+                      onBlur={(e) => setFormData({...formData, telefono: e.target.value})}
                       placeholder="600123456" 
                       required 
                     />
@@ -407,9 +416,12 @@ export default function ClubMembership() {
                     <Label htmlFor="email">Correo Electrónico *</Label>
                     <Input 
                       id="email" 
+                      name="email"
                       type="email" 
+                      autoComplete="email"
                       value={formData.email} 
                       onChange={(e) => setFormData({...formData, email: e.target.value})} 
+                      onBlur={(e) => setFormData({...formData, email: e.target.value})}
                       placeholder="correo@ejemplo.com"
                       required 
                     />
@@ -418,8 +430,11 @@ export default function ClubMembership() {
                     <Label htmlFor="direccion">Dirección Completa *</Label>
                     <Input 
                       id="direccion" 
+                      name="street-address"
+                      autoComplete="street-address"
                       value={formData.direccion} 
                       onChange={(e) => setFormData({...formData, direccion: e.target.value})} 
+                      onBlur={(e) => setFormData({...formData, direccion: e.target.value})}
                       placeholder="Calle, número, piso..." 
                       required 
                     />
@@ -428,8 +443,11 @@ export default function ClubMembership() {
                     <Label htmlFor="municipio">Municipio *</Label>
                     <Input 
                       id="municipio" 
+                      name="address-level2"
+                      autoComplete="address-level2"
                       value={formData.municipio} 
                       onChange={(e) => setFormData({...formData, municipio: e.target.value})} 
+                      onBlur={(e) => setFormData({...formData, municipio: e.target.value})}
                       placeholder="Bustarviejo" 
                       required 
                     />
