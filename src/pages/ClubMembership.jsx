@@ -39,6 +39,7 @@ export default function ClubMembership() {
   const [isRenewal, setIsRenewal] = useState(false);
   const [renewalMember, setRenewalMember] = useState(null);
   const [loadingRenewal, setLoadingRenewal] = useState(false);
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
 
   const queryClient = useQueryClient();
 
