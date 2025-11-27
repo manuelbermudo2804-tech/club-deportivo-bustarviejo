@@ -143,7 +143,7 @@ Deno.serve(async (req) => {
     await base44.asServiceRole.integrations.Core.SendEmail({
       to: "cdbustarviejo@gmail.com",
       subject: `🎉 Nueva solicitud de socio (EXTERNO): ${data.nombre_completo}`,
-      body: `Se ha recibido una nueva solicitud de socio desde la landing page externa:\n\nNombre: ${data.nombre_completo}\nDNI: ${data.dni}\nEmail: ${data.email}\nTeléfono: ${data.telefono}\nDirección: ${data.direccion}\nMunicipio: ${data.municipio}\nMétodo de pago: ${data.metodo_pago}\nTipo: ${data.tipo_inscripcion}\nEs segundo progenitor: ${data.es_segundo_progenitor ? "Sí" : "No"}${data.referido_por ? `\nReferido por: ${data.referido_por}` : ""}\n\nPago: ${data.justificante_url ? "Justificante subido - REVISAR" : "Pendiente"}\n\nAccede al panel de administración para gestionar.`
+      body: `Se ha recibido una nueva solicitud de socio desde la landing page externa:\n\nNombre: ${data.nombre_completo}\nDNI: ${data.dni}\nEmail: ${data.email}\nTeléfono: ${data.telefono}\nDirección: ${data.direccion}\nMunicipio: ${data.municipio}\nMétodo de pago: Transferencia\nTipo: ${data.tipo_inscripcion}\nEs segundo progenitor: ${data.es_segundo_progenitor ? "Sí" : "No"}${data.referido_por ? `\nReferido por: ${data.referido_por}` : ""}\n\n📎 JUSTIFICANTE DE PAGO:\n${data.justificante_url ? data.justificante_url : "⚠️ No se adjuntó justificante"}\n\nAccede al panel de administración para gestionar.`
     });
 
     // Si tiene referido, procesar el programa de referidos
