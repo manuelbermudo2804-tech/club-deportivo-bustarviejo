@@ -1187,25 +1187,6 @@ export default function SeasonManagement() {
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label>Cuota Única (€)</Label>
-                <Input
-                  type="number"
-                  value={resetConfig.cuotaUnica}
-                  onChange={(e) => setResetConfig(prev => ({ ...prev, cuotaUnica: Number(e.target.value) }))}
-                />
-              </div>
-              <div>
-                <Label>Cuota Fraccionada (€)</Label>
-                <Input
-                  type="number"
-                  value={resetConfig.cuotaTresMeses}
-                  onChange={(e) => setResetConfig(prev => ({ ...prev, cuotaTresMeses: Number(e.target.value) }))}
-                />
-              </div>
-            </div>
-
             <div className="space-y-4">
               <p className="font-medium text-sm">Selecciona qué datos eliminar:</p>
 
