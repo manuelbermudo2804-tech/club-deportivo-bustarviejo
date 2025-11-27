@@ -1094,6 +1094,15 @@ export default function Layout({ children, currentPageName }) {
     base44.auth.logout();
   };
 
+  // Si es página pública y no hay usuario, mostrar solo el contenido sin layout
+  if (isPublicPage && !user) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
+        {children}
+      </div>
+    );
+  }
+
   if (!showWelcome) {
         return <WelcomeScreen onComplete={() => {
           sessionStorage.setItem('welcomeShown', 'true');
