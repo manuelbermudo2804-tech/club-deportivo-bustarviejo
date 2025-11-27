@@ -516,6 +516,22 @@ export default function ClubMembership() {
         </Card>
       ) : null}
 
+      {/* Botón para hacerse socio - PRIMERO para que sea lo más visible */}
+      {!showForm && !isRenewal && (
+        <div className="space-y-4">
+          <Button 
+            onClick={() => setShowForm(true)} 
+            className="w-full bg-gradient-to-r from-orange-600 to-green-600 hover:from-orange-700 hover:to-green-700 text-white font-bold py-8 text-xl rounded-2xl shadow-xl hover:shadow-2xl transition-all hover:scale-105"
+          >
+            <UserPlus className="w-6 h-6 mr-3" />
+            ¡Quiero ser socio! 🎉
+          </Button>
+          <p className="text-center text-slate-500 text-sm">
+            Puedes inscribir a cualquier persona: tú mismo, tu pareja, abuelos, tíos, amigos...
+          </p>
+        </div>
+      )}
+
       {/* Programa Trae un Socio Amigo - Solo visible para padres con hijos en el club */}
       {!isExternalUser && (
         <ReferralProgramCard 
@@ -591,23 +607,8 @@ export default function ClubMembership() {
         </Card>
       )}
 
-
-
-      {/* Botón para hacerse socio o formulario */}
-      {!showForm && !isRenewal ? (
-        <div className="space-y-4">
-          <Button 
-            onClick={() => setShowForm(true)} 
-            className="w-full bg-gradient-to-r from-orange-600 to-green-600 hover:from-orange-700 hover:to-green-700 text-white font-bold py-8 text-xl rounded-2xl shadow-xl hover:shadow-2xl transition-all hover:scale-105"
-          >
-            <UserPlus className="w-6 h-6 mr-3" />
-            ¡Quiero ser socio! 🎉
-          </Button>
-          <p className="text-center text-slate-500 text-sm">
-            Puedes inscribir a cualquier persona: tú mismo, tu pareja, abuelos, tíos, amigos...
-          </p>
-        </div>
-      ) : (
+      {/* Formulario de inscripción */}
+      {(showForm || isRenewal) ? (
         <Card className="border-none shadow-xl">
             <CardHeader className={`${isRenewal ? 'bg-gradient-to-r from-green-600 to-green-700' : 'bg-gradient-to-r from-orange-600 to-green-600'} text-white rounded-t-xl`}>
               <CardTitle className="flex items-center gap-2">
@@ -879,10 +880,10 @@ export default function ClubMembership() {
               </div>
             </form>
           </CardContent>
-        </Card>
-      )}
+          </Card>
+          ) : null}
 
-      {/* Historial de membresías */}
+          {/* Historial de membresías */}
       {myMemberships.length > 0 && (
         <Card className="border-none shadow-lg">
           <CardHeader>
