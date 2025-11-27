@@ -526,9 +526,10 @@ Email: cdbustarviejo@gmail.com
                             // Lógica para mostrar botón "Pagar" solo si la cuota anterior está pagada
                             const ordenMeses = ["Junio", "Septiembre", "Diciembre"];
                             const mesIndex = ordenMeses.indexOf(payment.mes);
-                            const cuotaAnteriorPagada = mesIndex === 0 || 
-                              displayPayments.find(p => p.mes === ordenMeses[mesIndex - 1])?.estado === "Pagado";
-                            const mostrarBotonPagar = payment.estado === "Pendiente" && !payment.isVirtual && cuotaAnteriorPagada;
+                            const cuotaAnterior = mesIndex > 0 ? displayPayments.find(p => p.mes === ordenMeses[mesIndex - 1]) : null;
+                            const cuotaAnteriorPagada = mesIndex === 0 || cuotaAnterior?.estado === "Pagado";
+                            // Mostrar botón si: está pendiente Y (es la primera cuota O la anterior está pagada)
+                            const mostrarBotonPagar = payment.estado === "Pendiente" && cuotaAnteriorPagada;
 
                             return (
                             <div key={payment.id} className={`border-l-4 p-3 rounded ${
@@ -543,7 +544,7 @@ Email: cdbustarviejo@gmail.com
                                     <span className="text-2xl">{statusEmojis[payment.estado]}</span>
                                     <span className="text-lg font-bold">{payment.cantidad}€</span>
                                   </div>
-                                  <p className="text-xs text-slate-600">{payment.estado}</p>
+                                  <p className="text-xs text-slate-600">{payment.estado}{payment.isVirtual ? " (sin registrar)" : ""}</p>
                                 </div>
                                 <div className="flex items-center gap-2">
                                   {mostrarBotonPagar && (
