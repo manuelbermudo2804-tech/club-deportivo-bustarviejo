@@ -16,7 +16,8 @@ import {
   Users, Gift, Shirt, Ticket, Hotel, Trophy, Search, 
   CheckCircle2, Clock, Crown, Star, Sparkles, Download,
   Eye, Award, PartyPopper, Dices, Play, History, Package,
-  Plus, HelpCircle, Info, UserPlus, AlertCircle
+  Plus, HelpCircle, Info, UserPlus, AlertCircle, UserCheck,
+  MessageCircle, Send, RefreshCw, ExternalLink, Copy, Check
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -37,6 +38,310 @@ const getTierForCount = (count) => {
   return null;
 };
 
+// Generar código único para renovación
+const generateRenewalCode = (memberId) => {
+  let hash = 0;
+  const str = memberId + "renewal";
+  for (let i = 0; i < str.length; i++) {
+    const char = str.charCodeAt(i);
+    hash = ((hash << 5) - hash) + char;
+    hash = hash & hash;
+  }
+  return Math.abs(hash).toString(36).toUpperCase().slice(0, 8);
+};
+
+// Componente para la pestaña de Socios Externos
+function ExternalMembersTab({ clubMembers, players, seasonConfig, searchTerm, setSearchTerm, filter, setFilter, copiedId, setCopiedId, queryClient }) {
+  // Obtener emails de padres con jugadores activos
+  const parentEmails = new Set();
+  players.forEach(p => {
+    if (p.email_padre) parentEmails.add(p.email_padre.toLowerCase());
+    if (p.email_tutor_2) parentEmails.add(p.email_tutor_2.toLowerCase());
+  });
+
+  // Socios externos = socios cuyo email NO está en la lista de padres
+  const currentSeason = seasonConfig?.temporada;
+  const externalMembers = clubMembers.filter(m => {
+    const isExternal = !parentEmails.has(m.email?.toLowerCase());
+    const isCurrentSeason = m.temporada === currentSeason;
+    return isExternal && isCurrentSeason;
+  });
+
+  // Filtrar por búsqueda y estado
+  const filteredMembers = externalMembers.filter(m => {
+    const matchesSearch = 
+      m.nombre_completo?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      m.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      m.telefono?.includes(searchTerm);
+    const matchesFilter = filter === "all" || m.estado_pago === filter;
+    return matchesSearch && matchesFilter;
+  });
+
+  // Estadísticas
+  const totalExternal = externalMembers.length;
+  const pagados = externalMembers.filter(m => m.estado_pago === "Pagado").length;
+  const pendientes = externalMembers.filter(m => m.estado_pago === "Pendiente").length;
+  const enRevision = externalMembers.filter(m => m.estado_pago === "En revisión").length;
+
+  // Generar mensaje de WhatsApp para renovación
+  const generateWhatsAppRenewalLink = (member) => {
+    const baseUrl = window.location.origin;
+    const renewalCode = generateRenewalCode(member.id);
+    const renewalLink = `${baseUrl}/ClubMembership?renew=${renewalCode}`;
+    
+    const message = `¡Hola ${member.nombre_completo}! 👋
+
+Es hora de renovar tu membresía de socio del CD Bustarviejo para la temporada ${getNextSeason()}.
+
+Renueva aquí en 2 minutos (tus datos ya están guardados):
+👉 ${renewalLink}
+
+¡Gracias por tu apoyo al club! ⚽🏀💪`;
+
+    return `https://wa.me/${member.telefono?.replace(/\D/g, '')}?text=${encodeURIComponent(message)}`;
+  };
+
+  const getNextSeason = () => {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = now.getMonth() + 1;
+    if (month >= 6) {
+      return `${year}/${year + 1}`;
+    }
+    return `${year}/${year + 1}`;
+  };
+
+  const copyRenewalLink = (member) => {
+    const baseUrl = window.location.origin;
+    const renewalCode = generateRenewalCode(member.id);
+    const renewalLink = `${baseUrl}/ClubMembership?renew=${renewalCode}`;
+    navigator.clipboard.writeText(renewalLink);
+    setCopiedId(member.id);
+    toast.success("Enlace copiado");
+    setTimeout(() => setCopiedId(null), 3000);
+  };
+
+  // Exportar socios externos a CSV
+  const exportExternalMembers = () => {
+    const data = filteredMembers.map(m => ({
+      nombre: m.nombre_completo,
+      email: m.email,
+      telefono: m.telefono,
+      municipio: m.municipio,
+      estado_pago: m.estado_pago,
+      temporada: m.temporada,
+      referido_por: m.referido_por || ""
+    }));
+
+    const csv = [
+      ["Nombre", "Email", "Teléfono", "Municipio", "Estado Pago", "Temporada", "Referido Por"],
+      ...data.map(d => [d.nombre, d.email, d.telefono, d.municipio, d.estado_pago, d.temporada, d.referido_por])
+    ].map(row => row.join(",")).join("\n");
+
+    const blob = new Blob([csv], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `socios_externos_${new Date().toISOString().split('T')[0]}.csv`;
+    a.click();
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* Estadísticas */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <Card className="bg-gradient-to-br from-blue-500 to-blue-600 text-white">
+          <CardContent className="p-4 text-center">
+            <UserCheck className="w-8 h-8 mx-auto mb-2 opacity-80" />
+            <p className="text-3xl font-bold">{totalExternal}</p>
+            <p className="text-sm opacity-80">Socios Externos</p>
+          </CardContent>
+        </Card>
+        <Card className="bg-gradient-to-br from-green-500 to-green-600 text-white">
+          <CardContent className="p-4 text-center">
+            <CheckCircle2 className="w-8 h-8 mx-auto mb-2 opacity-80" />
+            <p className="text-3xl font-bold">{pagados}</p>
+            <p className="text-sm opacity-80">Pagados</p>
+          </CardContent>
+        </Card>
+        <Card className="bg-gradient-to-br from-yellow-500 to-yellow-600 text-white">
+          <CardContent className="p-4 text-center">
+            <Clock className="w-8 h-8 mx-auto mb-2 opacity-80" />
+            <p className="text-3xl font-bold">{enRevision}</p>
+            <p className="text-sm opacity-80">En Revisión</p>
+          </CardContent>
+        </Card>
+        <Card className="bg-gradient-to-br from-red-500 to-red-600 text-white">
+          <CardContent className="p-4 text-center">
+            <AlertCircle className="w-8 h-8 mx-auto mb-2 opacity-80" />
+            <p className="text-3xl font-bold">{pendientes}</p>
+            <p className="text-sm opacity-80">Pendientes</p>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Info */}
+      <Alert className="bg-blue-50 border-blue-200">
+        <Info className="w-4 h-4 text-blue-600" />
+        <AlertDescription className="text-blue-800">
+          <strong>Socios Externos:</strong> Son personas que se han hecho socios del club pero no tienen hijos inscritos como jugadores. 
+          Pueden ser familiares, amigos, o simpatizantes del club de cualquier parte del mundo.
+        </AlertDescription>
+      </Alert>
+
+      {/* Lista de socios externos */}
+      <Card>
+        <CardHeader>
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <CardTitle className="flex items-center gap-2">
+              <UserCheck className="w-5 h-5 text-blue-600" />
+              Socios Externos ({filteredMembers.length})
+            </CardTitle>
+            <div className="flex flex-col sm:flex-row gap-2">
+              <div className="relative w-full sm:w-64">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                <Input
+                  placeholder="Buscar por nombre, email..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10"
+                />
+              </div>
+              <Select value={filter} onValueChange={setFilter}>
+                <SelectTrigger className="w-full sm:w-40">
+                  <SelectValue placeholder="Estado" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos</SelectItem>
+                  <SelectItem value="Pagado">Pagados</SelectItem>
+                  <SelectItem value="En revisión">En revisión</SelectItem>
+                  <SelectItem value="Pendiente">Pendientes</SelectItem>
+                </SelectContent>
+              </Select>
+              <Button onClick={exportExternalMembers} variant="outline" className="gap-2">
+                <Download className="w-4 h-4" />
+                CSV
+              </Button>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent>
+          {filteredMembers.length === 0 ? (
+            <div className="text-center py-12 text-slate-500">
+              <UserCheck className="w-16 h-16 mx-auto mb-4 opacity-30" />
+              <p className="text-lg">No hay socios externos</p>
+              <p className="text-sm">Los socios sin hijos en el club aparecerán aquí</p>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Socio</TableHead>
+                    <TableHead>Contacto</TableHead>
+                    <TableHead>Municipio</TableHead>
+                    <TableHead className="text-center">Estado</TableHead>
+                    <TableHead>Referido Por</TableHead>
+                    <TableHead className="text-center">Renovación WhatsApp</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {filteredMembers.map((member) => (
+                    <TableRow key={member.id}>
+                      <TableCell>
+                        <div>
+                          <p className="font-semibold text-slate-900">{member.nombre_completo}</p>
+                          <p className="text-xs text-slate-500">DNI: {member.dni}</p>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="text-sm">
+                          <p>{member.email}</p>
+                          <p className="text-slate-500">{member.telefono}</p>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <span className="text-sm text-slate-600">{member.municipio}</span>
+                      </TableCell>
+                      <TableCell className="text-center">
+                        <Badge className={
+                          member.estado_pago === "Pagado" ? "bg-green-600" :
+                          member.estado_pago === "En revisión" ? "bg-yellow-600" : "bg-red-600"
+                        }>
+                          {member.estado_pago === "Pagado" ? "✅" : member.estado_pago === "En revisión" ? "⏳" : "⚠️"} {member.estado_pago}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        {member.referido_por ? (
+                          <Badge variant="outline" className="text-purple-700 border-purple-300">
+                            <Gift className="w-3 h-3 mr-1" />
+                            {member.referido_por}
+                          </Badge>
+                        ) : (
+                          <span className="text-slate-400 text-sm">-</span>
+                        )}
+                      </TableCell>
+                      <TableCell className="text-center">
+                        <div className="flex items-center justify-center gap-1">
+                          <a 
+                            href={generateWhatsAppRenewalLink(member)} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                          >
+                            <Button size="sm" className="bg-green-600 hover:bg-green-700 gap-1">
+                              <MessageCircle className="w-4 h-4" />
+                              <span className="hidden sm:inline">WhatsApp</span>
+                            </Button>
+                          </a>
+                          <Button 
+                            size="sm" 
+                            variant="outline"
+                            onClick={() => copyRenewalLink(member)}
+                          >
+                            {copiedId === member.id ? (
+                              <Check className="w-4 h-4 text-green-600" />
+                            ) : (
+                              <Copy className="w-4 h-4" />
+                            )}
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Envío masivo */}
+      {filteredMembers.length > 0 && (
+        <Card className="bg-gradient-to-r from-green-50 to-green-100 border-2 border-green-300">
+          <CardContent className="pt-6">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 rounded-xl bg-green-600 flex items-center justify-center">
+                  <Send className="w-6 h-6 text-white" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-green-900">Envío de Recordatorios</h3>
+                  <p className="text-sm text-green-700">
+                    WhatsApp no permite envíos masivos automáticos. Usa los botones individuales para enviar a cada socio.
+                  </p>
+                </div>
+              </div>
+              <Badge className="bg-green-600 text-lg px-4 py-2">
+                {filteredMembers.length} socios
+              </Badge>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+    </div>
+  );
+}
+
 export default function ReferralManagement() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedUser, setSelectedUser] = useState(null);
@@ -48,6 +353,9 @@ export default function ReferralManagement() {
   const [winner, setWinner] = useState(null);
   const [activeTab, setActiveTab] = useState("ranking");
   const [newReferral, setNewReferral] = useState({ referrer_email: "", referred_name: "" });
+  const [externalSearchTerm, setExternalSearchTerm] = useState("");
+  const [externalFilter, setExternalFilter] = useState("all");
+  const [copiedId, setCopiedId] = useState(null);
   const queryClient = useQueryClient();
 
   // Fetch data
@@ -72,6 +380,16 @@ export default function ReferralManagement() {
   const { data: raffleDraws = [] } = useQuery({
     queryKey: ['raffleDraws'],
     queryFn: () => base44.entities.RaffleDraw.list(),
+  });
+
+  const { data: clubMembers = [] } = useQuery({
+    queryKey: ['clubMembers'],
+    queryFn: () => base44.entities.ClubMember.list(),
+  });
+
+  const { data: players = [] } = useQuery({
+    queryKey: ['players'],
+    queryFn: () => base44.entities.Player.list(),
   });
 
   // Mutation para crear sorteo
@@ -332,10 +650,14 @@ export default function ReferralManagement() {
 
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="ranking" className="gap-2">
             <Trophy className="w-4 h-4" />
             Ranking
+          </TabsTrigger>
+          <TabsTrigger value="externos" className="gap-2">
+            <UserCheck className="w-4 h-4" />
+            Socios Externos
           </TabsTrigger>
           <TabsTrigger value="sorteo" className="gap-2">
             <Dices className="w-4 h-4" />
@@ -489,6 +811,22 @@ export default function ReferralManagement() {
         </CardContent>
       </Card>
 
+        </TabsContent>
+
+        {/* TAB SOCIOS EXTERNOS */}
+        <TabsContent value="externos" className="space-y-6 mt-6">
+          <ExternalMembersTab 
+            clubMembers={clubMembers}
+            players={players}
+            seasonConfig={seasonConfig}
+            searchTerm={externalSearchTerm}
+            setSearchTerm={setExternalSearchTerm}
+            filter={externalFilter}
+            setFilter={setExternalFilter}
+            copiedId={copiedId}
+            setCopiedId={setCopiedId}
+            queryClient={queryClient}
+          />
         </TabsContent>
 
         {/* TAB SORTEO */}
