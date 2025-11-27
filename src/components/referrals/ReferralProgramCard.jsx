@@ -61,7 +61,7 @@ export default function ReferralProgramCard({ seasonConfig, userReferrals = 0, u
         if (hasPlayersInClub !== true) return null;
 
         // Generar código de referido único (basado en el ID del usuario, no el email)
-        const baseUrl = window.location.origin;
+        const LANDING_PAGE_URL = 'https://manuelbermudo2804-tech.github.io/-club-landing-page-Bustarviejo/';
         // Usar un hash simple del email para generar un código corto y único
         const generateReferralCode = (email) => {
           let hash = 0;
@@ -73,7 +73,7 @@ export default function ReferralProgramCard({ seasonConfig, userReferrals = 0, u
           return Math.abs(hash).toString(36).toUpperCase().slice(0, 8);
         };
         const referralCode = generateReferralCode(userEmail);
-        const referralLink = `${baseUrl}/ClubMembership?ref=${referralCode}`;
+        const referralLink = `${LANDING_PAGE_URL}?ref=${referralCode}`;
 
         // Mensaje predefinido para WhatsApp
         const whatsappMessage = `¡Hola! 👋 Te invito a hacerte socio del CD Bustarviejo ⚽🏀
