@@ -147,10 +147,14 @@ export default function ClubMembership() {
         if (isAuthenticated) {
           const currentUser = await base44.auth.me();
           setUser(currentUser);
+        } else {
+          setUser(null);
         }
       } catch (error) {
         // Usuario no autenticado - permitir acceso a la página
         setUser(null);
+      } finally {
+        setIsCheckingAuth(false);
       }
     };
     fetchUser();
