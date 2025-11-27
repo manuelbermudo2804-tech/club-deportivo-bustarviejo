@@ -52,8 +52,8 @@ export default function ParentLottery() {
       const configs = await base44.entities.SeasonConfig.list();
       return configs.find(c => c.activa === true);
     },
-    staleTime: Infinity,
-    refetchOnWindowFocus: false,
+    staleTime: 5000,
+    refetchOnWindowFocus: true,
   });
 
   const loteriaAbierta = seasonConfig?.loteria_navidad_abierta === true;
