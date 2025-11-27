@@ -16,8 +16,6 @@ const DEFAULT_PRIZES = [
   { nombre: "Vale de compra", descripcion: "Vale en tiendas locales", emoji: "🛍️" }
 ];
 
-import React, { useState, useEffect } from "react";
-
 export default function ReferralConfigCard({ seasonConfig, onUpdate, isUpdating }) {
   const [expanded, setExpanded] = useState(false);
   
