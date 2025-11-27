@@ -141,8 +141,16 @@ export default function ClubMembership() {
 
   useEffect(() => {
     const fetchUser = async () => {
-      const currentUser = await base44.auth.me();
-      setUser(currentUser);
+      try {
+        const isAuthenticated = await base44.auth.isAuthenticated();
+        if (isAuthenticated) {
+          const currentUser = await base44.auth.me();
+          setUser(currentUser);
+        }
+      } catch (error) {
+        // Usuario no autenticado - permitir acceso a la página
+        setUser(null);
+      }
     };
     fetchUser();
   }, []);
@@ -167,6 +175,9 @@ export default function ClubMembership() {
     },
     enabled: !!user?.email,
   });
+
+  // Determinar si es un usuario externo (sin autenticación o sin hijos en el club)
+  const isExternalUser = !user || myPlayers.length === 0;
 
   const { data: seasonConfig } = useQuery({
     queryKey: ['seasonConfig'],
@@ -506,44 +517,48 @@ export default function ClubMembership() {
       ) : null}
 
       {/* Programa Trae un Socio Amigo - Solo visible para padres con hijos en el club */}
-      <ReferralProgramCard 
-        seasonConfig={seasonConfig}
-        userReferrals={user?.referrals_count || 0}
-        userCredit={user?.clothing_credit_balance || 0}
-        userRaffleEntries={user?.raffle_entries_total || 0}
-        userEmail={user?.email || ""}
-        userName={user?.full_name || ""}
-        hasPlayersInClub={myPlayers.length > 0}
-      />
+      {!isExternalUser && (
+        <ReferralProgramCard 
+          seasonConfig={seasonConfig}
+          userReferrals={user?.referrals_count || 0}
+          userCredit={user?.clothing_credit_balance || 0}
+          userRaffleEntries={user?.raffle_entries_total || 0}
+          userEmail={user?.email || ""}
+          userName={user?.full_name || ""}
+          hasPlayersInClub={myPlayers.length > 0}
+        />
+      )}
 
-      {/* Invitar familiares y amigos */}
-      <Card className="border-none shadow-xl bg-gradient-to-r from-purple-500 via-pink-500 to-orange-500 text-white overflow-hidden">
-        <div className="absolute top-0 right-0 w-40 h-40 bg-white/10 rounded-full -mr-20 -mt-20"></div>
-        <CardContent className="pt-6 relative">
-          <div className="flex items-start gap-4">
-            <div className="w-16 h-16 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center flex-shrink-0">
-              <UserPlus className="w-8 h-8 text-white" />
-            </div>
-            <div className="flex-1">
-              <h3 className="font-bold text-2xl mb-2">
-                ¡Invita a familiares y amigos! 👨‍👩‍👧‍👦
-              </h3>
-              <p className="text-white/90 text-sm mb-4">
-                ¿Abuelos, tíos, padrinos, amigos de la familia? ¡Todos pueden ser socios y apoyar a nuestros deportistas! 
-                Cada nuevo socio es un granito de arena que ayuda a que el club siga creciendo.
-              </p>
-              <div className="bg-white/20 backdrop-blur-sm rounded-xl p-4">
-                <p className="text-white font-semibold text-center">
-                  Solo <span className="text-3xl font-bold">{CUOTA_SOCIO}€</span> /temporada
+      {/* Invitar familiares y amigos - Solo para usuarios con hijos */}
+      {!isExternalUser && (
+        <Card className="border-none shadow-xl bg-gradient-to-r from-purple-500 via-pink-500 to-orange-500 text-white overflow-hidden">
+          <div className="absolute top-0 right-0 w-40 h-40 bg-white/10 rounded-full -mr-20 -mt-20"></div>
+          <CardContent className="pt-6 relative">
+            <div className="flex items-start gap-4">
+              <div className="w-16 h-16 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center flex-shrink-0">
+                <UserPlus className="w-8 h-8 text-white" />
+              </div>
+              <div className="flex-1">
+                <h3 className="font-bold text-2xl mb-2">
+                  ¡Invita a familiares y amigos! 👨‍👩‍👧‍👦
+                </h3>
+                <p className="text-white/90 text-sm mb-4">
+                  ¿Abuelos, tíos, padrinos, amigos de la familia? ¡Todos pueden ser socios y apoyar a nuestros deportistas! 
+                  Cada nuevo socio es un granito de arena que ayuda a que el club siga creciendo.
                 </p>
-                <p className="text-white/80 text-xs text-center mt-1">
-                  ¡Un pequeño gesto con un gran impacto! 💪
-                </p>
+                <div className="bg-white/20 backdrop-blur-sm rounded-xl p-4">
+                  <p className="text-white font-semibold text-center">
+                    Solo <span className="text-3xl font-bold">{CUOTA_SOCIO}€</span> /temporada
+                  </p>
+                  <p className="text-white/80 text-xs text-center mt-1">
+                    ¡Un pequeño gesto con un gran impacto! 💪
+                  </p>
+                </div>
               </div>
             </div>
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      )}
 
 
 
