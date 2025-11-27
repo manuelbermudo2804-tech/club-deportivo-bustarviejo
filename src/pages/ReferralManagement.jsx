@@ -9,10 +9,14 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { 
   Users, Gift, Shirt, Ticket, Hotel, Trophy, Search, 
   CheckCircle2, Clock, Crown, Star, Sparkles, Download,
-  Eye, Award, PartyPopper, Dices, Play, History, Package
+  Eye, Award, PartyPopper, Dices, Play, History, Package,
+  Plus, HelpCircle, Info, UserPlus, AlertCircle
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -38,10 +42,12 @@ export default function ReferralManagement() {
   const [selectedUser, setSelectedUser] = useState(null);
   const [showDetailsDialog, setShowDetailsDialog] = useState(false);
   const [showRaffleDialog, setShowRaffleDialog] = useState(false);
+  const [showAddReferralDialog, setShowAddReferralDialog] = useState(false);
   const [selectedPrize, setSelectedPrize] = useState(null);
   const [isDrawing, setIsDrawing] = useState(false);
   const [winner, setWinner] = useState(null);
   const [activeTab, setActiveTab] = useState("ranking");
+  const [newReferral, setNewReferral] = useState({ referrer_email: "", referred_name: "" });
   const queryClient = useQueryClient();
 
   // Fetch data
@@ -83,6 +89,63 @@ export default function ReferralManagement() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['raffleDraws'] });
       toast.success("Premio marcado como entregado");
+    }
+  });
+
+  // Mutation para añadir referido manualmente
+  const addReferralMutation = useMutation({
+    mutationFn: async ({ referrerEmail, referredName }) => {
+      const referrer = users.find(u => u.email === referrerEmail);
+      if (!referrer) throw new Error("Usuario no encontrado");
+
+      // Crear registro de referido
+      await base44.entities.ReferralReward.create({
+        referrer_email: referrer.email,
+        referrer_name: referrer.full_name,
+        referred_member_id: `manual_${Date.now()}`,
+        referred_member_name: referredName,
+        temporada: seasonConfig?.temporada,
+        clothing_credit_earned: seasonConfig?.referidos_premio_1 || 5
+      });
+
+      // Calcular nuevos valores
+      const newCount = (referrer.referrals_count || 0) + 1;
+      let newCredit = (referrer.clothing_credit_balance || 0) + (seasonConfig?.referidos_premio_1 || 5);
+      let newRaffles = referrer.raffle_entries_total || 0;
+
+      // Bonificaciones por niveles
+      if (newCount === 3) {
+        newCredit += (seasonConfig?.referidos_premio_3 || 15) - (seasonConfig?.referidos_premio_1 || 5);
+        newRaffles += seasonConfig?.referidos_sorteo_3 || 1;
+      } else if (newCount === 5) {
+        newCredit += (seasonConfig?.referidos_premio_5 || 25) - (seasonConfig?.referidos_premio_3 || 15);
+        newRaffles += (seasonConfig?.referidos_sorteo_5 || 3) - (seasonConfig?.referidos_sorteo_3 || 1);
+      } else if (newCount === 10) {
+        newCredit += (seasonConfig?.referidos_premio_10 || 50) - (seasonConfig?.referidos_premio_5 || 25);
+        newRaffles += (seasonConfig?.referidos_sorteo_10 || 5) - (seasonConfig?.referidos_sorteo_5 || 3);
+      } else if (newCount === 15) {
+        newCredit += (seasonConfig?.referidos_premio_15 || 50) - (seasonConfig?.referidos_premio_10 || 50);
+        newRaffles += (seasonConfig?.referidos_sorteo_15 || 10) - (seasonConfig?.referidos_sorteo_10 || 5);
+      }
+
+      // Actualizar usuario
+      await base44.entities.User.update(referrer.id, {
+        referrals_count: newCount,
+        clothing_credit_balance: newCredit,
+        raffle_entries_total: newRaffles
+      });
+
+      return { referrer, newCount };
+    },
+    onSuccess: ({ referrer, newCount }) => {
+      queryClient.invalidateQueries({ queryKey: ['allUsers'] });
+      queryClient.invalidateQueries({ queryKey: ['referralRewards'] });
+      toast.success(`🎉 ¡Referido añadido! ${referrer.full_name} ahora tiene ${newCount} referidos`);
+      setShowAddReferralDialog(false);
+      setNewReferral({ referrer_email: "", referred_name: "" });
+    },
+    onError: (error) => {
+      toast.error("Error: " + error.message);
     }
   });
 
@@ -209,11 +272,63 @@ export default function ReferralManagement() {
           </h1>
           <p className="text-slate-600">Controla premios y participaciones del programa de referidos</p>
         </div>
-        <Button onClick={exportData} variant="outline" className="gap-2">
-          <Download className="w-4 h-4" />
-          Exportar CSV
-        </Button>
+        <div className="flex gap-2">
+          <Button onClick={() => setShowAddReferralDialog(true)} className="bg-purple-600 hover:bg-purple-700 gap-2">
+            <UserPlus className="w-4 h-4" />
+            Añadir Referido
+          </Button>
+          <Button onClick={exportData} variant="outline" className="gap-2">
+            <Download className="w-4 h-4" />
+            Exportar CSV
+          </Button>
+        </div>
       </div>
+
+      {/* Explicación del programa */}
+      <Card className="bg-gradient-to-r from-purple-50 via-pink-50 to-orange-50 border-2 border-purple-200">
+        <CardContent className="pt-6">
+          <div className="flex items-start gap-4">
+            <div className="w-12 h-12 rounded-xl bg-purple-100 flex items-center justify-center flex-shrink-0">
+              <HelpCircle className="w-6 h-6 text-purple-600" />
+            </div>
+            <div className="space-y-3">
+              <h3 className="font-bold text-purple-900 text-lg">¿Cómo funciona el Programa de Referidos?</h3>
+              <div className="grid md:grid-cols-2 gap-4 text-sm">
+                <div className="space-y-2">
+                  <p className="flex items-start gap-2 text-slate-700">
+                    <span className="text-lg">1️⃣</span>
+                    <span>Un socio <strong>invita a alguien</strong> a hacerse socio del club</span>
+                  </p>
+                  <p className="flex items-start gap-2 text-slate-700">
+                    <span className="text-lg">2️⃣</span>
+                    <span>Al registrarse en <strong>"Hacerse Socio"</strong>, el nuevo socio indica el nombre de quien le invitó</span>
+                  </p>
+                  <p className="flex items-start gap-2 text-slate-700">
+                    <span className="text-lg">3️⃣</span>
+                    <span>El sistema <strong>suma automáticamente</strong> crédito en ropa y participaciones en sorteos</span>
+                  </p>
+                </div>
+                <div className="bg-white rounded-xl p-3 border border-purple-200">
+                  <p className="font-semibold text-purple-800 mb-2">📊 Premios por nivel:</p>
+                  <div className="space-y-1 text-xs">
+                    <p>🎁 <strong>1 socio:</strong> 5€ en ropa</p>
+                    <p>⭐ <strong>3 socios:</strong> 15€ + 1 participación sorteo</p>
+                    <p>🏆 <strong>5 socios:</strong> 25€ + 3 participaciones</p>
+                    <p>👑 <strong>10 socios:</strong> 50€ + 5 participaciones</p>
+                    <p>🏨 <strong>15 socios:</strong> 50€ + 10 participaciones + HOTEL</p>
+                  </div>
+                </div>
+              </div>
+              <Alert className="bg-blue-50 border-blue-200">
+                <Info className="w-4 h-4 text-blue-600" />
+                <AlertDescription className="text-blue-800 text-sm">
+                  <strong>¿Dónde lo ve el usuario?</strong> En su panel de "Hacerse Socio" aparece una tarjeta con su progreso, crédito acumulado y participaciones en sorteos.
+                </AlertDescription>
+              </Alert>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
@@ -598,6 +713,79 @@ export default function ReferralManagement() {
               disabled={isDrawing}
             >
               {isDrawing ? "Sorteando..." : "Cerrar"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog para añadir referido manualmente */}
+      <Dialog open={showAddReferralDialog} onOpenChange={setShowAddReferralDialog}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <UserPlus className="w-5 h-5 text-purple-600" />
+              Añadir Referido Manualmente
+            </DialogTitle>
+          </DialogHeader>
+          
+          <div className="space-y-4 py-4">
+            <Alert className="bg-amber-50 border-amber-200">
+              <AlertCircle className="w-4 h-4 text-amber-600" />
+              <AlertDescription className="text-amber-800 text-sm">
+                Usa esto para añadir referidos que no se registraron indicando el nombre del referente, o para corregir errores.
+              </AlertDescription>
+            </Alert>
+
+            <div className="space-y-2">
+              <Label>¿Quién refirió? (el que gana el premio)</Label>
+              <Select 
+                value={newReferral.referrer_email} 
+                onValueChange={(v) => setNewReferral(prev => ({ ...prev, referrer_email: v }))}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecciona un usuario..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {users.filter(u => u.role !== 'admin').map(u => (
+                    <SelectItem key={u.id} value={u.email}>
+                      {u.full_name} ({u.email})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Nombre del nuevo socio referido</Label>
+              <Input
+                value={newReferral.referred_name}
+                onChange={(e) => setNewReferral(prev => ({ ...prev, referred_name: e.target.value }))}
+                placeholder="Ej: María García López"
+              />
+            </div>
+
+            {newReferral.referrer_email && (
+              <div className="bg-green-50 rounded-xl p-3 border border-green-200">
+                <p className="text-sm text-green-800">
+                  <strong>Premio que recibirá:</strong> +{seasonConfig?.referidos_premio_1 || 5}€ en crédito de ropa
+                </p>
+              </div>
+            )}
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowAddReferralDialog(false)}>
+              Cancelar
+            </Button>
+            <Button 
+              onClick={() => addReferralMutation.mutate({
+                referrerEmail: newReferral.referrer_email,
+                referredName: newReferral.referred_name
+              })}
+              disabled={!newReferral.referrer_email || !newReferral.referred_name || addReferralMutation.isPending}
+              className="bg-purple-600 hover:bg-purple-700"
+            >
+              {addReferralMutation.isPending ? "Añadiendo..." : "Añadir Referido"}
             </Button>
           </DialogFooter>
         </DialogContent>
