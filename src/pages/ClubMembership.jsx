@@ -40,6 +40,7 @@ export default function ClubMembership() {
   const [renewalMember, setRenewalMember] = useState(null);
   const [loadingRenewal, setLoadingRenewal] = useState(false);
   const [isCheckingAuth, setIsCheckingAuth] = useState(true);
+  const [isPublicAccess, setIsPublicAccess] = useState(false); // Nuevo: si es acceso público sin login
 
   const queryClient = useQueryClient();
 
