@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
-import { Gift, Users, Shirt, Ticket, Hotel, Save, ChevronDown, ChevronUp, Sparkles, Trophy, Plus, Trash2, UtensilsCrossed, Gamepad2, ShoppingBag, Star } from "lucide-react";
+import { Gift, Users, Shirt, Ticket, Hotel, Save, ChevronDown, ChevronUp, Sparkles, Trophy, Plus, Trash2, UtensilsCrossed, Gamepad2, ShoppingBag, Star, MessageCircle } from "lucide-react";
 
 const DEFAULT_PRIZES = [
   { nombre: "Cena para dos", descripcion: "Cena en restaurante local", emoji: "🍽️" },
