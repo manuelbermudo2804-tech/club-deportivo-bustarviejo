@@ -646,6 +646,11 @@ export default function Layout({ children, currentPageName }) {
           }
           } catch (error) {
           console.error("Error fetching user:", error);
+          // Si es página pública y hay error, permitir acceso anónimo
+          if (isPublicPage) {
+            setUser(null);
+            setAuthChecked(true);
+          }
           }
           };
           fetchUser();
