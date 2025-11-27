@@ -16,8 +16,9 @@ import {
   Calendar, Settings, AlertTriangle, CheckCircle2, Clock, Download, Upload,
   RefreshCw, Trash2, Archive, Users, CreditCard, ShoppingBag, Bell, 
   Clover, Building2, FileText, Shield, Lock, Unlock, Eye, EyeOff,
-  ChevronDown, ChevronUp, Info, Smartphone, Mail, Image, Edit, Euro
+  ChevronDown, ChevronUp, Info, Smartphone, Mail, Image, Edit, Euro, Gift
 } from "lucide-react";
+import ReferralConfigCard from "../components/referrals/ReferralConfigCard";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { toast } from "sonner";
@@ -939,6 +940,15 @@ export default function SeasonManagement() {
           </CardContent>
         )}
       </Card>
+
+      {/* Sección: Programa de Referidos */}
+      {activeSeason && (
+        <ReferralConfigCard
+          seasonConfig={activeSeason}
+          onUpdate={(data) => updateSeasonMutation.mutate({ id: activeSeason.id, data })}
+          isUpdating={updateSeasonMutation.isPending}
+        />
+      )}
 
       {/* Sección: Backup y Restauración */}
       <Card>

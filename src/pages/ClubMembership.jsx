@@ -8,7 +8,8 @@ import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, Upload, AlertCircle, CheckCircle2, Users, CreditCard, Download, Heart, Star, PartyPopper, Sparkles, UserPlus, Trophy } from "lucide-react";
+import { Loader2, Upload, AlertCircle, CheckCircle2, Users, CreditCard, Download, Heart, Star, PartyPopper, Sparkles, UserPlus, Trophy, Gift } from "lucide-react";
+import ReferralProgramCard from "../components/referrals/ReferralProgramCard";
 import { CheckmarkAnimation } from "../components/animations/SuccessAnimation";
 import { toast } from "sonner";
 
@@ -28,7 +29,8 @@ export default function ClubMembership() {
     municipio: "",
     metodo_pago: "Transferencia",
     justificante_url: "",
-    es_segundo_progenitor: false
+    es_segundo_progenitor: false,
+    referido_por: ""
   });
   const [showSuccess, setShowSuccess] = useState(false);
   const [lastRegisteredName, setLastRegisteredName] = useState("");
@@ -83,12 +85,64 @@ export default function ClubMembership() {
         activo: true
       });
 
+      // Si tiene referido_por y el programa está activo, registrar la referencia
+      if (data.referido_por && seasonConfig?.programa_referidos_activo) {
+        try {
+          // Buscar usuario que refirió
+          const allUsers = await base44.entities.User.list();
+          const referrer = allUsers.find(u => 
+            u.full_name?.toLowerCase().includes(data.referido_por.toLowerCase()) ||
+            u.email?.toLowerCase() === data.referido_por.toLowerCase()
+          );
+          
+          if (referrer) {
+            // Registrar la referencia
+            await base44.entities.ReferralReward.create({
+              referrer_email: referrer.email,
+              referrer_name: referrer.full_name,
+              referred_member_id: membership.id,
+              referred_member_name: data.nombre_completo,
+              temporada: seasonConfig?.temporada,
+              clothing_credit_earned: seasonConfig.referidos_premio_1 || 5
+            });
+
+            // Actualizar contador del usuario
+            const newCount = (referrer.referrals_count || 0) + 1;
+            let newCredit = (referrer.clothing_credit_balance || 0) + (seasonConfig.referidos_premio_1 || 5);
+            let newRaffles = referrer.raffle_entries_total || 0;
+
+            // Calcular bonificaciones por niveles
+            if (newCount === 3) {
+              newCredit += (seasonConfig.referidos_premio_3 || 15) - (seasonConfig.referidos_premio_1 || 5);
+              newRaffles += seasonConfig.referidos_sorteo_3 || 1;
+            } else if (newCount === 5) {
+              newCredit += (seasonConfig.referidos_premio_5 || 25) - (seasonConfig.referidos_premio_3 || 15);
+              newRaffles += (seasonConfig.referidos_sorteo_5 || 3) - (seasonConfig.referidos_sorteo_3 || 1);
+            } else if (newCount === 10) {
+              newCredit += (seasonConfig.referidos_premio_10 || 50) - (seasonConfig.referidos_premio_5 || 25);
+              newRaffles += (seasonConfig.referidos_sorteo_10 || 5) - (seasonConfig.referidos_sorteo_5 || 3);
+            } else if (newCount === 15) {
+              newCredit += (seasonConfig.referidos_premio_15 || 50) - (seasonConfig.referidos_premio_10 || 50);
+              newRaffles += (seasonConfig.referidos_sorteo_15 || 10) - (seasonConfig.referidos_sorteo_10 || 5);
+            }
+
+            await base44.entities.User.update(referrer.id, {
+              referrals_count: newCount,
+              clothing_credit_balance: newCredit,
+              raffle_entries_total: newRaffles
+            });
+          }
+        } catch (error) {
+          console.error("Error processing referral:", error);
+        }
+      }
+
       // Notificar al admin (solo si notificaciones están activas)
       if (seasonConfig?.notificaciones_admin_email) {
         await base44.integrations.Core.SendEmail({
           to: "cdbustarviejo@gmail.com",
           subject: `🎉 Nueva solicitud de socio: ${data.nombre_completo}`,
-          body: `Se ha recibido una nueva solicitud de socio:\n\nNombre: ${data.nombre_completo}\nDNI: ${data.dni}\nEmail: ${data.email}\nTeléfono: ${data.telefono}\nMétodo de pago: ${data.metodo_pago}\nTipo: ${data.tipo_inscripcion}\nEs segundo progenitor: ${data.es_segundo_progenitor ? "Sí" : "No"}\n\nPago: Justificante subido - REVISAR\n\nAccede al panel de administración para gestionar.`
+          body: `Se ha recibido una nueva solicitud de socio:\n\nNombre: ${data.nombre_completo}\nDNI: ${data.dni}\nEmail: ${data.email}\nTeléfono: ${data.telefono}\nMétodo de pago: ${data.metodo_pago}\nTipo: ${data.tipo_inscripcion}\nEs segundo progenitor: ${data.es_segundo_progenitor ? "Sí" : "No"}${data.referido_por ? `\nReferido por: ${data.referido_por}` : ""}\n\nPago: Justificante subido - REVISAR\n\nAccede al panel de administración para gestionar.`
         });
       }
 
@@ -103,18 +157,19 @@ export default function ClubMembership() {
       setShowSuccess(true);
       
       // Limpiar formulario para nuevo registro
-      setFormData({
-        tipo_inscripcion: "Nueva Inscripción",
-        nombre_completo: "",
-        dni: "",
-        telefono: "",
-        email: "",
-        direccion: "",
-        municipio: "",
-        metodo_pago: "Transferencia",
-        justificante_url: "",
-        es_segundo_progenitor: false
-      });
+                  setFormData({
+                    tipo_inscripcion: "Nueva Inscripción",
+                    nombre_completo: "",
+                    dni: "",
+                    telefono: "",
+                    email: "",
+                    direccion: "",
+                    municipio: "",
+                    metodo_pago: "Transferencia",
+                    justificante_url: "",
+                    es_segundo_progenitor: false,
+                    referido_por: ""
+                  });
       
       // Ocultar mensaje de éxito después de 4 segundos
       setTimeout(() => {
@@ -293,6 +348,14 @@ export default function ClubMembership() {
         </Card>
       ) : null}
 
+      {/* Programa de Referidos */}
+      <ReferralProgramCard 
+        seasonConfig={seasonConfig}
+        userReferrals={user?.referrals_count || 0}
+        userCredit={user?.clothing_credit_balance || 0}
+        userRaffleEntries={user?.raffle_entries_total || 0}
+      />
+
       {/* Invitar familiares y amigos */}
       <Card className="border-none shadow-xl bg-gradient-to-r from-purple-500 via-pink-500 to-orange-500 text-white overflow-hidden">
         <div className="absolute top-0 right-0 w-40 h-40 bg-white/10 rounded-full -mr-20 -mt-20"></div>
@@ -387,6 +450,30 @@ export default function ClubMembership() {
                   </Label>
                 </div>
               </div>
+
+              {/* Campo de Referido */}
+              {seasonConfig?.programa_referidos_activo && (
+                <div className="p-4 bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl border-2 border-purple-200">
+                  <div className="flex items-start gap-3">
+                    <Gift className="w-6 h-6 text-purple-600 mt-1 flex-shrink-0" />
+                    <div className="flex-1">
+                      <Label htmlFor="referido_por" className="font-semibold text-purple-900 flex items-center gap-2">
+                        🎁 ¿Alguien te ha invitado a hacerte socio?
+                      </Label>
+                      <p className="text-xs text-purple-700 mt-1 mb-2">
+                        Si alguien te recomendó hacerte socio, escribe su nombre para que reciba su premio
+                      </p>
+                      <Input 
+                        id="referido_por"
+                        value={formData.referido_por}
+                        onChange={(e) => setFormData({...formData, referido_por: e.target.value})}
+                        placeholder="Nombre de quien te invitó (opcional)"
+                        className="bg-white"
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
 
               {/* Datos personales */}
               <div className="space-y-4">
