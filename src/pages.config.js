@@ -63,6 +63,7 @@ import ClubMembersManagement from './pages/ClubMembersManagement';
 import CalendarAndSchedules from './pages/CalendarAndSchedules';
 import PlayerDocumentsAndCards from './pages/PlayerDocumentsAndCards';
 import ReferralManagement from './pages/ReferralManagement';
+import PublicClubMembership from './pages/PublicClubMembership';
 import __Layout from './Layout.jsx';
 
 
@@ -132,6 +133,7 @@ export const PAGES = {
     "CalendarAndSchedules": CalendarAndSchedules,
     "PlayerDocumentsAndCards": PlayerDocumentsAndCards,
     "ReferralManagement": ReferralManagement,
+    "PublicClubMembership": PublicClubMembership,
 }
 
 export const pagesConfig = {
