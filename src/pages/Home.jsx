@@ -561,9 +561,9 @@ export default function Home() {
 
       items.push(
         {
-          title: "🎫 Socios Club",
+          title: "🎫 Gestión Socios",
           icon: Users,
-          url: createPageUrl("ClubMembership"),
+          url: createPageUrl("ClubMembersManagement"),
           gradient: "from-purple-600 to-purple-700",
         },
         {
@@ -573,7 +573,7 @@ export default function Home() {
           gradient: "from-amber-600 to-amber-700",
         },
         {
-          title: "⚙️ Configuración",
+          title: "⚙️ Temporadas y Categorías",
           icon: Settings,
           url: createPageUrl("SeasonManagement"),
           gradient: "from-slate-600 to-slate-700",
@@ -678,6 +678,16 @@ export default function Home() {
           gradient: "from-pink-600 to-pink-700",
         }
       );
+
+      // ⚙️ PREFERENCIAS
+      items.push(
+        {
+          title: "🔔 Preferencias Notif.",
+          icon: Settings,
+          url: createPageUrl("NotificationPreferences"),
+          gradient: "from-slate-500 to-slate-600",
+        }
+      );
     } else if (isCoach || isCoordinator) {
       // 💬 COMUNICACIÓN (uso diario)
       items.push(
@@ -752,6 +762,18 @@ export default function Home() {
           gradient: "from-pink-600 to-pink-700",
         },
         {
+          title: "🎉 Eventos Club",
+          icon: Calendar,
+          url: createPageUrl("ParentEventRSVP"),
+          gradient: "from-indigo-600 to-indigo-700",
+        },
+        {
+          title: "📋 Encuestas",
+          icon: FileText,
+          url: createPageUrl("Surveys"),
+          gradient: "from-teal-600 to-teal-700",
+        },
+        {
           title: "🖼️ Galería",
           icon: Image,
           url: createPageUrl("Gallery"),
@@ -823,6 +845,16 @@ export default function Home() {
           icon: Heart,
           url: createPageUrl("ClubMembership"),
           gradient: "from-pink-600 to-pink-700",
+        }
+      );
+
+      // ⚙️ PREFERENCIAS
+      items.push(
+        {
+          title: "⚙️ Preferencias Notif.",
+          icon: Settings,
+          url: createPageUrl("NotificationPreferences"),
+          gradient: "from-slate-500 to-slate-600",
         }
       );
     }
