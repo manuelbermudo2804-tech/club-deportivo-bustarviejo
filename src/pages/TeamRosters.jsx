@@ -138,7 +138,7 @@ export default function TeamRosters() {
           </CardContent>
         </Card>
 
-        <Card className="border-none shadow-lg bg-white col-span-2 lg:col-span-1">
+        <Card className={`border-none shadow-lg bg-white ${unavailablePlayers > 0 ? "" : "col-span-2 lg:col-span-1"}`}>
           <CardContent className="pt-4 lg:pt-6">
             <div className="flex items-center justify-between">
               <div>
@@ -151,6 +151,20 @@ export default function TeamRosters() {
             </div>
           </CardContent>
         </Card>
+
+        {unavailablePlayers > 0 && (
+          <Card className="border-none shadow-lg bg-amber-50 border-2 border-amber-200">
+            <CardContent className="pt-4 lg:pt-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs lg:text-sm text-amber-700 mb-1">No Disponibles</p>
+                  <p className="text-2xl lg:text-3xl font-bold text-amber-600">{unavailablePlayers}</p>
+                </div>
+                <AlertTriangle className="w-8 h-8 lg:w-12 lg:h-12 text-amber-500 opacity-50" />
+              </div>
+            </CardContent>
+          </Card>
+        )}
       </div>
 
       {/* Search and Filters */}
