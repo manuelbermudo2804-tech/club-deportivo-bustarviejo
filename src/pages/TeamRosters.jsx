@@ -91,6 +91,7 @@ export default function TeamRosters() {
   const activePlayers = filteredPlayers.length;
   const totalActiveInTeams = players.filter(p => coachCategories.includes(p.deporte) && p.activo && (!p.estado_renovacion || p.estado_renovacion === "renovado")).length;
   const totalInactiveInTeams = players.filter(p => coachCategories.includes(p.deporte) && !p.activo).length;
+  const unavailablePlayers = players.filter(p => coachCategories.includes(p.deporte) && (p.lesionado || p.sancionado)).length;
 
   if (!user || coachCategories.length === 0) {
     return (
