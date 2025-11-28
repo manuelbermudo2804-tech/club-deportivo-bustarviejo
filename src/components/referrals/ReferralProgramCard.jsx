@@ -61,7 +61,7 @@ export default function ReferralProgramCard({ seasonConfig, userReferrals = 0, u
         if (hasPlayersInClub !== true) return null;
 
         // Generar código de referido único (basado en el ID del usuario, no el email)
-        const LANDING_PAGE_URL = 'https://manuelbermudo2804-tech.github.io/-club-landing-page-Bustarviejo/';
+        const LANDING_PAGE_URL = 'https://cdbustarviejo.github.io/hazte-socio';
         // Usar un hash simple del email para generar un código corto y único
         const generateReferralCode = (email) => {
           let hash = 0;
