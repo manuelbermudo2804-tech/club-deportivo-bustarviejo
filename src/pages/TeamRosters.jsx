@@ -50,6 +50,30 @@ export default function TeamRosters() {
     initialData: [],
   });
 
+  // Mutation para actualizar disponibilidad del jugador
+  const updateAvailabilityMutation = useMutation({
+    mutationFn: ({ playerId, data }) => base44.entities.Player.update(playerId, data),
+    onMutate: ({ playerId }) => {
+      setUpdatingPlayerId(playerId);
+    },
+    onSuccess: (_, { data }) => {
+      queryClient.invalidateQueries({ queryKey: ['allPlayers'] });
+      const isNowUnavailable = data.lesionado || data.sancionado;
+      toast.success(isNowUnavailable ? "Jugador marcado como no disponible" : "Jugador marcado como disponible");
+    },
+    onError: (error) => {
+      console.error("Error updating player availability:", error);
+      toast.error("Error al actualizar disponibilidad");
+    },
+    onSettled: () => {
+      setUpdatingPlayerId(null);
+    }
+  });
+
+  const handleUpdateAvailability = (playerId, data) => {
+    updateAvailabilityMutation.mutate({ playerId, data });
+  };
+
   const filteredPlayers = players.filter(player => {
     const matchesSearch = player.nombre?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCategory = selectedCategory === "all" || player.deporte === selectedCategory;
