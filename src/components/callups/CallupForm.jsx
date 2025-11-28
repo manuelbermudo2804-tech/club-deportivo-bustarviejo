@@ -9,9 +9,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Switch } from "@/components/ui/switch";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Loader2, AlertCircle, Users, Send, Sparkles, MapPin } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Loader2, AlertCircle, Users, Send, Sparkles, MapPin, AlertTriangle } from "lucide-react";
+import PlayerSuggestionEngine from "./PlayerSuggestionEngine";
 
-export default function CallupForm({ callup, players, coachName, coachEmail, category, onSubmit, onCancel, isSubmitting }) {
+export default function CallupForm({ callup, players, coachName, coachEmail, category, onSubmit, onCancel, isSubmitting, userSuggestionsEnabled = true, onToggleSuggestions }) {
   const getInitialState = () => ({
     titulo: "",
     categoria: category,
@@ -37,6 +39,11 @@ export default function CallupForm({ callup, players, coachName, coachEmail, cat
   const [selectedPlayers, setSelectedPlayers] = useState(
     callup?.jugadores_convocados?.map(j => j.jugador_id) || []
   );
+  const [suggestionsEnabled, setSuggestionsEnabled] = useState(userSuggestionsEnabled);
+
+  // Filtrar jugadores no disponibles (lesionados/sancionados)
+  const availablePlayers = players.filter(p => !p.lesionado && !p.sancionado);
+  const unavailablePlayers = players.filter(p => p.lesionado || p.sancionado);
 
   // Reset form when callup changes (editing different callup or creating new one)
   useEffect(() => {
@@ -60,10 +67,21 @@ export default function CallupForm({ callup, players, coachName, coachEmail, cat
   };
 
   const handleSelectAll = () => {
-    if (selectedPlayers.length === players.length) {
+    if (selectedPlayers.length === availablePlayers.length) {
       setSelectedPlayers([]);
     } else {
-      setSelectedPlayers(players.map(p => p.id));
+      setSelectedPlayers(availablePlayers.map(p => p.id));
+    }
+  };
+
+  const handleSuggestPlayers = (suggestedIds) => {
+    setSelectedPlayers(suggestedIds);
+  };
+
+  const handleToggleSuggestions = (enabled) => {
+    setSuggestionsEnabled(enabled);
+    if (onToggleSuggestions) {
+      onToggleSuggestions(enabled);
     }
   };
 
@@ -266,6 +284,34 @@ export default function CallupForm({ callup, players, coachName, coachEmail, cat
               />
             </div>
 
+            {/* Sistema de Sugerencias */}
+            <PlayerSuggestionEngine
+              players={players}
+              category={category}
+              matchDate={currentCallup.fecha_partido}
+              onSuggestPlayers={handleSuggestPlayers}
+              selectedPlayers={selectedPlayers}
+              isEnabled={suggestionsEnabled}
+              onToggleEnabled={handleToggleSuggestions}
+            />
+
+            {/* Jugadores No Disponibles */}
+            {unavailablePlayers.length > 0 && (
+              <Alert className="bg-amber-50 border-amber-300">
+                <AlertTriangle className="h-4 w-4 text-amber-600" />
+                <AlertDescription className="text-amber-800 text-sm">
+                  <strong>Jugadores no disponibles ({unavailablePlayers.length}):</strong>
+                  <div className="flex flex-wrap gap-1 mt-2">
+                    {unavailablePlayers.map(p => (
+                      <Badge key={p.id} variant="outline" className="bg-amber-100 border-amber-400 text-amber-800">
+                        {p.nombre} - {p.lesionado ? "🤕 Lesionado" : "🚫 Sancionado"}
+                      </Badge>
+                    ))}
+                  </div>
+                </AlertDescription>
+              </Alert>
+            )}
+
             {/* Jugadores Convocados */}
             <div className="space-y-3">
               <div className="flex items-center justify-between">
@@ -276,26 +322,35 @@ export default function CallupForm({ callup, players, coachName, coachEmail, cat
                   size="sm"
                   onClick={handleSelectAll}
                 >
-                  {selectedPlayers.length === players.length ? "Deseleccionar Todos" : "Seleccionar Todos"}
+                  {selectedPlayers.length === availablePlayers.length ? "Deseleccionar Todos" : "Seleccionar Todos"}
                 </Button>
               </div>
               
               <div className="border-2 border-slate-200 rounded-lg p-4 max-h-96 overflow-y-auto bg-slate-50">
-                {players.length === 0 ? (
-                  <p className="text-slate-500 text-center py-4">No hay jugadores activos en esta categoría</p>
+                {availablePlayers.length === 0 ? (
+                  <p className="text-slate-500 text-center py-4">No hay jugadores disponibles en esta categoría</p>
                 ) : (
                   <div className="space-y-2">
-                    {players.map((player) => (
+                    {availablePlayers.map((player) => (
                       <div
                         key={player.id}
-                        className="flex items-center gap-3 p-3 bg-white rounded-lg hover:bg-slate-50 transition-colors"
+                        className={`flex items-center gap-3 p-3 rounded-lg transition-colors ${
+                          selectedPlayers.includes(player.id)
+                            ? "bg-green-50 border-2 border-green-300"
+                            : "bg-white hover:bg-slate-50"
+                        }`}
                       >
                         <Checkbox
                           checked={selectedPlayers.includes(player.id)}
                           onCheckedChange={() => handlePlayerToggle(player)}
                         />
                         <div className="flex-1">
-                          <p className="font-medium text-slate-900">{player.nombre}</p>
+                          <div className="flex items-center gap-2">
+                            <p className="font-medium text-slate-900">{player.nombre}</p>
+                            {player.posicion && player.posicion !== "Sin asignar" && (
+                              <Badge variant="outline" className="text-xs">{player.posicion}</Badge>
+                            )}
+                          </div>
                           <p className="text-xs text-slate-500">{player.email_padre || player.email}</p>
                         </div>
                       </div>
@@ -306,7 +361,12 @@ export default function CallupForm({ callup, players, coachName, coachEmail, cat
               
               <p className="text-sm text-slate-600">
                 <Users className="w-4 h-4 inline mr-1" />
-                {selectedPlayers.length} de {players.length} jugadores seleccionados
+                {selectedPlayers.length} de {availablePlayers.length} jugadores seleccionados
+                {unavailablePlayers.length > 0 && (
+                  <span className="text-amber-600 ml-2">
+                    ({unavailablePlayers.length} no disponibles)
+                  </span>
+                )}
               </p>
             </div>
 
