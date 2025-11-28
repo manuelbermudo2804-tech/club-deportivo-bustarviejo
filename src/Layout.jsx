@@ -944,6 +944,7 @@ export default function Layout({ children, currentPageName }) {
       { title: "🎓 Convocatorias", url: createPageUrl("CoachCallups"), icon: Bell },
       { title: "📋 Asistencia y Evaluación", url: createPageUrl("TeamAttendanceEvaluation"), icon: CheckCircle2 },
       { title: "🎓 Plantillas", url: createPageUrl("TeamRosters"), icon: Users },
+      { title: "🎯 Pizarra Táctica", url: createPageUrl("TacticsBoard"), icon: Calendar },
 
       // 📅 CALENDARIO
       { title: "📅 Calendario y Horarios", url: createPageUrl("CalendarAndSchedules"), icon: Calendar },
@@ -1032,6 +1033,7 @@ export default function Layout({ children, currentPageName }) {
       { title: user?.es_entrenador ? "🎓 Convocatorias" : "🎓 Ver Convocatorias", url: createPageUrl("CoachCallups"), icon: Bell },
       { title: "📋 Asistencia y Evaluación", url: createPageUrl("TeamAttendanceEvaluation"), icon: CheckCircle2 },
       { title: "🎓 Plantillas", url: createPageUrl("TeamRosters"), icon: Users },
+      { title: "🎯 Pizarra Táctica", url: createPageUrl("TacticsBoard"), icon: Calendar },
       ...(user?.puede_gestionar_firmas ? [{ title: "🖊️ Firmas Federación", url: createPageUrl("FederationSignaturesAdmin"), icon: FileSignature }] : []),
 
       // 📊 REPORTES
