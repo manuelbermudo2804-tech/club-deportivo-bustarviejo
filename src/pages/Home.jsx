@@ -3,7 +3,7 @@ import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { Users, CreditCard, ShoppingBag, Calendar, Megaphone, Image, Clock, MessageCircle, Bell, Settings, ClipboardCheck, CheckCircle2, Star, TrendingUp, Smartphone, Trophy, FileText, Clover, BookOpen, Archive, BarChart3, FileSignature } from "lucide-react";
+import { Users, CreditCard, ShoppingBag, Calendar, Megaphone, Image, Clock, MessageCircle, Bell, Settings, ClipboardCheck, CheckCircle2, Star, TrendingUp, Smartphone, Trophy, FileText, Clover, BookOpen, Archive, BarChart3, FileSignature, Heart } from "lucide-react";
 
 import SocialLinks from "../components/SocialLinks";
 
@@ -469,6 +469,16 @@ export default function Home() {
         }
       );
 
+      // 🎫 SOCIO
+      items.push(
+        {
+          title: "🎫 Hacerse Socio",
+          icon: Heart,
+          url: createPageUrl("ClubMembership"),
+          gradient: "from-pink-600 to-pink-700",
+        }
+      );
+
       // ⚙️ CONFIGURACIÓN
       items.push(
         {
@@ -645,6 +655,16 @@ export default function Home() {
           gradient: "from-green-600 to-red-600",
         });
       }
+
+      // 🎫 SOCIO
+      items.push(
+        {
+          title: "🎫 Hacerse Socio",
+          icon: Heart,
+          url: createPageUrl("ClubMembership"),
+          gradient: "from-pink-600 to-pink-700",
+        }
+      );
     } else if (isCoach || isCoordinator) {
       // 💬 COMUNICACIÓN (uso diario)
       items.push(
@@ -782,6 +802,16 @@ export default function Home() {
           gradient: "from-green-600 to-green-700",
         });
       }
+
+      // 🎫 SOCIO
+      items.push(
+        {
+          title: "🎫 Hacerse Socio",
+          icon: Heart,
+          url: createPageUrl("ClubMembership"),
+          gradient: "from-pink-600 to-pink-700",
+        }
+      );
     }
 
     return items;

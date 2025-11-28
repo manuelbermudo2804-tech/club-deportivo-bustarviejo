@@ -3,7 +3,7 @@ import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { Users, Calendar, Megaphone, Image, Clock, MessageCircle, Trophy, User as UserIcon, ClipboardCheck, Clover } from "lucide-react";
+import { Users, Calendar, Megaphone, Image, Clock, MessageCircle, Trophy, User as UserIcon, ClipboardCheck, Clover, Heart } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 
 import MatchAppLink from "../components/MatchAppLink";
@@ -127,6 +127,12 @@ export default function PlayerDashboard() {
       url: createPageUrl("ParentLottery"),
       gradient: "from-green-600 to-red-600",
     }] : []),
+    {
+      title: "🎫 Hacerse Socio",
+      icon: Heart,
+      url: createPageUrl("ClubMembership"),
+      gradient: "from-pink-600 to-pink-700",
+    },
   ];
 
   return (
