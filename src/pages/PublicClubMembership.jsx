@@ -135,7 +135,7 @@ export default function PublicClubMembership() {
   };
 
   // URL de la página pública en GitHub Pages
-  const PUBLIC_REGISTRATION_URL = "https://cdbustarviejo.github.io/hazte-socio";
+  const PUBLIC_REGISTRATION_URL = "https://manuelbermudo2804-tech.github.io/-club-landing-page-Bustarviejo/";
 
   // Generar enlace de WhatsApp genérico
   const getWhatsAppShareLink = () => {
