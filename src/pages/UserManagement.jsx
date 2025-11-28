@@ -678,7 +678,7 @@ export default function UserManagement() {
                               >
                                 {user.es_entrenador ? "✅ Entr." : "🎓 Entr."}
                               </Button>
-                              {(user.es_entrenador || isCoordinator) && (
+                              {(user.es_entrenador || isCoordinator || isTreasurer) && (
                                 <Button
                                   size="sm"
                                   variant="outline"
