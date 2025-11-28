@@ -1346,9 +1346,10 @@ export default function Layout({ children, currentPageName }) {
             </Button>
 
             <div className="text-center text-xs text-green-400 mt-4 pt-4 border-t border-green-500/30">
-              <p className="font-medium">Temporada {currentSeason}</p>
-              <p className="text-orange-400 mt-1">© CD Bustarviejo</p>
-            </div>
+                <p className="font-medium">Temporada {currentSeason}</p>
+                <p className="text-orange-400 mt-1">© CD Bustarviejo</p>
+                <p className="text-slate-500 mt-2 text-[10px]">🔒 Tus datos están protegidos según RGPD</p>
+              </div>
           </div>
         </nav>
 
