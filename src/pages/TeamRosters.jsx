@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Search, Users, Calendar } from "lucide-react";
+import { Search, Users, Calendar, AlertTriangle } from "lucide-react";
+import { toast } from "sonner";
 
 import RosterPlayerCard from "../components/players/RosterPlayerCard";
 
@@ -15,6 +16,9 @@ export default function TeamRosters() {
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
   const [user, setUser] = useState(null);
   const [coachCategories, setCoachCategories] = useState([]);
+  const [updatingPlayerId, setUpdatingPlayerId] = useState(null);
+  
+  const queryClient = useQueryClient();
 
   useEffect(() => {
     const fetchUser = async () => {
