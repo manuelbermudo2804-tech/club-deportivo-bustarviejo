@@ -9,6 +9,7 @@ import SocialLinks from "../components/SocialLinks";
 
 import ClubStats from "../components/dashboard/ClubStats";
 import DashboardCardSkeleton from "../components/skeletons/DashboardCardSkeleton";
+import AlertCenter from "../components/dashboard/AlertCenter";
 
 const CLUB_LOGO_URL = "https://www.cdbustarviejo.com/uploads/2/4/0/4/2404974/logo-cd-bustarviejo-cuadrado-xpeq_orig.png";
 
