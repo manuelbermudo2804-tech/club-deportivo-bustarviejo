@@ -969,6 +969,9 @@ export default function Layout({ children, currentPageName }) {
       ...(hasPlayers ? [{ title: "🛍️ Pedidos Ropa", url: createPageUrl("ClothingOrders"), icon: ShoppingBag }] : []),
       ...(loteriaVisible && hasPlayers ? [{ title: "🍀 Mi Lotería", url: createPageUrl("ParentLottery"), icon: Clover }] : []),
 
+      // 🎫 SOCIO
+      { title: "🎫 Hacerse Socio", url: createPageUrl("ClubMembership"), icon: Users },
+
       // ⚙️ CONFIGURACIÓN
       { title: "⚙️ Preferencias Notif.", url: createPageUrl("NotificationPreferences"), icon: Settings },
       ...(loteriaVisible ? [{ title: "🍀 Gestión Lotería", url: createPageUrl("LotteryManagement"), icon: Clover }] : []),
@@ -1010,6 +1013,9 @@ export default function Layout({ children, currentPageName }) {
     ...(hasPlayers ? [{ title: "💬 Chat Familiar", url: createPageUrl("ParentChat"), icon: MessageCircle, badge: unreadMessagesCount > 0 ? unreadMessagesCount : null, urgentBadge: urgentMessagesCount > 0 }] : []),
     ...(loteriaVisible && hasPlayers ? [{ title: "🍀 Mi Lotería", url: createPageUrl("ParentLottery"), icon: Clover }] : []),
 
+    // 🎫 SOCIO
+    { title: "🎫 Hacerse Socio", url: createPageUrl("ClubMembership"), icon: Users },
+
     // ⚙️ PREFERENCIAS
     { title: "⚙️ Preferencias Notif.", url: createPageUrl("NotificationPreferences"), icon: Settings },
   ];
@@ -1049,6 +1055,9 @@ export default function Layout({ children, currentPageName }) {
       ...(hasPlayers ? [{ title: "📄 Documentos", url: createPageUrl("ParentDocuments"), icon: FileText }] : []),
       ...(hasPlayers ? [{ title: "🛍️ Pedidos Ropa", url: createPageUrl("ClothingOrders"), icon: ShoppingBag }] : []),
       ...(loteriaVisible && hasPlayers ? [{ title: "🍀 Mi Lotería", url: createPageUrl("ParentLottery"), icon: Clover }] : []),
+
+      // 🎫 SOCIO
+      { title: "🎫 Hacerse Socio", url: createPageUrl("ClubMembership"), icon: Users },
 
       // ⚙️ CONFIGURACIÓN
       { title: "⚙️ Preferencias Notif.", url: createPageUrl("NotificationPreferences"), icon: Settings },
@@ -1101,6 +1110,7 @@ export default function Layout({ children, currentPageName }) {
     { title: "Galería", url: createPageUrl("Gallery"), icon: Image },
     { title: "🏆 Convocatorias", url: createPageUrl("PlayerCallups"), icon: Bell, badge: pendingCallupsCount > 0 ? pendingCallupsCount : null, urgentBadge: pendingCallupsCount > 0 },
     { title: "Chat Equipo", url: createPageUrl("PlayerChat"), icon: MessageCircle, badge: unreadMessagesCount > 0 ? unreadMessagesCount : null, urgentBadge: unreadMessagesCount > 0 },
+    { title: "🎫 Hacerse Socio", url: createPageUrl("ClubMembership"), icon: Users },
   ];
 
   let navigationItems;
