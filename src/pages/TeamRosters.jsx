@@ -291,7 +291,12 @@ export default function TeamRosters() {
       ) : (
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 lg:gap-4">
           {filteredPlayers.map((player) => (
-            <RosterPlayerCard key={player.id} player={player} />
+            <RosterPlayerCard 
+              key={player.id} 
+              player={player} 
+              onUpdateAvailability={handleUpdateAvailability}
+              isUpdating={updatingPlayerId === player.id}
+            />
           ))}
         </div>
       )}
