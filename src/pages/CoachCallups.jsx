@@ -29,6 +29,7 @@ export default function CoachCallups() {
   const [coachCategories, setCoachCategories] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [suggestionsEnabled, setSuggestionsEnabled] = useState(true);
 
   const queryClient = useQueryClient();
 
@@ -48,6 +49,9 @@ export default function CoachCallups() {
         const categories = currentUser.categorias_entrena || [];
         console.log('🔍 Categorías del usuario:', categories);
         setCoachCategories(categories);
+        
+        // Get user's suggestion preference (default to true)
+        setSuggestionsEnabled(currentUser.sugerencias_convocatoria_activas !== false);
         
         // If admin, set to "admin" mode (can see all categories)
         if (currentUser.role === "admin") {
@@ -281,6 +285,16 @@ Email: cdbustarviejo@gmail.com
     setShowForm(true);
   };
 
+  const handleToggleSuggestions = async (enabled) => {
+    setSuggestionsEnabled(enabled);
+    try {
+      await base44.auth.updateMe({ sugerencias_convocatoria_activas: enabled });
+      toast.success(enabled ? "Sugerencias activadas" : "Sugerencias desactivadas");
+    } catch (error) {
+      console.error("Error updating suggestion preference:", error);
+    }
+  };
+
   // Filter callups for coach's categories
   const myCallups = callups.filter(c => {
     if (user?.role === "admin") return true; // Admins see all callups
@@ -470,6 +484,8 @@ Email: cdbustarviejo@gmail.com
             onSubmit={handleSubmit}
             onCancel={handleCancel}
             isSubmitting={createCallupMutation.isPending || updateCallupMutation.isPending}
+            userSuggestionsEnabled={suggestionsEnabled}
+            onToggleSuggestions={handleToggleSuggestions}
           />
         )}
       </AnimatePresence>
