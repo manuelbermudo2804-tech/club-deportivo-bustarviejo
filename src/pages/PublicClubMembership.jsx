@@ -134,9 +134,12 @@ export default function PublicClubMembership() {
     }
   };
 
+  // URL de la página pública en GitHub Pages
+  const PUBLIC_REGISTRATION_URL = "https://cdbustarviejo.github.io/hazte-socio";
+
   // Generar enlace de WhatsApp genérico
   const getWhatsAppShareLink = () => {
-    const message = `¡Hazte socio del CD Bustarviejo! ⚽🏀\n\nPor solo 25€/temporada ayudas a los jóvenes deportistas del club.\n\n👉 Regístrate aquí: ${window.location.href.split('?')[0]}\n\n¡Gracias por tu apoyo! 💪`;
+    const message = `¡Hazte socio del CD Bustarviejo! ⚽🏀\n\nPor solo 25€/temporada ayudas a los jóvenes deportistas del club.\n\n👉 Regístrate aquí: ${PUBLIC_REGISTRATION_URL}\n\n¡Gracias por tu apoyo! 💪`;
     return `https://wa.me/?text=${encodeURIComponent(message)}`;
   };
 
