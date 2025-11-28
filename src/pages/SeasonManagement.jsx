@@ -794,6 +794,7 @@ export default function SeasonManagement() {
                 <div>
                   <p className="font-medium">Permitir Renovaciones</p>
                   <p className="text-xs text-slate-600">Los padres pueden renovar jugadores de temporadas anteriores</p>
+                  <p className="text-xs text-blue-600 font-medium mt-1">⚠️ Activar DESPUÉS de resetear la temporada</p>
                 </div>
               </div>
               <Switch
