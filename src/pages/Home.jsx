@@ -868,7 +868,21 @@ export default function Home() {
       <div className="px-4 lg:px-8 py-6 space-y-4 lg:space-y-6">
         <SocialLinks />
 
-
+        {/* CENTRO DE ALERTAS - Visible para todos los roles con hijos o con tareas admin */}
+        {(isAdmin || ((isCoach || isCoordinator || isTreasurer) && hasPlayers)) && (
+          <AlertCenter 
+            pendingCallups={stats.pendingCallups}
+            pendingDocuments={0}
+            pendingPayments={isAdmin || isTreasurer ? stats.reviewPayments : 0}
+            unreadMessages={stats.unreadMessages}
+            pendingSurveys={0}
+            pendingSignatures={hasPlayers ? stats.pendingSignatures : 0}
+            upcomingEvents={0}
+            isAdmin={isAdmin}
+            isCoach={isCoach || isCoordinator}
+            isParent={hasPlayers}
+          />
+        )}
 
         {/* Banner de Tareas Pendientes del Club para Admin */}
         {isAdmin && (stats.reviewPayments > 0 || stats.adminPendingSignatures > 0 || stats.unreadMessages > 0) && (
