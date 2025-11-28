@@ -528,7 +528,20 @@ export default function Home() {
           gradient: "from-orange-600 to-orange-700",
           badge: stats.activePlayers,
           badgeLabel: "activos"
-        },
+        }
+      );
+
+      // Firmas Federación para tesorero solo si tiene permiso
+      if (user?.puede_gestionar_firmas) {
+        items.push({
+          title: "🖊️ Firmas Federación",
+          icon: FileSignature,
+          url: createPageUrl("FederationSignaturesAdmin"),
+          gradient: "from-yellow-600 to-orange-600",
+        });
+      }
+
+      items.push(
         {
           title: "🛍️ Pedidos Ropa",
           icon: ShoppingBag,
@@ -700,8 +713,8 @@ export default function Home() {
         }
       );
 
-      // Firmas Federación para coordinadores o entrenadores con permiso
-      if (isCoordinator || user?.puede_gestionar_firmas) {
+      // Firmas Federación solo si tiene permiso
+      if (user?.puede_gestionar_firmas) {
         items.push({
           title: "🖊️ Firmas Federación",
           icon: FileSignature,
