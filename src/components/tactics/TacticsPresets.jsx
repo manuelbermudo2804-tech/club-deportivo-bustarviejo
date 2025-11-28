@@ -154,3 +154,95 @@ export const TIPOS_LINEA = [
   { nombre: "Flecha", valor: "flecha", icono: "→" },
   { nombre: "Punteada", valor: "punteada", icono: "···" },
 ];
+
+// Formaciones de Baloncesto (5 jugadores)
+export const FORMACIONES_BALONCESTO = {
+  "1-2-2": {
+    nombre: "1-2-2 Básico",
+    descripcion: "Formación clásica con base arriba",
+    posiciones: [
+      { numero: 1, x: 50, y: 12, posicion: "Base" },
+      { numero: 2, x: 30, y: 25, posicion: "Escolta" },
+      { numero: 3, x: 70, y: 25, posicion: "Alero" },
+      { numero: 4, x: 30, y: 42, posicion: "Ala-Pívot" },
+      { numero: 5, x: 70, y: 42, posicion: "Pívot" },
+    ]
+  },
+  "2-1-2": {
+    nombre: "2-1-2",
+    descripcion: "Dos arriba, pívot en el poste alto",
+    posiciones: [
+      { numero: 1, x: 35, y: 12, posicion: "Base" },
+      { numero: 2, x: 65, y: 12, posicion: "Escolta" },
+      { numero: 3, x: 50, y: 28, posicion: "Alero" },
+      { numero: 4, x: 30, y: 45, posicion: "Ala-Pívot" },
+      { numero: 5, x: 70, y: 45, posicion: "Pívot" },
+    ]
+  },
+  "1-3-1": {
+    nombre: "1-3-1",
+    descripcion: "Formación con tres en línea",
+    posiciones: [
+      { numero: 1, x: 50, y: 10, posicion: "Base" },
+      { numero: 2, x: 25, y: 28, posicion: "Escolta" },
+      { numero: 3, x: 50, y: 28, posicion: "Alero" },
+      { numero: 4, x: 75, y: 28, posicion: "Ala-Pívot" },
+      { numero: 5, x: 50, y: 48, posicion: "Pívot" },
+    ]
+  },
+  "2-3": {
+    nombre: "2-3 Zona",
+    descripcion: "Defensa zonal 2-3",
+    posiciones: [
+      { numero: 1, x: 35, y: 15, posicion: "Base" },
+      { numero: 2, x: 65, y: 15, posicion: "Escolta" },
+      { numero: 3, x: 25, y: 38, posicion: "Alero" },
+      { numero: 4, x: 50, y: 45, posicion: "Ala-Pívot" },
+      { numero: 5, x: 75, y: 38, posicion: "Pívot" },
+    ]
+  },
+  "3-2": {
+    nombre: "3-2 Zona",
+    descripcion: "Defensa zonal 3-2",
+    posiciones: [
+      { numero: 1, x: 50, y: 12, posicion: "Base" },
+      { numero: 2, x: 25, y: 22, posicion: "Escolta" },
+      { numero: 3, x: 75, y: 22, posicion: "Alero" },
+      { numero: 4, x: 35, y: 42, posicion: "Ala-Pívot" },
+      { numero: 5, x: 65, y: 42, posicion: "Pívot" },
+    ]
+  },
+  "1-4": {
+    nombre: "1-4 Alto",
+    descripcion: "Cuatro jugadores en línea alta",
+    posiciones: [
+      { numero: 1, x: 50, y: 10, posicion: "Base" },
+      { numero: 2, x: 20, y: 28, posicion: "Escolta" },
+      { numero: 3, x: 40, y: 28, posicion: "Alero" },
+      { numero: 4, x: 60, y: 28, posicion: "Ala-Pívot" },
+      { numero: 5, x: 80, y: 28, posicion: "Pívot" },
+    ]
+  },
+  "horns": {
+    nombre: "Horns (Cuernos)",
+    descripcion: "Ataque con dos postes altos",
+    posiciones: [
+      { numero: 1, x: 50, y: 8, posicion: "Base" },
+      { numero: 2, x: 20, y: 45, posicion: "Escolta" },
+      { numero: 3, x: 80, y: 45, posicion: "Alero" },
+      { numero: 4, x: 35, y: 22, posicion: "Ala-Pívot" },
+      { numero: 5, x: 65, y: 22, posicion: "Pívot" },
+    ]
+  },
+  "flex": {
+    nombre: "Flex Offense",
+    descripcion: "Sistema ofensivo Flex",
+    posiciones: [
+      { numero: 1, x: 50, y: 10, posicion: "Base" },
+      { numero: 2, x: 20, y: 20, posicion: "Escolta" },
+      { numero: 3, x: 80, y: 20, posicion: "Alero" },
+      { numero: 4, x: 25, y: 45, posicion: "Ala-Pívot" },
+      { numero: 5, x: 75, y: 45, posicion: "Pívot" },
+    ]
+  },
+};
