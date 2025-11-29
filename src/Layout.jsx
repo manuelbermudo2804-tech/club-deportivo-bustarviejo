@@ -895,7 +895,6 @@ export default function Layout({ children, currentPageName }) {
     // 📊 INICIO Y FINANZAS
     { title: "🏠 Inicio", url: createPageUrl("Home"), icon: Home },
     { title: "📊 Panel Financiero", url: createPageUrl("TreasurerDashboard"), icon: CreditCard },
-    { title: "💰 Presupuestos", url: createPageUrl("BudgetManagement"), icon: CreditCard },
     { title: "💳 Pagos", url: createPageUrl("Payments"), icon: CreditCard },
     { title: "🔔 Recordatorios", url: createPageUrl("Reminders"), icon: Bell },
     { title: "📁 Histórico", url: createPageUrl("PaymentHistory"), icon: Archive },
@@ -986,7 +985,6 @@ export default function Layout({ children, currentPageName }) {
 
     // 💰 FINANZAS (trabajo principal)
     { title: "📊 Panel Financiero", url: createPageUrl("TreasurerDashboard"), icon: CreditCard },
-    { title: "💰 Presupuestos", url: createPageUrl("BudgetManagement"), icon: CreditCard },
     { title: "💳 Pagos", url: createPageUrl("Payments"), icon: CreditCard },
     { title: "🔔 Recordatorios", url: createPageUrl("Reminders"), icon: Bell },
     { title: "📁 Histórico Pagos", url: createPageUrl("PaymentHistory"), icon: Archive },
