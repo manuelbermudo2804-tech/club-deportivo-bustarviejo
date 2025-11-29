@@ -506,14 +506,12 @@ export default function Layout({ children, currentPageName }) {
   const [pendingSignaturesCount, setPendingSignaturesCount] = useState(0);
   const [showSpecialScreen, setShowSpecialScreen] = useState(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [currentLang, setCurrentLang] = useState(() => {
-    return localStorage.getItem('appLanguage') || 'es';
-  });
-  // WelcomeScreen desactivado para evitar problemas en iOS
+  const [currentLang, setCurrentLang] = useState('es');
   const [loteriaVisible, setLoteriaVisible] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(false);
-      const [isRedirecting, setIsRedirecting] = useState(false);
-      const [sponsorBannerVisible, setSponsorBannerVisible] = useState(false);
+  const [isRedirecting, setIsRedirecting] = useState(false);
+  const [sponsorBannerVisible, setSponsorBannerVisible] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   const handleLanguageChange = (newLang) => {
     setCurrentLang(newLang);
