@@ -1156,7 +1156,14 @@ export default function Layout({ children, currentPageName }) {
   }
 
   if (!showWelcome) {
+        // Timeout de seguridad por si el WelcomeScreen no llama a onComplete (especialmente en iOS)
+        const safetyTimeout = setTimeout(() => {
+          sessionStorage.setItem('welcomeShown', 'true');
+          setShowWelcome(true);
+        }, 3000);
+
         return <WelcomeScreen onComplete={() => {
+          clearTimeout(safetyTimeout);
           sessionStorage.setItem('welcomeShown', 'true');
           setShowWelcome(true);
         }} />;
