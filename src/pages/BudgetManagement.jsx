@@ -340,4 +340,25 @@ export default function BudgetManagement() {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowNewBudget(false)}>
-              Cancel
+              Cancelar
+            </Button>
+            <Button 
+              onClick={handleCreateBudget}
+              disabled={createBudgetMutation.isPending}
+              className="bg-orange-600 hover:bg-orange-700"
+            >
+              {createBudgetMutation.isPending ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Creando...
+                </>
+              ) : (
+                "Crear Presupuesto"
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}
