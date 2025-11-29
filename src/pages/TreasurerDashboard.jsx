@@ -886,6 +886,8 @@ export default function TreasurerDashboard() {
             <BudgetManager
               budget={activeBudget}
               onUpdate={handleUpdateBudget}
+              historicalTransactions={financialTransactions}
+              historicalBudgets={budgets}
             />
           ) : (
             <Card className="border-dashed border-2">
