@@ -16,7 +16,7 @@ import ThemeToggle from "./components/ThemeToggle";
 import NotificationCenter from "./components/NotificationCenter";
 import LanguageSelector from "./components/LanguageSelector";
 import ChatNotificationListener from "./components/push/ChatNotificationListener";
-import WelcomeScreen from "./components/WelcomeScreen";
+// WelcomeScreen desactivado
 import NotificationManager from "./components/notifications/NotificationManager";
 import AutomaticNotificationEngine from "./components/notifications/AutomaticNotificationEngine";
 import EmailNotificationTrigger from "./components/notifications/EmailNotificationTrigger";
@@ -509,15 +509,7 @@ export default function Layout({ children, currentPageName }) {
   const [currentLang, setCurrentLang] = useState(() => {
     return localStorage.getItem('appLanguage') || 'es';
   });
-  const [showWelcome, setShowWelcome] = useState(() => {
-    // Solo mostrar una vez por sesión - siempre empezar en true para evitar bloqueos en iOS
-    if (sessionStorage.getItem('welcomeShown') === 'true') {
-      return true;
-    }
-    // Marcar como mostrado inmediatamente para evitar problemas
-    sessionStorage.setItem('welcomeShown', 'true');
-    return false;
-  });
+  // WelcomeScreen desactivado para evitar problemas en iOS
   const [loteriaVisible, setLoteriaVisible] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(false);
       const [isRedirecting, setIsRedirecting] = useState(false);
