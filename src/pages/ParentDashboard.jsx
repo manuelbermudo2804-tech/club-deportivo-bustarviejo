@@ -126,7 +126,7 @@ export default function ParentDashboard() {
     }
   }, [user?.email, myPlayers.length]);
 
-  const activeSurveys = surveys && myPlayersSports && user ? surveys.filter(s => {
+  const activeSurveys = (surveys && user) ? surveys.filter(s => {
     if (!s.activa || new Date(s.fecha_fin) < new Date()) return false;
     
     // Verificar si ya respondió esta encuesta
