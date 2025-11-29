@@ -53,30 +53,32 @@ export default function PushNotifications() {
     mutationFn: async (data) => {
       // Calcular destinatarios
       let destinatarios = [];
+      const playersList = players || [];
+      const usersList = users || [];
       
       if (data.tipo_destinatario === "todos") {
         // Todos los usuarios
-        destinatarios = users.map(u => u.email);
+        destinatarios = usersList.map(u => u.email);
         // Añadir padres de jugadores
-        players.forEach(p => {
+        playersList.forEach(p => {
           if (p.email_padre) destinatarios.push(p.email_padre);
           if (p.email_tutor_2) destinatarios.push(p.email_tutor_2);
         });
       } else if (data.tipo_destinatario === "padres") {
         // Solo padres/familias (usuarios que no son admin ni entrenadores)
-        players.forEach(p => {
+        playersList.forEach(p => {
           if (p.email_padre) destinatarios.push(p.email_padre);
           if (p.email_tutor_2) destinatarios.push(p.email_tutor_2);
         });
       } else if (data.tipo_destinatario === "entrenadores") {
         // Solo entrenadores
-        destinatarios = users.filter(u => u.es_entrenador === true).map(u => u.email);
+        destinatarios = usersList.filter(u => u.es_entrenador === true).map(u => u.email);
       } else if (data.tipo_destinatario === "administradores") {
         // Solo admins
-        destinatarios = users.filter(u => u.role === "admin").map(u => u.email);
+        destinatarios = usersList.filter(u => u.role === "admin").map(u => u.email);
       } else if (data.tipo_destinatario === "categoria") {
         // Por categoría específica
-        players
+        playersList
           .filter(p => p.deporte === data.categoria_destino)
           .forEach(p => {
             if (p.email_padre) destinatarios.push(p.email_padre);
