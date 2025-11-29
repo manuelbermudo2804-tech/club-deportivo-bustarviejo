@@ -10,11 +10,12 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Textarea } from "@/components/ui/textarea";
 import { 
   Save, Trash2, RotateCcw, Download, Pencil, 
-  Move, FolderOpen, Eraser, Users
+  Move, FolderOpen, Eraser, Users, Circle
 } from "lucide-react";
 import { toast } from "sonner";
 
 import DraggablePlayer from "../components/tactics/DraggablePlayer";
+import DraggableBall from "../components/tactics/DraggableBall";
 import DrawingCanvas from "../components/tactics/DrawingCanvas";
 import { FORMACIONES, FORMACIONES_BALONCESTO, COLORES_LINEA, TIPOS_LINEA } from "../components/tactics/TacticsPresets";
 
@@ -32,6 +33,8 @@ export default function TacticsBoard() {
   const [formacionActual, setFormacionActual] = useState("");
   const [lineas, setLineas] = useState([]);
   const [lineaActual, setLineaActual] = useState(null);
+  const [mostrarBalon, setMostrarBalon] = useState(true);
+  const [posicionBalon, setPosicionBalon] = useState({ x: 50, y: 35 });
   
   // Herramientas de dibujo
   const [herramientaActiva, setHerramientaActiva] = useState("mover");
@@ -158,10 +161,12 @@ export default function TacticsBoard() {
       setCategoriaSeleccionada(futbolCat || "");
       setFormacionActual("4-4-2");
       setJugadores(FORMACIONES["4-4-2"].posiciones.map((j, i) => ({ ...j, id: i })));
+      setPosicionBalon({ x: 50, y: 35 });
     } else {
       setCategoriaSeleccionada("Baloncesto (Mixto)");
       setFormacionActual("1-2-2");
       setJugadores(FORMACIONES_BALONCESTO["1-2-2"].posiciones.map((j, i) => ({ ...j, id: i })));
+      setPosicionBalon({ x: 50, y: 30 });
     }
   };
 
@@ -257,6 +262,7 @@ export default function TacticsBoard() {
     const formaciones = deporteActivo === "futbol" ? FORMACIONES : FORMACIONES_BALONCESTO;
     setJugadores(formaciones[formacionActual].posiciones.map((j, i) => ({ ...j, id: i })));
     setLineas([]);
+    setPosicionBalon(deporteActivo === "futbol" ? { x: 50, y: 35 } : { x: 50, y: 30 });
   };
 
   const borrarUltimaLinea = () => setLineas(prev => prev.slice(0, -1));
@@ -274,6 +280,8 @@ export default function TacticsBoard() {
       formacion_base: formacionActual,
       posiciones_jugadores: jugadores,
       lineas_dibujo: lineas,
+      posicion_balon: posicionBalon,
+      mostrar_balon: mostrarBalon,
       notas: notasTactica,
       entrenador_email: user.email,
     });
@@ -284,6 +292,14 @@ export default function TacticsBoard() {
     setLineas(tactica.lineas_dibujo || []);
     setFormacionActual(tactica.formacion_base || "4-4-2");
     setCategoriaSeleccionada(tactica.categoria);
+    
+    // Cargar posición del balón si existe
+    if (tactica.posicion_balon) {
+      setPosicionBalon(tactica.posicion_balon);
+    }
+    if (tactica.mostrar_balon !== undefined) {
+      setMostrarBalon(tactica.mostrar_balon);
+    }
     
     // Detectar deporte
     if (tactica.categoria?.includes("Baloncesto")) {
@@ -469,6 +485,15 @@ export default function TacticsBoard() {
 
             <div className="h-6 w-px bg-slate-300" />
 
+            <Button 
+              size="sm" 
+              variant={mostrarBalon ? "default" : "outline"}
+              onClick={() => setMostrarBalon(!mostrarBalon)}
+              className={mostrarBalon ? "bg-amber-500 hover:bg-amber-600" : ""}
+              title={mostrarBalon ? "Ocultar balón" : "Mostrar balón"}
+            >
+              <Circle className="w-4 h-4" />
+            </Button>
             <Button size="sm" variant="outline" onClick={borrarUltimaLinea} disabled={lineas.length === 0}>
               <Eraser className="w-4 h-4" />
             </Button>
@@ -582,6 +607,17 @@ export default function TacticsBoard() {
                   onSelect={setJugadorSeleccionado}
                 />
               ))}
+
+              {/* Balón */}
+              {mostrarBalon && (
+                <DraggableBall
+                  position={posicionBalon}
+                  onDrag={(x, y) => setPosicionBalon({ x, y })}
+                  fieldRef={fieldRef}
+                  maxY={maxY}
+                  deporteActivo={deporteActivo}
+                />
+              )}
             </svg>
           </div>
         </CardContent>
