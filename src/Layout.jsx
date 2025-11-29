@@ -579,6 +579,7 @@ export default function Layout({ children, currentPageName }) {
         const currentUser = await base44.auth.me();
         console.log('👤 USUARIO CARGADO:', currentUser.email);
         setUser(currentUser);
+        setIsLoading(false);
         setIsAdmin(currentUser.role === "admin");
         setIsPlayer(currentUser.role === "jugador");
         setIsCoach(currentUser.es_entrenador === true && !currentUser.es_coordinador);
