@@ -16,7 +16,7 @@ import ThemeToggle from "./components/ThemeToggle";
 import NotificationCenter from "./components/NotificationCenter";
 import LanguageSelector from "./components/LanguageSelector";
 import ChatNotificationListener from "./components/push/ChatNotificationListener";
-import WelcomeScreen from "./components/WelcomeScreen";
+
 import NotificationManager from "./components/notifications/NotificationManager";
 import AutomaticNotificationEngine from "./components/notifications/AutomaticNotificationEngine";
 import EmailNotificationTrigger from "./components/notifications/EmailNotificationTrigger";
@@ -509,15 +509,7 @@ export default function Layout({ children, currentPageName }) {
   const [currentLang, setCurrentLang] = useState(() => {
     return localStorage.getItem('appLanguage') || 'es';
   });
-  const [showWelcome, setShowWelcome] = useState(() => {
-    // Solo mostrar una vez por sesión - siempre empezar en true para evitar bloqueos en iOS
-    if (sessionStorage.getItem('welcomeShown') === 'true') {
-      return true;
-    }
-    // Marcar como mostrado inmediatamente para evitar problemas
-    sessionStorage.setItem('welcomeShown', 'true');
-    return false;
-  });
+  const [showWelcome, setShowWelcome] = useState(true);
   const [loteriaVisible, setLoteriaVisible] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(false);
       const [isRedirecting, setIsRedirecting] = useState(false);
@@ -1160,19 +1152,7 @@ export default function Layout({ children, currentPageName }) {
     );
   }
 
-  // Welcome screen con timeout de seguridad usando useEffect
-  useEffect(() => {
-    if (!showWelcome) {
-      const safetyTimer = setTimeout(() => {
-        setShowWelcome(true);
-      }, 2000);
-      return () => clearTimeout(safetyTimer);
-    }
-  }, [showWelcome]);
 
-  if (!showWelcome) {
-    return <WelcomeScreen onComplete={() => setShowWelcome(true)} />;
-  }
 
       // Render onboarding based on role
       const renderOnboarding = () => {
