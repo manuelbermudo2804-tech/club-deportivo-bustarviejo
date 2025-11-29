@@ -40,20 +40,27 @@ export default function TransactionList({
   const [filterTipo, setFilterTipo] = useState("all");
   const [filterCategoria, setFilterCategoria] = useState("all");
   const [filterEstado, setFilterEstado] = useState("all");
+  const [filterTipoDoc, setFilterTipoDoc] = useState("all");
+  const [filterSubtipoDoc, setFilterSubtipoDoc] = useState("all");
 
   const categorias = [...new Set(transactions.map(t => t.categoria))].filter(Boolean);
+  const tiposDocumento = [...new Set(transactions.map(t => t.tipo_documento))].filter(Boolean);
+  const subtiposDocumento = [...new Set(transactions.map(t => t.subtipo_documento))].filter(Boolean);
 
   const filteredTransactions = transactions.filter(t => {
     const matchSearch = !searchTerm || 
       t.concepto?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       t.proveedor_cliente?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      t.numero_factura?.toLowerCase().includes(searchTerm.toLowerCase());
+      t.numero_factura?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      t.palabras_clave?.some(p => p.toLowerCase().includes(searchTerm.toLowerCase()));
     
     const matchTipo = filterTipo === "all" || t.tipo === filterTipo;
     const matchCategoria = filterCategoria === "all" || t.categoria === filterCategoria;
     const matchEstado = filterEstado === "all" || t.estado === filterEstado;
+    const matchTipoDoc = filterTipoDoc === "all" || t.tipo_documento === filterTipoDoc;
+    const matchSubtipoDoc = filterSubtipoDoc === "all" || t.subtipo_documento === filterSubtipoDoc;
 
-    return matchSearch && matchTipo && matchCategoria && matchEstado;
+    return matchSearch && matchTipo && matchCategoria && matchEstado && matchTipoDoc && matchSubtipoDoc;
   });
 
   const totales = {
@@ -136,6 +143,34 @@ export default function TransactionList({
               <SelectItem value="Anulado">Anulado</SelectItem>
             </SelectContent>
           </Select>
+
+          {tiposDocumento.length > 0 && (
+            <Select value={filterTipoDoc} onValueChange={setFilterTipoDoc}>
+              <SelectTrigger className="w-[150px]">
+                <SelectValue placeholder="Tipo Doc." />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todos los docs.</SelectItem>
+                {tiposDocumento.map(tipo => (
+                  <SelectItem key={tipo} value={tipo}>{tipo}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
+
+          {subtiposDocumento.length > 0 && (
+            <Select value={filterSubtipoDoc} onValueChange={setFilterSubtipoDoc}>
+              <SelectTrigger className="w-[160px]">
+                <SelectValue placeholder="Subtipo Doc." />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todos subtipos</SelectItem>
+                {subtiposDocumento.map(subtipo => (
+                  <SelectItem key={subtipo} value={subtipo}>{subtipo}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
         </div>
 
         {/* Resumen rápido */}
@@ -219,14 +254,24 @@ export default function TransactionList({
                       </Badge>
                     </TableCell>
                     <TableCell>
-                      {t.documento_url && (
-                        <Button
-                          size="icon"
-                          variant="ghost"
-                          onClick={() => window.open(t.documento_url, '_blank')}
-                        >
-                          <ExternalLink className="h-4 w-4 text-blue-600" />
-                        </Button>
+                      {t.documento_url ? (
+                        <div className="flex items-center gap-1">
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            onClick={() => window.open(t.documento_url, '_blank')}
+                            title={t.tipo_documento || "Ver documento"}
+                          >
+                            <ExternalLink className="h-4 w-4 text-blue-600" />
+                          </Button>
+                          {t.tipo_documento && (
+                            <Badge variant="outline" className="text-[10px] hidden md:inline-flex">
+                              {t.tipo_documento}
+                            </Badge>
+                          )}
+                        </div>
+                      ) : (
+                        <span className="text-slate-300">-</span>
                       )}
                     </TableCell>
                     <TableCell>
