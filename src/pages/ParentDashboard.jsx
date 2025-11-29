@@ -201,7 +201,7 @@ export default function ParentDashboard() {
   const myClothingOrders = clothingOrders.filter(o => o.email_padre === user?.email);
   const pendingClothingOrders = myClothingOrders.filter(o => o.estado === "Pendiente" || o.estado === "En revisión");
 
-  const activeSeason = seasonConfigs ? seasonConfigs.find(s => s.activa) : null;
+  const activeSeason = seasonConfigs.find(s => s.activa) || null;
   const loteriaVisible = activeSeason?.loteria_navidad_abierta === true;
 
   const pendingDocuments = allDocuments && myPlayers.length > 0 ? allDocuments.filter(doc => {
