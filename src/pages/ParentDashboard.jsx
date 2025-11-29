@@ -204,7 +204,7 @@ export default function ParentDashboard() {
   const activeSeason = seasonConfigs.find(s => s.activa) || null;
   const loteriaVisible = activeSeason?.loteria_navidad_abierta === true;
 
-  const pendingDocuments = allDocuments && myPlayers.length > 0 ? allDocuments.filter(doc => {
+  const pendingDocuments = (myPlayers.length > 0) ? allDocuments.filter(doc => {
     if (!doc.publicado || !doc.requiere_firma) return false;
     
     const isRelevant = doc.tipo_destinatario === "individual" 
