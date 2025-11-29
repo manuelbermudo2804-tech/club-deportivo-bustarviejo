@@ -160,9 +160,9 @@ export default function ParentDashboard() {
   }).length;
 
   const today = new Date().toISOString().split('T')[0];
-  const upcomingCallups = callups ? callups.filter(c => 
+  const upcomingCallups = callups.filter(c => 
     c.publicada && c.fecha_partido >= today && !c.cerrada
-  ) : [];
+  );
 
   let pendingCallups = 0;
   if (myPlayers.length > 0) {
