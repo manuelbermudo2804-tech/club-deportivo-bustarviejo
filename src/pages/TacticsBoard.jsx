@@ -17,7 +17,7 @@ import { toast } from "sonner";
 import DraggablePlayer from "../components/tactics/DraggablePlayer";
 import DraggableBall from "../components/tactics/DraggableBall";
 import DrawingCanvas from "../components/tactics/DrawingCanvas";
-import { FORMACIONES, FORMACIONES_BALONCESTO, COLORES_LINEA, TIPOS_LINEA } from "../components/tactics/TacticsPresets";
+import { FORMACIONES, FORMACIONES_FUTBOL7, FORMACIONES_BALONCESTO, COLORES_LINEA, TIPOS_LINEA } from "../components/tactics/TacticsPresets";
 
 export default function TacticsBoard() {
   const fieldRef = useRef(null);
@@ -26,7 +26,7 @@ export default function TacticsBoard() {
   // Estado del usuario
   const [user, setUser] = useState(null);
   const [coachCategories, setCoachCategories] = useState([]);
-  const [deporteActivo, setDeporteActivo] = useState("futbol"); // futbol o baloncesto
+  const [deporteActivo, setDeporteActivo] = useState("futbol"); // futbol, futbol7 o baloncesto
   
   // Estado de la pizarra
   const [jugadores, setJugadores] = useState([]);
@@ -101,23 +101,40 @@ export default function TacticsBoard() {
       
       setCoachCategories(categories);
       
-      // Determinar deporte inicial
+      // Determinar deporte inicial - Fútbol 7 para categorías inferiores
       const tieneBaloncesto = categories.some(c => c.includes("Baloncesto"));
-      const tieneFutbol = categories.some(c => c.includes("Fútbol"));
-      
-      if (tieneFutbol) {
+      const tieneFutbol7 = categories.some(c => 
+        c.includes("Pre-Benjamín") || c.includes("Benjamín") || c.includes("Alevín")
+      );
+      const tieneFutbol11 = categories.some(c => 
+        c.includes("Infantil") || c.includes("Cadete") || c.includes("Juvenil") || 
+        c.includes("Aficionado") || c.includes("Femenino")
+      );
+
+      if (tieneFutbol11) {
         setDeporteActivo("futbol");
-        const futbolCat = categories.find(c => c.includes("Fútbol"));
+        const futbolCat = categories.find(c => 
+          c.includes("Infantil") || c.includes("Cadete") || c.includes("Juvenil") || 
+          c.includes("Aficionado") || c.includes("Femenino")
+        );
         setCategoriaSeleccionada(futbolCat || "");
         setFormacionActual("4-4-2");
         setJugadores(FORMACIONES["4-4-2"].posiciones.map((j, i) => ({ ...j, id: i })));
+      } else if (tieneFutbol7) {
+        setDeporteActivo("futbol7");
+        const futbol7Cat = categories.find(c => 
+          c.includes("Pre-Benjamín") || c.includes("Benjamín") || c.includes("Alevín")
+        );
+        setCategoriaSeleccionada(futbol7Cat || "");
+        setFormacionActual("1-3-2");
+        setJugadores(FORMACIONES_FUTBOL7["1-3-2"].posiciones.map((j, i) => ({ ...j, id: i })));
       } else if (tieneBaloncesto) {
         setDeporteActivo("baloncesto");
         setCategoriaSeleccionada("Baloncesto (Mixto)");
         setFormacionActual("1-2-2");
         setJugadores(FORMACIONES_BALONCESTO["1-2-2"].posiciones.map((j, i) => ({ ...j, id: i })));
       }
-    };
+      };
     fetchUser();
   }, []);
 
@@ -157,10 +174,21 @@ export default function TacticsBoard() {
     setLineas([]);
     
     if (deporte === "futbol") {
-      const futbolCat = coachCategories.find(c => c.includes("Fútbol"));
+      const futbolCat = coachCategories.find(c => 
+        c.includes("Infantil") || c.includes("Cadete") || c.includes("Juvenil") || 
+        c.includes("Aficionado") || c.includes("Femenino")
+      ) || coachCategories.find(c => c.includes("Fútbol"));
       setCategoriaSeleccionada(futbolCat || "");
       setFormacionActual("4-4-2");
       setJugadores(FORMACIONES["4-4-2"].posiciones.map((j, i) => ({ ...j, id: i })));
+      setPosicionBalon({ x: 50, y: 35 });
+    } else if (deporte === "futbol7") {
+      const futbol7Cat = coachCategories.find(c => 
+        c.includes("Pre-Benjamín") || c.includes("Benjamín") || c.includes("Alevín")
+      ) || coachCategories.find(c => c.includes("Fútbol"));
+      setCategoriaSeleccionada(futbol7Cat || "");
+      setFormacionActual("1-3-2");
+      setJugadores(FORMACIONES_FUTBOL7["1-3-2"].posiciones.map((j, i) => ({ ...j, id: i })));
       setPosicionBalon({ x: 50, y: 35 });
     } else {
       setCategoriaSeleccionada("Baloncesto (Mixto)");
@@ -335,10 +363,16 @@ export default function TacticsBoard() {
     img.src = "data:image/svg+xml;base64," + btoa(unescape(encodeURIComponent(svgData)));
   };
 
-  const formacionesActuales = deporteActivo === "futbol" ? FORMACIONES : FORMACIONES_BALONCESTO;
-  const tieneFutbol = coachCategories.some(c => c.includes("Fútbol"));
+  const formacionesActuales = deporteActivo === "futbol" ? FORMACIONES : deporteActivo === "futbol7" ? FORMACIONES_FUTBOL7 : FORMACIONES_BALONCESTO;
+  const tieneFutbol11 = coachCategories.some(c => 
+    c.includes("Infantil") || c.includes("Cadete") || c.includes("Juvenil") || 
+    c.includes("Aficionado") || c.includes("Femenino")
+  );
+  const tieneFutbol7 = coachCategories.some(c => 
+    c.includes("Pre-Benjamín") || c.includes("Benjamín") || c.includes("Alevín")
+  );
   const tieneBaloncesto = coachCategories.some(c => c.includes("Baloncesto"));
-  const colorJugador = deporteActivo === "futbol" ? "#1e40af" : "#dc2626";
+  const colorJugador = deporteActivo === "baloncesto" ? "#dc2626" : "#1e40af";
 
   if (!user || coachCategories.length === 0) {
     return (
@@ -354,7 +388,7 @@ export default function TacticsBoard() {
       <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
         <div>
           <h1 className="text-2xl lg:text-3xl font-bold text-slate-900">
-            🎯 Pizarra Táctica {deporteActivo === "baloncesto" ? "🏀" : "⚽"}
+            🎯 Pizarra Táctica {deporteActivo === "baloncesto" ? "🏀" : deporteActivo === "futbol7" ? "⚽ F7" : "⚽"}
           </h1>
           <p className="text-slate-600 text-sm mt-1">Diseña tus tácticas y ejercicios</p>
         </div>
@@ -376,22 +410,35 @@ export default function TacticsBoard() {
       </div>
 
       {/* Selector de deporte */}
-      {tieneFutbol && tieneBaloncesto && (
-        <div className="flex gap-2">
-          <Button
-            variant={deporteActivo === "futbol" ? "default" : "outline"}
-            onClick={() => cambiarDeporte("futbol")}
-            className={deporteActivo === "futbol" ? "bg-green-600" : ""}
-          >
-            ⚽ Fútbol
-          </Button>
-          <Button
-            variant={deporteActivo === "baloncesto" ? "default" : "outline"}
-            onClick={() => cambiarDeporte("baloncesto")}
-            className={deporteActivo === "baloncesto" ? "bg-orange-600" : ""}
-          >
-            🏀 Baloncesto
-          </Button>
+      {(tieneFutbol11 || tieneFutbol7 || tieneBaloncesto) && (tieneFutbol11 + tieneFutbol7 + tieneBaloncesto > 1 || true) && (
+        <div className="flex flex-wrap gap-2">
+          {tieneFutbol11 && (
+            <Button
+              variant={deporteActivo === "futbol" ? "default" : "outline"}
+              onClick={() => cambiarDeporte("futbol")}
+              className={deporteActivo === "futbol" ? "bg-green-600" : ""}
+            >
+              ⚽ Fútbol 11
+            </Button>
+          )}
+          {tieneFutbol7 && (
+            <Button
+              variant={deporteActivo === "futbol7" ? "default" : "outline"}
+              onClick={() => cambiarDeporte("futbol7")}
+              className={deporteActivo === "futbol7" ? "bg-green-600" : ""}
+            >
+              ⚽ Fútbol 7
+            </Button>
+          )}
+          {tieneBaloncesto && (
+            <Button
+              variant={deporteActivo === "baloncesto" ? "default" : "outline"}
+              onClick={() => cambiarDeporte("baloncesto")}
+              className={deporteActivo === "baloncesto" ? "bg-orange-600" : ""}
+            >
+              🏀 Baloncesto
+            </Button>
+          )}
         </div>
       )}
 
@@ -406,7 +453,16 @@ export default function TacticsBoard() {
               </SelectTrigger>
               <SelectContent>
                 {coachCategories
-                  .filter(c => deporteActivo === "futbol" ? c.includes("Fútbol") : c.includes("Baloncesto"))
+                  .filter(c => {
+                    if (deporteActivo === "futbol") {
+                      return c.includes("Infantil") || c.includes("Cadete") || c.includes("Juvenil") || 
+                             c.includes("Aficionado") || c.includes("Femenino");
+                    } else if (deporteActivo === "futbol7") {
+                      return c.includes("Pre-Benjamín") || c.includes("Benjamín") || c.includes("Alevín");
+                    } else {
+                      return c.includes("Baloncesto");
+                    }
+                  })
                   .map(cat => (
                     <SelectItem key={cat} value={cat}>{cat}</SelectItem>
                   ))}

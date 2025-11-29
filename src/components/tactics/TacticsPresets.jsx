@@ -1,6 +1,7 @@
 // Formaciones tácticas predefinidas con posiciones (x, y en porcentaje del campo)
 // El campo es 100x70, con la portería propia a la izquierda
 
+// Formaciones Fútbol 11
 export const FORMACIONES = {
   "4-4-2": {
     nombre: "4-4-2 Clásico",
@@ -138,6 +139,88 @@ export const FORMACIONES = {
       { numero: 11, x: 65, y: 58, posicion: "EI" },
     ]
   },
+};
+
+// Formaciones Fútbol 7
+export const FORMACIONES_FUTBOL7 = {
+  "1-3-2": {
+    nombre: "1-3-2",
+    descripcion: "Formación equilibrada con 3 defensas y 2 delanteros",
+    posiciones: [
+      { numero: 1, x: 8, y: 35, posicion: "POR" },
+      { numero: 2, x: 25, y: 15, posicion: "DFD" },
+      { numero: 3, x: 25, y: 35, posicion: "DFC" },
+      { numero: 4, x: 25, y: 55, posicion: "DFI" },
+      { numero: 5, x: 55, y: 25, posicion: "MCD" },
+      { numero: 6, x: 55, y: 45, posicion: "MCI" },
+      { numero: 7, x: 75, y: 35, posicion: "DC" }
+    ]
+  },
+  "2-3-1": {
+    nombre: "2-3-1",
+    descripcion: "Formación ofensiva con 3 mediocampistas",
+    posiciones: [
+      { numero: 1, x: 8, y: 35, posicion: "POR" },
+      { numero: 2, x: 25, y: 25, posicion: "DFD" },
+      { numero: 3, x: 25, y: 45, posicion: "DFI" },
+      { numero: 4, x: 45, y: 15, posicion: "MCD" },
+      { numero: 5, x: 45, y: 35, posicion: "MC" },
+      { numero: 6, x: 45, y: 55, posicion: "MCI" },
+      { numero: 7, x: 70, y: 35, posicion: "DC" }
+    ]
+  },
+  "3-1-2": {
+    nombre: "3-1-2",
+    descripcion: "Formación defensiva con pivote",
+    posiciones: [
+      { numero: 1, x: 8, y: 35, posicion: "POR" },
+      { numero: 2, x: 22, y: 15, posicion: "DFD" },
+      { numero: 3, x: 22, y: 35, posicion: "DFC" },
+      { numero: 4, x: 22, y: 55, posicion: "DFI" },
+      { numero: 5, x: 45, y: 35, posicion: "PIV" },
+      { numero: 6, x: 65, y: 25, posicion: "DCD" },
+      { numero: 7, x: 65, y: 45, posicion: "DCI" }
+    ]
+  },
+  "2-2-2": {
+    nombre: "2-2-2",
+    descripcion: "Formación simétrica y equilibrada",
+    posiciones: [
+      { numero: 1, x: 8, y: 35, posicion: "POR" },
+      { numero: 2, x: 28, y: 25, posicion: "DFD" },
+      { numero: 3, x: 28, y: 45, posicion: "DFI" },
+      { numero: 4, x: 50, y: 25, posicion: "MCD" },
+      { numero: 5, x: 50, y: 45, posicion: "MCI" },
+      { numero: 6, x: 72, y: 25, posicion: "DCD" },
+      { numero: 7, x: 72, y: 45, posicion: "DCI" }
+    ]
+  },
+  "1-2-3": {
+    nombre: "1-2-3",
+    descripcion: "Formación muy ofensiva con 3 delanteros",
+    posiciones: [
+      { numero: 1, x: 8, y: 35, posicion: "POR" },
+      { numero: 2, x: 25, y: 35, posicion: "LIB" },
+      { numero: 3, x: 42, y: 22, posicion: "MCD" },
+      { numero: 4, x: 42, y: 48, posicion: "MCI" },
+      { numero: 5, x: 68, y: 15, posicion: "EXD" },
+      { numero: 6, x: 68, y: 35, posicion: "DC" },
+      { numero: 7, x: 68, y: 55, posicion: "EXI" }
+    ]
+  },
+  "3-2-1": {
+    nombre: "3-2-1",
+    descripcion: "Formación muy defensiva con línea de 3",
+    posiciones: [
+      { numero: 1, x: 8, y: 35, posicion: "POR" },
+      { numero: 2, x: 22, y: 15, posicion: "DFD" },
+      { numero: 3, x: 22, y: 35, posicion: "DFC" },
+      { numero: 4, x: 22, y: 55, posicion: "DFI" },
+      { numero: 5, x: 48, y: 25, posicion: "MCD" },
+      { numero: 6, x: 48, y: 45, posicion: "MCI" },
+      { numero: 7, x: 72, y: 35, posicion: "DC" }
+    ]
+  }
 };
 
 export const COLORES_LINEA = [
