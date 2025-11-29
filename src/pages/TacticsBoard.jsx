@@ -245,7 +245,7 @@ export default function TacticsBoard() {
   };
 
   // Manejadores de dibujo
-  const maxY = deporteActivo === "futbol" ? 70 : 60;
+  const maxY = deporteActivo === "baloncesto" ? 60 : 70;
 
   const handleFieldPointerDown = (e) => {
     if (herramientaActiva !== "dibujar") return;
@@ -350,7 +350,7 @@ export default function TacticsBoard() {
     const img = new Image();
     
     canvas.width = 1000;
-    canvas.height = deporteActivo === "futbol" ? 700 : 600;
+    canvas.height = deporteActivo === "baloncesto" ? 600 : 700;
     
     img.onload = () => {
       ctx.drawImage(img, 0, 0);
@@ -571,20 +571,20 @@ export default function TacticsBoard() {
         <CardContent className="p-0">
           <div 
             ref={fieldRef}
-            className={`w-full cursor-crosshair touch-none ${deporteActivo === "futbol" ? "aspect-[100/70]" : "aspect-[100/60]"}`}
+            className={`w-full cursor-crosshair touch-none ${deporteActivo === "baloncesto" ? "aspect-[100/60]" : "aspect-[100/70]"}`}
             onPointerDown={handleFieldPointerDown}
             onPointerMove={handleFieldPointerMove}
             onPointerUp={handleFieldPointerUp}
             onPointerLeave={handleFieldPointerUp}
           >
             <svg 
-              viewBox={deporteActivo === "futbol" ? "0 0 100 70" : "0 0 100 60"} 
+              viewBox={deporteActivo === "baloncesto" ? "0 0 100 60" : "0 0 100 70"} 
               className="w-full h-full" 
-              style={{ backgroundColor: deporteActivo === "futbol" ? "#2d8a3e" : "#c4783b" }}
+              style={{ backgroundColor: deporteActivo === "baloncesto" ? "#c4783b" : "#2d8a3e" }}
             >
-              {deporteActivo === "futbol" ? (
+              {deporteActivo === "futbol" && (
                 <>
-                  {/* Campo de fútbol */}
+                  {/* Campo de fútbol 11 */}
                   <rect x="0" y="0" width="100" height="70" fill="#2d8a3e" />
                   <g fill="rgba(255,255,255,0.03)">
                     <rect x="2" y="2" width="12" height="66" />
@@ -609,7 +609,55 @@ export default function TacticsBoard() {
                     <rect x="98" y="30" width="2" height="10" stroke="rgba(255,255,255,0.6)" />
                   </g>
                 </>
-              ) : (
+              )}
+
+              {deporteActivo === "futbol7" && (
+                <>
+                  {/* Campo de fútbol 7 - más pequeño y proporcional */}
+                  <rect x="0" y="0" width="100" height="70" fill="#2d8a3e" />
+                  {/* Franjas de césped */}
+                  <g fill="rgba(255,255,255,0.03)">
+                    <rect x="2" y="2" width="16" height="66" />
+                    <rect x="34" y="2" width="16" height="66" />
+                    <rect x="66" y="2" width="16" height="66" />
+                  </g>
+                  <g stroke="rgba(255,255,255,0.8)" strokeWidth="0.3" fill="none">
+                    {/* Borde del campo */}
+                    <rect x="2" y="2" width="96" height="66" />
+                    {/* Línea central */}
+                    <line x1="50" y1="2" x2="50" y2="68" />
+                    {/* Círculo central - más pequeño que F11 */}
+                    <circle cx="50" cy="35" r="7" />
+                    <circle cx="50" cy="35" r="0.5" fill="rgba(255,255,255,0.8)" />
+                    {/* Área izquierda - proporcional a F7 */}
+                    <rect x="2" y="18" width="14" height="34" />
+                    {/* Área pequeña izquierda */}
+                    <rect x="2" y="27" width="5" height="16" />
+                    {/* Punto de penalti izquierdo */}
+                    <circle cx="11" cy="35" r="0.5" fill="rgba(255,255,255,0.8)" />
+                    {/* Semicírculo área izquierda */}
+                    <path d="M 16 28 A 7 7 0 0 1 16 42" />
+                    {/* Área derecha */}
+                    <rect x="84" y="18" width="14" height="34" />
+                    {/* Área pequeña derecha */}
+                    <rect x="93" y="27" width="5" height="16" />
+                    {/* Punto de penalti derecho */}
+                    <circle cx="89" cy="35" r="0.5" fill="rgba(255,255,255,0.8)" />
+                    {/* Semicírculo área derecha */}
+                    <path d="M 84 28 A 7 7 0 0 0 84 42" />
+                    {/* Porterías - más pequeñas para F7 */}
+                    <rect x="0" y="31" width="2" height="8" stroke="rgba(255,255,255,0.6)" />
+                    <rect x="98" y="31" width="2" height="8" stroke="rgba(255,255,255,0.6)" />
+                    {/* Esquinas */}
+                    <path d="M 2 4 A 2 2 0 0 0 4 2" />
+                    <path d="M 96 2 A 2 2 0 0 0 98 4" />
+                    <path d="M 2 66 A 2 2 0 0 1 4 68" />
+                    <path d="M 96 68 A 2 2 0 0 1 98 66" />
+                  </g>
+                </>
+              )}
+
+              {deporteActivo === "baloncesto" && (
                 <>
                   {/* Cancha de baloncesto */}
                   <rect x="0" y="0" width="100" height="60" fill="#c4783b" />
