@@ -35,6 +35,7 @@ import TransactionForm from "../components/financial/TransactionForm";
 import TransactionList from "../components/financial/TransactionList";
 import AICommunicationAssistant from "../components/communication/AICommunicationAssistant";
 import AIFinancialForecasting from "../components/financial/AIFinancialForecasting";
+import AIReconciliation from "../components/financial/AIReconciliation";
 
 const COLORS = {
   pagado: '#16a34a',
@@ -717,12 +718,13 @@ export default function TreasurerDashboard() {
           {/* Main Content Tabs */}
       <Tabs defaultValue="ingresos" className="w-full">
         <TabsList className="w-full flex-wrap h-auto">
-          <TabsTrigger value="ingresos" className="flex-1">📊 Ingresos</TabsTrigger>
-          <TabsTrigger value="presupuesto" className="flex-1">💰 Presupuesto</TabsTrigger>
-          <TabsTrigger value="movimientos" className="flex-1">📝 Movimientos</TabsTrigger>
-          <TabsTrigger value="deudas" className="flex-1">⚠️ Deudas</TabsTrigger>
-          <TabsTrigger value="exportar" className="flex-1">📥 Exportar</TabsTrigger>
-        </TabsList>
+                        <TabsTrigger value="ingresos" className="flex-1">📊 Ingresos</TabsTrigger>
+                        <TabsTrigger value="presupuesto" className="flex-1">💰 Presupuesto</TabsTrigger>
+                        <TabsTrigger value="movimientos" className="flex-1">📝 Movimientos</TabsTrigger>
+                        <TabsTrigger value="conciliacion" className="flex-1">🤖 Conciliación IA</TabsTrigger>
+                        <TabsTrigger value="deudas" className="flex-1">⚠️ Deudas</TabsTrigger>
+                        <TabsTrigger value="exportar" className="flex-1">📥 Exportar</TabsTrigger>
+                      </TabsList>
 
         {/* Ingresos Tab */}
         <TabsContent value="ingresos" className="space-y-6">
@@ -1009,8 +1011,21 @@ export default function TreasurerDashboard() {
           )}
         </TabsContent>
 
-        {/* Deudas Tab */}
-        <TabsContent value="deudas" className="space-y-4">
+        {/* Conciliación IA Tab */}
+          <TabsContent value="conciliacion" className="space-y-4">
+            <AIReconciliation
+              payments={payments}
+              players={players}
+              financialTransactions={financialTransactions}
+              onReconcile={() => {
+                queryClient.invalidateQueries({ queryKey: ['payments'] });
+                queryClient.invalidateQueries({ queryKey: ['financialTransactions'] });
+              }}
+            />
+          </TabsContent>
+
+          {/* Deudas Tab */}
+          <TabsContent value="deudas" className="space-y-4">
           <Card className="border-none shadow-xl">
             <CardHeader className="flex flex-row items-center justify-between">
               <CardTitle className="text-lg flex items-center gap-2">
