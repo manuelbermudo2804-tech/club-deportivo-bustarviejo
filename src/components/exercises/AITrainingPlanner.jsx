@@ -212,6 +212,10 @@ También incluye:
                   <SelectItem value="Resistencia - Potencia Aeróbica">⚡ Resistencia - Potencia</SelectItem>
                   <SelectItem value="Técnica Individual">🎯 Técnica Individual</SelectItem>
                   <SelectItem value="Táctica Colectiva">🧠 Táctica Colectiva</SelectItem>
+                  <SelectItem value="Posesión y Rondos">⚽ Posesión y Rondos</SelectItem>
+                  <SelectItem value="Transiciones">🔄 Transiciones</SelectItem>
+                  <SelectItem value="Finalización">🥅 Finalización</SelectItem>
+                  <SelectItem value="Pressing y Recuperación">⚡ Pressing y Recuperación</SelectItem>
                   <SelectItem value="Velocidad y Explosividad">🚀 Velocidad y Explosividad</SelectItem>
                   <SelectItem value="Fuerza">💪 Fuerza</SelectItem>
                   <SelectItem value="Coordinación">🤸 Coordinación</SelectItem>
