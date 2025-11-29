@@ -189,6 +189,25 @@ export default function ExerciseCard({ exercise, onEdit, onDelete, onToggleFavor
               </div>
             </div>
 
+            {/* Diagram */}
+            {exercise.diagrama_ascii && (
+              <div>
+                <h4 className="font-semibold text-slate-900 mb-2">📐 Diagrama</h4>
+                <div className="bg-green-50 border-2 border-green-200 rounded-lg p-4 overflow-x-auto">
+                  <pre className="text-xs font-mono text-green-800 whitespace-pre leading-tight">
+                    {exercise.diagrama_ascii}
+                  </pre>
+                </div>
+                <div className="flex flex-wrap gap-2 mt-2 text-xs text-slate-500">
+                  <span>🔴 Atacantes</span>
+                  <span>🔵 Defensores</span>
+                  <span>⚽ Balón</span>
+                  <span>→ Movimiento</span>
+                  <span>▢ Portería</span>
+                </div>
+              </div>
+            )}
+
             {/* Description */}
             <div>
               <h4 className="font-semibold text-slate-900 mb-2">📝 Descripción</h4>
