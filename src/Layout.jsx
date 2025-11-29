@@ -648,15 +648,16 @@ export default function Layout({ children, currentPageName }) {
           }
           } catch (error) {
           console.error("Error fetching user:", error);
+          setIsLoading(false);
           // Si es página pública y hay error, permitir acceso anónimo
           if (isPublicPage) {
             setUser(null);
             setAuthChecked(true);
           }
-          }
-          };
-          fetchUser();
-          }, [isPublicPage]);
+        }
+      };
+      fetchUser();
+    }, [isPublicPage]);
 
           useEffect(() => {
             if (!user) return;
