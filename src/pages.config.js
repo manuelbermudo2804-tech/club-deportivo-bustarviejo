@@ -66,6 +66,7 @@ import ReferralManagement from './pages/ReferralManagement';
 import PublicClubMembership from './pages/PublicClubMembership';
 import TacticsBoard from './pages/TacticsBoard';
 import ExerciseLibrary from './pages/ExerciseLibrary';
+import BudgetManagement from './pages/BudgetManagement';
 import __Layout from './Layout.jsx';
 
 
@@ -138,6 +139,7 @@ export const PAGES = {
     "PublicClubMembership": PublicClubMembership,
     "TacticsBoard": TacticsBoard,
     "ExerciseLibrary": ExerciseLibrary,
+    "BudgetManagement": BudgetManagement,
 }
 
 export const pagesConfig = {
