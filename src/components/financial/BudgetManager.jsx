@@ -19,8 +19,10 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
-import { Plus, Edit2, Trash2, TrendingUp, TrendingDown, AlertTriangle } from "lucide-react";
+import { Plus, Edit2, Trash2, TrendingUp, TrendingDown, AlertTriangle, Sparkles } from "lucide-react";
 import { toast } from "sonner";
+
+import AIBudgetAssistant from "./AIBudgetAssistant";
 
 const PARTIDA_TEMPLATES = {
   "Ingresos": [
@@ -56,9 +58,16 @@ const PARTIDA_TEMPLATES = {
   ]
 };
 
-export default function BudgetManager({ budget, onUpdate, onDelete }) {
+export default function BudgetManager({ 
+  budget, 
+  onUpdate, 
+  onDelete,
+  historicalTransactions = [],
+  historicalBudgets = []
+}) {
   const [showAddPartida, setShowAddPartida] = useState(false);
   const [editingPartida, setEditingPartida] = useState(null);
+  const [showAIAssistant, setShowAIAssistant] = useState(false);
   const [newPartida, setNewPartida] = useState({
     nombre: "",
     categoria: "Gastos Variables",
@@ -266,8 +275,16 @@ export default function BudgetManager({ budget, onUpdate, onDelete }) {
         </CardContent>
       </Card>
 
-      {/* Botón añadir partida */}
-      <div className="flex justify-end">
+      {/* Botones de acción */}
+      <div className="flex justify-end gap-3">
+        <Button 
+          onClick={() => setShowAIAssistant(true)} 
+          variant="outline"
+          className="border-purple-300 text-purple-700 hover:bg-purple-50"
+        >
+          <Sparkles className="h-4 w-4 mr-2" />
+          Asistente IA
+        </Button>
         <Button onClick={() => setShowAddPartida(true)} className="bg-orange-600 hover:bg-orange-700">
           <Plus className="h-4 w-4 mr-2" />
           Añadir Partida
@@ -419,6 +436,19 @@ export default function BudgetManager({ budget, onUpdate, onDelete }) {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Asistente IA de Presupuestos */}
+      <AIBudgetAssistant
+        open={showAIAssistant}
+        onClose={() => setShowAIAssistant(false)}
+        currentBudget={budget}
+        historicalTransactions={historicalTransactions}
+        historicalBudgets={historicalBudgets}
+        onApplyBudget={(newBudgetData) => {
+          onUpdate(newBudgetData);
+          setShowAIAssistant(false);
+        }}
+      />
     </div>
   );
 }
