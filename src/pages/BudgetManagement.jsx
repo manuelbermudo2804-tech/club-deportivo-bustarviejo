@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
@@ -19,8 +19,7 @@ import {
   Receipt, 
   PieChart, 
   FileText,
-  Loader2,
-  Download
+  Loader2
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -46,7 +45,6 @@ export default function BudgetManagement() {
 
   const currentSeason = getCurrentSeason();
 
-  // Queries
   const { data: budgets = [], isLoading: loadingBudgets } = useQuery({
     queryKey: ['budgets'],
     queryFn: () => base44.entities.Budget.list('-created_date'),
@@ -59,7 +57,6 @@ export default function BudgetManagement() {
 
   const activeBudget = budgets.find(b => b.activo && b.temporada === currentSeason) || budgets[0];
 
-  // Mutations
   const createBudgetMutation = useMutation({
     mutationFn: (data) => base44.entities.Budget.create(data),
     onSuccess: () => {
@@ -80,7 +77,6 @@ export default function BudgetManagement() {
     mutationFn: async (data) => {
       const transaction = await base44.entities.FinancialTransaction.create(data);
       
-      // Si tiene partida asociada, actualizar el ejecutado
       if (data.partida_id && activeBudget) {
         const updatedPartidas = activeBudget.partidas.map(p => {
           if (p.id === data.partida_id) {
@@ -109,7 +105,6 @@ export default function BudgetManagement() {
       const transaction = transactions.find(t => t.id === id);
       await base44.entities.FinancialTransaction.delete(id);
       
-      // Si tenía partida asociada, restar del ejecutado
       if (transaction?.partida_id && activeBudget) {
         const updatedPartidas = activeBudget.partidas.map(p => {
           if (p.id === transaction.partida_id) {
@@ -314,7 +309,6 @@ export default function BudgetManagement() {
         </TabsContent>
       </Tabs>
 
-      {/* Dialog nuevo presupuesto */}
       <Dialog open={showNewBudget} onOpenChange={setShowNewBudget}>
         <DialogContent>
           <DialogHeader>
