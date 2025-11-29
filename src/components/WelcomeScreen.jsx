@@ -1,24 +1,36 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
 
-const CLUB_LOGO_URL = `https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6911b8e453ca3ac01fb134d6/e3f0a8e26_logo_cd_bustarviejo_mediano.jpg?t=${Date.now()}`;
+const CLUB_LOGO_URL = `https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6911b8e453ca3ac01fb134d6/e3f0a8e26_logo_cd_bustarviejo_mediano.jpg`;
 
 export default function WelcomeScreen({ onComplete }) {
-  useEffect(() => {
-    // Mostrar animación por 2.5 segundos
-    const timer = setTimeout(() => {
+  const handleComplete = useCallback(() => {
+    if (onComplete) {
       onComplete();
-    }, 2500);
+    }
+  }, [onComplete]);
+
+  useEffect(() => {
+    // Mostrar animación por 2 segundos (reducido para móvil)
+    const timer = setTimeout(() => {
+      handleComplete();
+    }, 2000);
     
     return () => clearTimeout(timer);
-  }, [onComplete]);
+  }, [handleComplete]);
+
+  // También permitir saltar tocando la pantalla
+  const handleTap = () => {
+    handleComplete();
+  };
 
   return (
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 z-[99999] bg-gradient-to-br from-orange-600 via-orange-700 to-green-700 flex items-center justify-center p-4 overflow-hidden"
+      onClick={handleTap}
+      className="fixed inset-0 z-[99999] bg-gradient-to-br from-orange-600 via-orange-700 to-green-700 flex items-center justify-center p-4 overflow-hidden cursor-pointer"
       style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0 }}
     >
       {/* Balones flotantes animados con más deportes */}
