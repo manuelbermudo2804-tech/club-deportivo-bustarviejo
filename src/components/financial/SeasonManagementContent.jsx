@@ -647,6 +647,38 @@ export default function SeasonManagementContent() {
                 onCheckedChange={(checked) => toggleFeature('notificaciones_admin_email', checked)}
               />
             </div>
+
+            {/* Programa de Referidos */}
+            <div className="flex items-center justify-between p-4 bg-slate-50 rounded-lg">
+              <div className="flex items-center gap-3">
+                <Users className="w-5 h-5 text-purple-600" />
+                <div>
+                  <p className="font-medium">Programa de Referidos</p>
+                  <p className="text-xs text-slate-600">Activar programa "Trae un Socio Amigo"</p>
+                </div>
+              </div>
+              <Switch
+                checked={activeSeason?.programa_referidos_activo || false}
+                onCheckedChange={(checked) => toggleFeature('programa_referidos_activo', checked)}
+              />
+            </div>
+
+            {/* Compartir WhatsApp en Referidos - Solo visible si programa está activo */}
+            {activeSeason?.programa_referidos_activo && (
+              <div className="flex items-center justify-between p-4 bg-purple-50 rounded-lg ml-4 border-l-4 border-purple-300">
+                <div className="flex items-center gap-3">
+                  <Smartphone className="w-5 h-5 text-green-600" />
+                  <div>
+                    <p className="font-medium">Compartir por WhatsApp</p>
+                    <p className="text-xs text-slate-600">Permitir a padres compartir su enlace de referidos por WhatsApp</p>
+                  </div>
+                </div>
+                <Switch
+                  checked={activeSeason?.referidos_permitir_whatsapp_padres !== false}
+                  onCheckedChange={(checked) => toggleFeature('referidos_permitir_whatsapp_padres', checked)}
+                />
+              </div>
+            )}
           </CardContent>
         )}
       </Card>
