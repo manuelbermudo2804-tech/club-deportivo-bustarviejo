@@ -12,7 +12,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Upload, FileText, Loader2, X, Receipt, TrendingUp, TrendingDown } from "lucide-react";
+import { Upload, FileText, Loader2, X, Receipt, TrendingUp, TrendingDown, Sparkles, CheckCircle2 } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { toast } from "sonner";
 
 const CATEGORIAS_INGRESO = [
@@ -66,6 +67,8 @@ export default function TransactionForm({
   const [documento, setDocumento] = useState(null);
   const [uploading, setUploading] = useState(false);
   const [documentoUrl, setDocumentoUrl] = useState("");
+  const [extracting, setExtracting] = useState(false);
+  const [extractedData, setExtractedData] = useState(null);
 
   const categorias = tipo === "Ingreso" ? CATEGORIAS_INGRESO : CATEGORIAS_GASTO;
   const partidasFiltradas = partidas.filter(p => 
@@ -82,6 +85,7 @@ export default function TransactionForm({
     }
 
     setUploading(true);
+    setExtractedData(null);
     try {
       const { file_url } = await base44.integrations.Core.UploadFile({ file });
       setDocumentoUrl(file_url);
@@ -90,11 +94,121 @@ export default function TransactionForm({
         url: file_url
       });
       toast.success("Documento subido correctamente");
+
+      // Extraer datos con IA si es PDF o imagen
+      const isExtractable = /\.(pdf|jpg|jpeg|png)$/i.test(file.name);
+      if (isExtractable) {
+        await extractDataFromInvoice(file_url);
+      }
     } catch (error) {
       toast.error("Error al subir el documento");
     } finally {
       setUploading(false);
     }
+  };
+
+  const extractDataFromInvoice = async (fileUrl) => {
+    setExtracting(true);
+    try {
+      const allCategorias = [...CATEGORIAS_INGRESO, ...CATEGORIAS_GASTO];
+      const partidasNombres = partidas.map(p => p.nombre).join(", ");
+
+      const result = await base44.integrations.Core.ExtractDataFromUploadedFile({
+        file_url: fileUrl,
+        json_schema: {
+          type: "object",
+          properties: {
+            proveedor_cliente: {
+              type: "string",
+              description: "Nombre del proveedor o cliente que emite la factura"
+            },
+            fecha: {
+              type: "string",
+              description: "Fecha de la factura en formato YYYY-MM-DD"
+            },
+            cantidad: {
+              type: "number",
+              description: "Importe total de la factura en euros (sin el símbolo €)"
+            },
+            numero_factura: {
+              type: "string",
+              description: "Número de factura o referencia del documento"
+            },
+            concepto: {
+              type: "string",
+              description: "Descripción breve del concepto o servicio facturado"
+            },
+            categoria_sugerida: {
+              type: "string",
+              description: `Categoría más apropiada de esta lista: ${allCategorias.join(", ")}`
+            },
+            partida_sugerida: {
+              type: "string",
+              description: partidasNombres ? `Partida presupuestaria más apropiada de esta lista: ${partidasNombres}` : "No hay partidas definidas"
+            },
+            es_ingreso: {
+              type: "boolean",
+              description: "true si es un ingreso/cobro, false si es un gasto/pago"
+            }
+          }
+        }
+      });
+
+      if (result.status === "success" && result.output) {
+        setExtractedData(result.output);
+        toast.success("✨ Datos extraídos con IA", { description: "Revisa y confirma la información" });
+      } else {
+        toast.info("No se pudieron extraer datos automáticamente");
+      }
+    } catch (error) {
+      console.error("Error extrayendo datos:", error);
+      toast.info("No se pudieron extraer datos automáticamente");
+    } finally {
+      setExtracting(false);
+    }
+  };
+
+  const applyExtractedData = () => {
+    if (!extractedData) return;
+
+    // Determinar tipo
+    const nuevoTipo = extractedData.es_ingreso ? "Ingreso" : "Gasto";
+    setTipo(nuevoTipo);
+
+    // Buscar partida por nombre
+    let partidaId = "";
+    let partidaNombre = "";
+    if (extractedData.partida_sugerida) {
+      const partidaEncontrada = partidas.find(p => 
+        p.nombre.toLowerCase().includes(extractedData.partida_sugerida.toLowerCase()) ||
+        extractedData.partida_sugerida.toLowerCase().includes(p.nombre.toLowerCase())
+      );
+      if (partidaEncontrada) {
+        partidaId = partidaEncontrada.id;
+        partidaNombre = partidaEncontrada.nombre;
+      }
+    }
+
+    // Validar categoría
+    const categoriasValidas = nuevoTipo === "Ingreso" ? CATEGORIAS_INGRESO : CATEGORIAS_GASTO;
+    const categoriaValida = categoriasValidas.find(c => 
+      c.toLowerCase() === extractedData.categoria_sugerida?.toLowerCase()
+    ) || "";
+
+    setFormData(prev => ({
+      ...prev,
+      concepto: extractedData.concepto || prev.concepto,
+      cantidad: extractedData.cantidad?.toString() || prev.cantidad,
+      fecha: extractedData.fecha || prev.fecha,
+      categoria: categoriaValida,
+      partida_id: partidaId,
+      partida_nombre: partidaNombre,
+      proveedor_cliente: extractedData.proveedor_cliente || prev.proveedor_cliente,
+      numero_factura: extractedData.numero_factura || prev.numero_factura
+    }));
+
+    setExtractedData(null);
+    toast.success("Datos aplicados al formulario");
   };
 
   const handlePartidaChange = (partidaId) => {
@@ -290,10 +404,16 @@ export default function TransactionForm({
             </div>
           </div>
 
-          {/* Documento adjunto */}
+          {/* Documento adjunto con IA */}
           <div>
-            <Label>Documento/Factura (opcional)</Label>
-            <div className="mt-2">
+            <Label className="flex items-center gap-2">
+              Documento/Factura (opcional)
+              <span className="text-xs text-purple-600 font-normal flex items-center gap-1">
+                <Sparkles className="h-3 w-3" />
+                Extracción automática con IA
+              </span>
+            </Label>
+            <div className="mt-2 space-y-3">
               {documento ? (
                 <div className="flex items-center gap-2 p-3 bg-green-50 border border-green-200 rounded-lg">
                   <FileText className="h-5 w-5 text-green-600" />
@@ -305,13 +425,14 @@ export default function TransactionForm({
                     onClick={() => {
                       setDocumento(null);
                       setDocumentoUrl("");
+                      setExtractedData(null);
                     }}
                   >
                     <X className="h-4 w-4" />
                   </Button>
                 </div>
               ) : (
-                <label className="flex items-center justify-center gap-2 p-4 border-2 border-dashed border-slate-300 rounded-lg cursor-pointer hover:border-orange-400 hover:bg-orange-50 transition-colors">
+                <label className="flex items-center justify-center gap-2 p-4 border-2 border-dashed border-slate-300 rounded-lg cursor-pointer hover:border-purple-400 hover:bg-purple-50 transition-colors">
                   {uploading ? (
                     <>
                       <Loader2 className="h-5 w-5 animate-spin text-orange-600" />
@@ -321,18 +442,88 @@ export default function TransactionForm({
                     <>
                       <Upload className="h-5 w-5 text-slate-400" />
                       <span className="text-sm text-slate-600">
-                        Arrastra o haz clic para subir factura/documento
+                        Sube una factura (PDF/imagen) y la IA extraerá los datos
                       </span>
                     </>
                   )}
                   <input
                     type="file"
                     className="hidden"
-                    accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
+                    accept=".pdf,.jpg,.jpeg,.png"
                     onChange={handleFileUpload}
                     disabled={uploading}
                   />
                 </label>
+              )}
+
+              {/* Extrayendo datos con IA */}
+              {extracting && (
+                <Alert className="border-purple-200 bg-purple-50">
+                  <Sparkles className="h-4 w-4 text-purple-600 animate-pulse" />
+                  <AlertDescription className="text-purple-800">
+                    <span className="flex items-center gap-2">
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      Analizando factura con IA...
+                    </span>
+                  </AlertDescription>
+                </Alert>
+              )}
+
+              {/* Datos extraídos por IA */}
+              {extractedData && !extracting && (
+                <Alert className="border-purple-300 bg-gradient-to-r from-purple-50 to-indigo-50">
+                  <Sparkles className="h-4 w-4 text-purple-600" />
+                  <AlertDescription>
+                    <div className="space-y-3">
+                      <p className="font-semibold text-purple-900 flex items-center gap-2">
+                        <CheckCircle2 className="h-4 w-4 text-green-600" />
+                        ✨ Datos extraídos automáticamente
+                      </p>
+                      <div className="grid grid-cols-2 gap-2 text-sm text-purple-800">
+                        {extractedData.proveedor_cliente && (
+                          <div><span className="font-medium">Proveedor:</span> {extractedData.proveedor_cliente}</div>
+                        )}
+                        {extractedData.numero_factura && (
+                          <div><span className="font-medium">Nº Factura:</span> {extractedData.numero_factura}</div>
+                        )}
+                        {extractedData.fecha && (
+                          <div><span className="font-medium">Fecha:</span> {extractedData.fecha}</div>
+                        )}
+                        {extractedData.cantidad && (
+                          <div><span className="font-medium">Importe:</span> {extractedData.cantidad}€</div>
+                        )}
+                        {extractedData.concepto && (
+                          <div className="col-span-2"><span className="font-medium">Concepto:</span> {extractedData.concepto}</div>
+                        )}
+                        {extractedData.categoria_sugerida && (
+                          <div><span className="font-medium">Categoría:</span> {extractedData.categoria_sugerida}</div>
+                        )}
+                        {extractedData.es_ingreso !== undefined && (
+                          <div><span className="font-medium">Tipo:</span> {extractedData.es_ingreso ? "Ingreso" : "Gasto"}</div>
+                        )}
+                      </div>
+                      <div className="flex gap-2 pt-2">
+                        <Button
+                          type="button"
+                          size="sm"
+                          onClick={applyExtractedData}
+                          className="bg-purple-600 hover:bg-purple-700"
+                        >
+                          <CheckCircle2 className="h-4 w-4 mr-1" />
+                          Aplicar datos
+                        </Button>
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant="outline"
+                          onClick={() => setExtractedData(null)}
+                        >
+                          Ignorar
+                        </Button>
+                      </div>
+                    </div>
+                  </AlertDescription>
+                </Alert>
               )}
             </div>
           </div>
