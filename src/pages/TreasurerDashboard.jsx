@@ -1,11 +1,20 @@
 import React, { useState, useMemo } from "react";
 import { base44 } from "@/api/base44Client";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
 import { 
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, 
   Legend, PieChart, Pie, Cell, LineChart, Line, AreaChart, Area 
@@ -13,11 +22,16 @@ import {
 import { 
   TrendingUp, DollarSign, Users, AlertCircle, CheckCircle2, Clock, 
   Download, FileText, CreditCard, ShoppingBag, Clover, Building2,
-  ArrowUpRight, ArrowDownRight, Receipt, Calendar
+  ArrowUpRight, ArrowDownRight, Receipt, Calendar, Wallet, Plus, Loader2, PieChart as PieChartIcon
 } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { jsPDF } from "jspdf";
+import { toast } from "sonner";
+
+import BudgetManager from "../components/financial/BudgetManager";
+import TransactionForm from "../components/financial/TransactionForm";
+import TransactionList from "../components/financial/TransactionList";
 
 const COLORS = {
   pagado: '#16a34a',
@@ -31,6 +45,22 @@ const COLORS = {
 
 export default function TreasurerDashboard() {
   const [selectedSeason, setSelectedSeason] = useState("all");
+  const [showNewBudget, setShowNewBudget] = useState(false);
+  const [showTransactionForm, setShowTransactionForm] = useState(false);
+  const [newBudgetData, setNewBudgetData] = useState({
+    temporada: "",
+    nombre: "Presupuesto Principal"
+  });
+  const queryClient = useQueryClient();
+
+  const getCurrentSeason = () => {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = now.getMonth() + 1;
+    return month >= 9 ? `${year}/${year + 1}` : `${year - 1}/${year}`;
+  };
+
+  const currentSeason = getCurrentSeason();
 
   // Fetch all financial data
   const { data: payments = [] } = useQuery({
@@ -67,6 +97,131 @@ export default function TreasurerDashboard() {
     queryKey: ['seasons'],
     queryFn: () => base44.entities.SeasonConfig.list('-created_date'),
   });
+
+  // Presupuestos y transacciones financieras
+  const { data: budgets = [], isLoading: loadingBudgets } = useQuery({
+    queryKey: ['budgets'],
+    queryFn: () => base44.entities.Budget.list('-created_date'),
+  });
+
+  const { data: financialTransactions = [], isLoading: loadingFinancialTransactions } = useQuery({
+    queryKey: ['financialTransactions'],
+    queryFn: () => base44.entities.FinancialTransaction.list('-fecha'),
+  });
+
+  const activeBudget = budgets.find(b => b.activo && b.temporada === currentSeason) || budgets[0];
+
+  // Mutations para presupuestos
+  const createBudgetMutation = useMutation({
+    mutationFn: (data) => base44.entities.Budget.create(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['budgets'] });
+      setShowNewBudget(false);
+      toast.success("Presupuesto creado");
+    },
+  });
+
+  const updateBudgetMutation = useMutation({
+    mutationFn: ({ id, data }) => base44.entities.Budget.update(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['budgets'] });
+    },
+  });
+
+  const createTransactionMutation = useMutation({
+    mutationFn: async (data) => {
+      const transaction = await base44.entities.FinancialTransaction.create(data);
+      
+      if (data.partida_id && activeBudget) {
+        const updatedPartidas = activeBudget.partidas.map(p => {
+          if (p.id === data.partida_id) {
+            return {
+              ...p,
+              ejecutado: (p.ejecutado || 0) + data.cantidad
+            };
+          }
+          return p;
+        });
+        await base44.entities.Budget.update(activeBudget.id, { partidas: updatedPartidas });
+      }
+      
+      return transaction;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['financialTransactions'] });
+      queryClient.invalidateQueries({ queryKey: ['budgets'] });
+      setShowTransactionForm(false);
+      toast.success("Movimiento registrado");
+    },
+  });
+
+  const deleteTransactionMutation = useMutation({
+    mutationFn: async (id) => {
+      const transaction = financialTransactions.find(t => t.id === id);
+      await base44.entities.FinancialTransaction.delete(id);
+      
+      if (transaction?.partida_id && activeBudget) {
+        const updatedPartidas = activeBudget.partidas.map(p => {
+          if (p.id === transaction.partida_id) {
+            return {
+              ...p,
+              ejecutado: Math.max(0, (p.ejecutado || 0) - transaction.cantidad)
+            };
+          }
+          return p;
+        });
+        await base44.entities.Budget.update(activeBudget.id, { partidas: updatedPartidas });
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['financialTransactions'] });
+      queryClient.invalidateQueries({ queryKey: ['budgets'] });
+      toast.success("Movimiento eliminado");
+    },
+  });
+
+  const handleCreateBudget = () => {
+    createBudgetMutation.mutate({
+      ...newBudgetData,
+      temporada: newBudgetData.temporada || currentSeason,
+      partidas: [],
+      activo: true
+    });
+  };
+
+  const handleUpdateBudget = (updates) => {
+    if (activeBudget) {
+      updateBudgetMutation.mutate({
+        id: activeBudget.id,
+        data: { ...activeBudget, ...updates }
+      });
+    }
+  };
+
+  const handleExportFinancialTransactions = () => {
+    const csvContent = [
+      ["Fecha", "Tipo", "Concepto", "Categoría", "Proveedor/Cliente", "Importe", "Estado", "Nº Factura"].join(","),
+      ...financialTransactions.map(t => [
+        t.fecha,
+        t.tipo,
+        `"${t.concepto}"`,
+        t.categoria,
+        `"${t.proveedor_cliente || ''}"`,
+        t.cantidad,
+        t.estado,
+        t.numero_factura || ''
+      ].join(","))
+    ].join("\n");
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `movimientos_financieros_${currentSeason.replace("/", "-")}.csv`;
+    a.click();
+    window.URL.revokeObjectURL(url);
+    toast.success("Exportación completada");
+  };
 
   // Get unique seasons from payments
   const availableSeasons = useMemo(() => {
@@ -534,8 +689,9 @@ export default function TreasurerDashboard() {
       <Tabs defaultValue="ingresos" className="w-full">
         <TabsList className="w-full flex-wrap h-auto">
           <TabsTrigger value="ingresos" className="flex-1">📊 Ingresos</TabsTrigger>
+          <TabsTrigger value="presupuesto" className="flex-1">💰 Presupuesto</TabsTrigger>
+          <TabsTrigger value="movimientos" className="flex-1">📝 Movimientos</TabsTrigger>
           <TabsTrigger value="deudas" className="flex-1">⚠️ Deudas</TabsTrigger>
-          <TabsTrigger value="transacciones" className="flex-1">📋 Transacciones</TabsTrigger>
           <TabsTrigger value="exportar" className="flex-1">📥 Exportar</TabsTrigger>
         </TabsList>
 
@@ -703,6 +859,125 @@ export default function TreasurerDashboard() {
           </div>
         </TabsContent>
 
+        {/* Presupuesto Tab */}
+        <TabsContent value="presupuesto" className="space-y-4">
+          <div className="flex justify-between items-center">
+            <div>
+              <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+                <Wallet className="h-5 w-5 text-orange-600" />
+                Gestión de Presupuestos - Temporada {currentSeason}
+              </h2>
+            </div>
+            {!activeBudget && (
+              <Button 
+                onClick={() => {
+                  setNewBudgetData({ temporada: currentSeason, nombre: "Presupuesto Principal" });
+                  setShowNewBudget(true);
+                }}
+                className="bg-orange-600 hover:bg-orange-700"
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Crear Presupuesto
+              </Button>
+            )}
+          </div>
+
+          {activeBudget ? (
+            <BudgetManager
+              budget={activeBudget}
+              onUpdate={handleUpdateBudget}
+            />
+          ) : (
+            <Card className="border-dashed border-2">
+              <CardContent className="p-12 text-center">
+                <Wallet className="h-16 w-16 text-slate-300 mx-auto mb-4" />
+                <h3 className="text-xl font-bold text-slate-900 mb-2">
+                  No hay presupuesto para esta temporada
+                </h3>
+                <p className="text-slate-600 mb-4">
+                  Crea un presupuesto para gestionar ingresos y gastos del club
+                </p>
+                <Button 
+                  onClick={() => {
+                    setNewBudgetData({ temporada: currentSeason, nombre: "Presupuesto Principal" });
+                    setShowNewBudget(true);
+                  }}
+                  className="bg-orange-600 hover:bg-orange-700"
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Crear Presupuesto
+                </Button>
+              </CardContent>
+            </Card>
+          )}
+        </TabsContent>
+
+        {/* Movimientos Financieros Tab */}
+        <TabsContent value="movimientos" className="space-y-4">
+          <div className="flex justify-between items-center">
+            <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+              <Receipt className="h-5 w-5 text-green-600" />
+              Movimientos Financieros - {currentSeason}
+            </h2>
+            <Button 
+              onClick={() => setShowTransactionForm(!showTransactionForm)}
+              className="bg-green-600 hover:bg-green-700"
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              Nuevo Movimiento
+            </Button>
+          </div>
+
+          {showTransactionForm ? (
+            <TransactionForm
+              partidas={activeBudget?.partidas || []}
+              temporada={currentSeason}
+              onSubmit={(data) => createTransactionMutation.mutate(data)}
+              onCancel={() => setShowTransactionForm(false)}
+              isSubmitting={createTransactionMutation.isPending}
+            />
+          ) : (
+            <TransactionList
+              transactions={financialTransactions.filter(t => t.temporada === currentSeason)}
+              onDelete={(id) => deleteTransactionMutation.mutate(id)}
+              onExport={handleExportFinancialTransactions}
+            />
+          )}
+
+          {/* Documentos adjuntos */}
+          {financialTransactions.filter(t => t.documento_url && t.temporada === currentSeason).length > 0 && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base flex items-center gap-2">
+                  <FileText className="h-4 w-4 text-orange-600" />
+                  Documentos y Facturas
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                  {financialTransactions
+                    .filter(t => t.documento_url && t.temporada === currentSeason)
+                    .slice(0, 8)
+                    .map(t => (
+                      <Card key={t.id} className="hover:shadow-md transition-shadow cursor-pointer"
+                        onClick={() => window.open(t.documento_url, '_blank')}>
+                        <CardContent className="p-3">
+                          <div className="flex items-center gap-2">
+                            <FileText className="h-5 w-5 text-orange-600 flex-shrink-0" />
+                            <div className="min-w-0">
+                              <p className="font-medium text-xs truncate">{t.documento_nombre || "Documento"}</p>
+                              <p className="text-[10px] text-slate-500 truncate">{t.concepto}</p>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+        </TabsContent>
+
         {/* Deudas Tab */}
         <TabsContent value="deudas" className="space-y-4">
           <Card className="border-none shadow-xl">
@@ -756,51 +1031,7 @@ export default function TreasurerDashboard() {
           </Card>
         </TabsContent>
 
-        {/* Transacciones Tab */}
-        <TabsContent value="transacciones" className="space-y-4">
-          <Card className="border-none shadow-xl">
-            <CardHeader className="flex flex-row items-center justify-between">
-              <CardTitle className="text-lg flex items-center gap-2">
-                <Receipt className="w-5 h-5 text-blue-600" />
-                Transacciones Recientes
-              </CardTitle>
-              <Button variant="outline" size="sm" onClick={() => exportToCSV("transacciones")}>
-                <Download className="w-4 h-4 mr-2" />
-                Exportar
-              </Button>
-            </CardHeader>
-            <CardContent>
-              {recentTransactions.length === 0 ? (
-                <div className="text-center py-8 text-slate-500">
-                  <Clock className="w-12 h-12 mx-auto mb-2 opacity-50" />
-                  <p>No hay transacciones recientes</p>
-                </div>
-              ) : (
-                <div className="space-y-2 max-h-[500px] overflow-y-auto">
-                  {recentTransactions.map((t, idx) => (
-                    <div key={idx} className="flex items-center gap-3 p-3 bg-slate-50 rounded-lg hover:bg-slate-100 transition-colors">
-                      <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center shadow-sm">
-                        {tipoIcons[t.tipo]}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="font-medium text-slate-900 truncate">{t.concepto}</p>
-                        <p className="text-xs text-slate-500">
-                          {t.fecha ? format(new Date(t.fecha), "d MMM yyyy", { locale: es }) : '-'}
-                        </p>
-                      </div>
-                      <div className="text-right">
-                        <p className="font-bold text-green-600">+{t.cantidad?.toLocaleString()}€</p>
-                        <Badge className="bg-green-100 text-green-700 text-[10px]">
-                          Completado
-                        </Badge>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
+
 
         {/* Exportar Tab */}
         <TabsContent value="exportar" className="space-y-4">
@@ -882,6 +1113,52 @@ export default function TreasurerDashboard() {
           </Card>
         </TabsContent>
       </Tabs>
+
+      {/* Dialog nuevo presupuesto */}
+      <Dialog open={showNewBudget} onOpenChange={setShowNewBudget}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Crear Nuevo Presupuesto</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div>
+              <Label>Temporada</Label>
+              <Input
+                value={newBudgetData.temporada}
+                onChange={(e) => setNewBudgetData({...newBudgetData, temporada: e.target.value})}
+                placeholder={currentSeason}
+              />
+            </div>
+            <div>
+              <Label>Nombre del Presupuesto</Label>
+              <Input
+                value={newBudgetData.nombre}
+                onChange={(e) => setNewBudgetData({...newBudgetData, nombre: e.target.value})}
+                placeholder="Presupuesto Principal"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowNewBudget(false)}>
+              Cancelar
+            </Button>
+            <Button 
+              onClick={handleCreateBudget}
+              disabled={createBudgetMutation.isPending}
+              className="bg-orange-600 hover:bg-orange-700"
+            >
+              {createBudgetMutation.isPending ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Creando...
+                </>
+              ) : (
+                "Crear Presupuesto"
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
