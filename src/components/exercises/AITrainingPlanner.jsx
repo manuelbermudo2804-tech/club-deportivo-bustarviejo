@@ -232,10 +232,13 @@ También incluye:
                   <SelectValue placeholder="Selecciona..." />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="Sub-10 a Sub-13">Sub-10 a Sub-13</SelectItem>
-                  <SelectItem value="Sub-13 a Sub-16">Sub-13 a Sub-16</SelectItem>
-                  <SelectItem value="Sub-16 a Sub-19">Sub-16 a Sub-19</SelectItem>
-                  <SelectItem value="Adultos">Adultos</SelectItem>
+                  <SelectItem value="Sub-8">Sub-8 (Prebenjamín)</SelectItem>
+                  <SelectItem value="Sub-10">Sub-10 (Benjamín)</SelectItem>
+                  <SelectItem value="Sub-12">Sub-12 (Alevín)</SelectItem>
+                  <SelectItem value="Sub-14">Sub-14 (Infantil)</SelectItem>
+                  <SelectItem value="Sub-16">Sub-16 (Cadete)</SelectItem>
+                  <SelectItem value="Sub-18">Sub-18 (Juvenil)</SelectItem>
+                  <SelectItem value="Adultos">Adultos (Senior)</SelectItem>
                 </SelectContent>
               </Select>
             </div>
