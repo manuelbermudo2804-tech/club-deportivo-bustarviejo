@@ -22,7 +22,8 @@ import {
 import { 
   TrendingUp, DollarSign, Users, AlertCircle, CheckCircle2, Clock, 
   Download, FileText, CreditCard, ShoppingBag, Clover, Building2,
-  ArrowUpRight, ArrowDownRight, Receipt, Calendar, Wallet, Plus, Loader2, PieChart as PieChartIcon
+  ArrowUpRight, ArrowDownRight, Receipt, Calendar, Wallet, Plus, Loader2, PieChart as PieChartIcon,
+  Sparkles
 } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
@@ -32,6 +33,7 @@ import { toast } from "sonner";
 import BudgetManager from "../components/financial/BudgetManager";
 import TransactionForm from "../components/financial/TransactionForm";
 import TransactionList from "../components/financial/TransactionList";
+import AICommunicationAssistant from "../components/communication/AICommunicationAssistant";
 
 const COLORS = {
   pagado: '#16a34a',
@@ -47,6 +49,7 @@ export default function TreasurerDashboard() {
   const [selectedSeason, setSelectedSeason] = useState("all");
   const [showNewBudget, setShowNewBudget] = useState(false);
   const [showTransactionForm, setShowTransactionForm] = useState(false);
+  const [showCommunicationAssistant, setShowCommunicationAssistant] = useState(false);
   const [newBudgetData, setNewBudgetData] = useState({
     temporada: "",
     nombre: "Presupuesto Principal"
@@ -988,10 +991,21 @@ export default function TreasurerDashboard() {
                 <AlertCircle className="w-5 h-5 text-red-600" />
                 Jugadores con Pagos Pendientes ({pendingDebts.length})
               </CardTitle>
-              <Button variant="outline" size="sm" onClick={() => exportToCSV("deudas")}>
-                <Download className="w-4 h-4 mr-2" />
-                Exportar
-              </Button>
+              <div className="flex gap-2">
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => setShowCommunicationAssistant(true)}
+                  className="border-purple-300 text-purple-700 hover:bg-purple-50"
+                >
+                  <Sparkles className="w-4 h-4 mr-2" />
+                  Enviar Recordatorios IA
+                </Button>
+                <Button variant="outline" size="sm" onClick={() => exportToCSV("deudas")}>
+                  <Download className="w-4 h-4 mr-2" />
+                  Exportar
+                </Button>
+              </div>
             </CardHeader>
             <CardContent>
               {pendingDebts.length === 0 ? (
@@ -1161,6 +1175,12 @@ export default function TreasurerDashboard() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Asistente de Comunicación IA */}
+      <AICommunicationAssistant
+        open={showCommunicationAssistant}
+        onClose={() => setShowCommunicationAssistant(false)}
+      />
     </div>
   );
 }
