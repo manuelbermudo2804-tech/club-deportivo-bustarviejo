@@ -41,6 +41,7 @@ export default function TacticsBoard() {
   
   // Estado de drag
   const [jugadorArrastrado, setJugadorArrastrado] = useState(null);
+  const [jugadorSeleccionado, setJugadorSeleccionado] = useState(null);
   const [isDibujando, setIsDibujando] = useState(false);
   
   // Diálogos
@@ -577,6 +578,8 @@ export default function TacticsBoard() {
                   fieldRef={fieldRef}
                   maxY={maxY}
                   colorJugador={colorJugador}
+                  isSelected={jugadorSeleccionado === jugador.numero}
+                  onSelect={setJugadorSeleccionado}
                 />
               ))}
             </svg>
@@ -584,17 +587,25 @@ export default function TacticsBoard() {
         </CardContent>
       </Card>
 
-      {/* Info de formación */}
+      {/* Info de formación y ayuda */}
       <Card className="border-none shadow-lg bg-slate-50">
         <CardContent className="p-4">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
             <div>
               <h3 className="font-bold text-slate-900">{formacionesActuales[formacionActual]?.nombre}</h3>
               <p className="text-sm text-slate-600">{formacionesActuales[formacionActual]?.descripcion}</p>
             </div>
-            <Badge className={deporteActivo === "futbol" ? "bg-green-600" : "bg-orange-600"}>
-              {formacionActual}
-            </Badge>
+            <div className="flex items-center gap-3">
+              <Badge className={deporteActivo === "futbol" ? "bg-green-600" : "bg-orange-600"}>
+                {formacionActual}
+              </Badge>
+            </div>
+          </div>
+          <div className="mt-3 pt-3 border-t border-slate-200">
+            <p className="text-xs text-slate-500">
+              💡 <strong>Consejos:</strong> Arrastra los jugadores para moverlos. Pasa el ratón sobre ellos para ver el nombre completo. 
+              En móvil, mantén pulsado y arrastra. Usa el modo "Dibujar" para añadir flechas y líneas.
+            </p>
           </div>
         </CardContent>
       </Card>
