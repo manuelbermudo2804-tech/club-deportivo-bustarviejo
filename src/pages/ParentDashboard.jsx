@@ -139,25 +139,25 @@ export default function ParentDashboard() {
     return myPlayersSports.includes(s.destinatarios);
   }) : [];
 
-  const myPayments = payments && myPlayers ? payments.filter(p => 
+  const myPayments = payments.filter(p => 
     myPlayers.some(player => player.id === p.jugador_id)
-  ) : [];
+  );
 
-  const unreadMessages = messages && myPlayers ? messages.filter(m => {
+  const unreadMessages = messages.filter(m => {
     if (!m.leido && m.tipo === "admin_a_grupo") {
       const myGroupSports = [...new Set(myPlayers.map(p => p.deporte))];
       return myGroupSports.includes(m.grupo_id || m.deporte);
     }
     return false;
-  }).length : 0;
+  }).length;
 
-  const urgentUnreadMessages = messages && myPlayers ? messages.filter(m => {
+  const urgentUnreadMessages = messages.filter(m => {
     if (!m.leido && m.tipo === "admin_a_grupo" && m.prioridad === "Urgente") {
       const myGroupSports = [...new Set(myPlayers.map(p => p.deporte))];
       return myGroupSports.includes(m.grupo_id || m.deporte);
     }
     return false;
-  }).length : 0;
+  }).length;
 
   const today = new Date().toISOString().split('T')[0];
   const upcomingCallups = callups ? callups.filter(c => 
