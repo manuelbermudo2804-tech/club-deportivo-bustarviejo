@@ -450,13 +450,13 @@ export default function ParentDashboard() {
     });
   }
 
-  // Solo mostrar loading si no hay usuario (pero no bloquear por playersLoading)
+  // Mostrar loading solo brevemente mientras carga el usuario
   if (!user) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-black flex items-center justify-center">
         <div className="text-center">
-          <div className="inline-block h-12 w-12 animate-spin rounded-full border-4 border-solid border-orange-600 border-r-transparent mb-4"></div>
-          <p className="text-white text-lg">Cargando panel...</p>
+          <div className="inline-block h-10 w-10 animate-spin rounded-full border-4 border-solid border-orange-600 border-r-transparent mb-3"></div>
+          <p className="text-white text-sm">Cargando...</p>
         </div>
       </div>
     );
