@@ -35,11 +35,16 @@ export default function AITrainingPlanner({ exercises, onClose }) {
       const exerciseCatalog = sportExercises.map(ex => ({
         nombre: ex.nombre,
         categoria: ex.categoria_ejercicio,
+        subcategoria: ex.subcategoria,
         duracion: ex.duracion_minutos,
         intensidad: ex.intensidad,
+        nivel_dificultad: ex.nivel_dificultad,
         descripcion: ex.descripcion?.substring(0, 200),
         objetivo_fisico: ex.objetivo_fisico,
         objetivo_tecnico: ex.objetivo_tecnico,
+        objetivo_tactico: ex.objetivo_tactico,
+        momento_sesion: ex.momento_sesion,
+        tags_ia: ex.tags_ia,
       }));
 
       const prompt = `Eres un entrenador deportivo experto en ${sport}. 
