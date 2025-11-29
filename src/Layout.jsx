@@ -1160,27 +1160,44 @@ export default function Layout({ children, currentPageName }) {
 
   
 
-      // Render onboarding based on role
-      const renderOnboarding = () => {
-        if (!showOnboarding) return null;
+      // Mostrar loading mientras se carga el usuario
+  if (isLoading && !isPublicPage) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-orange-600 via-orange-700 to-green-700 flex items-center justify-center">
+        <div className="text-center">
+          <img 
+            src={CLUB_LOGO_URL} 
+            alt="CD Bustarviejo"
+            className="w-24 h-24 mx-auto mb-4 rounded-xl shadow-xl object-cover"
+          />
+          <div className="animate-spin rounded-full h-8 w-8 border-4 border-white border-t-transparent mx-auto"></div>
+          <p className="text-white mt-4 font-medium">Cargando...</p>
+        </div>
+      </div>
+    );
+  }
 
-        const handleOnboardingComplete = () => setShowOnboarding(false);
+  // Render onboarding based on role
+  const renderOnboarding = () => {
+    if (!showOnboarding) return null;
 
-        if (isAdmin) {
-          return <AdminOnboarding open={showOnboarding} onComplete={handleOnboardingComplete} />;
-        } else if (isCoordinator) {
-          return <CoordinatorOnboarding open={showOnboarding} onComplete={handleOnboardingComplete} />;
-        } else if (isTreasurer) {
-          return <TreasurerOnboarding open={showOnboarding} onComplete={handleOnboardingComplete} />;
-        } else if (isCoach) {
-          return <CoachOnboarding open={showOnboarding} onComplete={handleOnboardingComplete} />;
-        } else if (!isPlayer) {
-          return <ParentOnboarding open={showOnboarding} onComplete={handleOnboardingComplete} />;
-        }
-        return null;
-      };
+    const handleOnboardingComplete = () => setShowOnboarding(false);
 
-      return (
+    if (isAdmin) {
+      return <AdminOnboarding open={showOnboarding} onComplete={handleOnboardingComplete} />;
+    } else if (isCoordinator) {
+      return <CoordinatorOnboarding open={showOnboarding} onComplete={handleOnboardingComplete} />;
+    } else if (isTreasurer) {
+      return <TreasurerOnboarding open={showOnboarding} onComplete={handleOnboardingComplete} />;
+    } else if (isCoach) {
+      return <CoachOnboarding open={showOnboarding} onComplete={handleOnboardingComplete} />;
+    } else if (!isPlayer) {
+      return <ParentOnboarding open={showOnboarding} onComplete={handleOnboardingComplete} />;
+    }
+    return null;
+  };
+
+  return (
         <>
           {renderOnboarding()}
           <SessionManager />
