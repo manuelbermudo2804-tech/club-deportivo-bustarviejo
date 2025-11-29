@@ -257,7 +257,10 @@ export default function TransactionForm({
       cantidad: parseFloat(formData.cantidad),
       temporada,
       documento_url: documentoUrl,
-      documento_nombre: documento?.nombre
+      documento_nombre: documento?.nombre,
+      tipo_documento: extractedData?.tipo_documento || null,
+      subtipo_documento: extractedData?.subtipo_documento || null,
+      palabras_clave: extractedData?.palabras_clave || []
     });
   };
 
