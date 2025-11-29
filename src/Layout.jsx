@@ -510,8 +510,13 @@ export default function Layout({ children, currentPageName }) {
     return localStorage.getItem('appLanguage') || 'es';
   });
   const [showWelcome, setShowWelcome] = useState(() => {
-    // Solo mostrar una vez por sesión
-    return sessionStorage.getItem('welcomeShown') === 'true';
+    // Solo mostrar una vez por sesión - siempre empezar en true para evitar bloqueos en iOS
+    if (sessionStorage.getItem('welcomeShown') === 'true') {
+      return true;
+    }
+    // Marcar como mostrado inmediatamente para evitar problemas
+    sessionStorage.setItem('welcomeShown', 'true');
+    return false;
   });
   const [loteriaVisible, setLoteriaVisible] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(false);
@@ -1155,19 +1160,19 @@ export default function Layout({ children, currentPageName }) {
     );
   }
 
-  if (!showWelcome) {
-        // Timeout de seguridad por si el WelcomeScreen no llama a onComplete (especialmente en iOS)
-        const safetyTimeout = setTimeout(() => {
-          sessionStorage.setItem('welcomeShown', 'true');
-          setShowWelcome(true);
-        }, 3000);
+  // Welcome screen con timeout de seguridad usando useEffect
+  useEffect(() => {
+    if (!showWelcome) {
+      const safetyTimer = setTimeout(() => {
+        setShowWelcome(true);
+      }, 2000);
+      return () => clearTimeout(safetyTimer);
+    }
+  }, [showWelcome]);
 
-        return <WelcomeScreen onComplete={() => {
-          clearTimeout(safetyTimeout);
-          sessionStorage.setItem('welcomeShown', 'true');
-          setShowWelcome(true);
-        }} />;
-      }
+  if (!showWelcome) {
+    return <WelcomeScreen onComplete={() => setShowWelcome(true)} />;
+  }
 
       // Render onboarding based on role
       const renderOnboarding = () => {
