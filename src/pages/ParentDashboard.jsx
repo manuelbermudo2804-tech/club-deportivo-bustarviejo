@@ -297,10 +297,10 @@ export default function ParentDashboard() {
     return pendingCount;
   };
 
-  const pendingPayments = myPayments && myPlayers ? myPayments.filter(p => 
+  const pendingPayments = myPayments.filter(p => 
     myPlayers.some(player => player.id === p.jugador_id) &&
     (p.estado === "Pendiente" || p.estado === "En revisión")
-  ).length : 0;
+  ).length;
 
   // Menú base que siempre se muestra (sin depender de datos cargados)
   const baseMenuItems = [
