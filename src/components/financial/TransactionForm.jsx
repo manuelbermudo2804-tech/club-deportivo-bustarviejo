@@ -113,6 +113,12 @@ export default function TransactionForm({
       const allCategorias = [...CATEGORIAS_INGRESO, ...CATEGORIAS_GASTO];
       const partidasNombres = partidas.map(p => p.nombre).join(", ");
 
+      // Detectar temporada actual
+      const now = new Date();
+      const year = now.getFullYear();
+      const month = now.getMonth() + 1;
+      const currentSeason = month >= 9 ? `${year}/${year + 1}` : `${year - 1}/${year}`;
+
       const result = await base44.integrations.Core.ExtractDataFromUploadedFile({
         file_url: fileUrl,
         json_schema: {
@@ -149,6 +155,23 @@ export default function TransactionForm({
             es_ingreso: {
               type: "boolean",
               description: "true si es un ingreso/cobro, false si es un gasto/pago"
+            },
+            tipo_documento: {
+              type: "string",
+              description: "Tipo de documento detectado. Opciones: Factura, Recibo, Justificante de pago, Presupuesto, Albarán, Contrato, Nómina, Extracto bancario, Otro"
+            },
+            subtipo_documento: {
+              type: "string",
+              description: "Subtipo según el contenido: Cuota deportiva, Equipación/Ropa, Lotería, Material deportivo, Arbitraje, Desplazamiento, Instalaciones, Subvención, Patrocinio, Seguro, Federación, Otro"
+            },
+            temporada_detectada: {
+              type: "string",
+              description: `Temporada a la que corresponde el documento (formato: YYYY/YYYY, ej: 2024/2025). Si no se detecta, usar: ${currentSeason}`
+            },
+            palabras_clave: {
+              type: "array",
+              items: { type: "string" },
+              description: "Lista de palabras clave relevantes del documento para facilitar búsquedas futuras (máximo 5)"
             }
           }
         }
@@ -501,7 +524,16 @@ export default function TransactionForm({
                         {extractedData.es_ingreso !== undefined && (
                           <div><span className="font-medium">Tipo:</span> {extractedData.es_ingreso ? "Ingreso" : "Gasto"}</div>
                         )}
-                      </div>
+                        {extractedData.tipo_documento && (
+                          <div><span className="font-medium">Tipo Doc:</span> {extractedData.tipo_documento}</div>
+                        )}
+                        {extractedData.subtipo_documento && (
+                          <div><span className="font-medium">Subtipo:</span> {extractedData.subtipo_documento}</div>
+                        )}
+                        {extractedData.temporada_detectada && (
+                          <div><span className="font-medium">Temporada:</span> {extractedData.temporada_detectada}</div>
+                        )}
+                        </div>
                       <div className="flex gap-2 pt-2">
                         <Button
                           type="button"
