@@ -321,24 +321,22 @@ Por solo 25€/temporada ayudas a nuestros jóvenes deportistas y formas parte d
           </ol>
           </div>
 
-          {/* Botones de compartir */}
-          {userEmail && (
+          {/* Botones de compartir - Solo si WhatsApp está permitido */}
+          {userEmail && seasonConfig?.referidos_permitir_whatsapp_padres !== false && (
           <div className="space-y-3 mt-4">
             <p className="text-sm font-semibold text-center">📤 ¡Comparte tu enlace único!</p>
             <div className="flex flex-col sm:flex-row gap-2">
-              {seasonConfig?.referidos_permitir_whatsapp_padres !== false && (
-                <a 
-                  href={whatsappUrl} 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="flex-1"
-                >
-                  <Button className="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-3 gap-2">
-                    <MessageCircle className="w-5 h-5" />
-                    Enviar por WhatsApp
-                  </Button>
-                </a>
-              )}
+              <a 
+                href={whatsappUrl} 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="flex-1"
+              >
+                <Button className="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-3 gap-2">
+                  <MessageCircle className="w-5 h-5" />
+                  Enviar por WhatsApp
+                </Button>
+              </a>
               <Button 
                 onClick={copyLink}
                 variant="outline"
