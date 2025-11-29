@@ -201,7 +201,7 @@ export default function TacticsBoard() {
   // Cambiar formación
   const cambiarFormacion = (nombreFormacion) => {
     setFormacionActual(nombreFormacion);
-    const formaciones = deporteActivo === "futbol" ? FORMACIONES : FORMACIONES_BALONCESTO;
+    const formaciones = deporteActivo === "futbol" ? FORMACIONES : deporteActivo === "futbol7" ? FORMACIONES_FUTBOL7 : FORMACIONES_BALONCESTO;
     setJugadores(formaciones[nombreFormacion].posiciones.map((j, i) => ({ ...j, id: i })));
     setLineas([]);
   };
@@ -287,7 +287,7 @@ export default function TacticsBoard() {
   const limpiarPizarra = () => setLineas([]);
 
   const resetearFormacion = () => {
-    const formaciones = deporteActivo === "futbol" ? FORMACIONES : FORMACIONES_BALONCESTO;
+    const formaciones = deporteActivo === "futbol" ? FORMACIONES : deporteActivo === "futbol7" ? FORMACIONES_FUTBOL7 : FORMACIONES_BALONCESTO;
     setJugadores(formaciones[formacionActual].posiciones.map((j, i) => ({ ...j, id: i })));
     setLineas([]);
     setPosicionBalon(deporteActivo === "futbol" ? { x: 50, y: 35 } : { x: 50, y: 30 });
