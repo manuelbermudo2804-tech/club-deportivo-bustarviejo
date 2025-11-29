@@ -34,6 +34,7 @@ import BudgetManager from "../components/financial/BudgetManager";
 import TransactionForm from "../components/financial/TransactionForm";
 import TransactionList from "../components/financial/TransactionList";
 import AICommunicationAssistant from "../components/communication/AICommunicationAssistant";
+import AIFinancialForecasting from "../components/financial/AIFinancialForecasting";
 
 const COLORS = {
   pagado: '#16a34a',
@@ -50,6 +51,7 @@ export default function TreasurerDashboard() {
   const [showNewBudget, setShowNewBudget] = useState(false);
   const [showTransactionForm, setShowTransactionForm] = useState(false);
   const [showCommunicationAssistant, setShowCommunicationAssistant] = useState(false);
+  const [showAIForecasting, setShowAIForecasting] = useState(false);
   const [newBudgetData, setNewBudgetData] = useState({
     temporada: "",
     nombre: "Presupuesto Principal"
@@ -688,7 +690,31 @@ export default function TreasurerDashboard() {
         </Card>
       </div>
 
-      {/* Main Content Tabs */}
+      {/* AI Forecasting Button */}
+      <Card className="border-purple-200 bg-gradient-to-r from-purple-50 to-indigo-50">
+        <CardContent className="p-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center">
+                <Sparkles className="h-5 w-5 text-purple-600" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-purple-900">Análisis Financiero con IA</h3>
+                <p className="text-sm text-purple-700">Previsiones, flujo de caja, escenarios e insights inteligentes</p>
+              </div>
+            </div>
+            <Button 
+              onClick={() => setShowAIForecasting(true)}
+              className="bg-purple-600 hover:bg-purple-700"
+            >
+              <Sparkles className="h-4 w-4 mr-2" />
+              Abrir Análisis IA
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+          {/* Main Content Tabs */}
       <Tabs defaultValue="ingresos" className="w-full">
         <TabsList className="w-full flex-wrap h-auto">
           <TabsTrigger value="ingresos" className="flex-1">📊 Ingresos</TabsTrigger>
@@ -1180,6 +1206,12 @@ export default function TreasurerDashboard() {
       <AICommunicationAssistant
         open={showCommunicationAssistant}
         onClose={() => setShowCommunicationAssistant(false)}
+      />
+
+      {/* Análisis Financiero IA */}
+      <AIFinancialForecasting
+        open={showAIForecasting}
+        onClose={() => setShowAIForecasting(false)}
       />
     </div>
   );
