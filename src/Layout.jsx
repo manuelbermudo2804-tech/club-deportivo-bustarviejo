@@ -1226,57 +1226,94 @@ export default function Layout({ children, currentPageName }) {
                     </div>
 
                     {isIOS ? (
-                      <div className="bg-slate-50 rounded-2xl p-4 space-y-3">
-                        <p className="font-bold text-slate-900 text-center">📱 iPhone / iPad</p>
-                        <div className="space-y-2">
-                          <div className="flex items-start gap-3 bg-white p-3 rounded-xl">
-                            <span className="bg-orange-500 text-white w-6 h-6 rounded-full flex items-center justify-center font-bold text-sm">1</span>
-                            <p className="text-sm text-slate-700">Abre esta página en <strong>Safari</strong> (el navegador de Apple)</p>
-                          </div>
-                          <div className="flex items-start gap-3 bg-white p-3 rounded-xl">
-                            <span className="bg-orange-500 text-white w-6 h-6 rounded-full flex items-center justify-center font-bold text-sm">2</span>
-                            <p className="text-sm text-slate-700">Toca el botón <strong>Compartir</strong> (cuadrado con flecha ↑)</p>
-                          </div>
-                          <div className="flex items-start gap-3 bg-white p-3 rounded-xl">
-                            <span className="bg-orange-500 text-white w-6 h-6 rounded-full flex items-center justify-center font-bold text-sm">3</span>
-                            <p className="text-sm text-slate-700">Selecciona <strong>"Añadir a pantalla de inicio"</strong></p>
-                          </div>
-                          <div className="flex items-start gap-3 bg-white p-3 rounded-xl">
-                            <span className="bg-green-500 text-white w-6 h-6 rounded-full flex items-center justify-center font-bold text-sm">✓</span>
-                            <p className="text-sm text-slate-700">¡Listo! Tendrás el icono del club en tu móvil</p>
-                          </div>
-                        </div>
-                      </div>
-                    ) : isAndroid ? (
-                      <div className="bg-slate-50 rounded-2xl p-4 space-y-3">
-                        <p className="font-bold text-slate-900 text-center">📱 Android</p>
-                        <div className="space-y-2">
-                          <div className="flex items-start gap-3 bg-white p-3 rounded-xl">
-                            <span className="bg-orange-500 text-white w-6 h-6 rounded-full flex items-center justify-center font-bold text-sm">1</span>
-                            <p className="text-sm text-slate-700">Toca los <strong>3 puntos</strong> (menú) en la esquina del navegador</p>
-                          </div>
-                          <div className="flex items-start gap-3 bg-white p-3 rounded-xl">
-                            <span className="bg-orange-500 text-white w-6 h-6 rounded-full flex items-center justify-center font-bold text-sm">2</span>
-                            <p className="text-sm text-slate-700">Selecciona <strong>"Instalar app"</strong> o <strong>"Añadir a pantalla de inicio"</strong></p>
-                          </div>
-                          <div className="flex items-start gap-3 bg-white p-3 rounded-xl">
-                            <span className="bg-green-500 text-white w-6 h-6 rounded-full flex items-center justify-center font-bold text-sm">✓</span>
-                            <p className="text-sm text-slate-700">¡Listo! Tendrás el icono del club en tu móvil</p>
-                          </div>
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="space-y-4">
-                        <div className="bg-blue-50 rounded-2xl p-4">
-                          <p className="font-bold text-slate-900 mb-2">📱 iPhone / iPad</p>
-                          <p className="text-sm text-slate-700">Safari → Compartir (↑) → "Añadir a pantalla de inicio"</p>
-                        </div>
-                        <div className="bg-green-50 rounded-2xl p-4">
-                          <p className="font-bold text-slate-900 mb-2">📱 Android</p>
-                          <p className="text-sm text-slate-700">Chrome → Menú (⋮) → "Instalar app" o "Añadir a inicio"</p>
-                        </div>
-                      </div>
-                    )}
+                                            <div className="bg-slate-50 rounded-2xl p-4 space-y-3">
+                                              <div className="flex items-center justify-center gap-2 mb-2">
+                                                <img src="https://upload.wikimedia.org/wikipedia/commons/f/fa/Apple_logo_black.svg" alt="Apple" className="w-6 h-6" />
+                                                <p className="font-bold text-slate-900">iPhone / iPad</p>
+                                              </div>
+                                              <div className="space-y-3">
+                                                <div className="flex items-center gap-3 bg-white p-3 rounded-xl shadow-sm">
+                                                  <span className="bg-blue-500 text-white w-8 h-8 rounded-full flex items-center justify-center font-bold text-lg">1</span>
+                                                  <div className="flex-1">
+                                                    <p className="text-sm text-slate-700">Abre en <strong>Safari</strong></p>
+                                                  </div>
+                                                  <img src="https://upload.wikimedia.org/wikipedia/commons/5/52/Safari_browser_logo.svg" alt="Safari" className="w-8 h-8" />
+                                                </div>
+                                                <div className="flex items-center gap-3 bg-white p-3 rounded-xl shadow-sm">
+                                                  <span className="bg-blue-500 text-white w-8 h-8 rounded-full flex items-center justify-center font-bold text-lg">2</span>
+                                                  <div className="flex-1">
+                                                    <p className="text-sm text-slate-700">Toca <strong>Compartir</strong></p>
+                                                  </div>
+                                                  <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                                                    <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                                                    </svg>
+                                                  </div>
+                                                </div>
+                                                <div className="flex items-center gap-3 bg-white p-3 rounded-xl shadow-sm">
+                                                  <span className="bg-blue-500 text-white w-8 h-8 rounded-full flex items-center justify-center font-bold text-lg">3</span>
+                                                  <div className="flex-1">
+                                                    <p className="text-sm text-slate-700"><strong>"Añadir a inicio"</strong></p>
+                                                  </div>
+                                                  <div className="w-10 h-10 bg-slate-100 rounded-lg flex items-center justify-center">
+                                                    <svg className="w-6 h-6 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                                                    </svg>
+                                                  </div>
+                                                </div>
+                                                <div className="flex items-center gap-3 bg-green-100 p-3 rounded-xl">
+                                                  <span className="bg-green-500 text-white w-8 h-8 rounded-full flex items-center justify-center text-lg">✓</span>
+                                                  <p className="text-sm text-green-800 font-medium">¡Listo! Icono del club en tu móvil 🎉</p>
+                                                </div>
+                                              </div>
+                                            </div>
+                                          ) : isAndroid ? (
+                                            <div className="bg-slate-50 rounded-2xl p-4 space-y-3">
+                                              <div className="flex items-center justify-center gap-2 mb-2">
+                                                <img src="https://upload.wikimedia.org/wikipedia/commons/d/d7/Android_robot.svg" alt="Android" className="w-6 h-6" />
+                                                <p className="font-bold text-slate-900">Android</p>
+                                              </div>
+                                              <div className="space-y-3">
+                                                <div className="flex items-center gap-3 bg-white p-3 rounded-xl shadow-sm">
+                                                  <span className="bg-green-500 text-white w-8 h-8 rounded-full flex items-center justify-center font-bold text-lg">1</span>
+                                                  <div className="flex-1">
+                                                    <p className="text-sm text-slate-700">Toca el <strong>menú</strong> (3 puntos)</p>
+                                                  </div>
+                                                  <div className="w-10 h-10 bg-slate-100 rounded-lg flex items-center justify-center">
+                                                    <svg className="w-6 h-6 text-slate-600" fill="currentColor" viewBox="0 0 24 24">
+                                                      <circle cx="12" cy="5" r="2" />
+                                                      <circle cx="12" cy="12" r="2" />
+                                                      <circle cx="12" cy="19" r="2" />
+                                                    </svg>
+                                                  </div>
+                                                </div>
+                                                <div className="flex items-center gap-3 bg-white p-3 rounded-xl shadow-sm">
+                                                  <span className="bg-green-500 text-white w-8 h-8 rounded-full flex items-center justify-center font-bold text-lg">2</span>
+                                                  <div className="flex-1">
+                                                    <p className="text-sm text-slate-700"><strong>"Instalar app"</strong> o <strong>"Añadir a inicio"</strong></p>
+                                                  </div>
+                                                  <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
+                                                    <Download className="w-6 h-6 text-green-600" />
+                                                  </div>
+                                                </div>
+                                                <div className="flex items-center gap-3 bg-green-100 p-3 rounded-xl">
+                                                  <span className="bg-green-500 text-white w-8 h-8 rounded-full flex items-center justify-center text-lg">✓</span>
+                                                  <p className="text-sm text-green-800 font-medium">¡Listo! Icono del club en tu móvil 🎉</p>
+                                                </div>
+                                              </div>
+                                            </div>
+                                          ) : (
+                                            <div className="space-y-4">
+                                              <div className="bg-blue-50 rounded-2xl p-4">
+                                                <p className="font-bold text-slate-900 mb-2">📱 iPhone / iPad</p>
+                                                <p className="text-sm text-slate-700">Safari → Compartir (↑) → "Añadir a pantalla de inicio"</p>
+                                              </div>
+                                              <div className="bg-green-50 rounded-2xl p-4">
+                                                <p className="font-bold text-slate-900 mb-2">📱 Android</p>
+                                                <p className="text-sm text-slate-700">Chrome → Menú (⋮) → "Instalar app" o "Añadir a inicio"</p>
+                                              </div>
+                                            </div>
+                                          )}
 
                     <div className="mt-4 p-3 bg-orange-50 border-2 border-orange-200 rounded-xl">
                       <p className="text-xs text-orange-800 text-center">
