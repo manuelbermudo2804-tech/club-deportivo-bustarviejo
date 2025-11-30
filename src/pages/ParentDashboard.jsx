@@ -11,12 +11,16 @@ import NewSeasonWelcome from "../components/NewSeasonWelcome";
 import ParentOnboarding from "@/components/onboarding/ParentOnboarding";
 import AlertCenter from "../components/dashboard/AlertCenter";
 import ContactCard from "../components/ContactCard";
+import { usePageTutorial } from "../components/tutorials/useTutorial";
 
 export default function ParentDashboard() {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
   const [myPlayersSports, setMyPlayersSports] = useState([]);
   const [showOnboarding, setShowOnboarding] = useState(false);
+  
+  // Tutorial interactivo para primera visita
+  usePageTutorial("parent_dashboard");
 
   useEffect(() => {
     const fetchUser = async () => {

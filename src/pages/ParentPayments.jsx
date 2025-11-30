@@ -14,6 +14,7 @@ import { AnimatePresence } from "framer-motion";
 import ContactCard from "../components/ContactCard";
 import ParentPaymentForm from "../components/payments/ParentPaymentForm";
 import { CheckmarkAnimation } from "../components/animations/SuccessAnimation";
+import { usePageTutorial } from "../components/tutorials/useTutorial";
 
 const CUOTAS = {
   "Fútbol Aficionado": { inscripcion: 165, segunda: 100, tercera: 95, total: 360 },
@@ -48,6 +49,9 @@ export default function ParentPayments() {
   const [showSuccess, setShowSuccess] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
   const queryClient = useQueryClient();
+  
+  // Tutorial interactivo para primera visita
+  usePageTutorial("parent_payments");
 
   const { data: user } = useQuery({
     queryKey: ['currentUser'],

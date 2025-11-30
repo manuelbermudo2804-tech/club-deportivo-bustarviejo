@@ -27,6 +27,7 @@ import {
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
 import WeatherWidget from "../components/callups/WeatherWidget";
+import { usePageTutorial } from "../components/tutorials/useTutorial";
 
 export default function ParentCallups() {
   const [user, setUser] = useState(null);
@@ -40,6 +41,9 @@ export default function ParentCallups() {
   });
 
   const queryClient = useQueryClient();
+  
+  // Tutorial interactivo para primera visita
+  usePageTutorial("parent_callups");
 
   useEffect(() => {
     const fetchUser = async () => {
