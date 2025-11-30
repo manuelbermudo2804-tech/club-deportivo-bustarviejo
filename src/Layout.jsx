@@ -1547,8 +1547,8 @@ CD Bustarviejo`
 
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
         
-        <header className="lg:hidden fixed top-0 left-0 right-0 z-50 bg-gradient-to-r from-orange-600 to-orange-700 shadow-lg">
-          <div className="flex items-center justify-between p-3">
+        <header className="lg:hidden fixed top-0 left-0 right-0 z-50 bg-gradient-to-r from-orange-600 to-orange-700 shadow-lg safe-area-top">
+          <div className="flex items-center justify-between p-2">
             <div className="flex items-center gap-2">
               <img src={CLUB_LOGO_URL} alt="CD Bustarviejo" className="w-9 h-9 rounded-lg shadow-lg object-cover" />
               <div className="text-white">
