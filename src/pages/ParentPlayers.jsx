@@ -22,6 +22,9 @@ export default function ParentPlayers() {
   const [successMessage, setSuccessMessage] = useState("");
   
   const queryClient = useQueryClient();
+  
+  // Tutorial interactivo para primera visita
+  usePageTutorial("parent_players");
 
   const { data: user } = useQuery({
     queryKey: ['currentUser'],
