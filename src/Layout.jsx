@@ -16,7 +16,7 @@ import ThemeToggle from "./components/ThemeToggle";
 import NotificationCenter from "./components/NotificationCenter";
 import LanguageSelector from "./components/LanguageSelector";
 import ChatNotificationListener from "./components/push/ChatNotificationListener";
-// WelcomeScreen desactivado
+import WelcomeScreen from "./components/WelcomeScreen";
 import NotificationManager from "./components/notifications/NotificationManager";
 import AutomaticNotificationEngine from "./components/notifications/AutomaticNotificationEngine";
 import EmailNotificationTrigger from "./components/notifications/EmailNotificationTrigger";
