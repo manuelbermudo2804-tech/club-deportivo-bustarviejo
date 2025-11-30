@@ -551,10 +551,12 @@ export default function Layout({ children, currentPageName }) {
         if (isAppInstalled || !user) return;
 
         const lastReminder = localStorage.getItem('lastInstallReminder');
+        const lastEmailReminder = localStorage.getItem('lastInstallEmailReminder');
         const now = Date.now();
         const oneDay = 24 * 60 * 60 * 1000; // 24 horas en ms
+        const threeDays = 3 * oneDay; // 3 días para el email
 
-        // Mostrar recordatorio cada 24 horas si no está instalada
+        // Mostrar recordatorio en pantalla cada 24 horas si no está instalada
         if (!lastReminder || (now - parseInt(lastReminder)) > oneDay) {
           // Pequeño delay para no molestar inmediatamente
           const timer = setTimeout(() => {
@@ -566,6 +568,56 @@ export default function Layout({ children, currentPageName }) {
 
           return () => clearTimeout(timer);
         }
+
+        // Enviar email recordatorio cada 3 días si no está instalada
+        const sendInstallReminderEmail = async () => {
+          if (!lastEmailReminder || (now - parseInt(lastEmailReminder)) > threeDays) {
+            try {
+              await base44.integrations.Core.SendEmail({
+                from_name: "CD Bustarviejo",
+                to: user.email,
+                subject: "📲 Instala la App del Club - CD Bustarviejo",
+                body: `Hola ${user.full_name || 'familia'},
+
+¡Te recordamos que puedes instalar la app del CD Bustarviejo en tu móvil!
+
+Es muy sencillo y solo te llevará 1 minuto. Con la app instalada podrás:
+
+✅ Recibir convocatorias de partidos al instante
+✅ Ver pagos, documentos y calendario
+✅ Comunicarte con los entrenadores
+✅ Acceso rápido desde tu pantalla de inicio
+
+📱 CÓMO INSTALAR:
+
+iPhone/iPad:
+1. Abre la web del club en Safari
+2. Pulsa el botón "Compartir" (cuadrado con flecha)
+3. Selecciona "Añadir a pantalla de inicio"
+4. Pulsa "Añadir"
+
+Android:
+1. Abre la web del club en Chrome
+2. Pulsa el menú (3 puntos verticales)
+3. Selecciona "Instalar aplicación"
+4. Confirma pulsando "Instalar"
+
+¡Ya está! Tendrás el icono del club en tu móvil.
+
+Si tienes alguna duda, no dudes en contactarnos.
+
+Un saludo,
+CD Bustarviejo`
+              });
+              localStorage.setItem('lastInstallEmailReminder', now.toString());
+              console.log('📧 Email de recordatorio de instalación enviado a:', user.email);
+            } catch (error) {
+              console.error('Error enviando email de recordatorio:', error);
+            }
+          }
+        };
+
+        sendInstallReminderEmail();
       }, [isAppInstalled, user]);
 
   const handleLanguageChange = (newLang) => {
@@ -1458,9 +1510,9 @@ export default function Layout({ children, currentPageName }) {
                                     <button
                                       onClick={() => setShowInstallInstructions(true)}
                                       className="p-2 bg-green-500 text-white rounded-xl animate-pulse shadow-lg"
-                                      title="Instalar App"
+                                      title="Ver cómo instalar"
                                     >
-                                      <Download className="w-5 h-5" />
+                                      <Smartphone className="w-5 h-5" />
                                     </button>
                                   )}
               {!isAdmin && !isCoach && <NotificationCenter />}
