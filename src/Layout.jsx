@@ -1199,10 +1199,95 @@ export default function Layout({ children, currentPageName }) {
     return null;
   };
 
-  return (
+  const isIOS = typeof navigator !== 'undefined' && /iPad|iPhone|iPod/.test(navigator.userAgent);
+    const isAndroid = typeof navigator !== 'undefined' && /android/i.test(navigator.userAgent);
+
+    return (
             <>
               {renderOnboarding()}
               <PWAInstallPrompt />
+
+              {/* Modal de instrucciones de instalación */}
+              {showInstallInstructions && (
+                <div className="fixed inset-0 z-[200] bg-black/80 flex items-center justify-center p-4" onClick={() => setShowInstallInstructions(false)}>
+                  <div className="bg-white rounded-3xl p-6 max-w-md w-full shadow-2xl" onClick={e => e.stopPropagation()}>
+                    <div className="text-center mb-4">
+                      <div className="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                        <Smartphone className="w-8 h-8 text-orange-600" />
+                      </div>
+                      <h2 className="text-2xl font-bold text-slate-900">📲 Instalar App</h2>
+                      <p className="text-slate-600 mt-1">Accede más rápido desde tu móvil</p>
+                    </div>
+
+                    {isIOS ? (
+                      <div className="bg-slate-50 rounded-2xl p-4 space-y-3">
+                        <p className="font-bold text-slate-900 text-center">📱 iPhone / iPad</p>
+                        <div className="space-y-2">
+                          <div className="flex items-start gap-3 bg-white p-3 rounded-xl">
+                            <span className="bg-orange-500 text-white w-6 h-6 rounded-full flex items-center justify-center font-bold text-sm">1</span>
+                            <p className="text-sm text-slate-700">Abre esta página en <strong>Safari</strong> (el navegador de Apple)</p>
+                          </div>
+                          <div className="flex items-start gap-3 bg-white p-3 rounded-xl">
+                            <span className="bg-orange-500 text-white w-6 h-6 rounded-full flex items-center justify-center font-bold text-sm">2</span>
+                            <p className="text-sm text-slate-700">Toca el botón <strong>Compartir</strong> (cuadrado con flecha ↑)</p>
+                          </div>
+                          <div className="flex items-start gap-3 bg-white p-3 rounded-xl">
+                            <span className="bg-orange-500 text-white w-6 h-6 rounded-full flex items-center justify-center font-bold text-sm">3</span>
+                            <p className="text-sm text-slate-700">Selecciona <strong>"Añadir a pantalla de inicio"</strong></p>
+                          </div>
+                          <div className="flex items-start gap-3 bg-white p-3 rounded-xl">
+                            <span className="bg-green-500 text-white w-6 h-6 rounded-full flex items-center justify-center font-bold text-sm">✓</span>
+                            <p className="text-sm text-slate-700">¡Listo! Tendrás el icono del club en tu móvil</p>
+                          </div>
+                        </div>
+                      </div>
+                    ) : isAndroid ? (
+                      <div className="bg-slate-50 rounded-2xl p-4 space-y-3">
+                        <p className="font-bold text-slate-900 text-center">📱 Android</p>
+                        <div className="space-y-2">
+                          <div className="flex items-start gap-3 bg-white p-3 rounded-xl">
+                            <span className="bg-orange-500 text-white w-6 h-6 rounded-full flex items-center justify-center font-bold text-sm">1</span>
+                            <p className="text-sm text-slate-700">Toca los <strong>3 puntos</strong> (menú) en la esquina del navegador</p>
+                          </div>
+                          <div className="flex items-start gap-3 bg-white p-3 rounded-xl">
+                            <span className="bg-orange-500 text-white w-6 h-6 rounded-full flex items-center justify-center font-bold text-sm">2</span>
+                            <p className="text-sm text-slate-700">Selecciona <strong>"Instalar app"</strong> o <strong>"Añadir a pantalla de inicio"</strong></p>
+                          </div>
+                          <div className="flex items-start gap-3 bg-white p-3 rounded-xl">
+                            <span className="bg-green-500 text-white w-6 h-6 rounded-full flex items-center justify-center font-bold text-sm">✓</span>
+                            <p className="text-sm text-slate-700">¡Listo! Tendrás el icono del club en tu móvil</p>
+                          </div>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="space-y-4">
+                        <div className="bg-blue-50 rounded-2xl p-4">
+                          <p className="font-bold text-slate-900 mb-2">📱 iPhone / iPad</p>
+                          <p className="text-sm text-slate-700">Safari → Compartir (↑) → "Añadir a pantalla de inicio"</p>
+                        </div>
+                        <div className="bg-green-50 rounded-2xl p-4">
+                          <p className="font-bold text-slate-900 mb-2">📱 Android</p>
+                          <p className="text-sm text-slate-700">Chrome → Menú (⋮) → "Instalar app" o "Añadir a inicio"</p>
+                        </div>
+                      </div>
+                    )}
+
+                    <div className="mt-4 p-3 bg-orange-50 border-2 border-orange-200 rounded-xl">
+                      <p className="text-xs text-orange-800 text-center">
+                        💡 <strong>Ventaja:</strong> La app se abrirá a pantalla completa y recibirás notificaciones del club
+                      </p>
+                    </div>
+
+                    <Button 
+                      onClick={() => setShowInstallInstructions(false)} 
+                      className="w-full mt-4 bg-orange-600 hover:bg-orange-700"
+                    >
+                      Entendido
+                    </Button>
+                  </div>
+                </div>
+              )}
+
               <SessionManager />
       <NotificationBadge />
       {user && <ChatNotificationListener user={user} />}
