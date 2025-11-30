@@ -36,9 +36,8 @@ export default function SponsorBanner() {
     "Colaborador": "from-blue-500 to-blue-600"
   };
 
-  // Mostrar hasta 4 logos en desktop, rotar en móvil
-  const visibleSponsors = sponsors.length <= 4 ? sponsors : [sponsors[currentIndex]];
-  const showMultiple = sponsors.length <= 4;
+  // Siempre rotar si hay más de 1 patrocinador
+  const showMultiple = false;
 
   return (
     <div className="bg-gradient-to-r from-slate-800 to-slate-900 border-t border-slate-700">
