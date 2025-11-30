@@ -1218,12 +1218,24 @@ export default function Layout({ children, currentPageName }) {
                 <div className="fixed inset-0 z-[200] bg-black/80 flex items-center justify-center p-4" onClick={() => setShowInstallInstructions(false)}>
                   <div className="bg-white rounded-3xl p-6 max-w-md w-full shadow-2xl" onClick={e => e.stopPropagation()}>
                     <div className="text-center mb-4">
-                      <div className="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                        <Smartphone className="w-8 h-8 text-orange-600" />
-                      </div>
-                      <h2 className="text-2xl font-bold text-slate-900">📲 Instalar App</h2>
-                      <p className="text-slate-600 mt-1">Accede más rápido desde tu móvil</p>
-                    </div>
+                                            <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-3 animate-pulse">
+                                              <Smartphone className="w-8 h-8 text-red-600" />
+                                            </div>
+                                            <h2 className="text-2xl font-bold text-red-600">⚠️ PASO OBLIGATORIO</h2>
+                                            <p className="text-slate-800 mt-1 font-semibold">Instala la App del Club</p>
+                                          </div>
+
+                                          <div className="bg-red-50 border-2 border-red-300 rounded-xl p-3 mb-4">
+                                            <p className="text-red-800 text-sm text-center font-medium">
+                                              🚨 <strong>Sin instalar la app NO podrás:</strong>
+                                            </p>
+                                            <ul className="text-red-700 text-xs mt-2 space-y-1 text-center">
+                                              <li>❌ Recibir convocatorias de partidos</li>
+                                              <li>❌ Ver pagos y documentos</li>
+                                              <li>❌ Comunicarte con entrenadores</li>
+                                              <li>❌ Acceder al calendario del club</li>
+                                            </ul>
+                                          </div>
 
                     {isIOS ? (
                                             <div className="bg-slate-50 rounded-2xl p-4 space-y-3">
@@ -1315,11 +1327,11 @@ export default function Layout({ children, currentPageName }) {
                                             </div>
                                           )}
 
-                    <div className="mt-4 p-3 bg-orange-50 border-2 border-orange-200 rounded-xl">
-                      <p className="text-xs text-orange-800 text-center">
-                        💡 <strong>Ventaja:</strong> La app se abrirá a pantalla completa y recibirás notificaciones del club
-                      </p>
-                    </div>
+                    <div className="mt-4 p-3 bg-green-50 border-2 border-green-300 rounded-xl">
+                                            <p className="text-xs text-green-800 text-center font-medium">
+                                              ✅ <strong>Una vez instalada:</strong> Tendrás acceso completo a todas las funciones del club y recibirás notificaciones importantes
+                                            </p>
+                                          </div>
 
                     <Button 
                                         onClick={() => {
@@ -1566,9 +1578,12 @@ export default function Layout({ children, currentPageName }) {
                 <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
                   <Smartphone className="w-10 h-10 text-green-600" />
                 </div>
-                <h2 className="text-2xl font-bold text-slate-900 mb-2">📲 ¡Instala la App!</h2>
-                <p className="text-slate-600 mb-4">
-                  Para una mejor experiencia, añade la app a tu pantalla de inicio
+                <h2 className="text-2xl font-bold text-red-600 mb-2">⚠️ OBLIGATORIO</h2>
+                <p className="text-slate-800 font-semibold mb-2">
+                  Debes instalar la app para usar el club
+                </p>
+                <p className="text-red-600 text-sm mb-4">
+                  Sin esto NO recibirás convocatorias ni podrás comunicarte con el equipo
                 </p>
                 <Button 
                   onClick={() => setShowInstallInstructions(true)}
