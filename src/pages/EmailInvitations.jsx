@@ -90,47 +90,82 @@ export default function EmailInvitations() {
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
-<body style="margin:0;padding:20px;font-family:Arial,sans-serif;background-color:#f1f5f9;">
-<table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="max-width:600px;margin:0 auto;">
+<body style="margin:0;padding:20px;font-family:Arial,Helvetica,sans-serif;background-color:#f1f5f9;">
+<table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="max-width:600px;margin:0 auto;background-color:#ffffff;border-radius:12px;overflow:hidden;border:1px solid #e2e8f0;">
+
+<!-- Header naranja -->
 <tr>
-<td style="background:linear-gradient(135deg,#ea580c 0%,#16a34a 100%);padding:40px 30px;text-align:center;border-radius:16px 16px 0 0;">
-<img src="${CLUB_LOGO_URL}" alt="CD Bustarviejo" style="width:90px;height:90px;border-radius:16px;border:3px solid white;">
-<h1 style="color:white;margin:20px 0 5px;font-size:28px;">CD BUSTARVIEJO</h1>
-<p style="color:rgba(255,255,255,0.9);margin:0;font-size:13px;">Club Deportivo</p>
+<td bgcolor="#ea580c" style="padding:30px;text-align:center;">
+<img src="${CLUB_LOGO_URL}" alt="CD Bustarviejo" width="80" height="80" style="width:80px;height:80px;border-radius:12px;border:3px solid #ffffff;display:block;margin:0 auto;">
+<h1 style="color:#ffffff;margin:15px 0 5px 0;font-size:26px;font-family:Arial,Helvetica,sans-serif;">CD BUSTARVIEJO</h1>
+<p style="color:#fed7aa;margin:0;font-size:14px;">Club Deportivo</p>
 </td>
 </tr>
+
+<!-- Contenido -->
 <tr>
-<td style="background:#ffffff;padding:35px 30px;">
-<h2 style="color:#1e293b;margin:0 0 20px;font-size:24px;text-align:center;">🎉 ¡Bienvenido!</h2>
-<p style="color:#475569;font-size:15px;line-height:1.6;margin:0 0 25px;text-align:center;">
+<td bgcolor="#ffffff" style="padding:30px;">
+<h2 style="color:#1e293b;margin:0 0 15px 0;font-size:22px;text-align:center;font-family:Arial,Helvetica,sans-serif;">🎉 ¡Bienvenido a la App!</h2>
+<p style="color:#475569;font-size:15px;line-height:1.6;margin:0 0 25px 0;text-align:center;">
 Te invitamos a usar la <strong style="color:#ea580c;">aplicación oficial</strong> del club para gestionar todo sobre tus jugadores.
 </p>
+
+<!-- Features -->
+<table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin-bottom:25px;background-color:#f8fafc;border-radius:8px;">
+<tr>
+<td style="padding:15px;width:50%;text-align:center;border-bottom:1px solid #e2e8f0;">
+<span style="font-size:28px;">📋</span><br>
+<span style="color:#475569;font-size:13px;font-weight:bold;">Convocatorias</span>
+</td>
+<td style="padding:15px;width:50%;text-align:center;border-bottom:1px solid #e2e8f0;">
+<span style="font-size:28px;">💳</span><br>
+<span style="color:#475569;font-size:13px;font-weight:bold;">Pagos</span>
+</td>
+</tr>
+<tr>
+<td style="padding:15px;width:50%;text-align:center;">
+<span style="font-size:28px;">💬</span><br>
+<span style="color:#475569;font-size:13px;font-weight:bold;">Chat</span>
+</td>
+<td style="padding:15px;width:50%;text-align:center;">
+<span style="font-size:28px;">📅</span><br>
+<span style="color:#475569;font-size:13px;font-weight:bold;">Calendario</span>
+</td>
+</tr>
+</table>
+
+${mensajePersonalizado ? `
+<!-- Mensaje personalizado -->
 <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin-bottom:25px;">
 <tr>
-<td style="padding:8px;width:50%;text-align:center;"><span style="font-size:24px;">📋</span><br><span style="color:#475569;font-size:12px;">Convocatorias</span></td>
-<td style="padding:8px;width:50%;text-align:center;"><span style="font-size:24px;">💳</span><br><span style="color:#475569;font-size:12px;">Pagos</span></td>
-</tr>
-<tr>
-<td style="padding:8px;width:50%;text-align:center;"><span style="font-size:24px;">💬</span><br><span style="color:#475569;font-size:12px;">Chat</span></td>
-<td style="padding:8px;width:50%;text-align:center;"><span style="font-size:24px;">📅</span><br><span style="color:#475569;font-size:12px;">Calendario</span></td>
-</tr>
-</table>
-${mensajePersonalizado ? `<div style="background:#fef3c7;border-left:4px solid #f59e0b;padding:15px;margin-bottom:25px;border-radius:0 8px 8px 0;"><p style="color:#92400e;font-size:14px;margin:0;">💬 ${mensajePersonalizado}</p></div>` : ''}
-<table role="presentation" cellspacing="0" cellpadding="0" border="0" align="center" style="margin:0 auto;">
-<tr>
-<td style="border-radius:10px;background:#ea580c;">
-<a href="${linkUrl}" target="_blank" style="display:inline-block;color:white;text-decoration:none;padding:16px 40px;font-weight:bold;font-size:16px;">🚀 ACCEDER A LA APP</a>
+<td bgcolor="#fef3c7" style="padding:15px;border-left:4px solid #f59e0b;border-radius:0 8px 8px 0;">
+<p style="color:#92400e;font-size:14px;margin:0;">💬 ${mensajePersonalizado}</p>
 </td>
 </tr>
 </table>
-</td>
-</tr>
+` : ''}
+
+<!-- Boton -->
+<table role="presentation" cellspacing="0" cellpadding="0" border="0" align="center" style="margin:0 auto 20px auto;">
 <tr>
-<td style="background:#1e293b;padding:25px;text-align:center;border-radius:0 0 16px 16px;">
-<p style="color:#94a3b8;font-size:13px;margin:0 0 10px;">📧 cdbustarviejo@gmail.com</p>
-<p style="color:#64748b;font-size:11px;margin:0;">© 2024 CD Bustarviejo</p>
+<td bgcolor="#ea580c" style="border-radius:8px;">
+<a href="${linkUrl}" target="_blank" style="display:inline-block;color:#ffffff;text-decoration:none;padding:14px 35px;font-weight:bold;font-size:16px;font-family:Arial,Helvetica,sans-serif;">ACCEDER A LA APP →</a>
 </td>
 </tr>
+</table>
+
+<p style="color:#94a3b8;font-size:12px;text-align:center;margin:0;">Haz clic en el botón para empezar</p>
+</td>
+</tr>
+
+<!-- Footer -->
+<tr>
+<td bgcolor="#1e293b" style="padding:20px;text-align:center;">
+<p style="color:#94a3b8;font-size:13px;margin:0 0 5px 0;">⚽ 🏀</p>
+<p style="color:#64748b;font-size:12px;margin:0;">cdbustarviejo@gmail.com</p>
+</td>
+</tr>
+
 </table>
 </body>
 </html>`;
