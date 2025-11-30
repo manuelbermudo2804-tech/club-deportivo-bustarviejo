@@ -1243,18 +1243,17 @@ export default function Layout({ children, currentPageName }) {
 
   
 
-      // Mostrar pantalla de bienvenida
+      // Mostrar pantalla de bienvenida SIEMPRE primero (antes del loading)
   if (showWelcomeScreen && !isPublicPage) {
     return <WelcomeScreen onComplete={() => setShowWelcomeScreen(false)} />;
   }
 
-  // Mostrar loading mientras se carga el usuario
+  // Mostrar loading mientras se carga el usuario (sin logo feo)
   if (isLoading && !isPublicPage) {
         return (
           <div className="min-h-screen bg-gradient-to-br from-orange-600 via-orange-700 to-green-700 flex items-center justify-center">
             <div className="text-center">
-              <div className="animate-spin rounded-full h-10 w-10 border-4 border-white border-t-transparent mx-auto"></div>
-              <p className="text-white mt-4 font-medium">Cargando...</p>
+              <div className="animate-spin rounded-full h-12 w-12 border-4 border-white border-t-transparent mx-auto"></div>
             </div>
           </div>
         );
