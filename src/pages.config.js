@@ -61,6 +61,7 @@ import PublicClubMembership from './pages/PublicClubMembership';
 import TacticsBoard from './pages/TacticsBoard';
 import ExerciseLibrary from './pages/ExerciseLibrary';
 import PushNotifications from './pages/PushNotifications';
+import PlayerDashboard from './pages/PlayerDashboard';
 import __Layout from './Layout.jsx';
 
 
@@ -128,6 +129,7 @@ export const PAGES = {
     "TacticsBoard": TacticsBoard,
     "ExerciseLibrary": ExerciseLibrary,
     "PushNotifications": PushNotifications,
+    "PlayerDashboard": PlayerDashboard,
 }
 
 export const pagesConfig = {
