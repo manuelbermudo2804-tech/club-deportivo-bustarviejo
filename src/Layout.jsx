@@ -564,11 +564,8 @@ export default function Layout({ children, currentPageName }) {
                     return () => mediaQuery.removeEventListener('change', checkIfInstalled);
                   }, []);
 
-      // Mostrar recordatorio periódico si no está instalada - DESACTIVADO para no molestar
-              // Los usuarios pueden ver las instrucciones manualmente desde el menú
-              useEffect(() => {
-                // No hacer nada automáticamente - el usuario puede marcar como instalada o ver instrucciones manualmente
-              }, [isAppInstalled, user]);
+      // Recordatorios de instalación COMPLETAMENTE DESACTIVADOS
+      // Los usuarios pueden ver las instrucciones manualmente desde el menú lateral
 
   const handleLanguageChange = (newLang) => {
     setCurrentLang(newLang);
