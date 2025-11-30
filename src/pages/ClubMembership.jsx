@@ -606,36 +606,7 @@ export default function ClubMembership() {
         </Card>
       )}
 
-      {/* Compartir enlace genérico - Para usuarios externos (sin hijos en el club) */}
-      {isExternalUser && (
-        <Card className="border-none shadow-xl bg-gradient-to-r from-green-500 to-green-600 text-white overflow-hidden">
-          <CardContent className="pt-6">
-            <div className="flex items-start gap-4">
-              <div className="w-14 h-14 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center flex-shrink-0">
-                <Share2 className="w-7 h-7 text-white" />
-              </div>
-              <div className="flex-1">
-                <h3 className="font-bold text-xl mb-2">
-                  ¿Conoces a alguien más? 🤝
-                </h3>
-                <p className="text-white/90 text-sm mb-4">
-                  ¡Comparte este enlace con más personas que quieran apoyar al club!
-                </p>
-                <a 
-                  href={`https://wa.me/?text=${encodeURIComponent(`¡Hazte socio del CD Bustarviejo! ⚽🏀\n\nPor solo 25€/temporada ayudas a los jóvenes deportistas del club.\n\n👉 Regístrate aquí: ${window.location.origin}/ClubMembership\n\n¡Gracias por tu apoyo! 💪`)}`}
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                >
-                  <Button className="w-full bg-white text-green-700 hover:bg-green-50 font-bold py-3 gap-2">
-                    <MessageCircle className="w-5 h-5" />
-                    Compartir por WhatsApp
-                  </Button>
-                </a>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
+
 
       {/* Formulario de inscripción */}
       {(showForm || isRenewal) ? (
@@ -845,7 +816,21 @@ export default function ClubMembership() {
                 {formData.metodo_pago === "Transferencia" && (
                   <div className="bg-white rounded-xl p-4 border-2 border-green-200">
                     <p className="text-sm text-slate-700 mb-2 font-semibold">📋 Datos bancarios:</p>
-                    <p className="text-lg font-mono bg-slate-100 p-2 rounded">ES12 1234 5678 1234 5678 9012</p>
+                    <div className="flex items-center gap-2">
+                      <p className="text-lg font-mono bg-slate-100 p-2 rounded flex-1">ES12 1234 5678 1234 5678 9012</p>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          navigator.clipboard.writeText("ES12 1234 5678 1234 5678 9012");
+                          toast.success("IBAN copiado al portapapeles");
+                        }}
+                        className="flex-shrink-0"
+                      >
+                        📋 Copiar
+                      </Button>
+                    </div>
                     <p className="text-sm text-slate-600 mt-3">
                       <strong>Concepto:</strong> SOCIO - {formData.nombre_completo || "Tu nombre"}
                     </p>
@@ -855,7 +840,21 @@ export default function ClubMembership() {
                 {formData.metodo_pago === "Bizum" && seasonConfig?.bizum_telefono && (
                   <div className="bg-white rounded-xl p-4 border-2 border-green-200">
                     <p className="text-sm text-slate-700 mb-2 font-semibold">📱 Bizum al teléfono:</p>
-                    <p className="text-2xl font-bold text-green-600">{seasonConfig.bizum_telefono}</p>
+                    <div className="flex items-center gap-2">
+                      <p className="text-2xl font-bold text-green-600 flex-1">{seasonConfig.bizum_telefono}</p>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          navigator.clipboard.writeText(seasonConfig.bizum_telefono);
+                          toast.success("Teléfono copiado al portapapeles");
+                        }}
+                        className="flex-shrink-0"
+                      >
+                        📋 Copiar
+                      </Button>
+                    </div>
                     <p className="text-sm text-slate-600 mt-3">
                       <strong>Concepto:</strong> SOCIO - {formData.nombre_completo || "Tu nombre"}
                     </p>
