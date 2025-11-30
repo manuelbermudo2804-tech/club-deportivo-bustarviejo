@@ -1581,7 +1581,7 @@ CD Bustarviejo`
         </header>
 
         {/* Mobile Search Bar */}
-        <div className="lg:hidden fixed top-[60px] left-0 right-0 z-40 bg-white border-b shadow-sm p-2">
+        <div className="lg:hidden fixed top-[52px] left-0 right-0 z-40 bg-white border-b shadow-sm p-2">
           <GlobalSearch isAdmin={isAdmin} isCoach={isCoach} isTreasurer={isTreasurer} />
         </div>
 
