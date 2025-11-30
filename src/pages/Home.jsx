@@ -191,6 +191,16 @@ export default function Home() {
     });
   }, [isCoach, hasPlayers, surveys, surveyResponses, user, myPlayersSports]);
 
+  const { data: allUsers } = useQuery({
+    queryKey: ['allUsersForPlayerCheck'],
+    queryFn: () => base44.entities.User.list(),
+    initialData: [],
+    staleTime: 300000,
+    gcTime: 600000,
+    refetchOnWindowFocus: false,
+    enabled: !!user && isAdmin,
+  });
+
   const stats = useMemo(() => {
     const activePlayers = players?.filter(p => p.activo).length || 0;
     const pendingPayments = payments?.filter(p => p.estado === "Pendiente").length || 0;
@@ -201,6 +211,7 @@ export default function Home() {
     let pendingCallups = 0;
     let pendingSignatures = 0;
     let adminPendingSignatures = 0;
+    let pendingPlayerAccess = 0;
     
     const calcularEdad = (fechaNac) => {
       if (!fechaNac) return null;
@@ -211,6 +222,23 @@ export default function Home() {
       if (m < 0 || (m === 0 && hoy.getDate() < nacimiento.getDate())) edad--;
       return edad;
     };
+
+    // Para admin: detectar jugadores +18 que deberían tener acceso de jugador
+    if (isAdmin && players && allUsers) {
+      const usersWithPlayerAccess = allUsers.filter(u => u.es_jugador === true).map(u => u.player_id);
+      
+      players.filter(p => p.activo).forEach(player => {
+        const edad = calcularEdad(player.fecha_nacimiento);
+        // Si es mayor de 18, tiene email, y no está vinculado a ningún usuario como jugador
+        if (edad >= 18 && player.email_padre && !usersWithPlayerAccess.includes(player.id)) {
+          // Verificar si existe un usuario con ese email que NO tiene es_jugador=true
+          const userForPlayer = allUsers.find(u => u.email === player.email_padre);
+          if (userForPlayer && !userForPlayer.es_jugador) {
+            pendingPlayerAccess++;
+          }
+        }
+      });
+    }
     
     // Para admin: calcular TODAS las firmas pendientes del club
     if (isAdmin && players) {
@@ -259,8 +287,8 @@ export default function Home() {
       });
     }
 
-    return { activePlayers, pendingPayments, reviewPayments, paidPayments, unreadMessages, pendingCallups, pendingSignatures, adminPendingSignatures };
-  }, [players, payments, messages, callups, user, hasPlayers, isAdmin]);
+    return { activePlayers, pendingPayments, reviewPayments, paidPayments, unreadMessages, pendingCallups, pendingSignatures, adminPendingSignatures, pendingPlayerAccess };
+  }, [players, payments, messages, callups, user, hasPlayers, isAdmin, allUsers]);
 
   const handleMatchAppClick = useMemo(() => () => {
     const userAgent = navigator.userAgent || navigator.vendor || window.opera;
@@ -901,7 +929,7 @@ export default function Home() {
         )}
 
         {/* Banner de Tareas Pendientes del Club para Admin */}
-        {isAdmin && (stats.reviewPayments > 0 || stats.adminPendingSignatures > 0 || stats.unreadMessages > 0) && (
+        {isAdmin && (stats.reviewPayments > 0 || stats.adminPendingSignatures > 0 || stats.unreadMessages > 0 || stats.pendingPlayerAccess > 0) && (
           <div className="bg-gradient-to-r from-red-600 to-orange-600 rounded-2xl p-3 lg:p-4 shadow-xl border-2 border-red-500">
             <div className="flex items-start gap-2 lg:gap-3">
               <Bell className="w-5 h-5 lg:w-6 lg:h-6 text-white flex-shrink-0 mt-0.5 animate-bounce" />
@@ -928,6 +956,13 @@ export default function Home() {
                     <Link to={createPageUrl("AdminChat")}>
                       <span className="inline-flex items-center gap-1 bg-blue-500 text-white text-xs px-2 py-1 rounded-full font-semibold hover:bg-blue-600 transition-colors">
                         💬 {stats.unreadMessages} mensajes sin leer
+                      </span>
+                    </Link>
+                  )}
+                  {stats.pendingPlayerAccess > 0 && (
+                    <Link to={createPageUrl("UserManagement")}>
+                      <span className="inline-flex items-center gap-1 bg-purple-500 text-white text-xs px-2 py-1 rounded-full font-semibold hover:bg-purple-600 transition-colors">
+                        ⚽ {stats.pendingPlayerAccess} jugadores +18 sin acceso
                       </span>
                     </Link>
                   )}
