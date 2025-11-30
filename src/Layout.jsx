@@ -1360,7 +1360,13 @@ export default function Layout({ children, currentPageName }) {
                                             </div>
                                           )}
 
-                    <div className="mt-4 p-3 bg-green-50 border-2 border-green-300 rounded-xl">
+                    <div className="mt-4 p-3 bg-blue-50 border-2 border-blue-300 rounded-xl">
+                                            <p className="text-xs text-blue-800 text-center font-medium">
+                                              💡 <strong>También puedes instalar desde el menú lateral</strong> de la app (botón "📲 Instalar App en Móvil")
+                                            </p>
+                                          </div>
+
+                                          <div className="mt-3 p-3 bg-green-50 border-2 border-green-300 rounded-xl">
                                             <p className="text-xs text-green-800 text-center font-medium">
                                               ✅ <strong>Una vez instalada:</strong> Tendrás acceso completo a todas las funciones del club y recibirás notificaciones importantes
                                             </p>
