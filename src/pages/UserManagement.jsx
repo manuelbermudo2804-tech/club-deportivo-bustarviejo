@@ -786,6 +786,107 @@ export default function UserManagement() {
         </CardContent>
       </Card>
 
+      {/* Diálogo de Jugador +18 */}
+      <Dialog open={showPlayerDialog} onOpenChange={setShowPlayerDialog}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="text-2xl flex items-center gap-2">
+              <User className="w-6 h-6 text-purple-600" />
+              {selectedUser?.es_jugador ? "Quitar Acceso de Jugador" : "Activar Acceso de Jugador +18"}
+            </DialogTitle>
+            <DialogDescription>
+              {selectedUser?.es_jugador ? (
+                <>Quitar acceso directo de jugador a <strong>{selectedUser?.full_name}</strong></>
+              ) : (
+                <>Dar acceso directo a <strong>{selectedUser?.full_name}</strong> como jugador mayor de 18 años</>
+              )}
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 py-4">
+            {!selectedUser?.es_jugador && (
+              <div className="space-y-2">
+                <Label htmlFor="player-select">Vincular a Ficha de Jugador *</Label>
+                <Select value={selectedPlayerId} onValueChange={setSelectedPlayerId}>
+                  <SelectTrigger id="player-select">
+                    <SelectValue placeholder="Selecciona el jugador..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {players
+                      .filter(p => p.es_mayor_edad === true || 
+                        (p.fecha_nacimiento && new Date().getFullYear() - new Date(p.fecha_nacimiento).getFullYear() >= 18))
+                      .map(p => (
+                        <SelectItem key={p.id} value={p.id}>
+                          {p.nombre} - {p.deporte}
+                        </SelectItem>
+                      ))}
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-purple-600">
+                  Solo se muestran jugadores mayores de 18 años.
+                </p>
+              </div>
+            )}
+
+            <div className="bg-purple-50 border-2 border-purple-300 rounded-lg p-4">
+              <p className="text-sm text-purple-900 font-bold mb-2">
+                ⚽ ¿Qué es el acceso de Jugador +18?
+              </p>
+              <p className="text-sm text-purple-800 mb-3">
+                Cuando un jugador es <strong>mayor de 18 años</strong>, puede acceder a la app directamente 
+                con su propio email (no necesita que un padre gestione su cuenta).
+              </p>
+              <ul className="text-sm text-purple-800 space-y-1">
+                <li>✅ Ver sus convocatorias y confirmar asistencia</li>
+                <li>✅ Ver sus pagos pendientes</li>
+                <li>✅ Comunicarse con entrenadores por chat</li>
+                <li>✅ Acceder al calendario y eventos</li>
+                <li>✅ Ver anuncios y galería</li>
+              </ul>
+            </div>
+
+            <div className="bg-blue-50 border-2 border-blue-300 rounded-lg p-4">
+              <p className="text-sm text-blue-900 font-bold mb-2">
+                ℹ️ Importante:
+              </p>
+              <p className="text-sm text-blue-800">
+                El email del usuario debe coincidir con el email del jugador en su ficha.
+                Al activar este acceso, el usuario verá el <strong>Panel Jugador</strong> en lugar del Panel Familia.
+              </p>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setShowPlayerDialog(false);
+                setSelectedUser(null);
+                setSelectedPlayerId("");
+              }}
+            >
+              Cancelar
+            </Button>
+            <Button
+              onClick={handleConfirmPlayer}
+              disabled={updateUserMutation.isPending || (!selectedUser?.es_jugador && !selectedPlayerId)}
+              className={selectedUser?.es_jugador ? "bg-red-600 hover:bg-red-700" : "bg-purple-600 hover:bg-purple-700"}
+            >
+              {updateUserMutation.isPending ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Procesando...
+                </>
+              ) : selectedUser?.es_jugador ? (
+                "Quitar Acceso de Jugador"
+              ) : (
+                "Confirmar Jugador +18"
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       {/* Diálogo de Entrenador */}
       <Dialog open={showCoachDialog} onOpenChange={setShowCoachDialog}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
