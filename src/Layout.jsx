@@ -1214,19 +1214,6 @@ CD Bustarviejo`
     { title: "🎫 Hacerse Socio", url: createPageUrl("ClubMembership"), icon: Users },
   ];
 
-  const playerNavigationItems = [
-    { title: "🏠 Mi Dashboard", url: createPageUrl("PlayerDashboard"), icon: Home },
-    { title: "🏆 Convocatorias", url: createPageUrl("ParentCallups"), icon: Bell, badge: pendingCallupsCount > 0 ? pendingCallupsCount : null, urgentBadge: pendingCallupsCount > 0 },
-    { title: "💳 Mis Pagos", url: createPageUrl("ParentPayments"), icon: CreditCard },
-    { title: "💬 Chat Equipo", url: createPageUrl("ParentChat"), icon: MessageCircle, badge: unreadMessagesCount > 0 ? unreadMessagesCount : null },
-    { title: "📅 Calendario", url: createPageUrl("CalendarAndSchedules"), icon: Calendar },
-    { title: "🎉 Eventos Club", url: createPageUrl("ParentEventRSVP"), icon: Calendar },
-    { title: "📢 Anuncios", url: createPageUrl("Announcements"), icon: Megaphone },
-    { title: "🖼️ Galería", url: createPageUrl("Gallery"), icon: Image },
-    { title: "📋 Encuestas", url: createPageUrl("Surveys"), icon: FileText },
-    { title: "🎫 Hacerse Socio", url: createPageUrl("ClubMembership"), icon: Users },
-  ];
-
   let navigationItems;
     if (isAdmin) {
       navigationItems = adminNavigationItems;
@@ -1237,7 +1224,18 @@ CD Bustarviejo`
     } else if (isCoach) {
       navigationItems = coachNavigationItems;
     } else if (isPlayer) {
-      navigationItems = playerNavigationItems;
+      navigationItems = [
+        { title: "🏠 Mi Dashboard", url: createPageUrl("PlayerDashboard"), icon: Home },
+        { title: "🏆 Convocatorias", url: createPageUrl("ParentCallups"), icon: Bell, badge: pendingCallupsCount > 0 ? pendingCallupsCount : null, urgentBadge: pendingCallupsCount > 0 },
+        { title: "💳 Mis Pagos", url: createPageUrl("ParentPayments"), icon: CreditCard },
+        { title: "💬 Chat Equipo", url: createPageUrl("ParentChat"), icon: MessageCircle, badge: unreadMessagesCount > 0 ? unreadMessagesCount : null },
+        { title: "📅 Calendario", url: createPageUrl("CalendarAndSchedules"), icon: Calendar },
+        { title: "🎉 Eventos Club", url: createPageUrl("ParentEventRSVP"), icon: Calendar },
+        { title: "📢 Anuncios", url: createPageUrl("Announcements"), icon: Megaphone },
+        { title: "🖼️ Galería", url: createPageUrl("Gallery"), icon: Image },
+        { title: "📋 Encuestas", url: createPageUrl("Surveys"), icon: FileText },
+        { title: "🎫 Hacerse Socio", url: createPageUrl("ClubMembership"), icon: Users },
+      ];
     } else {
       // Usuario normal de familia (padre/madre sin roles especiales)
       navigationItems = parentNavigationItems;
