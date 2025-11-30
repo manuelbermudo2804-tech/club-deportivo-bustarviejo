@@ -116,6 +116,76 @@ export const TUTORIALS = {
     ]
   },
 
+  // Federation Signatures tutorial
+  parent_signatures: {
+    id: "parent_signatures",
+    steps: [
+      {
+        icon: "🖊️",
+        iconBg: "bg-gradient-to-br from-purple-100 to-purple-200",
+        title: "Firmas de Federación",
+        description: "Aquí gestionas las firmas digitales obligatorias para federar a tus hijos en la competición oficial.",
+        tip: "Sin estas firmas, el jugador no podrá participar en partidos oficiales"
+      },
+      {
+        icon: "🔗",
+        iconBg: "bg-gradient-to-br from-blue-100 to-blue-200",
+        title: "Enlaces de Firma",
+        description: "El club te enviará enlaces únicos para firmar. Pulsa en 'Abrir enlace' y completa el proceso en la web de la federación.",
+        tip: "Firma primero como tutor, luego el jugador si es mayor de 14 años"
+      },
+      {
+        icon: "✅",
+        iconBg: "bg-gradient-to-br from-green-100 to-green-200",
+        title: "Marcar como Completada",
+        description: "Una vez hayas firmado en la web de la federación, vuelve aquí y pulsa 'Marcar como completada'.",
+        tip: "El club recibirá una notificación automática"
+      },
+      {
+        icon: "⏰",
+        iconBg: "bg-gradient-to-br from-red-100 to-red-200",
+        title: "¡No lo dejes para después!",
+        description: "Las firmas pendientes aparecen en rojo. Complételas lo antes posible para que tu hijo pueda jugar.",
+        tip: "Recibirás recordatorios si hay firmas pendientes"
+      }
+    ]
+  },
+
+  // Clothing Orders tutorial
+  parent_clothing: {
+    id: "parent_clothing",
+    steps: [
+      {
+        icon: "🛍️",
+        iconBg: "bg-gradient-to-br from-orange-100 to-orange-200",
+        title: "Pedidos de Equipación",
+        description: "Aquí puedes pedir la ropa oficial del club para tus jugadores: chaquetas, packs de entrenamiento, chubasqueros...",
+        tip: "Los pedidos suelen abrirse en verano para la nueva temporada"
+      },
+      {
+        icon: "📏",
+        iconBg: "bg-gradient-to-br from-blue-100 to-blue-200",
+        title: "Selecciona las Tallas",
+        description: "Elige cuidadosamente la talla de cada prenda. Consulta la guía de tallas si tienes dudas.",
+        tip: "Si el niño está entre dos tallas, elige la mayor"
+      },
+      {
+        icon: "💳",
+        iconBg: "bg-gradient-to-br from-green-100 to-green-200",
+        title: "Pago y Justificante",
+        description: "Realiza el pago por transferencia o Bizum y sube el justificante. El pedido quedará 'En revisión' hasta que el club lo confirme.",
+        tip: "Guarda el justificante del pago por si te lo piden"
+      },
+      {
+        icon: "📦",
+        iconBg: "bg-gradient-to-br from-purple-100 to-purple-200",
+        title: "Recogida",
+        description: "Cuando tu pedido esté listo, recibirás una notificación. Los pedidos se entregan en las instalaciones del club.",
+        tip: "Revisa el estado de tus pedidos en esta misma pantalla"
+      }
+    ]
+  },
+
   // Players tutorial
   parent_players: {
     id: "parent_players",
