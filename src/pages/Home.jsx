@@ -95,7 +95,7 @@ export default function Home() {
     refetchOnWindowFocus: false,
     refetchOnMount: false,
     refetchInterval: false,
-    enabled: !!user && (isAdmin || isTreasurer),
+    enabled: !!user,
   });
 
   const { data: messages } = useQuery({
@@ -107,7 +107,7 @@ export default function Home() {
     refetchOnWindowFocus: false,
     refetchOnMount: false,
     refetchInterval: false,
-    enabled: !!user && (isAdmin || isTreasurer),
+    enabled: !!user,
   });
 
   const { data: callups } = useQuery({
