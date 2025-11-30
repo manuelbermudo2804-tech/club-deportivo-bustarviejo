@@ -514,6 +514,12 @@ export default function Layout({ children, currentPageName }) {
   const [sponsorBannerVisible, setSponsorBannerVisible] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [showInstallInstructions, setShowInstallInstructions] = useState(false);
+  const [installDismissed, setInstallDismissed] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('installPromptDismissed') === 'true';
+    }
+    return false;
+  });
 
   const handleLanguageChange = (newLang) => {
     setCurrentLang(newLang);
@@ -1279,11 +1285,15 @@ export default function Layout({ children, currentPageName }) {
                     </div>
 
                     <Button 
-                      onClick={() => setShowInstallInstructions(false)} 
-                      className="w-full mt-4 bg-orange-600 hover:bg-orange-700"
-                    >
-                      Entendido
-                    </Button>
+                                        onClick={() => {
+                                          setShowInstallInstructions(false);
+                                          setInstallDismissed(true);
+                                          localStorage.setItem('installPromptDismissed', 'true');
+                                        }} 
+                                        className="w-full mt-4 bg-orange-600 hover:bg-orange-700"
+                                      >
+                                        Entendido
+                                      </Button>
                   </div>
                 </div>
               )}
@@ -1309,6 +1319,14 @@ export default function Layout({ children, currentPageName }) {
               </div>
             </div>
             <div className="flex items-center gap-1">
+              {!installDismissed && (
+                <button
+                  onClick={() => setShowInstallInstructions(true)}
+                  className="p-2 bg-green-500 text-white rounded-xl animate-pulse shadow-lg"
+                >
+                  <Download className="w-5 h-5" />
+                </button>
+              )}
               {!isAdmin && !isCoach && <NotificationCenter />}
               <ThemeToggle />
               <button
@@ -1504,6 +1522,27 @@ export default function Layout({ children, currentPageName }) {
         </nav>
 
         <main className={`lg:ml-72 min-h-screen pt-[120px] lg:pt-0 ${sponsorBannerVisible ? 'pb-20 lg:pb-16' : ''}`}>
+          {/* Bloqueo de pantalla hasta instalar - solo en móvil */}
+          {!installDismissed && (
+            <div className="lg:hidden fixed inset-0 z-[150] bg-black/90 flex items-center justify-center p-6">
+              <div className="bg-white rounded-3xl p-6 max-w-sm w-full shadow-2xl text-center">
+                <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <Smartphone className="w-10 h-10 text-green-600" />
+                </div>
+                <h2 className="text-2xl font-bold text-slate-900 mb-2">📲 ¡Instala la App!</h2>
+                <p className="text-slate-600 mb-4">
+                  Para una mejor experiencia, añade la app a tu pantalla de inicio
+                </p>
+                <Button 
+                  onClick={() => setShowInstallInstructions(true)}
+                  className="w-full bg-green-600 hover:bg-green-700 text-lg py-6 font-bold"
+                >
+                  <Download className="w-5 h-5 mr-2" />
+                  Ver cómo instalar
+                </Button>
+              </div>
+            </div>
+          )}
           {children}
         </main>
 
