@@ -1243,6 +1243,25 @@ export default function Layout({ children, currentPageName }) {
                                                 <img src="https://upload.wikimedia.org/wikipedia/commons/f/fa/Apple_logo_black.svg" alt="Apple" className="w-6 h-6" />
                                                 <p className="font-bold text-slate-900">iPhone / iPad</p>
                                               </div>
+
+                                              {/* Video Tutorial iOS */}
+                                              <a 
+                                                href="https://www.youtube.com/watch?v=-xDJVNjCPso" 
+                                                target="_blank" 
+                                                rel="noopener noreferrer"
+                                                className="block bg-red-600 hover:bg-red-700 text-white rounded-xl p-3 text-center transition-all"
+                                              >
+                                                <div className="flex items-center justify-center gap-2">
+                                                  <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                                                    <path d="M19.615 3.184c-3.604-.246-11.631-.245-15.23 0-3.897.266-4.356 2.62-4.385 8.816.029 6.185.484 8.549 4.385 8.816 3.6.245 11.626.246 15.23 0 3.897-.266 4.356-2.62 4.385-8.816-.029-6.185-.484-8.549-4.385-8.816zm-10.615 12.816v-8l8 3.993-8 4.007z"/>
+                                                  </svg>
+                                                  <span className="font-bold">🎬 VER VÍDEO TUTORIAL</span>
+                                                </div>
+                                                <p className="text-xs text-red-100 mt-1">Te lo explicamos paso a paso (1 min)</p>
+                                              </a>
+
+                                              <p className="text-center text-xs text-slate-500 font-medium">O sigue estos pasos:</p>
+
                                               <div className="space-y-3">
                                                 <div className="flex items-center gap-3 bg-white p-3 rounded-xl shadow-sm">
                                                   <span className="bg-blue-500 text-white w-8 h-8 rounded-full flex items-center justify-center font-bold text-lg">1</span>
@@ -1285,6 +1304,25 @@ export default function Layout({ children, currentPageName }) {
                                                 <img src="https://upload.wikimedia.org/wikipedia/commons/d/d7/Android_robot.svg" alt="Android" className="w-6 h-6" />
                                                 <p className="font-bold text-slate-900">Android</p>
                                               </div>
+
+                                              {/* Video Tutorial Android */}
+                                              <a 
+                                                href="https://www.youtube.com/watch?v=iJteraObjgs" 
+                                                target="_blank" 
+                                                rel="noopener noreferrer"
+                                                className="block bg-red-600 hover:bg-red-700 text-white rounded-xl p-3 text-center transition-all"
+                                              >
+                                                <div className="flex items-center justify-center gap-2">
+                                                  <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                                                    <path d="M19.615 3.184c-3.604-.246-11.631-.245-15.23 0-3.897.266-4.356 2.62-4.385 8.816.029 6.185.484 8.549 4.385 8.816 3.6.245 11.626.246 15.23 0 3.897-.266 4.356-2.62 4.385-8.816-.029-6.185-.484-8.549-4.385-8.816zm-10.615 12.816v-8l8 3.993-8 4.007z"/>
+                                                  </svg>
+                                                  <span className="font-bold">🎬 VER VÍDEO TUTORIAL</span>
+                                                </div>
+                                                <p className="text-xs text-red-100 mt-1">Te lo explicamos paso a paso (1 min)</p>
+                                              </a>
+
+                                              <p className="text-center text-xs text-slate-500 font-medium">O sigue estos pasos:</p>
+
                                               <div className="space-y-3">
                                                 <div className="flex items-center gap-3 bg-white p-3 rounded-xl shadow-sm">
                                                   <span className="bg-green-500 text-white w-8 h-8 rounded-full flex items-center justify-center font-bold text-lg">1</span>
