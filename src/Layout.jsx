@@ -1375,11 +1375,20 @@ export default function Layout({ children, currentPageName }) {
             )}
 
             <Button onClick={handleLogout} className="w-full bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-semibold py-3 rounded-xl shadow-lg">
-              <LogOut className="w-4 h-4 mr-2" />
-              Cerrar Sesión
-            </Button>
+                                <LogOut className="w-4 h-4 mr-2" />
+                                Cerrar Sesión
+                              </Button>
 
-            <div className="text-center text-xs text-green-400 mt-4 pt-4 border-t border-green-500/30">
+                              <Button 
+                                onClick={() => setShowInstallInstructions(true)} 
+                                variant="outline" 
+                                className="w-full mt-3 border-green-500 text-green-400 hover:bg-green-500/20 font-semibold py-3 rounded-xl"
+                              >
+                                <Smartphone className="w-4 h-4 mr-2" />
+                                📲 Instalar App en Móvil
+                              </Button>
+
+                              <div className="text-center text-xs text-green-400 mt-4 pt-4 border-t border-green-500/30">
                 <p className="font-medium">Temporada {currentSeason}</p>
                 <p className="text-orange-400 mt-1">© CD Bustarviejo</p>
                 <p className="text-slate-500 mt-2 text-[10px]">🔒 Tus datos están protegidos según RGPD</p>
