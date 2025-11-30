@@ -133,14 +133,18 @@ export default function EmailInvitations() {
       ` : ''}
       
       <!-- Botón de acceso -->
-      <div style="text-align: center; margin: 35px 0;">
-        <a href="${linkUrl}" style="display: inline-block; background: linear-gradient(135deg, #ea580c 0%, #c2410c 100%); color: white; text-decoration: none; padding: 18px 45px; border-radius: 12px; font-weight: bold; font-size: 18px; box-shadow: 0 4px 15px rgba(234, 88, 12, 0.4);">
-          📲 ACCEDER A LA APP
-        </a>
-      </div>
+      <table role="presentation" cellspacing="0" cellpadding="0" border="0" align="center" style="margin: 35px auto;">
+        <tr>
+          <td style="border-radius: 12px; background: linear-gradient(135deg, #ea580c 0%, #c2410c 100%); box-shadow: 0 4px 15px rgba(234, 88, 12, 0.4);">
+            <a href="${linkUrl}" target="_blank" style="display: inline-block; color: white; text-decoration: none; padding: 18px 45px; font-weight: bold; font-size: 18px; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
+              📲 ACCEDER A LA APP
+            </a>
+          </td>
+        </tr>
+      </table>
       
       <p style="color: #64748b; font-size: 14px; text-align: center; margin-top: 30px;">
-        Usa tu email <strong>${destinatarioEmail}</strong> para registrarte
+        Pulsa el botón de arriba para acceder a la aplicación del club
       </p>
     </div>
     
