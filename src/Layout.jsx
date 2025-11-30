@@ -514,12 +514,59 @@ export default function Layout({ children, currentPageName }) {
   const [sponsorBannerVisible, setSponsorBannerVisible] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [showInstallInstructions, setShowInstallInstructions] = useState(false);
-  const [installDismissed, setInstallDismissed] = useState(() => {
-    if (typeof window !== 'undefined') {
-      return localStorage.getItem('installPromptDismissed') === 'true';
-    }
-    return false;
-  });
+      const [isAppInstalled, setIsAppInstalled] = useState(false);
+      const [installDismissed, setInstallDismissed] = useState(() => {
+        if (typeof window !== 'undefined') {
+          return localStorage.getItem('installPromptDismissed') === 'true';
+        }
+        return false;
+      });
+
+      // Detectar si la app está instalada como PWA
+      useEffect(() => {
+        const checkIfInstalled = () => {
+          const isStandalone = window.matchMedia('(display-mode: standalone)').matches || 
+                              window.navigator.standalone === true;
+          setIsAppInstalled(isStandalone);
+
+          if (isStandalone) {
+            // Si está instalada, limpiar cualquier estado de recordatorio
+            localStorage.removeItem('installPromptDismissed');
+            localStorage.removeItem('lastInstallReminder');
+            setInstallDismissed(false);
+          }
+        };
+
+        checkIfInstalled();
+
+        // Escuchar cambios en el modo de display
+        const mediaQuery = window.matchMedia('(display-mode: standalone)');
+        mediaQuery.addEventListener('change', checkIfInstalled);
+
+        return () => mediaQuery.removeEventListener('change', checkIfInstalled);
+      }, []);
+
+      // Mostrar recordatorio periódico si no está instalada
+      useEffect(() => {
+        if (isAppInstalled || !user) return;
+
+        const lastReminder = localStorage.getItem('lastInstallReminder');
+        const now = Date.now();
+        const oneDay = 24 * 60 * 60 * 1000; // 24 horas en ms
+
+        // Mostrar recordatorio cada 24 horas si no está instalada
+        if (!lastReminder || (now - parseInt(lastReminder)) > oneDay) {
+          // Pequeño delay para no molestar inmediatamente
+          const timer = setTimeout(() => {
+            if (!isAppInstalled) {
+              setShowInstallInstructions(true);
+              localStorage.setItem('lastInstallReminder', now.toString());
+            }
+          }, 5000); // 5 segundos después de cargar
+
+          return () => clearTimeout(timer);
+        }
+      }, [isAppInstalled, user]);
 
   const handleLanguageChange = (newLang) => {
     setCurrentLang(newLang);
@@ -1407,14 +1454,15 @@ export default function Layout({ children, currentPageName }) {
               </div>
             </div>
             <div className="flex items-center gap-1">
-              {!installDismissed && (
-                <button
-                  onClick={() => setShowInstallInstructions(true)}
-                  className="p-2 bg-green-500 text-white rounded-xl animate-pulse shadow-lg"
-                >
-                  <Download className="w-5 h-5" />
-                </button>
-              )}
+              {!isAppInstalled && (
+                                    <button
+                                      onClick={() => setShowInstallInstructions(true)}
+                                      className="p-2 bg-green-500 text-white rounded-xl animate-pulse shadow-lg"
+                                      title="Instalar App"
+                                    >
+                                      <Download className="w-5 h-5" />
+                                    </button>
+                                  )}
               {!isAdmin && !isCoach && <NotificationCenter />}
               <ThemeToggle />
               <button
@@ -1482,17 +1530,19 @@ export default function Layout({ children, currentPageName }) {
                 ))}
               </div>
               <div className="p-4 bg-slate-900 border-t border-white/10 space-y-2">
-                                  <button
-                                    onClick={() => {
-                                      setMobileMenuOpen(false);
-                                      setShowInstallInstructions(true);
-                                    }}
-                                    className="w-full flex items-center gap-4 p-4 rounded-2xl bg-green-500/20 text-white hover:bg-green-500/30 transition-all"
-                                  >
-                                    <Smartphone className="w-6 h-6" />
-                                    <span className="font-semibold text-lg">📲 Instalar App</span>
-                                  </button>
-                                  <button
+                                                  {!isAppInstalled && (
+                                                    <button
+                                                      onClick={() => {
+                                                        setMobileMenuOpen(false);
+                                                        setShowInstallInstructions(true);
+                                                      }}
+                                                      className="w-full flex items-center gap-4 p-4 rounded-2xl bg-green-500/20 text-white hover:bg-green-500/30 transition-all"
+                                                    >
+                                                      <Smartphone className="w-6 h-6" />
+                                                      <span className="font-semibold text-lg">📲 Instalar App</span>
+                                                    </button>
+                                                  )}
+                                                  <button
                                     onClick={handleLogout}
                                     className="w-full flex items-center gap-4 p-4 rounded-2xl bg-red-500/20 text-white hover:bg-red-500/30 transition-all"
                                   >
@@ -1592,14 +1642,16 @@ export default function Layout({ children, currentPageName }) {
                                 Cerrar Sesión
                               </Button>
 
-                              <Button 
-                                onClick={() => setShowInstallInstructions(true)} 
-                                variant="outline" 
-                                className="w-full mt-3 border-green-500 text-green-400 hover:bg-green-500/20 font-semibold py-3 rounded-xl"
-                              >
-                                <Smartphone className="w-4 h-4 mr-2" />
-                                📲 Instalar App en Móvil
-                              </Button>
+                              {!isAppInstalled && (
+                                                                    <Button 
+                                                                      onClick={() => setShowInstallInstructions(true)} 
+                                                                      variant="outline" 
+                                                                      className="w-full mt-3 border-green-500 text-green-400 hover:bg-green-500/20 font-semibold py-3 rounded-xl"
+                                                                    >
+                                                                      <Smartphone className="w-4 h-4 mr-2" />
+                                                                      📲 Instalar App en Móvil
+                                                                    </Button>
+                                                                  )}
 
                               <div className="text-center text-xs text-green-400 mt-4 pt-4 border-t border-green-500/30">
                 <p className="font-medium">Temporada {currentSeason}</p>
