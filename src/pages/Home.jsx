@@ -863,6 +863,22 @@ export default function Home() {
     return items;
   }, [isAdmin, isCoach, isCoordinator, isTreasurer, hasPlayers, loteriaVisible, stats]);
 
+  // Mostrar loading mientras carga el usuario
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-black pt-4 lg:pt-0">
+        <div className="px-4 lg:px-8 py-6">
+          <div className="flex items-center justify-center min-h-[200px]">
+            <div className="text-center">
+              <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-orange-600 border-r-transparent mb-3"></div>
+              <p className="text-white text-sm">Cargando...</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-black pt-4 lg:pt-0">
       <div className="px-4 lg:px-8 py-6 space-y-4 lg:space-y-6">
