@@ -1243,13 +1243,8 @@ export default function Layout({ children, currentPageName }) {
 
   
 
-      // Mostrar pantalla de bienvenida SIEMPRE primero (antes del loading)
-  if (showWelcomeScreen && !isPublicPage) {
-    return <WelcomeScreen onComplete={() => setShowWelcomeScreen(false)} />;
-  }
-
-  // Mostrar loading mientras se carga el usuario (sin logo feo)
-  if (isLoading && !isPublicPage) {
+      // Mostrar loading mientras se carga el usuario (spinner simple, sin logo)
+      if (isLoading && !isPublicPage) {
         return (
           <div className="min-h-screen bg-gradient-to-br from-orange-600 via-orange-700 to-green-700 flex items-center justify-center">
             <div className="text-center">
@@ -1257,6 +1252,11 @@ export default function Layout({ children, currentPageName }) {
             </div>
           </div>
         );
+      }
+
+      // Mostrar pantalla de bienvenida DESPUÉS del loading (cuando ya hay usuario)
+      if (showWelcomeScreen && !isPublicPage && user) {
+        return <WelcomeScreen onComplete={() => setShowWelcomeScreen(false)} />;
       }
 
   // Render onboarding based on role
@@ -1683,16 +1683,14 @@ export default function Layout({ children, currentPageName }) {
                                 Cerrar Sesión
                               </Button>
 
-                              {!isAppInstalled && (
-                                                                    <Button 
-                                                                      onClick={() => setShowInstallInstructions(true)} 
-                                                                      variant="outline" 
-                                                                      className="w-full mt-3 border-green-500 text-green-400 hover:bg-green-500/20 font-semibold py-3 rounded-xl"
-                                                                    >
-                                                                      <Smartphone className="w-4 h-4 mr-2" />
-                                                                      📲 Ver cómo instalar
-                                                                    </Button>
-                                                                  )}
+                              <Button 
+                                                                onClick={() => setShowInstallInstructions(true)} 
+                                                                variant="outline" 
+                                                                className="w-full mt-3 border-green-500 text-green-400 hover:bg-green-500/20 font-semibold py-3 rounded-xl"
+                                                              >
+                                                                <Smartphone className="w-4 h-4 mr-2" />
+                                                                {isAppInstalled ? "✅ App instalada" : "📲 Ver cómo instalar"}
+                                                              </Button>
 
                               <div className="text-center text-xs text-green-400 mt-4 pt-4 border-t border-green-500/30">
                 <p className="font-medium">Temporada {currentSeason}</p>
