@@ -710,7 +710,51 @@ CD Bustarviejo`
                   setIsCoach(currentUser.es_entrenador === true && !currentUser.es_coordinador);
         setIsCoordinator(currentUser.es_coordinador === true);
         setIsTreasurer(currentUser.es_tesorero === true);
-        setIsPlayer(currentUser.es_jugador === true);
+
+        // DETECCIÓN AUTOMÁTICA DE JUGADOR +18 AUTORIZADO
+        // Si el usuario no tiene es_jugador=true, verificar si hay un jugador +18 vinculado a su email
+        let playerDetected = currentUser.es_jugador === true;
+        if (!playerDetected && currentUser.role !== "admin" && !currentUser.es_entrenador && !currentUser.es_coordinador && !currentUser.es_tesorero) {
+          try {
+            const allPlayers = await base44.entities.Player.list();
+            const linkedPlayer = allPlayers.find(p => 
+              p.email_jugador === currentUser.email && 
+              p.acceso_jugador_autorizado === true &&
+              p.activo === true
+            );
+
+            if (linkedPlayer) {
+              // Verificar si es mayor de 18
+              const calcularEdad = (fechaNac) => {
+                if (!fechaNac) return null;
+                const hoy = new Date();
+                const nacimiento = new Date(fechaNac);
+                let edad = hoy.getFullYear() - nacimiento.getFullYear();
+                const m = hoy.getMonth() - nacimiento.getMonth();
+                if (m < 0 || (m === 0 && hoy.getDate() < nacimiento.getDate())) edad--;
+                return edad;
+              };
+
+              const edad = calcularEdad(linkedPlayer.fecha_nacimiento);
+              const esMayorDe18 = edad >= 18 || linkedPlayer.es_mayor_edad === true;
+
+              if (esMayorDe18) {
+                console.log('🎯 [LAYOUT] Detectado jugador +18 autorizado:', linkedPlayer.nombre);
+                // Actualizar automáticamente el usuario como jugador
+                await base44.auth.updateMe({
+                  es_jugador: true,
+                  player_id: linkedPlayer.id
+                });
+                playerDetected = true;
+                console.log('✅ [LAYOUT] Usuario actualizado como Jugador +18 automáticamente');
+              }
+            }
+          } catch (error) {
+            console.error('Error detectando jugador +18:', error);
+          }
+        }
+
+        setIsPlayer(playerDetected);
 
         console.log('🔍 ROLES DETECTADOS:', {
                         email: currentUser.email,
