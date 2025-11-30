@@ -1315,7 +1315,7 @@ CD Bustarviejo`
               {/* Modal de instrucciones de instalación */}
               {showInstallInstructions && (
                 <div className="fixed inset-0 z-[200] bg-black/80 flex items-center justify-center p-4" onClick={() => setShowInstallInstructions(false)}>
-                  <div className="bg-white rounded-3xl p-6 max-w-md w-full shadow-2xl" onClick={e => e.stopPropagation()}>
+                  <div className="bg-white rounded-3xl p-6 max-w-md w-full shadow-2xl max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
                     <div className="text-center mb-4">
                                             <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3">
                                               <Smartphone className="w-8 h-8 text-green-600" />
@@ -1472,15 +1472,15 @@ CD Bustarviejo`
                                           </div>
 
                     <Button 
-                                        onClick={() => {
-                                          setShowInstallInstructions(false);
-                                          setInstallDismissed(true);
-                                          localStorage.setItem('installPromptDismissed', 'true');
-                                        }} 
-                                        className="w-full mt-4 bg-orange-600 hover:bg-orange-700"
-                                      >
-                                        Entendido
-                                      </Button>
+                                                onClick={() => {
+                                                  setShowInstallInstructions(false);
+                                                  setInstallDismissed(true);
+                                                  localStorage.setItem('installPromptDismissed', 'true');
+                                                }} 
+                                                className="w-full mt-4 bg-orange-600 hover:bg-orange-700 py-4 text-lg font-bold"
+                                              >
+                                                ✓ Entendido
+                                              </Button>
                   </div>
                 </div>
               )}
