@@ -6,8 +6,12 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { FileSignature, ExternalLink, CheckCircle2, Clock, AlertCircle, User } from "lucide-react";
 import { toast } from "sonner";
+import { usePageTutorial } from "../components/tutorials/useTutorial";
 
 export default function FederationSignatures() {
+  // Tutorial interactivo para primera visita
+  usePageTutorial("parent_signatures");
+  
   const [user, setUser] = useState(null);
   const [visitedLinks, setVisitedLinks] = useState({});
   const queryClient = useQueryClient();

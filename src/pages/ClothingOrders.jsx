@@ -21,8 +21,12 @@ import {
 import ClothingOrderForm from "../components/clothing/ClothingOrderForm";
 import OrdersSummary from "../components/clothing/OrdersSummary";
 import ContactCard from "../components/ContactCard";
+import { usePageTutorial } from "../components/tutorials/useTutorial";
 
 export default function ClothingOrders() {
+  // Tutorial interactivo para primera visita (solo para padres, no admin)
+  usePageTutorial("parent_clothing");
+  
   const [showForm, setShowForm] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
   const [expandedOrders, setExpandedOrders] = useState({});
