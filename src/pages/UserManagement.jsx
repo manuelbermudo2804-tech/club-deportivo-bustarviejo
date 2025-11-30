@@ -54,6 +54,7 @@ export default function UserManagement() {
   const [showTreasurerDialog, setShowTreasurerDialog] = useState(false);
   const [showPlayerDialog, setShowPlayerDialog] = useState(false);
   const [showDeleted, setShowDeleted] = useState(false);
+  const [roleFilter, setRoleFilter] = useState("all");
   const [restrictionData, setRestrictionData] = useState({
     motivo_restriccion: "",
     notas_admin: ""
@@ -322,11 +323,50 @@ export default function UserManagement() {
     });
   };
 
+  // Calcular edad de jugador
+  const calcularEdad = (fechaNac) => {
+    if (!fechaNac) return null;
+    const hoy = new Date();
+    const nacimiento = new Date(fechaNac);
+    let edad = hoy.getFullYear() - nacimiento.getFullYear();
+    const m = hoy.getMonth() - nacimiento.getMonth();
+    if (m < 0 || (m === 0 && hoy.getDate() < nacimiento.getDate())) edad--;
+    return edad;
+  };
+
+  // Detectar usuarios que deberían tener acceso de jugador +18
+  const usersWithPlayerAccess = users.filter(u => u.es_jugador === true).map(u => u.player_id);
+  const pendingPlayerAccessUsers = users.filter(user => {
+    if (user.eliminado || user.es_jugador || user.role === "admin") return false;
+    // Buscar si hay un jugador +18 con el email de este usuario
+    const matchingPlayer = players.find(p => 
+      p.activo && 
+      p.email_padre === user.email && 
+      calcularEdad(p.fecha_nacimiento) >= 18 &&
+      !usersWithPlayerAccess.includes(p.id)
+    );
+    return !!matchingPlayer;
+  });
+
   // Filtrar usuarios (ocultar eliminados por defecto)
   const filteredUsers = users.filter(user => {
     // Filtrar eliminados
     if (!showDeleted && user.eliminado === true) {
       return false;
+    }
+
+    // Filtrar por rol
+    if (roleFilter !== "all") {
+      if (roleFilter === "admin" && user.role !== "admin") return false;
+      if (roleFilter === "parent" && (user.role === "admin" || user.es_jugador || user.es_entrenador || user.es_coordinador || user.es_tesorero)) return false;
+      if (roleFilter === "player" && user.es_jugador !== true) return false;
+      if (roleFilter === "coach" && (user.es_entrenador !== true || user.es_coordinador === true)) return false;
+      if (roleFilter === "coordinator" && user.es_coordinador !== true) return false;
+      if (roleFilter === "treasurer" && user.es_tesorero !== true) return false;
+      if (roleFilter === "restricted" && user.acceso_activo !== false) return false;
+      if (roleFilter === "pending_player") {
+        return pendingPlayerAccessUsers.some(u => u.id === user.id);
+      }
     }
 
     const matchesSearch =
@@ -458,29 +498,150 @@ export default function UserManagement() {
         </Card>
       </div>
 
-      {/* Buscador + Toggle de eliminados */}
+      {/* Alerta de Jugadores +18 pendientes */}
+      {pendingPlayerAccessUsers.length > 0 && (
+        <Card className="border-none shadow-lg bg-purple-50 border-2 border-purple-300">
+          <CardContent className="pt-6">
+            <div className="flex items-start gap-3">
+              <div className="bg-purple-500 rounded-full p-2">
+                <User className="w-5 h-5 text-white" />
+              </div>
+              <div className="flex-1">
+                <h3 className="font-bold text-purple-900 mb-2">⚽ {pendingPlayerAccessUsers.length} Jugador{pendingPlayerAccessUsers.length !== 1 ? 'es' : ''} +18 sin acceso directo</h3>
+                <p className="text-sm text-purple-800 mb-3">
+                  Los siguientes usuarios tienen jugadores mayores de 18 años que podrían tener acceso directo a la app:
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {pendingPlayerAccessUsers.slice(0, 5).map(user => {
+                    const matchingPlayer = players.find(p => p.email_padre === user.email && calcularEdad(p.fecha_nacimiento) >= 18);
+                    return (
+                      <Badge key={user.id} className="bg-purple-200 text-purple-900">
+                        {user.full_name} → {matchingPlayer?.nombre}
+                      </Badge>
+                    );
+                  })}
+                  {pendingPlayerAccessUsers.length > 5 && (
+                    <Badge className="bg-purple-300 text-purple-900">
+                      +{pendingPlayerAccessUsers.length - 5} más
+                    </Badge>
+                  )}
+                </div>
+                <Button
+                  size="sm"
+                  className="mt-3 bg-purple-600 hover:bg-purple-700"
+                  onClick={() => setRoleFilter("pending_player")}
+                >
+                  Ver todos los pendientes
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Buscador + Filtros */}
       <Card className="border-none shadow-lg">
         <CardHeader>
-          <div className="flex flex-col md:flex-row gap-4">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-slate-400" />
-              <Input
-                placeholder="Buscar usuario por nombre o email..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
-              />
+          <div className="flex flex-col gap-4">
+            <div className="flex flex-col md:flex-row gap-4">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-slate-400" />
+                <Input
+                  placeholder="Buscar usuario por nombre o email..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10"
+                />
+              </div>
+              <div className="flex items-center gap-3 bg-slate-50 rounded-lg px-4 py-2">
+                {showDeleted ? <Eye className="w-5 h-5 text-slate-600" /> : <EyeOff className="w-5 h-5 text-slate-400" />}
+                <Label htmlFor="show-deleted" className="text-sm font-medium cursor-pointer">
+                  Eliminados ({deletedUsers.length})
+                </Label>
+                <Switch
+                  id="show-deleted"
+                  checked={showDeleted}
+                  onCheckedChange={setShowDeleted}
+                />
+              </div>
             </div>
-            <div className="flex items-center gap-3 bg-slate-50 rounded-lg px-4 py-2">
-              {showDeleted ? <Eye className="w-5 h-5 text-slate-600" /> : <EyeOff className="w-5 h-5 text-slate-400" />}
-              <Label htmlFor="show-deleted" className="text-sm font-medium cursor-pointer">
-                Mostrar eliminados ({deletedUsers.length})
-              </Label>
-              <Switch
-                id="show-deleted"
-                checked={showDeleted}
-                onCheckedChange={setShowDeleted}
-              />
+            
+            {/* Filtros por rol */}
+            <div className="flex flex-wrap gap-2">
+              <Button
+                size="sm"
+                variant={roleFilter === "all" ? "default" : "outline"}
+                onClick={() => setRoleFilter("all")}
+                className={roleFilter === "all" ? "bg-slate-700" : ""}
+              >
+                Todos ({users.filter(u => !u.eliminado).length})
+              </Button>
+              <Button
+                size="sm"
+                variant={roleFilter === "parent" ? "default" : "outline"}
+                onClick={() => setRoleFilter("parent")}
+                className={roleFilter === "parent" ? "bg-slate-600" : ""}
+              >
+                👨‍👩‍👧 Padres ({activeUsers.length})
+              </Button>
+              <Button
+                size="sm"
+                variant={roleFilter === "admin" ? "default" : "outline"}
+                onClick={() => setRoleFilter("admin")}
+                className={roleFilter === "admin" ? "bg-orange-600" : "border-orange-300 text-orange-700"}
+              >
+                🎓 Admins ({admins.length})
+              </Button>
+              <Button
+                size="sm"
+                variant={roleFilter === "player" ? "default" : "outline"}
+                onClick={() => setRoleFilter("player")}
+                className={roleFilter === "player" ? "bg-purple-600" : "border-purple-300 text-purple-700"}
+              >
+                ⚽ Jugadores ({jugadores.length})
+              </Button>
+              <Button
+                size="sm"
+                variant={roleFilter === "coach" ? "default" : "outline"}
+                onClick={() => setRoleFilter("coach")}
+                className={roleFilter === "coach" ? "bg-blue-600" : "border-blue-300 text-blue-700"}
+              >
+                🏃 Entrenadores ({entrenadores.length})
+              </Button>
+              <Button
+                size="sm"
+                variant={roleFilter === "coordinator" ? "default" : "outline"}
+                onClick={() => setRoleFilter("coordinator")}
+                className={roleFilter === "coordinator" ? "bg-cyan-600" : "border-cyan-300 text-cyan-700"}
+              >
+                🎓 Coordinadores ({coordinadores.length})
+              </Button>
+              <Button
+                size="sm"
+                variant={roleFilter === "treasurer" ? "default" : "outline"}
+                onClick={() => setRoleFilter("treasurer")}
+                className={roleFilter === "treasurer" ? "bg-green-600" : "border-green-300 text-green-700"}
+              >
+                💰 Tesoreros ({tesoreros.length})
+              </Button>
+              <Button
+                size="sm"
+                variant={roleFilter === "restricted" ? "default" : "outline"}
+                onClick={() => setRoleFilter("restricted")}
+                className={roleFilter === "restricted" ? "bg-red-600" : "border-red-300 text-red-700"}
+              >
+                🚫 Restringidos ({restrictedUsers.length})
+              </Button>
+              {pendingPlayerAccessUsers.length > 0 && (
+                <Button
+                  size="sm"
+                  variant={roleFilter === "pending_player" ? "default" : "outline"}
+                  onClick={() => setRoleFilter("pending_player")}
+                  className={roleFilter === "pending_player" ? "bg-purple-600 animate-pulse" : "border-purple-400 text-purple-700 bg-purple-50"}
+                >
+                  ⚠️ Jugadores +18 pendientes ({pendingPlayerAccessUsers.length})
+                </Button>
+              )}
             </div>
           </div>
         </CardHeader>
@@ -639,6 +800,15 @@ export default function UserManagement() {
                         {isPlayerUser && linkedPlayer && (
                           <div className="text-sm text-purple-700 bg-purple-50 rounded p-2 mb-2">
                             <strong>⚽ Jugador vinculado:</strong> {linkedPlayer.nombre} - {linkedPlayer.deporte}
+                          </div>
+                        )}
+
+                        {/* Alerta de jugador +18 pendiente */}
+                        {pendingPlayerAccessUsers.some(u => u.id === user.id) && (
+                          <div className="text-sm text-purple-700 bg-purple-100 border-2 border-purple-400 rounded p-2 mb-2 animate-pulse">
+                            <strong>⚠️ Jugador +18 detectado:</strong>{" "}
+                            {players.find(p => p.email_padre === user.email && calcularEdad(p.fecha_nacimiento) >= 18)?.nombre}
+                            <span className="block text-xs mt-1">Pulsa "⚽ Jugador" para dar acceso directo</span>
                           </div>
                         )}
 
