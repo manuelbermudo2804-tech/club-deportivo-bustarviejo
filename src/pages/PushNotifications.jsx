@@ -109,7 +109,7 @@ export default function PushNotifications() {
         mensaje: data.mensaje,
         tipo: data.prioridad,
         icono: data.icono,
-        enlace: data.enlace_destino ? createPageUrl(data.enlace_destino) : null,
+        enlace: data.enlace_destino || null,
         vista: false
       }));
 
