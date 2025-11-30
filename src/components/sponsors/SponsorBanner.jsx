@@ -51,50 +51,92 @@ export default function SponsorBanner() {
         
         {showMultiple ? (
           <div className="flex items-center justify-center gap-4 flex-wrap">
-            {visibleSponsors.map((sponsor) => (
-              <div 
-                key={sponsor.id}
-                className="flex items-center gap-2 bg-white/10 rounded-lg px-3 py-1.5 hover:bg-white/20 transition-all"
-              >
-                {sponsor.logo_url ? (
-                  <img 
-                    src={sponsor.logo_url} 
-                    alt={sponsor.nombre}
-                    className="h-6 w-auto object-contain"
-                  />
-                ) : (
-                  <div className={`w-6 h-6 rounded bg-gradient-to-r ${nivelColors[sponsor.nivel_patrocinio]} flex items-center justify-center`}>
-                    <Building2 className="w-3 h-3 text-white" />
-                  </div>
-                )}
-                <span className="text-xs text-white font-medium">{sponsor.nombre}</span>
-              </div>
-            ))}
+            {visibleSponsors.map((sponsor) => {
+              const content = (
+                <div 
+                  className={`flex items-center gap-2 bg-white/10 rounded-lg px-3 py-1.5 hover:bg-white/20 transition-all ${sponsor.website_url ? 'cursor-pointer' : ''}`}
+                >
+                  {sponsor.logo_url ? (
+                    <img 
+                      src={sponsor.logo_url} 
+                      alt={sponsor.nombre}
+                      className="h-6 w-auto object-contain"
+                    />
+                  ) : (
+                    <div className={`w-6 h-6 rounded bg-gradient-to-r ${nivelColors[sponsor.nivel_patrocinio]} flex items-center justify-center`}>
+                      <Building2 className="w-3 h-3 text-white" />
+                    </div>
+                  )}
+                  <span className="text-xs text-white font-medium">{sponsor.nombre}</span>
+                </div>
+              );
+              
+              return sponsor.website_url ? (
+                <a 
+                  key={sponsor.id}
+                  href={sponsor.website_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  {content}
+                </a>
+              ) : (
+                <div key={sponsor.id}>{content}</div>
+              );
+            })}
           </div>
         ) : (
           <div className="flex items-center justify-center">
-            <div 
-              className="flex items-center gap-3 bg-white/10 rounded-lg px-4 py-2 transition-all animate-fade-in"
-              key={sponsors[currentIndex]?.id}
-            >
-              {sponsors[currentIndex]?.logo_url ? (
-                <img 
-                  src={sponsors[currentIndex].logo_url} 
-                  alt={sponsors[currentIndex].nombre}
-                  className="h-8 w-auto object-contain"
-                />
-              ) : (
-                <div className={`w-8 h-8 rounded bg-gradient-to-r ${nivelColors[sponsors[currentIndex]?.nivel_patrocinio]} flex items-center justify-center`}>
-                  <Building2 className="w-4 h-4 text-white" />
+            {sponsors[currentIndex]?.website_url ? (
+              <a
+                href={sponsors[currentIndex].website_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-3 bg-white/10 rounded-lg px-4 py-2 transition-all animate-fade-in hover:bg-white/20"
+                key={sponsors[currentIndex]?.id}
+              >
+                {sponsors[currentIndex]?.logo_url ? (
+                  <img 
+                    src={sponsors[currentIndex].logo_url} 
+                    alt={sponsors[currentIndex].nombre}
+                    className="h-8 w-auto object-contain"
+                  />
+                ) : (
+                  <div className={`w-8 h-8 rounded bg-gradient-to-r ${nivelColors[sponsors[currentIndex]?.nivel_patrocinio]} flex items-center justify-center`}>
+                    <Building2 className="w-4 h-4 text-white" />
+                  </div>
+                )}
+                <div>
+                  <span className="text-sm text-white font-medium block">{sponsors[currentIndex]?.nombre}</span>
+                  <span className={`text-[10px] bg-gradient-to-r ${nivelColors[sponsors[currentIndex]?.nivel_patrocinio]} text-white px-1.5 py-0.5 rounded`}>
+                    {sponsors[currentIndex]?.nivel_patrocinio}
+                  </span>
                 </div>
-              )}
-              <div>
-                <span className="text-sm text-white font-medium block">{sponsors[currentIndex]?.nombre}</span>
-                <span className={`text-[10px] bg-gradient-to-r ${nivelColors[sponsors[currentIndex]?.nivel_patrocinio]} text-white px-1.5 py-0.5 rounded`}>
-                  {sponsors[currentIndex]?.nivel_patrocinio}
-                </span>
+              </a>
+            ) : (
+              <div 
+                className="flex items-center gap-3 bg-white/10 rounded-lg px-4 py-2 transition-all animate-fade-in"
+                key={sponsors[currentIndex]?.id}
+              >
+                {sponsors[currentIndex]?.logo_url ? (
+                  <img 
+                    src={sponsors[currentIndex].logo_url} 
+                    alt={sponsors[currentIndex].nombre}
+                    className="h-8 w-auto object-contain"
+                  />
+                ) : (
+                  <div className={`w-8 h-8 rounded bg-gradient-to-r ${nivelColors[sponsors[currentIndex]?.nivel_patrocinio]} flex items-center justify-center`}>
+                    <Building2 className="w-4 h-4 text-white" />
+                  </div>
+                )}
+                <div>
+                  <span className="text-sm text-white font-medium block">{sponsors[currentIndex]?.nombre}</span>
+                  <span className={`text-[10px] bg-gradient-to-r ${nivelColors[sponsors[currentIndex]?.nivel_patrocinio]} text-white px-1.5 py-0.5 rounded`}>
+                    {sponsors[currentIndex]?.nivel_patrocinio}
+                  </span>
+                </div>
               </div>
-            </div>
+            )}
             
             {/* Dots indicator */}
             <div className="flex gap-1 ml-4">
