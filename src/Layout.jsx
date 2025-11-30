@@ -1342,6 +1342,18 @@ export default function Layout({ children, currentPageName }) {
                 </button>
               </div>
               <div className="flex-1 overflow-y-auto p-4 space-y-2">
+                {/* Botón Instalar App al principio del menú móvil */}
+                <button
+                  onClick={() => {
+                    setMobileMenuOpen(false);
+                    setShowInstallInstructions(true);
+                  }}
+                  className="w-full flex items-center gap-4 p-4 rounded-2xl bg-gradient-to-r from-green-600 to-green-700 text-white shadow-lg mb-4"
+                >
+                  <Smartphone className="w-6 h-6 flex-shrink-0" />
+                  <span className="font-bold text-base flex-1">📲 Instalar App en Móvil</span>
+                </button>
+
                 {navigationItems.map((item) => (
                   <Link
                     key={item.title}
