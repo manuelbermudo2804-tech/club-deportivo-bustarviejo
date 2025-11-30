@@ -756,7 +756,6 @@ CD Bustarviejo`
 
         // Solo aplicar pantallas especiales a padres sin roles (NO a entrenadores, coordinadores o tesoreros)
         if (currentUser.role !== "admin" && 
-            currentUser.role !== "jugador" && 
             !currentUser.es_entrenador && 
             !currentUser.es_coordinador && 
             !currentUser.es_tesorero) {
@@ -829,22 +828,6 @@ CD Bustarviejo`
               }
             }
           });
-        } else if (isPlayer) {
-          const allPlayers = await base44.entities.Player.list();
-          const myPlayer = allPlayers.find(p => p.email_jugador === user.email);
-          
-          if (myPlayer) {
-            allMessages.forEach(msg => {
-              if (!msg.leido && 
-                  msg.tipo === "admin_a_grupo" && 
-                  (msg.grupo_id === myPlayer.deporte || msg.deporte === myPlayer.deporte)) {
-                unread++;
-                if (msg.prioridad === "Urgente") {
-                  urgent++;
-                }
-              }
-            });
-          }
         } else {
           const allPlayers = await base44.entities.Player.list();
           const myPlayers = allPlayers.filter(p => 
@@ -872,7 +855,7 @@ CD Bustarviejo`
     };
 
     checkUnreadMessages();
-  }, [user, isAdmin, isPlayer, isCoach]);
+  }, [user, isAdmin, isCoach]);
 
   useEffect(() => {
     if (!user) return;
@@ -1306,7 +1289,7 @@ CD Bustarviejo`
       return <TreasurerOnboarding open={showOnboarding} onComplete={handleOnboardingComplete} />;
     } else if (isCoach) {
       return <CoachOnboarding open={showOnboarding} onComplete={handleOnboardingComplete} />;
-    } else if (!isPlayer) {
+    } else {
       return <ParentOnboarding open={showOnboarding} onComplete={handleOnboardingComplete} />;
     }
     return null;
@@ -1510,7 +1493,7 @@ CD Bustarviejo`
               <div className="text-white">
                 <h1 className="font-bold text-base leading-tight">CD Bustarviejo</h1>
                 <p className="text-xs text-orange-100">
-                  {isAdmin ? "Admin" : isPlayer ? "Jugador" : isCoordinator ? "Coordinador" : isTreasurer ? "Tesorero" : isCoach ? "Entrenador" : "Familia"}
+                  {isAdmin ? "Admin" : isCoordinator ? "Coordinador" : isTreasurer ? "Tesorero" : isCoach ? "Entrenador" : "Familia"}
                 </p>
               </div>
             </div>
@@ -1624,7 +1607,7 @@ CD Bustarviejo`
               <div className="text-white">
                 <h2 className="font-bold text-xl">CD Bustarviejo</h2>
                 <p className="text-xs text-green-400">
-                  {isAdmin ? "Panel Admin" : isPlayer ? "Panel Jugador" : isCoordinator ? "Panel Coordinador" : isTreasurer ? "Panel Tesorero" : isCoach ? "Panel Entrenador" : "Panel Familia"}
+                  {isAdmin ? "Panel Admin" : isCoordinator ? "Panel Coordinador" : isTreasurer ? "Panel Tesorero" : isCoach ? "Panel Entrenador" : "Panel Familia"}
                 </p>
               </div>
             </div>
