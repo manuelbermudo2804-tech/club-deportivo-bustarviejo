@@ -9,42 +9,52 @@ export default function PWAInstallPrompt() {
   const [showInstallPrompt, setShowInstallPrompt] = useState(false);
   const [isIOS, setIsIOS] = useState(false);
   const [isStandalone, setIsStandalone] = useState(false);
+  const [hasError, setHasError] = useState(false);
 
   useEffect(() => {
-    // Detectar si es iOS
-    const isIOSDevice = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-    setIsIOS(isIOSDevice);
+    try {
+      // Detectar si es iOS
+      const isIOSDevice = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+      setIsIOS(isIOSDevice);
 
-    // Detectar si ya está instalada
-    const isInStandaloneMode = window.matchMedia('(display-mode: standalone)').matches || 
-                               window.navigator.standalone === true;
-    setIsStandalone(isInStandaloneMode);
+      // Detectar si ya está instalada
+      const isInStandaloneMode = window.matchMedia('(display-mode: standalone)').matches || 
+                                 window.navigator.standalone === true;
+      setIsStandalone(isInStandaloneMode);
 
-    // Capturar evento de instalación (Chrome/Android)
-    const handleBeforeInstallPrompt = (e) => {
-      e.preventDefault();
-      setDeferredPrompt(e);
-      
-      // Mostrar prompt solo si no lo han rechazado antes
-      const dismissed = localStorage.getItem('pwa-install-dismissed');
-      if (!dismissed) {
-        setShowInstallPrompt(true);
+      // Capturar evento de instalación (Chrome/Android)
+      const handleBeforeInstallPrompt = (e) => {
+        try {
+          e.preventDefault();
+          setDeferredPrompt(e);
+          
+          // Mostrar prompt solo si no lo han rechazado antes
+          const dismissed = localStorage.getItem('pwa-install-dismissed');
+          if (!dismissed) {
+            setShowInstallPrompt(true);
+          }
+        } catch (err) {
+          console.error('[PWA] Error en beforeinstallprompt:', err);
+        }
+      };
+
+      window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+
+      // Mostrar instrucciones iOS si aplica
+      if (isIOSDevice && !isInStandaloneMode) {
+        const dismissed = localStorage.getItem('pwa-install-dismissed-ios');
+        if (!dismissed) {
+          setShowInstallPrompt(true);
+        }
       }
-    };
 
-    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-
-    // Mostrar instrucciones iOS si aplica
-    if (isIOSDevice && !isInStandaloneMode) {
-      const dismissed = localStorage.getItem('pwa-install-dismissed-ios');
-      if (!dismissed) {
-        setShowInstallPrompt(true);
-      }
+      return () => {
+        window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+      };
+    } catch (error) {
+      console.error('[PWA] Error en useEffect:', error);
+      setHasError(true);
     }
-
-    return () => {
-      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-    };
   }, []);
 
   const handleInstall = async () => {
@@ -66,7 +76,8 @@ export default function PWAInstallPrompt() {
     localStorage.setItem(isIOS ? 'pwa-install-dismissed-ios' : 'pwa-install-dismissed', 'true');
   };
 
-  if (isStandalone || !showInstallPrompt) return null;
+  // Si hay error o está instalada o no debe mostrar, no renderizar nada
+  if (hasError || isStandalone || !showInstallPrompt) return null;
 
   return (
     <div className="fixed bottom-4 left-4 right-4 md:left-auto md:right-4 md:w-96 z-50 animate-fade-in">

@@ -666,9 +666,10 @@ CD Bustarviejo`
 
   useEffect(() => {
     const fetchUser = async () => {
-      try {
-        // Si es página pública, verificar si hay usuario autenticado sin forzar login
-        if (isPublicPage) {
+            console.log('🔐 [LAYOUT DEBUG] Iniciando fetchUser...');
+            try {
+              // Si es página pública, verificar si hay usuario autenticado sin forzar login
+              if (isPublicPage) {
           try {
             const isAuthenticated = await base44.auth.isAuthenticated();
             if (!isAuthenticated) {
@@ -699,9 +700,10 @@ CD Bustarviejo`
         }
 
         const currentUser = await base44.auth.me();
-        console.log('👤 USUARIO CARGADO:', currentUser.email);
-        setUser(currentUser);
-        setIsLoading(false);
+                  console.log('✅ [LAYOUT DEBUG] Usuario cargado:', currentUser.email);
+                  setUser(currentUser);
+                  setIsLoading(false);
+                  console.log('✅ [LAYOUT DEBUG] isLoading = false, debería mostrar contenido');
         setIsAdmin(currentUser.role === "admin");
         setIsPlayer(currentUser.role === "jugador");
         setIsCoach(currentUser.es_entrenador === true && !currentUser.es_coordinador);
@@ -769,17 +771,17 @@ CD Bustarviejo`
           }
           }
           } catch (error) {
-          console.error("Error fetching user:", error);
-          setIsLoading(false);
-          // Si es página pública y hay error, permitir acceso anónimo
-          if (isPublicPage) {
-            setUser(null);
-            setAuthChecked(true);
-          }
-        }
-      };
-      fetchUser();
-    }, [isPublicPage]);
+                      console.error("❌ [LAYOUT DEBUG] Error fetching user:", error);
+                      setIsLoading(false);
+                      // Si es página pública y hay error, permitir acceso anónimo
+                      if (isPublicPage) {
+                        setUser(null);
+                        setAuthChecked(true);
+                      }
+                    }
+                  };
+                  fetchUser();
+                }, [isPublicPage]);
 
           useEffect(() => {
             if (!user) return;
@@ -1284,20 +1286,25 @@ CD Bustarviejo`
 
       // Mostrar loading mientras se carga el usuario
   if (isLoading && !isPublicPage) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-orange-600 via-orange-700 to-green-700 flex items-center justify-center">
-        <div className="text-center">
-          <img 
-            src={CLUB_LOGO_URL} 
-            alt="CD Bustarviejo"
-            className="w-24 h-24 mx-auto mb-4 rounded-xl shadow-xl object-cover"
-          />
-          <div className="animate-spin rounded-full h-8 w-8 border-4 border-white border-t-transparent mx-auto"></div>
-          <p className="text-white mt-4 font-medium">Cargando...</p>
-        </div>
-      </div>
-    );
-  }
+        console.log('📱 [LAYOUT DEBUG] Mostrando pantalla de carga...');
+        return (
+          <div className="min-h-screen bg-gradient-to-br from-orange-600 via-orange-700 to-green-700 flex items-center justify-center">
+            <div className="text-center">
+              <img 
+                src={CLUB_LOGO_URL} 
+                alt="CD Bustarviejo"
+                className="w-24 h-24 mx-auto mb-4 rounded-xl shadow-xl object-cover"
+                onError={(e) => {
+                  console.log('⚠️ [LAYOUT DEBUG] Error cargando logo');
+                  e.target.style.display = 'none';
+                }}
+              />
+              <div className="animate-spin rounded-full h-8 w-8 border-4 border-white border-t-transparent mx-auto"></div>
+              <p className="text-white mt-4 font-medium">Cargando...</p>
+            </div>
+          </div>
+        );
+      }
 
   // Render onboarding based on role
   const renderOnboarding = () => {
