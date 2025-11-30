@@ -112,7 +112,7 @@ export default function EmailInvitations() {
         </div>
         
         <h1 style="color: white; margin: 25px 0 8px 0; font-size: 32px; font-weight: 800; text-shadow: 0 2px 10px rgba(0,0,0,0.3);">CD BUSTARVIEJO</h1>
-        <p style="color: rgba(255,255,255,0.9); margin: 0; font-size: 14px; letter-spacing: 3px; text-transform: uppercase;">Club Deportivo · Desde 1970</p>
+        <p style="color: rgba(255,255,255,0.9); margin: 0; font-size: 14px; letter-spacing: 3px; text-transform: uppercase;">Club Deportivo</p>
       </div>
       
       <!-- Contenido principal -->
