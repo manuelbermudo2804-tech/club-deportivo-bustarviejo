@@ -91,76 +91,129 @@ export default function EmailInvitations() {
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
-<body style="margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f5f5f5;">
-  <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff;">
+<body style="margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #0f172a;">
+  <div style="max-width: 600px; margin: 0 auto;">
     
-    <!-- Header con logo -->
-    <div style="background: linear-gradient(135deg, #ea580c 0%, #16a34a 100%); padding: 30px; text-align: center;">
-      <img src="${CLUB_LOGO_URL}" alt="CD Bustarviejo" style="width: 120px; height: 120px; border-radius: 20px; border: 4px solid white; box-shadow: 0 4px 15px rgba(0,0,0,0.3);">
-      <h1 style="color: white; margin: 20px 0 5px 0; font-size: 28px;">CD Bustarviejo</h1>
-      <p style="color: rgba(255,255,255,0.9); margin: 0; font-size: 16px;">Club Deportivo desde 1970</p>
-    </div>
+    <!-- Espaciado superior -->
+    <div style="height: 30px;"></div>
     
-    <!-- Contenido principal -->
-    <div style="padding: 40px 30px;">
-      <h2 style="color: #1e293b; margin-bottom: 20px; font-size: 24px;">¡Bienvenido a nuestra App! 📱</h2>
+    <!-- Tarjeta principal -->
+    <div style="background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%); border-radius: 24px; overflow: hidden; margin: 0 15px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);">
       
-      <p style="color: #475569; font-size: 16px; line-height: 1.6; margin-bottom: 20px;">
-        Hola,
-      </p>
-      
-      <p style="color: #475569; font-size: 16px; line-height: 1.6; margin-bottom: 20px;">
-        Te invitamos a unirte a la <strong>aplicación oficial del CD Bustarviejo</strong>. Con ella podrás:
-      </p>
-      
-      <div style="background-color: #f8fafc; border-radius: 12px; padding: 20px; margin-bottom: 25px;">
-        <ul style="color: #475569; font-size: 15px; line-height: 2; margin: 0; padding-left: 20px;">
-          <li>✅ <strong>Inscribir a tus jugadores</strong> de forma fácil</li>
-          <li>✅ <strong>Recibir convocatorias</strong> de partidos y confirmar asistencia</li>
-          <li>✅ <strong>Gestionar pagos</strong> y subir justificantes</li>
-          <li>✅ <strong>Comunicarte</strong> con entrenadores y el club</li>
-          <li>✅ <strong>Ver calendario</strong> de entrenamientos y eventos</li>
-          <li>✅ <strong>Acceder a la galería</strong> de fotos del club</li>
-        </ul>
+      <!-- Header con efecto degradado -->
+      <div style="background: linear-gradient(135deg, #ea580c 0%, #dc2626 50%, #16a34a 100%); padding: 50px 30px 60px; text-align: center; position: relative;">
+        <!-- Círculos decorativos -->
+        <div style="position: absolute; top: -30px; left: -30px; width: 100px; height: 100px; background: rgba(255,255,255,0.1); border-radius: 50%;"></div>
+        <div style="position: absolute; bottom: -20px; right: -20px; width: 80px; height: 80px; background: rgba(255,255,255,0.1); border-radius: 50%;"></div>
+        
+        <!-- Logo -->
+        <div style="display: inline-block; padding: 8px; background: white; border-radius: 24px; box-shadow: 0 10px 40px rgba(0,0,0,0.3);">
+          <img src="${CLUB_LOGO_URL}" alt="CD Bustarviejo" style="width: 100px; height: 100px; border-radius: 16px; display: block;">
+        </div>
+        
+        <h1 style="color: white; margin: 25px 0 8px 0; font-size: 32px; font-weight: 800; text-shadow: 0 2px 10px rgba(0,0,0,0.3);">CD BUSTARVIEJO</h1>
+        <p style="color: rgba(255,255,255,0.9); margin: 0; font-size: 14px; letter-spacing: 3px; text-transform: uppercase;">Club Deportivo · Desde 1970</p>
       </div>
+      
+      <!-- Contenido principal -->
+      <div style="padding: 40px 35px;">
+        
+        <!-- Título de bienvenida -->
+        <div style="text-align: center; margin-bottom: 35px;">
+          <span style="font-size: 50px;">🎉</span>
+          <h2 style="color: #ffffff; margin: 15px 0 10px 0; font-size: 26px; font-weight: 700;">¡Te damos la bienvenida!</h2>
+          <p style="color: #94a3b8; font-size: 16px; margin: 0;">Únete a nuestra familia deportiva</p>
+        </div>
+        
+        <p style="color: #cbd5e1; font-size: 16px; line-height: 1.7; margin-bottom: 30px; text-align: center;">
+          Te invitamos a usar la <strong style="color: #fb923c;">aplicación oficial</strong> del club para gestionar todo lo relacionado con tus jugadores.
+        </p>
+        
+        <!-- Features en grid -->
+        <div style="margin-bottom: 35px;">
+          <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+            <tr>
+              <td style="padding: 10px; width: 50%; vertical-align: top;">
+                <div style="background: linear-gradient(135deg, rgba(234,88,12,0.15) 0%, rgba(234,88,12,0.05) 100%); border: 1px solid rgba(234,88,12,0.3); border-radius: 16px; padding: 20px; text-align: center;">
+                  <span style="font-size: 32px;">📋</span>
+                  <p style="color: #fb923c; font-size: 13px; font-weight: 600; margin: 10px 0 0 0;">Convocatorias</p>
+                </div>
+              </td>
+              <td style="padding: 10px; width: 50%; vertical-align: top;">
+                <div style="background: linear-gradient(135deg, rgba(22,163,74,0.15) 0%, rgba(22,163,74,0.05) 100%); border: 1px solid rgba(22,163,74,0.3); border-radius: 16px; padding: 20px; text-align: center;">
+                  <span style="font-size: 32px;">💳</span>
+                  <p style="color: #4ade80; font-size: 13px; font-weight: 600; margin: 10px 0 0 0;">Pagos Online</p>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding: 10px; width: 50%; vertical-align: top;">
+                <div style="background: linear-gradient(135deg, rgba(59,130,246,0.15) 0%, rgba(59,130,246,0.05) 100%); border: 1px solid rgba(59,130,246,0.3); border-radius: 16px; padding: 20px; text-align: center;">
+                  <span style="font-size: 32px;">💬</span>
+                  <p style="color: #60a5fa; font-size: 13px; font-weight: 600; margin: 10px 0 0 0;">Chat Directo</p>
+                </div>
+              </td>
+              <td style="padding: 10px; width: 50%; vertical-align: top;">
+                <div style="background: linear-gradient(135deg, rgba(168,85,247,0.15) 0%, rgba(168,85,247,0.05) 100%); border: 1px solid rgba(168,85,247,0.3); border-radius: 16px; padding: 20px; text-align: center;">
+                  <span style="font-size: 32px;">📅</span>
+                  <p style="color: #c084fc; font-size: 13px; font-weight: 600; margin: 10px 0 0 0;">Calendario</p>
+                </div>
+              </td>
+            </tr>
+          </table>
+        </div>
 
-      ${mensajePersonalizado ? `
-      <div style="background-color: #fef3c7; border-left: 4px solid #f59e0b; padding: 15px; margin-bottom: 25px; border-radius: 0 8px 8px 0;">
-        <p style="color: #92400e; font-size: 15px; margin: 0; line-height: 1.6;">
-          ${mensajePersonalizado}
+        ${mensajePersonalizado ? `
+        <!-- Mensaje personalizado -->
+        <div style="background: linear-gradient(135deg, rgba(251,191,36,0.2) 0%, rgba(251,191,36,0.1) 100%); border: 1px solid rgba(251,191,36,0.4); border-radius: 16px; padding: 20px; margin-bottom: 35px;">
+          <p style="color: #fcd34d; font-size: 15px; margin: 0; line-height: 1.6; text-align: center;">
+            💬 ${mensajePersonalizado}
+          </p>
+        </div>
+        ` : ''}
+        
+        <!-- Botón de acceso -->
+        <table role="presentation" cellspacing="0" cellpadding="0" border="0" align="center" style="margin: 0 auto 30px auto;">
+          <tr>
+            <td style="border-radius: 16px; background: linear-gradient(135deg, #ea580c 0%, #dc2626 100%); box-shadow: 0 10px 30px rgba(234, 88, 12, 0.4);">
+              <a href="${linkUrl}" target="_blank" style="display: inline-block; color: white; text-decoration: none; padding: 20px 50px; font-weight: 700; font-size: 18px; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; letter-spacing: 0.5px;">
+                🚀 ACCEDER A LA APP
+              </a>
+            </td>
+          </tr>
+        </table>
+        
+        <p style="color: #64748b; font-size: 13px; text-align: center; margin: 0;">
+          Haz clic en el botón para empezar
         </p>
       </div>
-      ` : ''}
       
-      <!-- Botón de acceso -->
-      <table role="presentation" cellspacing="0" cellpadding="0" border="0" align="center" style="margin: 35px auto;">
-        <tr>
-          <td style="border-radius: 12px; background: linear-gradient(135deg, #ea580c 0%, #c2410c 100%); box-shadow: 0 4px 15px rgba(234, 88, 12, 0.4);">
-            <a href="${linkUrl}" target="_blank" style="display: inline-block; color: white; text-decoration: none; padding: 18px 45px; font-weight: bold; font-size: 18px; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
-              📲 ACCEDER A LA APP
-            </a>
-          </td>
-        </tr>
-      </table>
+      <!-- Separador decorativo -->
+      <div style="height: 4px; background: linear-gradient(90deg, #ea580c 0%, #dc2626 50%, #16a34a 100%); margin: 0 35px;"></div>
       
-      <p style="color: #64748b; font-size: 14px; text-align: center; margin-top: 30px;">
-        Pulsa el botón de arriba para acceder a la aplicación del club
-      </p>
+      <!-- Footer -->
+      <div style="padding: 30px 35px; text-align: center;">
+        <p style="color: #64748b; font-size: 13px; margin: 0 0 15px 0;">
+          ¿Tienes dudas? Escríbenos a:
+        </p>
+        <a href="mailto:cdbustarviejo@gmail.com" style="color: #fb923c; font-size: 15px; text-decoration: none; font-weight: 600;">
+          📧 cdbustarviejo@gmail.com
+        </a>
+        
+        <div style="margin-top: 25px; padding-top: 25px; border-top: 1px solid #334155;">
+          <span style="font-size: 28px; margin: 0 5px;">⚽</span>
+          <span style="font-size: 28px; margin: 0 5px;">🏀</span>
+        </div>
+        
+        <p style="color: #475569; font-size: 11px; margin: 15px 0 0 0;">
+          © 2024 CD Bustarviejo · Todos los derechos reservados
+        </p>
+      </div>
+      
     </div>
     
-    <!-- Footer -->
-    <div style="background-color: #1e293b; padding: 25px 30px; text-align: center;">
-      <p style="color: #94a3b8; font-size: 14px; margin: 0 0 10px 0;">
-        CD Bustarviejo - Club Deportivo
-      </p>
-      <p style="color: #64748b; font-size: 12px; margin: 0;">
-        📧 cdbustarviejo@gmail.com
-      </p>
-      <div style="margin-top: 15px;">
-        <span style="color: #ea580c; font-size: 20px;">⚽</span>
-        <span style="color: #16a34a; font-size: 20px; margin-left: 10px;">🏀</span>
-      </div>
-    </div>
+    <!-- Espaciado inferior -->
+    <div style="height: 30px;"></div>
     
   </div>
 </body>
