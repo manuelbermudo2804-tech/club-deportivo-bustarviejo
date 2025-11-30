@@ -81,6 +81,14 @@ export default function Sponsorships() {
     }
   };
 
+  const handleActivate = (sponsor) => {
+    updateMutation.mutate({ 
+      id: sponsor.id, 
+      data: { ...sponsor, estado: "Activo" } 
+    });
+    toast.success(`✅ ${sponsor.nombre} activado - ahora aparecerá en el banner`);
+  };
+
   const filteredSponsors = sponsors.filter(s => {
     const matchesSearch = s.nombre?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       s.contacto_nombre?.toLowerCase().includes(searchTerm.toLowerCase());
@@ -204,6 +212,7 @@ export default function Sponsorships() {
                   sponsor={sponsor}
                   onEdit={handleEdit}
                   onDelete={handleDelete}
+                  onActivate={handleActivate}
                 />
               ))}
             </div>

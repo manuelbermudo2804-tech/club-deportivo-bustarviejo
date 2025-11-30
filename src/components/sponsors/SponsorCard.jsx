@@ -2,7 +2,7 @@ import React from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Pencil, Trash2, FileText, Calendar, Euro, Building2, Phone, Mail } from "lucide-react";
+import { Pencil, Trash2, FileText, Calendar, Euro, Building2, Phone, Mail, CheckCircle2 } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 
@@ -21,7 +21,7 @@ const estadoColors = {
   "Cancelado": "bg-red-500"
 };
 
-export default function SponsorCard({ sponsor, onEdit, onDelete }) {
+export default function SponsorCard({ sponsor, onEdit, onDelete, onActivate }) {
   const isExpiringSoon = () => {
     if (!sponsor.fecha_fin) return false;
     const endDate = new Date(sponsor.fecha_fin);
@@ -72,6 +72,11 @@ export default function SponsorCard({ sponsor, onEdit, onDelete }) {
             </div>
           </div>
           <div className="flex gap-1">
+            {sponsor.estado === "Pendiente" && onActivate && (
+              <Button size="icon" variant="ghost" onClick={() => onActivate(sponsor)} title="Activar patrocinador">
+                <CheckCircle2 className="w-4 h-4 text-green-600" />
+              </Button>
+            )}
             <Button size="icon" variant="ghost" onClick={() => onEdit(sponsor)}>
               <Pencil className="w-4 h-4 text-slate-600" />
             </Button>
