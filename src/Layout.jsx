@@ -560,11 +560,11 @@ export default function Layout({ children, currentPageName }) {
         if (!lastReminder || (now - parseInt(lastReminder)) > oneDay) {
           // Pequeño delay para no molestar inmediatamente
           const timer = setTimeout(() => {
-            if (!isAppInstalled) {
-              setShowInstallInstructions(true);
-              localStorage.setItem('lastInstallReminder', now.toString());
-            }
-          }, 5000); // 5 segundos después de cargar
+                            if (!isAppInstalled) {
+                              setShowInstallInstructions(true);
+                              localStorage.setItem('lastInstallReminder', now.toString());
+                            }
+                          }, 1000); // 1 segundo después de cargar
 
           return () => clearTimeout(timer);
         }
