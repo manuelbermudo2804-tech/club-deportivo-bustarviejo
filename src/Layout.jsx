@@ -1071,6 +1071,7 @@ CD Bustarviejo`
     { title: "⚙️ Temporadas y Categorías", url: createPageUrl("SeasonManagement"), icon: Settings },
     { title: "🔔 Preferencias Notif.", url: createPageUrl("NotificationPreferences"), icon: Settings },
     { title: "📲 Enviar Push", url: createPageUrl("PushNotifications"), icon: Bell },
+    { title: "📧 Invitaciones Email", url: createPageUrl("EmailInvitations"), icon: Mail },
     ];
 
   const coachNavigationItems = [
