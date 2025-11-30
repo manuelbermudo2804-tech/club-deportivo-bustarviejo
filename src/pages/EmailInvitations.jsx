@@ -10,7 +10,7 @@ import { Mail, Send, Plus, X, Loader2, CheckCircle2, AlertCircle, Users, Trash2 
 import { toast } from "sonner";
 
 const CLUB_LOGO_URL = "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6911b8e453ca3ac01fb134d6/e3f0a8e26_logo_cd_bustarviejo_mediano.jpg";
-const APP_URL = "https://app.base44.com/a/6911b8e453ca3ac01fb134d6";
+const DEFAULT_APP_URL = "https://club-gestion-bustarviejo-1fb134d6.base44.app";
 
 export default function EmailInvitations() {
   const [user, setUser] = useState(null);
@@ -18,6 +18,7 @@ export default function EmailInvitations() {
   const [currentEmail, setCurrentEmail] = useState("");
   const [asunto, setAsunto] = useState("¡Bienvenido a la App del CD Bustarviejo! 📱⚽");
   const [mensajePersonalizado, setMensajePersonalizado] = useState("");
+  const [appUrl, setAppUrl] = useState(DEFAULT_APP_URL);
   const [isSending, setIsSending] = useState(false);
   const [sentCount, setSentCount] = useState(0);
   const [errorCount, setErrorCount] = useState(0);
@@ -82,7 +83,7 @@ export default function EmailInvitations() {
     setEmails([]);
   };
 
-  const generateEmailBody = (destinatarioEmail) => {
+  const generateEmailBody = (destinatarioEmail, linkUrl) => {
     return `
 <!DOCTYPE html>
 <html>
@@ -133,7 +134,7 @@ export default function EmailInvitations() {
       
       <!-- Botón de acceso -->
       <div style="text-align: center; margin: 35px 0;">
-        <a href="${APP_URL}" style="display: inline-block; background: linear-gradient(135deg, #ea580c 0%, #c2410c 100%); color: white; text-decoration: none; padding: 18px 45px; border-radius: 12px; font-weight: bold; font-size: 18px; box-shadow: 0 4px 15px rgba(234, 88, 12, 0.4);">
+        <a href="${linkUrl}" style="display: inline-block; background: linear-gradient(135deg, #ea580c 0%, #c2410c 100%); color: white; text-decoration: none; padding: 18px 45px; border-radius: 12px; font-weight: bold; font-size: 18px; box-shadow: 0 4px 15px rgba(234, 88, 12, 0.4);">
           📲 ACCEDER A LA APP
         </a>
       </div>
@@ -182,7 +183,7 @@ export default function EmailInvitations() {
           from_name: "CD Bustarviejo",
           to: email,
           subject: asunto,
-          body: generateEmailBody(email)
+          body: generateEmailBody(email, appUrl)
         });
         sent++;
         setSentCount(sent);
@@ -225,6 +226,25 @@ export default function EmailInvitations() {
       <div className="grid lg:grid-cols-2 gap-6">
         {/* Formulario */}
         <div className="space-y-4">
+          {/* Enlace de la App */}
+          <Card className="border-none shadow-md border-2 border-orange-200">
+            <CardHeader className="pb-3 bg-orange-50">
+              <CardTitle className="text-base flex items-center gap-2">
+                🔗 Enlace de la App
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="pt-4">
+              <Input
+                value={appUrl}
+                onChange={(e) => setAppUrl(e.target.value)}
+                placeholder="https://tu-dominio.com"
+              />
+              <p className="text-xs text-slate-500 mt-2">
+                Este es el enlace que aparecerá en el botón "ACCEDER A LA APP"
+              </p>
+            </CardContent>
+          </Card>
+
           {/* Asunto */}
           <Card className="border-none shadow-md">
             <CardHeader className="pb-3">
@@ -379,7 +399,7 @@ export default function EmailInvitations() {
           <CardContent className="p-0">
             <div className="border rounded-b-lg overflow-hidden">
               <iframe
-                srcDoc={generateEmailBody("usuario@ejemplo.com")}
+                srcDoc={generateEmailBody("usuario@ejemplo.com", appUrl)}
                 className="w-full h-[600px] border-0"
                 title="Preview"
               />
