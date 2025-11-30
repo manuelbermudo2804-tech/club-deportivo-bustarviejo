@@ -116,6 +116,41 @@ export const TUTORIALS = {
     ]
   },
 
+  // Players tutorial
+  parent_players: {
+    id: "parent_players",
+    steps: [
+      {
+        icon: "👥",
+        iconBg: "bg-gradient-to-br from-orange-100 to-orange-200",
+        title: "Gestión de Jugadores",
+        description: "Aquí puedes ver y gestionar la información de todos tus hijos inscritos en el club.",
+        tip: "Pulsa en 'Registrar Jugador' para inscribir a un nuevo hijo"
+      },
+      {
+        icon: "📝",
+        iconBg: "bg-gradient-to-br from-blue-100 to-blue-200",
+        title: "Editar Información",
+        description: "Puedes actualizar teléfonos, emails y datos de contacto. Los datos deportivos solo puede modificarlos el club.",
+        tip: "Pulsa en 'Editar' en la tarjeta del jugador"
+      },
+      {
+        icon: "🎖️",
+        iconBg: "bg-gradient-to-br from-yellow-100 to-yellow-200",
+        title: "Logros y Progreso",
+        description: "Debajo de cada jugador verás sus logros: asistencia, evaluaciones y reconocimientos del entrenador.",
+        tip: "¡Motiva a tus hijos a conseguir todas las insignias!"
+      },
+      {
+        icon: "👨‍👩‍👧‍👦",
+        iconBg: "bg-gradient-to-br from-green-100 to-green-200",
+        title: "Descuento por Hermanos",
+        description: "Si tienes varios hijos en el club, los hermanos menores tienen 25€ de descuento automático.",
+        tip: "Inscribe primero al hermano mayor para aplicar el descuento correctamente"
+      }
+    ]
+  },
+
   // Chat tutorial
   parent_chat: {
     id: "parent_chat",
