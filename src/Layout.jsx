@@ -1363,15 +1363,25 @@ export default function Layout({ children, currentPageName }) {
                   </Link>
                 ))}
               </div>
-              <div className="p-4 bg-slate-900 border-t border-white/10">
-                <button
-                  onClick={handleLogout}
-                  className="w-full flex items-center gap-4 p-4 rounded-2xl bg-red-500/20 text-white hover:bg-red-500/30 transition-all"
-                >
-                  <LogOut className="w-6 h-6" />
-                  <span className="font-semibold text-lg">Cerrar Sesión</span>
-                </button>
-              </div>
+              <div className="p-4 bg-slate-900 border-t border-white/10 space-y-2">
+                                  <button
+                                    onClick={() => {
+                                      setMobileMenuOpen(false);
+                                      setShowInstallInstructions(true);
+                                    }}
+                                    className="w-full flex items-center gap-4 p-4 rounded-2xl bg-green-500/20 text-white hover:bg-green-500/30 transition-all"
+                                  >
+                                    <Smartphone className="w-6 h-6" />
+                                    <span className="font-semibold text-lg">📲 Instalar App</span>
+                                  </button>
+                                  <button
+                                    onClick={handleLogout}
+                                    className="w-full flex items-center gap-4 p-4 rounded-2xl bg-red-500/20 text-white hover:bg-red-500/30 transition-all"
+                                  >
+                                    <LogOut className="w-6 h-6" />
+                                    <span className="font-semibold text-lg">Cerrar Sesión</span>
+                                  </button>
+                                </div>
             </div>
           </div>
         )}
