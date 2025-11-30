@@ -90,6 +90,43 @@ export default function ParentPlayers() {
         email_padre: user?.email || playerData.email_padre
       };
       const newPlayer = await base44.entities.Player.create(dataWithParentEmail);
+
+      // DETECCIÓN AUTOMÁTICA DE JUGADOR +18
+      // Si el jugador es mayor de 18 años y el email coincide con el usuario actual
+      const calcularEdadJugador = (fechaNac) => {
+        if (!fechaNac) return null;
+        const hoy = new Date();
+        const nacimiento = new Date(fechaNac);
+        let edad = hoy.getFullYear() - nacimiento.getFullYear();
+        const m = hoy.getMonth() - nacimiento.getMonth();
+        if (m < 0 || (m === 0 && hoy.getDate() < nacimiento.getDate())) edad--;
+        return edad;
+      };
+
+      const edadJugador = calcularEdadJugador(playerData.fecha_nacimiento);
+      const esMayorDe18 = edadJugador >= 18 || playerData.es_mayor_edad === true;
+
+      if (esMayorDe18 && dataWithParentEmail.email_padre === user?.email) {
+        // El usuario está registrando a sí mismo como jugador +18
+        // Actualizar automáticamente su perfil de usuario
+        try {
+          await base44.auth.updateMe({
+            es_jugador: true,
+            player_id: newPlayer.id
+          });
+          console.log('✅ Usuario actualizado automáticamente como Jugador +18');
+
+          // Mostrar toast informativo
+          setTimeout(() => {
+            toast.info(
+              "🎉 ¡Acceso de Jugador +18 activado! Tu panel cambiará automáticamente para mostrarte tus convocatorias, pagos y chat de equipo directamente.",
+              { duration: 8000 }
+            );
+          }, 2000);
+        } catch (error) {
+          console.error('Error actualizando usuario como jugador +18:', error);
+        }
+      }
       
       // Recalcular descuentos de TODOS los hermanos de la familia
       try {
