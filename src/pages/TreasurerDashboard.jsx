@@ -36,6 +36,7 @@ import TransactionList from "../components/financial/TransactionList";
 import AICommunicationAssistant from "../components/communication/AICommunicationAssistant";
 import AIFinancialForecasting from "../components/financial/AIFinancialForecasting";
 import AIReconciliation from "../components/financial/AIReconciliation";
+import { usePageTutorial } from "../components/tutorials/useTutorial";
 
 const COLORS = {
   pagado: '#16a34a',
@@ -48,6 +49,8 @@ const COLORS = {
 };
 
 export default function TreasurerDashboard() {
+  usePageTutorial("treasurer_dashboard");
+  
   const [selectedSeason, setSelectedSeason] = useState("all");
   const [showNewBudget, setShowNewBudget] = useState(false);
   const [showTransactionForm, setShowTransactionForm] = useState(false);

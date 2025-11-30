@@ -20,8 +20,11 @@ import ReadConfirmation from "../components/chat/ReadConfirmation";
 import ChatSearchDialog from "../components/chat/ChatSearchDialog";
 import PinnedMessagesDialog from "../components/chat/PinnedMessagesDialog";
 import MediaGalleryDialog from "../components/chat/MediaGalleryDialog";
+import { usePageTutorial } from "../components/tutorials/useTutorial";
 
 export default function CoachChat() {
+  usePageTutorial("coach_chat");
+  
   const [messageContent, setMessageContent] = useState("");
   const [selectedCategory, setSelectedCategory] = useState(null); // Categoría seleccionada
   const [chatSubMode, setChatSubMode] = useState("anuncios"); // "anuncios" o "privado" dentro de cada categoría

@@ -21,8 +21,11 @@ import ExportButton from "../components/ExportButton";
 
 import CallupForm from "../components/callups/CallupForm";
 import CallupCard from "../components/callups/CallupCard";
+import { usePageTutorial } from "../components/tutorials/useTutorial";
 
 export default function CoachCallups() {
+  usePageTutorial("coach_callups");
+  
   const [showForm, setShowForm] = useState(false);
   const [editingCallup, setEditingCallup] = useState(null);
   const [user, setUser] = useState(null);

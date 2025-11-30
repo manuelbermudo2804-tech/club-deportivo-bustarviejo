@@ -21,6 +21,7 @@ import { getCuotasPorCategoriaSync, getImportePorCategoriaYMesSync as getImporte
 
 import IndividualReminderDialog from "../components/reminders/IndividualReminderDialog";
 import PaymentStatsDashboard from "../components/reminders/PaymentStatsDashboard";
+import { usePageTutorial } from "../components/tutorials/useTutorial";
 
 const CLUB_IBAN = "ES82 0049 4447 38 2010604048";
 const CLUB_BANK = "Banco Santander";
@@ -40,6 +41,8 @@ const getCurrentSeason = () => {
 };
 
 export default function RemindersPage() {
+  usePageTutorial("treasurer_reminders");
+  
   const queryClient = useQueryClient();
   const [sendingReminder, setSendingReminder] = useState(null);
   const [isRefreshing, setIsRefreshing] = useState(false);

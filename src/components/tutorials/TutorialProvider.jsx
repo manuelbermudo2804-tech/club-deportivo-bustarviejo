@@ -326,6 +326,181 @@ export const TUTORIALS = {
     ]
   },
 
+  // Coach Callups tutorial
+  coach_callups: {
+    id: "coach_callups",
+    steps: [
+      {
+        icon: "🏆",
+        iconBg: "bg-gradient-to-br from-orange-100 to-orange-200",
+        title: "Gestión de Convocatorias",
+        description: "Aquí creas y gestionas las convocatorias de tus equipos para partidos y entrenamientos especiales.",
+        tip: "Puedes crear borradores y publicarlos más tarde"
+      },
+      {
+        icon: "✅",
+        iconBg: "bg-gradient-to-br from-blue-100 to-blue-200",
+        title: "Seleccionar Jugadores",
+        description: "Al crear una convocatoria, selecciona los jugadores que participarán. La IA puede sugerirte la alineación óptima.",
+        tip: "Marca lesionados y sancionados para excluirlos automáticamente"
+      },
+      {
+        icon: "📢",
+        iconBg: "bg-gradient-to-br from-green-100 to-green-200",
+        title: "Publicar y Notificar",
+        description: "Al publicar, las familias reciben email y mensaje en el chat automáticamente con todos los detalles.",
+        tip: "Incluye hora de concentración y enlace de ubicación"
+      },
+      {
+        icon: "📊",
+        iconBg: "bg-gradient-to-br from-purple-100 to-purple-200",
+        title: "Seguimiento",
+        description: "Ve en tiempo real quién confirmó asistencia. Los números muestran confirmados vs pendientes.",
+        tip: "Puedes editar la convocatoria hasta 24h antes del partido"
+      }
+    ]
+  },
+
+  // Team Attendance tutorial
+  coach_attendance: {
+    id: "coach_attendance",
+    steps: [
+      {
+        icon: "📋",
+        iconBg: "bg-gradient-to-br from-green-100 to-green-200",
+        title: "Registro de Sesión",
+        description: "Aquí registras la asistencia y evalúas a cada jugador después de cada entrenamiento.",
+        tip: "Selecciona fecha y equipo en la parte superior"
+      },
+      {
+        icon: "✅",
+        iconBg: "bg-gradient-to-br from-blue-100 to-blue-200",
+        title: "Marcar Asistencia",
+        description: "Marca presente, ausente, justificado o tardanza para cada jugador. Los iconos son intuitivos.",
+        tip: "En móvil: pulsa los botones, en desktop: usa la tabla"
+      },
+      {
+        icon: "⭐",
+        iconBg: "bg-gradient-to-br from-yellow-100 to-yellow-200",
+        title: "Evaluar Actitud",
+        description: "Para jugadores presentes, evalúa su actitud de 1 a 5 estrellas y añade observaciones personalizadas.",
+        tip: "Estas evaluaciones se guardan en el historial del jugador"
+      },
+      {
+        icon: "📧",
+        iconBg: "bg-gradient-to-br from-purple-100 to-purple-200",
+        title: "Reportes a Familias",
+        description: "Envía reportes individuales privados a las familias o reportes masivos. Cada familia solo ve los datos de su hijo.",
+        tip: "Los reportes se envían por email y chat privado - nunca al grupo"
+      }
+    ]
+  },
+
+  // Coach Chat tutorial
+  coach_chat: {
+    id: "coach_chat",
+    steps: [
+      {
+        icon: "💬",
+        iconBg: "bg-gradient-to-br from-blue-100 to-blue-200",
+        title: "Chat del Equipo",
+        description: "Comunícate con las familias de tus jugadores. Hay dos modos: anuncios grupales y mensajes privados.",
+        tip: "Selecciona un equipo en la lista de la izquierda"
+      },
+      {
+        icon: "📢",
+        iconBg: "bg-gradient-to-br from-orange-100 to-orange-200",
+        title: "Anuncios Grupales",
+        description: "En la pestaña 'Anuncios', todos los padres del equipo verán tu mensaje. Ideal para comunicados generales.",
+        tip: "Marca como 'Importante' o 'Urgente' para enviar también por email"
+      },
+      {
+        icon: "🔒",
+        iconBg: "bg-gradient-to-br from-green-100 to-green-200",
+        title: "Mensajes Privados",
+        description: "En la pestaña 'Privado', puedes tener conversaciones individuales con cada familia. Solo ellos y tú lo ven.",
+        tip: "Ideal para temas personales, rendimiento o situaciones específicas"
+      },
+      {
+        icon: "📎",
+        iconBg: "bg-gradient-to-br from-purple-100 to-purple-200",
+        title: "Archivos y Encuestas",
+        description: "Puedes adjuntar imágenes, documentos y crear encuestas rápidas para el grupo.",
+        tip: "Las imágenes se guardan automáticamente en la galería del club"
+      }
+    ]
+  },
+
+  // Treasurer Dashboard tutorial
+  treasurer_dashboard: {
+    id: "treasurer_dashboard",
+    steps: [
+      {
+        icon: "💰",
+        iconBg: "bg-gradient-to-br from-green-100 to-green-200",
+        title: "Panel Financiero",
+        description: "Control total de las finanzas del club: ingresos, pendientes, patrocinios y mucho más.",
+        tip: "Las tarjetas superiores muestran un resumen rápido"
+      },
+      {
+        icon: "📊",
+        iconBg: "bg-gradient-to-br from-blue-100 to-blue-200",
+        title: "Gráficas e Informes",
+        description: "Visualiza ingresos por concepto (cuotas, ropa, lotería, socios) y exporta informes en PDF o CSV.",
+        tip: "Usa el selector de temporada para ver datos históricos"
+      },
+      {
+        icon: "💳",
+        iconBg: "bg-gradient-to-br from-purple-100 to-purple-200",
+        title: "Presupuestos",
+        description: "Gestiona el presupuesto anual del club con partidas, gastos planificados y seguimiento en tiempo real.",
+        tip: "La IA puede ayudarte con previsiones financieras"
+      },
+      {
+        icon: "🤖",
+        iconBg: "bg-gradient-to-br from-indigo-100 to-indigo-200",
+        title: "Herramientas IA",
+        description: "Conciliación bancaria automática, análisis predictivo y asistente de comunicación con las familias.",
+        tip: "La IA puede generar mensajes de recordatorio personalizados"
+      }
+    ]
+  },
+
+  // Reminders tutorial
+  treasurer_reminders: {
+    id: "treasurer_reminders",
+    steps: [
+      {
+        icon: "🔔",
+        iconBg: "bg-gradient-to-br from-orange-100 to-orange-200",
+        title: "Sistema de Recordatorios",
+        description: "Gestiona los recordatorios automáticos de pago a las familias con un calendario escalonado.",
+        tip: "Los recordatorios se envían por email y chat privado"
+      },
+      {
+        icon: "⚙️",
+        iconBg: "bg-gradient-to-br from-blue-100 to-blue-200",
+        title: "Configuración Inicial",
+        description: "1️⃣ Configura cuotas en 'Temporadas'\n2️⃣ Genera pagos (Jun/Sep/Dic)\n3️⃣ Genera recordatorios automáticos",
+        tip: "Hazlo al inicio de cada temporada"
+      },
+      {
+        icon: "📅",
+        iconBg: "bg-gradient-to-br from-green-100 to-green-200",
+        title: "Envío Diario",
+        description: "Cada día, pulsa el botón 'Hoy' para enviar los recordatorios programados. El sistema es automático.",
+        tip: "Se envían a: 15, 7 y 3 días antes, y 1 día después del vencimiento"
+      },
+      {
+        icon: "✉️",
+        iconBg: "bg-gradient-to-br from-purple-100 to-purple-200",
+        title: "Recordatorios Manuales",
+        description: "Usa el botón 'Enviar' de cada jugador para casos especiales con opciones personalizadas.",
+        tip: "Puedes elegir email, chat o notificación visual"
+      }
+    ]
+  },
+
   // Coach tutorial
   coach_home: {
     id: "coach_home",

@@ -11,8 +11,11 @@ import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import IndividualReportDialog from "../components/coach/IndividualReportDialog";
 import BulkReportDialog from "../components/coach/BulkReportDialog";
+import { usePageTutorial } from "../components/tutorials/useTutorial";
 
 export default function TeamAttendanceEvaluation() {
+  usePageTutorial("coach_attendance");
+  
   const [user, setUser] = useState(null);
   const [selectedCategory, setSelectedCategory] = useState("");
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
