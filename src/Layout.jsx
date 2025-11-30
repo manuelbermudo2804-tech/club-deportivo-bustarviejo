@@ -1459,15 +1459,26 @@ export default function Layout({ children, currentPageName }) {
                                           </div>
 
                     <Button 
-                                                onClick={() => {
-                                                  setShowInstallInstructions(false);
-                                                  setInstallDismissed(true);
-                                                  localStorage.setItem('installPromptDismissed', 'true');
-                                                }} 
-                                                className="w-full mt-4 bg-orange-600 hover:bg-orange-700 py-4 text-lg font-bold"
-                                              >
-                                                ✓ Entendido
-                                              </Button>
+                                        onClick={() => {
+                                          setShowInstallInstructions(false);
+                                          setIsAppInstalled(true);
+                                          localStorage.setItem('pwaInstalled', 'true');
+                                        }} 
+                                        className="w-full mt-4 bg-green-600 hover:bg-green-700 py-4 text-lg font-bold"
+                                      >
+                                        ✅ Ya la tengo instalada
+                                      </Button>
+                                      <Button 
+                                        onClick={() => {
+                                          setShowInstallInstructions(false);
+                                          setInstallDismissed(true);
+                                          localStorage.setItem('installPromptDismissed', 'true');
+                                        }} 
+                                        variant="outline"
+                                        className="w-full mt-2 py-3"
+                                      >
+                                        Cerrar
+                                      </Button>
                   </div>
                 </div>
               )}
