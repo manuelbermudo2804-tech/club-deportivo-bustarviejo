@@ -496,7 +496,6 @@ export default function Layout({ children, currentPageName }) {
   const currentSeason = getCurrentSeason();
   const [user, setUser] = useState(null);
   const [isAdmin, setIsAdmin] = useState(false);
-  const [isPlayer, setIsPlayer] = useState(false);
   const [isCoach, setIsCoach] = useState(false);
   const [isCoordinator, setIsCoordinator] = useState(false);
   const [isTreasurer, setIsTreasurer] = useState(false);
@@ -706,16 +705,14 @@ CD Bustarviejo`
                   setUser(currentUser);
                   setIsLoading(false);
                   console.log('✅ [LAYOUT DEBUG] isLoading = false, debería mostrar contenido');
-        setIsAdmin(currentUser.role === "admin");
-        setIsPlayer(currentUser.role === "jugador");
-        setIsCoach(currentUser.es_entrenador === true && !currentUser.es_coordinador);
+                  setIsAdmin(currentUser.role === "admin");
+                  setIsCoach(currentUser.es_entrenador === true && !currentUser.es_coordinador);
         setIsCoordinator(currentUser.es_coordinador === true);
         setIsTreasurer(currentUser.es_tesorero === true);
 
         console.log('🔍 ROLES DETECTADOS:', {
                         email: currentUser.email,
                         isAdmin: currentUser.role === "admin",
-                        isPlayer: currentUser.role === "jugador",
                         isCoach: currentUser.es_entrenador === true && !currentUser.es_coordinador,
                         isCoordinator: currentUser.es_coordinador === true,
                         isTreasurer: currentUser.es_tesorero === true,
@@ -787,21 +784,19 @@ CD Bustarviejo`
 
           useEffect(() => {
             if (!user) return;
-            
+
             const isRootPath = location.pathname === '/' || location.pathname === '';
             if (!isRootPath) return;
-            
+
             // Redirección inmediata sin async
-            console.log('🎯 Redirigiendo:', { isAdmin, isCoach, isCoordinator, isTreasurer, isPlayer });
-            
+            console.log('🎯 Redirigiendo:', { isAdmin, isCoach, isCoordinator, isTreasurer });
+
             if (isAdmin || isCoach || isCoordinator || isTreasurer) {
               navigate(createPageUrl('Home'), { replace: true });
-            } else if (isPlayer) {
-              navigate(createPageUrl('PlayerDashboard'), { replace: true });
             } else {
               navigate(createPageUrl('ParentDashboard'), { replace: true });
             }
-          }, [user, isAdmin, isCoach, isCoordinator, isTreasurer, isPlayer, location.pathname, navigate]);
+          }, [user, isAdmin, isCoach, isCoordinator, isTreasurer, location.pathname, navigate]);
 
   useEffect(() => {
     if (!user) return;
@@ -886,26 +881,10 @@ CD Bustarviejo`
       try {
         const allCallups = await base44.entities.Convocatoria.list();
         const today = new Date().toISOString().split('T')[0];
-        
+
         let pending = 0;
-        
-        if (isPlayer) {
-          const allPlayers = await base44.entities.Player.list();
-          const myPlayer = allPlayers.find(p => p.email_jugador === user.email);
-          
-          if (myPlayer) {
-            allCallups.forEach(callup => {
-              if (callup.publicada && 
-                  callup.fecha_partido >= today && 
-                  !callup.cerrada) {
-                const myConfirmation = callup.jugadores_convocados?.find(j => j.jugador_id === myPlayer.id);
-                if (myConfirmation && myConfirmation.confirmacion === "pendiente") {
-                  pending++;
-                }
-              }
-            });
-          }
-        } else if (!isAdmin && !isCoach) {
+
+        if (!isAdmin && !isCoach) {
           const allPlayers = await base44.entities.Player.list();
           const myPlayers = allPlayers.filter(p => 
             p.email_padre === user.email || 
@@ -946,13 +925,13 @@ CD Bustarviejo`
         }
         
         setPendingCallupsCount(pending);
-      } catch (error) {
+        } catch (error) {
         console.error("Error checking pending callups:", error);
-      }
-    };
+        }
+        };
 
-    checkPendingCallups();
-    }, [user, isAdmin, isPlayer, isCoach, hasPlayers]);
+        checkPendingCallups();
+        }, [user, isAdmin, isCoach, hasPlayers]);
 
     useEffect(() => {
       if (!user || isAdmin) return;

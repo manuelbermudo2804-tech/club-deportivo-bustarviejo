@@ -18,14 +18,8 @@ import TrainingSchedules from './pages/TrainingSchedules';
 import ParentTrainingSchedules from './pages/ParentTrainingSchedules';
 import AdminGallery from './pages/AdminGallery';
 import ParentGallery from './pages/ParentGallery';
-import PlayerDashboard from './pages/PlayerDashboard';
-import PlayerProfile from './pages/PlayerProfile';
-import PlayerChat from './pages/PlayerChat';
-import PlayerSchedules from './pages/PlayerSchedules';
-import PlayerGallery from './pages/PlayerGallery';
 import CoachCallups from './pages/CoachCallups';
 import ParentCallups from './pages/ParentCallups';
-import PlayerCallups from './pages/PlayerCallups';
 import CoachChat from './pages/CoachChat';
 import TeamRosters from './pages/TeamRosters';
 import CoachAttendance from './pages/CoachAttendance';
@@ -91,14 +85,8 @@ export const PAGES = {
     "ParentTrainingSchedules": ParentTrainingSchedules,
     "AdminGallery": AdminGallery,
     "ParentGallery": ParentGallery,
-    "PlayerDashboard": PlayerDashboard,
-    "PlayerProfile": PlayerProfile,
-    "PlayerChat": PlayerChat,
-    "PlayerSchedules": PlayerSchedules,
-    "PlayerGallery": PlayerGallery,
     "CoachCallups": CoachCallups,
     "ParentCallups": ParentCallups,
-    "PlayerCallups": PlayerCallups,
     "CoachChat": CoachChat,
     "TeamRosters": TeamRosters,
     "CoachAttendance": CoachAttendance,
