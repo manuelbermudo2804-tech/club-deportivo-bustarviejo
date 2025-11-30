@@ -289,8 +289,12 @@ export default function NotificationCenter() {
             {/* App Notifications */}
             {unviewedAppNotifications.map(notif => {
               const Icon = getNotificationIcon(notif.tipo?.includes("callup") || notif.tipo?.includes("convocatoria") ? "callup" : notif.tipo?.includes("pago") ? "payment" : notif.tipo?.includes("evaluacion") ? "event" : "message");
+              // Determinar la URL de destino - usar enlace si existe, sino url_accion, sino Home
+              const targetUrl = notif.enlace 
+                ? (notif.enlace.startsWith('/') ? notif.enlace : createPageUrl(notif.enlace))
+                : (notif.url_accion || createPageUrl("Home"));
               return (
-                <Link key={notif.id} to={notif.url_accion || createPageUrl("Home")} onClick={() => setIsOpen(false)}>
+                <Link key={notif.id} to={targetUrl} onClick={() => setIsOpen(false)}>
                   <div className={`flex items-start gap-3 p-3 rounded-lg hover:opacity-80 transition-all ${notif.prioridad === "urgente" ? "border-2 border-orange-300 bg-orange-50" : "bg-slate-50"}`}>
                     <Icon className={`w-5 h-5 mt-1 ${notif.prioridad === "urgente" ? "text-orange-600" : "text-blue-600"}`} />
                     <div className="flex-1">
