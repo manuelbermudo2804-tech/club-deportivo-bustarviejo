@@ -52,6 +52,7 @@ export default function UserManagement() {
   const [showCoachDialog, setShowCoachDialog] = useState(false);
   const [showCoordinatorDialog, setShowCoordinatorDialog] = useState(false);
   const [showTreasurerDialog, setShowTreasurerDialog] = useState(false);
+  const [showPlayerDialog, setShowPlayerDialog] = useState(false);
   const [showDeleted, setShowDeleted] = useState(false);
   const [restrictionData, setRestrictionData] = useState({
     motivo_restriccion: "",
@@ -100,12 +101,41 @@ export default function UserManagement() {
       setShowCoachDialog(false);
       setShowCoordinatorDialog(false);
       setShowTreasurerDialog(false);
+      setShowPlayerDialog(false);
       setSelectedUser(null);
+      setSelectedPlayerId("");
       setRestrictionData({ motivo_restriccion: "", notas_admin: "" });
       setCoachData({ categorias_entrena: [], telefono_entrenador: "" });
       toast.success("Usuario actualizado correctamente");
     },
   });
+
+  const handlePlayerToggle = (user) => {
+    setSelectedUser(user);
+    setSelectedPlayerId(user.player_id || "");
+    setShowPlayerDialog(true);
+  };
+
+  const handleConfirmPlayer = async () => {
+    if (!selectedUser) return;
+
+    const isSettingAsPlayer = !selectedUser.es_jugador;
+
+    const updateData = {
+      es_jugador: isSettingAsPlayer,
+      player_id: isSettingAsPlayer ? selectedPlayerId : null
+    };
+
+    if (isSettingAsPlayer && !selectedPlayerId) {
+      toast.error("Por favor, selecciona un jugador para vincular.");
+      return;
+    }
+
+    updateUserMutation.mutate({
+      userId: selectedUser.id,
+      userData: updateData
+    });
+  };
 
   const handleRestrictAccess = async (user) => {
     setSelectedUser(user);
@@ -316,7 +346,7 @@ export default function UserManagement() {
   const restrictedUsers = activeUsersWithoutDeleted.filter(u => u.acceso_activo === false);
   const admins = activeUsersWithoutDeleted.filter(u => u.role === "admin");
   const deletedUsers = users.filter(u => u.eliminado === true);
-  const jugadores = activeUsersWithoutDeleted.filter(u => u.role === "jugador");
+  const jugadores = activeUsersWithoutDeleted.filter(u => u.es_jugador === true);
   const entrenadores = activeUsersWithoutDeleted.filter(u => u.es_entrenador === true && !u.es_coordinador);
   const coordinadores = activeUsersWithoutDeleted.filter(u => u.es_coordinador === true);
   const tesoreros = activeUsersWithoutDeleted.filter(u => u.es_tesorero === true);
@@ -511,6 +541,7 @@ export default function UserManagement() {
                 const isCoach = user.es_entrenador === true && !user.es_coordinador;
                 const isCoordinator = user.es_coordinador === true;
                 const isTreasurer = user.es_tesorero === true;
+                const isPlayerUser = user.es_jugador === true;
 
                 return (
                   <div
@@ -536,11 +567,11 @@ export default function UserManagement() {
                           <Badge className={
                             user.role === "admin"
                               ? "bg-orange-600"
-                              : user.role === "jugador"
+                              : isPlayerUser
                               ? "bg-purple-600"
                               : "bg-slate-600"
                           }>
-                            {user.role === "admin" ? "🎓 Administrador" : user.role === "jugador" ? "⚽ Jugador" : "👨‍👩‍👧 Padre/Tutor"}
+                            {user.role === "admin" ? "🎓 Administrador" : isPlayerUser ? "⚽ Jugador +18" : "👨‍👩‍👧 Padre/Tutor"}
                           </Badge>
                           {isCoordinator && (
                             <Badge className="bg-cyan-600 text-white">
@@ -605,13 +636,13 @@ export default function UserManagement() {
                         </div>
                         )}
 
-                        {user.role === "jugador" && linkedPlayer && (
+                        {isPlayerUser && linkedPlayer && (
                           <div className="text-sm text-purple-700 bg-purple-50 rounded p-2 mb-2">
-                            <strong>Jugador vinculado:</strong> {linkedPlayer.nombre} - {linkedPlayer.deporte}
+                            <strong>⚽ Jugador vinculado:</strong> {linkedPlayer.nombre} - {linkedPlayer.deporte}
                           </div>
                         )}
 
-                        {userPlayers.length > 0 && user.role !== "jugador" && (
+                        {userPlayers.length > 0 && !isPlayerUser && (
                           <div className="text-sm text-slate-600 mb-2">
                             <span className="font-medium">Jugadores:</span>{" "}
                             {userPlayers.map(p => p.nombre).join(", ")}
@@ -654,6 +685,14 @@ export default function UserManagement() {
                         <div className="flex flex-col gap-1.5 lg:gap-2">
                           {user.role !== "admin" && (
                             <>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => handlePlayerToggle(user)}
+                                className={`${isPlayerUser ? "bg-purple-100 hover:bg-purple-200 border-purple-400" : "bg-purple-50 hover:bg-purple-100 border-purple-300"} text-xs lg:text-sm px-2 py-1 lg:px-4 lg:py-2`}
+                              >
+                                {isPlayerUser ? "✅ Jugador" : "⚽ Jugador"}
+                              </Button>
                               <Button
                                 size="sm"
                                 variant="outline"
