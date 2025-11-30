@@ -1461,7 +1461,7 @@ CD Bustarviejo`
 
                     <div className="mt-4 p-3 bg-blue-50 border-2 border-blue-300 rounded-xl">
                                             <p className="text-xs text-blue-800 text-center font-medium">
-                                              💡 <strong>También puedes instalar desde el menú lateral</strong> de la app (botón "📲 Instalar App en Móvil")
+                                              💡 <strong>Puedes volver a ver estas instrucciones</strong> desde el menú lateral pulsando "📲 Ver cómo instalar"
                                             </p>
                                           </div>
 
@@ -1558,7 +1558,7 @@ CD Bustarviejo`
                     className="w-full flex items-center gap-4 p-4 rounded-2xl bg-gradient-to-r from-green-600 to-green-700 text-white shadow-lg mb-4"
                   >
                     <Smartphone className="w-6 h-6 flex-shrink-0" />
-                    <span className="font-bold text-base flex-1">📲 Instalar App en Móvil</span>
+                    <span className="font-bold text-base flex-1">📲 Ver cómo instalar la App</span>
                   </button>
                 )}
 
@@ -1585,17 +1585,17 @@ CD Bustarviejo`
               </div>
               <div className="p-4 bg-slate-900 border-t border-white/10 space-y-2">
                                                   {!isAppInstalled && (
-                                                    <button
-                                                      onClick={() => {
-                                                        setMobileMenuOpen(false);
-                                                        setShowInstallInstructions(true);
-                                                      }}
-                                                      className="w-full flex items-center gap-4 p-4 rounded-2xl bg-green-500/20 text-white hover:bg-green-500/30 transition-all"
-                                                    >
-                                                      <Smartphone className="w-6 h-6" />
-                                                      <span className="font-semibold text-lg">📲 Instalar App</span>
-                                                    </button>
-                                                  )}
+                                                                                        <button
+                                                                                          onClick={() => {
+                                                                                            setMobileMenuOpen(false);
+                                                                                            setShowInstallInstructions(true);
+                                                                                          }}
+                                                                                          className="w-full flex items-center gap-4 p-4 rounded-2xl bg-green-500/20 text-white hover:bg-green-500/30 transition-all"
+                                                                                        >
+                                                                                          <Smartphone className="w-6 h-6" />
+                                                                                          <span className="font-semibold text-lg">📲 Ver cómo instalar</span>
+                                                                                        </button>
+                                                                                      )}
                                                   <button
                                     onClick={handleLogout}
                                     className="w-full flex items-center gap-4 p-4 rounded-2xl bg-red-500/20 text-white hover:bg-red-500/30 transition-all"
@@ -1703,7 +1703,7 @@ CD Bustarviejo`
                                                                       className="w-full mt-3 border-green-500 text-green-400 hover:bg-green-500/20 font-semibold py-3 rounded-xl"
                                                                     >
                                                                       <Smartphone className="w-4 h-4 mr-2" />
-                                                                      📲 Instalar App en Móvil
+                                                                      📲 Ver cómo instalar
                                                                     </Button>
                                                                   )}
 
