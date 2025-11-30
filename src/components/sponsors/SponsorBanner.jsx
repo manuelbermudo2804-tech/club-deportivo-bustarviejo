@@ -19,13 +19,23 @@ export default function SponsorBanner() {
     refetchOnWindowFocus: true,
   });
 
+  // Los patrocinadores principales aparecen más tiempo
+  const getDisplayTime = (sponsor) => {
+    const times = { "Principal": 8000, "Oro": 6000, "Plata": 4000, "Bronce": 3000, "Colaborador": 3000 };
+    return times[sponsor?.nivel_patrocinio] || 3000;
+  };
+
   useEffect(() => {
     if (sponsors.length <= 1) return;
-    const interval = setInterval(() => {
+    const currentSponsor = sponsors[currentIndex];
+    const displayTime = getDisplayTime(currentSponsor);
+    
+    const timeout = setTimeout(() => {
       setCurrentIndex(prev => (prev + 1) % sponsors.length);
-    }, 4000);
-    return () => clearInterval(interval);
-  }, [sponsors.length]);
+    }, displayTime);
+    
+    return () => clearTimeout(timeout);
+  }, [sponsors.length, currentIndex, sponsors]);
 
   if (sponsors.length === 0) return null;
 
@@ -87,56 +97,47 @@ export default function SponsorBanner() {
           </div>
         ) : (
           <div className="flex items-center justify-center">
-            {sponsors[currentIndex]?.website_url ? (
-              <a
-                href={sponsors[currentIndex].website_url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-3 bg-white/10 rounded-lg px-4 py-2 transition-all animate-fade-in hover:bg-white/20"
-                key={sponsors[currentIndex]?.id}
-              >
-                {sponsors[currentIndex]?.logo_url ? (
-                  <img 
-                    src={sponsors[currentIndex].logo_url} 
-                    alt={sponsors[currentIndex].nombre}
-                    className="h-8 w-auto object-contain"
-                  />
-                ) : (
-                  <div className={`w-8 h-8 rounded bg-gradient-to-r ${nivelColors[sponsors[currentIndex]?.nivel_patrocinio]} flex items-center justify-center`}>
-                    <Building2 className="w-4 h-4 text-white" />
-                  </div>
-                )}
-                <div>
-                  <span className="text-sm text-white font-medium block">{sponsors[currentIndex]?.nombre}</span>
-                  <span className={`text-[10px] bg-gradient-to-r ${nivelColors[sponsors[currentIndex]?.nivel_patrocinio]} text-white px-1.5 py-0.5 rounded`}>
-                    {sponsors[currentIndex]?.nivel_patrocinio}
-                  </span>
+            {(() => {
+              const sponsor = sponsors[currentIndex];
+              if (!sponsor) return null;
+              
+              const isPremium = ["Principal", "Oro"].includes(sponsor.nivel_patrocinio);
+              const logoSize = isPremium ? "h-12" : "h-8";
+              const textSize = isPremium ? "text-base font-bold" : "text-sm font-medium";
+              const bgStyle = isPremium 
+                ? `bg-gradient-to-r ${nivelColors[sponsor.nivel_patrocinio]} shadow-lg` 
+                : "bg-white/10";
+              
+              const content = (
+                <div className={`flex items-center gap-3 ${bgStyle} rounded-lg px-4 py-2 transition-all animate-fade-in hover:scale-105`}>
+                  {sponsor.logo_url ? (
+                    <img 
+                      src={sponsor.logo_url} 
+                      alt={sponsor.nombre}
+                      className={`${logoSize} w-auto object-contain ${isPremium ? 'drop-shadow-lg' : ''}`}
+                    />
+                  ) : (
+                    <div className={`${isPremium ? 'w-12 h-12' : 'w-8 h-8'} rounded bg-white/20 flex items-center justify-center`}>
+                      <Building2 className={`${isPremium ? 'w-6 h-6' : 'w-4 h-4'} text-white`} />
+                    </div>
+                  )}
+                  <span className={`${textSize} text-white`}>{sponsor.nombre}</span>
                 </div>
-              </a>
-            ) : (
-              <div 
-                className="flex items-center gap-3 bg-white/10 rounded-lg px-4 py-2 transition-all animate-fade-in"
-                key={sponsors[currentIndex]?.id}
-              >
-                {sponsors[currentIndex]?.logo_url ? (
-                  <img 
-                    src={sponsors[currentIndex].logo_url} 
-                    alt={sponsors[currentIndex].nombre}
-                    className="h-8 w-auto object-contain"
-                  />
-                ) : (
-                  <div className={`w-8 h-8 rounded bg-gradient-to-r ${nivelColors[sponsors[currentIndex]?.nivel_patrocinio]} flex items-center justify-center`}>
-                    <Building2 className="w-4 h-4 text-white" />
-                  </div>
-                )}
-                <div>
-                  <span className="text-sm text-white font-medium block">{sponsors[currentIndex]?.nombre}</span>
-                  <span className={`text-[10px] bg-gradient-to-r ${nivelColors[sponsors[currentIndex]?.nivel_patrocinio]} text-white px-1.5 py-0.5 rounded`}>
-                    {sponsors[currentIndex]?.nivel_patrocinio}
-                  </span>
-                </div>
-              </div>
-            )}
+              );
+              
+              return sponsor.website_url ? (
+                <a
+                  href={sponsor.website_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  key={sponsor.id}
+                >
+                  {content}
+                </a>
+              ) : (
+                <div key={sponsor.id}>{content}</div>
+              );
+            })()}
             
             {/* Dots indicator */}
             <div className="flex gap-1 ml-4">
