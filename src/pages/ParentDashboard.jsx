@@ -440,11 +440,8 @@ export default function ParentDashboard() {
     });
   }
 
-  // Mostrar el menú inmediatamente, aunque sin datos
-  // No bloquear la UI esperando al usuario
-
-  // Mostrar pantalla de nueva temporada si no hay jugadores activos (solo después de cargar)
-  if (!playersLoading && myPlayers.length === 0 && activeSeason) {
+  // Mostrar pantalla de nueva temporada si no hay jugadores activos (solo después de cargar usuario y jugadores)
+  if (user && !playersLoading && myPlayers.length === 0 && activeSeason) {
     return <NewSeasonWelcome seasonName={activeSeason.temporada} />;
   }
 
