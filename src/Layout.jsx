@@ -513,6 +513,7 @@ export default function Layout({ children, currentPageName }) {
   const [isRedirecting, setIsRedirecting] = useState(false);
   const [sponsorBannerVisible, setSponsorBannerVisible] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [showWelcomeScreen, setShowWelcomeScreen] = useState(true);
   const [showInstallInstructions, setShowInstallInstructions] = useState(false);
       const [isAppInstalled, setIsAppInstalled] = useState(false);
       const [installDismissed, setInstallDismissed] = useState(() => {
@@ -1284,7 +1285,12 @@ CD Bustarviejo`
 
   
 
-      // Mostrar loading mientras se carga el usuario
+      // Mostrar pantalla de bienvenida
+  if (showWelcomeScreen && !isPublicPage) {
+    return <WelcomeScreen onComplete={() => setShowWelcomeScreen(false)} />;
+  }
+
+  // Mostrar loading mientras se carga el usuario
   if (isLoading && !isPublicPage) {
         console.log('📱 [LAYOUT DEBUG] Mostrando pantalla de carga...');
         return (
