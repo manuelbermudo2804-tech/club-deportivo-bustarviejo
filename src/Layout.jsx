@@ -4,7 +4,7 @@ import { createPageUrl } from "@/utils";
 import { base44 } from "@/api/base44Client";
 
 
-import { Home, Users, CreditCard, ShoppingBag, Menu, Bell, LogOut, Calendar, Megaphone, Mail, Archive, Settings, MessageCircle, Clock, Image, X, User as UserIcon, CheckCircle2, ClipboardCheck, Star, Award, FileText, Clover, UserCircle, FileSignature, Gift } from "lucide-react";
+import { Home, Users, CreditCard, ShoppingBag, Menu, Bell, LogOut, Calendar, Megaphone, Mail, Archive, Settings, MessageCircle, Clock, Image, X, User as UserIcon, CheckCircle2, ClipboardCheck, Star, Award, FileText, Clover, UserCircle, FileSignature, Gift, Smartphone, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
@@ -513,6 +513,7 @@ export default function Layout({ children, currentPageName }) {
   const [isRedirecting, setIsRedirecting] = useState(false);
   const [sponsorBannerVisible, setSponsorBannerVisible] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [showInstallInstructions, setShowInstallInstructions] = useState(false);
 
   const handleLanguageChange = (newLang) => {
     setCurrentLang(newLang);
