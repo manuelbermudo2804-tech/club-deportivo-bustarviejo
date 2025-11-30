@@ -499,6 +499,7 @@ export default function Layout({ children, currentPageName }) {
   const [isCoach, setIsCoach] = useState(false);
   const [isCoordinator, setIsCoordinator] = useState(false);
   const [isTreasurer, setIsTreasurer] = useState(false);
+  const [isPlayer, setIsPlayer] = useState(false);
   const [hasPlayers, setHasPlayers] = useState(false);
   const [unreadMessagesCount, setUnreadMessagesCount] = useState(0);
   const [urgentMessagesCount, setUrgentMessagesCount] = useState(0);
@@ -709,6 +710,7 @@ CD Bustarviejo`
                   setIsCoach(currentUser.es_entrenador === true && !currentUser.es_coordinador);
         setIsCoordinator(currentUser.es_coordinador === true);
         setIsTreasurer(currentUser.es_tesorero === true);
+        setIsPlayer(currentUser.es_jugador === true);
 
         console.log('🔍 ROLES DETECTADOS:', {
                         email: currentUser.email,
@@ -788,14 +790,16 @@ CD Bustarviejo`
             if (!isRootPath) return;
 
             // Redirección inmediata sin async
-            console.log('🎯 Redirigiendo:', { isAdmin, isCoach, isCoordinator, isTreasurer });
+            console.log('🎯 Redirigiendo:', { isAdmin, isCoach, isCoordinator, isTreasurer, isPlayer });
 
             if (isAdmin || isCoach || isCoordinator || isTreasurer) {
               navigate(createPageUrl('Home'), { replace: true });
+            } else if (isPlayer) {
+              navigate(createPageUrl('PlayerDashboard'), { replace: true });
             } else {
               navigate(createPageUrl('ParentDashboard'), { replace: true });
             }
-          }, [user, isAdmin, isCoach, isCoordinator, isTreasurer, location.pathname, navigate]);
+          }, [user, isAdmin, isCoach, isCoordinator, isTreasurer, isPlayer, location.pathname, navigate]);
 
   useEffect(() => {
     if (!user) return;
@@ -1210,6 +1214,19 @@ CD Bustarviejo`
     { title: "🎫 Hacerse Socio", url: createPageUrl("ClubMembership"), icon: Users },
   ];
 
+  const playerNavigationItems = [
+    { title: "🏠 Mi Dashboard", url: createPageUrl("PlayerDashboard"), icon: Home },
+    { title: "🏆 Convocatorias", url: createPageUrl("ParentCallups"), icon: Bell, badge: pendingCallupsCount > 0 ? pendingCallupsCount : null, urgentBadge: pendingCallupsCount > 0 },
+    { title: "💳 Mis Pagos", url: createPageUrl("ParentPayments"), icon: CreditCard },
+    { title: "💬 Chat Equipo", url: createPageUrl("ParentChat"), icon: MessageCircle, badge: unreadMessagesCount > 0 ? unreadMessagesCount : null },
+    { title: "📅 Calendario", url: createPageUrl("CalendarAndSchedules"), icon: Calendar },
+    { title: "🎉 Eventos Club", url: createPageUrl("ParentEventRSVP"), icon: Calendar },
+    { title: "📢 Anuncios", url: createPageUrl("Announcements"), icon: Megaphone },
+    { title: "🖼️ Galería", url: createPageUrl("Gallery"), icon: Image },
+    { title: "📋 Encuestas", url: createPageUrl("Surveys"), icon: FileText },
+    { title: "🎫 Hacerse Socio", url: createPageUrl("ClubMembership"), icon: Users },
+  ];
+
   let navigationItems;
     if (isAdmin) {
       navigationItems = adminNavigationItems;
@@ -1219,6 +1236,8 @@ CD Bustarviejo`
       navigationItems = treasurerNavigationItems;
     } else if (isCoach) {
       navigationItems = coachNavigationItems;
+    } else if (isPlayer) {
+      navigationItems = playerNavigationItems;
     } else {
       // Usuario normal de familia (padre/madre sin roles especiales)
       navigationItems = parentNavigationItems;
@@ -1493,7 +1512,7 @@ CD Bustarviejo`
               <div className="text-white">
                 <h1 className="font-bold text-base leading-tight">CD Bustarviejo</h1>
                 <p className="text-xs text-orange-100">
-                  {isAdmin ? "Admin" : isCoordinator ? "Coordinador" : isTreasurer ? "Tesorero" : isCoach ? "Entrenador" : "Familia"}
+                  {isAdmin ? "Admin" : isCoordinator ? "Coordinador" : isTreasurer ? "Tesorero" : isCoach ? "Entrenador" : isPlayer ? "Jugador" : "Familia"}
                 </p>
               </div>
             </div>
@@ -1607,7 +1626,7 @@ CD Bustarviejo`
               <div className="text-white">
                 <h2 className="font-bold text-xl">CD Bustarviejo</h2>
                 <p className="text-xs text-green-400">
-                  {isAdmin ? "Panel Admin" : isCoordinator ? "Panel Coordinador" : isTreasurer ? "Panel Tesorero" : isCoach ? "Panel Entrenador" : "Panel Familia"}
+                  {isAdmin ? "Panel Admin" : isCoordinator ? "Panel Coordinador" : isTreasurer ? "Panel Tesorero" : isCoach ? "Panel Entrenador" : isPlayer ? "Panel Jugador" : "Panel Familia"}
                 </p>
               </div>
             </div>
