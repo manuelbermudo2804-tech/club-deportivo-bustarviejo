@@ -523,28 +523,39 @@ export default function Layout({ children, currentPageName }) {
       });
 
       // Detectar si la app está instalada como PWA
-      useEffect(() => {
-        const checkIfInstalled = () => {
-          const isStandalone = window.matchMedia('(display-mode: standalone)').matches || 
-                              window.navigator.standalone === true;
-          setIsAppInstalled(isStandalone);
+                  useEffect(() => {
+                    const checkIfInstalled = () => {
+                      const isStandalone = window.matchMedia('(display-mode: standalone)').matches || 
+                                          window.navigator.standalone === true;
 
-          if (isStandalone) {
-            // Si está instalada, limpiar cualquier estado de recordatorio
-            localStorage.removeItem('installPromptDismissed');
-            localStorage.removeItem('lastInstallReminder');
-            setInstallDismissed(false);
-          }
-        };
+                      // DEBUG LOGS para iOS
+                      console.log('🔍 [PWA DEBUG] ================');
+                      console.log('🔍 [PWA DEBUG] User Agent:', navigator.userAgent);
+                      console.log('🔍 [PWA DEBUG] isStandalone:', isStandalone);
+                      console.log('🔍 [PWA DEBUG] display-mode standalone:', window.matchMedia('(display-mode: standalone)').matches);
+                      console.log('🔍 [PWA DEBUG] navigator.standalone:', window.navigator.standalone);
+                      console.log('🔍 [PWA DEBUG] isIOS:', /iPad|iPhone|iPod/.test(navigator.userAgent));
+                      console.log('🔍 [PWA DEBUG] isAndroid:', /android/i.test(navigator.userAgent));
+                      console.log('🔍 [PWA DEBUG] ================');
 
-        checkIfInstalled();
+                      setIsAppInstalled(isStandalone);
 
-        // Escuchar cambios en el modo de display
-        const mediaQuery = window.matchMedia('(display-mode: standalone)');
-        mediaQuery.addEventListener('change', checkIfInstalled);
+                      if (isStandalone) {
+                        console.log('✅ [PWA DEBUG] App está instalada - limpiando estados');
+                        localStorage.removeItem('installPromptDismissed');
+                        localStorage.removeItem('lastInstallReminder');
+                        setInstallDismissed(false);
+                      }
+                    };
 
-        return () => mediaQuery.removeEventListener('change', checkIfInstalled);
-      }, []);
+                    checkIfInstalled();
+
+                    // Escuchar cambios en el modo de display
+                    const mediaQuery = window.matchMedia('(display-mode: standalone)');
+                    mediaQuery.addEventListener('change', checkIfInstalled);
+
+                    return () => mediaQuery.removeEventListener('change', checkIfInstalled);
+                  }, []);
 
       // Mostrar recordatorio periódico si no está instalada
       useEffect(() => {
@@ -560,9 +571,13 @@ export default function Layout({ children, currentPageName }) {
         if (!lastReminder || (now - parseInt(lastReminder)) > oneDay) {
           // Pequeño delay para no molestar inmediatamente
           const timer = setTimeout(() => {
+                            console.log('⏰ [PWA DEBUG] Timer ejecutado - isAppInstalled:', isAppInstalled);
                             if (!isAppInstalled) {
+                              console.log('📲 [PWA DEBUG] Mostrando modal de instalación');
                               setShowInstallInstructions(true);
                               localStorage.setItem('lastInstallReminder', now.toString());
+                            } else {
+                              console.log('✅ [PWA DEBUG] App ya instalada, no mostrando modal');
                             }
                           }, 1000); // 1 segundo después de cargar
 
