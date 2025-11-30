@@ -9,7 +9,7 @@ import { Bell, Send, X, Link as LinkIcon } from "lucide-react";
 import { motion } from "framer-motion";
 
 const PAGINAS_DESTINO = [
-  { value: "", label: "Sin enlace" },
+  { value: "none", label: "Sin enlace" },
   { value: "ParentDashboard", label: "🏠 Inicio Padres" },
   { value: "Home", label: "🏠 Inicio Admin" },
   { value: "ParentPayments", label: "💳 Pagos" },
@@ -44,7 +44,7 @@ export default function PushNotificationForm({ onSubmit, onCancel, isSubmitting 
   const [formData, setFormData] = useState({
     titulo: "",
     mensaje: "",
-    enlace_destino: "",
+    enlace_destino: "none",
     tipo_destinatario: "todos",
     categoria_destino: "",
     prioridad: "normal",
@@ -54,7 +54,11 @@ export default function PushNotificationForm({ onSubmit, onCancel, isSubmitting 
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!formData.titulo.trim() || !formData.mensaje.trim()) return;
-    onSubmit(formData);
+    const dataToSubmit = {
+      ...formData,
+      enlace_destino: formData.enlace_destino === "none" ? "" : formData.enlace_destino
+    };
+    onSubmit(dataToSubmit);
   };
 
   const prioridadColors = {
