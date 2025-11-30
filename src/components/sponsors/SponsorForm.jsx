@@ -32,6 +32,7 @@ export default function SponsorForm({ sponsor, players, onSubmit, onCancel, isSu
   const [formData, setFormData] = useState({
     nombre: "",
     logo_url: "",
+    website_url: "",
     contacto_nombre: "",
     contacto_email: "",
     contacto_telefono: "",
@@ -203,6 +204,17 @@ export default function SponsorForm({ sponsor, players, onSubmit, onCancel, isSu
                     ))}
                   </SelectContent>
                 </Select>
+              </div>
+
+              <div className="md:col-span-2">
+                <Label>Página Web (opcional)</Label>
+                <Input
+                  type="url"
+                  value={formData.website_url}
+                  onChange={(e) => handleChange("website_url", e.target.value)}
+                  placeholder="https://www.ejemplo.com"
+                />
+                <p className="text-xs text-slate-500 mt-1">Si se añade, al pinchar en el logo se abrirá esta web</p>
               </div>
             </div>
 
