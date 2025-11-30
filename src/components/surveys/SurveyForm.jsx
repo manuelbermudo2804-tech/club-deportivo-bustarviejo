@@ -346,11 +346,19 @@ export default function SurveyForm({ survey, onSubmit, onCancel, isSubmitting })
               </Button>
               <Button
                 type="submit"
-                disabled={isSubmitting || currentSurvey.preguntas.length === 0}
+                disabled={isSubmitting || currentSurvey.preguntas.length === 0 || !currentSurvey.titulo || !currentSurvey.fecha_fin}
                 className="bg-orange-600 hover:bg-orange-700"
               >
-                {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : survey ? "Actualizar" : "Crear Encuesta"}
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                    Creando...
+                  </>
+                ) : survey ? "Actualizar" : "Crear Encuesta"}
               </Button>
+              {currentSurvey.preguntas.length === 0 && (
+                <p className="text-xs text-red-500 self-center">Añade al menos una pregunta</p>
+              )}
             </div>
           </form>
         </CardContent>
