@@ -1768,7 +1768,7 @@ CD Bustarviejo`
           </div>
         </nav>
 
-        <main className={`lg:ml-72 min-h-screen pt-[116px] lg:pt-0 ${sponsorBannerVisible ? 'pb-20 lg:pb-16' : ''}`}>
+        <main className={`lg:ml-72 min-h-screen pt-[100px] lg:pt-0 ${sponsorBannerVisible ? 'pb-20 lg:pb-16' : ''}`}>
           {/* Ya no usamos bloqueo de pantalla - usamos recordatorios amigables cada 24h */}
           {children}
         </main>
