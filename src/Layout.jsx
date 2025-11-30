@@ -1250,20 +1250,10 @@ export default function Layout({ children, currentPageName }) {
 
   // Mostrar loading mientras se carga el usuario
   if (isLoading && !isPublicPage) {
-        console.log('📱 [LAYOUT DEBUG] Mostrando pantalla de carga...');
         return (
           <div className="min-h-screen bg-gradient-to-br from-orange-600 via-orange-700 to-green-700 flex items-center justify-center">
             <div className="text-center">
-              <img 
-                src={CLUB_LOGO_URL} 
-                alt="CD Bustarviejo"
-                className="w-24 h-24 mx-auto mb-4 rounded-xl shadow-xl object-cover"
-                onError={(e) => {
-                  console.log('⚠️ [LAYOUT DEBUG] Error cargando logo');
-                  e.target.style.display = 'none';
-                }}
-              />
-              <div className="animate-spin rounded-full h-8 w-8 border-4 border-white border-t-transparent mx-auto"></div>
+              <div className="animate-spin rounded-full h-10 w-10 border-4 border-white border-t-transparent mx-auto"></div>
               <p className="text-white mt-4 font-medium">Cargando...</p>
             </div>
           </div>
