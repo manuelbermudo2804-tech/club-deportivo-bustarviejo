@@ -13,6 +13,7 @@ import ContactCard from "../components/ContactCard";
 import AchievementsBadges from "../components/dashboard/AchievementsBadges";
 import PlayerCardSkeleton from "../components/skeletons/PlayerCardSkeleton";
 import { CheckmarkAnimation } from "../components/animations/SuccessAnimation";
+import { usePageTutorial } from "../components/tutorials/useTutorial";
 
 export default function ParentPlayers() {
   const [showForm, setShowForm] = useState(false);
