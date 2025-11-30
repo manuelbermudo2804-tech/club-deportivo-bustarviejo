@@ -1496,17 +1496,19 @@ export default function Layout({ children, currentPageName }) {
                 </button>
               </div>
               <div className="flex-1 overflow-y-auto p-4 space-y-2">
-                {/* Botón Instalar App al principio del menú móvil */}
-                <button
-                  onClick={() => {
-                    setMobileMenuOpen(false);
-                    setShowInstallInstructions(true);
-                  }}
-                  className="w-full flex items-center gap-4 p-4 rounded-2xl bg-gradient-to-r from-green-600 to-green-700 text-white shadow-lg mb-4"
-                >
-                  <Smartphone className="w-6 h-6 flex-shrink-0" />
-                  <span className="font-bold text-base flex-1">📲 Instalar App en Móvil</span>
-                </button>
+                {/* Botón Instalar App al principio del menú móvil - solo si no está instalada */}
+                {!isAppInstalled && (
+                  <button
+                    onClick={() => {
+                      setMobileMenuOpen(false);
+                      setShowInstallInstructions(true);
+                    }}
+                    className="w-full flex items-center gap-4 p-4 rounded-2xl bg-gradient-to-r from-green-600 to-green-700 text-white shadow-lg mb-4"
+                  >
+                    <Smartphone className="w-6 h-6 flex-shrink-0" />
+                    <span className="font-bold text-base flex-1">📲 Instalar App en Móvil</span>
+                  </button>
+                )}
 
                 {navigationItems.map((item) => (
                   <Link
@@ -1662,30 +1664,7 @@ export default function Layout({ children, currentPageName }) {
         </nav>
 
         <main className={`lg:ml-72 min-h-screen pt-[120px] lg:pt-0 ${sponsorBannerVisible ? 'pb-20 lg:pb-16' : ''}`}>
-          {/* Bloqueo de pantalla hasta instalar - solo en móvil */}
-          {!installDismissed && (
-            <div className="lg:hidden fixed inset-0 z-[150] bg-black/90 flex items-center justify-center p-6">
-              <div className="bg-white rounded-3xl p-6 max-w-sm w-full shadow-2xl text-center">
-                <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Smartphone className="w-10 h-10 text-green-600" />
-                </div>
-                <h2 className="text-2xl font-bold text-green-700 mb-2">📲 Instala la App</h2>
-                <p className="text-slate-800 font-semibold mb-2">
-                  ¡Un paso muy sencillo para disfrutar de todo!
-                </p>
-                <p className="text-slate-600 text-sm mb-4">
-                  Solo tardas 1 minuto y tendrás acceso completo a todas las funciones del club
-                </p>
-                <Button 
-                  onClick={() => setShowInstallInstructions(true)}
-                  className="w-full bg-green-600 hover:bg-green-700 text-lg py-6 font-bold"
-                >
-                  <Download className="w-5 h-5 mr-2" />
-                  Ver cómo instalar
-                </Button>
-              </div>
-            </div>
-          )}
+          {/* Ya no usamos bloqueo de pantalla - usamos recordatorios amigables cada 24h */}
           {children}
         </main>
 
