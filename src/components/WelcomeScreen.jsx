@@ -106,21 +106,20 @@ const PulsingRings = () => (
 
 export default function WelcomeScreen({ onComplete }) {
   const completedRef = useRef(false);
-  const [stage, setStage] = useState(0);
+  const [stage, setStage] = useState(1); // Empezar directamente en stage 1
 
   useEffect(() => {
-    // Progression stages
+    // Progression stages - empezar desde stage 1 directamente
     const timers = [
-      setTimeout(() => setStage(1), 300),   // Logo appears
-      setTimeout(() => setStage(2), 800),   // Text appears
-      setTimeout(() => setStage(3), 1300),  // Sports appear
+      setTimeout(() => setStage(2), 500),   // Text appears
+      setTimeout(() => setStage(3), 1200),  // Sports appear
       setTimeout(() => setStage(4), 2000),  // Final stage
       setTimeout(() => {
         if (!completedRef.current && onComplete) {
           completedRef.current = true;
           onComplete();
         }
-      }, 3000)
+      }, 4500) // Duración total 4.5 segundos
     ];
     
     return () => timers.forEach(t => clearTimeout(t));
