@@ -16,7 +16,7 @@ import ThemeToggle from "./components/ThemeToggle";
 import NotificationCenter from "./components/NotificationCenter";
 import LanguageSelector from "./components/LanguageSelector";
 import ChatNotificationListener from "./components/push/ChatNotificationListener";
-import WelcomeScreen from "./components/WelcomeScreen.jsx";
+import WelcomeScreen from "./components/WelcomeScreen";
 import { TutorialProvider } from "./components/tutorials/TutorialProvider";
 import NotificationManager from "./components/notifications/NotificationManager";
 import AutomaticNotificationEngine from "./components/notifications/AutomaticNotificationEngine";
