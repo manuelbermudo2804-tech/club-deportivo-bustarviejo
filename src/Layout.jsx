@@ -527,25 +527,30 @@ export default function Layout({ children, currentPageName }) {
       // Detectar si la app está instalada como PWA
                   useEffect(() => {
                     const checkIfInstalled = () => {
-                      const isStandalone = window.matchMedia('(display-mode: standalone)').matches || 
-                                          window.navigator.standalone === true;
+                      // Verificar múltiples indicadores de PWA instalada
+                      const displayModeStandalone = window.matchMedia('(display-mode: standalone)').matches;
+                      const navigatorStandalone = window.navigator.standalone === true;
+                      const displayModeFullscreen = window.matchMedia('(display-mode: fullscreen)').matches;
+                      const displayModeMinimalUI = window.matchMedia('(display-mode: minimal-ui)').matches;
 
-                      // DEBUG LOGS para iOS
-                      console.log('🔍 [PWA DEBUG] ================');
-                      console.log('🔍 [PWA DEBUG] User Agent:', navigator.userAgent);
-                      console.log('🔍 [PWA DEBUG] isStandalone:', isStandalone);
-                      console.log('🔍 [PWA DEBUG] display-mode standalone:', window.matchMedia('(display-mode: standalone)').matches);
-                      console.log('🔍 [PWA DEBUG] navigator.standalone:', window.navigator.standalone);
-                      console.log('🔍 [PWA DEBUG] isIOS:', /iPad|iPhone|iPod/.test(navigator.userAgent));
-                      console.log('🔍 [PWA DEBUG] isAndroid:', /android/i.test(navigator.userAgent));
-                      console.log('🔍 [PWA DEBUG] ================');
+                      // También verificar si se accede desde la pantalla de inicio (referrer vacío en iOS)
+                      const isFromHomeScreen = document.referrer === '' && !window.opener;
+
+                      // Verificar localStorage por si el usuario ya marcó como instalada
+                      const userMarkedInstalled = localStorage.getItem('pwaInstalled') === 'true';
+
+                      const isStandalone = displayModeStandalone || 
+                                          navigatorStandalone || 
+                                          displayModeFullscreen ||
+                                          displayModeMinimalUI ||
+                                          userMarkedInstalled;
 
                       setIsAppInstalled(isStandalone);
 
                       if (isStandalone) {
-                        console.log('✅ [PWA DEBUG] App está instalada - limpiando estados');
                         localStorage.removeItem('installPromptDismissed');
                         localStorage.removeItem('lastInstallReminder');
+                        localStorage.setItem('pwaInstalled', 'true');
                         setInstallDismissed(false);
                       }
                     };
@@ -559,83 +564,11 @@ export default function Layout({ children, currentPageName }) {
                     return () => mediaQuery.removeEventListener('change', checkIfInstalled);
                   }, []);
 
-      // Mostrar recordatorio periódico si no está instalada
-      useEffect(() => {
-        if (isAppInstalled || !user) return;
-
-        const lastReminder = localStorage.getItem('lastInstallReminder');
-        const lastEmailReminder = localStorage.getItem('lastInstallEmailReminder');
-        const now = Date.now();
-        const oneDay = 24 * 60 * 60 * 1000; // 24 horas en ms
-        const threeDays = 3 * oneDay; // 3 días para el email
-
-        // Mostrar recordatorio en pantalla cada 24 horas si no está instalada
-        if (!lastReminder || (now - parseInt(lastReminder)) > oneDay) {
-          // Pequeño delay para no molestar inmediatamente
-          const timer = setTimeout(() => {
-                            console.log('⏰ [PWA DEBUG] Timer ejecutado - isAppInstalled:', isAppInstalled);
-                            if (!isAppInstalled) {
-                              console.log('📲 [PWA DEBUG] Mostrando modal de instalación');
-                              setShowInstallInstructions(true);
-                              localStorage.setItem('lastInstallReminder', now.toString());
-                            } else {
-                              console.log('✅ [PWA DEBUG] App ya instalada, no mostrando modal');
-                            }
-                          }, 1000); // 1 segundo después de cargar
-
-          return () => clearTimeout(timer);
-        }
-
-        // Enviar email recordatorio cada 3 días si no está instalada
-        const sendInstallReminderEmail = async () => {
-          if (!lastEmailReminder || (now - parseInt(lastEmailReminder)) > threeDays) {
-            try {
-              await base44.integrations.Core.SendEmail({
-                from_name: "CD Bustarviejo",
-                to: user.email,
-                subject: "📲 Instala la App del Club - CD Bustarviejo",
-                body: `Hola ${user.full_name || 'familia'},
-
-¡Te recordamos que puedes instalar la app del CD Bustarviejo en tu móvil!
-
-Es muy sencillo y solo te llevará 1 minuto. Con la app instalada podrás:
-
-✅ Recibir convocatorias de partidos al instante
-✅ Ver pagos, documentos y calendario
-✅ Comunicarte con los entrenadores
-✅ Acceso rápido desde tu pantalla de inicio
-
-📱 CÓMO INSTALAR:
-
-iPhone/iPad:
-1. Abre la web del club en Safari
-2. Pulsa el botón "Compartir" (cuadrado con flecha)
-3. Selecciona "Añadir a pantalla de inicio"
-4. Pulsa "Añadir"
-
-Android:
-1. Abre la web del club en Chrome
-2. Pulsa el menú (3 puntos verticales)
-3. Selecciona "Instalar aplicación"
-4. Confirma pulsando "Instalar"
-
-¡Ya está! Tendrás el icono del club en tu móvil.
-
-Si tienes alguna duda, no dudes en contactarnos.
-
-Un saludo,
-CD Bustarviejo`
-              });
-              localStorage.setItem('lastInstallEmailReminder', now.toString());
-              console.log('📧 Email de recordatorio de instalación enviado a:', user.email);
-            } catch (error) {
-              console.error('Error enviando email de recordatorio:', error);
-            }
-          }
-        };
-
-        sendInstallReminderEmail();
-      }, [isAppInstalled, user]);
+      // Mostrar recordatorio periódico si no está instalada - DESACTIVADO para no molestar
+              // Los usuarios pueden ver las instrucciones manualmente desde el menú
+              useEffect(() => {
+                // No hacer nada automáticamente - el usuario puede marcar como instalada o ver instrucciones manualmente
+              }, [isAppInstalled, user]);
 
   const handleLanguageChange = (newLang) => {
     setCurrentLang(newLang);
