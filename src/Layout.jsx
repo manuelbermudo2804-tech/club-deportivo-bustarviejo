@@ -658,26 +658,6 @@ export default function Layout({ children, currentPageName }) {
 
         setIsPlayer(playerDetected);
 
-              // Actualizar estado de app instalada y último acceso
-              const updateData = {
-                ultimo_acceso: new Date().toISOString()
-              };
-              
-              // Marcar como instalada si está en modo PWA O si el usuario marcó "Ya la tengo"
-              if (isPWA && currentUser.app_instalada !== true) {
-                updateData.app_instalada = true;
-                updateData.fecha_instalacion_app = new Date().toISOString();
-                setIsAppInstalled(true);
-                console.log('✅ Marcando app como instalada para:', currentUser.email);
-              }
-              
-              // Actualizar en segundo plano
-              base44.auth.updateMe(updateData).then(() => {
-                console.log('✅ Estado de usuario actualizado');
-              }).catch(err => 
-                console.log('Error actualizando estado usuario:', err)
-              );
-
         console.log('🔍 ROLES DETECTADOS:', {
                         email: currentUser.email,
                         isAdmin: currentUser.role === "admin",
