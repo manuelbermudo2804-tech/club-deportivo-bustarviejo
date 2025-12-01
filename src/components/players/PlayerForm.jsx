@@ -36,11 +36,23 @@ const getCategoriesWithYears = () => {
   ];
 };
 
-// Función para calcular edad
+// Función para calcular edad - solo si la fecha es válida y completa
 const calculateAge = (birthDate) => {
-  if (!birthDate) return null;
+  if (!birthDate || birthDate.length !== 10) return null;
+  
+  // Validar que el año empiece por 19 o 20 (años válidos)
+  const year = birthDate.substring(0, 4);
+  if (!year.startsWith('19') && !year.startsWith('20')) return null;
+  
+  const yearNum = parseInt(year);
+  if (yearNum < 1900 || yearNum > new Date().getFullYear()) return null;
+  
   const today = new Date();
   const birth = new Date(birthDate);
+  
+  // Verificar que la fecha sea válida
+  if (isNaN(birth.getTime())) return null;
+  
   let age = today.getFullYear() - birth.getFullYear();
   const monthDiff = today.getMonth() - birth.getMonth();
   if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
