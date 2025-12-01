@@ -22,7 +22,9 @@ import {
   Eye,
   EyeOff,
   User,
-  Check
+  Check,
+  Smartphone,
+  Send
 } from "lucide-react";
 import {
   Dialog,
@@ -367,6 +369,8 @@ export default function UserManagement() {
       if (roleFilter === "pending_player") {
         return pendingPlayerAccessUsers.some(u => u.id === user.id);
       }
+      if (roleFilter === "with_app" && user.app_instalada !== true) return false;
+      if (roleFilter === "without_app" && (user.app_instalada === true || user.role === "admin")) return false;
     }
 
     const matchesSearch =
@@ -390,6 +394,78 @@ export default function UserManagement() {
   const entrenadores = activeUsersWithoutDeleted.filter(u => u.es_entrenador === true && !u.es_coordinador);
   const coordinadores = activeUsersWithoutDeleted.filter(u => u.es_coordinador === true);
   const tesoreros = activeUsersWithoutDeleted.filter(u => u.es_tesorero === true);
+  const usersWithApp = activeUsersWithoutDeleted.filter(u => u.app_instalada === true);
+  const usersWithoutApp = activeUsersWithoutDeleted.filter(u => u.app_instalada !== true && u.role !== "admin");
+
+  // Enviar recordatorio de instalación
+  const sendInstallReminder = async (user) => {
+    try {
+      await base44.integrations.Core.SendEmail({
+        from_name: "CD Bustarviejo",
+        to: user.email,
+        subject: "📲 ¡Instala la App del CD Bustarviejo en tu móvil!",
+        body: `<!DOCTYPE html>
+<html><head><meta charset="utf-8"></head>
+<body style="font-family:Arial;padding:20px;background:#f1f5f9;">
+<div style="max-width:500px;margin:0 auto;background:white;border-radius:12px;overflow:hidden;">
+<div style="background:#ea580c;padding:20px;text-align:center;">
+<h1 style="color:white;margin:0;">📲 ¡Instala la App!</h1>
+</div>
+<div style="padding:20px;">
+<p>Hola <strong>${user.full_name}</strong>,</p>
+<p>Hemos detectado que <strong>aún no tienes la app del club instalada</strong> en tu móvil.</p>
+<p>Con la app instalada podrás:</p>
+<ul>
+<li>✅ Recibir notificaciones de convocatorias</li>
+<li>✅ Acceso rápido desde la pantalla de inicio</li>
+<li>✅ Mejor experiencia de uso</li>
+</ul>
+<p><strong>¿Cómo instalarla?</strong></p>
+<p>1. Abre la app en tu navegador</p>
+<p>2. Pulsa en el menú → "📲 Ver cómo instalar"</p>
+<p>3. Sigue las instrucciones según tu móvil</p>
+<div style="text-align:center;margin:20px 0;">
+<a href="https://club-gestion-bustarviejo-1fb134d6.base44.app" style="background:#ea580c;color:white;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:bold;">Abrir la App →</a>
+</div>
+</div>
+</div>
+</body></html>`
+      });
+
+      await base44.entities.User.update(user.id, {
+        recordatorio_instalacion_enviado: true,
+        fecha_recordatorio_instalacion: new Date().toISOString()
+      });
+
+      queryClient.invalidateQueries({ queryKey: ['allUsers'] });
+      toast.success(`✅ Recordatorio enviado a ${user.full_name}`);
+    } catch (error) {
+      console.error("Error enviando recordatorio:", error);
+      toast.error("Error al enviar el recordatorio");
+    }
+  };
+
+  // Enviar recordatorio masivo
+  const sendBulkInstallReminders = async () => {
+    const usersToRemind = usersWithoutApp.filter(u => !u.recordatorio_instalacion_enviado);
+    if (usersToRemind.length === 0) {
+      toast.info("Ya se enviaron recordatorios a todos los usuarios");
+      return;
+    }
+
+    toast.info(`Enviando ${usersToRemind.length} recordatorios...`);
+    let sent = 0;
+    for (const user of usersToRemind) {
+      try {
+        await sendInstallReminder(user);
+        sent++;
+      } catch (e) {
+        console.error(e);
+      }
+      await new Promise(r => setTimeout(r, 300));
+    }
+    toast.success(`✅ ${sent} recordatorios enviados`);
+  };
 
 
   return (
@@ -496,7 +572,58 @@ export default function UserManagement() {
             </div>
           </CardContent>
         </Card>
+
+        <Card className="border-none shadow-lg border-2 border-green-300 bg-green-50">
+          <CardContent className="pt-4 lg:pt-6">
+            <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-2">
+              <div className="w-full">
+                <p className="text-[10px] lg:text-sm text-slate-600 mb-0.5 lg:mb-1">📲 App Instalada</p>
+                <p className="text-xl lg:text-3xl font-bold text-green-600">{usersWithApp.length}</p>
+              </div>
+              <Smartphone className="w-8 h-8 lg:w-12 lg:h-12 text-green-500 opacity-20 hidden lg:block" />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="border-none shadow-lg border-2 border-amber-300 bg-amber-50">
+          <CardContent className="pt-4 lg:pt-6">
+            <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-2">
+              <div className="w-full">
+                <p className="text-[10px] lg:text-sm text-slate-600 mb-0.5 lg:mb-1">📵 Sin App</p>
+                <p className="text-xl lg:text-3xl font-bold text-amber-600">{usersWithoutApp.length}</p>
+              </div>
+              <Smartphone className="w-8 h-8 lg:w-12 lg:h-12 text-amber-500 opacity-20 hidden lg:block" />
+            </div>
+          </CardContent>
+        </Card>
       </div>
+
+      {/* Alerta de usuarios sin app instalada */}
+      {usersWithoutApp.length > 5 && (
+        <Card className="border-none shadow-lg bg-amber-50 border-2 border-amber-300">
+          <CardContent className="pt-6">
+            <div className="flex items-start gap-3">
+              <div className="bg-amber-500 rounded-full p-2">
+                <Smartphone className="w-5 h-5 text-white" />
+              </div>
+              <div className="flex-1">
+                <h3 className="font-bold text-amber-900 mb-2">📵 {usersWithoutApp.length} usuarios sin la app instalada</h3>
+                <p className="text-sm text-amber-800 mb-3">
+                  Puedes enviar un recordatorio por email para que instalen la app en su móvil.
+                </p>
+                <Button
+                  size="sm"
+                  className="bg-amber-600 hover:bg-amber-700"
+                  onClick={sendBulkInstallReminders}
+                >
+                  <Send className="w-4 h-4 mr-2" />
+                  Enviar recordatorio a todos ({usersWithoutApp.filter(u => !u.recordatorio_instalacion_enviado).length} pendientes)
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Alerta de Jugadores +18 pendientes */}
       {pendingPlayerAccessUsers.length > 0 && (
@@ -642,6 +769,22 @@ export default function UserManagement() {
                   ⚠️ Jugadores +18 pendientes ({pendingPlayerAccessUsers.length})
                 </Button>
               )}
+              <Button
+                size="sm"
+                variant={roleFilter === "with_app" ? "default" : "outline"}
+                onClick={() => setRoleFilter("with_app")}
+                className={roleFilter === "with_app" ? "bg-green-600" : "border-green-300 text-green-700"}
+              >
+                📲 Con App ({usersWithApp.length})
+              </Button>
+              <Button
+                size="sm"
+                variant={roleFilter === "without_app" ? "default" : "outline"}
+                onClick={() => setRoleFilter("without_app")}
+                className={roleFilter === "without_app" ? "bg-amber-600" : "border-amber-300 text-amber-700"}
+              >
+                📵 Sin App ({usersWithoutApp.length})
+              </Button>
             </div>
           </div>
         </CardHeader>
@@ -759,6 +902,16 @@ export default function UserManagement() {
                             <Badge className="bg-red-600 text-white">
                               <Ban className="w-3 h-3 mr-1" />
                               Restringido
+                            </Badge>
+                          )}
+                          {user.app_instalada === true && (
+                            <Badge className="bg-green-100 text-green-800">
+                              📲 App
+                            </Badge>
+                          )}
+                          {user.app_instalada !== true && user.role !== "admin" && (
+                            <Badge className="bg-amber-100 text-amber-800">
+                              📵 Sin App
                             </Badge>
                           )}
                         </div>
@@ -943,6 +1096,20 @@ export default function UserManagement() {
                                 <Trash2 className="w-3 h-3 lg:w-4 lg:h-4 lg:mr-1" />
                                 <span className="hidden lg:inline">Eliminar</span>
                               </Button>
+                              {user.app_instalada !== true && (
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => sendInstallReminder(user)}
+                                  className="bg-amber-50 hover:bg-amber-100 border-amber-300 text-xs lg:text-sm px-2 py-1 lg:px-4 lg:py-2"
+                                  title={user.recordatorio_instalacion_enviado ? "Ya se envió recordatorio" : "Enviar recordatorio"}
+                                >
+                                  <Send className="w-3 h-3 lg:w-4 lg:h-4 lg:mr-1" />
+                                  <span className="hidden lg:inline">
+                                    {user.recordatorio_instalacion_enviado ? "Re-enviar" : "Recordar App"}
+                                  </span>
+                                </Button>
+                              )}
                             </>
                           )}
                         </div>
