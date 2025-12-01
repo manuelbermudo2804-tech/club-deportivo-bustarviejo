@@ -35,6 +35,11 @@ export default function AdultPlayerInvitationRequest({ playerAge, playerData, pa
     categoria_deseada: playerData?.deporte || ""
   });
 
+  // Validación de seguridad para evitar errores
+  if (!playerAge || playerAge < 18) {
+    return null;
+  }
+
   // Verificar si el email ya está registrado
   const checkEmailExists = async (email) => {
     if (!email || !email.includes('@')) return;
