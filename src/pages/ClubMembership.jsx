@@ -113,21 +113,15 @@ export default function ClubMembership() {
       fetchMemberForRenewal();
     } else if (refCode) {
       // Buscar el usuario que tiene ese código de referido Y que sea padre con hijos en el club
-      // NOTA: Esta búsqueda solo funciona si hay usuario autenticado
-      if (!user) {
-        // Para usuarios no autenticados, simplemente guardamos el código y lo procesamos después
-        setFormData(prev => ({ ...prev, referido_por: `REF:${refCode}` }));
-        return;
-      }
-      
       const fetchInviter = async () => {
         try {
-          const [allUsers, allPlayers] = await Promise.all([
+          const [allUsers, allPlayers, allMembers] = await Promise.all([
             base44.entities.User.list(),
-            base44.entities.Player.list()
+            base44.entities.Player.list(),
+            base44.entities.ClubMember.list()
           ]);
           
-          // Obtener emails de padres con jugadores
+          // Obtener emails de padres con jugadores activos
           const parentEmails = new Set();
           allPlayers.forEach(p => {
             if (p.email_padre) parentEmails.add(p.email_padre.toLowerCase());
@@ -141,8 +135,22 @@ export default function ClubMembership() {
           );
           
           if (inviter) {
-            setInvitadoPor(inviter);
-            setFormData(prev => ({ ...prev, referido_por: inviter.full_name }));
+            // Verificar que el inviter no haya alcanzado el máximo de 15 referidos
+            const currentCount = inviter.referrals_count || 0;
+            if (currentCount >= 15) {
+              // Ha alcanzado el límite, no mostrar como invitador válido
+              console.log("El invitador ha alcanzado el máximo de 15 referidos");
+              setInvitadoPor(null);
+              // No establecer el referido_por
+            } else {
+              setInvitadoPor(inviter);
+              setFormData(prev => ({ ...prev, referido_por: inviter.full_name }));
+            }
+          } else {
+            // El código no corresponde a un padre con hijos en el club
+            // Esto ocurre cuando un socio externo reenvía el enlace
+            console.log("Código de referido no válido o no es padre con hijos en el club");
+            setInvitadoPor(null);
           }
         } catch (error) {
           console.error("Error fetching inviter:", error);
@@ -257,47 +265,73 @@ export default function ClubMembership() {
         try {
           // Buscar usuario que refirió
           const allUsers = await base44.entities.User.list();
+          const allPlayers = await base44.entities.Player.list();
+          
+          // Obtener emails de padres con jugadores activos
+          const parentEmails = new Set();
+          allPlayers.forEach(p => {
+            if (p.email_padre) parentEmails.add(p.email_padre.toLowerCase());
+            if (p.email_tutor_2) parentEmails.add(p.email_tutor_2.toLowerCase());
+          });
+          
           const referrer = allUsers.find(u => 
-            u.full_name?.toLowerCase().includes(data.referido_por.toLowerCase()) ||
-            u.email?.toLowerCase() === data.referido_por.toLowerCase()
+            (u.full_name?.toLowerCase().includes(data.referido_por.toLowerCase()) ||
+            u.email?.toLowerCase() === data.referido_por.toLowerCase()) &&
+            parentEmails.has(u.email.toLowerCase()) // Solo padres con hijos pueden referir
           );
           
           if (referrer) {
-            // Registrar la referencia
-            await base44.entities.ReferralReward.create({
-              referrer_email: referrer.email,
-              referrer_name: referrer.full_name,
-              referred_member_id: membership.id,
-              referred_member_name: data.nombre_completo,
-              temporada: seasonConfig?.temporada,
-              clothing_credit_earned: seasonConfig.referidos_premio_1 || 5
-            });
+            // Verificar que el referrer no haya alcanzado el máximo de 15 referidos
+            const currentCount = referrer.referrals_count || 0;
+            if (currentCount >= 15) {
+              console.log("Referrer ha alcanzado el máximo de 15 referidos, no se añaden más premios");
+              // Aún así registramos la referencia para histórico, pero sin dar premios
+              await base44.entities.ReferralReward.create({
+                referrer_email: referrer.email,
+                referrer_name: referrer.full_name,
+                referred_member_id: membership.id,
+                referred_member_name: data.nombre_completo,
+                temporada: seasonConfig?.temporada,
+                clothing_credit_earned: 0, // Sin premio por límite alcanzado
+                limite_alcanzado: true
+              });
+            } else {
+              // Registrar la referencia con premio
+              await base44.entities.ReferralReward.create({
+                referrer_email: referrer.email,
+                referrer_name: referrer.full_name,
+                referred_member_id: membership.id,
+                referred_member_name: data.nombre_completo,
+                temporada: seasonConfig?.temporada,
+                clothing_credit_earned: seasonConfig.referidos_premio_1 || 5
+              });
 
-            // Actualizar contador del usuario
-            const newCount = (referrer.referrals_count || 0) + 1;
-            let newCredit = (referrer.clothing_credit_balance || 0) + (seasonConfig.referidos_premio_1 || 5);
-            let newRaffles = referrer.raffle_entries_total || 0;
+              // Actualizar contador del usuario (máximo 15)
+              const newCount = Math.min(currentCount + 1, 15);
+              let newCredit = (referrer.clothing_credit_balance || 0) + (seasonConfig.referidos_premio_1 || 5);
+              let newRaffles = referrer.raffle_entries_total || 0;
 
-            // Calcular bonificaciones por niveles
-            if (newCount === 3) {
-              newCredit += (seasonConfig.referidos_premio_3 || 15) - (seasonConfig.referidos_premio_1 || 5);
-              newRaffles += seasonConfig.referidos_sorteo_3 || 1;
-            } else if (newCount === 5) {
-              newCredit += (seasonConfig.referidos_premio_5 || 25) - (seasonConfig.referidos_premio_3 || 15);
-              newRaffles += (seasonConfig.referidos_sorteo_5 || 3) - (seasonConfig.referidos_sorteo_3 || 1);
-            } else if (newCount === 10) {
-              newCredit += (seasonConfig.referidos_premio_10 || 50) - (seasonConfig.referidos_premio_5 || 25);
-              newRaffles += (seasonConfig.referidos_sorteo_10 || 5) - (seasonConfig.referidos_sorteo_5 || 3);
-            } else if (newCount === 15) {
-              newCredit += (seasonConfig.referidos_premio_15 || 50) - (seasonConfig.referidos_premio_10 || 50);
-              newRaffles += (seasonConfig.referidos_sorteo_15 || 10) - (seasonConfig.referidos_sorteo_10 || 5);
+              // Calcular bonificaciones por niveles
+              if (newCount === 3) {
+                newCredit += (seasonConfig.referidos_premio_3 || 15) - (seasonConfig.referidos_premio_1 || 5);
+                newRaffles += seasonConfig.referidos_sorteo_3 || 1;
+              } else if (newCount === 5) {
+                newCredit += (seasonConfig.referidos_premio_5 || 25) - (seasonConfig.referidos_premio_3 || 15);
+                newRaffles += (seasonConfig.referidos_sorteo_5 || 3) - (seasonConfig.referidos_sorteo_3 || 1);
+              } else if (newCount === 10) {
+                newCredit += (seasonConfig.referidos_premio_10 || 50) - (seasonConfig.referidos_premio_5 || 25);
+                newRaffles += (seasonConfig.referidos_sorteo_10 || 5) - (seasonConfig.referidos_sorteo_5 || 3);
+              } else if (newCount === 15) {
+                newCredit += (seasonConfig.referidos_premio_15 || 50) - (seasonConfig.referidos_premio_10 || 50);
+                newRaffles += (seasonConfig.referidos_sorteo_15 || 10) - (seasonConfig.referidos_sorteo_10 || 5);
+              }
+
+              await base44.entities.User.update(referrer.id, {
+                referrals_count: newCount,
+                clothing_credit_balance: newCredit,
+                raffle_entries_total: newRaffles
+              });
             }
-
-            await base44.entities.User.update(referrer.id, {
-              referrals_count: newCount,
-              clothing_credit_balance: newCredit,
-              raffle_entries_total: newRaffles
-            });
           }
         } catch (error) {
           console.error("Error processing referral:", error);
