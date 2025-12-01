@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { AlertCircle, Loader2, CheckCircle2, Send, UserX } from "lucide-react";
 import { toast } from "sonner";
-import SuccessAnimation from "@/components/animations/SuccessAnimation";
+import { CombinedSuccessAnimation } from "@/components/animations/SuccessAnimation";
 
 const CATEGORIAS = [
   "Fútbol Pre-Benjamín (Mixto)",
@@ -133,12 +133,22 @@ export default function AdultPlayerInvitationRequest({ playerAge, playerData, pa
 
   if (submitted) {
     return (
-      <SuccessAnimation
-        title="¡Solicitud Enviada!"
-        message={`Hemos recibido tu solicitud para enviar una invitación a ${formData.nombre_jugador}. El administrador del club revisará la solicitud y enviará la invitación al email ${formData.email_jugador}.`}
-        onClose={onCancel}
-        autoClose={false}
-      />
+      <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+        <CombinedSuccessAnimation show={true} message="¡Solicitud Enviada!" withConfetti={true} />
+        <div className="bg-white rounded-2xl p-6 max-w-md w-full shadow-2xl text-center space-y-4 z-[101]">
+          <div className="text-6xl">📧</div>
+          <h2 className="text-2xl font-bold text-green-700">¡Solicitud Enviada!</h2>
+          <p className="text-slate-600">
+            Hemos recibido tu solicitud para enviar una invitación a <strong>{formData.nombre_jugador}</strong>.
+          </p>
+          <p className="text-sm text-slate-500">
+            El administrador del club revisará la solicitud y enviará la invitación al email <strong>{formData.email_jugador}</strong>.
+          </p>
+          <Button onClick={onCancel} className="w-full bg-green-600 hover:bg-green-700">
+            Cerrar
+          </Button>
+        </div>
+      </div>
     );
   }
 
