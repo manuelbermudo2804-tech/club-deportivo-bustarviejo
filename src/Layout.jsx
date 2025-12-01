@@ -548,11 +548,17 @@ export default function Layout({ children, currentPageName }) {
                       setIsAppInstalled(isStandalone);
 
                       if (isStandalone) {
-                        localStorage.removeItem('installPromptDismissed');
-                        localStorage.removeItem('lastInstallReminder');
-                        localStorage.setItem('pwaInstalled', 'true');
-                        setInstallDismissed(false);
-                      }
+                                                    localStorage.removeItem('installPromptDismissed');
+                                                    localStorage.removeItem('lastInstallReminder');
+                                                    localStorage.setItem('pwaInstalled', 'true');
+                                                    setInstallDismissed(false);
+
+                                                    // Guardar en el perfil del usuario que tiene la app instalada
+                                                    base44.auth.updateMe({
+                                                      app_instalada: true,
+                                                      fecha_instalacion_app: new Date().toISOString()
+                                                    }).catch(err => console.log('Error guardando estado instalación:', err));
+                                                  }
                     };
 
                     checkIfInstalled();
