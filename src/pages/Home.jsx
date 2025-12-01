@@ -301,8 +301,8 @@ export default function Home() {
       });
     }
 
-    return { activePlayers, pendingPayments, reviewPayments, paidPayments, unreadMessages, pendingCallups, pendingSignatures, adminPendingSignatures, pendingPlayerAccess, pendingInvitationRequests };
-  }, [players, payments, messages, callups, user, hasPlayers, isAdmin, allUsers, pendingInvitationRequests]);
+    return { activePlayers, pendingPayments, reviewPayments, paidPayments, unreadMessages, pendingCallups, pendingSignatures, adminPendingSignatures, pendingPlayerAccess };
+  }, [players, payments, messages, callups, user, hasPlayers, isAdmin, allUsers]);
 
   const handleMatchAppClick = useMemo(() => () => {
     const userAgent = navigator.userAgent || navigator.vendor || window.opera;
@@ -946,7 +946,7 @@ export default function Home() {
         {isAdmin && <DuplicatePlayersAlert />}
 
         {/* Banner de Tareas Pendientes del Club para Admin */}
-        {isAdmin && (stats.reviewPayments > 0 || stats.adminPendingSignatures > 0 || stats.unreadMessages > 0 || stats.pendingPlayerAccess > 0 || pendingInvitationRequests > 0) && (
+        {isAdmin && (stats.reviewPayments > 0 || stats.adminPendingSignatures > 0 || stats.unreadMessages > 0 || stats.pendingPlayerAccess > 0 || (pendingInvitationRequests || 0) > 0) && (
           <div className="bg-gradient-to-r from-red-600 to-orange-600 rounded-2xl p-3 lg:p-4 shadow-xl border-2 border-red-500">
             <div className="flex items-start gap-2 lg:gap-3">
               <Bell className="w-5 h-5 lg:w-6 lg:h-6 text-white flex-shrink-0 mt-0.5 animate-bounce" />
@@ -983,7 +983,7 @@ export default function Home() {
                       </span>
                     </Link>
                   )}
-                  {pendingInvitationRequests > 0 && (
+                  {(pendingInvitationRequests || 0) > 0 && (
                     <Link to={createPageUrl("EmailInvitations")}>
                       <span className="inline-flex items-center gap-1 bg-cyan-500 text-white text-xs px-2 py-1 rounded-full font-semibold hover:bg-cyan-600 transition-colors animate-pulse">
                         📧 {pendingInvitationRequests} {pendingInvitationRequests === 1 ? 'invitación solicitada' : 'invitaciones solicitadas'}
