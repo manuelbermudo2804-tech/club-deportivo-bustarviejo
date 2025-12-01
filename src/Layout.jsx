@@ -571,22 +571,6 @@ export default function Layout({ children, currentPageName }) {
   useEffect(() => {
     const fetchUser = async () => {
                       console.log('🔐 [LAYOUT DEBUG] Iniciando fetchUser...');
-
-                      // Detectar si está en modo PWA/standalone (múltiples métodos)
-                      const displayModeStandalone = window.matchMedia('(display-mode: standalone)').matches;
-                      const navigatorStandalone = window.navigator.standalone === true;
-                      const displayModeFullscreen = window.matchMedia('(display-mode: fullscreen)').matches;
-                      const displayModeMinimalUI = window.matchMedia('(display-mode: minimal-ui)').matches;
-                      const userMarkedInstalled = localStorage.getItem('pwaInstalled') === 'true';
-
-                      // Si el usuario ha marcado manualmente "Ya la tengo instalada", confiar en eso
-                      const isPWA = displayModeStandalone || 
-                                   navigatorStandalone || 
-                                   displayModeFullscreen ||
-                                   displayModeMinimalUI ||
-                                   userMarkedInstalled;
-
-                      console.log('📲 PWA Detection:', { displayModeStandalone, navigatorStandalone, userMarkedInstalled, isPWA });
             try {
               // Si es página pública, verificar si hay usuario autenticado sin forzar login
               if (isPublicPage) {
