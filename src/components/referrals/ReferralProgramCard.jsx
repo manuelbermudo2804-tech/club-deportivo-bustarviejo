@@ -60,6 +60,9 @@ export default function ReferralProgramCard({ seasonConfig, userReferrals = 0, u
         if (!seasonConfig?.programa_referidos_activo) return null;
         if (hasPlayersInClub !== true) return null;
 
+        // Verificar si ha alcanzado el máximo de 15 referidos
+        const hasReachedLimit = userReferrals >= 15;
+
         // Generar código de referido único (basado en el ID del usuario, no el email)
         const LANDING_PAGE_URL = 'https://manuelbermudo2804-tech.github.io/-club-landing-page-Bustarviejo/';
         // Usar un hash simple del email para generar un código corto y único
@@ -323,8 +326,8 @@ Por solo 25€/temporada ayudas a nuestros jóvenes deportistas y formas parte d
           </ol>
           </div>
 
-          {/* Botones de compartir - Solo si WhatsApp está permitido */}
-          {userEmail && seasonConfig?.referidos_permitir_whatsapp_padres !== false && (
+          {/* Botones de compartir - Solo si WhatsApp está permitido y no ha alcanzado el límite */}
+          {userEmail && seasonConfig?.referidos_permitir_whatsapp_padres !== false && !hasReachedLimit && (
           <div className="space-y-3 mt-4">
             <p className="text-sm font-semibold text-center">📤 ¡Comparte tu enlace único!</p>
             <div className="flex flex-col sm:flex-row gap-2">
@@ -352,6 +355,18 @@ Por solo 25€/temporada ayudas a nuestros jóvenes deportistas y formas parte d
               Este enlace es único para ti. Cuando alguien se registre usándolo, recibirás tu premio automáticamente.
             </p>
           </div>
+          )}
+
+          {/* Mensaje si ha alcanzado el límite */}
+          {hasReachedLimit && (
+            <div className="bg-gradient-to-r from-yellow-100 to-orange-100 rounded-2xl p-4 text-center border-2 border-yellow-300 mt-4">
+              <Trophy className="w-10 h-10 mx-auto mb-2 text-yellow-600" />
+              <p className="font-bold text-yellow-900 text-lg">🎉 ¡ENHORABUENA!</p>
+              <p className="text-yellow-800 text-sm">
+                Has alcanzado el máximo de <strong>15 socios invitados</strong>. 
+                ¡Eres un/a campeón/a del programa!
+              </p>
+            </div>
           )}
 
         {/* Lista de premios del sorteo - solo los activos */}
