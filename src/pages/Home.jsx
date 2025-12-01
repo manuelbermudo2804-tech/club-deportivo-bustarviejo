@@ -10,6 +10,7 @@ import SocialLinks from "../components/SocialLinks";
 import ClubStats from "../components/dashboard/ClubStats";
 import DashboardCardSkeleton from "../components/skeletons/DashboardCardSkeleton";
 import AlertCenter from "../components/dashboard/AlertCenter";
+import DuplicatePlayersAlert from "../components/admin/DuplicatePlayersAlert";
 
 const CLUB_LOGO_URL = "https://www.cdbustarviejo.com/uploads/2/4/0/4/2404974/logo-cd-bustarviejo-cuadrado-xpeq_orig.png";
 
@@ -171,6 +172,18 @@ export default function Home() {
     enabled: !!user && (isCoach || isCoordinator) && hasPlayers,
   });
 
+  // Solicitudes de invitación pendientes (jugadores +18)
+  const { data: invitationRequests = [] } = useQuery({
+    queryKey: ['invitationRequestsHome'],
+    queryFn: () => base44.entities.InvitationRequest.list('-created_date'),
+    staleTime: 300000,
+    gcTime: 600000,
+    refetchOnWindowFocus: false,
+    enabled: !!user && isAdmin,
+  });
+
+  const pendingInvitationRequests = invitationRequests.filter(r => r.estado === "pendiente").length;
+
   const myPlayers = useMemo(() => {
     if (!user || !isCoach || !hasPlayers || !players) return [];
     return players.filter(p => p.email_padre === user.email || p.email_tutor_2 === user.email);
@@ -288,8 +301,8 @@ export default function Home() {
       });
     }
 
-    return { activePlayers, pendingPayments, reviewPayments, paidPayments, unreadMessages, pendingCallups, pendingSignatures, adminPendingSignatures, pendingPlayerAccess };
-  }, [players, payments, messages, callups, user, hasPlayers, isAdmin, allUsers]);
+    return { activePlayers, pendingPayments, reviewPayments, paidPayments, unreadMessages, pendingCallups, pendingSignatures, adminPendingSignatures, pendingPlayerAccess, pendingInvitationRequests };
+  }, [players, payments, messages, callups, user, hasPlayers, isAdmin, allUsers, pendingInvitationRequests]);
 
   const handleMatchAppClick = useMemo(() => () => {
     const userAgent = navigator.userAgent || navigator.vendor || window.opera;
@@ -929,8 +942,11 @@ export default function Home() {
           />
         )}
 
+        {/* Alerta de Jugadores Duplicados - Solo Admin */}
+        {isAdmin && <DuplicatePlayersAlert />}
+
         {/* Banner de Tareas Pendientes del Club para Admin */}
-        {isAdmin && (stats.reviewPayments > 0 || stats.adminPendingSignatures > 0 || stats.unreadMessages > 0 || stats.pendingPlayerAccess > 0) && (
+        {isAdmin && (stats.reviewPayments > 0 || stats.adminPendingSignatures > 0 || stats.unreadMessages > 0 || stats.pendingPlayerAccess > 0 || pendingInvitationRequests > 0) && (
           <div className="bg-gradient-to-r from-red-600 to-orange-600 rounded-2xl p-3 lg:p-4 shadow-xl border-2 border-red-500">
             <div className="flex items-start gap-2 lg:gap-3">
               <Bell className="w-5 h-5 lg:w-6 lg:h-6 text-white flex-shrink-0 mt-0.5 animate-bounce" />
@@ -964,6 +980,13 @@ export default function Home() {
                     <Link to={createPageUrl("UserManagement")}>
                       <span className="inline-flex items-center gap-1 bg-purple-500 text-white text-xs px-2 py-1 rounded-full font-semibold hover:bg-purple-600 transition-colors">
                         ⚽ {stats.pendingPlayerAccess} jugadores +18 sin acceso
+                      </span>
+                    </Link>
+                  )}
+                  {pendingInvitationRequests > 0 && (
+                    <Link to={createPageUrl("EmailInvitations")}>
+                      <span className="inline-flex items-center gap-1 bg-cyan-500 text-white text-xs px-2 py-1 rounded-full font-semibold hover:bg-cyan-600 transition-colors animate-pulse">
+                        📧 {pendingInvitationRequests} {pendingInvitationRequests === 1 ? 'invitación solicitada' : 'invitaciones solicitadas'}
                       </span>
                     </Link>
                   )}
