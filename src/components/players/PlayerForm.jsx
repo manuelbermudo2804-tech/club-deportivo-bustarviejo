@@ -470,8 +470,8 @@ export default function PlayerForm({ player, onSubmit, onCancel, isSubmitting, i
             </Alert>
           )}
 
-          {/* BLOQUEO: Padres no pueden inscribir mayores de 18 */}
-          {isMayorDeEdad && isParent && (
+          {/* BLOQUEO: Padres no pueden inscribir mayores de 18 - Solo mostrar si fecha está completa */}
+          {isMayorDeEdad && isParent && currentPlayer.fecha_nacimiento && currentPlayer.fecha_nacimiento.length === 10 && (
             <AdultPlayerInvitationRequest 
               playerAge={playerAge}
               playerData={currentPlayer}
@@ -1571,7 +1571,7 @@ export default function PlayerForm({ player, onSubmit, onCancel, isSubmitting, i
                 disabled={
                   isSubmitting || 
                   (!player && (!currentPlayer.acepta_politica_privacidad || !currentPlayer.autorizacion_fotografia || !currentPlayer.foto_url)) ||
-                  (isMayorDeEdad && isParent) // Bloquear si es padre intentando inscribir +18
+                  (isMayorDeEdad && isParent && currentPlayer.fecha_nacimiento?.length === 10) // Bloquear si es padre intentando inscribir +18
                 }
               >
                 {isSubmitting ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Guardando...</> : (player ? "Actualizar" : "Registrar")}
