@@ -1586,7 +1586,15 @@ export default function PlayerForm({ player, onSubmit, onCancel, isSubmitting, i
             {/* Botones */}
             <div className="flex justify-end gap-3 pt-4 border-t">
               <Button type="button" variant="outline" onClick={onCancel} disabled={isSubmitting}>Cancelar</Button>
-              <Button type="submit" className="bg-orange-600 hover:bg-orange-700" disabled={isSubmitting || (!player && (!currentPlayer.acepta_politica_privacidad || !currentPlayer.autorizacion_fotografia || !currentPlayer.foto_url))}>
+              <Button 
+                type="submit" 
+                className="bg-orange-600 hover:bg-orange-700" 
+                disabled={
+                  isSubmitting || 
+                  (!player && (!currentPlayer.acepta_politica_privacidad || !currentPlayer.autorizacion_fotografia || !currentPlayer.foto_url)) ||
+                  (isMayorDeEdad && isParent) // Bloquear si es padre intentando inscribir +18
+                }
+              >
                 {isSubmitting ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Guardando...</> : (player ? "Actualizar" : "Registrar")}
               </Button>
             </div>
