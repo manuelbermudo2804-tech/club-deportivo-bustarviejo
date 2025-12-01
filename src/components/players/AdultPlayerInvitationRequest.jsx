@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { AlertCircle, Loader2, CheckCircle2, Send, UserX } from "lucide-react";
 import { toast } from "sonner";
+import SuccessAnimation from "@/components/animations/SuccessAnimation";
 
 const CATEGORIAS = [
   "Fútbol Pre-Benjamín (Mixto)",
@@ -40,9 +41,17 @@ export default function AdultPlayerInvitationRequest({ playerAge, playerData, pa
     return null;
   }
 
+  // Validar email permitiendo caracteres especiales como ñ
+  const isValidEmail = (email) => {
+    if (!email) return false;
+    // Regex que permite ñ y otros caracteres Unicode en emails
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/u;
+    return emailRegex.test(email);
+  };
+
   // Verificar si el email ya está registrado
   const checkEmailExists = async (email) => {
-    if (!email || !email.includes('@')) return;
+    if (!email || !isValidEmail(email)) return;
     
     setIsCheckingEmail(true);
     setEmailAlreadyExists(false);
@@ -89,6 +98,11 @@ export default function AdultPlayerInvitationRequest({ playerAge, playerData, pa
       return;
     }
 
+    if (!isValidEmail(formData.email_jugador)) {
+      toast.error("Por favor, introduce un email válido");
+      return;
+    }
+
     if (emailAlreadyExists) {
       toast.error("Este email ya está registrado en el sistema");
       return;
@@ -119,25 +133,12 @@ export default function AdultPlayerInvitationRequest({ playerAge, playerData, pa
 
   if (submitted) {
     return (
-      <Alert className="mb-6 bg-green-50 border-2 border-green-300">
-        <CheckCircle2 className="h-5 w-5 text-green-600" />
-        <AlertDescription className="text-green-800">
-          <div className="space-y-3">
-            <p className="font-bold text-lg text-green-900">
-              ✅ ¡Solicitud enviada!
-            </p>
-            <p>
-              Hemos recibido tu solicitud para enviar una invitación a <strong>{formData.nombre_jugador}</strong>.
-            </p>
-            <p className="text-sm">
-              El administrador del club revisará la solicitud y enviará la invitación al email <strong>{formData.email_jugador}</strong>.
-            </p>
-            <Button onClick={onCancel} variant="outline" className="mt-2">
-              Volver
-            </Button>
-          </div>
-        </AlertDescription>
-      </Alert>
+      <SuccessAnimation
+        title="¡Solicitud Enviada!"
+        message={`Hemos recibido tu solicitud para enviar una invitación a ${formData.nombre_jugador}. El administrador del club revisará la solicitud y enviará la invitación al email ${formData.email_jugador}.`}
+        onClose={onCancel}
+        autoClose={false}
+      />
     );
   }
 
