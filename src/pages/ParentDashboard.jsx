@@ -41,32 +41,44 @@ export default function ParentDashboard() {
   const { data: players = [], isLoading: playersLoading } = useQuery({
     queryKey: ['players'],
     queryFn: () => base44.entities.Player.list(),
-    staleTime: 60000,
+    staleTime: 300000,
+    gcTime: 600000,
     refetchOnWindowFocus: false,
+    refetchOnMount: false,
+    refetchInterval: false,
     enabled: !!user,
   });
 
   const { data: payments = [] } = useQuery({
     queryKey: ['payments'],
     queryFn: () => base44.entities.Payment.list('-created_date'),
-    staleTime: 60000,
+    staleTime: 300000,
+    gcTime: 600000,
     refetchOnWindowFocus: false,
+    refetchOnMount: false,
+    refetchInterval: false,
     enabled: !!user,
   });
 
   const { data: callups = [] } = useQuery({
     queryKey: ['callups'],
     queryFn: () => base44.entities.Convocatoria.list('-created_date'),
-    staleTime: 60000,
+    staleTime: 300000,
+    gcTime: 600000,
     refetchOnWindowFocus: false,
+    refetchOnMount: false,
+    refetchInterval: false,
     enabled: !!user,
   });
 
   const { data: messages = [] } = useQuery({
     queryKey: ['messages'],
     queryFn: () => base44.entities.ChatMessage.list('-created_date'),
-    staleTime: 30000,
+    staleTime: 300000,
+    gcTime: 600000,
     refetchOnWindowFocus: false,
+    refetchOnMount: false,
+    refetchInterval: false,
     enabled: !!user,
   });
 
@@ -84,32 +96,44 @@ export default function ParentDashboard() {
   const { data: surveys = [] } = useQuery({
     queryKey: ['surveys'],
     queryFn: () => base44.entities.Survey.list('-created_date'),
-    staleTime: 60000,
+    staleTime: 300000,
+    gcTime: 600000,
     refetchOnWindowFocus: false,
+    refetchOnMount: false,
+    refetchInterval: false,
     enabled: !!user,
   });
 
   const { data: surveyResponses = [] } = useQuery({
     queryKey: ['surveyResponses'],
     queryFn: () => base44.entities.SurveyResponse.list(),
-    staleTime: 60000,
+    staleTime: 300000,
+    gcTime: 600000,
     refetchOnWindowFocus: false,
+    refetchOnMount: false,
+    refetchInterval: false,
     enabled: !!user,
   });
 
   const { data: announcements = [] } = useQuery({
     queryKey: ['announcements'],
     queryFn: () => base44.entities.Announcement.list('-created_date'),
-    staleTime: 60000,
+    staleTime: 300000,
+    gcTime: 600000,
     refetchOnWindowFocus: false,
+    refetchOnMount: false,
+    refetchInterval: false,
     enabled: !!user,
   });
 
   const { data: clothingOrders = [] } = useQuery({
     queryKey: ['clothingOrders'],
     queryFn: () => base44.entities.ClothingOrder.list('-created_date'),
-    staleTime: 60000,
+    staleTime: 300000,
+    gcTime: 600000,
     refetchOnWindowFocus: false,
+    refetchOnMount: false,
+    refetchInterval: false,
     enabled: !!user,
   });
 
