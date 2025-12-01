@@ -1488,15 +1488,25 @@ export default function Layout({ children, currentPageName }) {
                                           </div>
 
                     <Button 
-                                        onClick={() => {
-                                          setShowInstallInstructions(false);
-                                          setIsAppInstalled(true);
-                                          localStorage.setItem('pwaInstalled', 'true');
-                                        }} 
-                                        className="w-full mt-4 bg-green-600 hover:bg-green-700 py-4 text-lg font-bold"
-                                      >
-                                        ✅ Ya la tengo instalada
-                                      </Button>
+                                                                  onClick={async () => {
+                                                                    setShowInstallInstructions(false);
+                                                                    setIsAppInstalled(true);
+                                                                    localStorage.setItem('pwaInstalled', 'true');
+                                                                    // Guardar en la base de datos también
+                                                                    try {
+                                                                      await base44.auth.updateMe({
+                                                                        app_instalada: true,
+                                                                        fecha_instalacion_app: new Date().toISOString()
+                                                                      });
+                                                                      console.log('✅ App marcada como instalada en BD');
+                                                                    } catch (err) {
+                                                                      console.log('Error guardando estado:', err);
+                                                                    }
+                                                                  }} 
+                                                                  className="w-full mt-4 bg-green-600 hover:bg-green-700 py-4 text-lg font-bold"
+                                                                >
+                                                                  ✅ Ya la tengo instalada
+                                                                </Button>
                                       <Button 
                                         onClick={() => {
                                           setShowInstallInstructions(false);
