@@ -578,19 +578,25 @@ export default function Layout({ children, currentPageName }) {
     if (savedLang) setCurrentLang(savedLang);
   }, []);
 
+  // Cargar configuración de temporada solo una vez al montar
+  const [seasonConfigLoaded, setSeasonConfigLoaded] = useState(false);
+  
   useEffect(() => {
+    if (seasonConfigLoaded) return;
+    
     const fetchSeasonConfig = async () => {
       try {
         const configs = await base44.entities.SeasonConfig.list();
         const activeConfig = configs.find(c => c.activa === true);
         setLoteriaVisible(activeConfig?.loteria_navidad_abierta === true);
         setSponsorBannerVisible(activeConfig?.mostrar_patrocinadores === true);
+        setSeasonConfigLoaded(true);
       } catch (error) {
         console.error("Error fetching season config:", error);
       }
     };
     fetchSeasonConfig();
-  }, []);
+  }, [seasonConfigLoaded]);
 
   // Detectar si estamos en página pública (ClubMembership)
   const isPublicPage = location.pathname.includes('ClubMembership');
