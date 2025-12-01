@@ -326,7 +326,21 @@ ${mensajePersonalizado ? `
                       <Button
                         size="sm"
                         variant="outline"
-                        onClick={() => addRequestEmail(request)}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          const emailToAdd = request.email_jugador;
+                          if (!emailToAdd) {
+                            toast.error("Esta solicitud no tiene email");
+                            return;
+                          }
+                          if (emails.includes(emailToAdd)) {
+                            toast.info("Este email ya está en la lista");
+                            return;
+                          }
+                          setEmails([...emails, emailToAdd]);
+                          toast.success(`✅ Email de ${request.nombre_jugador} añadido`);
+                        }}
                         className="border-orange-300 text-orange-700 hover:bg-orange-50"
                       >
                         <Plus className="w-4 h-4 mr-1" />
