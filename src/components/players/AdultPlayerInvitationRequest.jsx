@@ -1,11 +1,11 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { AlertCircle, Loader2, CheckCircle2, Send } from "lucide-react";
+import { AlertCircle, Loader2, CheckCircle2, Send, UserX } from "lucide-react";
 import { toast } from "sonner";
 
 const CATEGORIAS = [
@@ -23,7 +23,10 @@ const CATEGORIAS = [
 export default function AdultPlayerInvitationRequest({ playerAge, playerData, parentEmail, parentName, onCancel }) {
   const [showForm, setShowForm] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isCheckingEmail, setIsCheckingEmail] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [emailAlreadyExists, setEmailAlreadyExists] = useState(false);
+  const [existingUserInfo, setExistingUserInfo] = useState(null);
   const [formData, setFormData] = useState({
     nombre_jugador: playerData?.nombre || "",
     email_jugador: "",
@@ -32,11 +35,57 @@ export default function AdultPlayerInvitationRequest({ playerAge, playerData, pa
     categoria_deseada: playerData?.deporte || ""
   });
 
+  // Verificar si el email ya está registrado
+  const checkEmailExists = async (email) => {
+    if (!email || !email.includes('@')) return;
+    
+    setIsCheckingEmail(true);
+    setEmailAlreadyExists(false);
+    setExistingUserInfo(null);
+    
+    try {
+      const [users, players] = await Promise.all([
+        base44.entities.User.list(),
+        base44.entities.Player.list()
+      ]);
+      
+      const emailLower = email.toLowerCase().trim();
+      
+      // Buscar en usuarios
+      const existingUser = users.find(u => u.email?.toLowerCase() === emailLower);
+      
+      // Buscar en jugadores (por email_padre o email_jugador)
+      const existingPlayer = players.find(p => 
+        p.email_padre?.toLowerCase() === emailLower ||
+        p.email_jugador?.toLowerCase() === emailLower
+      );
+      
+      if (existingUser || existingPlayer) {
+        setEmailAlreadyExists(true);
+        setExistingUserInfo({
+          isUser: !!existingUser,
+          userName: existingUser?.full_name,
+          isPlayer: !!existingPlayer,
+          playerName: existingPlayer?.nombre
+        });
+      }
+    } catch (error) {
+      console.error("Error verificando email:", error);
+    } finally {
+      setIsCheckingEmail(false);
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     
     if (!formData.nombre_jugador || !formData.email_jugador) {
       toast.error("Por favor, rellena el nombre y email del jugador");
+      return;
+    }
+
+    if (emailAlreadyExists) {
+      toast.error("Este email ya está registrado en el sistema");
       return;
     }
 
@@ -145,14 +194,43 @@ export default function AdultPlayerInvitationRequest({ playerAge, playerData, pa
                   </div>
                   <div className="space-y-1">
                     <Label className="text-sm text-blue-900">Email del jugador *</Label>
-                    <Input
-                      type="email"
-                      value={formData.email_jugador}
-                      onChange={(e) => setFormData({...formData, email_jugador: e.target.value})}
-                      placeholder="email@ejemplo.com"
-                      required
-                      className="bg-white"
-                    />
+                    <div className="relative">
+                      <Input
+                        type="email"
+                        value={formData.email_jugador}
+                        onChange={(e) => setFormData({...formData, email_jugador: e.target.value})}
+                        onBlur={(e) => checkEmailExists(e.target.value)}
+                        placeholder="email@ejemplo.com"
+                        required
+                        className={`bg-white ${emailAlreadyExists ? 'border-red-500 border-2' : ''}`}
+                      />
+                      {isCheckingEmail && (
+                        <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 animate-spin text-slate-400" />
+                      )}
+                    </div>
+                    {emailAlreadyExists && existingUserInfo && (
+                      <div className="mt-2 p-3 bg-red-100 border border-red-300 rounded-lg">
+                        <div className="flex items-start gap-2">
+                          <UserX className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+                          <div>
+                            <p className="font-bold text-red-900 text-sm">⚠️ Este email ya está registrado</p>
+                            {existingUserInfo.isUser && (
+                              <p className="text-xs text-red-800">
+                                Usuario existente: <strong>{existingUserInfo.userName}</strong>
+                              </p>
+                            )}
+                            {existingUserInfo.isPlayer && (
+                              <p className="text-xs text-red-800">
+                                Jugador existente: <strong>{existingUserInfo.playerName}</strong>
+                              </p>
+                            )}
+                            <p className="text-xs text-red-700 mt-1">
+                              El jugador ya puede acceder a la app con este email. No necesita invitación.
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    )}
                   </div>
                   <div className="space-y-1">
                     <Label className="text-sm text-blue-900">Teléfono del jugador</Label>
@@ -193,7 +271,7 @@ export default function AdultPlayerInvitationRequest({ playerAge, playerData, pa
                   <Button
                     type="submit"
                     className="bg-blue-600 hover:bg-blue-700"
-                    disabled={isSubmitting}
+                    disabled={isSubmitting || emailAlreadyExists || isCheckingEmail}
                   >
                     {isSubmitting ? (
                       <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Enviando...</>
