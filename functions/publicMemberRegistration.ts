@@ -48,6 +48,16 @@ Deno.serve(async (req) => {
     const nextNumber = membersThisYear.length + 1;
     const numeroSocio = `CDB-${currentYear}-${String(nextNumber).padStart(4, '0')}`;
 
+    // Procesar justificante base64 si viene en ese formato
+    let justificanteUrl = data.justificante_url || "";
+    let justificanteBase64 = "";
+    
+    if (data.justificante_base64) {
+      // Guardar el base64 directamente (es una data URL que se puede visualizar)
+      justificanteBase64 = data.justificante_base64;
+      justificanteUrl = "BASE64_ATTACHED"; // Marcador para indicar que hay adjunto
+    }
+
     // Crear el nuevo socio
     const newMember = await base44.asServiceRole.entities.ClubMember.create({
       numero_socio: numeroSocio,
@@ -59,13 +69,14 @@ Deno.serve(async (req) => {
       direccion: data.direccion,
       municipio: data.municipio,
       metodo_pago: data.metodo_pago || "Transferencia",
-      justificante_url: data.justificante_url || "",
+      justificante_url: justificanteUrl,
+      justificante_base64: justificanteBase64,
       es_segundo_progenitor: data.es_segundo_progenitor || false,
       es_socio_externo: true,
       referido_por: data.referido_por || "",
       referido_por_email: data.referido_por_email || "",
       cuota_socio: 25,
-      estado_pago: data.justificante_url ? "En revisión" : "Pendiente",
+      estado_pago: (justificanteUrl || justificanteBase64) ? "En revisión" : "Pendiente",
       temporada: temporada,
       activo: true
     });
