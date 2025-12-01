@@ -9,9 +9,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   Users, Search, CheckCircle2, Clock, AlertCircle, Mail, 
-  TrendingUp, UserPlus, Heart, Download, Eye, Loader2 
+  TrendingUp, UserPlus, Heart, Download, Eye, Loader2, MessageCircle 
 } from "lucide-react";
 import { toast } from "sonner";
+import RenewalReminderDialog from "../components/members/RenewalReminderDialog";
 
 export default function ClubMembersManagement() {
   const [user, setUser] = useState(null);
