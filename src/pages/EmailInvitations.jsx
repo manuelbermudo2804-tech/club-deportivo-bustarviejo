@@ -751,7 +751,7 @@ ${invitationId ? `<!-- Pixel de tracking -->
           </Card>
 
           {/* Estadísticas rápidas */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-6 gap-4">
             <Card className="border-none shadow-sm bg-green-50">
               <CardContent className="p-4 text-center">
                 <p className="text-2xl font-bold text-green-700">
@@ -774,6 +774,22 @@ ${invitationId ? `<!-- Pixel de tracking -->
                   {emailHistory.filter(e => e.estado === "rebotada").length}
                 </p>
                 <p className="text-xs text-orange-600">Rebotadas ↩️</p>
+              </CardContent>
+            </Card>
+            <Card className="border-none shadow-sm bg-purple-50">
+              <CardContent className="p-4 text-center">
+                <p className="text-2xl font-bold text-purple-700">
+                  {emailHistory.filter(e => e.abierta === true).length}
+                </p>
+                <p className="text-xs text-purple-600">Abiertas 👁️</p>
+              </CardContent>
+            </Card>
+            <Card className="border-none shadow-sm bg-cyan-50">
+              <CardContent className="p-4 text-center">
+                <p className="text-2xl font-bold text-cyan-700">
+                  {emailHistory.filter(e => e.clicada === true).length}
+                </p>
+                <p className="text-xs text-cyan-600">Clicadas 👆</p>
               </CardContent>
             </Card>
             <Card className="border-none shadow-sm bg-blue-50">
