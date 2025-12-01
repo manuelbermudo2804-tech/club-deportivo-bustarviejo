@@ -9,11 +9,12 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Mail, Send, Plus, X, Loader2, CheckCircle2, AlertCircle, Users, Trash2, Clock, UserPlus, History, Filter, Calendar, RefreshCw } from "lucide-react";
+import { Mail, Send, Plus, X, Loader2, CheckCircle2, AlertCircle, Users, Trash2, Clock, UserPlus, History, Filter, Calendar, RefreshCw, Eye, MousePointer } from "lucide-react";
 import { toast } from "sonner";
 
 const CLUB_LOGO_URL = "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6911b8e453ca3ac01fb134d6/e3f0a8e26_logo_cd_bustarviejo_mediano.jpg";
 const DEFAULT_APP_URL = "https://club-gestion-bustarviejo-1fb134d6.base44.app";
+const TRACKING_BASE_URL = "https://club-gestion-bustarviejo-1fb134d6.base44.app/api/emailTracking";
 
 export default function EmailInvitations() {
   const [user, setUser] = useState(null);
@@ -28,6 +29,7 @@ export default function EmailInvitations() {
   const [activeTab, setActiveTab] = useState("enviar");
   const [filtroEstado, setFiltroEstado] = useState("todos");
   const [filtroFecha, setFiltroFecha] = useState("todos");
+  const [filtroInteraccion, setFiltroInteraccion] = useState("todos");
   const [busquedaHistorial, setBusquedaHistorial] = useState("");
 
   const queryClient = useQueryClient();
@@ -75,6 +77,14 @@ export default function EmailInvitations() {
         const monthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
         if (invDate < monthAgo) return false;
       }
+    }
+
+    // Filtro por interacción (abierta/clicada)
+    if (filtroInteraccion !== "todos") {
+      if (filtroInteraccion === "abierta" && !inv.abierta) return false;
+      if (filtroInteraccion === "no_abierta" && inv.abierta) return false;
+      if (filtroInteraccion === "clicada" && !inv.clicada) return false;
+      if (filtroInteraccion === "no_clicada" && inv.clicada) return false;
     }
     
     // Filtro por búsqueda
@@ -176,7 +186,12 @@ export default function EmailInvitations() {
     setEmails([]);
   };
 
-  const generateEmailBody = (destinatarioEmail, linkUrl) => {
+  const generateEmailBody = (destinatarioEmail, linkUrl, invitationId) => {
+    // URLs de tracking
+    const trackingPixelUrl = invitationId ? `${TRACKING_BASE_URL}?id=${invitationId}&action=open` : '';
+    const trackingClickUrl = invitationId ? `${TRACKING_BASE_URL}?id=${invitationId}&action=click&redirect=${encodeURIComponent(linkUrl)}` : linkUrl;
+    const finalLinkUrl = invitationId ? trackingClickUrl : linkUrl;
+    
     return `<!DOCTYPE html>
 <html>
 <head>
@@ -242,10 +257,13 @@ ${mensajePersonalizado ? `
 <table role="presentation" cellspacing="0" cellpadding="0" border="0" align="center" style="margin:0 auto 20px auto;">
 <tr>
 <td bgcolor="#ea580c" style="border-radius:8px;">
-<a href="${linkUrl}" target="_blank" style="display:inline-block;color:#ffffff;text-decoration:none;padding:14px 35px;font-weight:bold;font-size:16px;font-family:Arial,Helvetica,sans-serif;">ACCEDER A LA APP →</a>
+<a href="${finalLinkUrl}" target="_blank" style="display:inline-block;color:#ffffff;text-decoration:none;padding:14px 35px;font-weight:bold;font-size:16px;font-family:Arial,Helvetica,sans-serif;">ACCEDER A LA APP →</a>
 </td>
 </tr>
 </table>
+
+${invitationId ? `<!-- Pixel de tracking -->
+<img src="${trackingPixelUrl}" width="1" height="1" style="display:none;" alt="" />` : ''}
 
 <p style="color:#94a3b8;font-size:12px;text-align:center;margin:0;">Haz clic en el botón para empezar</p>
 </td>
@@ -279,21 +297,24 @@ ${mensajePersonalizado ? `
 
     for (const email of emails) {
       try {
-        await base44.integrations.Core.SendEmail({
-          from_name: "CD Bustarviejo",
-          to: email,
-          subject: asunto,
-          body: generateEmailBody(email, appUrl)
-        });
-        
-        // Guardar en historial
-        await base44.entities.EmailInvitation.create({
+        // Primero creamos el registro para obtener el ID para tracking
+        const invitationRecord = await base44.entities.EmailInvitation.create({
           email_destinatario: email,
           asunto: asunto,
           estado: "enviada",
           enviado_por: user.email,
           enviado_por_nombre: user.full_name,
-          mensaje_personalizado: mensajePersonalizado || null
+          mensaje_personalizado: mensajePersonalizado || null,
+          abierta: false,
+          clicada: false
+        });
+
+        // Enviamos el email con el ID para tracking
+        await base44.integrations.Core.SendEmail({
+          from_name: "CD Bustarviejo",
+          to: email,
+          subject: asunto,
+          body: generateEmailBody(email, appUrl, invitationRecord.id)
         });
         
         sent++;
@@ -308,7 +329,9 @@ ${mensajePersonalizado ? `
           estado: "error",
           error_mensaje: error.message || "Error desconocido",
           enviado_por: user.email,
-          enviado_por_nombre: user.full_name
+          enviado_por_nombre: user.full_name,
+          abierta: false,
+          clicada: false
         });
         
         errors++;
@@ -691,19 +714,32 @@ ${mensajePersonalizado ? `
                   </Select>
                   
                   <Select value={filtroFecha} onValueChange={setFiltroFecha}>
-                    <SelectTrigger className="w-40">
-                      <SelectValue placeholder="Fecha" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="todos">Todas las fechas</SelectItem>
-                      <SelectItem value="hoy">Hoy</SelectItem>
-                      <SelectItem value="semana">Última semana</SelectItem>
-                      <SelectItem value="mes">Último mes</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
+                                          <SelectTrigger className="w-40">
+                                            <SelectValue placeholder="Fecha" />
+                                          </SelectTrigger>
+                                          <SelectContent>
+                                            <SelectItem value="todos">Todas las fechas</SelectItem>
+                                            <SelectItem value="hoy">Hoy</SelectItem>
+                                            <SelectItem value="semana">Última semana</SelectItem>
+                                            <SelectItem value="mes">Último mes</SelectItem>
+                                          </SelectContent>
+                                        </Select>
 
-                <Button
+                                        <Select value={filtroInteraccion} onValueChange={setFiltroInteraccion}>
+                                          <SelectTrigger className="w-44">
+                                            <SelectValue placeholder="Interacción" />
+                                          </SelectTrigger>
+                                          <SelectContent>
+                                            <SelectItem value="todos">Todas</SelectItem>
+                                            <SelectItem value="abierta">👁️ Abiertas</SelectItem>
+                                            <SelectItem value="no_abierta">🚫 No abiertas</SelectItem>
+                                            <SelectItem value="clicada">👆 Con clic</SelectItem>
+                                            <SelectItem value="no_clicada">🚫 Sin clic</SelectItem>
+                                          </SelectContent>
+                                        </Select>
+                                      </div>
+
+                                      <Button
                   variant="outline"
                   size="sm"
                   onClick={() => queryClient.invalidateQueries({ queryKey: ['emailHistory'] })}
@@ -785,14 +821,24 @@ ${mensajePersonalizado ? `
                               {inv.email_destinatario}
                             </span>
                             {inv.estado === "enviada" && (
-                              <Badge className="bg-green-100 text-green-800 text-xs">✅ Enviada</Badge>
-                            )}
-                            {inv.estado === "error" && (
-                              <Badge className="bg-red-100 text-red-800 text-xs">❌ Error</Badge>
-                            )}
-                            {inv.estado === "rebotada" && (
-                              <Badge className="bg-orange-100 text-orange-800 text-xs">↩️ Rebotada</Badge>
-                            )}
+                                                              <Badge className="bg-green-100 text-green-800 text-xs">✅ Enviada</Badge>
+                                                            )}
+                                                            {inv.estado === "error" && (
+                                                              <Badge className="bg-red-100 text-red-800 text-xs">❌ Error</Badge>
+                                                            )}
+                                                            {inv.estado === "rebotada" && (
+                                                              <Badge className="bg-orange-100 text-orange-800 text-xs">↩️ Rebotada</Badge>
+                                                            )}
+                                                            {inv.abierta && (
+                                                              <Badge className="bg-purple-100 text-purple-800 text-xs flex items-center gap-1">
+                                                                <Eye className="w-3 h-3" /> Abierta
+                                                              </Badge>
+                                                            )}
+                                                            {inv.clicada && (
+                                                              <Badge className="bg-cyan-100 text-cyan-800 text-xs flex items-center gap-1">
+                                                                <MousePointer className="w-3 h-3" /> Clic
+                                                              </Badge>
+                                                            )}
                           </div>
                           <p className="text-sm text-slate-600 truncate">
                             📧 {inv.asunto}
@@ -803,10 +849,20 @@ ${mensajePersonalizado ? `
                             </p>
                           )}
                           {inv.mensaje_personalizado && (
-                            <p className="text-xs text-amber-600 mt-1 truncate">
-                              💬 "{inv.mensaje_personalizado}"
-                            </p>
-                          )}
+                                                        <p className="text-xs text-amber-600 mt-1 truncate">
+                                                          💬 "{inv.mensaje_personalizado}"
+                                                        </p>
+                                                      )}
+                                                      {inv.fecha_apertura && (
+                                                        <p className="text-xs text-purple-600 mt-1">
+                                                          👁️ Abierto: {new Date(inv.fecha_apertura).toLocaleString('es-ES', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
+                                                        </p>
+                                                      )}
+                                                      {inv.fecha_clic && (
+                                                        <p className="text-xs text-cyan-600 mt-1">
+                                                          👆 Clic: {new Date(inv.fecha_clic).toLocaleString('es-ES', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
+                                                        </p>
+                                                      )}
                         </div>
                         <div className="text-right text-sm text-slate-500 flex-shrink-0">
                           <div className="flex items-center gap-1 justify-end">
