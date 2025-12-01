@@ -886,6 +886,13 @@ export default function ClubMembership() {
                 </div>
               </div>
 
+              {/* Aviso de Protección de Datos */}
+              <div className="bg-slate-50 rounded-xl p-4 border border-slate-200">
+                <p className="text-xs text-slate-600 leading-relaxed">
+                  <strong className="text-slate-800">🔒 Protección de Datos:</strong> Al enviar este formulario, consientes el tratamiento de tus datos personales por parte del CD Bustarviejo con la finalidad de gestionar tu membresía como socio del club. Tus datos serán tratados de forma confidencial conforme al Reglamento General de Protección de Datos (RGPD). Puedes ejercer tus derechos de acceso, rectificación, supresión, limitación, portabilidad y oposición enviando un email a <a href="mailto:cdbustarviejo@gmail.com" className="text-orange-600 underline">cdbustarviejo@gmail.com</a>. Los datos se conservarán mientras dure la relación de socio y posteriormente durante el tiempo necesario para cumplir con obligaciones legales.
+                </p>
+              </div>
+
               {/* Botones */}
               <div className="flex flex-col sm:flex-row justify-end gap-3 pt-4">
                 {!isRenewal && (
