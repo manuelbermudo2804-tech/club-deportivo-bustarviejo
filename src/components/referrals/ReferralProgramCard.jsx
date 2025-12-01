@@ -81,11 +81,13 @@ export default function ReferralProgramCard({ seasonConfig, userReferrals = 0, u
         // Mensaje predefinido para WhatsApp
         const whatsappMessage = `¡Hola! 👋 Te invito a hacerte socio del CD Bustarviejo ⚽🏀
 
-Por solo 25€/temporada ayudas a nuestros jóvenes deportistas y formas parte de la familia del club.
+Por solo 25€/temporada ayudas a más de 200 niños y niñas a disfrutar del deporte en nuestro pueblo.
 
 👉 Regístrate aquí: ${referralLink}
 
-🔒 Tus datos están protegidos según el RGPD. Solo se usarán para la gestión de tu membresía.
+⚠️ IMPORTANTE: Este enlace es personal y solo funciona si te lo he enviado YO directamente. Si lo reenvías a otra persona, no contará para el programa de premios.
+
+🔒 Tus datos están protegidos según el RGPD.
 
 ¡Gracias por tu apoyo! 💪🎉`;
 
