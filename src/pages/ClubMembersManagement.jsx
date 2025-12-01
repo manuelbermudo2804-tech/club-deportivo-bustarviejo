@@ -19,6 +19,7 @@ export default function ClubMembersManagement() {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [sendingReminders, setSendingReminders] = useState(false);
+  const [showReminderDialog, setShowReminderDialog] = useState(false);
   const queryClient = useQueryClient();
 
   useEffect(() => {
