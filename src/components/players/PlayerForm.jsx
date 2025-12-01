@@ -471,35 +471,13 @@ export default function PlayerForm({ player, onSubmit, onCancel, isSubmitting, i
 
           {/* BLOQUEO: Padres no pueden inscribir mayores de 18 */}
           {isMayorDeEdad && isParent && (
-            <Alert className="mb-6 bg-red-50 border-2 border-red-300">
-              <AlertCircle className="h-5 w-5 text-red-600" />
-              <AlertDescription className="text-red-800">
-                <div className="space-y-4">
-                  <p className="font-bold text-lg text-red-900">
-                    ⛔ No puedes inscribir a un jugador mayor de 18 años
-                  </p>
-                  <p>
-                    Según la fecha de nacimiento introducida, este jugador tiene <strong>{playerAge} años</strong> y es mayor de edad.
-                  </p>
-                  <div className="bg-white rounded-lg p-4 border border-red-200">
-                    <p className="font-bold text-red-900 mb-2">👤 ¿Qué debe hacer el jugador?</p>
-                    <ol className="list-decimal list-inside space-y-2 text-sm">
-                      <li>El jugador debe <strong>registrarse en la app con su propio email</strong></li>
-                      <li>Una vez dentro, debe ir a <strong>"Mis Jugadores"</strong> y registrarse él mismo</li>
-                      <li>Su panel será automáticamente el <strong>"Panel Jugador"</strong></li>
-                    </ol>
-                  </div>
-                  <div className="bg-amber-50 rounded-lg p-3 border border-amber-200">
-                    <p className="text-sm text-amber-800">
-                      <strong>💡 Nota:</strong> Los jugadores mayores de 18 años no tienen descuento de hermanos y se representan a sí mismos.
-                    </p>
-                  </div>
-                  <p className="text-sm text-red-700">
-                    Si necesitas cambiar la fecha de nacimiento, hazlo arriba en el formulario.
-                  </p>
-                </div>
-              </AlertDescription>
-            </Alert>
+            <AdultPlayerInvitationRequest 
+              playerAge={playerAge}
+              playerData={currentPlayer}
+              parentEmail={user?.email}
+              parentName={user?.full_name}
+              onCancel={onCancel}
+            />
           )}
 
           {/* Info para jugadores +18 que se inscriben ellos mismos */}
