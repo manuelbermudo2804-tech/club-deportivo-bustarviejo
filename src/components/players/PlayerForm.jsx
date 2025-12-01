@@ -469,13 +469,46 @@ export default function PlayerForm({ player, onSubmit, onCancel, isSubmitting, i
             </Alert>
           )}
 
-          {isMayorDeEdad && (
+          {/* BLOQUEO: Padres no pueden inscribir mayores de 18 */}
+          {isMayorDeEdad && isParent && (
+            <Alert className="mb-6 bg-red-50 border-2 border-red-300">
+              <AlertCircle className="h-5 w-5 text-red-600" />
+              <AlertDescription className="text-red-800">
+                <div className="space-y-4">
+                  <p className="font-bold text-lg text-red-900">
+                    ⛔ No puedes inscribir a un jugador mayor de 18 años
+                  </p>
+                  <p>
+                    Según la fecha de nacimiento introducida, este jugador tiene <strong>{playerAge} años</strong> y es mayor de edad.
+                  </p>
+                  <div className="bg-white rounded-lg p-4 border border-red-200">
+                    <p className="font-bold text-red-900 mb-2">👤 ¿Qué debe hacer el jugador?</p>
+                    <ol className="list-decimal list-inside space-y-2 text-sm">
+                      <li>El jugador debe <strong>registrarse en la app con su propio email</strong></li>
+                      <li>Una vez dentro, debe ir a <strong>"Mis Jugadores"</strong> y registrarse él mismo</li>
+                      <li>Su panel será automáticamente el <strong>"Panel Jugador"</strong></li>
+                    </ol>
+                  </div>
+                  <div className="bg-amber-50 rounded-lg p-3 border border-amber-200">
+                    <p className="text-sm text-amber-800">
+                      <strong>💡 Nota:</strong> Los jugadores mayores de 18 años no tienen descuento de hermanos y se representan a sí mismos.
+                    </p>
+                  </div>
+                  <p className="text-sm text-red-700">
+                    Si necesitas cambiar la fecha de nacimiento, hazlo arriba en el formulario.
+                  </p>
+                </div>
+              </AlertDescription>
+            </Alert>
+          )}
+
+          {/* Info para jugadores +18 que se inscriben ellos mismos */}
+          {isMayorDeEdad && !isParent && (
             <Alert className="mb-6 bg-purple-50 border-purple-200">
               <AlertCircle className="h-4 w-4 text-purple-600" />
               <AlertDescription className="text-purple-800">
-                <strong>👤 Jugador mayor de edad:</strong> Al ser mayor de 18 años, {isParent ? "el jugador se representa a sí mismo" : "te representas a ti mismo"} y la cuota de socio está incluida en la inscripción.
+                <strong>👤 Jugador mayor de edad:</strong> Al ser mayor de 18 años, te representas a ti mismo y la cuota de socio está incluida en tu inscripción.
 
-                {/* Aviso sobre NO descuento para +18 */}
                 <div className="mt-3 p-3 bg-amber-100 rounded-lg border border-amber-300">
                   <p className="font-bold text-amber-900 mb-1">⚠️ Sin descuento de hermanos</p>
                   <p className="text-sm text-amber-800">
@@ -483,37 +516,22 @@ export default function PlayerForm({ player, onSubmit, onCancel, isSubmitting, i
                   </p>
                 </div>
 
-                {isParent ? (
-                  <div className="mt-3 p-3 bg-purple-100 rounded-lg border border-purple-300">
-                    <p className="font-bold text-purple-900 mb-1">📧 ¡IMPORTANTE! Email del jugador</p>
-                    <p className="text-sm">
-                      El <strong>correo electrónico</strong> que pongas en el campo de abajo será el que el jugador use para <strong>acceder a la app con su propia cuenta</strong>.
-                    </p>
-                    <p className="text-sm mt-2 font-semibold text-purple-900">
-                      👉 Asegúrate de poner el email del JUGADOR, no el tuyo.
-                    </p>
-                    <p className="text-xs mt-2 text-purple-700">
-                      El jugador recibirá acceso al "Panel Jugador" donde podrá ver sus convocatorias, pagos, chat del equipo, etc.
-                    </p>
-                  </div>
-                ) : (
-                  <div className="mt-3 p-3 bg-purple-100 rounded-lg border border-purple-300">
-                    <p className="font-bold text-purple-900 mb-1">🎉 ¡Tu panel cambiará automáticamente!</p>
-                    <p className="text-sm">
-                      Al completar esta inscripción, el sistema detectará que eres mayor de 18 años y tu panel cambiará del <strong>"Panel Familia"</strong> al <strong>"Panel Jugador"</strong>.
-                    </p>
-                    <p className="text-sm mt-2">
-                      <strong>¿Qué verás en el Panel Jugador?</strong>
-                    </p>
-                    <ul className="text-sm list-disc list-inside mt-1 space-y-0.5">
-                      <li>✅ Tus convocatorias de partidos</li>
-                      <li>✅ Tus pagos pendientes y realizados</li>
-                      <li>✅ Chat directo con tu equipo y entrenadores</li>
-                      <li>✅ Calendario de entrenamientos y partidos</li>
-                      <li>✅ Eventos del club y galería</li>
-                    </ul>
-                  </div>
-                )}
+                <div className="mt-3 p-3 bg-purple-100 rounded-lg border border-purple-300">
+                  <p className="font-bold text-purple-900 mb-1">🎉 ¡Tu panel cambiará automáticamente!</p>
+                  <p className="text-sm">
+                    Al completar esta inscripción, el sistema detectará que eres mayor de 18 años y tu panel cambiará del <strong>"Panel Familia"</strong> al <strong>"Panel Jugador"</strong>.
+                  </p>
+                  <p className="text-sm mt-2">
+                    <strong>¿Qué verás en el Panel Jugador?</strong>
+                  </p>
+                  <ul className="text-sm list-disc list-inside mt-1 space-y-0.5">
+                    <li>✅ Tus convocatorias de partidos</li>
+                    <li>✅ Tus pagos pendientes y realizados</li>
+                    <li>✅ Chat directo con tu equipo y entrenadores</li>
+                    <li>✅ Calendario de entrenamientos y partidos</li>
+                    <li>✅ Eventos del club y galería</li>
+                  </ul>
+                </div>
               </AlertDescription>
             </Alert>
           )}
