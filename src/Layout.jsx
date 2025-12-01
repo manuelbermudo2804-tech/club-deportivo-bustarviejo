@@ -524,45 +524,10 @@ export default function Layout({ children, currentPageName }) {
         return false;
       });
 
-      // Detectar si la app está instalada como PWA
+      // Detectar si la app está instalada - solo por localStorage (marcado manual)
                   useEffect(() => {
-                    const checkIfInstalled = () => {
-                      // Verificar múltiples indicadores de PWA instalada
-                      const displayModeStandalone = window.matchMedia('(display-mode: standalone)').matches;
-                      const navigatorStandalone = window.navigator.standalone === true;
-                      const displayModeFullscreen = window.matchMedia('(display-mode: fullscreen)').matches;
-                      const displayModeMinimalUI = window.matchMedia('(display-mode: minimal-ui)').matches;
-
-                      // También verificar si se accede desde la pantalla de inicio (referrer vacío en iOS)
-                      const isFromHomeScreen = document.referrer === '' && !window.opener;
-
-                      // Verificar localStorage por si el usuario ya marcó como instalada
-                      const userMarkedInstalled = localStorage.getItem('pwaInstalled') === 'true';
-
-                      const isStandalone = displayModeStandalone || 
-                                          navigatorStandalone || 
-                                          displayModeFullscreen ||
-                                          displayModeMinimalUI ||
-                                          userMarkedInstalled;
-
-                      setIsAppInstalled(isStandalone);
-
-                      if (isStandalone) {
-                                                    localStorage.removeItem('installPromptDismissed');
-                                                    localStorage.removeItem('lastInstallReminder');
-                                                    localStorage.setItem('pwaInstalled', 'true');
-                                                    setInstallDismissed(false);
-                                                    setIsAppInstalled(true);
-                                                  }
-                    };
-
-                    checkIfInstalled();
-
-                    // Escuchar cambios en el modo de display
-                    const mediaQuery = window.matchMedia('(display-mode: standalone)');
-                    mediaQuery.addEventListener('change', checkIfInstalled);
-
-                    return () => mediaQuery.removeEventListener('change', checkIfInstalled);
+                    const userMarkedInstalled = localStorage.getItem('pwaInstalled') === 'true';
+                    setIsAppInstalled(userMarkedInstalled);
                   }, []);
 
       // Recordatorios de instalación COMPLETAMENTE DESACTIVADOS
