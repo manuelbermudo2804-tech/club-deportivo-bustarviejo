@@ -104,43 +104,26 @@ Email: cdbustarviejo@gmail.com
     });
   };
 
-  const sendRenewalReminders = async () => {
-    if (!seasonConfig?.temporada) {
-      toast.error("No hay temporada activa configurada");
-      return;
+  // Función para formatear teléfono para WhatsApp
+  const formatPhoneForWhatsApp = (phone) => {
+    if (!phone) return null;
+    let cleaned = phone.replace(/\D/g, '');
+    if (cleaned.length === 9) {
+      cleaned = '34' + cleaned;
     }
+    return cleaned;
+  };
 
-    setSendingReminders(true);
-    
-    try {
-      // Obtener socios de temporadas anteriores que no han renovado
-      const currentSeasonMembers = members.filter(m => m.temporada === seasonConfig.temporada);
-      const currentEmails = currentSeasonMembers.map(m => m.email);
-      
-      const previousMembers = members.filter(m => 
-        m.temporada !== seasonConfig.temporada && 
-        m.estado_pago === "Pagado" &&
-        !currentEmails.includes(m.email)
-      );
+  // Handler para enviar recordatorios con opciones
+  const handleSendReminders = async (uniqueMembers, options) => {
+    const { sendEmail, sendWhatsApp } = options;
+    let emailsSent = 0;
+    let whatsappOpened = 0;
 
-      // Eliminar duplicados por email
-      const uniquePreviousMembers = [];
-      const seenEmails = new Set();
-      for (const member of previousMembers) {
-        if (!seenEmails.has(member.email)) {
-          seenEmails.add(member.email);
-          uniquePreviousMembers.push(member);
-        }
-      }
-
-      if (uniquePreviousMembers.length === 0) {
-        toast.info("No hay socios pendientes de renovación");
-        setSendingReminders(false);
-        return;
-      }
-
-      let sent = 0;
-      for (const member of uniquePreviousMembers) {
+    // Enviar emails
+    if (sendEmail) {
+      for (const member of uniqueMembers) {
+        if (!member.email) continue;
         try {
           await base44.integrations.Core.SendEmail({
             from_name: "CD Bustarviejo",
@@ -174,18 +157,52 @@ CD Bustarviejo
 Email: cdbustarviejo@gmail.com
             `
           });
-          sent++;
+          emailsSent++;
         } catch (error) {
-          console.error(`Error enviando a ${member.email}:`, error);
+          console.error(`Error enviando email a ${member.email}:`, error);
         }
       }
-
-      toast.success(`📧 Recordatorios enviados a ${sent} socios`);
-    } catch (error) {
-      toast.error("Error al enviar recordatorios");
-    } finally {
-      setSendingReminders(false);
     }
+
+    // Abrir WhatsApp para cada miembro con teléfono
+    if (sendWhatsApp) {
+      const membersWithPhone = uniqueMembers.filter(m => m.telefono && m.telefono.length >= 9);
+      
+      for (const member of membersWithPhone) {
+        const phone = formatPhoneForWhatsApp(member.telefono);
+        if (!phone) continue;
+
+        const message = encodeURIComponent(
+`¡Hola ${member.nombre_completo}! 👋
+
+Te escribimos desde el *CD Bustarviejo* 💚⚽
+
+Queremos agradecerte tu apoyo como socio en temporadas anteriores. ¡Tu contribución fue muy valiosa!
+
+🎉 *¡Te invitamos a renovar tu carnet de socio!*
+
+La nueva temporada *${seasonConfig?.temporada}* ya está en marcha y nos encantaría seguir contando contigo.
+
+Por solo *25€/año* seguirás apoyando a nuestros jóvenes deportistas.
+
+Para renovar, accede a la app del club o contáctanos.
+
+¡Gracias por formar parte de nuestra familia! 🙏
+
+_CD Bustarviejo_
+📧 cdbustarviejo@gmail.com`
+        );
+
+        // Abrir WhatsApp Web en una nueva pestaña
+        window.open(`https://wa.me/${phone}?text=${message}`, '_blank');
+        whatsappOpened++;
+
+        // Pequeña pausa entre aperturas para no saturar
+        await new Promise(resolve => setTimeout(resolve, 500));
+      }
+    }
+
+    return { emailsSent, whatsappOpened };
   };
 
   // Filtrar miembros
