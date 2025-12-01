@@ -552,12 +552,7 @@ export default function Layout({ children, currentPageName }) {
                                                     localStorage.removeItem('lastInstallReminder');
                                                     localStorage.setItem('pwaInstalled', 'true');
                                                     setInstallDismissed(false);
-
-                                                    // Guardar en el perfil del usuario que tiene la app instalada
-                                                    base44.auth.updateMe({
-                                                      app_instalada: true,
-                                                      fecha_instalacion_app: new Date().toISOString()
-                                                    }).catch(err => console.log('Error guardando estado instalación:', err));
+                                                    setIsAppInstalled(true);
                                                   }
                     };
 
@@ -610,7 +605,12 @@ export default function Layout({ children, currentPageName }) {
 
   useEffect(() => {
     const fetchUser = async () => {
-            console.log('🔐 [LAYOUT DEBUG] Iniciando fetchUser...');
+                      console.log('🔐 [LAYOUT DEBUG] Iniciando fetchUser...');
+
+                      // Detectar si está en modo PWA/standalone
+                      const isPWA = window.matchMedia('(display-mode: standalone)').matches || 
+                                   window.navigator.standalone === true ||
+                                   localStorage.getItem('pwaInstalled') === 'true';
             try {
               // Si es página pública, verificar si hay usuario autenticado sin forzar login
               if (isPublicPage) {
@@ -697,6 +697,23 @@ export default function Layout({ children, currentPageName }) {
         }
 
         setIsPlayer(playerDetected);
+
+              // Actualizar estado de app instalada y último acceso
+              const shouldUpdateAppStatus = isPWA && currentUser.app_instalada !== true;
+              const updateData = {
+                ultimo_acceso: new Date().toISOString()
+              };
+              
+              if (shouldUpdateAppStatus) {
+                updateData.app_instalada = true;
+                updateData.fecha_instalacion_app = new Date().toISOString();
+                setIsAppInstalled(true);
+              }
+              
+              // Actualizar en segundo plano
+              base44.auth.updateMe(updateData).catch(err => 
+                console.log('Error actualizando estado usuario:', err)
+              );
 
         console.log('🔍 ROLES DETECTADOS:', {
                         email: currentUser.email,
