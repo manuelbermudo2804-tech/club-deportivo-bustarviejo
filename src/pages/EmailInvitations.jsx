@@ -31,6 +31,7 @@ export default function EmailInvitations() {
   const [filtroFecha, setFiltroFecha] = useState("todos");
   const [filtroInteraccion, setFiltroInteraccion] = useState("todos");
   const [busquedaHistorial, setBusquedaHistorial] = useState("");
+  const [isAutoSending, setIsAutoSending] = useState(false);
 
   const queryClient = useQueryClient();
 
@@ -99,6 +100,87 @@ export default function EmailInvitations() {
     
     return true;
   });
+
+  // Enviar todas las solicitudes pendientes automáticamente
+  const autoSendAll = async () => {
+    if (pendingRequests.length === 0) {
+      toast.info("No hay solicitudes pendientes");
+      return;
+    }
+
+    setIsAutoSending(true);
+    let sent = 0;
+    let errors = 0;
+
+    for (const request of pendingRequests) {
+      const email = request.email_jugador;
+      if (!email) {
+        errors++;
+        continue;
+      }
+
+      try {
+        // Crear registro para tracking
+        const invitationRecord = await base44.entities.EmailInvitation.create({
+          email_destinatario: email,
+          nombre_destinatario: request.nombre_jugador,
+          asunto: asunto,
+          estado: "enviada",
+          enviado_por: user.email,
+          enviado_por_nombre: user.full_name,
+          solicitud_id: request.id,
+          mensaje_personalizado: `Invitación solicitada por ${request.solicitado_por_nombre}`,
+          abierta: false,
+          clicada: false
+        });
+
+        // Enviar email
+        await base44.integrations.Core.SendEmail({
+          from_name: "CD Bustarviejo",
+          to: email,
+          subject: asunto,
+          body: generateEmailBody(email, appUrl, invitationRecord.id)
+        });
+
+        // Marcar solicitud como enviada
+        await base44.entities.InvitationRequest.update(request.id, {
+          estado: "enviada",
+          fecha_envio: new Date().toISOString()
+        });
+
+        sent++;
+      } catch (error) {
+        console.error(`Error enviando a ${email}:`, error);
+        
+        await base44.entities.EmailInvitation.create({
+          email_destinatario: email,
+          nombre_destinatario: request.nombre_jugador,
+          asunto: asunto,
+          estado: "error",
+          error_mensaje: error.message || "Error desconocido",
+          enviado_por: user.email,
+          enviado_por_nombre: user.full_name,
+          solicitud_id: request.id,
+          abierta: false,
+          clicada: false
+        });
+
+        errors++;
+      }
+
+      await new Promise(resolve => setTimeout(resolve, 300));
+    }
+
+    setIsAutoSending(false);
+    queryClient.invalidateQueries({ queryKey: ['invitationRequests'] });
+    queryClient.invalidateQueries({ queryKey: ['emailHistory'] });
+
+    if (errors === 0) {
+      toast.success(`✅ ${sent} invitaciones enviadas automáticamente`);
+    } else {
+      toast.warning(`Enviados: ${sent}, Errores: ${errors}`);
+    }
+  };
 
   // Marcar solicitud como enviada
   const markAsSentMutation = useMutation({
@@ -404,9 +486,22 @@ ${invitationId ? `<!-- Pixel de tracking -->
       {pendingRequests.length > 0 && (
         <Card className="border-2 border-red-300 bg-red-50 shadow-lg">
           <CardHeader className="pb-3 bg-red-100">
-            <CardTitle className="text-lg flex items-center gap-2 text-red-900">
-              <UserPlus className="w-5 h-5" />
-              🚨 Solicitudes de Invitación Pendientes (Jugadores +18)
+            <CardTitle className="text-lg flex items-center justify-between text-red-900">
+              <div className="flex items-center gap-2">
+                <UserPlus className="w-5 h-5" />
+                🚨 Solicitudes de Invitación Pendientes (Jugadores +18)
+              </div>
+              <Button
+                onClick={autoSendAll}
+                disabled={isAutoSending}
+                className="bg-green-600 hover:bg-green-700"
+              >
+                {isAutoSending ? (
+                  <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Enviando...</>
+                ) : (
+                  <><Send className="w-4 h-4 mr-2" />Enviar todas automáticamente</>
+                )}
+              </Button>
             </CardTitle>
           </CardHeader>
           <CardContent className="pt-4">
