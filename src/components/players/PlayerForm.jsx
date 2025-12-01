@@ -164,19 +164,27 @@ export default function PlayerForm({ player, onSubmit, onCancel, isSubmitting, i
   const requiresDNI = playerAge !== null && playerAge >= 14;
 
   // Calcular descuento por hermanos
+  // REGLA: Jugadores mayores de 18 años NO tienen descuento de hermanos
   const siblingDiscount = useMemo(() => {
+    // Si es mayor de edad, NO aplica descuento
+    if (isMayorDeEdad) return { hasDiscount: false, amount: 0, reason: "mayor_edad" };
+    
     if (!currentUser || !allPlayers.length) return { hasDiscount: false, amount: 0 };
     
-    // Buscar otros jugadores de la misma familia (mismo email padre)
-    const familyPlayers = allPlayers.filter(p => 
-      (p.email_padre === currentUser.email || p.email_padre === currentPlayer.email_padre) &&
-      p.activo &&
-      p.id !== player?.id
-    );
+    // Buscar otros jugadores de la misma familia (mismo email padre) que sean MENORES de 18
+    const familyPlayers = allPlayers.filter(p => {
+      if (p.id === player?.id) return false;
+      if (p.email_padre !== currentUser.email && p.email_padre !== currentPlayer.email_padre) return false;
+      if (!p.activo) return false;
+      // Excluir mayores de 18 del cálculo de hermanos
+      const age = calculateAge(p.fecha_nacimiento);
+      if (age !== null && age >= 18) return false;
+      return true;
+    });
 
     if (familyPlayers.length === 0) return { hasDiscount: false, amount: 0 };
 
-    // Si hay hermanos, este jugador puede tener descuento si NO es el mayor
+    // Si hay hermanos menores, este jugador puede tener descuento si NO es el mayor
     const allBirthDates = [...familyPlayers.map(p => p.fecha_nacimiento), currentPlayer.fecha_nacimiento].filter(Boolean);
     
     if (allBirthDates.length <= 1) return { hasDiscount: false, amount: 0 };
@@ -190,7 +198,7 @@ export default function PlayerForm({ player, onSubmit, onCancel, isSubmitting, i
     }
 
     return { hasDiscount: false, amount: 0 };
-  }, [currentUser, allPlayers, currentPlayer.fecha_nacimiento, currentPlayer.email_padre, player?.id]);
+  }, [currentUser, allPlayers, currentPlayer.fecha_nacimiento, currentPlayer.email_padre, player?.id, isMayorDeEdad]);
 
   // Actualizar estado de mayor de edad y descuento cuando cambia
   useEffect(() => {
