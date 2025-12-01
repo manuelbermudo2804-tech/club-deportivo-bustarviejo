@@ -249,6 +249,15 @@ _CD Bustarviejo_
 
   return (
     <div className="p-4 lg:p-6 space-y-6">
+      {/* Diálogo de recordatorios */}
+      <RenewalReminderDialog
+        open={showReminderDialog}
+        onClose={() => setShowReminderDialog(false)}
+        members={members}
+        seasonConfig={seasonConfig}
+        onSendReminders={handleSendReminders}
+      />
+
       {/* Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
