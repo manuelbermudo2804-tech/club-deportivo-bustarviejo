@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { Mail, Send, Plus, X, Loader2, CheckCircle2, AlertCircle, Users, Trash2 } from "lucide-react";
+import { Mail, Send, Plus, X, Loader2, CheckCircle2, AlertCircle, Users, Trash2, Clock, UserPlus } from "lucide-react";
 import { toast } from "sonner";
 
 const CLUB_LOGO_URL = "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6911b8e453ca3ac01fb134d6/e3f0a8e26_logo_cd_bustarviejo_mediano.jpg";
@@ -23,6 +24,8 @@ export default function EmailInvitations() {
   const [sentCount, setSentCount] = useState(0);
   const [errorCount, setErrorCount] = useState(0);
 
+  const queryClient = useQueryClient();
+
   useEffect(() => {
     const fetchUser = async () => {
       const currentUser = await base44.auth.me();
@@ -30,6 +33,39 @@ export default function EmailInvitations() {
     };
     fetchUser();
   }, []);
+
+  // Solicitudes de invitación pendientes (jugadores +18)
+  const { data: invitationRequests = [] } = useQuery({
+    queryKey: ['invitationRequests'],
+    queryFn: () => base44.entities.InvitationRequest.list('-created_date'),
+    enabled: !!user && user.role === "admin",
+  });
+
+  const pendingRequests = invitationRequests.filter(r => r.estado === "pendiente");
+
+  // Marcar solicitud como enviada
+  const markAsSentMutation = useMutation({
+    mutationFn: async (requestId) => {
+      await base44.entities.InvitationRequest.update(requestId, {
+        estado: "enviada",
+        fecha_envio: new Date().toISOString()
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['invitationRequests'] });
+      toast.success("Solicitud marcada como enviada");
+    }
+  });
+
+  // Añadir email de solicitud a la lista
+  const addRequestEmail = (request) => {
+    if (!emails.includes(request.email_jugador)) {
+      setEmails([...emails, request.email_jugador]);
+      toast.success(`Email de ${request.nombre_jugador} añadido a la lista`);
+    } else {
+      toast.info("Este email ya está en la lista");
+    }
+  };
 
   const addEmail = () => {
     const email = currentEmail.trim().toLowerCase();
@@ -222,13 +258,87 @@ ${mensajePersonalizado ? `
   return (
     <div className="p-4 lg:p-6 space-y-6">
       {/* Header */}
-      <div>
-        <h1 className="text-2xl lg:text-3xl font-bold text-slate-900 flex items-center gap-2">
-          <Mail className="w-7 h-7 text-orange-600" />
-          Invitaciones por Email
-        </h1>
-        <p className="text-slate-600 mt-1">Envía invitaciones personalizadas a nuevos usuarios</p>
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div>
+          <h1 className="text-2xl lg:text-3xl font-bold text-slate-900 flex items-center gap-2">
+            <Mail className="w-7 h-7 text-orange-600" />
+            Invitaciones por Email
+          </h1>
+          <p className="text-slate-600 mt-1">Envía invitaciones personalizadas a nuevos usuarios</p>
+        </div>
+        {pendingRequests.length > 0 && (
+          <Badge className="bg-red-500 text-white text-base px-4 py-2 animate-pulse">
+            <Clock className="w-4 h-4 mr-2" />
+            {pendingRequests.length} solicitud{pendingRequests.length !== 1 ? 'es' : ''} pendiente{pendingRequests.length !== 1 ? 's' : ''}
+          </Badge>
+        )}
       </div>
+
+      {/* Solicitudes pendientes de jugadores +18 */}
+      {pendingRequests.length > 0 && (
+        <Card className="border-2 border-red-300 bg-red-50 shadow-lg">
+          <CardHeader className="pb-3 bg-red-100">
+            <CardTitle className="text-lg flex items-center gap-2 text-red-900">
+              <UserPlus className="w-5 h-5" />
+              🚨 Solicitudes de Invitación Pendientes (Jugadores +18)
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="pt-4">
+            <p className="text-sm text-red-800 mb-4">
+              Estos jugadores mayores de 18 años necesitan una invitación para poder registrarse. 
+              Sus padres/familiares han solicitado que se les envíe el acceso.
+            </p>
+            <div className="space-y-3">
+              {pendingRequests.map(request => (
+                <div key={request.id} className="bg-white rounded-xl p-4 border border-red-200 shadow-sm">
+                  <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2">
+                        <span className="font-bold text-slate-900">{request.nombre_jugador}</span>
+                        {request.categoria_deseada && (
+                          <Badge variant="outline" className="text-xs">{request.categoria_deseada}</Badge>
+                        )}
+                      </div>
+                      <p className="text-sm text-slate-600">
+                        📧 <strong>{request.email_jugador}</strong>
+                        {request.telefono_jugador && <span className="ml-3">📱 {request.telefono_jugador}</span>}
+                      </p>
+                      <p className="text-xs text-slate-500">
+                        Solicitado por: {request.solicitado_por_nombre} ({request.solicitado_por_email})
+                      </p>
+                      <p className="text-xs text-slate-400">
+                        {new Date(request.created_date).toLocaleDateString('es-ES', { 
+                          day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' 
+                        })}
+                      </p>
+                    </div>
+                    <div className="flex gap-2">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => addRequestEmail(request)}
+                        className="border-orange-300 text-orange-700 hover:bg-orange-50"
+                      >
+                        <Plus className="w-4 h-4 mr-1" />
+                        Añadir a lista
+                      </Button>
+                      <Button
+                        size="sm"
+                        onClick={() => markAsSentMutation.mutate(request.id)}
+                        disabled={markAsSentMutation.isPending}
+                        className="bg-green-600 hover:bg-green-700"
+                      >
+                        <CheckCircle2 className="w-4 h-4 mr-1" />
+                        Marcar enviada
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       <div className="grid lg:grid-cols-2 gap-6">
         {/* Formulario */}
