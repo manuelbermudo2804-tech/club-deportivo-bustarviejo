@@ -475,8 +475,8 @@ export default function PlayerForm({ player, onSubmit, onCancel, isSubmitting, i
             <AdultPlayerInvitationRequest 
               playerAge={playerAge}
               playerData={currentPlayer}
-              parentEmail={user?.email}
-              parentName={user?.full_name}
+              parentEmail={currentUser?.email}
+              parentName={currentUser?.full_name}
               onCancel={onCancel}
             />
           )}
