@@ -7,7 +7,9 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { Mail, Send, Plus, X, Loader2, CheckCircle2, AlertCircle, Users, Trash2, Clock, UserPlus } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Mail, Send, Plus, X, Loader2, CheckCircle2, AlertCircle, Users, Trash2, Clock, UserPlus, History, Filter, Calendar, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 
 const CLUB_LOGO_URL = "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6911b8e453ca3ac01fb134d6/e3f0a8e26_logo_cd_bustarviejo_mediano.jpg";
@@ -23,6 +25,10 @@ export default function EmailInvitations() {
   const [isSending, setIsSending] = useState(false);
   const [sentCount, setSentCount] = useState(0);
   const [errorCount, setErrorCount] = useState(0);
+  const [activeTab, setActiveTab] = useState("enviar");
+  const [filtroEstado, setFiltroEstado] = useState("todos");
+  const [filtroFecha, setFiltroFecha] = useState("todos");
+  const [busquedaHistorial, setBusquedaHistorial] = useState("");
 
   const queryClient = useQueryClient();
 
@@ -42,6 +48,47 @@ export default function EmailInvitations() {
   });
 
   const pendingRequests = invitationRequests.filter(r => r.estado === "pendiente");
+
+  // Historial de invitaciones enviadas
+  const { data: emailHistory = [], isLoading: loadingHistory } = useQuery({
+    queryKey: ['emailHistory'],
+    queryFn: () => base44.entities.EmailInvitation.list('-created_date'),
+    enabled: !!user && user.role === "admin",
+  });
+
+  // Filtrar historial
+  const filteredHistory = emailHistory.filter(inv => {
+    // Filtro por estado
+    if (filtroEstado !== "todos" && inv.estado !== filtroEstado) return false;
+    
+    // Filtro por fecha
+    if (filtroFecha !== "todos") {
+      const invDate = new Date(inv.created_date);
+      const now = new Date();
+      if (filtroFecha === "hoy") {
+        const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        if (invDate < today) return false;
+      } else if (filtroFecha === "semana") {
+        const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+        if (invDate < weekAgo) return false;
+      } else if (filtroFecha === "mes") {
+        const monthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+        if (invDate < monthAgo) return false;
+      }
+    }
+    
+    // Filtro por búsqueda
+    if (busquedaHistorial) {
+      const search = busquedaHistorial.toLowerCase();
+      return (
+        inv.email_destinatario?.toLowerCase().includes(search) ||
+        inv.nombre_destinatario?.toLowerCase().includes(search) ||
+        inv.asunto?.toLowerCase().includes(search)
+      );
+    }
+    
+    return true;
+  });
 
   // Marcar solicitud como enviada
   const markAsSentMutation = useMutation({
@@ -238,10 +285,32 @@ ${mensajePersonalizado ? `
           subject: asunto,
           body: generateEmailBody(email, appUrl)
         });
+        
+        // Guardar en historial
+        await base44.entities.EmailInvitation.create({
+          email_destinatario: email,
+          asunto: asunto,
+          estado: "enviada",
+          enviado_por: user.email,
+          enviado_por_nombre: user.full_name,
+          mensaje_personalizado: mensajePersonalizado || null
+        });
+        
         sent++;
         setSentCount(sent);
       } catch (error) {
         console.error(`Error enviando a ${email}:`, error);
+        
+        // Guardar error en historial
+        await base44.entities.EmailInvitation.create({
+          email_destinatario: email,
+          asunto: asunto,
+          estado: "error",
+          error_mensaje: error.message || "Error desconocido",
+          enviado_por: user.email,
+          enviado_por_nombre: user.full_name
+        });
+        
         errors++;
         setErrorCount(errors);
       }
@@ -255,6 +324,9 @@ ${mensajePersonalizado ? `
     } else {
       toast.warning(`Enviados: ${sent}, Errores: ${errors}`);
     }
+    
+    // Refrescar historial
+    queryClient.invalidateQueries({ queryKey: ['emailHistory'] });
   };
 
   if (user?.role !== "admin") {
@@ -274,15 +346,36 @@ ${mensajePersonalizado ? `
             <Mail className="w-7 h-7 text-orange-600" />
             Invitaciones por Email
           </h1>
-          <p className="text-slate-600 mt-1">Envía invitaciones personalizadas a nuevos usuarios</p>
+          <p className="text-slate-600 mt-1">Envía invitaciones y consulta el historial</p>
         </div>
-        {pendingRequests.length > 0 && (
-          <Badge className="bg-red-500 text-white text-base px-4 py-2 animate-pulse">
-            <Clock className="w-4 h-4 mr-2" />
-            {pendingRequests.length} solicitud{pendingRequests.length !== 1 ? 'es' : ''} pendiente{pendingRequests.length !== 1 ? 's' : ''}
+        <div className="flex items-center gap-2">
+          {pendingRequests.length > 0 && (
+            <Badge className="bg-red-500 text-white text-base px-4 py-2 animate-pulse">
+              <Clock className="w-4 h-4 mr-2" />
+              {pendingRequests.length} solicitud{pendingRequests.length !== 1 ? 'es' : ''} pendiente{pendingRequests.length !== 1 ? 's' : ''}
+            </Badge>
+          )}
+          <Badge className="bg-blue-100 text-blue-800 text-sm px-3 py-1">
+            <History className="w-3 h-3 mr-1" />
+            {emailHistory.length} enviadas
           </Badge>
-        )}
+        </div>
       </div>
+
+      {/* Tabs */}
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <TabsList className="grid w-full grid-cols-2 max-w-md">
+          <TabsTrigger value="enviar" className="flex items-center gap-2">
+            <Send className="w-4 h-4" />
+            Enviar Invitaciones
+          </TabsTrigger>
+          <TabsTrigger value="historial" className="flex items-center gap-2">
+            <History className="w-4 h-4" />
+            Historial ({emailHistory.length})
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="enviar" className="mt-6">
 
       {/* Solicitudes pendientes de jugadores +18 */}
       {pendingRequests.length > 0 && (
@@ -564,6 +657,187 @@ ${mensajePersonalizado ? `
           </ul>
         </CardContent>
       </Card>
+        </TabsContent>
+
+        {/* Tab Historial */}
+        <TabsContent value="historial" className="mt-6 space-y-4">
+          {/* Filtros */}
+          <Card className="border-none shadow-md">
+            <CardContent className="p-4">
+              <div className="flex flex-col md:flex-row gap-4 items-start md:items-center">
+                <div className="flex items-center gap-2">
+                  <Filter className="w-4 h-4 text-slate-500" />
+                  <span className="text-sm font-medium text-slate-700">Filtros:</span>
+                </div>
+                
+                <div className="flex flex-wrap gap-3 flex-1">
+                  <Input
+                    placeholder="🔍 Buscar email, nombre..."
+                    value={busquedaHistorial}
+                    onChange={(e) => setBusquedaHistorial(e.target.value)}
+                    className="w-full md:w-64"
+                  />
+                  
+                  <Select value={filtroEstado} onValueChange={setFiltroEstado}>
+                    <SelectTrigger className="w-40">
+                      <SelectValue placeholder="Estado" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="todos">Todos los estados</SelectItem>
+                      <SelectItem value="enviada">✅ Enviadas</SelectItem>
+                      <SelectItem value="error">❌ Con error</SelectItem>
+                      <SelectItem value="rebotada">↩️ Rebotadas</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  
+                  <Select value={filtroFecha} onValueChange={setFiltroFecha}>
+                    <SelectTrigger className="w-40">
+                      <SelectValue placeholder="Fecha" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="todos">Todas las fechas</SelectItem>
+                      <SelectItem value="hoy">Hoy</SelectItem>
+                      <SelectItem value="semana">Última semana</SelectItem>
+                      <SelectItem value="mes">Último mes</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => queryClient.invalidateQueries({ queryKey: ['emailHistory'] })}
+                >
+                  <RefreshCw className="w-4 h-4" />
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Estadísticas rápidas */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <Card className="border-none shadow-sm bg-green-50">
+              <CardContent className="p-4 text-center">
+                <p className="text-2xl font-bold text-green-700">
+                  {emailHistory.filter(e => e.estado === "enviada").length}
+                </p>
+                <p className="text-xs text-green-600">Enviadas ✅</p>
+              </CardContent>
+            </Card>
+            <Card className="border-none shadow-sm bg-red-50">
+              <CardContent className="p-4 text-center">
+                <p className="text-2xl font-bold text-red-700">
+                  {emailHistory.filter(e => e.estado === "error").length}
+                </p>
+                <p className="text-xs text-red-600">Con error ❌</p>
+              </CardContent>
+            </Card>
+            <Card className="border-none shadow-sm bg-orange-50">
+              <CardContent className="p-4 text-center">
+                <p className="text-2xl font-bold text-orange-700">
+                  {emailHistory.filter(e => e.estado === "rebotada").length}
+                </p>
+                <p className="text-xs text-orange-600">Rebotadas ↩️</p>
+              </CardContent>
+            </Card>
+            <Card className="border-none shadow-sm bg-blue-50">
+              <CardContent className="p-4 text-center">
+                <p className="text-2xl font-bold text-blue-700">
+                  {emailHistory.length}
+                </p>
+                <p className="text-xs text-blue-600">Total 📧</p>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Lista de historial */}
+          {loadingHistory ? (
+            <div className="flex justify-center py-12">
+              <Loader2 className="w-8 h-8 animate-spin text-orange-600" />
+            </div>
+          ) : filteredHistory.length === 0 ? (
+            <Card className="border-none shadow-md">
+              <CardContent className="py-12 text-center">
+                <Mail className="w-12 h-12 text-slate-300 mx-auto mb-3" />
+                <p className="text-slate-500">
+                  {emailHistory.length === 0 
+                    ? "No hay invitaciones enviadas todavía" 
+                    : "No hay resultados con los filtros seleccionados"}
+                </p>
+              </CardContent>
+            </Card>
+          ) : (
+            <Card className="border-none shadow-md">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-base flex items-center justify-between">
+                  <span>Historial de Invitaciones</span>
+                  <Badge variant="outline">{filteredHistory.length} resultados</Badge>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-0">
+                <div className="divide-y">
+                  {filteredHistory.map((inv) => (
+                    <div key={inv.id} className="p-4 hover:bg-slate-50 transition-colors">
+                      <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-1">
+                            <span className="font-medium text-slate-900 truncate">
+                              {inv.email_destinatario}
+                            </span>
+                            {inv.estado === "enviada" && (
+                              <Badge className="bg-green-100 text-green-800 text-xs">✅ Enviada</Badge>
+                            )}
+                            {inv.estado === "error" && (
+                              <Badge className="bg-red-100 text-red-800 text-xs">❌ Error</Badge>
+                            )}
+                            {inv.estado === "rebotada" && (
+                              <Badge className="bg-orange-100 text-orange-800 text-xs">↩️ Rebotada</Badge>
+                            )}
+                          </div>
+                          <p className="text-sm text-slate-600 truncate">
+                            📧 {inv.asunto}
+                          </p>
+                          {inv.error_mensaje && (
+                            <p className="text-xs text-red-600 mt-1">
+                              ⚠️ {inv.error_mensaje}
+                            </p>
+                          )}
+                          {inv.mensaje_personalizado && (
+                            <p className="text-xs text-amber-600 mt-1 truncate">
+                              💬 "{inv.mensaje_personalizado}"
+                            </p>
+                          )}
+                        </div>
+                        <div className="text-right text-sm text-slate-500 flex-shrink-0">
+                          <div className="flex items-center gap-1 justify-end">
+                            <Calendar className="w-3 h-3" />
+                            {new Date(inv.created_date).toLocaleDateString('es-ES', {
+                              day: 'numeric',
+                              month: 'short',
+                              year: 'numeric'
+                            })}
+                          </div>
+                          <div className="text-xs mt-1">
+                            {new Date(inv.created_date).toLocaleTimeString('es-ES', {
+                              hour: '2-digit',
+                              minute: '2-digit'
+                            })}
+                          </div>
+                          {inv.enviado_por_nombre && (
+                            <div className="text-xs text-slate-400 mt-1">
+                              por {inv.enviado_por_nombre}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
