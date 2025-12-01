@@ -371,6 +371,7 @@ export default function UserManagement() {
       }
       if (roleFilter === "with_app" && user.app_instalada !== true) return false;
       if (roleFilter === "without_app" && (user.app_instalada === true || user.role === "admin")) return false;
+      if (roleFilter === "staff" && !(user.role === "admin" || user.es_entrenador || user.es_coordinador || user.es_tesorero)) return false;
     }
 
     const matchesSearch =
@@ -396,6 +397,7 @@ export default function UserManagement() {
   const tesoreros = activeUsersWithoutDeleted.filter(u => u.es_tesorero === true);
   const usersWithApp = activeUsersWithoutDeleted.filter(u => u.app_instalada === true);
   const usersWithoutApp = activeUsersWithoutDeleted.filter(u => u.app_instalada !== true && u.role !== "admin");
+  const staffUsers = activeUsersWithoutDeleted.filter(u => u.role === "admin" || u.es_entrenador || u.es_coordinador || u.es_tesorero);
 
   // Enviar recordatorio de instalación
   const sendInstallReminder = async (user) => {
@@ -710,6 +712,14 @@ export default function UserManagement() {
                 className={roleFilter === "parent" ? "bg-slate-600" : ""}
               >
                 👨‍👩‍👧 Padres ({activeUsers.length})
+              </Button>
+              <Button
+                size="sm"
+                variant={roleFilter === "staff" ? "default" : "outline"}
+                onClick={() => setRoleFilter("staff")}
+                className={roleFilter === "staff" ? "bg-indigo-600" : "border-indigo-300 text-indigo-700"}
+              >
+                👔 Staff ({staffUsers.length})
               </Button>
               <Button
                 size="sm"
