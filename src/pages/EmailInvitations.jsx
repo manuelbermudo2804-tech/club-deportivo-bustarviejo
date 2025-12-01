@@ -59,15 +59,22 @@ export default function EmailInvitations() {
 
   // Añadir email de solicitud a la lista
   const addRequestEmail = (request) => {
-    setEmails(prevEmails => {
-      if (!prevEmails.includes(request.email_jugador)) {
-        toast.success(`Email de ${request.nombre_jugador} añadido a la lista`);
-        return [...prevEmails, request.email_jugador];
-      } else {
-        toast.info("Este email ya está en la lista");
-        return prevEmails;
-      }
-    });
+    console.log("Añadiendo email:", request);
+    const emailToAdd = request.email_jugador;
+    
+    if (!emailToAdd) {
+      toast.error("Esta solicitud no tiene email");
+      return;
+    }
+    
+    if (emails.includes(emailToAdd)) {
+      toast.info("Este email ya está en la lista");
+      return;
+    }
+    
+    const newEmails = [...emails, emailToAdd];
+    setEmails(newEmails);
+    toast.success(`✅ Email de ${request.nombre_jugador} añadido a la lista`);
   };
 
   const addEmail = () => {
