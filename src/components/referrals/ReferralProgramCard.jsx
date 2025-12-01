@@ -82,6 +82,8 @@ Por solo 25€/temporada ayudas a nuestros jóvenes deportistas y formas parte d
 
 👉 Regístrate aquí: ${referralLink}
 
+🔒 Tus datos están protegidos según el RGPD. Solo se usarán para la gestión de tu membresía.
+
 ¡Gracias por tu apoyo! 💪🎉`;
 
         const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(whatsappMessage)}`;
