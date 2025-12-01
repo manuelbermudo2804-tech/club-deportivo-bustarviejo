@@ -1078,12 +1078,27 @@ export default function PlayerForm({ player, onSubmit, onCancel, isSubmitting, i
               <div className="space-y-4 border-2 border-purple-200 rounded-lg p-6 bg-purple-50">
                 <div className="flex items-center gap-2">
                   <Users className="w-6 h-6 text-purple-600" />
-                  <h3 className="text-lg font-bold text-purple-900">Datos de Contacto del Jugador</h3>
+                  <h3 className="text-lg font-bold text-purple-900">
+                    {isParent ? "Datos de Contacto del Jugador (+18)" : "Datos de Contacto del Jugador"}
+                  </h3>
                 </div>
+
+                {isParent && (
+                  <Alert className="bg-yellow-50 border-yellow-300">
+                    <AlertCircle className="h-4 w-4 text-yellow-600" />
+                    <AlertDescription className="text-yellow-800">
+                      <strong>⚠️ MUY IMPORTANTE:</strong> El correo que pongas aquí será el que el jugador use para <strong>entrar a la app</strong>. 
+                      <br/>
+                      <span className="font-bold">Pon el email del JUGADOR, no el tuyo.</span>
+                    </AlertDescription>
+                  </Alert>
+                )}
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2">
-                    <Label htmlFor="email_padre">Correo Electrónico *</Label>
+                    <Label htmlFor="email_padre" className="font-bold text-purple-900">
+                      {isParent ? "📧 Email del JUGADOR (para su acceso a la app) *" : "Correo Electrónico *"}
+                    </Label>
                     <Input 
                       id="email_padre" 
                       name="email"
@@ -1097,11 +1112,17 @@ export default function PlayerForm({ player, onSubmit, onCancel, isSubmitting, i
                         }
                       }}
                       required 
-                      disabled={isParent} 
+                      placeholder={isParent ? "email.del.jugador@ejemplo.com" : ""}
+                      className={isParent ? "border-2 border-purple-400 bg-white" : ""}
                     />
+                    {isParent && (
+                      <p className="text-xs text-purple-700">
+                        👆 Este email es con el que el jugador iniciará sesión en la app
+                      </p>
+                    )}
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="telefono">Teléfono *</Label>
+                    <Label htmlFor="telefono">Teléfono del Jugador *</Label>
                     <Input 
                       id="telefono" 
                       name="tel"
@@ -1115,6 +1136,7 @@ export default function PlayerForm({ player, onSubmit, onCancel, isSubmitting, i
                         }
                       }}
                       required 
+                      placeholder="600123456"
                     />
                   </div>
                 </div>
