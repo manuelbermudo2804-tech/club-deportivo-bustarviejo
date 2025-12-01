@@ -259,15 +259,10 @@ _CD Bustarviejo_
           <p className="text-slate-600 mt-1">Administra los socios del club</p>
         </div>
         <Button
-          onClick={sendRenewalReminders}
-          disabled={sendingReminders}
+          onClick={() => setShowReminderDialog(true)}
           className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800"
         >
-          {sendingReminders ? (
-            <><Loader2 className="w-4 h-4 animate-spin mr-2" /> Enviando...</>
-          ) : (
-            <><Mail className="w-4 h-4 mr-2" /> Enviar Recordatorios de Renovación</>
-          )}
+          <Mail className="w-4 h-4 mr-2" /> Enviar Recordatorios de Renovación
         </Button>
       </div>
 
