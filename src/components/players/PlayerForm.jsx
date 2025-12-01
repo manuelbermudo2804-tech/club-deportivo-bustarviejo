@@ -473,23 +473,47 @@ export default function PlayerForm({ player, onSubmit, onCancel, isSubmitting, i
             <Alert className="mb-6 bg-purple-50 border-purple-200">
               <AlertCircle className="h-4 w-4 text-purple-600" />
               <AlertDescription className="text-purple-800">
-                <strong>👤 Jugador mayor de edad:</strong> Al ser mayor de 18 años, te representas a ti mismo y la cuota de socio está incluida en tu inscripción.
-                <div className="mt-3 p-3 bg-purple-100 rounded-lg border border-purple-300">
-                  <p className="font-bold text-purple-900 mb-1">🎉 ¡Tu panel cambiará automáticamente!</p>
-                  <p className="text-sm">
-                    Al completar esta inscripción, el sistema detectará que eres mayor de 18 años y tu panel cambiará del <strong>"Panel Familia"</strong> al <strong>"Panel Jugador"</strong>.
+                <strong>👤 Jugador mayor de edad:</strong> Al ser mayor de 18 años, {isParent ? "el jugador se representa a sí mismo" : "te representas a ti mismo"} y la cuota de socio está incluida en la inscripción.
+
+                {/* Aviso sobre NO descuento para +18 */}
+                <div className="mt-3 p-3 bg-amber-100 rounded-lg border border-amber-300">
+                  <p className="font-bold text-amber-900 mb-1">⚠️ Sin descuento de hermanos</p>
+                  <p className="text-sm text-amber-800">
+                    Los jugadores mayores de 18 años <strong>no tienen descuento de hermanos</strong>, independientemente de si tienen hermanos menores inscritos.
                   </p>
-                  <p className="text-sm mt-2">
-                    <strong>¿Qué verás en el Panel Jugador?</strong>
-                  </p>
-                  <ul className="text-sm list-disc list-inside mt-1 space-y-0.5">
-                    <li>✅ Tus convocatorias de partidos</li>
-                    <li>✅ Tus pagos pendientes y realizados</li>
-                    <li>✅ Chat directo con tu equipo y entrenadores</li>
-                    <li>✅ Calendario de entrenamientos y partidos</li>
-                    <li>✅ Eventos del club y galería</li>
-                  </ul>
                 </div>
+
+                {isParent ? (
+                  <div className="mt-3 p-3 bg-purple-100 rounded-lg border border-purple-300">
+                    <p className="font-bold text-purple-900 mb-1">📧 ¡IMPORTANTE! Email del jugador</p>
+                    <p className="text-sm">
+                      El <strong>correo electrónico</strong> que pongas en el campo de abajo será el que el jugador use para <strong>acceder a la app con su propia cuenta</strong>.
+                    </p>
+                    <p className="text-sm mt-2 font-semibold text-purple-900">
+                      👉 Asegúrate de poner el email del JUGADOR, no el tuyo.
+                    </p>
+                    <p className="text-xs mt-2 text-purple-700">
+                      El jugador recibirá acceso al "Panel Jugador" donde podrá ver sus convocatorias, pagos, chat del equipo, etc.
+                    </p>
+                  </div>
+                ) : (
+                  <div className="mt-3 p-3 bg-purple-100 rounded-lg border border-purple-300">
+                    <p className="font-bold text-purple-900 mb-1">🎉 ¡Tu panel cambiará automáticamente!</p>
+                    <p className="text-sm">
+                      Al completar esta inscripción, el sistema detectará que eres mayor de 18 años y tu panel cambiará del <strong>"Panel Familia"</strong> al <strong>"Panel Jugador"</strong>.
+                    </p>
+                    <p className="text-sm mt-2">
+                      <strong>¿Qué verás en el Panel Jugador?</strong>
+                    </p>
+                    <ul className="text-sm list-disc list-inside mt-1 space-y-0.5">
+                      <li>✅ Tus convocatorias de partidos</li>
+                      <li>✅ Tus pagos pendientes y realizados</li>
+                      <li>✅ Chat directo con tu equipo y entrenadores</li>
+                      <li>✅ Calendario de entrenamientos y partidos</li>
+                      <li>✅ Eventos del club y galería</li>
+                    </ul>
+                  </div>
+                )}
               </AlertDescription>
             </Alert>
           )}
