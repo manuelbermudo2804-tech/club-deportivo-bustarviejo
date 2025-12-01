@@ -17,7 +17,7 @@ import {
   CheckCircle2, Clock, Crown, Star, Sparkles, Download,
   Eye, Award, PartyPopper, Dices, Play, History, Package,
   Plus, HelpCircle, Info, UserPlus, AlertCircle, UserCheck,
-  MessageCircle, Send, RefreshCw, ExternalLink, Copy, Check
+  MessageCircle, Send, RefreshCw, ExternalLink, Copy, Check, Mail
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -52,6 +52,10 @@ const generateRenewalCode = (memberId) => {
 
 // Componente para la pestaña de Socios Externos
 function ExternalMembersTab({ clubMembers, players, seasonConfig, searchTerm, setSearchTerm, filter, setFilter, copiedId, setCopiedId, queryClient }) {
+  const [sendingEmail, setSendingEmail] = useState(null);
+  const [selectedMembers, setSelectedMembers] = useState([]);
+  const [sendingBulk, setSendingBulk] = useState(false);
+
   // Obtener emails de padres con jugadores activos
   const parentEmails = new Set();
   players.forEach(p => {
@@ -83,36 +87,6 @@ function ExternalMembersTab({ clubMembers, players, seasonConfig, searchTerm, se
   const pendientes = externalMembers.filter(m => m.estado_pago === "Pendiente").length;
   const enRevision = externalMembers.filter(m => m.estado_pago === "En revisión").length;
 
-  // Generar mensaje de WhatsApp para renovación
-  const generateWhatsAppRenewalLink = (member) => {
-    const baseUrl = window.location.origin;
-    const renewalCode = generateRenewalCode(member.id);
-    const renewalLink = `${baseUrl}/ClubMembership?renew=${renewalCode}`;
-    
-    const message = `¡Hola ${member.nombre_completo}! 👋
-
-Desde el CD Bustarviejo queremos darte las GRACIAS de corazón 💚
-
-Gracias a socios como tú, más de 200 niños y niñas de nuestro pueblo pueden disfrutar del fútbol y baloncesto cada semana. Tu apoyo no es solo una cuota, es un voto de confianza en el futuro de nuestra comunidad.
-
-🏆 Desde 1980, más de 40 años formando deportistas y personas en la sierra norte de Madrid.
-
-Es hora de renovar tu membresía para la temporada ${getNextSeason()}:
-
-👉 ${renewalLink}
-
-(Tus datos ya están guardados, ¡solo confirma y listo!)
-
-Tu número de socio: ${member.numero_socio || 'Se asignará al renovar'}
-
-¡GRACIAS por ser parte de nuestra familia! ⚽🏀💪
-
-Con cariño,
-CD Bustarviejo 🧡💚`;
-
-    return `https://wa.me/${member.telefono?.replace(/\D/g, '')}?text=${encodeURIComponent(message)}`;
-  };
-
   const getNextSeason = () => {
     const now = new Date();
     const year = now.getFullYear();
@@ -123,6 +97,149 @@ CD Bustarviejo 🧡💚`;
     return `${year}/${year + 1}`;
   };
 
+  // Generar mensaje de WhatsApp para renovación
+  const generateWhatsAppRenewalLink = (member) => {
+    const baseUrl = window.location.origin;
+    const renewalCode = generateRenewalCode(member.id);
+    const renewalLink = `${baseUrl}/ClubMembership?renew=${renewalCode}`;
+    
+    const message = `¡Hola ${member.nombre_completo}! 👋
+
+Desde el CD Bustarviejo queremos darte las GRACIAS de corazón 💚
+
+Gracias a socios como tú, más de 200 niños y niñas pueden disfrutar del deporte cada semana.
+
+🎉 ¡Te invitamos a renovar tu carnet de socio para la temporada ${getNextSeason()}!
+
+👉 ${renewalLink}
+
+(Tus datos ya están guardados, ¡solo confirma!)
+
+¡GRACIAS por ser parte de nuestra familia! ⚽🏀💪
+
+CD Bustarviejo 🧡💚`;
+
+    return `https://wa.me/${member.telefono?.replace(/\D/g, '')}?text=${encodeURIComponent(message)}`;
+  };
+
+  // Enviar email individual
+  const sendEmailToMember = async (member) => {
+    if (!member.email) {
+      toast.error("Este socio no tiene email");
+      return;
+    }
+    
+    setSendingEmail(member.id);
+    try {
+      const baseUrl = window.location.origin;
+      const renewalCode = generateRenewalCode(member.id);
+      const renewalLink = `${baseUrl}/ClubMembership?renew=${renewalCode}`;
+
+      await base44.integrations.Core.SendEmail({
+        from_name: "CD Bustarviejo",
+        to: member.email,
+        subject: `💚 ¡Te echamos de menos, ${member.nombre_completo}! Renueva tu carnet de socio`,
+        body: `Estimado/a ${member.nombre_completo},
+
+¡Esperamos que estés muy bien! 👋
+
+Desde el CD Bustarviejo queremos darte las GRACIAS de corazón 💚
+
+Gracias a socios como tú, más de 200 niños y niñas de nuestro pueblo pueden disfrutar del fútbol y baloncesto cada semana. Tu apoyo no es solo una cuota, es un voto de confianza en el futuro de nuestra comunidad.
+
+🏆 Desde 1980, más de 40 años formando deportistas y personas en la sierra norte de Madrid.
+
+🎉 ¡TE INVITAMOS A RENOVAR TU CARNET DE SOCIO!
+
+La nueva temporada ${getNextSeason()} ya está en marcha y nos encantaría seguir contando contigo como parte de nuestra gran familia deportiva.
+
+Por solo 25€ al año, seguirás apoyando:
+✅ El desarrollo deportivo de nuestros niños y jóvenes
+✅ La mejora de instalaciones y equipamiento
+✅ Las actividades y eventos del club
+✅ El crecimiento de la comunidad deportiva de Bustarviejo
+
+👉 Renueva aquí: ${renewalLink}
+
+(Tus datos ya están guardados, ¡solo confirma y listo!)
+
+Tu número de socio: ${member.numero_socio || 'Se asignará al renovar'}
+
+¡GRACIAS por seguir creyendo en nuestro proyecto! ⚽🏀💪
+
+Con cariño,
+CD Bustarviejo 🧡💚
+
+---
+Email: cdbustarviejo@gmail.com`
+      });
+
+      toast.success(`✅ Email enviado a ${member.nombre_completo}`);
+    } catch (error) {
+      toast.error("Error enviando email: " + error.message);
+    } finally {
+      setSendingEmail(null);
+    }
+  };
+
+  // Enviar emails masivos
+  const sendBulkEmails = async () => {
+    const membersToEmail = selectedMembers.length > 0 
+      ? filteredMembers.filter(m => selectedMembers.includes(m.id) && m.email)
+      : filteredMembers.filter(m => m.email);
+
+    if (membersToEmail.length === 0) {
+      toast.error("No hay socios con email para enviar");
+      return;
+    }
+
+    setSendingBulk(true);
+    let sent = 0;
+    let errors = 0;
+
+    for (const member of membersToEmail) {
+      try {
+        const baseUrl = window.location.origin;
+        const renewalCode = generateRenewalCode(member.id);
+        const renewalLink = `${baseUrl}/ClubMembership?renew=${renewalCode}`;
+
+        await base44.integrations.Core.SendEmail({
+          from_name: "CD Bustarviejo",
+          to: member.email,
+          subject: `💚 ¡Te echamos de menos! Renueva tu carnet de socio - CD Bustarviejo`,
+          body: `Estimado/a ${member.nombre_completo},
+
+¡Te echamos de menos en el CD Bustarviejo! 💚
+
+🎉 TE INVITAMOS A RENOVAR TU CARNET DE SOCIO para la temporada ${getNextSeason()}.
+
+Por solo 25€ al año, seguirás apoyando a más de 200 jóvenes deportistas de Bustarviejo.
+
+👉 Renueva aquí: ${renewalLink}
+
+¡Gracias por ser parte de nuestra familia!
+
+CD Bustarviejo
+cdbustarviejo@gmail.com`
+        });
+        sent++;
+      } catch (error) {
+        errors++;
+      }
+      // Pequeña pausa entre emails
+      await new Promise(r => setTimeout(r, 200));
+    }
+
+    setSendingBulk(false);
+    setSelectedMembers([]);
+    
+    if (errors === 0) {
+      toast.success(`✅ ${sent} emails enviados correctamente`);
+    } else {
+      toast.warning(`Enviados: ${sent}, Errores: ${errors}`);
+    }
+  };
+
   const copyRenewalLink = (member) => {
     const baseUrl = window.location.origin;
     const renewalCode = generateRenewalCode(member.id);
@@ -131,6 +248,23 @@ CD Bustarviejo 🧡💚`;
     setCopiedId(member.id);
     toast.success("Enlace copiado");
     setTimeout(() => setCopiedId(null), 3000);
+  };
+
+  // Toggle selección
+  const toggleSelect = (memberId) => {
+    setSelectedMembers(prev => 
+      prev.includes(memberId) 
+        ? prev.filter(id => id !== memberId)
+        : [...prev, memberId]
+    );
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedMembers.length === filteredMembers.length) {
+      setSelectedMembers([]);
+    } else {
+      setSelectedMembers(filteredMembers.map(m => m.id));
+    }
   };
 
   // Exportar socios externos a CSV
@@ -196,10 +330,45 @@ CD Bustarviejo 🧡💚`;
       <Alert className="bg-blue-50 border-blue-200">
         <Info className="w-4 h-4 text-blue-600" />
         <AlertDescription className="text-blue-800">
-          <strong>Socios Externos:</strong> Son personas que se han hecho socios del club pero no tienen hijos inscritos como jugadores. 
-          Pueden ser familiares, amigos, o simpatizantes del club de cualquier parte del mundo.
+          <strong>Socios Externos:</strong> Personas que son socios del club pero NO tienen hijos inscritos como jugadores. 
+          Puedes enviarles recordatorios por <strong>Email</strong> o <strong>WhatsApp</strong>.
         </AlertDescription>
       </Alert>
+
+      {/* Acciones masivas */}
+      {filteredMembers.length > 0 && (
+        <Card className="bg-gradient-to-r from-orange-50 to-green-50 border-2 border-orange-200">
+          <CardContent className="p-4">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <Send className="w-6 h-6 text-orange-600" />
+                <div>
+                  <h3 className="font-bold text-slate-900">Envío de Recordatorios</h3>
+                  <p className="text-sm text-slate-600">
+                    {selectedMembers.length > 0 
+                      ? `${selectedMembers.length} socios seleccionados`
+                      : `${filteredMembers.filter(m => m.email).length} socios con email`
+                    }
+                  </p>
+                </div>
+              </div>
+              <div className="flex gap-2">
+                <Button 
+                  onClick={sendBulkEmails}
+                  disabled={sendingBulk}
+                  className="bg-orange-600 hover:bg-orange-700"
+                >
+                  {sendingBulk ? (
+                    <><RefreshCw className="w-4 h-4 mr-2 animate-spin" /> Enviando...</>
+                  ) : (
+                    <><Mail className="w-4 h-4 mr-2" /> Enviar Emails {selectedMembers.length > 0 ? `(${selectedMembers.length})` : "a todos"}</>
+                  )}
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Lista de socios externos */}
       <Card>
@@ -249,31 +418,43 @@ CD Bustarviejo 🧡💚`;
               <Table>
                 <TableHeader>
                   <TableRow>
+                    <TableHead className="w-10">
+                      <input 
+                        type="checkbox" 
+                        checked={selectedMembers.length === filteredMembers.length}
+                        onChange={toggleSelectAll}
+                        className="w-4 h-4 rounded"
+                      />
+                    </TableHead>
                     <TableHead>Socio</TableHead>
                     <TableHead>Contacto</TableHead>
-                    <TableHead>Municipio</TableHead>
                     <TableHead className="text-center">Estado</TableHead>
                     <TableHead>Referido Por</TableHead>
-                    <TableHead className="text-center">Renovación WhatsApp</TableHead>
+                    <TableHead className="text-center">Acciones</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {filteredMembers.map((member) => (
-                    <TableRow key={member.id}>
+                    <TableRow key={member.id} className={selectedMembers.includes(member.id) ? "bg-orange-50" : ""}>
+                      <TableCell>
+                        <input 
+                          type="checkbox" 
+                          checked={selectedMembers.includes(member.id)}
+                          onChange={() => toggleSelect(member.id)}
+                          className="w-4 h-4 rounded"
+                        />
+                      </TableCell>
                       <TableCell>
                         <div>
                           <p className="font-semibold text-slate-900">{member.nombre_completo}</p>
-                          <p className="text-xs text-slate-500">DNI: {member.dni}</p>
+                          <p className="text-xs text-slate-500">DNI: {member.dni} · {member.municipio}</p>
                         </div>
                       </TableCell>
                       <TableCell>
                         <div className="text-sm">
-                          <p>{member.email}</p>
-                          <p className="text-slate-500">{member.telefono}</p>
+                          <p>{member.email || <span className="text-slate-400">Sin email</span>}</p>
+                          <p className="text-slate-500">{member.telefono || <span className="text-slate-400">Sin teléfono</span>}</p>
                         </div>
-                      </TableCell>
-                      <TableCell>
-                        <span className="text-sm text-slate-600">{member.municipio}</span>
                       </TableCell>
                       <TableCell className="text-center">
                         <Badge className={
@@ -293,22 +474,41 @@ CD Bustarviejo 🧡💚`;
                           <span className="text-slate-400 text-sm">-</span>
                         )}
                       </TableCell>
-                      <TableCell className="text-center">
+                      <TableCell>
                         <div className="flex items-center justify-center gap-1">
-                          <a 
-                            href={generateWhatsAppRenewalLink(member)} 
-                            target="_blank" 
-                            rel="noopener noreferrer"
+                          {/* Email */}
+                          <Button 
+                            size="sm" 
+                            variant="outline"
+                            onClick={() => sendEmailToMember(member)}
+                            disabled={!member.email || sendingEmail === member.id}
+                            className="gap-1"
+                            title="Enviar email"
                           >
-                            <Button size="sm" className="bg-green-600 hover:bg-green-700 gap-1">
-                              <MessageCircle className="w-4 h-4" />
-                              <span className="hidden sm:inline">WhatsApp</span>
-                            </Button>
-                          </a>
+                            {sendingEmail === member.id ? (
+                              <RefreshCw className="w-4 h-4 animate-spin" />
+                            ) : (
+                              <Mail className="w-4 h-4" />
+                            )}
+                          </Button>
+                          {/* WhatsApp */}
+                          {member.telefono && (
+                            <a 
+                              href={generateWhatsAppRenewalLink(member)} 
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                            >
+                              <Button size="sm" className="bg-green-600 hover:bg-green-700 gap-1" title="WhatsApp">
+                                <MessageCircle className="w-4 h-4" />
+                              </Button>
+                            </a>
+                          )}
+                          {/* Copiar enlace */}
                           <Button 
                             size="sm" 
                             variant="outline"
                             onClick={() => copyRenewalLink(member)}
+                            title="Copiar enlace"
                           >
                             {copiedId === member.id ? (
                               <Check className="w-4 h-4 text-green-600" />
@@ -326,30 +526,6 @@ CD Bustarviejo 🧡💚`;
           )}
         </CardContent>
       </Card>
-
-      {/* Envío masivo */}
-      {filteredMembers.length > 0 && (
-        <Card className="bg-gradient-to-r from-green-50 to-green-100 border-2 border-green-300">
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-xl bg-green-600 flex items-center justify-center">
-                  <Send className="w-6 h-6 text-white" />
-                </div>
-                <div>
-                  <h3 className="font-bold text-green-900">Envío de Recordatorios</h3>
-                  <p className="text-sm text-green-700">
-                    WhatsApp no permite envíos masivos automáticos. Usa los botones individuales para enviar a cada socio.
-                  </p>
-                </div>
-              </div>
-              <Badge className="bg-green-600 text-lg px-4 py-2">
-                {filteredMembers.length} socios
-              </Badge>
-            </div>
-          </CardContent>
-        </Card>
-      )}
     </div>
   );
 }
