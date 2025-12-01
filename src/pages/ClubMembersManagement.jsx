@@ -3,23 +3,27 @@ import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
-  Users, Search, CheckCircle2, Clock, AlertCircle, Mail, 
-  TrendingUp, UserPlus, Heart, Download, Eye, Loader2, MessageCircle 
+  Users, CheckCircle2, Clock, AlertCircle, Mail, 
+  TrendingUp, UserPlus, Heart, Eye, Loader2, Edit, Trash2
 } from "lucide-react";
 import { toast } from "sonner";
 import RenewalReminderDialog from "../components/members/RenewalReminderDialog";
+import MemberEditForm from "../components/members/MemberEditForm";
+import MemberDetailDialog from "../components/members/MemberDetailDialog";
+import MemberAdvancedFilters from "../components/members/MemberAdvancedFilters";
 
 export default function ClubMembersManagement() {
   const [user, setUser] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
-  const [sendingReminders, setSendingReminders] = useState(false);
+  const [seasonFilter, setSeasonFilter] = useState("all");
+  const [typeFilter, setTypeFilter] = useState("all");
   const [showReminderDialog, setShowReminderDialog] = useState(false);
+  const [editingMember, setEditingMember] = useState(null);
+  const [viewingMember, setViewingMember] = useState(null);
   const queryClient = useQueryClient();
 
   useEffect(() => {
@@ -43,19 +47,27 @@ export default function ClubMembersManagement() {
     },
   });
 
+  // Obtener temporadas únicas para el filtro
+  const availableSeasons = [...new Set(members.map(m => m.temporada).filter(Boolean))].sort().reverse();
+
+  // Establecer temporada actual como filtro por defecto
+  useEffect(() => {
+    if (seasonConfig?.temporada && seasonFilter === "all") {
+      setSeasonFilter(seasonConfig.temporada);
+    }
+  }, [seasonConfig]);
+
   const updateMemberMutation = useMutation({
-    mutationFn: async ({ id, data, memberEmail, memberName }) => {
+    mutationFn: async ({ id, data, memberEmail, memberName, sendEmail = false }) => {
       const result = await base44.entities.ClubMember.update(id, data);
       
-      // Si se marca como Pagado, enviar email de confirmación
-      if (data.estado_pago === "Pagado" && memberEmail) {
+      if (sendEmail && data.estado_pago === "Pagado" && memberEmail) {
         try {
           await base44.integrations.Core.SendEmail({
             from_name: "CD Bustarviejo",
             to: memberEmail,
             subject: "🎉 ¡Confirmación de Pago - Ya eres Socio del CD Bustarviejo!",
-            body: `
-Estimado/a ${memberName},
+            body: `Estimado/a ${memberName},
 
 ¡Gracias por tu apoyo al CD Bustarviejo! 
 
@@ -63,19 +75,13 @@ Hemos recibido y confirmado tu pago de la cuota de socio para la temporada ${sea
 
 🎉 ¡YA ERES OFICIALMENTE SOCIO DEL CLUB!
 
-Tu contribución es fundamental para el desarrollo de nuestros jóvenes deportistas y el crecimiento de nuestra comunidad deportiva.
-
-Gracias por formar parte de la familia del CD Bustarviejo.
+Tu contribución es fundamental para el desarrollo de nuestros jóvenes deportistas.
 
 Un cordial saludo,
-CD Bustarviejo
-
----
-Email: cdbustarviejo@gmail.com
-            `
+CD Bustarviejo`
           });
         } catch (error) {
-          console.error("Error enviando email de confirmación:", error);
+          console.error("Error enviando email:", error);
         }
       }
       
@@ -83,44 +89,64 @@ Email: cdbustarviejo@gmail.com
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['allMembers'] });
-      toast.success("✅ Estado actualizado correctamente");
+      setEditingMember(null);
+      toast.success("✅ Socio actualizado correctamente");
     },
     onError: (error) => {
-      toast.error("Error al actualizar: " + error.message);
+      toast.error("Error: " + error.message);
+    }
+  });
+
+  const deleteMemberMutation = useMutation({
+    mutationFn: (id) => base44.entities.ClubMember.delete(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['allMembers'] });
+      toast.success("Socio eliminado");
     }
   });
 
   const handleStatusChange = (member, newStatus) => {
-    const updateData = {
-      estado_pago: newStatus,
-      ...(newStatus === "Pagado" ? { fecha_pago: new Date().toISOString().split('T')[0] } : {})
-    };
-    
     updateMemberMutation.mutate({
       id: member.id,
-      data: updateData,
+      data: {
+        estado_pago: newStatus,
+        ...(newStatus === "Pagado" ? { fecha_pago: new Date().toISOString().split('T')[0] } : {})
+      },
       memberEmail: member.email,
-      memberName: member.nombre_completo
+      memberName: member.nombre_completo,
+      sendEmail: newStatus === "Pagado"
     });
   };
 
-  // Función para formatear teléfono para WhatsApp
+  const handleSaveEdit = (formData) => {
+    if (!editingMember) return;
+    updateMemberMutation.mutate({
+      id: editingMember.id,
+      data: formData,
+      memberEmail: formData.email,
+      memberName: formData.nombre_completo,
+      sendEmail: false
+    });
+  };
+
+  const handleDelete = (member) => {
+    if (confirm(`¿Seguro que quieres eliminar a ${member.nombre_completo}?`)) {
+      deleteMemberMutation.mutate(member.id);
+    }
+  };
+
   const formatPhoneForWhatsApp = (phone) => {
     if (!phone) return null;
     let cleaned = phone.replace(/\D/g, '');
-    if (cleaned.length === 9) {
-      cleaned = '34' + cleaned;
-    }
+    if (cleaned.length === 9) cleaned = '34' + cleaned;
     return cleaned;
   };
 
-  // Handler para enviar recordatorios con opciones
   const handleSendReminders = async (uniqueMembers, options) => {
     const { sendEmail, sendWhatsApp } = options;
     let emailsSent = 0;
     let whatsappOpened = 0;
 
-    // Enviar emails
     if (sendEmail) {
       for (const member of uniqueMembers) {
         if (!member.email) continue;
@@ -129,33 +155,18 @@ Email: cdbustarviejo@gmail.com
             from_name: "CD Bustarviejo",
             to: member.email,
             subject: "💚 ¡Te echamos de menos! Renueva tu carnet de socio",
-            body: `
-Estimado/a ${member.nombre_completo},
+            body: `Estimado/a ${member.nombre_completo},
 
-¡Esperamos que estés muy bien!
-
-Queremos agradecerte tu apoyo como socio del CD Bustarviejo en temporadas anteriores. Tu contribución fue fundamental para el desarrollo de nuestros jóvenes deportistas.
+Queremos agradecerte tu apoyo como socio del CD Bustarviejo.
 
 🎉 ¡TE INVITAMOS A RENOVAR TU CARNET DE SOCIO!
 
-La nueva temporada ${seasonConfig.temporada} ya está en marcha y nos encantaría seguir contando contigo como parte de nuestra gran familia deportiva.
+La nueva temporada ${seasonConfig?.temporada} ya está en marcha.
 
-Por solo 25€ al año, seguirás apoyando:
-✅ El desarrollo deportivo de nuestros niños y jóvenes
-✅ La mejora de instalaciones y equipamiento
-✅ Las actividades y eventos del club
-✅ El crecimiento de la comunidad deportiva de Bustarviejo
-
-Para renovar, puedes hacerlo a través de la aplicación del club o contactarnos directamente.
-
-¡Gracias por seguir creyendo en nuestro proyecto!
+Por solo 25€ al año, seguirás apoyando a nuestros jóvenes deportistas.
 
 Un cordial saludo,
-CD Bustarviejo
-
----
-Email: cdbustarviejo@gmail.com
-            `
+CD Bustarviejo`
           });
           emailsSent++;
         } catch (error) {
@@ -164,40 +175,24 @@ Email: cdbustarviejo@gmail.com
       }
     }
 
-    // Abrir WhatsApp para cada miembro con teléfono
     if (sendWhatsApp) {
-      const membersWithPhone = uniqueMembers.filter(m => m.telefono && m.telefono.length >= 9);
-      
+      const membersWithPhone = uniqueMembers.filter(m => m.telefono?.length >= 9);
       for (const member of membersWithPhone) {
         const phone = formatPhoneForWhatsApp(member.telefono);
         if (!phone) continue;
-
         const message = encodeURIComponent(
 `¡Hola ${member.nombre_completo}! 👋
 
 Te escribimos desde el *CD Bustarviejo* 💚⚽
 
-Queremos agradecerte tu apoyo como socio en temporadas anteriores. ¡Tu contribución fue muy valiosa!
-
 🎉 *¡Te invitamos a renovar tu carnet de socio!*
-
-La nueva temporada *${seasonConfig?.temporada}* ya está en marcha y nos encantaría seguir contando contigo.
 
 Por solo *25€/año* seguirás apoyando a nuestros jóvenes deportistas.
 
-Para renovar, accede a la app del club o contáctanos.
-
-¡Gracias por formar parte de nuestra familia! 🙏
-
-_CD Bustarviejo_
-📧 cdbustarviejo@gmail.com`
+¡Gracias por formar parte de nuestra familia! 🙏`
         );
-
-        // Abrir WhatsApp Web en una nueva pestaña
         window.open(`https://wa.me/${phone}?text=${message}`, '_blank');
         whatsappOpened++;
-
-        // Pequeña pausa entre aperturas para no saturar
         await new Promise(resolve => setTimeout(resolve, 500));
       }
     }
@@ -205,19 +200,60 @@ _CD Bustarviejo_
     return { emailsSent, whatsappOpened };
   };
 
+  // Exportar a CSV
+  const handleExport = () => {
+    const dataToExport = filteredMembers;
+    const headers = ["Nº Socio", "Nombre", "DNI", "Email", "Teléfono", "Dirección", "Municipio", "Tipo", "Estado", "Temporada", "Cuota", "Fecha Pago"];
+    const rows = dataToExport.map(m => [
+      m.numero_socio || "",
+      m.nombre_completo,
+      m.dni,
+      m.email,
+      m.telefono,
+      m.direccion,
+      m.municipio,
+      m.tipo_inscripcion,
+      m.estado_pago,
+      m.temporada,
+      m.cuota_socio || 25,
+      m.fecha_pago || ""
+    ]);
+
+    const csvContent = [headers.join(";"), ...rows.map(r => r.join(";"))].join("\n");
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `socios_${new Date().toISOString().split('T')[0]}.csv`;
+    link.click();
+    URL.revokeObjectURL(url);
+    toast.success("CSV exportado");
+  };
+
   // Filtrar miembros
   const filteredMembers = members.filter(m => {
     const matchesSearch = 
       m.nombre_completo?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       m.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      m.dni?.toLowerCase().includes(searchTerm.toLowerCase());
+      m.dni?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      m.numero_socio?.toLowerCase().includes(searchTerm.toLowerCase());
     
     const matchesStatus = statusFilter === "all" || m.estado_pago === statusFilter;
+    const matchesSeason = seasonFilter === "all" || m.temporada === seasonFilter;
+    const matchesType = typeFilter === "all" || m.tipo_inscripcion === typeFilter;
     
-    return matchesSearch && matchesStatus;
+    return matchesSearch && matchesStatus && matchesSeason && matchesType;
   });
 
-  // Estadísticas
+  // Contar filtros activos
+  const activeFiltersCount = [
+    searchTerm !== "",
+    statusFilter !== "all",
+    seasonFilter !== "all" && seasonFilter !== seasonConfig?.temporada,
+    typeFilter !== "all"
+  ].filter(Boolean).length;
+
+  // Estadísticas de la temporada actual
   const currentSeasonMembers = members.filter(m => m.temporada === seasonConfig?.temporada);
   const stats = {
     total: currentSeasonMembers.length,
@@ -249,13 +285,29 @@ _CD Bustarviejo_
 
   return (
     <div className="p-4 lg:p-6 space-y-6">
-      {/* Diálogo de recordatorios */}
+      {/* Diálogos */}
       <RenewalReminderDialog
         open={showReminderDialog}
         onClose={() => setShowReminderDialog(false)}
         members={members}
         seasonConfig={seasonConfig}
         onSendReminders={handleSendReminders}
+      />
+      
+      <MemberEditForm
+        member={editingMember}
+        open={!!editingMember}
+        onClose={() => setEditingMember(null)}
+        onSave={handleSaveEdit}
+        isLoading={updateMemberMutation.isPending}
+      />
+
+      <MemberDetailDialog
+        member={viewingMember}
+        open={!!viewingMember}
+        onClose={() => setViewingMember(null)}
+        onEdit={(m) => { setViewingMember(null); setEditingMember(m); }}
+        referrals={members}
       />
 
       {/* Header */}
@@ -265,13 +317,13 @@ _CD Bustarviejo_
             <Users className="w-8 h-8 text-orange-600" />
             Gestión de Socios
           </h1>
-          <p className="text-slate-600 mt-1">Administra los socios del club</p>
+          <p className="text-slate-600 mt-1">Administra los socios del club · Temporada {seasonConfig?.temporada}</p>
         </div>
         <Button
           onClick={() => setShowReminderDialog(true)}
           className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800"
         >
-          <Mail className="w-4 h-4 mr-2" /> Enviar Recordatorios de Renovación
+          <Mail className="w-4 h-4 mr-2" /> Enviar Recordatorios
         </Button>
       </div>
 
@@ -321,122 +373,110 @@ _CD Bustarviejo_
         </Card>
       </div>
 
-      {/* Filtros */}
-      <div className="flex flex-col md:flex-row gap-3">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-          <Input
-            placeholder="Buscar por nombre, email o DNI..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10"
-          />
-        </div>
-        <Select value={statusFilter} onValueChange={setStatusFilter}>
-          <SelectTrigger className="w-full md:w-48">
-            <SelectValue placeholder="Estado de pago" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Todos los estados</SelectItem>
-            <SelectItem value="Pagado">Pagado</SelectItem>
-            <SelectItem value="En revisión">En revisión</SelectItem>
-            <SelectItem value="Pendiente">Pendiente</SelectItem>
-          </SelectContent>
-        </Select>
+      {/* Filtros avanzados */}
+      <MemberAdvancedFilters
+        searchTerm={searchTerm}
+        setSearchTerm={setSearchTerm}
+        statusFilter={statusFilter}
+        setStatusFilter={setStatusFilter}
+        seasonFilter={seasonFilter}
+        setSeasonFilter={setSeasonFilter}
+        typeFilter={typeFilter}
+        setTypeFilter={setTypeFilter}
+        availableSeasons={availableSeasons}
+        onExport={handleExport}
+        activeFiltersCount={activeFiltersCount}
+      />
+
+      {/* Resultados */}
+      <div className="text-sm text-slate-600">
+        Mostrando {filteredMembers.length} de {members.length} socios
       </div>
 
       {/* Lista de socios */}
-      <Tabs defaultValue="current" className="space-y-4">
-        <TabsList>
-          <TabsTrigger value="current">Temporada Actual ({currentSeasonMembers.length})</TabsTrigger>
-          <TabsTrigger value="all">Histórico ({members.length})</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="current" className="space-y-3">
-          {filteredMembers.filter(m => m.temporada === seasonConfig?.temporada).length === 0 ? (
-            <div className="text-center py-12 bg-white rounded-xl shadow">
-              <Users className="w-12 h-12 text-slate-300 mx-auto mb-3" />
-              <p className="text-slate-500">No se encontraron socios</p>
-            </div>
-          ) : (
-            filteredMembers
-              .filter(m => m.temporada === seasonConfig?.temporada)
-              .map(member => (
-                <Card key={member.id} className="hover:shadow-md transition-shadow">
-                  <CardContent className="p-4">
-                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-1">
-                          <h3 className="font-semibold text-slate-900">{member.nombre_completo}</h3>
-                          {member.es_segundo_progenitor && (
-                            <Badge variant="outline" className="text-xs">2º Progenitor</Badge>
-                          )}
-                          <Badge variant="outline" className="text-xs">
-                            {member.tipo_inscripcion === "Nueva Inscripción" ? "🆕 Nuevo" : "🔄 Renovación"}
-                          </Badge>
-                        </div>
-                        <div className="text-sm text-slate-600 space-y-0.5">
-                          <p>📧 {member.email}</p>
-                          <p>📱 {member.telefono} | 🪪 {member.dni}</p>
-                          <p>📍 {member.direccion}, {member.municipio}</p>
-                        </div>
-                      </div>
-                      
-                      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
-                        {member.justificante_url && (
-                          <a href={member.justificante_url} target="_blank" rel="noopener noreferrer">
-                            <Button variant="outline" size="sm">
-                              <Eye className="w-4 h-4 mr-1" /> Ver Justificante
-                            </Button>
-                          </a>
-                        )}
-                        
-                        <div className="flex items-center gap-2">
-                          {getStatusBadge(member.estado_pago)}
-                          
-                          {member.estado_pago !== "Pagado" && (
-                            <Select
-                              value={member.estado_pago}
-                              onValueChange={(value) => handleStatusChange(member, value)}
-                            >
-                              <SelectTrigger className="w-36">
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="Pendiente">Pendiente</SelectItem>
-                                <SelectItem value="En revisión">En revisión</SelectItem>
-                                <SelectItem value="Pagado">✅ Marcar Pagado</SelectItem>
-                              </SelectContent>
-                            </Select>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))
-          )}
-        </TabsContent>
-
-        <TabsContent value="all" className="space-y-3">
-          {filteredMembers.map(member => (
+      <div className="space-y-3">
+        {filteredMembers.length === 0 ? (
+          <div className="text-center py-12 bg-white rounded-xl shadow">
+            <Users className="w-12 h-12 text-slate-300 mx-auto mb-3" />
+            <p className="text-slate-500">No se encontraron socios con los filtros seleccionados</p>
+          </div>
+        ) : (
+          filteredMembers.map(member => (
             <Card key={member.id} className="hover:shadow-md transition-shadow">
               <CardContent className="p-4">
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-1">
+                  <div className="flex-1 cursor-pointer" onClick={() => setViewingMember(member)}>
+                    <div className="flex items-center gap-2 mb-1 flex-wrap">
                       <h3 className="font-semibold text-slate-900">{member.nombre_completo}</h3>
-                      <Badge variant="outline">{member.temporada}</Badge>
+                      <Badge variant="outline" className="text-xs">{member.numero_socio || "Sin nº"}</Badge>
+                      {member.es_segundo_progenitor && (
+                        <Badge variant="outline" className="text-xs bg-purple-50">2º Prog.</Badge>
+                      )}
+                      {member.es_socio_externo && (
+                        <Badge variant="outline" className="text-xs bg-cyan-50">Externo</Badge>
+                      )}
+                      <Badge variant="outline" className="text-xs">
+                        {member.tipo_inscripcion === "Nueva Inscripción" ? "🆕" : "🔄"} {member.temporada}
+                      </Badge>
+                      {member.referido_por && (
+                        <Badge className="bg-orange-100 text-orange-800 text-xs">
+                          Ref: {member.referido_por}
+                        </Badge>
+                      )}
                     </div>
-                    <p className="text-sm text-slate-600">📧 {member.email} | 📱 {member.telefono}</p>
+                    <div className="text-sm text-slate-600 space-y-0.5">
+                      <p>📧 {member.email} | 📱 {member.telefono}</p>
+                      <p>🪪 {member.dni} | 📍 {member.municipio}</p>
+                    </div>
                   </div>
-                  {getStatusBadge(member.estado_pago)}
+                  
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2">
+                    {/* Botones de acción */}
+                    <div className="flex gap-1">
+                      <Button variant="ghost" size="icon" onClick={() => setViewingMember(member)} title="Ver detalle">
+                        <Eye className="w-4 h-4 text-slate-500" />
+                      </Button>
+                      <Button variant="ghost" size="icon" onClick={() => setEditingMember(member)} title="Editar">
+                        <Edit className="w-4 h-4 text-blue-500" />
+                      </Button>
+                      <Button variant="ghost" size="icon" onClick={() => handleDelete(member)} title="Eliminar">
+                        <Trash2 className="w-4 h-4 text-red-500" />
+                      </Button>
+                    </div>
+
+                    {/* Ver justificante */}
+                    {(member.justificante_url || member.justificante_base64) && (
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => setViewingMember(member)}
+                      >
+                        <Eye className="w-4 h-4 mr-1" /> Justificante
+                      </Button>
+                    )}
+                    
+                    {/* Estado y cambio rápido */}
+                    <div className="flex items-center gap-2">
+                      {getStatusBadge(member.estado_pago)}
+                      
+                      {member.estado_pago !== "Pagado" && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="bg-green-50 hover:bg-green-100 text-green-700 border-green-300"
+                          onClick={() => handleStatusChange(member, "Pagado")}
+                        >
+                          <CheckCircle2 className="w-3 h-3 mr-1" /> Marcar Pagado
+                        </Button>
+                      )}
+                    </div>
+                  </div>
                 </div>
               </CardContent>
             </Card>
-          ))}
-        </TabsContent>
-      </Tabs>
+          ))
+        )}
+      </div>
     </div>
   );
 }
