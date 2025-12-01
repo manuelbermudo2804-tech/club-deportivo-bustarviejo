@@ -4,10 +4,11 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { 
   Users, CheckCircle2, Clock, AlertCircle, Mail, 
-  TrendingUp, UserPlus, Heart, Eye, Loader2, Edit, Trash2
+  TrendingUp, UserPlus, Heart, Eye, Loader2, Edit, Trash2,
+  MessageCircle, RefreshCw, UserCheck, Send
 } from "lucide-react";
 import { toast } from "sonner";
 import RenewalReminderDialog from "../components/members/RenewalReminderDialog";
@@ -21,9 +22,12 @@ export default function ClubMembersManagement() {
   const [statusFilter, setStatusFilter] = useState("all");
   const [seasonFilter, setSeasonFilter] = useState("all");
   const [typeFilter, setTypeFilter] = useState("all");
+  const [memberTypeFilter, setMemberTypeFilter] = useState("all"); // externos/padres
   const [showReminderDialog, setShowReminderDialog] = useState(false);
   const [editingMember, setEditingMember] = useState(null);
   const [viewingMember, setViewingMember] = useState(null);
+  const [sendingEmailTo, setSendingEmailTo] = useState(null);
+  const [sendingBulkEmails, setSendingBulkEmails] = useState(false);
   const queryClient = useQueryClient();
 
   useEffect(() => {
@@ -39,12 +43,24 @@ export default function ClubMembersManagement() {
     queryFn: () => base44.entities.ClubMember.list('-created_date'),
   });
 
+  const { data: players = [] } = useQuery({
+    queryKey: ['allPlayers'],
+    queryFn: () => base44.entities.Player.list(),
+  });
+
   const { data: seasonConfig } = useQuery({
     queryKey: ['seasonConfig'],
     queryFn: async () => {
       const configs = await base44.entities.SeasonConfig.list();
       return configs.find(c => c.activa === true);
     },
+  });
+
+  // Emails de padres con jugadores
+  const parentEmails = new Set();
+  players.forEach(p => {
+    if (p.email_padre) parentEmails.add(p.email_padre.toLowerCase());
+    if (p.email_tutor_2) parentEmails.add(p.email_tutor_2.toLowerCase());
   });
 
   // Obtener temporadas únicas para el filtro
@@ -142,6 +158,95 @@ CD Bustarviejo`
     return cleaned;
   };
 
+  // Generar enlace WhatsApp para renovación
+  const generateWhatsAppLink = (member) => {
+    const phone = formatPhoneForWhatsApp(member.telefono);
+    if (!phone) return null;
+    const message = `¡Hola ${member.nombre_completo}! 👋
+
+Desde el CD Bustarviejo queremos darte las GRACIAS 💚
+
+🎉 ¡Te invitamos a renovar tu carnet de socio para la temporada ${seasonConfig?.temporada}!
+
+Por solo 25€/año seguirás apoyando a nuestros jóvenes deportistas.
+
+¡Gracias por ser parte de nuestra familia! ⚽🏀
+
+CD Bustarviejo`;
+    return `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
+  };
+
+  // Enviar email individual
+  const sendEmailToMember = async (member) => {
+    if (!member.email) {
+      toast.error("Este socio no tiene email");
+      return;
+    }
+    setSendingEmailTo(member.id);
+    try {
+      await base44.integrations.Core.SendEmail({
+        from_name: "CD Bustarviejo",
+        to: member.email,
+        subject: `💚 ¡Renueva tu carnet de socio! - CD Bustarviejo`,
+        body: `Estimado/a ${member.nombre_completo},
+
+¡Te echamos de menos en el CD Bustarviejo! 💚
+
+🎉 TE INVITAMOS A RENOVAR TU CARNET DE SOCIO para la temporada ${seasonConfig?.temporada}.
+
+Por solo 25€ al año, seguirás apoyando a más de 200 jóvenes deportistas de Bustarviejo.
+
+¡Gracias por ser parte de nuestra familia!
+
+CD Bustarviejo
+cdbustarviejo@gmail.com`
+      });
+      toast.success(`✅ Email enviado a ${member.nombre_completo}`);
+    } catch (error) {
+      toast.error("Error: " + error.message);
+    } finally {
+      setSendingEmailTo(null);
+    }
+  };
+
+  // Enviar emails masivos a todos los filtrados
+  const sendBulkEmails = async () => {
+    const membersWithEmail = filteredMembers.filter(m => m.email);
+    if (membersWithEmail.length === 0) {
+      toast.error("No hay socios con email");
+      return;
+    }
+    if (!confirm(`¿Enviar email de renovación a ${membersWithEmail.length} socios?`)) return;
+
+    setSendingBulkEmails(true);
+    let sent = 0, errors = 0;
+
+    for (const member of membersWithEmail) {
+      try {
+        await base44.integrations.Core.SendEmail({
+          from_name: "CD Bustarviejo",
+          to: member.email,
+          subject: `💚 ¡Renueva tu carnet de socio! - CD Bustarviejo`,
+          body: `Estimado/a ${member.nombre_completo},
+
+¡Te echamos de menos! 💚
+
+🎉 TE INVITAMOS A RENOVAR TU CARNET DE SOCIO para la temporada ${seasonConfig?.temporada}.
+
+Por solo 25€/año seguirás apoyando a nuestros jóvenes deportistas.
+
+¡Gracias!
+CD Bustarviejo`
+        });
+        sent++;
+      } catch (e) { errors++; }
+      await new Promise(r => setTimeout(r, 150));
+    }
+
+    setSendingBulkEmails(false);
+    toast.success(`✅ ${sent} emails enviados${errors > 0 ? `, ${errors} errores` : ""}`);
+  };
+
   const handleSendReminders = async (uniqueMembers, options) => {
     const { sendEmail, sendWhatsApp } = options;
     let emailsSent = 0;
@@ -230,6 +335,11 @@ Por solo *25€/año* seguirás apoyando a nuestros jóvenes deportistas.
     toast.success("CSV exportado");
   };
 
+  // Determinar si un socio es externo (no tiene hijos en el club)
+  const isExternalMember = (member) => {
+    return !parentEmails.has(member.email?.toLowerCase());
+  };
+
   // Filtrar miembros
   const filteredMembers = members.filter(m => {
     const matchesSearch = 
@@ -242,7 +352,13 @@ Por solo *25€/año* seguirás apoyando a nuestros jóvenes deportistas.
     const matchesSeason = seasonFilter === "all" || m.temporada === seasonFilter;
     const matchesType = typeFilter === "all" || m.tipo_inscripcion === typeFilter;
     
-    return matchesSearch && matchesStatus && matchesSeason && matchesType;
+    // Filtro externos/padres
+    const isExternal = isExternalMember(m);
+    const matchesMemberType = memberTypeFilter === "all" || 
+      (memberTypeFilter === "externos" && isExternal) ||
+      (memberTypeFilter === "padres" && !isExternal);
+    
+    return matchesSearch && matchesStatus && matchesSeason && matchesType && matchesMemberType;
   });
 
   // Contar filtros activos
@@ -250,8 +366,12 @@ Por solo *25€/año* seguirás apoyando a nuestros jóvenes deportistas.
     searchTerm !== "",
     statusFilter !== "all",
     seasonFilter !== "all" && seasonFilter !== seasonConfig?.temporada,
-    typeFilter !== "all"
+    typeFilter !== "all",
+    memberTypeFilter !== "all"
   ].filter(Boolean).length;
+
+  // Stats de externos
+  const currentSeasonExternos = members.filter(m => m.temporada === seasonConfig?.temporada && isExternalMember(m)).length;
 
   // Estadísticas de la temporada actual
   const currentSeasonMembers = members.filter(m => m.temporada === seasonConfig?.temporada);
@@ -388,6 +508,40 @@ Por solo *25€/año* seguirás apoyando a nuestros jóvenes deportistas.
         activeFiltersCount={activeFiltersCount}
       />
 
+      {/* Filtro Externos/Padres + Envío masivo */}
+      <div className="flex flex-col md:flex-row gap-3 items-start md:items-center justify-between">
+        <div className="flex items-center gap-3">
+          <Select value={memberTypeFilter} onValueChange={setMemberTypeFilter}>
+            <SelectTrigger className="w-48">
+              <SelectValue placeholder="Tipo de socio" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">👥 Todos los socios</SelectItem>
+              <SelectItem value="externos">🌍 Solo Externos ({currentSeasonExternos})</SelectItem>
+              <SelectItem value="padres">👨‍👩‍👧 Solo Padres</SelectItem>
+            </SelectContent>
+          </Select>
+          {memberTypeFilter === "externos" && (
+            <Badge className="bg-blue-100 text-blue-800">
+              <UserCheck className="w-3 h-3 mr-1" />
+              Socios sin hijos en el club
+            </Badge>
+          )}
+        </div>
+        
+        <Button
+          onClick={sendBulkEmails}
+          disabled={sendingBulkEmails || filteredMembers.filter(m => m.email).length === 0}
+          className="bg-orange-600 hover:bg-orange-700"
+        >
+          {sendingBulkEmails ? (
+            <><RefreshCw className="w-4 h-4 mr-2 animate-spin" /> Enviando...</>
+          ) : (
+            <><Send className="w-4 h-4 mr-2" /> Enviar Email a {filteredMembers.filter(m => m.email).length} socios</>
+          )}
+        </Button>
+      </div>
+
       {/* Resultados */}
       <div className="text-sm text-slate-600">
         Mostrando {filteredMembers.length} de {members.length} socios
@@ -443,6 +597,30 @@ Por solo *25€/año* seguirás apoyando a nuestros jóvenes deportistas.
                         <Trash2 className="w-4 h-4 text-red-500" />
                       </Button>
                     </div>
+
+                    {/* Email individual */}
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      onClick={() => sendEmailToMember(member)}
+                      disabled={!member.email || sendingEmailTo === member.id}
+                      title="Enviar email"
+                    >
+                      {sendingEmailTo === member.id ? (
+                        <RefreshCw className="w-4 h-4 animate-spin" />
+                      ) : (
+                        <Mail className="w-4 h-4 text-orange-600" />
+                      )}
+                    </Button>
+
+                    {/* WhatsApp */}
+                    {member.telefono && generateWhatsAppLink(member) && (
+                      <a href={generateWhatsAppLink(member)} target="_blank" rel="noopener noreferrer">
+                        <Button variant="outline" size="icon" title="WhatsApp">
+                          <MessageCircle className="w-4 h-4 text-green-600" />
+                        </Button>
+                      </a>
+                    )}
 
                     {/* Ver justificante */}
                     {(member.justificante_url || member.justificante_base64) && (
