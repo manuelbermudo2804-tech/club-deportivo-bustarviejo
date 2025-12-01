@@ -150,11 +150,65 @@ Deno.serve(async (req) => {
       body: cardEmailHtml
     });
 
-    // Notificar al admin
+    // Notificar al admin con el justificante embebido si es base64
+    let adminEmailBody = `Se ha recibido una nueva solicitud de socio desde la landing page externa:
+
+Nombre: ${data.nombre_completo}
+DNI: ${data.dni}
+Email: ${data.email}
+Teléfono: ${data.telefono}
+Dirección: ${data.direccion}
+Municipio: ${data.municipio}
+Método de pago: Transferencia
+Tipo: ${data.tipo_inscripcion}
+Es segundo progenitor: ${data.es_segundo_progenitor ? "Sí" : "No"}${data.referido_por ? `
+Referido por: ${data.referido_por}` : ""}
+
+Accede al panel de administración para gestionar.`;
+
+    // Si hay justificante base64, crear email HTML con imagen embebida
+    let adminEmailHtml = "";
+    if (justificanteBase64) {
+      adminEmailHtml = `<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"></head>
+<body style="font-family: Arial, sans-serif; padding: 20px; background: #f5f5f5;">
+  <div style="max-width: 600px; margin: 0 auto; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+    <div style="background: linear-gradient(135deg, #f97316, #16a34a); padding: 20px; color: white; text-align: center;">
+      <h1 style="margin: 0;">🎉 Nueva Solicitud de Socio</h1>
+      <p style="margin: 5px 0 0 0; opacity: 0.9;">Desde landing page externa</p>
+    </div>
+    <div style="padding: 25px;">
+      <h2 style="color: #1e293b; margin-top: 0;">📋 Datos del Socio</h2>
+      <table style="width: 100%; border-collapse: collapse;">
+        <tr><td style="padding: 8px 0; border-bottom: 1px solid #eee; color: #64748b;">Nombre:</td><td style="padding: 8px 0; border-bottom: 1px solid #eee; font-weight: bold;">${data.nombre_completo}</td></tr>
+        <tr><td style="padding: 8px 0; border-bottom: 1px solid #eee; color: #64748b;">DNI:</td><td style="padding: 8px 0; border-bottom: 1px solid #eee;">${data.dni}</td></tr>
+        <tr><td style="padding: 8px 0; border-bottom: 1px solid #eee; color: #64748b;">Email:</td><td style="padding: 8px 0; border-bottom: 1px solid #eee;"><a href="mailto:${data.email}">${data.email}</a></td></tr>
+        <tr><td style="padding: 8px 0; border-bottom: 1px solid #eee; color: #64748b;">Teléfono:</td><td style="padding: 8px 0; border-bottom: 1px solid #eee;"><a href="tel:${data.telefono}">${data.telefono}</a></td></tr>
+        <tr><td style="padding: 8px 0; border-bottom: 1px solid #eee; color: #64748b;">Dirección:</td><td style="padding: 8px 0; border-bottom: 1px solid #eee;">${data.direccion}</td></tr>
+        <tr><td style="padding: 8px 0; border-bottom: 1px solid #eee; color: #64748b;">Municipio:</td><td style="padding: 8px 0; border-bottom: 1px solid #eee;">${data.municipio}</td></tr>
+        <tr><td style="padding: 8px 0; border-bottom: 1px solid #eee; color: #64748b;">Tipo:</td><td style="padding: 8px 0; border-bottom: 1px solid #eee;">${data.tipo_inscripcion}</td></tr>
+        ${data.referido_por ? `<tr><td style="padding: 8px 0; border-bottom: 1px solid #eee; color: #64748b;">Referido por:</td><td style="padding: 8px 0; border-bottom: 1px solid #eee; color: #16a34a; font-weight: bold;">${data.referido_por}</td></tr>` : ""}
+      </table>
+      
+      <h2 style="color: #1e293b; margin-top: 25px;">📎 Justificante de Pago</h2>
+      <div style="background: #f8fafc; border-radius: 8px; padding: 15px; text-align: center;">
+        <img src="${justificanteBase64}" alt="Justificante de pago" style="max-width: 100%; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+        <p style="margin: 10px 0 0 0; font-size: 12px; color: #64748b;">Archivo: ${data.justificante_nombre || "justificante"}</p>
+      </div>
+    </div>
+    <div style="background: #f8fafc; padding: 15px; text-align: center; color: #64748b; font-size: 12px;">
+      <p style="margin: 0;">Accede al panel de administración para gestionar esta solicitud.</p>
+    </div>
+  </div>
+</body>
+</html>`;
+    }
+
     await base44.asServiceRole.integrations.Core.SendEmail({
       to: "cdbustarviejo@gmail.com",
       subject: `🎉 Nueva solicitud de socio (EXTERNO): ${data.nombre_completo}`,
-      body: `Se ha recibido una nueva solicitud de socio desde la landing page externa:\n\nNombre: ${data.nombre_completo}\nDNI: ${data.dni}\nEmail: ${data.email}\nTeléfono: ${data.telefono}\nDirección: ${data.direccion}\nMunicipio: ${data.municipio}\nMétodo de pago: Transferencia\nTipo: ${data.tipo_inscripcion}\nEs segundo progenitor: ${data.es_segundo_progenitor ? "Sí" : "No"}${data.referido_por ? `\nReferido por: ${data.referido_por}` : ""}\n\n📎 JUSTIFICANTE DE PAGO:\n${data.justificante_url ? data.justificante_url : "⚠️ No se adjuntó justificante"}\n\nAccede al panel de administración para gestionar.`
+      body: adminEmailHtml || adminEmailBody
     });
 
     // Si tiene referido, procesar el programa de referidos
