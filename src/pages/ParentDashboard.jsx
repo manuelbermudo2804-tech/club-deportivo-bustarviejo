@@ -116,8 +116,11 @@ export default function ParentDashboard() {
   const { data: allDocuments = [] } = useQuery({
     queryKey: ['documents'],
     queryFn: () => base44.entities.Document.list('-created_date'),
-    staleTime: 0,
-    refetchOnWindowFocus: true,
+    staleTime: 300000, // 5 minutos
+    gcTime: 600000,
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
+    refetchInterval: false,
     enabled: !!user,
   });
 
