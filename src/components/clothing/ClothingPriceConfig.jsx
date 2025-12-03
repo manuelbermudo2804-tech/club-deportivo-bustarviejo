@@ -41,16 +41,23 @@ export default function ClothingPriceConfig({ seasonConfig, onUpdate }) {
   const products = seasonConfig?.productos_ropa || DEFAULT_PRODUCTS;
 
   const updateConfigMutation = useMutation({
-    mutationFn: ({ id, data }) => base44.entities.SeasonConfig.update(id, data),
+    mutationFn: async ({ id, data }) => {
+      console.log("Guardando en SeasonConfig:", { id, data });
+      const result = await base44.entities.SeasonConfig.update(id, data);
+      console.log("Resultado:", result);
+      return result;
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['seasonConfig'] });
       toast.success("✅ Configuración actualizada");
       setShowEditDialog(false);
       setShowAddDialog(false);
-      onUpdate?.();
+      setEditingProduct(null);
+      if (onUpdate) onUpdate();
     },
     onError: (error) => {
-      toast.error("Error: " + error.message);
+      console.error("Error guardando:", error);
+      toast.error("Error al guardar: " + error.message);
     }
   });
 
@@ -64,15 +71,26 @@ export default function ClothingPriceConfig({ seasonConfig, onUpdate }) {
   };
 
   const handleSaveProduct = () => {
-    if (!editingProduct || !seasonConfig) return;
+    if (!editingProduct || !seasonConfig) {
+      toast.error("No hay producto o temporada para guardar");
+      return;
+    }
+    
+    console.log("Guardando producto editado:", editingProduct);
+    console.log("Productos actuales:", products);
     
     const updatedProducts = products.map(p => 
-      p.id === editingProduct.id ? editingProduct : p
+      p.id === editingProduct.id ? { ...editingProduct } : p
     );
+    
+    console.log("Productos actualizados:", updatedProducts);
     
     updateConfigMutation.mutate({
       id: seasonConfig.id,
-      data: { productos_ropa: updatedProducts }
+      data: { 
+        ...seasonConfig,
+        productos_ropa: updatedProducts 
+      }
     });
   };
 
