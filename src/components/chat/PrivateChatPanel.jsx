@@ -179,12 +179,12 @@ export default function PrivateChatPanel({
                         </div>
                       )}
                       
-                      <div className="flex items-center justify-end gap-1 mt-1">
-                        <span className={`text-[10px] ${isMyMessage ? 'text-blue-100' : 'text-slate-500'}`}>
+                      <div className="flex items-center justify-end gap-1 mt-2">
+                        <span className={`text-xs ${isMyMessage ? 'text-blue-200' : 'text-slate-400'}`}>
                           {format(new Date(msg.created_date), "HH:mm")}
                         </span>
                         {isMyMessage && msg.leido && (
-                          <span className="text-[10px] text-blue-100">✓✓</span>
+                          <span className="text-xs text-blue-200">✓✓</span>
                         )}
                       </div>
                     </div>
