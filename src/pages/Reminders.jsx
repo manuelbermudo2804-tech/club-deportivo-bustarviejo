@@ -276,7 +276,7 @@ Gracias por su atención.
     toast.success("📄 Reporte exportado correctamente");
   };
 
-  // Corregir cantidades de pagos existentes
+  // Corregir cantidades de pagos existentes usando CategoryConfig
   const fixPaymentAmounts = async () => {
     setIsGenerating(true);
     
@@ -284,11 +284,51 @@ Gracias por su atención.
       const currentSeason = getCurrentSeason();
       let updated = 0;
       
+      // Cargar CategoryConfig una sola vez
+      const categoryConfigs = await base44.entities.CategoryConfig.list();
+      
+      // Mapeo de nombres de deporte a nombres de categoría en CategoryConfig
+      const CATEGORY_NAME_MAPPING = {
+        "Fútbol Aficionado": "AFICIONADO",
+        "Fútbol Juvenil": "JUVENIL",
+        "Fútbol Cadete": "CADETE",
+        "Fútbol Infantil (Mixto)": "INFANTIL",
+        "Fútbol Alevín (Mixto)": "ALEVIN",
+        "Fútbol Benjamín (Mixto)": "BENJAMIN",
+        "Fútbol Pre-Benjamín (Mixto)": "PRE-BENJAMIN",
+        "Fútbol Femenino": "FEMENINO",
+        "Baloncesto (Mixto)": "BALONCESTO"
+      };
+      
       for (const payment of payments) {
         if (payment.temporada === currentSeason && payment.estado !== "Pagado") {
           const player = players.find(p => p.id === payment.jugador_id);
           if (player) {
-            const correctAmount = getImportePorCategoriaYMes(player.deporte, payment.mes);
+            // Buscar en CategoryConfig usando el mapeo
+            const mappedName = CATEGORY_NAME_MAPPING[player.deporte] || player.deporte;
+            const categoryConfig = categoryConfigs.find(c => 
+              (c.nombre === player.deporte || c.nombre === mappedName) && c.activa
+            );
+            
+            let correctAmount = 0;
+            
+            if (categoryConfig) {
+              // Usar precios de CategoryConfig
+              switch(payment.mes) {
+                case "Junio":
+                  correctAmount = categoryConfig.cuota_inscripcion;
+                  break;
+                case "Septiembre":
+                  correctAmount = categoryConfig.cuota_segunda;
+                  break;
+                case "Diciembre":
+                  correctAmount = categoryConfig.cuota_tercera;
+                  break;
+              }
+            } else {
+              // Fallback a la función síncrona
+              correctAmount = getImportePorMes(player.deporte, payment.mes);
+            }
             
             if (correctAmount > 0 && payment.cantidad !== correctAmount) {
               await base44.entities.Payment.update(payment.id, {
@@ -296,6 +336,7 @@ Gracias por su atención.
                 cantidad: correctAmount
               });
               updated++;
+              console.log(`Actualizado pago de ${player.nombre} (${payment.mes}): ${payment.cantidad}€ → ${correctAmount}€`);
             }
           }
         }
@@ -305,9 +346,9 @@ Gracias por su atención.
       await queryClient.invalidateQueries({ queryKey: ['reminders'] });
       
       if (updated > 0) {
-        toast.success(`✅ ${updated} cantidades corregidas`);
+        toast.success(`✅ ${updated} cantidades actualizadas con los nuevos precios`);
       } else {
-        toast.info("✓ Todas las cantidades ya son correctas");
+        toast.info("✓ Todas las cantidades ya coinciden con CategoryConfig");
       }
     } catch (error) {
       console.error("Error fixing amounts:", error);
@@ -317,7 +358,7 @@ Gracias por su atención.
     setIsGenerating(false);
   };
 
-  // Generar pagos para la temporada
+  // Generar pagos para la temporada usando CategoryConfig
   const generatePaymentsForSeason = async () => {
     setIsGenerating(true);
     
@@ -326,6 +367,22 @@ Gracias por su atención.
       const configs = await base44.entities.SeasonConfig.list();
       const activeConfig = configs.find(c => c.activa === true);
       const currentSeason = activeConfig?.temporada || getCurrentSeason();
+      
+      // Cargar CategoryConfig para obtener precios actualizados
+      const categoryConfigs = await base44.entities.CategoryConfig.list();
+      
+      // Mapeo de nombres de deporte a nombres de categoría en CategoryConfig
+      const CATEGORY_NAME_MAPPING = {
+        "Fútbol Aficionado": "AFICIONADO",
+        "Fútbol Juvenil": "JUVENIL",
+        "Fútbol Cadete": "CADETE",
+        "Fútbol Infantil (Mixto)": "INFANTIL",
+        "Fútbol Alevín (Mixto)": "ALEVIN",
+        "Fútbol Benjamín (Mixto)": "BENJAMIN",
+        "Fútbol Pre-Benjamín (Mixto)": "PRE-BENJAMIN",
+        "Fútbol Femenino": "FEMENINO",
+        "Baloncesto (Mixto)": "BALONCESTO"
+      };
       
       // SOLO jugadores ACTIVOS (los de temporada anterior están con activo=false)
       const activePlayers = players.filter(p => p.activo === true);
@@ -346,8 +403,31 @@ Gracias por su atención.
           );
           
           if (!existingPayment) {
-            // Obtener cantidad correcta según categoría y mes
-            const cantidad = getImportePorCategoriaYMes(player.deporte, mes);
+            // Buscar en CategoryConfig usando el mapeo
+            const mappedName = CATEGORY_NAME_MAPPING[player.deporte] || player.deporte;
+            const categoryConfig = categoryConfigs.find(c => 
+              (c.nombre === player.deporte || c.nombre === mappedName) && c.activa
+            );
+            
+            let cantidad = 0;
+            
+            if (categoryConfig) {
+              // Usar precios de CategoryConfig
+              switch(mes) {
+                case "Junio":
+                  cantidad = categoryConfig.cuota_inscripcion;
+                  break;
+                case "Septiembre":
+                  cantidad = categoryConfig.cuota_segunda;
+                  break;
+                case "Diciembre":
+                  cantidad = categoryConfig.cuota_tercera;
+                  break;
+              }
+            } else {
+              // Fallback a la función síncrona
+              cantidad = getImportePorMes(player.deporte, mes);
+            }
             
             if (cantidad > 0) {
               await base44.entities.Payment.create({
