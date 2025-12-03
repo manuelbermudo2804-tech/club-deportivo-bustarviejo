@@ -264,10 +264,12 @@ export default function PlayerForm({ player, onSubmit, onCancel, isSubmitting, i
     const selectedPlayer = allPlayers.find(p => p.id === playerId);
     if (selectedPlayer) {
       setSelectedPreviousPlayer(selectedPlayer);
+      // Al renovar, el jugador pasa a estar ACTIVO de nuevo para la nueva temporada
       setCurrentPlayer({
         ...selectedPlayer,
         tipo_inscripcion: "Renovación",
-        activo: true,
+        activo: true, // REACTIVAR para la nueva temporada
+        estado_renovacion: "renovado",
         acepta_politica_privacidad: selectedPlayer.acepta_politica_privacidad || false,
         autorizacion_fotografia: selectedPlayer.autorizacion_fotografia || ""
       });
@@ -437,7 +439,11 @@ export default function PlayerForm({ player, onSubmit, onCancel, isSubmitting, i
     onSubmit(currentPlayer);
   };
 
+  // JUGADORES DISPONIBLES PARA RENOVAR: Solo los INACTIVOS (de temporada anterior)
   const availablePlayersForRenewal = allPlayers.filter(p => {
+    // Solo mostrar jugadores INACTIVOS (marcados en reset) para renovar
+    if (p.activo === true) return false;
+    
     if (isParent && currentUser) {
       return p.email_padre === currentUser.email || p.email === currentUser.email;
     }
