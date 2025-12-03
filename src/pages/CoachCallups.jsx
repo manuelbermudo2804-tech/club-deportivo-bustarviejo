@@ -39,6 +39,15 @@ export default function CoachCallups() {
   const formRef = React.useRef(null);
 
   const queryClient = useQueryClient();
+  
+  // Scroll al formulario cuando se muestra
+  useEffect(() => {
+    if (showForm && formRef.current) {
+      setTimeout(() => {
+        formRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 100);
+    }
+  }, [showForm]);
 
   useEffect(() => {
     const fetchUser = async () => {
