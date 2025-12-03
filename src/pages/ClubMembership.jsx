@@ -363,10 +363,15 @@ export default function ClubMembership() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['myMemberships'] });
       queryClient.invalidateQueries({ queryKey: ['allMemberships'] });
+      queryClient.invalidateQueries({ queryKey: ['allUsers'] }); // Para actualizar referidos
       
       // Guardar nombre y mostrar mensaje de éxito
       setLastRegisteredName(formData.nombre_completo);
       setShowSuccess(true);
+      
+      // Cerrar el formulario y volver arriba
+      setShowForm(false);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
       
       // Limpiar formulario para nuevo registro
       setFormData({
