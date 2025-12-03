@@ -731,7 +731,7 @@ export default function Layout({ children, currentPageName }) {
                 }, [isPublicPage]);
 
           useEffect(() => {
-            if (!user) return;
+            if (!user || isLoading) return;
 
             const isRootPath = location.pathname === '/' || location.pathname === '';
             if (!isRootPath) return;
@@ -746,7 +746,7 @@ export default function Layout({ children, currentPageName }) {
             } else {
               navigate(createPageUrl('ParentDashboard'), { replace: true });
             }
-          }, [user, isAdmin, isCoach, isCoordinator, isTreasurer, isPlayer, location.pathname, navigate]);
+          }, [user, isLoading, isAdmin, isCoach, isCoordinator, isTreasurer, isPlayer, location.pathname, navigate]);
 
   useEffect(() => {
     if (!user) return;
