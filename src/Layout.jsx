@@ -859,13 +859,34 @@ export default function Layout({ children, currentPageName }) {
         }
         
         setPendingCallupsCount(pending);
+        
+        // Contar respuestas pendientes para entrenadores/coordinadores
+        if (isAdmin || isCoach || isCoordinator) {
+          let coachPending = 0;
+          const coachCategories = user.categorias_entrena || [];
+          
+          allCallups.forEach(callup => {
+            if (callup.publicada && callup.fecha_partido >= today && !callup.cerrada) {
+              // Solo contar convocatorias de las categorías del entrenador
+              const isMyCategory = isAdmin || coachCategories.includes(callup.categoria);
+              if (isMyCategory) {
+                callup.jugadores_convocados?.forEach(jugador => {
+                  if (jugador.confirmacion === "pendiente") {
+                    coachPending++;
+                  }
+                });
+              }
+            }
+          });
+          setPendingCallupResponses(coachPending);
+        }
         } catch (error) {
         console.error("Error checking pending callups:", error);
         }
         };
 
         checkPendingCallups();
-        }, [user, isAdmin, isCoach, hasPlayers]);
+        }, [user, isAdmin, isCoach, isCoordinator, hasPlayers]);
 
     useEffect(() => {
       if (!user || isAdmin) return;
