@@ -56,10 +56,16 @@ export default function ClothingPriceConfig({ seasonConfig, onUpdate }) {
       console.log("Resultado:", result);
       return result;
     },
-    onSuccess: async (result) => {
-      // Actualizar estado local inmediatamente con los productos guardados
-      if (result?.productos_ropa) {
-        setLocalProducts(result.productos_ropa);
+    onSuccess: async (result, variables) => {
+      console.log("=== ÉXITO AL GUARDAR ===");
+      console.log("Resultado de la API:", result);
+      console.log("Variables enviadas:", variables);
+      console.log("productos_ropa en resultado:", result?.productos_ropa);
+      
+      // Actualizar estado local inmediatamente con los productos que enviamos
+      if (variables?.data?.productos_ropa) {
+        console.log("Actualizando localProducts con:", variables.data.productos_ropa);
+        setLocalProducts([...variables.data.productos_ropa]);
       }
       // Invalidar todas las queries relacionadas
       await queryClient.invalidateQueries({ queryKey: ['seasonConfig'] });
