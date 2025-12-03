@@ -11,7 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { Loader2, Upload, AlertCircle, CheckCircle2, Users, CreditCard, Download, Heart, Star, PartyPopper, Sparkles, UserPlus, Trophy, Gift, CreditCard as CardIcon, Share2, MessageCircle } from "lucide-react";
 import { sendMemberCard } from "../components/members/MemberCardEmail";
 import ReferralProgramCard from "../components/referrals/ReferralProgramCard";
-import { CombinedSuccessAnimation } from "../components/animations/SuccessAnimation";
+import { CheckmarkAnimation } from "../components/animations/SuccessAnimation";
 import { toast } from "sonner";
 
 const CUOTA_SOCIO = 25;
@@ -359,11 +359,15 @@ export default function ClubMembership() {
       
       // Guardar nombre y mostrar mensaje de éxito
       setLastRegisteredName(formData.nombre_completo);
-      setShowSuccess(true);
       
-      // Cerrar el formulario y volver arriba
+      // Cerrar el formulario y volver arriba PRIMERO
       setShowForm(false);
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      window.scrollTo({ top: 0, behavior: 'instant' });
+      
+      // Mostrar animación de éxito DESPUÉS de volver arriba
+      setTimeout(() => {
+        setShowSuccess(true);
+      }, 100);
       
       // Limpiar formulario para nuevo registro
       setFormData({
@@ -386,10 +390,10 @@ export default function ClubMembership() {
         setRenewalMember(null);
       }
       
-      // Ocultar mensaje de éxito después de 4 segundos
+      // Ocultar mensaje de éxito después de 5 segundos
       setTimeout(() => {
         setShowSuccess(false);
-      }, 4000);
+      }, 5000);
     },
     onError: (error) => {
       toast.error("Error al enviar solicitud: " + error.message);
@@ -438,11 +442,10 @@ export default function ClubMembership() {
 
   return (
     <>
-      <CombinedSuccessAnimation 
+      <CheckmarkAnimation 
         show={showSuccess} 
         onComplete={() => setShowSuccess(false)}
-        message={isRenewal ? `¡Renovación completada, ${lastRegisteredName}!` : `¡Bienvenido/a al club, ${lastRegisteredName}!`}
-        withConfetti={true}
+        message={isRenewal ? `¡Renovación completada, ${lastRegisteredName}!` : `¡Bienvenido/a, ${lastRegisteredName}!`}
       />
       <div className="p-4 lg:p-6 max-w-4xl mx-auto space-y-6">
       {/* Header festivo */}
