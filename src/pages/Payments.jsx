@@ -101,6 +101,43 @@ export default function Payments() {
       return configs.find(c => c.activa === true);
     },
   });
+
+  // Fetch CategoryConfig para precios actualizados
+  const { data: categoryConfigs = [] } = useQuery({
+    queryKey: ['categoryConfigs'],
+    queryFn: () => base44.entities.CategoryConfig.list(),
+  });
+
+  // Funciones que usan CategoryConfig
+  const getCuotasPorCategoriaSync = (categoria) => {
+    if (categoryConfigs.length === 0) {
+      return CUOTAS_FALLBACK[categoria] || { inscripcion: 0, segunda: 0, tercera: 0, total: 0 };
+    }
+    
+    const mappedName = CATEGORY_NAME_MAPPING[categoria] || categoria;
+    const config = categoryConfigs.find(c => 
+      (c.nombre === categoria || c.nombre === mappedName) && c.activa
+    );
+    
+    if (config) {
+      return {
+        inscripcion: config.cuota_inscripcion,
+        segunda: config.cuota_segunda,
+        tercera: config.cuota_tercera,
+        total: config.cuota_total
+      };
+    }
+    
+    return CUOTAS_FALLBACK[categoria] || { inscripcion: 0, segunda: 0, tercera: 0, total: 0 };
+  };
+
+  const getImportePorMes = (categoria, mes) => {
+    const cuotas = getCuotasPorCategoriaSync(categoria);
+    if (mes === "Junio") return cuotas.inscripcion;
+    if (mes === "Septiembre") return cuotas.segunda;
+    if (mes === "Diciembre") return cuotas.tercera;
+    return 0;
+  };
   
   // Filtros avanzados - iniciar con temporada activa del SeasonConfig
   const [temporadaFilter, setTemporadaFilter] = useState(activeSeasonConfig?.temporada || "2025/2026");
