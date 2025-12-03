@@ -157,12 +157,12 @@ export default function Home() {
     refetchOnWindowFocus: false,
     refetchOnMount: false,
     refetchInterval: false,
-    enabled: !!user && ((isCoach || isCoordinator) && hasPlayers || isAdmin),
+    enabled: !!user && (isCoach || isCoordinator) && hasPlayers,
   });
 
   const { data: surveyResponses } = useQuery({
     queryKey: ['surveyResponses'],
-    queryFn: () => base44.entities.SurveyResponse.list('-created_date'),
+    queryFn: () => base44.entities.SurveyResponse.list(),
     initialData: [],
     staleTime: 300000,
     gcTime: 600000,
@@ -172,43 +172,58 @@ export default function Home() {
     enabled: !!user && ((isCoach || isCoordinator) && hasPlayers || isAdmin),
   });
 
-  // Eventos con RSVP para admin
-  const { data: events = [] } = useQuery({
+  // Encuestas para admin (ver todas las respuestas nuevas)
+  const { data: allSurveys } = useQuery({
+    queryKey: ['allSurveys'],
+    queryFn: () => base44.entities.Survey.list('-created_date'),
+    initialData: [],
+    staleTime: 60000, // 1 minuto para ver cambios recientes
+    gcTime: 300000,
+    refetchOnWindowFocus: true,
+    enabled: !!user && isAdmin,
+  });
+
+  // Eventos para admin (ver confirmaciones recientes)
+  const { data: events } = useQuery({
     queryKey: ['eventsHome'],
     queryFn: () => base44.entities.Event.list('-fecha'),
-    staleTime: 300000,
-    gcTime: 600000,
-    refetchOnWindowFocus: false,
+    initialData: [],
+    staleTime: 60000, // 1 minuto para ver cambios recientes
+    gcTime: 300000,
+    refetchOnWindowFocus: true,
     enabled: !!user && isAdmin,
   });
 
   // Pedidos de ropa para admin
-  const { data: clothingOrders = [] } = useQuery({
+  const { data: clothingOrders } = useQuery({
     queryKey: ['clothingOrdersHome'],
     queryFn: () => base44.entities.ClothingOrder.list('-created_date'),
-    staleTime: 300000,
-    gcTime: 600000,
-    refetchOnWindowFocus: false,
+    initialData: [],
+    staleTime: 60000,
+    gcTime: 300000,
+    refetchOnWindowFocus: true,
     enabled: !!user && isAdmin,
   });
 
-  // Socios pendientes para admin
-  const { data: clubMembers = [] } = useQuery({
+  // Solicitudes de socios para admin
+  const { data: clubMembers } = useQuery({
     queryKey: ['clubMembersHome'],
     queryFn: () => base44.entities.ClubMember.list('-created_date'),
-    staleTime: 300000,
-    gcTime: 600000,
-    refetchOnWindowFocus: false,
+    initialData: [],
+    staleTime: 60000,
+    gcTime: 300000,
+    refetchOnWindowFocus: true,
     enabled: !!user && isAdmin,
   });
 
-  // Lotería para admin
-  const { data: lotteryOrders = [] } = useQuery({
+  // Pedidos de lotería para admin
+  const { data: lotteryOrders } = useQuery({
     queryKey: ['lotteryOrdersHome'],
     queryFn: () => base44.entities.LotteryOrder.list('-created_date'),
-    staleTime: 300000,
-    gcTime: 600000,
-    refetchOnWindowFocus: false,
+    initialData: [],
+    staleTime: 60000,
+    gcTime: 300000,
+    refetchOnWindowFocus: true,
     enabled: !!user && isAdmin && loteriaVisible,
   });
 
@@ -223,63 +238,6 @@ export default function Home() {
   });
 
   const pendingInvitationRequests = invitationRequests.filter(r => r.estado === "pendiente").length;
-
-  // Calcular estadísticas adicionales para admin
-  const adminActivityStats = useMemo(() => {
-    if (!isAdmin) return {};
-
-    const today = new Date().toISOString().split('T')[0];
-    const last24h = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
-
-    // Respuestas a encuestas recientes (últimas 24h)
-    const recentSurveyResponses = surveyResponses?.filter(r => 
-      r.created_date && r.created_date >= last24h
-    ).length || 0;
-
-    // Eventos con confirmaciones recientes
-    const eventsWithRecentRSVP = events?.filter(e => {
-      if (!e.requiere_confirmacion || e.fecha < today) return false;
-      return e.confirmaciones?.some(c => c.fecha_confirmacion && c.fecha_confirmacion >= last24h);
-    }).length || 0;
-
-    // Total confirmaciones pendientes en eventos activos
-    const pendingEventRSVP = events?.filter(e => e.requiere_confirmacion && e.fecha >= today)
-      .reduce((total, e) => {
-        const pending = e.confirmaciones?.filter(c => c.confirmacion === "pendiente").length || 0;
-        return total + pending;
-      }, 0) || 0;
-
-    // Pedidos de ropa pendientes/en revisión
-    const pendingClothingOrders = clothingOrders?.filter(o => 
-      o.estado === "Pendiente" || o.estado === "En revisión"
-    ).length || 0;
-
-    // Socios pendientes de verificar
-    const pendingMemberPayments = clubMembers?.filter(m => 
-      m.estado_pago === "En revisión"
-    ).length || 0;
-
-    // Lotería pendiente
-    const pendingLotteryOrders = lotteryOrders?.filter(o => 
-      o.estado === "Pendiente" || o.estado === "En revisión"
-    ).length || 0;
-
-    // Convocatorias con confirmaciones pendientes
-    const callupsWithPending = callups?.filter(c => {
-      if (!c.publicada || c.cerrada || c.fecha_partido < today) return false;
-      return c.jugadores_convocados?.some(j => j.confirmacion === "pendiente");
-    }).length || 0;
-
-    return {
-      recentSurveyResponses,
-      eventsWithRecentRSVP,
-      pendingEventRSVP,
-      pendingClothingOrders,
-      pendingMemberPayments,
-      pendingLotteryOrders,
-      callupsWithPending
-    };
-  }, [isAdmin, surveyResponses, events, clothingOrders, clubMembers, lotteryOrders, callups]);
 
   const myPlayers = useMemo(() => {
     if (!user || !isCoach || !hasPlayers || !players) return [];
@@ -398,8 +356,48 @@ export default function Home() {
       });
     }
 
-    return { activePlayers, pendingPayments, reviewPayments, paidPayments, unreadMessages, pendingCallups, pendingSignatures, adminPendingSignatures, pendingPlayerAccess };
-  }, [players, payments, messages, callups, user, hasPlayers, isAdmin, allUsers]);
+    // Stats adicionales para admin
+    let pendingClothingOrders = 0;
+    let pendingLotteryOrders = 0;
+    let pendingMemberRequests = 0;
+    let recentSurveyResponses = 0;
+    let pendingEventConfirmations = 0;
+
+    if (isAdmin) {
+      // Pedidos de ropa en revisión
+      pendingClothingOrders = clothingOrders?.filter(o => o.estado === "En revisión" || o.estado === "Pendiente").length || 0;
+      
+      // Pedidos de lotería pendientes
+      pendingLotteryOrders = lotteryOrders?.filter(o => o.estado === "Pendiente" || o.estado === "En revisión").length || 0;
+      
+      // Solicitudes de socios pendientes
+      pendingMemberRequests = clubMembers?.filter(m => m.estado_pago === "En revisión").length || 0;
+      
+      // Respuestas de encuestas en las últimas 24 horas
+      const yesterday = new Date();
+      yesterday.setDate(yesterday.getDate() - 1);
+      recentSurveyResponses = surveyResponses?.filter(r => new Date(r.created_date) > yesterday).length || 0;
+      
+      // Eventos próximos con confirmaciones pendientes
+      const today = new Date().toISOString().split('T')[0];
+      events?.filter(e => e.requiere_confirmacion && e.publicado && e.fecha >= today).forEach(event => {
+        const totalConfirmaciones = event.confirmaciones?.length || 0;
+        // Si tiene menos de 5 confirmaciones y es un evento reciente, mostrarlo
+        if (totalConfirmaciones > 0) {
+          // Contar confirmaciones en las últimas 24h
+          const recentConfirm = event.confirmaciones?.filter(c => new Date(c.fecha_confirmacion) > yesterday).length || 0;
+          pendingEventConfirmations += recentConfirm;
+        }
+      });
+    }
+
+    return { 
+      activePlayers, pendingPayments, reviewPayments, paidPayments, unreadMessages, 
+      pendingCallups, pendingSignatures, adminPendingSignatures, pendingPlayerAccess,
+      pendingClothingOrders, pendingLotteryOrders, pendingMemberRequests, 
+      recentSurveyResponses, pendingEventConfirmations
+    };
+  }, [players, payments, messages, callups, user, hasPlayers, isAdmin, allUsers, clothingOrders, lotteryOrders, clubMembers, surveyResponses, events]);
 
   const handleMatchAppClick = useMemo(() => () => {
     const userAgent = navigator.userAgent || navigator.vendor || window.opera;
@@ -1043,7 +1041,7 @@ export default function Home() {
         {isAdmin && <DuplicatePlayersAlert />}
 
         {/* Banner de Tareas Pendientes del Club para Admin */}
-        {isAdmin && (stats.reviewPayments > 0 || stats.adminPendingSignatures > 0 || stats.unreadMessages > 0 || stats.pendingPlayerAccess > 0 || (pendingInvitationRequests || 0) > 0) && (
+        {isAdmin && (stats.reviewPayments > 0 || stats.adminPendingSignatures > 0 || stats.unreadMessages > 0 || stats.pendingPlayerAccess > 0 || (pendingInvitationRequests || 0) > 0 || stats.pendingClothingOrders > 0 || stats.pendingMemberRequests > 0 || stats.pendingLotteryOrders > 0 || stats.recentSurveyResponses > 0 || stats.pendingEventConfirmations > 0) && (
           <div className="bg-gradient-to-r from-red-600 to-orange-600 rounded-2xl p-3 lg:p-4 shadow-xl border-2 border-red-500">
             <div className="flex items-start gap-2 lg:gap-3">
               <Bell className="w-5 h-5 lg:w-6 lg:h-6 text-white flex-shrink-0 mt-0.5 animate-bounce" />
@@ -1073,6 +1071,41 @@ export default function Home() {
                       </span>
                     </Link>
                   )}
+                  {stats.pendingClothingOrders > 0 && (
+                    <Link to={createPageUrl("ClothingOrders")}>
+                      <span className="inline-flex items-center gap-1 bg-teal-500 text-white text-xs px-2 py-1 rounded-full font-semibold hover:bg-teal-600 transition-colors">
+                        🛍️ {stats.pendingClothingOrders} pedidos ropa
+                      </span>
+                    </Link>
+                  )}
+                  {stats.pendingMemberRequests > 0 && (
+                    <Link to={createPageUrl("ClubMembersManagement")}>
+                      <span className="inline-flex items-center gap-1 bg-pink-500 text-white text-xs px-2 py-1 rounded-full font-semibold hover:bg-pink-600 transition-colors">
+                        🎫 {stats.pendingMemberRequests} solicitudes socio
+                      </span>
+                    </Link>
+                  )}
+                  {stats.pendingLotteryOrders > 0 && (
+                    <Link to={createPageUrl("LotteryManagement")}>
+                      <span className="inline-flex items-center gap-1 bg-green-600 text-white text-xs px-2 py-1 rounded-full font-semibold hover:bg-green-700 transition-colors">
+                        🍀 {stats.pendingLotteryOrders} pedidos lotería
+                      </span>
+                    </Link>
+                  )}
+                  {stats.recentSurveyResponses > 0 && (
+                    <Link to={createPageUrl("Surveys")}>
+                      <span className="inline-flex items-center gap-1 bg-purple-500 text-white text-xs px-2 py-1 rounded-full font-semibold hover:bg-purple-600 transition-colors animate-pulse">
+                        📋 {stats.recentSurveyResponses} respuestas encuesta (24h)
+                      </span>
+                    </Link>
+                  )}
+                  {stats.pendingEventConfirmations > 0 && (
+                    <Link to={createPageUrl("EventManagement")}>
+                      <span className="inline-flex items-center gap-1 bg-indigo-500 text-white text-xs px-2 py-1 rounded-full font-semibold hover:bg-indigo-600 transition-colors animate-pulse">
+                        🎉 {stats.pendingEventConfirmations} confirmaciones evento (24h)
+                      </span>
+                    </Link>
+                  )}
                   {stats.pendingPlayerAccess > 0 && (
                     <Link to={createPageUrl("UserManagement")}>
                       <span className="inline-flex items-center gap-1 bg-purple-500 text-white text-xs px-2 py-1 rounded-full font-semibold hover:bg-purple-600 transition-colors">
@@ -1083,7 +1116,7 @@ export default function Home() {
                   {(pendingInvitationRequests || 0) > 0 && (
                     <Link to={createPageUrl("EmailInvitations")}>
                       <span className="inline-flex items-center gap-1 bg-cyan-500 text-white text-xs px-2 py-1 rounded-full font-semibold hover:bg-cyan-600 transition-colors animate-pulse">
-                        📧 {pendingInvitationRequests} {pendingInvitationRequests === 1 ? 'invitación solicitada' : 'invitaciones solicitadas'}
+                        📧 {pendingInvitationRequests} invitaciones solicitadas
                       </span>
                     </Link>
                   )}
