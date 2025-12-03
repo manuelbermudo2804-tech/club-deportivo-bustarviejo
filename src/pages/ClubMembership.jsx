@@ -693,8 +693,9 @@ export default function ClubMembership() {
                 </div>
               </div>
 
-              {/* Campo de quién te invitó */}
-              {seasonConfig?.programa_referidos_activo && (
+              {/* Campo de quién te invitó - SOLO para usuarios externos (sin login o sin hijos) */}
+              {/* Si el usuario está logueado y tiene hijos, el referido se asocia automáticamente a él */}
+              {seasonConfig?.programa_referidos_activo && isExternalUser && (
                 <div className={`p-4 rounded-xl border-2 ${invitadoPor ? 'bg-gradient-to-r from-green-50 to-green-100 border-green-300' : 'bg-gradient-to-r from-purple-50 to-pink-50 border-purple-200'}`}>
                   <div className="flex items-start gap-3">
                     <Gift className={`w-6 h-6 mt-1 flex-shrink-0 ${invitadoPor ? 'text-green-600' : 'text-purple-600'}`} />
@@ -728,6 +729,23 @@ export default function ClubMembership() {
                           />
                         </>
                       )}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Mensaje informativo para padres con hijos - el socio se asocia a ellos automáticamente */}
+              {seasonConfig?.programa_referidos_activo && !isExternalUser && (
+                <div className="p-4 rounded-xl border-2 bg-gradient-to-r from-green-50 to-green-100 border-green-300">
+                  <div className="flex items-start gap-3">
+                    <Gift className="w-6 h-6 mt-1 flex-shrink-0 text-green-600" />
+                    <div className="flex-1">
+                      <Label className="font-semibold text-green-900 flex items-center gap-2">
+                        🎁 ¡Este socio se sumará a tu programa de referidos!
+                      </Label>
+                      <p className="text-xs text-green-700 mt-1">
+                        Al registrar este nuevo socio desde tu panel, recibirás automáticamente tu crédito en ropa y participaciones en sorteos 🎉
+                      </p>
                     </div>
                   </div>
                 </div>
