@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { base44 } from "@/api/base44Client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -19,7 +20,7 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
-import { Plus, Edit2, Trash2, TrendingUp, TrendingDown, AlertTriangle, Sparkles } from "lucide-react";
+import { Plus, Edit2, Trash2, TrendingUp, TrendingDown, AlertTriangle, Sparkles, Upload, FileText, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
 import AIBudgetAssistant from "./AIBudgetAssistant";
