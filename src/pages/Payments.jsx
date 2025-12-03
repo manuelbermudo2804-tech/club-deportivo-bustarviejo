@@ -19,7 +19,6 @@ import ContactCard from "../components/ContactCard";
 import ParentPaymentForm from "../components/payments/ParentPaymentForm";
 import BankReconciliation from "../components/payments/BankReconciliation";
 import ExportButton from "../components/ExportButton";
-import { getCuotasPorCategoriaSync, getImportePorCategoriaYMesSync as getImportePorMes } from "../components/payments/paymentAmounts";
 
 const getCurrentSeason = () => {
   const now = new Date();
