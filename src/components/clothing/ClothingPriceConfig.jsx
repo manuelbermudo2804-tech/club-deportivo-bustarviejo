@@ -283,14 +283,11 @@ export default function ClothingPriceConfig({ seasonConfig, onUpdate }) {
             ))}
             
             {products.length === 0 && (
-              <div className="text-center py-8 text-slate-500">
-                <Package className="w-12 h-12 mx-auto mb-3 opacity-30" />
-                <p>No hay productos configurados</p>
-                <Button onClick={initializeProducts} variant="link" className="text-orange-600 mt-2">
-                  Cargar catálogo por defecto
-                </Button>
-              </div>
-            )}
+                  <div className="text-center py-8 text-slate-500">
+                    <Package className="w-12 h-12 mx-auto mb-3 opacity-30" />
+                    <p>No hay productos configurados</p>
+                  </div>
+                )}
           </div>
         </CardContent>
       </Card>
