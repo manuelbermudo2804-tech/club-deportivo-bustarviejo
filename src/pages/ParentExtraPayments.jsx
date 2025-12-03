@@ -4,30 +4,43 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
 import { 
-  Euro, Bus, Ticket, Trophy, Package, Calendar, CheckCircle2, 
-  Clock, AlertCircle, Upload, Loader2, FileText
+  Euro, Calendar, Clock, Users, CheckCircle2, AlertCircle, 
+  Upload, Loader2, Bus, MapPin, Ticket, Package, Trophy, HelpCircle
 } from "lucide-react";
-import { toast } from "sonner";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
-import ContactCard from "../components/ContactCard";
+import { toast } from "sonner";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
-const tipoEmojis = {
-  "Autobús": "🚌",
-  "Excursión": "🏕️",
-  "Entrada": "🎫",
-  "Torneo": "🏆",
-  "Material": "📦",
-  "Equipación Extra": "👕",
-  "Otro": "📋"
+const TIPO_ICONS = {
+  "Autobús": Bus,
+  "Excursión": MapPin,
+  "Entrada": Ticket,
+  "Material": Package,
+  "Torneo": Trophy,
+  "Equipación Extra": Package,
+  "Otro": HelpCircle
 };
 
 export default function ParentExtraPayments() {
   const [user, setUser] = useState(null);
   const [selectedPayment, setSelectedPayment] = useState(null);
-  const [uploadingFor, setUploadingFor] = useState(null);
+  const [showPayDialog, setShowPayDialog] = useState(false);
+  const [selectedPlayer, setSelectedPlayer] = useState(null);
+  const [justificante, setJustificante] = useState(null);
+  const [uploading, setUploading] = useState(false);
+  const [notas, setNotas] = useState("");
   const queryClient = useQueryClient();
 
   useEffect(() => {
@@ -38,14 +51,16 @@ export default function ParentExtraPayments() {
     fetchUser();
   }, []);
 
+  const { data: players = [] } = useQuery({
+    queryKey: ['players'],
+    queryFn: () => base44.entities.Player.list(),
+    enabled: !!user,
+  });
+
   const { data: extraPayments = [], isLoading } = useQuery({
     queryKey: ['extraPayments'],
     queryFn: () => base44.entities.ExtraPayment.list('-created_date'),
-  });
-
-  const { data: players = [] } = useQuery({
-    queryKey: ['allPlayers'],
-    queryFn: () => base44.entities.Player.list(),
+    enabled: !!user,
   });
 
   const { data: seasonConfig } = useQuery({
@@ -56,84 +71,138 @@ export default function ParentExtraPayments() {
     },
   });
 
-  const updateMutation = useMutation({
-    mutationFn: ({ id, data }) => base44.entities.ExtraPayment.update(id, data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['extraPayments'] });
-      setSelectedPayment(null);
-      toast.success("Justificante subido correctamente");
-    },
-  });
-
-  // Mis jugadores activos
   const myPlayers = user ? players.filter(p => 
-    (p.email_padre === user.email || p.email_tutor_2 === user.email) && p.activo
+    (p.email_padre === user.email || p.email_tutor_2 === user.email) && p.activo === true
   ) : [];
 
-  const myPlayerIds = myPlayers.map(p => p.id);
-
-  // Pagos extras que aplican a mis jugadores
-  const myExtraPayments = extraPayments.filter(ep => {
+  // Pagos extras activos que aplican a mis jugadores
+  const myActiveExtraPayments = extraPayments.filter(ep => {
     if (!ep.activo) return false;
-    // Verificar si tengo algún jugador en los pagos recibidos
-    return (ep.pagos_recibidos || []).some(pago => myPlayerIds.includes(pago.jugador_id));
+    
+    // Si tiene jugadores específicos, verificar si alguno de mis jugadores está incluido
+    if (ep.jugadores_especificos && ep.jugadores_especificos.length > 0) {
+      return myPlayers.some(p => 
+        ep.jugadores_especificos.some(je => je.jugador_id === p.id)
+      );
+    }
+    
+    // Si no tiene categorías específicas, aplica a todos
+    if (!ep.categorias_destino || ep.categorias_destino.length === 0) {
+      return myPlayers.length > 0;
+    }
+    
+    // Verificar si alguno de mis jugadores está en las categorías destino
+    return myPlayers.some(p => ep.categorias_destino.includes(p.deporte));
   });
 
-  // Obtener mis pagos dentro de un pago extra
-  const getMyPaymentsInExtra = (extraPayment) => {
-    return (extraPayment.pagos_recibidos || []).filter(pago => 
-      myPlayerIds.includes(pago.jugador_id)
-    );
-  };
+  const updatePaymentMutation = useMutation({
+    mutationFn: async ({ extraPaymentId, jugadorId, jugadorNombre, estado, justificanteUrl, notas }) => {
+      const ep = extraPayments.find(e => e.id === extraPaymentId);
+      if (!ep) throw new Error("Pago extra no encontrado");
 
-  // Subir justificante
-  const handleUploadJustificante = async (extraPaymentId, jugadorId, file) => {
-    setUploadingFor(`${extraPaymentId}-${jugadorId}`);
+      const pagosRecibidos = ep.pagos_recibidos || [];
+      const existingIndex = pagosRecibidos.findIndex(p => p.jugador_id === jugadorId);
+
+      const nuevoPago = {
+        jugador_id: jugadorId,
+        jugador_nombre: jugadorNombre,
+        email_padre: user.email,
+        estado: estado,
+        justificante_url: justificanteUrl,
+        fecha_pago: new Date().toISOString().split('T')[0],
+        notas: notas
+      };
+
+      if (existingIndex >= 0) {
+        pagosRecibidos[existingIndex] = { ...pagosRecibidos[existingIndex], ...nuevoPago };
+      } else {
+        pagosRecibidos.push(nuevoPago);
+      }
+
+      return await base44.entities.ExtraPayment.update(extraPaymentId, {
+        pagos_recibidos: pagosRecibidos
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['extraPayments'] });
+      toast.success("✅ Justificante enviado correctamente");
+      setShowPayDialog(false);
+      setSelectedPayment(null);
+      setSelectedPlayer(null);
+      setJustificante(null);
+      setNotas("");
+    },
+    onError: (error) => {
+      toast.error("Error: " + error.message);
+    }
+  });
+
+  const handleFileUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploading(true);
     try {
       const { file_url } = await base44.integrations.Core.UploadFile({ file });
-      
-      const extraPayment = extraPayments.find(ep => ep.id === extraPaymentId);
-      if (!extraPayment) return;
-
-      const updatedPagos = extraPayment.pagos_recibidos.map(pago => {
-        if (pago.jugador_id === jugadorId) {
-          return {
-            ...pago,
-            estado: "En revisión",
-            justificante_url: file_url,
-            fecha_pago: new Date().toISOString().split('T')[0]
-          };
-        }
-        return pago;
-      });
-
-      await updateMutation.mutateAsync({
-        id: extraPaymentId,
-        data: { ...extraPayment, pagos_recibidos: updatedPagos }
-      });
-
-      // Notificar al admin
-      try {
-        const jugador = myPlayers.find(p => p.id === jugadorId);
-        await base44.integrations.Core.SendEmail({
-          to: "cdbustarviejo@gmail.com",
-          subject: `💰 Justificante Pago Extra - ${extraPayment.titulo}`,
-          body: `
-            <h2>Nuevo justificante de pago extra</h2>
-            <p><strong>Concepto:</strong> ${extraPayment.titulo}</p>
-            <p><strong>Jugador:</strong> ${jugador?.nombre || "Desconocido"}</p>
-            <p><strong>Importe:</strong> ${extraPayment.importe}€</p>
-            <p><strong>Justificante:</strong> <a href="${file_url}">Ver justificante</a></p>
-          `
-        });
-      } catch (e) {
-        console.error("Error sending email:", e);
-      }
+      setJustificante(file_url);
+      toast.success("Archivo subido correctamente");
     } catch (error) {
-      toast.error("Error al subir el justificante");
+      toast.error("Error al subir archivo");
     } finally {
-      setUploadingFor(null);
+      setUploading(false);
     }
+  };
+
+  const handleSubmitPayment = () => {
+    if (!selectedPayment || !selectedPlayer) return;
+
+    updatePaymentMutation.mutate({
+      extraPaymentId: selectedPayment.id,
+      jugadorId: selectedPlayer.id,
+      jugadorNombre: selectedPlayer.nombre,
+      estado: "En revisión",
+      justificanteUrl: justificante,
+      notas: notas
+    });
+  };
+
+  const openPayDialog = (extraPayment, player) => {
+    setSelectedPayment(extraPayment);
+    setSelectedPlayer(player);
+    setShowPayDialog(true);
+  };
+
+  const getPlayerPaymentStatus = (extraPayment, playerId) => {
+    const pago = extraPayment.pagos_recibidos?.find(p => p.jugador_id === playerId);
+    return pago?.estado || "Pendiente";
+  };
+
+  const getStatusBadge = (status) => {
+    switch (status) {
+      case "Pagado":
+        return <Badge className="bg-green-600"><CheckCircle2 className="w-3 h-3 mr-1" /> Pagado</Badge>;
+      case "En revisión":
+        return <Badge className="bg-yellow-600"><Clock className="w-3 h-3 mr-1" /> En revisión</Badge>;
+      default:
+        return <Badge className="bg-red-600"><AlertCircle className="w-3 h-3 mr-1" /> Pendiente</Badge>;
+    }
+  };
+
+  const getPlayersForExtraPayment = (ep) => {
+    // Si tiene jugadores específicos, filtrar solo esos
+    if (ep.jugadores_especificos && ep.jugadores_especificos.length > 0) {
+      return myPlayers.filter(p => 
+        ep.jugadores_especificos.some(je => je.jugador_id === p.id)
+      );
+    }
+    
+    // Si no, filtrar por categorías
+    if (ep.categorias_destino && ep.categorias_destino.length > 0) {
+      return myPlayers.filter(p => ep.categorias_destino.includes(p.deporte));
+    }
+    
+    // Si no hay filtros, todos mis jugadores
+    return myPlayers;
   };
 
   if (isLoading) {
@@ -146,125 +215,169 @@ export default function ParentExtraPayments() {
 
   return (
     <div className="p-4 lg:p-6 space-y-6">
+      {/* Dialog de pago */}
+      <Dialog open={showPayDialog} onOpenChange={setShowPayDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Subir Justificante de Pago</DialogTitle>
+            <DialogDescription>
+              {selectedPayment?.titulo} - {selectedPlayer?.nombre}
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            <div className="bg-slate-50 rounded-lg p-4">
+              <p className="text-lg font-bold text-slate-900">
+                Importe: {selectedPayment?.importe}€
+              </p>
+              {seasonConfig?.bizum_telefono && (
+                <p className="text-sm text-slate-600 mt-2">
+                  📱 Bizum: <strong>{seasonConfig.bizum_telefono}</strong>
+                </p>
+              )}
+              <p className="text-xs text-slate-500 mt-2">
+                Concepto: {selectedPayment?.titulo} - {selectedPlayer?.nombre}
+              </p>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Justificante de pago *</Label>
+              <Input
+                type="file"
+                accept="image/*,.pdf"
+                onChange={handleFileUpload}
+                disabled={uploading}
+              />
+              {uploading && (
+                <div className="flex items-center gap-2 text-sm text-slate-600">
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  Subiendo...
+                </div>
+              )}
+              {justificante && (
+                <p className="text-sm text-green-600">✅ Archivo subido correctamente</p>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <Label>Notas (opcional)</Label>
+              <Textarea
+                placeholder="Cualquier observación..."
+                value={notas}
+                onChange={(e) => setNotas(e.target.value)}
+                rows={2}
+              />
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowPayDialog(false)}>
+              Cancelar
+            </Button>
+            <Button
+              onClick={handleSubmitPayment}
+              disabled={!justificante || updatePaymentMutation.isPending}
+              className="bg-green-600 hover:bg-green-700"
+            >
+              {updatePaymentMutation.isPending ? (
+                <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Enviando...</>
+              ) : (
+                "Enviar Justificante"
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       {/* Header */}
       <div>
         <h1 className="text-2xl lg:text-3xl font-bold text-slate-900 flex items-center gap-2">
-          <Euro className="w-8 h-8 text-green-600" />
+          <Euro className="w-8 h-8 text-emerald-600" />
           Pagos Extras
         </h1>
-        <p className="text-slate-600 mt-1">Autobuses, excursiones, entradas y otros pagos especiales</p>
+        <p className="text-slate-600 mt-1">Pagos especiales: autobuses, excursiones, torneos, etc.</p>
       </div>
 
-      {myExtraPayments.length === 0 ? (
-        <Card className="border-dashed border-2">
-          <CardContent className="py-12 text-center">
-            <CheckCircle2 className="w-12 h-12 text-green-500 mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-slate-700 mb-2">No hay pagos extras pendientes</h3>
-            <p className="text-slate-500">Cuando haya pagos especiales (autobuses, torneos, etc.) aparecerán aquí</p>
+      {/* Lista de pagos extras */}
+      {myActiveExtraPayments.length === 0 ? (
+        <Card>
+          <CardContent className="pt-6 text-center py-12">
+            <Euro className="w-12 h-12 text-slate-400 mx-auto mb-3" />
+            <p className="text-slate-500">No hay pagos extras pendientes para tus jugadores</p>
           </CardContent>
         </Card>
       ) : (
         <div className="space-y-4">
-          {myExtraPayments.map(extraPayment => {
-            const myPayments = getMyPaymentsInExtra(extraPayment);
-            const isExpired = extraPayment.fecha_limite && new Date(extraPayment.fecha_limite) < new Date();
-            
+          {myActiveExtraPayments.map(ep => {
+            const Icon = TIPO_ICONS[ep.tipo] || HelpCircle;
+            const playersForThis = getPlayersForExtraPayment(ep);
+
             return (
-              <Card key={extraPayment.id} className="hover:shadow-lg transition-shadow">
-                <CardHeader className="bg-gradient-to-r from-green-50 to-emerald-50 border-b">
-                  <div className="flex items-start justify-between gap-4">
-                    <div>
-                      <div className="flex items-center gap-2 mb-1">
-                        <span className="text-2xl">{tipoEmojis[extraPayment.tipo] || "📋"}</span>
-                        <CardTitle className="text-lg">{extraPayment.titulo}</CardTitle>
-                        <Badge className="bg-green-600">{extraPayment.importe}€</Badge>
+              <Card key={ep.id} className="overflow-hidden">
+                <CardHeader className="bg-gradient-to-r from-emerald-50 to-teal-50 border-b">
+                  <div className="flex items-start justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="w-12 h-12 rounded-xl bg-emerald-600 flex items-center justify-center">
+                        <Icon className="w-6 h-6 text-white" />
                       </div>
-                      {extraPayment.descripcion && (
-                        <p className="text-sm text-slate-600">{extraPayment.descripcion}</p>
-                      )}
-                      <div className="flex flex-wrap gap-3 mt-2 text-xs text-slate-500">
-                        {extraPayment.fecha_evento && (
-                          <span className="flex items-center gap-1">
-                            <Calendar className="w-3 h-3" />
-                            Evento: {format(new Date(extraPayment.fecha_evento), "d MMM yyyy", { locale: es })}
-                          </span>
-                        )}
-                        {extraPayment.fecha_limite && (
-                          <span className={`flex items-center gap-1 ${isExpired ? 'text-red-600 font-medium' : ''}`}>
-                            <Clock className="w-3 h-3" />
-                            Límite: {format(new Date(extraPayment.fecha_limite), "d MMM yyyy", { locale: es })}
-                            {isExpired && " (Vencido)"}
-                          </span>
-                        )}
+                      <div>
+                        <CardTitle className="text-lg">{ep.titulo}</CardTitle>
+                        <div className="flex items-center gap-2 mt-1">
+                          <Badge variant="outline">{ep.tipo}</Badge>
+                          <span className="text-lg font-bold text-emerald-700">{ep.importe}€</span>
+                        </div>
                       </div>
                     </div>
                   </div>
                 </CardHeader>
-                <CardContent className="p-4">
-                  <div className="space-y-3">
-                    {myPayments.map((pago, idx) => {
-                      const player = myPlayers.find(p => p.id === pago.jugador_id);
-                      const isUploading = uploadingFor === `${extraPayment.id}-${pago.jugador_id}`;
-                      
+                <CardContent className="pt-4 space-y-4">
+                  {ep.descripcion && (
+                    <p className="text-sm text-slate-600">{ep.descripcion}</p>
+                  )}
+
+                  <div className="flex flex-wrap gap-4 text-sm">
+                    {ep.fecha_evento && (
+                      <div className="flex items-center gap-1 text-slate-700">
+                        <Calendar className="w-4 h-4 text-emerald-600" />
+                        Evento: {format(new Date(ep.fecha_evento), "d MMM yyyy", { locale: es })}
+                      </div>
+                    )}
+                    {ep.fecha_limite && (
+                      <div className="flex items-center gap-1 text-slate-700">
+                        <Clock className="w-4 h-4 text-orange-600" />
+                        Límite: {format(new Date(ep.fecha_limite), "d MMM yyyy", { locale: es })}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Estado por jugador */}
+                  <div className="border-t pt-4 space-y-3">
+                    <p className="font-medium text-slate-700 flex items-center gap-2">
+                      <Users className="w-4 h-4" />
+                      Tus jugadores:
+                    </p>
+                    {playersForThis.map(player => {
+                      const status = getPlayerPaymentStatus(ep, player.id);
+                      const pago = ep.pagos_recibidos?.find(p => p.jugador_id === player.id);
+
                       return (
-                        <div key={idx} className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
-                          <div className="flex items-center gap-3">
-                            {player?.foto_url ? (
-                              <img src={player.foto_url} className="w-10 h-10 rounded-full object-cover" alt="" />
-                            ) : (
-                              <div className="w-10 h-10 rounded-full bg-orange-500 flex items-center justify-center text-white font-bold">
-                                {player?.nombre?.charAt(0) || "?"}
-                              </div>
-                            )}
-                            <div>
-                              <p className="font-medium text-slate-900">{pago.jugador_nombre}</p>
-                              <p className="text-xs text-slate-500">{player?.deporte}</p>
-                            </div>
+                        <div 
+                          key={player.id} 
+                          className="flex items-center justify-between p-3 bg-slate-50 rounded-lg"
+                        >
+                          <div>
+                            <p className="font-medium text-slate-900">{player.nombre}</p>
+                            <p className="text-xs text-slate-500">{player.deporte}</p>
                           </div>
-                          
                           <div className="flex items-center gap-2">
-                            <Badge className={
-                              pago.estado === "Pagado" ? "bg-green-600" :
-                              pago.estado === "En revisión" ? "bg-yellow-600" :
-                              "bg-red-600"
-                            }>
-                              {pago.estado === "Pagado" && <CheckCircle2 className="w-3 h-3 mr-1" />}
-                              {pago.estado === "En revisión" && <Clock className="w-3 h-3 mr-1" />}
-                              {pago.estado === "Pendiente" && <AlertCircle className="w-3 h-3 mr-1" />}
-                              {pago.estado}
-                            </Badge>
-
-                            {pago.estado === "Pendiente" && (
-                              <label className="cursor-pointer">
-                                <input
-                                  type="file"
-                                  accept="image/*,.pdf"
-                                  className="hidden"
-                                  onChange={(e) => {
-                                    const file = e.target.files?.[0];
-                                    if (file) handleUploadJustificante(extraPayment.id, pago.jugador_id, file);
-                                  }}
-                                />
-                                <Button variant="outline" size="sm" className="pointer-events-none" disabled={isUploading}>
-                                  {isUploading ? (
-                                    <Loader2 className="w-4 h-4 animate-spin" />
-                                  ) : (
-                                    <>
-                                      <Upload className="w-4 h-4 mr-1" />
-                                      Subir Justificante
-                                    </>
-                                  )}
-                                </Button>
-                              </label>
-                            )}
-
-                            {pago.justificante_url && (
-                              <Button 
-                                variant="ghost" 
+                            {getStatusBadge(status)}
+                            {status === "Pendiente" && (
+                              <Button
                                 size="sm"
-                                onClick={() => window.open(pago.justificante_url, '_blank')}
+                                onClick={() => openPayDialog(ep, player)}
+                                className="bg-emerald-600 hover:bg-emerald-700"
                               >
-                                <FileText className="w-4 h-4 text-blue-600" />
+                                <Upload className="w-4 h-4 mr-1" /> Pagar
                               </Button>
                             )}
                           </div>
@@ -278,21 +391,6 @@ export default function ParentExtraPayments() {
           })}
         </div>
       )}
-
-      {/* Instrucciones */}
-      <Card className="bg-blue-50 border-blue-200">
-        <CardContent className="pt-6">
-          <h3 className="font-bold text-blue-900 mb-2">ℹ️ ¿Cómo funciona?</h3>
-          <ul className="text-sm text-blue-800 space-y-1">
-            <li>• Los pagos extras son para eventos especiales: autobuses, excursiones, torneos, etc.</li>
-            <li>• Realiza la transferencia o Bizum al club con el concepto indicado</li>
-            <li>• Sube el justificante de pago pulsando en "Subir Justificante"</li>
-            <li>• El club verificará el pago y lo marcará como "Pagado"</li>
-          </ul>
-        </CardContent>
-      </Card>
-
-      <ContactCard />
     </div>
   );
 }
