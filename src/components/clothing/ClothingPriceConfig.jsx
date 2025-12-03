@@ -35,10 +35,19 @@ export default function ClothingPriceConfig({ seasonConfig, onUpdate }) {
   const [editingProduct, setEditingProduct] = useState(null);
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [newProduct, setNewProduct] = useState({ nombre: "", precio: 0, activo: true });
+  const [localProducts, setLocalProducts] = useState(null);
   
   const queryClient = useQueryClient();
 
-  const products = seasonConfig?.productos_ropa || DEFAULT_PRODUCTS;
+  // Usar productos locales si existen (para actualización inmediata), sino del seasonConfig
+  const products = localProducts || seasonConfig?.productos_ropa || DEFAULT_PRODUCTS;
+  
+  // Sincronizar localProducts cuando cambia seasonConfig
+  React.useEffect(() => {
+    if (seasonConfig?.productos_ropa) {
+      setLocalProducts(seasonConfig.productos_ropa);
+    }
+  }, [seasonConfig?.productos_ropa]);
 
   const updateConfigMutation = useMutation({
     mutationFn: async ({ id, data }) => {
@@ -47,14 +56,15 @@ export default function ClothingPriceConfig({ seasonConfig, onUpdate }) {
       console.log("Resultado:", result);
       return result;
     },
-    onSuccess: async () => {
+    onSuccess: async (result) => {
+      // Actualizar estado local inmediatamente con los productos guardados
+      if (result?.productos_ropa) {
+        setLocalProducts(result.productos_ropa);
+      }
       // Invalidar todas las queries relacionadas
       await queryClient.invalidateQueries({ queryKey: ['seasonConfig'] });
       await queryClient.invalidateQueries({ queryKey: ['seasonConfigs'] });
       await queryClient.invalidateQueries({ queryKey: ['activeSeasonConfig'] });
-      // Forzar refetch inmediato
-      await queryClient.refetchQueries({ queryKey: ['seasonConfig'] });
-      await queryClient.refetchQueries({ queryKey: ['seasonConfigs'] });
       toast.success("✅ Configuración actualizada");
       setShowEditDialog(false);
       setShowAddDialog(false);
