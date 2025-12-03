@@ -633,6 +633,145 @@ export default function BudgetManager({
         }}
       />
 
+      {/* Dialog guardar como plantilla */}
+      <Dialog open={showSaveTemplateDialog} onOpenChange={setShowSaveTemplateDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Save className="h-5 w-5 text-orange-600" />
+              Guardar como Plantilla
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="bg-orange-50 border border-orange-200 rounded-lg p-3">
+              <p className="text-sm text-orange-800">
+                💾 Guarda las partidas actuales como plantilla para reutilizarlas en futuras temporadas.
+              </p>
+            </div>
+            <div>
+              <Label>Nombre de la plantilla *</Label>
+              <Input
+                value={templateName}
+                onChange={(e) => setTemplateName(e.target.value)}
+                placeholder="Ej: Presupuesto Base 2025-2026"
+              />
+            </div>
+            <div>
+              <Label>Descripción (opcional)</Label>
+              <Textarea
+                value={templateDescription}
+                onChange={(e) => setTemplateDescription(e.target.value)}
+                placeholder="Descripción de esta plantilla..."
+                rows={2}
+              />
+            </div>
+            <div className="bg-slate-50 rounded-lg p-3">
+              <p className="text-sm font-medium text-slate-700">
+                Se guardarán {budget?.partidas?.length || 0} partidas
+              </p>
+              <p className="text-xs text-slate-500 mt-1">
+                Ingresos: {calcularTotales().totalPresupuestadoIngresos.toLocaleString()}€ | 
+                Gastos: {calcularTotales().totalPresupuestadoGastos.toLocaleString()}€
+              </p>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowSaveTemplateDialog(false)}>
+              Cancelar
+            </Button>
+            <Button 
+              onClick={handleSaveAsTemplate}
+              disabled={!templateName.trim() || saveTemplateMutation.isPending}
+              className="bg-orange-600 hover:bg-orange-700"
+            >
+              {saveTemplateMutation.isPending ? (
+                <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Guardando...</>
+              ) : (
+                <><Save className="h-4 w-4 mr-2" /> Guardar Plantilla</>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog cargar plantilla */}
+      <Dialog open={showLoadTemplateDialog} onOpenChange={setShowLoadTemplateDialog}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <FolderOpen className="h-5 w-5 text-green-600" />
+              Cargar Plantilla de Presupuesto
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            {savedTemplates.length === 0 ? (
+              <div className="text-center py-8 text-slate-500">
+                <FolderOpen className="h-12 w-12 mx-auto mb-3 opacity-30" />
+                <p className="font-medium">No hay plantillas guardadas</p>
+                <p className="text-sm mt-1">Guarda tu presupuesto actual como plantilla para usarlo en el futuro</p>
+              </div>
+            ) : (
+              <div className="space-y-3 max-h-96 overflow-y-auto">
+                {savedTemplates.map(template => (
+                  <div 
+                    key={template.id} 
+                    className="border rounded-lg p-4 hover:border-green-300 hover:bg-green-50 transition-colors"
+                  >
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <h4 className="font-semibold text-slate-900">{template.nombre}</h4>
+                        {template.descripcion && (
+                          <p className="text-sm text-slate-600 mt-1">{template.descripcion}</p>
+                        )}
+                        <div className="flex flex-wrap gap-2 mt-2">
+                          <Badge variant="outline" className="text-xs">
+                            {template.partidas?.length || 0} partidas
+                          </Badge>
+                          {template.temporada_origen && (
+                            <Badge variant="outline" className="text-xs">
+                              Origen: {template.temporada_origen}
+                            </Badge>
+                          )}
+                          <Badge className="bg-green-100 text-green-700 text-xs">
+                            +{(template.total_ingresos || 0).toLocaleString()}€
+                          </Badge>
+                          <Badge className="bg-red-100 text-red-700 text-xs">
+                            -{(template.total_gastos || 0).toLocaleString()}€
+                          </Badge>
+                        </div>
+                      </div>
+                      <div className="flex gap-2">
+                        <Button
+                          size="sm"
+                          onClick={() => handleLoadTemplate(template)}
+                          className="bg-green-600 hover:bg-green-700"
+                        >
+                          <Copy className="h-4 w-4 mr-1" />
+                          Usar
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="text-red-600 hover:bg-red-50"
+                          onClick={() => deleteTemplateMutation.mutate(template.id)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowLoadTemplateDialog(false)}>
+              Cerrar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       {/* Dialog importar desde PDF */}
       <Dialog open={showImportDialog} onOpenChange={setShowImportDialog}>
         <DialogContent className="max-w-2xl">
