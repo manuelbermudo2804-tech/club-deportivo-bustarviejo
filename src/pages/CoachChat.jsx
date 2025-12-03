@@ -115,12 +115,18 @@ export default function CoachChat() {
   }, [user, allPlayers, isAdmin, isCoordinator, isCoach]);
 
   // Conversaciones privadas de la categoría seleccionada
+  // IMPORTANTE: Mostrar conversaciones con mensajes nuevos aunque estén archivadas
   const categoryPrivateConversations = useMemo(() => {
     if (!selectedCategory) return [];
     return privateConversations.filter(conv => {
       // Admin y coordinador ven todas las conversaciones, entrenadores solo las suyas
       if (!isAdmin && !isCoordinator && conv.participante_staff_email !== user?.email) return false;
       if (conv.categoria !== selectedCategory) return false;
+      
+      // Si tiene mensajes no leídos, mostrarla SIEMPRE (aunque esté archivada)
+      const hasUnread = (conv.no_leidos_staff || 0) > 0;
+      if (hasUnread) return true;
+      
       // Filtrar por archivadas o activas
       if (showArchived) return conv.archivada === true;
       return !conv.archivada;
