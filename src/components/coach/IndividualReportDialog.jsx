@@ -195,7 +195,7 @@ export default function IndividualReportDialog({
           {/* Resumen */}
           <div className="bg-green-50 p-3 rounded-lg border border-green-200">
             <p className="text-xs text-green-800">
-              <strong>Se enviará:</strong> Reporte de <strong>{getPeriodLabel()}</strong> por <strong>{sendMethod === "email" ? "Email" : sendMethod === "chat" ? "Chat" : "Email + Chat"}</strong>
+              <strong>Se enviará:</strong> Reporte de <strong>{getPeriodLabel()}</strong> por <strong>{sendMethod === "email" ? "Email" : sendMethod === "chat" ? "Chat Privado" : "Email + Chat Privado"}</strong>
               {(sendMethod === "email" || sendMethod === "both") && player?.email_padre && (
                 <>
                   <br />• Al padre: {player.email_padre}
@@ -204,11 +204,20 @@ export default function IndividualReportDialog({
               )}
               {(sendMethod === "chat" || sendMethod === "both") && (
                 <>
-                  <br />• Al chat del grupo: {player?.deporte}
+                  <br />• 🔒 Al <strong>chat privado</strong> con la familia (no al grupo)
                 </>
               )}
             </p>
           </div>
+          
+          {/* Nota explicativa sobre chat privado */}
+          {(sendMethod === "chat" || sendMethod === "both") && (
+            <div className="bg-blue-50 p-2 rounded-lg border border-blue-200">
+              <p className="text-xs text-blue-800">
+                💬 <strong>Chat Privado:</strong> El reporte se enviará a la conversación privada con la familia del jugador, no al chat grupal del equipo. Solo la familia verá este mensaje.
+              </p>
+            </div>
+          )}
         </div>
 
         <DialogFooter>

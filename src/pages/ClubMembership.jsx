@@ -249,16 +249,8 @@ export default function ClubMembership() {
         activo: true
       });
 
-      // Enviar carnet virtual por email
-      try {
-        await sendMemberCard(membership, seasonConfig, base44);
-        await base44.entities.ClubMember.update(membership.id, {
-          carnet_enviado: true,
-          fecha_carnet_enviado: new Date().toISOString()
-        });
-      } catch (emailError) {
-        console.error("Error enviando carnet:", emailError);
-      }
+      // NOTA: El carnet virtual se enviará cuando el admin apruebe el pago (estado_pago = "Pagado")
+      // NO enviamos carnet automáticamente aquí - solo cuando el pago sea confirmado
 
       // Procesar programa de referidos
       if (seasonConfig?.programa_referidos_activo) {

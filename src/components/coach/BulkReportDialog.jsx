@@ -184,11 +184,20 @@ export default function BulkReportDialog({
           {/* Resumen */}
           <div className="bg-green-50 p-3 rounded-lg border border-green-200">
             <p className="text-xs text-green-800">
-              <strong>Se enviará:</strong> Reporte de <strong>{getPeriodLabel()}</strong> por <strong>{sendMethod === "email" ? "Email" : sendMethod === "chat" ? "Chat" : "Email + Chat"}</strong>
+              <strong>Se enviará:</strong> Reporte de <strong>{getPeriodLabel()}</strong> por <strong>{sendMethod === "email" ? "Email" : sendMethod === "chat" ? "Chat Privado" : "Email + Chat Privado"}</strong>
               <br />• A todos los padres de jugadores que asistieron
               <br />• Categoría: {selectedCategory}
             </p>
           </div>
+          
+          {/* Nota explicativa sobre chat privado */}
+          {(sendMethod === "chat" || sendMethod === "both") && (
+            <div className="bg-blue-50 p-2 rounded-lg border border-blue-200">
+              <p className="text-xs text-blue-800">
+                💬 <strong>Chat Privado:</strong> Cada reporte se enviará a la conversación privada con cada familia. Ningún padre verá el reporte de otro jugador.
+              </p>
+            </div>
+          )}
         </div>
 
         <DialogFooter>

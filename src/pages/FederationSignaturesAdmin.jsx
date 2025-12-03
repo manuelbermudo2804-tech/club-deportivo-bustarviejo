@@ -43,7 +43,8 @@ export default function FederationSignaturesAdmin() {
   });
 
   // Filtrar jugadores según rol
-  const players = isAdmin 
+  // Si tiene permiso "puede_gestionar_firmas" ve TODOS los jugadores (como coordinador de firmas)
+  const players = isAdmin || user?.puede_gestionar_firmas
     ? allPlayers.filter(p => p.activo)
     : allPlayers.filter(p => p.activo && user?.categorias_entrena?.includes(p.deporte));
 
