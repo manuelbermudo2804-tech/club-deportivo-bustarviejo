@@ -353,7 +353,15 @@ export default function BudgetManager({
       </Card>
 
       {/* Botones de acción */}
-      <div className="flex justify-end gap-3">
+      <div className="flex flex-wrap justify-end gap-3">
+        <Button 
+          onClick={() => setShowImportDialog(true)} 
+          variant="outline"
+          className="border-blue-300 text-blue-700 hover:bg-blue-50"
+        >
+          <Upload className="h-4 w-4 mr-2" />
+          Importar desde PDF
+        </Button>
         <Button 
           onClick={() => setShowAIAssistant(true)} 
           variant="outline"
