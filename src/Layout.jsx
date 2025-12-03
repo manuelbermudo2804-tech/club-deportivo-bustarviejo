@@ -506,6 +506,7 @@ export default function Layout({ children, currentPageName }) {
   const [pendingCallupsCount, setPendingCallupsCount] = useState(0);
   const [pendingDocumentsCount, setPendingDocumentsCount] = useState(0);
   const [pendingSignaturesCount, setPendingSignaturesCount] = useState(0);
+  const [pendingCallupResponses, setPendingCallupResponses] = useState(0); // Para entrenadores: respuestas sin confirmar
   const [showSpecialScreen, setShowSpecialScreen] = useState(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [currentLang, setCurrentLang] = useState('es');
@@ -947,7 +948,7 @@ export default function Layout({ children, currentPageName }) {
     { title: "👤 Usuarios", url: createPageUrl("UserManagement"), icon: Users },
 
     // ⚽ DEPORTIVO
-    { title: "🎓 Convocatorias", url: createPageUrl("CoachCallups"), icon: Bell },
+    { title: "🎓 Convocatorias", url: createPageUrl("CoachCallups"), icon: Bell, pendingCallupResponses: true },
     { title: "📋 Asistencia y Evaluación", url: createPageUrl("TeamAttendanceEvaluation"), icon: CheckCircle2 },
     { title: "📊 Reportes Entrenadores", url: createPageUrl("CoachEvaluationReports"), icon: Star },
     { title: "📅 Calendario y Horarios", url: createPageUrl("CalendarAndSchedules"), icon: Calendar },
@@ -1055,6 +1056,7 @@ export default function Layout({ children, currentPageName }) {
 
     // 👨‍👩‍👧 SECCIÓN FAMILIA (si tiene hijos)
     ...(hasPlayers ? [{ title: "👨‍👩‍👧 Mis Hijos", url: createPageUrl("ParentPlayers"), icon: Users }] : []),
+    ...(hasPlayers ? [{ title: "💳 Pagos Mis Hijos", url: createPageUrl("ParentPayments"), icon: CreditCard }] : []),
     ...(hasPlayers ? [{ title: "🏆 Confirmar Mis Hijos", url: createPageUrl("ParentCallups"), icon: ClipboardCheck, badge: pendingCallupsCount > 0 ? pendingCallupsCount : null }] : []),
     ...(hasPlayers ? [{ title: "🖊️ Firmas Mis Hijos", url: createPageUrl("FederationSignatures"), icon: FileSignature, badge: pendingSignaturesCount > 0 ? pendingSignaturesCount : null, urgentBadge: pendingSignaturesCount > 0 }] : []),
     ...(hasPlayers ? [{ title: "📄 Documentos", url: createPageUrl("ParentDocuments"), icon: FileText, badge: pendingDocumentsCount > 0 ? pendingDocumentsCount : null, urgentBadge: pendingDocumentsCount > 0 }] : []),
@@ -1100,6 +1102,7 @@ export default function Layout({ children, currentPageName }) {
 
       // 👨‍👩‍👧 SECCIÓN FAMILIA (si tiene hijos)
       ...(hasPlayers ? [{ title: "👨‍👩‍👧 Mis Hijos", url: createPageUrl("ParentPlayers"), icon: Users }] : []),
+      ...(hasPlayers ? [{ title: "💳 Pagos Mis Hijos", url: createPageUrl("ParentPayments"), icon: CreditCard }] : []),
       ...(hasPlayers ? [{ title: "🏆 Confirmar Mis Hijos", url: createPageUrl("ParentCallups"), icon: ClipboardCheck, badge: pendingCallupsCount > 0 ? pendingCallupsCount : null }] : []),
       ...(hasPlayers ? [{ title: "🖊️ Firmas Mis Hijos", url: createPageUrl("FederationSignatures"), icon: FileSignature, badge: pendingSignaturesCount > 0 ? pendingSignaturesCount : null, urgentBadge: pendingSignaturesCount > 0 }] : []),
       ...(hasPlayers ? [{ title: "📄 Documentos", url: createPageUrl("ParentDocuments"), icon: FileText }] : []),
@@ -1125,7 +1128,8 @@ export default function Layout({ children, currentPageName }) {
     { title: "🏆 Convocatorias", url: createPageUrl("ParentCallups"), icon: Bell, badge: pendingCallupsCount > 0 ? pendingCallupsCount : null, urgentBadge: pendingCallupsCount > 0 },
     { title: "🖊️ Firmas Federación", url: createPageUrl("FederationSignatures"), icon: FileSignature, badge: pendingSignaturesCount > 0 ? pendingSignaturesCount : null, urgentBadge: pendingSignaturesCount > 0 },
 
-    // 👥 JUGADORES
+    // 💰 PAGOS Y JUGADORES
+    { title: "💳 Pagos", url: createPageUrl("ParentPayments"), icon: CreditCard },
     { title: "👥 Mis Jugadores", url: createPageUrl("ParentPlayers"), icon: Users },
 
     // 📅 CALENDARIO Y EVENTOS
@@ -1175,6 +1179,7 @@ export default function Layout({ children, currentPageName }) {
       navigationItems = [
         { title: "🏠 Mi Dashboard", url: createPageUrl("PlayerDashboard"), icon: Home },
         { title: "🏆 Convocatorias", url: createPageUrl("ParentCallups"), icon: Bell, badge: pendingCallupsCount > 0 ? pendingCallupsCount : null, urgentBadge: pendingCallupsCount > 0 },
+        { title: "💳 Mis Pagos", url: createPageUrl("ParentPayments"), icon: CreditCard },
         { title: "💬 Chat Equipo", url: createPageUrl("ParentChat"), icon: MessageCircle, badge: unreadMessagesCount > 0 ? unreadMessagesCount : null },
         { title: "📅 Calendario", url: createPageUrl("CalendarAndSchedules"), icon: Calendar },
         { title: "🎉 Eventos Club", url: createPageUrl("ParentEventRSVP"), icon: Calendar },
