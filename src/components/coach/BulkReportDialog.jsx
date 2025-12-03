@@ -192,9 +192,12 @@ export default function BulkReportDialog({
           
           {/* Nota explicativa sobre chat privado */}
           {(sendMethod === "chat" || sendMethod === "both") && (
-            <div className="bg-blue-50 p-2 rounded-lg border border-blue-200">
+            <div className="bg-blue-50 p-3 rounded-lg border-2 border-blue-300">
+              <p className="text-sm text-blue-900 font-semibold mb-1">
+                🔒 Los reportes se envían al CHAT PRIVADO
+              </p>
               <p className="text-xs text-blue-800">
-                💬 <strong>Chat Privado:</strong> Cada reporte se enviará a la conversación privada con cada familia. Ningún padre verá el reporte de otro jugador.
+                Cada reporte de asistencia y evaluación se enviará <strong>únicamente a la conversación privada de cada familia</strong>. No se publicarán en el chat del grupo. Cada padre solo verá el reporte de su hijo.
               </p>
             </div>
           )}
