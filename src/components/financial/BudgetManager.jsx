@@ -69,11 +69,87 @@ export default function BudgetManager({
   const [showAddPartida, setShowAddPartida] = useState(false);
   const [editingPartida, setEditingPartida] = useState(null);
   const [showAIAssistant, setShowAIAssistant] = useState(false);
+  const [showImportDialog, setShowImportDialog] = useState(false);
+  const [isImporting, setIsImporting] = useState(false);
+  const [importedPartidas, setImportedPartidas] = useState([]);
   const [newPartida, setNewPartida] = useState({
     nombre: "",
     categoria: "Gastos Variables",
     presupuestado: 0
   });
+
+  // Función para importar presupuesto desde PDF
+  const handleFileUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.type !== 'application/pdf') {
+      toast.error("Por favor, sube un archivo PDF");
+      return;
+    }
+
+    setIsImporting(true);
+    try {
+      // Subir el archivo
+      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+
+      // Extraer datos del PDF usando IA
+      const result = await base44.integrations.Core.ExtractDataFromUploadedFile({
+        file_url,
+        json_schema: {
+          type: "object",
+          properties: {
+            partidas: {
+              type: "array",
+              items: {
+                type: "object",
+                properties: {
+                  nombre: { type: "string", description: "Nombre de la partida presupuestaria" },
+                  categoria: { 
+                    type: "string", 
+                    enum: ["Ingresos", "Gastos Fijos", "Gastos Variables", "Inversiones"],
+                    description: "Categoría de la partida"
+                  },
+                  presupuestado: { type: "number", description: "Importe presupuestado en euros" }
+                }
+              }
+            },
+            temporada: { type: "string", description: "Temporada del presupuesto (ej: 2025/2026)" }
+          }
+        }
+      });
+
+      if (result.status === "success" && result.output?.partidas?.length > 0) {
+        setImportedPartidas(result.output.partidas);
+        toast.success(`Se encontraron ${result.output.partidas.length} partidas en el PDF`);
+      } else {
+        toast.error("No se pudieron extraer partidas del PDF. Verifica que el formato sea correcto.");
+      }
+    } catch (error) {
+      console.error("Error al importar:", error);
+      toast.error("Error al procesar el archivo PDF");
+    } finally {
+      setIsImporting(false);
+    }
+  };
+
+  const handleApplyImportedPartidas = () => {
+    if (importedPartidas.length === 0) return;
+
+    const newPartidas = importedPartidas.map((p, idx) => ({
+      id: `partida_import_${Date.now()}_${idx}`,
+      nombre: p.nombre,
+      categoria: p.categoria || "Gastos Variables",
+      presupuestado: p.presupuestado || 0,
+      ejecutado: 0
+    }));
+
+    const updatedPartidas = [...(budget?.partidas || []), ...newPartidas];
+    onUpdate({ partidas: updatedPartidas });
+    setImportedPartidas([]);
+    setShowImportDialog(false);
+    toast.success(`${newPartidas.length} partidas importadas correctamente`);
+  };
 
   const partidas = budget?.partidas || [];
 
