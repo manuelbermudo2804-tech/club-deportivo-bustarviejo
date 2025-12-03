@@ -20,6 +20,7 @@ import {
 
 import ClothingOrderForm from "../components/clothing/ClothingOrderForm";
 import OrdersSummary from "../components/clothing/OrdersSummary";
+import ClothingPriceConfig from "../components/clothing/ClothingPriceConfig";
 import ContactCard from "../components/ContactCard";
 import { usePageTutorial } from "../components/tutorials/useTutorial";
 
@@ -468,7 +469,7 @@ export default function ClothingOrders() {
         <div>
           <h1 className="text-xl lg:text-3xl font-bold text-slate-900">Pedidos de Equipación</h1>
           <p className="text-xs lg:text-base text-slate-600 mt-1">
-            {isAdmin ? "Gestión de pedidos del club" : "Solicita la equipación para tus jugadores"}
+            {isAdmin ? "Gestión de pedidos y configuración de precios" : "Solicita la equipación para tus jugadores"}
           </p>
           {isAdmin && seasonConfig?.tienda_ropa_abierta && (
             <Badge className="bg-green-600 text-white mt-2 text-xs">
@@ -477,20 +478,22 @@ export default function ClothingOrders() {
           )}
         </div>
         {isAdmin ? (
-          <Button
-            onClick={() => toggleStoreMutation.mutate()}
-            disabled={toggleStoreMutation.isPending}
-            size="sm"
-            className={`shadow-lg text-xs lg:text-sm ${
-              seasonConfig?.tienda_ropa_abierta 
-                ? 'bg-red-600 hover:bg-red-700' 
-                : 'bg-green-600 hover:bg-green-700'
-            }`}
-          >
-            {toggleStoreMutation.isPending ? '⏳' : (
-              seasonConfig?.tienda_ropa_abierta ? '🔒 Cerrar' : '🛍️ Abrir'
-            )}
-          </Button>
+          <div className="flex gap-2">
+            <Button
+              onClick={() => toggleStoreMutation.mutate()}
+              disabled={toggleStoreMutation.isPending}
+              size="sm"
+              className={`shadow-lg text-xs lg:text-sm ${
+                seasonConfig?.tienda_ropa_abierta 
+                  ? 'bg-red-600 hover:bg-red-700' 
+                  : 'bg-green-600 hover:bg-green-700'
+              }`}
+            >
+              {toggleStoreMutation.isPending ? '⏳' : (
+                seasonConfig?.tienda_ropa_abierta ? '🔒 Cerrar' : '🛍️ Abrir'
+              )}
+            </Button>
+          </div>
         ) : (
           <Button
             onClick={() => setShowForm(!showForm)}
@@ -570,8 +573,9 @@ export default function ClothingOrders() {
 
       {isAdmin ? (
         <Tabs defaultValue="summary" className="w-full">
-          <TabsList className="bg-white shadow-sm grid grid-cols-3 lg:grid-cols-6 h-auto gap-1 p-1">
+          <TabsList className="bg-white shadow-sm grid grid-cols-3 lg:grid-cols-7 h-auto gap-1 p-1">
             <TabsTrigger value="summary" className="text-xs lg:text-sm py-2">📊 Resumen</TabsTrigger>
+            <TabsTrigger value="config" className="text-xs lg:text-sm py-2">⚙️ Precios</TabsTrigger>
             <TabsTrigger value="families" className="text-xs lg:text-sm py-2">👨‍👩‍👧 Familia</TabsTrigger>
             <TabsTrigger value="players" className="text-xs lg:text-sm py-2">👤 Jugador</TabsTrigger>
             <TabsTrigger value="orders" className="text-xs lg:text-sm py-2">📋 Activos</TabsTrigger>
@@ -581,6 +585,11 @@ export default function ClothingOrders() {
 
           <TabsContent value="summary" className="mt-6">
             <OrdersSummary orders={orders} />
+          </TabsContent>
+
+          <TabsContent value="config" className="mt-6">
+            {/* Integrar la gestión de precios aquí */}
+            <ClothingPriceConfig seasonConfig={seasonConfig} onUpdate={() => queryClient.invalidateQueries({ queryKey: ['seasonConfig'] })} />
           </TabsContent>
 
           <TabsContent value="families" className="mt-3 lg:mt-6">

@@ -63,7 +63,6 @@ import ExerciseLibrary from './pages/ExerciseLibrary';
 import PushNotifications from './pages/PushNotifications';
 import PlayerDashboard from './pages/PlayerDashboard';
 import EmailInvitations from './pages/EmailInvitations';
-import ClothingManagement from './pages/ClothingManagement';
 import __Layout from './Layout.jsx';
 
 
@@ -133,7 +132,6 @@ export const PAGES = {
     "PushNotifications": PushNotifications,
     "PlayerDashboard": PlayerDashboard,
     "EmailInvitations": EmailInvitations,
-    "ClothingManagement": ClothingManagement,
 }
 
 export const pagesConfig = {
