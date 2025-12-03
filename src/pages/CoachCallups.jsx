@@ -500,6 +500,27 @@ Email: cdbustarviejo@gmail.com
         </Card>
       </div>
 
+      {/* Alerta de nuevas respuestas */}
+      {recentResponses > 0 && (
+        <Card className="border-2 border-green-400 bg-green-50">
+          <CardContent className="pt-6">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 rounded-full bg-green-500 flex items-center justify-center">
+                <Check className="w-6 h-6 text-white" />
+              </div>
+              <div>
+                <h3 className="font-bold text-green-900">
+                  🔔 {recentResponses} nueva{recentResponses > 1 ? 's' : ''} respuesta{recentResponses > 1 ? 's' : ''} en las últimas 24h
+                </h3>
+                <p className="text-sm text-green-700">
+                  Los padres están confirmando asistencia. Revisa las convocatorias para ver los detalles.
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       <Tabs value={statusFilter} onValueChange={setStatusFilter} className="mt-4">
         <TabsList>
           <TabsTrigger value="all">Todas</TabsTrigger>
