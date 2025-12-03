@@ -36,6 +36,32 @@ const getDefaultSeason = (payments) => {
   return seasons.sort().reverse()[0] || getCurrentSeason();
 };
 
+// Cuotas fallback
+const CUOTAS_FALLBACK = {
+  "Fútbol Aficionado": { inscripcion: 165, segunda: 100, tercera: 95, total: 360 },
+  "Fútbol Juvenil": { inscripcion: 135, segunda: 100, tercera: 95, total: 330 },
+  "Fútbol Cadete": { inscripcion: 135, segunda: 100, tercera: 95, total: 330 },
+  "Fútbol Infantil (Mixto)": { inscripcion: 115, segunda: 83, tercera: 83, total: 281 },
+  "Fútbol Alevín (Mixto)": { inscripcion: 115, segunda: 83, tercera: 83, total: 281 },
+  "Fútbol Benjamín (Mixto)": { inscripcion: 100, segunda: 75, tercera: 75, total: 250 },
+  "Fútbol Pre-Benjamín (Mixto)": { inscripcion: 100, segunda: 75, tercera: 75, total: 250 },
+  "Fútbol Femenino": { inscripcion: 135, segunda: 100, tercera: 95, total: 330 },
+  "Baloncesto (Mixto)": { inscripcion: 50, segunda: 50, tercera: 50, total: 150 }
+};
+
+// Mapeo de nombres
+const CATEGORY_NAME_MAPPING = {
+  "Fútbol Aficionado": "AFICIONADO",
+  "Fútbol Juvenil": "JUVENIL",
+  "Fútbol Cadete": "CADETE",
+  "Fútbol Infantil (Mixto)": "INFANTIL",
+  "Fútbol Alevín (Mixto)": "ALEVIN",
+  "Fútbol Benjamín (Mixto)": "BENJAMIN",
+  "Fútbol Pre-Benjamín (Mixto)": "PRE-BENJAMIN",
+  "Fútbol Femenino": "FEMENINO",
+  "Baloncesto (Mixto)": "BALONCESTO"
+};
+
 const calculateDaysOverdue = (mes) => {
   const vencimientos = {
     "Junio": new Date(new Date().getFullYear(), 5, 30),
