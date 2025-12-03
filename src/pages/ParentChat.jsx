@@ -191,6 +191,18 @@ export default function ParentChat() {
     return msg.tipo === "admin_a_grupo";
   };
 
+  // Detectar si es un mensaje automático (convocatorias, anuncios, encuestas) - NO permitir respuesta privada
+  const isAutomaticMessage = (msg) => {
+    const mensaje = msg.mensaje?.toLowerCase() || "";
+    // Detectar patrones de mensajes automáticos
+    if (mensaje.includes("🏆 nueva convocatoria") || mensaje.includes("convocatoria")) return true;
+    if (mensaje.includes("📢 nuevo anuncio") || mensaje.includes("nuevo anuncio")) return true;
+    if (mensaje.includes("📋 nueva encuesta") || mensaje.includes("encuesta disponible")) return true;
+    if (mensaje.includes("confirma tu asistencia")) return true;
+    if (mensaje.includes("⚠️ importante:")) return true;
+    return false;
+  };
+
   // Crear o abrir chat privado con el remitente de un anuncio
   const createOrOpenPrivateChat = useMutation({
     mutationFn: async ({ staffEmail, categoria }) => {
