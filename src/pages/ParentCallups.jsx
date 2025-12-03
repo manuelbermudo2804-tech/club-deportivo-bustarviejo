@@ -72,7 +72,44 @@ export default function ParentCallups() {
   });
 
   const updateCallupMutation = useMutation({
-    mutationFn: ({ id, callupData }) => base44.entities.Convocatoria.update(id, callupData),
+    mutationFn: async ({ id, callupData }) => {
+      const result = await base44.entities.Convocatoria.update(id, callupData);
+      
+      // Notificar al entrenador que un jugador ha confirmado
+      try {
+        if (callupData.entrenador_email) {
+          const playerConfirmation = callupData.jugadores_convocados.find(j => j.jugador_id === selectedPlayer?.id);
+          const confirmLabel = playerConfirmation?.confirmacion === "asistire" ? "✅ ASISTIRÁ" : 
+                               playerConfirmation?.confirmacion === "no_asistire" ? "❌ NO ASISTIRÁ" : "❓ TIENE DUDAS";
+          
+          // Enviar notificación por email al entrenador
+          await base44.integrations.Core.SendEmail({
+            from_name: "CD Bustarviejo - Convocatorias",
+            to: callupData.entrenador_email,
+            subject: `${confirmLabel} - ${selectedPlayer?.nombre} - ${callupData.titulo}`,
+            body: `
+Hola ${callupData.entrenador_nombre},
+
+${selectedPlayer?.nombre} ha respondido a la convocatoria "${callupData.titulo}":
+
+📋 RESPUESTA: ${confirmLabel}
+${playerConfirmation?.comentario ? `💬 Comentario: ${playerConfirmation.comentario}` : ''}
+
+📅 Fecha: ${callupData.fecha_partido}
+⏰ Hora: ${callupData.hora_partido}
+
+Atentamente,
+CD Bustarviejo
+            `
+          });
+          console.log('📧 Notificación de confirmación enviada al entrenador:', callupData.entrenador_email);
+        }
+      } catch (error) {
+        console.error("Error enviando notificación al entrenador:", error);
+      }
+      
+      return result;
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['convocatorias'] });
       setShowConfirmDialog(false);
