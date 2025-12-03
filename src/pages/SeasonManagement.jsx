@@ -373,10 +373,20 @@ export default function SeasonManagement() {
       if (resetConfig.resetPlayerStatus) {
         setProcessingStep("Actualizando jugadores...");
         for (const player of players.filter(p => p.activo)) {
-          await base44.entities.Player.update(player.id, {
+          const updateData = {
             estado_renovacion: "pendiente",
             temporada_renovacion: resetConfig.newSeasonName
-          });
+          };
+          
+          // Opcionalmente resetear firmas de federación
+          if (resetConfig.resetPlayerSignatures) {
+            updateData.enlace_firma_jugador = "";
+            updateData.enlace_firma_tutor = "";
+            updateData.firma_jugador_completada = false;
+            updateData.firma_tutor_completada = false;
+          }
+          
+          await base44.entities.Player.update(player.id, updateData);
         }
         currentStep++;
         setProcessingProgress((currentStep / totalSteps) * 100);
