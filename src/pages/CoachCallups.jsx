@@ -22,6 +22,7 @@ import ExportButton from "../components/ExportButton";
 import CallupForm from "../components/callups/CallupForm";
 import CallupCard from "../components/callups/CallupCard";
 import { usePageTutorial } from "../components/tutorials/useTutorial";
+import { CombinedSuccessAnimation } from "../components/animations/SuccessAnimation";
 
 export default function CoachCallups() {
   usePageTutorial("coach_callups");
