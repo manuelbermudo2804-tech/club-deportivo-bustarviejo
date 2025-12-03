@@ -438,10 +438,11 @@ export default function ClubMembership() {
 
   return (
     <>
-      <CheckmarkAnimation 
+      <CombinedSuccessAnimation 
         show={showSuccess} 
         onComplete={() => setShowSuccess(false)}
-        message={isRenewal ? `¡Renovación completada, ${lastRegisteredName}!` : `¡Bienvenido/a, ${lastRegisteredName}!`}
+        message={isRenewal ? `¡Renovación completada, ${lastRegisteredName}!` : `¡Bienvenido/a al club, ${lastRegisteredName}!`}
+        withConfetti={true}
       />
       <div className="p-4 lg:p-6 max-w-4xl mx-auto space-y-6">
       {/* Header festivo */}
