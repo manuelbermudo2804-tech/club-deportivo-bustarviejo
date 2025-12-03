@@ -60,6 +60,7 @@ export default function SeasonManagement() {
     archivePayments: true,
     deleteReminders: true,
     resetPlayerStatus: true,
+    resetPlayerSignatures: true, // Resetear enlaces y estados de firma
     deleteAttendances: true,
     deleteEvaluations: true,
     deleteCallups: true,
@@ -77,6 +78,9 @@ export default function SeasonManagement() {
     deleteMedicalRecords: false,
     deleteDocuments: false,
     deletePrivateMessages: true,
+    deletePrivateConversations: true, // Conversaciones privadas
+    deleteReferralRewards: true, // Referidos de la temporada
+    resetUserReferrals: true, // Resetear contadores de referidos de usuarios
     newSeasonName: "",
     cuotaUnica: 200,
     cuotaTresMeses: 75,
