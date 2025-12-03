@@ -24,7 +24,7 @@ const getCurrentSeason = () => {
   return `${currentYear - 1}/${currentYear}`;
 };
 
-// Cuotas fallback (se sobreescriben con CategoryConfig si existe)
+// Cuotas fallback - se sobreescriben con CategoryConfig
 const CUOTAS_FALLBACK = {
   "Fútbol Aficionado": { inscripcion: 165, segunda: 100, tercera: 95, total: 360 },
   "Fútbol Juvenil": { inscripcion: 135, segunda: 100, tercera: 95, total: 330 },
@@ -54,43 +54,6 @@ const FECHAS_VENCIMIENTO = {
   "Junio": "30 de junio",
   "Septiembre": "15 de septiembre",
   "Diciembre": "15 de diciembre"
-};
-
-// Función que obtiene cuotas de CategoryConfig si existe
-const getCuotasFromConfig = (categoria, categoryConfigs) => {
-  if (!categoryConfigs || categoryConfigs.length === 0) {
-    return CUOTAS_FALLBACK[categoria] || { inscripcion: 0, segunda: 0, tercera: 0, total: 0 };
-  }
-  
-  const mappedName = CATEGORY_NAME_MAPPING[categoria] || categoria;
-  const categoryConfig = categoryConfigs.find(c => 
-    (c.nombre === categoria || c.nombre === mappedName) && c.activa
-  );
-  
-  if (categoryConfig) {
-    return {
-      inscripcion: categoryConfig.cuota_inscripcion,
-      segunda: categoryConfig.cuota_segunda,
-      tercera: categoryConfig.cuota_tercera,
-      total: categoryConfig.cuota_total
-    };
-  }
-  
-  return CUOTAS_FALLBACK[categoria] || { inscripcion: 0, segunda: 0, tercera: 0, total: 0 };
-};
-
-const getImportePorMesFromConfig = (categoria, mes, categoryConfigs, descuento = 0) => {
-  const cuotas = getCuotasFromConfig(categoria, categoryConfigs);
-  // El descuento solo se aplica en la cuota de inscripción (Junio)
-  if (mes === "Junio") return cuotas.inscripcion - descuento;
-  if (mes === "Septiembre") return cuotas.segunda;
-  if (mes === "Diciembre") return cuotas.tercera;
-  return 0;
-};
-
-const getTotalConDescuentoFromConfig = (categoria, categoryConfigs, descuento = 0) => {
-  const cuotas = getCuotasFromConfig(categoria, categoryConfigs);
-  return cuotas.total - descuento;
 };
 
 export default function ParentPaymentForm({ players, payments = [], onSubmit, onCancel, isSubmitting, isAdmin = false, preselectedPlayerId = null, preselectedMonth = null }) {
