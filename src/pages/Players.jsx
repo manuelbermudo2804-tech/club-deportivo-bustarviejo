@@ -72,7 +72,16 @@ export default function Players() {
     initialData: [],
   });
 
-  // Filter players based on role - solo mostrar activos
+  // Obtener temporada activa
+  const { data: activeSeason } = useQuery({
+    queryKey: ['activeSeasonConfig'],
+    queryFn: async () => {
+      const configs = await base44.entities.SeasonConfig.list();
+      return configs.find(c => c.activa === true);
+    },
+  });
+
+  // Filter players based on role - solo mostrar activos de la temporada actual
   const players = isAdmin 
     ? allPlayers.filter(p => p.activo === true)
     : allPlayers.filter(p => 

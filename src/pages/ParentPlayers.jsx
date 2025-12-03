@@ -35,6 +35,7 @@ export default function ParentPlayers() {
     queryKey: ['myPlayers', user?.email],
     queryFn: async () => {
       const allPlayers = await base44.entities.Player.list();
+      // SOLO mostrar jugadores ACTIVOS (los de temporada anterior están con activo=false hasta que se renueven)
       return allPlayers.filter(p => 
         (p.email_padre === user?.email || p.email_tutor_2 === user?.email) && p.activo === true
       );

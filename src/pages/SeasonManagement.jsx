@@ -373,13 +373,15 @@ export default function SeasonManagement() {
         setProcessingProgress((currentStep / totalSteps) * 100);
       }
 
-      // 3. Resetear estado de jugadores
+      // 3. Resetear estado de jugadores - MARCARLOS COMO INACTIVOS HASTA QUE SE RENUEVEN
       if (resetConfig.resetPlayerStatus) {
-        setProcessingStep("Actualizando jugadores...");
+        setProcessingStep("Desactivando jugadores de temporada anterior...");
         for (const player of players.filter(p => p.activo)) {
           const updateData = {
+            activo: false, // CLAVE: desactivar para que no aparezcan en paneles
             estado_renovacion: "pendiente",
-            temporada_renovacion: resetConfig.newSeasonName
+            temporada_renovacion: resetConfig.newSeasonName,
+            temporada_anterior: activeSeason?.temporada || ""
           };
           
           // Opcionalmente resetear firmas de federación
