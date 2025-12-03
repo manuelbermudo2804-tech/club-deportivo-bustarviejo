@@ -15,6 +15,7 @@ import RenewalReminderDialog from "../components/members/RenewalReminderDialog";
 import MemberEditForm from "../components/members/MemberEditForm";
 import MemberDetailDialog from "../components/members/MemberDetailDialog";
 import MemberAdvancedFilters from "../components/members/MemberAdvancedFilters";
+import { sendMemberCard } from "../components/members/MemberCardEmail";
 
 export default function ClubMembersManagement() {
   const [user, setUser] = useState(null);
@@ -74,16 +75,31 @@ export default function ClubMembersManagement() {
   }, [seasonConfig]);
 
   const updateMemberMutation = useMutation({
-    mutationFn: async ({ id, data, memberEmail, memberName, sendEmail = false }) => {
+    mutationFn: async ({ id, data, memberEmail, memberName, sendEmail = false, member = null }) => {
       const result = await base44.entities.ClubMember.update(id, data);
       
-      if (sendEmail && data.estado_pago === "Pagado" && memberEmail) {
+      // Cuando el admin marca como PAGADO, enviar carnet virtual + email de confirmación
+      if (sendEmail && data.estado_pago === "Pagado" && memberEmail && member) {
         try {
-          await base44.integrations.Core.SendEmail({
-            from_name: "CD Bustarviejo",
-            to: memberEmail,
-            subject: "🎉 ¡Confirmación de Pago - Ya eres Socio del CD Bustarviejo!",
-            body: `Estimado/a ${memberName},
+          // Enviar carnet virtual
+          await sendMemberCard({ ...member, ...data }, seasonConfig, base44);
+          
+          // Marcar carnet como enviado
+          await base44.entities.ClubMember.update(id, {
+            carnet_enviado: true,
+            fecha_carnet_enviado: new Date().toISOString()
+          });
+          
+          toast.success("📧 Carnet virtual enviado al socio");
+        } catch (error) {
+          console.error("Error enviando carnet:", error);
+          // Si falla el carnet, al menos enviar email simple
+          try {
+            await base44.integrations.Core.SendEmail({
+              from_name: "CD Bustarviejo",
+              to: memberEmail,
+              subject: "🎉 ¡Confirmación de Pago - Ya eres Socio del CD Bustarviejo!",
+              body: `Estimado/a ${memberName},
 
 ¡Gracias por tu apoyo al CD Bustarviejo! 
 
@@ -95,9 +111,10 @@ Tu contribución es fundamental para el desarrollo de nuestros jóvenes deportis
 
 Un cordial saludo,
 CD Bustarviejo`
-          });
-        } catch (error) {
-          console.error("Error enviando email:", error);
+            });
+          } catch (e) {
+            console.error("Error enviando email simple:", e);
+          }
         }
       }
       
@@ -130,7 +147,8 @@ CD Bustarviejo`
       },
       memberEmail: member.email,
       memberName: member.nombre_completo,
-      sendEmail: newStatus === "Pagado"
+      sendEmail: newStatus === "Pagado",
+      member: member // Pasar datos del socio para el carnet
     });
   };
 
