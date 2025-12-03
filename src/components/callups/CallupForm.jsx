@@ -247,14 +247,31 @@ export default function CallupForm({ callup, players, coachName, coachEmail, cat
                   <MapPin className="w-4 h-4 text-orange-600" />
                   Enlace de Google Maps (opcional)
                 </Label>
-                <Input
-                  type="url"
-                  placeholder="https://maps.google.com/..."
-                  value={currentCallup.enlace_ubicacion || ""}
-                  onChange={(e) => setCurrentCallup({ ...currentCallup, enlace_ubicacion: e.target.value })}
-                />
+                <div className="flex gap-2">
+                  <Input
+                    type="url"
+                    placeholder="https://maps.google.com/..."
+                    value={currentCallup.enlace_ubicacion || ""}
+                    onChange={(e) => setCurrentCallup({ ...currentCallup, enlace_ubicacion: e.target.value })}
+                    className="flex-1"
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => {
+                      const ubicacion = currentCallup.ubicacion || "";
+                      const searchQuery = encodeURIComponent(ubicacion);
+                      window.open(`https://www.google.com/maps/search/?api=1&query=${searchQuery}`, '_blank');
+                    }}
+                    className="shrink-0 bg-green-50 border-green-300 hover:bg-green-100 text-green-700"
+                    disabled={!currentCallup.ubicacion}
+                  >
+                    <MapPin className="w-4 h-4 mr-1" />
+                    Buscar en Maps
+                  </Button>
+                </div>
                 <p className="text-xs text-slate-500">
-                  💡 Copia el enlace desde Google Maps para que los padres puedan ver la ubicación exacta
+                  💡 Busca la ubicación en Google Maps, copia el enlace y pégalo aquí para que los padres puedan ver la ubicación exacta
                 </p>
               </div>
 
