@@ -357,10 +357,14 @@ export default function ReferralManagement() {
 
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="ranking" className="gap-2">
             <Trophy className="w-4 h-4" />
             Ranking
+          </TabsTrigger>
+          <TabsTrigger value="registros" className="gap-2">
+            <Users className="w-4 h-4" />
+            Registros ({referralRewards.length})
           </TabsTrigger>
           <TabsTrigger value="sorteo" className="gap-2">
             <Dices className="w-4 h-4" />
