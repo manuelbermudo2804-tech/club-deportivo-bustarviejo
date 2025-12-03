@@ -83,14 +83,7 @@ export default function ClothingPriceConfig({ seasonConfig, onUpdate }) {
     }
   });
 
-  const initializeProducts = () => {
-    if (!seasonConfig?.productos_ropa) {
-      updateConfigMutation.mutate({
-        id: seasonConfig.id,
-        data: { productos_ropa: DEFAULT_PRODUCTS }
-      });
-    }
-  };
+
 
   const handleSaveProduct = () => {
     if (!editingProduct || !seasonConfig) {
