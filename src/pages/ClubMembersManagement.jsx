@@ -329,6 +329,133 @@ Por solo *25€/año* seguirás apoyando a nuestros jóvenes deportistas.
     return { emailsSent, whatsappOpened };
   };
 
+  // Importar desde CSV
+  const handleFileUpload = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      try {
+        const text = event.target.result;
+        const lines = text.split('\n').filter(line => line.trim());
+        
+        if (lines.length < 2) {
+          toast.error("El archivo está vacío o no tiene datos");
+          return;
+        }
+
+        // Detectar separador (coma o punto y coma)
+        const separator = lines[0].includes(';') ? ';' : ',';
+        const headers = lines[0].split(separator).map(h => h.trim().toLowerCase().replace(/"/g, ''));
+        
+        // Mapear headers esperados
+        const headerMap = {
+          'nombre': ['nombre', 'nombre_completo', 'nombre completo', 'name'],
+          'dni': ['dni', 'documento', 'nif'],
+          'email': ['email', 'correo', 'e-mail', 'mail'],
+          'telefono': ['telefono', 'teléfono', 'phone', 'movil', 'móvil'],
+          'direccion': ['direccion', 'dirección', 'address', 'domicilio'],
+          'municipio': ['municipio', 'ciudad', 'city', 'localidad', 'poblacion', 'población'],
+          'cuota': ['cuota', 'importe', 'amount', 'precio']
+        };
+
+        const getColumnIndex = (field) => {
+          const possibleNames = headerMap[field] || [field];
+          return headers.findIndex(h => possibleNames.some(name => h.includes(name)));
+        };
+
+        const indices = {
+          nombre: getColumnIndex('nombre'),
+          dni: getColumnIndex('dni'),
+          email: getColumnIndex('email'),
+          telefono: getColumnIndex('telefono'),
+          direccion: getColumnIndex('direccion'),
+          municipio: getColumnIndex('municipio'),
+          cuota: getColumnIndex('cuota')
+        };
+
+        if (indices.nombre === -1) {
+          toast.error("No se encontró columna de nombre. Asegúrate de incluir una columna 'Nombre' o 'Nombre Completo'");
+          return;
+        }
+
+        const parsedData = [];
+        for (let i = 1; i < lines.length; i++) {
+          const values = lines[i].split(separator).map(v => v.trim().replace(/"/g, ''));
+          if (!values[indices.nombre]) continue;
+
+          parsedData.push({
+            nombre_completo: values[indices.nombre] || '',
+            dni: indices.dni >= 0 ? values[indices.dni] || '' : '',
+            email: indices.email >= 0 ? values[indices.email] || '' : '',
+            telefono: indices.telefono >= 0 ? values[indices.telefono] || '' : '',
+            direccion: indices.direccion >= 0 ? values[indices.direccion] || '' : '',
+            municipio: indices.municipio >= 0 ? values[indices.municipio] || 'Bustarviejo' : 'Bustarviejo',
+            cuota_socio: indices.cuota >= 0 ? Number(values[indices.cuota]) || 25 : 25
+          });
+        }
+
+        if (parsedData.length === 0) {
+          toast.error("No se encontraron datos válidos en el archivo");
+          return;
+        }
+
+        setImportPreview(parsedData);
+        setShowImportDialog(true);
+        toast.success(`${parsedData.length} registros encontrados`);
+      } catch (error) {
+        console.error("Error parsing CSV:", error);
+        toast.error("Error al leer el archivo. Verifica el formato.");
+      }
+    };
+    reader.readAsText(file);
+    e.target.value = ''; // Reset input
+  };
+
+  const executeImport = async () => {
+    if (importPreview.length === 0) return;
+    
+    setIsImporting(true);
+    let imported = 0;
+    let errors = 0;
+
+    for (const record of importPreview) {
+      try {
+        // Generar número de socio automático
+        const currentYear = new Date().getFullYear();
+        const existingCount = members.length + imported + 1;
+        const numeroSocio = `CDB-${currentYear}-${String(existingCount).padStart(4, '0')}`;
+
+        await base44.entities.ClubMember.create({
+          numero_socio: numeroSocio,
+          nombre_completo: record.nombre_completo,
+          dni: record.dni,
+          email: record.email,
+          telefono: record.telefono,
+          direccion: record.direccion,
+          municipio: record.municipio,
+          cuota_socio: record.cuota_socio,
+          tipo_inscripcion: "Nueva Inscripción",
+          estado_pago: "Pendiente",
+          temporada: seasonConfig?.temporada || `${currentYear}/${currentYear + 1}`,
+          activo: true
+        });
+        imported++;
+      } catch (error) {
+        console.error("Error importing:", record.nombre_completo, error);
+        errors++;
+      }
+    }
+
+    setIsImporting(false);
+    setShowImportDialog(false);
+    setImportPreview([]);
+    queryClient.invalidateQueries({ queryKey: ['allMembers'] });
+    
+    toast.success(`✅ ${imported} socios importados${errors > 0 ? `, ${errors} errores` : ''}`);
+  };
+
   // Exportar a CSV
   const handleExport = () => {
     const dataToExport = filteredMembers;
@@ -467,6 +594,75 @@ Por solo *25€/año* seguirás apoyando a nuestros jóvenes deportistas.
         referrals={members}
       />
 
+      {/* Dialog de importación */}
+      <Dialog open={showImportDialog} onOpenChange={setShowImportDialog}>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <FileSpreadsheet className="w-5 h-5 text-green-600" />
+              Importar Socios desde CSV
+            </DialogTitle>
+            <DialogDescription>
+              Se encontraron {importPreview.length} registros. Revisa los datos antes de importar.
+            </DialogDescription>
+          </DialogHeader>
+
+          <Alert className="bg-blue-50 border-blue-200">
+            <AlertDescription className="text-blue-800 text-sm">
+              <strong>Formato esperado:</strong> CSV con columnas: Nombre, DNI, Email, Teléfono, Dirección, Municipio, Cuota (opcional).
+              El separador puede ser coma (,) o punto y coma (;).
+            </AlertDescription>
+          </Alert>
+
+          <div className="mt-4 max-h-72 overflow-y-auto border rounded-lg">
+            <table className="w-full text-sm">
+              <thead className="bg-slate-50 sticky top-0">
+                <tr>
+                  <th className="text-left p-2 border-b">#</th>
+                  <th className="text-left p-2 border-b">Nombre</th>
+                  <th className="text-left p-2 border-b">DNI</th>
+                  <th className="text-left p-2 border-b">Email</th>
+                  <th className="text-left p-2 border-b">Teléfono</th>
+                  <th className="text-left p-2 border-b">Cuota</th>
+                </tr>
+              </thead>
+              <tbody>
+                {importPreview.slice(0, 50).map((row, i) => (
+                  <tr key={i} className="hover:bg-slate-50">
+                    <td className="p-2 border-b text-slate-500">{i + 1}</td>
+                    <td className="p-2 border-b font-medium">{row.nombre_completo}</td>
+                    <td className="p-2 border-b">{row.dni || '-'}</td>
+                    <td className="p-2 border-b text-blue-600">{row.email || '-'}</td>
+                    <td className="p-2 border-b">{row.telefono || '-'}</td>
+                    <td className="p-2 border-b">{row.cuota_socio}€</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            {importPreview.length > 50 && (
+              <p className="text-center text-slate-500 py-2">... y {importPreview.length - 50} más</p>
+            )}
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => { setShowImportDialog(false); setImportPreview([]); }}>
+              Cancelar
+            </Button>
+            <Button 
+              onClick={executeImport} 
+              disabled={isImporting}
+              className="bg-green-600 hover:bg-green-700"
+            >
+              {isImporting ? (
+                <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Importando...</>
+              ) : (
+                <><Upload className="w-4 h-4 mr-2" /> Importar {importPreview.length} socios</>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       {/* Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
@@ -476,12 +672,25 @@ Por solo *25€/año* seguirás apoyando a nuestros jóvenes deportistas.
           </h1>
           <p className="text-slate-600 mt-1">Administra los socios del club · Temporada {seasonConfig?.temporada}</p>
         </div>
-        <Button
-          onClick={() => setShowReminderDialog(true)}
-          className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800"
-        >
-          <Mail className="w-4 h-4 mr-2" /> Enviar Recordatorios
-        </Button>
+        <div className="flex gap-2">
+          <label className="cursor-pointer">
+            <input
+              type="file"
+              accept=".csv,.txt"
+              onChange={handleFileUpload}
+              className="hidden"
+            />
+            <Button variant="outline" className="pointer-events-none">
+              <Upload className="w-4 h-4 mr-2" /> Importar CSV
+            </Button>
+          </label>
+          <Button
+            onClick={() => setShowReminderDialog(true)}
+            className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800"
+          >
+            <Mail className="w-4 h-4 mr-2" /> Enviar Recordatorios
+          </Button>
+        </div>
       </div>
 
       {/* Alertas de nuevos socios y pendientes de revisión */}
