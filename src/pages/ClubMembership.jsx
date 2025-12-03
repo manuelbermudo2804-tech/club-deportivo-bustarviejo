@@ -11,7 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { Loader2, Upload, AlertCircle, CheckCircle2, Users, CreditCard, Download, Heart, Star, PartyPopper, Sparkles, UserPlus, Trophy, Gift, CreditCard as CardIcon, Share2, MessageCircle } from "lucide-react";
 import { sendMemberCard } from "../components/members/MemberCardEmail";
 import ReferralProgramCard from "../components/referrals/ReferralProgramCard";
-import { CheckmarkAnimation } from "../components/animations/SuccessAnimation";
+import { CombinedSuccessAnimation } from "../components/animations/SuccessAnimation";
 import { toast } from "sonner";
 
 const CUOTA_SOCIO = 25;
