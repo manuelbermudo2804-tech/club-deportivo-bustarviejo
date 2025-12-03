@@ -474,11 +474,11 @@ Email: cdbustarviejo@gmail.com
                 if (existingPayment) {
                   return existingPayment;
                 }
-                // Crear un pago virtual pendiente con cantidad correcta
-                const cuotas = getCuotasPorCategoria(player.deporte);
+                // Crear un pago virtual pendiente con cantidad correcta desde CategoryConfig
+                const cuotas = getCuotasFromConfig(player.deporte, categoryConfigs);
                 const cantidad = hasPagoUnico 
                   ? cuotas.total 
-                  : getImportePorMes(player.deporte, mes);
+                  : getImportePorMesFromConfig(player.deporte, mes, categoryConfigs);
                 
                 return {
                   id: `virtual-${player.id}-${mes}`,
