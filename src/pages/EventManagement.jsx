@@ -38,7 +38,7 @@ export default function EventManagement() {
       try {
         const currentUser = await base44.auth.me();
         setUser(currentUser);
-        setIsAdmin(currentUser.role === "admin");
+        setIsAdmin(currentUser.role === "admin" || currentUser.es_coordinador === true || currentUser.es_entrenador === true);
       } catch (error) {
         console.error("Error fetching user:", error);
       }
@@ -291,7 +291,107 @@ export default function EventManagement() {
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
-    toast.success("📥 Lista descargada");
+    toast.success("📥 CSV descargado");
+  };
+
+  const exportAttendeesPDF = (event) => {
+    const confirmed = event.confirmaciones?.filter(c => c.confirmacion === "asistire") || [];
+    const allResponses = event.confirmaciones || [];
+    
+    const htmlContent = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Asistentes - ${event.titulo}</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; }
+    h1 { color: #ea580c; border-bottom: 3px solid #16a34a; padding-bottom: 10px; }
+    .info { background: #f1f5f9; padding: 15px; border-radius: 8px; margin: 20px 0; }
+    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+    th { background: #ea580c; color: white; padding: 12px; text-align: left; }
+    td { padding: 10px; border-bottom: 1px solid #e2e8f0; }
+    tr:hover { background: #fef3c7; }
+    .footer { margin-top: 30px; padding-top: 20px; border-top: 2px solid #e2e8f0; text-align: center; color: #64748b; }
+    @media print {
+      button { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <h1>📋 Lista de Asistentes - ${event.titulo}</h1>
+  <div class="info">
+    <p><strong>📅 Fecha:</strong> ${format(new Date(event.fecha), "d 'de' MMMM yyyy", { locale: es })}</p>
+    <p><strong>🕐 Hora:</strong> ${event.hora || 'Por confirmar'}</p>
+    <p><strong>📍 Lugar:</strong> ${event.ubicacion || 'Por confirmar'}</p>
+    <p><strong>✅ Total confirmados:</strong> ${confirmed.length} personas (+ ${confirmed.reduce((sum, c) => sum + (c.num_acompanantes || 0), 0)} acompañantes)</p>
+  </div>
+
+  <h2>✅ Confirman Asistencia (${confirmed.length})</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Nombre</th>
+        <th>Email</th>
+        <th>Acompañantes</th>
+        <th>Fecha Confirmación</th>
+        <th>Comentario</th>
+      </tr>
+    </thead>
+    <tbody>
+      ${confirmed.map(c => `
+        <tr>
+          <td>${c.usuario_nombre}</td>
+          <td>${c.usuario_email}</td>
+          <td style="text-align: center;">${c.num_acompanantes || 0}</td>
+          <td>${format(new Date(c.fecha_confirmacion), "dd/MM/yyyy HH:mm")}</td>
+          <td><em>${c.comentario || '-'}</em></td>
+        </tr>
+      `).join('')}
+    </tbody>
+  </table>
+
+  <h2 style="margin-top: 40px;">📊 Todas las Respuestas (${allResponses.length})</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Nombre</th>
+        <th>Email</th>
+        <th>Respuesta</th>
+        <th>Fecha</th>
+      </tr>
+    </thead>
+    <tbody>
+      ${allResponses.map(c => {
+        const statusEmoji = {asistire: '✅', no_asistire: '❌', quizas: '❓', pendiente: '⏳'}[c.confirmacion];
+        const statusText = {asistire: 'Asistiré', no_asistire: 'No asistiré', quizas: 'Quizás', pendiente: 'Pendiente'}[c.confirmacion];
+        return `
+        <tr>
+          <td>${c.usuario_nombre}</td>
+          <td>${c.usuario_email}</td>
+          <td>${statusEmoji} ${statusText}</td>
+          <td>${format(new Date(c.fecha_confirmacion), "dd/MM/yyyy HH:mm")}</td>
+        </tr>
+      `}).join('')}
+    </tbody>
+  </table>
+
+  <div class="footer">
+    <p><strong>CD Bustarviejo</strong></p>
+    <p>Generado el ${format(new Date(), "dd/MM/yyyy 'a las' HH:mm")}</p>
+  </div>
+
+  <button onclick="window.print()" style="position: fixed; top: 20px; right: 20px; padding: 10px 20px; background: #ea580c; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold;">
+    🖨️ Imprimir / Guardar PDF
+  </button>
+</body>
+</html>
+    `;
+
+    const newWindow = window.open('', '_blank');
+    newWindow.document.write(htmlContent);
+    newWindow.document.close();
+    toast.success("📄 PDF abierto en nueva ventana");
   };
 
   const today = new Date().toISOString().split('T')[0];
@@ -320,7 +420,7 @@ export default function EventManagement() {
             <div className="text-center space-y-3">
               <AlertTriangle className="w-16 h-16 text-red-600 mx-auto" />
               <h2 className="text-2xl font-bold text-red-900">Acceso Restringido</h2>
-              <p className="text-red-700">Solo los administradores pueden gestionar eventos.</p>
+              <p className="text-red-700">Solo administradores, coordinadores y entrenadores pueden gestionar eventos.</p>
             </div>
           </CardContent>
         </Card>
@@ -612,15 +712,24 @@ export default function EventManagement() {
                             </div>
                           )}
                           <div className="flex gap-2 mt-3">
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => exportAttendees(event)}
-                              className="flex-1"
-                            >
-                              <Download className="w-4 h-4 mr-2" />
-                              Exportar Lista
-                            </Button>
+                           <Button
+                             size="sm"
+                             variant="outline"
+                             onClick={() => exportAttendees(event)}
+                             className="flex-1"
+                           >
+                             <Download className="w-4 h-4 mr-2" />
+                             CSV
+                           </Button>
+                           <Button
+                             size="sm"
+                             variant="outline"
+                             onClick={() => exportAttendeesPDF(event)}
+                             className="flex-1"
+                           >
+                             <Download className="w-4 h-4 mr-2" />
+                             PDF
+                           </Button>
                             {event.enviar_recordatorio_automatico && !event.recordatorio_enviado && (
                               <Button
                                 size="sm"
@@ -873,10 +982,16 @@ export default function EventManagement() {
               Cerrar
             </Button>
             {selectedEvent && (
-              <Button onClick={() => exportAttendees(selectedEvent)}>
-                <Download className="w-4 h-4 mr-2" />
-                Exportar Lista
-              </Button>
+              <>
+                <Button variant="outline" onClick={() => exportAttendees(selectedEvent)}>
+                  <Download className="w-4 h-4 mr-2" />
+                  CSV
+                </Button>
+                <Button onClick={() => exportAttendeesPDF(selectedEvent)}>
+                  <Download className="w-4 h-4 mr-2" />
+                  PDF
+                </Button>
+              </>
             )}
           </DialogFooter>
         </DialogContent>

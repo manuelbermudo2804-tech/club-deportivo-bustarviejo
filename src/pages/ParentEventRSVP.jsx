@@ -86,6 +86,7 @@ export default function ParentEventRSVP() {
       queryClient.invalidateQueries({ queryKey: ['events'] });
       setConfirmedResponse(variables.confirmacion);
       setShowThankYou(true);
+      setShowRSVPDialog(false);
     },
   });
 
@@ -108,12 +109,23 @@ export default function ParentEventRSVP() {
   );
 
   const handleOpenRSVP = (event) => {
-    setSelectedEvent(event);
     const myConfirmation = event.confirmaciones?.find(c => c.usuario_email === user?.email);
+    
+    // Si ya confirmó, mostrar mensaje de agradecimiento directamente
+    if (myConfirmation && myConfirmation.confirmacion !== "pendiente") {
+      setSelectedEvent(event);
+      setConfirmedResponse(myConfirmation.confirmacion);
+      setShowThankYou(true);
+      setShowRSVPDialog(true);
+      return;
+    }
+    
+    // Si no ha confirmado, mostrar el formulario
+    setSelectedEvent(event);
     setRsvpData({
-      confirmacion: myConfirmation?.confirmacion || "pendiente",
-      num_acompanantes: myConfirmation?.num_acompanantes || 0,
-      comentario: myConfirmation?.comentario || ""
+      confirmacion: "pendiente",
+      num_acompanantes: 0,
+      comentario: ""
     });
     setShowRSVPDialog(true);
   };
@@ -186,8 +198,11 @@ export default function ParentEventRSVP() {
                       </div>
                       <CardTitle className="text-xl">{event.titulo}</CardTitle>
                     </div>
-                    <Button onClick={() => handleOpenRSVP(event)}>
-                      Confirmar
+                    <Button 
+                     onClick={() => handleOpenRSVP(event)}
+                     className={myConfirmation && myConfirmation.confirmacion !== "pendiente" ? "bg-green-600 hover:bg-green-700" : ""}
+                    >
+                     {myConfirmation && myConfirmation.confirmacion !== "pendiente" ? "Ver mi respuesta" : "Confirmar"}
                     </Button>
                   </div>
                 </CardHeader>
@@ -271,6 +286,9 @@ export default function ParentEventRSVP() {
                   {confirmedResponse === "asistire" && "¡Te esperamos! Hemos registrado tu asistencia."}
                   {confirmedResponse === "no_asistire" && "Gracias por avisarnos. ¡Será en otra ocasión!"}
                   {confirmedResponse === "quizas" && "De acuerdo, puedes cambiar tu respuesta cuando lo sepas."}
+                </p>
+                <p className="text-sm text-slate-600 mt-3">
+                  Tu respuesta ya está confirmada para este evento
                 </p>
                 <div className="flex items-center justify-center gap-2 text-green-600 mt-4">
                   <Heart className="w-4 h-4 fill-current" />

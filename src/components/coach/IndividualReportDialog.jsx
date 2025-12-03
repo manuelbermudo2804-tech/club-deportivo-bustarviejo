@@ -212,9 +212,12 @@ export default function IndividualReportDialog({
           
           {/* Nota explicativa sobre chat privado */}
           {(sendMethod === "chat" || sendMethod === "both") && (
-            <div className="bg-blue-50 p-2 rounded-lg border border-blue-200">
+            <div className="bg-blue-50 p-3 rounded-lg border-2 border-blue-300">
+              <p className="text-sm text-blue-900 font-semibold mb-1">
+                🔒 El reporte se envía al CHAT PRIVADO
+              </p>
               <p className="text-xs text-blue-800">
-                💬 <strong>Chat Privado:</strong> El reporte se enviará a la conversación privada con la familia del jugador, no al chat grupal del equipo. Solo la familia verá este mensaje.
+                El reporte de asistencia y evaluación se enviará <strong>únicamente a la conversación privada con la familia</strong> del jugador. No se publicará en el chat del grupo. Solo la familia verá esta información.
               </p>
             </div>
           )}

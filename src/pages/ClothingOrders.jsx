@@ -22,6 +22,7 @@ import ClothingOrderForm from "../components/clothing/ClothingOrderForm";
 import OrdersSummary from "../components/clothing/OrdersSummary";
 import ClothingPriceConfig from "../components/clothing/ClothingPriceConfig";
 import ContactCard from "../components/ContactCard";
+import ClothingOrderSuccess from "../components/clothing/ClothingOrderSuccess";
 import { usePageTutorial } from "../components/tutorials/useTutorial";
 
 export default function ClothingOrders() {
@@ -31,6 +32,8 @@ export default function ClothingOrders() {
   const [showForm, setShowForm] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
   const [expandedOrders, setExpandedOrders] = useState({});
+  const [showSuccessDialog, setShowSuccessDialog] = useState(false);
+  const [lastOrderDetails, setLastOrderDetails] = useState(null);
   const [historyFilters, setHistoryFilters] = useState({
     search: '',
     estado: 'todos',
@@ -100,13 +103,14 @@ export default function ClothingOrders() {
 
   const createOrderMutation = useMutation({
     mutationFn: (orderData) => base44.entities.ClothingOrder.create(orderData),
-    onSuccess: () => {
+    onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['myClothingOrders'] });
       queryClient.invalidateQueries({ queryKey: ['allPlayersForClothing'] });
       queryClient.invalidateQueries({ queryKey: ['currentUser'] });
       setShowForm(false);
+      setLastOrderDetails(variables);
+      setShowSuccessDialog(true);
       window.scrollTo({ top: 0, behavior: 'smooth' });
-      toast.success("✅ Pedido registrado correctamente");
     },
   });
 
@@ -1242,6 +1246,12 @@ export default function ClothingOrders() {
       )}
 
       <ContactCard />
+
+      <ClothingOrderSuccess 
+        isOpen={showSuccessDialog} 
+        onClose={() => setShowSuccessDialog(false)}
+        orderDetails={lastOrderDetails}
+      />
     </div>
   );
 }
