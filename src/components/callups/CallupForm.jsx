@@ -259,19 +259,18 @@ export default function CallupForm({ callup, players, coachName, coachEmail, cat
                     type="button"
                     variant="outline"
                     onClick={() => {
-                      const ubicacion = currentCallup.ubicacion || "";
-                      const searchQuery = encodeURIComponent(ubicacion);
-                      window.open(`https://www.google.com/maps/search/?api=1&query=${searchQuery}`, '_blank');
+                      // Abrir Google Maps con la ubicación para que el usuario pueda copiar el enlace
+                      const query = encodeURIComponent(currentCallup.ubicacion || "Campo de fútbol");
+                      window.open(`https://www.google.com/maps/search/${query}`, '_blank');
                     }}
-                    className="shrink-0 bg-green-50 border-green-300 hover:bg-green-100 text-green-700"
-                    disabled={!currentCallup.ubicacion}
+                    className="flex-shrink-0 gap-2"
                   >
-                    <MapPin className="w-4 h-4 mr-1" />
+                    <MapPin className="w-4 h-4" />
                     Buscar en Maps
                   </Button>
                 </div>
                 <p className="text-xs text-slate-500">
-                  💡 Busca la ubicación en Google Maps, copia el enlace y pégalo aquí para que los padres puedan ver la ubicación exacta
+                  💡 Pulsa "Buscar en Maps", encuentra la ubicación, copia el enlace y pégalo aquí
                 </p>
               </div>
 
