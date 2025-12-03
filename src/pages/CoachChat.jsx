@@ -59,7 +59,8 @@ export default function CoachChat() {
   const { data: messages = [], refetch: refetchMessages } = useQuery({
     queryKey: ['chatMessages'],
     queryFn: () => base44.entities.ChatMessage.list('-created_date'),
-    refetchOnWindowFocus: false,
+    refetchOnWindowFocus: true,
+    refetchInterval: 3000, // Polling cada 3 segundos para mensajes instantáneos
   });
 
   const { data: allPlayers = [], isLoading: loadingPlayers } = useQuery({
@@ -70,6 +71,7 @@ export default function CoachChat() {
   const { data: privateConversations = [], refetch: refetchConversations } = useQuery({
     queryKey: ['privateConversations'],
     queryFn: () => base44.entities.PrivateConversation.list('-ultimo_mensaje_fecha'),
+    refetchInterval: 3000, // Polling cada 3 segundos
   });
 
   const { data: privateMessages = [], refetch: refetchPrivateMessages } = useQuery({
@@ -78,6 +80,7 @@ export default function CoachChat() {
       ? base44.entities.PrivateMessage.filter({ conversacion_id: selectedConversation.id }, '-created_date')
       : [],
     enabled: !!selectedConversation?.id,
+    refetchInterval: 2000, // Polling cada 2 segundos cuando hay chat abierto
   });
 
   const isAdmin = user?.role === "admin";
