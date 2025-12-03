@@ -11,6 +11,7 @@ import { Upload, X, Loader2, AlertCircle, ShoppingBag, Info, Ruler } from "lucid
 import { toast } from "sonner";
 import { base44 } from "@/api/base44Client";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { useQuery } from "@tanstack/react-query";
 
 const TALLAS = [
   "Talla 6XS (4-5 años)", "Talla 5XS (5-6 años)", "Talla 4XS (7-8 años)",
@@ -40,9 +41,18 @@ const getCurrentSeason = () => {
 export default function ClothingOrderForm({ players, onSubmit, onCancel, isSubmitting, userCredit = 0, onCreditUsed }) {
   const [selectedPlayer, setSelectedPlayer] = useState(null);
   const [uploadingFile, setUploadingFile] = useState(false);
-  const [seasonConfig, setSeasonConfig] = useState(null);
   const [useCredit, setUseCredit] = useState(userCredit > 0); // Auto-activar si tiene crédito
   const [creditToUse, setCreditToUse] = useState(0);
+
+  // Obtener SeasonConfig con react-query para que se actualice automáticamente
+  const { data: seasonConfig } = useQuery({
+    queryKey: ['seasonConfig'],
+    queryFn: async () => {
+      const configs = await base44.entities.SeasonConfig.list();
+      return configs.find(c => c.activa === true);
+    },
+    refetchInterval: 2000, // Polling cada 2 segundos para ver cambios de precios
+  });
   
   // Precios dinámicos desde SeasonConfig o defaults
   const PRECIOS = useMemo(() => {
@@ -50,7 +60,7 @@ export default function ClothingOrderForm({ players, onSubmit, onCancel, isSubmi
     
     const precios = { ...DEFAULT_PRECIOS };
     seasonConfig.productos_ropa.forEach(producto => {
-      if (producto.activo && precios.hasOwnProperty(producto.id)) {
+      if (producto.activo !== false && precios.hasOwnProperty(producto.id)) {
         precios[producto.id] = producto.precio;
       }
     });
@@ -72,15 +82,7 @@ export default function ClothingOrderForm({ players, onSubmit, onCancel, isSubmi
     estado: "Pendiente", temporada: getCurrentSeason(), notas: ""
   });
 
-  // Fetch season config for Bizum availability
-  useEffect(() => {
-    const fetchConfig = async () => {
-      const configs = await base44.entities.SeasonConfig.list();
-      const active = configs.find(c => c.activa === true);
-      setSeasonConfig(active);
-    };
-    fetchConfig();
-  }, []);
+
 
   const canOrderJacket = selectedPlayer && !selectedPlayer.deporte?.includes("Aficionado") && !selectedPlayer.deporte?.includes("Baloncesto");
 
