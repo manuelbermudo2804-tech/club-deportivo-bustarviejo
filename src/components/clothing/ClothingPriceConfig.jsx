@@ -83,8 +83,6 @@ export default function ClothingPriceConfig({ seasonConfig, onUpdate }) {
     }
   });
 
-
-
   const handleSaveProduct = () => {
     if (!editingProduct || !seasonConfig) {
       toast.error("No hay producto o temporada para guardar");
