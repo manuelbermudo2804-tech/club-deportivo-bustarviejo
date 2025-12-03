@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -43,7 +43,7 @@ export default function ClothingPriceConfig({ seasonConfig, onUpdate }) {
   const products = localProducts || seasonConfig?.productos_ropa || DEFAULT_PRODUCTS;
   
   // Sincronizar localProducts cuando cambia seasonConfig
-  React.useEffect(() => {
+  useEffect(() => {
     if (seasonConfig?.productos_ropa) {
       setLocalProducts(seasonConfig.productos_ropa);
     }
