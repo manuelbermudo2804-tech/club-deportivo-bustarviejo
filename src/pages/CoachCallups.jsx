@@ -359,6 +359,18 @@ Email: cdbustarviejo@gmail.com
     return acc + c.jugadores_convocados.filter(j => j.confirmacion === "pendiente").length;
   }, 0);
 
+  // Calcular nuevas respuestas (confirmaciones recientes en las últimas 24 horas)
+  const recentResponses = upcomingCallups.reduce((acc, c) => {
+    const recent = c.jugadores_convocados.filter(j => {
+      if (!j.fecha_confirmacion || j.confirmacion === "pendiente") return false;
+      const confirmDate = new Date(j.fecha_confirmacion);
+      const now = new Date();
+      const diffHours = (now - confirmDate) / (1000 * 60 * 60);
+      return diffHours <= 24;
+    });
+    return acc + recent.length;
+  }, 0);
+
   if (!user || (!user.es_entrenador && !user.es_coordinador && user.role !== "admin")) {
     return (
       <div className="flex items-center justify-center min-h-screen p-6">
