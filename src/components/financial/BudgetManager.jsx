@@ -431,14 +431,34 @@ export default function BudgetManager({
       </Card>
 
       {/* Botones de acción */}
-      <div className="flex flex-wrap justify-end gap-3">
+      <div className="flex flex-wrap justify-end gap-2">
+        <Button 
+          onClick={() => setShowLoadTemplateDialog(true)} 
+          variant="outline"
+          className="border-green-300 text-green-700 hover:bg-green-50"
+        >
+          <FolderOpen className="h-4 w-4 mr-2" />
+          Cargar Plantilla
+          {savedTemplates.length > 0 && (
+            <Badge className="ml-2 bg-green-100 text-green-700">{savedTemplates.length}</Badge>
+          )}
+        </Button>
+        <Button 
+          onClick={() => setShowSaveTemplateDialog(true)} 
+          variant="outline"
+          className="border-orange-300 text-orange-700 hover:bg-orange-50"
+          disabled={!budget?.partidas?.length}
+        >
+          <Save className="h-4 w-4 mr-2" />
+          Guardar Plantilla
+        </Button>
         <Button 
           onClick={() => setShowImportDialog(true)} 
           variant="outline"
           className="border-blue-300 text-blue-700 hover:bg-blue-50"
         >
           <Upload className="h-4 w-4 mr-2" />
-          Importar desde PDF
+          Importar PDF
         </Button>
         <Button 
           onClick={() => setShowAIAssistant(true)} 
