@@ -34,6 +34,9 @@ export default function CoachCallups() {
   const [selectedCategory, setSelectedCategory] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [suggestionsEnabled, setSuggestionsEnabled] = useState(true);
+  const [showSuccess, setShowSuccess] = useState(false);
+  const [successMessage, setSuccessMessage] = useState("");
+  const formRef = React.useRef(null);
 
   const queryClient = useQueryClient();
 
