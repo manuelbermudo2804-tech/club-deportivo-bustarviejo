@@ -68,9 +68,6 @@ export default function Payments() {
   const [playerFilter, setPlayerFilter] = useState(jugadorIdFromUrl || "all");
   const [previewImage, setPreviewImage] = useState(null);
   
-  // Filtros avanzados - iniciar con temporada activa del SeasonConfig
-  const [temporadaFilter, setTemporadaFilter] = useState("all");
-  
   // Fetch active season config
   const { data: activeSeasonConfig } = useQuery({
     queryKey: ['activeSeasonConfig'],
@@ -79,13 +76,16 @@ export default function Payments() {
       return configs.find(c => c.activa === true);
     },
   });
+  
+  // Filtros avanzados - iniciar con temporada activa del SeasonConfig
+  const [temporadaFilter, setTemporadaFilter] = useState(activeSeasonConfig?.temporada || "2025/2026");
 
-  // Establecer filtro a temporada activa cuando se cargue
+  // Actualizar filtro cuando cambie la temporada activa
   useEffect(() => {
-    if (activeSeasonConfig?.temporada && temporadaFilter === "all") {
+    if (activeSeasonConfig?.temporada) {
       setTemporadaFilter(activeSeasonConfig.temporada);
     }
-  }, [activeSeasonConfig]);
+  }, [activeSeasonConfig?.temporada]);
   const [categoriaFilter, setCategoriaFilter] = useState("all");
   const [estadoFilter, setEstadoFilter] = useState("all");
   const [showOverdueOnly, setShowOverdueOnly] = useState(false);
@@ -111,9 +111,11 @@ export default function Payments() {
 
         if (adminCheck || treasurerCheck) {
           const allPlayers = await base44.entities.Player.list();
+          // SOLO jugadores ACTIVOS de la temporada actual
           setMyPlayers(allPlayers.filter(p => p.activo === true));
         } else if (coachCheck) {
           const allPlayers = await base44.entities.Player.list();
+          // SOLO jugadores ACTIVOS de la temporada actual
           const userPlayers = allPlayers.filter(p =>
             (p.email_padre === currentUser.email || p.email_tutor_2 === currentUser.email) && p.activo === true
           );
@@ -143,6 +145,7 @@ export default function Payments() {
     queryKey: ['myPlayers', user?.email],
     queryFn: async () => {
       const allPlayers = await base44.entities.Player.list();
+      // SOLO jugadores ACTIVOS (los de temporada anterior están con activo=false)
       if (isAdmin) {
         return allPlayers.filter(p => p.activo === true);
       } else if (isCoach) {
