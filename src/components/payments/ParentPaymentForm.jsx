@@ -458,7 +458,7 @@ export default function ParentPaymentForm({ players, payments = [], onSubmit, on
                     )}
                     {selectedPlayer && currentPayment.tipo_pago === "Tres meses" && (
                       <p className="text-xs text-green-600">
-                        ✓ Importe oficial: {getImportePorMes(selectedPlayer.deporte, currentPayment.mes)}€ 
+                        ✓ Importe oficial: {getImportePorMesFromConfig(selectedPlayer.deporte, currentPayment.mes, categoryConfigs)}€ 
                         (vence el {FECHAS_VENCIMIENTO[currentPayment.mes]})
                       </p>
                     )}
