@@ -1050,47 +1050,81 @@ export default function ClothingOrders() {
         </Tabs>
       ) : (
         <>
-          <Card className="border-none shadow-lg bg-blue-50 border-blue-200">
-            <CardHeader className="p-3 lg:p-6">
-              <CardTitle className="text-base lg:text-lg text-blue-900">ℹ️ Catálogo de Productos</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3 text-xs lg:text-sm text-blue-800 p-3 lg:p-6">
-              <div className="grid md:grid-cols-2 gap-4">
-                <div className="bg-white rounded-lg p-4 border-2 border-blue-300">
-                  <h4 className="font-bold text-blue-900 mb-2">🧥 Prendas Oficiales:</h4>
-                  <ul className="space-y-1">
-                    <li>• <strong>Chaqueta de Partidos:</strong> 35€</li>
-                    <li>• <strong>Chubasquero</strong> (escudo bordado): 20€</li>
-                    <li>• <strong>Anorak:</strong> 40€</li>
-                  </ul>
-                </div>
-                <div className="bg-white rounded-lg p-4 border-2 border-green-300">
-                  <h4 className="font-bold text-green-900 mb-2">👕 Pack de Entrenamiento (41€):</h4>
-                  <ul className="space-y-1">
-                    <li>✅ Camiseta + Pantalón + Sudadera</li>
-                    <li className="text-xs text-green-700">Tallas independientes para cada prenda</li>
-                  </ul>
-                </div>
-              </div>
-              <div className="bg-white rounded-lg p-4 border-2 border-orange-300">
-                <h4 className="font-bold text-orange-900 mb-2">🛍️ Prendas Individuales (FUERA DEL PACK):</h4>
-                <ul className="space-y-1">
-                  <li>• <strong>Camiseta:</strong> 10€</li>
-                  <li>• <strong>Pantalón:</strong> 17€</li>
-                  <li>• <strong>Sudadera:</strong> 18€</li>
-                </ul>
-              </div>
-              <div className="bg-white rounded-lg p-4 border-2 border-purple-300">
-                <h4 className="font-bold text-purple-900 mb-2">🎒 Complementos:</h4>
-                <ul className="space-y-1">
-                  <li>• <strong>Mochila con botero</strong> (escudo vinilo): 22€</li>
-                </ul>
-              </div>
-              <p className="pt-2 border-t border-blue-200">
-                <strong>📧 Email del club:</strong> CDBUSTARVIEJO@GMAIL.COM
-              </p>
-            </CardContent>
-          </Card>
+          {/* Catálogo dinámico desde SeasonConfig */}
+          {(() => {
+            // Obtener precios dinámicos
+            const getPrice = (productId, defaultPrice) => {
+              const producto = seasonConfig?.productos_ropa?.find(p => p.id === productId);
+              if (producto && producto.activo !== false) return producto.precio;
+              return defaultPrice;
+            };
+            const isActive = (productId) => {
+              const producto = seasonConfig?.productos_ropa?.find(p => p.id === productId);
+              return !producto || producto.activo !== false;
+            };
+
+            return (
+              <Card className="border-none shadow-lg bg-blue-50 border-blue-200">
+                <CardHeader className="p-3 lg:p-6">
+                  <CardTitle className="text-base lg:text-lg text-blue-900">ℹ️ Catálogo de Productos</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3 text-xs lg:text-sm text-blue-800 p-3 lg:p-6">
+                  <div className="grid md:grid-cols-2 gap-4">
+                    <div className="bg-white rounded-lg p-4 border-2 border-blue-300">
+                      <h4 className="font-bold text-blue-900 mb-2">🧥 Prendas Oficiales:</h4>
+                      <ul className="space-y-1">
+                        {isActive('chaqueta_partidos') && (
+                          <li>• <strong>Chaqueta de Partidos:</strong> {getPrice('chaqueta_partidos', 35)}€</li>
+                        )}
+                        {isActive('chubasquero') && (
+                          <li>• <strong>Chubasquero</strong> (escudo bordado): {getPrice('chubasquero', 20)}€</li>
+                        )}
+                        {isActive('anorak') && (
+                          <li>• <strong>Anorak:</strong> {getPrice('anorak', 40)}€</li>
+                        )}
+                      </ul>
+                    </div>
+                    {isActive('pack_entrenamiento') && (
+                      <div className="bg-white rounded-lg p-4 border-2 border-green-300">
+                        <h4 className="font-bold text-green-900 mb-2">👕 Pack de Entrenamiento ({getPrice('pack_entrenamiento', 41)}€):</h4>
+                        <ul className="space-y-1">
+                          <li>✅ Camiseta + Pantalón + Sudadera</li>
+                          <li className="text-xs text-green-700">Tallas independientes para cada prenda</li>
+                        </ul>
+                      </div>
+                    )}
+                  </div>
+                  {(isActive('camiseta_individual') || isActive('pantalon_individual') || isActive('sudadera_individual')) && (
+                    <div className="bg-white rounded-lg p-4 border-2 border-orange-300">
+                      <h4 className="font-bold text-orange-900 mb-2">🛍️ Prendas Individuales (FUERA DEL PACK):</h4>
+                      <ul className="space-y-1">
+                        {isActive('camiseta_individual') && (
+                          <li>• <strong>Camiseta:</strong> {getPrice('camiseta_individual', 10)}€</li>
+                        )}
+                        {isActive('pantalon_individual') && (
+                          <li>• <strong>Pantalón:</strong> {getPrice('pantalon_individual', 17)}€</li>
+                        )}
+                        {isActive('sudadera_individual') && (
+                          <li>• <strong>Sudadera:</strong> {getPrice('sudadera_individual', 18)}€</li>
+                        )}
+                      </ul>
+                    </div>
+                  )}
+                  {isActive('mochila') && (
+                    <div className="bg-white rounded-lg p-4 border-2 border-purple-300">
+                      <h4 className="font-bold text-purple-900 mb-2">🎒 Complementos:</h4>
+                      <ul className="space-y-1">
+                        <li>• <strong>Mochila con botero</strong> (escudo vinilo): {getPrice('mochila', 22)}€</li>
+                      </ul>
+                    </div>
+                  )}
+                  <p className="pt-2 border-t border-blue-200">
+                    <strong>📧 Email del club:</strong> CDBUSTARVIEJO@GMAIL.COM
+                  </p>
+                </CardContent>
+              </Card>
+            );
+          })()}
 
           <Tabs defaultValue="active" className="w-full">
             <TabsList className="bg-white shadow-sm grid grid-cols-2 h-auto gap-1 p-1 mb-4">
