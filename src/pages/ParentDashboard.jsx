@@ -148,6 +148,7 @@ export default function ParentDashboard() {
     enabled: !!user,
   });
 
+  // SOLO jugadores ACTIVOS de la temporada actual
   const myPlayers = (user && players) ? players.filter(p => 
     (p.email_padre === user.email || p.email_tutor_2 === user.email) && p.activo === true
   ) : [];

@@ -322,8 +322,13 @@ Gracias por su atención.
     setIsGenerating(true);
     
     try {
-      const currentSeason = getCurrentSeason();
-      const activePlayers = players.filter(p => p.activo !== false);
+      // Obtener temporada activa desde SeasonConfig
+      const configs = await base44.entities.SeasonConfig.list();
+      const activeConfig = configs.find(c => c.activa === true);
+      const currentSeason = activeConfig?.temporada || getCurrentSeason();
+      
+      // SOLO jugadores ACTIVOS (los de temporada anterior están con activo=false)
+      const activePlayers = players.filter(p => p.activo === true);
       let created = 0;
       
       const months = ["Junio", "Septiembre", "Diciembre"];
