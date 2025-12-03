@@ -24,7 +24,7 @@ const getCurrentSeason = () => {
   return `${currentYear - 1}/${currentYear}`;
 };
 
-// Cuotas fallback - se sobreescriben con CategoryConfig
+// Cuotas fallback (se sobreescriben con CategoryConfig si existe)
 const CUOTAS_FALLBACK = {
   "Fútbol Aficionado": { inscripcion: 165, segunda: 100, tercera: 95, total: 360 },
   "Fútbol Juvenil": { inscripcion: 135, segunda: 100, tercera: 95, total: 330 },
@@ -56,6 +56,43 @@ const FECHAS_VENCIMIENTO = {
   "Diciembre": "15 de diciembre"
 };
 
+// Función que obtiene cuotas de CategoryConfig si existe
+const getCuotasFromConfig = (categoria, categoryConfigs) => {
+  if (!categoryConfigs || categoryConfigs.length === 0) {
+    return CUOTAS_FALLBACK[categoria] || { inscripcion: 0, segunda: 0, tercera: 0, total: 0 };
+  }
+  
+  const mappedName = CATEGORY_NAME_MAPPING[categoria] || categoria;
+  const categoryConfig = categoryConfigs.find(c => 
+    (c.nombre === categoria || c.nombre === mappedName) && c.activa
+  );
+  
+  if (categoryConfig) {
+    return {
+      inscripcion: categoryConfig.cuota_inscripcion,
+      segunda: categoryConfig.cuota_segunda,
+      tercera: categoryConfig.cuota_tercera,
+      total: categoryConfig.cuota_total
+    };
+  }
+  
+  return CUOTAS_FALLBACK[categoria] || { inscripcion: 0, segunda: 0, tercera: 0, total: 0 };
+};
+
+const getImportePorMesFromConfig = (categoria, mes, categoryConfigs, descuento = 0) => {
+  const cuotas = getCuotasFromConfig(categoria, categoryConfigs);
+  // El descuento solo se aplica en la cuota de inscripción (Junio)
+  if (mes === "Junio") return cuotas.inscripcion - descuento;
+  if (mes === "Septiembre") return cuotas.segunda;
+  if (mes === "Diciembre") return cuotas.tercera;
+  return 0;
+};
+
+const getTotalConDescuentoFromConfig = (categoria, categoryConfigs, descuento = 0) => {
+  const cuotas = getCuotasFromConfig(categoria, categoryConfigs);
+  return cuotas.total - descuento;
+};
+
 export default function ParentPaymentForm({ players, payments = [], onSubmit, onCancel, isSubmitting, isAdmin = false, preselectedPlayerId = null, preselectedMonth = null }) {
   const [currentPayment, setCurrentPayment] = useState({
     jugador_id: "",
@@ -79,55 +116,19 @@ export default function ParentPaymentForm({ players, payments = [], onSubmit, on
   const [seasonConfig, setSeasonConfig] = useState(null);
   const [categoryConfigs, setCategoryConfigs] = useState([]);
 
-  // Funciones que usan CategoryConfig
-  const getCuotasPorCategoria = (categoria) => {
-    if (categoryConfigs.length === 0) {
-      return CUOTAS_FALLBACK[categoria] || { inscripcion: 0, segunda: 0, tercera: 0, total: 0 };
-    }
-    
-    const mappedName = CATEGORY_NAME_MAPPING[categoria] || categoria;
-    const config = categoryConfigs.find(c => 
-      (c.nombre === categoria || c.nombre === mappedName) && c.activa
-    );
-    
-    if (config) {
-      return {
-        inscripcion: config.cuota_inscripcion,
-        segunda: config.cuota_segunda,
-        tercera: config.cuota_tercera,
-        total: config.cuota_total
-      };
-    }
-    
-    return CUOTAS_FALLBACK[categoria] || { inscripcion: 0, segunda: 0, tercera: 0, total: 0 };
-  };
-
-  const getImportePorMes = (categoria, mes, descuento = 0) => {
-    const cuotas = getCuotasPorCategoria(categoria);
-    if (mes === "Junio") return cuotas.inscripcion - descuento;
-    if (mes === "Septiembre") return cuotas.segunda;
-    if (mes === "Diciembre") return cuotas.tercera;
-    return 0;
-  };
-
-  const getTotalConDescuento = (categoria, descuento = 0) => {
-    const cuotas = getCuotasPorCategoria(categoria);
-    return cuotas.total - descuento;
-  };
-
   // Fetch season config y CategoryConfig
   useEffect(() => {
     const fetchConfig = async () => {
-      const [configs, catConfigs] = await Promise.all([
-        base44.entities.SeasonConfig.list(),
-        base44.entities.CategoryConfig.list()
-      ]);
+      const configs = await base44.entities.SeasonConfig.list();
       const active = configs.find(c => c.activa === true);
       setSeasonConfig(active);
-      setCategoryConfigs(catConfigs);
       if (active?.temporada) {
         setCurrentPayment(prev => ({ ...prev, temporada: active.temporada }));
       }
+      
+      // Cargar CategoryConfig para precios actualizados
+      const catConfigs = await base44.entities.CategoryConfig.list();
+      setCategoryConfigs(catConfigs);
     };
     fetchConfig();
   }, []);
@@ -197,7 +198,7 @@ export default function ParentPaymentForm({ players, payments = [], onSubmit, on
         setTipoPagoFijado(null);
       }
       
-      const cuotas = getCuotasPorCategoria(player.deporte);
+      const cuotas = getCuotasFromConfig(player.deporte, categoryConfigs);
       const descuento = player.tiene_descuento_hermano ? (player.descuento_aplicado || 0) : 0;
       
       // Si viene un mes forzado (desde botón "Pagar"), usarlo
@@ -213,8 +214,8 @@ export default function ParentPaymentForm({ players, payments = [], onSubmit, on
       const tipoPago = primerPago ? primerPago.tipo_pago : currentPayment.tipo_pago;
       
       const cantidad = tipoPago === "Único" 
-        ? getTotalConDescuento(player.deporte, descuento)
-        : getImportePorMes(player.deporte, mesSeleccionado, descuento);
+        ? getTotalConDescuentoFromConfig(player.deporte, categoryConfigs, descuento)
+        : getImportePorMesFromConfig(player.deporte, mesSeleccionado, categoryConfigs, descuento);
       
       setCurrentPayment(prev => ({
         ...prev,
