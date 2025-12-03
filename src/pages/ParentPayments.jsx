@@ -134,6 +134,12 @@ export default function ParentPayments() {
     },
   });
 
+  // Obtener CategoryConfig para precios actualizados
+  const { data: categoryConfigs = [] } = useQuery({
+    queryKey: ['categoryConfigs'],
+    queryFn: () => base44.entities.CategoryConfig.list(),
+  });
+
   const createPaymentMutation = useMutation({
     mutationFn: async (paymentData) => {
       const payment = await base44.entities.Payment.create(paymentData);
