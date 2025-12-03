@@ -1636,9 +1636,9 @@ export default function Layout({ children, currentPageName }) {
             </div>
 
             {user && (
-              <div className="text-center text-xs text-white mb-4">
-                <p className="font-medium">{user.full_name}</p>
-                <p className="text-green-400 text-xs">{user.email}</p>
+                <div className="text-center text-xs text-white mb-4 bg-slate-800/50 rounded-lg p-3">
+                  <p className="font-medium text-sm">{user.full_name}</p>
+                  <p className="text-green-400 text-xs truncate">{user.email}</p>
                 {isCoordinator && (
                   <Badge className="mt-2 bg-cyan-600 text-white text-xs">
                     🎓 Coordinador Deportivo
