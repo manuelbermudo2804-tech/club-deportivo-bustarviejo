@@ -232,8 +232,8 @@ export default function ParentPaymentForm({ players, payments = [], onSubmit, on
     if (selectedPlayer) {
       const descuento = selectedPlayer.tiene_descuento_hermano ? (selectedPlayer.descuento_aplicado || 0) : 0;
       const cantidad = value === "Único" 
-        ? getTotalConDescuento(selectedPlayer.deporte, descuento)
-        : getImportePorMes(selectedPlayer.deporte, currentPayment.mes, descuento);
+        ? getTotalConDescuentoFromConfig(selectedPlayer.deporte, categoryConfigs, descuento)
+        : getImportePorMesFromConfig(selectedPlayer.deporte, currentPayment.mes, categoryConfigs, descuento);
       
       setCurrentPayment(prev => ({
         ...prev,
@@ -247,8 +247,8 @@ export default function ParentPaymentForm({ players, payments = [], onSubmit, on
     if (selectedPlayer) {
       const descuento = selectedPlayer.tiene_descuento_hermano ? (selectedPlayer.descuento_aplicado || 0) : 0;
       const cantidad = currentPayment.tipo_pago === "Único"
-        ? getTotalConDescuento(selectedPlayer.deporte, descuento)
-        : getImportePorMes(selectedPlayer.deporte, value, descuento);
+        ? getTotalConDescuentoFromConfig(selectedPlayer.deporte, categoryConfigs, descuento)
+        : getImportePorMesFromConfig(selectedPlayer.deporte, value, categoryConfigs, descuento);
       
       setCurrentPayment(prev => ({
         ...prev,
