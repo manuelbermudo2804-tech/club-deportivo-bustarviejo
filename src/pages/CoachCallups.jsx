@@ -39,15 +39,6 @@ export default function CoachCallups() {
   const formRef = React.useRef(null);
 
   const queryClient = useQueryClient();
-  
-  // Scroll al formulario cuando se muestra
-  useEffect(() => {
-    if (showForm && formRef.current) {
-      setTimeout(() => {
-        formRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }, 100);
-    }
-  }, [showForm]);
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -136,8 +127,10 @@ export default function CoachCallups() {
       queryClient.invalidateQueries({ queryKey: ['chatMessages'] });
       setShowForm(false);
       setEditingCallup(null);
+      // Mostrar animación de éxito
       setSuccessMessage("¡Convocatoria creada!");
       setShowSuccess(true);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     },
   });
 
@@ -157,8 +150,10 @@ export default function CoachCallups() {
       queryClient.invalidateQueries({ queryKey: ['convocatorias'] });
       setShowForm(false);
       setEditingCallup(null);
+      // Mostrar animación de éxito
       setSuccessMessage("¡Convocatoria actualizada!");
       setShowSuccess(true);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     },
   });
 
@@ -301,6 +296,10 @@ Email: cdbustarviejo@gmail.com
   const handleNewCallup = () => {
     setEditingCallup(null);
     setShowForm(true);
+    // Scroll al formulario después de abrirlo
+    setTimeout(() => {
+      formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 100);
   };
 
   const handleToggleSuggestions = async (enabled) => {
@@ -497,9 +496,9 @@ Email: cdbustarviejo@gmail.com
         </TabsList>
       </Tabs>
 
+      <div ref={formRef}>
       <AnimatePresence mode="wait">
         {showForm && canCreateCallup && (
-          <div ref={formRef}>
           <CallupForm
             key={editingCallup?.id || 'new'}
             callup={editingCallup}
