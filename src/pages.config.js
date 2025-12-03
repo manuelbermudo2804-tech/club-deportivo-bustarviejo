@@ -64,7 +64,6 @@ import PushNotifications from './pages/PushNotifications';
 import PlayerDashboard from './pages/PlayerDashboard';
 import EmailInvitations from './pages/EmailInvitations';
 import ExtraPayments from './pages/ExtraPayments';
-import ParentExtraPayments from './pages/ParentExtraPayments';
 import __Layout from './Layout.jsx';
 
 
@@ -135,7 +134,6 @@ export const PAGES = {
     "PlayerDashboard": PlayerDashboard,
     "EmailInvitations": EmailInvitations,
     "ExtraPayments": ExtraPayments,
-    "ParentExtraPayments": ParentExtraPayments,
 }
 
 export const pagesConfig = {
