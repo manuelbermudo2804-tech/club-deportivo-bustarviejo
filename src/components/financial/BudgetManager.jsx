@@ -72,13 +72,89 @@ export default function BudgetManager({
   const [editingPartida, setEditingPartida] = useState(null);
   const [showAIAssistant, setShowAIAssistant] = useState(false);
   const [showImportDialog, setShowImportDialog] = useState(false);
+  const [showSaveTemplateDialog, setShowSaveTemplateDialog] = useState(false);
+  const [showLoadTemplateDialog, setShowLoadTemplateDialog] = useState(false);
   const [isImporting, setIsImporting] = useState(false);
   const [importedPartidas, setImportedPartidas] = useState([]);
+  const [templateName, setTemplateName] = useState("");
+  const [templateDescription, setTemplateDescription] = useState("");
   const [newPartida, setNewPartida] = useState({
     nombre: "",
     categoria: "Gastos Variables",
     presupuestado: 0
   });
+  
+  const queryClient = useQueryClient();
+
+  // Cargar plantillas guardadas
+  const { data: savedTemplates = [] } = useQuery({
+    queryKey: ['budgetTemplates'],
+    queryFn: () => base44.entities.BudgetTemplate.list('-created_date'),
+  });
+
+  // Guardar plantilla
+  const saveTemplateMutation = useMutation({
+    mutationFn: async (data) => {
+      return base44.entities.BudgetTemplate.create(data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['budgetTemplates'] });
+      setShowSaveTemplateDialog(false);
+      setTemplateName("");
+      setTemplateDescription("");
+      toast.success("✅ Plantilla guardada para futuros presupuestos");
+    },
+  });
+
+  // Eliminar plantilla
+  const deleteTemplateMutation = useMutation({
+    mutationFn: (id) => base44.entities.BudgetTemplate.delete(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['budgetTemplates'] });
+      toast.success("Plantilla eliminada");
+    },
+  });
+
+  // Guardar partidas actuales como plantilla
+  const handleSaveAsTemplate = () => {
+    if (!templateName.trim()) {
+      toast.error("Introduce un nombre para la plantilla");
+      return;
+    }
+
+    const partidas = budget?.partidas || [];
+    const ingresos = partidas.filter(p => p.categoria === "Ingresos").reduce((sum, p) => sum + (p.presupuestado || 0), 0);
+    const gastos = partidas.filter(p => p.categoria !== "Ingresos").reduce((sum, p) => sum + (p.presupuestado || 0), 0);
+
+    saveTemplateMutation.mutate({
+      nombre: templateName,
+      descripcion: templateDescription,
+      partidas: partidas.map(p => ({
+        nombre: p.nombre,
+        categoria: p.categoria,
+        presupuestado: p.presupuestado
+      })),
+      temporada_origen: budget?.temporada,
+      total_ingresos: ingresos,
+      total_gastos: gastos,
+      activa: true
+    });
+  };
+
+  // Cargar plantilla en presupuesto actual
+  const handleLoadTemplate = (template) => {
+    const newPartidas = template.partidas.map((p, idx) => ({
+      id: `partida_template_${Date.now()}_${idx}`,
+      nombre: p.nombre,
+      categoria: p.categoria,
+      presupuestado: p.presupuestado || 0,
+      ejecutado: 0
+    }));
+
+    onUpdate({ partidas: newPartidas });
+    setShowLoadTemplateDialog(false);
+    toast.success(`Plantilla "${template.nombre}" cargada con ${newPartidas.length} partidas`);
+  };
 
   // Función para importar presupuesto desde PDF
   const handleFileUpload = async (e) => {
