@@ -47,8 +47,14 @@ export default function ClothingPriceConfig({ seasonConfig, onUpdate }) {
       console.log("Resultado:", result);
       return result;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['seasonConfig'] });
+    onSuccess: async () => {
+      // Invalidar todas las queries relacionadas
+      await queryClient.invalidateQueries({ queryKey: ['seasonConfig'] });
+      await queryClient.invalidateQueries({ queryKey: ['seasonConfigs'] });
+      await queryClient.invalidateQueries({ queryKey: ['activeSeasonConfig'] });
+      // Forzar refetch inmediato
+      await queryClient.refetchQueries({ queryKey: ['seasonConfig'] });
+      await queryClient.refetchQueries({ queryKey: ['seasonConfigs'] });
       toast.success("✅ Configuración actualizada");
       setShowEditDialog(false);
       setShowAddDialog(false);
