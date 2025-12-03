@@ -53,6 +53,12 @@ export default function CallupCard({ callup, onEdit, onDelete, isCoach }) {
                 {canDelete && (
                   <Badge className="bg-red-500 text-white text-xs">Pasada</Badge>
                 )}
+                {/* Badge de respuestas pendientes para entrenadores */}
+                {pending > 0 && callup.publicada && !canDelete && (
+                  <Badge className="bg-yellow-500 text-white text-xs animate-pulse">
+                    ⏳ {pending} sin respuesta
+                  </Badge>
+                )}
               </div>
               <CardTitle className="text-xl leading-tight">
                 {callup.titulo}
