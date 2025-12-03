@@ -307,7 +307,7 @@ export default function ParentPaymentForm({ players, payments = [], onSubmit, on
     onSubmit(currentPayment);
   };
 
-  const cuotas = selectedPlayer ? getCuotasPorCategoria(selectedPlayer.deporte) : null;
+  const cuotas = selectedPlayer ? getCuotasFromConfig(selectedPlayer.deporte, categoryConfigs) : null;
   
   // Obtener meses ya pagados
   const mesesPagados = existingPayments
