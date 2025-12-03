@@ -250,8 +250,10 @@ export default function TreasurerDashboard() {
   }, [clothingOrders, selectedSeason]);
 
   const filteredClubMembers = useMemo(() => {
-    if (selectedSeason === "all") return clubMembers;
-    return clubMembers.filter(m => m.temporada === selectedSeason);
+    // Socios: filtrar por temporada y solo activos (después del reset los socios quedan activo=false)
+    const activeMembers = clubMembers.filter(m => m.activo !== false);
+    if (selectedSeason === "all") return activeMembers;
+    return activeMembers.filter(m => m.temporada === selectedSeason);
   }, [clubMembers, selectedSeason]);
 
   // Calculate financial stats
