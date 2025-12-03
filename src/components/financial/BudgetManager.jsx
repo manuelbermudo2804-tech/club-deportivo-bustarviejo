@@ -534,6 +534,100 @@ export default function BudgetManager({
           setShowAIAssistant(false);
         }}
       />
+
+      {/* Dialog importar desde PDF */}
+      <Dialog open={showImportDialog} onOpenChange={setShowImportDialog}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <FileText className="h-5 w-5 text-blue-600" />
+              Importar Presupuesto desde PDF
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <p className="text-sm text-blue-800">
+                📄 Sube un archivo PDF con el presupuesto. El sistema extraerá automáticamente las partidas usando IA.
+              </p>
+              <p className="text-xs text-blue-600 mt-2">
+                Formatos soportados: tablas con nombre de partida, categoría e importe.
+              </p>
+            </div>
+
+            <div className="border-2 border-dashed border-slate-300 rounded-lg p-8 text-center">
+              <input
+                type="file"
+                accept=".pdf"
+                onChange={handleFileUpload}
+                className="hidden"
+                id="pdf-upload"
+                disabled={isImporting}
+              />
+              <label 
+                htmlFor="pdf-upload" 
+                className={`cursor-pointer ${isImporting ? 'opacity-50' : ''}`}
+              >
+                {isImporting ? (
+                  <div className="flex flex-col items-center gap-3">
+                    <Loader2 className="h-12 w-12 text-blue-500 animate-spin" />
+                    <p className="text-slate-600">Analizando PDF con IA...</p>
+                  </div>
+                ) : (
+                  <div className="flex flex-col items-center gap-3">
+                    <Upload className="h-12 w-12 text-slate-400" />
+                    <p className="text-slate-600 font-medium">Arrastra o haz clic para subir el PDF</p>
+                    <p className="text-xs text-slate-500">Máximo 10MB</p>
+                  </div>
+                )}
+              </label>
+            </div>
+
+            {importedPartidas.length > 0 && (
+              <div className="space-y-3">
+                <h4 className="font-semibold text-slate-900 flex items-center gap-2">
+                  ✅ Partidas extraídas ({importedPartidas.length})
+                </h4>
+                <div className="max-h-64 overflow-y-auto space-y-2">
+                  {importedPartidas.map((p, idx) => (
+                    <div key={idx} className="flex items-center justify-between bg-slate-50 rounded-lg p-3">
+                      <div>
+                        <p className="font-medium text-sm">{p.nombre}</p>
+                        <Badge variant="outline" className="text-xs mt-1">
+                          {p.categoria}
+                        </Badge>
+                      </div>
+                      <span className="font-bold text-green-600">
+                        {p.presupuestado?.toLocaleString()}€
+                      </span>
+                    </div>
+                  ))}
+                </div>
+                <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+                  <p className="text-sm text-green-800 font-medium">
+                    Total: {importedPartidas.reduce((sum, p) => sum + (p.presupuestado || 0), 0).toLocaleString()}€
+                  </p>
+                </div>
+              </div>
+            )}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => {
+              setShowImportDialog(false);
+              setImportedPartidas([]);
+            }}>
+              Cancelar
+            </Button>
+            {importedPartidas.length > 0 && (
+              <Button 
+                onClick={handleApplyImportedPartidas} 
+                className="bg-green-600 hover:bg-green-700"
+              >
+                Importar {importedPartidas.length} Partidas
+              </Button>
+            )}
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
