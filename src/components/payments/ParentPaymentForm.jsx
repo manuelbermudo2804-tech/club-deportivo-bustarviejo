@@ -24,7 +24,8 @@ const getCurrentSeason = () => {
   return `${currentYear - 1}/${currentYear}`;
 };
 
-const CUOTAS = {
+// Cuotas fallback (se sobreescriben con CategoryConfig si existe)
+const CUOTAS_FALLBACK = {
   "Fútbol Aficionado": { inscripcion: 165, segunda: 100, tercera: 95, total: 360 },
   "Fútbol Juvenil": { inscripcion: 135, segunda: 100, tercera: 95, total: 330 },
   "Fútbol Cadete": { inscripcion: 135, segunda: 100, tercera: 95, total: 330 },
@@ -36,18 +37,50 @@ const CUOTAS = {
   "Baloncesto (Mixto)": { inscripcion: 50, segunda: 50, tercera: 50, total: 150 }
 };
 
+// Mapeo de nombres de deporte a nombres de categoría en CategoryConfig
+const CATEGORY_NAME_MAPPING = {
+  "Fútbol Aficionado": "AFICIONADO",
+  "Fútbol Juvenil": "JUVENIL",
+  "Fútbol Cadete": "CADETE",
+  "Fútbol Infantil (Mixto)": "INFANTIL",
+  "Fútbol Alevín (Mixto)": "ALEVIN",
+  "Fútbol Benjamín (Mixto)": "BENJAMIN",
+  "Fútbol Pre-Benjamín (Mixto)": "PRE-BENJAMIN",
+  "Fútbol Femenino": "FEMENINO",
+  "Baloncesto (Mixto)": "BALONCESTO"
+};
+
 const FECHAS_VENCIMIENTO = {
   "Junio": "30 de junio",
   "Septiembre": "15 de septiembre",
   "Diciembre": "15 de diciembre"
 };
 
-const getCuotasPorCategoria = (categoria) => {
-  return CUOTAS[categoria] || { inscripcion: 0, segunda: 0, tercera: 0, total: 0 };
+// Función que obtiene cuotas de CategoryConfig si existe
+const getCuotasFromConfig = (categoria, categoryConfigs) => {
+  if (!categoryConfigs || categoryConfigs.length === 0) {
+    return CUOTAS_FALLBACK[categoria] || { inscripcion: 0, segunda: 0, tercera: 0, total: 0 };
+  }
+  
+  const mappedName = CATEGORY_NAME_MAPPING[categoria] || categoria;
+  const categoryConfig = categoryConfigs.find(c => 
+    (c.nombre === categoria || c.nombre === mappedName) && c.activa
+  );
+  
+  if (categoryConfig) {
+    return {
+      inscripcion: categoryConfig.cuota_inscripcion,
+      segunda: categoryConfig.cuota_segunda,
+      tercera: categoryConfig.cuota_tercera,
+      total: categoryConfig.cuota_total
+    };
+  }
+  
+  return CUOTAS_FALLBACK[categoria] || { inscripcion: 0, segunda: 0, tercera: 0, total: 0 };
 };
 
-const getImportePorMes = (categoria, mes, descuento = 0) => {
-  const cuotas = getCuotasPorCategoria(categoria);
+const getImportePorMesFromConfig = (categoria, mes, categoryConfigs, descuento = 0) => {
+  const cuotas = getCuotasFromConfig(categoria, categoryConfigs);
   // El descuento solo se aplica en la cuota de inscripción (Junio)
   if (mes === "Junio") return cuotas.inscripcion - descuento;
   if (mes === "Septiembre") return cuotas.segunda;
@@ -55,8 +88,8 @@ const getImportePorMes = (categoria, mes, descuento = 0) => {
   return 0;
 };
 
-const getTotalConDescuento = (categoria, descuento = 0) => {
-  const cuotas = getCuotasPorCategoria(categoria);
+const getTotalConDescuentoFromConfig = (categoria, categoryConfigs, descuento = 0) => {
+  const cuotas = getCuotasFromConfig(categoria, categoryConfigs);
   return cuotas.total - descuento;
 };
 
