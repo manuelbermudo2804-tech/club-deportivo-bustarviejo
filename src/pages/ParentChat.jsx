@@ -508,8 +508,9 @@ export default function ParentChat() {
                               )}
                             </div>
                             
-                            {/* Botón responder en privado - siempre mostrar para mensajes de grupo */}
-                            {isCoachSender(msg) && (
+                            {/* Botón responder en privado - SOLO si el mensaje es de un entrenador escribiendo directamente */}
+                            {/* NO mostrar para mensajes automáticos de convocatorias, anuncios, encuestas, etc. */}
+                            {isCoachSender(msg) && !isAutomaticMessage(msg) && (
                               <div className="bg-slate-50 px-4 py-2 border-t">
                                 <Button
                                   variant="ghost"
