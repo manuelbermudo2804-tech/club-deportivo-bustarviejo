@@ -211,21 +211,12 @@ export default function PrivateChatPanel({
           </div>
         )}
 
-        {/* En coordinación deportiva, solo el staff puede adjuntar archivos */}
-        {conversation.categoria === "Coordinación Deportiva" && !isStaff && (
-          <p className="text-xs text-slate-500 mb-2 text-center">
-            💬 Solo texto en este chat • Para enviar archivos, contacta por otro medio
-          </p>
-        )}
-
         <div className="flex gap-2 items-end">
-          {/* Mostrar botón de adjuntar solo si: NO es coordinación deportiva, O si es staff */}
-          {(conversation.categoria !== "Coordinación Deportiva" || isStaff) && (
-            <FileAttachmentButton
-              onFileUploaded={(att) => setAttachments(prev => [...prev, att])}
-              disabled={sendMessageMutation.isPending}
-            />
-          )}
+          {/* Botón de adjuntar archivos - ahora disponible para TODOS (familias incluidas) */}
+          <FileAttachmentButton
+            onFileUploaded={(att) => setAttachments(prev => [...prev, att])}
+            disabled={sendMessageMutation.isPending}
+          />
           
           <Input
             value={messageContent}
