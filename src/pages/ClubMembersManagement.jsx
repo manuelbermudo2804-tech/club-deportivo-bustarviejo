@@ -8,8 +8,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { 
   Users, CheckCircle2, Clock, AlertCircle, Mail, 
   TrendingUp, UserPlus, Heart, Eye, Loader2, Edit, Trash2,
-  MessageCircle, RefreshCw, UserCheck, Send
+  MessageCircle, RefreshCw, UserCheck, Send, Bell, Upload, FileSpreadsheet
 } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { toast } from "sonner";
 import RenewalReminderDialog from "../components/members/RenewalReminderDialog";
 import MemberEditForm from "../components/members/MemberEditForm";
@@ -29,6 +31,10 @@ export default function ClubMembersManagement() {
   const [viewingMember, setViewingMember] = useState(null);
   const [sendingEmailTo, setSendingEmailTo] = useState(null);
   const [sendingBulkEmails, setSendingBulkEmails] = useState(false);
+  const [showImportDialog, setShowImportDialog] = useState(false);
+  const [importData, setImportData] = useState([]);
+  const [isImporting, setIsImporting] = useState(false);
+  const [importPreview, setImportPreview] = useState([]);
   const queryClient = useQueryClient();
 
   useEffect(() => {
@@ -402,25 +408,17 @@ Por solo *25€/año* seguirás apoyando a nuestros jóvenes deportistas.
     renovaciones: currentSeasonMembers.filter(m => m.tipo_inscripcion === "Renovación").length,
   };
 
-  // Detectar socios recientes (últimos 7 días) pendientes de revisión
-  const recentMembersPendingReview = members.filter(m => {
-    if (m.estado_pago !== "En revisión") return false;
-    const created = new Date(m.created_date);
-    const sevenDaysAgo = new Date();
-    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-    return created >= sevenDaysAgo;
+  // Detectar nuevos socios recientes (últimos 7 días) para alertas
+  const sevenDaysAgo = new Date();
+  sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+  const recentMembers = currentSeasonMembers.filter(m => {
+    const createdDate = new Date(m.created_date);
+    return createdDate >= sevenDaysAgo;
   });
-
-  // Socios antiguos sin renovar para la nueva temporada
-  const previousSeasonMembers = members.filter(m => {
-    if (!m.temporada || !seasonConfig?.temporada) return false;
-    return m.temporada !== seasonConfig.temporada && m.estado_pago === "Pagado";
-  });
-
-  // Ver si estos socios ya renovaron en la temporada actual
-  const currentSeasonEmails = new Set(currentSeasonMembers.map(m => m.email?.toLowerCase()));
-  const membersNotRenewed = previousSeasonMembers.filter(m => 
-    m.email && !currentSeasonEmails.has(m.email.toLowerCase())
+  
+  // Socios pendientes de revisar justificante (En revisión)
+  const pendingReviewMembers = currentSeasonMembers.filter(m => 
+    m.estado_pago === "En revisión" && (m.justificante_url || m.justificante_base64)
   );
 
   const getStatusBadge = (status) => {
@@ -486,75 +484,71 @@ Por solo *25€/año* seguirás apoyando a nuestros jóvenes deportistas.
         </Button>
       </div>
 
-      {/* Alertas de socios nuevos pendientes de revisión */}
-      {recentMembersPendingReview.length > 0 && (
-        <Card className="border-2 border-yellow-400 bg-gradient-to-r from-yellow-50 to-orange-50">
-          <CardContent className="p-4">
-            <div className="flex items-start gap-3">
-              <div className="w-10 h-10 bg-yellow-100 rounded-full flex items-center justify-center flex-shrink-0">
-                <Clock className="w-5 h-5 text-yellow-600" />
-              </div>
-              <div className="flex-1">
-                <h3 className="font-bold text-yellow-900 flex items-center gap-2">
-                  🔔 {recentMembersPendingReview.length} socio(s) nuevo(s) pendiente(s) de revisión
-                </h3>
-                <p className="text-sm text-yellow-800 mt-1">
-                  Estos socios se han dado de alta en los últimos 7 días y están esperando confirmación de pago:
-                </p>
-                <div className="mt-2 flex flex-wrap gap-2">
-                  {recentMembersPendingReview.slice(0, 5).map(m => (
-                    <Badge 
-                      key={m.id} 
-                      className="bg-yellow-100 text-yellow-800 cursor-pointer hover:bg-yellow-200"
-                      onClick={() => setViewingMember(m)}
-                    >
-                      {m.nombre_completo} ({new Date(m.created_date).toLocaleDateString()})
+      {/* Alertas de nuevos socios y pendientes de revisión */}
+      {(recentMembers.length > 0 || pendingReviewMembers.length > 0) && (
+        <div className="space-y-3">
+          {pendingReviewMembers.length > 0 && (
+            <Card className="bg-gradient-to-r from-yellow-50 to-orange-50 border-2 border-yellow-400 shadow-lg">
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-12 h-12 rounded-full bg-yellow-500 flex items-center justify-center animate-pulse">
+                      <Clock className="w-6 h-6 text-white" />
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-yellow-900">🔔 {pendingReviewMembers.length} socios pendientes de revisión</h3>
+                      <p className="text-sm text-yellow-800">Han subido justificante y esperan confirmación</p>
+                    </div>
+                  </div>
+                  <Button
+                    onClick={() => setStatusFilter("En revisión")}
+                    className="bg-yellow-600 hover:bg-yellow-700"
+                  >
+                    <Eye className="w-4 h-4 mr-2" /> Ver pendientes
+                  </Button>
+                </div>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {pendingReviewMembers.slice(0, 5).map(m => (
+                    <Badge key={m.id} className="bg-yellow-100 text-yellow-800 cursor-pointer" onClick={() => setViewingMember(m)}>
+                      {m.nombre_completo}
                     </Badge>
                   ))}
-                  {recentMembersPendingReview.length > 5 && (
-                    <Badge className="bg-yellow-200 text-yellow-900">
-                      +{recentMembersPendingReview.length - 5} más
-                    </Badge>
+                  {pendingReviewMembers.length > 5 && (
+                    <Badge className="bg-yellow-200 text-yellow-900">+{pendingReviewMembers.length - 5} más</Badge>
                   )}
                 </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
+              </CardContent>
+            </Card>
+          )}
 
-      {/* Alerta de socios de temporada anterior que no han renovado */}
-      {membersNotRenewed.length > 0 && (
-        <Card className="border-2 border-blue-300 bg-gradient-to-r from-blue-50 to-indigo-50">
-          <CardContent className="p-4">
-            <div className="flex items-start gap-3">
-              <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
-                <RefreshCw className="w-5 h-5 text-blue-600" />
-              </div>
-              <div className="flex-1">
-                <h3 className="font-bold text-blue-900 flex items-center gap-2">
-                  📋 {membersNotRenewed.length} socio(s) de temporadas anteriores sin renovar
-                </h3>
-                <p className="text-sm text-blue-800 mt-1">
-                  Estos socios pagaron en temporadas anteriores pero no han renovado para {seasonConfig?.temporada}. 
-                  Puedes enviarles recordatorios de renovación.
-                </p>
-                <div className="mt-3 flex gap-2">
-                  <Button 
-                    size="sm" 
-                    className="bg-blue-600 hover:bg-blue-700"
-                    onClick={() => setShowReminderDialog(true)}
-                  >
-                    <Mail className="w-4 h-4 mr-2" /> Enviar Recordatorio de Renovación
-                  </Button>
-                  <Badge className="bg-blue-100 text-blue-800">
-                    {membersNotRenewed.length} socios potenciales
-                  </Badge>
+          {recentMembers.length > 0 && (
+            <Card className="bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-400">
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-12 h-12 rounded-full bg-green-500 flex items-center justify-center">
+                      <UserPlus className="w-6 h-6 text-white" />
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-green-900">🆕 {recentMembers.length} nuevos socios esta semana</h3>
+                      <p className="text-sm text-green-800">Inscripciones de los últimos 7 días</p>
+                    </div>
+                  </div>
                 </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {recentMembers.slice(0, 5).map(m => (
+                    <Badge key={m.id} className="bg-green-100 text-green-800 cursor-pointer" onClick={() => setViewingMember(m)}>
+                      {m.nombre_completo} ({m.estado_pago === "Pagado" ? "✅" : m.estado_pago === "En revisión" ? "🟡" : "🔴"})
+                    </Badge>
+                  ))}
+                  {recentMembers.length > 5 && (
+                    <Badge className="bg-green-200 text-green-900">+{recentMembers.length - 5} más</Badge>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+        </div>
       )}
 
       {/* Estadísticas */}
