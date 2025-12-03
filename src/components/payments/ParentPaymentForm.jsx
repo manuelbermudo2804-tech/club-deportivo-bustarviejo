@@ -61,13 +61,12 @@ const getTotalConDescuento = (categoria, descuento = 0) => {
 };
 
 export default function ParentPaymentForm({ players, payments = [], onSubmit, onCancel, isSubmitting, isAdmin = false, preselectedPlayerId = null, preselectedMonth = null }) {
-  const currentSeason = getCurrentSeason();
   const [currentPayment, setCurrentPayment] = useState({
     jugador_id: "",
     jugador_nombre: "",
     tipo_pago: "Único",
     mes: "Junio",
-    temporada: currentSeason,
+    temporada: "2025/2026", // Se actualiza dinámicamente
     cantidad: 0,
     estado: "En revisión",
     metodo_pago: "Transferencia",
@@ -83,12 +82,15 @@ export default function ParentPaymentForm({ players, payments = [], onSubmit, on
   const [tipoPagoFijado, setTipoPagoFijado] = useState(null);
   const [seasonConfig, setSeasonConfig] = useState(null);
 
-  // Fetch season config for Bizum availability
+  // Fetch season config y actualizar temporada
   useEffect(() => {
     const fetchConfig = async () => {
       const configs = await base44.entities.SeasonConfig.list();
       const active = configs.find(c => c.activa === true);
       setSeasonConfig(active);
+      if (active?.temporada) {
+        setCurrentPayment(prev => ({ ...prev, temporada: active.temporada }));
+      }
     };
     fetchConfig();
   }, []);
@@ -122,10 +124,11 @@ export default function ParentPaymentForm({ players, payments = [], onSubmit, on
     if (player) {
       setSelectedPlayer(player);
       
-      // Verificar pagos existentes del jugador en esta temporada
+      // Verificar pagos existentes del jugador en la temporada ACTIVA
+      const temporadaActiva = seasonConfig?.temporada || currentPayment.temporada;
       const jugadorPayments = payments.filter(p => 
         p.jugador_id === playerId && 
-        p.temporada === currentSeason
+        p.temporada === temporadaActiva
       );
       setExistingPayments(jugadorPayments);
       

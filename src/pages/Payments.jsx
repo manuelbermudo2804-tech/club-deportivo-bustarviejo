@@ -68,8 +68,24 @@ export default function Payments() {
   const [playerFilter, setPlayerFilter] = useState(jugadorIdFromUrl || "all");
   const [previewImage, setPreviewImage] = useState(null);
   
-  // Filtros avanzados - iniciar con la temporada actual (Nov 2025 = temporada 2025/2026)
-  const [temporadaFilter, setTemporadaFilter] = useState("2025/2026");
+  // Filtros avanzados - iniciar con temporada activa del SeasonConfig
+  const [temporadaFilter, setTemporadaFilter] = useState("all");
+  
+  // Fetch active season config
+  const { data: activeSeasonConfig } = useQuery({
+    queryKey: ['activeSeasonConfig'],
+    queryFn: async () => {
+      const configs = await base44.entities.SeasonConfig.list();
+      return configs.find(c => c.activa === true);
+    },
+  });
+
+  // Establecer filtro a temporada activa cuando se cargue
+  useEffect(() => {
+    if (activeSeasonConfig?.temporada && temporadaFilter === "all") {
+      setTemporadaFilter(activeSeasonConfig.temporada);
+    }
+  }, [activeSeasonConfig]);
   const [categoriaFilter, setCategoriaFilter] = useState("all");
   const [estadoFilter, setEstadoFilter] = useState("all");
   const [showOverdueOnly, setShowOverdueOnly] = useState(false);
@@ -704,7 +720,7 @@ Email: cdbustarviejo@gmail.com
                     <Button
                       variant="outline"
                       onClick={() => {
-                        setTemporadaFilter(getCurrentSeason());
+                        setTemporadaFilter(activeSeasonConfig?.temporada || "all");
                         setCategoriaFilter("all");
                         setEstadoFilter("all");
                         setShowOverdueOnly(false);
