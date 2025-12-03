@@ -73,6 +73,19 @@ export const CUOTAS_POR_CATEGORIA = {
   }
 };
 
+// Mapeo de nombres de deporte en jugadores a nombres de categoría en CategoryConfig
+const CATEGORY_NAME_MAPPING = {
+  "Fútbol Aficionado": "AFICIONADO",
+  "Fútbol Juvenil": "JUVENIL",
+  "Fútbol Cadete": "CADETE",
+  "Fútbol Infantil (Mixto)": "INFANTIL",
+  "Fútbol Alevín (Mixto)": "ALEVIN",
+  "Fútbol Benjamín (Mixto)": "BENJAMIN",
+  "Fútbol Pre-Benjamín (Mixto)": "PRE-BENJAMIN",
+  "Fútbol Femenino": "FEMENINO",
+  "Baloncesto (Mixto)": "BALONCESTO"
+};
+
 // Función para obtener las cuotas según la categoría
 // NOTA: Esta función ahora intenta obtener cuotas desde CategoryConfig
 // Si no existe en la BD, usa el fallback hardcoded
@@ -80,7 +93,12 @@ export const getCuotasPorCategoria = async (categoria) => {
   try {
     const { base44 } = await import('@/api/base44Client');
     const categories = await base44.entities.CategoryConfig.list();
-    const categoryConfig = categories.find(c => c.nombre === categoria && c.activa);
+    
+    // Buscar por nombre directo o por mapeo
+    const mappedName = CATEGORY_NAME_MAPPING[categoria] || categoria;
+    const categoryConfig = categories.find(c => 
+      (c.nombre === categoria || c.nombre === mappedName) && c.activa
+    );
     
     if (categoryConfig) {
       return {
@@ -121,7 +139,12 @@ export const getImportePorCategoriaYMes = async (categoria, mes) => {
   try {
     const { base44 } = await import('@/api/base44Client');
     const categories = await base44.entities.CategoryConfig.list();
-    const categoryConfig = categories.find(c => c.nombre === categoria && c.activa);
+    
+    // Buscar por nombre directo o por mapeo
+    const mappedName = CATEGORY_NAME_MAPPING[categoria] || categoria;
+    const categoryConfig = categories.find(c => 
+      (c.nombre === categoria || c.nombre === mappedName) && c.activa
+    );
     
     if (categoryConfig) {
       switch(mes) {
