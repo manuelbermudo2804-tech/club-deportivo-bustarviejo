@@ -60,7 +60,7 @@ export default function CoachChat() {
     queryKey: ['chatMessages'],
     queryFn: () => base44.entities.ChatMessage.list('-created_date'),
     refetchOnWindowFocus: true,
-    refetchInterval: 3000, // Polling cada 3 segundos para mensajes instantáneos
+    refetchInterval: 2000, // Polling cada 2 segundos para mensajes más instantáneos
   });
 
   const { data: allPlayers = [], isLoading: loadingPlayers } = useQuery({
@@ -71,7 +71,8 @@ export default function CoachChat() {
   const { data: privateConversations = [], refetch: refetchConversations } = useQuery({
     queryKey: ['privateConversations'],
     queryFn: () => base44.entities.PrivateConversation.list('-ultimo_mensaje_fecha'),
-    refetchInterval: 3000, // Polling cada 3 segundos
+    refetchInterval: 1500, // Polling cada 1.5 segundos para notificaciones instantáneas
+    refetchOnWindowFocus: true,
   });
 
   const { data: privateMessages = [], refetch: refetchPrivateMessages } = useQuery({
@@ -80,7 +81,7 @@ export default function CoachChat() {
       ? base44.entities.PrivateMessage.filter({ conversacion_id: selectedConversation.id }, '-created_date')
       : [],
     enabled: !!selectedConversation?.id,
-    refetchInterval: 2000, // Polling cada 2 segundos cuando hay chat abierto
+    refetchInterval: 1000, // Polling cada 1 segundo cuando hay chat abierto
   });
 
   const isAdmin = user?.role === "admin";
@@ -155,15 +156,22 @@ export default function CoachChat() {
     },
   });
 
-  // Contador de no leídos por categoría
+  // Contador de no leídos por categoría (incluye archivadas con mensajes nuevos)
   const getUnreadCountForCategory = (categoria) => {
     return privateConversations.filter(c => 
       c.categoria === categoria && 
-      !c.archivada && 
       (c.no_leidos_staff || 0) > 0 &&
       (isAdmin || isCoordinator || c.participante_staff_email === user?.email)
     ).reduce((sum, c) => sum + (c.no_leidos_staff || 0), 0);
   };
+  
+  // Contador total de no leídos para mostrar en el badge del menú
+  const totalUnreadCount = useMemo(() => {
+    return privateConversations.filter(c => 
+      (c.no_leidos_staff || 0) > 0 &&
+      (isAdmin || isCoordinator || c.participante_staff_email === user?.email)
+    ).reduce((sum, c) => sum + (c.no_leidos_staff || 0), 0);
+  }, [privateConversations, isAdmin, isCoordinator, user]);
 
   const sendMessageMutation = useMutation({
     mutationFn: async (messageData) => {

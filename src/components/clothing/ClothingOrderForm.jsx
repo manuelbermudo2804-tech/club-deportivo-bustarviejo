@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { motion } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -18,10 +18,16 @@ const TALLAS = [
   "Talla S", "Talla M", "Talla L", "Talla XL", "Talla XXL", "Talla 3XL"
 ];
 
-const PRECIOS = {
-  chaqueta: 35, pack: 41,
-  camiseta_individual: 10, pantalon_individual: 17, sudadera_individual: 18,
-  chubasquero: 20, anorak: 40, mochila: 22
+// Precios por defecto (se sobreescriben con SeasonConfig si están configurados)
+const DEFAULT_PRECIOS = {
+  chaqueta_partidos: 35, 
+  pack_entrenamiento: 41,
+  camiseta_individual: 10, 
+  pantalon_individual: 17, 
+  sudadera_individual: 18,
+  chubasquero: 20, 
+  anorak: 40, 
+  mochila: 22
 };
 
 const getCurrentSeason = () => {
@@ -37,6 +43,19 @@ export default function ClothingOrderForm({ players, onSubmit, onCancel, isSubmi
   const [seasonConfig, setSeasonConfig] = useState(null);
   const [useCredit, setUseCredit] = useState(userCredit > 0); // Auto-activar si tiene crédito
   const [creditToUse, setCreditToUse] = useState(0);
+  
+  // Precios dinámicos desde SeasonConfig o defaults
+  const PRECIOS = useMemo(() => {
+    if (!seasonConfig?.productos_ropa) return DEFAULT_PRECIOS;
+    
+    const precios = { ...DEFAULT_PRECIOS };
+    seasonConfig.productos_ropa.forEach(producto => {
+      if (producto.activo && precios.hasOwnProperty(producto.id)) {
+        precios[producto.id] = producto.precio;
+      }
+    });
+    return precios;
+  }, [seasonConfig]);
   
   const [orderData, setOrderData] = useState({
     jugador_id: "", jugador_nombre: "", jugador_categoria: "", email_padre: "", telefono: "",
@@ -67,8 +86,8 @@ export default function ClothingOrderForm({ players, onSubmit, onCancel, isSubmi
 
   useEffect(() => {
     let total = 0;
-    if (orderData.chaqueta_partidos) total += PRECIOS.chaqueta;
-    if (orderData.pack_entrenamiento) total += PRECIOS.pack;
+    if (orderData.chaqueta_partidos) total += PRECIOS.chaqueta_partidos;
+    if (orderData.pack_entrenamiento) total += PRECIOS.pack_entrenamiento;
     if (orderData.camiseta_individual) total += PRECIOS.camiseta_individual;
     if (orderData.pantalon_individual) total += PRECIOS.pantalon_individual;
     if (orderData.sudadera_individual) total += PRECIOS.sudadera_individual;
@@ -88,8 +107,8 @@ export default function ClothingOrderForm({ players, onSubmit, onCancel, isSubmi
       concepto_pago: `Pedido ropa ${selectedPlayer?.nombre || ''} - Temporada ${getCurrentSeason()}`
     }));
   }, [orderData.chaqueta_partidos, orderData.pack_entrenamiento, orderData.camiseta_individual,
-      orderData.pantalon_individual, orderData.sudadera_individual, orderData.chubasquero,
-      orderData.anorak, orderData.mochila, selectedPlayer, useCredit, userCredit]);
+    orderData.pantalon_individual, orderData.sudadera_individual, orderData.chubasquero,
+    orderData.anorak, orderData.mochila, selectedPlayer, useCredit, userCredit, PRECIOS]);
 
   const handlePlayerChange = (playerId) => {
     const player = players.find(p => p.id === playerId);
@@ -166,8 +185,8 @@ export default function ClothingOrderForm({ players, onSubmit, onCancel, isSubmi
 
     try {
       let productsHTML = '';
-      if (orderData.chaqueta_partidos) productsHTML += `<p>✅ <strong>Chaqueta de Partidos:</strong> ${orderData.chaqueta_talla} - ${PRECIOS.chaqueta}€</p>`;
-      if (orderData.pack_entrenamiento) productsHTML += `<p>✅ <strong>Pack de Entrenamiento - ${PRECIOS.pack}€</strong></p><ul><li>Camiseta: ${orderData.pack_camiseta_talla}</li><li>Pantalón: ${orderData.pack_pantalon_talla}</li><li>Sudadera: ${orderData.pack_sudadera_talla}</li></ul>`;
+      if (orderData.chaqueta_partidos) productsHTML += `<p>✅ <strong>Chaqueta de Partidos:</strong> ${orderData.chaqueta_talla} - ${PRECIOS.chaqueta_partidos}€</p>`;
+      if (orderData.pack_entrenamiento) productsHTML += `<p>✅ <strong>Pack de Entrenamiento - ${PRECIOS.pack_entrenamiento}€</strong></p><ul><li>Camiseta: ${orderData.pack_camiseta_talla}</li><li>Pantalón: ${orderData.pack_pantalon_talla}</li><li>Sudadera: ${orderData.pack_sudadera_talla}</li></ul>`;
       if (orderData.camiseta_individual) productsHTML += `<p>✅ <strong>Camiseta Individual (FUERA DEL PACK):</strong> ${orderData.camiseta_individual_talla} - ${PRECIOS.camiseta_individual}€</p>`;
       if (orderData.pantalon_individual) productsHTML += `<p>✅ <strong>Pantalón Individual (FUERA DEL PACK):</strong> ${orderData.pantalon_individual_talla} - ${PRECIOS.pantalon_individual}€</p>`;
       if (orderData.sudadera_individual) productsHTML += `<p>✅ <strong>Sudadera Individual (FUERA DEL PACK):</strong> ${orderData.sudadera_individual_talla} - ${PRECIOS.sudadera_individual}€</p>`;
@@ -313,7 +332,7 @@ Email: cdbustarviejo@gmail.com
                       checked={orderData.chaqueta_partidos}
                       onChange={(c) => setOrderData({...orderData, chaqueta_partidos: c, chaqueta_talla: ""})}
                       label="Chaqueta de Partidos"
-                      price={PRECIOS.chaqueta}
+                      price={PRECIOS.chaqueta_partidos}
                       talla={orderData.chaqueta_talla}
                       onTallaChange={(v) => setOrderData({...orderData, chaqueta_talla: v})}
                     />
@@ -332,7 +351,7 @@ Email: cdbustarviejo@gmail.com
                         checked={orderData.pack_entrenamiento}
                         onCheckedChange={(c) => setOrderData({...orderData, pack_entrenamiento: c, pack_camiseta_talla: "", pack_pantalon_talla: "", pack_sudadera_talla: ""})}
                       />
-                      <label htmlFor="pack" className="font-semibold cursor-pointer flex-1">Pack de Entrenamiento - {PRECIOS.pack}€</label>
+                      <label htmlFor="pack" className="font-semibold cursor-pointer flex-1">Pack de Entrenamiento - {PRECIOS.pack_entrenamiento}€</label>
                     </div>
                     <Alert className="ml-7 bg-blue-50 border-blue-200">
                       <Info className="h-4 w-4 text-blue-600" />
