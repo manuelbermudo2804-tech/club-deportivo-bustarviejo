@@ -61,6 +61,23 @@ const calculateAge = (birthDate) => {
   return age;
 };
 
+// Función para sugerir categoría según la edad del jugador
+const suggestCategoryByAge = (birthDate) => {
+  const age = calculateAge(birthDate);
+  if (age === null) return null;
+  
+  // Categorías por rangos de edad (aproximados según año de nacimiento típico)
+  if (age >= 19) return "Fútbol Aficionado";
+  if (age >= 17 && age <= 18) return "Fútbol Juvenil";
+  if (age >= 15 && age <= 16) return "Fútbol Cadete";
+  if (age >= 13 && age <= 14) return "Fútbol Infantil (Mixto)";
+  if (age >= 11 && age <= 12) return "Fútbol Alevín (Mixto)";
+  if (age >= 9 && age <= 10) return "Fútbol Benjamín (Mixto)";
+  if (age >= 5 && age <= 8) return "Fútbol Pre-Benjamín (Mixto)";
+  
+  return null;
+};
+
 export default function PlayerForm({ player, onSubmit, onCancel, isSubmitting, isParent = false, allPlayers = [] }) {
   const formRef = useRef(null);
   
@@ -835,6 +852,23 @@ export default function PlayerForm({ player, onSubmit, onCancel, isSubmitting, i
 
             <div className="space-y-2">
               <Label htmlFor="deporte">Categoría y Deporte *</Label>
+              {/* Sugerencia automática de categoría */}
+              {playerAge !== null && suggestCategoryByAge(currentPlayer.fecha_nacimiento) && 
+               suggestCategoryByAge(currentPlayer.fecha_nacimiento) !== currentPlayer.deporte && (
+                <Alert className="mb-2 bg-blue-50 border-blue-200">
+                  <AlertCircle className="h-4 w-4 text-blue-600" />
+                  <AlertDescription className="text-blue-800 text-sm">
+                    <strong>💡 Sugerencia:</strong> Según la edad ({playerAge} años), la categoría recomendada es{' '}
+                    <button 
+                      type="button"
+                      onClick={() => setCurrentPlayer({...currentPlayer, deporte: suggestCategoryByAge(currentPlayer.fecha_nacimiento)})}
+                      className="font-bold underline text-blue-700 hover:text-blue-900"
+                    >
+                      {suggestCategoryByAge(currentPlayer.fecha_nacimiento)}
+                    </button>
+                  </AlertDescription>
+                </Alert>
+              )}
               <Select value={currentPlayer.deporte} onValueChange={(value) => setCurrentPlayer({...currentPlayer, deporte: value})} disabled={isParent && player}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>

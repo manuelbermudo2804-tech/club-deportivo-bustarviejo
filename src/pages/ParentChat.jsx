@@ -14,6 +14,9 @@ import FileAttachmentButton from "../components/chat/FileAttachmentButton";
 import MessageAttachments from "../components/chat/MessageAttachments";
 import PollMessage from "../components/chat/PollMessage";
 
+// Indicar que las familias pueden enviar adjuntos al coordinador
+const FAMILIES_CAN_SEND_ATTACHMENTS = true;
+
 export default function ParentChat() {
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [activePrivateChat, setActivePrivateChat] = useState(null); // conversación privada activa
