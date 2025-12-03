@@ -76,19 +76,30 @@ export default function ClothingPriceConfig({ seasonConfig, onUpdate }) {
       return;
     }
     
-    console.log("Guardando producto editado:", editingProduct);
+    if (!editingProduct.nombre || editingProduct.precio <= 0) {
+      toast.error("El nombre y precio son obligatorios");
+      return;
+    }
+    
+    console.log("=== GUARDANDO PRODUCTO ===");
+    console.log("Producto editado:", editingProduct);
     console.log("Productos actuales:", products);
     
     const updatedProducts = products.map(p => 
-      p.id === editingProduct.id ? { ...editingProduct } : p
+      p.id === editingProduct.id ? { 
+        id: editingProduct.id,
+        nombre: editingProduct.nombre,
+        precio: Number(editingProduct.precio),
+        activo: editingProduct.activo,
+        orden: editingProduct.orden
+      } : p
     );
     
-    console.log("Productos actualizados:", updatedProducts);
+    console.log("Productos después del map:", updatedProducts);
     
     updateConfigMutation.mutate({
       id: seasonConfig.id,
       data: { 
-        ...seasonConfig,
         productos_ropa: updatedProducts 
       }
     });
@@ -295,11 +306,18 @@ export default function ClothingPriceConfig({ seasonConfig, onUpdate }) {
                   <Euro className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                   <Input
                     type="number"
+                    step="0.01"
+                    min="0"
                     value={editingProduct.precio}
-                    onChange={(e) => setEditingProduct({ ...editingProduct, precio: Number(e.target.value) })}
+                    onChange={(e) => {
+                      const newPrice = parseFloat(e.target.value) || 0;
+                      console.log("Cambiando precio a:", newPrice);
+                      setEditingProduct({ ...editingProduct, precio: newPrice });
+                    }}
                     className="pl-10 text-xl font-bold"
                   />
                 </div>
+                <p className="text-xs text-slate-500 mt-1">Precio actual: {editingProduct.precio}€</p>
               </div>
               
               <div className="flex items-center gap-2">
