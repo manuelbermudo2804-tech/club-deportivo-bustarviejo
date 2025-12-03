@@ -937,6 +937,7 @@ export default function Layout({ children, currentPageName }) {
     { title: "🏠 Inicio", url: createPageUrl("Home"), icon: Home },
     { title: "📊 Panel Financiero", url: createPageUrl("TreasurerDashboard"), icon: CreditCard },
     { title: "💳 Pagos", url: createPageUrl("Payments"), icon: CreditCard },
+    { title: "💰 Pagos Extras", url: createPageUrl("ExtraPayments"), icon: CreditCard },
     { title: "🔔 Recordatorios", url: createPageUrl("Reminders"), icon: Bell },
     { title: "📁 Histórico", url: createPageUrl("PaymentHistory"), icon: Archive },
 
@@ -1029,6 +1030,7 @@ export default function Layout({ children, currentPageName }) {
     // 💰 FINANZAS (trabajo principal)
     { title: "📊 Panel Financiero", url: createPageUrl("TreasurerDashboard"), icon: CreditCard },
     { title: "💳 Pagos", url: createPageUrl("Payments"), icon: CreditCard },
+    { title: "💰 Pagos Extras", url: createPageUrl("ExtraPayments"), icon: CreditCard },
     { title: "🔔 Recordatorios", url: createPageUrl("Reminders"), icon: Bell },
     { title: "📁 Histórico Pagos", url: createPageUrl("PaymentHistory"), icon: Archive },
 
@@ -1461,16 +1463,16 @@ export default function Layout({ children, currentPageName }) {
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
         
         <header className="lg:hidden fixed top-0 left-0 right-0 z-50 bg-gradient-to-r from-orange-600 to-orange-700 shadow-lg safe-area-top">
-            <div className="flex items-center justify-between p-2">
-              <div className="flex items-center gap-2">
-                <img src={CLUB_LOGO_URL} alt="CD Bustarviejo" className="w-9 h-9 rounded-lg shadow-lg object-cover" />
-                <div className="text-white min-w-0">
-                  <h1 className="font-bold text-base leading-tight">CD Bustarviejo</h1>
-                  <p className="text-xs text-orange-100 truncate max-w-[140px]" title={user?.email}>
-                    {isAdmin ? "👑 Admin" : isCoordinator ? "🎓 Coord." : isTreasurer ? "💰 Tesor." : isCoach ? "🏃 Entren." : isPlayer ? "⚽ Jugador" : "👨‍👩‍👧 Familia"} · {user?.full_name?.split(' ')[0] || ''}
-                  </p>
-                </div>
+          <div className="flex items-center justify-between p-2">
+            <div className="flex items-center gap-2">
+              <img src={CLUB_LOGO_URL} alt="CD Bustarviejo" className="w-9 h-9 rounded-lg shadow-lg object-cover" />
+              <div className="text-white">
+                <h1 className="font-bold text-base leading-tight">CD Bustarviejo</h1>
+                <p className="text-xs text-orange-100 truncate max-w-[140px]" title={user?.email}>
+                  {user?.full_name || (isAdmin ? "Admin" : isCoordinator ? "Coordinador" : isTreasurer ? "Tesorero" : isCoach ? "Entrenador" : isPlayer ? "Jugador" : "Familia")}
+                </p>
               </div>
+            </div>
             <div className="flex items-center gap-1">
               {!isAppInstalled && (
                                     <button
@@ -1636,9 +1638,9 @@ export default function Layout({ children, currentPageName }) {
             </div>
 
             {user && (
-                <div className="text-center text-xs text-white mb-4 bg-slate-800/50 rounded-lg p-3">
-                  <p className="font-medium text-sm">{user.full_name}</p>
-                  <p className="text-green-400 text-xs truncate">{user.email}</p>
+              <div className="text-center text-xs text-white mb-4">
+                <p className="font-medium">{user.full_name}</p>
+                <p className="text-green-400 text-xs">{user.email}</p>
                 {isCoordinator && (
                   <Badge className="mt-2 bg-cyan-600 text-white text-xs">
                     🎓 Coordinador Deportivo
