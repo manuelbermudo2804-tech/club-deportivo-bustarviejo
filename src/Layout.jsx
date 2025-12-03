@@ -1466,8 +1466,8 @@ export default function Layout({ children, currentPageName }) {
               <img src={CLUB_LOGO_URL} alt="CD Bustarviejo" className="w-9 h-9 rounded-lg shadow-lg object-cover" />
               <div className="text-white">
                 <h1 className="font-bold text-base leading-tight">CD Bustarviejo</h1>
-                <p className="text-xs text-orange-100">
-                  {isAdmin ? "Admin" : isCoordinator ? "Coordinador" : isTreasurer ? "Tesorero" : isCoach ? "Entrenador" : isPlayer ? "Jugador" : "Familia"}
+                <p className="text-xs text-orange-100 truncate max-w-[140px]" title={user?.email}>
+                  {user?.full_name || (isAdmin ? "Admin" : isCoordinator ? "Coordinador" : isTreasurer ? "Tesorero" : isCoach ? "Entrenador" : isPlayer ? "Jugador" : "Familia")}
                 </p>
               </div>
             </div>

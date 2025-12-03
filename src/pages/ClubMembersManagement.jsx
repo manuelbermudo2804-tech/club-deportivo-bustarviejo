@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { 
   Users, CheckCircle2, Clock, AlertCircle, Mail, 
   TrendingUp, UserPlus, Heart, Eye, Loader2, Edit, Trash2,
-  MessageCircle, RefreshCw, UserCheck, Send
+  MessageCircle, RefreshCw, UserCheck, Send, Bell
 } from "lucide-react";
 import { toast } from "sonner";
 import RenewalReminderDialog from "../components/members/RenewalReminderDialog";
@@ -402,6 +402,19 @@ Por solo *25€/año* seguirás apoyando a nuestros jóvenes deportistas.
     renovaciones: currentSeasonMembers.filter(m => m.tipo_inscripcion === "Renovación").length,
   };
 
+  // Detectar nuevos socios recientes (últimos 7 días) para alertas
+  const sevenDaysAgo = new Date();
+  sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+  const recentMembers = currentSeasonMembers.filter(m => {
+    const createdDate = new Date(m.created_date);
+    return createdDate >= sevenDaysAgo;
+  });
+  
+  // Socios pendientes de revisar justificante (En revisión)
+  const pendingReviewMembers = currentSeasonMembers.filter(m => 
+    m.estado_pago === "En revisión" && (m.justificante_url || m.justificante_base64)
+  );
+
   const getStatusBadge = (status) => {
     switch (status) {
       case "Pagado":
@@ -464,6 +477,73 @@ Por solo *25€/año* seguirás apoyando a nuestros jóvenes deportistas.
           <Mail className="w-4 h-4 mr-2" /> Enviar Recordatorios
         </Button>
       </div>
+
+      {/* Alertas de nuevos socios y pendientes de revisión */}
+      {(recentMembers.length > 0 || pendingReviewMembers.length > 0) && (
+        <div className="space-y-3">
+          {pendingReviewMembers.length > 0 && (
+            <Card className="bg-gradient-to-r from-yellow-50 to-orange-50 border-2 border-yellow-400 shadow-lg">
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-12 h-12 rounded-full bg-yellow-500 flex items-center justify-center animate-pulse">
+                      <Clock className="w-6 h-6 text-white" />
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-yellow-900">🔔 {pendingReviewMembers.length} socios pendientes de revisión</h3>
+                      <p className="text-sm text-yellow-800">Han subido justificante y esperan confirmación</p>
+                    </div>
+                  </div>
+                  <Button
+                    onClick={() => setStatusFilter("En revisión")}
+                    className="bg-yellow-600 hover:bg-yellow-700"
+                  >
+                    <Eye className="w-4 h-4 mr-2" /> Ver pendientes
+                  </Button>
+                </div>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {pendingReviewMembers.slice(0, 5).map(m => (
+                    <Badge key={m.id} className="bg-yellow-100 text-yellow-800 cursor-pointer" onClick={() => setViewingMember(m)}>
+                      {m.nombre_completo}
+                    </Badge>
+                  ))}
+                  {pendingReviewMembers.length > 5 && (
+                    <Badge className="bg-yellow-200 text-yellow-900">+{pendingReviewMembers.length - 5} más</Badge>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {recentMembers.length > 0 && (
+            <Card className="bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-400">
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-12 h-12 rounded-full bg-green-500 flex items-center justify-center">
+                      <UserPlus className="w-6 h-6 text-white" />
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-green-900">🆕 {recentMembers.length} nuevos socios esta semana</h3>
+                      <p className="text-sm text-green-800">Inscripciones de los últimos 7 días</p>
+                    </div>
+                  </div>
+                </div>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {recentMembers.slice(0, 5).map(m => (
+                    <Badge key={m.id} className="bg-green-100 text-green-800 cursor-pointer" onClick={() => setViewingMember(m)}>
+                      {m.nombre_completo} ({m.estado_pago === "Pagado" ? "✅" : m.estado_pago === "En revisión" ? "🟡" : "🔴"})
+                    </Badge>
+                  ))}
+                  {recentMembers.length > 5 && (
+                    <Badge className="bg-green-200 text-green-900">+{recentMembers.length - 5} más</Badge>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+        </div>
+      )}
 
       {/* Estadísticas */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
