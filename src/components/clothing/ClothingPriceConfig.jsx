@@ -200,18 +200,10 @@ export default function ClothingPriceConfig({ seasonConfig, onUpdate }) {
           </h2>
           <p className="text-slate-600 text-sm">Gestiona el catálogo y precios de la equipación</p>
         </div>
-        <div className="flex gap-2">
-          {!seasonConfig?.productos_ropa && (
-            <Button onClick={initializeProducts} variant="outline" size="sm">
-              <Package className="w-4 h-4 mr-2" />
-              Cargar Catálogo
-            </Button>
-          )}
-          <Button onClick={() => setShowAddDialog(true)} className="bg-orange-600 hover:bg-orange-700" size="sm">
-            <Plus className="w-4 h-4 mr-2" />
-            Añadir Producto
-          </Button>
-        </div>
+        <Button onClick={() => setShowAddDialog(true)} className="bg-orange-600 hover:bg-orange-700" size="sm">
+          <Plus className="w-4 h-4 mr-2" />
+          Añadir Producto
+        </Button>
       </div>
 
       {/* Info */}
