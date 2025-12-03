@@ -3,7 +3,7 @@ import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
 import { Link, useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { Users, Calendar, Bell, MessageCircle, CreditCard, Image, Megaphone, Clock, ShoppingBag, FileText, Award, AlertCircle, Clover, Heart, FileSignature } from "lucide-react";
+import { Users, Calendar, Bell, MessageCircle, CreditCard, Image, Megaphone, Clock, ShoppingBag, FileText, Award, AlertCircle, Clover, Heart, FileSignature, Euro } from "lucide-react";
 
 import SocialLinks from "../components/SocialLinks";
 import PushNotificationManager from "../components/push/PushNotificationManager";
@@ -148,6 +148,17 @@ export default function ParentDashboard() {
     enabled: !!user,
   });
 
+  const { data: extraPayments = [] } = useQuery({
+    queryKey: ['extraPayments'],
+    queryFn: () => base44.entities.ExtraPayment.list('-created_date'),
+    staleTime: 300000,
+    gcTime: 600000,
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
+    refetchInterval: false,
+    enabled: !!user,
+  });
+
   // SOLO jugadores ACTIVOS de la temporada actual
   const myPlayers = (user && players) ? players.filter(p => 
     (p.email_padre === user.email || p.email_tutor_2 === user.email) && p.activo === true
@@ -237,6 +248,26 @@ export default function ParentDashboard() {
 
   const activeSeason = seasonConfigs.find(s => s.activa) || null;
   const loteriaVisible = activeSeason?.loteria_navidad_abierta === true;
+
+  // Pagos extras activos que aplican a mis jugadores
+  const myActiveExtraPayments = extraPayments.filter(ep => {
+    if (!ep.activo) return false;
+    // Si no tiene categorías específicas, aplica a todos
+    if (!ep.categorias_destino || ep.categorias_destino.length === 0) {
+      return myPlayers.length > 0;
+    }
+    // Verificar si alguno de mis jugadores está en las categorías destino
+    return myPlayers.some(p => ep.categorias_destino.includes(p.deporte));
+  });
+
+  // Contar pagos extras pendientes para mis jugadores
+  const pendingExtraPayments = myActiveExtraPayments.reduce((count, ep) => {
+    const myPlayerIds = myPlayers.map(p => p.id);
+    const misPagos = (ep.pagos_recibidos || []).filter(pago => 
+      myPlayerIds.includes(pago.jugador_id) && pago.estado !== "Pagado"
+    );
+    return count + misPagos.length;
+  }, 0);
 
   const pendingDocuments = (myPlayers.length > 0) ? allDocuments.filter(doc => {
     if (!doc.publicado || !doc.requiere_firma) return false;
@@ -471,6 +502,18 @@ export default function ParentDashboard() {
       icon: Clover,
       url: createPageUrl("ParentLottery"),
       gradient: "from-green-600 to-red-600",
+    });
+  }
+
+  // Añadir pagos extras si hay alguno activo para mis jugadores
+  if (myActiveExtraPayments.length > 0) {
+    menuItems.splice(4, 0, {
+      title: "💰 Pagos Extras",
+      icon: Euro,
+      url: createPageUrl("ParentExtraPayments"),
+      gradient: "from-emerald-600 to-teal-600",
+      badge: pendingExtraPayments > 0 ? pendingExtraPayments : undefined,
+      badgeLabel: "pendientes"
     });
   }
 
