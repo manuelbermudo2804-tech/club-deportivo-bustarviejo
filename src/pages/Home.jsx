@@ -157,19 +157,59 @@ export default function Home() {
     refetchOnWindowFocus: false,
     refetchOnMount: false,
     refetchInterval: false,
-    enabled: !!user && (isCoach || isCoordinator) && hasPlayers,
+    enabled: !!user && ((isCoach || isCoordinator) && hasPlayers || isAdmin),
   });
 
   const { data: surveyResponses } = useQuery({
     queryKey: ['surveyResponses'],
-    queryFn: () => base44.entities.SurveyResponse.list(),
+    queryFn: () => base44.entities.SurveyResponse.list('-created_date'),
     initialData: [],
     staleTime: 300000,
     gcTime: 600000,
     refetchOnWindowFocus: false,
     refetchOnMount: false,
     refetchInterval: false,
-    enabled: !!user && (isCoach || isCoordinator) && hasPlayers,
+    enabled: !!user && ((isCoach || isCoordinator) && hasPlayers || isAdmin),
+  });
+
+  // Eventos con RSVP para admin
+  const { data: events = [] } = useQuery({
+    queryKey: ['eventsHome'],
+    queryFn: () => base44.entities.Event.list('-fecha'),
+    staleTime: 300000,
+    gcTime: 600000,
+    refetchOnWindowFocus: false,
+    enabled: !!user && isAdmin,
+  });
+
+  // Pedidos de ropa para admin
+  const { data: clothingOrders = [] } = useQuery({
+    queryKey: ['clothingOrdersHome'],
+    queryFn: () => base44.entities.ClothingOrder.list('-created_date'),
+    staleTime: 300000,
+    gcTime: 600000,
+    refetchOnWindowFocus: false,
+    enabled: !!user && isAdmin,
+  });
+
+  // Socios pendientes para admin
+  const { data: clubMembers = [] } = useQuery({
+    queryKey: ['clubMembersHome'],
+    queryFn: () => base44.entities.ClubMember.list('-created_date'),
+    staleTime: 300000,
+    gcTime: 600000,
+    refetchOnWindowFocus: false,
+    enabled: !!user && isAdmin,
+  });
+
+  // Lotería para admin
+  const { data: lotteryOrders = [] } = useQuery({
+    queryKey: ['lotteryOrdersHome'],
+    queryFn: () => base44.entities.LotteryOrder.list('-created_date'),
+    staleTime: 300000,
+    gcTime: 600000,
+    refetchOnWindowFocus: false,
+    enabled: !!user && isAdmin && loteriaVisible,
   });
 
   // Solicitudes de invitación pendientes (jugadores +18)
@@ -183,6 +223,63 @@ export default function Home() {
   });
 
   const pendingInvitationRequests = invitationRequests.filter(r => r.estado === "pendiente").length;
+
+  // Calcular estadísticas adicionales para admin
+  const adminActivityStats = useMemo(() => {
+    if (!isAdmin) return {};
+
+    const today = new Date().toISOString().split('T')[0];
+    const last24h = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+
+    // Respuestas a encuestas recientes (últimas 24h)
+    const recentSurveyResponses = surveyResponses?.filter(r => 
+      r.created_date && r.created_date >= last24h
+    ).length || 0;
+
+    // Eventos con confirmaciones recientes
+    const eventsWithRecentRSVP = events?.filter(e => {
+      if (!e.requiere_confirmacion || e.fecha < today) return false;
+      return e.confirmaciones?.some(c => c.fecha_confirmacion && c.fecha_confirmacion >= last24h);
+    }).length || 0;
+
+    // Total confirmaciones pendientes en eventos activos
+    const pendingEventRSVP = events?.filter(e => e.requiere_confirmacion && e.fecha >= today)
+      .reduce((total, e) => {
+        const pending = e.confirmaciones?.filter(c => c.confirmacion === "pendiente").length || 0;
+        return total + pending;
+      }, 0) || 0;
+
+    // Pedidos de ropa pendientes/en revisión
+    const pendingClothingOrders = clothingOrders?.filter(o => 
+      o.estado === "Pendiente" || o.estado === "En revisión"
+    ).length || 0;
+
+    // Socios pendientes de verificar
+    const pendingMemberPayments = clubMembers?.filter(m => 
+      m.estado_pago === "En revisión"
+    ).length || 0;
+
+    // Lotería pendiente
+    const pendingLotteryOrders = lotteryOrders?.filter(o => 
+      o.estado === "Pendiente" || o.estado === "En revisión"
+    ).length || 0;
+
+    // Convocatorias con confirmaciones pendientes
+    const callupsWithPending = callups?.filter(c => {
+      if (!c.publicada || c.cerrada || c.fecha_partido < today) return false;
+      return c.jugadores_convocados?.some(j => j.confirmacion === "pendiente");
+    }).length || 0;
+
+    return {
+      recentSurveyResponses,
+      eventsWithRecentRSVP,
+      pendingEventRSVP,
+      pendingClothingOrders,
+      pendingMemberPayments,
+      pendingLotteryOrders,
+      callupsWithPending
+    };
+  }, [isAdmin, surveyResponses, events, clothingOrders, clubMembers, lotteryOrders, callups]);
 
   const myPlayers = useMemo(() => {
     if (!user || !isCoach || !hasPlayers || !players) return [];
