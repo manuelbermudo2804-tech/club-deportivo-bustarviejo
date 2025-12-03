@@ -81,6 +81,7 @@ export default function SeasonManagement() {
     deletePrivateConversations: true, // Conversaciones privadas
     deleteReferralRewards: true, // Referidos de la temporada
     resetUserReferrals: true, // Resetear contadores de referidos de usuarios
+    resetClubMembers: true, // Desactivar socios de temporada anterior
     newSeasonName: "",
     cuotaUnica: 200,
     cuotaTresMeses: 75,
@@ -541,6 +542,19 @@ export default function SeasonManagement() {
         setProcessingProgress((currentStep / totalSteps) * 100);
       }
 
+      // 18. Desactivar socios de temporada anterior (NO se eliminan, se desactivan)
+      if (resetConfig.resetClubMembers) {
+        setProcessingStep("Desactivando socios de temporada anterior...");
+        for (const member of clubMembers.filter(m => m.activo !== false)) {
+          await base44.entities.ClubMember.update(member.id, {
+            activo: false,
+            temporada_anterior: activeSeason?.temporada || ""
+          });
+        }
+        currentStep++;
+        setProcessingProgress((currentStep / totalSteps) * 100);
+      }
+
       // 6. Desactivar temporada actual
       setProcessingStep("Configurando nueva temporada...");
       if (activeSeason) {
@@ -684,6 +698,11 @@ export default function SeasonManagement() {
     queryFn: () => base44.entities.Convocatoria.list(),
   });
 
+  const { data: clubMembers = [] } = useQuery({
+    queryKey: ['clubMembers'],
+    queryFn: () => base44.entities.ClubMember.list(),
+  });
+
   // Estadísticas actuales
   const currentStats = {
     payments: payments.length,
@@ -704,7 +723,8 @@ export default function SeasonManagement() {
     matchResults: matchResults.length,
     documents: documents.length,
     privateMessages: privateMessages.length,
-    convocatorias: convocatorias.length
+    convocatorias: convocatorias.length,
+    clubMembers: clubMembers.filter(m => m.activo !== false).length
   };
 
   if (!isAdmin) {
@@ -1261,7 +1281,7 @@ export default function SeasonManagement() {
 
               {/* Sección: Datos Financieros */}
               <div className="bg-green-50 rounded-lg p-3 space-y-2">
-                <p className="text-xs font-bold text-green-800 mb-2">💰 DATOS FINANCIEROS</p>
+                <p className="text-xs font-bold text-green-800 mb-2">💰 DATOS FINANCIEROS Y SOCIOS</p>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                   <div className="flex items-center gap-2">
                     <Checkbox checked={resetConfig.archivePayments} onCheckedChange={(c) => setResetConfig(prev => ({ ...prev, archivePayments: c }))} />
@@ -1279,7 +1299,12 @@ export default function SeasonManagement() {
                     <Checkbox checked={resetConfig.deleteLotteryOrders} onCheckedChange={(c) => setResetConfig(prev => ({ ...prev, deleteLotteryOrders: c }))} />
                     <Label className="text-xs">Eliminar pedidos lotería ({currentStats.lotteryOrders})</Label>
                   </div>
+                  <div className="flex items-center gap-2">
+                    <Checkbox checked={resetConfig.resetClubMembers} onCheckedChange={(c) => setResetConfig(prev => ({ ...prev, resetClubMembers: c }))} />
+                    <Label className="text-xs">Desactivar socios ({currentStats.clubMembers})</Label>
+                  </div>
                 </div>
+                <p className="text-xs text-green-700 mt-2">⚠️ Los socios se desactivan (no se eliminan) para permitir renovaciones en la nueva temporada</p>
               </div>
 
               {/* Sección: Datos Deportivos */}
@@ -1398,7 +1423,8 @@ export default function SeasonManagement() {
               <ul className="text-sm text-orange-700 space-y-1">
                 {resetConfig.archivePayments && <li>✓ Archivar {currentStats.payments} pagos</li>}
                 {resetConfig.deleteReminders && <li>✓ Eliminar {currentStats.reminders} recordatorios</li>}
-                {resetConfig.resetPlayerStatus && <li>✓ Actualizar {currentStats.players} jugadores</li>}
+                {resetConfig.resetPlayerStatus && <li>✓ Desactivar {currentStats.players} jugadores</li>}
+                {resetConfig.resetClubMembers && <li>✓ Desactivar {currentStats.clubMembers} socios</li>}
                 {resetConfig.deleteCallups && <li>✓ Eliminar {currentStats.convocatorias} convocatorias</li>}
                 {resetConfig.deleteLotteryOrders && <li>✓ Eliminar {currentStats.lotteryOrders} pedidos lotería</li>}
                 {resetConfig.deleteClothingOrders && <li>✓ Eliminar {currentStats.clothingOrders} pedidos ropa</li>}
