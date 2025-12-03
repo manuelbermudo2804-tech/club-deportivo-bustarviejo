@@ -137,9 +137,18 @@ export default function ClothingPriceConfig({ seasonConfig, onUpdate }) {
   };
 
   const toggleProductActive = (productId, active) => {
+    console.log("Toggle producto:", productId, "nuevo estado:", active);
     const updatedProducts = products.map(p => 
-      p.id === productId ? { ...p, activo: active } : p
+      p.id === productId ? { 
+        id: p.id,
+        nombre: p.nombre,
+        precio: p.precio,
+        activo: active,
+        orden: p.orden
+      } : p
     );
+    
+    console.log("Productos tras toggle:", updatedProducts);
     
     updateConfigMutation.mutate({
       id: seasonConfig.id,
@@ -224,16 +233,21 @@ export default function ClothingPriceConfig({ seasonConfig, onUpdate }) {
                   <div className="flex items-center gap-2">
                     <span className="text-sm text-slate-600">Activo</span>
                     <Switch
-                      checked={product.activo}
-                      onCheckedChange={(checked) => toggleProductActive(product.id, checked)}
+                      checked={product.activo !== false}
+                      onCheckedChange={(checked) => {
+                        console.log("Toggle activo:", product.id, checked);
+                        toggleProductActive(product.id, checked);
+                      }}
                     />
                   </div>
                   
                   <Button 
                     variant="outline" 
                     size="icon"
-                    onClick={() => {
-                      setEditingProduct({ ...product });
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      console.log("Editando producto:", product);
+                      setEditingProduct(JSON.parse(JSON.stringify(product)));
                       setShowEditDialog(true);
                     }}
                   >
@@ -243,7 +257,10 @@ export default function ClothingPriceConfig({ seasonConfig, onUpdate }) {
                   <Button 
                     variant="outline" 
                     size="icon"
-                    onClick={() => handleDeleteProduct(product.id)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDeleteProduct(product.id);
+                    }}
                   >
                     <Trash2 className="w-4 h-4 text-red-600" />
                   </Button>
