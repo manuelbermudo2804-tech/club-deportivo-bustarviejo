@@ -520,6 +520,73 @@ export default function ReferralManagement() {
 
         </TabsContent>
 
+        {/* TAB REGISTROS - Lista de todos los referidos registrados */}
+        <TabsContent value="registros" className="space-y-6 mt-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Users className="w-5 h-5 text-purple-600" />
+                Todos los Registros de Referidos ({referralRewards.length})
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {referralRewards.length === 0 ? (
+                <div className="text-center py-12 text-slate-500">
+                  <Gift className="w-16 h-16 mx-auto mb-4 opacity-30" />
+                  <p className="text-lg">No hay registros de referidos</p>
+                  <p className="text-sm">Cuando un padre registre un nuevo socio, aparecerá aquí</p>
+                </div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>#</TableHead>
+                        <TableHead>Quién Refirió</TableHead>
+                        <TableHead>Nuevo Socio</TableHead>
+                        <TableHead>Temporada</TableHead>
+                        <TableHead className="text-center">Crédito</TableHead>
+                        <TableHead>Fecha</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {referralRewards
+                        .sort((a, b) => new Date(b.created_date) - new Date(a.created_date))
+                        .map((ref, index) => (
+                        <TableRow key={ref.id}>
+                          <TableCell>{index + 1}</TableCell>
+                          <TableCell>
+                            <div>
+                              <p className="font-semibold text-slate-900">{ref.referrer_name}</p>
+                              <p className="text-xs text-slate-500">{ref.referrer_email}</p>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <p className="font-medium text-slate-900">{ref.referred_member_name}</p>
+                          </TableCell>
+                          <TableCell>
+                            <Badge variant="outline">{ref.temporada}</Badge>
+                          </TableCell>
+                          <TableCell className="text-center">
+                            {ref.limite_alcanzado ? (
+                              <Badge className="bg-slate-400">Límite</Badge>
+                            ) : (
+                              <Badge className="bg-green-600">+{ref.clothing_credit_earned || 0}€</Badge>
+                            )}
+                          </TableCell>
+                          <TableCell className="text-xs text-slate-500">
+                            {new Date(ref.created_date).toLocaleDateString('es-ES')}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
         {/* TAB SORTEO */}
         <TabsContent value="sorteo" className="space-y-6 mt-6">
           {/* Info de participantes */}
