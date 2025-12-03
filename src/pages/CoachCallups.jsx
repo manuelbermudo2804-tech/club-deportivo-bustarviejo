@@ -24,7 +24,7 @@ import CallupCard from "../components/callups/CallupCard";
 import { usePageTutorial } from "../components/tutorials/useTutorial";
 import { CombinedSuccessAnimation } from "../components/animations/SuccessAnimation";
 
-export default function CoachCallups() {
+function CoachCallups() {
   usePageTutorial("coach_callups");
   
   const [showForm, setShowForm] = useState(false);
