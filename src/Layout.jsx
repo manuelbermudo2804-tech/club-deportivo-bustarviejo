@@ -969,7 +969,7 @@ export default function Layout({ children, currentPageName }) {
     { title: "👤 Usuarios", url: createPageUrl("UserManagement"), icon: Users },
 
     // ⚽ DEPORTIVO
-    { title: "🎓 Convocatorias", url: createPageUrl("CoachCallups"), icon: Bell, pendingCallupResponses: true },
+    { title: "🎓 Convocatorias", url: createPageUrl("CoachCallups"), icon: Bell, badge: pendingCallupResponses > 0 ? pendingCallupResponses : null, urgentBadge: pendingCallupResponses > 0 },
     { title: "📋 Asistencia y Evaluación", url: createPageUrl("TeamAttendanceEvaluation"), icon: CheckCircle2 },
     { title: "📊 Reportes Entrenadores", url: createPageUrl("CoachEvaluationReports"), icon: Star },
     { title: "📅 Calendario y Horarios", url: createPageUrl("CalendarAndSchedules"), icon: Calendar },
