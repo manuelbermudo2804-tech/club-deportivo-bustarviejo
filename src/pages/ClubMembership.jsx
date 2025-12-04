@@ -534,36 +534,25 @@ export default function ClubMembership() {
           {user && myPlayers.length > 0 && seasonConfig?.programa_referidos_activo && (
             <div className="border-t pt-4 mt-2">
               <p className="text-center text-sm font-semibold text-slate-700 mb-3">🎁 Tu Programa "Trae un Socio Amigo"</p>
-              <div className="grid grid-cols-4 gap-2 text-center">
-                <div className="bg-purple-50 rounded-xl p-2 border border-purple-200">
-                  <p className="text-xl font-bold text-purple-700">{user.referrals_count || 0}</p>
-                  <p className="text-xs text-purple-600">Referidos</p>
+              <div className="grid grid-cols-3 gap-3 text-center">
+                <div className="bg-purple-50 rounded-xl p-3 border border-purple-200">
+                  <p className="text-2xl font-bold text-purple-700">{user.referrals_count || 0}</p>
+                  <p className="text-xs text-purple-600">Amigos referidos</p>
                 </div>
-                <div className="bg-green-50 rounded-xl p-2 border border-green-200">
-                  <p className="text-xl font-bold text-green-700">{user.clothing_credit_balance || 0}€</p>
-                  <p className="text-xs text-green-600">Crédito</p>
+                <div className="bg-green-50 rounded-xl p-3 border border-green-200">
+                  <p className="text-2xl font-bold text-green-700">{user.clothing_credit_balance || 0}€</p>
+                  <p className="text-xs text-green-600">Crédito en ropa</p>
                 </div>
-                <div className="bg-orange-50 rounded-xl p-2 border border-orange-200">
-                  <p className="text-xl font-bold text-orange-700">{user.raffle_entries_total || 0}</p>
-                  <p className="text-xs text-orange-600">Sorteos</p>
-                </div>
-                <div className="bg-yellow-50 rounded-xl p-2 border border-yellow-200">
-                  <p className="text-xl font-bold text-yellow-700">
-                    {(() => {
-                      // Calcular puesto en el ranking
-                      const myReferrals = user.referrals_count || 0;
-                      if (myReferrals === 0) return "-";
-                      // Contar cuántos usuarios tienen más referidos que yo
-                      const usersAbove = allMemberships.filter(m => {
-                        // Buscar si hay usuarios con más referidos (esto es aproximado, idealmente sería desde User)
-                        return false; // Por ahora mostrar posición basada en referidos
-                      }).length;
-                      return `#${usersAbove + 1}`;
-                    })()}
-                  </p>
-                  <p className="text-xs text-yellow-600">Ranking</p>
+                <div className="bg-orange-50 rounded-xl p-3 border border-orange-200">
+                  <p className="text-2xl font-bold text-orange-700">{user.raffle_entries_total || 0}</p>
+                  <p className="text-xs text-orange-600">Participaciones</p>
                 </div>
               </div>
+              {(user.referrals_count || 0) > 0 && (
+                <p className="text-center text-xs text-green-600 mt-2 font-medium">
+                  🎉 ¡Gracias por traer amigos al club!
+                </p>
+              )}
             </div>
           )}
         </div>
