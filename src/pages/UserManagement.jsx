@@ -385,6 +385,46 @@ export default function UserManagement() {
     return players.filter(p => p.email_padre === userEmail || p.email === userEmail);
   };
 
+  // Detectar parejas de progenitores (comparten al menos un jugador)
+  const detectParentPairs = () => {
+    const pairs = [];
+    const processedPairs = new Set();
+
+    players.forEach(player => {
+      if (!player.email_padre || !player.email_tutor_2) return;
+      
+      const parent1Email = player.email_padre.toLowerCase();
+      const parent2Email = player.email_tutor_2.toLowerCase();
+      const pairKey = [parent1Email, parent2Email].sort().join('|');
+      
+      if (processedPairs.has(pairKey)) return;
+      processedPairs.add(pairKey);
+
+      const parent1 = users.find(u => u.email?.toLowerCase() === parent1Email);
+      const parent2 = users.find(u => u.email?.toLowerCase() === parent2Email);
+      
+      // Obtener todos los jugadores compartidos
+      const sharedPlayers = players.filter(p => 
+        (p.email_padre?.toLowerCase() === parent1Email && p.email_tutor_2?.toLowerCase() === parent2Email) ||
+        (p.email_padre?.toLowerCase() === parent2Email && p.email_tutor_2?.toLowerCase() === parent1Email)
+      );
+
+      if (sharedPlayers.length > 0) {
+        pairs.push({
+          parent1: parent1 || { email: parent1Email, full_name: parent1Email },
+          parent2: parent2 || { email: parent2Email, full_name: parent2Email },
+          sharedPlayers,
+          parent1Registered: !!parent1,
+          parent2Registered: !!parent2
+        });
+      }
+    });
+
+    return pairs;
+  };
+
+  const parentPairs = detectParentPairs();
+
   // Estadísticas (sin contar eliminados)
   const activeUsersWithoutDeleted = users.filter(u => u.eliminado !== true);
   const activeUsers = activeUsersWithoutDeleted.filter(u => u.acceso_activo !== false && u.role === "user");
