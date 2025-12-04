@@ -428,21 +428,67 @@ export default function Home() {
     const items = [];
 
     if (isAdmin) {
-      // 📊 FINANZAS (primero lo más usado)
+      // ADMIN: Ordenado por prioridad de uso diario
+      
+      // 1. TAREAS URGENTES - Lo primero que necesita revisar
+      items.push(
+        {
+          title: "💳 Pagos",
+          icon: CreditCard,
+          url: createPageUrl("Payments"),
+          gradient: "from-green-600 to-green-700",
+          badge: stats.pendingPayments + stats.reviewPayments,
+          badgeLabel: "pendientes"
+        },
+        {
+          title: "💬 Chat Grupos",
+          icon: MessageCircle,
+          url: createPageUrl("AdminChat"),
+          gradient: "from-teal-600 to-teal-700",
+          badge: stats.unreadMessages,
+          badgeLabel: "nuevos"
+        },
+        {
+          title: "🖊️ Firmas Federación",
+          icon: FileSignature,
+          url: createPageUrl("FederationSignaturesAdmin"),
+          gradient: "from-yellow-600 to-orange-600",
+          badge: stats.adminPendingSignatures,
+          badgeLabel: "pendientes"
+        }
+      );
+
+      // 2. GESTIÓN PRINCIPAL
+      items.push(
+        {
+          title: "👥 Jugadores",
+          icon: Users,
+          url: createPageUrl("Players"),
+          gradient: "from-orange-600 to-orange-700",
+          badge: stats.activePlayers,
+          badgeLabel: "activos"
+        },
+        {
+          title: "👤 Usuarios",
+          icon: Users,
+          url: createPageUrl("UserManagement"),
+          gradient: "from-blue-600 to-blue-700",
+        },
+        {
+          title: "🛍️ Pedidos Ropa",
+          icon: ShoppingBag,
+          url: createPageUrl("ClothingOrders"),
+          gradient: "from-teal-600 to-teal-700",
+        }
+      );
+
+      // 3. FINANZAS
       items.push(
         {
           title: "📊 Panel Financiero",
           icon: TrendingUp,
           url: createPageUrl("TreasurerDashboard"),
           gradient: "from-emerald-600 to-emerald-700",
-        },
-        {
-          title: "💳 Pagos",
-          icon: CreditCard,
-          url: createPageUrl("Payments"),
-          gradient: "from-green-600 to-green-700",
-          badge: stats.pendingPayments,
-          badgeLabel: "pendientes"
         },
         {
           title: "🔔 Recordatorios",
@@ -458,33 +504,7 @@ export default function Home() {
         }
       );
 
-      // 👥 GESTIÓN DE PERSONAS
-      items.push(
-        {
-          title: "👥 Jugadores",
-          icon: Users,
-          url: createPageUrl("Players"),
-          gradient: "from-orange-600 to-orange-700",
-          badge: stats.activePlayers,
-          badgeLabel: "activos"
-        },
-        {
-          title: "🖊️ Firmas Federación",
-          icon: FileSignature,
-          url: createPageUrl("FederationSignaturesAdmin"),
-          gradient: "from-yellow-600 to-orange-600",
-          badge: stats.adminPendingSignatures,
-          badgeLabel: "pendientes"
-        },
-        {
-          title: "👤 Usuarios",
-          icon: Users,
-          url: createPageUrl("UserManagement"),
-          gradient: "from-blue-600 to-blue-700",
-        }
-      );
-
-      // ⚽ DEPORTIVO
+      // 4. DEPORTIVO
       items.push(
         {
           title: "🎓 Convocatorias",
@@ -493,57 +513,21 @@ export default function Home() {
           gradient: "from-yellow-600 to-yellow-700",
         },
         {
-          title: "📋 Asistencia y Evaluación",
+          title: "📋 Asistencia",
           icon: CheckCircle2,
           url: createPageUrl("TeamAttendanceEvaluation"),
           gradient: "from-green-600 to-green-700",
         },
         {
-          title: "📊 Reportes Entrenadores",
+          title: "📊 Reportes",
           icon: Star,
           url: createPageUrl("CoachEvaluationReports"),
-          gradient: "from-purple-600 to-purple-700",
-        },
-        {
-          title: "📅 Calendario y Horarios",
-          icon: Calendar,
-          url: createPageUrl("CalendarAndSchedules"),
           gradient: "from-purple-600 to-purple-700",
         }
       );
 
-      // 👨‍👩‍👧 SECCIÓN FAMILIA (si tiene hijos)
-      if (hasPlayers) {
-        items.push({
-          title: "👨‍👩‍👧 Confirmar Mis Hijos",
-          icon: ClipboardCheck,
-          url: createPageUrl("ParentCallups"),
-          gradient: "from-green-600 to-green-700",
-          badge: stats.pendingCallups,
-          badgeLabel: "pendientes"
-        });
-        if (stats.pendingSignatures > 0) {
-          items.push({
-            title: "🖊️ Firmas Mis Hijos",
-            icon: FileSignature,
-            url: createPageUrl("FederationSignatures"),
-            gradient: "from-yellow-600 to-orange-600",
-            badge: stats.pendingSignatures,
-            badgeLabel: "pendientes"
-          });
-        }
-      }
-
-      // 💬 COMUNICACIÓN
+      // 5. COMUNICACIÓN
       items.push(
-        {
-          title: "💬 Chat Grupos",
-          icon: MessageCircle,
-          url: createPageUrl("AdminChat"),
-          gradient: "from-teal-600 to-teal-700",
-          badge: stats.unreadMessages,
-          badgeLabel: "nuevos"
-        },
         {
           title: "📢 Anuncios",
           icon: Megaphone,
@@ -564,37 +548,16 @@ export default function Home() {
         }
       );
 
-      // 🛍️ PEDIDOS Y EXTRAS
+      // 6. CALENDARIO Y EVENTOS
       items.push(
         {
-          title: "🛍️ Pedidos Ropa",
-          icon: ShoppingBag,
-          url: createPageUrl("ClothingOrders"),
-          gradient: "from-red-600 to-red-700",
-        }
-      );
-
-      if (loteriaVisible) {
-        if (hasPlayers) {
-          items.push({
-            title: "🍀 Mi Lotería",
-            icon: Clover,
-            url: createPageUrl("ParentLottery"),
-            gradient: "from-green-600 to-red-600",
-          });
-        }
-        items.push({
-          title: "🍀 Gestión Lotería",
-          icon: Clover,
-          url: createPageUrl("LotteryManagement"),
-          gradient: "from-green-600 to-green-700",
-        });
-      }
-
-      // 🎉 CONTENIDO
-      items.push(
+          title: "📅 Calendario",
+          icon: Calendar,
+          url: createPageUrl("CalendarAndSchedules"),
+          gradient: "from-purple-600 to-purple-700",
+        },
         {
-          title: "🎉 Gestión Eventos",
+          title: "🎉 Eventos",
           icon: Calendar,
           url: createPageUrl("EventManagement"),
           gradient: "from-indigo-600 to-indigo-700",
@@ -607,17 +570,17 @@ export default function Home() {
         }
       );
 
-      // 🎫 SOCIO
-      items.push(
-        {
-          title: "🎫 Hacerse Socio",
-          icon: Heart,
-          url: createPageUrl("ClubMembership"),
-          gradient: "from-pink-600 to-pink-700",
-        }
-      );
+      // 7. EXTRAS
+      if (loteriaVisible) {
+        items.push({
+          title: "🍀 Gestión Lotería",
+          icon: Clover,
+          url: createPageUrl("LotteryManagement"),
+          gradient: "from-green-600 to-green-700",
+        });
+      }
 
-      // ⚙️ CONFIGURACIÓN
+      // 8. CONFIGURACIÓN
       items.push(
         {
           title: "⚙️ Configuración",
@@ -626,6 +589,30 @@ export default function Home() {
           gradient: "from-slate-600 to-slate-700",
         }
       );
+
+      // 9. SECCIÓN FAMILIA (si tiene hijos) - Al final
+      if (hasPlayers) {
+        items.push(
+          {
+            title: "👨‍👩‍👧 Mis Hijos",
+            icon: ClipboardCheck,
+            url: createPageUrl("ParentCallups"),
+            gradient: "from-indigo-600 to-indigo-700",
+            badge: stats.pendingCallups,
+            badgeLabel: "pendientes"
+          }
+        );
+        if (stats.pendingSignatures > 0) {
+          items.push({
+            title: "🖊️ Firmas Hijos",
+            icon: FileSignature,
+            url: createPageUrl("FederationSignatures"),
+            gradient: "from-yellow-600 to-orange-600",
+            badge: stats.pendingSignatures,
+            badgeLabel: "pendientes"
+          });
+        }
+      }
     } else if (isTreasurer) {
       // 💰 TESORERO: Ordenado por prioridad de uso diario
       
