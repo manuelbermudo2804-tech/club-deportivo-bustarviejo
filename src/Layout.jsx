@@ -1155,7 +1155,8 @@ export default function Layout({ children, currentPageName }) {
     { title: "👥 Mis Jugadores", url: createPageUrl("ParentPlayers"), icon: Users },
 
     // 📅 CALENDARIO Y EVENTOS
-    { title: "📅 Calendario y Horarios", url: createPageUrl("CalendarAndSchedules"), icon: Calendar },
+            { title: "📅 Calendario y Horarios", url: createPageUrl("CalendarAndSchedules"), icon: Calendar },
+            { title: "⚽ Partidos", url: createPageUrl("MatchCalendar"), icon: Calendar },
     { title: "🎉 Eventos Club", url: createPageUrl("ParentEventRSVP"), icon: Calendar },
 
     // 📢 INFORMACIÓN
