@@ -68,6 +68,7 @@ import ParentExtraPayments from './pages/ParentExtraPayments';
 import ValidateSecondParent from './pages/ValidateSecondParent';
 import ValidateAdminInvitation from './pages/ValidateAdminInvitation';
 import JoinFemenino from './pages/JoinFemenino';
+import FemeninoInterests from './pages/FemeninoInterests';
 import __Layout from './Layout.jsx';
 
 
@@ -142,6 +143,7 @@ export const PAGES = {
     "ValidateSecondParent": ValidateSecondParent,
     "ValidateAdminInvitation": ValidateAdminInvitation,
     "JoinFemenino": JoinFemenino,
+    "FemeninoInterests": FemeninoInterests,
 }
 
 export const pagesConfig = {
