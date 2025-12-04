@@ -11,7 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { Loader2, Upload, AlertCircle, CheckCircle2, Users, CreditCard, Download, Heart, Star, PartyPopper, Sparkles, UserPlus, Trophy, Gift, CreditCard as CardIcon, Share2, MessageCircle } from "lucide-react";
 import { sendMemberCard } from "../components/members/MemberCardEmail";
 import ReferralProgramCard from "../components/referrals/ReferralProgramCard";
-import { CheckmarkAnimation } from "../components/animations/SuccessAnimation";
+import { CombinedSuccessAnimation } from "../components/animations/SuccessAnimation";
 import { toast } from "sonner";
 
 const CUOTA_SOCIO = 25;
@@ -193,22 +193,41 @@ export default function ClubMembership() {
 
   const { data: myMemberships = [], isLoading } = useQuery({
     queryKey: ['myMemberships', user?.email],
-    queryFn: () => user ? base44.entities.ClubMember.filter({ email: user.email }) : [],
+    queryFn: async () => {
+      try {
+        return user ? await base44.entities.ClubMember.filter({ email: user.email }) : [];
+      } catch (error) {
+        console.error("Error loading my memberships:", error);
+        return [];
+      }
+    },
     enabled: !!user?.email,
   });
 
   const { data: allMemberships = [] } = useQuery({
     queryKey: ['allMemberships'],
-    queryFn: () => base44.entities.ClubMember.list(),
-    enabled: !isCheckingAuth, // Solo ejecutar después de verificar auth
+    queryFn: async () => {
+      try {
+        return await base44.entities.ClubMember.list();
+      } catch (error) {
+        console.error("Error loading memberships:", error);
+        return [];
+      }
+    },
+    enabled: !isCheckingAuth,
   });
 
   const { data: myPlayers = [] } = useQuery({
     queryKey: ['myPlayers', user?.email],
     queryFn: async () => {
-      if (!user) return [];
-      const allPlayers = await base44.entities.Player.list();
-      return allPlayers.filter(p => p.email_padre === user.email || p.email_tutor_2 === user.email);
+      try {
+        if (!user) return [];
+        const allPlayers = await base44.entities.Player.list();
+        return allPlayers.filter(p => p.email_padre === user.email || p.email_tutor_2 === user.email);
+      } catch (error) {
+        console.error("Error loading my players:", error);
+        return [];
+      }
     },
     enabled: !!user?.email,
   });
@@ -219,10 +238,15 @@ export default function ClubMembership() {
   const { data: seasonConfig } = useQuery({
     queryKey: ['seasonConfig'],
     queryFn: async () => {
-      const configs = await base44.entities.SeasonConfig.list();
-      return configs.find(c => c.activa === true);
+      try {
+        const configs = await base44.entities.SeasonConfig.list();
+        return configs.find(c => c.activa === true);
+      } catch (error) {
+        console.error("Error loading season config:", error);
+        return null;
+      }
     },
-    enabled: !isCheckingAuth, // Solo ejecutar después de verificar auth
+    enabled: !isCheckingAuth,
   });
 
   // Función para generar número de socio único
@@ -359,15 +383,11 @@ export default function ClubMembership() {
       
       // Guardar nombre y mostrar mensaje de éxito
       setLastRegisteredName(formData.nombre_completo);
+      setShowSuccess(true);
       
-      // Cerrar el formulario y volver arriba PRIMERO
+      // Cerrar el formulario y volver arriba
       setShowForm(false);
-      window.scrollTo({ top: 0, behavior: 'instant' });
-      
-      // Mostrar animación de éxito DESPUÉS de volver arriba
-      setTimeout(() => {
-        setShowSuccess(true);
-      }, 100);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
       
       // Limpiar formulario para nuevo registro
       setFormData({
@@ -390,10 +410,10 @@ export default function ClubMembership() {
         setRenewalMember(null);
       }
       
-      // Ocultar mensaje de éxito después de 5 segundos
+      // Ocultar mensaje de éxito después de 4 segundos
       setTimeout(() => {
         setShowSuccess(false);
-      }, 5000);
+      }, 4000);
     },
     onError: (error) => {
       toast.error("Error al enviar solicitud: " + error.message);
@@ -445,7 +465,7 @@ export default function ClubMembership() {
       <CombinedSuccessAnimation 
         show={showSuccess} 
         onComplete={() => setShowSuccess(false)}
-        message={isRenewal ? `🎉 ¡Renovación completada!\n${lastRegisteredName}` : `🎉 ¡Socio registrado!\n${lastRegisteredName}`}
+        message={isRenewal ? `¡Renovación completada, ${lastRegisteredName}!` : `¡Bienvenido/a al club, ${lastRegisteredName}!`}
         withConfetti={true}
       />
       <div className="p-4 lg:p-6 max-w-4xl mx-auto space-y-6">
