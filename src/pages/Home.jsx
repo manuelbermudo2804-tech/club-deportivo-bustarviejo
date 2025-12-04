@@ -743,6 +743,18 @@ export default function Home() {
             gradient: "from-green-600 to-green-700",
             badge: stats.pendingCallups,
             badgeLabel: "pendientes"
+          },
+          {
+            title: "🛍️ Pedidos Ropa Hijos",
+            icon: ShoppingBag,
+            url: createPageUrl("ClothingOrders"),
+            gradient: "from-teal-600 to-teal-700",
+          },
+          {
+            title: "💬 Chat Familia",
+            icon: MessageCircle,
+            url: createPageUrl("ParentChat"),
+            gradient: "from-blue-600 to-blue-700",
           }
         );
         if (stats.pendingSignatures > 0) {
