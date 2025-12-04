@@ -290,29 +290,32 @@ export default function ClubMembership() {
           });
 
           let referrer = null;
-          const createdByEmail = membership.created_by?.toLowerCase().trim();
+          const currentUserEmail = user?.email?.toLowerCase().trim();
 
-          // CASO 1: Usar el created_by del socio (quien lo registró) si es padre con hijos
-          if (createdByEmail && parentEmails.has(createdByEmail)) {
-            referrer = allUsers.find(u => u.email?.toLowerCase().trim() === createdByEmail);
-            console.log("🎯 Referido automático por created_by:", createdByEmail, "->", referrer?.full_name);
+          console.log("🔍 DEBUG Referidos:", {
+            currentUserEmail,
+            myPlayersCount: myPlayers.length,
+            parentEmailsCount: parentEmails.size,
+            isParent: currentUserEmail ? parentEmails.has(currentUserEmail) : false,
+            referidoPor: data.referido_por
+          });
+
+          // CASO 1: Usuario logueado con hijos en el club → ÉL es el referidor automático
+          if (currentUserEmail && myPlayers.length > 0 && parentEmails.has(currentUserEmail)) {
+            referrer = allUsers.find(u => u.email?.toLowerCase().trim() === currentUserEmail);
+            console.log("🎯 Referido automático por user actual:", currentUserEmail, "->", referrer?.full_name);
           }
-          // CASO 2: Usuario logueado con hijos en el club → ÉL es el referidor automático
-          else if (user && myPlayers.length > 0 && parentEmails.has(user.email?.toLowerCase().trim())) {
-            referrer = allUsers.find(u => u.email?.toLowerCase().trim() === user.email?.toLowerCase().trim());
-            console.log("🎯 Referido automático por user actual:", user.email, "->", referrer?.full_name);
-          }
-          // CASO 3: Usuario externo con referido_por manual (vino desde enlace o escribió nombre)
+          // CASO 2: Usuario externo con referido_por manual (vino desde enlace o escribió nombre)
           else if (data.referido_por) {
             referrer = allUsers.find(u => 
               (u.full_name?.toLowerCase().includes(data.referido_por.toLowerCase()) ||
               u.email?.toLowerCase() === data.referido_por.toLowerCase()) &&
-              parentEmails.has(u.email?.toLowerCase().trim()) // Solo padres con hijos pueden referir
+              parentEmails.has(u.email?.toLowerCase().trim())
             );
             console.log("🎯 Referido manual por nombre:", data.referido_por, "->", referrer?.full_name);
           }
           
-          console.log("📊 Referrer encontrado:", referrer ? `${referrer.full_name} (${referrer.email})` : "NINGUNO");
+          console.log("📊 Referrer final:", referrer ? `${referrer.full_name} (${referrer.email})` : "NINGUNO");
           
           if (referrer) {
             // Verificar que el referrer no haya alcanzado el máximo de 15 referidos
