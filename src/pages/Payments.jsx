@@ -456,8 +456,15 @@ Email: cdbustarviejo@gmail.com
     .filter(p => p.estado === "Pagado" && matchTemporada(p.temporada, temporadaFilter))
     .reduce((sum, p) => sum + (p.cantidad || 0), 0);
 
-  // Temporadas únicas - normalizar formato
-  const temporadas = ["all", ...new Set((payments || []).map(p => normalizeTemporada(p.temporada)).filter(Boolean))];
+  // Temporadas únicas - mantener formato original pero ordenar correctamente
+  const temporadasRaw = [...new Set((payments || []).map(p => p.temporada).filter(Boolean))];
+  // Ordenar temporadas de más reciente a más antigua
+  const temporadasOrdenadas = temporadasRaw.sort((a, b) => {
+    const yearA = parseInt(normalizeTemporada(a).split('/')[0]);
+    const yearB = parseInt(normalizeTemporada(b).split('/')[0]);
+    return yearB - yearA;
+  });
+  const temporadas = ["all", ...temporadasOrdenadas];
   
   // Categorías únicas
   const categorias = ["all", ...new Set((players || []).map(p => p.deporte).filter(Boolean))];
