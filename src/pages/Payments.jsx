@@ -791,7 +791,7 @@ Email: cdbustarviejo@gmail.com
                     <Skeleton key={i} className="h-32 w-full" />
                   ))}
                 </div>
-              ) : players.length === 0 ? (
+              ) : !players || players.length === 0 ? (
                 <div className="text-center py-12">
                   <p className="text-slate-500">No hay jugadores registrados</p>
                 </div>
@@ -807,7 +807,7 @@ Email: cdbustarviejo@gmail.com
                  // Filtro por estado - verificar si el jugador tiene pagos del estado buscado
                  let matchesEstado = true;
                  if (estadoFilter !== "all") {
-                   const playerPayments = payments.filter(p => p.jugador_id === player.id && (temporadaFilter === "all" || p.temporada === temporadaFilter));
+                   const playerPayments = (payments || []).filter(p => p.jugador_id === player.id && (temporadaFilter === "all" || p.temporada === temporadaFilter));
                    
                    // Si filtramos por "Pendiente", verificar si le falta algún pago
                    if (estadoFilter === "Pendiente") {
@@ -870,7 +870,7 @@ Email: cdbustarviejo@gmail.com
                         : ["Junio", "Septiembre", "Diciembre"];
 
                       // Obtener TODOS los pagos reales del jugador para la temporada (sin filtros de estado)
-                      const allRealPayments = payments.filter(p => 
+                      const allRealPayments = (payments || []).filter(p => 
                         p.jugador_id === player.id && 
                         (temporadaFilter === "all" || p.temporada === temporadaFilter)
                       );
@@ -928,7 +928,7 @@ Email: cdbustarviejo@gmail.com
                       let totalPaymentsDue = 0;
                       if (!hasPagoUnico) {
                         // Filtrar pagos de la temporada actual del jugador (no de filteredPayments que puede estar filtrado)
-                        const playerPaymentsTemporada = payments.filter(p => 
+                        const playerPaymentsTemporada = (payments || []).filter(p => 
                           p.jugador_id === player.id && 
                           (temporadaFilter === "all" || p.temporada === temporadaFilter)
                         );
