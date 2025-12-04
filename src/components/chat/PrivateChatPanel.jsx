@@ -66,11 +66,14 @@ export default function PrivateChatPanel({
       
       return newMessage;
     },
-    onSuccess: () => {
+    onSuccess: async () => {
       setMessageContent("");
       setAttachments([]);
+      // Invalidar y refetch inmediatamente para que aparezca el mensaje
+      await queryClient.invalidateQueries({ queryKey: ['privateMessages', conversation.id] });
+      await queryClient.invalidateQueries({ queryKey: ['privateConversations'] });
+      await queryClient.invalidateQueries({ queryKey: ['myPrivateConversations'] });
       onMessageSent?.();
-      toast.success("Mensaje enviado");
     },
   });
 
