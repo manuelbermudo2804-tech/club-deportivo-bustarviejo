@@ -1018,7 +1018,7 @@ Por solo *25€/año* seguirás apoyando a nuestros jóvenes deportistas.
             </Card>
           ))
         )}
-      </div>
+        </div>
         </TabsContent>
       </Tabs>
     </div>
