@@ -517,127 +517,48 @@ export default function UserManagement() {
         <p className="text-slate-600 mt-1">Control de acceso, roles, permisos y entrenadores</p>
       </div>
 
-      {/* Estadísticas */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 lg:gap-6">
-        <Card className="border-none shadow-lg">
-          <CardContent className="pt-4 lg:pt-6">
-            <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-2">
-              <div className="w-full">
-                <p className="text-[10px] lg:text-sm text-slate-600 mb-0.5 lg:mb-1">Padres Activos</p>
-                <p className="text-xl lg:text-3xl font-bold text-green-600">{activeUsers.length}</p>
-              </div>
-              <UserCheck className="w-8 h-8 lg:w-12 lg:h-12 text-green-500 opacity-20 hidden lg:block" />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="border-none shadow-lg">
-          <CardContent className="pt-4 lg:pt-6">
-            <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-2">
-              <div className="w-full">
-                <p className="text-[10px] lg:text-sm text-slate-600 mb-0.5 lg:mb-1">Admins</p>
-                <p className="text-xl lg:text-3xl font-bold text-orange-600">{admins.length}</p>
-              </div>
-              <Shield className="w-8 h-8 lg:w-12 lg:h-12 text-orange-500 opacity-20 hidden lg:block" />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="border-none shadow-lg border-2 border-purple-200">
-          <CardContent className="pt-4 lg:pt-6">
-            <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-2">
-              <div className="w-full">
-                <p className="text-[10px] lg:text-sm text-slate-600 mb-0.5 lg:mb-1">Jugadores</p>
-                <p className="text-xl lg:text-3xl font-bold text-purple-600">{jugadores.length}</p>
-              </div>
-              <User className="w-8 h-8 lg:w-12 lg:h-12 text-purple-500 opacity-20 hidden lg:block" />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="border-none shadow-lg border-2 border-blue-200 bg-blue-50">
-          <CardContent className="pt-4 lg:pt-6">
-            <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-2">
-              <div className="w-full">
-                <p className="text-[10px] lg:text-sm text-slate-600 mb-0.5 lg:mb-1">Entrenadores</p>
-                <p className="text-xl lg:text-3xl font-bold text-blue-600">{entrenadores.length}</p>
-              </div>
-              <Users className="w-8 h-8 lg:w-12 lg:h-12 text-blue-500 opacity-20 hidden lg:block" />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="border-none shadow-lg border-2 border-cyan-200 bg-cyan-50">
-          <CardContent className="pt-4 lg:pt-6">
-            <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-2">
-              <div className="w-full">
-                <p className="text-[10px] lg:text-sm text-slate-600 mb-0.5 lg:mb-1">Coordinadores</p>
-                <p className="text-xl lg:text-3xl font-bold text-cyan-600">{coordinadores.length}</p>
-              </div>
-              <Shield className="w-8 h-8 lg:w-12 lg:h-12 text-cyan-500 opacity-20 hidden lg:block" />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="border-none shadow-lg border-2 border-green-200 bg-green-50">
-          <CardContent className="pt-4 lg:pt-6">
-            <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-2">
-              <div className="w-full">
-                <p className="text-[10px] lg:text-sm text-slate-600 mb-0.5 lg:mb-1">Tesoreros</p>
-                <p className="text-xl lg:text-3xl font-bold text-green-600">{tesoreros.length}</p>
-              </div>
-              <Shield className="w-8 h-8 lg:w-12 lg:h-12 text-green-500 opacity-20 hidden lg:block" />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="border-none shadow-lg">
-          <CardContent className="pt-4 lg:pt-6">
-            <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-2">
-              <div className="w-full">
-                <p className="text-[10px] lg:text-sm text-slate-600 mb-0.5 lg:mb-1">Restringidos</p>
-                <p className="text-xl lg:text-3xl font-bold text-red-600">{restrictedUsers.length}</p>
-              </div>
-              <UserX className="w-8 h-8 lg:w-12 lg:h-12 text-red-500 opacity-20 hidden lg:block" />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="border-none shadow-lg border-2 border-slate-300">
-          <CardContent className="pt-4 lg:pt-6">
-            <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-2">
-              <div className="w-full">
-                <p className="text-[10px] lg:text-sm text-slate-600 mb-0.5 lg:mb-1">Eliminados</p>
-                <p className="text-xl lg:text-3xl font-bold text-slate-600">{deletedUsers.length}</p>
-              </div>
-              <Trash2 className="w-8 h-8 lg:w-12 lg:h-12 text-slate-500 opacity-20 hidden lg:block" />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="border-none shadow-lg border-2 border-green-300 bg-green-50">
-          <CardContent className="pt-4 lg:pt-6">
-            <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-2">
-              <div className="w-full">
-                <p className="text-[10px] lg:text-sm text-slate-600 mb-0.5 lg:mb-1">📲 App Instalada</p>
-                <p className="text-xl lg:text-3xl font-bold text-green-600">{usersWithApp.length}</p>
-              </div>
-              <Smartphone className="w-8 h-8 lg:w-12 lg:h-12 text-green-500 opacity-20 hidden lg:block" />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="border-none shadow-lg border-2 border-amber-300 bg-amber-50">
-          <CardContent className="pt-4 lg:pt-6">
-            <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-2">
-              <div className="w-full">
-                <p className="text-[10px] lg:text-sm text-slate-600 mb-0.5 lg:mb-1">📵 Sin App</p>
-                <p className="text-xl lg:text-3xl font-bold text-amber-600">{usersWithoutApp.length}</p>
-              </div>
-              <Smartphone className="w-8 h-8 lg:w-12 lg:h-12 text-amber-500 opacity-20 hidden lg:block" />
-            </div>
-          </CardContent>
-        </Card>
+      {/* Estadísticas compactas */}
+      <div className="grid grid-cols-5 md:grid-cols-10 gap-2">
+        <div className="bg-white rounded-lg p-2 shadow text-center border-l-4 border-green-500">
+          <p className="text-lg font-bold text-green-600">{activeUsers.length}</p>
+          <p className="text-[9px] text-slate-500">Padres</p>
+        </div>
+        <div className="bg-white rounded-lg p-2 shadow text-center border-l-4 border-orange-500">
+          <p className="text-lg font-bold text-orange-600">{admins.length}</p>
+          <p className="text-[9px] text-slate-500">Admins</p>
+        </div>
+        <div className="bg-white rounded-lg p-2 shadow text-center border-l-4 border-purple-500">
+          <p className="text-lg font-bold text-purple-600">{jugadores.length}</p>
+          <p className="text-[9px] text-slate-500">Jugadores</p>
+        </div>
+        <div className="bg-white rounded-lg p-2 shadow text-center border-l-4 border-blue-500">
+          <p className="text-lg font-bold text-blue-600">{entrenadores.length}</p>
+          <p className="text-[9px] text-slate-500">Entren.</p>
+        </div>
+        <div className="bg-white rounded-lg p-2 shadow text-center border-l-4 border-cyan-500">
+          <p className="text-lg font-bold text-cyan-600">{coordinadores.length}</p>
+          <p className="text-[9px] text-slate-500">Coord.</p>
+        </div>
+        <div className="bg-white rounded-lg p-2 shadow text-center border-l-4 border-emerald-500">
+          <p className="text-lg font-bold text-emerald-600">{tesoreros.length}</p>
+          <p className="text-[9px] text-slate-500">Tesor.</p>
+        </div>
+        <div className="bg-white rounded-lg p-2 shadow text-center border-l-4 border-red-500">
+          <p className="text-lg font-bold text-red-600">{restrictedUsers.length}</p>
+          <p className="text-[9px] text-slate-500">Restrin.</p>
+        </div>
+        <div className="bg-white rounded-lg p-2 shadow text-center border-l-4 border-slate-400">
+          <p className="text-lg font-bold text-slate-600">{deletedUsers.length}</p>
+          <p className="text-[9px] text-slate-500">Elimin.</p>
+        </div>
+        <div className="bg-white rounded-lg p-2 shadow text-center border-l-4 border-green-400">
+          <p className="text-lg font-bold text-green-600">{usersWithApp.length}</p>
+          <p className="text-[9px] text-slate-500">📲 App</p>
+        </div>
+        <div className="bg-white rounded-lg p-2 shadow text-center border-l-4 border-amber-400">
+          <p className="text-lg font-bold text-amber-600">{usersWithoutApp.length}</p>
+          <p className="text-[9px] text-slate-500">📵 Sin</p>
+        </div>
       </div>
 
       {/* Alerta de usuarios sin app instalada */}
