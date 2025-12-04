@@ -595,11 +595,35 @@ export default function Home() {
         items.push(
           {
             title: "👨‍👩‍👧 Mis Hijos",
+            icon: Users,
+            url: createPageUrl("ParentPlayers"),
+            gradient: "from-indigo-600 to-indigo-700",
+          },
+          {
+            title: "💳 Pagos Mis Hijos",
+            icon: CreditCard,
+            url: createPageUrl("ParentPayments"),
+            gradient: "from-blue-600 to-blue-700",
+          },
+          {
+            title: "🏆 Convocatorias Hijos",
             icon: ClipboardCheck,
             url: createPageUrl("ParentCallups"),
-            gradient: "from-indigo-600 to-indigo-700",
+            gradient: "from-green-600 to-green-700",
             badge: stats.pendingCallups,
             badgeLabel: "pendientes"
+          },
+          {
+            title: "🛍️ Pedidos Ropa Hijos",
+            icon: ShoppingBag,
+            url: createPageUrl("ClothingOrders"),
+            gradient: "from-teal-600 to-teal-700",
+          },
+          {
+            title: "💬 Chat Familia",
+            icon: MessageCircle,
+            url: createPageUrl("ParentChat"),
+            gradient: "from-blue-600 to-blue-700",
           }
         );
         if (stats.pendingSignatures > 0) {
