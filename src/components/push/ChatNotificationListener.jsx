@@ -4,29 +4,28 @@ import { base44 } from "@/api/base44Client";
 
 export default function ChatNotificationListener({ user }) {
   const previousMessageCount = useRef(0);
+  const lastSeenMessageId = useRef(null);
 
   const { data: messages } = useQuery({
     queryKey: ['chatMessages'],
-    queryFn: () => base44.entities.ChatMessage.list(),
+    queryFn: () => base44.entities.ChatMessage.list('-created_date'),
     initialData: [],
-    refetchInterval: 30000, // Check every 30 seconds
+    refetchInterval: 15000, // Check every 15 seconds
     refetchOnWindowFocus: true,
-    enabled: !!user && Notification.permission === 'granted',
+    enabled: !!user,
   });
 
-  // DirectMessage entity doesn't exist, so we skip it
-  const directMessages = [];
-
   useEffect(() => {
-    if (!user || Notification.permission !== 'granted') return;
+    if (!user || messages.length === 0) return;
 
-    // Chat de grupo - mensajes no leídos para el usuario
-    const unreadGroupMessages = messages.filter(m => {
+    // Filtrar mensajes relevantes para este usuario
+    const relevantMessages = messages.filter(m => {
       if (m.leido) return false;
+      if (m.remitente_email === user.email) return false; // No notificar propios mensajes
       
-      // Para admins: mensajes de padres
+      // Para admins: mensajes de padres urgentes
       if (user.role === "admin") {
-        return m.tipo === "padre_a_grupo" && m.prioridad === "Urgente";
+        return m.tipo === "padre_a_grupo";
       }
       
       // Para entrenadores: mensajes de padres en sus categorías
@@ -35,29 +34,32 @@ export default function ChatNotificationListener({ user }) {
         return m.tipo === "padre_a_grupo" && categoriesCoached.includes(m.grupo_id || m.deporte);
       }
       
-      // Para padres: mensajes del admin/entrenador
+      // Para padres: mensajes del admin/entrenador en sus grupos
       return m.tipo === "admin_a_grupo";
     });
 
-    const totalUnread = unreadGroupMessages.length;
-
-    // Si hay nuevos mensajes desde la última verificación
-    if (totalUnread > previousMessageCount.current && previousMessageCount.current > 0) {
-      const newMessages = totalUnread - previousMessageCount.current;
-      
-      if (unreadGroupMessages.length > 0) {
-        const lastMessage = unreadGroupMessages[0];
-        new Notification("💬 Mensaje Urgente del Club", {
-          body: lastMessage.mensaje.substring(0, 100) + "...",
-          icon: "https://www.cdbustarviejo.com/uploads/2/4/0/4/2404974/logo-cd-bustarviejo-cuadrado-xpeq_orig.png",
-          tag: 'group-chat',
-          requireInteraction: true
+    // Verificar si hay mensajes nuevos
+    const latestMessage = relevantMessages[0];
+    if (latestMessage && latestMessage.id !== lastSeenMessageId.current) {
+      // Mostrar notificación local si tenemos permiso
+      if (Notification.permission === 'granted') {
+        const prioridadEmoji = latestMessage.prioridad === "Urgente" ? "🔴" : 
+                               latestMessage.prioridad === "Importante" ? "🟠" : "💬";
+        
+        new Notification(`${prioridadEmoji} ${latestMessage.remitente_nombre || 'CD Bustarviejo'}`, {
+          body: latestMessage.mensaje.substring(0, 100) + (latestMessage.mensaje.length > 100 ? "..." : ""),
+          icon: "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6911b8e453ca3ac01fb134d6/e3f0a8e26_logo_cd_bustarviejo_mediano.jpg",
+          tag: `chat-${latestMessage.id}`,
+          requireInteraction: latestMessage.prioridad === "Urgente",
+          vibrate: [200, 100, 200]
         });
       }
+      
+      lastSeenMessageId.current = latestMessage.id;
     }
 
-    previousMessageCount.current = totalUnread;
+    previousMessageCount.current = relevantMessages.length;
   }, [messages, user]);
 
-  return null; // Este componente no renderiza nada
+  return null;
 }
