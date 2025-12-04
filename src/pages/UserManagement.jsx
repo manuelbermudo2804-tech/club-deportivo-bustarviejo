@@ -727,25 +727,25 @@ export default function UserManagement() {
                         )}
                       </div>
 
-                      {/* Botones compactos */}
+                      {/* Botones de roles */}
                       {!isDeleted && user.role !== "admin" && (
-                        <div className="flex gap-1 flex-wrap justify-end">
-                          <button onClick={() => handlePlayerToggle(user)} className={`px-2 py-1 rounded text-[10px] font-medium ${isPlayerUser ? 'bg-purple-200 text-purple-800' : 'bg-purple-50 text-purple-700 hover:bg-purple-100'}`}>
-                            {isPlayerUser ? "✅⚽" : "⚽"}
+                        <div className="flex gap-1.5 flex-wrap justify-end">
+                          <button onClick={() => handlePlayerToggle(user)} className={`px-3 py-2 rounded-lg text-xs font-bold shadow-sm ${isPlayerUser ? 'bg-purple-500 text-white' : 'bg-purple-100 text-purple-700 hover:bg-purple-200'}`}>
+                            ⚽ {isPlayerUser ? "✓" : ""}
                           </button>
-                          <button onClick={() => handleCoordinatorToggle(user)} className={`px-2 py-1 rounded text-[10px] font-medium ${isCoordinator ? 'bg-cyan-200 text-cyan-800' : 'bg-cyan-50 text-cyan-700 hover:bg-cyan-100'}`}>
-                            {isCoordinator ? "✅🎓" : "🎓"}
+                          <button onClick={() => handleCoordinatorToggle(user)} className={`px-3 py-2 rounded-lg text-xs font-bold shadow-sm ${isCoordinator ? 'bg-cyan-500 text-white' : 'bg-cyan-100 text-cyan-700 hover:bg-cyan-200'}`}>
+                            🎓 {isCoordinator ? "✓" : ""}
                           </button>
-                          <button onClick={() => handleTreasurerToggle(user)} className={`px-2 py-1 rounded text-[10px] font-medium ${isTreasurer ? 'bg-green-200 text-green-800' : 'bg-green-50 text-green-700 hover:bg-green-100'}`}>
-                            {isTreasurer ? "✅💰" : "💰"}
+                          <button onClick={() => handleTreasurerToggle(user)} className={`px-3 py-2 rounded-lg text-xs font-bold shadow-sm ${isTreasurer ? 'bg-green-500 text-white' : 'bg-green-100 text-green-700 hover:bg-green-200'}`}>
+                            💰 {isTreasurer ? "✓" : ""}
                           </button>
-                          <button onClick={() => handleCoachToggle(user)} className={`px-2 py-1 rounded text-[10px] font-medium ${user.es_entrenador ? 'bg-blue-200 text-blue-800' : 'bg-blue-50 text-blue-700 hover:bg-blue-100'}`}>
-                            {user.es_entrenador ? "✅🏃" : "🏃"}
+                          <button onClick={() => handleCoachToggle(user)} className={`px-3 py-2 rounded-lg text-xs font-bold shadow-sm ${user.es_entrenador ? 'bg-blue-500 text-white' : 'bg-blue-100 text-blue-700 hover:bg-blue-200'}`}>
+                            🏃 {user.es_entrenador ? "✓" : ""}
                           </button>
-                          <button onClick={() => handleRestrictAccess(user)} className={`px-2 py-1 rounded text-[10px] font-medium ${hasRestriction ? 'bg-green-500 text-white' : 'bg-red-50 text-red-700 hover:bg-red-100'}`}>
+                          <button onClick={() => handleRestrictAccess(user)} className={`px-3 py-2 rounded-lg text-xs font-bold shadow-sm ${hasRestriction ? 'bg-green-600 text-white' : 'bg-red-100 text-red-700 hover:bg-red-200'}`}>
                             {hasRestriction ? "✅" : "🚫"}
                           </button>
-                          <button onClick={() => handleDeleteUser(user)} className="px-2 py-1 rounded text-[10px] font-medium bg-slate-100 text-slate-700 hover:bg-slate-200">
+                          <button onClick={() => handleDeleteUser(user)} className="px-3 py-2 rounded-lg text-xs font-bold shadow-sm bg-slate-200 text-slate-700 hover:bg-slate-300">
                             🗑️
                           </button>
                         </div>
