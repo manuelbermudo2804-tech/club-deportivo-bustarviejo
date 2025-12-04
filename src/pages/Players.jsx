@@ -42,6 +42,9 @@ export default function Players() {
     fetchUser();
   }, []);
 
+  // El tesorero también debe ver todos los jugadores
+  const isTreasurer = user?.es_tesorero === true;
+
   const { data: allPlayers, isLoading } = useQuery({
     queryKey: ['players'],
     queryFn: () => base44.entities.Player.list('-created_date'),
