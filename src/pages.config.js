@@ -67,6 +67,7 @@ import ExtraPayments from './pages/ExtraPayments';
 import ParentExtraPayments from './pages/ParentExtraPayments';
 import ValidateSecondParent from './pages/ValidateSecondParent';
 import ValidateAdminInvitation from './pages/ValidateAdminInvitation';
+import MembershipStats from './pages/MembershipStats';
 import __Layout from './Layout.jsx';
 
 
@@ -140,6 +141,7 @@ export const PAGES = {
     "ParentExtraPayments": ParentExtraPayments,
     "ValidateSecondParent": ValidateSecondParent,
     "ValidateAdminInvitation": ValidateAdminInvitation,
+    "MembershipStats": MembershipStats,
 }
 
 export const pagesConfig = {
