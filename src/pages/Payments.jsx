@@ -25,8 +25,18 @@ const getCurrentSeason = () => {
   const now = new Date();
   const year = now.getFullYear();
   const month = now.getMonth() + 1;
-  // Formato consistente con los datos: "2025/2026" (no "2024/2025")
   return month >= 9 ? `${year}/${year + 1}` : `${year - 1}/${year}`;
+};
+
+// Normalizar temporada para comparación (soporta "2025/2026" y "2025-2026")
+const normalizeTemporada = (temporada) => {
+  if (!temporada) return "";
+  return temporada.replace(/-/g, "/");
+};
+
+const matchTemporada = (paymentTemp, filterTemp) => {
+  if (filterTemp === "all") return true;
+  return normalizeTemporada(paymentTemp) === normalizeTemporada(filterTemp);
 };
 
 // Obtener todas las temporadas únicas de los pagos para usar como default
