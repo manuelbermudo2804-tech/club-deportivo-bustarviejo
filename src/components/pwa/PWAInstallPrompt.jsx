@@ -21,6 +21,34 @@ export default function PWAInstallPrompt() {
       const isInStandaloneMode = window.matchMedia('(display-mode: standalone)').matches || 
                                  window.navigator.standalone === true;
       setIsStandalone(isInStandaloneMode);
+      
+      // Comprobar si ya está marcada como instalada por el usuario
+      const userMarkedInstalled = localStorage.getItem('pwaInstalled') === 'true';
+      
+      // Si ya está instalada (por cualquier método), no mostrar
+      if (isInStandaloneMode || userMarkedInstalled) {
+        setShowInstallPrompt(false);
+        return;
+      }
+
+      // PRIMERA VISITA: Mostrar siempre el prompt de instalación
+      // Solo ocultarlo si el usuario lo rechazó explícitamente
+      const dismissed = localStorage.getItem('pwa-install-dismissed');
+      const dismissedIOS = localStorage.getItem('pwa-install-dismissed-ios');
+      
+      // Mostrar inmediatamente si es primera visita (no hay flag de rechazo)
+      if (isIOSDevice) {
+        if (!dismissedIOS) {
+          setShowInstallPrompt(true);
+        }
+      } else {
+        if (!dismissed) {
+          // Mostrar después de 1 segundo para que la página cargue
+          setTimeout(() => {
+            setShowInstallPrompt(true);
+          }, 1000);
+        }
+      }
 
       // Capturar evento de instalación (Chrome/Android)
       const handleBeforeInstallPrompt = (e) => {
@@ -28,8 +56,7 @@ export default function PWAInstallPrompt() {
           e.preventDefault();
           setDeferredPrompt(e);
           
-          // Mostrar prompt solo si no lo han rechazado antes
-          const dismissed = localStorage.getItem('pwa-install-dismissed');
+          // Mostrar prompt si no lo han rechazado antes
           if (!dismissed) {
             setShowInstallPrompt(true);
           }
@@ -39,14 +66,6 @@ export default function PWAInstallPrompt() {
       };
 
       window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-
-      // Mostrar instrucciones iOS si aplica
-      if (isIOSDevice && !isInStandaloneMode) {
-        const dismissed = localStorage.getItem('pwa-install-dismissed-ios');
-        if (!dismissed) {
-          setShowInstallPrompt(true);
-        }
-      }
 
       return () => {
         window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
