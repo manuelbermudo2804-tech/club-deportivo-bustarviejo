@@ -65,6 +65,7 @@ import PlayerDashboard from './pages/PlayerDashboard';
 import EmailInvitations from './pages/EmailInvitations';
 import ExtraPayments from './pages/ExtraPayments';
 import ParentExtraPayments from './pages/ParentExtraPayments';
+import ValidateSecondParent from './pages/ValidateSecondParent';
 import __Layout from './Layout.jsx';
 
 
@@ -136,6 +137,7 @@ export const PAGES = {
     "EmailInvitations": EmailInvitations,
     "ExtraPayments": ExtraPayments,
     "ParentExtraPayments": ParentExtraPayments,
+    "ValidateSecondParent": ValidateSecondParent,
 }
 
 export const pagesConfig = {
