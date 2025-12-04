@@ -193,9 +193,11 @@ export default function PlayerCard({ player, onEdit, onViewProfile, isParent = f
 
           {/* Badge de estado */}
           <div className="absolute top-3 left-3">
-            <Badge className={player.activo ? "bg-green-500 text-white" : "bg-slate-500 text-white"}>
-              {player.activo ? "Activo" : "Inactivo"}
-            </Badge>
+            {player.activo ? (
+              <Badge className="bg-green-500 text-white">Activo</Badge>
+            ) : (
+              <Badge className="bg-yellow-500 text-white animate-pulse">⚠️ PENDIENTE RENOVAR</Badge>
+            )}
           </div>
 
           {/* Badge de deporte */}
