@@ -210,8 +210,16 @@ export default function ParentPaymentForm({ players, payments = [], onSubmit, on
         mesSeleccionado = mesesDisponibles[0] || "Junio";
       }
       
-      // Si hay tipo fijado, usarlo
-      const tipoPago = primerPago ? primerPago.tipo_pago : currentPayment.tipo_pago;
+      // Si hay tipo fijado, usarlo. Si viene un mes forzado distinto de Junio, asumir "Tres meses"
+      let tipoPago;
+      if (primerPago) {
+        tipoPago = primerPago.tipo_pago;
+      } else if (forcedMonth && forcedMonth !== "Junio") {
+        // Si viene un mes forzado como Septiembre o Diciembre, es porque ya decidió pagar en tres cuotas
+        tipoPago = "Tres meses";
+      } else {
+        tipoPago = currentPayment.tipo_pago;
+      }
       
       const cantidad = tipoPago === "Único" 
         ? getTotalConDescuentoFromConfig(player.deporte, categoryConfigs, descuento)
