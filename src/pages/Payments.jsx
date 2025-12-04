@@ -20,6 +20,7 @@ import ParentPaymentForm from "../components/payments/ParentPaymentForm";
 import BankReconciliation from "../components/payments/BankReconciliation";
 import ExportButton from "../components/ExportButton";
 import { getCuotasPorCategoriaSync, getImportePorCategoriaYMesSync as getImportePorMes } from "../components/payments/paymentAmounts";
+import { sendPaymentReceipt, createPlayerPaymentReceiptData } from "../components/receipts/PaymentReceiptPDF";
 
 const getCurrentSeason = () => {
   const now = new Date();
@@ -256,56 +257,33 @@ export default function Payments() {
     
     await updatePaymentMutation.mutateAsync({ id: payment.id, paymentData: updatedData });
     
-    // Enviar email de confirmación a los padres
+    // Enviar recibo PDF por email cuando se marca como Pagado
     if (newStatus === "Pagado") {
       try {
         const player = players.find(p => p.id === payment.jugador_id);
         
-        console.log('📧 [Payments] Enviando confirmación de pago a padres:', { jugador: payment.jugador_nombre, padre: player?.email_padre, tutor2: player?.email_tutor_2 });
+        console.log('📧 [Payments] Generando y enviando recibo PDF:', { jugador: payment.jugador_nombre, padre: player?.email_padre, tutor2: player?.email_tutor_2 });
         
-        const confirmBody = `Estimados padres/tutores,
-
-Confirmamos que hemos recibido y verificado el pago de ${payment.jugador_nombre}.
-
-DETALLES DEL PAGO
-Periodo: ${payment.mes}
-Temporada: ${payment.temporada}
-Cantidad: ${payment.cantidad} euros
-Estado: Pagado
-
-Gracias por su pago.
-
-Atentamente,
-
-CD Bustarviejo
-
-Datos de contacto:
-Email: cdbustarviejo@gmail.com
-        `;
+        // Generar datos del recibo
+        const receiptData = createPlayerPaymentReceiptData(payment, player, activeSeasonConfig);
         
+        // Enviar recibo al padre principal
         if (player?.email_padre) {
-          console.log('📤 [Payments] Enviando a padre:', player.email_padre);
-          await base44.integrations.Core.SendEmail({
-            from_name: "CD Bustarviejo",
-            to: player.email_padre,
-            subject: "Pago Confirmado - CD Bustarviejo",
-            body: confirmBody
-          });
-          console.log('✅ [Payments] Email enviado a padre');
+          console.log('📤 [Payments] Enviando recibo PDF a padre:', player.email_padre);
+          await sendPaymentReceipt(receiptData, player.email_padre, base44);
+          console.log('✅ [Payments] Recibo PDF enviado a padre');
+          toast.success(`📧 Recibo enviado a ${player.email_padre}`);
         }
         
+        // Enviar recibo al segundo tutor
         if (player?.email_tutor_2) {
-          console.log('📤 [Payments] Enviando a tutor 2:', player.email_tutor_2);
-          await base44.integrations.Core.SendEmail({
-            from_name: "CD Bustarviejo",
-            to: player.email_tutor_2,
-            subject: "Pago Confirmado - CD Bustarviejo",
-            body: confirmBody
-          });
-          console.log('✅ [Payments] Email enviado a tutor 2');
+          console.log('📤 [Payments] Enviando recibo PDF a tutor 2:', player.email_tutor_2);
+          await sendPaymentReceipt(receiptData, player.email_tutor_2, base44);
+          console.log('✅ [Payments] Recibo PDF enviado a tutor 2');
         }
       } catch (error) {
-        console.error("Error sending confirmation email:", error);
+        console.error("Error sending receipt PDF:", error);
+        toast.error("Error al enviar recibo: " + error.message);
       }
     }
   };
