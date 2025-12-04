@@ -229,6 +229,12 @@ export default function ExtraPayments() {
     });
     setSelectedCategories(payment.categorias_destino || []);
     setSelectAllCategories(!payment.categorias_destino || payment.categorias_destino.length === 0);
+    
+    // Recuperar jugadores individuales
+    const individualPlayerIds = (payment.jugadores_especificos || []).map(j => j.jugador_id);
+    const individualPlayers = activePlayers.filter(p => individualPlayerIds.includes(p.id));
+    setSelectedIndividualPlayers(individualPlayers);
+    
     setShowForm(true);
   };
 
