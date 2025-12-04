@@ -378,7 +378,7 @@ Email: cdbustarviejo@gmail.com
     players.forEach(player => {
       const playerPayments = payments.filter(p => 
         p.jugador_id === player.id && 
-        (targetTemporada === null || p.temporada === targetTemporada)
+        (targetTemporada === null || matchTemporada(p.temporada, targetTemporada))
       );
       
       // Verificar si tiene pago único pagado o en revisión
@@ -415,7 +415,7 @@ Email: cdbustarviejo@gmail.com
     players.forEach(player => {
       const playerPayments = payments.filter(p => 
         p.jugador_id === player.id && 
-        (targetTemporada === null || p.temporada === targetTemporada)
+        (targetTemporada === null || matchTemporada(p.temporada, targetTemporada))
       );
       
       // Verificar si tiene pago único pagado
