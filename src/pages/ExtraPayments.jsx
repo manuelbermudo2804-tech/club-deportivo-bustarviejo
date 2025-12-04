@@ -150,28 +150,57 @@ export default function ExtraPayments() {
 
     // Determinar jugadores afectados
     let jugadoresAfectados = [];
+    
     if (selectAllCategories) {
+      // Todos los jugadores activos
       jugadoresAfectados = activePlayers.map(p => ({
         jugador_id: p.id,
         jugador_nombre: p.nombre,
+        categoria: p.deporte,
         email_padre: p.email_padre,
         estado: "Pendiente"
       }));
-    } else if (selectedCategories.length > 0) {
-      jugadoresAfectados = activePlayers
-        .filter(p => selectedCategories.includes(p.deporte))
-        .map(p => ({
-          jugador_id: p.id,
-          jugador_nombre: p.nombre,
-          email_padre: p.email_padre,
-          estado: "Pendiente"
-        }));
+    } else {
+      // Jugadores de las categorías seleccionadas
+      if (selectedCategories.length > 0) {
+        const playersFromCategories = activePlayers
+          .filter(p => selectedCategories.includes(p.deporte))
+          .map(p => ({
+            jugador_id: p.id,
+            jugador_nombre: p.nombre,
+            categoria: p.deporte,
+            email_padre: p.email_padre,
+            estado: "Pendiente"
+          }));
+        jugadoresAfectados = [...playersFromCategories];
+      }
+      
+      // Añadir jugadores individuales seleccionados (que no estén ya incluidos)
+      if (selectedIndividualPlayers.length > 0) {
+        const existingIds = jugadoresAfectados.map(j => j.jugador_id);
+        const additionalPlayers = selectedIndividualPlayers
+          .filter(p => !existingIds.includes(p.id))
+          .map(p => ({
+            jugador_id: p.id,
+            jugador_nombre: p.nombre,
+            categoria: p.deporte,
+            email_padre: p.email_padre,
+            estado: "Pendiente"
+          }));
+        jugadoresAfectados = [...jugadoresAfectados, ...additionalPlayers];
+      }
+    }
+
+    if (jugadoresAfectados.length === 0) {
+      toast.error("Debes seleccionar al menos una categoría o jugador");
+      return;
     }
 
     const paymentData = {
       ...formData,
       importe: Number(formData.importe),
       categorias_destino: selectAllCategories ? [] : selectedCategories,
+      jugadores_especificos: selectedIndividualPlayers.map(p => ({ jugador_id: p.id, jugador_nombre: p.nombre })),
       pagos_recibidos: jugadoresAfectados,
       temporada: seasonConfig?.temporada,
       creado_por: user?.email
