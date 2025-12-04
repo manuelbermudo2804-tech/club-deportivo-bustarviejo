@@ -8,7 +8,7 @@ const corsHeaders = {
   'Access-Control-Max-Age': '86400',
 };
 
-// Función pública para registrar nuevos socios desde landing page externa v3
+// Función pública para registrar nuevos socios desde landing page externa
 Deno.serve(async (req) => {
   // Permitir CORS para la landing page externa - PREFLIGHT
   if (req.method === 'OPTIONS') {
@@ -69,9 +69,8 @@ Deno.serve(async (req) => {
     let justificanteBase64 = "";
     
     if (data.justificante_base64) {
-      // Guardar el base64 directamente (es una data URL que se puede visualizar)
       justificanteBase64 = data.justificante_base64;
-      justificanteUrl = "BASE64_ATTACHED"; // Marcador para indicar que hay adjunto
+      justificanteUrl = "BASE64_ATTACHED";
     }
 
     // Crear el nuevo socio
@@ -100,8 +99,7 @@ Deno.serve(async (req) => {
     // Enviar carnet virtual por email
     const clubLogoUrl = "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6911b8e453ca3ac01fb134d6/e3f0a8e26_logo_cd_bustarviejo_mediano.jpg";
     
-    const cardEmailHtml = `
-<!DOCTYPE html>
+    const cardEmailHtml = `<!DOCTYPE html>
 <html>
 <head>
   <meta charset="utf-8">
@@ -166,7 +164,7 @@ Deno.serve(async (req) => {
       body: cardEmailHtml
     });
 
-    // Notificar al admin con el justificante embebido si es base64
+    // Notificar al admin
     let adminEmailBody = `Se ha recibido una nueva solicitud de socio desde la landing page externa:
 
 Nombre: ${data.nombre_completo}
@@ -182,7 +180,6 @@ Referido por: ${data.referido_por}` : ""}
 
 Accede al panel de administración para gestionar.`;
 
-    // Si hay justificante base64, crear email HTML con imagen embebida
     let adminEmailHtml = "";
     if (justificanteBase64) {
       adminEmailHtml = `<!DOCTYPE html>
@@ -234,7 +231,6 @@ Accede al panel de administración para gestionar.`;
         const referrer = allUsers.find(u => u.email?.toLowerCase() === data.referido_por_email.toLowerCase());
         
         if (referrer) {
-          // Registrar la referencia
           await base44.entities.ReferralReward.create({
             referrer_email: referrer.email,
             referrer_name: referrer.full_name,
@@ -244,12 +240,10 @@ Accede al panel de administración para gestionar.`;
             clothing_credit_earned: activeConfig.referidos_premio_1 || 5
           });
 
-          // Actualizar contador del usuario
           const newCount = (referrer.referrals_count || 0) + 1;
           let newCredit = (referrer.clothing_credit_balance || 0) + (activeConfig.referidos_premio_1 || 5);
           let newRaffles = referrer.raffle_entries_total || 0;
 
-          // Calcular bonificaciones por niveles
           if (newCount === 3) {
             newCredit += (activeConfig.referidos_premio_3 || 15) - (activeConfig.referidos_premio_1 || 5);
             newRaffles += activeConfig.referidos_sorteo_3 || 1;
