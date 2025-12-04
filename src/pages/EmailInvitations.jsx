@@ -14,7 +14,17 @@ import { toast } from "sonner";
 
 const CLUB_LOGO_URL = "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6911b8e453ca3ac01fb134d6/e3f0a8e26_logo_cd_bustarviejo_mediano.jpg";
 const DEFAULT_APP_URL = "https://club-gestion-bustarviejo-1fb134d6.base44.app";
+const VALIDATION_URL = "https://club-gestion-bustarviejo-1fb134d6.base44.app/ValidateAdminInvitation";
 const TRACKING_BASE_URL = "https://club-gestion-bustarviejo-1fb134d6.base44.app/api/emailTracking";
+
+// Genera un token UUID único
+const generateToken = () => {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+    const r = Math.random() * 16 | 0;
+    const v = c === 'x' ? r : (r & 0x3 | 0x8);
+    return v.toString(16);
+  });
+};
 
 export default function EmailInvitations() {
   const [user, setUser] = useState(null);
