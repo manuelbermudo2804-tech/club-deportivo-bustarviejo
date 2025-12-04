@@ -196,12 +196,35 @@ export default function ExtraPayments() {
       return;
     }
 
+    let finalPagosRecibidos = jugadoresAfectados;
+
+    // Si estamos editando, preservar los estados de pago existentes
+    if (editingPayment && editingPayment.pagos_recibidos) {
+      const existingPayments = editingPayment.pagos_recibidos;
+      
+      finalPagosRecibidos = jugadoresAfectados.map(newPago => {
+        // Buscar si este jugador ya tenía un pago registrado
+        const existingPago = existingPayments.find(ep => ep.jugador_id === newPago.jugador_id);
+        if (existingPago) {
+          // Preservar estado, justificante, fecha_pago y notas del pago existente
+          return {
+            ...newPago,
+            estado: existingPago.estado,
+            justificante_url: existingPago.justificante_url,
+            fecha_pago: existingPago.fecha_pago,
+            notas: existingPago.notas
+          };
+        }
+        return newPago;
+      });
+    }
+
     const paymentData = {
       ...formData,
       importe: Number(formData.importe),
       categorias_destino: selectAllCategories ? [] : selectedCategories,
       jugadores_especificos: selectedIndividualPlayers.map(p => ({ jugador_id: p.id, jugador_nombre: p.nombre })),
-      pagos_recibidos: jugadoresAfectados,
+      pagos_recibidos: finalPagosRecibidos,
       temporada: seasonConfig?.temporada,
       creado_por: user?.email
     };
