@@ -987,6 +987,7 @@ export default function Layout({ children, currentPageName }) {
     { title: "🎫 Gestión Socios", url: createPageUrl("ClubMembersManagement"), icon: Users },
             { title: "💰 Patrocinios", url: createPageUrl("Sponsorships"), icon: CreditCard },
             { title: "🎁 Trae un Socio Amigo", url: createPageUrl("ReferralManagement"), icon: Gift },
+        { title: "⚽👧 Fútbol Femenino", url: createPageUrl("FemeninoInterests"), icon: Users },
 
             // 🎉 CONTENIDO
     { title: "🎉 Gestión Eventos", url: createPageUrl("EventManagement"), icon: Calendar },
