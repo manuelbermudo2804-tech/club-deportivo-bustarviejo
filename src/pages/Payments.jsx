@@ -861,11 +861,13 @@ Email: cdbustarviejo@gmail.com
                         ? ["Junio"]
                         : ["Junio", "Septiembre", "Diciembre"];
 
-                      // Obtener TODOS los pagos reales del jugador para la temporada (sin filtros)
+                      // Obtener TODOS los pagos reales del jugador para la temporada (sin filtros de estado)
                       const allRealPayments = payments.filter(p => 
                         p.jugador_id === player.id && 
                         (temporadaFilter === "all" || p.temporada === temporadaFilter)
                       );
+
+                      console.log(`[DEBUG PAGOS] Jugador: ${player.nombre}, Pagos reales encontrados:`, allRealPayments.length, allRealPayments.map(p => ({mes: p.mes, estado: p.estado})));
 
                       // Si temporadaFilter es "all", mostrar los pagos reales sin crear virtuales
                       // Si hay filtro de temporada, crear pagos virtuales para los meses que faltan
@@ -879,6 +881,7 @@ Email: cdbustarviejo@gmail.com
                           // Buscar en TODOS los pagos reales, no solo los filtrados
                           const existingPayment = allRealPayments.find(p => p.mes === mes);
                           if (existingPayment) {
+                            console.log(`[DEBUG PAGOS] ${player.nombre} - Mes ${mes}: Pago REAL encontrado con estado ${existingPayment.estado}`);
                             return existingPayment;
                           }
                           // Crear un pago virtual pendiente con cantidad correcta
@@ -887,6 +890,7 @@ Email: cdbustarviejo@gmail.com
                             ? cuotas.total 
                             : getImportePorMes(player.deporte, mes);
                           
+                          console.log(`[DEBUG PAGOS] ${player.nombre} - Mes ${mes}: Creando pago VIRTUAL`);
                           return {
                             id: `virtual-${player.id}-${mes}`,
                             jugador_id: player.id,
