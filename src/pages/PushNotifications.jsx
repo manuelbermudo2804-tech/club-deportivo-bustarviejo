@@ -252,18 +252,31 @@ export default function PushNotifications() {
       )}
 
       {/* Información */}
-      <Card className="border-none shadow-md bg-slate-50">
+      <Card className="border-none shadow-md bg-green-50 border-2 border-green-200">
         <CardContent className="p-4">
-          <h3 className="font-bold text-slate-900 mb-2 flex items-center gap-2">
+          <h3 className="font-bold text-green-900 mb-2 flex items-center gap-2">
             <CheckCircle2 className="w-4 h-4 text-green-600" />
-            Cómo funcionan las notificaciones
+            🚀 Notificaciones Push REALES activadas
           </h3>
-          <ul className="text-sm text-slate-600 space-y-1">
-            <li>• Las notificaciones aparecen en el centro de notificaciones de cada usuario</li>
-            <li>• Los usuarios con notificaciones push activadas las recibirán en su dispositivo</li>
+          <ul className="text-sm text-green-800 space-y-1">
+            <li>• <strong>Las notificaciones llegan al móvil aunque la app esté cerrada</strong></li>
+            <li>• Los usuarios deben activar las notificaciones desde su panel para recibirlas</li>
             <li>• Puedes segmentar por rol (padres, entrenadores) o por categoría deportiva</li>
             <li>• Si incluyes un enlace, al tocar la notificación irán a esa sección</li>
           </ul>
+        </CardContent>
+      </Card>
+
+      {/* Stats de push habilitados */}
+      <Card className="border-none shadow-md">
+        <CardContent className="p-4">
+          <h3 className="font-bold text-slate-900 mb-2">📊 Usuarios con Push activado</h3>
+          <p className="text-sm text-slate-600">
+            <strong className="text-green-600">{users.filter(u => u.push_enabled).length}</strong> de {users.length} usuarios tienen las notificaciones push activadas
+          </p>
+          <p className="text-xs text-slate-500 mt-1">
+            Los usuarios sin push activado solo verán las notificaciones dentro de la app
+          </p>
         </CardContent>
       </Card>
     </div>
