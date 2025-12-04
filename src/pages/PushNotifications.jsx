@@ -48,7 +48,7 @@ export default function PushNotifications() {
     initialData: [],
   });
 
-  // Enviar notificación
+  // Enviar notificación con PUSH REAL
   const sendNotificationMutation = useMutation({
     mutationFn: async (data) => {
       // Calcular destinatarios
@@ -57,27 +57,21 @@ export default function PushNotifications() {
       const usersList = users || [];
       
       if (data.tipo_destinatario === "todos") {
-        // Todos los usuarios
         destinatarios = usersList.map(u => u.email);
-        // Añadir padres de jugadores
         playersList.forEach(p => {
           if (p.email_padre) destinatarios.push(p.email_padre);
           if (p.email_tutor_2) destinatarios.push(p.email_tutor_2);
         });
       } else if (data.tipo_destinatario === "padres") {
-        // Solo padres/familias (usuarios que no son admin ni entrenadores)
         playersList.forEach(p => {
           if (p.email_padre) destinatarios.push(p.email_padre);
           if (p.email_tutor_2) destinatarios.push(p.email_tutor_2);
         });
       } else if (data.tipo_destinatario === "entrenadores") {
-        // Solo entrenadores
         destinatarios = usersList.filter(u => u.es_entrenador === true).map(u => u.email);
       } else if (data.tipo_destinatario === "administradores") {
-        // Solo admins
         destinatarios = usersList.filter(u => u.role === "admin").map(u => u.email);
       } else if (data.tipo_destinatario === "categoria") {
-        // Por categoría específica
         playersList
           .filter(p => p.deporte === data.categoria_destino)
           .forEach(p => {
@@ -86,14 +80,31 @@ export default function PushNotifications() {
           });
       }
 
-      // Eliminar duplicados
       destinatarios = [...new Set(destinatarios)].filter(Boolean);
 
       if (destinatarios.length === 0) {
         throw new Error("No hay destinatarios para esta notificación");
       }
 
-      // Guardar la notificación
+      // 1. Enviar PUSH REAL a través del backend
+      try {
+        const pushResult = await base44.functions.invoke('sendWebPush', {
+          title: `${data.icono} ${data.titulo}`,
+          body: data.mensaje,
+          recipientEmails: destinatarios,
+          url: data.enlace_destino || null,
+          data: {
+            tipo: data.tipo_destinatario,
+            prioridad: data.prioridad
+          }
+        });
+        console.log('✅ Push enviado:', pushResult.data);
+      } catch (pushError) {
+        console.error('Error enviando push:', pushError);
+        // Continuar aunque falle el push - al menos guardamos la notificación in-app
+      }
+
+      // 2. Guardar notificación en BD
       const notification = await base44.entities.PushNotification.create({
         ...data,
         enviada: true,
@@ -102,7 +113,7 @@ export default function PushNotifications() {
         enviado_por: user?.email
       });
 
-      // Crear notificaciones individuales en AppNotification para cada destinatario
+      // 3. Crear notificaciones in-app para cada destinatario
       const notificacionesIndividuales = destinatarios.map(email => ({
         usuario_email: email,
         titulo: `${data.icono} ${data.titulo}`,
@@ -113,7 +124,6 @@ export default function PushNotifications() {
         vista: false
       }));
 
-      // Crear en lotes de 10
       for (let i = 0; i < notificacionesIndividuales.length; i += 10) {
         const batch = notificacionesIndividuales.slice(i, i + 10);
         await base44.entities.AppNotification.bulkCreate(batch);
@@ -125,7 +135,7 @@ export default function PushNotifications() {
       queryClient.invalidateQueries({ queryKey: ['pushNotifications'] });
       queryClient.invalidateQueries({ queryKey: ['appNotifications'] });
       setShowForm(false);
-      toast.success(`✅ Notificación enviada a ${result.destinatarios_count} usuarios`);
+      toast.success(`✅ Notificación PUSH enviada a ${result.destinatarios_count} usuarios`);
     },
     onError: (error) => {
       toast.error(error.message || "Error al enviar la notificación");
