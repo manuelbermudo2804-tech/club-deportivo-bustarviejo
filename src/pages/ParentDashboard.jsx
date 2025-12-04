@@ -701,7 +701,7 @@ export default function ParentDashboard() {
         </Link>
 
         {/* BANNER FÚTBOL FEMENINO - COMPARTIR POR WHATSAPP */}
-        {activeSeason?.bonus_femenino_activo && myPlayers.length > 0 && (
+        {activeSeason?.bonus_femenino_activo && myPlayers && myPlayers.length > 0 && (
           <FemeninoShareBanner />
         )}
 
