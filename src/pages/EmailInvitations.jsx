@@ -15,6 +15,7 @@ import { toast } from "sonner";
 const CLUB_LOGO_URL = "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6911b8e453ca3ac01fb134d6/e3f0a8e26_logo_cd_bustarviejo_mediano.jpg";
 const DEFAULT_APP_URL = "https://club-gestion-bustarviejo-1fb134d6.base44.app";
 const VALIDATION_URL = "https://club-gestion-bustarviejo-1fb134d6.base44.app/ValidateAdminInvitation";
+const TRACKING_BASE_URL = "https://club-gestion-bustarviejo-1fb134d6.base44.app/api/emailTracking";
 
 // Genera un token UUID único
 const generateToken = () => {
@@ -133,8 +134,9 @@ export default function EmailInvitations() {
         const token = generateToken();
         const expirationDate = new Date();
         expirationDate.setDate(expirationDate.getDate() + 30);
+        const mensajeExtra = `Invitación solicitada por ${request.solicitado_por_nombre}`;
 
-        // Crear registro de invitación con token
+        // Crear registro en AdminInvitation con token
         await base44.entities.AdminInvitation.create({
           token: token,
           email_destino: email,
@@ -144,12 +146,12 @@ export default function EmailInvitations() {
           fecha_expiracion: expirationDate.toISOString(),
           enviado_por_email: user.email,
           enviado_por_nombre: user.full_name,
-          mensaje_personalizado: `Invitación solicitada por ${request.solicitado_por_nombre}`,
+          mensaje_personalizado: mensajeExtra,
           abierta: false,
           clicada: false
         });
 
-        // Crear registro en EmailInvitation para historial
+        // Crear registro para historial
         await base44.entities.EmailInvitation.create({
           email_destinatario: email,
           nombre_destinatario: request.nombre_jugador,
@@ -158,7 +160,7 @@ export default function EmailInvitations() {
           enviado_por: user.email,
           enviado_por_nombre: user.full_name,
           solicitud_id: request.id,
-          mensaje_personalizado: `Invitación solicitada por ${request.solicitado_por_nombre}`,
+          mensaje_personalizado: mensajeExtra,
           abierta: false,
           clicada: false
         });
@@ -168,7 +170,7 @@ export default function EmailInvitations() {
           from_name: "CD Bustarviejo",
           to: email,
           subject: asunto,
-          body: generateEmailBody(email, token)
+          body: generateEmailBody(email, token, mensajeExtra)
         });
 
         // Marcar solicitud como enviada
@@ -297,8 +299,7 @@ export default function EmailInvitations() {
     setEmails([]);
   };
 
-  const generateEmailBody = (destinatarioEmail, token) => {
-    // URL de validación con token seguro
+  const generateEmailBody = (destinatarioEmail, token, mensajeExtra = "") => {
     const validationUrl = `${VALIDATION_URL}?token=${token}`;
     
     return `<!DOCTYPE html>
@@ -361,12 +362,12 @@ El <strong style="color:#ea580c;">CD Bustarviejo</strong> te invita a usar la ap
 </tr>
 </table>
 
-${mensajePersonalizado ? `
+${mensajeExtra ? `
 <!-- Mensaje personalizado -->
 <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin-bottom:25px;">
 <tr>
 <td bgcolor="#f0fdf4" style="padding:15px;border-left:4px solid #22c55e;border-radius:0 8px 8px 0;">
-<p style="color:#166534;font-size:14px;margin:0;">💬 ${mensajePersonalizado}</p>
+<p style="color:#166534;font-size:14px;margin:0;">💬 ${mensajeExtra}</p>
 </td>
 </tr>
 </table>
@@ -376,18 +377,18 @@ ${mensajePersonalizado ? `
 <table role="presentation" cellspacing="0" cellpadding="0" border="0" align="center" style="margin:0 auto 20px auto;">
 <tr>
 <td bgcolor="#ea580c" style="border-radius:8px;">
-<a href="${validationUrl}" target="_blank" style="display:inline-block;color:#ffffff;text-decoration:none;padding:14px 35px;font-weight:bold;font-size:16px;font-family:Arial,Helvetica,sans-serif;">VALIDAR Y ACCEDER →</a>
+<a href="${validationUrl}" target="_blank" style="display:inline-block;color:#ffffff;text-decoration:none;padding:14px 35px;font-weight:bold;font-size:16px;font-family:Arial,Helvetica,sans-serif;">VALIDAR INVITACIÓN →</a>
 </td>
 </tr>
 </table>
 
-<p style="color:#94a3b8;font-size:12px;text-align:center;margin:0 0 15px 0;">Este enlace es válido durante 30 días</p>
+<p style="color:#94a3b8;font-size:12px;text-align:center;margin:0 0 15px 0;">Haz clic en el botón para validar tu invitación y acceder a la app</p>
 
 <!-- Nota de seguridad -->
 <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin-top:20px;">
 <tr>
 <td bgcolor="#f1f5f9" style="padding:12px;border-radius:8px;text-align:center;">
-<p style="color:#64748b;font-size:11px;margin:0;">🔒 Este es un enlace único y personal. No lo compartas con nadie.</p>
+<p style="color:#64748b;font-size:11px;margin:0;">🔒 Este enlace es único y personal. No lo compartas con nadie. Válido durante 30 días.</p>
 </td>
 </tr>
 </table>
@@ -423,8 +424,27 @@ ${mensajePersonalizado ? `
 
     for (const email of emails) {
       try {
-        // Primero creamos el registro para obtener el ID para tracking
-        const invitationRecord = await base44.entities.EmailInvitation.create({
+        // Generar token único para esta invitación
+        const token = generateToken();
+        const expirationDate = new Date();
+        expirationDate.setDate(expirationDate.getDate() + 30);
+
+        // Crear registro en AdminInvitation con token
+        await base44.entities.AdminInvitation.create({
+          token: token,
+          email_destino: email,
+          estado: "pendiente",
+          fecha_envio: new Date().toISOString(),
+          fecha_expiracion: expirationDate.toISOString(),
+          enviado_por_email: user.email,
+          enviado_por_nombre: user.full_name,
+          mensaje_personalizado: mensajePersonalizado || null,
+          abierta: false,
+          clicada: false
+        });
+
+        // También guardar en EmailInvitation para el historial
+        await base44.entities.EmailInvitation.create({
           email_destinatario: email,
           asunto: asunto,
           estado: "enviada",
@@ -435,12 +455,12 @@ ${mensajePersonalizado ? `
           clicada: false
         });
 
-        // Enviamos el email con el ID para tracking
+        // Enviamos el email con el token
         await base44.integrations.Core.SendEmail({
           from_name: "CD Bustarviejo",
           to: email,
           subject: asunto,
-          body: generateEmailBody(email, appUrl, invitationRecord.id)
+          body: generateEmailBody(email, token, mensajePersonalizado)
         });
         
         sent++;
@@ -795,7 +815,7 @@ ${mensajePersonalizado ? `
           <CardContent className="p-0">
             <div className="border rounded-b-lg overflow-hidden">
               <iframe
-                srcDoc={generateEmailBody("usuario@ejemplo.com", appUrl)}
+                srcDoc={generateEmailBody("usuario@ejemplo.com", "preview-token-xxx", mensajePersonalizado)}
                 className="w-full h-[600px] border-0"
                 title="Preview"
               />
