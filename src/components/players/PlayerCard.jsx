@@ -45,7 +45,7 @@ const DIAS_ORDEN = {
   "Viernes": 5
 };
 
-export default function PlayerCard({ player, onEdit, onViewProfile, isParent = false, readOnly = false, schedules = [], isCoachOrCoordinator = false, payments = [] }) {
+export default function PlayerCard({ player, onEdit, onViewProfile, isParent = false, readOnly = false, schedules = [], isCoachOrCoordinator = false, payments = [], seasonConfig = null }) {
   const [showDetail, setShowDetail] = useState(false);
   
   // Filtrar horarios del jugador según su categoría/deporte
