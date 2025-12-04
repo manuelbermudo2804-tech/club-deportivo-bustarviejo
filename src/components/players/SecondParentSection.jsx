@@ -1,187 +1,415 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useEffect } from "react";
+import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { Users, AlertCircle, ChevronDown, ChevronUp, CheckCircle2, Mail } from "lucide-react";
+import { Users, AlertCircle, ChevronDown, ChevronUp, Mail, CheckCircle2, Clock, Send, Loader2 } from "lucide-react";
+import { toast } from "sonner";
+
+const CLUB_LOGO_URL = "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6911b8e453ca3ac01fb134d6/e3f0a8e26_logo_cd_bustarviejo_mediano.jpg";
+const APP_URL = "https://club-gestion-bustarviejo-1fb134d6.base44.app";
+
+// Generar UUID v4
+const generateUUID = () => {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+    const r = Math.random() * 16 | 0;
+    const v = c === 'x' ? r : (r & 0x3 | 0x8);
+    return v.toString(16);
+  });
+};
 
 export default function SecondParentSection({ 
   currentPlayer, 
   setCurrentPlayer, 
-  existingFamilyPlayers = [],
-  isEditing = false 
+  existingFamilyPlayers,
+  isEditing 
 }) {
-  const [isExpanded, setIsExpanded] = useState(false);
+  const [isOpen, setIsOpen] = useState(false);
+  const [currentUser, setCurrentUser] = useState(null);
+  const [existingSecondParent, setExistingSecondParent] = useState(null);
+  const [pendingInvitation, setPendingInvitation] = useState(null);
+  const [isSendingInvitation, setIsSendingInvitation] = useState(false);
 
-  // Detectar si ya hay un segundo progenitor registrado en otro jugador de la familia
-  const existingSecondParent = useMemo(() => {
-    if (!existingFamilyPlayers.length) return null;
-    
-    // Buscar el primer jugador que tenga email_tutor_2 registrado
-    const playerWithTutor2 = existingFamilyPlayers.find(p => 
-      p.email_tutor_2 && p.email_tutor_2.trim() !== ""
-    );
-    
-    if (playerWithTutor2) {
-      return {
-        nombre: playerWithTutor2.nombre_tutor_2 || "",
-        email: playerWithTutor2.email_tutor_2,
-        telefono: playerWithTutor2.telefono_tutor_2 || ""
-      };
+  useEffect(() => {
+    base44.auth.me().then(setCurrentUser).catch(console.error);
+  }, []);
+
+  // Buscar si ya existe un segundo progenitor registrado en otros hijos
+  useEffect(() => {
+    if (existingFamilyPlayers.length > 0 && currentUser) {
+      const playerWithSecondParent = existingFamilyPlayers.find(p => 
+        p.email_tutor_2 && 
+        p.email_tutor_2 !== currentUser.email &&
+        p.nombre_tutor_2
+      );
+      
+      if (playerWithSecondParent) {
+        setExistingSecondParent({
+          nombre: playerWithSecondParent.nombre_tutor_2,
+          email: playerWithSecondParent.email_tutor_2,
+          telefono: playerWithSecondParent.telefono_tutor_2
+        });
+      }
     }
-    return null;
-  }, [existingFamilyPlayers]);
+  }, [existingFamilyPlayers, currentUser]);
 
-  // Si ya hay segundo progenitor y no estamos editando, mostrar versión colapsada
-  const hasExistingSecondParent = existingSecondParent !== null;
-  
-  // Detectar si el usuario está introduciendo un segundo progenitor DIFERENTE al existente
-  const isDifferentSecondParent = useMemo(() => {
-    if (!hasExistingSecondParent) return false;
-    if (!currentPlayer.email_tutor_2) return false;
-    return currentPlayer.email_tutor_2.toLowerCase() !== existingSecondParent.email.toLowerCase();
-  }, [hasExistingSecondParent, existingSecondParent, currentPlayer.email_tutor_2]);
+  // Buscar invitaciones pendientes para este jugador
+  useEffect(() => {
+    if (currentPlayer.id && currentPlayer.email_tutor_2) {
+      checkPendingInvitation();
+    }
+  }, [currentPlayer.id, currentPlayer.email_tutor_2]);
 
-  // Si ya hay segundo progenitor registrado y no está expandido
-  if (hasExistingSecondParent && !isExpanded && !isEditing) {
-    return (
-      <div className="space-y-4 border-t border-slate-200 pt-6">
-        <div className="flex items-center gap-2">
-          <Users className="w-5 h-5 text-slate-600" />
-          <h3 className="text-lg font-semibold text-slate-900">Segundo Progenitor/Tutor</h3>
-        </div>
-        
-        {/* Alerta informativa - ya existe segundo progenitor */}
-        <Alert className="bg-green-50 border-green-200">
-          <CheckCircle2 className="h-4 w-4 text-green-600" />
-          <AlertDescription className="text-green-800 text-sm">
-            <strong>✅ Ya tienes registrado un segundo progenitor:</strong>
-            <div className="mt-2 p-3 bg-white rounded-lg border border-green-200">
-              <p className="font-medium text-green-900">{existingSecondParent.nombre || "Sin nombre"}</p>
-              <p className="text-sm text-green-700">{existingSecondParent.email}</p>
-              {existingSecondParent.telefono && (
-                <p className="text-sm text-green-600">📱 {existingSecondParent.telefono}</p>
-              )}
-            </div>
-            <p className="mt-2 text-xs">
-              Este progenitor <strong>ya puede acceder a la app</strong> y verá automáticamente a todos los hijos registrados con su email.
-            </p>
-          </AlertDescription>
-        </Alert>
+  const checkPendingInvitation = async () => {
+    try {
+      const invitations = await base44.entities.SecondParentInvitation.filter({
+        jugador_id: currentPlayer.id,
+        estado: "pendiente"
+      });
+      if (invitations.length > 0) {
+        setPendingInvitation(invitations[0]);
+      }
+    } catch (err) {
+      console.error("Error checking invitations:", err);
+    }
+  };
 
-        <Collapsible open={isExpanded} onOpenChange={setIsExpanded}>
-          <CollapsibleTrigger asChild>
-            <Button variant="outline" className="w-full justify-between text-slate-600">
-              <span>¿El segundo progenitor es diferente para este jugador?</span>
-              <ChevronDown className="w-4 h-4" />
-            </Button>
-          </CollapsibleTrigger>
-        </Collapsible>
-      </div>
-    );
-  }
+  // Usar datos del segundo progenitor existente
+  const useExistingSecondParent = () => {
+    if (existingSecondParent) {
+      setCurrentPlayer({
+        ...currentPlayer,
+        nombre_tutor_2: existingSecondParent.nombre,
+        email_tutor_2: existingSecondParent.email,
+        telefono_tutor_2: existingSecondParent.telefono || ""
+      });
+      toast.success("Datos del segundo progenitor cargados");
+    }
+  };
+
+  // Enviar invitación al segundo progenitor
+  const sendInvitation = async () => {
+    if (!currentPlayer.email_tutor_2?.trim()) {
+      toast.error("Introduce el email del segundo progenitor");
+      return;
+    }
+
+    if (!currentPlayer.id) {
+      toast.info("La invitación se enviará automáticamente al guardar el jugador");
+      return;
+    }
+
+    setIsSendingInvitation(true);
+
+    try {
+      const token = generateUUID();
+      const expirationDate = new Date();
+      expirationDate.setDate(expirationDate.getDate() + 30); // 30 días de validez
+
+      // Crear registro de invitación
+      const invitation = await base44.entities.SecondParentInvitation.create({
+        token: token,
+        email_destino: currentPlayer.email_tutor_2.trim().toLowerCase(),
+        nombre_destino: currentPlayer.nombre_tutor_2 || "",
+        jugador_id: currentPlayer.id,
+        jugador_nombre: currentPlayer.nombre,
+        invitado_por_email: currentUser?.email,
+        invitado_por_nombre: currentUser?.full_name,
+        estado: "pendiente",
+        fecha_envio: new Date().toISOString(),
+        fecha_expiracion: expirationDate.toISOString()
+      });
+
+      // Enviar email con el diseño del club
+      const validationUrl = `${APP_URL}/ValidateSecondParent?token=${token}`;
+      
+      await base44.integrations.Core.SendEmail({
+        from_name: "CD Bustarviejo",
+        to: currentPlayer.email_tutor_2,
+        subject: `👋 ${currentUser?.full_name || "Un familiar"} te invita a unirte al CD Bustarviejo`,
+        body: generateInvitationEmail(
+          currentPlayer.nombre_tutor_2 || "Estimado/a",
+          currentUser?.full_name || "Un familiar",
+          currentPlayer.nombre,
+          validationUrl
+        )
+      });
+
+      setPendingInvitation(invitation);
+      toast.success("✅ Invitación enviada correctamente");
+    } catch (err) {
+      console.error("Error sending invitation:", err);
+      toast.error("Error al enviar la invitación");
+    } finally {
+      setIsSendingInvitation(false);
+    }
+  };
+
+  const generateInvitationEmail = (nombreDestino, nombreInvitador, nombreJugador, validationUrl) => {
+    return `<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
+<body style="margin:0;padding:20px;font-family:Arial,Helvetica,sans-serif;background-color:#f1f5f9;">
+<table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="max-width:600px;margin:0 auto;background-color:#ffffff;border-radius:12px;overflow:hidden;border:1px solid #e2e8f0;">
+
+<!-- Header naranja -->
+<tr>
+<td bgcolor="#ea580c" style="padding:30px;text-align:center;">
+<img src="${CLUB_LOGO_URL}" alt="CD Bustarviejo" width="80" height="80" style="width:80px;height:80px;border-radius:12px;border:3px solid #ffffff;display:block;margin:0 auto;">
+<h1 style="color:#ffffff;margin:15px 0 5px 0;font-size:26px;font-family:Arial,Helvetica,sans-serif;">CD BUSTARVIEJO</h1>
+<p style="color:#fed7aa;margin:0;font-size:14px;">Club Deportivo</p>
+</td>
+</tr>
+
+<!-- Contenido -->
+<tr>
+<td bgcolor="#ffffff" style="padding:30px;">
+<h2 style="color:#1e293b;margin:0 0 15px 0;font-size:22px;text-align:center;font-family:Arial,Helvetica,sans-serif;">👋 ¡Te han invitado!</h2>
+
+<p style="color:#475569;font-size:15px;line-height:1.6;margin:0 0 20px 0;">
+Hola <strong>${nombreDestino}</strong>,
+</p>
+
+<p style="color:#475569;font-size:15px;line-height:1.6;margin:0 0 20px 0;">
+<strong style="color:#ea580c;">${nombreInvitador}</strong> te ha invitado a unirte a la aplicación del CD Bustarviejo como <strong>segundo progenitor</strong> de <strong>${nombreJugador}</strong>.
+</p>
+
+<!-- Info box -->
+<table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin-bottom:25px;">
+<tr>
+<td bgcolor="#f0fdf4" style="padding:15px;border-left:4px solid #22c55e;border-radius:0 8px 8px 0;">
+<p style="color:#166534;font-size:14px;margin:0;"><strong>✅ ¿Qué podrás hacer?</strong></p>
+<ul style="color:#166534;font-size:13px;margin:10px 0 0 0;padding-left:20px;">
+<li>Ver las convocatorias de partidos y confirmar asistencia</li>
+<li>Consultar pagos pendientes y realizados</li>
+<li>Chatear con los entrenadores del equipo</li>
+<li>Ver calendario de entrenamientos y eventos</li>
+<li>Acceder a la galería de fotos y documentos</li>
+</ul>
+</td>
+</tr>
+</table>
+
+<p style="color:#475569;font-size:15px;line-height:1.6;margin:0 0 25px 0;text-align:center;">
+Para completar tu registro, haz clic en el botón:
+</p>
+
+<!-- Boton -->
+<table role="presentation" cellspacing="0" cellpadding="0" border="0" align="center" style="margin:0 auto 25px auto;">
+<tr>
+<td bgcolor="#ea580c" style="border-radius:8px;">
+<a href="${validationUrl}" target="_blank" style="display:inline-block;color:#ffffff;text-decoration:none;padding:14px 35px;font-weight:bold;font-size:16px;font-family:Arial,Helvetica,sans-serif;">COMPLETAR REGISTRO →</a>
+</td>
+</tr>
+</table>
+
+<!-- Warning -->
+<table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin-bottom:20px;">
+<tr>
+<td bgcolor="#fef3c7" style="padding:15px;border-left:4px solid #f59e0b;border-radius:0 8px 8px 0;">
+<p style="color:#92400e;font-size:13px;margin:0;">⏰ <strong>Este enlace es válido durante 30 días.</strong> Solo necesitas completar unos datos básicos para activar tu acceso.</p>
+</td>
+</tr>
+</table>
+
+<p style="color:#94a3b8;font-size:12px;text-align:center;margin:0;">Si no esperabas este email, puedes ignorarlo.</p>
+</td>
+</tr>
+
+<!-- Footer -->
+<tr>
+<td bgcolor="#1e293b" style="padding:20px;text-align:center;">
+<p style="color:#94a3b8;font-size:13px;margin:0 0 5px 0;">⚽ 🏀</p>
+<p style="color:#64748b;font-size:12px;margin:0;">cdbustarviejo@gmail.com</p>
+</td>
+</tr>
+
+</table>
+</body>
+</html>`;
+  };
+
+  // Si ya hay segundo progenitor con datos completos, mostrar solo resumen
+  const hasCompleteSecondParent = currentPlayer.nombre_tutor_2 && 
+                                   currentPlayer.email_tutor_2 && 
+                                   currentPlayer.telefono_tutor_2;
 
   return (
     <div className="space-y-4 border-t border-slate-200 pt-6">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <Users className="w-5 h-5 text-slate-600" />
-          <h3 className="text-lg font-semibold text-slate-900">Segundo Progenitor/Tutor (Opcional)</h3>
-        </div>
-        {hasExistingSecondParent && isExpanded && (
-          <Button 
-            variant="ghost" 
-            size="sm"
-            onClick={() => setIsExpanded(false)}
-            className="text-slate-500"
+      <Collapsible open={isOpen} onOpenChange={setIsOpen}>
+        <CollapsibleTrigger asChild>
+          <button
+            type="button"
+            className="w-full flex items-center justify-between p-4 bg-slate-50 hover:bg-slate-100 rounded-lg transition-colors"
           >
-            <ChevronUp className="w-4 h-4 mr-1" />
-            Cerrar
-          </Button>
-        )}
-      </div>
+            <div className="flex items-center gap-2">
+              <Users className="w-5 h-5 text-slate-600" />
+              <span className="text-lg font-semibold text-slate-900">
+                Segundo Progenitor/Tutor (Opcional)
+              </span>
+              {hasCompleteSecondParent && (
+                <Badge className="bg-green-100 text-green-800 text-xs ml-2">
+                  <CheckCircle2 className="w-3 h-3 mr-1" />
+                  Registrado
+                </Badge>
+              )}
+              {pendingInvitation && (
+                <Badge className="bg-yellow-100 text-yellow-800 text-xs ml-2">
+                  <Clock className="w-3 h-3 mr-1" />
+                  Invitación pendiente
+                </Badge>
+              )}
+            </div>
+            {isOpen ? <ChevronUp className="w-5 h-5 text-slate-500" /> : <ChevronDown className="w-5 h-5 text-slate-500" />}
+          </button>
+        </CollapsibleTrigger>
 
-      {/* Alerta sobre invitación automática */}
-      <Alert className="bg-blue-50 border-blue-200">
-        <Mail className="h-4 w-4 text-blue-600" />
-        <AlertDescription className="text-blue-800 text-sm">
-          <strong>📧 Invitación automática:</strong> Al añadir el email del segundo progenitor, <strong>recibirá una invitación por email</strong> con un enlace único para completar su registro y acceder a la app.
-        </AlertDescription>
-      </Alert>
+        <CollapsibleContent>
+          <div className="pt-4 space-y-4">
+            {/* Alerta informativa */}
+            <Alert className="bg-green-50 border-green-200">
+              <AlertCircle className="h-4 w-4 text-green-600" />
+              <AlertDescription className="text-green-800 text-sm">
+                <strong>👥 Acceso compartido:</strong> Si añades el email del segundo progenitor, recibirá una invitación para completar su registro y acceder a la app con su propia cuenta.
+              </AlertDescription>
+            </Alert>
 
-      <Alert className="bg-green-50 border-green-200">
-        <AlertCircle className="h-4 w-4 text-green-600" />
-        <AlertDescription className="text-green-800 text-sm">
-          <strong>👥 Acceso compartido:</strong> Una vez registrado, el segundo progenitor verá <strong>exactamente la misma información</strong> del jugador: pagos, convocatorias, documentos, chat del equipo, etc.
-        </AlertDescription>
-      </Alert>
+            {/* Si ya existe segundo progenitor en otros hijos */}
+            {existingSecondParent && !hasCompleteSecondParent && (
+              <Alert className="bg-blue-50 border-blue-200">
+                <AlertCircle className="h-4 w-4 text-blue-600" />
+                <AlertDescription className="text-blue-800 text-sm">
+                  <strong>💡 Segundo progenitor detectado:</strong> Ya tienes registrado a <strong>{existingSecondParent.nombre}</strong> ({existingSecondParent.email}) como segundo progenitor en otros hijos.
+                  <Button 
+                    type="button" 
+                    variant="link" 
+                    className="text-blue-700 p-0 h-auto font-bold ml-2"
+                    onClick={useExistingSecondParent}
+                  >
+                    Usar estos datos →
+                  </Button>
+                </AlertDescription>
+              </Alert>
+            )}
 
-      {hasExistingSecondParent && (
-        <Alert className="bg-amber-50 border-amber-200">
-          <AlertCircle className="h-4 w-4 text-amber-600" />
-          <AlertDescription className="text-amber-800 text-sm">
-            <strong>⚠️ Atención:</strong> Ya tienes registrado a <strong>{existingSecondParent.nombre || existingSecondParent.email}</strong> como segundo progenitor en otro jugador. Solo rellena estos campos si el segundo progenitor de este jugador es <strong>diferente</strong> (ej: hijos de padres/madres diferentes).
-          </AlertDescription>
-        </Alert>
-      )}
+            {/* Nota sobre cuota de socio */}
+            <Alert className="bg-amber-50 border-amber-200">
+              <AlertCircle className="h-4 w-4 text-amber-600" />
+              <AlertDescription className="text-amber-800 text-sm">
+                Si el segundo progenitor quiere ser socio del club, debe rellenar el formulario de <strong>"Hacerse Socio"</strong> desde su propia cuenta con una cuota de 25€.
+              </AlertDescription>
+            </Alert>
 
-      {isDifferentSecondParent && (
-        <Alert className="bg-purple-50 border-purple-200">
-          <AlertCircle className="h-4 w-4 text-purple-600" />
-          <AlertDescription className="text-purple-800 text-sm">
-            <strong>📝 Nuevo segundo progenitor:</strong> El email que has introducido es diferente al registrado anteriormente. Se enviará una invitación a <strong>{currentPlayer.email_tutor_2}</strong>.
-          </AlertDescription>
-        </Alert>
-      )}
+            {/* Campos del formulario */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-2 md:col-span-2">
+                <Label htmlFor="nombre_tutor_2">Nombre y Apellidos</Label>
+                <Input 
+                  id="nombre_tutor_2" 
+                  name="tutor2-name"
+                  autoComplete="name"
+                  value={currentPlayer.nombre_tutor_2 || ""} 
+                  onChange={(e) => setCurrentPlayer({...currentPlayer, nombre_tutor_2: e.target.value})}
+                  placeholder="Ej: Pedro García López" 
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="email_tutor_2">Correo Electrónico</Label>
+                <div className="flex gap-2">
+                  <Input 
+                    id="email_tutor_2" 
+                    name="tutor2-email"
+                    type="email" 
+                    autoComplete="email"
+                    value={currentPlayer.email_tutor_2 || ""} 
+                    onChange={(e) => setCurrentPlayer({...currentPlayer, email_tutor_2: e.target.value})}
+                    placeholder="padre@ejemplo.com"
+                    className="flex-1"
+                  />
+                </div>
+                <p className="text-xs text-slate-500">
+                  Se enviará una invitación automática a este email
+                </p>
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="telefono_tutor_2">Teléfono</Label>
+                <Input 
+                  id="telefono_tutor_2" 
+                  name="tutor2-tel"
+                  type="tel" 
+                  autoComplete="tel"
+                  value={currentPlayer.telefono_tutor_2 || ""} 
+                  onChange={(e) => setCurrentPlayer({...currentPlayer, telefono_tutor_2: e.target.value})}
+                  placeholder="600654321" 
+                />
+              </div>
+            </div>
 
-      <Alert className="bg-slate-50 border-slate-200">
-        <AlertCircle className="h-4 w-4 text-slate-600" />
-        <AlertDescription className="text-slate-700 text-sm">
-          Si el segundo progenitor quiere ser <strong>socio del club</strong>, debe rellenar el formulario de <strong>"Hacerse Socio"</strong> desde su propia cuenta con una cuota de 25€.
-        </AlertDescription>
-      </Alert>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="space-y-2 md:col-span-2">
-          <Label htmlFor="nombre_tutor_2">Nombre y Apellidos</Label>
-          <Input 
-            id="nombre_tutor_2" 
-            name="tutor2-name"
-            autoComplete="name"
-            value={currentPlayer.nombre_tutor_2 || ""} 
-            onChange={(e) => setCurrentPlayer({...currentPlayer, nombre_tutor_2: e.target.value})}
-            placeholder="Ej: Pedro García López" 
-          />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="email_tutor_2">Correo Electrónico *</Label>
-          <Input 
-            id="email_tutor_2" 
-            name="tutor2-email"
-            type="email" 
-            autoComplete="email"
-            value={currentPlayer.email_tutor_2 || ""} 
-            onChange={(e) => setCurrentPlayer({...currentPlayer, email_tutor_2: e.target.value})}
-            placeholder="padre@ejemplo.com" 
-          />
-          <p className="text-xs text-slate-500">
-            Se enviará una invitación a este email
-          </p>
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="telefono_tutor_2">Teléfono (opcional)</Label>
-          <Input 
-            id="telefono_tutor_2" 
-            name="tutor2-tel"
-            type="tel" 
-            autoComplete="tel"
-            value={currentPlayer.telefono_tutor_2 || ""} 
-            onChange={(e) => setCurrentPlayer({...currentPlayer, telefono_tutor_2: e.target.value})}
-            placeholder="600654321" 
-          />
-        </div>
-      </div>
+            {/* Estado de invitación */}
+            {isEditing && currentPlayer.email_tutor_2 && (
+              <div className="bg-slate-50 rounded-lg p-4">
+                {pendingInvitation ? (
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2 text-yellow-700">
+                      <Clock className="w-5 h-5" />
+                      <span className="text-sm font-medium">
+                        Invitación enviada el {new Date(pendingInvitation.fecha_envio).toLocaleDateString('es-ES')} - Pendiente de validación
+                      </span>
+                    </div>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={sendInvitation}
+                      disabled={isSendingInvitation}
+                      className="text-orange-600 border-orange-300"
+                    >
+                      {isSendingInvitation ? (
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                      ) : (
+                        <>
+                          <Send className="w-4 h-4 mr-1" />
+                          Reenviar
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2 text-slate-600">
+                      <Mail className="w-5 h-5" />
+                      <span className="text-sm">
+                        {hasCompleteSecondParent 
+                          ? "El segundo progenitor ya está registrado"
+                          : "Envía una invitación para que complete su registro"}
+                      </span>
+                    </div>
+                    {!hasCompleteSecondParent && (
+                      <Button
+                        type="button"
+                        onClick={sendInvitation}
+                        disabled={isSendingInvitation || !currentPlayer.email_tutor_2}
+                        className="bg-orange-600 hover:bg-orange-700"
+                      >
+                        {isSendingInvitation ? (
+                          <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Enviando...</>
+                        ) : (
+                          <><Send className="w-4 h-4 mr-2" />Enviar Invitación</>
+                        )}
+                      </Button>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        </CollapsibleContent>
+      </Collapsible>
     </div>
   );
 }
