@@ -640,25 +640,6 @@ ${mensajePersonalizado ? `
       <div className="grid lg:grid-cols-2 gap-6">
         {/* Formulario */}
         <div className="space-y-4">
-          {/* Enlace de la App */}
-          <Card className="border-none shadow-md border-2 border-orange-200">
-            <CardHeader className="pb-3 bg-orange-50">
-              <CardTitle className="text-base flex items-center gap-2">
-                🔗 Enlace de la App
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="pt-4">
-              <Input
-                value={appUrl}
-                onChange={(e) => setAppUrl(e.target.value)}
-                placeholder="https://tu-dominio.com"
-              />
-              <p className="text-xs text-slate-500 mt-2">
-                Este es el enlace que aparecerá en el botón "ACCEDER A LA APP"
-              </p>
-            </CardContent>
-          </Card>
-
           {/* Asunto */}
           <Card className="border-none shadow-md">
             <CardHeader className="pb-3">
