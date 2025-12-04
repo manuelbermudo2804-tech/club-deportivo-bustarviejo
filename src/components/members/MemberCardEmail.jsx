@@ -103,13 +103,27 @@ export function generateMemberCardHTML(member, seasonConfig) {
 
 // Función para enviar el carnet por email
 export async function sendMemberCard(member, seasonConfig, base44) {
+  if (!member.email) {
+    console.error('[MemberCardEmail] No hay email para el socio:', member.nombre_completo);
+    throw new Error('El socio no tiene email');
+  }
+  
+  console.log('[MemberCardEmail] Enviando carnet a:', member.email, 'Socio:', member.nombre_completo);
+  
   const htmlContent = generateMemberCardHTML(member, seasonConfig);
   
-  await base44.integrations.Core.SendEmail({
-    to: member.email,
-    subject: `🎉 ¡Bienvenido/a al CD Bustarviejo! Tu carnet de socio ${member.numero_socio}`,
-    body: htmlContent
-  });
+  try {
+    await base44.integrations.Core.SendEmail({
+      from_name: "CD Bustarviejo",
+      to: member.email,
+      subject: `🎉 ¡Bienvenido/a al CD Bustarviejo! Tu carnet de socio ${member.numero_socio || ''}`,
+      body: htmlContent
+    });
+    console.log('[MemberCardEmail] ✅ Email enviado correctamente a:', member.email);
+  } catch (error) {
+    console.error('[MemberCardEmail] ❌ Error enviando email a:', member.email, error);
+    throw error;
+  }
 }
 
 export default function MemberCardPreview({ member }) {
