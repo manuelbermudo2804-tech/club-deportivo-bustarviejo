@@ -248,34 +248,34 @@ export default function ParentPlayers() {
           // Solo enviar invitación si NO está ya registrado
           if (existingInvitations.length === 0 && !alreadyRegistered) {
             const token = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-            const r = Math.random() * 16 | 0;
-            const v = c === 'x' ? r : (r & 0x3 | 0x8);
-            return v.toString(16);
-          });
-          const expirationDate = new Date();
-          expirationDate.setDate(expirationDate.getDate() + 30);
-          
-          await base44.entities.SecondParentInvitation.create({
-            token: token,
-            email_destino: dataWithParentEmail.email_tutor_2.trim().toLowerCase(),
-            nombre_destino: dataWithParentEmail.nombre_tutor_2 || "",
-            jugador_id: newPlayer.id,
-            jugador_nombre: dataWithParentEmail.nombre,
-            invitado_por_email: user?.email,
-            invitado_por_nombre: user?.full_name,
-            estado: "pendiente",
-            fecha_envio: new Date().toISOString(),
-            fecha_expiracion: expirationDate.toISOString()
-          });
+              const r = Math.random() * 16 | 0;
+              const v = c === 'x' ? r : (r & 0x3 | 0x8);
+              return v.toString(16);
+            });
+            const expirationDate = new Date();
+            expirationDate.setDate(expirationDate.getDate() + 30);
+            
+            await base44.entities.SecondParentInvitation.create({
+              token: token,
+              email_destino: email2,
+              nombre_destino: dataWithParentEmail.nombre_tutor_2 || "",
+              jugador_id: newPlayer.id,
+              jugador_nombre: dataWithParentEmail.nombre,
+              invitado_por_email: user?.email,
+              invitado_por_nombre: user?.full_name,
+              estado: "pendiente",
+              fecha_envio: new Date().toISOString(),
+              fecha_expiracion: expirationDate.toISOString()
+            });
 
-          const CLUB_LOGO_URL = "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6911b8e453ca3ac01fb134d6/e3f0a8e26_logo_cd_bustarviejo_mediano.jpg";
-          const validationUrl = `https://club-gestion-bustarviejo-1fb134d6.base44.app/ValidateSecondParent?token=${token}`;
-          
-          await base44.integrations.Core.SendEmail({
-            from_name: "CD Bustarviejo",
-            to: dataWithParentEmail.email_tutor_2,
-            subject: `👋 ${user?.full_name || "Un familiar"} te invita a unirte al CD Bustarviejo`,
-            body: `<!DOCTYPE html>
+            const CLUB_LOGO_URL = "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6911b8e453ca3ac01fb134d6/e3f0a8e26_logo_cd_bustarviejo_mediano.jpg";
+            const validationUrl = `https://club-gestion-bustarviejo-1fb134d6.base44.app/ValidateSecondParent?token=${token}`;
+            
+            await base44.integrations.Core.SendEmail({
+              from_name: "CD Bustarviejo",
+              to: email2,
+              subject: `👋 ${user?.full_name || "Un familiar"} te invita a unirte al CD Bustarviejo`,
+              body: `<!DOCTYPE html>
 <html><head><meta charset="utf-8"></head>
 <body style="margin:0;padding:20px;font-family:Arial,sans-serif;background-color:#f1f5f9;">
 <table cellspacing="0" cellpadding="0" border="0" width="100%" style="max-width:600px;margin:0 auto;background-color:#ffffff;border-radius:12px;overflow:hidden;">
@@ -297,7 +297,7 @@ export default function ParentPlayers() {
 </td></tr>
 <tr><td bgcolor="#1e293b" style="padding:20px;text-align:center;"><p style="color:#64748b;font-size:12px;margin:0;">cdbustarviejo@gmail.com</p></td></tr>
 </table></body></html>`
-          });
+            });
             console.log('✅ Invitación enviada al segundo progenitor:', email2);
           } else {
             console.log('ℹ️ Segundo progenitor ya registrado, no se envía invitación:', email2);
