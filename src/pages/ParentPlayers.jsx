@@ -274,29 +274,109 @@ export default function ParentPlayers() {
             await base44.integrations.Core.SendEmail({
               from_name: "CD Bustarviejo",
               to: email2,
-              subject: `👋 ${user?.full_name || "Un familiar"} te invita a unirte al CD Bustarviejo`,
+              subject: `👨‍👩‍👧 ${user?.full_name || "Un familiar"} te ha añadido como segundo progenitor - CD Bustarviejo`,
               body: `<!DOCTYPE html>
-<html><head><meta charset="utf-8"></head>
-<body style="margin:0;padding:20px;font-family:Arial,sans-serif;background-color:#f1f5f9;">
-<table cellspacing="0" cellpadding="0" border="0" width="100%" style="max-width:600px;margin:0 auto;background-color:#ffffff;border-radius:12px;overflow:hidden;">
-<tr><td bgcolor="#ea580c" style="padding:30px;text-align:center;">
-<img src="${CLUB_LOGO_URL}" alt="CD Bustarviejo" width="80" height="80" style="width:80px;height:80px;border-radius:12px;border:3px solid #ffffff;">
-<h1 style="color:#ffffff;margin:15px 0 5px 0;font-size:26px;">CD BUSTARVIEJO</h1>
-</td></tr>
-<tr><td style="padding:30px;">
-<h2 style="color:#1e293b;text-align:center;">👋 ¡Te han invitado!</h2>
-<p style="color:#475569;font-size:15px;">Hola <strong>${dataWithParentEmail.nombre_tutor_2 || "Estimado/a"}</strong>,</p>
-<p style="color:#475569;font-size:15px;"><strong style="color:#ea580c;">${user?.full_name || "Un familiar"}</strong> te ha invitado a unirte a la app del club como <strong>segundo progenitor</strong> de <strong>${dataWithParentEmail.nombre}</strong>.</p>
-<table bgcolor="#f0fdf4" style="margin:20px 0;border-left:4px solid #22c55e;border-radius:0 8px 8px 0;"><tr><td style="padding:15px;">
-<p style="color:#166534;font-size:14px;margin:0;"><strong>✅ Podrás ver:</strong> convocatorias, pagos, chat del equipo, calendario y más.</p>
-</td></tr></table>
-<table align="center" style="margin:25px auto;"><tr>
-<td bgcolor="#ea580c" style="border-radius:8px;"><a href="${validationUrl}" style="display:inline-block;color:#ffffff;text-decoration:none;padding:14px 35px;font-weight:bold;">COMPLETAR REGISTRO →</a></td>
-</tr></table>
-<p style="color:#94a3b8;font-size:12px;text-align:center;">Este enlace es válido durante 30 días.</p>
-</td></tr>
-<tr><td bgcolor="#1e293b" style="padding:20px;text-align:center;"><p style="color:#64748b;font-size:12px;margin:0;">cdbustarviejo@gmail.com</p></td></tr>
-</table></body></html>`
+<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
+<body style="margin:0;padding:20px;font-family:Arial,Helvetica,sans-serif;background-color:#f1f5f9;">
+<table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="max-width:600px;margin:0 auto;background-color:#ffffff;border-radius:12px;overflow:hidden;border:1px solid #e2e8f0;">
+
+<!-- Header naranja -->
+<tr>
+<td bgcolor="#ea580c" style="padding:30px;text-align:center;">
+<img src="${CLUB_LOGO_URL}" alt="CD Bustarviejo" width="80" height="80" style="width:80px;height:80px;border-radius:12px;border:3px solid #ffffff;display:block;margin:0 auto;">
+<h1 style="color:#ffffff;margin:15px 0 5px 0;font-size:26px;font-family:Arial,Helvetica,sans-serif;">CD BUSTARVIEJO</h1>
+<p style="color:#fed7aa;margin:0;font-size:14px;">Club Deportivo</p>
+</td>
+</tr>
+
+<!-- Contenido -->
+<tr>
+<td bgcolor="#ffffff" style="padding:30px;">
+<h2 style="color:#1e293b;margin:0 0 15px 0;font-size:22px;text-align:center;font-family:Arial,Helvetica,sans-serif;">👨‍👩‍👧 Invitación de Segundo Progenitor</h2>
+
+<p style="color:#475569;font-size:15px;line-height:1.6;margin:0 0 15px 0;">
+Hola <strong>${dataWithParentEmail.nombre_tutor_2 || "Estimado/a"}</strong>,
+</p>
+
+<p style="color:#475569;font-size:15px;line-height:1.6;margin:0 0 20px 0;">
+<strong style="color:#ea580c;">${user?.full_name || "Un familiar"}</strong> te ha registrado como <strong>segundo progenitor/tutor</strong> del jugador <strong style="color:#16a34a;">${dataWithParentEmail.nombre}</strong> en la aplicación del CD Bustarviejo.
+</p>
+
+<!-- Aviso importante -->
+<table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin-bottom:20px;">
+<tr>
+<td bgcolor="#fef3c7" style="padding:15px;border-left:4px solid #f59e0b;border-radius:0 8px 8px 0;">
+<p style="color:#92400e;font-size:14px;margin:0;"><strong>⚠️ ¿No reconoces esta invitación?</strong><br>Si no tienes hijos en el CD Bustarviejo o no esperabas este email, simplemente <strong>ignóralo</strong>. Alguien puede haber introducido tu email por error.</p>
+</td>
+</tr>
+</table>
+
+<!-- Features -->
+<table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin-bottom:25px;background-color:#f8fafc;border-radius:8px;">
+<tr>
+<td style="padding:15px;width:50%;text-align:center;border-bottom:1px solid #e2e8f0;">
+<span style="font-size:28px;">📋</span><br>
+<span style="color:#475569;font-size:13px;font-weight:bold;">Convocatorias</span>
+</td>
+<td style="padding:15px;width:50%;text-align:center;border-bottom:1px solid #e2e8f0;">
+<span style="font-size:28px;">💳</span><br>
+<span style="color:#475569;font-size:13px;font-weight:bold;">Pagos</span>
+</td>
+</tr>
+<tr>
+<td style="padding:15px;width:50%;text-align:center;">
+<span style="font-size:28px;">💬</span><br>
+<span style="color:#475569;font-size:13px;font-weight:bold;">Chat</span>
+</td>
+<td style="padding:15px;width:50%;text-align:center;">
+<span style="font-size:28px;">📅</span><br>
+<span style="color:#475569;font-size:13px;font-weight:bold;">Calendario</span>
+</td>
+</tr>
+</table>
+
+<!-- Info verde -->
+<table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin-bottom:25px;">
+<tr>
+<td bgcolor="#f0fdf4" style="padding:15px;border-left:4px solid #22c55e;border-radius:0 8px 8px 0;">
+<p style="color:#166534;font-size:14px;margin:0;"><strong>✅ Si aceptas:</strong> Podrás acceder a la app del club y ver toda la información de <strong>${dataWithParentEmail.nombre}</strong>: convocatorias de partidos, pagos, chat con entrenadores, calendario, etc.</p>
+</td>
+</tr>
+</table>
+
+<!-- Boton -->
+<table role="presentation" cellspacing="0" cellpadding="0" border="0" align="center" style="margin:0 auto 20px auto;">
+<tr>
+<td bgcolor="#ea580c" style="border-radius:8px;">
+<a href="${validationUrl}" target="_blank" style="display:inline-block;color:#ffffff;text-decoration:none;padding:14px 35px;font-weight:bold;font-size:16px;font-family:Arial,Helvetica,sans-serif;">COMPLETAR MI REGISTRO →</a>
+</td>
+</tr>
+</table>
+
+<p style="color:#94a3b8;font-size:12px;text-align:center;margin:0 0 15px 0;">Este enlace es válido durante 30 días</p>
+
+<!-- Nota de seguridad -->
+<table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin-top:20px;">
+<tr>
+<td bgcolor="#f1f5f9" style="padding:12px;border-radius:8px;text-align:center;">
+<p style="color:#64748b;font-size:11px;margin:0;">🔒 Este es un enlace único y personal. No lo compartas con nadie.</p>
+</td>
+</tr>
+</table>
+
+</td>
+</tr>
+
+<!-- Footer -->
+<tr>
+<td bgcolor="#1e293b" style="padding:20px;text-align:center;">
+<p style="color:#94a3b8;font-size:13px;margin:0 0 5px 0;">⚽ 🏀</p>
+<p style="color:#64748b;font-size:12px;margin:0;">cdbustarviejo@gmail.com</p>
+</td>
+</tr>
+
+</table>
+</body></html>`
             });
             console.log('✅ Invitación enviada al segundo progenitor:', email2);
           } else {
