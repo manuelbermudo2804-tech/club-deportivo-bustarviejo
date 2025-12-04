@@ -18,6 +18,7 @@ import MemberEditForm from "../components/members/MemberEditForm";
 import MemberDetailDialog from "../components/members/MemberDetailDialog";
 import MemberAdvancedFilters from "../components/members/MemberAdvancedFilters";
 import { sendMemberCard } from "../components/members/MemberCardEmail";
+import { sendPaymentReceipt, createMemberPaymentReceiptData } from "../components/receipts/PaymentReceiptPDF";
 
 export default function ClubMembersManagement() {
   const [user, setUser] = useState(null);
@@ -109,6 +110,17 @@ export default function ClubMembersManagement() {
           
           console.log('[ClubMembersManagement] ✅ Carnet enviado y marcado en BD');
           toast.success("📧 Carnet virtual enviado al socio");
+          
+          // También enviar recibo de pago en PDF
+          try {
+            console.log('[ClubMembersManagement] Enviando recibo PDF...');
+            const receiptData = createMemberPaymentReceiptData(memberData, seasonConfig);
+            await sendPaymentReceipt(receiptData, memberData.email, base44);
+            console.log('[ClubMembersManagement] ✅ Recibo PDF enviado');
+            toast.success("📄 Recibo de pago enviado");
+          } catch (receiptError) {
+            console.error('[ClubMembersManagement] Error enviando recibo:', receiptError);
+          }
         } catch (error) {
           console.error("[ClubMembersManagement] ❌ Error enviando carnet:", error);
           toast.error("Error al enviar carnet: " + (error.message || "Error desconocido"));
