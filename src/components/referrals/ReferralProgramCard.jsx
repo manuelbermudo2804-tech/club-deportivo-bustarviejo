@@ -111,9 +111,9 @@ export default function ReferralProgramCard({ seasonConfig, userReferrals = 0, u
           <p className="text-sm text-white/90">Invita a familiares, amigos, vecinos... ¡Cada nuevo socio cuenta!</p>
         </div>
 
-        {/* BONUS FÚTBOL FEMENINO */}
+        {/* BONUS FÚTBOL FEMENINO + BOTÓN COMPARTIR */}
         {seasonConfig.bonus_femenino_activo && (
-          <div className="bg-gradient-to-r from-pink-500 via-fuchsia-500 to-purple-500 rounded-2xl p-4 text-center border-4 border-pink-300 relative overflow-hidden animate-pulse">
+          <div className="bg-gradient-to-r from-pink-500 via-fuchsia-500 to-purple-500 rounded-2xl p-4 text-center border-4 border-pink-300 relative overflow-hidden">
             <div className="absolute top-0 left-0 w-full h-full bg-white/10"></div>
             <div className="relative">
               <div className="text-4xl mb-2">⚽👧</div>
@@ -131,6 +131,30 @@ export default function ReferralProgramCard({ seasonConfig, userReferrals = 0, u
                   <p className="text-white/80 text-xs">sorteos extra</p>
                 </div>
               </div>
+
+              {/* Botones para compartir */}
+              {femeninoLink && (
+                <div className="mt-4 space-y-2">
+                  <p className="text-white/90 text-xs font-semibold">👇 ¡COMPARTE AHORA Y GANA! 👇</p>
+                  <div className="flex gap-2 justify-center">
+                    <Button
+                      onClick={shareWhatsApp}
+                      className="bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-5 rounded-xl shadow-lg animate-pulse"
+                    >
+                      <MessageCircle className="w-5 h-5 mr-2" />
+                      Enviar por WhatsApp
+                    </Button>
+                    <Button
+                      onClick={copyFemeninoLink}
+                      variant="outline"
+                      className="bg-white/20 hover:bg-white/30 text-white border-white/30 py-3 px-4 rounded-xl"
+                    >
+                      <Copy className="w-5 h-5" />
+                    </Button>
+                  </div>
+                </div>
+              )}
+
               <p className="text-white/80 text-xs mt-3">
                 ¡Por cada nueva jugadora que inscribas en el fútbol femenino!
               </p>
