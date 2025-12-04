@@ -160,7 +160,7 @@ Deno.serve(async (req) => {
 </body>
 </html>`;
 
-    await base44.asServiceRole.integrations.Core.SendEmail({
+    await base44.integrations.Core.SendEmail({
       to: data.email,
       subject: `🎉 ¡Bienvenido/a al CD Bustarviejo! Tu carnet de socio ${numeroSocio}`,
       body: cardEmailHtml
