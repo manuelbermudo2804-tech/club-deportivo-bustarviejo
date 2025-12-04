@@ -81,7 +81,7 @@ export default function ReferralConfigCard({ seasonConfig, onUpdate, isUpdating 
     onUpdate(localConfig);
   };
 
-  const hasChanges = JSON.stringify(localConfig) !== JSON.stringify(getConfigFromSeason());
+  const hasChanges = JSON.stringify(localConfig) !== JSON.stringify(buildConfigFromSeason(seasonConfig));
 
   return (
     <Card className={`border-2 ${localConfig.programa_referidos_activo ? 'border-purple-300 bg-gradient-to-r from-purple-50 to-pink-50' : 'border-slate-200'}`}>
