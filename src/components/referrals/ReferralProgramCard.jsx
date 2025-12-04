@@ -119,7 +119,7 @@ export default function ReferralProgramCard({ seasonConfig, userReferrals = 0, u
               <div className="text-4xl mb-2">⚽👧</div>
               <h4 className="text-xl font-bold text-white mb-1">🌟 ¡BONUS FÚTBOL FEMENINO! 🌟</h4>
               <p className="text-white/95 font-medium text-sm mb-2">
-                ¡Trae jugadoras al equipo femenino y gana el <strong>DOBLE</strong> de premios!
+                Si alguien que <strong>TÚ refieres</strong> inscribe a una niña/chica en el <strong>Fútbol Femenino</strong>, ¡ganas premios EXTRA!
               </p>
               <div className="flex justify-center gap-3 mt-2">
                 <div className="bg-white/30 backdrop-blur-sm rounded-xl px-3 py-2">
