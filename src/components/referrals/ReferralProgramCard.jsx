@@ -13,9 +13,51 @@ const REWARD_TIERS = [
   { count: 15, color: "from-pink-500 to-pink-600", bgColor: "bg-pink-50", borderColor: "border-pink-300", title: "15 Socios", emoji: "🏨" }
 ];
 
-export default function ReferralProgramCard({ seasonConfig, userReferrals = 0, userCredit = 0, userRaffleEntries = 0, userFemeninoReferrals = 0, hasPlayersInClub = false }) {
+export default function ReferralProgramCard({ seasonConfig, userReferrals = 0, userCredit = 0, userRaffleEntries = 0, userFemeninoReferrals = 0, userEmail = "", userName = "", hasPlayersInClub = false }) {
   if (!seasonConfig?.programa_referidos_activo) return null;
   if (hasPlayersInClub !== true) return null;
+
+  // Generar código de referido del usuario
+  const generateReferralCode = (email) => {
+    let hash = 0;
+    for (let i = 0; i < email.length; i++) {
+      const char = email.charCodeAt(i);
+      hash = ((hash << 5) - hash) + char;
+      hash = hash & hash;
+    }
+    return Math.abs(hash).toString(36).toUpperCase().slice(0, 8);
+  };
+
+  const userRefCode = userEmail ? generateReferralCode(userEmail) : "";
+  const femeninoLink = userRefCode ? `${window.location.origin}/JoinFemenino?ref=${userRefCode}` : "";
+  
+  // Mensaje de WhatsApp para compartir
+  const whatsappMessage = encodeURIComponent(`⚽👧 ¡BUSCAMOS JUGADORAS PARA EL EQUIPO DE FÚTBOL FEMENINO!
+
+🌟 CD Bustarviejo abre sus puertas a nuevas jugadoras.
+
+✅ Todas las edades bienvenidas
+✅ No hace falta experiencia
+✅ Ambiente familiar y seguro
+✅ Entrenadores titulados
+✅ ¡Nos lo pasamos genial!
+
+🎁 Si te apuntas, ¡ambos ganamos premios!
+
+👉 ¡Apúntate aquí!: ${femeninoLink}
+
+¡Te esperamos en el campo! 💪`);
+
+  const whatsappUrl = `https://wa.me/?text=${whatsappMessage}`;
+
+  const copyFemeninoLink = () => {
+    navigator.clipboard.writeText(femeninoLink);
+    toast.success("¡Enlace copiado! Compártelo con quien quieras");
+  };
+
+  const shareWhatsApp = () => {
+    window.open(whatsappUrl, '_blank');
+  };
 
   const hasReachedLimit = userReferrals >= 15;
 
