@@ -155,8 +155,8 @@ export default function ReferralProgramCard({ seasonConfig, userReferrals = 0, u
                 </div>
               )}
 
-              <p className="text-white/80 text-xs mt-3">
-                ¡Por cada nueva jugadora que inscribas en el fútbol femenino!
+              <p className="text-white/90 text-xs mt-3 bg-white/20 rounded-lg p-2">
+                📌 <strong>¿Cómo funciona?</strong> Tú invitas → Ellos se hacen socios → Inscriben a su hija → ¡Tú ganas!
               </p>
               {userFemeninoReferrals > 0 && (
                 <div className="mt-3 bg-white/20 rounded-xl p-2">
