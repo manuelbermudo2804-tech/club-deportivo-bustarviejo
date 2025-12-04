@@ -676,81 +676,142 @@ export default function UserManagement() {
                 return (
                   <div
                     key={user.id}
-                    className={`p-3 rounded-lg border transition-all ${
+                    className={`p-4 rounded-xl border-2 transition-all ${
                       isDeleted
                         ? 'bg-slate-100 border-slate-300 opacity-60'
                         : hasRestriction
-                        ? 'bg-red-50 border-red-200'
+                        ? 'bg-red-50 border-red-300'
                         : isCoordinator
-                        ? 'bg-cyan-50 border-cyan-200'
+                        ? 'bg-cyan-50 border-cyan-300'
                         : isTreasurer
-                        ? 'bg-green-50 border-green-200'
+                        ? 'bg-green-50 border-green-300'
                         : isCoach
-                        ? 'bg-blue-50 border-blue-200'
-                        : 'bg-white border-slate-200 hover:border-orange-300'
+                        ? 'bg-blue-50 border-blue-300'
+                        : 'bg-white border-slate-200 hover:border-orange-400'
                     }`}
                   >
-                    <div className="flex items-center justify-between gap-2">
-                      {/* Info principal */}
+                    {/* Fila 1: Info del usuario */}
+                    <div className="flex items-center gap-3 mb-3">
+                      <div className="w-12 h-12 rounded-full bg-gradient-to-br from-orange-500 to-orange-600 flex items-center justify-center text-white font-bold text-lg flex-shrink-0">
+                        {user.full_name?.charAt(0)?.toUpperCase() || "U"}
+                      </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 flex-wrap">
-                          <span className="font-semibold text-sm text-slate-900 truncate">{user.full_name}</span>
-                          {/* Badges compactos */}
+                          <span className="font-bold text-base text-slate-900">{user.full_name}</span>
+                          {/* Badges */}
                           <div className="flex gap-1 flex-wrap">
-                            {user.role === "admin" && <Badge className="bg-orange-600 text-[10px] px-1.5 py-0">Admin</Badge>}
-                            {isPlayerUser && <Badge className="bg-purple-600 text-[10px] px-1.5 py-0">⚽+18</Badge>}
-                            {isCoordinator && <Badge className="bg-cyan-600 text-[10px] px-1.5 py-0">Coord</Badge>}
-                            {isTreasurer && <Badge className="bg-green-600 text-[10px] px-1.5 py-0">Teso</Badge>}
-                            {isCoach && <Badge className="bg-blue-600 text-[10px] px-1.5 py-0">Entr</Badge>}
-                            {isDeleted && <Badge className="bg-slate-600 text-[10px] px-1.5 py-0">Elim</Badge>}
-                            {!isDeleted && hasRestriction && <Badge className="bg-red-600 text-[10px] px-1.5 py-0">🚫</Badge>}
-                            {user.app_instalada === true && <Badge className="bg-green-100 text-green-700 text-[10px] px-1.5 py-0">📲</Badge>}
-                            {user.app_instalada !== true && user.role !== "admin" && <Badge className="bg-amber-100 text-amber-700 text-[10px] px-1.5 py-0">📵</Badge>}
+                            {user.role === "admin" && <Badge className="bg-orange-600 text-xs px-2 py-0.5">👑 Admin</Badge>}
+                            {isPlayerUser && <Badge className="bg-purple-600 text-xs px-2 py-0.5">⚽ Jugador+18</Badge>}
+                            {isCoordinator && <Badge className="bg-cyan-600 text-xs px-2 py-0.5">🎓 Coordinador</Badge>}
+                            {isTreasurer && <Badge className="bg-green-600 text-xs px-2 py-0.5">💰 Tesorero</Badge>}
+                            {isCoach && <Badge className="bg-blue-600 text-xs px-2 py-0.5">🏃 Entrenador</Badge>}
+                            {isDeleted && <Badge className="bg-slate-600 text-xs px-2 py-0.5">🗑️ Eliminado</Badge>}
+                            {!isDeleted && hasRestriction && <Badge className="bg-red-600 text-xs px-2 py-0.5">🚫 Restringido</Badge>}
                           </div>
                         </div>
-                        <p className="text-xs text-slate-500 truncate">{user.email}</p>
+                        <p className="text-sm text-slate-600">{user.email}</p>
                         
-                        {/* Info adicional en línea compacta */}
-                        {(userPlayers.length > 0 || user.categorias_entrena?.length > 0 || linkedPlayer) && (
-                          <p className="text-xs text-slate-600 mt-1 truncate">
-                            {userPlayers.length > 0 && !isPlayerUser && `👶 ${userPlayers.map(p => p.nombre).join(", ")}`}
-                            {user.categorias_entrena?.length > 0 && ` 🏃 ${user.categorias_entrena.length} cat.`}
-                            {linkedPlayer && `⚽ ${linkedPlayer.nombre}`}
-                          </p>
-                        )}
+                        {/* Info adicional */}
+                        <div className="flex items-center gap-2 mt-1 flex-wrap">
+                          {user.app_instalada === true && (
+                            <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-medium">📲 App instalada</span>
+                          )}
+                          {user.app_instalada !== true && user.role !== "admin" && (
+                            <span className="text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full font-medium">📵 Sin app</span>
+                          )}
+                          {userPlayers.length > 0 && !isPlayerUser && (
+                            <span className="text-xs text-slate-600">👶 {userPlayers.map(p => p.nombre).join(", ")}</span>
+                          )}
+                          {user.categorias_entrena?.length > 0 && (
+                            <span className="text-xs text-blue-700 font-medium">🏃 {user.categorias_entrena.length} categorías</span>
+                          )}
+                          {linkedPlayer && (
+                            <span className="text-xs text-purple-700 font-medium">⚽ {linkedPlayer.nombre}</span>
+                          )}
+                        </div>
                         
                         {/* Alerta jugador +18 */}
                         {pendingPlayerAccessUsers.some(u => u.id === user.id) && (
-                          <p className="text-xs text-purple-700 bg-purple-100 rounded px-2 py-0.5 mt-1 inline-block animate-pulse">
-                            ⚠️ +18 pendiente
+                          <p className="text-sm text-purple-700 bg-purple-100 rounded-lg px-3 py-1 mt-2 inline-block animate-pulse font-medium">
+                            ⚠️ Jugador +18 pendiente de activar
                           </p>
                         )}
                       </div>
+                    </div>
 
-                      {/* Botones de roles */}
-                      {!isDeleted && user.role !== "admin" && (
-                        <div className="flex gap-2 flex-wrap justify-end">
-                          <button onClick={() => handlePlayerToggle(user)} className={`px-3 py-2 rounded-lg text-sm font-semibold shadow ${isPlayerUser ? 'bg-purple-600 text-white' : 'bg-purple-100 text-purple-800 hover:bg-purple-200 border border-purple-300'}`}>
-                            ⚽ Jugador {isPlayerUser && "✓"}
+                    {/* Fila 2: BOTONES DE GESTIÓN DE ROLES - BIEN GRANDES Y VISIBLES */}
+                    {!isDeleted && user.role !== "admin" && (
+                      <div className="bg-slate-50 rounded-xl p-3 border border-slate-200">
+                        <p className="text-xs font-bold text-slate-500 uppercase tracking-wide mb-2">⚙️ Gestión de Roles</p>
+                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2">
+                          <button 
+                            onClick={() => handlePlayerToggle(user)} 
+                            className={`px-4 py-3 rounded-xl text-sm font-bold shadow-md transition-all hover:scale-105 ${
+                              isPlayerUser 
+                                ? 'bg-purple-600 text-white ring-2 ring-purple-300' 
+                                : 'bg-white text-purple-700 hover:bg-purple-50 border-2 border-purple-300'
+                            }`}
+                          >
+                            ⚽ Jugador +18
+                            {isPlayerUser && <span className="ml-1">✓</span>}
                           </button>
-                          <button onClick={() => handleCoordinatorToggle(user)} className={`px-3 py-2 rounded-lg text-sm font-semibold shadow ${isCoordinator ? 'bg-cyan-600 text-white' : 'bg-cyan-100 text-cyan-800 hover:bg-cyan-200 border border-cyan-300'}`}>
-                            🎓 Coord {isCoordinator && "✓"}
+                          
+                          <button 
+                            onClick={() => handleCoordinatorToggle(user)} 
+                            className={`px-4 py-3 rounded-xl text-sm font-bold shadow-md transition-all hover:scale-105 ${
+                              isCoordinator 
+                                ? 'bg-cyan-600 text-white ring-2 ring-cyan-300' 
+                                : 'bg-white text-cyan-700 hover:bg-cyan-50 border-2 border-cyan-300'
+                            }`}
+                          >
+                            🎓 Coordinador
+                            {isCoordinator && <span className="ml-1">✓</span>}
                           </button>
-                          <button onClick={() => handleTreasurerToggle(user)} className={`px-3 py-2 rounded-lg text-sm font-semibold shadow ${isTreasurer ? 'bg-green-600 text-white' : 'bg-green-100 text-green-800 hover:bg-green-200 border border-green-300'}`}>
-                            💰 Tesor {isTreasurer && "✓"}
+                          
+                          <button 
+                            onClick={() => handleTreasurerToggle(user)} 
+                            className={`px-4 py-3 rounded-xl text-sm font-bold shadow-md transition-all hover:scale-105 ${
+                              isTreasurer 
+                                ? 'bg-green-600 text-white ring-2 ring-green-300' 
+                                : 'bg-white text-green-700 hover:bg-green-50 border-2 border-green-300'
+                            }`}
+                          >
+                            💰 Tesorero
+                            {isTreasurer && <span className="ml-1">✓</span>}
                           </button>
-                          <button onClick={() => handleCoachToggle(user)} className={`px-3 py-2 rounded-lg text-sm font-semibold shadow ${user.es_entrenador ? 'bg-blue-600 text-white' : 'bg-blue-100 text-blue-800 hover:bg-blue-200 border border-blue-300'}`}>
-                            🏃 Entren {user.es_entrenador && "✓"}
+                          
+                          <button 
+                            onClick={() => handleCoachToggle(user)} 
+                            className={`px-4 py-3 rounded-xl text-sm font-bold shadow-md transition-all hover:scale-105 ${
+                              user.es_entrenador 
+                                ? 'bg-blue-600 text-white ring-2 ring-blue-300' 
+                                : 'bg-white text-blue-700 hover:bg-blue-50 border-2 border-blue-300'
+                            }`}
+                          >
+                            🏃 Entrenador
+                            {user.es_entrenador && <span className="ml-1">✓</span>}
                           </button>
-                          <button onClick={() => handleRestrictAccess(user)} className={`px-3 py-2 rounded-lg text-sm font-semibold shadow ${hasRestriction ? 'bg-green-600 text-white' : 'bg-red-100 text-red-800 hover:bg-red-200 border border-red-300'}`}>
-                            {hasRestriction ? "✅ Activo" : "🚫 Restringir"}
+                          
+                          <button 
+                            onClick={() => handleRestrictAccess(user)} 
+                            className={`px-4 py-3 rounded-xl text-sm font-bold shadow-md transition-all hover:scale-105 ${
+                              hasRestriction 
+                                ? 'bg-green-600 text-white ring-2 ring-green-300' 
+                                : 'bg-white text-red-700 hover:bg-red-50 border-2 border-red-300'
+                            }`}
+                          >
+                            {hasRestriction ? "✅ Activar" : "🚫 Restringir"}
                           </button>
-                          <button onClick={() => handleDeleteUser(user)} className="px-3 py-2 rounded-lg text-sm font-semibold shadow bg-slate-200 text-slate-700 hover:bg-slate-300 border border-slate-300">
+                          
+                          <button 
+                            onClick={() => handleDeleteUser(user)} 
+                            className="px-4 py-3 rounded-xl text-sm font-bold shadow-md transition-all hover:scale-105 bg-white text-slate-600 hover:bg-slate-100 border-2 border-slate-300"
+                          >
                             🗑️ Eliminar
                           </button>
                         </div>
-                      )}
-                    </div>
+                      </div>
+                    )}
                   </div>
                 );
               })}
