@@ -57,88 +57,188 @@
     @apply bg-background text-foreground;
   }
   
-  /* Transiciones suaves */
-  body {
-    transition: background 0.3s ease-in-out, color 0.3s ease-in-out;
-  }
+  /* ============================
+     MODO NORMAL (por defecto) 
+     ============================ */
+  /* El modo normal es el actual - oscuro en sidebar, claro en contenido */
   
-  /* Tema claro */
+  /* ============================
+     MODO CLARO (theme-light)
+     Cambia TODO a tonos claros
+     ============================ */
   body.theme-light {
-    background: linear-gradient(135deg, #f5f7fa 0%, #e3e8f0 100%);
+    background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%) !important;
   }
   
-  body.theme-light .bg-gradient-to-br.from-slate-900 {
-    background: linear-gradient(135deg, #ffffff 0%, #f0f4f8 100%) !important;
+  /* Sidebar en modo claro */
+  body.theme-light nav.fixed {
+    background: linear-gradient(to bottom, #ffffff, #f8fafc, #f1f5f9) !important;
+    box-shadow: 4px 0 15px rgba(0, 0, 0, 0.1);
+  }
+  
+  body.theme-light .bg-gradient-to-b.from-slate-900,
+  body.theme-light .bg-gradient-to-b.from-slate-800 {
+    background: linear-gradient(to bottom, #ffffff, #f8fafc, #f1f5f9) !important;
   }
   
   body.theme-light .bg-slate-900,
   body.theme-light .bg-slate-800 {
-    background: linear-gradient(145deg, #ffffff, #f8fafc) !important;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    background: #ffffff !important;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.08);
   }
   
-  body.theme-light .text-white {
-    color: #1e293b !important;
+  /* Textos en sidebar modo claro */
+  body.theme-light nav .text-white,
+  body.theme-light nav .text-slate-300,
+  body.theme-light nav .text-slate-400 {
+    color: #334155 !important;
   }
   
-  body.theme-light .text-slate-400,
-  body.theme-light .text-slate-300 {
-    color: #64748b !important;
-  }
-  
-  body.theme-light .text-green-400 {
+  body.theme-light nav .text-green-400 {
     color: #16a34a !important;
   }
   
-  body.theme-light .text-orange-400 {
+  body.theme-light nav .text-orange-400 {
     color: #ea580c !important;
   }
   
+  /* Bordes en modo claro */
+  body.theme-light .border-green-500\/30,
   body.theme-light .border-slate-700 {
     border-color: #e2e8f0 !important;
   }
   
-  body.theme-light .bg-gradient-to-r.from-slate-900 {
-    background: linear-gradient(to right, #f8fafc, #f1f5f9) !important;
+  /* Links del menú en modo claro */
+  body.theme-light nav a.text-slate-300 {
+    color: #475569 !important;
   }
   
-  body.theme-light .border-green-500\/30 {
-    border-color: rgba(34, 197, 94, 0.3) !important;
+  body.theme-light nav a:hover {
+    background: rgba(0, 0, 0, 0.05) !important;
   }
   
-  /* Tema oscuro mejorado */
+  /* Cards y contenido en modo claro */
+  body.theme-light .bg-white {
+    background: #ffffff !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  }
+  
+  /* Header móvil en modo claro */
+  body.theme-light header.fixed {
+    background: linear-gradient(to right, #f97316, #ea580c) !important;
+  }
+  
+  /* Footer del sidebar en modo claro */
+  body.theme-light .bg-gradient-to-r.from-slate-800 {
+    background: linear-gradient(to right, #f1f5f9, #e2e8f0) !important;
+  }
+  
+  /* ============================
+     MODO OSCURO (theme-dark)
+     Cambia TODO a tonos oscuros
+     ============================ */
   body.theme-dark {
-    background: linear-gradient(135deg, #0f172a 0%, #020617 100%);
+    background: linear-gradient(135deg, #0f172a 0%, #020617 100%) !important;
   }
   
-  body.theme-dark .bg-gradient-to-b.from-slate-900 {
-    background: linear-gradient(to bottom, #1e293b, #0f172a, #020617) !important;
+  /* Contenido principal en modo oscuro */
+  body.theme-dark main {
+    background: transparent !important;
   }
   
+  body.theme-dark .bg-gradient-to-br.from-slate-50 {
+    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%) !important;
+  }
+  
+  /* Cards en modo oscuro */
   body.theme-dark .bg-white {
     background: #1e293b !important;
-    color: #f1f5f9 !important;
+    border-color: #334155 !important;
   }
   
-  body.theme-dark .text-slate-900 {
+  body.theme-dark .bg-slate-50,
+  body.theme-dark .bg-slate-100 {
+    background: #334155 !important;
+  }
+  
+  /* Textos en modo oscuro */
+  body.theme-dark .text-slate-900,
+  body.theme-dark .text-slate-800 {
     color: #f1f5f9 !important;
   }
   
   body.theme-dark .text-slate-600,
-  body.theme-dark .text-slate-700 {
-    color: #cbd5e1 !important;
+  body.theme-dark .text-slate-700,
+  body.theme-dark .text-slate-500 {
+    color: #94a3b8 !important;
   }
   
-  body.theme-dark .border-slate-200 {
+  /* Bordes en modo oscuro */
+  body.theme-dark .border-slate-200,
+  body.theme-dark .border-slate-100 {
     border-color: #334155 !important;
   }
   
-  body.theme-dark .bg-slate-50 {
-    background: #334155 !important;
+  /* Inputs en modo oscuro */
+  body.theme-dark input,
+  body.theme-dark textarea,
+  body.theme-dark select {
+    background: #1e293b !important;
+    border-color: #475569 !important;
+    color: #f1f5f9 !important;
   }
   
-  body.theme-dark .bg-gradient-to-r.from-orange-50 {
-    background: linear-gradient(to right, rgba(251, 146, 60, 0.1), rgba(251, 146, 60, 0.15)) !important;
+  body.theme-dark input::placeholder,
+  body.theme-dark textarea::placeholder {
+    color: #64748b !important;
+  }
+  
+  /* Alerts y badges en modo oscuro */
+  body.theme-dark .bg-blue-50,
+  body.theme-dark .bg-green-50,
+  body.theme-dark .bg-orange-50,
+  body.theme-dark .bg-red-50,
+  body.theme-dark .bg-yellow-50 {
+    background: rgba(51, 65, 85, 0.5) !important;
+  }
+  
+  body.theme-dark .text-blue-800,
+  body.theme-dark .text-green-800,
+  body.theme-dark .text-orange-800,
+  body.theme-dark .text-red-800 {
+    color: #e2e8f0 !important;
+  }
+  
+  /* Tablas en modo oscuro */
+  body.theme-dark table {
+    background: #1e293b !important;
+  }
+  
+  body.theme-dark th {
+    background: #334155 !important;
+    color: #f1f5f9 !important;
+  }
+  
+  body.theme-dark td {
+    border-color: #475569 !important;
+  }
+  
+  /* Dropdowns y popovers en modo oscuro */
+  body.theme-dark [data-radix-popper-content-wrapper] > div,
+  body.theme-dark [role="listbox"],
+  body.theme-dark [role="menu"] {
+    background: #1e293b !important;
+    border-color: #475569 !important;
+  }
+  
+  body.theme-dark [role="option"],
+  body.theme-dark [role="menuitem"] {
+    color: #f1f5f9 !important;
+  }
+  
+  body.theme-dark [role="option"]:hover,
+  body.theme-dark [role="menuitem"]:hover {
+    background: #334155 !important;
   }
 }
 
