@@ -19,26 +19,30 @@ const DEFAULT_PRIZES = [
 export default function ReferralConfigCard({ seasonConfig, onUpdate, isUpdating }) {
   const [expanded, setExpanded] = useState(false);
   
-  const getConfigFromSeason = () => ({
-    programa_referidos_activo: seasonConfig?.programa_referidos_activo === true,
-    referidos_permitir_whatsapp_padres: seasonConfig?.referidos_permitir_whatsapp_padres === true || seasonConfig?.referidos_permitir_whatsapp_padres === undefined,
-    tier_1_activo: seasonConfig?.tier_1_activo !== false,
-    tier_3_activo: seasonConfig?.tier_3_activo !== false,
-    tier_5_activo: seasonConfig?.tier_5_activo !== false,
-    tier_10_activo: seasonConfig?.tier_10_activo !== false,
-    tier_15_activo: seasonConfig?.tier_15_activo !== false,
-    referidos_premio_1: seasonConfig?.referidos_premio_1 || 5,
-    referidos_premio_3: seasonConfig?.referidos_premio_3 || 15,
-    referidos_sorteo_3: seasonConfig?.referidos_sorteo_3 || 1,
-    referidos_premio_5: seasonConfig?.referidos_premio_5 || 25,
-    referidos_sorteo_5: seasonConfig?.referidos_sorteo_5 || 3,
-    referidos_premio_10: seasonConfig?.referidos_premio_10 || 50,
-    referidos_sorteo_10: seasonConfig?.referidos_sorteo_10 || 5,
-    referidos_premio_15: seasonConfig?.referidos_premio_15 || 50,
-    referidos_sorteo_15: seasonConfig?.referidos_sorteo_15 || 10,
-    referidos_premio_hotel: seasonConfig?.referidos_premio_hotel !== false,
-    sorteo_premios: seasonConfig?.sorteo_premios || DEFAULT_PRIZES
-  });
+  const getConfigFromSeason = () => {
+    // Solo leer valores de seasonConfig, respetando explícitamente los false
+    const config = {
+      programa_referidos_activo: seasonConfig?.programa_referidos_activo === true,
+      referidos_permitir_whatsapp_padres: seasonConfig?.referidos_permitir_whatsapp_padres ?? true,
+      tier_1_activo: seasonConfig?.tier_1_activo ?? true,
+      tier_3_activo: seasonConfig?.tier_3_activo ?? true,
+      tier_5_activo: seasonConfig?.tier_5_activo ?? true,
+      tier_10_activo: seasonConfig?.tier_10_activo ?? true,
+      tier_15_activo: seasonConfig?.tier_15_activo ?? true,
+      referidos_premio_1: seasonConfig?.referidos_premio_1 ?? 5,
+      referidos_premio_3: seasonConfig?.referidos_premio_3 ?? 15,
+      referidos_sorteo_3: seasonConfig?.referidos_sorteo_3 ?? 1,
+      referidos_premio_5: seasonConfig?.referidos_premio_5 ?? 25,
+      referidos_sorteo_5: seasonConfig?.referidos_sorteo_5 ?? 3,
+      referidos_premio_10: seasonConfig?.referidos_premio_10 ?? 50,
+      referidos_sorteo_10: seasonConfig?.referidos_sorteo_10 ?? 5,
+      referidos_premio_15: seasonConfig?.referidos_premio_15 ?? 50,
+      referidos_sorteo_15: seasonConfig?.referidos_sorteo_15 ?? 10,
+      referidos_premio_hotel: seasonConfig?.referidos_premio_hotel ?? true,
+      sorteo_premios: seasonConfig?.sorteo_premios || DEFAULT_PRIZES
+    };
+    return config;
+  };
 
   const [localConfig, setLocalConfig] = useState(() => getConfigFromSeason());
   const [isInitialized, setIsInitialized] = useState(false);
