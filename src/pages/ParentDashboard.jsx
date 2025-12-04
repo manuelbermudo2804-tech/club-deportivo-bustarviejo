@@ -633,6 +633,11 @@ export default function ParentDashboard() {
           </div>
         </Link>
 
+        {/* BANNER FÚTBOL FEMENINO - COMPARTIR POR WHATSAPP */}
+        {activeSeason?.bonus_femenino_activo && user && myPlayers.length > 0 && (
+          <FemeninoShareBanner userEmail={user.email} userName={user.full_name} />
+        )}
+
         {/* LOTERIA NAVIDAD */}
         {loteriaVisible && (
           <Link to={createPageUrl("ParentLottery")}>
