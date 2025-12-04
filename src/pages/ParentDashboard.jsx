@@ -14,20 +14,9 @@ import AlertCenter from "../components/dashboard/AlertCenter";
 import ContactCard from "../components/ContactCard";
 import { usePageTutorial } from "../components/tutorials/useTutorial";
 
-// Componente para compartir Fútbol Femenino
-function FemeninoShareBanner({ userEmail, userName }) {
-  const generateReferralCode = (email) => {
-    let hash = 0;
-    for (let i = 0; i < email.length; i++) {
-      const char = email.charCodeAt(i);
-      hash = ((hash << 5) - hash) + char;
-      hash = hash & hash;
-    }
-    return Math.abs(hash).toString(36).toUpperCase().slice(0, 8);
-  };
-
-  const refCode = generateReferralCode(userEmail);
-  const femeninoLink = `${window.location.origin}/JoinFemenino?ref=${refCode}`;
+// Componente para compartir Fútbol Femenino (sin referidos)
+function FemeninoShareBanner() {
+  const femeninoLink = `${window.location.origin}/JoinFemenino`;
   
   const whatsappMessage = encodeURIComponent(`⚽👧 ¡BUSCAMOS JUGADORAS PARA EL EQUIPO DE FÚTBOL FEMENINO!
 
@@ -38,8 +27,6 @@ function FemeninoShareBanner({ userEmail, userName }) {
 ✅ Ambiente familiar y seguro
 ✅ Entrenadores titulados
 ✅ ¡Nos lo pasamos genial!
-
-🎁 Si te apuntas, ¡ambos ganamos premios!
 
 👉 ¡Apúntate aquí!: ${femeninoLink}
 
@@ -66,10 +53,10 @@ function FemeninoShareBanner({ userEmail, userName }) {
           </div>
           <div className="flex-1">
             <p className="text-white font-bold text-base lg:text-lg">
-              🎁 ¡BONUS por traer jugadoras!
+              ¡Ayúdanos a crecer el Fútbol Femenino!
             </p>
             <p className="text-pink-100 text-xs mt-1">
-              Si alguien que <strong>TÚ refieres</strong> inscribe a una niña/chica en el <strong>Fútbol Femenino</strong>, ¡tú ganas <strong>+10€ en ropa + 2 sorteos extra</strong>!
+              Comparte con amigas, vecinas, familiares... <strong>¡Buscamos jugadoras!</strong>
             </p>
           </div>
         </div>
@@ -89,10 +76,6 @@ function FemeninoShareBanner({ userEmail, userName }) {
             📋
           </button>
         </div>
-        
-        <p className="text-pink-200 text-[10px] mt-2 text-center">
-          Comparte este enlace → Si se inscriben → ¡Tú ganas premios!
-        </p>
       </div>
     </div>
   );
