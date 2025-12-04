@@ -41,11 +41,15 @@ export default function ReferralConfigCard({ seasonConfig, onUpdate, isUpdating 
   });
 
   const [localConfig, setLocalConfig] = useState(getConfigFromSeason());
+  const [lastSeasonId, setLastSeasonId] = useState(seasonConfig?.id);
 
-  // Sincronizar localConfig cuando seasonConfig cambia
+  // Sincronizar localConfig SOLO cuando cambia la temporada (diferente ID)
   useEffect(() => {
-    setLocalConfig(getConfigFromSeason());
-  }, [seasonConfig?.programa_referidos_activo, seasonConfig?.id]);
+    if (seasonConfig?.id && seasonConfig.id !== lastSeasonId) {
+      setLocalConfig(getConfigFromSeason());
+      setLastSeasonId(seasonConfig.id);
+    }
+  }, [seasonConfig?.id]);
 
   const [newPrize, setNewPrize] = useState({ nombre: "", descripcion: "", emoji: "🎁" });
 
