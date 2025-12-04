@@ -590,137 +590,53 @@ export default function UserManagement() {
         </div>
       )}
 
-      {/* Buscador + Filtros */}
-      <Card className="border-none shadow-lg">
-        <CardHeader>
-          <div className="flex flex-col gap-4">
-            <div className="flex flex-col md:flex-row gap-4">
-              <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-slate-400" />
-                <Input
-                  placeholder="Buscar usuario por nombre o email..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10"
-                />
-              </div>
-              <div className="flex items-center gap-3 bg-slate-50 rounded-lg px-4 py-2">
-                {showDeleted ? <Eye className="w-5 h-5 text-slate-600" /> : <EyeOff className="w-5 h-5 text-slate-400" />}
-                <Label htmlFor="show-deleted" className="text-sm font-medium cursor-pointer">
-                  Eliminados ({deletedUsers.length})
-                </Label>
-                <Switch
-                  id="show-deleted"
-                  checked={showDeleted}
-                  onCheckedChange={setShowDeleted}
-                />
-              </div>
-            </div>
-            
-            {/* Filtros por rol */}
-            <div className="flex flex-wrap gap-2">
-              <Button
-                size="sm"
-                variant={roleFilter === "all" ? "default" : "outline"}
-                onClick={() => setRoleFilter("all")}
-                className={roleFilter === "all" ? "bg-slate-700" : ""}
-              >
-                Todos ({users.filter(u => !u.eliminado).length})
-              </Button>
-              <Button
-                size="sm"
-                variant={roleFilter === "parent" ? "default" : "outline"}
-                onClick={() => setRoleFilter("parent")}
-                className={roleFilter === "parent" ? "bg-slate-600" : ""}
-              >
-                👨‍👩‍👧 Padres ({activeUsers.length})
-              </Button>
-              <Button
-                size="sm"
-                variant={roleFilter === "staff" ? "default" : "outline"}
-                onClick={() => setRoleFilter("staff")}
-                className={roleFilter === "staff" ? "bg-indigo-600" : "border-indigo-300 text-indigo-700"}
-              >
-                👔 Staff ({staffUsers.length})
-              </Button>
-              <Button
-                size="sm"
-                variant={roleFilter === "admin" ? "default" : "outline"}
-                onClick={() => setRoleFilter("admin")}
-                className={roleFilter === "admin" ? "bg-orange-600" : "border-orange-300 text-orange-700"}
-              >
-                🎓 Admins ({admins.length})
-              </Button>
-              <Button
-                size="sm"
-                variant={roleFilter === "player" ? "default" : "outline"}
-                onClick={() => setRoleFilter("player")}
-                className={roleFilter === "player" ? "bg-purple-600" : "border-purple-300 text-purple-700"}
-              >
-                ⚽ Jugadores ({jugadores.length})
-              </Button>
-              <Button
-                size="sm"
-                variant={roleFilter === "coach" ? "default" : "outline"}
-                onClick={() => setRoleFilter("coach")}
-                className={roleFilter === "coach" ? "bg-blue-600" : "border-blue-300 text-blue-700"}
-              >
-                🏃 Entrenadores ({entrenadores.length})
-              </Button>
-              <Button
-                size="sm"
-                variant={roleFilter === "coordinator" ? "default" : "outline"}
-                onClick={() => setRoleFilter("coordinator")}
-                className={roleFilter === "coordinator" ? "bg-cyan-600" : "border-cyan-300 text-cyan-700"}
-              >
-                🎓 Coordinadores ({coordinadores.length})
-              </Button>
-              <Button
-                size="sm"
-                variant={roleFilter === "treasurer" ? "default" : "outline"}
-                onClick={() => setRoleFilter("treasurer")}
-                className={roleFilter === "treasurer" ? "bg-green-600" : "border-green-300 text-green-700"}
-              >
-                💰 Tesoreros ({tesoreros.length})
-              </Button>
-              <Button
-                size="sm"
-                variant={roleFilter === "restricted" ? "default" : "outline"}
-                onClick={() => setRoleFilter("restricted")}
-                className={roleFilter === "restricted" ? "bg-red-600" : "border-red-300 text-red-700"}
-              >
-                🚫 Restringidos ({restrictedUsers.length})
-              </Button>
-              {pendingPlayerAccessUsers.length > 0 && (
-                <Button
-                  size="sm"
-                  variant={roleFilter === "pending_player" ? "default" : "outline"}
-                  onClick={() => setRoleFilter("pending_player")}
-                  className={roleFilter === "pending_player" ? "bg-purple-600 animate-pulse" : "border-purple-400 text-purple-700 bg-purple-50"}
-                >
-                  ⚠️ Jugadores +18 pendientes ({pendingPlayerAccessUsers.length})
-                </Button>
-              )}
-              <Button
-                size="sm"
-                variant={roleFilter === "with_app" ? "default" : "outline"}
-                onClick={() => setRoleFilter("with_app")}
-                className={roleFilter === "with_app" ? "bg-green-600" : "border-green-300 text-green-700"}
-              >
-                📲 Con App ({usersWithApp.length})
-              </Button>
-              <Button
-                size="sm"
-                variant={roleFilter === "without_app" ? "default" : "outline"}
-                onClick={() => setRoleFilter("without_app")}
-                className={roleFilter === "without_app" ? "bg-amber-600" : "border-amber-300 text-amber-700"}
-              >
-                📵 Sin App ({usersWithoutApp.length})
-              </Button>
-            </div>
+      {/* Buscador + Filtros compactos */}
+      <div className="bg-white rounded-lg shadow p-3 space-y-3">
+        <div className="flex flex-col md:flex-row gap-2">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400" />
+            <Input
+              placeholder="Buscar usuario..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-9 h-9 text-sm"
+            />
           </div>
-        </CardHeader>
-      </Card>
+          <div className="flex items-center gap-2 bg-slate-50 rounded px-3 py-1">
+            <Switch id="show-deleted" checked={showDeleted} onCheckedChange={setShowDeleted} className="scale-90" />
+            <Label htmlFor="show-deleted" className="text-xs cursor-pointer">Eliminados</Label>
+          </div>
+        </div>
+        
+        {/* Filtros compactos */}
+        <div className="flex flex-wrap gap-1">
+          {[
+            { key: "all", label: "Todos", count: users.filter(u => !u.eliminado).length },
+            { key: "parent", label: "👨‍👩‍👧 Padres", count: activeUsers.length },
+            { key: "staff", label: "👔 Staff", count: staffUsers.length },
+            { key: "admin", label: "🎓 Admin", count: admins.length },
+            { key: "player", label: "⚽ Jugador", count: jugadores.length },
+            { key: "coach", label: "🏃 Entren.", count: entrenadores.length },
+            { key: "coordinator", label: "🎓 Coord.", count: coordinadores.length },
+            { key: "treasurer", label: "💰 Tesor.", count: tesoreros.length },
+            { key: "restricted", label: "🚫 Restrin.", count: restrictedUsers.length },
+            { key: "with_app", label: "📲 App", count: usersWithApp.length },
+            { key: "without_app", label: "📵 Sin", count: usersWithoutApp.length },
+          ].map(f => (
+            <button
+              key={f.key}
+              onClick={() => setRoleFilter(f.key)}
+              className={`px-2 py-1 rounded text-xs font-medium transition-colors ${
+                roleFilter === f.key 
+                  ? 'bg-orange-600 text-white' 
+                  : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+              }`}
+            >
+              {f.label} ({f.count})
+            </button>
+          ))}
+        </div>
+      </div>
 
       {/* Alerta informativa */}
       {deletedUsers.length > 0 && (
