@@ -31,7 +31,6 @@ export default function EmailInvitations() {
   const [currentEmail, setCurrentEmail] = useState("");
   const [asunto, setAsunto] = useState("¡Bienvenido a la App del CD Bustarviejo! 📱⚽");
   const [mensajePersonalizado, setMensajePersonalizado] = useState("");
-  const [appUrl, setAppUrl] = useState(DEFAULT_APP_URL);
   const [isSending, setIsSending] = useState(false);
   const [sentCount, setSentCount] = useState(0);
   const [errorCount, setErrorCount] = useState(0);
