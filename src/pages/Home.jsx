@@ -841,12 +841,30 @@ export default function Home() {
             gradient: "from-indigo-600 to-indigo-700",
           },
           {
+            title: "💳 Pagos Mis Hijos",
+            icon: CreditCard,
+            url: createPageUrl("ParentPayments"),
+            gradient: "from-green-600 to-green-700",
+          },
+          {
             title: "🏆 Convocatorias Hijos",
             icon: ClipboardCheck,
             url: createPageUrl("ParentCallups"),
-            gradient: "from-green-600 to-green-700",
+            gradient: "from-yellow-600 to-yellow-700",
             badge: stats.pendingCallups,
             badgeLabel: "pendientes"
+          },
+          {
+            title: "🛍️ Pedidos Ropa Hijos",
+            icon: ShoppingBag,
+            url: createPageUrl("ClothingOrders"),
+            gradient: "from-teal-600 to-teal-700",
+          },
+          {
+            title: "💬 Chat Familia",
+            icon: MessageCircle,
+            url: createPageUrl("ParentChat"),
+            gradient: "from-blue-600 to-blue-700",
           }
         );
         if (stats.pendingSignatures > 0) {
@@ -854,7 +872,7 @@ export default function Home() {
             title: "🖊️ Firmas Hijos",
             icon: FileSignature,
             url: createPageUrl("FederationSignatures"),
-            gradient: "from-yellow-600 to-orange-600",
+            gradient: "from-orange-600 to-red-600",
             badge: stats.pendingSignatures,
             badgeLabel: "pendientes"
           });
