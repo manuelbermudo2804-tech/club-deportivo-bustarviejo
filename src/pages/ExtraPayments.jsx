@@ -62,6 +62,8 @@ export default function ExtraPayments() {
   });
   const [selectedCategories, setSelectedCategories] = useState([]);
   const [selectAllCategories, setSelectAllCategories] = useState(true);
+  const [selectedIndividualPlayers, setSelectedIndividualPlayers] = useState([]);
+  const [playerSearchTerm, setPlayerSearchTerm] = useState("");
   const queryClient = useQueryClient();
 
   useEffect(() => {
