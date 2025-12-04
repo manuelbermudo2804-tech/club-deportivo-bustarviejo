@@ -662,6 +662,7 @@ Email: cdbustarviejo@gmail.com
                         isParent={true}
                         schedules={schedules}
                         payments={payments}
+                        seasonConfig={seasonConfig}
                       />
                       <AchievementsBadges 
                         player={player} 
@@ -691,6 +692,7 @@ Email: cdbustarviejo@gmail.com
                         isParent={true}
                         schedules={schedules}
                         payments={payments}
+                        seasonConfig={seasonConfig}
                       />
                       <AchievementsBadges 
                         player={player} 
@@ -720,6 +722,7 @@ Email: cdbustarviejo@gmail.com
                         isParent={true}
                         schedules={schedules}
                         payments={payments}
+                        seasonConfig={seasonConfig}
                       />
                       <AchievementsBadges 
                         player={player} 
