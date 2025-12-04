@@ -145,48 +145,28 @@ export default function Payments() {
     }
   }, [autoRegister, isAdmin, isCoach, myPlayers.length]);
 
-  const { data: players } = useQuery({
-    queryKey: ['myPlayers', user?.email],
+  const { data: players = [] } = useQuery({
+    queryKey: ['allPlayers'],
     queryFn: async () => {
       const allPlayers = await base44.entities.Player.list();
-      // SOLO jugadores ACTIVOS (los de temporada anterior están con activo=false)
-      if (isAdmin) {
-        return allPlayers.filter(p => p.activo === true);
-      } else if (isCoach) {
-        return allPlayers.filter(p =>
-          (p.email_padre === user?.email || p.email_tutor_2 === user?.email) && p.activo === true
-        );
-      }
-      return [];
+      // SOLO jugadores ACTIVOS
+      return allPlayers.filter(p => p.activo === true) || [];
     },
-    enabled: !!user?.email && (isAdmin || isCoach),
     initialData: [],
   });
 
   const { data: payments = [], isLoading } = useQuery({
-    queryKey: ['myPayments', isAdmin, isCoach],
+    queryKey: ['myPayments'],
     queryFn: async () => {
       try {
         const allPayments = await base44.entities.Payment.list('-created_date');
-        console.log('[DEBUG PAGOS QUERY] Total pagos en BD:', allPayments?.length, 'isAdmin:', isAdmin, 'isCoach:', isCoach);
-        console.log('[DEBUG PAGOS QUERY] Primeros 3 pagos:', allPayments?.slice(0, 3).map(p => ({jugador: p.jugador_nombre, mes: p.mes, estado: p.estado})));
-        if (isAdmin) {
-          return allPayments || [];
-        } else if (isCoach) {
-          const allPlayers = await base44.entities.Player.list();
-          const currentUser = await base44.auth.me();
-          const myPlayerIds = allPlayers
-            .filter(p => p.email_padre === currentUser.email || p.email_tutor_2 === currentUser.email)
-            .map(p => p.id);
-          return allPayments.filter(payment => myPlayerIds.includes(payment.jugador_id)) || [];
-        }
-        return [];
+        console.log('[DEBUG PAGOS QUERY] Total pagos en BD:', allPayments?.length);
+        return allPayments || [];
       } catch (error) {
         console.error("Error loading payments:", error);
         return [];
       }
     },
-    enabled: isAdmin || isCoach,
     initialData: [],
     staleTime: 0,
     refetchOnWindowFocus: true,
