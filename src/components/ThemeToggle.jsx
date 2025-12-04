@@ -12,7 +12,8 @@ export default function ThemeToggle() {
   const [theme, setTheme] = useState("auto");
 
   useEffect(() => {
-    const savedTheme = localStorage.getItem("theme") || "auto";
+    // Por defecto usar "dark" (el tema actual/normal)
+    const savedTheme = localStorage.getItem("theme") || "dark";
     setTheme(savedTheme);
     applyTheme(savedTheme);
   }, []);
