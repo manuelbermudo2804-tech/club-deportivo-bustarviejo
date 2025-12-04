@@ -605,7 +605,7 @@ export default function ReferralManagement() {
           </Card>
 
           {/* Premios para sortear */}
-          {seasonConfig?.sorteo_premios && seasonConfig.sorteo_premios.length > 0 ? (
+          {(seasonConfig?.sorteo_premios || []).length > 0 ? (
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">

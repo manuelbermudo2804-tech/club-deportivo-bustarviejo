@@ -40,16 +40,16 @@ export default function ReferralConfigCard({ seasonConfig, onUpdate, isUpdating 
     sorteo_premios: seasonConfig?.sorteo_premios || DEFAULT_PRIZES
   });
 
-  const [localConfig, setLocalConfig] = useState(getConfigFromSeason());
-  const [lastSeasonId, setLastSeasonId] = useState(seasonConfig?.id);
+  const [localConfig, setLocalConfig] = useState(() => getConfigFromSeason());
+  const [isInitialized, setIsInitialized] = useState(false);
 
-  // Sincronizar localConfig SOLO cuando cambia la temporada (diferente ID)
+  // Inicializar SOLO una vez cuando llega seasonConfig por primera vez
   useEffect(() => {
-    if (seasonConfig?.id && seasonConfig.id !== lastSeasonId) {
+    if (seasonConfig?.id && !isInitialized) {
       setLocalConfig(getConfigFromSeason());
-      setLastSeasonId(seasonConfig.id);
+      setIsInitialized(true);
     }
-  }, [seasonConfig?.id]);
+  }, [seasonConfig?.id, isInitialized]);
 
   const [newPrize, setNewPrize] = useState({ nombre: "", descripcion: "", emoji: "🎁" });
 
