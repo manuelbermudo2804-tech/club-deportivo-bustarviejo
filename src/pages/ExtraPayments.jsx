@@ -136,6 +136,8 @@ export default function ExtraPayments() {
     });
     setSelectedCategories([]);
     setSelectAllCategories(true);
+    setSelectedIndividualPlayers([]);
+    setPlayerSearchTerm("");
     setShowForm(false);
     setEditingPayment(null);
   };
