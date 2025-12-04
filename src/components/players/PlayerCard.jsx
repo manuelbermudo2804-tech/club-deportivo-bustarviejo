@@ -112,16 +112,31 @@ export default function PlayerCard({ player, onEdit, onViewProfile, isParent = f
   };
   
   const currentSeason = getCurrentSeason();
-  // Normalizar temporada: soportar formatos "2024/2025", "2024-2025", etc.
+  // Normalizar temporada: soportar formatos "2024/2025", "2024-2025", "2025/2026", "2025-2026" etc.
   const normalizeTemporada = (temp) => {
     if (!temp) return "";
+    // Convertir guiones a barras y eliminar espacios
     return temp.replace(/-/g, "/").trim();
   };
   const normalizedCurrentSeason = normalizeTemporada(currentSeason);
-  const playerPayments = payments.filter(p => 
-    p.jugador_id === player.id && 
-    normalizeTemporada(p.temporada) === normalizedCurrentSeason
-  );
+  
+  // Filtrar pagos del jugador para la temporada actual
+  const playerPayments = payments.filter(p => {
+    if (p.jugador_id !== player.id) return false;
+    const normalizedPaymentSeason = normalizeTemporada(p.temporada);
+    return normalizedPaymentSeason === normalizedCurrentSeason;
+  });
+  
+  // Debug: mostrar en consola para diagnosticar
+  if (payments.length > 0 && playerPayments.length === 0) {
+    const thisPlayerPayments = payments.filter(p => p.jugador_id === player.id);
+    if (thisPlayerPayments.length > 0) {
+      console.log(`[PlayerCard] ${player.nombre}: Pagos encontrados pero temporada no coincide`, {
+        currentSeason: normalizedCurrentSeason,
+        pagosTemporadas: thisPlayerPayments.map(p => ({ temporada: p.temporada, normalizada: normalizeTemporada(p.temporada), mes: p.mes, estado: p.estado }))
+      });
+    }
+  }
   
   // Verificar si tiene pago único pagado
   const hasPagoUnico = playerPayments.some(p => 
