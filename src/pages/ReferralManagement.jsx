@@ -206,6 +206,11 @@ export default function ReferralManagement() {
       return;
     }
 
+    if (eligibleUsers.length < 2) {
+      toast.error("Se necesitan al menos 2 participantes para realizar el sorteo");
+      return;
+    }
+
     setSelectedPrize(prize);
     setShowRaffleDialog(true);
     setIsDrawing(true);
