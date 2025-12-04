@@ -75,7 +75,7 @@ Deno.serve(async (req) => {
     }
 
     // Crear el nuevo socio
-    const newMember = await base44.asServiceRole.entities.ClubMember.create({
+    const newMember = await base44.entities.ClubMember.create({
       numero_socio: numeroSocio,
       tipo_inscripcion: data.tipo_inscripcion || "Nueva Inscripción",
       nombre_completo: data.nombre_completo,
