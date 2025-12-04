@@ -639,6 +639,21 @@ Email: cdbustarviejo@gmail.com
         )}
       </AnimatePresence>
 
+      {/* Alerta de renovaciones pendientes */}
+      {seasonConfig?.permitir_renovaciones && players.some(p => !p.activo) && (
+        <Alert className="bg-yellow-50 border-yellow-300">
+          <Info className="h-4 w-4 text-yellow-600" />
+          <AlertDescription className="text-yellow-800 ml-6 text-xs lg:text-sm">
+            <strong>🔄 ¡Periodo de renovaciones abierto!</strong> Tienes jugadores de la temporada anterior pendientes de renovar.
+            Haz clic en <strong>"Registrar Jugador"</strong> → <strong>"Renovación"</strong> para renovar a cada jugador.
+            <br />
+            <span className="text-[10px] lg:text-xs text-yellow-700 mt-1 block">
+              ⚠️ Los jugadores marcados con <span className="bg-yellow-200 px-1 rounded">PENDIENTE RENOVAR</span> no están activos hasta que completes su renovación.
+            </span>
+          </AlertDescription>
+        </Alert>
+      )}
+
       {isLoading ? (
         <div className="space-y-6">
           {[1, 2].map((i) => (
