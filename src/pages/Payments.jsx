@@ -389,6 +389,8 @@ Email: cdbustarviejo@gmail.com
     let totalPendientes = 0;
     const targetTemporada = temporadaFilter === "all" ? null : temporadaFilter;
     
+    if (!players || !payments) return 0;
+    
     players.forEach(player => {
       const playerPayments = payments.filter(p => 
         p.jugador_id === player.id && 
@@ -423,6 +425,8 @@ Email: cdbustarviejo@gmail.com
   const overdueCount = React.useMemo(() => {
     let totalVencidos = 0;
     const targetTemporada = temporadaFilter === "all" ? null : temporadaFilter;
+    
+    if (!players || !payments) return 0;
     
     players.forEach(player => {
       const playerPayments = payments.filter(p => 
