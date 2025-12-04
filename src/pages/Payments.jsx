@@ -797,7 +797,7 @@ Email: cdbustarviejo@gmail.com
                 </div>
               ) : (() => {
                 // Filtrar jugadores por búsqueda Y filtros avanzados
-                const playersToShow = players.filter(player => {
+                const playersToShow = (players || []).filter(player => {
                  // Filtro de búsqueda
                  const matchesSearch = searchTerm === "" || player.nombre?.toLowerCase().includes(searchTerm.toLowerCase());
 
