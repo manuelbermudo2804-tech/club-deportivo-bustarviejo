@@ -103,20 +103,17 @@ export default function PlayerCard({ player, onEdit, onViewProfile, isParent = f
   if (hasEnlaceFirmaJugador && !firmaJugadorOk) firmasPendientes.push("Jugador");
   if (hasEnlaceFirmaTutor && !firmaTutorOk && !esMayorDeEdad) firmasPendientes.push("Tutor");
   
-  // Calcular estado de pagos del jugador
-  // La temporada deportiva va de septiembre a agosto del año siguiente
-  // Ejemplo: En diciembre 2025 estamos en temporada 2025/2026
+  // Usar la temporada activa de SeasonConfig si está disponible, sino calcular
   const getCurrentSeason = () => {
+    // Si hay seasonConfig activa, usar esa temporada
+    if (seasonConfig?.temporada) {
+      return seasonConfig.temporada;
+    }
+    // Fallback: calcular basado en fecha
     const now = new Date();
     const year = now.getFullYear();
-    const month = now.getMonth() + 1; // 1-12
-    // Si estamos en septiembre o después, la temporada es año_actual/año_siguiente
-    // Si estamos antes de septiembre, la temporada es año_anterior/año_actual
-    if (month >= 9) {
-      return `${year}/${year + 1}`;
-    } else {
-      return `${year - 1}/${year}`;
-    }
+    const month = now.getMonth() + 1;
+    return month >= 9 ? `${year}/${year + 1}` : `${year - 1}/${year}`;
   };
   
   const currentSeason = getCurrentSeason();
