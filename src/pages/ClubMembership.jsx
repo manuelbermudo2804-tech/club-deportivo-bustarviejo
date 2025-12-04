@@ -753,21 +753,32 @@ export default function ClubMembership() {
               <div className="space-y-3">
                 <Label className="text-base font-semibold">Tipo de Inscripción *</Label>
                 <RadioGroup value={formData.tipo_inscripcion} onValueChange={(v) => setFormData({...formData, tipo_inscripcion: v})} className="space-y-2">
-                  <div className="flex items-center space-x-3 p-4 bg-gradient-to-r from-green-50 to-green-100 rounded-xl border-2 border-green-200 hover:border-green-400 transition-colors">
+                  <div className={`flex items-center space-x-3 p-4 bg-gradient-to-r from-green-50 to-green-100 rounded-xl border-2 ${formData.tipo_inscripcion === "Nueva Inscripción" ? "border-green-400 ring-2 ring-green-200" : "border-green-200"} hover:border-green-400 transition-colors`}>
                     <RadioGroupItem value="Nueva Inscripción" id="nueva" />
                     <Label htmlFor="nueva" className="cursor-pointer flex-1">
                       <span className="font-semibold">🆕 Nueva Inscripción</span>
                       <p className="text-xs text-slate-600">Primera vez como socio del club</p>
                     </Label>
                   </div>
-                  <div className="flex items-center space-x-3 p-4 bg-gradient-to-r from-blue-50 to-blue-100 rounded-xl border-2 border-blue-200 hover:border-blue-400 transition-colors">
+                  <div className={`flex items-center space-x-3 p-4 bg-gradient-to-r from-blue-50 to-blue-100 rounded-xl border-2 ${formData.tipo_inscripcion === "Renovación" ? "border-blue-400 ring-2 ring-blue-200" : "border-blue-200"} hover:border-blue-400 transition-colors`}>
                     <RadioGroupItem value="Renovación" id="renovacion" />
                     <Label htmlFor="renovacion" className="cursor-pointer flex-1">
                       <span className="font-semibold">🔄 Renovación</span>
                       <p className="text-xs text-slate-600">Ya fui socio en temporadas anteriores</p>
                     </Label>
+                    {wasPreviousMember && (
+                      <Badge className="bg-blue-500 text-white text-xs">Detectado</Badge>
+                    )}
                   </div>
                 </RadioGroup>
+                {wasPreviousMember && (
+                  <Alert className="bg-blue-50 border-blue-200">
+                    <CheckCircle2 className="w-4 h-4 text-blue-600" />
+                    <AlertDescription className="text-blue-800 text-sm">
+                      ✅ Detectamos que <strong>{formData.email}</strong> ya fue socio en temporada(s) anterior(es). ¡Gracias por renovar!
+                    </AlertDescription>
+                  </Alert>
+                )}
               </div>
 
               {/* ¿Es segundo progenitor? */}
