@@ -462,21 +462,21 @@ Email: cdbustarviejo@gmail.com
     return totalVencidos;
   }, [players, payments, temporadaFilter]);
   
-  const overduePayments = payments.filter(p => {
+  const overduePayments = (payments || []).filter(p => {
     if (p.estado === "Pagado") return false;
     if (temporadaFilter !== "all" && p.temporada !== temporadaFilter) return false;
     return calculateDaysOverdue(p.mes) > 0;
   });
   
-  const totalRecaudado = payments
+  const totalRecaudado = (payments || [])
     .filter(p => p.estado === "Pagado" && (temporadaFilter === "all" || p.temporada === temporadaFilter))
     .reduce((sum, p) => sum + (p.cantidad || 0), 0);
 
   // Temporadas únicas
-  const temporadas = ["all", ...new Set(payments.map(p => p.temporada).filter(Boolean))];
+  const temporadas = ["all", ...new Set((payments || []).map(p => p.temporada).filter(Boolean))];
   
   // Categorías únicas
-  const categorias = ["all", ...new Set(players.map(p => p.deporte).filter(Boolean))];
+  const categorias = ["all", ...new Set((players || []).map(p => p.deporte).filter(Boolean))];
 
   const prepareExportData = () => {
     return filteredPayments.map(p => ({
