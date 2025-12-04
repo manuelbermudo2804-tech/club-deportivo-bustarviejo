@@ -65,14 +65,14 @@ export default function ReferralConfigCard({ seasonConfig, onUpdate, isUpdating 
   const removePrize = (index) => {
     setLocalConfig(prev => ({
       ...prev,
-      sorteo_premios: prev.sorteo_premios.filter((_, i) => i !== index)
+      sorteo_premios: (prev.sorteo_premios || []).filter((_, i) => i !== index)
     }));
   };
 
   const updatePrize = (index, field, value) => {
     setLocalConfig(prev => ({
       ...prev,
-      sorteo_premios: prev.sorteo_premios.map((p, i) => i === index ? { ...p, [field]: value } : p)
+      sorteo_premios: (prev.sorteo_premios || []).map((p, i) => i === index ? { ...p, [field]: value } : p)
     }));
   };
 
