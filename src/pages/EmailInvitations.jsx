@@ -278,11 +278,8 @@ export default function EmailInvitations() {
     setEmails([]);
   };
 
-  const generateEmailBody = (destinatarioEmail, linkUrl, invitationId) => {
-    // URLs de tracking
-    const trackingPixelUrl = invitationId ? `${TRACKING_BASE_URL}?id=${invitationId}&action=open` : '';
-    const trackingClickUrl = invitationId ? `${TRACKING_BASE_URL}?id=${invitationId}&action=click&redirect=${encodeURIComponent(linkUrl)}` : linkUrl;
-    const finalLinkUrl = invitationId ? trackingClickUrl : linkUrl;
+  const generateEmailBody = (destinatarioEmail, token, mensajeExtra = "") => {
+    const validationUrl = `${VALIDATION_URL}?token=${token}`;
     
     return `<!DOCTYPE html>
 <html>
