@@ -183,12 +183,14 @@ export default function AdminChat() {
       }
     },
     onSuccess: async () => {
-      await refetchMessages();
       setMessageContent("");
       setAttachments([]);
       setPriority("Normal");
       setSendToAll(false);
       setSelectedRecipient("all");
+      // Invalidar y refetch inmediatamente
+      await queryClient.invalidateQueries({ queryKey: ['chatMessages'] });
+      await refetchMessages();
       toast.success(sendToAll ? "Anuncio enviado a todos los grupos" : "Mensaje enviado");
     },
   });

@@ -37,7 +37,7 @@ export default function ParentChat() {
     base44.auth.me().then(setUser).catch(console.error);
   }, []);
 
-  const { data: messages = [], isLoading: loadingMessages } = useQuery({
+  const { data: messages = [], isLoading: loadingMessages, refetch: refetchMessages } = useQuery({
     queryKey: ['chatMessages'],
     queryFn: () => base44.entities.ChatMessage.list('-created_date'),
     refetchOnWindowFocus: true,
