@@ -334,10 +334,10 @@ export default function Players() {
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <h1 className="text-3xl font-bold text-slate-900">
-            {isAdmin ? "Jugadores" : isCoach ? "Mis Hijos" : "Mis Jugadores"}
+            {isAdmin || isTreasurer ? "Jugadores" : isCoach ? "Mis Hijos" : "Mis Jugadores"}
           </h1>
           <p className="text-slate-600 mt-1">
-            {isAdmin ? "Gestión de fichas y plantilla" : "Jugadores registrados a tu nombre"}
+            {isAdmin || isTreasurer ? "Gestión de fichas y plantilla" : "Jugadores registrados a tu nombre"}
           </p>
         </div>
         <div className="flex gap-3">
