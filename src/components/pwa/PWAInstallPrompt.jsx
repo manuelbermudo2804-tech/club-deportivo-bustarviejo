@@ -12,18 +12,32 @@ export default function PWAInstallPrompt() {
   const [hasError, setHasError] = useState(false);
 
   useEffect(() => {
+    // Verificar que estamos en el navegador
+    if (typeof window === 'undefined') return;
+    
     try {
       // Detectar si es iOS
-      const isIOSDevice = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+      const ua = navigator?.userAgent || '';
+      const isIOSDevice = /iPad|iPhone|iPod/.test(ua);
       setIsIOS(isIOSDevice);
 
       // Detectar si ya está instalada
-      const isInStandaloneMode = window.matchMedia('(display-mode: standalone)').matches || 
-                                 window.navigator.standalone === true;
+      let isInStandaloneMode = false;
+      try {
+        isInStandaloneMode = window.matchMedia?.('(display-mode: standalone)')?.matches || 
+                             (window.navigator && window.navigator.standalone === true);
+      } catch (e) {
+        // Ignorar errores de matchMedia
+      }
       setIsStandalone(isInStandaloneMode);
       
       // Comprobar si ya está marcada como instalada por el usuario
-      const userMarkedInstalled = localStorage.getItem('pwaInstalled') === 'true';
+      let userMarkedInstalled = false;
+      try {
+        userMarkedInstalled = localStorage.getItem('pwaInstalled') === 'true';
+      } catch (e) {
+        // localStorage puede no estar disponible
+      }
       
       // Si ya está instalada (por cualquier método), no mostrar
       if (isInStandaloneMode || userMarkedInstalled) {
@@ -31,23 +45,21 @@ export default function PWAInstallPrompt() {
         return;
       }
 
-      // PRIMERA VISITA: Mostrar siempre el prompt de instalación
-      // Solo ocultarlo si el usuario lo rechazó explícitamente
-      const dismissed = localStorage.getItem('pwa-install-dismissed');
-      const dismissedIOS = localStorage.getItem('pwa-install-dismissed-ios');
+      // Verificar si fue rechazado anteriormente
+      let dismissed = false;
+      let dismissedIOS = false;
+      try {
+        dismissed = localStorage.getItem('pwa-install-dismissed') === 'true';
+        dismissedIOS = localStorage.getItem('pwa-install-dismissed-ios') === 'true';
+      } catch (e) {
+        // localStorage puede no estar disponible
+      }
       
-      // Mostrar inmediatamente si es primera visita (no hay flag de rechazo)
-      if (isIOSDevice) {
-        if (!dismissedIOS) {
-          setShowInstallPrompt(true);
-        }
-      } else {
-        if (!dismissed) {
-          // Mostrar después de 1 segundo para que la página cargue
-          setTimeout(() => {
-            setShowInstallPrompt(true);
-          }, 1000);
-        }
+      // Mostrar inmediatamente si es primera visita
+      if (isIOSDevice && !dismissedIOS) {
+        setShowInstallPrompt(true);
+      } else if (!isIOSDevice && !dismissed) {
+        setTimeout(() => setShowInstallPrompt(true), 1000);
       }
 
       // Capturar evento de instalación (Chrome/Android)
@@ -55,13 +67,11 @@ export default function PWAInstallPrompt() {
         try {
           e.preventDefault();
           setDeferredPrompt(e);
-          
-          // Mostrar prompt si no lo han rechazado antes
           if (!dismissed) {
             setShowInstallPrompt(true);
           }
         } catch (err) {
-          console.error('[PWA] Error en beforeinstallprompt:', err);
+          console.log('[PWA] beforeinstallprompt error');
         }
       };
 
@@ -71,7 +81,7 @@ export default function PWAInstallPrompt() {
         window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
       };
     } catch (error) {
-      console.error('[PWA] Error en useEffect:', error);
+      console.log('[PWA] Init error');
       setHasError(true);
     }
   }, []);
