@@ -182,13 +182,34 @@ export default function AdminChat() {
         return newMessage;
       }
     },
-    onSuccess: async () => {
+    onSuccess: async (result, variables) => {
       setMessageContent("");
       setAttachments([]);
       setPriority("Normal");
       setSendToAll(false);
       setSelectedRecipient("all");
-      // Invalidar y refetch inmediatamente
+      
+      // Enviar PUSH real si es mensaje importante/urgente
+      if (variables.prioridad === "Importante" || variables.prioridad === "Urgente") {
+        try {
+          const groupPlayers = variables.sendToAll 
+            ? players 
+            : players.filter(p => p.deporte === variables.deporte);
+          const recipientEmails = [...new Set(groupPlayers.flatMap(p => [p.email_padre, p.email_tutor_2].filter(Boolean)))];
+          
+          await base44.functions.invoke('triggerChatPush', {
+            messageContent: variables.mensaje,
+            senderName: variables.remitente_nombre,
+            groupId: variables.grupo_id,
+            prioridad: variables.prioridad,
+            recipientEmails
+          });
+          console.log('✅ Push enviado para mensaje', variables.prioridad);
+        } catch (pushErr) {
+          console.error('Error enviando push:', pushErr);
+        }
+      }
+      
       await queryClient.invalidateQueries({ queryKey: ['chatMessages'] });
       await refetchMessages();
       toast.success(sendToAll ? "Anuncio enviado a todos los grupos" : "Mensaje enviado");
