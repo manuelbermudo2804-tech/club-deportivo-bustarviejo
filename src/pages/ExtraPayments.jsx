@@ -528,36 +528,141 @@ export default function ExtraPayments() {
             {/* Selección de categorías */}
             <div>
               <Label>¿A quién aplica?</Label>
-              <div className="mt-2 space-y-2">
+              <div className="mt-2 space-y-3">
                 <div className="flex items-center gap-2">
                   <Checkbox
                     checked={selectAllCategories}
                     onCheckedChange={(c) => {
                       setSelectAllCategories(c);
-                      if (c) setSelectedCategories([]);
+                      if (c) {
+                        setSelectedCategories([]);
+                        setSelectedIndividualPlayers([]);
+                      }
                     }}
                   />
-                  <span className="text-sm">Todos los jugadores activos</span>
+                  <span className="text-sm font-medium">Todos los jugadores activos ({activePlayers.length})</span>
                 </div>
                 
                 {!selectAllCategories && (
-                  <div className="pl-6 space-y-1 max-h-40 overflow-y-auto border rounded-lg p-2">
-                    {CATEGORIAS.map(cat => (
-                      <div key={cat} className="flex items-center gap-2">
-                        <Checkbox
-                          checked={selectedCategories.includes(cat)}
-                          onCheckedChange={(c) => {
-                            if (c) {
-                              setSelectedCategories([...selectedCategories, cat]);
-                            } else {
-                              setSelectedCategories(selectedCategories.filter(sc => sc !== cat));
-                            }
-                          }}
-                        />
-                        <span className="text-xs">{cat}</span>
+                  <>
+                    {/* Selección por categorías */}
+                    <div className="border rounded-lg p-3 bg-slate-50">
+                      <p className="text-xs font-semibold text-slate-700 mb-2 flex items-center gap-1">
+                        <Users className="w-3 h-3" /> Seleccionar categorías completas:
+                      </p>
+                      <div className="grid grid-cols-2 gap-1 max-h-32 overflow-y-auto">
+                        {CATEGORIAS.map(cat => {
+                          const playersInCat = activePlayers.filter(p => p.deporte === cat).length;
+                          return (
+                            <div key={cat} className="flex items-center gap-2">
+                              <Checkbox
+                                checked={selectedCategories.includes(cat)}
+                                onCheckedChange={(c) => {
+                                  if (c) {
+                                    setSelectedCategories([...selectedCategories, cat]);
+                                  } else {
+                                    setSelectedCategories(selectedCategories.filter(sc => sc !== cat));
+                                  }
+                                }}
+                              />
+                              <span className="text-xs truncate">{cat} <span className="text-slate-500">({playersInCat})</span></span>
+                            </div>
+                          );
+                        })}
                       </div>
-                    ))}
-                  </div>
+                      {selectedCategories.length > 0 && (
+                        <p className="text-xs text-green-600 mt-2">
+                          ✓ {activePlayers.filter(p => selectedCategories.includes(p.deporte)).length} jugadores de {selectedCategories.length} categoría(s)
+                        </p>
+                      )}
+                    </div>
+
+                    {/* Añadir jugadores individuales */}
+                    <div className="border rounded-lg p-3 bg-blue-50">
+                      <p className="text-xs font-semibold text-blue-700 mb-2 flex items-center gap-1">
+                        <Users className="w-3 h-3" /> Añadir jugadores individuales (de otras categorías):
+                      </p>
+                      <Input
+                        placeholder="Buscar jugador por nombre..."
+                        value={playerSearchTerm}
+                        onChange={(e) => setPlayerSearchTerm(e.target.value)}
+                        className="mb-2 text-xs h-8"
+                      />
+                      
+                      {playerSearchTerm.length >= 2 && (
+                        <div className="max-h-28 overflow-y-auto border rounded bg-white">
+                          {activePlayers
+                            .filter(p => 
+                              p.nombre.toLowerCase().includes(playerSearchTerm.toLowerCase()) &&
+                              !selectedCategories.includes(p.deporte) && // No mostrar los de categorías ya seleccionadas
+                              !selectedIndividualPlayers.some(sp => sp.id === p.id) // No mostrar los ya añadidos
+                            )
+                            .slice(0, 10)
+                            .map(player => (
+                              <div 
+                                key={player.id}
+                                onClick={() => {
+                                  setSelectedIndividualPlayers([...selectedIndividualPlayers, player]);
+                                  setPlayerSearchTerm("");
+                                }}
+                                className="p-2 text-xs hover:bg-blue-100 cursor-pointer border-b last:border-b-0"
+                              >
+                                <span className="font-medium">{player.nombre}</span>
+                                <span className="text-slate-500 ml-2">({player.deporte})</span>
+                              </div>
+                            ))
+                          }
+                          {activePlayers.filter(p => 
+                            p.nombre.toLowerCase().includes(playerSearchTerm.toLowerCase()) &&
+                            !selectedCategories.includes(p.deporte) &&
+                            !selectedIndividualPlayers.some(sp => sp.id === p.id)
+                          ).length === 0 && (
+                            <p className="p-2 text-xs text-slate-500">No se encontraron jugadores</p>
+                          )}
+                        </div>
+                      )}
+
+                      {/* Jugadores individuales seleccionados */}
+                      {selectedIndividualPlayers.length > 0 && (
+                        <div className="mt-2 flex flex-wrap gap-1">
+                          {selectedIndividualPlayers.map(player => (
+                            <Badge 
+                              key={player.id} 
+                              variant="secondary"
+                              className="text-xs flex items-center gap-1 bg-blue-100 text-blue-800"
+                            >
+                              {player.nombre}
+                              <X 
+                                className="w-3 h-3 cursor-pointer hover:text-red-600"
+                                onClick={() => setSelectedIndividualPlayers(
+                                  selectedIndividualPlayers.filter(p => p.id !== player.id)
+                                )}
+                              />
+                            </Badge>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Resumen total */}
+                    {(selectedCategories.length > 0 || selectedIndividualPlayers.length > 0) && (
+                      <Alert className="bg-green-50 border-green-200">
+                        <CheckCircle2 className="w-4 h-4 text-green-600" />
+                        <AlertDescription className="text-green-800 text-xs ml-2">
+                          <strong>Total: {
+                            activePlayers.filter(p => selectedCategories.includes(p.deporte)).length + 
+                            selectedIndividualPlayers.filter(p => !selectedCategories.includes(p.deporte)).length
+                          } jugadores</strong>
+                          {selectedCategories.length > 0 && (
+                            <span className="block">• {activePlayers.filter(p => selectedCategories.includes(p.deporte)).length} de categorías seleccionadas</span>
+                          )}
+                          {selectedIndividualPlayers.filter(p => !selectedCategories.includes(p.deporte)).length > 0 && (
+                            <span className="block">• {selectedIndividualPlayers.filter(p => !selectedCategories.includes(p.deporte)).length} jugadores individuales</span>
+                          )}
+                        </AlertDescription>
+                      </Alert>
+                    )}
+                  </>
                 )}
               </div>
             </div>
