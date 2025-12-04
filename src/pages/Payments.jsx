@@ -456,8 +456,8 @@ Email: cdbustarviejo@gmail.com
     .filter(p => p.estado === "Pagado" && matchTemporada(p.temporada, temporadaFilter))
     .reduce((sum, p) => sum + (p.cantidad || 0), 0);
 
-  // Temporadas únicas
-  const temporadas = ["all", ...new Set((payments || []).map(p => p.temporada).filter(Boolean))];
+  // Temporadas únicas - normalizar formato
+  const temporadas = ["all", ...new Set((payments || []).map(p => normalizeTemporada(p.temporada)).filter(Boolean))];
   
   // Categorías únicas
   const categorias = ["all", ...new Set((players || []).map(p => p.deporte).filter(Boolean))];
