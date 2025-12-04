@@ -217,6 +217,21 @@ export default function ClubMembership() {
     enabled: !isCheckingAuth,
   });
 
+  // Detectar si el email ya fue socio en temporadas anteriores (para auto-marcar como renovación)
+  const previousMemberships = allMemberships.filter(m => 
+    m.email?.toLowerCase() === formData.email?.toLowerCase() && 
+    m.temporada !== seasonConfig?.temporada
+  );
+  const wasPreviousMember = previousMemberships.length > 0;
+
+  // Auto-detectar renovación cuando cambia el email
+  useEffect(() => {
+    if (formData.email && wasPreviousMember && formData.tipo_inscripcion === "Nueva Inscripción") {
+      setFormData(prev => ({ ...prev, tipo_inscripcion: "Renovación" }));
+      toast.info("📋 Detectamos que ya fuiste socio. Marcado como renovación.");
+    }
+  }, [formData.email, wasPreviousMember]);
+
   const { data: myPlayers = [] } = useQuery({
     queryKey: ['myPlayers', user?.email],
     queryFn: async () => {
