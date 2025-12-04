@@ -1,149 +1,31 @@
-import React, { useState } from "react";
+import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Gift, Star, Trophy, Hotel, Shirt, Ticket, Sparkles, Heart, Users, Crown, Zap, PartyPopper, Share2, MessageCircle, Copy, Check } from "lucide-react";
-import { toast } from "sonner";
+import { Gift, Star, Trophy, Hotel, Shirt, Ticket, Sparkles, Heart, Users, Crown, Zap, PartyPopper } from "lucide-react";
 
 const REWARD_TIERS = [
-  {
-    count: 1,
-    icon: Gift,
-    color: "from-blue-500 to-blue-600",
-    bgColor: "bg-blue-50",
-    borderColor: "border-blue-300",
-    title: "1 Socio",
-    emoji: "🎁"
-  },
-  {
-    count: 3,
-    icon: Star,
-    color: "from-green-500 to-green-600",
-    bgColor: "bg-green-50",
-    borderColor: "border-green-300",
-    title: "3 Socios",
-    emoji: "⭐"
-  },
-  {
-    count: 5,
-    icon: Trophy,
-    color: "from-orange-500 to-orange-600",
-    bgColor: "bg-orange-50",
-    borderColor: "border-orange-300",
-    title: "5 Socios",
-    emoji: "🏆"
-  },
-  {
-    count: 10,
-    icon: Crown,
-    color: "from-purple-500 to-purple-600",
-    bgColor: "bg-purple-50",
-    borderColor: "border-purple-300",
-    title: "10 Socios",
-    emoji: "👑"
-  },
-  {
-    count: 15,
-    icon: Hotel,
-    color: "from-pink-500 to-pink-600",
-    bgColor: "bg-pink-50",
-    borderColor: "border-pink-300",
-    title: "15 Socios",
-    emoji: "🏨"
-  }
+  { count: 1, color: "from-blue-500 to-blue-600", bgColor: "bg-blue-50", borderColor: "border-blue-300", title: "1 Socio", emoji: "🎁" },
+  { count: 3, color: "from-green-500 to-green-600", bgColor: "bg-green-50", borderColor: "border-green-300", title: "3 Socios", emoji: "⭐" },
+  { count: 5, color: "from-orange-500 to-orange-600", bgColor: "bg-orange-50", borderColor: "border-orange-300", title: "5 Socios", emoji: "🏆" },
+  { count: 10, color: "from-purple-500 to-purple-600", bgColor: "bg-purple-50", borderColor: "border-purple-300", title: "10 Socios", emoji: "👑" },
+  { count: 15, color: "from-pink-500 to-pink-600", bgColor: "bg-pink-50", borderColor: "border-pink-300", title: "15 Socios", emoji: "🏨" }
 ];
 
-export default function ReferralProgramCard({ seasonConfig, userReferrals = 0, userCredit = 0, userRaffleEntries = 0, userEmail = "", userName = "", hasPlayersInClub = false }) {
-        const [copied, setCopied] = useState(false);
+export default function ReferralProgramCard({ seasonConfig, userReferrals = 0, userCredit = 0, userRaffleEntries = 0, hasPlayersInClub = false }) {
+  if (!seasonConfig?.programa_referidos_activo) return null;
+  if (hasPlayersInClub !== true) return null;
 
-        // Solo mostrar a padres con hijos en el club
-        if (!seasonConfig?.programa_referidos_activo) return null;
-        if (hasPlayersInClub !== true) return null;
-
-        // Verificar si ha alcanzado el máximo de 15 referidos
-        const hasReachedLimit = userReferrals >= 15;
-
-        // Generar código de referido único (basado en el ID del usuario, no el email)
-        const LANDING_PAGE_URL = 'https://manuelbermudo2804-tech.github.io/-club-landing-page-Bustarviejo/';
-        // Usar un hash simple del email para generar un código corto y único
-        const generateReferralCode = (email) => {
-          let hash = 0;
-          for (let i = 0; i < email.length; i++) {
-            const char = email.charCodeAt(i);
-            hash = ((hash << 5) - hash) + char;
-            hash = hash & hash;
-          }
-          return Math.abs(hash).toString(36).toUpperCase().slice(0, 8);
-        };
-        const referralCode = generateReferralCode(userEmail);
-        const referralLink = `${LANDING_PAGE_URL}?ref=${referralCode}`;
-
-        // Mensaje predefinido para WhatsApp
-        const whatsappMessage = `¡Hola! 👋 Te invito a hacerte socio del CD Bustarviejo ⚽🏀
-
-Por solo 25€/temporada ayudas a más de 200 niños y niñas a disfrutar del deporte en nuestro pueblo.
-
-👉 Regístrate aquí: ${referralLink}
-
-⚠️ IMPORTANTE: Este enlace es personal y solo funciona si te lo he enviado YO directamente. Si lo reenvías a otra persona, no contará para el programa de premios.
-
-🔒 Tus datos están protegidos según el RGPD.
-
-¡Gracias por tu apoyo! 💪🎉`;
-
-        const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(whatsappMessage)}`;
-
-        const copyLink = () => {
-          navigator.clipboard.writeText(referralLink);
-          setCopied(true);
-          toast.success("¡Enlace copiado!");
-          setTimeout(() => setCopied(false), 3000);
-        };
+  const hasReachedLimit = userReferrals >= 15;
 
   const getRewardForTier = (count) => {
     switch (count) {
-      case 1:
-        return {
-          credit: seasonConfig.referidos_premio_1 || 5,
-          raffles: 0,
-          special: null
-        };
-      case 3:
-        return {
-          credit: seasonConfig.referidos_premio_3 || 15,
-          raffles: seasonConfig.referidos_sorteo_3 || 1,
-          special: null
-        };
-      case 5:
-        return {
-          credit: seasonConfig.referidos_premio_5 || 25,
-          raffles: seasonConfig.referidos_sorteo_5 || 3,
-          special: null
-        };
-      case 10:
-        return {
-          credit: seasonConfig.referidos_premio_10 || 50,
-          raffles: seasonConfig.referidos_sorteo_10 || 5,
-          special: "Reconocimiento en la web"
-        };
-      case 15:
-        return {
-          credit: seasonConfig.referidos_premio_15 || 50,
-          raffles: seasonConfig.referidos_sorteo_15 || 10,
-          special: seasonConfig.referidos_premio_hotel ? "🏨 ¡NOCHE DE HOTEL PARA DOS!" : null
-        };
-      default:
-        return { credit: 0, raffles: 0, special: null };
+      case 1: return { credit: seasonConfig.referidos_premio_1 || 5, raffles: 0, special: null };
+      case 3: return { credit: seasonConfig.referidos_premio_3 || 15, raffles: seasonConfig.referidos_sorteo_3 || 1, special: null };
+      case 5: return { credit: seasonConfig.referidos_premio_5 || 25, raffles: seasonConfig.referidos_sorteo_5 || 3, special: null };
+      case 10: return { credit: seasonConfig.referidos_premio_10 || 50, raffles: seasonConfig.referidos_sorteo_10 || 5, special: "Reconocimiento en la web" };
+      case 15: return { credit: seasonConfig.referidos_premio_15 || 50, raffles: seasonConfig.referidos_sorteo_15 || 10, special: seasonConfig.referidos_premio_hotel ? "🏨 ¡NOCHE DE HOTEL PARA DOS!" : null };
+      default: return { credit: 0, raffles: 0, special: null };
     }
-  };
-
-  const getCurrentTier = () => {
-    if (userReferrals >= 15) return 15;
-    if (userReferrals >= 10) return 10;
-    if (userReferrals >= 5) return 5;
-    if (userReferrals >= 3) return 3;
-    if (userReferrals >= 1) return 1;
-    return 0;
   };
 
   const getNextTier = () => {
@@ -155,13 +37,11 @@ Por solo 25€/temporada ayudas a más de 200 niños y niñas a disfrutar del de
     return 1;
   };
 
-  const currentTier = getCurrentTier();
   const nextTier = getNextTier();
   const referralsToNext = nextTier ? nextTier - userReferrals : 0;
 
   return (
     <Card className="border-none shadow-xl bg-gradient-to-br from-purple-600 via-pink-500 to-orange-500 text-white overflow-hidden relative">
-      {/* Decoraciones animadas */}
       <div className="absolute top-0 right-0 w-40 h-40 bg-white/10 rounded-full -mr-20 -mt-20 animate-pulse"></div>
       <div className="absolute bottom-0 left-0 w-32 h-32 bg-white/10 rounded-full -ml-16 -mb-16"></div>
       <div className="absolute top-1/2 right-10 text-6xl opacity-20 animate-bounce">🎉</div>
@@ -182,17 +62,11 @@ Por solo 25€/temporada ayudas a más de 200 niños y niñas a disfrutar del de
       </CardHeader>
 
       <CardContent className="relative space-y-4">
-        {/* Mensaje motivador */}
         <div className="bg-white/20 backdrop-blur-sm rounded-2xl p-4 text-center">
-          <p className="text-lg font-semibold mb-1">
-                    🔥 ¡Cuantos más amigos traigas, más premios ganas! 🔥
-                  </p>
-                  <p className="text-sm text-white/90">
-                    Invita a familiares, amigos, vecinos... ¡Cada nuevo socio cuenta!
-                  </p>
+          <p className="text-lg font-semibold mb-1">🔥 ¡Cuantos más amigos traigas, más premios ganas! 🔥</p>
+          <p className="text-sm text-white/90">Invita a familiares, amigos, vecinos... ¡Cada nuevo socio cuenta!</p>
         </div>
 
-        {/* Estado actual del usuario */}
         {userReferrals > 0 && (
           <div className="bg-white rounded-2xl p-4 text-slate-900">
             <div className="flex items-center justify-between mb-3">
@@ -227,7 +101,6 @@ Por solo 25€/temporada ayudas a más de 200 niños y niñas a disfrutar del de
           </div>
         )}
 
-        {/* Tabla de premios - solo tiers activos */}
         <div className="bg-white rounded-2xl p-4 text-slate-900">
           <h3 className="font-bold text-lg mb-3 flex items-center gap-2 text-purple-700">
             <Gift className="w-5 h-5" />
@@ -236,7 +109,6 @@ Por solo 25€/temporada ayudas a más de 200 niños y niñas a disfrutar del de
           
           <div className="space-y-2">
             {REWARD_TIERS.filter(tier => {
-              // Verificar si el tier está activo en la configuración
               if (tier.count === 1 && seasonConfig.tier_1_activo === false) return false;
               if (tier.count === 3 && seasonConfig.tier_3_activo === false) return false;
               if (tier.count === 5 && seasonConfig.tier_5_activo === false) return false;
@@ -284,9 +156,7 @@ Por solo 25€/temporada ayudas a más de 200 niños y niñas a disfrutar del de
                       </div>
                     </div>
                     {isAchieved && (
-                      <Badge className="bg-green-500 text-white">
-                        ✓ ¡Conseguido!
-                      </Badge>
+                      <Badge className="bg-green-500 text-white">✓ ¡Conseguido!</Badge>
                     )}
                   </div>
                 </div>
@@ -295,83 +165,38 @@ Por solo 25€/temporada ayudas a más de 200 niños y niñas a disfrutar del de
           </div>
         </div>
 
-        {/* Premio especial destacado */}
         {seasonConfig.referidos_premio_hotel && (
           <div className="bg-gradient-to-r from-pink-100 via-purple-100 to-pink-100 rounded-2xl p-4 text-center border-4 border-pink-300 relative overflow-hidden">
-            <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-r from-transparent via-white/30 to-transparent animate-shimmer"></div>
             <div className="text-5xl mb-2">🏨✨</div>
-            <h4 className="text-xl font-bold text-pink-800 mb-1">
-              ¡PREMIO ESTRELLA!
-            </h4>
-            <p className="text-pink-700 font-medium">
-              Trae <strong>15 socios amigos</strong> y gana una
-            </p>
-            <p className="text-2xl font-bold text-pink-900 mt-1">
-              🌙 NOCHE DE HOTEL PARA DOS 🌙
-            </p>
-            <p className="text-xs text-pink-600 mt-2">
-              + 50€ en ropa + 10 participaciones en sorteos
-            </p>
+            <h4 className="text-xl font-bold text-pink-800 mb-1">¡PREMIO ESTRELLA!</h4>
+            <p className="text-pink-700 font-medium">Trae <strong>15 socios amigos</strong> y gana una</p>
+            <p className="text-2xl font-bold text-pink-900 mt-1">🌙 NOCHE DE HOTEL PARA DOS 🌙</p>
+            <p className="text-xs text-pink-600 mt-2">+ 50€ en ropa + 10 participaciones en sorteos</p>
           </div>
         )}
 
-        {/* Cómo participar */}
         <div className="bg-white/20 backdrop-blur-sm rounded-2xl p-4">
           <h4 className="font-bold mb-2 flex items-center gap-2">
             <Heart className="w-5 h-5 text-red-300" />
             ¿Cómo participar?
           </h4>
           <ol className="text-sm space-y-1 text-white/95">
-            <li>1️⃣ Comparte tu enlace único por WhatsApp o redes</li>
-            <li>2️⃣ Cuando alguien se registre con tu enlace, ¡se te asigna automáticamente!</li>
+            <li>1️⃣ Invita a amigos y familiares a hacerse socios</li>
+            <li>2️⃣ Cuando se registren, diles que pongan tu nombre como referido</li>
             <li>3️⃣ ¡Tus premios se acumulan con cada nuevo socio!</li>
           </ol>
-          </div>
+        </div>
 
-          {/* Botones de compartir - Solo si WhatsApp está permitido y no ha alcanzado el límite */}
-          {userEmail && seasonConfig?.referidos_permitir_whatsapp_padres !== false && !hasReachedLimit && (
-          <div className="space-y-3 mt-4">
-            <p className="text-sm font-semibold text-center">📤 ¡Comparte tu enlace único!</p>
-            <div className="flex flex-col sm:flex-row gap-2">
-              <a 
-                href={whatsappUrl} 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="flex-1"
-              >
-                <Button className="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-3 gap-2">
-                  <MessageCircle className="w-5 h-5" />
-                  Enviar por WhatsApp
-                </Button>
-              </a>
-              <Button 
-                onClick={copyLink}
-                variant="outline"
-                className="flex-1 bg-white/20 border-white/40 text-white hover:bg-white/30 py-3 gap-2"
-              >
-                {copied ? <Check className="w-5 h-5" /> : <Copy className="w-5 h-5" />}
-                {copied ? "¡Copiado!" : "Copiar enlace"}
-              </Button>
-            </div>
-            <p className="text-xs text-white/70 text-center">
-              Este enlace es único para ti. Cuando alguien se registre usándolo, recibirás tu premio automáticamente.
+        {hasReachedLimit && (
+          <div className="bg-gradient-to-r from-yellow-100 to-orange-100 rounded-2xl p-4 text-center border-2 border-yellow-300">
+            <Trophy className="w-10 h-10 mx-auto mb-2 text-yellow-600" />
+            <p className="font-bold text-yellow-900 text-lg">🎉 ¡ENHORABUENA!</p>
+            <p className="text-yellow-800 text-sm">
+              Has alcanzado el máximo de <strong>15 socios invitados</strong>. ¡Eres un/a campeón/a del programa!
             </p>
           </div>
-          )}
+        )}
 
-          {/* Mensaje si ha alcanzado el límite */}
-          {hasReachedLimit && (
-            <div className="bg-gradient-to-r from-yellow-100 to-orange-100 rounded-2xl p-4 text-center border-2 border-yellow-300 mt-4">
-              <Trophy className="w-10 h-10 mx-auto mb-2 text-yellow-600" />
-              <p className="font-bold text-yellow-900 text-lg">🎉 ¡ENHORABUENA!</p>
-              <p className="text-yellow-800 text-sm">
-                Has alcanzado el máximo de <strong>15 socios invitados</strong>. 
-                ¡Eres un/a campeón/a del programa!
-              </p>
-            </div>
-          )}
-
-        {/* Lista de premios del sorteo - solo los activos */}
         {seasonConfig.sorteo_premios && seasonConfig.sorteo_premios.filter(p => p.activo !== false).length > 0 && (
           <div className="bg-white rounded-2xl p-4 text-slate-900">
             <h3 className="font-bold text-lg mb-3 flex items-center gap-2 text-yellow-700">
@@ -394,16 +219,6 @@ Por solo 25€/temporada ayudas a más de 200 niños y niñas a disfrutar del de
           * Los premios se pueden usar en pedidos de ropa del club. Los sorteos se realizan al final de la temporada.
         </p>
       </CardContent>
-
-      <style jsx>{`
-        @keyframes shimmer {
-          0% { transform: translateX(-100%); }
-          100% { transform: translateX(100%); }
-        }
-        .animate-shimmer {
-          animation: shimmer 3s infinite;
-        }
-      `}</style>
     </Card>
   );
 }

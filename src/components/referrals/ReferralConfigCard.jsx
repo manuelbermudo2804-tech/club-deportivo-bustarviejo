@@ -5,8 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
-import { Textarea } from "@/components/ui/textarea";
-import { Gift, Users, Shirt, Ticket, Hotel, Save, ChevronDown, ChevronUp, Sparkles, Trophy, Plus, Trash2, UtensilsCrossed, Gamepad2, ShoppingBag, Star, MessageCircle } from "lucide-react";
+import { Gift, Shirt, Ticket, Hotel, Save, ChevronDown, ChevronUp, Sparkles, Trophy, Plus, Trash2 } from "lucide-react";
 
 const DEFAULT_PRIZES = [
   { nombre: "Cena para dos", descripcion: "Cena en restaurante local", emoji: "🍽️" },
@@ -20,10 +19,8 @@ export default function ReferralConfigCard({ seasonConfig, onUpdate, isUpdating 
   const [expanded, setExpanded] = useState(false);
   const [lastSeasonId, setLastSeasonId] = useState(null);
   
-  // Función para construir config inicial desde seasonConfig
   const buildConfigFromSeason = (sc) => ({
     programa_referidos_activo: sc?.programa_referidos_activo === true,
-    referidos_permitir_whatsapp_padres: sc?.referidos_permitir_whatsapp_padres ?? true,
     tier_1_activo: sc?.tier_1_activo ?? true,
     tier_3_activo: sc?.tier_3_activo ?? true,
     tier_5_activo: sc?.tier_5_activo ?? true,
@@ -44,7 +41,6 @@ export default function ReferralConfigCard({ seasonConfig, onUpdate, isUpdating 
 
   const [localConfig, setLocalConfig] = useState(() => buildConfigFromSeason(seasonConfig));
 
-  // Solo re-inicializar si cambia a una temporada DIFERENTE (diferente ID)
   useEffect(() => {
     if (seasonConfig?.id && seasonConfig.id !== lastSeasonId) {
       setLocalConfig(buildConfigFromSeason(seasonConfig));
@@ -95,23 +91,22 @@ export default function ReferralConfigCard({ seasonConfig, onUpdate, isUpdating 
               <Gift className="w-5 h-5 text-white" />
             </div>
             <div>
-                <CardTitle className="text-lg flex items-center gap-2">
-                  Trae un Socio Amigo
-                  {localConfig.programa_referidos_activo && (
-                    <Badge className="bg-purple-600 text-white">
-                      <Sparkles className="w-3 h-3 mr-1" /> Activo
-                    </Badge>
-                  )}
-                </CardTitle>
-                <p className="text-xs text-slate-600">Incentivos para socios que traigan amigos y familiares</p>
-              </div>
+              <CardTitle className="text-lg flex items-center gap-2">
+                Trae un Socio Amigo
+                {localConfig.programa_referidos_activo && (
+                  <Badge className="bg-purple-600 text-white">
+                    <Sparkles className="w-3 h-3 mr-1" /> Activo
+                  </Badge>
+                )}
+              </CardTitle>
+              <p className="text-xs text-slate-600">Incentivos para socios que traigan amigos (máx. 15)</p>
+            </div>
           </div>
           <div className="flex items-center gap-3">
             <Switch
               checked={localConfig.programa_referidos_activo}
               onCheckedChange={(checked) => {
                 setLocalConfig(prev => ({ ...prev, programa_referidos_activo: checked }));
-                // Guardar inmediatamente al cambiar el switch principal
                 onUpdate({ programa_referidos_activo: checked });
               }}
               onClick={(e) => e.stopPropagation()}
@@ -123,47 +118,20 @@ export default function ReferralConfigCard({ seasonConfig, onUpdate, isUpdating 
 
       {expanded && (
         <CardContent className="space-y-6 pt-0">
-          {/* Opción de WhatsApp para padres */}
-          <div className="bg-green-50 rounded-xl p-4 border-2 border-green-200">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <MessageCircle className="w-6 h-6 text-green-600" />
-                <div>
-                  <Label className="font-semibold text-green-900">Permitir a padres compartir por WhatsApp</Label>
-                  <p className="text-xs text-green-700">Si está desactivado, los padres no verán el botón de compartir su enlace por WhatsApp en la tarjeta de referidos</p>
-                </div>
-              </div>
-              <Switch
-                checked={localConfig.referidos_permitir_whatsapp_padres}
-                onCheckedChange={(checked) => setLocalConfig(prev => ({ ...prev, referidos_permitir_whatsapp_padres: checked }))}
-              />
-            </div>
-          </div>
-
           {/* Tier 1: 1 socio */}
           <div className={`rounded-xl p-4 border-2 transition-all ${localConfig.tier_1_activo ? 'bg-blue-50 border-blue-200' : 'bg-slate-100 border-slate-200 opacity-60'}`}>
             <div className="flex items-center justify-between mb-3">
               <Badge className={localConfig.tier_1_activo ? "bg-blue-600" : "bg-slate-400"}>🎁 1 Socio</Badge>
               <div className="flex items-center gap-2">
                 <Label className="text-xs text-slate-600">Activar</Label>
-                <Switch
-                  checked={localConfig.tier_1_activo}
-                  onCheckedChange={(checked) => setLocalConfig(prev => ({ ...prev, tier_1_activo: checked }))}
-                />
+                <Switch checked={localConfig.tier_1_activo} onCheckedChange={(checked) => setLocalConfig(prev => ({ ...prev, tier_1_activo: checked }))} />
               </div>
             </div>
             {localConfig.tier_1_activo && (
-              <div className="grid grid-cols-1 gap-3">
-                <div className="flex items-center gap-3">
-                  <Shirt className="w-5 h-5 text-green-600" />
-                  <Label className="text-sm">Crédito en ropa (€):</Label>
-                  <Input
-                    type="number"
-                    value={localConfig.referidos_premio_1}
-                    onChange={(e) => setLocalConfig(prev => ({ ...prev, referidos_premio_1: Number(e.target.value) }))}
-                    className="w-20"
-                  />
-                </div>
+              <div className="flex items-center gap-3">
+                <Shirt className="w-5 h-5 text-green-600" />
+                <Label className="text-sm">Crédito en ropa (€):</Label>
+                <Input type="number" value={localConfig.referidos_premio_1} onChange={(e) => setLocalConfig(prev => ({ ...prev, referidos_premio_1: Number(e.target.value) }))} className="w-20" />
               </div>
             )}
           </div>
@@ -174,33 +142,20 @@ export default function ReferralConfigCard({ seasonConfig, onUpdate, isUpdating 
               <Badge className={localConfig.tier_3_activo ? "bg-green-600" : "bg-slate-400"}>⭐ 3 Socios</Badge>
               <div className="flex items-center gap-2">
                 <Label className="text-xs text-slate-600">Activar</Label>
-                <Switch
-                  checked={localConfig.tier_3_activo}
-                  onCheckedChange={(checked) => setLocalConfig(prev => ({ ...prev, tier_3_activo: checked }))}
-                />
+                <Switch checked={localConfig.tier_3_activo} onCheckedChange={(checked) => setLocalConfig(prev => ({ ...prev, tier_3_activo: checked }))} />
               </div>
             </div>
             {localConfig.tier_3_activo && (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 <div className="flex items-center gap-3">
                   <Shirt className="w-5 h-5 text-green-600" />
-                  <Label className="text-sm">Crédito en ropa (€):</Label>
-                  <Input
-                    type="number"
-                    value={localConfig.referidos_premio_3}
-                    onChange={(e) => setLocalConfig(prev => ({ ...prev, referidos_premio_3: Number(e.target.value) }))}
-                    className="w-20"
-                  />
+                  <Label className="text-sm">Crédito (€):</Label>
+                  <Input type="number" value={localConfig.referidos_premio_3} onChange={(e) => setLocalConfig(prev => ({ ...prev, referidos_premio_3: Number(e.target.value) }))} className="w-20" />
                 </div>
                 <div className="flex items-center gap-3">
                   <Ticket className="w-5 h-5 text-orange-600" />
-                  <Label className="text-sm">Participaciones sorteo:</Label>
-                  <Input
-                    type="number"
-                    value={localConfig.referidos_sorteo_3}
-                    onChange={(e) => setLocalConfig(prev => ({ ...prev, referidos_sorteo_3: Number(e.target.value) }))}
-                    className="w-20"
-                  />
+                  <Label className="text-sm">Sorteos:</Label>
+                  <Input type="number" value={localConfig.referidos_sorteo_3} onChange={(e) => setLocalConfig(prev => ({ ...prev, referidos_sorteo_3: Number(e.target.value) }))} className="w-20" />
                 </div>
               </div>
             )}
@@ -212,33 +167,20 @@ export default function ReferralConfigCard({ seasonConfig, onUpdate, isUpdating 
               <Badge className={localConfig.tier_5_activo ? "bg-orange-600" : "bg-slate-400"}>🏆 5 Socios</Badge>
               <div className="flex items-center gap-2">
                 <Label className="text-xs text-slate-600">Activar</Label>
-                <Switch
-                  checked={localConfig.tier_5_activo}
-                  onCheckedChange={(checked) => setLocalConfig(prev => ({ ...prev, tier_5_activo: checked }))}
-                />
+                <Switch checked={localConfig.tier_5_activo} onCheckedChange={(checked) => setLocalConfig(prev => ({ ...prev, tier_5_activo: checked }))} />
               </div>
             </div>
             {localConfig.tier_5_activo && (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 <div className="flex items-center gap-3">
                   <Shirt className="w-5 h-5 text-green-600" />
-                  <Label className="text-sm">Crédito en ropa (€):</Label>
-                  <Input
-                    type="number"
-                    value={localConfig.referidos_premio_5}
-                    onChange={(e) => setLocalConfig(prev => ({ ...prev, referidos_premio_5: Number(e.target.value) }))}
-                    className="w-20"
-                  />
+                  <Label className="text-sm">Crédito (€):</Label>
+                  <Input type="number" value={localConfig.referidos_premio_5} onChange={(e) => setLocalConfig(prev => ({ ...prev, referidos_premio_5: Number(e.target.value) }))} className="w-20" />
                 </div>
                 <div className="flex items-center gap-3">
                   <Ticket className="w-5 h-5 text-orange-600" />
-                  <Label className="text-sm">Participaciones sorteo:</Label>
-                  <Input
-                    type="number"
-                    value={localConfig.referidos_sorteo_5}
-                    onChange={(e) => setLocalConfig(prev => ({ ...prev, referidos_sorteo_5: Number(e.target.value) }))}
-                    className="w-20"
-                  />
+                  <Label className="text-sm">Sorteos:</Label>
+                  <Input type="number" value={localConfig.referidos_sorteo_5} onChange={(e) => setLocalConfig(prev => ({ ...prev, referidos_sorteo_5: Number(e.target.value) }))} className="w-20" />
                 </div>
               </div>
             )}
@@ -249,52 +191,36 @@ export default function ReferralConfigCard({ seasonConfig, onUpdate, isUpdating 
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
                 <Badge className={localConfig.tier_10_activo ? "bg-purple-600" : "bg-slate-400"}>👑 10 Socios</Badge>
-                {localConfig.tier_10_activo && <span className="text-xs text-purple-600">+ Reconocimiento en la web</span>}
+                {localConfig.tier_10_activo && <span className="text-xs text-purple-600">+ Reconocimiento web</span>}
               </div>
               <div className="flex items-center gap-2">
                 <Label className="text-xs text-slate-600">Activar</Label>
-                <Switch
-                  checked={localConfig.tier_10_activo}
-                  onCheckedChange={(checked) => setLocalConfig(prev => ({ ...prev, tier_10_activo: checked }))}
-                />
+                <Switch checked={localConfig.tier_10_activo} onCheckedChange={(checked) => setLocalConfig(prev => ({ ...prev, tier_10_activo: checked }))} />
               </div>
             </div>
             {localConfig.tier_10_activo && (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 <div className="flex items-center gap-3">
                   <Shirt className="w-5 h-5 text-green-600" />
-                  <Label className="text-sm">Crédito en ropa (€):</Label>
-                  <Input
-                    type="number"
-                    value={localConfig.referidos_premio_10}
-                    onChange={(e) => setLocalConfig(prev => ({ ...prev, referidos_premio_10: Number(e.target.value) }))}
-                    className="w-20"
-                  />
+                  <Label className="text-sm">Crédito (€):</Label>
+                  <Input type="number" value={localConfig.referidos_premio_10} onChange={(e) => setLocalConfig(prev => ({ ...prev, referidos_premio_10: Number(e.target.value) }))} className="w-20" />
                 </div>
                 <div className="flex items-center gap-3">
                   <Ticket className="w-5 h-5 text-orange-600" />
-                  <Label className="text-sm">Participaciones sorteo:</Label>
-                  <Input
-                    type="number"
-                    value={localConfig.referidos_sorteo_10}
-                    onChange={(e) => setLocalConfig(prev => ({ ...prev, referidos_sorteo_10: Number(e.target.value) }))}
-                    className="w-20"
-                  />
+                  <Label className="text-sm">Sorteos:</Label>
+                  <Input type="number" value={localConfig.referidos_sorteo_10} onChange={(e) => setLocalConfig(prev => ({ ...prev, referidos_sorteo_10: Number(e.target.value) }))} className="w-20" />
                 </div>
               </div>
             )}
           </div>
 
-          {/* Tier 5: 15 socios */}
+          {/* Tier 5: 15 socios (MÁXIMO) */}
           <div className={`rounded-xl p-4 border-2 transition-all ${localConfig.tier_15_activo ? 'bg-pink-50 border-pink-300' : 'bg-slate-100 border-slate-200 opacity-60'}`}>
             <div className="flex items-center justify-between mb-3">
-              <Badge className={localConfig.tier_15_activo ? "bg-pink-600" : "bg-slate-400"}>🏨 15 Socios - PREMIO ESTRELLA</Badge>
+              <Badge className={localConfig.tier_15_activo ? "bg-pink-600" : "bg-slate-400"}>🏨 15 Socios - MÁXIMO</Badge>
               <div className="flex items-center gap-2">
                 <Label className="text-xs text-slate-600">Activar</Label>
-                <Switch
-                  checked={localConfig.tier_15_activo}
-                  onCheckedChange={(checked) => setLocalConfig(prev => ({ ...prev, tier_15_activo: checked }))}
-                />
+                <Switch checked={localConfig.tier_15_activo} onCheckedChange={(checked) => setLocalConfig(prev => ({ ...prev, tier_15_activo: checked }))} />
               </div>
             </div>
             {localConfig.tier_15_activo && (
@@ -302,32 +228,19 @@ export default function ReferralConfigCard({ seasonConfig, onUpdate, isUpdating 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   <div className="flex items-center gap-3">
                     <Shirt className="w-5 h-5 text-green-600" />
-                    <Label className="text-sm">Crédito en ropa (€):</Label>
-                    <Input
-                      type="number"
-                      value={localConfig.referidos_premio_15}
-                      onChange={(e) => setLocalConfig(prev => ({ ...prev, referidos_premio_15: Number(e.target.value) }))}
-                      className="w-20"
-                    />
+                    <Label className="text-sm">Crédito (€):</Label>
+                    <Input type="number" value={localConfig.referidos_premio_15} onChange={(e) => setLocalConfig(prev => ({ ...prev, referidos_premio_15: Number(e.target.value) }))} className="w-20" />
                   </div>
                   <div className="flex items-center gap-3">
                     <Ticket className="w-5 h-5 text-orange-600" />
-                    <Label className="text-sm">Participaciones sorteo:</Label>
-                    <Input
-                      type="number"
-                      value={localConfig.referidos_sorteo_15}
-                      onChange={(e) => setLocalConfig(prev => ({ ...prev, referidos_sorteo_15: Number(e.target.value) }))}
-                      className="w-20"
-                    />
+                    <Label className="text-sm">Sorteos:</Label>
+                    <Input type="number" value={localConfig.referidos_sorteo_15} onChange={(e) => setLocalConfig(prev => ({ ...prev, referidos_sorteo_15: Number(e.target.value) }))} className="w-20" />
                   </div>
                 </div>
                 <div className="flex items-center gap-3 pt-2 border-t border-pink-200">
                   <Hotel className="w-5 h-5 text-pink-600" />
-                  <Label className="text-sm font-medium">Incluir noche de hotel para dos:</Label>
-                  <Switch
-                    checked={localConfig.referidos_premio_hotel}
-                    onCheckedChange={(checked) => setLocalConfig(prev => ({ ...prev, referidos_premio_hotel: checked }))}
-                  />
+                  <Label className="text-sm font-medium">Incluir noche de hotel:</Label>
+                  <Switch checked={localConfig.referidos_premio_hotel} onCheckedChange={(checked) => setLocalConfig(prev => ({ ...prev, referidos_premio_hotel: checked }))} />
                 </div>
               </div>
             )}
@@ -339,93 +252,35 @@ export default function ReferralConfigCard({ seasonConfig, onUpdate, isUpdating 
               <Trophy className="w-5 h-5 text-yellow-600" />
               <h3 className="font-bold text-yellow-900">🎰 Premios del Sorteo</h3>
             </div>
-            <p className="text-xs text-yellow-700 mb-4">
-              Estos son los premios que se sortearán entre los participantes. Puedes añadir, editar o eliminar premios.
-            </p>
 
-            {/* Lista de premios existentes */}
             <div className="space-y-2 mb-4">
               {(localConfig.sorteo_premios || []).map((prize, index) => (
                 <div key={index} className={`flex items-center gap-2 rounded-lg p-2 border transition-all ${prize.activo !== false ? 'bg-white border-yellow-300' : 'bg-slate-100 border-slate-200 opacity-60'}`}>
-                  <Switch
-                    checked={prize.activo !== false}
-                    onCheckedChange={(checked) => updatePrize(index, 'activo', checked)}
-                  />
-                  <Input
-                    value={prize.emoji}
-                    onChange={(e) => updatePrize(index, 'emoji', e.target.value)}
-                    className="w-14 text-center text-lg"
-                    maxLength={2}
-                    disabled={prize.activo === false}
-                  />
-                  <Input
-                    value={prize.nombre}
-                    onChange={(e) => updatePrize(index, 'nombre', e.target.value)}
-                    placeholder="Nombre del premio"
-                    className="flex-1"
-                    disabled={prize.activo === false}
-                  />
-                  <Input
-                    value={prize.descripcion}
-                    onChange={(e) => updatePrize(index, 'descripcion', e.target.value)}
-                    placeholder="Descripción"
-                    className="flex-1"
-                    disabled={prize.activo === false}
-                  />
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => removePrize(index)}
-                    className="text-red-500 hover:text-red-700 hover:bg-red-50"
-                  >
+                  <Switch checked={prize.activo !== false} onCheckedChange={(checked) => updatePrize(index, 'activo', checked)} />
+                  <Input value={prize.emoji} onChange={(e) => updatePrize(index, 'emoji', e.target.value)} className="w-14 text-center text-lg" maxLength={2} disabled={prize.activo === false} />
+                  <Input value={prize.nombre} onChange={(e) => updatePrize(index, 'nombre', e.target.value)} placeholder="Nombre" className="flex-1" disabled={prize.activo === false} />
+                  <Input value={prize.descripcion} onChange={(e) => updatePrize(index, 'descripcion', e.target.value)} placeholder="Descripción" className="flex-1" disabled={prize.activo === false} />
+                  <Button type="button" variant="ghost" size="icon" onClick={() => removePrize(index)} className="text-red-500 hover:text-red-700 hover:bg-red-50">
                     <Trash2 className="w-4 h-4" />
                   </Button>
                 </div>
               ))}
             </div>
 
-            {/* Añadir nuevo premio */}
             <div className="flex items-center gap-2 bg-yellow-100 rounded-lg p-2 border-2 border-dashed border-yellow-400">
-              <Input
-                value={newPrize.emoji}
-                onChange={(e) => setNewPrize(prev => ({ ...prev, emoji: e.target.value }))}
-                placeholder="🎁"
-                className="w-14 text-center text-lg bg-white"
-                maxLength={2}
-              />
-              <Input
-                value={newPrize.nombre}
-                onChange={(e) => setNewPrize(prev => ({ ...prev, nombre: e.target.value }))}
-                placeholder="Nombre del premio"
-                className="flex-1 bg-white"
-              />
-              <Input
-                value={newPrize.descripcion}
-                onChange={(e) => setNewPrize(prev => ({ ...prev, descripcion: e.target.value }))}
-                placeholder="Descripción"
-                className="flex-1 bg-white"
-              />
-              <Button
-                type="button"
-                onClick={addPrize}
-                disabled={!newPrize.nombre}
-                className="bg-yellow-600 hover:bg-yellow-700"
-              >
+              <Input value={newPrize.emoji} onChange={(e) => setNewPrize(prev => ({ ...prev, emoji: e.target.value }))} placeholder="🎁" className="w-14 text-center text-lg bg-white" maxLength={2} />
+              <Input value={newPrize.nombre} onChange={(e) => setNewPrize(prev => ({ ...prev, nombre: e.target.value }))} placeholder="Nombre" className="flex-1 bg-white" />
+              <Input value={newPrize.descripcion} onChange={(e) => setNewPrize(prev => ({ ...prev, descripcion: e.target.value }))} placeholder="Descripción" className="flex-1 bg-white" />
+              <Button type="button" onClick={addPrize} disabled={!newPrize.nombre} className="bg-yellow-600 hover:bg-yellow-700">
                 <Plus className="w-4 h-4" />
               </Button>
             </div>
           </div>
 
-          {/* Botón guardar */}
           {hasChanges && (
-            <Button 
-              onClick={handleSave} 
-              disabled={isUpdating}
-              className="w-full bg-purple-600 hover:bg-purple-700"
-            >
+            <Button onClick={handleSave} disabled={isUpdating} className="w-full bg-purple-600 hover:bg-purple-700">
               <Save className="w-4 h-4 mr-2" />
-              Guardar Configuración de Referidos
+              Guardar Configuración
             </Button>
           )}
         </CardContent>
