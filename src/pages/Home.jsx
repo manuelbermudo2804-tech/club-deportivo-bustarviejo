@@ -1212,6 +1212,49 @@ export default function Home() {
           )}
         </div>
 
+        {/* Botón de prueba de notificación - Solo Admin */}
+        {isAdmin && (
+          <div className="bg-slate-800 rounded-3xl p-4 lg:p-6 shadow-2xl border-2 border-slate-700">
+            <div className="text-center space-y-3">
+              <p className="text-white font-bold text-sm lg:text-base">🔔 Probar Notificaciones</p>
+              <p className="text-slate-400 text-xs">Minimiza la app y pulsa el botón para recibir una notificación de prueba</p>
+              <Button
+                onClick={() => {
+                  // Verificar si hay permiso
+                  if (typeof window !== 'undefined' && 'Notification' in window) {
+                    if (Notification.permission === 'granted') {
+                      // Enviar notificación de prueba después de 3 segundos
+                      toast.success("⏰ Notificación programada en 3 segundos. ¡Minimiza la app ahora!");
+                      setTimeout(() => {
+                        new Notification("🎉 CD Bustarviejo - Prueba", {
+                          body: "¡Las notificaciones funcionan correctamente! Este mensaje llegó con la app en segundo plano.",
+                          icon: "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6911b8e453ca3ac01fb134d6/e3f0a8e26_logo_cd_bustarviejo_mediano.jpg"
+                        });
+                      }, 3000);
+                    } else if (Notification.permission === 'denied') {
+                      toast.error("❌ Notificaciones bloqueadas. Actívalas en ajustes del navegador.");
+                    } else {
+                      Notification.requestPermission().then(permission => {
+                        if (permission === 'granted') {
+                          toast.success("✅ Permiso concedido. Pulsa de nuevo para probar.");
+                        } else {
+                          toast.error("❌ Permiso denegado");
+                        }
+                      });
+                    }
+                  } else {
+                    toast.error("❌ Tu navegador no soporta notificaciones");
+                  }
+                }}
+                className="bg-gradient-to-r from-orange-600 to-orange-700 hover:from-orange-700 hover:to-orange-800 text-white font-bold"
+              >
+                <BellRing className="w-4 h-4 mr-2" />
+                Enviar Notificación de Prueba
+              </Button>
+            </div>
+          </div>
+        )}
+
         {/* Resumen de jugadores */}
         <div className="bg-slate-800 rounded-3xl p-4 lg:p-6 shadow-2xl border-2 border-slate-700">
           <div className="text-center">
