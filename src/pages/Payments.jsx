@@ -795,11 +795,17 @@ Email: cdbustarviejo@gmail.com
                  // Filtro de categoría
                  const matchesCategoria = categoriaFilter === "all" || player.deporte === categoriaFilter;
 
+                 // IMPORTANTE: Si hay filtro de temporada, solo mostrar jugadores que tengan pagos en esa temporada
+                 const playerPayments = (payments || []).filter(p => p.jugador_id === player.id && matchTemporada(p.temporada, temporadaFilter));
+                 
+                 // Si hay filtro de temporada específico y el jugador NO tiene pagos en esa temporada, no mostrarlo
+                 if (temporadaFilter !== "all" && playerPayments.length === 0) {
+                   return false;
+                 }
+
                  // Filtro por estado - verificar si el jugador tiene pagos del estado buscado
                  let matchesEstado = true;
                  if (estadoFilter !== "all") {
-                   const playerPayments = (payments || []).filter(p => p.jugador_id === player.id && matchTemporada(p.temporada, temporadaFilter));
-                   
                    // Si filtramos por "Pendiente", verificar si le falta algún pago
                    if (estadoFilter === "Pendiente") {
                      const hasPagoUnico = playerPayments.some(p => 
