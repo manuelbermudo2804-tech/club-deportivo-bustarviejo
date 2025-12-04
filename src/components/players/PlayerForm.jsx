@@ -10,7 +10,8 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Switch } from "@/components/ui/switch";
-import { Upload, X, Loader2, AlertCircle, Lock, Users, Shield, Camera, UserCheck, UserX, RefreshCw, Heart, FileText, Download, ChevronDown, ChevronUp, Eye } from "lucide-react";
+import { Upload, X, Loader2, AlertCircle, Lock, Users, Shield, Camera, UserCheck, UserX, RefreshCw, Heart, FileText, Download, ChevronDown, ChevronUp, Eye, Mail } from "lucide-react";
+import SecondParentSection from "./SecondParentSection";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { toast } from "sonner";
 import { base44 } from "@/api/base44Client";
@@ -1245,12 +1246,82 @@ export default function PlayerForm({ player, onSubmit, onCancel, isSubmitting, i
 
             {/* SEGUNDO PROGENITOR (solo si menor de edad) */}
             {!isMayorDeEdad && (
-              <SecondParentSection
-                currentPlayer={currentPlayer}
-                setCurrentPlayer={setCurrentPlayer}
-                existingFamilyPlayers={existingFamilyPlayers}
-                isEditing={!!player}
-              />
+              <div className="space-y-4 border-t border-slate-200 pt-6">
+                <div className="flex items-center gap-2">
+                  <Users className="w-5 h-5 text-slate-600" />
+                  <h3 className="text-lg font-semibold text-slate-900">Segundo Progenitor/Tutor (Opcional)</h3>
+                </div>
+                <Alert className="bg-green-50 border-green-200">
+                  <AlertCircle className="h-4 w-4 text-green-600" />
+                  <AlertDescription className="text-green-800 text-sm">
+                    <strong>👥 Acceso compartido:</strong> Si añades el email del segundo progenitor, podrá acceder a la app con su propia cuenta y <strong>verá exactamente la misma información</strong> del jugador: pagos, convocatorias, documentos, chat del equipo, etc.
+                  </AlertDescription>
+                </Alert>
+                <Alert className="bg-amber-50 border-amber-200">
+                  <AlertCircle className="h-4 w-4 text-amber-600" />
+                  <AlertDescription className="text-amber-800 text-sm">
+                    <strong>💡 Nota:</strong> Si el segundo progenitor ya está registrado en la app de otro hijo, <strong>automáticamente verá a todos sus hijos</strong> en su panel. Solo es necesario añadirlo aquí si es diferente al registrado anteriormente (ej: hijos de padres/madres diferentes).
+                  </AlertDescription>
+                </Alert>
+                <Alert className="bg-blue-50 border-blue-200">
+                  <AlertCircle className="h-4 w-4 text-blue-600" />
+                  <AlertDescription className="text-blue-800 text-sm">
+                    Si el segundo progenitor quiere ser socio, debe rellenar el formulario de <strong>"Hacerse Socio"</strong> desde su propia cuenta con una cuota de 25€.
+                  </AlertDescription>
+                </Alert>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-2 md:col-span-2">
+                    <Label htmlFor="nombre_tutor_2">Nombre y Apellidos</Label>
+                    <Input 
+                      id="nombre_tutor_2" 
+                      name="tutor2-name"
+                      autoComplete="name"
+                      value={currentPlayer.nombre_tutor_2 || ""} 
+                      onChange={(e) => setCurrentPlayer({...currentPlayer, nombre_tutor_2: e.target.value})}
+                      onBlur={(e) => {
+                        if (e.target.value !== (currentPlayer.nombre_tutor_2 || "")) {
+                          setCurrentPlayer({...currentPlayer, nombre_tutor_2: e.target.value});
+                        }
+                      }}
+                      placeholder="Ej: Pedro García López" 
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="email_tutor_2">Correo Electrónico</Label>
+                    <Input 
+                      id="email_tutor_2" 
+                      name="tutor2-email"
+                      type="email" 
+                      autoComplete="email"
+                      value={currentPlayer.email_tutor_2} 
+                      onChange={(e) => setCurrentPlayer({...currentPlayer, email_tutor_2: e.target.value})}
+                      onBlur={(e) => {
+                        if (e.target.value !== currentPlayer.email_tutor_2) {
+                          setCurrentPlayer({...currentPlayer, email_tutor_2: e.target.value});
+                        }
+                      }}
+                      placeholder="padre@ejemplo.com" 
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="telefono_tutor_2">Teléfono</Label>
+                    <Input 
+                      id="telefono_tutor_2" 
+                      name="tutor2-tel"
+                      type="tel" 
+                      autoComplete="tel"
+                      value={currentPlayer.telefono_tutor_2} 
+                      onChange={(e) => setCurrentPlayer({...currentPlayer, telefono_tutor_2: e.target.value})}
+                      onBlur={(e) => {
+                        if (e.target.value !== currentPlayer.telefono_tutor_2) {
+                          setCurrentPlayer({...currentPlayer, telefono_tutor_2: e.target.value});
+                        }
+                      }}
+                      placeholder="600654321" 
+                    />
+                  </div>
+                </div>
+              </div>
             )}
 
             {/* INFO INCLUIDA */}

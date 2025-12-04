@@ -84,6 +84,141 @@ export default function ParentPlayers() {
     },
   });
 
+  // Función para generar token único
+  const generateUniqueToken = () => {
+    return 'xxxx-xxxx-xxxx-xxxx'.replace(/x/g, () => 
+      Math.floor(Math.random() * 16).toString(16)
+    ) + '-' + Date.now().toString(36);
+  };
+
+  // Función para enviar invitación al segundo progenitor
+  const sendSecondParentInvitation = async (playerData, playerId, playerName) => {
+    if (!playerData.email_tutor_2) return;
+    
+    const token = generateUniqueToken();
+    const expirationDate = new Date();
+    expirationDate.setDate(expirationDate.getDate() + 30); // 30 días de validez
+
+    // Crear registro de invitación
+    await base44.entities.SecondParentInvitation.create({
+      token: token,
+      email_destino: playerData.email_tutor_2,
+      nombre_destino: playerData.nombre_tutor_2 || "",
+      jugador_id: playerId,
+      jugador_nombre: playerName,
+      invitado_por_email: user?.email,
+      invitado_por_nombre: user?.full_name,
+      estado: "pendiente",
+      fecha_envio: new Date().toISOString(),
+      fecha_expiracion: expirationDate.toISOString()
+    });
+
+    // Enviar email con el diseño del club
+    const validationUrl = `https://club-gestion-bustarviejo-1fb134d6.base44.app/ValidateSecondParent?token=${token}`;
+    
+    await base44.integrations.Core.SendEmail({
+      from_name: "CD Bustarviejo",
+      to: playerData.email_tutor_2,
+      subject: `👨‍👩‍👧 Invitación para acceder a la App del CD Bustarviejo - ${playerName}`,
+      body: generateSecondParentInvitationEmail(
+        playerData.nombre_tutor_2 || "Estimado/a",
+        playerName,
+        user?.full_name || "Un familiar",
+        validationUrl
+      )
+    });
+
+    console.log(`📧 Invitación enviada a segundo progenitor: ${playerData.email_tutor_2}`);
+  };
+
+  // Template del email de invitación
+  const generateSecondParentInvitationEmail = (nombreDestino, jugadorNombre, invitadoPor, validationUrl) => {
+    const CLUB_LOGO_URL = "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6911b8e453ca3ac01fb134d6/e3f0a8e26_logo_cd_bustarviejo_mediano.jpg";
+    
+    return `<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body style="margin:0;padding:20px;font-family:Arial,Helvetica,sans-serif;background-color:#f1f5f9;">
+<table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="max-width:600px;margin:0 auto;background-color:#ffffff;border-radius:12px;overflow:hidden;border:1px solid #e2e8f0;">
+
+<!-- Header naranja -->
+<tr>
+<td bgcolor="#ea580c" style="padding:30px;text-align:center;">
+<img src="${CLUB_LOGO_URL}" alt="CD Bustarviejo" width="80" height="80" style="width:80px;height:80px;border-radius:12px;border:3px solid #ffffff;display:block;margin:0 auto;">
+<h1 style="color:#ffffff;margin:15px 0 5px 0;font-size:26px;font-family:Arial,Helvetica,sans-serif;">CD BUSTARVIEJO</h1>
+<p style="color:#fed7aa;margin:0;font-size:14px;">Club Deportivo</p>
+</td>
+</tr>
+
+<!-- Contenido -->
+<tr>
+<td bgcolor="#ffffff" style="padding:30px;">
+<h2 style="color:#1e293b;margin:0 0 15px 0;font-size:22px;text-align:center;font-family:Arial,Helvetica,sans-serif;">👨‍👩‍👧 Invitación como Segundo Progenitor</h2>
+
+<p style="color:#475569;font-size:15px;line-height:1.6;margin:0 0 20px 0;">
+Hola <strong>${nombreDestino}</strong>,
+</p>
+
+<p style="color:#475569;font-size:15px;line-height:1.6;margin:0 0 20px 0;">
+<strong>${invitadoPor}</strong> te ha añadido como segundo progenitor de <strong style="color:#ea580c;">${jugadorNombre}</strong> en la aplicación del CD Bustarviejo.
+</p>
+
+<!-- Destacado -->
+<table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin-bottom:25px;">
+<tr>
+<td bgcolor="#fef3c7" style="padding:15px;border-left:4px solid #f59e0b;border-radius:0 8px 8px 0;">
+<p style="color:#92400e;font-size:14px;margin:0;">
+<strong>✨ ¿Qué podrás hacer?</strong><br>
+• Ver convocatorias de partidos<br>
+• Consultar y gestionar pagos<br>
+• Chatear con los entrenadores<br>
+• Ver calendario de entrenamientos<br>
+• Acceder a documentos y fotos
+</p>
+</td>
+</tr>
+</table>
+
+<p style="color:#475569;font-size:15px;line-height:1.6;margin:0 0 25px 0;text-align:center;">
+Pulsa el botón para <strong>completar tu registro</strong> y empezar a usar la app:
+</p>
+
+<!-- Boton -->
+<table role="presentation" cellspacing="0" cellpadding="0" border="0" align="center" style="margin:0 auto 20px auto;">
+<tr>
+<td bgcolor="#16a34a" style="border-radius:8px;">
+<a href="${validationUrl}" target="_blank" style="display:inline-block;color:#ffffff;text-decoration:none;padding:16px 40px;font-weight:bold;font-size:16px;font-family:Arial,Helvetica,sans-serif;">✅ COMPLETAR MI REGISTRO →</a>
+</td>
+</tr>
+</table>
+
+<p style="color:#94a3b8;font-size:12px;text-align:center;margin:0 0 15px 0;">
+Este enlace es único y personal. Expira en 30 días.
+</p>
+
+<p style="color:#64748b;font-size:13px;text-align:center;margin:0;background-color:#f8fafc;padding:12px;border-radius:8px;">
+Si no esperabas este email o tienes dudas, contacta con:<br>
+<a href="mailto:cdbustarviejo@gmail.com" style="color:#ea580c;">cdbustarviejo@gmail.com</a>
+</p>
+</td>
+</tr>
+
+<!-- Footer -->
+<tr>
+<td bgcolor="#1e293b" style="padding:20px;text-align:center;">
+<p style="color:#94a3b8;font-size:13px;margin:0 0 5px 0;">⚽ 🏀</p>
+<p style="color:#64748b;font-size:12px;margin:0;">CD Bustarviejo - App de Gestión del Club</p>
+</td>
+</tr>
+
+</table>
+</body>
+</html>`;
+  };
+
   const createPlayerMutation = useMutation({
     mutationFn: async (playerData) => {
       const dataWithParentEmail = {
@@ -91,6 +226,17 @@ export default function ParentPlayers() {
         email_padre: user?.email || playerData.email_padre
       };
       const newPlayer = await base44.entities.Player.create(dataWithParentEmail);
+
+      // ENVIAR INVITACIÓN AL SEGUNDO PROGENITOR (si se ha añadido)
+      if (playerData.email_tutor_2 && playerData.email_tutor_2.trim() !== "") {
+        try {
+          await sendSecondParentInvitation(playerData, newPlayer.id, playerData.nombre);
+          toast.success(`📧 Invitación enviada a ${playerData.email_tutor_2}`);
+        } catch (invError) {
+          console.error("Error enviando invitación a segundo progenitor:", invError);
+          // No fallamos la creación del jugador por esto
+        }
+      }
 
       // DETECCIÓN AUTOMÁTICA DE JUGADOR +18
       // Si el jugador es mayor de 18 años y el email coincide con el usuario actual
