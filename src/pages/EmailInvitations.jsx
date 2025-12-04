@@ -295,10 +295,20 @@ export default function EmailInvitations() {
 <!-- Contenido -->
 <tr>
 <td bgcolor="#ffffff" style="padding:30px;">
-<h2 style="color:#1e293b;margin:0 0 15px 0;font-size:22px;text-align:center;font-family:Arial,Helvetica,sans-serif;">🎉 ¡Bienvenido a la App!</h2>
-<p style="color:#475569;font-size:15px;line-height:1.6;margin:0 0 25px 0;text-align:center;">
-Te invitamos a usar la <strong style="color:#ea580c;">aplicación oficial</strong> del club para gestionar todo sobre tus jugadores.
+<h2 style="color:#1e293b;margin:0 0 15px 0;font-size:22px;text-align:center;font-family:Arial,Helvetica,sans-serif;">📱 Invitación a la App del Club</h2>
+
+<p style="color:#475569;font-size:15px;line-height:1.6;margin:0 0 20px 0;text-align:center;">
+El <strong style="color:#ea580c;">CD Bustarviejo</strong> te invita a usar la aplicación oficial del club para gestionar todo sobre tus jugadores.
 </p>
+
+<!-- Aviso importante -->
+<table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin-bottom:20px;">
+<tr>
+<td bgcolor="#fef3c7" style="padding:15px;border-left:4px solid #f59e0b;border-radius:0 8px 8px 0;">
+<p style="color:#92400e;font-size:14px;margin:0;"><strong>⚠️ ¿No esperabas este email?</strong><br>Si no tienes relación con el CD Bustarviejo o no esperabas esta invitación, simplemente <strong>ignora este correo</strong>. Alguien puede haber introducido tu email por error.</p>
+</td>
+</tr>
+</table>
 
 <!-- Features -->
 <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin-bottom:25px;background-color:#f8fafc;border-radius:8px;">
@@ -328,8 +338,8 @@ ${mensajePersonalizado ? `
 <!-- Mensaje personalizado -->
 <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin-bottom:25px;">
 <tr>
-<td bgcolor="#fef3c7" style="padding:15px;border-left:4px solid #f59e0b;border-radius:0 8px 8px 0;">
-<p style="color:#92400e;font-size:14px;margin:0;">💬 ${mensajePersonalizado}</p>
+<td bgcolor="#f0fdf4" style="padding:15px;border-left:4px solid #22c55e;border-radius:0 8px 8px 0;">
+<p style="color:#166534;font-size:14px;margin:0;">💬 ${mensajePersonalizado}</p>
 </td>
 </tr>
 </table>
@@ -347,7 +357,17 @@ ${mensajePersonalizado ? `
 ${invitationId ? `<!-- Pixel de tracking -->
 <img src="${trackingPixelUrl}" width="1" height="1" style="display:none;" alt="" />` : ''}
 
-<p style="color:#94a3b8;font-size:12px;text-align:center;margin:0;">Haz clic en el botón para empezar</p>
+<p style="color:#94a3b8;font-size:12px;text-align:center;margin:0 0 15px 0;">Haz clic en el botón para registrarte o iniciar sesión</p>
+
+<!-- Nota de seguridad -->
+<table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin-top:20px;">
+<tr>
+<td bgcolor="#f1f5f9" style="padding:12px;border-radius:8px;text-align:center;">
+<p style="color:#64748b;font-size:11px;margin:0;">🔒 Este enlace te permitirá acceder a la aplicación del club de forma segura.</p>
+</td>
+</tr>
+</table>
+
 </td>
 </tr>
 
