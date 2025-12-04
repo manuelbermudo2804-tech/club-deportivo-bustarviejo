@@ -221,7 +221,7 @@ Accede al panel de administración para gestionar.`;
 </html>`;
     }
 
-    await base44.asServiceRole.integrations.Core.SendEmail({
+    await base44.integrations.Core.SendEmail({
       to: "cdbustarviejo@gmail.com",
       subject: `🎉 Nueva solicitud de socio (EXTERNO): ${data.nombre_completo}`,
       body: adminEmailHtml || adminEmailBody
