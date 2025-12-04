@@ -91,7 +91,7 @@ function FemeninoShareBanner({ userEmail, userName }) {
         </div>
         
         <p className="text-pink-200 text-[10px] mt-2 text-center">
-          Tu enlace personal • Los premios se aplican automáticamente
+          Comparte este enlace → Si se inscriben → ¡Tú ganas premios!
         </p>
       </div>
     </div>
