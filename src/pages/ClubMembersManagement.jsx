@@ -727,6 +727,23 @@ Por solo *25€/año* seguirás apoyando a nuestros jóvenes deportistas.
         </div>
       </div>
 
+      {/* Tabs: Lista vs Estadísticas */}
+      <Tabs defaultValue="lista" className="space-y-4">
+        <TabsList className="grid w-full grid-cols-2 max-w-md">
+          <TabsTrigger value="lista" className="flex items-center gap-2">
+            <Users className="w-4 h-4" /> Lista de Socios
+          </TabsTrigger>
+          <TabsTrigger value="estadisticas" className="flex items-center gap-2">
+            <BarChart3 className="w-4 h-4" /> Estadísticas
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="estadisticas">
+          <MembershipStatsPanel members={members} seasonConfig={seasonConfig} />
+        </TabsContent>
+
+        <TabsContent value="lista" className="space-y-6">
+
       {/* Alertas de nuevos socios y pendientes de revisión */}
       {(recentMembers.length > 0 || pendingReviewMembers.length > 0) && (
         <div className="space-y-3">
