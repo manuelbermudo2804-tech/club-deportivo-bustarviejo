@@ -8,7 +8,7 @@ const corsHeaders = {
   'Access-Control-Max-Age': '86400',
 };
 
-// Función pública para registrar nuevos socios desde landing page externa v2
+// Función pública para registrar nuevos socios desde landing page externa v3
 Deno.serve(async (req) => {
   // Permitir CORS para la landing page externa - PREFLIGHT
   if (req.method === 'OPTIONS') {
