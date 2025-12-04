@@ -11,78 +11,131 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 
+// VAPID public key - debe coincidir con la del backend
+const VAPID_PUBLIC_KEY = "BLBz-xyz123"; // Se leerá del servidor
+
 export default function PushNotificationManager() {
   const [isSubscribed, setIsSubscribed] = useState(false);
   const [isSupported, setIsSupported] = useState(false);
   const [showDialog, setShowDialog] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [registration, setRegistration] = useState(null);
 
   useEffect(() => {
-    checkSubscription();
+    checkSupport();
   }, []);
 
-  const checkSubscription = async () => {
-    // Solo verificar si Notification API está disponible
-    if (typeof window !== 'undefined' && 'Notification' in window) {
-      setIsSupported(true);
-      
-      if (Notification.permission === 'granted') {
-        try {
-          const user = await base44.auth.me();
-          if (user?.push_enabled) {
-            setIsSubscribed(true);
-          }
-        } catch (e) {
-          console.log('Error checking subscription:', e);
-        }
+  const checkSupport = async () => {
+    try {
+      // Verificar soporte de Service Worker y Push
+      if (typeof window === 'undefined') return;
+      if (!('serviceWorker' in navigator)) {
+        console.log('[Push] Service Worker no soportado');
+        return;
       }
+      if (!('PushManager' in window)) {
+        console.log('[Push] Push API no soportada');
+        return;
+      }
+
+      setIsSupported(true);
+
+      // Registrar Service Worker
+      const reg = await navigator.serviceWorker.register('/sw.js');
+      setRegistration(reg);
+      console.log('[Push] Service Worker registrado');
+
+      // Verificar si ya hay suscripción
+      const subscription = await reg.pushManager.getSubscription();
+      if (subscription) {
+        console.log('[Push] Ya suscrito');
+        setIsSubscribed(true);
+      }
+    } catch (error) {
+      console.log('[Push] Error checking support:', error);
     }
   };
 
-  const requestPermission = async () => {
-    if (!isSupported) {
-      toast.error("Tu navegador no soporta notificaciones");
+  const subscribeToPush = async () => {
+    if (!registration) {
+      toast.error("Service Worker no disponible");
       return;
     }
 
     setIsLoading(true);
 
     try {
-      // Solicitar permiso de notificaciones
+      // Solicitar permiso
       const permission = await Notification.requestPermission();
-      
       if (permission !== 'granted') {
-        toast.error("Permiso denegado para notificaciones");
+        toast.error("Permiso de notificaciones denegado");
         setIsLoading(false);
         return;
       }
 
-      // Guardar que el usuario activó las notificaciones
+      // Obtener VAPID key del entorno o usar una por defecto
+      // En producción, esto debería venir del servidor
+      const vapidKey = urlBase64ToUint8Array(
+        'BEl62iUYgUivxIkv69yViEuiBIa-Ib9-SkvMeAtA3LFgDzkrxZJjSgSnfckjBJuBkr3qBUYIHBQFLXYp5Nksh8U'
+      );
+
+      // Suscribirse a push
+      const subscription = await registration.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: vapidKey
+      });
+
+      console.log('[Push] Suscripción creada:', subscription);
+
+      // Guardar la suscripción en el usuario
+      const subscriptionJSON = JSON.stringify(subscription.toJSON());
       await base44.auth.updateMe({
+        fcm_token: subscriptionJSON,
         push_enabled: true,
         push_subscribed_at: new Date().toISOString()
       });
 
       setIsSubscribed(true);
       setShowDialog(false);
-      
-      toast.success("✅ ¡Notificaciones activadas!");
-      
-      // Notificación de prueba local
+      toast.success("✅ ¡Notificaciones push activadas!");
+
+      // Mostrar notificación de prueba
       new Notification("🎉 CD Bustarviejo", {
         body: "Recibirás notificaciones de convocatorias, pagos y mensajes importantes",
         icon: "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6911b8e453ca3ac01fb134d6/e3f0a8e26_logo_cd_bustarviejo_mediano.jpg"
       });
 
     } catch (error) {
-      console.error("Error activating notifications:", error);
-      toast.error("Error al activar notificaciones");
+      console.error("[Push] Error subscribing:", error);
+      toast.error("Error al activar notificaciones: " + error.message);
     } finally {
       setIsLoading(false);
     }
   };
 
-  if (!isSupported) return null;
+  // Convertir VAPID key de base64 a Uint8Array
+  function urlBase64ToUint8Array(base64String) {
+    const padding = '='.repeat((4 - base64String.length % 4) % 4);
+    const base64 = (base64String + padding)
+      .replace(/-/g, '+')
+      .replace(/_/g, '/');
+
+    const rawData = window.atob(base64);
+    const outputArray = new Uint8Array(rawData.length);
+
+    for (let i = 0; i < rawData.length; ++i) {
+      outputArray[i] = rawData.charCodeAt(i);
+    }
+    return outputArray;
+  }
+
+  if (!isSupported) {
+    return (
+      <div className="text-sm text-slate-500 p-3 bg-slate-100 rounded-lg">
+        ⚠️ Las notificaciones push no están soportadas en este navegador
+      </div>
+    );
+  }
 
   return (
     <>
@@ -157,7 +210,7 @@ export default function PushNotificationManager() {
               Ahora no
             </Button>
             <Button
-              onClick={requestPermission}
+              onClick={subscribeToPush}
               className="flex-1 bg-gradient-to-r from-orange-600 to-orange-700 hover:from-orange-700 hover:to-orange-800 text-white"
               disabled={isLoading}
             >
