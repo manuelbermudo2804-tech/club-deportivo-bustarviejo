@@ -1,4 +1,4 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.4';
+import { createClient } from 'npm:@base44/sdk@0.8.4';
 
 // Headers CORS comunes
 const corsHeaders = {
@@ -34,7 +34,11 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const base44 = createClientFromRequest(req);
+    // Usar createClient con variables de entorno para acceso público (sin autenticación del usuario)
+    const base44 = createClient({
+      appId: Deno.env.get("BASE44_APP_ID"),
+      serviceRoleToken: Deno.env.get("BASE44_SERVICE_ROLE_TOKEN")
+    });
     const data = await req.json();
 
     // Validar campos requeridos
