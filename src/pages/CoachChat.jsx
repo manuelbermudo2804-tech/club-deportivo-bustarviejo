@@ -210,10 +210,12 @@ export default function CoachChat() {
       return newMessage;
     },
     onSuccess: async () => {
-      await refetchMessages();
       setMessageContent("");
       setAttachments([]);
       setPriority("Normal");
+      // Invalidar y refetch inmediatamente para que aparezca el mensaje
+      await queryClient.invalidateQueries({ queryKey: ['chatMessages'] });
+      await refetchMessages();
       toast.success("Mensaje enviado al grupo");
     },
   });
