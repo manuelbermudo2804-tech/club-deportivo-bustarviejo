@@ -642,13 +642,13 @@ export default function UserManagement() {
 
       {/* Lista de Usuarios */}
       <Card className="border-none shadow-lg">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Users className="w-5 h-5 text-orange-600" />
-            Lista de Usuarios ({filteredUsers.length})
+        <CardHeader className="py-3">
+          <CardTitle className="flex items-center gap-2 text-base">
+            <Users className="w-4 h-4 text-orange-600" />
+            Usuarios ({filteredUsers.length})
           </CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-3">
           {isLoading ? (
             <div className="space-y-3">
               {[...Array(5)].map((_, i) => (
