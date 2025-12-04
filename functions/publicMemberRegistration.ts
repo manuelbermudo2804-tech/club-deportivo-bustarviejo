@@ -53,12 +53,12 @@ Deno.serve(async (req) => {
     }
 
     // Obtener configuración de temporada activa
-    const seasonConfigs = await base44.asServiceRole.entities.SeasonConfig.list();
+    const seasonConfigs = await base44.entities.SeasonConfig.list();
     const activeConfig = seasonConfigs.find(c => c.activa === true);
     const temporada = activeConfig?.temporada || `${new Date().getFullYear()}-${new Date().getFullYear() + 1}`;
 
     // Generar número de socio único
-    const allMembers = await base44.asServiceRole.entities.ClubMember.list();
+    const allMembers = await base44.entities.ClubMember.list();
     const currentYear = new Date().getFullYear();
     const membersThisYear = allMembers.filter(m => m.numero_socio?.includes(`CDB-${currentYear}`));
     const nextNumber = membersThisYear.length + 1;
