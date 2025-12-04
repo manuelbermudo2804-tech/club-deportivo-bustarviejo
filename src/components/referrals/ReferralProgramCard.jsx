@@ -11,7 +11,7 @@ const REWARD_TIERS = [
   { count: 15, color: "from-pink-500 to-pink-600", bgColor: "bg-pink-50", borderColor: "border-pink-300", title: "15 Socios", emoji: "🏨" }
 ];
 
-export default function ReferralProgramCard({ seasonConfig, userReferrals = 0, userCredit = 0, userRaffleEntries = 0, hasPlayersInClub = false }) {
+export default function ReferralProgramCard({ seasonConfig, userReferrals = 0, userCredit = 0, userRaffleEntries = 0, userFemeninoReferrals = 0, hasPlayersInClub = false }) {
   if (!seasonConfig?.programa_referidos_activo) return null;
   if (hasPlayersInClub !== true) return null;
 
