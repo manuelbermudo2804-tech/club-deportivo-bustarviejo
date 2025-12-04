@@ -104,10 +104,12 @@ export default function Payments() {
     const checkUserRoleAndPlayers = async () => {
       try {
         const currentUser = await base44.auth.me();
+        console.log('[DEBUG ROLES] Usuario:', currentUser.email, 'role:', currentUser.role, 'es_tesorero:', currentUser.es_tesorero, 'es_entrenador:', currentUser.es_entrenador);
         const adminCheck = currentUser.role === "admin";
         const treasurerCheck = currentUser.es_tesorero === true;
         const coachCheck = currentUser.es_entrenador === true && !adminCheck;
 
+        console.log('[DEBUG ROLES] adminCheck:', adminCheck, 'treasurerCheck:', treasurerCheck, 'coachCheck:', coachCheck, 'isAdmin final:', adminCheck || treasurerCheck);
         setIsAdmin(adminCheck || treasurerCheck);
         setIsCoach(coachCheck);
 
