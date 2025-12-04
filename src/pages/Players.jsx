@@ -85,7 +85,8 @@ export default function Players() {
   });
 
   // Filter players based on role - solo mostrar activos de la temporada actual
-  const players = isAdmin 
+  // Admin y Tesorero ven todos los jugadores activos
+  const players = (isAdmin || isTreasurer)
     ? allPlayers.filter(p => p.activo === true)
     : allPlayers.filter(p => 
         (p.email_padre === user?.email || p.email_tutor_2 === user?.email) && p.activo === true
