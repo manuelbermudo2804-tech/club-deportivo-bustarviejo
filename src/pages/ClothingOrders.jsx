@@ -47,6 +47,7 @@ export default function ClothingOrders() {
   const { data: user, refetch: refetchUser } = useQuery({
     queryKey: ['currentUser'],
     queryFn: () => base44.auth.me(),
+    staleTime: 0, // Siempre refetch para tener crédito actualizado
   });
 
   useEffect(() => {
@@ -119,7 +120,10 @@ export default function ClothingOrders() {
     if (creditUsed > 0 && user) {
       const newBalance = Math.max(0, (user.clothing_credit_balance || 0) - creditUsed);
       await base44.auth.updateMe({ clothing_credit_balance: newBalance });
-      refetchUser();
+      // Invalidar y refetch para que se actualice el crédito en toda la UI
+      await queryClient.invalidateQueries({ queryKey: ['currentUser'] });
+      await refetchUser();
+      toast.success(`🎁 Se han aplicado ${creditUsed}€ de tu crédito`);
     }
   };
 
