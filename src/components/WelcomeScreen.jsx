@@ -1,125 +1,23 @@
 import React, { useEffect, useRef, useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 
 const CLUB_LOGO_URL = "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6911b8e453ca3ac01fb134d6/e3f0a8e26_logo_cd_bustarviejo_mediano.jpg";
 
-// Confetti particles
-const Confetti = () => {
-  const colors = ['#ea580c', '#16a34a', '#eab308', '#3b82f6', '#ec4899'];
-  const particles = Array.from({ length: 50 }, (_, i) => ({
-    id: i,
-    x: Math.random() * 100,
-    delay: Math.random() * 2,
-    duration: 2 + Math.random() * 2,
-    color: colors[Math.floor(Math.random() * colors.length)],
-    size: 4 + Math.random() * 8
-  }));
-
-  return (
-    <div className="absolute inset-0 overflow-hidden pointer-events-none">
-      {particles.map((p) => (
-        <motion.div
-          key={p.id}
-          className="absolute rounded-full"
-          style={{
-            left: `${p.x}%`,
-            top: -20,
-            width: p.size,
-            height: p.size,
-            backgroundColor: p.color
-          }}
-          initial={{ y: -20, opacity: 1, rotate: 0 }}
-          animate={{ 
-            y: '100vh', 
-            opacity: [1, 1, 0],
-            rotate: 360 * (Math.random() > 0.5 ? 1 : -1)
-          }}
-          transition={{
-            duration: p.duration,
-            delay: p.delay,
-            ease: "linear",
-            repeat: Infinity
-          }}
-        />
-      ))}
-    </div>
-  );
-};
-
-// Floating sports icons
-const FloatingSports = () => {
-  const sports = ['⚽', '🏀', '🎾', '⚽', '🏀', '🎾', '⚽', '🏀'];
-  
-  return (
-    <div className="absolute inset-0 overflow-hidden pointer-events-none">
-      {sports.map((emoji, i) => (
-        <motion.div
-          key={i}
-          className="absolute text-4xl"
-          style={{
-            left: `${10 + (i * 12)}%`,
-            top: `${20 + (i % 3) * 25}%`
-          }}
-          initial={{ opacity: 0, scale: 0 }}
-          animate={{ 
-            opacity: [0, 0.3, 0.3, 0],
-            scale: [0, 1.2, 1, 0.8],
-            y: [0, -30, -20, -50],
-            rotate: [0, 10, -10, 0]
-          }}
-          transition={{
-            duration: 3,
-            delay: 0.5 + i * 0.15,
-            ease: "easeInOut"
-          }}
-        >
-          {emoji}
-        </motion.div>
-      ))}
-    </div>
-  );
-};
-
-// Pulsing rings
-const PulsingRings = () => (
-  <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-    {[1, 2, 3].map((ring) => (
-      <motion.div
-        key={ring}
-        className="absolute rounded-full border-2 border-white/30"
-        initial={{ width: 160, height: 160, opacity: 0 }}
-        animate={{ 
-          width: [160, 300 + ring * 100],
-          height: [160, 300 + ring * 100],
-          opacity: [0.6, 0]
-        }}
-        transition={{
-          duration: 2,
-          delay: ring * 0.3,
-          repeat: Infinity,
-          ease: "easeOut"
-        }}
-      />
-    ))}
-  </div>
-);
-
 export default function WelcomeScreen({ onComplete }) {
   const completedRef = useRef(false);
-  const [stage, setStage] = useState(1); // Empezar directamente en stage 1
+  const [stage, setStage] = useState(1);
 
   useEffect(() => {
-    // Progression stages - empezar desde stage 1 directamente
     const timers = [
-      setTimeout(() => setStage(2), 500),   // Text appears
-      setTimeout(() => setStage(3), 1200),  // Sports appear
-      setTimeout(() => setStage(4), 2000),  // Final stage
+      setTimeout(() => setStage(2), 500),
+      setTimeout(() => setStage(3), 1200),
+      setTimeout(() => setStage(4), 2000),
       setTimeout(() => {
         if (!completedRef.current && onComplete) {
           completedRef.current = true;
           onComplete();
         }
-      }, 4500) // Duración total 4.5 segundos
+      }, 3500)
     ];
     
     return () => timers.forEach(t => clearTimeout(t));
