@@ -279,7 +279,6 @@ export default function ClubMembership() {
       // Procesar programa de referidos
       if (seasonConfig?.programa_referidos_activo) {
         try {
-          const allUsers = await base44.entities.User.list();
           const allPlayersForRef = await base44.entities.Player.list();
           
           // Obtener emails de padres con jugadores activos
@@ -297,22 +296,21 @@ export default function ClubMembership() {
             myPlayersCount: myPlayers.length,
             parentEmailsCount: parentEmails.size,
             isParent: currentUserEmail ? parentEmails.has(currentUserEmail) : false,
-            referidoPor: data.referido_por
+            referidoPor: data.referido_por,
+            userId: user?.id
           });
 
           // CASO 1: Usuario logueado con hijos en el club → ÉL es el referidor automático
-          if (currentUserEmail && myPlayers.length > 0 && parentEmails.has(currentUserEmail)) {
-            referrer = allUsers.find(u => u.email?.toLowerCase().trim() === currentUserEmail);
+          // Usamos directamente el objeto user en lugar de buscar en User.list() (que requiere permisos de admin)
+          if (user && currentUserEmail && myPlayers.length > 0 && parentEmails.has(currentUserEmail)) {
+            referrer = user; // Usar el usuario actual directamente
             console.log("🎯 Referido automático por user actual:", currentUserEmail, "->", referrer?.full_name);
           }
-          // CASO 2: Usuario externo con referido_por manual (vino desde enlace o escribió nombre)
+          // CASO 2: Usuario externo con referido_por manual - NO podemos procesar sin permisos de admin
+          // El referido manual se procesará cuando un admin apruebe el pago
           else if (data.referido_por) {
-            referrer = allUsers.find(u => 
-              (u.full_name?.toLowerCase().includes(data.referido_por.toLowerCase()) ||
-              u.email?.toLowerCase() === data.referido_por.toLowerCase()) &&
-              parentEmails.has(u.email?.toLowerCase().trim())
-            );
-            console.log("🎯 Referido manual por nombre:", data.referido_por, "->", referrer?.full_name);
+            console.log("⚠️ Referido manual detectado pero no se puede procesar sin permisos. Se guardará para revisión admin.");
+            // Guardamos el nombre del referidor en el socio para que el admin lo procese manualmente
           }
           
           console.log("📊 Referrer final:", referrer ? `${referrer.full_name} (${referrer.email})` : "NINGUNO");
