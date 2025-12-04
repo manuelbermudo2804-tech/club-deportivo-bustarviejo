@@ -298,7 +298,10 @@ export default function ParentPlayers() {
 <tr><td bgcolor="#1e293b" style="padding:20px;text-align:center;"><p style="color:#64748b;font-size:12px;margin:0;">cdbustarviejo@gmail.com</p></td></tr>
 </table></body></html>`
           });
-          console.log('✅ Invitación enviada al segundo progenitor:', dataWithParentEmail.email_tutor_2);
+            console.log('✅ Invitación enviada al segundo progenitor:', email2);
+          } else {
+            console.log('ℹ️ Segundo progenitor ya registrado, no se envía invitación:', email2);
+          }
         } catch (invError) {
           console.error('Error enviando invitación a segundo progenitor:', invError);
         }
