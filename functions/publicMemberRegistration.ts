@@ -1,23 +1,35 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.4';
 
+// Headers CORS comunes
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Requested-With',
+  'Access-Control-Max-Age': '86400',
+};
+
 // Función pública para registrar nuevos socios desde landing page externa
 Deno.serve(async (req) => {
-  // Permitir CORS para la landing page externa
+  // Permitir CORS para la landing page externa - PREFLIGHT
   if (req.method === 'OPTIONS') {
     return new Response(null, {
       status: 204,
-      headers: {
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Methods': 'POST, OPTIONS',
-        'Access-Control-Allow-Headers': 'Content-Type',
-      },
+      headers: corsHeaders,
+    });
+  }
+
+  // También permitir GET para verificar que la función está activa
+  if (req.method === 'GET') {
+    return new Response(JSON.stringify({ status: 'ok', message: 'API de registro de socios activa' }), {
+      status: 200,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   }
 
   if (req.method !== 'POST') {
     return new Response(JSON.stringify({ error: 'Method not allowed' }), {
       status: 405,
-      headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   }
 
