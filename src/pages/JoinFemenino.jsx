@@ -1,6 +1,5 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
-import { useMutation, useQuery } from "@tanstack/react-query";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -20,7 +19,7 @@ const HERO_IMAGE = "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/p
 
 export default function JoinFemenino() {
   const [showSuccess, setShowSuccess] = useState(false);
-  const [referrerInfo, setReferrerInfo] = useState(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     nombre_jugadora: "",
     fecha_nacimiento: "",
@@ -33,126 +32,43 @@ export default function JoinFemenino() {
     mensaje: ""
   });
 
-  // Leer código de referido de la URL
-  useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const refCode = urlParams.get('ref');
-    
-    if (refCode) {
-      // Buscar quién tiene ese código de referido
-      const fetchReferrer = async () => {
-        try {
-          const allUsers = await base44.entities.User.list();
-          const allPlayers = await base44.entities.Player.list();
-          
-          // Obtener emails de padres con jugadores
-          const parentEmails = new Set();
-          allPlayers.forEach(p => {
-            if (p.email_padre) parentEmails.add(p.email_padre.toLowerCase());
-            if (p.email_tutor_2) parentEmails.add(p.email_tutor_2.toLowerCase());
-          });
-          
-          // Generar código y buscar coincidencia
-          const generateCode = (email) => {
-            let hash = 0;
-            for (let i = 0; i < email.length; i++) {
-              const char = email.charCodeAt(i);
-              hash = ((hash << 5) - hash) + char;
-              hash = hash & hash;
-            }
-            return Math.abs(hash).toString(36).toUpperCase().slice(0, 8);
-          };
-          
-          const referrer = allUsers.find(u => 
-            generateCode(u.email) === refCode && 
-            parentEmails.has(u.email.toLowerCase())
-          );
-          
-          if (referrer) {
-            setReferrerInfo(referrer);
-          }
-        } catch (error) {
-          console.error("Error fetching referrer:", error);
-        }
-      };
-      fetchReferrer();
-    }
-  }, []);
-
-  const { data: seasonConfig } = useQuery({
-    queryKey: ['seasonConfig'],
-    queryFn: async () => {
-      const configs = await base44.entities.SeasonConfig.list();
-      return configs.find(c => c.activa === true);
-    }
-  });
-
-  const submitMutation = useMutation({
-    mutationFn: async (data) => {
-      const interest = await base44.entities.FemeninoInterest.create({
-        ...data,
-        referido_por_email: referrerInfo?.email || "",
-        referido_por_nombre: referrerInfo?.full_name || "",
-        estado: "Nuevo",
-        temporada: seasonConfig?.temporada || `${new Date().getFullYear()}-${new Date().getFullYear() + 1}`
-      });
-
-      // Notificar al admin
-      await base44.integrations.Core.SendEmail({
-        from_name: "CD Bustarviejo - Fútbol Femenino",
-        to: "cdbustarviejo@gmail.com",
-        subject: `⚽👧 ¡Nueva interesada en Fútbol Femenino! - ${data.nombre_jugadora}`,
-        body: `¡Tenemos una nueva interesada en el equipo de Fútbol Femenino!
-
-👧 DATOS DE LA JUGADORA:
-• Nombre: ${data.nombre_jugadora}
-• Fecha de nacimiento: ${data.fecha_nacimiento || "No indicada"}
-• Experiencia: ${data.experiencia_previa || "No indicada"}
-
-👨‍👩‍👧 DATOS DE CONTACTO:
-• Padre/Madre/Tutor: ${data.nombre_padre}
-• Email: ${data.email}
-• Teléfono: ${data.telefono}
-• Municipio: ${data.municipio || "No indicado"}
-
-📣 ¿Cómo nos conoció?: ${data.como_nos_conocio || "No indicado"}
-${referrerInfo ? `🎁 REFERIDO POR: ${referrerInfo.full_name} (${referrerInfo.email}) - ¡Aplicar bonus si se inscribe!` : ""}
-
-💬 Mensaje: ${data.mensaje || "Sin mensaje"}
-
----
-Accede al panel de administración para gestionar esta solicitud.`
-      });
-
-      return interest;
-    },
-    onSuccess: () => {
-      setShowSuccess(true);
-      setFormData({
-        nombre_jugadora: "",
-        fecha_nacimiento: "",
-        nombre_padre: "",
-        email: "",
-        telefono: "",
-        municipio: "",
-        experiencia_previa: "",
-        como_nos_conocio: "",
-        mensaje: ""
-      });
-    },
-    onError: (error) => {
-      toast.error("Error al enviar: " + error.message);
-    }
-  });
-
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!formData.nombre_jugadora || !formData.nombre_padre || !formData.email || !formData.telefono) {
       toast.error("Por favor, completa los campos obligatorios");
       return;
     }
-    submitMutation.mutate(formData);
+    
+    setIsSubmitting(true);
+    try {
+      // Usar función backend que no requiere autenticación
+      const response = await base44.functions.invoke('submitFemeninoInterest', formData);
+      
+      if (response.data?.success) {
+        setShowSuccess(true);
+        setFormData({
+          nombre_jugadora: "",
+          fecha_nacimiento: "",
+          nombre_padre: "",
+          email: "",
+          telefono: "",
+          municipio: "",
+          experiencia_previa: "",
+          como_nos_conocio: "",
+          mensaje: ""
+        });
+      } else {
+        throw new Error(response.data?.error || "Error al enviar");
+      }
+    } catch (error) {
+      console.error("Error:", error);
+      toast.error("Error al enviar la solicitud. Inténtalo de nuevo.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
+
+
 
   const benefits = [
     { icon: Users, title: "Equipo unido", desc: "Compañeras que se convierten en amigas para toda la vida" },
@@ -206,13 +122,7 @@ Accede al panel de administración para gestionar esta solicitud.`
               <span className="text-pink-400 font-bold"> ¡PASARLO GENIAL!</span>
             </p>
 
-            {referrerInfo && (
-              <div className="bg-gradient-to-r from-green-500/20 to-pink-500/20 backdrop-blur-sm rounded-2xl p-4 mb-6 border border-white/20 inline-block">
-                <p className="text-white text-sm">
-                  🎁 Te invita: <span className="font-bold text-pink-300">{referrerInfo.full_name}</span>
-                </p>
-              </div>
-            )}
+
 
             <Button 
               onClick={() => document.getElementById('formulario').scrollIntoView({ behavior: 'smooth' })}
@@ -427,23 +337,13 @@ Accede al panel de administración para gestionar esta solicitud.`
                     />
                   </div>
 
-                  {/* Referido por */}
-                  {referrerInfo && (
-                    <div className="bg-gradient-to-r from-green-500/20 to-pink-500/20 rounded-xl p-4 border border-white/20">
-                      <p className="text-white text-sm flex items-center gap-2">
-                        <CheckCircle2 className="w-5 h-5 text-green-400" />
-                        Recomendado por: <span className="font-bold text-pink-300">{referrerInfo.full_name}</span>
-                      </p>
-                    </div>
-                  )}
-
                   {/* Botón enviar */}
                   <Button 
                     type="submit"
-                    disabled={submitMutation.isPending}
+                    disabled={isSubmitting}
                     className="w-full bg-gradient-to-r from-orange-500 to-pink-500 hover:from-orange-600 hover:to-pink-600 text-white font-bold py-6 text-lg rounded-xl shadow-xl"
                   >
-                    {submitMutation.isPending ? (
+                    {isSubmitting ? (
                       <>Enviando...</>
                     ) : (
                       <>
