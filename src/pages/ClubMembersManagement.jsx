@@ -82,13 +82,24 @@ export default function ClubMembersManagement() {
 
   const updateMemberMutation = useMutation({
     mutationFn: async ({ id, data, memberEmail, memberName, sendEmail = false, member = null }) => {
+      console.log('[ClubMembersManagement] updateMemberMutation llamado:', { id, sendEmail, memberEmail, estadoPago: data.estado_pago });
+      
       const result = await base44.entities.ClubMember.update(id, data);
       
       // Cuando el admin marca como PAGADO, enviar carnet virtual + email de confirmación
       if (sendEmail && data.estado_pago === "Pagado" && memberEmail && member) {
+        console.log('[ClubMembersManagement] Intentando enviar carnet a:', memberEmail);
+        
         try {
           // Enviar carnet virtual
-          await sendMemberCard({ ...member, ...data }, seasonConfig, base44);
+          const memberData = { ...member, ...data };
+          console.log('[ClubMembersManagement] Datos del socio para carnet:', { 
+            nombre: memberData.nombre_completo, 
+            email: memberData.email,
+            numero_socio: memberData.numero_socio 
+          });
+          
+          await sendMemberCard(memberData, seasonConfig, base44);
           
           // Marcar carnet como enviado
           await base44.entities.ClubMember.update(id, {
@@ -96,11 +107,15 @@ export default function ClubMembersManagement() {
             fecha_carnet_enviado: new Date().toISOString()
           });
           
+          console.log('[ClubMembersManagement] ✅ Carnet enviado y marcado en BD');
           toast.success("📧 Carnet virtual enviado al socio");
         } catch (error) {
-          console.error("Error enviando carnet:", error);
+          console.error("[ClubMembersManagement] ❌ Error enviando carnet:", error);
+          toast.error("Error al enviar carnet: " + (error.message || "Error desconocido"));
+          
           // Si falla el carnet, al menos enviar email simple
           try {
+            console.log('[ClubMembersManagement] Intentando email simple de fallback...');
             await base44.integrations.Core.SendEmail({
               from_name: "CD Bustarviejo",
               to: memberEmail,
@@ -118,10 +133,15 @@ Tu contribución es fundamental para el desarrollo de nuestros jóvenes deportis
 Un cordial saludo,
 CD Bustarviejo`
             });
+            console.log('[ClubMembersManagement] ✅ Email simple de fallback enviado');
+            toast.success("📧 Email de confirmación enviado");
           } catch (e) {
-            console.error("Error enviando email simple:", e);
+            console.error("[ClubMembersManagement] ❌ Error enviando email simple:", e);
+            toast.error("No se pudo enviar el email de confirmación");
           }
         }
+      } else {
+        console.log('[ClubMembersManagement] No se envía email:', { sendEmail, estadoPago: data.estado_pago, tieneEmail: !!memberEmail, tieneMember: !!member });
       }
       
       return result;
