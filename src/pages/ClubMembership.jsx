@@ -354,13 +354,14 @@ export default function ClubMembership() {
                 newRaffles += (seasonConfig.referidos_sorteo_5 || 3) - (seasonConfig.referidos_sorteo_3 || 1);
               } else if (newCount === 10) {
                 newCredit += (seasonConfig.referidos_premio_10 || 50) - (seasonConfig.referidos_premio_5 || 25);
-                newRaffles += (seasonConfig.referidos_sorteo_10 || 5) - (seasonConfig.referidos_sorteo_5 || 3);
+                newRaffles += (seasonConfig.referidos_sorteo_10 || 5) - (seasonConfig.referids_sorteo_5 || 3);
               } else if (newCount === 15) {
                 newCredit += (seasonConfig.referidos_premio_15 || 50) - (seasonConfig.referidos_premio_10 || 50);
                 newRaffles += (seasonConfig.referidos_sorteo_15 || 10) - (seasonConfig.referidos_sorteo_10 || 5);
               }
 
-              await base44.entities.User.update(referrer.id, {
+              // Usar updateMe en lugar de User.update para el usuario actual (no requiere permisos de admin)
+              await base44.auth.updateMe({
                 referrals_count: newCount,
                 clothing_credit_balance: newCredit,
                 raffle_entries_total: newRaffles
