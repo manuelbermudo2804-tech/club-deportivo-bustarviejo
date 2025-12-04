@@ -19,6 +19,7 @@ import ContactCard from "../components/ContactCard";
 import ParentPaymentForm from "../components/payments/ParentPaymentForm";
 import BankReconciliation from "../components/payments/BankReconciliation";
 import ExportButton from "../components/ExportButton";
+import { getCuotasPorCategoriaSync, getImportePorCategoriaYMesSync as getImportePorMes } from "../components/payments/paymentAmounts";
 
 const getCurrentSeason = () => {
   const now = new Date();
@@ -34,32 +35,6 @@ const getDefaultSeason = (payments) => {
   const seasons = [...new Set(payments.map(p => p.temporada).filter(Boolean))];
   // Si hay pagos, usar la temporada más reciente
   return seasons.sort().reverse()[0] || getCurrentSeason();
-};
-
-// Cuotas fallback
-const CUOTAS_FALLBACK = {
-  "Fútbol Aficionado": { inscripcion: 165, segunda: 100, tercera: 95, total: 360 },
-  "Fútbol Juvenil": { inscripcion: 135, segunda: 100, tercera: 95, total: 330 },
-  "Fútbol Cadete": { inscripcion: 135, segunda: 100, tercera: 95, total: 330 },
-  "Fútbol Infantil (Mixto)": { inscripcion: 115, segunda: 83, tercera: 83, total: 281 },
-  "Fútbol Alevín (Mixto)": { inscripcion: 115, segunda: 83, tercera: 83, total: 281 },
-  "Fútbol Benjamín (Mixto)": { inscripcion: 100, segunda: 75, tercera: 75, total: 250 },
-  "Fútbol Pre-Benjamín (Mixto)": { inscripcion: 100, segunda: 75, tercera: 75, total: 250 },
-  "Fútbol Femenino": { inscripcion: 135, segunda: 100, tercera: 95, total: 330 },
-  "Baloncesto (Mixto)": { inscripcion: 50, segunda: 50, tercera: 50, total: 150 }
-};
-
-// Mapeo de nombres
-const CATEGORY_NAME_MAPPING = {
-  "Fútbol Aficionado": "AFICIONADO",
-  "Fútbol Juvenil": "JUVENIL",
-  "Fútbol Cadete": "CADETE",
-  "Fútbol Infantil (Mixto)": "INFANTIL",
-  "Fútbol Alevín (Mixto)": "ALEVIN",
-  "Fútbol Benjamín (Mixto)": "BENJAMIN",
-  "Fútbol Pre-Benjamín (Mixto)": "PRE-BENJAMIN",
-  "Fútbol Femenino": "FEMENINO",
-  "Baloncesto (Mixto)": "BALONCESTO"
 };
 
 const calculateDaysOverdue = (mes) => {
@@ -101,53 +76,18 @@ export default function Payments() {
       return configs.find(c => c.activa === true);
     },
   });
-
-  // Fetch CategoryConfig para precios actualizados
-  const { data: categoryConfigs = [] } = useQuery({
-    queryKey: ['categoryConfigs'],
-    queryFn: () => base44.entities.CategoryConfig.list(),
-  });
-
-  // Funciones que usan CategoryConfig
-  const getCuotasPorCategoriaSync = (categoria) => {
-    if (categoryConfigs.length === 0) {
-      return CUOTAS_FALLBACK[categoria] || { inscripcion: 0, segunda: 0, tercera: 0, total: 0 };
-    }
-    
-    const mappedName = CATEGORY_NAME_MAPPING[categoria] || categoria;
-    const config = categoryConfigs.find(c => 
-      (c.nombre === categoria || c.nombre === mappedName) && c.activa
-    );
-    
-    if (config) {
-      return {
-        inscripcion: config.cuota_inscripcion,
-        segunda: config.cuota_segunda,
-        tercera: config.cuota_tercera,
-        total: config.cuota_total
-      };
-    }
-    
-    return CUOTAS_FALLBACK[categoria] || { inscripcion: 0, segunda: 0, tercera: 0, total: 0 };
-  };
-
-  const getImportePorMes = (categoria, mes) => {
-    const cuotas = getCuotasPorCategoriaSync(categoria);
-    if (mes === "Junio") return cuotas.inscripcion;
-    if (mes === "Septiembre") return cuotas.segunda;
-    if (mes === "Diciembre") return cuotas.tercera;
-    return 0;
-  };
   
-  // Filtros avanzados - iniciar con temporada activa del SeasonConfig
-  const [temporadaFilter, setTemporadaFilter] = useState(activeSeasonConfig?.temporada || "2025/2026");
+  // Filtros avanzados - iniciar con "all" para mostrar TODOS los pagos por defecto
+  const [temporadaFilter, setTemporadaFilter] = useState("all");
+  const [temporadaInitialized, setTemporadaInitialized] = useState(false);
 
-  // Actualizar filtro cuando cambie la temporada activa
+  // Actualizar filtro cuando cambie la temporada activa (solo una vez)
   useEffect(() => {
-    if (activeSeasonConfig?.temporada) {
+    if (activeSeasonConfig?.temporada && !temporadaInitialized) {
       setTemporadaFilter(activeSeasonConfig.temporada);
+      setTemporadaInitialized(true);
     }
-  }, [activeSeasonConfig?.temporada]);
+  }, [activeSeasonConfig?.temporada, temporadaInitialized]);
   const [categoriaFilter, setCategoriaFilter] = useState("all");
   const [estadoFilter, setEstadoFilter] = useState("all");
   const [showOverdueOnly, setShowOverdueOnly] = useState(false);
