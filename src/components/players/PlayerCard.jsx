@@ -327,6 +327,8 @@ export default function PlayerCard({ player, onEdit, onViewProfile, isParent = f
                   const pago = playerPayments.find(p => p.mes === mesCompleto);
                   const isPaid = pago?.estado === "Pagado";
                   const isReview = pago?.estado === "En revisión";
+                  const isPending = pago?.estado === "Pendiente";
+                  const noPayment = !pago;
                   
                   return (
                     <div 
@@ -334,10 +336,12 @@ export default function PlayerCard({ player, onEdit, onViewProfile, isParent = f
                       className={`flex-1 flex items-center justify-center text-[10px] font-bold transition-all ${
                         isPaid ? 'bg-green-500 text-white' : 
                         isReview ? 'bg-orange-400 text-white animate-pulse' : 
+                        isPending ? 'bg-yellow-400 text-yellow-900' :
+                        noPayment ? 'bg-slate-300 text-slate-600' :
                         'bg-red-400 text-white'
                       }`}
                     >
-                      {mes} {isPaid ? '✓' : isReview ? '○' : '✗'}
+                      {mes} {isPaid ? '✓' : isReview ? '⏳' : isPending ? '○' : noPayment ? '-' : '✗'}
                     </div>
                   );
                 })}
