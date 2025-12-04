@@ -5,10 +5,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   Users, CheckCircle2, Clock, AlertCircle, Mail, 
   TrendingUp, UserPlus, Heart, Eye, Loader2, Edit, Trash2,
-  MessageCircle, RefreshCw, UserCheck, Send, Bell, Upload, FileSpreadsheet
+  MessageCircle, RefreshCw, UserCheck, Send, Bell, Upload, FileSpreadsheet, BarChart3
 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -17,6 +18,7 @@ import RenewalReminderDialog from "../components/members/RenewalReminderDialog";
 import MemberEditForm from "../components/members/MemberEditForm";
 import MemberDetailDialog from "../components/members/MemberDetailDialog";
 import MemberAdvancedFilters from "../components/members/MemberAdvancedFilters";
+import MembershipStatsPanel from "../components/members/MembershipStatsPanel";
 import { sendMemberCard } from "../components/members/MemberCardEmail";
 import { sendPaymentReceipt, createMemberPaymentReceiptData } from "../components/receipts/PaymentReceiptPDF";
 
