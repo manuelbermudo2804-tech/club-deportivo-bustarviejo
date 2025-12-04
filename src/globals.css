@@ -380,5 +380,10 @@
 * {
   transition-property: background-color, border-color, color, fill, stroke;
   transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-  transition-duration: 200ms;
+  transition-duration: 150ms;
+}
+
+/* Excluir transiciones de elementos que no deben animar */
+button, a, input, select, textarea {
+  transition-duration: 100ms;
 }
