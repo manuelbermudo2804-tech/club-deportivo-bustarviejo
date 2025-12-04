@@ -32,13 +32,20 @@ export default function ParentPlayers() {
   });
 
   const { data: players, isLoading } = useQuery({
-    queryKey: ['myPlayers', user?.email],
+    queryKey: ['myPlayers', user?.email, seasonConfig?.permitir_renovaciones],
     queryFn: async () => {
       const allPlayers = await base44.entities.Player.list();
-      // SOLO mostrar jugadores ACTIVOS (los de temporada anterior están con activo=false hasta que se renueven)
-      return allPlayers.filter(p => 
-        (p.email_padre === user?.email || p.email_tutor_2 === user?.email) && p.activo === true
+      // Filtrar jugadores del padre/tutor
+      const myPlayers = allPlayers.filter(p => 
+        p.email_padre === user?.email || p.email_tutor_2 === user?.email
       );
+      
+      // Si permitir_renovaciones está activo, mostrar TODOS (activos e inactivos para renovar)
+      // Si no, solo mostrar los ACTIVOS
+      if (seasonConfig?.permitir_renovaciones) {
+        return myPlayers;
+      }
+      return myPlayers.filter(p => p.activo === true);
     },
     enabled: !!user?.email,
     initialData: [],
