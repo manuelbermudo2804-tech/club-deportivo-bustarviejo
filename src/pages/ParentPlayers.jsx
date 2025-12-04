@@ -394,6 +394,91 @@ Hola <strong>${dataWithParentEmail.nombre_tutor_2 || "Estimado/a"}</strong>,
         }
       }
       
+      // ⚽👧 BONUS FÚTBOL FEMENINO - Detectar si el padre que inscribe fue referido y la jugadora es femenina
+      try {
+        if (seasonConfig?.programa_referidos_activo && seasonConfig?.bonus_femenino_activo && playerData.deporte === "Fútbol Femenino") {
+          console.log('⚽👧 [ParentPlayers] Detectada inscripción de jugadora FEMENINA');
+          
+          // Buscar si este padre fue referido por alguien (tiene un registro en ClubMember con referido_por)
+          const allMembers = await base44.entities.ClubMember.list();
+          const myMembership = allMembers.find(m => m.email?.toLowerCase() === user?.email?.toLowerCase() && m.temporada === seasonConfig?.temporada);
+          
+          if (myMembership?.referido_por) {
+            console.log('🎯 [ParentPlayers] Padre fue referido por:', myMembership.referido_por);
+            
+            // Buscar al referidor por nombre
+            const allUsers = await base44.entities.User.list();
+            const referrer = allUsers.find(u => 
+              u.full_name?.toLowerCase() === myMembership.referido_por?.toLowerCase()
+            );
+            
+            if (referrer) {
+              console.log('✨ [ParentPlayers] Aplicando BONUS FEMENINO a:', referrer.full_name);
+              
+              const bonusCredito = seasonConfig.bonus_femenino_credito || 10;
+              const bonusSorteos = seasonConfig.bonus_femenino_sorteos || 2;
+              
+              // Crear registro de reward con bonus femenino
+              await base44.entities.ReferralReward.create({
+                referrer_email: referrer.email,
+                referrer_name: referrer.full_name,
+                referred_member_id: myMembership.id,
+                referred_member_name: myMembership.nombre_completo,
+                referred_player_id: newPlayer.id,
+                referred_player_name: playerData.nombre,
+                referred_player_category: playerData.deporte,
+                is_femenino_bonus: true,
+                temporada: seasonConfig?.temporada,
+                clothing_credit_earned: bonusCredito,
+                raffle_entries_earned: bonusSorteos
+              });
+              
+              // Actualizar crédito del referidor
+              const newCredit = (referrer.clothing_credit_balance || 0) + bonusCredito;
+              const newRaffles = (referrer.raffle_entries_total || 0) + bonusSorteos;
+              const newFemeninoCount = (referrer.femenino_referrals_count || 0) + 1;
+              
+              await base44.entities.User.update(referrer.id, {
+                clothing_credit_balance: newCredit,
+                raffle_entries_total: newRaffles,
+                femenino_referrals_count: newFemeninoCount
+              });
+              
+              console.log(`✅ [ParentPlayers] BONUS FEMENINO aplicado: +${bonusCredito}€ +${bonusSorteos} sorteos a ${referrer.full_name}`);
+              
+              // Notificar al referidor por email
+              if (referrer.email) {
+                await base44.integrations.Core.SendEmail({
+                  from_name: "CD Bustarviejo",
+                  to: referrer.email,
+                  subject: "⚽👧 ¡BONUS FÚTBOL FEMENINO! Has ganado premios extra",
+                  body: `¡Enhorabuena ${referrer.full_name}!
+
+🎉 El socio que trajiste (${myMembership.nombre_completo}) ha inscrito una jugadora en el FÚTBOL FEMENINO: ${playerData.nombre}
+
+Por apoyar el crecimiento del fútbol femenino, ¡has ganado un BONUS EXTRA!
+
+🎁 BONUS ESPECIAL:
+• +${bonusCredito}€ de crédito en ropa (EXTRA)
+• +${bonusSorteos} participaciones en sorteos (EXTRA)
+
+💰 Tu saldo actualizado:
+• Crédito en ropa: ${newCredit}€
+• Participaciones en sorteos: ${newRaffles}
+
+¡Gracias por ayudar a crecer el fútbol femenino en Bustarviejo! ⚽💪
+
+Un abrazo,
+CD Bustarviejo`
+                });
+              }
+            }
+          }
+        }
+      } catch (bonusError) {
+        console.error('[ParentPlayers] Error aplicando bonus femenino:', bonusError);
+      }
+
       try {
         if (seasonConfig?.notificaciones_admin_email) {
           console.log('📧 [ParentPlayers] Enviando notificación de inscripción a admin');
