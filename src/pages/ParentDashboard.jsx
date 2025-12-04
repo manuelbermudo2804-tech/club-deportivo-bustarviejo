@@ -14,6 +14,90 @@ import AlertCenter from "../components/dashboard/AlertCenter";
 import ContactCard from "../components/ContactCard";
 import { usePageTutorial } from "../components/tutorials/useTutorial";
 
+// Componente para compartir Fútbol Femenino
+function FemeninoShareBanner({ userEmail, userName }) {
+  const generateReferralCode = (email) => {
+    let hash = 0;
+    for (let i = 0; i < email.length; i++) {
+      const char = email.charCodeAt(i);
+      hash = ((hash << 5) - hash) + char;
+      hash = hash & hash;
+    }
+    return Math.abs(hash).toString(36).toUpperCase().slice(0, 8);
+  };
+
+  const refCode = generateReferralCode(userEmail);
+  const femeninoLink = `${window.location.origin}/JoinFemenino?ref=${refCode}`;
+  
+  const whatsappMessage = encodeURIComponent(`⚽👧 ¡BUSCAMOS JUGADORAS PARA EL EQUIPO DE FÚTBOL FEMENINO!
+
+🌟 CD Bustarviejo abre sus puertas a nuevas jugadoras.
+
+✅ Todas las edades bienvenidas
+✅ No hace falta experiencia
+✅ Ambiente familiar y seguro
+✅ Entrenadores titulados
+✅ ¡Nos lo pasamos genial!
+
+🎁 Si te apuntas, ¡ambos ganamos premios!
+
+👉 ¡Apúntate aquí!: ${femeninoLink}
+
+¡Te esperamos en el campo! 💪`);
+
+  const shareWhatsApp = () => {
+    window.open(`https://wa.me/?text=${whatsappMessage}`, '_blank');
+  };
+
+  const copyLink = () => {
+    navigator.clipboard.writeText(femeninoLink);
+    toast.success("¡Enlace copiado!");
+  };
+
+  return (
+    <div className="bg-gradient-to-r from-pink-500 via-fuchsia-500 to-purple-600 rounded-2xl p-4 shadow-xl border-2 border-pink-400 relative overflow-hidden">
+      <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16"></div>
+      <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/10 rounded-full -ml-12 -mb-12"></div>
+      
+      <div className="relative z-10">
+        <div className="flex items-start gap-3 mb-3">
+          <div className="bg-white/20 backdrop-blur-sm rounded-xl p-2 flex-shrink-0">
+            <span className="text-2xl">⚽👧</span>
+          </div>
+          <div className="flex-1">
+            <p className="text-white font-bold text-base lg:text-lg">
+              ¡Ayúdanos a crecer el Fútbol Femenino!
+            </p>
+            <p className="text-pink-100 text-xs mt-1">
+              Comparte y gana <strong>+10€ en ropa + 2 sorteos</strong> por cada jugadora
+            </p>
+          </div>
+        </div>
+        
+        <div className="flex gap-2">
+          <button
+            onClick={shareWhatsApp}
+            className="flex-1 bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-4 rounded-xl shadow-lg transition-all hover:scale-105 active:scale-95 flex items-center justify-center gap-2"
+          >
+            <Share2 className="w-5 h-5" />
+            <span className="text-sm">Enviar por WhatsApp</span>
+          </button>
+          <button
+            onClick={copyLink}
+            className="bg-white/20 hover:bg-white/30 text-white font-bold py-3 px-4 rounded-xl transition-all"
+          >
+            📋
+          </button>
+        </div>
+        
+        <p className="text-pink-200 text-[10px] mt-2 text-center">
+          Tu enlace personal • Los premios se aplican automáticamente
+        </p>
+      </div>
+    </div>
+  );
+}
+
 export default function ParentDashboard() {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
