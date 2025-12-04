@@ -808,13 +808,14 @@ ${mensajePersonalizado ? `
         <CardContent className="p-4">
           <h3 className="font-bold text-blue-900 mb-2 flex items-center gap-2">
             <Users className="w-4 h-4" />
-            Consejos para invitar usuarios
+            Invitaciones Seguras con Token
           </h3>
           <ul className="text-sm text-blue-800 space-y-1">
-            <li>• Los usuarios recibirán un email bonito con el logo del club y un botón para acceder</li>
+            <li>• 🔒 Cada email contiene un enlace único y seguro válido por 30 días</li>
+            <li>• Los usuarios deben validar su invitación antes de acceder a la app</li>
             <li>• Pueden registrarse usando el mismo email al que les enviaste la invitación</li>
             <li>• Puedes pegar una lista de emails separados por comas o saltos de línea</li>
-            <li>• Si añades un mensaje personalizado, aparecerá destacado en amarillo</li>
+            <li>• Si añades un mensaje personalizado, aparecerá destacado en el email</li>
           </ul>
         </CardContent>
       </Card>
