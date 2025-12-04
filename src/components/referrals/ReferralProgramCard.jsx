@@ -1,7 +1,9 @@
 import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Gift, Star, Trophy, Hotel, Shirt, Ticket, Sparkles, Heart, Users, Crown, Zap, PartyPopper } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Gift, Star, Trophy, Hotel, Shirt, Ticket, Sparkles, Heart, Users, Crown, Zap, PartyPopper, Share2, MessageCircle, Copy } from "lucide-react";
+import { toast } from "sonner";
 
 const REWARD_TIERS = [
   { count: 1, color: "from-blue-500 to-blue-600", bgColor: "bg-blue-50", borderColor: "border-blue-300", title: "1 Socio", emoji: "🎁" },
