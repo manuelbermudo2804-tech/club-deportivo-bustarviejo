@@ -67,6 +67,40 @@ export default function ReferralProgramCard({ seasonConfig, userReferrals = 0, u
           <p className="text-sm text-white/90">Invita a familiares, amigos, vecinos... ¡Cada nuevo socio cuenta!</p>
         </div>
 
+        {/* BONUS FÚTBOL FEMENINO */}
+        {seasonConfig.bonus_femenino_activo && (
+          <div className="bg-gradient-to-r from-pink-500 via-fuchsia-500 to-purple-500 rounded-2xl p-4 text-center border-4 border-pink-300 relative overflow-hidden animate-pulse">
+            <div className="absolute top-0 left-0 w-full h-full bg-white/10"></div>
+            <div className="relative">
+              <div className="text-4xl mb-2">⚽👧</div>
+              <h4 className="text-xl font-bold text-white mb-1">🌟 ¡BONUS FÚTBOL FEMENINO! 🌟</h4>
+              <p className="text-white/95 font-medium text-sm mb-2">
+                ¡Trae jugadoras al equipo femenino y gana el <strong>DOBLE</strong> de premios!
+              </p>
+              <div className="flex justify-center gap-3 mt-2">
+                <div className="bg-white/30 backdrop-blur-sm rounded-xl px-3 py-2">
+                  <p className="text-white font-bold text-lg">+{seasonConfig.bonus_femenino_credito || 10}€</p>
+                  <p className="text-white/80 text-xs">extra en ropa</p>
+                </div>
+                <div className="bg-white/30 backdrop-blur-sm rounded-xl px-3 py-2">
+                  <p className="text-white font-bold text-lg">+{seasonConfig.bonus_femenino_sorteos || 2}</p>
+                  <p className="text-white/80 text-xs">sorteos extra</p>
+                </div>
+              </div>
+              <p className="text-white/80 text-xs mt-3">
+                ¡Por cada nueva jugadora que inscribas en el fútbol femenino!
+              </p>
+              {userFemeninoReferrals > 0 && (
+                <div className="mt-3 bg-white/20 rounded-xl p-2">
+                  <p className="text-white font-bold">
+                    ✨ Ya has traído {userFemeninoReferrals} jugadora{userFemeninoReferrals > 1 ? 's' : ''} al femenino
+                  </p>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
         {userReferrals > 0 && (
           <div className="bg-white rounded-2xl p-4 text-slate-900">
             <div className="flex items-center justify-between mb-3">
