@@ -230,12 +230,12 @@ Accede al panel de administración para gestionar.`;
     // Si tiene referido, procesar el programa de referidos
     if (data.referido_por_email && activeConfig?.programa_referidos_activo) {
       try {
-        const allUsers = await base44.asServiceRole.entities.User.list();
+        const allUsers = await base44.entities.User.list();
         const referrer = allUsers.find(u => u.email?.toLowerCase() === data.referido_por_email.toLowerCase());
         
         if (referrer) {
           // Registrar la referencia
-          await base44.asServiceRole.entities.ReferralReward.create({
+          await base44.entities.ReferralReward.create({
             referrer_email: referrer.email,
             referrer_name: referrer.full_name,
             referred_member_id: newMember.id,
@@ -264,7 +264,7 @@ Accede al panel de administración para gestionar.`;
             newRaffles += (activeConfig.referidos_sorteo_15 || 10) - (activeConfig.referidos_sorteo_10 || 5);
           }
 
-          await base44.asServiceRole.entities.User.update(referrer.id, {
+          await base44.entities.User.update(referrer.id, {
             referrals_count: newCount,
             clothing_credit_balance: newCredit,
             raffle_entries_total: newRaffles
