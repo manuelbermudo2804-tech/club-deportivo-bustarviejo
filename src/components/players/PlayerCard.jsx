@@ -104,20 +104,30 @@ export default function PlayerCard({ player, onEdit, onViewProfile, isParent = f
   if (hasEnlaceFirmaTutor && !firmaTutorOk && !esMayorDeEdad) firmasPendientes.push("Tutor");
   
   // Calcular estado de pagos del jugador
+  // La temporada deportiva va de septiembre a agosto del año siguiente
+  // Ejemplo: En diciembre 2025 estamos en temporada 2025/2026
   const getCurrentSeason = () => {
     const now = new Date();
     const year = now.getFullYear();
-    const month = now.getMonth() + 1;
-    return month >= 9 ? `${year}/${year + 1}` : `${year - 1}/${year}`;
+    const month = now.getMonth() + 1; // 1-12
+    // Si estamos en septiembre o después, la temporada es año_actual/año_siguiente
+    // Si estamos antes de septiembre, la temporada es año_anterior/año_actual
+    if (month >= 9) {
+      return `${year}/${year + 1}`;
+    } else {
+      return `${year - 1}/${year}`;
+    }
   };
   
   const currentSeason = getCurrentSeason();
+  
   // Normalizar temporada: soportar formatos "2024/2025", "2024-2025", "2025/2026", "2025-2026" etc.
   const normalizeTemporada = (temp) => {
     if (!temp) return "";
     // Convertir guiones a barras y eliminar espacios
     return temp.replace(/-/g, "/").trim();
   };
+  
   const normalizedCurrentSeason = normalizeTemporada(currentSeason);
   
   // Filtrar pagos del jugador para la temporada actual
@@ -126,17 +136,6 @@ export default function PlayerCard({ player, onEdit, onViewProfile, isParent = f
     const normalizedPaymentSeason = normalizeTemporada(p.temporada);
     return normalizedPaymentSeason === normalizedCurrentSeason;
   });
-  
-  // Debug: mostrar en consola para diagnosticar
-  if (payments.length > 0 && playerPayments.length === 0) {
-    const thisPlayerPayments = payments.filter(p => p.jugador_id === player.id);
-    if (thisPlayerPayments.length > 0) {
-      console.log(`[PlayerCard] ${player.nombre}: Pagos encontrados pero temporada no coincide`, {
-        currentSeason: normalizedCurrentSeason,
-        pagosTemporadas: thisPlayerPayments.map(p => ({ temporada: p.temporada, normalizada: normalizeTemporada(p.temporada), mes: p.mes, estado: p.estado }))
-      });
-    }
-  }
   
   // Verificar si tiene pago único pagado
   const hasPagoUnico = playerPayments.some(p => 
