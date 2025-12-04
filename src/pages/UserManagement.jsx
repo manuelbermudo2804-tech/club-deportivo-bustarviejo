@@ -638,29 +638,7 @@ export default function UserManagement() {
         </div>
       </div>
 
-      {/* Alerta informativa */}
-      {deletedUsers.length > 0 && (
-        <Card className="border-none shadow-lg bg-blue-50 border-2 border-blue-200">
-          <CardContent className="pt-6">
-            <div className="flex items-start gap-3">
-              <div className="bg-blue-500 rounded-full p-2">
-                <Trash2 className="w-5 h-5 text-white" />
-              </div>
-              <div className="flex-1">
-                <h3 className="font-bold text-blue-900 mb-2">ℹ️ Sobre los usuarios "eliminados"</h3>
-                <p className="text-sm text-blue-800 mb-3">
-                  Los usuarios marcados como "eliminados" <strong>no pueden iniciar sesión</strong> y <strong>no aparecen en las listas</strong>,
-                  pero sus datos permanecen en el sistema. Es como si estuvieran borrados.
-                </p>
-                <p className="text-sm text-blue-800">
-                  <strong>Para eliminarlos definitivamente del sistema:</strong> Usa el botón de Feedback en el sidebar y solicita
-                  al equipo de Base44 que elimine estos usuarios. Ellos tienen acceso al sistema de autenticación y pueden borrarlos permanentemente.
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
+
 
       {/* Lista de Usuarios */}
       <Card className="border-none shadow-lg">
