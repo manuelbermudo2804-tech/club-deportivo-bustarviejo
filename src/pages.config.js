@@ -69,6 +69,7 @@ import ValidateSecondParent from './pages/ValidateSecondParent';
 import ValidateAdminInvitation from './pages/ValidateAdminInvitation';
 import JoinFemenino from './pages/JoinFemenino';
 import FemeninoInterests from './pages/FemeninoInterests';
+import MatchCalendar from './pages/MatchCalendar';
 import __Layout from './Layout.jsx';
 
 
@@ -144,6 +145,7 @@ export const PAGES = {
     "ValidateAdminInvitation": ValidateAdminInvitation,
     "JoinFemenino": JoinFemenino,
     "FemeninoInterests": FemeninoInterests,
+    "MatchCalendar": MatchCalendar,
 }
 
 export const pagesConfig = {
