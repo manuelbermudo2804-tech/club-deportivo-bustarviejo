@@ -661,7 +661,7 @@ export default function UserManagement() {
               <p className="text-slate-500">No se encontraron usuarios</p>
             </div>
           ) : (
-            <div className="space-y-3">
+            <div className="space-y-2">
               {filteredUsers.map((user) => {
                 const userPlayers = getUserPlayers(user.email);
                 const activePlayers = userPlayers.filter(p => p.activo);
@@ -676,268 +676,78 @@ export default function UserManagement() {
                 return (
                   <div
                     key={user.id}
-                    className={`p-4 rounded-lg border-2 transition-all ${
+                    className={`p-3 rounded-lg border transition-all ${
                       isDeleted
-                        ? 'bg-slate-100 border-slate-400 opacity-75'
+                        ? 'bg-slate-100 border-slate-300 opacity-60'
                         : hasRestriction
                         ? 'bg-red-50 border-red-200'
                         : isCoordinator
-                        ? 'bg-cyan-50 border-cyan-300'
+                        ? 'bg-cyan-50 border-cyan-200'
                         : isTreasurer
-                        ? 'bg-green-50 border-green-300'
+                        ? 'bg-green-50 border-green-200'
                         : isCoach
-                        ? 'bg-blue-50 border-blue-300'
+                        ? 'bg-blue-50 border-blue-200'
                         : 'bg-white border-slate-200 hover:border-orange-300'
                     }`}
                   >
-                    <div className="flex items-start justify-between gap-4">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-3 mb-2 flex-wrap">
-                          <h3 className="font-bold text-lg text-slate-900">{user.full_name}</h3>
-                          <Badge className={
-                            user.role === "admin"
-                              ? "bg-orange-600"
-                              : isPlayerUser
-                              ? "bg-purple-600"
-                              : "bg-slate-600"
-                          }>
-                            {user.role === "admin" ? "🎓 Administrador" : isPlayerUser ? "⚽ Jugador +18" : "👨‍👩‍👧 Padre/Tutor"}
-                          </Badge>
-                          {isCoordinator && (
-                            <Badge className="bg-cyan-600 text-white">
-                              🎓 Coordinador Deportivo
-                            </Badge>
-                          )}
-                          {isTreasurer && (
-                            <Badge className="bg-green-600 text-white">
-                              💰 Tesorero
-                            </Badge>
-                          )}
-                          {isCoach && (
-                            <Badge className="bg-blue-600 text-white">
-                              🏃 Entrenador
-                            </Badge>
-                          )}
-                          {isDeleted && (
-                            <Badge className="bg-slate-700 text-white">
-                              <Trash2 className="w-3 h-3 mr-1" />
-                              ELIMINADO
-                            </Badge>
-                          )}
-                          {!isDeleted && hasRestriction && (
-                            <Badge className="bg-red-600 text-white">
-                              <Ban className="w-3 h-3 mr-1" />
-                              Restringido
-                            </Badge>
-                          )}
-                          {user.app_instalada === true && (
-                            <Badge className="bg-green-100 text-green-800">
-                              📲 App
-                            </Badge>
-                          )}
-                          {user.app_instalada !== true && user.role !== "admin" && (
-                            <Badge className="bg-amber-100 text-amber-800">
-                              📵 Sin App
-                            </Badge>
-                          )}
-                        </div>
-
-                        <div className="flex items-center gap-2 text-sm text-slate-600 mb-2">
-                          <Mail className="w-4 h-4" />
-                          <span>{user.email}</span>
-                        </div>
-
-                        {isCoordinator && (
-                          <div className="text-sm text-cyan-700 bg-cyan-100 rounded p-2 mb-2">
-                            <strong>🎓 Coordinador Deportivo</strong>
-                            {user.tiene_hijos_jugando && (
-                              <span className="ml-2">• 👨‍👩‍👧 Con hijos jugando</span>
-                            )}
+                    <div className="flex items-center justify-between gap-2">
+                      {/* Info principal */}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="font-semibold text-sm text-slate-900 truncate">{user.full_name}</span>
+                          {/* Badges compactos */}
+                          <div className="flex gap-1 flex-wrap">
+                            {user.role === "admin" && <Badge className="bg-orange-600 text-[10px] px-1.5 py-0">Admin</Badge>}
+                            {isPlayerUser && <Badge className="bg-purple-600 text-[10px] px-1.5 py-0">⚽+18</Badge>}
+                            {isCoordinator && <Badge className="bg-cyan-600 text-[10px] px-1.5 py-0">Coord</Badge>}
+                            {isTreasurer && <Badge className="bg-green-600 text-[10px] px-1.5 py-0">Teso</Badge>}
+                            {isCoach && <Badge className="bg-blue-600 text-[10px] px-1.5 py-0">Entr</Badge>}
+                            {isDeleted && <Badge className="bg-slate-600 text-[10px] px-1.5 py-0">Elim</Badge>}
+                            {!isDeleted && hasRestriction && <Badge className="bg-red-600 text-[10px] px-1.5 py-0">🚫</Badge>}
+                            {user.app_instalada === true && <Badge className="bg-green-100 text-green-700 text-[10px] px-1.5 py-0">📲</Badge>}
+                            {user.app_instalada !== true && user.role !== "admin" && <Badge className="bg-amber-100 text-amber-700 text-[10px] px-1.5 py-0">📵</Badge>}
                           </div>
-                        )}
-
-                        {isTreasurer && (
-                          <div className="text-sm text-green-700 bg-green-100 rounded p-2 mb-2">
-                            <strong>💰 Tesorero</strong>
-                            {user.tiene_hijos_jugando && (
-                              <span className="ml-2">• 👨‍👩‍👧 Con hijos jugando</span>
-                            )}
-                          </div>
-                        )}
-
-                        {user.es_entrenador && user.categorias_entrena && user.categorias_entrena.length > 0 && (
-                        <div className="text-sm text-blue-700 bg-blue-100 rounded p-2 mb-2">
-                          <strong>🏃 {isCoordinator ? "También Entrena:" : "Entrena:"}</strong> {user.categorias_entrena.join(", ")}
-                          {user.telefono_entrenador && ` • 📱 ${user.telefono_entrenador}`}
-                          {user.puede_gestionar_firmas && <span className="ml-2">• 🖊️ Gestión Firmas</span>}
-                          {!isCoordinator && user.tiene_hijos_jugando && (
-                            <span className="ml-2">• 👨‍👩‍👧 Con hijos jugando</span>
-                          )}
                         </div>
+                        <p className="text-xs text-slate-500 truncate">{user.email}</p>
+                        
+                        {/* Info adicional en línea compacta */}
+                        {(userPlayers.length > 0 || user.categorias_entrena?.length > 0 || linkedPlayer) && (
+                          <p className="text-xs text-slate-600 mt-1 truncate">
+                            {userPlayers.length > 0 && !isPlayerUser && `👶 ${userPlayers.map(p => p.nombre).join(", ")}`}
+                            {user.categorias_entrena?.length > 0 && ` 🏃 ${user.categorias_entrena.length} cat.`}
+                            {linkedPlayer && `⚽ ${linkedPlayer.nombre}`}
+                          </p>
                         )}
-
-                        {isPlayerUser && linkedPlayer && (
-                          <div className="text-sm text-purple-700 bg-purple-50 rounded p-2 mb-2">
-                            <strong>⚽ Jugador vinculado:</strong> {linkedPlayer.nombre} - {linkedPlayer.deporte}
-                          </div>
-                        )}
-
-                        {/* Alerta de jugador +18 pendiente */}
+                        
+                        {/* Alerta jugador +18 */}
                         {pendingPlayerAccessUsers.some(u => u.id === user.id) && (
-                          <div className="text-sm text-purple-700 bg-purple-100 border-2 border-purple-400 rounded p-2 mb-2 animate-pulse">
-                            <strong>⚠️ Jugador +18 detectado:</strong>{" "}
-                            {players.find(p => p.email_padre === user.email && calcularEdad(p.fecha_nacimiento) >= 18)?.nombre}
-                            <span className="block text-xs mt-1">Pulsa "⚽ Jugador" para dar acceso directo</span>
-                          </div>
-                        )}
-
-                        {userPlayers.length > 0 && !isPlayerUser && (
-                          <div className="text-sm text-slate-600 mb-2">
-                            <span className="font-medium">Jugadores:</span>{" "}
-                            {userPlayers.map(p => p.nombre).join(", ")}
-                            {activePlayers.length < userPlayers.length && (
-                              <span className="text-amber-600 ml-2">
-                                ({activePlayers.length} activos de {userPlayers.length})
-                              </span>
-                            )}
-                          </div>
-                        )}
-
-                        {isDeleted && user.fecha_eliminacion && (
-                          <div className="flex items-center gap-2 text-xs text-slate-600 mt-2 bg-slate-200 rounded p-2">
-                            <Calendar className="w-3 h-3" />
-                            Eliminado: {new Date(user.fecha_eliminacion).toLocaleDateString('es-ES')}
-                          </div>
-                        )}
-
-                        {!isDeleted && hasRestriction && user.motivo_restriccion && (
-                          <div className="text-sm text-red-700 bg-red-100 rounded p-2 mt-2">
-                            <strong>Motivo:</strong> {user.motivo_restriccion}
-                          </div>
-                        )}
-
-                        {!isDeleted && hasRestriction && user.fecha_restriccion && (
-                          <div className="flex items-center gap-2 text-xs text-red-600 mt-2">
-                            <Calendar className="w-3 h-3" />
-                            Restringido: {new Date(user.fecha_restriccion).toLocaleDateString('es-ES')}
-                          </div>
-                        )}
-
-                        {user.notas_admin && (
-                          <div className="text-sm text-slate-600 bg-slate-50 rounded p-2 mt-2">
-                            <strong>Notas:</strong> {user.notas_admin}
-                          </div>
+                          <p className="text-xs text-purple-700 bg-purple-100 rounded px-2 py-0.5 mt-1 inline-block animate-pulse">
+                            ⚠️ +18 pendiente
+                          </p>
                         )}
                       </div>
 
-                      {!isDeleted && (
-                        <div className="flex flex-col gap-1.5 lg:gap-2">
-                          {user.role !== "admin" && (
-                            <>
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={() => handlePlayerToggle(user)}
-                                className={`${isPlayerUser ? "bg-purple-100 hover:bg-purple-200 border-purple-400" : "bg-purple-50 hover:bg-purple-100 border-purple-300"} text-xs lg:text-sm px-2 py-1 lg:px-4 lg:py-2`}
-                              >
-                                {isPlayerUser ? "✅ Jugador" : "⚽ Jugador"}
-                              </Button>
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={() => handleCoordinatorToggle(user)}
-                                className={`${isCoordinator ? "bg-cyan-100 hover:bg-cyan-200 border-cyan-400" : "bg-cyan-50 hover:bg-cyan-100 border-cyan-300"} text-xs lg:text-sm px-2 py-1 lg:px-4 lg:py-2`}
-                              >
-                                {isCoordinator ? "✅ Coord." : "🎓 Coord."}
-                              </Button>
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={() => handleTreasurerToggle(user)}
-                                className={`${isTreasurer ? "bg-green-100 hover:bg-green-200 border-green-400" : "bg-green-50 hover:bg-green-100 border-green-300"} text-xs lg:text-sm px-2 py-1 lg:px-4 lg:py-2`}
-                              >
-                                {isTreasurer ? "✅ Teso." : "💰 Teso."}
-                              </Button>
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={() => handleCoachToggle(user)}
-                                className={`${user.es_entrenador ? "bg-blue-100 hover:bg-blue-200 border-blue-400" : "bg-blue-50 hover:bg-blue-100 border-blue-300"} text-xs lg:text-sm px-2 py-1 lg:px-4 lg:py-2`}
-                              >
-                                {user.es_entrenador ? "✅ Entr." : "🎓 Entr."}
-                              </Button>
-                              {(user.es_entrenador || isCoordinator || isTreasurer) && (
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  onClick={() => handleToggleFirmas(user)}
-                                  className={`${user.puede_gestionar_firmas ? "bg-yellow-100 hover:bg-yellow-200 border-yellow-400" : "bg-yellow-50 hover:bg-yellow-100 border-yellow-300"} text-xs lg:text-sm px-2 py-1 lg:px-4 lg:py-2`}
-                                >
-                                  {user.puede_gestionar_firmas ? "✅ Firmas" : "🖊️ Firmas"}
-                                </Button>
-                              )}
-                              {(isCoordinator || isCoach || isTreasurer) && (
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  onClick={() => handleToggleHijos(user)}
-                                  className={`${user.tiene_hijos_jugando ? "bg-green-100 hover:bg-green-200 border-green-400" : "bg-slate-50 hover:bg-slate-100 border-slate-300"} text-xs lg:text-sm px-2 py-1 lg:px-4 lg:py-2`}
-                                >
-                                  {user.tiene_hijos_jugando ? "✅ Hijos" : "👨‍👩‍👧 Hijos"}
-                                </Button>
-                              )}
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={() => handleChangeRole(user)}
-                                className="bg-purple-50 hover:bg-purple-100 border-purple-300 text-xs lg:text-sm px-2 py-1 lg:px-4 lg:py-2"
-                              >
-                                <Shield className="w-3 h-3 lg:w-4 lg:h-4 lg:mr-1" />
-                                <span className="hidden lg:inline">Rol</span>
-                              </Button>
-                              <Button
-                                size="sm"
-                                variant={hasRestriction ? "default" : "destructive"}
-                                onClick={() => handleRestrictAccess(user)}
-                                className={`${hasRestriction ? "bg-green-600 hover:bg-green-700" : ""} text-xs lg:text-sm px-2 py-1 lg:px-4 lg:py-2`}
-                              >
-                                {hasRestriction ? (
-                                  <>
-                                    <CheckCircle2 className="w-3 h-3 lg:w-4 lg:h-4 lg:mr-1" />
-                                    <span className="hidden lg:inline">Restaurar</span>
-                                  </>
-                                ) : (
-                                  <>
-                                    <Ban className="w-3 h-3 lg:w-4 lg:h-4 lg:mr-1" />
-                                    <span className="hidden lg:inline">Restringir</span>
-                                  </>
-                                )}
-                              </Button>
-                              <Button
-                                size="sm"
-                                variant="destructive"
-                                onClick={() => handleDeleteUser(user)}
-                                className="bg-slate-700 hover:bg-slate-800 text-xs lg:text-sm px-2 py-1 lg:px-4 lg:py-2"
-                              >
-                                <Trash2 className="w-3 h-3 lg:w-4 lg:h-4 lg:mr-1" />
-                                <span className="hidden lg:inline">Eliminar</span>
-                              </Button>
-                              {user.app_instalada !== true && (
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  onClick={() => sendInstallReminder(user)}
-                                  className="bg-amber-50 hover:bg-amber-100 border-amber-300 text-xs lg:text-sm px-2 py-1 lg:px-4 lg:py-2"
-                                  title={user.recordatorio_instalacion_enviado ? "Ya se envió recordatorio" : "Enviar recordatorio"}
-                                >
-                                  <Send className="w-3 h-3 lg:w-4 lg:h-4 lg:mr-1" />
-                                  <span className="hidden lg:inline">
-                                    {user.recordatorio_instalacion_enviado ? "Re-enviar" : "Recordar App"}
-                                  </span>
-                                </Button>
-                              )}
-                            </>
-                          )}
+                      {/* Botones compactos */}
+                      {!isDeleted && user.role !== "admin" && (
+                        <div className="flex gap-1 flex-wrap justify-end">
+                          <button onClick={() => handlePlayerToggle(user)} className={`px-2 py-1 rounded text-[10px] font-medium ${isPlayerUser ? 'bg-purple-200 text-purple-800' : 'bg-purple-50 text-purple-700 hover:bg-purple-100'}`}>
+                            {isPlayerUser ? "✅⚽" : "⚽"}
+                          </button>
+                          <button onClick={() => handleCoordinatorToggle(user)} className={`px-2 py-1 rounded text-[10px] font-medium ${isCoordinator ? 'bg-cyan-200 text-cyan-800' : 'bg-cyan-50 text-cyan-700 hover:bg-cyan-100'}`}>
+                            {isCoordinator ? "✅🎓" : "🎓"}
+                          </button>
+                          <button onClick={() => handleTreasurerToggle(user)} className={`px-2 py-1 rounded text-[10px] font-medium ${isTreasurer ? 'bg-green-200 text-green-800' : 'bg-green-50 text-green-700 hover:bg-green-100'}`}>
+                            {isTreasurer ? "✅💰" : "💰"}
+                          </button>
+                          <button onClick={() => handleCoachToggle(user)} className={`px-2 py-1 rounded text-[10px] font-medium ${user.es_entrenador ? 'bg-blue-200 text-blue-800' : 'bg-blue-50 text-blue-700 hover:bg-blue-100'}`}>
+                            {user.es_entrenador ? "✅🏃" : "🏃"}
+                          </button>
+                          <button onClick={() => handleRestrictAccess(user)} className={`px-2 py-1 rounded text-[10px] font-medium ${hasRestriction ? 'bg-green-500 text-white' : 'bg-red-50 text-red-700 hover:bg-red-100'}`}>
+                            {hasRestriction ? "✅" : "🚫"}
+                          </button>
+                          <button onClick={() => handleDeleteUser(user)} className="px-2 py-1 rounded text-[10px] font-medium bg-slate-100 text-slate-700 hover:bg-slate-200">
+                            🗑️
+                          </button>
                         </div>
                       )}
                     </div>
