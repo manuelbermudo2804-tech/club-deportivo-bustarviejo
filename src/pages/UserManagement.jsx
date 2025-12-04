@@ -561,128 +561,33 @@ export default function UserManagement() {
         </div>
       </div>
 
-      {/* Alerta de usuarios sin app instalada */}
-      {usersWithoutApp.length > 5 && (
-        <Card className="border-none shadow-lg bg-amber-50 border-2 border-amber-300">
-          <CardContent className="pt-6">
-            <div className="flex items-start gap-3">
-              <div className="bg-amber-500 rounded-full p-2">
-                <Smartphone className="w-5 h-5 text-white" />
+      {/* Alertas compactas */}
+      {(usersWithoutApp.length > 5 || pendingPlayerAccessUsers.length > 0) && (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          {usersWithoutApp.length > 5 && (
+            <div className="bg-amber-50 border border-amber-300 rounded-lg p-3 flex items-center gap-3">
+              <Smartphone className="w-5 h-5 text-amber-600 flex-shrink-0" />
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium text-amber-900">📵 {usersWithoutApp.length} sin app</p>
               </div>
-              <div className="flex-1">
-                <h3 className="font-bold text-amber-900 mb-2">📵 {usersWithoutApp.length} usuarios sin la app instalada</h3>
-                <p className="text-sm text-amber-800 mb-3">
-                  Puedes enviar un recordatorio por email para que instalen la app en su móvil.
-                </p>
-                <Button
-                  size="sm"
-                  className="bg-amber-600 hover:bg-amber-700"
-                  onClick={sendBulkInstallReminders}
-                >
-                  <Send className="w-4 h-4 mr-2" />
-                  Enviar recordatorio a todos ({usersWithoutApp.filter(u => !u.recordatorio_instalacion_enviado).length} pendientes)
-                </Button>
-              </div>
+              <Button size="sm" className="bg-amber-600 hover:bg-amber-700 text-xs h-7" onClick={sendBulkInstallReminders}>
+                <Send className="w-3 h-3 mr-1" />
+                Recordar
+              </Button>
             </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Parejas de Progenitores */}
-      {parentPairs.length > 0 && (
-        <Card className="border-none shadow-lg bg-indigo-50 border-2 border-indigo-300">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-lg flex items-center gap-2">
-              <Users className="w-5 h-5 text-indigo-600" />
-              👨‍👩‍👧 Parejas de Progenitores ({parentPairs.length})
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm text-indigo-800 mb-4">
-              Estos usuarios comparten la tutela de uno o más jugadores:
-            </p>
-            <div className="space-y-3 max-h-96 overflow-y-auto">
-              {parentPairs.map((pair, idx) => (
-                <div key={idx} className="bg-white rounded-lg p-3 border-2 border-indigo-200">
-                  <div className="flex flex-wrap items-center gap-2 mb-2">
-                    {/* Progenitor 1 */}
-                    <div className={`flex items-center gap-1 px-2 py-1 rounded-lg ${pair.parent1Registered ? 'bg-green-100' : 'bg-amber-100'}`}>
-                      <span className="text-sm font-medium">{pair.parent1.full_name || pair.parent1.email}</span>
-                      {pair.parent1Registered ? (
-                        <Badge className="bg-green-600 text-[10px]">✓ Registrado</Badge>
-                      ) : (
-                        <Badge className="bg-amber-600 text-[10px]">Pendiente</Badge>
-                      )}
-                    </div>
-                    
-                    <span className="text-indigo-500 font-bold">❤️</span>
-                    
-                    {/* Progenitor 2 */}
-                    <div className={`flex items-center gap-1 px-2 py-1 rounded-lg ${pair.parent2Registered ? 'bg-green-100' : 'bg-amber-100'}`}>
-                      <span className="text-sm font-medium">{pair.parent2.full_name || pair.parent2.email}</span>
-                      {pair.parent2Registered ? (
-                        <Badge className="bg-green-600 text-[10px]">✓ Registrado</Badge>
-                      ) : (
-                        <Badge className="bg-amber-600 text-[10px]">Pendiente</Badge>
-                      )}
-                    </div>
-                  </div>
-                  
-                  {/* Hijos compartidos */}
-                  <div className="flex flex-wrap gap-1">
-                    <span className="text-xs text-indigo-600 font-medium">Hijos:</span>
-                    {pair.sharedPlayers.map(player => (
-                      <Badge key={player.id} variant="outline" className="text-xs border-indigo-300 text-indigo-700">
-                        {player.deporte?.includes("Fútbol") ? "⚽" : "🏀"} {player.nombre}
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Alerta de Jugadores +18 pendientes */}
-      {pendingPlayerAccessUsers.length > 0 && (
-        <Card className="border-none shadow-lg bg-purple-50 border-2 border-purple-300">
-          <CardContent className="pt-6">
-            <div className="flex items-start gap-3">
-              <div className="bg-purple-500 rounded-full p-2">
-                <User className="w-5 h-5 text-white" />
+          )}
+          {pendingPlayerAccessUsers.length > 0 && (
+            <div className="bg-purple-50 border border-purple-300 rounded-lg p-3 flex items-center gap-3">
+              <User className="w-5 h-5 text-purple-600 flex-shrink-0" />
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium text-purple-900">⚽ {pendingPlayerAccessUsers.length} jugadores +18 pendientes</p>
               </div>
-              <div className="flex-1">
-                <h3 className="font-bold text-purple-900 mb-2">⚽ {pendingPlayerAccessUsers.length} Jugador{pendingPlayerAccessUsers.length !== 1 ? 'es' : ''} +18 sin acceso directo</h3>
-                <p className="text-sm text-purple-800 mb-3">
-                  Los siguientes usuarios tienen jugadores mayores de 18 años que podrían tener acceso directo a la app:
-                </p>
-                <div className="flex flex-wrap gap-2">
-                  {pendingPlayerAccessUsers.slice(0, 5).map(user => {
-                    const matchingPlayer = players.find(p => p.email_padre === user.email && calcularEdad(p.fecha_nacimiento) >= 18);
-                    return (
-                      <Badge key={user.id} className="bg-purple-200 text-purple-900">
-                        {user.full_name} → {matchingPlayer?.nombre}
-                      </Badge>
-                    );
-                  })}
-                  {pendingPlayerAccessUsers.length > 5 && (
-                    <Badge className="bg-purple-300 text-purple-900">
-                      +{pendingPlayerAccessUsers.length - 5} más
-                    </Badge>
-                  )}
-                </div>
-                <Button
-                  size="sm"
-                  className="mt-3 bg-purple-600 hover:bg-purple-700"
-                  onClick={() => setRoleFilter("pending_player")}
-                >
-                  Ver todos los pendientes
-                </Button>
-              </div>
+              <Button size="sm" className="bg-purple-600 hover:bg-purple-700 text-xs h-7" onClick={() => setRoleFilter("pending_player")}>
+                Ver
+              </Button>
             </div>
-          </CardContent>
-        </Card>
+          )}
+        </div>
       )}
 
       {/* Buscador + Filtros */}
