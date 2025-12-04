@@ -343,7 +343,7 @@ Email: cdbustarviejo@gmail.com
   };
 
   // Filtrado avanzado - aplicar solo a admin
-  const filteredPayments = !isAdmin ? payments : payments.filter(payment => {
+  const filteredPayments = !isAdmin ? (payments || []) : (payments || []).filter(payment => {
     const matchesSearch = searchTerm === "" || 
       payment.jugador_nombre?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       payment.mes?.toLowerCase().includes(searchTerm.toLowerCase());
@@ -381,8 +381,8 @@ Email: cdbustarviejo@gmail.com
 
   // Estadísticas mejoradas - si el filtro es "all", contar todos
   const statsTemporada = temporadaFilter === "all" ? null : temporadaFilter;
-  const inReviewCount = payments.filter(p => p.estado === "En revisión" && (statsTemporada === null || p.temporada === statsTemporada)).length;
-  const paidCount = payments.filter(p => p.estado === "Pagado" && (statsTemporada === null || p.temporada === statsTemporada)).length;
+  const inReviewCount = (payments || []).filter(p => p.estado === "En revisión" && (statsTemporada === null || p.temporada === statsTemporada)).length;
+  const paidCount = (payments || []).filter(p => p.estado === "Pagado" && (statsTemporada === null || p.temporada === statsTemporada)).length;
   
   // Calcular pendientes: cuántas cuotas faltan por pagar de todos los jugadores
   const pendingCount = React.useMemo(() => {
