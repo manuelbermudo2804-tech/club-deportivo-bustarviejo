@@ -814,7 +814,7 @@ ${mensajePersonalizado ? `
           <CardContent className="p-0">
             <div className="border rounded-b-lg overflow-hidden">
               <iframe
-                srcDoc={generateEmailBody("usuario@ejemplo.com", appUrl)}
+                srcDoc={generateEmailBody("usuario@ejemplo.com", "EJEMPLO-TOKEN-DEMO")}
                 className="w-full h-[600px] border-0"
                 title="Preview"
               />
