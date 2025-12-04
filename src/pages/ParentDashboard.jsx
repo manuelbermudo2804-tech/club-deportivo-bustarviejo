@@ -66,10 +66,10 @@ function FemeninoShareBanner({ userEmail, userName }) {
           </div>
           <div className="flex-1">
             <p className="text-white font-bold text-base lg:text-lg">
-              ¡Ayúdanos a crecer el Fútbol Femenino!
+              🎁 ¡BONUS por traer jugadoras!
             </p>
             <p className="text-pink-100 text-xs mt-1">
-              Comparte y gana <strong>+10€ en ropa + 2 sorteos</strong> por cada jugadora
+              Si alguien que <strong>TÚ refieres</strong> inscribe a una niña/chica en el <strong>Fútbol Femenino</strong>, ¡tú ganas <strong>+10€ en ropa + 2 sorteos extra</strong>!
             </p>
           </div>
         </div>
