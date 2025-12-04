@@ -667,6 +667,62 @@ export default function UserManagement() {
         </Card>
       )}
 
+      {/* Parejas de Progenitores */}
+      {parentPairs.length > 0 && (
+        <Card className="border-none shadow-lg bg-indigo-50 border-2 border-indigo-300">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-lg flex items-center gap-2">
+              <Users className="w-5 h-5 text-indigo-600" />
+              👨‍👩‍👧 Parejas de Progenitores ({parentPairs.length})
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-indigo-800 mb-4">
+              Estos usuarios comparten la tutela de uno o más jugadores:
+            </p>
+            <div className="space-y-3 max-h-96 overflow-y-auto">
+              {parentPairs.map((pair, idx) => (
+                <div key={idx} className="bg-white rounded-lg p-3 border-2 border-indigo-200">
+                  <div className="flex flex-wrap items-center gap-2 mb-2">
+                    {/* Progenitor 1 */}
+                    <div className={`flex items-center gap-1 px-2 py-1 rounded-lg ${pair.parent1Registered ? 'bg-green-100' : 'bg-amber-100'}`}>
+                      <span className="text-sm font-medium">{pair.parent1.full_name || pair.parent1.email}</span>
+                      {pair.parent1Registered ? (
+                        <Badge className="bg-green-600 text-[10px]">✓ Registrado</Badge>
+                      ) : (
+                        <Badge className="bg-amber-600 text-[10px]">Pendiente</Badge>
+                      )}
+                    </div>
+                    
+                    <span className="text-indigo-500 font-bold">❤️</span>
+                    
+                    {/* Progenitor 2 */}
+                    <div className={`flex items-center gap-1 px-2 py-1 rounded-lg ${pair.parent2Registered ? 'bg-green-100' : 'bg-amber-100'}`}>
+                      <span className="text-sm font-medium">{pair.parent2.full_name || pair.parent2.email}</span>
+                      {pair.parent2Registered ? (
+                        <Badge className="bg-green-600 text-[10px]">✓ Registrado</Badge>
+                      ) : (
+                        <Badge className="bg-amber-600 text-[10px]">Pendiente</Badge>
+                      )}
+                    </div>
+                  </div>
+                  
+                  {/* Hijos compartidos */}
+                  <div className="flex flex-wrap gap-1">
+                    <span className="text-xs text-indigo-600 font-medium">Hijos:</span>
+                    {pair.sharedPlayers.map(player => (
+                      <Badge key={player.id} variant="outline" className="text-xs border-indigo-300 text-indigo-700">
+                        {player.deporte?.includes("Fútbol") ? "⚽" : "🏀"} {player.nombre}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Alerta de Jugadores +18 pendientes */}
       {pendingPlayerAccessUsers.length > 0 && (
         <Card className="border-none shadow-lg bg-purple-50 border-2 border-purple-300">
