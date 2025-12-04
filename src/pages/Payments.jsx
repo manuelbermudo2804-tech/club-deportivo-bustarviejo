@@ -166,6 +166,8 @@ export default function Payments() {
     queryFn: async () => {
       try {
         const allPayments = await base44.entities.Payment.list('-created_date');
+        console.log('[DEBUG PAGOS QUERY] Total pagos en BD:', allPayments?.length, 'isAdmin:', isAdmin, 'isCoach:', isCoach);
+        console.log('[DEBUG PAGOS QUERY] Primeros 3 pagos:', allPayments?.slice(0, 3).map(p => ({jugador: p.jugador_nombre, mes: p.mes, estado: p.estado})));
         if (isAdmin) {
           return allPayments || [];
         } else if (isCoach) {
