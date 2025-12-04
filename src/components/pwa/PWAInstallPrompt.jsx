@@ -102,7 +102,11 @@ export default function PWAInstallPrompt() {
 
   const handleDismiss = () => {
     setShowInstallPrompt(false);
-    localStorage.setItem(isIOS ? 'pwa-install-dismissed-ios' : 'pwa-install-dismissed', 'true');
+    try {
+      localStorage.setItem(isIOS ? 'pwa-install-dismissed-ios' : 'pwa-install-dismissed', 'true');
+    } catch (e) {
+      // Ignorar errores de localStorage
+    }
   };
 
   // Si hay error o está instalada o no debe mostrar, no renderizar nada
