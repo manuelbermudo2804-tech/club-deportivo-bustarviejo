@@ -249,6 +249,18 @@ export default function ClubMembership() {
     enabled: !isCheckingAuth,
   });
 
+  // Refetch user data para mantener crédito actualizado
+  const { data: freshUser, refetch: refetchUser } = useQuery({
+    queryKey: ['freshUser'],
+    queryFn: () => base44.auth.me(),
+    enabled: !!user,
+    staleTime: 0,
+    refetchInterval: 5000, // Refrescar cada 5 segundos para ver cambios de crédito
+  });
+
+  // Usar datos frescos del usuario si están disponibles
+  const currentUser = freshUser || user;
+
   // Función para generar número de socio único
   const generateNumeroSocio = async () => {
     const allMembers = await base44.entities.ClubMember.list();
