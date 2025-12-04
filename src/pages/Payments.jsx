@@ -332,7 +332,7 @@ Email: cdbustarviejo@gmail.com
       payment.jugador_nombre?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       payment.mes?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesPlayer = playerFilter === "all" || payment.jugador_id === playerFilter;
-    const matchesTemporada = temporadaFilter === "all" || payment.temporada === temporadaFilter;
+    const matchesTemporada = matchTemporada(payment.temporada, temporadaFilter);
     const matchesEstado = estadoFilter === "all" || payment.estado === estadoFilter;
     
     // Filtro de categoría
@@ -365,8 +365,8 @@ Email: cdbustarviejo@gmail.com
 
   // Estadísticas mejoradas - si el filtro es "all", contar todos
   const statsTemporada = temporadaFilter === "all" ? null : temporadaFilter;
-  const inReviewCount = (payments || []).filter(p => p.estado === "En revisión" && (statsTemporada === null || p.temporada === statsTemporada)).length;
-  const paidCount = (payments || []).filter(p => p.estado === "Pagado" && (statsTemporada === null || p.temporada === statsTemporada)).length;
+  const inReviewCount = (payments || []).filter(p => p.estado === "En revisión" && (statsTemporada === null || matchTemporada(p.temporada, statsTemporada))).length;
+  const paidCount = (payments || []).filter(p => p.estado === "Pagado" && (statsTemporada === null || matchTemporada(p.temporada, statsTemporada))).length;
   
   // Calcular pendientes: cuántas cuotas faltan por pagar de todos los jugadores
   const pendingCount = React.useMemo(() => {
@@ -448,12 +448,12 @@ Email: cdbustarviejo@gmail.com
   
   const overduePayments = (payments || []).filter(p => {
     if (p.estado === "Pagado") return false;
-    if (temporadaFilter !== "all" && p.temporada !== temporadaFilter) return false;
+    if (!matchTemporada(p.temporada, temporadaFilter)) return false;
     return calculateDaysOverdue(p.mes) > 0;
   });
   
   const totalRecaudado = (payments || [])
-    .filter(p => p.estado === "Pagado" && (temporadaFilter === "all" || p.temporada === temporadaFilter))
+    .filter(p => p.estado === "Pagado" && matchTemporada(p.temporada, temporadaFilter))
     .reduce((sum, p) => sum + (p.cantidad || 0), 0);
 
   // Temporadas únicas
@@ -791,7 +791,7 @@ Email: cdbustarviejo@gmail.com
                  // Filtro por estado - verificar si el jugador tiene pagos del estado buscado
                  let matchesEstado = true;
                  if (estadoFilter !== "all") {
-                   const playerPayments = (payments || []).filter(p => p.jugador_id === player.id && (temporadaFilter === "all" || p.temporada === temporadaFilter));
+                   const playerPayments = (payments || []).filter(p => p.jugador_id === player.id && matchTemporada(p.temporada, temporadaFilter));
                    
                    // Si filtramos por "Pendiente", verificar si le falta algún pago
                    if (estadoFilter === "Pendiente") {
@@ -856,7 +856,7 @@ Email: cdbustarviejo@gmail.com
                       // Obtener TODOS los pagos reales del jugador para la temporada (sin filtros de estado)
                       const allRealPayments = (payments || []).filter(p => 
                         p.jugador_id === player.id && 
-                        (temporadaFilter === "all" || p.temporada === temporadaFilter)
+                        matchTemporada(p.temporada, temporadaFilter)
                       );
 
                       console.log(`[DEBUG PAGOS] Jugador: ${player.nombre}, Pagos reales encontrados:`, allRealPayments.length, allRealPayments.map(p => ({mes: p.mes, estado: p.estado})));
@@ -914,7 +914,7 @@ Email: cdbustarviejo@gmail.com
                         // Filtrar pagos de la temporada actual del jugador (no de filteredPayments que puede estar filtrado)
                         const playerPaymentsTemporada = (payments || []).filter(p => 
                           p.jugador_id === player.id && 
-                          (temporadaFilter === "all" || p.temporada === temporadaFilter)
+                          matchTemporada(p.temporada, temporadaFilter)
                         );
                         const mesesConPagoOK = playerPaymentsTemporada
                           .filter(p => p.estado === "Pagado" || p.estado === "En revisión")
@@ -927,7 +927,7 @@ Email: cdbustarviejo@gmail.com
                       if (!hasPagoUnico && totalPaymentsDue > 0) {
                         const playerPaymentsTemporada = payments.filter(p => 
                           p.jugador_id === player.id && 
-                          (temporadaFilter === "all" || p.temporada === temporadaFilter)
+                          matchTemporada(p.temporada, temporadaFilter)
                         );
                         const mesesConPagoOK = playerPaymentsTemporada
                           .filter(p => p.estado === "Pagado" || p.estado === "En revisión")
