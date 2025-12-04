@@ -226,10 +226,28 @@ export default function ParentPlayers() {
         console.error("Error recalculando descuentos familiares:", error);
       }
       
-      // ENVIAR INVITACIÓN AL SEGUNDO PROGENITOR SI HAY EMAIL
+      // ENVIAR INVITACIÓN AL SEGUNDO PROGENITOR SI HAY EMAIL Y NO ESTÁ YA REGISTRADO
       if (dataWithParentEmail.email_tutor_2 && dataWithParentEmail.email_tutor_2.trim()) {
         try {
-          const token = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+          const email2 = dataWithParentEmail.email_tutor_2.trim().toLowerCase();
+          
+          // Comprobar si ya existe una invitación aceptada para este email
+          const existingInvitations = await base44.entities.SecondParentInvitation.filter({
+            email_destino: email2,
+            estado: "aceptada"
+          });
+          
+          // Comprobar si ya está como tutor_2 en otros jugadores del mismo padre
+          const allPlayers = await base44.entities.Player.list();
+          const alreadyRegistered = allPlayers.some(p => 
+            p.email_tutor_2?.toLowerCase() === email2 && 
+            p.id !== newPlayer.id &&
+            (p.email_padre === user?.email || p.email_tutor_2 === user?.email)
+          );
+          
+          // Solo enviar invitación si NO está ya registrado
+          if (existingInvitations.length === 0 && !alreadyRegistered) {
+            const token = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
             const r = Math.random() * 16 | 0;
             const v = c === 'x' ? r : (r & 0x3 | 0x8);
             return v.toString(16);
