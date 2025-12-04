@@ -41,7 +41,7 @@ export default function ParentChat() {
     queryKey: ['chatMessages'],
     queryFn: () => base44.entities.ChatMessage.list('-created_date'),
     refetchOnWindowFocus: true,
-    refetchInterval: 3000, // Actualizar cada 3 segundos para mensajes instantáneos
+    refetchInterval: 1500, // Actualizar cada 1.5 segundos para mensajes instantáneos
   });
 
   const { data: players = [], isLoading: loadingPlayers } = useQuery({
@@ -78,7 +78,7 @@ export default function ParentChat() {
       ? base44.entities.PrivateMessage.filter({ conversacion_id: activePrivateChat.id }, '-created_date')
       : [],
     enabled: !!activePrivateChat?.id,
-    refetchInterval: 3000, // Actualizar cada 3 segundos para mensajes instantáneos
+    refetchInterval: 1000, // Actualizar cada 1 segundo para mensajes instantáneos
   });
 
   const normalizeDeporte = (deporte) => {
