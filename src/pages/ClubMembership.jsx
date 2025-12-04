@@ -699,6 +699,7 @@ export default function ClubMembership() {
           userReferrals={currentUser?.referrals_count || 0}
           userCredit={currentUser?.clothing_credit_balance || 0}
           userRaffleEntries={currentUser?.raffle_entries_total || 0}
+          userFemeninoReferrals={currentUser?.femenino_referrals_count || 0}
           userEmail={currentUser?.email || ""}
           userName={currentUser?.full_name || ""}
           hasPlayersInClub={myPlayers.length > 0}
