@@ -21,7 +21,7 @@ export default function ReferralConfigCard({ seasonConfig, onUpdate, isUpdating 
   
   const getConfigFromSeason = () => ({
     programa_referidos_activo: seasonConfig?.programa_referidos_activo === true,
-    referidos_permitir_whatsapp_padres: seasonConfig?.referidos_permitir_whatsapp_padres !== false,
+    referidos_permitir_whatsapp_padres: seasonConfig?.referidos_permitir_whatsapp_padres === true || seasonConfig?.referidos_permitir_whatsapp_padres === undefined,
     tier_1_activo: seasonConfig?.tier_1_activo !== false,
     tier_3_activo: seasonConfig?.tier_3_activo !== false,
     tier_5_activo: seasonConfig?.tier_5_activo !== false,
@@ -82,7 +82,7 @@ export default function ReferralConfigCard({ seasonConfig, onUpdate, isUpdating 
 
   const hasChanges = JSON.stringify(localConfig) !== JSON.stringify({
     programa_referidos_activo: seasonConfig?.programa_referidos_activo === true,
-    referidos_permitir_whatsapp_padres: seasonConfig?.referidos_permitir_whatsapp_padres !== false,
+    referidos_permitir_whatsapp_padres: seasonConfig?.referidos_permitir_whatsapp_padres === true || seasonConfig?.referidos_permitir_whatsapp_padres === undefined,
     tier_1_activo: seasonConfig?.tier_1_activo !== false,
     tier_3_activo: seasonConfig?.tier_3_activo !== false,
     tier_5_activo: seasonConfig?.tier_5_activo !== false,
