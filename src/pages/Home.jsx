@@ -757,8 +757,16 @@ export default function Home() {
         }
       }
     } else if (isCoach || isCoordinator) {
-      // 💬 COMUNICACIÓN (uso diario)
+      // ENTRENADOR/COORDINADOR: Ordenado por uso diario
+      
+      // 1. LO MÁS URGENTE - Convocatorias y Chat
       items.push(
+        {
+          title: "🎓 Convocatorias",
+          icon: Bell,
+          url: createPageUrl("CoachCallups"),
+          gradient: "from-yellow-600 to-yellow-700",
+        },
         {
           title: "💬 Chat Equipos",
           icon: MessageCircle,
@@ -769,16 +777,10 @@ export default function Home() {
         }
       );
 
-      // ⚽ GESTIÓN DEPORTIVA (trabajo principal)
+      // 2. GESTIÓN DEPORTIVA
       items.push(
         {
-          title: "🎓 Convocatorias",
-          icon: Bell,
-          url: createPageUrl("CoachCallups"),
-          gradient: "from-yellow-600 to-yellow-700",
-        },
-        {
-          title: "📋 Asistencia y Evaluación",
+          title: "📋 Asistencia",
           icon: CheckCircle2,
           url: createPageUrl("TeamAttendanceEvaluation"),
           gradient: "from-green-600 to-green-700",
@@ -788,41 +790,33 @@ export default function Home() {
           icon: Users,
           url: createPageUrl("TeamRosters"),
           gradient: "from-blue-600 to-blue-700",
-        }
-      );
-
-      // Firmas Federación solo si tiene permiso
-      if (user?.puede_gestionar_firmas) {
-        items.push({
-          title: "🖊️ Firmas Federación",
-          icon: FileSignature,
-          url: createPageUrl("FederationSignaturesAdmin"),
-          gradient: "from-yellow-600 to-orange-600",
-        });
-      }
-
-      // 📅 CALENDARIO
-      items.push(
+        },
         {
-          title: "📅 Calendario y Horarios",
-          icon: Calendar,
-          url: createPageUrl("CalendarAndSchedules"),
-          gradient: "from-purple-600 to-purple-700",
-        }
-      );
-
-      // 📊 REPORTES
-      items.push(
-        {
-          title: "📊 Reportes Entrenadores",
+          title: "📊 Reportes",
           icon: Star,
           url: createPageUrl("CoachEvaluationReports"),
           gradient: "from-purple-600 to-purple-700",
         }
       );
 
-      // 📢 INFORMACIÓN
+      // Firmas Federación solo si tiene permiso
+      if (user?.puede_gestionar_firmas) {
+        items.push({
+          title: "🖊️ Firmas",
+          icon: FileSignature,
+          url: createPageUrl("FederationSignaturesAdmin"),
+          gradient: "from-yellow-600 to-orange-600",
+        });
+      }
+
+      // 3. CALENDARIO E INFO
       items.push(
+        {
+          title: "📅 Calendario",
+          icon: Calendar,
+          url: createPageUrl("CalendarAndSchedules"),
+          gradient: "from-purple-600 to-purple-700",
+        },
         {
           title: "📢 Anuncios",
           icon: Megaphone,
@@ -830,101 +824,52 @@ export default function Home() {
           gradient: "from-pink-600 to-pink-700",
         },
         {
-          title: "🎉 Eventos Club",
+          title: "🎉 Eventos",
           icon: Calendar,
           url: createPageUrl("ParentEventRSVP"),
-          gradient: "from-indigo-600 to-indigo-700",
-        },
-        {
-          title: "📋 Encuestas",
-          icon: FileText,
-          url: createPageUrl("Surveys"),
-          gradient: "from-teal-600 to-teal-700",
-        },
-        {
-          title: "🖼️ Galería",
-          icon: Image,
-          url: createPageUrl("Gallery"),
           gradient: "from-indigo-600 to-indigo-700",
         }
       );
 
-      // 👨‍👩‍👧 SECCIÓN FAMILIA (si tiene hijos)
+      // 4. SECCIÓN FAMILIA (si tiene hijos) - Agrupado
       if (hasPlayers) {
         items.push(
           {
             title: "👨‍👩‍👧 Mis Hijos",
             icon: Users,
             url: createPageUrl("ParentPlayers"),
-            gradient: "from-orange-600 to-orange-700",
+            gradient: "from-indigo-600 to-indigo-700",
           },
           {
-            title: "🏆 Confirmar Mis Hijos",
+            title: "🏆 Convocatorias Hijos",
             icon: ClipboardCheck,
             url: createPageUrl("ParentCallups"),
             gradient: "from-green-600 to-green-700",
             badge: stats.pendingCallups,
             badgeLabel: "pendientes"
-          },
-          {
-            title: "🖊️ Firmas Mis Hijos",
+          }
+        );
+        if (stats.pendingSignatures > 0) {
+          items.push({
+            title: "🖊️ Firmas Hijos",
             icon: FileSignature,
             url: createPageUrl("FederationSignatures"),
             gradient: "from-yellow-600 to-orange-600",
             badge: stats.pendingSignatures,
             badgeLabel: "pendientes"
-          },
-          {
-            title: "📄 Documentos",
-            icon: FileText,
-            url: createPageUrl("ParentDocuments"),
-            gradient: "from-slate-600 to-slate-700",
-          },
-          {
-            title: "🛍️ Pedidos Ropa",
-            icon: ShoppingBag,
-            url: createPageUrl("ClothingOrders"),
-            gradient: "from-teal-600 to-teal-700",
-          }
-        );
-      }
-
-      if (loteriaVisible) {
-        if (hasPlayers) {
-          items.push({
-            title: "🍀 Mi Lotería",
-            icon: Clover,
-            url: createPageUrl("ParentLottery"),
-            gradient: "from-green-600 to-red-600",
           });
         }
+      }
+
+      // 5. EXTRAS (menos prioritario)
+      if (loteriaVisible) {
         items.push({
-          title: "🍀 Gestión Lotería",
+          title: "🍀 Lotería",
           icon: Clover,
           url: createPageUrl("LotteryManagement"),
           gradient: "from-green-600 to-green-700",
         });
       }
-
-      // 🎫 SOCIO
-      items.push(
-        {
-          title: "🎫 Hacerse Socio",
-          icon: Heart,
-          url: createPageUrl("ClubMembership"),
-          gradient: "from-pink-600 to-pink-700",
-        }
-      );
-
-      // ⚙️ PREFERENCIAS
-      items.push(
-        {
-          title: "⚙️ Preferencias Notif.",
-          icon: Settings,
-          url: createPageUrl("NotificationPreferences"),
-          gradient: "from-slate-500 to-slate-600",
-        }
-      );
     }
 
     return items;
