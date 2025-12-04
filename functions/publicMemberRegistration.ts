@@ -43,7 +43,7 @@ Deno.serve(async (req) => {
       if (!data[field]) {
         return new Response(JSON.stringify({ error: `Campo requerido: ${field}` }), {
           status: 400,
-          headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
       }
     }
