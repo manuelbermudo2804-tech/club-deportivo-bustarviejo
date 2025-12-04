@@ -36,7 +36,10 @@ export default function ReferralConfigCard({ seasonConfig, onUpdate, isUpdating 
     referidos_premio_15: sc?.referidos_premio_15 ?? 50,
     referidos_sorteo_15: sc?.referidos_sorteo_15 ?? 10,
     referidos_premio_hotel: sc?.referidos_premio_hotel ?? true,
-    sorteo_premios: sc?.sorteo_premios || DEFAULT_PRIZES
+    sorteo_premios: sc?.sorteo_premios || DEFAULT_PRIZES,
+    bonus_femenino_activo: sc?.bonus_femenino_activo ?? false,
+    bonus_femenino_credito: sc?.bonus_femenino_credito ?? 10,
+    bonus_femenino_sorteos: sc?.bonus_femenino_sorteos ?? 2
   });
 
   const [localConfig, setLocalConfig] = useState(() => buildConfigFromSeason(seasonConfig));
@@ -243,6 +246,42 @@ export default function ReferralConfigCard({ seasonConfig, onUpdate, isUpdating 
                   <Switch checked={localConfig.referidos_premio_hotel} onCheckedChange={(checked) => setLocalConfig(prev => ({ ...prev, referidos_premio_hotel: checked }))} />
                 </div>
               </div>
+            )}
+          </div>
+
+          {/* BONUS FÚTBOL FEMENINO */}
+          <div className="bg-gradient-to-r from-pink-50 to-fuchsia-50 rounded-xl p-4 border-2 border-pink-300">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <Badge className={localConfig.bonus_femenino_activo ? "bg-pink-600" : "bg-slate-400"}>⚽👧 Bonus Fútbol Femenino</Badge>
+                <span className="text-xs text-pink-700 font-medium">¡Doble premio!</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Label className="text-xs text-slate-600">Activar</Label>
+                <Switch checked={localConfig.bonus_femenino_activo} onCheckedChange={(checked) => setLocalConfig(prev => ({ ...prev, bonus_femenino_activo: checked }))} />
+              </div>
+            </div>
+            {localConfig.bonus_femenino_activo && (
+              <>
+                <p className="text-xs text-pink-800 mb-3 bg-white/80 rounded-lg p-2">
+                  💡 <strong>¡Incentivo especial!</strong> Los padres que inscriban jugadoras en el fútbol femenino reciben crédito EXTRA además del premio normal.
+                </p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <div className="flex items-center gap-3">
+                    <Shirt className="w-5 h-5 text-pink-600" />
+                    <Label className="text-sm">Crédito Extra (€):</Label>
+                    <Input type="number" value={localConfig.bonus_femenino_credito} onChange={(e) => setLocalConfig(prev => ({ ...prev, bonus_femenino_credito: Number(e.target.value) }))} className="w-20" />
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <Ticket className="w-5 h-5 text-fuchsia-600" />
+                    <Label className="text-sm">Sorteos Extra:</Label>
+                    <Input type="number" value={localConfig.bonus_femenino_sorteos} onChange={(e) => setLocalConfig(prev => ({ ...prev, bonus_femenino_sorteos: Number(e.target.value) }))} className="w-20" />
+                  </div>
+                </div>
+                <p className="text-xs text-slate-600 mt-2 italic">
+                  Ejemplo: Si traes 1 jugadora femenina → {localConfig.referidos_premio_1}€ (normal) + {localConfig.bonus_femenino_credito}€ (bonus) = {(localConfig.referidos_premio_1 || 5) + (localConfig.bonus_femenino_credito || 10)}€ total
+                </p>
+              </>
             )}
           </div>
 
