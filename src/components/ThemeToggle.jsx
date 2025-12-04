@@ -78,15 +78,15 @@ export default function ThemeToggle() {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-40">
-        <DropdownMenuItem onClick={() => changeTheme("dark")} className="cursor-pointer">
-          <Moon className="w-4 h-4 mr-2 text-blue-400" />
-          Normal
-          {theme === "dark" && <span className="ml-auto text-green-500">✓</span>}
-        </DropdownMenuItem>
         <DropdownMenuItem onClick={() => changeTheme("light")} className="cursor-pointer">
           <Sun className="w-4 h-4 mr-2 text-yellow-500" />
           Claro
           {theme === "light" && <span className="ml-auto text-green-500">✓</span>}
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => changeTheme("dark")} className="cursor-pointer">
+          <Moon className="w-4 h-4 mr-2 text-blue-400" />
+          Oscuro
+          {theme === "dark" && <span className="ml-auto text-green-500">✓</span>}
         </DropdownMenuItem>
         <DropdownMenuItem onClick={() => changeTheme("auto")} className="cursor-pointer">
           <Clock className="w-4 h-4 mr-2 text-purple-500" />
