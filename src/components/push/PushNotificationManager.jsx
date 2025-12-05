@@ -30,11 +30,23 @@ export default function PushNotificationManager() {
       }
 
       setIsSupported(true);
+      console.log('[Notif] Permiso detectado:', Notification.permission);
 
-      // Verificar si ya tiene permiso
+      // Verificar si ya tiene permiso O si el usuario ya activó antes en BD
       if (Notification.permission === 'granted') {
-        console.log('[Notif] Ya tiene permiso');
+        console.log('[Notif] Ya tiene permiso del navegador');
         setIsSubscribed(true);
+      } else {
+        // Verificar en BD si ya lo activó antes
+        try {
+          const user = await base44.auth.me();
+          if (user?.push_enabled === true) {
+            console.log('[Notif] Usuario tiene push_enabled en BD, mostrando botones');
+            setIsSubscribed(true);
+          }
+        } catch (e) {
+          console.log('[Notif] Error verificando usuario:', e);
+        }
       }
     } catch (error) {
       console.log('[Notif] Error checking support:', error);
