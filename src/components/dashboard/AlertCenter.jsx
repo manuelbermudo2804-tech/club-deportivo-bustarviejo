@@ -241,17 +241,7 @@ export default function AlertCenter({
         priority: 1
       });
     }
-    if (newGalleryPhotos > 0) {
-      alerts.push({
-        id: "gallery",
-        icon: Image,
-        title: "📸 Nuevas fotos",
-        description: `${newGalleryPhotos} álbum${newGalleryPhotos > 1 ? 'es' : ''} nuevo${newGalleryPhotos > 1 ? 's' : ''}`,
-        url: createPageUrl("Gallery"),
-        color: "bg-indigo-500",
-        priority: 7
-      });
-    }
+    // Galería eliminada del centro de alertas - no es urgente
   }
 
   // Ordenar por prioridad
