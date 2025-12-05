@@ -3,13 +3,23 @@ import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 
 export default function ChatNotificationListener({ user }) {
-  // Usar localStorage para persistir el último mensaje visto
-  const lastSeenChatId = useRef(
-    typeof window !== 'undefined' ? localStorage.getItem('lastSeenChatId') : null
-  );
-  const lastSeenPrivateId = useRef(
-    typeof window !== 'undefined' ? localStorage.getItem('lastSeenPrivateId') : null
-  );
+  // Mantener un Set de IDs de mensajes ya notificados (persiste en localStorage)
+  const [notifiedChatIds, setNotifiedChatIds] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const stored = localStorage.getItem('notifiedChatIds');
+      return stored ? new Set(JSON.parse(stored)) : new Set();
+    }
+    return new Set();
+  });
+  
+  const [notifiedPrivateIds, setNotifiedPrivateIds] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const stored = localStorage.getItem('notifiedPrivateIds');
+      return stored ? new Set(JSON.parse(stored)) : new Set();
+    }
+    return new Set();
+  });
+  
   const [userCategories, setUserCategories] = useState([]);
 
   // Obtener categorías del usuario (para padres, basado en sus hijos)
@@ -101,18 +111,26 @@ export default function ChatNotificationListener({ user }) {
         return false;
       });
 
-      console.log('🔍 Mensajes relevantes grupo:', relevantMessages.length, 'lastSeenId:', lastSeenChatId.current);
+      console.log('🔍 Mensajes relevantes grupo:', relevantMessages.length);
 
-      const latestMessage = relevantMessages[0];
-      
-      if (latestMessage && latestMessage.id !== lastSeenChatId.current) {
-        console.log('🆕 Nuevo mensaje detectado:', latestMessage.id);
-        showNotification(latestMessage.remitente_nombre, latestMessage.mensaje, latestMessage.id, latestMessage.prioridad);
-        lastSeenChatId.current = latestMessage.id;
-        if (typeof window !== 'undefined') {
-          localStorage.setItem('lastSeenChatId', latestMessage.id);
+      // Notificar solo mensajes que NO hemos notificado antes
+      relevantMessages.forEach(msg => {
+        if (!notifiedChatIds.has(msg.id)) {
+          console.log('🆕 Nuevo mensaje detectado:', msg.id);
+          showNotification(msg.remitente_nombre, msg.mensaje, msg.id, msg.prioridad);
+          
+          // Agregar al Set de notificados
+          setNotifiedChatIds(prev => {
+            const newSet = new Set(prev);
+            newSet.add(msg.id);
+            // Guardar en localStorage
+            if (typeof window !== 'undefined') {
+              localStorage.setItem('notifiedChatIds', JSON.stringify([...newSet]));
+            }
+            return newSet;
+          });
         }
-      }
+      });
     } catch (e) {
       console.log('ChatNotificationListener chat error:', e);
     }
@@ -151,16 +169,24 @@ export default function ChatNotificationListener({ user }) {
       
       console.log('📩 Mensajes privados relevantes:', relevantMessages.length);
       
-      const latestMessage = relevantMessages[0];
-      
-      if (latestMessage && latestMessage.id !== lastSeenPrivateId.current) {
-        console.log('🆕 Nuevo mensaje privado detectado:', latestMessage.id);
-        showNotification(`📩 ${latestMessage.remitente_nombre}`, latestMessage.mensaje, latestMessage.id);
-        lastSeenPrivateId.current = latestMessage.id;
-        if (typeof window !== 'undefined') {
-          localStorage.setItem('lastSeenPrivateId', latestMessage.id);
+      // Notificar solo mensajes que NO hemos notificado antes
+      relevantMessages.forEach(msg => {
+        if (!notifiedPrivateIds.has(msg.id)) {
+          console.log('🆕 Nuevo mensaje privado detectado:', msg.id);
+          showNotification(`📩 ${msg.remitente_nombre}`, msg.mensaje, msg.id);
+          
+          // Agregar al Set de notificados
+          setNotifiedPrivateIds(prev => {
+            const newSet = new Set(prev);
+            newSet.add(msg.id);
+            // Guardar en localStorage
+            if (typeof window !== 'undefined') {
+              localStorage.setItem('notifiedPrivateIds', JSON.stringify([...newSet]));
+            }
+            return newSet;
+          });
         }
-      }
+      });
     } catch (e) {
       console.log('ChatNotificationListener private error:', e);
     }
