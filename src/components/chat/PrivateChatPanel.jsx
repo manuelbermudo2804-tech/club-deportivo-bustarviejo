@@ -28,9 +28,16 @@ export default function PrivateChatPanel({
   const messagesEndRef = useRef(null);
   const queryClient = useQueryClient();
 
+  // Scroll fluido mejorado para móvil
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ 
+        behavior: "smooth", 
+        block: "end",
+        inline: "nearest"
+      });
+    }
+  }, [messages, optimisticMessages]);
 
   // Marcar mensajes como leídos
   useEffect(() => {
@@ -238,13 +245,37 @@ export default function PrivateChatPanel({
       {/* Input */}
       <div className="bg-white border-t p-3 flex-shrink-0">
         {attachments.length > 0 && (
-          <div className="mb-2 flex flex-wrap gap-2">
+          <div className="mb-2 flex flex-wrap gap-2 p-2 bg-slate-50 rounded-lg border">
             {attachments.map((att, index) => (
-              <div key={index} className="bg-slate-100 rounded-lg px-3 py-1.5 text-sm flex items-center gap-2">
-                <span className="text-xs truncate max-w-[150px]">{att.nombre}</span>
-                <button onClick={() => setAttachments(prev => prev.filter((_, i) => i !== index))} className="text-slate-500 hover:text-red-600">
-                  <X className="w-3 h-3" />
-                </button>
+              <div key={index} className="relative group">
+                {att.tipo === "imagen" && att.url ? (
+                  <div className="relative">
+                    <img 
+                      src={att.url} 
+                      alt={att.nombre} 
+                      className="w-16 h-16 object-cover rounded-lg border-2 border-slate-200"
+                    />
+                    <button 
+                      onClick={() => setAttachments(prev => prev.filter((_, i) => i !== index))} 
+                      className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center shadow-md hover:bg-red-600"
+                    >
+                      <X className="w-3 h-3" />
+                    </button>
+                  </div>
+                ) : (
+                  <div className="bg-white rounded-lg px-3 py-2 text-sm flex items-center gap-2 border shadow-sm">
+                    <span className="text-lg">
+                      {att.tipo === "documento" ? "📄" : att.tipo === "video" ? "🎬" : att.tipo === "audio" ? "🎵" : "📎"}
+                    </span>
+                    <span className="text-xs truncate max-w-[100px] font-medium">{att.nombre}</span>
+                    <button 
+                      onClick={() => setAttachments(prev => prev.filter((_, i) => i !== index))} 
+                      className="text-slate-400 hover:text-red-600 ml-1"
+                    >
+                      <X className="w-3 h-3" />
+                    </button>
+                  </div>
+                )}
               </div>
             ))}
           </div>

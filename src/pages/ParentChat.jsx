@@ -14,6 +14,7 @@ import FileAttachmentButton from "../components/chat/FileAttachmentButton";
 import MessageAttachments from "../components/chat/MessageAttachments";
 import PollMessage from "../components/chat/PollMessage";
 import DateSeparator, { groupMessagesByDate } from "../components/chat/DateSeparator";
+import useChatSound from "../components/chat/useChatSound";
 
 // Indicar que las familias pueden enviar adjuntos al coordinador
 const FAMILIES_CAN_SEND_ATTACHMENTS = true;
@@ -27,7 +28,9 @@ export default function ParentChat() {
   const [attachments, setAttachments] = useState([]);
   const messagesEndRef = useRef(null);
   const coordinationMessagesEndRef = useRef(null);
+  const prevMessagesCountRef = useRef(0);
   const queryClient = useQueryClient();
+  const { playNotificationSound } = useChatSound();
 
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth < 768);
@@ -208,9 +211,25 @@ export default function ParentChat() {
     }
   }, [selectedCategory, currentAnnouncements.length, activePrivateChat]);
 
+  // Scroll fluido mejorado + sonido de notificación
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [currentAnnouncements, privateMessages]);
+    // Detectar mensajes nuevos para sonido
+    const currentCount = currentAnnouncements.length + privateMessages.length;
+    if (prevMessagesCountRef.current > 0 && currentCount > prevMessagesCountRef.current) {
+      // Hay mensajes nuevos - reproducir sonido
+      playNotificationSound();
+    }
+    prevMessagesCountRef.current = currentCount;
+
+    // Scroll fluido
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ 
+        behavior: "smooth", 
+        block: "end",
+        inline: "nearest"
+      });
+    }
+  }, [currentAnnouncements.length, privateMessages.length, playNotificationSound]);
 
   // Scroll para anuncios de Coordinación Deportiva
   useEffect(() => {
