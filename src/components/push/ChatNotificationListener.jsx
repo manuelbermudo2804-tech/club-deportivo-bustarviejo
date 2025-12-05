@@ -53,6 +53,8 @@ export default function ChatNotificationListener({ user }) {
   useEffect(() => {
     if (!user || !chatMessages || chatMessages.length === 0) return;
 
+    console.log('📨 Procesando mensajes grupo. Total:', chatMessages.length, 'User:', user.email, 'Role:', user.role, 'esEntrenador:', user.es_entrenador, 'esCoordinador:', user.es_coordinador);
+
     try {
       const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
       
@@ -85,9 +87,12 @@ export default function ChatNotificationListener({ user }) {
         return false;
       });
 
+      console.log('🔍 Mensajes relevantes grupo:', relevantMessages.length, 'lastSeenId:', lastSeenChatId.current);
+
       const latestMessage = relevantMessages[0];
       
       if (latestMessage && latestMessage.id !== lastSeenChatId.current) {
+        console.log('🆕 Nuevo mensaje detectado:', latestMessage.id);
         showNotification(latestMessage.remitente_nombre, latestMessage.mensaje, latestMessage.id, latestMessage.prioridad);
         lastSeenChatId.current = latestMessage.id;
       }
