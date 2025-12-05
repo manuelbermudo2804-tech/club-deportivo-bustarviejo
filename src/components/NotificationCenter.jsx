@@ -386,19 +386,21 @@ export default function NotificationCenter() {
             {unreadMessages.filter(m => m.prioridad !== "Urgente").map(msg => {
               const Icon = getNotificationIcon("message");
               return (
-                <div key={msg.id} className={`flex items-start gap-3 p-3 rounded-lg hover:opacity-80 transition-all ${getNotificationColor("message", msg.prioridad)}`}>
-                  <Icon className="w-5 h-5 text-blue-600 mt-1" />
-                  <div className="flex-1">
-                    <p className="text-sm font-semibold text-slate-900">{msg.remitente_nombre}</p>
-                    <p className="text-sm text-slate-700">{msg.mensaje.substring(0, 100)}...</p>
-                    <p className="text-xs text-slate-500 mt-1">
-                      {format(new Date(msg.created_date), "dd MMM, HH:mm", { locale: es })}
-                    </p>
+                <Link key={msg.id} to={createPageUrl("ParentChat")} onClick={() => {
+                  handleMarkAsRead(msg);
+                  setIsOpen(false);
+                }}>
+                  <div className={`flex items-start gap-3 p-3 rounded-lg hover:opacity-80 transition-all ${getNotificationColor("message", msg.prioridad)}`}>
+                    <Icon className="w-5 h-5 text-blue-600 mt-1" />
+                    <div className="flex-1">
+                      <p className="text-sm font-semibold text-slate-900">{msg.remitente_nombre}</p>
+                      <p className="text-sm text-slate-700">{msg.mensaje.substring(0, 100)}...</p>
+                      <p className="text-xs text-slate-500 mt-1">
+                        {format(new Date(msg.created_date), "dd MMM, HH:mm", { locale: es })}
+                      </p>
+                    </div>
                   </div>
-                  <Button variant="ghost" size="sm" onClick={() => handleMarkAsRead(msg)}>
-                    <Check className="w-4 h-4" />
-                  </Button>
-                </div>
+                </Link>
               );
             })}
 
