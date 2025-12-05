@@ -1191,6 +1191,16 @@ export default function ClothingOrders() {
                               </Badge>
                             </div>
                           </div>
+                          {/* Fecha estimada de entrega */}
+                          {order.estado !== "Entregado" && (
+                            <div className="mb-3 p-2 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg">
+                              <p className="text-xs text-blue-800 flex items-center gap-1.5">
+                                <span>📦</span>
+                                <strong>Recogida prevista:</strong> 
+                                <span>Primera semana de Septiembre en las instalaciones del club</span>
+                              </p>
+                            </div>
+                          )}
                           {renderOrderDetails(order)}
                         </div>
                       ))}
