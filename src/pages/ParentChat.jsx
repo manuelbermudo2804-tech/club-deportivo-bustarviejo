@@ -467,9 +467,10 @@ export default function ParentChat() {
                       </div>
                     </div>
                     <div className="max-h-[40vh] overflow-y-auto p-4 space-y-3" style={{ backgroundColor: '#e5ddd5' }}>
-                      {currentAnnouncements
-                        .sort((a, b) => new Date(a.created_date) - new Date(b.created_date))
-                        .map((msg) => (
+                      {groupMessagesByDate(currentAnnouncements).map((item, idx) => 
+                        item.type === 'date' ? (
+                          <DateSeparator key={`date-${idx}`} date={item.date} />
+                        ) : (
                           <div key={msg.id} className="flex justify-center my-4">
                             <div className="w-full max-w-[98%] rounded-2xl shadow-2xl overflow-hidden bg-gradient-to-br from-cyan-50 via-white to-blue-50 border-4 border-cyan-500 ring-4 ring-cyan-300/50">
                               {/* Banner muy destacado */}
