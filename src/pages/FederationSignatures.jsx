@@ -167,6 +167,16 @@ export default function FederationSignatures() {
   });
 
   const handleMarkSignatureComplete = (player, type) => {
+    const key = `${player.id}_${type}`;
+    
+    // Evitar doble click
+    if (processingSignature[key]) {
+      return;
+    }
+    
+    // Marcar como procesando inmediatamente
+    setProcessingSignature(prev => ({ ...prev, [key]: true }));
+    
     const updateData = type === "jugador" 
       ? { firma_jugador_completada: true }
       : { firma_tutor_completada: true };
