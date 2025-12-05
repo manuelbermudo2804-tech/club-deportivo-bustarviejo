@@ -88,6 +88,14 @@ export default function NotificationCenter() {
     refetchInterval: 10000,
   });
 
+  // Mensajes privados
+  const { data: privateConversations = [] } = useQuery({
+    queryKey: ['privateConversationsNotif'],
+    queryFn: () => base44.entities.PrivateConversation.list('-ultimo_mensaje_fecha'),
+    initialData: [],
+    refetchInterval: 2000,
+  });
+
   const markMessageAsReadMutation = useMutation({
     mutationFn: ({ id, message }) => base44.entities.ChatMessage.update(id, { ...message, leido: true }),
     onSuccess: () => {
