@@ -1004,6 +1004,7 @@ export default function Home() {
             unreadPrivateMessages={stats.unreadPrivateMessages}
             pendingSurveys={0}
             pendingSignatures={hasPlayers ? stats.pendingSignatures : 0}
+            pendingCallupResponses={stats.pendingCallupResponses}
             upcomingEvents={0}
             isAdmin={isAdmin}
             isCoach={isCoach || isCoordinator}
