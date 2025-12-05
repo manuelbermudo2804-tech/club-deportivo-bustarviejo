@@ -16,13 +16,52 @@ import {
 } from "@/components/ui/dialog";
 import PhotoLightbox from "./PhotoLightbox";
 
-export default function GalleryAlbum({ album, onEdit, onDelete, isAdmin }) {
+export default function GalleryAlbum({ album, onEdit, onDelete, isAdmin, onQuickUpload }) {
   const [showGallery, setShowGallery] = useState(false);
   const [showLightbox, setShowLightbox] = useState(false);
   const [selectedPhotoIndex, setSelectedPhotoIndex] = useState(0);
   const [selectedPhotos, setSelectedPhotos] = useState([]);
   const [selectionMode, setSelectionMode] = useState(false);
   const [downloading, setDownloading] = useState(false);
+  const [quickUploading, setQuickUploading] = useState(false);
+  const quickUploadRef = useRef(null);
+
+  // Quick upload photos directly to this album
+  const handleQuickUpload = async (e) => {
+    const files = Array.from(e.target.files);
+    if (files.length === 0) return;
+
+    setQuickUploading(true);
+    toast.info(`📤 Subiendo ${files.length} foto(s)...`);
+
+    try {
+      const uploadPromises = files.map(async (file) => {
+        const { file_url } = await base44.integrations.Core.UploadFile({ file });
+        return {
+          url: file_url,
+          descripcion: "",
+          jugadores_etiquetados: []
+        };
+      });
+
+      const uploadedPhotos = await Promise.all(uploadPromises);
+      const updatedFotos = [...(album.fotos || []), ...uploadedPhotos];
+      
+      if (onQuickUpload) {
+        await onQuickUpload(album.id, updatedFotos);
+      }
+      
+      toast.success(`✅ ${files.length} foto(s) añadida(s) al álbum`);
+    } catch (error) {
+      console.error("Error uploading photos:", error);
+      toast.error("Error al subir las fotos");
+    } finally {
+      setQuickUploading(false);
+      if (quickUploadRef.current) {
+        quickUploadRef.current.value = "";
+      }
+    }
+  };
 
   const eventTypeEmojis = {
     "Partido": "⚽",
