@@ -5,7 +5,7 @@ import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { Users, CreditCard, ShoppingBag, Calendar, Megaphone, Image, Clock, MessageCircle, Bell, Settings, ClipboardCheck, CheckCircle2, Star, TrendingUp, Smartphone, Trophy, FileText, Clover, BookOpen, Archive, BarChart3, FileSignature, Heart, BellRing } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { toast } from "sonner";
+// toast removido para evitar spam
 
 import SocialLinks from "../components/SocialLinks";
 
@@ -1274,7 +1274,7 @@ export default function Home() {
                   if (typeof window !== 'undefined' && 'Notification' in window) {
                     if (Notification.permission === 'granted') {
                       // Enviar notificación de prueba después de 3 segundos
-                      toast.success("⏰ Notificación programada en 3 segundos. ¡Minimiza la app ahora!");
+                      console.log("⏰ Notificación programada en 3 segundos");
                       setTimeout(() => {
                         new Notification("🎉 CD Bustarviejo - Prueba", {
                           body: "¡Las notificaciones funcionan correctamente! Este mensaje llegó con la app en segundo plano.",
@@ -1282,18 +1282,18 @@ export default function Home() {
                         });
                       }, 3000);
                     } else if (Notification.permission === 'denied') {
-                      toast.error("❌ Notificaciones bloqueadas. Actívalas en ajustes del navegador.");
+                      console.log("❌ Notificaciones bloqueadas");
                     } else {
                       Notification.requestPermission().then(permission => {
                         if (permission === 'granted') {
-                          toast.success("✅ Permiso concedido. Pulsa de nuevo para probar.");
+                          console.log("✅ Permiso concedido");
                         } else {
-                          toast.error("❌ Permiso denegado");
+                          console.log("❌ Permiso denegado");
                         }
                       });
                     }
                   } else {
-                    toast.error("❌ Tu navegador no soporta notificaciones");
+                    console.log("❌ Navegador no soporta notificaciones");
                   }
                 }}
                 className="bg-gradient-to-r from-orange-600 to-orange-700 hover:from-orange-700 hover:to-orange-800 text-white font-bold"
