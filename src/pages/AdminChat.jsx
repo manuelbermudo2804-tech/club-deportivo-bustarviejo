@@ -923,11 +923,11 @@ export default function AdminChat() {
                             <span className={`text-[10px] ${isAdmin ? 'text-green-100' : isJugador ? 'text-blue-100' : 'text-slate-500'}`}>
                               {format(new Date(msg.created_date), "HH:mm")}
                             </span>
-                            {msg._isOptimistic && <span className="text-[10px] text-green-200">⏳</span>}
+                            {msg._isOptimistic && <span className="text-[10px] text-green-200" title="Enviando...">⏳</span>}
                             {isAdmin && !msg._isOptimistic && (
-                              <span className="ml-1">
+                              <span className="ml-1" title={readStatus === "read" ? "Leído" : "Entregado"}>
                                 {readStatus === "read" ? (
-                                  <CheckCheck className="w-3 h-3 text-blue-400" />
+                                  <CheckCheck className="w-3 h-3 text-cyan-300" />
                                 ) : (
                                   <Check className="w-3 h-3 text-green-200" />
                                 )}

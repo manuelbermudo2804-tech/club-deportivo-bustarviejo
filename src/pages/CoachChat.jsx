@@ -671,7 +671,10 @@ export default function CoachChat() {
                                     <span className={`text-[10px] ${isCoordinationChat && isFromFamily ? 'text-slate-400' : 'opacity-70'}`}>
                                       {format(new Date(msg.created_date), "HH:mm")}
                                     </span>
-                                    {msg._isOptimistic && <span className="text-[10px] opacity-70">⏳</span>}
+                                    {msg._isOptimistic && <span className="text-[10px] opacity-70" title="Enviando...">⏳</span>}
+                                    {!msg._isOptimistic && msg.tipo === "admin_a_grupo" && (
+                                      <span className="text-[10px] opacity-80" title="Entregado">✓</span>
+                                    )}
                                     {msg.anclado && <Pin className="w-3 h-3 opacity-70" />}
                                     {msg.tipo === "admin_a_grupo" && !msg._isOptimistic && (
                                       <ReadConfirmation 

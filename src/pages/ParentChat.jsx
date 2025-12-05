@@ -460,39 +460,39 @@ export default function ParentChat() {
                       {currentAnnouncements
                         .sort((a, b) => new Date(a.created_date) - new Date(b.created_date))
                         .map((msg) => (
-                          <div key={msg.id} className="flex justify-start">
-                            <div className="max-w-[95%] rounded-2xl shadow-xl overflow-hidden bg-gradient-to-br from-cyan-50 via-white to-blue-50 border-2 border-cyan-400 ring-2 ring-cyan-200">
-                              {/* Banner destacado */}
-                              <div className="bg-gradient-to-r from-cyan-600 via-cyan-700 to-blue-700 px-4 py-2 flex items-center gap-2">
-                                <span className="text-xl">📢</span>
-                                <span className="text-white font-bold text-sm">ANUNCIO DE COORDINACIÓN DEPORTIVA</span>
-                                <span className="text-xl">⚽</span>
+                          <div key={msg.id} className="flex justify-center my-4">
+                            <div className="w-full max-w-[98%] rounded-2xl shadow-2xl overflow-hidden bg-gradient-to-br from-cyan-50 via-white to-blue-50 border-4 border-cyan-500 ring-4 ring-cyan-300/50">
+                              {/* Banner muy destacado */}
+                              <div className="bg-gradient-to-r from-cyan-600 via-blue-600 to-cyan-700 px-4 py-3 flex items-center justify-center gap-3">
+                                <span className="text-2xl animate-bounce">📢</span>
+                                <span className="text-white font-black text-base tracking-wide">ANUNCIO OFICIAL - COORDINACIÓN DEPORTIVA</span>
+                                <span className="text-2xl animate-bounce">📢</span>
                               </div>
-                              <div className="px-4 py-4">
-                                <div className="flex items-center gap-2 mb-3">
-                                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center shadow-lg">
-                                    <span className="text-lg">🎓</span>
+                              <div className="px-5 py-5">
+                                <div className="flex items-center gap-3 mb-4">
+                                  <div className="w-12 h-12 rounded-full bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center shadow-xl ring-2 ring-white">
+                                    <span className="text-xl">🎓</span>
                                   </div>
                                   <div className="flex-1">
-                                    <span className="text-sm font-bold text-cyan-800 block">
+                                    <span className="text-base font-black text-cyan-800 block">
                                       {msg.remitente_nombre || "Coordinador Deportivo"}
                                     </span>
-                                    <span className="text-[10px] text-slate-500">
+                                    <span className="text-xs text-slate-600 font-medium">
                                       {format(new Date(msg.created_date), "EEEE d 'de' MMMM, HH:mm", { locale: es })}
                                     </span>
                                   </div>
                                   {msg.prioridad !== "Normal" && (
-                                    <Badge className={`${msg.prioridad === "Urgente" ? "bg-red-500 animate-pulse" : "bg-yellow-500"} text-white font-bold px-3`}>
+                                    <Badge className={`${msg.prioridad === "Urgente" ? "bg-red-600 animate-pulse" : "bg-yellow-500"} text-white font-bold px-4 py-1 text-sm`}>
                                       {msg.prioridad === "Urgente" ? "🚨 URGENTE" : "⚠️ IMPORTANTE"}
                                     </Badge>
                                   )}
                                 </div>
-                                <div className="bg-white rounded-xl p-4 border border-cyan-200 shadow-inner">
+                                <div className="bg-white rounded-xl p-5 border-2 border-cyan-200 shadow-lg">
                                   <p className="text-base leading-relaxed whitespace-pre-wrap text-slate-800 font-medium">{msg.mensaje}</p>
                                 </div>
 
                                 {msg.poll && (
-                                  <div className="mt-3">
+                                  <div className="mt-4">
                                     <PollMessage 
                                       poll={msg.poll} 
                                       onVote={(msgId, optIdx) => voteOnPollMutation.mutate({ messageId: msgId, optionIndex: optIdx })}
@@ -503,7 +503,7 @@ export default function ParentChat() {
                                 )}
 
                                 {msg.archivos_adjuntos?.length > 0 && (
-                                  <div className="mt-3">
+                                  <div className="mt-4">
                                     <MessageAttachments attachments={msg.archivos_adjuntos} />
                                   </div>
                                 )}

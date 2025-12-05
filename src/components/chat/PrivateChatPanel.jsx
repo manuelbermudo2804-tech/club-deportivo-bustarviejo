@@ -217,13 +217,13 @@ export default function PrivateChatPanel({
                           {format(new Date(msg.created_date), "HH:mm")}
                         </span>
                         {isMyMessage && msg._isOptimistic && (
-                          <span className="text-xs text-blue-200">⏳</span>
+                          <span className="text-xs text-blue-200" title="Enviando...">⏳</span>
                         )}
                         {isMyMessage && !msg._isOptimistic && msg.leido && (
-                          <span className="text-xs text-blue-200">✓✓</span>
+                          <span className="text-xs text-cyan-300" title="Leído">✓✓</span>
                         )}
                         {isMyMessage && !msg._isOptimistic && !msg.leido && (
-                          <span className="text-xs text-blue-200">✓</span>
+                          <span className="text-xs text-blue-200" title="Entregado">✓</span>
                         )}
                       </div>
                     </div>
