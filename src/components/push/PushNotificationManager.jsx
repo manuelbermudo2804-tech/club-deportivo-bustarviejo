@@ -93,21 +93,29 @@ export default function PushNotificationManager() {
       
       if ('serviceWorker' in navigator && 'PushManager' in window) {
         console.log('[Notif] Registrando Service Worker...');
+        alert("Paso 1: Obteniendo VAPID key...");
         
         try {
           // Obtener VAPID key del backend
           const vapidResponse = await base44.functions.invoke('getVapidKey', {});
           const vapidPublicKey = vapidResponse.data?.vapidKey;
           
+          alert("Paso 2: VAPID key: " + (vapidPublicKey ? "OK" : "FALTA"));
+          
           if (vapidPublicKey) {
             console.log('[Notif] VAPID key obtenida');
             
             // Registrar SW
-            const registration = await navigator.serviceWorker.register('/sw.js').catch(() => null);
+            alert("Paso 3: Registrando Service Worker...");
+            const registration = await navigator.serviceWorker.register('/sw.js').catch((e) => {
+              alert("Error SW: " + e.message);
+              return null;
+            });
             
             if (registration) {
               await navigator.serviceWorker.ready;
               console.log('[Notif] SW registrado');
+              alert("Paso 4: SW registrado, creando suscripción...");
               
               // Crear suscripción push
               subscription = await registration.pushManager.subscribe({
@@ -115,15 +123,22 @@ export default function PushNotificationManager() {
                 applicationServerKey: urlBase64ToUint8Array(vapidPublicKey)
               });
               
+              alert("Paso 5: Suscripción creada: " + subscription.endpoint.substring(0, 50) + "...");
               console.log('[Notif] Suscripción creada:', subscription.endpoint);
+            } else {
+              alert("Error: No se pudo registrar el SW");
             }
           }
         } catch (swError) {
-          console.log('[Notif] No se pudo crear suscripción push (normal en desarrollo):', swError.message);
+          alert("Error en suscripción: " + swError.message);
+          console.log('[Notif] No se pudo crear suscripción push:', swError.message);
         }
+      } else {
+        alert("PushManager no soportado en este navegador");
       }
 
       console.log('[Notif] Guardando en usuario...');
+      alert("Paso 6: Guardando. Suscripción: " + (subscription ? "SÍ" : "NO"));
       
       // Guardar en el usuario - con o sin suscripción
       const updateData = {
@@ -136,6 +151,7 @@ export default function PushNotificationManager() {
       }
       
       await base44.auth.updateMe(updateData);
+      alert("Paso 7: Guardado completado");
 
       console.log('[Notif] Usuario actualizado, mostrando notificación...');
 
