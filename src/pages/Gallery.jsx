@@ -107,6 +107,12 @@ export default function Gallery() {
     },
   });
 
+  // Quick upload handler for adding photos directly to an album
+  const handleQuickUpload = async (albumId, newFotos) => {
+    await base44.entities.PhotoGallery.update(albumId, { fotos: newFotos });
+    queryClient.invalidateQueries({ queryKey: ['photoGallery'] });
+  };
+
   const deleteAlbumMutation = useMutation({
     mutationFn: (albumId) => base44.entities.PhotoGallery.delete(albumId),
     onSuccess: () => {
