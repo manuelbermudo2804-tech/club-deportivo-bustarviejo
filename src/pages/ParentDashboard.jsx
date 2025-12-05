@@ -269,7 +269,9 @@ export default function ParentDashboard() {
   const unreadMessages = messages.filter(m => {
     if (!m.leido && m.tipo === "admin_a_grupo") {
       const myGroupSports = [...new Set(myPlayers.map(p => p.deporte))];
-      return myGroupSports.includes(m.grupo_id || m.deporte);
+      // Incluir mensajes de Coordinación Deportiva para todos los padres
+      return myGroupSports.includes(m.grupo_id || m.deporte) || 
+             (m.grupo_id === "Coordinación Deportiva" || m.deporte === "Coordinación Deportiva");
     }
     return false;
   }).length;
@@ -277,7 +279,9 @@ export default function ParentDashboard() {
   const urgentUnreadMessages = messages.filter(m => {
     if (!m.leido && m.tipo === "admin_a_grupo" && m.prioridad === "Urgente") {
       const myGroupSports = [...new Set(myPlayers.map(p => p.deporte))];
-      return myGroupSports.includes(m.grupo_id || m.deporte);
+      // Incluir mensajes urgentes de Coordinación Deportiva para todos los padres
+      return myGroupSports.includes(m.grupo_id || m.deporte) || 
+             (m.grupo_id === "Coordinación Deportiva" || m.deporte === "Coordinación Deportiva");
     }
     return false;
   }).length;
