@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
@@ -69,7 +69,7 @@ export default function ClothingOrders() {
       return configs.find(c => c.activa === true);
     },
     initialData: null,
-    refetchInterval: 2000,
+    staleTime: 10000,
   });
 
   const orderPeriodActive = seasonConfig?.tienda_ropa_abierta === true;
@@ -192,14 +192,31 @@ export default function ClothingOrders() {
     createOrderMutation.mutate(dataToSubmit);
   };
 
-  const exportFamiliesCSV = () => {
-    const ordersByFamily = {};
+  // Memorizar agrupación de pedidos por familia
+  const ordersByFamily = useMemo(() => {
+    const grouped = {};
     orders.forEach(order => {
-      if (!ordersByFamily[order.email_padre]) {
-        ordersByFamily[order.email_padre] = [];
+      if (!grouped[order.email_padre]) {
+        grouped[order.email_padre] = [];
       }
-      ordersByFamily[order.email_padre].push(order);
+      grouped[order.email_padre].push(order);
     });
+    return grouped;
+  }, [orders]);
+
+  // Memorizar pedidos activos por familia
+  const activeOrdersByFamily = useMemo(() => {
+    const active = {};
+    Object.entries(ordersByFamily).forEach(([email, familyOrders]) => {
+      const activeOrders = familyOrders.filter(o => o.estado !== "Entregado");
+      if (activeOrders.length > 0) {
+        active[email] = activeOrders;
+      }
+    });
+    return active;
+  }, [ordersByFamily]);
+
+  const exportFamiliesCSV = () => {
 
     const rows = [
       ['Email Familia', 'Jugador', 'Categoría', 'Items', 'Total', 'Estado']
@@ -616,26 +633,8 @@ export default function ClothingOrders() {
                 </div>
               </CardHeader>
               <CardContent>
-                {(() => {
-                  const ordersByFamily = {};
-                  orders.forEach(order => {
-                    if (!ordersByFamily[order.email_padre]) {
-                      ordersByFamily[order.email_padre] = [];
-                    }
-                    ordersByFamily[order.email_padre].push(order);
-                  });
-
-                  const activeOrdersByFamily = {};
-                  Object.entries(ordersByFamily).forEach(([email, familyOrders]) => {
-                    const activeOrders = familyOrders.filter(o => o.estado !== "Entregado");
-                    if (activeOrders.length > 0) {
-                      activeOrdersByFamily[email] = activeOrders;
-                    }
-                  });
-
-                  return (
-                    <div className="space-y-6">
-                      {Object.entries(activeOrdersByFamily).map(([email, familyOrders]) => {
+                <div className="space-y-6">
+                  {Object.entries(activeOrdersByFamily).map(([email, familyOrders]) => {
                         const totalAmount = familyOrders.reduce((sum, o) => sum + (o.precio_total || 0), 0);
                         return (
                           <Card key={email} className="border-2 border-slate-200">
@@ -700,9 +699,7 @@ export default function ClothingOrders() {
                           </Card>
                         );
                       })}
-                    </div>
-                  );
-                })()}
+                </div>
               </CardContent>
             </Card>
           </TabsContent>
