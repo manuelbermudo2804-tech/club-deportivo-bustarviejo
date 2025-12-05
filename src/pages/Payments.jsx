@@ -154,8 +154,8 @@ export default function Payments() {
     queryKey: ['allPlayers'],
     queryFn: async () => {
       const allPlayers = await base44.entities.Player.list();
-      // SOLO jugadores ACTIVOS
-      return allPlayers.filter(p => p.activo === true) || [];
+      // Mostrar TODOS los jugadores para poder ver sus pagos históricos
+      return allPlayers || [];
     },
     initialData: [],
   });
