@@ -11,7 +11,7 @@ import { Upload, X, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { base44 } from "@/api/base44Client";
 
-export default function GalleryForm({ album, onSubmit, onCancel, isSubmitting }) {
+export default function GalleryForm({ album, onSubmit, onCancel, isSubmitting, userRole = "admin", coachCategories = [] }) {
   const [currentAlbum, setCurrentAlbum] = useState(album || {
     titulo: "",
     descripcion: "",
