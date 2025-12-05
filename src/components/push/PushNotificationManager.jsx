@@ -105,44 +105,7 @@ export default function PushNotificationManager() {
         body: "¡Las notificaciones funcionan correctamente!",
         icon: "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6911b8e453ca3ac01fb134d6/e3f0a8e26_logo_cd_bustarviejo_mediano.jpg"
       });
-      toast.success("✅ Notificación local enviada (solo este dispositivo)");
-    }
-  };
-
-  const sendRemotePushTest = async () => {
-    console.log("🚀 [PUSH TEST] Iniciando envío de push...");
-    alert("Iniciando envío de push...");
-    
-    try {
-      const user = await base44.auth.me();
-      console.log("🚀 [PUSH TEST] Usuario:", user?.email);
-      
-      if (!user?.email) {
-        alert("Error: No se pudo obtener el usuario");
-        return;
-      }
-      
-      alert("Llamando a sendWebPush...");
-      
-      const result = await base44.functions.invoke('sendWebPush', {
-        title: "🧪 Prueba de Push - CD Bustarviejo",
-        body: "¡Esta notificación llegó correctamente a tu dispositivo!",
-        recipientEmails: [user.email],
-        url: null,
-        data: { tipo: "test" }
-      });
-      
-      console.log("🚀 [PUSH TEST] Resultado:", result);
-      alert("Resultado: " + JSON.stringify(result.data));
-      
-      if (result.data?.success || result.data?.sent > 0) {
-        toast.success(`✅ Push enviado - revisa tu móvil`);
-      } else {
-        toast.error("No se pudo enviar el push: " + (result.data?.error || "sin suscripción"));
-      }
-    } catch (error) {
-      console.error("🚀 [PUSH TEST] Error:", error);
-      alert("Error: " + error.message);
+      toast.success("✅ Notificación enviada");
     }
   };
 
