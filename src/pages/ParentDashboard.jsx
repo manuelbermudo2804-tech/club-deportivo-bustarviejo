@@ -7,7 +7,6 @@ import { Users, Calendar, Bell, MessageCircle, CreditCard, Image, Megaphone, Clo
 import { toast } from "sonner";
 
 import SocialLinks from "../components/SocialLinks";
-import PushNotificationManager from "../components/push/PushNotificationManager";
 import NewSeasonWelcome from "../components/NewSeasonWelcome";
 import ParentOnboarding from "@/components/onboarding/ParentOnboarding";
 import AlertCenter from "../components/dashboard/AlertCenter";
