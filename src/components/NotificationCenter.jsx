@@ -41,50 +41,51 @@ export default function NotificationCenter() {
       const all = await base44.entities.AppNotification.list('-created_date');
       return all.filter(n => n.usuario_email === user?.email);
     },
-    enabled: !!user?.email && isOpen,
+    enabled: !!user?.email,
     initialData: [],
+    refetchInterval: 3000,
   });
 
   const { data: callups } = useQuery({
     queryKey: ['callups'],
     queryFn: () => base44.entities.Convocatoria.list('-created_date'),
     initialData: [],
-    enabled: isOpen,
+    refetchInterval: 5000,
   });
 
   const { data: announcements } = useQuery({
     queryKey: ['announcements'],
     queryFn: () => base44.entities.Announcement.list('-fecha_publicacion'),
     initialData: [],
-    enabled: isOpen,
+    refetchInterval: 5000,
   });
 
   const { data: payments } = useQuery({
     queryKey: ['payments'],
     queryFn: () => base44.entities.Payment.list('-created_date'),
     initialData: [],
-    enabled: isOpen,
+    refetchInterval: 5000,
   });
 
   const { data: players } = useQuery({
     queryKey: ['players'],
     queryFn: () => base44.entities.Player.list(),
     initialData: [],
-    enabled: isOpen,
+    refetchInterval: 10000,
   });
 
   const { data: reminders } = useQuery({
     queryKey: ['reminders'],
     queryFn: () => base44.entities.Reminder.list('-fecha_envio'),
     initialData: [],
-    enabled: isOpen,
+    refetchInterval: 10000,
   });
 
   const { data: events } = useQuery({
     queryKey: ['events'],
     queryFn: () => base44.entities.Event.list(),
     initialData: [],
-    enabled: isOpen,
+    refetchInterval: 10000,
   });
 
   const markMessageAsReadMutation = useMutation({
