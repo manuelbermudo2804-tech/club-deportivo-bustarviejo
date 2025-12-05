@@ -119,14 +119,9 @@ export default function PushNotificationManager() {
               <span className="text-green-800 font-medium text-sm">Notificaciones Activadas</span>
             </div>
           </div>
-          <Button
-            onClick={sendRemotePushTest}
-            className="w-full bg-green-600 hover:bg-green-700 text-white"
-            size="sm"
-          >
-            <Bell className="w-4 h-4 mr-2" />
-            📲 Enviar Push a mi móvil
-          </Button>
+          <p className="text-xs text-slate-600 p-2 bg-slate-50 rounded">
+            ℹ️ Recibirás notificaciones mientras tengas la app abierta. Las notificaciones push con app cerrada requieren una app nativa (próximamente).
+          </p>
           <Button
             onClick={sendTestNotification}
             variant="outline"
@@ -134,19 +129,19 @@ export default function PushNotificationManager() {
             size="sm"
           >
             <Bell className="w-4 h-4 mr-2" />
-            Notificación local (este dispositivo)
+            Probar notificación
           </Button>
           <Button
             onClick={async () => {
-              await base44.auth.updateMe({ push_enabled: false, fcm_token: null });
+              await base44.auth.updateMe({ push_enabled: false, fcm_token: null, notification_type: null });
               setIsSubscribed(false);
-              alert("Estado reseteado. Ahora pulsa 'Activar Notificaciones Push'");
+              toast.success("Notificaciones desactivadas");
             }}
             variant="outline"
             className="w-full text-red-600 border-red-300"
             size="sm"
           >
-            🔄 Resetear y volver a activar
+            Desactivar notificaciones
           </Button>
         </div>
       ) : (
