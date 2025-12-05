@@ -36,7 +36,7 @@ export default function ChatNotificationListener({ user }) {
     queryKey: ['chatMessagesListener'],
     queryFn: () => base44.entities.ChatMessage.list('-created_date', 30),
     initialData: [],
-    refetchInterval: 8000,
+    refetchInterval: 3000,
     enabled: !!user,
   });
 
@@ -45,7 +45,7 @@ export default function ChatNotificationListener({ user }) {
     queryKey: ['privateMessagesListener'],
     queryFn: () => base44.entities.PrivateMessage.list('-created_date', 30),
     initialData: [],
-    refetchInterval: 8000,
+    refetchInterval: 3000,
     enabled: !!user,
   });
 
