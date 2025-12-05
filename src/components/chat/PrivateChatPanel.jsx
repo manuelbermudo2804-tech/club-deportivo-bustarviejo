@@ -12,6 +12,9 @@ import { es } from "date-fns/locale";
 
 import FileAttachmentButton from "./FileAttachmentButton";
 import MessageAttachments from "./MessageAttachments";
+import MessageContextMenu from "./MessageContextMenu";
+import MessageReactions from "./MessageReactions";
+import ReplyPreview from "./ReplyPreview";
 
 export default function PrivateChatPanel({ 
   conversation, 
@@ -25,7 +28,10 @@ export default function PrivateChatPanel({
   const [attachments, setAttachments] = useState([]);
   const [isSending, setIsSending] = useState(false);
   const [optimisticMessages, setOptimisticMessages] = useState([]);
+  const [contextMenu, setContextMenu] = useState(null); // { message, position }
+  const [replyingTo, setReplyingTo] = useState(null);
   const messagesEndRef = useRef(null);
+  const inputRef = useRef(null);
   const queryClient = useQueryClient();
 
   // Scroll fluido mejorado para móvil
@@ -108,6 +114,11 @@ export default function PrivateChatPanel({
       mensaje: msgText,
       leido: false,
       archivos_adjuntos: attachments,
+      reply_to: replyingTo ? {
+        id: replyingTo.id,
+        mensaje: replyingTo.mensaje?.substring(0, 100),
+        remitente_nombre: replyingTo.remitente_nombre
+      } : null,
       created_date: new Date().toISOString(),
       _isOptimistic: true
     };
@@ -115,6 +126,7 @@ export default function PrivateChatPanel({
     setOptimisticMessages([optimisticMsg]);
     setMessageContent("");
     setAttachments([]);
+    setReplyingTo(null);
     setIsSending(true);
 
     sendMessageMutation.mutate({
@@ -124,8 +136,71 @@ export default function PrivateChatPanel({
       remitente_tipo: isStaff ? "staff" : "familia",
       mensaje: msgText,
       leido: false,
-      archivos_adjuntos: optimisticMsg.archivos_adjuntos
+      archivos_adjuntos: optimisticMsg.archivos_adjuntos,
+      reply_to: optimisticMsg.reply_to
     });
+  };
+
+  // Handlers para el menú contextual
+  const handleContextMenu = (e, msg) => {
+    e.preventDefault();
+    if (msg._isOptimistic) return;
+    setContextMenu({
+      message: msg,
+      position: { x: e.clientX, y: e.clientY }
+    });
+  };
+
+  const handleLongPress = (msg) => {
+    if (msg._isOptimistic) return;
+    // Vibración háptica en móvil
+    if (navigator.vibrate) navigator.vibrate(50);
+    setContextMenu({
+      message: msg,
+      position: { x: window.innerWidth / 2 - 100, y: window.innerHeight / 2 - 100 }
+    });
+  };
+
+  const handleDeleteMessage = async (messageId) => {
+    try {
+      await base44.entities.PrivateMessage.delete(messageId);
+      queryClient.invalidateQueries({ queryKey: ['privateMessages', conversation.id] });
+      toast.success("🗑️ Mensaje eliminado");
+    } catch (error) {
+      toast.error("Error al eliminar");
+    }
+  };
+
+  const handleReply = (msg) => {
+    setReplyingTo(msg);
+    inputRef.current?.focus();
+  };
+
+  const handleReaction = async (messageId, emoji) => {
+    try {
+      const msg = messages.find(m => m.id === messageId);
+      const reactions = msg?.reactions || [];
+      
+      // Toggle: si ya reaccionó con ese emoji, quitar
+      const existingIndex = reactions.findIndex(r => r.user_email === user.email && r.emoji === emoji);
+      
+      let newReactions;
+      if (existingIndex >= 0) {
+        newReactions = reactions.filter((_, i) => i !== existingIndex);
+      } else {
+        newReactions = [...reactions, {
+          user_email: user.email,
+          user_name: user.full_name,
+          emoji,
+          created_date: new Date().toISOString()
+        }];
+      }
+      
+      await base44.entities.PrivateMessage.update(messageId, { reactions: newReactions });
+      queryClient.invalidateQueries({ queryKey: ['privateMessages', conversation.id] });
+    } catch (error) {
+      toast.error("Error al reaccionar");
+    }
   };
 
   const otherParticipant = isStaff 
@@ -182,6 +257,19 @@ export default function PrivateChatPanel({
           backgroundColor: '#e5ddd5'
         }}
       >
+        {/* Menú contextual */}
+        {contextMenu && (
+          <MessageContextMenu
+            message={contextMenu.message}
+            isOwnMessage={contextMenu.message.remitente_email === user?.email}
+            position={contextMenu.position}
+            onClose={() => setContextMenu(null)}
+            onDelete={handleDeleteMessage}
+            onReply={handleReply}
+            onReact={handleReaction}
+          />
+        )}
+
         {messages.length === 0 && optimisticMessages.length === 0 ? (
           <div className="flex items-center justify-center h-full">
             <div className="text-center text-slate-500 bg-white/80 rounded-xl p-6">
@@ -195,15 +283,41 @@ export default function PrivateChatPanel({
             .sort((a, b) => new Date(a.created_date) - new Date(b.created_date))
             .map((msg) => {
               const isMyMessage = msg.remitente_email === user?.email;
+              let longPressTimer;
               
               return (
-                <div key={msg.id} className={`flex ${isMyMessage ? 'justify-end' : 'justify-start'} mb-2`}>
+                <div 
+                  key={msg.id} 
+                  className={`flex ${isMyMessage ? 'justify-end' : 'justify-start'} mb-2`}
+                  onContextMenu={(e) => handleContextMenu(e, msg)}
+                  onTouchStart={() => {
+                    longPressTimer = setTimeout(() => handleLongPress(msg), 500);
+                  }}
+                  onTouchEnd={() => clearTimeout(longPressTimer)}
+                  onTouchMove={() => clearTimeout(longPressTimer)}
+                >
                     <div className={`max-w-[85%] rounded-2xl shadow-md overflow-hidden ${
                       isMyMessage
                         ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-br-sm'
                         : 'bg-white text-slate-900 rounded-bl-sm'
-                    } ${msg._isOptimistic ? 'opacity-70' : ''}`}>
+                    } ${msg._isOptimistic ? 'opacity-70' : ''} select-none`}>
                       <div className="px-4 py-3">
+                        {/* Reply preview si es respuesta */}
+                        {msg.reply_to && (
+                          <div className={`mb-2 p-2 rounded-lg border-l-2 ${
+                            isMyMessage 
+                              ? 'bg-blue-500/30 border-blue-300' 
+                              : 'bg-slate-100 border-slate-400'
+                          }`}>
+                            <p className={`text-xs font-semibold ${isMyMessage ? 'text-blue-200' : 'text-slate-600'}`}>
+                              {msg.reply_to.remitente_nombre}
+                            </p>
+                            <p className={`text-xs truncate ${isMyMessage ? 'text-blue-100' : 'text-slate-500'}`}>
+                              {msg.reply_to.mensaje}
+                            </p>
+                          </div>
+                        )}
+
                         <div className="flex items-center gap-2 mb-1">
                           <span className={`text-sm font-bold ${isMyMessage ? 'text-blue-100' : 'text-slate-700'}`}>
                             {msg.remitente_tipo === "staff" 
@@ -217,6 +331,15 @@ export default function PrivateChatPanel({
                         <div className="mt-2">
                           <MessageAttachments attachments={msg.archivos_adjuntos} />
                         </div>
+                      )}
+
+                      {/* Reacciones */}
+                      {msg.reactions?.length > 0 && (
+                        <MessageReactions 
+                          reactions={msg.reactions} 
+                          userEmail={user?.email}
+                          onToggleReaction={(emoji) => handleReaction(msg.id, emoji)}
+                        />
                       )}
                       
                       <div className="flex items-center justify-end gap-1 mt-2">
@@ -243,7 +366,12 @@ export default function PrivateChatPanel({
       </div>
 
       {/* Input */}
-      <div className="bg-white border-t p-3 flex-shrink-0">
+      <div className="bg-white border-t flex-shrink-0">
+        {/* Reply preview */}
+        {replyingTo && (
+          <ReplyPreview replyingTo={replyingTo} onCancel={() => setReplyingTo(null)} />
+        )}
+        <div className="p-3">
         {attachments.length > 0 && (
           <div className="mb-2 flex flex-wrap gap-2 p-2 bg-slate-50 rounded-lg border">
             {attachments.map((att, index) => (
@@ -289,15 +417,19 @@ export default function PrivateChatPanel({
           />
           
           <Input
+            ref={inputRef}
             value={messageContent}
             onChange={(e) => setMessageContent(e.target.value)}
-            placeholder="Escribe un mensaje privado..."
+            placeholder={replyingTo ? "Escribe tu respuesta..." : "Escribe un mensaje privado..."}
             className="flex-1 rounded-full"
             disabled={sendMessageMutation.isPending}
             onKeyDown={(e) => {
               if (e.key === 'Enter' && !e.shiftKey) {
                 e.preventDefault();
                 handleSendMessage();
+              }
+              if (e.key === 'Escape' && replyingTo) {
+                setReplyingTo(null);
               }
             }}
           />
@@ -313,6 +445,7 @@ export default function PrivateChatPanel({
               <Send className="w-4 h-4" />
             )}
           </Button>
+        </div>
         </div>
       </div>
     </div>
