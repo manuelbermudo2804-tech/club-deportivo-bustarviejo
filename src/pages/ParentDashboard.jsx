@@ -616,10 +616,6 @@ export default function ParentDashboard() {
       <div className="px-4 lg:px-8 py-6 space-y-4 lg:space-y-6">
         <SocialLinks />
 
-        <div className="lg:hidden">
-          <PushNotificationManager />
-        </div>
-
         {/* CENTRO DE ALERTAS */}
         <AlertCenter 
           pendingCallups={pendingCallups}
