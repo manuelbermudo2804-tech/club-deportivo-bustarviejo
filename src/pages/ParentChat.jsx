@@ -40,10 +40,10 @@ export default function ParentChat() {
   const { data: messages = [], isLoading: loadingMessages, refetch: refetchMessages } = useQuery({
     queryKey: ['chatMessages'],
     queryFn: () => base44.entities.ChatMessage.list('-created_date'),
-    staleTime: 30000, // 30 segundos
-    gcTime: 60000,
+    staleTime: 1000, // 1 segundo
+    gcTime: 30000,
     refetchOnWindowFocus: true,
-    refetchInterval: 15000, // Polling cada 15 segundos
+    refetchInterval: 2000, // Polling cada 2 segundos
   });
 
   const { data: players = [], isLoading: loadingPlayers } = useQuery({
@@ -72,9 +72,9 @@ export default function ParentChat() {
     queryKey: ['myPrivateConversations', user?.email],
     queryFn: () => user ? base44.entities.PrivateConversation.filter({ participante_familia_email: user.email }, '-ultimo_mensaje_fecha') : [],
     enabled: !!user?.email,
-    staleTime: 3000, // 3 segundos - más inmediato
+    staleTime: 1000, // 1 segundo
     gcTime: 30000,
-    refetchInterval: 5000, // Polling cada 5 segundos para detectar nuevos mensajes rápido
+    refetchInterval: 2000, // Polling cada 2 segundos
     refetchOnWindowFocus: true,
   });
 

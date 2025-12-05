@@ -59,10 +59,10 @@ export default function AdminChat() {
     queryKey: ['chatMessages'],
     queryFn: () => base44.entities.ChatMessage.list('-created_date'),
     initialData: [],
-    staleTime: 30000, // 30 segundos
-    gcTime: 60000,
+    staleTime: 1000, // 1 segundo
+    gcTime: 30000,
     refetchOnWindowFocus: true,
-    refetchInterval: 15000, // Polling cada 15 segundos
+    refetchInterval: 2000, // Polling cada 2 segundos
   });
 
   const { data: players } = useQuery({
