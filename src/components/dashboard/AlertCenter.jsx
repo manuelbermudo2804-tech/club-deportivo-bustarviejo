@@ -22,6 +22,7 @@ export default function AlertCenter({
   pendingDocuments = 0,
   pendingPayments = 0,
   unreadMessages = 0,
+  unreadPrivateMessages = 0,
   pendingAttendance = 0,
   pendingEvaluations = 0,
   pendingSurveys = 0,
