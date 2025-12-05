@@ -4,9 +4,11 @@ import { motion } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Pencil, Mail, Phone, User, Eye, Clock, Heart, FileText, CheckCircle2, AlertCircle, Loader2, FileSignature, Download } from "lucide-react";
+import { Pencil, Mail, Phone, User, Eye, Clock, Heart, FileText, CheckCircle2, AlertCircle, Loader2, FileSignature, Download, Calendar, MapPin, Camera, CreditCard, FileCheck } from "lucide-react";
 import PlayerDetailDialog from "./PlayerDetailDialog";
 import PlayerDocumentDownload from "./PlayerDocumentDownload";
+import { format } from "date-fns";
+import { es } from "date-fns/locale";
 
 const categoryColors = {
   "Prebenjamín": "bg-purple-100 text-purple-700",
@@ -45,7 +47,7 @@ const DIAS_ORDEN = {
   "Viernes": 5
 };
 
-export default function PlayerCard({ player, onEdit, onViewProfile, isParent = false, readOnly = false, schedules = [], isCoachOrCoordinator = false, payments = [], seasonConfig = null }) {
+export default function PlayerCard({ player, onEdit, onViewProfile, isParent = false, readOnly = false, schedules = [], isCoachOrCoordinator = false, payments = [], seasonConfig = null, callups = [] }) {
   const [showDetail, setShowDetail] = useState(false);
   
   // Filtrar horarios del jugador según su categoría/deporte
@@ -149,6 +151,28 @@ export default function PlayerCard({ player, onEdit, onViewProfile, isParent = f
   const allPaid = hasPagoUnico || paidCount >= 3;
   const hasPending = !allPaid && (paidCount + reviewCount) < expectedPayments;
   
+  // Próximo evento (partido/convocatoria) del jugador
+  const today = new Date().toISOString().split('T')[0];
+  const nextCallup = callups
+    .filter(c => 
+      c.publicada && 
+      !c.cerrada && 
+      c.fecha_partido >= today &&
+      c.jugadores_convocados?.some(j => j.jugador_id === player.id)
+    )
+    .sort((a, b) => new Date(a.fecha_partido) - new Date(b.fecha_partido))[0];
+  
+  // Checklist de ficha completa
+  const checklistItems = {
+    foto: !!player.foto_url,
+    dni: !!(player.dni_jugador_url || player.libro_familia_url),
+    firma: firmasStatus === "complete" || firmasStatus === "none",
+    pago: allPaid || playerPayments.length === 0
+  };
+  const completedItems = Object.values(checklistItems).filter(Boolean).length;
+  const totalItems = Object.keys(checklistItems).length;
+  const fichaCompleta = completedItems === totalItems;
+  
   return (
     <>
       <PlayerDetailDialog
@@ -191,12 +215,22 @@ export default function PlayerCard({ player, onEdit, onViewProfile, isParent = f
             </div>
           )}
 
-          {/* Badge de estado */}
-          <div className="absolute top-3 left-3">
+          {/* Badge de estado + ficha completa */}
+          <div className="absolute top-3 left-3 flex flex-col gap-1">
             {player.activo ? (
               <Badge className="bg-green-500 text-white">Activo</Badge>
             ) : (
               <Badge className="bg-yellow-500 text-white animate-pulse">⚠️ PENDIENTE RENOVAR</Badge>
+            )}
+            {fichaCompleta ? (
+              <Badge className="bg-emerald-600 text-white text-[10px]">
+                <FileCheck className="w-3 h-3 mr-1" />
+                Ficha completa
+              </Badge>
+            ) : (
+              <Badge className="bg-amber-500 text-white text-[10px] animate-pulse">
+                ⚠️ {completedItems}/{totalItems} completo
+              </Badge>
             )}
           </div>
 
@@ -235,6 +269,63 @@ export default function PlayerCard({ player, onEdit, onViewProfile, isParent = f
               <div className="flex items-center justify-center gap-2 text-sm text-blue-700 font-medium">
                 <Eye className="w-4 h-4" />
                 <span>Click para ver ficha médica completa</span>
+              </div>
+            </div>
+          )}
+
+          {/* Checklist de ficha completa */}
+          {!fichaCompleta && (
+            <div className="bg-gradient-to-r from-amber-50 to-orange-50 border-2 border-amber-300 rounded-lg p-3">
+              <div className="flex items-center gap-2 mb-2">
+                <AlertCircle className="w-4 h-4 text-amber-600" />
+                <p className="text-xs font-bold text-amber-900">Documentación pendiente:</p>
+              </div>
+              <div className="grid grid-cols-2 gap-1.5">
+                <div className={`flex items-center gap-1.5 text-xs px-2 py-1 rounded ${checklistItems.foto ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                  <Camera className="w-3 h-3" />
+                  {checklistItems.foto ? '✓ Foto' : '✗ Foto'}
+                </div>
+                <div className={`flex items-center gap-1.5 text-xs px-2 py-1 rounded ${checklistItems.dni ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                  <FileText className="w-3 h-3" />
+                  {checklistItems.dni ? '✓ DNI/Libro' : '✗ DNI/Libro'}
+                </div>
+                <div className={`flex items-center gap-1.5 text-xs px-2 py-1 rounded ${checklistItems.firma ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                  <FileSignature className="w-3 h-3" />
+                  {checklistItems.firma ? '✓ Firmas' : '✗ Firmas'}
+                </div>
+                <div className={`flex items-center gap-1.5 text-xs px-2 py-1 rounded ${checklistItems.pago ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                  <CreditCard className="w-3 h-3" />
+                  {checklistItems.pago ? '✓ Pagos' : '✗ Pagos'}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Próximo partido/convocatoria */}
+          {nextCallup && (
+            <div className="bg-gradient-to-r from-purple-50 to-indigo-50 border-2 border-purple-300 rounded-lg p-3">
+              <div className="flex items-center gap-2 mb-2">
+                <Calendar className="w-4 h-4 text-purple-700" />
+                <p className="text-xs font-bold text-purple-900">🏆 Próximo partido:</p>
+              </div>
+              <div className="space-y-1">
+                <p className="text-sm font-semibold text-purple-800">{nextCallup.titulo || `vs ${nextCallup.rival}`}</p>
+                <div className="flex items-center gap-3 text-xs text-purple-700">
+                  <span className="flex items-center gap-1">
+                    <Calendar className="w-3 h-3" />
+                    {format(new Date(nextCallup.fecha_partido), "EEE d MMM", { locale: es })}
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <Clock className="w-3 h-3" />
+                    {nextCallup.hora_partido}
+                  </span>
+                </div>
+                {nextCallup.ubicacion && (
+                  <p className="text-xs text-purple-600 flex items-center gap-1">
+                    <MapPin className="w-3 h-3" />
+                    {nextCallup.ubicacion}
+                  </p>
+                )}
               </div>
             </div>
           )}
