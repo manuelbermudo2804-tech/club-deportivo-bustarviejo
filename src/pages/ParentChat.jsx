@@ -13,6 +13,7 @@ import PrivateChatPanel from "../components/chat/PrivateChatPanel";
 import FileAttachmentButton from "../components/chat/FileAttachmentButton";
 import MessageAttachments from "../components/chat/MessageAttachments";
 import PollMessage from "../components/chat/PollMessage";
+import DateSeparator, { groupMessagesByDate } from "../components/chat/DateSeparator";
 
 // Indicar que las familias pueden enviar adjuntos al coordinador
 const FAMILIES_CAN_SEND_ATTACHMENTS = true;
