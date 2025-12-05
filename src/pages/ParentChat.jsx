@@ -15,6 +15,7 @@ import MessageAttachments from "../components/chat/MessageAttachments";
 import PollMessage from "../components/chat/PollMessage";
 import DateSeparator, { groupMessagesByDate } from "../components/chat/DateSeparator";
 import useChatSound from "../components/chat/useChatSound";
+import MessageContextMenu from "../components/chat/MessageContextMenu";
 
 // Indicar que las familias pueden enviar adjuntos al coordinador
 const FAMILIES_CAN_SEND_ATTACHMENTS = true;
@@ -27,6 +28,11 @@ export default function ParentChat() {
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   const [messageContent, setMessageContent] = useState("");
   const [attachments, setAttachments] = useState([]);
+  const [contextMenu, setContextMenu] = useState(null); // { message, position }
+  const [showTip, setShowTip] = useState(() => {
+    // Mostrar tip solo la primera vez
+    return localStorage.getItem('parentChatTipShown') !== 'true';
+  });
   const messagesEndRef = useRef(null);
   const coordinationMessagesEndRef = useRef(null);
   const prevMessagesCountRef = useRef(0);
@@ -324,6 +330,39 @@ export default function ParentChat() {
 
   const handleReplyPrivate = (staffEmail) => {
     createOrOpenPrivateChat.mutate({ staffEmail, categoria: selectedCategory });
+  };
+
+  // Handlers para menú contextual (estilo WhatsApp)
+  const handleContextMenu = (e, msg) => {
+    e.preventDefault();
+    setContextMenu({
+      message: msg,
+      position: { x: e.clientX, y: e.clientY }
+    });
+    // Ocultar tip después de la primera vez que abren el menú
+    if (showTip) {
+      setShowTip(false);
+      localStorage.setItem('parentChatTipShown', 'true');
+    }
+  };
+
+  const handleLongPress = (msg) => {
+    // Vibración háptica en móvil
+    if (navigator.vibrate) navigator.vibrate(50);
+    setContextMenu({
+      message: msg,
+      position: { x: window.innerWidth / 2 - 100, y: window.innerHeight / 2 - 100 }
+    });
+    // Ocultar tip
+    if (showTip) {
+      setShowTip(false);
+      localStorage.setItem('parentChatTipShown', 'true');
+    }
+  };
+
+  const handleReplyFromContextMenu = (msg) => {
+    setContextMenu(null);
+    handleReplyPrivate(msg.remitente_email);
   };
 
   const handlePrivateMessageSent = () => {
@@ -647,6 +686,37 @@ export default function ParentChat() {
                 </div>
 
                 <div className="flex-1 overflow-y-auto p-4 space-y-3" style={{ backgroundColor: '#e5ddd5' }}>
+                  {/* Menú contextual */}
+                  {contextMenu && (
+                    <MessageContextMenu
+                      message={contextMenu.message}
+                      isOwnMessage={false}
+                      position={contextMenu.position}
+                      onClose={() => setContextMenu(null)}
+                      onReply={() => handleReplyFromContextMenu(contextMenu.message)}
+                      showReplyOption={true}
+                      replyLabel="💬 Responder en privado"
+                    />
+                  )}
+
+                  {/* Tip de ayuda - solo la primera vez */}
+                  {showTip && currentAnnouncements.length > 0 && (
+                    <div className="bg-green-100 border-2 border-green-400 rounded-xl p-3 mx-auto max-w-sm text-center animate-pulse">
+                      <p className="text-sm text-green-800 font-medium">
+                        💡 <strong>Mantén pulsado</strong> un mensaje para responder en privado al entrenador
+                      </p>
+                      <button 
+                        onClick={() => {
+                          setShowTip(false);
+                          localStorage.setItem('parentChatTipShown', 'true');
+                        }}
+                        className="text-xs text-green-600 mt-1 underline"
+                      >
+                        Entendido
+                      </button>
+                    </div>
+                  )}
+
                   {currentAnnouncements.length === 0 ? (
                     <div className="flex items-center justify-center h-full">
                       <div className="text-center text-slate-500 bg-white/80 rounded-xl p-6">
@@ -655,65 +725,61 @@ export default function ParentChat() {
                       </div>
                     </div>
                   ) : (
-                    groupMessagesByDate(currentAnnouncements).map((item, idx) => 
-                      item.type === 'date' ? (
-                        <DateSeparator key={`date-${idx}`} date={item.date} />
-                      ) : (
-                        <div key={item.data.id} className="flex justify-start">
-                          <div className="max-w-[90%] rounded-xl shadow-sm overflow-hidden bg-white">
+                    groupMessagesByDate(currentAnnouncements).map((item, idx) => {
+                      if (item.type === 'date') {
+                        return <DateSeparator key={`date-${idx}`} date={item.date} />;
+                      }
+                      
+                      let longPressTimer;
+                      const msg = item.data;
+                      
+                      return (
+                        <div 
+                          key={msg.id} 
+                          className="flex justify-start"
+                          onContextMenu={(e) => handleContextMenu(e, msg)}
+                          onTouchStart={() => {
+                            longPressTimer = setTimeout(() => handleLongPress(msg), 500);
+                          }}
+                          onTouchEnd={() => clearTimeout(longPressTimer)}
+                          onTouchMove={() => clearTimeout(longPressTimer)}
+                        >
+                          <div className="max-w-[90%] rounded-xl shadow-sm overflow-hidden bg-white select-none cursor-pointer active:bg-slate-50 transition-colors">
                             <div className="px-4 py-3">
                               <div className="flex items-center gap-2 mb-2">
                                 <span className="text-xs font-bold text-orange-700">
-                                  🏃 {item.data.remitente_nombre || "Entrenador"}
+                                  🏃 {msg.remitente_nombre || "Entrenador"}
                                 </span>
-                                {item.data.prioridad !== "Normal" && (
-                                  <Badge className={item.data.prioridad === "Urgente" ? "bg-red-500" : "bg-yellow-500"}>
-                                    {item.data.prioridad}
+                                {msg.prioridad !== "Normal" && (
+                                  <Badge className={msg.prioridad === "Urgente" ? "bg-red-500" : "bg-yellow-500"}>
+                                    {msg.prioridad}
                                   </Badge>
                                 )}
                                 <span className="text-[10px] ml-auto text-slate-400">
-                                  {format(new Date(item.data.created_date), "HH:mm", { locale: es })}
+                                  {format(new Date(msg.created_date), "HH:mm", { locale: es })}
                                 </span>
                               </div>
-                              <p className="text-sm leading-relaxed whitespace-pre-wrap text-slate-800">{item.data.mensaje}</p>
+                              <p className="text-sm leading-relaxed whitespace-pre-wrap text-slate-800">{msg.mensaje}</p>
 
-                              {item.data.poll && (
+                              {msg.poll && (
                                 <PollMessage 
-                                  poll={item.data.poll} 
+                                  poll={msg.poll} 
                                   onVote={(msgId, optIdx) => voteOnPollMutation.mutate({ messageId: msgId, optionIndex: optIdx })}
                                   userEmail={user?.email}
-                                  messageId={item.data.id}
+                                  messageId={msg.id}
                                 />
                               )}
 
-                              {item.data.archivos_adjuntos?.length > 0 && (
+                              {msg.archivos_adjuntos?.length > 0 && (
                                 <div className="mt-2">
-                                  <MessageAttachments attachments={item.data.archivos_adjuntos} />
+                                  <MessageAttachments attachments={msg.archivos_adjuntos} />
                                 </div>
                               )}
                             </div>
-
-                            {/* Botón responder en privado - SOLO si el mensaje es de un entrenador escribiendo directamente */}
-                            {/* NO mostrar para mensajes automáticos de convocatorias, anuncios, encuestas, etc. */}
-                            {/* NO mostrar para mensajes de Coordinación Deportiva (son anuncios generales) */}
-                            {isCoachSender(item.data) && !isAutomaticMessage(item.data) && selectedCategory !== "Coordinación Deportiva" && (
-                              <div className="bg-slate-50 px-4 py-2 border-t">
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={() => handleReplyPrivate(item.data.remitente_email)}
-                                  disabled={createOrOpenPrivateChat.isPending}
-                                  className="text-green-700 hover:text-green-800 hover:bg-green-50 w-full justify-center gap-2"
-                                >
-                                  <Lock className="w-3 h-3" />
-                                  💬 Responder en privado
-                                </Button>
-                              </div>
-                            )}
                           </div>
                         </div>
-                      )
-                    )
+                      );
+                    })
                   )}
                   <div ref={messagesEndRef} />
                 </div>
@@ -737,7 +803,7 @@ export default function ParentChat() {
                     </Button>
                   ) : (
                     <p className="text-xs text-blue-700 text-center">
-                      💬 Usa "Responder en privado" para hablar directamente con el entrenador
+                      👆 Mantén pulsado un mensaje para responder en privado al entrenador
                     </p>
                   )}
                 </div>
