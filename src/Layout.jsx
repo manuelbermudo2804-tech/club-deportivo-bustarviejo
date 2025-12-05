@@ -609,10 +609,20 @@ export default function Layout({ children, currentPageName }) {
           }
         }
 
-        const currentUser = await base44.auth.me();
-                  console.log('✅ [LAYOUT DEBUG] Usuario cargado:', currentUser.email);
-                  setUser(currentUser);
-                  setIsLoading(false);
+        let currentUser;
+        try {
+          currentUser = await base44.auth.me();
+          console.log('✅ [LAYOUT DEBUG] Usuario cargado:', currentUser.email);
+        } catch (authError) {
+          console.error('❌ [LAYOUT] Error auth.me():', authError);
+          setIsLoading(false);
+          // Si falla la autenticación, redirigir al login
+          base44.auth.redirectToLogin();
+          return;
+        }
+
+        setUser(currentUser);
+        setIsLoading(false);
                   console.log('✅ [LAYOUT DEBUG] isLoading = false, debería mostrar contenido');
                   setIsAdmin(currentUser.role === "admin");
                   setIsCoach(currentUser.es_entrenador === true && !currentUser.es_coordinador);
