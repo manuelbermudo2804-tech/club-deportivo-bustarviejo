@@ -46,7 +46,8 @@ export default function ChatNotificationListener({ user }) {
           return m.tipo === "padre_a_grupo";
         }
         
-        if (user.es_entrenador) {
+        // Coordinadores y entrenadores
+        if (user.es_entrenador || user.es_coordinador) {
           const categoriesCoached = user.categorias_entrena || [];
           return m.tipo === "padre_a_grupo" && categoriesCoached.includes(m.grupo_id || m.deporte);
         }
