@@ -62,11 +62,21 @@ export default function PushNotificationManager({ user }) {
     }
 
     try {
-      const registration = await navigator.serviceWorker.ready;
+      // Registrar service worker si no existe
+      let registration = await navigator.serviceWorker.getRegistration();
+      if (!registration) {
+        registration = await navigator.serviceWorker.register('/sw.js');
+        await navigator.serviceWorker.ready;
+      }
       
-      // NOTA: Aquí necesitarás la clave pública VAPID de Firebase
-      // Por ahora es un placeholder
-      const vapidPublicKey = 'YOUR_VAPID_PUBLIC_KEY';
+      // Obtener la VAPID key desde el backend
+      const vapidResponse = await base44.functions.invoke('getVapidKey', {});
+      const vapidPublicKey = vapidResponse.data?.vapidKey;
+      
+      if (!vapidPublicKey) {
+        toast.error('No se pudo obtener la clave de notificaciones');
+        return;
+      }
       
       const subscription = await registration.pushManager.subscribe({
         userVisibleOnly: true,
@@ -76,9 +86,12 @@ export default function PushNotificationManager({ user }) {
       // Guardar suscripción en el backend
       await saveSubscription(subscription);
       setSubscribed(true);
+      
+      // Enviar notificación de prueba
+      sendTestNotification();
     } catch (error) {
       console.error('Error subscribing:', error);
-      toast.error('Error al suscribirse');
+      toast.error('Error al suscribirse: ' + error.message);
     }
   };
 
@@ -194,9 +207,11 @@ export default function PushNotificationManager({ user }) {
                 {subscribed ? '✅ Activadas' : 'Desactivadas'}
               </p>
               <p className="text-xs text-slate-600">
-                {subscribed 
-                  ? 'Recibirás notificaciones instantáneas' 
-                  : 'Activa para recibir avisos inmediatos'}
+                {permission === 'denied' 
+                  ? '⚠️ Bloqueadas en ajustes del navegador'
+                  : subscribed 
+                    ? 'Recibirás notificaciones instantáneas' 
+                    : 'Activa para recibir avisos inmediatos'}
               </p>
             </div>
           </div>
@@ -207,7 +222,7 @@ export default function PushNotificationManager({ user }) {
               disabled={loading}
               className="bg-orange-600 hover:bg-orange-700"
             >
-              Activar
+              {loading ? '...' : '🔔 Activar'}
             </Button>
           )}
           
@@ -217,7 +232,7 @@ export default function PushNotificationManager({ user }) {
               disabled={loading}
               className="bg-orange-600 hover:bg-orange-700"
             >
-              Suscribir
+              {loading ? '...' : '🔔 Suscribir'}
             </Button>
           )}
           
@@ -227,14 +242,15 @@ export default function PushNotificationManager({ user }) {
               disabled={loading}
               variant="outline"
             >
-              Desactivar
+              {loading ? '...' : 'Desactivar'}
             </Button>
           )}
           
           {permission === 'denied' && (
-            <p className="text-xs text-red-600">
-              Permisos bloqueados en ajustes
-            </p>
+            <div className="text-right">
+              <p className="text-xs text-red-600 font-medium">Bloqueadas</p>
+              <p className="text-[10px] text-slate-500">Revisa ajustes del navegador</p>
+            </div>
           )}
         </div>
 
@@ -244,8 +260,16 @@ export default function PushNotificationManager({ user }) {
             variant="outline"
             className="w-full"
           >
-            Enviar notificación de prueba
+            🧪 Enviar notificación de prueba
           </Button>
+        )}
+
+        {permission === 'denied' && (
+          <div className="bg-red-50 border-l-4 border-red-500 p-3 rounded">
+            <p className="text-xs text-red-900">
+              ⚠️ <strong>Permisos bloqueados:</strong> Ve a Ajustes → Sitios web → {window.location.hostname} → Notificaciones → Permitir
+            </p>
+          </div>
         )}
 
         <div className="bg-blue-50 border-l-4 border-blue-500 p-3 rounded">
