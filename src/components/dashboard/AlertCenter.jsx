@@ -27,6 +27,7 @@ export default function AlertCenter({
   pendingEvaluations = 0,
   pendingSurveys = 0,
   pendingSignatures = 0,
+  pendingCallupResponses = 0,
   upcomingEvents = 0,
   isAdmin = false,
   isCoach = false,
