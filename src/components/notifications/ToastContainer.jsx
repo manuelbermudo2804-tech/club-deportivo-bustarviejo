@@ -106,18 +106,17 @@ export default function ToastContainer({ user, isAdmin, isCoach }) {
     setToasts(prev => prev.filter(t => t.id !== id));
   }, []);
 
-  // Detectar nuevos mensajes
+  // Detectar nuevos mensajes - DESACTIVADO para evitar spam
+  // Los mensajes se notifican por ChatNotificationListener y aparecen en NotificationCenter
+  /*
   useEffect(() => {
     if (!messages || !user || preferences?.notif_mensajes === false) return;
 
     messages.forEach(msg => {
-      // Evitar mostrar mensajes ya vistos
       if (shownIds.includes(msg.id)) return;
       if (msg.leido) return;
-      // No mostrar mis propios mensajes
       if (msg.remitente_email === user.email) return;
       
-      // Verificar si el mensaje es relevante para el usuario
       let isRelevant = false;
       if (isAdmin) {
         isRelevant = msg.tipo === "padre_a_grupo";
@@ -129,22 +128,22 @@ export default function ToastContainer({ user, isAdmin, isCoach }) {
       }
 
       if (isRelevant) {
-        // Solo mostrar si es reciente (últimos 2 minutos para evitar spam al recargar)
         const msgDate = new Date(msg.created_date);
-        const twoMinAgo = new Date(Date.now() - 2 * 60 * 1000);
-        if (msgDate > twoMinAgo) {
+        const oneMinAgo = new Date(Date.now() - 60 * 1000);
+        if (msgDate > oneMinAgo) {
           addToast({
             type: "message",
             sourceId: msg.id,
             title: msg.prioridad === "Urgente" ? "🚨 Mensaje Urgente" : "💬 Nuevo Mensaje",
             message: `${msg.remitente_nombre}: ${msg.mensaje.substring(0, 60)}${msg.mensaje.length > 60 ? '...' : ''}`,
             extra: msg.grupo_id || msg.deporte,
-            duration: msg.prioridad === "Urgente" ? 10000 : 6000
+            duration: msg.prioridad === "Urgente" ? 8000 : 5000
           });
         }
       }
     });
   }, [messages, user, isAdmin, isCoach, myGroupSports, preferences, shownIds, addToast]);
+  */
 
   // Detectar nuevas convocatorias
   useEffect(() => {
