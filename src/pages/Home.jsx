@@ -104,25 +104,25 @@ export default function Home() {
 
   const { data: messages } = useQuery({
     queryKey: ['chatMessages'],
-    queryFn: () => base44.entities.ChatMessage.list(),
+    queryFn: () => base44.entities.ChatMessage.list('-created_date', 50),
     initialData: [],
-    staleTime: 1000, // 1 segundo
-    gcTime: 30000,
-    refetchOnWindowFocus: true,
-    refetchOnMount: true,
-    refetchInterval: 2000, // Refrescar cada 2 segundos
+    staleTime: 30000, // 30 segundos
+    gcTime: 300000,
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
+    refetchInterval: false,
     enabled: !!user,
   });
 
   const { data: privateConversations = [] } = useQuery({
     queryKey: ['privateConversationsHome'],
-    queryFn: () => base44.entities.PrivateConversation.list('-ultimo_mensaje_fecha'),
+    queryFn: () => base44.entities.PrivateConversation.list('-ultimo_mensaje_fecha', 30),
     initialData: [],
-    staleTime: 1000, // 1 segundo
-    gcTime: 30000,
-    refetchOnWindowFocus: true,
-    refetchOnMount: true,
-    refetchInterval: 2000, // Refrescar cada 2 segundos
+    staleTime: 30000, // 30 segundos
+    gcTime: 300000,
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
+    refetchInterval: false,
     enabled: !!user,
   });
 
@@ -191,9 +191,10 @@ export default function Home() {
     queryKey: ['allSurveys'],
     queryFn: () => base44.entities.Survey.list('-created_date'),
     initialData: [],
-    staleTime: 60000, // 1 minuto para ver cambios recientes
-    gcTime: 300000,
-    refetchOnWindowFocus: true,
+    staleTime: 300000, // 5 minutos
+    gcTime: 600000,
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
     enabled: !!user && isAdmin,
   });
 
@@ -202,9 +203,10 @@ export default function Home() {
     queryKey: ['eventsHome'],
     queryFn: () => base44.entities.Event.list('-fecha'),
     initialData: [],
-    staleTime: 60000, // 1 minuto para ver cambios recientes
-    gcTime: 300000,
-    refetchOnWindowFocus: true,
+    staleTime: 300000, // 5 minutos
+    gcTime: 600000,
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
     enabled: !!user && isAdmin,
   });
 
@@ -213,9 +215,10 @@ export default function Home() {
     queryKey: ['clothingOrdersHome'],
     queryFn: () => base44.entities.ClothingOrder.list('-created_date'),
     initialData: [],
-    staleTime: 60000,
-    gcTime: 300000,
-    refetchOnWindowFocus: true,
+    staleTime: 300000, // 5 minutos
+    gcTime: 600000,
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
     enabled: !!user && isAdmin,
   });
 
@@ -224,9 +227,10 @@ export default function Home() {
     queryKey: ['clubMembersHome'],
     queryFn: () => base44.entities.ClubMember.list('-created_date'),
     initialData: [],
-    staleTime: 60000,
-    gcTime: 300000,
-    refetchOnWindowFocus: true,
+    staleTime: 300000, // 5 minutos
+    gcTime: 600000,
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
     enabled: !!user && isAdmin,
   });
 
@@ -235,9 +239,10 @@ export default function Home() {
     queryKey: ['lotteryOrdersHome'],
     queryFn: () => base44.entities.LotteryOrder.list('-created_date'),
     initialData: [],
-    staleTime: 60000,
-    gcTime: 300000,
-    refetchOnWindowFocus: true,
+    staleTime: 300000, // 5 minutos
+    gcTime: 600000,
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
     enabled: !!user && isAdmin && loteriaVisible,
   });
 
