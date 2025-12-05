@@ -315,6 +315,34 @@ export default function GalleryAlbum({ album, onEdit, onDelete, isAdmin, onQuick
                 </p>
               </div>
               <div className="flex gap-2">
+                {/* Quick upload in gallery view */}
+                {isAdmin && onQuickUpload && (
+                  <>
+                    <input
+                      type="file"
+                      accept="image/*,video/*"
+                      multiple
+                      onChange={handleQuickUpload}
+                      className="hidden"
+                      id={`quick-upload-gallery-${album.id}`}
+                      disabled={quickUploading}
+                    />
+                    <Button
+                      size="sm"
+                      onClick={() => document.getElementById(`quick-upload-gallery-${album.id}`).click()}
+                      disabled={quickUploading}
+                      className="gap-1 bg-green-600 hover:bg-green-700"
+                    >
+                      {quickUploading ? (
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                      ) : (
+                        <Plus className="w-4 h-4" />
+                      )}
+                      {quickUploading ? 'Subiendo...' : 'Añadir fotos'}
+                    </Button>
+                  </>
+                )}
+
                 {/* Download and Share for everyone */}
                 <Button
                   size="sm"
@@ -337,7 +365,7 @@ export default function GalleryAlbum({ album, onEdit, onDelete, isAdmin, onQuick
                     {downloading ? 'Descargando...' : 'Descargar todo'}
                   </Button>
                 )}
-                
+
                 {isAdmin && onEdit && (
                   <>
                     {selectionMode ? (
