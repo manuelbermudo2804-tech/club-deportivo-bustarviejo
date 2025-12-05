@@ -1008,6 +1008,10 @@ export default function Home() {
             pendingSignatures={hasPlayers ? stats.pendingSignatures : 0}
             pendingCallupResponses={stats.pendingCallupResponses}
             upcomingEvents={0}
+            pendingClothingOrders={stats.pendingClothingOrders}
+            pendingMemberRequests={stats.pendingMemberRequests}
+            pendingLotteryOrders={stats.pendingLotteryOrders}
+            pendingInvitations={pendingInvitationRequests}
             isAdmin={isAdmin}
             isCoach={isCoach || isCoordinator}
             isParent={hasPlayers}

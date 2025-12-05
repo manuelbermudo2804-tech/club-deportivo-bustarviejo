@@ -14,7 +14,11 @@ import {
   Calendar,
   AlertTriangle,
   ChevronRight,
-  FileSignature
+  FileSignature,
+  ShoppingBag,
+  Image,
+  Users,
+  Clover
 } from "lucide-react";
 
 export default function AlertCenter({ 
@@ -29,6 +33,12 @@ export default function AlertCenter({
   pendingSignatures = 0,
   pendingCallupResponses = 0,
   upcomingEvents = 0,
+  pendingClothingOrders = 0,
+  pendingMemberRequests = 0,
+  pendingLotteryOrders = 0,
+  newGalleryPhotos = 0,
+  pendingInvitations = 0,
+  overduePayments = 0,
   isAdmin = false,
   isCoach = false,
   isParent = true
@@ -162,10 +172,84 @@ export default function AlertCenter({
       icon: Calendar,
       title: "Eventos próximos",
       description: `${upcomingEvents} evento${upcomingEvents > 1 ? 's' : ''} esta semana`,
-      url: createPageUrl("Calendar"),
+      url: createPageUrl("ParentEventRSVP"),
       color: "bg-cyan-500",
       priority: 6
     });
+  }
+
+  // Alertas para admin
+  if (isAdmin) {
+    if (pendingClothingOrders > 0) {
+      alerts.push({
+        id: "clothing",
+        icon: ShoppingBag,
+        title: "🛍️ Pedidos ropa",
+        description: `${pendingClothingOrders} pedido${pendingClothingOrders > 1 ? 's' : ''} por revisar`,
+        url: createPageUrl("ClothingOrders"),
+        color: "bg-teal-500",
+        priority: 4
+      });
+    }
+    if (pendingMemberRequests > 0) {
+      alerts.push({
+        id: "members",
+        icon: Users,
+        title: "🎫 Solicitudes socio",
+        description: `${pendingMemberRequests} solicitud${pendingMemberRequests > 1 ? 'es' : ''} pendiente${pendingMemberRequests > 1 ? 's' : ''}`,
+        url: createPageUrl("ClubMembersManagement"),
+        color: "bg-pink-500",
+        priority: 4
+      });
+    }
+    if (pendingLotteryOrders > 0) {
+      alerts.push({
+        id: "lottery",
+        icon: Clover,
+        title: "🍀 Pedidos lotería",
+        description: `${pendingLotteryOrders} pedido${pendingLotteryOrders > 1 ? 's' : ''} por revisar`,
+        url: createPageUrl("LotteryManagement"),
+        color: "bg-green-600",
+        priority: 5
+      });
+    }
+    if (pendingInvitations > 0) {
+      alerts.push({
+        id: "invitations",
+        icon: Users,
+        title: "📧 Invitaciones",
+        description: `${pendingInvitations} invitación${pendingInvitations > 1 ? 'es' : ''} solicitada${pendingInvitations > 1 ? 's' : ''}`,
+        url: createPageUrl("EmailInvitations"),
+        color: "bg-cyan-500",
+        priority: 3
+      });
+    }
+  }
+
+  // Alertas para padres
+  if (isParent && !isAdmin && !isCoach) {
+    if (overduePayments > 0) {
+      alerts.push({
+        id: "overdue",
+        icon: AlertTriangle,
+        title: "⚠️ Pagos vencidos",
+        description: `${overduePayments} pago${overduePayments > 1 ? 's' : ''} vencido${overduePayments > 1 ? 's' : ''}`,
+        url: createPageUrl("ParentPayments"),
+        color: "bg-red-600",
+        priority: 1
+      });
+    }
+    if (newGalleryPhotos > 0) {
+      alerts.push({
+        id: "gallery",
+        icon: Image,
+        title: "📸 Nuevas fotos",
+        description: `${newGalleryPhotos} álbum${newGalleryPhotos > 1 ? 'es' : ''} nuevo${newGalleryPhotos > 1 ? 's' : ''}`,
+        url: createPageUrl("Gallery"),
+        color: "bg-indigo-500",
+        priority: 7
+      });
+    }
   }
 
   // Ordenar por prioridad
