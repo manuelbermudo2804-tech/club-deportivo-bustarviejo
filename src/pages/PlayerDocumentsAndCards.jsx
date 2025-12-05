@@ -71,6 +71,36 @@ export default function PlayerDocumentsAndCards() {
     queryFn: () => base44.entities.Attendance.list(),
   });
 
+  const { data: certificates = [] } = useQuery({
+    queryKey: ['certificates'],
+    queryFn: () => base44.entities.Certificate.list('-created_date'),
+  });
+
+  // Generar QR codes para cada jugador
+  useEffect(() => {
+    myPlayers.forEach(async (player) => {
+      const qrData = JSON.stringify({
+        club: "CD Bustarviejo",
+        jugador: player.nombre,
+        categoria: player.deporte,
+        temporada: season,
+        id: player.id.substring(0, 12),
+        validez: season
+      });
+      try {
+        const qrDataUrl = await QRCode.toDataURL(qrData, { width: 80, margin: 1 });
+        qrRefs.current[player.id] = qrDataUrl;
+      } catch (err) {
+        console.error("Error generating QR:", err);
+      }
+    });
+  }, [myPlayers, season]);
+
+  const saveCertificateMutation = useMutation({
+    mutationFn: (data) => base44.entities.Certificate.create(data),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['certificates'] }),
+  });
+
   const generatePDF = async (player, tipo) => {
     setGenerating(true);
     try {
