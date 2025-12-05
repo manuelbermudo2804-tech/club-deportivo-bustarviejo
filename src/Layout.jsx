@@ -1243,11 +1243,23 @@ export default function Layout({ children, currentPageName }) {
   
 
       // Mostrar loading mientras se carga el usuario (spinner simple, sin logo)
+      // Timeout de seguridad: si después de 10 segundos sigue cargando, forzar recarga
+      useEffect(() => {
+        if (isLoading && !isPublicPage) {
+          const timeout = setTimeout(() => {
+            console.log('⚠️ Timeout de carga - refrescando...');
+            window.location.reload();
+          }, 10000);
+          return () => clearTimeout(timeout);
+        }
+      }, [isLoading, isPublicPage]);
+
       if (isLoading && !isPublicPage) {
         return (
           <div className="min-h-screen bg-gradient-to-br from-orange-600 via-orange-700 to-green-700 flex items-center justify-center">
             <div className="text-center">
               <div className="animate-spin rounded-full h-12 w-12 border-4 border-white border-t-transparent mx-auto"></div>
+              <p className="text-white mt-4 text-sm">Cargando...</p>
             </div>
           </div>
         );
