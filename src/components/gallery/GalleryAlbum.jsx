@@ -162,36 +162,67 @@ export default function GalleryAlbum({ album, onEdit, onDelete, isAdmin }) {
                 {album.categoria === "Todas las Categorías" ? "Todas" : album.categoria.split(" ")[1]}
               </Badge>
 
-              {isAdmin && (
-                <div className="flex gap-1">
-                  {onEdit && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onEdit(album);
-                      }}
-                      className="h-6 w-6 p-0"
-                    >
-                      <Pencil className="w-3 h-3" />
-                    </Button>
-                  )}
-                  {onDelete && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onDelete(album);
-                      }}
-                      className="h-6 w-6 p-0 hover:bg-red-50 hover:border-red-300"
-                    >
-                      <Trash2 className="w-3 h-3 text-red-600" />
-                    </Button>
-                  )}
-                </div>
-              )}
+              <div className="flex gap-1">
+                {/* Share and Download buttons for everyone */}
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleShareWhatsApp();
+                  }}
+                  className="h-6 w-6 p-0"
+                  title="Compartir por WhatsApp"
+                >
+                  <Share2 className="w-3 h-3 text-green-600" />
+                </Button>
+                {album.fotos?.length > 0 && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDownloadAll();
+                    }}
+                    disabled={downloading}
+                    className="h-6 w-6 p-0"
+                    title="Descargar todas las fotos"
+                  >
+                    <Download className={`w-3 h-3 text-blue-600 ${downloading ? 'animate-bounce' : ''}`} />
+                  </Button>
+                )}
+                
+                {isAdmin && (
+                  <>
+                    {onEdit && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onEdit(album);
+                        }}
+                        className="h-6 w-6 p-0"
+                      >
+                        <Pencil className="w-3 h-3" />
+                      </Button>
+                    )}
+                    {onDelete && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onDelete(album);
+                        }}
+                        className="h-6 w-6 p-0 hover:bg-red-50 hover:border-red-300"
+                      >
+                        <Trash2 className="w-3 h-3 text-red-600" />
+                      </Button>
+                    )}
+                  </>
+                )}
+              </div>
             </div>
           </CardContent>
         </Card>
