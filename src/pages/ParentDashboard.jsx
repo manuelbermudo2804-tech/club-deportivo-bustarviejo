@@ -140,12 +140,12 @@ export default function ParentDashboard() {
 
   const { data: messages = [] } = useQuery({
     queryKey: ['messages'],
-    queryFn: () => base44.entities.ChatMessage.list('-created_date'),
-    staleTime: 1000, // 1 segundo
-    gcTime: 30000,
-    refetchOnWindowFocus: true,
-    refetchOnMount: true,
-    refetchInterval: 2000, // Refrescar cada 2 segundos
+    queryFn: () => base44.entities.ChatMessage.list('-created_date', 50),
+    staleTime: 30000, // 30 segundos
+    gcTime: 300000,
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
+    refetchInterval: false,
     enabled: !!user,
   });
 
@@ -206,12 +206,12 @@ export default function ParentDashboard() {
 
   const { data: privateConversations = [] } = useQuery({
     queryKey: ['privateConversationsParent'],
-    queryFn: () => base44.entities.PrivateConversation.list('-ultimo_mensaje_fecha'),
-    staleTime: 1000, // 1 segundo
-    gcTime: 30000,
-    refetchOnWindowFocus: true,
-    refetchOnMount: true,
-    refetchInterval: 2000, // Cada 2 segundos
+    queryFn: () => base44.entities.PrivateConversation.list('-ultimo_mensaje_fecha', 30),
+    staleTime: 30000, // 30 segundos
+    gcTime: 300000,
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
+    refetchInterval: false,
     enabled: !!user,
   });
 

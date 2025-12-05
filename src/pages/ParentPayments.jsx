@@ -89,6 +89,9 @@ export default function ParentPayments() {
   const { data: user } = useQuery({
     queryKey: ['currentUser'],
     queryFn: () => base44.auth.me(),
+    staleTime: 300000, // 5 minutos
+    gcTime: 600000,
+    refetchOnWindowFocus: false,
   });
 
   const { data: players, isLoading: loadingPlayers } = useQuery({
@@ -101,6 +104,9 @@ export default function ParentPayments() {
     },
     enabled: !!user?.email,
     initialData: [],
+    staleTime: 60000, // 1 minuto
+    gcTime: 300000,
+    refetchOnWindowFocus: false,
   });
 
   const { data: payments, isLoading: loadingPayments } = useQuery({
@@ -113,6 +119,9 @@ export default function ParentPayments() {
     },
     enabled: !!user && players.length > 0,
     initialData: [],
+    staleTime: 30000, // 30 segundos
+    gcTime: 300000,
+    refetchOnWindowFocus: false,
   });
 
   const isLoading = loadingPlayers || loadingPayments || !user;
@@ -132,12 +141,18 @@ export default function ParentPayments() {
       const configs = await base44.entities.SeasonConfig.list();
       return configs.find(c => c.activa === true);
     },
+    staleTime: 300000, // 5 minutos
+    gcTime: 600000,
+    refetchOnWindowFocus: false,
   });
 
   // Obtener CategoryConfig para precios actualizados
   const { data: categoryConfigs = [] } = useQuery({
     queryKey: ['categoryConfigs'],
     queryFn: () => base44.entities.CategoryConfig.list(),
+    staleTime: 300000, // 5 minutos
+    gcTime: 600000,
+    refetchOnWindowFocus: false,
   });
 
   const createPaymentMutation = useMutation({
