@@ -289,12 +289,12 @@ export default function NotificationCenter() {
         </DialogHeader>
 
         <Tabs defaultValue="all" className="w-full">
-          <TabsList className="w-full grid grid-cols-6 gap-1">
+          <TabsList className="w-full grid grid-cols-7 gap-1">
             <TabsTrigger value="all" className="text-xs">
               Todas ({totalNotifications})
             </TabsTrigger>
-            <TabsTrigger value="history" className="text-xs">
-              📜 Historial
+            <TabsTrigger value="private" className="text-xs">
+              📩 ({totalUnreadPrivate})
             </TabsTrigger>
             <TabsTrigger value="messages" className="text-xs">
               💬 ({unreadMessagesRecent.length})
@@ -307,6 +307,9 @@ export default function NotificationCenter() {
             </TabsTrigger>
             <TabsTrigger value="announcements" className="text-xs">
               📢 ({recentAnnouncements.length})
+            </TabsTrigger>
+            <TabsTrigger value="history" className="text-xs">
+              📜
             </TabsTrigger>
           </TabsList>
 
