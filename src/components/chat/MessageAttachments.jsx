@@ -44,7 +44,7 @@ export default function MessageAttachments({ attachments }) {
                 <img
                   src={attachment.url}
                   alt={attachment.nombre}
-                  className="max-w-xs rounded-lg border border-slate-200 hover:opacity-90 transition-opacity cursor-pointer"
+                  className="max-w-[200px] max-h-[200px] w-auto h-auto rounded-lg border border-slate-200 hover:opacity-90 transition-opacity cursor-pointer object-cover"
                 />
               </a>
             )}
