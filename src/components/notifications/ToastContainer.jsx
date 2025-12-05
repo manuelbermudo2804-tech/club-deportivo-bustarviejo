@@ -181,37 +181,37 @@ export default function ToastContainer({ user, isAdmin, isCoach }) {
     });
   }, [callups, user, myPlayers, isAdmin, isCoach, preferences, shownIds, addToast]);
 
-  // Detectar nuevos anuncios
+  // Detectar nuevos anuncios - DESACTIVADO temporalmente para reducir spam
+  // Los usuarios ven los anuncios en el dashboard de todas formas
+  /*
   useEffect(() => {
     if (!announcements || !user || preferences?.notif_anuncios === false) return;
 
     announcements.forEach(ann => {
       if (shownIds.includes(ann.id)) return;
       if (!ann.publicado) return;
-      // No mostrar mis propios anuncios
       if (ann.created_by === user.email) return;
       
-      // Verificar si es relevante para el usuario
       const isRelevant = ann.destinatarios_tipo === "Todos" || 
         myGroupSports.includes(ann.destinatarios_tipo) ||
         isAdmin || isCoach;
 
       if (isRelevant) {
-        // Solo mostrar si es reciente (últimos 5 minutos para evitar spam)
         const pubDate = new Date(ann.fecha_publicacion);
-        const fiveMinAgo = new Date(Date.now() - 5 * 60 * 1000);
-        if (pubDate > fiveMinAgo) {
+        const oneMinAgo = new Date(Date.now() - 60 * 1000);
+        if (pubDate > oneMinAgo) {
           addToast({
             type: "announcement",
             sourceId: ann.id,
             title: ann.prioridad === "Urgente" ? "🚨 Anuncio Urgente" : "📢 Nuevo Anuncio",
             message: ann.titulo,
-            duration: ann.prioridad === "Urgente" ? 10000 : 6000
+            duration: ann.prioridad === "Urgente" ? 8000 : 5000
           });
         }
       }
     });
   }, [announcements, user, myGroupSports, isAdmin, isCoach, preferences, shownIds, addToast]);
+  */
 
   if (!user) return null;
 
