@@ -204,6 +204,13 @@ export default function ParentCallups() {
                 </CardHeader>
 
                 <CardContent className="pt-4 space-y-4">
+                  {/* Countdown Timer */}
+                  <CallupCountdown 
+                    targetDate={callup.fecha_partido} 
+                    targetTime={callup.hora_concentracion || callup.hora_partido}
+                    label="⏱️ Comienza en"
+                  />
+
                   <div className="space-y-2">
                     <div className="flex items-center gap-2 text-slate-700">
                       <Calendar className="w-4 h-4 text-orange-600" />
@@ -222,31 +229,6 @@ export default function ParentCallups() {
                       )}
                     </div>
 
-                    <div className="flex items-start gap-2 text-slate-700">
-                      <MapPin className="w-4 h-4 text-orange-600 mt-0.5 flex-shrink-0" />
-                      <div className="flex-1">
-                        <span>{callup.ubicacion}</span>
-                        {callup.local_visitante && (
-                          <Badge variant="outline" className="text-xs ml-2">
-                            {callup.local_visitante}
-                          </Badge>
-                        )}
-                        {callup.enlace_ubicacion && (
-                          <div className="mt-1">
-                            <a 
-                              href={callup.enlace_ubicacion}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="text-xs text-blue-600 hover:text-blue-700 flex items-center gap-1 hover:underline"
-                            >
-                              <ExternalLink className="w-3 h-3" />
-                              Ver en Google Maps
-                            </a>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-
                     {callup.entrenador_telefono && (
                       <div className="flex items-center gap-2 text-slate-700">
                         <Phone className="w-4 h-4 text-green-600" />
@@ -256,6 +238,13 @@ export default function ParentCallups() {
                       </div>
                     )}
                   </div>
+
+                  {/* Interactive Map */}
+                  <CallupMap 
+                    ubicacion={callup.ubicacion}
+                    enlaceUbicacion={callup.enlace_ubicacion}
+                    localVisitante={callup.local_visitante}
+                  />
 
                   {/* Weather Widget */}
                   <WeatherWidget location={callup.ubicacion} date={callup.fecha_partido} />
