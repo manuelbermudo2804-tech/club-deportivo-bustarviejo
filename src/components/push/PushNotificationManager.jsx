@@ -70,8 +70,9 @@ export default function PushNotificationManager() {
         console.log('[Notif] Resultado permiso:', permission);
       }
       
-      if (permission !== 'granted') {
-        toast.error("❌ Permiso de notificaciones denegado. Revisa los ajustes del navegador.");
+      // En Edge a veces el permiso tarda en actualizarse - continuar igualmente si el usuario dijo permitir
+      if (permission === 'denied') {
+        toast.error("❌ Permiso bloqueado. En Edge: Configuración → Cookies y permisos → Notificaciones → Permitir este sitio");
         setIsLoading(false);
         return;
       }
