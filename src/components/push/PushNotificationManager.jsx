@@ -96,18 +96,14 @@ export default function PushNotificationManager() {
       
       await base44.auth.updateMe(updateData);
 
-      console.log('[Notif] Usuario actualizado, mostrando notificación...');
-
       setIsSubscribed(true);
       setShowDialog(false);
-      toast.success(subscription ? "✅ ¡Notificaciones Push activadas!" : "✅ ¡Notificaciones locales activadas!");
+      toast.success("✅ ¡Notificaciones activadas!");
 
       // Mostrar notificación de prueba
       try {
         new Notification("🎉 CD Bustarviejo", {
-          body: subscription 
-            ? "Recibirás notificaciones incluso con la app cerrada" 
-            : "Recibirás notificaciones cuando la app esté abierta",
+          body: "Recibirás notificaciones cuando la app esté abierta",
           icon: "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6911b8e453ca3ac01fb134d6/e3f0a8e26_logo_cd_bustarviejo_mediano.jpg"
         });
       } catch (notifError) {
