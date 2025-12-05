@@ -46,31 +46,34 @@ export default function ChatNotificationListener({ user }) {
     fetchCategories();
   }, [user]);
 
-  // Mensajes de grupo
+  // Mensajes de grupo - polling cada 30 segundos
   const { data: chatMessages = [] } = useQuery({
     queryKey: ['chatMessagesListener'],
     queryFn: () => base44.entities.ChatMessage.list('-created_date', 30),
     initialData: [],
-    refetchInterval: 2000,
+    refetchInterval: 30000,
     enabled: !!user,
+    staleTime: 25000,
   });
 
-  // Mensajes privados
+  // Mensajes privados - polling cada 30 segundos
   const { data: privateMessages = [] } = useQuery({
     queryKey: ['privateMessagesListener'],
     queryFn: () => base44.entities.PrivateMessage.list('-created_date', 30),
     initialData: [],
-    refetchInterval: 2000,
+    refetchInterval: 30000,
     enabled: !!user,
+    staleTime: 25000,
   });
 
-  // Conversaciones privadas (para saber quién participa en cada una)
+  // Conversaciones privadas - solo cuando cambian mensajes
   const { data: privateConversations = [] } = useQuery({
     queryKey: ['privateConversationsListener'],
     queryFn: () => base44.entities.PrivateConversation.list(),
     initialData: [],
-    refetchInterval: 5000,
+    refetchInterval: false,
     enabled: !!user,
+    staleTime: 5 * 60 * 1000,
   });
 
   // Procesar mensajes de grupo
