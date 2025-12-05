@@ -461,34 +461,49 @@ export default function ParentChat() {
                         .sort((a, b) => new Date(a.created_date) - new Date(b.created_date))
                         .map((msg) => (
                           <div key={msg.id} className="flex justify-start">
-                            <div className="max-w-[90%] rounded-xl shadow-sm overflow-hidden bg-white">
-                              <div className="px-4 py-3">
-                                <div className="flex items-center gap-2 mb-2">
-                                  <span className="text-xs font-bold text-cyan-700">
-                                    🎓 {msg.remitente_nombre || "Coordinador"}
-                                  </span>
+                            <div className="max-w-[95%] rounded-2xl shadow-xl overflow-hidden bg-gradient-to-br from-cyan-50 via-white to-blue-50 border-2 border-cyan-400 ring-2 ring-cyan-200">
+                              {/* Banner destacado */}
+                              <div className="bg-gradient-to-r from-cyan-600 via-cyan-700 to-blue-700 px-4 py-2 flex items-center gap-2">
+                                <span className="text-xl">📢</span>
+                                <span className="text-white font-bold text-sm">ANUNCIO DE COORDINACIÓN DEPORTIVA</span>
+                                <span className="text-xl">⚽</span>
+                              </div>
+                              <div className="px-4 py-4">
+                                <div className="flex items-center gap-2 mb-3">
+                                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center shadow-lg">
+                                    <span className="text-lg">🎓</span>
+                                  </div>
+                                  <div className="flex-1">
+                                    <span className="text-sm font-bold text-cyan-800 block">
+                                      {msg.remitente_nombre || "Coordinador Deportivo"}
+                                    </span>
+                                    <span className="text-[10px] text-slate-500">
+                                      {format(new Date(msg.created_date), "EEEE d 'de' MMMM, HH:mm", { locale: es })}
+                                    </span>
+                                  </div>
                                   {msg.prioridad !== "Normal" && (
-                                    <Badge className={msg.prioridad === "Urgente" ? "bg-red-500" : "bg-yellow-500"}>
-                                      {msg.prioridad}
+                                    <Badge className={`${msg.prioridad === "Urgente" ? "bg-red-500 animate-pulse" : "bg-yellow-500"} text-white font-bold px-3`}>
+                                      {msg.prioridad === "Urgente" ? "🚨 URGENTE" : "⚠️ IMPORTANTE"}
                                     </Badge>
                                   )}
-                                  <span className="text-[10px] ml-auto text-slate-400">
-                                    {format(new Date(msg.created_date), "d MMM HH:mm", { locale: es })}
-                                  </span>
                                 </div>
-                                <p className="text-sm leading-relaxed whitespace-pre-wrap text-slate-800">{msg.mensaje}</p>
+                                <div className="bg-white rounded-xl p-4 border border-cyan-200 shadow-inner">
+                                  <p className="text-base leading-relaxed whitespace-pre-wrap text-slate-800 font-medium">{msg.mensaje}</p>
+                                </div>
 
                                 {msg.poll && (
-                                  <PollMessage 
-                                    poll={msg.poll} 
-                                    onVote={(msgId, optIdx) => voteOnPollMutation.mutate({ messageId: msgId, optionIndex: optIdx })}
-                                    userEmail={user?.email}
-                                    messageId={msg.id}
-                                  />
+                                  <div className="mt-3">
+                                    <PollMessage 
+                                      poll={msg.poll} 
+                                      onVote={(msgId, optIdx) => voteOnPollMutation.mutate({ messageId: msgId, optionIndex: optIdx })}
+                                      userEmail={user?.email}
+                                      messageId={msg.id}
+                                    />
+                                  </div>
                                 )}
 
                                 {msg.archivos_adjuntos?.length > 0 && (
-                                  <div className="mt-2">
+                                  <div className="mt-3">
                                     <MessageAttachments attachments={msg.archivos_adjuntos} />
                                   </div>
                                 )}
