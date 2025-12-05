@@ -234,30 +234,19 @@ export default function PushNotifications() {
       )}
 
       {/* Información */}
-      <Card className="border-none shadow-md bg-green-50 border-2 border-green-200">
+      <Card className="border-none shadow-md bg-blue-50 border-2 border-blue-200">
         <CardContent className="p-4">
-          <h3 className="font-bold text-green-900 mb-2 flex items-center gap-2">
-            <CheckCircle2 className="w-4 h-4 text-green-600" />
-            🚀 Notificaciones Push REALES activadas
+          <h3 className="font-bold text-blue-900 mb-2 flex items-center gap-2">
+            <Bell className="w-4 h-4 text-blue-600" />
+            ℹ️ Notificaciones In-App
           </h3>
-          <ul className="text-sm text-green-800 space-y-1">
-            <li>• <strong>Las notificaciones llegan al móvil aunque la app esté cerrada</strong></li>
-            <li>• Los usuarios deben activar las notificaciones desde su panel para recibirlas</li>
-            <li>• Puedes segmentar por rol (padres, entrenadores) o por categoría deportiva</li>
-            <li>• Si incluyes un enlace, al tocar la notificación irán a esa sección</li>
+          <ul className="text-sm text-blue-800 space-y-1">
+            <li>• Las notificaciones aparecen dentro de la app</li>
+            <li>• Puedes segmentar por rol (padres, entrenadores) o por categoría</li>
+            <li>• Si incluyes un enlace, al tocar irán a esa sección</li>
           </ul>
-        </CardContent>
-      </Card>
-
-      {/* Stats de push habilitados */}
-      <Card className="border-none shadow-md">
-        <CardContent className="p-4">
-          <h3 className="font-bold text-slate-900 mb-2">📊 Usuarios con Push activado</h3>
-          <p className="text-sm text-slate-600">
-            <strong className="text-green-600">{users.filter(u => u.push_enabled).length}</strong> de {users.length} usuarios tienen las notificaciones push activadas
-          </p>
-          <p className="text-xs text-slate-500 mt-1">
-            Los usuarios sin push activado solo verán las notificaciones dentro de la app
+          <p className="text-xs text-slate-500 mt-2">
+            ⚠️ Las notificaciones push con app cerrada no están disponibles en Base44 actualmente.
           </p>
         </CardContent>
       </Card>
