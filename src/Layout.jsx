@@ -572,9 +572,14 @@ export default function Layout({ children, currentPageName }) {
   useEffect(() => {
     const fetchUser = async () => {
                       console.log('🔐 [LAYOUT DEBUG] Iniciando fetchUser...');
-            try {
-              // Si es página pública, verificar si hay usuario autenticado sin forzar login
-              if (isPublicPage) {
+                      try {
+                      // Fix para PWA: detectar si estamos en standalone mode
+                      const isStandalone = window.matchMedia('(display-mode: standalone)').matches || 
+                                   window.navigator.standalone === true;
+                      console.log('📱 [LAYOUT] Modo standalone (PWA):', isStandalone);
+
+                      // Si es página pública, verificar si hay usuario autenticado sin forzar login
+                      if (isPublicPage) {
           try {
             const isAuthenticated = await base44.auth.isAuthenticated();
             if (!isAuthenticated) {
