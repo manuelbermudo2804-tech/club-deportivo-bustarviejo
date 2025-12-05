@@ -105,6 +105,8 @@ export default function ChatNotificationListener({ user }) {
   useEffect(() => {
     if (!user || !privateMessages || privateMessages.length === 0) return;
 
+    console.log('📩 Procesando mensajes privados. Total:', privateMessages.length, 'User:', user.email);
+
     try {
       const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
       
@@ -114,25 +116,34 @@ export default function ChatNotificationListener({ user }) {
         const msgDate = new Date(m.created_date);
         if (msgDate < fiveMinutesAgo) return false;
         
-        // Mensaje dirigido directamente a este usuario
-        if (m.destinatario_email === user.email) return true;
+        // Verificar si el usuario es participante de esta conversación
+        const isParticipant = m.participantes?.includes(user.email) || 
+                              m.destinatario_email === user.email ||
+                              m.conversation_id?.includes(user.email);
         
-        // Para entrenadores/coordinadores/admin: mensajes de padres en sus conversaciones
+        console.log('📩 Mensaje:', m.id, 'de:', m.remitente_email, 'participantes:', m.participantes, 'isParticipant:', isParticipant);
+        
+        if (isParticipant) return true;
+        
+        // Fallback: Para entrenadores/coordinadores/admin que reciben de padres
         if (user.role === "admin" || user.es_entrenador || user.es_coordinador) {
-          if (m.remitente_tipo === "padre") return true;
+          if (m.remitente_tipo === "padre" || m.staff_email === user.email) return true;
         }
         
-        // Para padres: mensajes de entrenadores/admin en sus conversaciones
+        // Fallback: Para padres que reciben de staff
         if (m.remitente_tipo === "entrenador" || m.remitente_tipo === "admin" || m.remitente_tipo === "coordinador") {
-          return true;
+          if (m.padre_email === user.email) return true;
         }
         
         return false;
       });
       
+      console.log('📩 Mensajes privados relevantes:', relevantMessages.length);
+      
       const latestMessage = relevantMessages[0];
       
       if (latestMessage && latestMessage.id !== lastSeenPrivateId.current) {
+        console.log('🆕 Nuevo mensaje privado detectado:', latestMessage.id);
         showNotification(`📩 ${latestMessage.remitente_nombre}`, latestMessage.mensaje, latestMessage.id);
         lastSeenPrivateId.current = latestMessage.id;
       }
