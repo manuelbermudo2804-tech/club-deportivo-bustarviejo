@@ -188,6 +188,8 @@ export default function ToastContainer({ user, isAdmin, isCoach }) {
     announcements.forEach(ann => {
       if (shownIds.includes(ann.id)) return;
       if (!ann.publicado) return;
+      // No mostrar mis propios anuncios
+      if (ann.created_by === user.email) return;
       
       // Verificar si es relevante para el usuario
       const isRelevant = ann.destinatarios_tipo === "Todos" || 
@@ -195,16 +197,16 @@ export default function ToastContainer({ user, isAdmin, isCoach }) {
         isAdmin || isCoach;
 
       if (isRelevant) {
-        // Solo mostrar si es reciente (últimos 10 minutos)
+        // Solo mostrar si es reciente (últimos 5 minutos para evitar spam)
         const pubDate = new Date(ann.fecha_publicacion);
-        const tenMinAgo = new Date(Date.now() - 10 * 60 * 1000);
-        if (pubDate > tenMinAgo) {
+        const fiveMinAgo = new Date(Date.now() - 5 * 60 * 1000);
+        if (pubDate > fiveMinAgo) {
           addToast({
             type: "announcement",
             sourceId: ann.id,
             title: ann.prioridad === "Urgente" ? "🚨 Anuncio Urgente" : "📢 Nuevo Anuncio",
             message: ann.titulo,
-            duration: ann.prioridad === "Urgente" ? 12000 : 8000
+            duration: ann.prioridad === "Urgente" ? 10000 : 6000
           });
         }
       }
