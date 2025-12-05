@@ -420,40 +420,106 @@ export default function ParentChat() {
         <div className="lg:col-span-3">
           {selectedCategory ? (
             selectedCategory === "Coordinación Deportiva" ? (
-              /* Chat con coordinador - siempre abierto para escribir */
-              activePrivateChat ? (
-                <div className="bg-white rounded-xl shadow-md border overflow-hidden" style={{ height: '70vh' }}>
-                  <PrivateChatPanel
-                    conversation={activePrivateChat}
-                    messages={privateMessages}
-                    user={user}
-                    isStaff={false}
-                    onClose={() => {
-                      setActivePrivateChat(null);
-                      setSelectedCategory(null);
-                    }}
-                    onMessageSent={handlePrivateMessageSent}
-                  />
-                </div>
-              ) : (
-                /* Cargando chat con coordinador */
-                <div className="bg-white rounded-xl shadow-md border overflow-hidden flex items-center justify-center" style={{ height: '70vh' }}>
-                  <div className="text-center">
-                    {coordinator ? (
-                      <>
-                        <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-green-600 border-r-transparent mb-4"></div>
-                        <p className="text-slate-600">Abriendo chat con coordinación...</p>
-                      </>
-                    ) : (
-                      <>
-                        <AlertCircle className="w-12 h-12 text-slate-300 mx-auto mb-4" />
-                        <p className="text-slate-600 font-medium">No hay coordinador disponible</p>
-                        <p className="text-sm text-slate-400 mt-2">Contacta con el club para más información</p>
-                      </>
-                    )}
+              /* Coordinación Deportiva: mostrar anuncios generales + chat privado */
+              <div className="space-y-4">
+                {/* Sección de Anuncios Generales del Coordinador */}
+                {currentAnnouncements.length > 0 && (
+                  <div className="bg-white rounded-xl shadow-md border overflow-hidden">
+                    <div className="bg-gradient-to-r from-cyan-600 to-cyan-700 p-4 text-white flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
+                        <span className="text-xl">📢</span>
+                      </div>
+                      <div className="flex-1">
+                        <h2 className="font-bold">Anuncios Grupo</h2>
+                        <p className="text-xs text-cyan-100">Mensajes generales del coordinador para todas las familias</p>
+                      </div>
+                    </div>
+                    <div className="max-h-[40vh] overflow-y-auto p-4 space-y-3" style={{ backgroundColor: '#e5ddd5' }}>
+                      {currentAnnouncements
+                        .sort((a, b) => new Date(a.created_date) - new Date(b.created_date))
+                        .map((msg) => (
+                          <div key={msg.id} className="flex justify-start">
+                            <div className="max-w-[90%] rounded-xl shadow-sm overflow-hidden bg-white">
+                              <div className="px-4 py-3">
+                                <div className="flex items-center gap-2 mb-2">
+                                  <span className="text-xs font-bold text-cyan-700">
+                                    🎓 {msg.remitente_nombre || "Coordinador"}
+                                  </span>
+                                  {msg.prioridad !== "Normal" && (
+                                    <Badge className={msg.prioridad === "Urgente" ? "bg-red-500" : "bg-yellow-500"}>
+                                      {msg.prioridad}
+                                    </Badge>
+                                  )}
+                                  <span className="text-[10px] ml-auto text-slate-400">
+                                    {format(new Date(msg.created_date), "d MMM HH:mm", { locale: es })}
+                                  </span>
+                                </div>
+                                <p className="text-sm leading-relaxed whitespace-pre-wrap text-slate-800">{msg.mensaje}</p>
+
+                                {msg.poll && (
+                                  <PollMessage 
+                                    poll={msg.poll} 
+                                    onVote={(msgId, optIdx) => voteOnPollMutation.mutate({ messageId: msgId, optionIndex: optIdx })}
+                                    userEmail={user?.email}
+                                    messageId={msg.id}
+                                  />
+                                )}
+
+                                {msg.archivos_adjuntos?.length > 0 && (
+                                  <div className="mt-2">
+                                    <MessageAttachments attachments={msg.archivos_adjuntos} />
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                    </div>
                   </div>
+                )}
+
+                {/* Chat privado con coordinador */}
+                <div className="bg-white rounded-xl shadow-md border overflow-hidden">
+                  <div className="bg-gradient-to-r from-green-600 to-green-700 p-3 text-white flex items-center gap-3">
+                    <Lock className="w-5 h-5" />
+                    <div className="flex-1">
+                      <h2 className="font-bold text-sm">💬 Chat Privado con Coordinador</h2>
+                      <p className="text-xs text-green-100">Solo tú y el coordinador ven estos mensajes</p>
+                    </div>
+                  </div>
+                  {activePrivateChat ? (
+                    <div style={{ height: currentAnnouncements.length > 0 ? '35vh' : '60vh' }}>
+                      <PrivateChatPanel
+                        conversation={activePrivateChat}
+                        messages={privateMessages}
+                        user={user}
+                        isStaff={false}
+                        onClose={() => {
+                          setActivePrivateChat(null);
+                          setSelectedCategory(null);
+                        }}
+                        onMessageSent={handlePrivateMessageSent}
+                        hideHeader={true}
+                      />
+                    </div>
+                  ) : (
+                    <div className="flex items-center justify-center p-8">
+                      {coordinator ? (
+                        <div className="text-center">
+                          <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-green-600 border-r-transparent mb-4"></div>
+                          <p className="text-slate-600">Abriendo chat con coordinación...</p>
+                        </div>
+                      ) : (
+                        <div className="text-center">
+                          <AlertCircle className="w-12 h-12 text-slate-300 mx-auto mb-4" />
+                          <p className="text-slate-600 font-medium">No hay coordinador disponible</p>
+                          <p className="text-sm text-slate-400 mt-2">Contacta con el club para más información</p>
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
-              )
+              </div>
             ) : (
               /* Chat de equipos normal */
               <div className="bg-white rounded-xl shadow-md border overflow-hidden flex flex-col" style={{ height: '70vh' }}>
