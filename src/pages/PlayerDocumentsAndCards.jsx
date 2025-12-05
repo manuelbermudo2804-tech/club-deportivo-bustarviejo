@@ -131,11 +131,45 @@ export default function PlayerDocumentsAndCards() {
       doc.setLineWidth(1);
       doc.line(40, 72, 170, 72);
       
+      // Añadir foto del jugador si existe
+      let currentY = 90;
+      if (player.foto_url) {
+        try {
+          // Crear imagen desde URL
+          const img = new Image();
+          img.crossOrigin = "anonymous";
+          await new Promise((resolve, reject) => {
+            img.onload = resolve;
+            img.onerror = reject;
+            img.src = player.foto_url;
+          });
+          
+          // Dibujar foto circular (simulada con recuadro redondeado)
+          const canvas = document.createElement('canvas');
+          canvas.width = 100;
+          canvas.height = 100;
+          const ctx = canvas.getContext('2d');
+          ctx.beginPath();
+          ctx.arc(50, 50, 50, 0, Math.PI * 2);
+          ctx.closePath();
+          ctx.clip();
+          ctx.drawImage(img, 0, 0, 100, 100);
+          
+          const imgData = canvas.toDataURL('image/png');
+          doc.addImage(imgData, 'PNG', 20, 78, 25, 25);
+          
+          // Borde naranja alrededor de la foto
+          doc.setDrawColor(244, 114, 24);
+          doc.setLineWidth(1.5);
+          doc.circle(32.5, 90.5, 13, 'S');
+        } catch (imgError) {
+          console.log("No se pudo cargar la foto del jugador:", imgError);
+        }
+      }
+      
       doc.setTextColor(0, 0, 0);
       doc.setFontSize(12);
       doc.setFont(undefined, 'normal');
-      
-      let currentY = 90;
       const lineHeight = 8;
       
       doc.text("El Club Deportivo Bustarviejo", 20, currentY);
