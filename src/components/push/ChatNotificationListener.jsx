@@ -24,6 +24,14 @@ export default function ChatNotificationListener({ user }) {
     if (!user || !messages || messages.length === 0) return;
 
     try {
+      console.log('🔍 Procesando mensajes, total:', messages.length);
+      console.log('👤 Usuario:', user.email, 'Admin:', user.role === "admin", 'Entrenador:', user.es_entrenador);
+      
+      // Mostrar los últimos 3 mensajes para debug
+      messages.slice(0, 3).forEach((m, i) => {
+        console.log(`📩 Mensaje ${i}:`, m.tipo, m.remitente_email, m.created_date);
+      });
+      
       // Filtrar mensajes relevantes - NO FILTRAR POR LEIDO para detectar nuevos
       const relevantMessages = messages.filter(m => {
         if (!m) return false;
@@ -45,6 +53,8 @@ export default function ChatNotificationListener({ user }) {
         
         return m.tipo === "admin_a_grupo";
       });
+      
+      console.log('✅ Mensajes relevantes encontrados:', relevantMessages.length);
 
       const latestMessage = relevantMessages[0];
       
