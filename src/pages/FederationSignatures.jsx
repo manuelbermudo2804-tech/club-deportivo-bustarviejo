@@ -115,6 +115,8 @@ export default function FederationSignatures() {
     },
   });
 
+  const [processingSignature, setProcessingSignature] = useState({});
+  
   const updatePlayerMutation = useMutation({
     mutationFn: async ({ id, data, playerName, signatureType }) => {
       const result = await base44.entities.Player.update(id, data);
@@ -140,15 +142,27 @@ export default function FederationSignatures() {
         }
       }
       
-      return result;
+      return { id, signatureType };
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['players'] });
       toast.success("✅ Firma marcada como completada");
+      // Limpiar estado de procesamiento
+      setProcessingSignature(prev => {
+        const newState = { ...prev };
+        delete newState[`${data.id}_${data.signatureType}`];
+        return newState;
+      });
     },
-    onError: (error) => {
+    onError: (error, variables) => {
       console.error("Error:", error);
       toast.error("Error al actualizar. Intenta de nuevo.");
+      // Limpiar estado de procesamiento en caso de error
+      setProcessingSignature(prev => {
+        const newState = { ...prev };
+        delete newState[`${variables.id}_${variables.signatureType}`];
+        return newState;
+      });
     },
   });
 
