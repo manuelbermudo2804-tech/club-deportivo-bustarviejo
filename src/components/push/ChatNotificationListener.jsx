@@ -9,7 +9,7 @@ export default function ChatNotificationListener({ user }) {
     queryKey: ['chatMessagesListener'],
     queryFn: () => base44.entities.ChatMessage.list('-created_date'),
     initialData: [],
-    refetchInterval: 30000,
+    refetchInterval: 5000,
     enabled: !!user,
   });
 
