@@ -85,32 +85,56 @@ export default function PushNotificationManager() {
     );
   }
 
+  const sendTestNotification = () => {
+    if (Notification.permission === 'granted') {
+      new Notification("🎉 CD Bustarviejo - Prueba", {
+        body: "¡Las notificaciones funcionan correctamente!",
+        icon: "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6911b8e453ca3ac01fb134d6/e3f0a8e26_logo_cd_bustarviejo_mediano.jpg"
+      });
+      toast.success("✅ Notificación de prueba enviada");
+    }
+  };
+
   return (
     <>
-      <Button
-        onClick={() => isSubscribed ? null : setShowDialog(true)}
-        variant={isSubscribed ? "outline" : "default"}
-        className={`w-full ${isSubscribed ? "bg-white text-slate-900 border-green-500" : "bg-gradient-to-r from-orange-600 to-orange-700 text-white hover:from-orange-700 hover:to-orange-800"} font-bold shadow-lg`}
-        size="default"
-        disabled={isLoading}
-      >
-        {isLoading ? (
-          <>
-            <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-            <span>Activando...</span>
-          </>
-        ) : isSubscribed ? (
-          <>
-            <Check className="w-5 h-5 mr-2 text-green-600" />
-            <span>Notificaciones Activadas</span>
-          </>
-        ) : (
-          <>
-            <BellOff className="w-5 h-5 mr-2" />
-            <span>Activar Notificaciones Push</span>
-          </>
-        )}
-      </Button>
+      {isSubscribed ? (
+        <div className="space-y-2">
+          <div className="flex items-center justify-between p-3 bg-green-50 border border-green-300 rounded-lg">
+            <div className="flex items-center gap-2">
+              <Check className="w-5 h-5 text-green-600" />
+              <span className="text-green-800 font-medium text-sm">Notificaciones Activadas</span>
+            </div>
+          </div>
+          <Button
+            onClick={sendTestNotification}
+            variant="outline"
+            className="w-full"
+            size="sm"
+          >
+            <Bell className="w-4 h-4 mr-2" />
+            Enviar notificación de prueba
+          </Button>
+        </div>
+      ) : (
+        <Button
+          onClick={() => setShowDialog(true)}
+          className="w-full bg-gradient-to-r from-orange-600 to-orange-700 text-white hover:from-orange-700 hover:to-orange-800 font-bold shadow-lg"
+          size="default"
+          disabled={isLoading}
+        >
+          {isLoading ? (
+            <>
+              <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+              <span>Activando...</span>
+            </>
+          ) : (
+            <>
+              <BellOff className="w-5 h-5 mr-2" />
+              <span>Activar Notificaciones Push</span>
+            </>
+          )}
+        </Button>
+      )}
 
       <Dialog open={showDialog} onOpenChange={setShowDialog}>
         <DialogContent>
