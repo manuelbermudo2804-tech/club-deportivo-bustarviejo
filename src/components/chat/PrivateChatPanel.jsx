@@ -22,7 +22,8 @@ export default function PrivateChatPanel({
   user,
   onClose, 
   onMessageSent,
-  isStaff = true 
+  isStaff = true,
+  hideHeader = false 
 }) {
   const [messageContent, setMessageContent] = useState("");
   const [attachments, setAttachments] = useState([]);
