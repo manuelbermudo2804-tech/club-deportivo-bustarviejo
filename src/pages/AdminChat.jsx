@@ -189,25 +189,23 @@ export default function AdminChat() {
       setSendToAll(false);
       setSelectedRecipient("all");
       
-      // Enviar PUSH real si es mensaje importante/urgente
-      if (variables.prioridad === "Importante" || variables.prioridad === "Urgente") {
-        try {
-          const groupPlayers = variables.sendToAll 
-            ? players 
-            : players.filter(p => p.deporte === variables.deporte);
-          const recipientEmails = [...new Set(groupPlayers.flatMap(p => [p.email_padre, p.email_tutor_2].filter(Boolean)))];
-          
-          await base44.functions.invoke('triggerChatPush', {
-            messageContent: variables.mensaje,
-            senderName: variables.remitente_nombre,
-            groupId: variables.grupo_id,
-            prioridad: variables.prioridad,
-            recipientEmails
-          });
-          console.log('✅ Push enviado para mensaje', variables.prioridad);
-        } catch (pushErr) {
-          console.error('Error enviando push:', pushErr);
-        }
+      // Enviar PUSH real para TODOS los mensajes de chat
+      try {
+        const groupPlayers = variables.sendToAll 
+          ? players 
+          : players.filter(p => p.deporte === variables.deporte);
+        const recipientEmails = [...new Set(groupPlayers.flatMap(p => [p.email_padre, p.email_tutor_2].filter(Boolean)))];
+        
+        await base44.functions.invoke('triggerChatPush', {
+          messageContent: variables.mensaje,
+          senderName: variables.remitente_nombre,
+          groupId: variables.grupo_id,
+          prioridad: variables.prioridad,
+          recipientEmails
+        });
+        console.log('✅ Push enviado para mensaje de chat');
+      } catch (pushErr) {
+        console.error('Error enviando push:', pushErr);
       }
       
       await queryClient.invalidateQueries({ queryKey: ['chatMessages'] });
