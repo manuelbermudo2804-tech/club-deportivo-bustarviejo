@@ -294,20 +294,26 @@ export default function Gallery() {
       ) : (
         <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
           <AnimatePresence>
-            {filteredAlbums.map((album) => (
-              <GalleryAlbum 
-                key={album.id} 
-                album={album} 
-                onEdit={canEdit ? handleEdit : undefined}
-                onDelete={canEdit ? (album) => {
-                  if (confirm(`¿Eliminar el álbum "${album.titulo}"?`)) {
-                    deleteAlbumMutation.mutate(album.id);
-                  }
-                } : undefined}
-                isAdmin={canEdit}
-                isReadOnly={userRole === "player"}
-              />
-            ))}
+            {filteredAlbums.map((album) => {
+              // Entrenadores solo pueden editar álbumes de sus categorías
+              const canEditThisAlbum = userRole === "admin" || 
+                (userRole === "coach" && coachCategories.includes(album.categoria));
+              
+              return (
+                <GalleryAlbum 
+                  key={album.id} 
+                  album={album} 
+                  onEdit={canEditThisAlbum ? handleEdit : undefined}
+                  onDelete={canEditThisAlbum ? (album) => {
+                    if (confirm(`¿Eliminar el álbum "${album.titulo}"?`)) {
+                      deleteAlbumMutation.mutate(album.id);
+                    }
+                  } : undefined}
+                  isAdmin={canEditThisAlbum}
+                  isReadOnly={userRole === "player"}
+                />
+              );
+            })}
           </AnimatePresence>
         </div>
       )}
