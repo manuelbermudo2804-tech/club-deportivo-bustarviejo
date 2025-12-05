@@ -32,7 +32,7 @@ export default function NotificationCenter() {
     queryKey: ['messages'],
     queryFn: () => base44.entities.ChatMessage.list('-created_date'),
     initialData: [],
-    enabled: isOpen,
+    refetchInterval: 2000,
   });
 
   const { data: allNotifications } = useQuery({
@@ -91,6 +91,8 @@ export default function NotificationCenter() {
     mutationFn: ({ id, message }) => base44.entities.ChatMessage.update(id, { ...message, leido: true }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['messages'] });
+      queryClient.invalidateQueries({ queryKey: ['chatMessages'] });
+      queryClient.invalidateQueries({ queryKey: ['chatMessagesListener'] });
     },
   });
 
