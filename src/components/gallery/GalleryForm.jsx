@@ -16,7 +16,7 @@ export default function GalleryForm({ album, onSubmit, onCancel, isSubmitting, u
     titulo: "",
     descripcion: "",
     fecha_evento: new Date().toISOString().split('T')[0],
-    categoria: "Todas las Categorías",
+    categoria: userRole === "coach" && coachCategories.length > 0 ? coachCategories[0] : "Todas las Categorías",
     tipo_evento: "Partido",
     fotos: [],
     visible_para_padres: true,
