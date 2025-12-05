@@ -132,6 +132,18 @@ export default function AlertCenter({
     });
   }
 
+  if (unreadPrivateMessages > 0) {
+    alerts.push({
+      id: "private-messages",
+      icon: MessageCircle,
+      title: "📩 Mensajes privados",
+      description: `${unreadPrivateMessages} mensaje${unreadPrivateMessages > 1 ? 's' : ''} privado${unreadPrivateMessages > 1 ? 's' : ''} sin leer`,
+      url: isAdmin ? createPageUrl("AdminChat") : isCoach ? createPageUrl("CoachChat") : createPageUrl("ParentChat"),
+      color: "bg-blue-500",
+      priority: 2
+    });
+  }
+
   if (upcomingEvents > 0) {
     alerts.push({
       id: "events",
