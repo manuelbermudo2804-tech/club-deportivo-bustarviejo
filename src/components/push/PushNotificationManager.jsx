@@ -156,24 +156,36 @@ export default function PushNotificationManager() {
           </Button>
         </div>
       ) : (
-        <Button
-          onClick={() => setShowDialog(true)}
-          className="w-full bg-gradient-to-r from-orange-600 to-orange-700 text-white hover:from-orange-700 hover:to-orange-800 font-bold shadow-lg"
-          size="default"
-          disabled={isLoading}
-        >
-          {isLoading ? (
-            <>
-              <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-              <span>Activando...</span>
-            </>
-          ) : (
-            <>
-              <BellOff className="w-5 h-5 mr-2" />
-              <span>Activar Notificaciones Push</span>
-            </>
+        <div className="space-y-2">
+          <Button
+            onClick={subscribeToPush}
+            className="w-full bg-gradient-to-r from-orange-600 to-orange-700 text-white hover:from-orange-700 hover:to-orange-800 font-bold shadow-lg"
+            size="default"
+            disabled={isLoading}
+          >
+            {isLoading ? (
+              <>
+                <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                <span>Activando...</span>
+              </>
+            ) : (
+              <>
+                <Bell className="w-5 h-5 mr-2" />
+                <span>🔔 Activar Notificaciones Push</span>
+              </>
+            )}
+          </Button>
+          {Notification.permission === 'denied' && (
+            <div className="p-3 bg-red-50 border border-red-300 rounded-lg text-sm text-red-800">
+              ⚠️ <strong>Notificaciones bloqueadas:</strong> Ve a la configuración del navegador → Permisos → Notificaciones → Permitir para este sitio
+            </div>
           )}
-        </Button>
+          {Notification.permission === 'granted' && !isSubscribed && (
+            <div className="p-3 bg-yellow-50 border border-yellow-300 rounded-lg text-sm text-yellow-800">
+              ⚠️ Tienes permiso pero no estás suscrito. Pulsa el botón de arriba.
+            </div>
+          )}
+        </div>
       )}
 
       <Dialog open={showDialog} onOpenChange={setShowDialog}>
