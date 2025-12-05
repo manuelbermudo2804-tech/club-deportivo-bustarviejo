@@ -212,23 +212,7 @@ export default function ToastContainer({ user, isAdmin, isCoach }) {
   }, [announcements, user, myGroupSports, isAdmin, isCoach, preferences, shownIds, addToast]);
   */
 
-  if (!user) return null;
-
-  return (
-    <div className="fixed top-4 right-4 z-[100] space-y-3 max-w-sm w-full pointer-events-none lg:top-4 lg:right-4">
-      <div className="pointer-events-auto space-y-3">
-        <AnimatePresence mode="popLayout">
-          {toasts.map(toast => (
-            <ToastNotification
-              key={toast.id}
-              toast={toast}
-              onDismiss={dismissToast}
-              isAdmin={isAdmin}
-              isCoach={isCoach}
-            />
-          ))}
-        </AnimatePresence>
-      </div>
-    </div>
-  );
+  // ToastContainer completamente desactivado - las notificaciones se muestran 
+  // en NotificationCenter (campana) y AlertCenter (banner del dashboard)
+  return null;
 }
