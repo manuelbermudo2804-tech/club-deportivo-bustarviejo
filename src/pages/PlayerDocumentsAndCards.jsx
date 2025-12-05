@@ -463,30 +463,94 @@ CDBUSTARVIEJO@GMAIL.COM
               <Card className="border-none shadow-xl col-span-full"><CardContent className="p-12 text-center"><CreditCard className="w-16 h-16 text-slate-300 mx-auto mb-3" /><p className="text-slate-500">No hay jugadores registrados</p></CardContent></Card>
             ) : (
               myPlayers.map(player => (
-                <div key={player.id} className="space-y-3">
-                  <Card ref={el => cardRefs.current[player.id] = el} className="border-4 border-orange-600 shadow-2xl overflow-hidden mx-auto" style={{ width: '350px', height: '220px' }}>
-                    <div className="h-full bg-gradient-to-br from-slate-900 via-black to-orange-900 p-4 flex flex-col">
-                      <div className="flex items-center justify-between mb-3">
-                        <img src={CLUB_LOGO_URL} alt="Logo" className="w-12 h-12 object-contain" />
-                        <div className="text-right"><h2 className="text-white font-bold text-xs">CD BUSTARVIEJO</h2><p className="text-orange-400 text-[10px]">TEMPORADA {season}</p></div>
-                      </div>
-                      <div className="flex-1 flex gap-3">
-                        <div className="flex-shrink-0">
-                          {player.foto_url ? <img src={player.foto_url} alt={player.nombre} className="w-24 h-24 rounded-lg object-cover border-3 border-orange-500" /> : <div className="w-24 h-24 bg-slate-700 rounded-lg flex items-center justify-center border-3 border-orange-500"><UserIcon className="w-10 h-10 text-white" /></div>}
+                <div key={player.id} className="space-y-4">
+                  {/* FRONTAL DEL CARNET */}
+                  <div>
+                    <p className="text-xs text-slate-500 text-center mb-2 font-medium">📇 Frontal</p>
+                    <Card ref={el => cardRefs.current[player.id] = el} className="border-4 border-orange-600 shadow-2xl overflow-hidden mx-auto" style={{ width: '350px', height: '220px' }}>
+                      <div className="h-full bg-gradient-to-br from-slate-900 via-black to-orange-900 p-4 flex flex-col">
+                        <div className="flex items-center justify-between mb-3">
+                          <img src={CLUB_LOGO_URL} alt="Logo" className="w-12 h-12 object-contain" />
+                          <div className="text-right"><h2 className="text-white font-bold text-xs">CD BUSTARVIEJO</h2><p className="text-orange-400 text-[10px]">TEMPORADA {season}</p></div>
                         </div>
-                        <div className="flex-1 space-y-1 text-white">
-                          <div><p className="text-[10px] text-orange-400 uppercase">Jugador</p><p className="font-bold text-sm leading-tight">{player.nombre}</p></div>
-                          <div><p className="text-[10px] text-orange-400 uppercase">Categoría</p><p className="font-semibold text-[11px]">{player.deporte}</p></div>
-                          <div><p className="text-[10px] text-orange-400 uppercase">ID</p><p className="font-mono text-[9px]">{player.id.substring(0, 12)}</p></div>
+                        <div className="flex-1 flex gap-3">
+                          <div className="flex-shrink-0">
+                            {player.foto_url ? <img src={player.foto_url} alt={player.nombre} className="w-24 h-24 rounded-lg object-cover border-3 border-orange-500" /> : <div className="w-24 h-24 bg-slate-700 rounded-lg flex items-center justify-center border-3 border-orange-500"><UserIcon className="w-10 h-10 text-white" /></div>}
+                          </div>
+                          <div className="flex-1 space-y-1 text-white">
+                            <div><p className="text-[10px] text-orange-400 uppercase">Jugador</p><p className="font-bold text-sm leading-tight">{player.nombre}</p></div>
+                            <div><p className="text-[10px] text-orange-400 uppercase">Categoría</p><p className="font-semibold text-[11px]">{player.deporte}</p></div>
+                            <div><p className="text-[10px] text-orange-400 uppercase">ID</p><p className="font-mono text-[9px]">{player.id.substring(0, 12)}</p></div>
+                          </div>
+                        </div>
+                        <div className="flex items-end justify-between mt-2 pt-2 border-t border-orange-500/30">
+                          <div className="text-white text-[10px]"><p className="text-orange-400 uppercase mb-0.5">Fecha de nacimiento</p><p className="text-[11px]">{player.fecha_nacimiento ? new Date(player.fecha_nacimiento).toLocaleDateString('es-ES') : 'N/A'}</p></div>
+                          {qrRefs.current[player.id] ? (
+                            <img src={qrRefs.current[player.id]} alt="QR" className="w-12 h-12 rounded" />
+                          ) : (
+                            <div className="bg-white p-1 rounded"><div className="w-10 h-10 bg-slate-800 rounded flex items-center justify-center"><span className="text-orange-500 text-[10px] font-bold">QR</span></div></div>
+                          )}
                         </div>
                       </div>
-                      <div className="flex items-end justify-between mt-2 pt-2 border-t border-orange-500/30">
-                        <div className="text-white text-[10px]"><p className="text-orange-400 uppercase mb-0.5">Fecha de nacimiento</p><p className="text-[11px]">{new Date(player.fecha_nacimiento).toLocaleDateString('es-ES')}</p></div>
-                        <div className="bg-white p-1 rounded"><div className="w-10 h-10 bg-slate-800 rounded flex items-center justify-center"><span className="text-orange-500 text-[10px] font-bold">CD</span></div></div>
+                    </Card>
+                  </div>
+
+                  {/* TRASERA DEL CARNET */}
+                  <div>
+                    <p className="text-xs text-slate-500 text-center mb-2 font-medium">🔄 Trasera</p>
+                    <Card ref={el => cardRefs.current[`${player.id}_back`] = el} className="border-4 border-orange-600 shadow-2xl overflow-hidden mx-auto" style={{ width: '350px', height: '220px' }}>
+                      <div className="h-full bg-gradient-to-br from-slate-100 to-slate-200 p-4 flex flex-col">
+                        <div className="flex items-center justify-center gap-2 mb-3 pb-2 border-b border-orange-300">
+                          <img src={CLUB_LOGO_URL} alt="Logo" className="w-8 h-8 object-contain" />
+                          <span className="text-orange-600 font-bold text-sm">CD BUSTARVIEJO</span>
+                        </div>
+                        
+                        <div className="flex-1 space-y-2 text-slate-700">
+                          <div className="flex items-center gap-2 text-xs">
+                            <MapPin className="w-3 h-3 text-orange-500" />
+                            <span>Bustarviejo, Madrid</span>
+                          </div>
+                          <div className="flex items-center gap-2 text-xs">
+                            <Mail className="w-3 h-3 text-orange-500" />
+                            <span>CDBUSTARVIEJO@GMAIL.COM</span>
+                          </div>
+                          <div className="flex items-center gap-2 text-xs">
+                            <Phone className="w-3 h-3 text-orange-500" />
+                            <span>Contacto: Ver web del club</span>
+                          </div>
+                          
+                          <div className="bg-red-50 border border-red-200 rounded-lg p-2 mt-2">
+                            <p className="text-[10px] font-bold text-red-700 flex items-center gap-1">
+                              <AlertCircle className="w-3 h-3" /> EN CASO DE EMERGENCIA
+                            </p>
+                            <p className="text-[9px] text-red-600 mt-1">
+                              Contactar al entrenador o llamar al 112
+                            </p>
+                          </div>
+                        </div>
+                        
+                        <div className="pt-2 border-t border-orange-300 mt-auto">
+                          <p className="text-[8px] text-slate-500 text-center">
+                            Este carnet es personal e intransferible. Válido temporada {season}
+                          </p>
+                          <p className="text-[8px] text-orange-600 text-center font-medium mt-1">
+                            www.cdbustarviejo.es
+                          </p>
+                        </div>
                       </div>
-                    </div>
-                  </Card>
-                  <Button onClick={() => downloadCard(player)} className="w-full bg-orange-600 hover:bg-orange-700" disabled={generating}><Download className="w-4 h-4 mr-2" />Descargar Carnet</Button>
+                    </Card>
+                  </div>
+
+                  <div className="flex gap-2">
+                    <Button onClick={() => downloadCard(player)} className="flex-1 bg-orange-600 hover:bg-orange-700" disabled={generating}>
+                      <Download className="w-4 h-4 mr-2" />
+                      Descargar Frontal
+                    </Button>
+                    <Button onClick={() => downloadCardBack(player)} variant="outline" className="flex-1 border-orange-600 text-orange-600 hover:bg-orange-50" disabled={generating}>
+                      <RotateCcw className="w-4 h-4 mr-2" />
+                      Descargar Trasera
+                    </Button>
+                  </div>
                 </div>
               ))
             )}
