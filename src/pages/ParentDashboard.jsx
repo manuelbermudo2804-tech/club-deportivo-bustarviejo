@@ -467,21 +467,7 @@ export default function ParentDashboard() {
     return paymentMonth && currentMonth > paymentMonth;
   }).length;
 
-  // Calcular álbumes nuevos de galería (últimos 7 días)
-  const { data: galleries = [] } = useQuery({
-    queryKey: ['galleries'],
-    queryFn: () => base44.entities.PhotoGallery.list('-created_date', 10),
-    staleTime: 300000,
-    enabled: !!user,
-  });
 
-  const oneWeekAgo = new Date();
-  oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
-  const newGalleryPhotos = galleries.filter(g => {
-    if (!g.visible_para_padres) return false;
-    if (g.categoria !== "Todas las Categorías" && !myPlayersSports.includes(g.categoria)) return false;
-    return new Date(g.created_date) > oneWeekAgo;
-  }).length;
 
   // Menú base que siempre se muestra (sin depender de datos cargados)
   const baseMenuItems = [
@@ -676,7 +662,7 @@ export default function ParentDashboard() {
           pendingSignatures={pendingFederationSignatures}
           upcomingEvents={0}
           overduePayments={overduePayments}
-          newGalleryPhotos={newGalleryPhotos}
+          newGalleryPhotos={0}
           isAdmin={false}
           isCoach={false}
           isParent={true}
