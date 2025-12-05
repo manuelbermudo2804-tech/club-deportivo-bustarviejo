@@ -9,7 +9,7 @@ import { createPageUrl } from "@/utils";
 import { 
   Trophy, CreditCard, Star, Award, MessageCircle, Calendar, 
   User, CheckCircle2, Clock, AlertCircle, ChevronRight,
-  MapPin, Users
+  MapPin, Users, Megaphone, Image, FileText, Heart, Bell
 } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
@@ -471,39 +471,102 @@ export default function PlayerDashboard() {
         </CardContent>
       </Card>
 
-      {/* Accesos rápidos */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <Link to={createPageUrl("CalendarAndSchedules")}>
-          <Card className="border-none shadow-md hover:shadow-lg transition-shadow cursor-pointer bg-gradient-to-br from-blue-50 to-blue-100">
-            <CardContent className="p-4 text-center">
-              <Calendar className="w-8 h-8 text-blue-600 mx-auto mb-2" />
-              <p className="font-medium text-slate-900 text-sm">Calendario</p>
-            </CardContent>
-          </Card>
+      {/* Menu completo reflejado en botones grandes */}
+      <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
+        <Link to={createPageUrl("ParentCallups")} className="group">
+          <div className="relative bg-gradient-to-br from-yellow-500 to-yellow-600 rounded-2xl overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 active:scale-95">
+            <div className="p-6 flex flex-col items-center justify-center min-h-[140px]">
+              <Bell className="w-12 h-12 text-white mb-3" />
+              <h3 className="text-white font-bold text-center text-base">🏆 Convocatorias</h3>
+              {pendingCallups.length > 0 && (
+                <Badge className="mt-2 bg-red-500 text-white animate-pulse">
+                  {pendingCallups.length} pendientes
+                </Badge>
+              )}
+            </div>
+          </div>
         </Link>
-        <Link to={createPageUrl("Gallery")}>
-          <Card className="border-none shadow-md hover:shadow-lg transition-shadow cursor-pointer bg-gradient-to-br from-purple-50 to-purple-100">
-            <CardContent className="p-4 text-center">
-              <Users className="w-8 h-8 text-purple-600 mx-auto mb-2" />
-              <p className="font-medium text-slate-900 text-sm">Galería</p>
-            </CardContent>
-          </Card>
+
+        <Link to={createPageUrl("ParentPayments")} className="group">
+          <div className="relative bg-gradient-to-br from-green-500 to-green-600 rounded-2xl overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 active:scale-95">
+            <div className="p-6 flex flex-col items-center justify-center min-h-[140px]">
+              <CreditCard className="w-12 h-12 text-white mb-3" />
+              <h3 className="text-white font-bold text-center text-base">💳 Mis Pagos</h3>
+              {paymentStats.pendientes > 0 && (
+                <Badge className="mt-2 bg-red-500 text-white">
+                  {paymentStats.pendientes} pendientes
+                </Badge>
+              )}
+            </div>
+          </div>
         </Link>
-        <Link to={createPageUrl("Announcements")}>
-          <Card className="border-none shadow-md hover:shadow-lg transition-shadow cursor-pointer bg-gradient-to-br from-orange-50 to-orange-100">
-            <CardContent className="p-4 text-center">
-              <MessageCircle className="w-8 h-8 text-orange-600 mx-auto mb-2" />
-              <p className="font-medium text-slate-900 text-sm">Anuncios</p>
-            </CardContent>
-          </Card>
+
+        <Link to={createPageUrl("ParentChat")} className="group">
+          <div className="relative bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 active:scale-95">
+            <div className="p-6 flex flex-col items-center justify-center min-h-[140px]">
+              <MessageCircle className="w-12 h-12 text-white mb-3" />
+              <h3 className="text-white font-bold text-center text-base">💬 Chat Equipo</h3>
+              {unreadMessages.length > 0 && (
+                <Badge className="mt-2 bg-red-500 text-white animate-pulse">
+                  {unreadMessages.length} nuevos
+                </Badge>
+              )}
+            </div>
+          </div>
         </Link>
-        <Link to={createPageUrl("ClubMembership")}>
-          <Card className="border-none shadow-md hover:shadow-lg transition-shadow cursor-pointer bg-gradient-to-br from-green-50 to-green-100">
-            <CardContent className="p-4 text-center">
-              <Award className="w-8 h-8 text-green-600 mx-auto mb-2" />
-              <p className="font-medium text-slate-900 text-sm">Hacerse Socio</p>
-            </CardContent>
-          </Card>
+
+        <Link to={createPageUrl("CalendarAndSchedules")} className="group">
+          <div className="relative bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 active:scale-95">
+            <div className="p-6 flex flex-col items-center justify-center min-h-[140px]">
+              <Calendar className="w-12 h-12 text-white mb-3" />
+              <h3 className="text-white font-bold text-center text-base">📅 Calendario</h3>
+            </div>
+          </div>
+        </Link>
+
+        <Link to={createPageUrl("ParentEventRSVP")} className="group">
+          <div className="relative bg-gradient-to-br from-cyan-500 to-cyan-600 rounded-2xl overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 active:scale-95">
+            <div className="p-6 flex flex-col items-center justify-center min-h-[140px]">
+              <Calendar className="w-12 h-12 text-white mb-3" />
+              <h3 className="text-white font-bold text-center text-base">🎉 Eventos Club</h3>
+            </div>
+          </div>
+        </Link>
+
+        <Link to={createPageUrl("Announcements")} className="group">
+          <div className="relative bg-gradient-to-br from-pink-500 to-pink-600 rounded-2xl overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 active:scale-95">
+            <div className="p-6 flex flex-col items-center justify-center min-h-[140px]">
+              <Megaphone className="w-12 h-12 text-white mb-3" />
+              <h3 className="text-white font-bold text-center text-base">📢 Anuncios</h3>
+            </div>
+          </div>
+        </Link>
+
+        <Link to={createPageUrl("Gallery")} className="group">
+          <div className="relative bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-2xl overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 active:scale-95">
+            <div className="p-6 flex flex-col items-center justify-center min-h-[140px]">
+              <Image className="w-12 h-12 text-white mb-3" />
+              <h3 className="text-white font-bold text-center text-base">🖼️ Galería</h3>
+            </div>
+          </div>
+        </Link>
+
+        <Link to={createPageUrl("Surveys")} className="group">
+          <div className="relative bg-gradient-to-br from-violet-500 to-violet-600 rounded-2xl overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 active:scale-95">
+            <div className="p-6 flex flex-col items-center justify-center min-h-[140px]">
+              <FileText className="w-12 h-12 text-white mb-3" />
+              <h3 className="text-white font-bold text-center text-base">📋 Encuestas</h3>
+            </div>
+          </div>
+        </Link>
+
+        <Link to={createPageUrl("ClubMembership")} className="group">
+          <div className="relative bg-gradient-to-br from-rose-500 to-rose-600 rounded-2xl overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 active:scale-95">
+            <div className="p-6 flex flex-col items-center justify-center min-h-[140px]">
+              <Heart className="w-12 h-12 text-white mb-3" />
+              <h3 className="text-white font-bold text-center text-base">🎫 Hacerse Socio</h3>
+            </div>
+          </div>
         </Link>
       </div>
     </div>
