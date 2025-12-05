@@ -11,9 +11,7 @@ export default function MessageContextMenu({
   onReply, 
   onReact,
   onClose,
-  position, // { x, y }
-  showReplyOption = true,
-  replyLabel = "Responder"
+  position // { x, y }
 }) {
   const [showReactions, setShowReactions] = useState(false);
 
@@ -105,15 +103,13 @@ export default function MessageContextMenu({
 
         {/* Opciones */}
         <div className="py-1">
-          {showReplyOption && (
-            <button
-              onClick={handleReply}
-              className="w-full px-4 py-2.5 flex items-center gap-3 hover:bg-green-50 transition-colors text-left"
-            >
-              <Reply className="w-4 h-4 text-green-600" />
-              <span className="text-sm font-medium text-green-700">{replyLabel}</span>
-            </button>
-          )}
+          <button
+            onClick={handleReply}
+            className="w-full px-4 py-2.5 flex items-center gap-3 hover:bg-slate-50 transition-colors text-left"
+          >
+            <Reply className="w-4 h-4 text-blue-600" />
+            <span className="text-sm font-medium text-slate-700">Responder</span>
+          </button>
           
           <button
             onClick={handleCopy}
@@ -123,7 +119,7 @@ export default function MessageContextMenu({
             <span className="text-sm font-medium text-slate-700">Copiar</span>
           </button>
 
-          {isOwnMessage && onDelete && (
+          {isOwnMessage && (
             <button
               onClick={handleDelete}
               className="w-full px-4 py-2.5 flex items-center gap-3 hover:bg-red-50 transition-colors text-left"
