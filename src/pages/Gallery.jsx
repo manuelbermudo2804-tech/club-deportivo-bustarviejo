@@ -127,8 +127,11 @@ export default function Gallery() {
     setShowForm(true);
   };
 
-  const canEdit = userRole === "admin";
+  const canEdit = userRole === "admin" || userRole === "coach";
   const isParentOrPlayer = userRole === "parent" || userRole === "player";
+  
+  // Categorías que puede gestionar el entrenador/coordinador
+  const coachCategories = user?.categorias_entrena || [];
 
   // Filter albums based on role and visibility
   // Por defecto los álbumes son visibles (visible_para_padres !== false)
