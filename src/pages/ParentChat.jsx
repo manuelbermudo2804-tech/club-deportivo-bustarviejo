@@ -533,7 +533,8 @@ export default function ParentChat() {
                             
                             {/* Botón responder en privado - SOLO si el mensaje es de un entrenador escribiendo directamente */}
                             {/* NO mostrar para mensajes automáticos de convocatorias, anuncios, encuestas, etc. */}
-                            {isCoachSender(msg) && !isAutomaticMessage(msg) && (
+                            {/* NO mostrar para mensajes de Coordinación Deportiva (son anuncios generales) */}
+                            {isCoachSender(msg) && !isAutomaticMessage(msg) && selectedCategory !== "Coordinación Deportiva" && (
                               <div className="bg-slate-50 px-4 py-2 border-t">
                                 <Button
                                   variant="ghost"
