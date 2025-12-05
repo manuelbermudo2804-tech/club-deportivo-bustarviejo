@@ -399,15 +399,58 @@ CDBUSTARVIEJO@GMAIL.COM
                   </div>
                 </CardHeader>
                 <CardContent className="p-6">
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                     {certificateTypes.map(cert => (
-                      <button key={cert.id} onClick={() => generatePDF(player, cert.id)} disabled={generating} className={`${cert.bgColor} rounded-2xl p-6 border-2 border-transparent hover:border-orange-300 transition-all hover:scale-105 active:scale-95 disabled:opacity-50`}>
-                        <div className={`w-14 h-14 rounded-xl bg-gradient-to-br ${cert.color} flex items-center justify-center mb-4 mx-auto shadow-lg`}><cert.icon className="w-7 h-7 text-white" /></div>
-                        <h3 className="font-bold text-lg text-slate-900 mb-2">{cert.id}</h3>
-                        <p className="text-xs text-slate-600">{cert.description}</p>
-                      </button>
+                      <div key={cert.id} className={`${cert.bgColor} rounded-2xl p-4 border-2 border-transparent hover:border-orange-300 transition-all`}>
+                        <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${cert.color} flex items-center justify-center mb-3 mx-auto shadow-lg`}>
+                          <cert.icon className="w-6 h-6 text-white" />
+                        </div>
+                        <h3 className="font-bold text-sm text-slate-900 mb-1 text-center">{cert.id}</h3>
+                        <p className="text-xs text-slate-600 text-center mb-3">{cert.description}</p>
+                        <div className="flex gap-2">
+                          <Button 
+                            size="sm" 
+                            onClick={() => cert.special ? setTorneoDialog({ open: true, player }) : generatePDF(player, cert.id)} 
+                            disabled={generating}
+                            className="flex-1 bg-slate-800 hover:bg-slate-900 text-xs"
+                          >
+                            <Download className="w-3 h-3 mr-1" />
+                            PDF
+                          </Button>
+                          <Button 
+                            size="sm" 
+                            variant="outline"
+                            onClick={() => {
+                              if (cert.special) {
+                                toast.info("Primero genera el certificado de torneo, luego podrás enviarlo");
+                              } else {
+                                setEmailDialog({ open: true, player, tipo: cert.id });
+                                setEmailDestino(user?.email || "");
+                              }
+                            }} 
+                            disabled={generating}
+                            className="text-xs"
+                          >
+                            <Mail className="w-3 h-3" />
+                          </Button>
+                        </div>
+                      </div>
                     ))}
                   </div>
+                  
+                  {/* Historial de certificados */}
+                  {getPlayerCertificates(player.id).length > 0 && (
+                    <div className="mt-6 pt-4 border-t">
+                      <Button 
+                        variant="ghost" 
+                        onClick={() => setHistoryDialog({ open: true, player })}
+                        className="w-full text-slate-600 hover:text-slate-900"
+                      >
+                        <History className="w-4 h-4 mr-2" />
+                        Ver historial ({getPlayerCertificates(player.id).length} certificados generados)
+                      </Button>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             ))
