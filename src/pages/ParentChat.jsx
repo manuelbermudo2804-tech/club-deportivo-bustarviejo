@@ -25,6 +25,7 @@ export default function ParentChat() {
   const [messageContent, setMessageContent] = useState("");
   const [attachments, setAttachments] = useState([]);
   const messagesEndRef = useRef(null);
+  const coordinationMessagesEndRef = useRef(null);
   const queryClient = useQueryClient();
 
   useEffect(() => {
