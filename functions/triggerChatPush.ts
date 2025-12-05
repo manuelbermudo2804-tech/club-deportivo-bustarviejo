@@ -1,7 +1,17 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.4';
+import webpush from 'npm:web-push@3.6.7';
 
-// Función para enviar push cuando hay un nuevo mensaje de chat
-// Llamar desde el frontend cuando se envía un mensaje importante
+const VAPID_PUBLIC_KEY = Deno.env.get("VAPID_PUBLIC_KEY");
+const VAPID_PRIVATE_KEY = Deno.env.get("FIREBASE_PRIVATE_KEY");
+
+// Configurar VAPID
+if (VAPID_PUBLIC_KEY && VAPID_PRIVATE_KEY) {
+  webpush.setVapidDetails(
+    'mailto:cdbustarviejo@gmail.com',
+    VAPID_PUBLIC_KEY,
+    VAPID_PRIVATE_KEY
+  );
+}
 
 Deno.serve(async (req) => {
   try {
@@ -24,6 +34,10 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Message content and recipients required' }, { status: 400 });
     }
 
+    if (!VAPID_PUBLIC_KEY || !VAPID_PRIVATE_KEY) {
+      return Response.json({ error: 'VAPID keys not configured', sent: 0 });
+    }
+
     // Obtener usuarios destinatarios con push habilitado
     const allUsers = await base44.asServiceRole.entities.User.list();
     const targetUsers = allUsers.filter(u => 
@@ -44,7 +58,7 @@ Deno.serve(async (req) => {
     const prioridadEmoji = prioridad === "Urgente" ? "🔴" : 
                           prioridad === "Importante" ? "🟠" : "💬";
 
-    const payload = {
+    const payload = JSON.stringify({
       title: `${prioridadEmoji} ${senderName || 'CD Bustarviejo'}`,
       body: messageContent.substring(0, 150) + (messageContent.length > 150 ? "..." : ""),
       icon: "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6911b8e453ca3ac01fb134d6/e3f0a8e26_logo_cd_bustarviejo_mediano.jpg",
@@ -54,40 +68,31 @@ Deno.serve(async (req) => {
         groupId: groupId,
         prioridad: prioridad
       }
-    };
+    });
 
     let sent = 0;
     let failed = 0;
 
     for (const targetUser of targetUsers) {
       try {
-        const subscriptionData = typeof targetUser.fcm_token === 'string' 
+        const subscription = typeof targetUser.fcm_token === 'string' 
           ? JSON.parse(targetUser.fcm_token) 
           : targetUser.fcm_token;
 
-        const response = await fetch(subscriptionData.endpoint, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'TTL': '86400'
-          },
-          body: JSON.stringify(payload)
-        });
-
-        if (response.ok) {
-          sent++;
-        } else {
-          failed++;
-          // Limpiar token inválido
-          if (response.status === 410 || response.status === 404) {
-            await base44.asServiceRole.entities.User.update(targetUser.id, {
-              fcm_token: null,
-              push_enabled: false
-            });
-          }
-        }
+        await webpush.sendNotification(subscription, payload);
+        sent++;
+        console.log(`✅ Chat push enviado a ${targetUser.email}`);
       } catch (err) {
         failed++;
+        console.error(`❌ Error push a ${targetUser.email}:`, err.message);
+        
+        // Limpiar token inválido
+        if (err.statusCode === 410 || err.statusCode === 404) {
+          await base44.asServiceRole.entities.User.update(targetUser.id, {
+            fcm_token: null,
+            push_enabled: false
+          });
+        }
       }
     }
 
