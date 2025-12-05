@@ -101,7 +101,7 @@ export default function PlayerDocumentsAndCards() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['certificates'] }),
   });
 
-  const generatePDF = async (player, tipo) => {
+  const generatePDF = async (player, tipo, sendEmail = false, emailTo = null, torneoInfo = null) => {
     setGenerating(true);
     try {
       const { jsPDF } = await import('jspdf');
