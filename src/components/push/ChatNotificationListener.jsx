@@ -137,6 +137,9 @@ export default function ChatNotificationListener({ user }) {
   }, [privateMessages, user]);
 
   const showNotification = (title, body, id, priority) => {
+    console.log('🔔 showNotification llamada:', { title, body: body?.substring(0, 30), id });
+    console.log('🔔 Notification.permission:', typeof window !== 'undefined' ? Notification?.permission : 'N/A');
+    
     if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted') {
       try {
         const emoji = priority === "Urgente" ? "🔴" : "💬";
@@ -146,9 +149,12 @@ export default function ChatNotificationListener({ user }) {
           tag: id,
           requireInteraction: false
         });
+        console.log('✅ Notificación creada');
       } catch (e) {
-        console.log('Notification error:', e);
+        console.log('❌ Notification error:', e);
       }
+    } else {
+      console.log('⚠️ Notificaciones NO habilitadas o no soportadas');
     }
   };
 
