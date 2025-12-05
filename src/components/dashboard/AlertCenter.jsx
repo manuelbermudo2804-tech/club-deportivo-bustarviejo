@@ -104,8 +104,8 @@ export default function AlertCenter({
     }
   }
 
-  // Alertas para entrenadores/coordinadores
-  if (isCoach || isAdmin) {
+  // Alertas para entrenadores/coordinadores (NO admin)
+  if (isCoach && !isAdmin) {
     if (pendingCallupResponses > 0) {
       alerts.push({
         id: "callup-responses",
@@ -141,41 +141,43 @@ export default function AlertCenter({
     }
   }
 
-  // Alertas comunes
-  if (unreadMessages > 0) {
-    alerts.push({
-      id: "messages",
-      icon: MessageCircle,
-      title: "Mensajes sin leer",
-      description: `${unreadMessages} mensaje${unreadMessages > 1 ? 's' : ''} nuevo${unreadMessages > 1 ? 's' : ''}`,
-      url: isAdmin ? createPageUrl("AdminChat") : isCoach ? createPageUrl("CoachChat") : createPageUrl("ParentChat"),
-      color: "bg-green-500",
-      priority: 5
-    });
-  }
+  // Alertas de mensajes solo para padres y entrenadores (NO admin)
+  if (!isAdmin) {
+    if (unreadMessages > 0) {
+      alerts.push({
+        id: "messages",
+        icon: MessageCircle,
+        title: "Mensajes sin leer",
+        description: `${unreadMessages} mensaje${unreadMessages > 1 ? 's' : ''} nuevo${unreadMessages > 1 ? 's' : ''}`,
+        url: isCoach ? createPageUrl("CoachChat") : createPageUrl("ParentChat"),
+        color: "bg-green-500",
+        priority: 5
+      });
+    }
 
-  if (unreadPrivateMessages > 0) {
-    alerts.push({
-      id: "private-messages",
-      icon: MessageCircle,
-      title: "📩 Mensajes privados",
-      description: `${unreadPrivateMessages} mensaje${unreadPrivateMessages > 1 ? 's' : ''} privado${unreadPrivateMessages > 1 ? 's' : ''} sin leer`,
-      url: isAdmin ? createPageUrl("AdminChat") : isCoach ? createPageUrl("CoachChat") : createPageUrl("ParentChat"),
-      color: "bg-blue-500",
-      priority: 2
-    });
-  }
+    if (unreadPrivateMessages > 0) {
+      alerts.push({
+        id: "private-messages",
+        icon: MessageCircle,
+        title: "📩 Mensajes privados",
+        description: `${unreadPrivateMessages} mensaje${unreadPrivateMessages > 1 ? 's' : ''} privado${unreadPrivateMessages > 1 ? 's' : ''} sin leer`,
+        url: isCoach ? createPageUrl("CoachChat") : createPageUrl("ParentChat"),
+        color: "bg-blue-500",
+        priority: 2
+      });
+    }
 
-  if (upcomingEvents > 0) {
-    alerts.push({
-      id: "events",
-      icon: Calendar,
-      title: "Eventos próximos",
-      description: `${upcomingEvents} evento${upcomingEvents > 1 ? 's' : ''} esta semana`,
-      url: createPageUrl("ParentEventRSVP"),
-      color: "bg-cyan-500",
-      priority: 6
-    });
+    if (upcomingEvents > 0) {
+      alerts.push({
+        id: "events",
+        icon: Calendar,
+        title: "Eventos próximos",
+        description: `${upcomingEvents} evento${upcomingEvents > 1 ? 's' : ''} esta semana`,
+        url: createPageUrl("ParentEventRSVP"),
+        color: "bg-cyan-500",
+        priority: 6
+      });
+    }
   }
 
   // Alertas para admin
