@@ -351,11 +351,18 @@ export default function CoachChat() {
 
     const msgText = messageContent || "(Archivo adjunto)";
     
+    // Determinar nombre del remitente según el rol
+    const senderName = isCoordinator 
+      ? "Coordinación Deportiva" 
+      : isCoach 
+        ? `${user.full_name} (Entrenador)` 
+        : user.full_name || "Staff";
+    
     // Mensaje optimista - aparece inmediatamente
     const optimisticMsg = {
       id: `temp-${Date.now()}`,
       remitente_email: user.email,
-      remitente_nombre: user.full_name || "Staff",
+      remitente_nombre: senderName,
       mensaje: msgText,
       prioridad: priority,
       tipo: "admin_a_grupo",
@@ -374,7 +381,7 @@ export default function CoachChat() {
     
     sendMessageMutation.mutate({
       remitente_email: user.email,
-      remitente_nombre: user.full_name || "Staff",
+      remitente_nombre: senderName,
       mensaje: msgText,
       prioridad: priority,
       tipo: "admin_a_grupo",
