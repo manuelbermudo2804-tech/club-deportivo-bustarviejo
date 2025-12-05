@@ -258,6 +258,59 @@ export default function PlayerDocumentsAndCards() {
       doc.setFont(undefined, 'normal');
       doc.text("CDBUSTARVIEJO@GMAIL.COM", 105, 293, { align: "center" });
       
+      // Guardar en historial
+      const certificateData = {
+        jugador_id: player.id,
+        jugador_nombre: player.nombre,
+        tipo_certificado: tipo,
+        temporada: season,
+        categoria: player.deporte,
+        fecha_emision: new Date().toISOString(),
+        codigo_verificacion: codigo,
+        datos_certificado: { detalles },
+        solicitado_por: user?.email,
+        enviado_por_email: sendEmail,
+        email_destino: emailTo || null,
+        nombre_torneo: torneoInfo?.nombre || null,
+        fecha_torneo: torneoInfo?.fecha || null,
+        posicion_torneo: torneoInfo?.posicion || null
+      };
+      
+      saveCertificateMutation.mutate(certificateData);
+
+      if (sendEmail && emailTo) {
+        // Enviar por email
+        const pdfBase64 = doc.output('datauristring');
+        try {
+          await base44.integrations.Core.SendEmail({
+            to: emailTo,
+            subject: `Certificado de ${tipo} - ${player.nombre} - CD Bustarviejo`,
+            body: `
+Estimado/a,
+
+Adjunto encontrará el certificado de ${tipo} solicitado para ${player.nombre}.
+
+Datos del certificado:
+- Tipo: ${tipo}
+- Jugador: ${player.nombre}
+- Categoría: ${player.deporte}
+- Temporada: ${season}
+- Código de verificación: ${codigo}
+
+Este certificado ha sido emitido digitalmente por el Club Deportivo Bustarviejo.
+
+Un saludo,
+CD Bustarviejo
+CDBUSTARVIEJO@GMAIL.COM
+            `.trim()
+          });
+          toast.success(`✅ Certificado enviado a ${emailTo}`);
+        } catch (emailError) {
+          console.error("Error sending email:", emailError);
+          toast.error("El certificado se generó pero falló el envío por email");
+        }
+      }
+
       doc.save(`Certificado-${tipo}-${player.nombre}-${season}.pdf`);
       toast.success("✅ Certificado generado");
     } catch (error) {
@@ -265,6 +318,30 @@ export default function PlayerDocumentsAndCards() {
       toast.error("Error al generar el certificado");
     }
     setGenerating(false);
+  };
+
+  const handleEmailCertificate = () => {
+    if (!emailDestino) {
+      toast.error("Introduce un email válido");
+      return;
+    }
+    generatePDF(emailDialog.player, emailDialog.tipo, true, emailDestino);
+    setEmailDialog({ open: false, player: null, tipo: null });
+    setEmailDestino("");
+  };
+
+  const handleTorneoCertificate = () => {
+    if (!torneoData.nombre) {
+      toast.error("El nombre del torneo es obligatorio");
+      return;
+    }
+    generatePDF(torneoDialog.player, "Participación en Torneo", false, null, torneoData);
+    setTorneoDialog({ open: false, player: null });
+    setTorneoData({ nombre: "", fecha: "", posicion: "" });
+  };
+
+  const getPlayerCertificates = (playerId) => {
+    return certificates.filter(c => c.jugador_id === playerId);
   };
 
   const downloadCard = async (player) => {
