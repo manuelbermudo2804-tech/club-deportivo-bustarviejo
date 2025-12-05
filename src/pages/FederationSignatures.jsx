@@ -4,7 +4,9 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { FileSignature, ExternalLink, CheckCircle2, Clock, AlertCircle, User } from "lucide-react";
+import { Progress } from "@/components/ui/progress";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { FileSignature, ExternalLink, CheckCircle2, Clock, AlertCircle, User, HelpCircle, ChevronRight, MousePointer, Edit3, ArrowRight } from "lucide-react";
 import { toast } from "sonner";
 import { usePageTutorial } from "../components/tutorials/useTutorial";
 
@@ -14,6 +16,7 @@ export default function FederationSignatures() {
   
   const [user, setUser] = useState(null);
   const [visitedLinks, setVisitedLinks] = useState({});
+  const [showTutorial, setShowTutorial] = useState(false);
   const queryClient = useQueryClient();
 
   // Cargar enlaces visitados desde localStorage al inicio
@@ -331,15 +334,71 @@ export default function FederationSignatures() {
     );
   }
 
+  // Calcular estadísticas de progreso
+  const totalSignaturesNeeded = myPlayers.reduce((count, p) => {
+    const hasEnlaceJugador = !!p.enlace_firma_jugador;
+    const hasEnlaceTutor = !!p.enlace_firma_tutor;
+    const esMayorDeEdad = calcularEdad(p.fecha_nacimiento) >= 18;
+    let needed = 0;
+    if (hasEnlaceJugador) needed++;
+    if (hasEnlaceTutor && !esMayorDeEdad) needed++;
+    return count + needed;
+  }, 0);
+
+  const completedSignatures = myPlayers.reduce((count, p) => {
+    const hasEnlaceJugador = !!p.enlace_firma_jugador;
+    const hasEnlaceTutor = !!p.enlace_firma_tutor;
+    const firmaJugadorOk = p.firma_jugador_completada === true;
+    const firmaTutorOk = p.firma_tutor_completada === true;
+    const esMayorDeEdad = calcularEdad(p.fecha_nacimiento) >= 18;
+    let completed = 0;
+    if (hasEnlaceJugador && firmaJugadorOk) completed++;
+    if (hasEnlaceTutor && !esMayorDeEdad && firmaTutorOk) completed++;
+    return count + completed;
+  }, 0);
+
+  const progressPercent = totalSignaturesNeeded > 0 ? Math.round((completedSignatures / totalSignaturesNeeded) * 100) : 0;
+
   return (
     <div className="p-6 lg:p-8 space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold text-slate-900 flex items-center gap-2">
-          <FileSignature className="w-8 h-8 text-orange-600" />
-          Firmas de Federación
-        </h1>
-        <p className="text-slate-600 mt-1">Gestiona las firmas digitales de tus jugadores</p>
+      <div className="flex items-start justify-between">
+        <div>
+          <h1 className="text-3xl font-bold text-slate-900 flex items-center gap-2">
+            <FileSignature className="w-8 h-8 text-orange-600" />
+            Firmas de Federación
+          </h1>
+          <p className="text-slate-600 mt-1">Gestiona las firmas digitales de tus jugadores</p>
+        </div>
+        <Button variant="outline" onClick={() => setShowTutorial(true)} className="gap-2">
+          <HelpCircle className="w-4 h-4" />
+          ¿Cómo firmar?
+        </Button>
       </div>
+
+      {/* Barra de progreso global */}
+      {totalSignaturesNeeded > 0 && (
+        <Card className={`border-2 ${progressPercent === 100 ? 'border-green-300 bg-green-50' : 'border-orange-200 bg-orange-50'}`}>
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between mb-2">
+              <span className="font-semibold text-slate-700">Progreso de Firmas</span>
+              <span className={`font-bold text-lg ${progressPercent === 100 ? 'text-green-600' : 'text-orange-600'}`}>
+                {completedSignatures} / {totalSignaturesNeeded} ({progressPercent}%)
+              </span>
+            </div>
+            <Progress value={progressPercent} className="h-3" />
+            {progressPercent === 100 ? (
+              <p className="text-sm text-green-700 mt-2 flex items-center gap-1">
+                <CheckCircle2 className="w-4 h-4" />
+                ¡Todas las firmas completadas! 🎉
+              </p>
+            ) : (
+              <p className="text-sm text-orange-700 mt-2">
+                Quedan {totalSignaturesNeeded - completedSignatures} firma{totalSignaturesNeeded - completedSignatures !== 1 ? 's' : ''} pendiente{totalSignaturesNeeded - completedSignatures !== 1 ? 's' : ''}
+              </p>
+            )}
+          </CardContent>
+        </Card>
+      )}
 
       {/* Alerta de pendientes */}
       {playersWithPendingSignatures.length > 0 && (
@@ -411,6 +470,91 @@ export default function FederationSignatures() {
           </p>
         </div>
       )}
+
+      {/* Tutorial Visual Dialog */}
+      <Dialog open={showTutorial} onOpenChange={setShowTutorial}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-xl">
+              <HelpCircle className="w-6 h-6 text-orange-600" />
+              Cómo Firmar en la Federación
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-6 py-4">
+            {/* Paso 1 */}
+            <div className="flex gap-4 items-start">
+              <div className="w-10 h-10 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-lg flex-shrink-0">
+                1
+              </div>
+              <div className="flex-1">
+                <h4 className="font-bold text-slate-900 mb-1">Pulsa el botón azul "Abrir enlace para firmar"</h4>
+                <p className="text-sm text-slate-600 mb-2">Se abrirá la web de la Federación de Fútbol de Madrid en una nueva pestaña.</p>
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 flex items-center gap-2">
+                  <MousePointer className="w-5 h-5 text-blue-600" />
+                  <span className="text-sm text-blue-800">Haz clic en el botón azul</span>
+                  <ArrowRight className="w-4 h-4 text-blue-600" />
+                  <div className="bg-blue-600 text-white px-3 py-1 rounded text-xs">Abrir enlace</div>
+                </div>
+              </div>
+            </div>
+
+            {/* Paso 2 */}
+            <div className="flex gap-4 items-start">
+              <div className="w-10 h-10 rounded-full bg-orange-600 text-white flex items-center justify-center font-bold text-lg flex-shrink-0">
+                2
+              </div>
+              <div className="flex-1">
+                <h4 className="font-bold text-slate-900 mb-1">Completa la firma en la web de la Federación</h4>
+                <p className="text-sm text-slate-600 mb-2">Sigue las instrucciones de la web. Normalmente tendrás que:</p>
+                <ul className="text-sm text-slate-600 space-y-1 ml-4 list-disc">
+                  <li>Introducir tu DNI o datos personales</li>
+                  <li>Dibujar tu firma con el dedo o ratón</li>
+                  <li>Confirmar y enviar</li>
+                </ul>
+                <div className="bg-orange-50 border border-orange-200 rounded-lg p-3 mt-2 flex items-center gap-2">
+                  <Edit3 className="w-5 h-5 text-orange-600" />
+                  <span className="text-sm text-orange-800">Dibuja tu firma en el recuadro que aparece</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Paso 3 */}
+            <div className="flex gap-4 items-start">
+              <div className="w-10 h-10 rounded-full bg-green-600 text-white flex items-center justify-center font-bold text-lg flex-shrink-0">
+                3
+              </div>
+              <div className="flex-1">
+                <h4 className="font-bold text-slate-900 mb-1">Vuelve aquí y marca como completada</h4>
+                <p className="text-sm text-slate-600 mb-2">Una vez hayas firmado en la Federación, vuelve a esta página y pulsa el botón verde.</p>
+                <div className="bg-green-50 border border-green-200 rounded-lg p-3 flex items-center gap-2">
+                  <CheckCircle2 className="w-5 h-5 text-green-600" />
+                  <span className="text-sm text-green-800">Pulsa "Ya he firmado - Marcar como completada"</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Nota importante */}
+            <div className="bg-yellow-50 border-2 border-yellow-300 rounded-xl p-4">
+              <div className="flex items-start gap-3">
+                <AlertCircle className="w-6 h-6 text-yellow-600 flex-shrink-0 mt-0.5" />
+                <div>
+                  <h4 className="font-bold text-yellow-900">⚠️ Importante</h4>
+                  <ul className="text-sm text-yellow-800 mt-1 space-y-1">
+                    <li>• <strong>Firma del Jugador:</strong> La hace el propio jugador (o el padre si es muy pequeño)</li>
+                    <li>• <strong>Firma del Tutor:</strong> La hace el padre/madre/tutor legal (solo si es menor de 18)</li>
+                    <li>• Si tienes problemas, contacta con el club: <strong>cdbustarviejo@gmail.com</strong></li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div className="flex justify-end">
+            <Button onClick={() => setShowTutorial(false)} className="bg-orange-600 hover:bg-orange-700">
+              Entendido
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

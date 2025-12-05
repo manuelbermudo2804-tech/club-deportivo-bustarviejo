@@ -382,6 +382,51 @@ CDBUSTARVIEJO@GMAIL.COM
     setGenerating(false);
   };
 
+  // Descarga combinada: frontal + trasera en un solo PDF
+  const downloadCardPDF = async (player) => {
+    setGenerating(true);
+    const cardFront = cardRefs.current[player.id];
+    const cardBack = cardRefs.current[`${player.id}_back`];
+    
+    if (!cardFront || !cardBack) { 
+      toast.error("Error: Carnet no encontrado"); 
+      setGenerating(false); 
+      return; 
+    }
+    
+    try {
+      const html2canvas = (await import('html2canvas')).default;
+      
+      // Capturar frontal
+      const canvasFront = await html2canvas(cardFront, { backgroundColor: '#ffffff', scale: 2 });
+      // Capturar trasera
+      const canvasBack = await html2canvas(cardBack, { backgroundColor: '#ffffff', scale: 2 });
+      
+      // Crear PDF con tamaño de tarjeta de crédito (85.6mm x 53.98mm)
+      const pdf = new jsPDF({
+        orientation: 'landscape',
+        unit: 'mm',
+        format: [85.6, 53.98]
+      });
+      
+      // Añadir frontal
+      const imgFront = canvasFront.toDataURL('image/png');
+      pdf.addImage(imgFront, 'PNG', 0, 0, 85.6, 53.98);
+      
+      // Nueva página para la trasera
+      pdf.addPage([85.6, 53.98], 'landscape');
+      const imgBack = canvasBack.toDataURL('image/png');
+      pdf.addImage(imgBack, 'PNG', 0, 0, 85.6, 53.98);
+      
+      pdf.save(`carnet_completo_${player.nombre.replace(/\s+/g, '_')}.pdf`);
+      toast.success("✅ Carnet completo descargado (frontal + trasera)");
+    } catch (error) {
+      console.error('Error downloading card PDF:', error);
+      toast.error("Error al generar el PDF");
+    }
+    setGenerating(false);
+  };
+
   const certificateTypes = [
     { id: "Inscripción", icon: FileText, color: "from-blue-500 to-blue-600", bgColor: "bg-blue-50", description: "Certifica la inscripción del jugador" },
     { id: "Pagos al Día", icon: CheckCircle2, color: "from-green-500 to-green-600", bgColor: "bg-green-50", description: "Certifica que no hay pagos pendientes" },
@@ -560,15 +605,21 @@ CDBUSTARVIEJO@GMAIL.COM
                     </Card>
                   </div>
 
-                  <div className="flex gap-2">
-                    <Button onClick={() => downloadCard(player)} className="flex-1 bg-orange-600 hover:bg-orange-700" disabled={generating}>
-                      <Download className="w-4 h-4 mr-2" />
-                      Descargar Frontal
+                  <div className="space-y-2">
+                    <Button onClick={() => downloadCardPDF(player)} className="w-full bg-orange-600 hover:bg-orange-700" disabled={generating}>
+                      <FileDown className="w-4 h-4 mr-2" />
+                      📄 Descargar Carnet Completo (PDF)
                     </Button>
-                    <Button onClick={() => downloadCardBack(player)} variant="outline" className="flex-1 border-orange-600 text-orange-600 hover:bg-orange-50" disabled={generating}>
-                      <RotateCcw className="w-4 h-4 mr-2" />
-                      Descargar Trasera
-                    </Button>
+                    <div className="flex gap-2">
+                      <Button onClick={() => downloadCard(player)} variant="outline" size="sm" className="flex-1 text-xs" disabled={generating}>
+                        <Download className="w-3 h-3 mr-1" />
+                        Solo Frontal
+                      </Button>
+                      <Button onClick={() => downloadCardBack(player)} variant="outline" size="sm" className="flex-1 text-xs" disabled={generating}>
+                        <RotateCcw className="w-3 h-3 mr-1" />
+                        Solo Trasera
+                      </Button>
+                    </div>
                   </div>
                 </div>
               ))
