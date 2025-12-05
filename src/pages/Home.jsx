@@ -415,11 +415,31 @@ export default function Home() {
       });
     }
 
+    // Calcular respuestas pendientes de convocatorias (para entrenadores/admin)
+    let pendingCallupResponses = 0;
+    if ((isAdmin || isCoach || isCoordinator) && callups) {
+      const today = new Date().toISOString().split('T')[0];
+      const coachCategories = user?.categorias_entrena || [];
+      
+      callups.forEach(callup => {
+        if (callup.publicada && callup.fecha_partido >= today && !callup.cerrada) {
+          const isMyCategory = isAdmin || coachCategories.includes(callup.categoria);
+          if (isMyCategory) {
+            callup.jugadores_convocados?.forEach(jugador => {
+              if (jugador.confirmacion === "pendiente") {
+                pendingCallupResponses++;
+              }
+            });
+          }
+        }
+      });
+    }
+
     return { 
       activePlayers, pendingPayments, reviewPayments, paidPayments, unreadMessages, unreadPrivateMessages,
       pendingCallups, pendingSignatures, adminPendingSignatures, pendingPlayerAccess,
       pendingClothingOrders, pendingLotteryOrders, pendingMemberRequests, 
-      recentSurveyResponses, pendingEventConfirmations
+      recentSurveyResponses, pendingEventConfirmations, pendingCallupResponses
     };
   }, [players, payments, messages, callups, user, hasPlayers, isAdmin, allUsers, clothingOrders, lotteryOrders, clubMembers, surveyResponses, events, privateConversations]);
 
