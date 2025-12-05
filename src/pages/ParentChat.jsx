@@ -22,6 +22,7 @@ const FAMILIES_CAN_SEND_ATTACHMENTS = true;
 export default function ParentChat() {
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [activePrivateChat, setActivePrivateChat] = useState(null); // conversación privada activa
+  const [coordinationTab, setCoordinationTab] = useState("chat"); // "anuncios" o "chat"
   const [user, setUser] = useState(null);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   const [messageContent, setMessageContent] = useState("");
