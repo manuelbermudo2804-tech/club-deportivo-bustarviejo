@@ -866,7 +866,7 @@ export default function Home() {
       // 2. GESTIÓN DEPORTIVA
       items.push(
         {
-          title: "📋 Asistencia",
+          title: "📋 Asistencia y Evaluación",
           icon: CheckCircle2,
           url: createPageUrl("TeamAttendanceEvaluation"),
           gradient: "from-green-600 to-green-700",
@@ -882,13 +882,25 @@ export default function Home() {
           icon: Star,
           url: createPageUrl("CoachEvaluationReports"),
           gradient: "from-purple-600 to-purple-700",
+        },
+        {
+          title: "📚 Biblioteca Ejercicios",
+          icon: BookOpen,
+          url: createPageUrl("ExerciseLibrary"),
+          gradient: "from-cyan-600 to-cyan-700",
+        },
+        {
+          title: "🎯 Pizarra Táctica",
+          icon: BarChart3,
+          url: createPageUrl("TacticsBoard"),
+          gradient: "from-slate-600 to-slate-700",
         }
       );
 
       // Firmas Federación solo si tiene permiso
       if (user?.puede_gestionar_firmas) {
         items.push({
-          title: "🖊️ Firmas",
+          title: "🖊️ Firmas Federación",
           icon: FileSignature,
           url: createPageUrl("FederationSignaturesAdmin"),
           gradient: "from-yellow-600 to-orange-600",
@@ -910,9 +922,15 @@ export default function Home() {
           gradient: "from-pink-600 to-pink-700",
         },
         {
-          title: "🎉 Eventos",
+          title: "🎉 Eventos Club",
           icon: Calendar,
           url: createPageUrl("ParentEventRSVP"),
+          gradient: "from-indigo-600 to-indigo-700",
+        },
+        {
+          title: "🖼️ Galería",
+          icon: Image,
+          url: createPageUrl("Gallery"),
           gradient: "from-indigo-600 to-indigo-700",
         }
       );

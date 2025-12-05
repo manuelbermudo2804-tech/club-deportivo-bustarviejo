@@ -974,7 +974,6 @@ export default function Layout({ children, currentPageName }) {
     { title: "🏠 Inicio", url: createPageUrl("Home"), icon: Home },
     { title: "📊 Panel Financiero", url: createPageUrl("TreasurerDashboard"), icon: CreditCard },
     { title: "💳 Pagos", url: createPageUrl("Payments"), icon: CreditCard },
-    { title: "💰 Pagos Extras", url: createPageUrl("ExtraPayments"), icon: CreditCard }, // Siempre visible para admin
     { title: "🔔 Recordatorios", url: createPageUrl("Reminders"), icon: Bell },
     { title: "📁 Histórico", url: createPageUrl("PaymentHistory"), icon: Archive },
 
@@ -1069,7 +1068,6 @@ export default function Layout({ children, currentPageName }) {
     // 💰 FINANZAS (trabajo principal)
     { title: "📊 Panel Financiero", url: createPageUrl("TreasurerDashboard"), icon: CreditCard },
     { title: "💳 Pagos", url: createPageUrl("Payments"), icon: CreditCard },
-    { title: "💰 Pagos Extras", url: createPageUrl("ExtraPayments"), icon: CreditCard }, // Siempre visible para tesorero
     { title: "🔔 Recordatorios", url: createPageUrl("Reminders"), icon: Bell },
     { title: "📁 Histórico Pagos", url: createPageUrl("PaymentHistory"), icon: Archive },
 
