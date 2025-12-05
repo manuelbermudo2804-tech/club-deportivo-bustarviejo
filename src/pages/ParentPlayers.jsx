@@ -783,6 +783,7 @@ Email: cdbustarviejo@gmail.com
                         schedules={schedules}
                         payments={payments}
                         seasonConfig={seasonConfig}
+                        callups={callups}
                       />
                       <AchievementsBadges 
                         player={player} 
@@ -813,6 +814,7 @@ Email: cdbustarviejo@gmail.com
                         schedules={schedules}
                         payments={payments}
                         seasonConfig={seasonConfig}
+                        callups={callups}
                       />
                       <AchievementsBadges 
                         player={player} 
@@ -843,6 +845,7 @@ Email: cdbustarviejo@gmail.com
                         schedules={schedules}
                         payments={payments}
                         seasonConfig={seasonConfig}
+                        callups={callups}
                       />
                       <AchievementsBadges 
                         player={player} 
