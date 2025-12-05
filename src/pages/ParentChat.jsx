@@ -610,52 +610,53 @@ export default function ParentChat() {
                       </div>
                     </div>
                   ) : (
-                    currentAnnouncements
-                      .sort((a, b) => new Date(a.created_date) - new Date(b.created_date))
-                      .map((msg) => (
-                        <div key={msg.id} className="flex justify-start">
+                    groupMessagesByDate(currentAnnouncements).map((item, idx) => 
+                      item.type === 'date' ? (
+                        <DateSeparator key={`date-${idx}`} date={item.date} />
+                      ) : (
+                        <div key={item.data.id} className="flex justify-start">
                           <div className="max-w-[90%] rounded-xl shadow-sm overflow-hidden bg-white">
                             <div className="px-4 py-3">
                               <div className="flex items-center gap-2 mb-2">
                                 <span className="text-xs font-bold text-orange-700">
-                                  🏃 {msg.remitente_nombre || "Entrenador"}
+                                  🏃 {item.data.remitente_nombre || "Entrenador"}
                                 </span>
-                                {msg.prioridad !== "Normal" && (
-                                  <Badge className={msg.prioridad === "Urgente" ? "bg-red-500" : "bg-yellow-500"}>
-                                    {msg.prioridad}
+                                {item.data.prioridad !== "Normal" && (
+                                  <Badge className={item.data.prioridad === "Urgente" ? "bg-red-500" : "bg-yellow-500"}>
+                                    {item.data.prioridad}
                                   </Badge>
                                 )}
                                 <span className="text-[10px] ml-auto text-slate-400">
-                                  {format(new Date(msg.created_date), "d MMM HH:mm", { locale: es })}
+                                  {format(new Date(item.data.created_date), "HH:mm", { locale: es })}
                                 </span>
                               </div>
-                              <p className="text-sm leading-relaxed whitespace-pre-wrap text-slate-800">{msg.mensaje}</p>
+                              <p className="text-sm leading-relaxed whitespace-pre-wrap text-slate-800">{item.data.mensaje}</p>
 
-                              {msg.poll && (
+                              {item.data.poll && (
                                 <PollMessage 
-                                  poll={msg.poll} 
+                                  poll={item.data.poll} 
                                   onVote={(msgId, optIdx) => voteOnPollMutation.mutate({ messageId: msgId, optionIndex: optIdx })}
                                   userEmail={user?.email}
-                                  messageId={msg.id}
+                                  messageId={item.data.id}
                                 />
                               )}
 
-                              {msg.archivos_adjuntos?.length > 0 && (
+                              {item.data.archivos_adjuntos?.length > 0 && (
                                 <div className="mt-2">
-                                  <MessageAttachments attachments={msg.archivos_adjuntos} />
+                                  <MessageAttachments attachments={item.data.archivos_adjuntos} />
                                 </div>
                               )}
                             </div>
-                            
+
                             {/* Botón responder en privado - SOLO si el mensaje es de un entrenador escribiendo directamente */}
                             {/* NO mostrar para mensajes automáticos de convocatorias, anuncios, encuestas, etc. */}
                             {/* NO mostrar para mensajes de Coordinación Deportiva (son anuncios generales) */}
-                            {isCoachSender(msg) && !isAutomaticMessage(msg) && selectedCategory !== "Coordinación Deportiva" && (
+                            {isCoachSender(item.data) && !isAutomaticMessage(item.data) && selectedCategory !== "Coordinación Deportiva" && (
                               <div className="bg-slate-50 px-4 py-2 border-t">
                                 <Button
                                   variant="ghost"
                                   size="sm"
-                                  onClick={() => handleReplyPrivate(msg.remitente_email)}
+                                  onClick={() => handleReplyPrivate(item.data.remitente_email)}
                                   disabled={createOrOpenPrivateChat.isPending}
                                   className="text-green-700 hover:text-green-800 hover:bg-green-50 w-full justify-center gap-2"
                                 >
@@ -666,7 +667,8 @@ export default function ParentChat() {
                             )}
                           </div>
                         </div>
-                      ))
+                      )
+                    )
                   )}
                   <div ref={messagesEndRef} />
                 </div>
