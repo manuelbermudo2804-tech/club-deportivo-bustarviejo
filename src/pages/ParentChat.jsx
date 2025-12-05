@@ -211,6 +211,13 @@ export default function ParentChat() {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [currentAnnouncements, privateMessages]);
 
+  // Scroll para anuncios de Coordinación Deportiva
+  useEffect(() => {
+    if (selectedCategory === "Coordinación Deportiva" && currentAnnouncements.length > 0) {
+      coordinationMessagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [currentAnnouncements, selectedCategory]);
+
   // Verificar si el remitente es entrenador (siempre true para mensajes admin_a_grupo ya que vienen de entrenadores)
   const isCoachSender = (msg) => {
     // Todos los mensajes admin_a_grupo en equipos son de entrenadores/coordinadores
