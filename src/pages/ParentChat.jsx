@@ -472,77 +472,60 @@ export default function ParentChat() {
         <div className="lg:col-span-3">
           {selectedCategory ? (
             selectedCategory === "Coordinación Deportiva" ? (
-              /* Coordinación Deportiva: mostrar anuncios generales + chat privado */
-              <div className="space-y-4">
-                {/* Sección de Anuncios Generales del Coordinador - Compacta */}
-                {currentAnnouncements.length > 0 && (
-                  <div className="bg-white rounded-xl shadow-md border overflow-hidden">
-                    <div className="bg-gradient-to-r from-cyan-600 to-cyan-700 p-2 text-white flex items-center gap-2">
-                      <span className="text-lg">📢</span>
-                      <div className="flex-1">
-                        <h2 className="font-bold text-sm">Anuncios ({currentAnnouncements.length})</h2>
-                      </div>
+              /* Coordinación Deportiva: Pestañas Anuncios / Chat Privado */
+              <div className="bg-white rounded-xl shadow-md border overflow-hidden flex flex-col" style={{ height: '70vh' }}>
+                {/* Header con pestañas */}
+                <div className="bg-gradient-to-r from-cyan-600 to-cyan-700 text-white flex-shrink-0">
+                  <div className="flex items-center gap-3 p-3 border-b border-cyan-500/30">
+                    <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
+                      <span className="text-xl">🎓</span>
                     </div>
-                    <div className="max-h-[25vh] overflow-y-auto p-2 space-y-2" style={{ backgroundColor: '#e5ddd5' }}>
-                      {groupMessagesByDate(currentAnnouncements).map((item, idx) => 
-                        item.type === 'date' ? (
-                          <DateSeparator key={`date-${idx}`} date={item.date} />
-                        ) : (
-                          <div key={item.data.id} className="bg-white rounded-lg shadow-sm border border-cyan-200 p-3">
-                            <div className="flex items-start gap-2">
-                              <div className="w-8 h-8 rounded-full bg-cyan-100 flex items-center justify-center flex-shrink-0">
-                                <span className="text-sm">🎓</span>
-                              </div>
-                              <div className="flex-1 min-w-0">
-                                <div className="flex items-center gap-2 mb-1">
-                                  <span className="text-xs font-bold text-cyan-700">
-                                    {item.data.remitente_nombre || "Coordinador"}
-                                  </span>
-                                  {item.data.prioridad !== "Normal" && (
-                                    <Badge className={`${item.data.prioridad === "Urgente" ? "bg-red-500" : "bg-yellow-500"} text-white text-[10px] px-1.5 py-0`}>
-                                      {item.data.prioridad === "Urgente" ? "🚨" : "⚠️"}
-                                    </Badge>
-                                  )}
-                                  <span className="text-[10px] text-slate-400 ml-auto">
-                                    {format(new Date(item.data.created_date), "d MMM HH:mm", { locale: es })}
-                                  </span>
-                                </div>
-                                <p className="text-sm text-slate-800 whitespace-pre-wrap line-clamp-3">{item.data.mensaje}</p>
-                                {item.data.poll && (
-                                  <div className="mt-2">
-                                    <PollMessage 
-                                      poll={item.data.poll} 
-                                      onVote={(msgId, optIdx) => voteOnPollMutation.mutate({ messageId: msgId, optionIndex: optIdx })}
-                                      userEmail={user?.email}
-                                      messageId={item.data.id}
-                                    />
-                                  </div>
-                                )}
-                                {item.data.archivos_adjuntos?.length > 0 && (
-                                  <div className="mt-2">
-                                    <MessageAttachments attachments={item.data.archivos_adjuntos} />
-                                  </div>
-                                )}
-                              </div>
-                            </div>
-                          </div>
-                        )
-                      )}
-                      <div ref={coordinationMessagesEndRef} />
-                    </div>
-                  </div>
-                )}
-
-                {/* Chat privado con coordinador */}
-                <div className="bg-white rounded-xl shadow-md border overflow-hidden flex-1">
-                  <div className="bg-gradient-to-r from-green-600 to-green-700 p-2 text-white flex items-center gap-2">
-                    <Lock className="w-4 h-4" />
                     <div className="flex-1">
-                      <h2 className="font-bold text-sm">💬 Chat Privado</h2>
+                      <h2 className="font-bold">Coordinación Deportiva</h2>
+                      <p className="text-xs text-cyan-100">Comunicación directa con el coordinador</p>
                     </div>
                   </div>
-                  {activePrivateChat ? (
-                    <div style={{ height: currentAnnouncements.length > 0 ? '45vh' : '60vh' }}>
+                  {/* Tabs */}
+                  <div className="flex">
+                    <button
+                      onClick={() => setCoordinationTab("chat")}
+                      className={`flex-1 py-3 px-4 text-sm font-semibold flex items-center justify-center gap-2 transition-colors ${
+                        coordinationTab === "chat" 
+                          ? "bg-white text-cyan-700" 
+                          : "text-white/80 hover:text-white hover:bg-white/10"
+                      }`}
+                    >
+                      <Lock className="w-4 h-4" />
+                      💬 Chat Privado
+                      {getPrivateUnreadCount("Coordinación Deportiva") > 0 && (
+                        <Badge className="bg-green-500 text-white text-xs ml-1 animate-pulse">
+                          {getPrivateUnreadCount("Coordinación Deportiva")}
+                        </Badge>
+                      )}
+                    </button>
+                    <button
+                      onClick={() => setCoordinationTab("anuncios")}
+                      className={`flex-1 py-3 px-4 text-sm font-semibold flex items-center justify-center gap-2 transition-colors ${
+                        coordinationTab === "anuncios" 
+                          ? "bg-white text-cyan-700" 
+                          : "text-white/80 hover:text-white hover:bg-white/10"
+                      }`}
+                    >
+                      📢 Anuncios
+                      {currentAnnouncements.length > 0 && (
+                        <Badge className="bg-blue-500 text-white text-xs ml-1">
+                          {currentAnnouncements.length}
+                        </Badge>
+                      )}
+                    </button>
+                  </div>
+                </div>
+
+                {/* Contenido según pestaña */}
+                <div className="flex-1 overflow-hidden">
+                  {coordinationTab === "chat" ? (
+                    /* Chat Privado */
+                    activePrivateChat ? (
                       <PrivateChatPanel
                         conversation={activePrivateChat}
                         messages={privateMessages}
@@ -555,21 +538,79 @@ export default function ParentChat() {
                         onMessageSent={handlePrivateMessageSent}
                         hideHeader={true}
                       />
-                    </div>
+                    ) : (
+                      <div className="flex items-center justify-center h-full bg-slate-50">
+                        {coordinator ? (
+                          <div className="text-center">
+                            <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-cyan-600 border-r-transparent mb-4"></div>
+                            <p className="text-slate-600">Abriendo chat con coordinación...</p>
+                          </div>
+                        ) : (
+                          <div className="text-center">
+                            <AlertCircle className="w-12 h-12 text-slate-300 mx-auto mb-4" />
+                            <p className="text-slate-600 font-medium">No hay coordinador disponible</p>
+                          </div>
+                        )}
+                      </div>
+                    )
                   ) : (
-                    <div className="flex items-center justify-center p-8">
-                      {coordinator ? (
-                        <div className="text-center">
-                          <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-green-600 border-r-transparent mb-4"></div>
-                          <p className="text-slate-600">Abriendo chat con coordinación...</p>
+                    /* Anuncios */
+                    <div className="h-full overflow-y-auto p-4 space-y-3" style={{ backgroundColor: '#e5ddd5' }}>
+                      {currentAnnouncements.length === 0 ? (
+                        <div className="flex items-center justify-center h-full">
+                          <div className="text-center text-slate-500 bg-white/80 rounded-xl p-6">
+                            <AlertCircle className="w-12 h-12 mx-auto mb-2 opacity-50" />
+                            <p className="text-sm font-medium">No hay anuncios del coordinador</p>
+                            <p className="text-xs text-slate-400 mt-1">Los anuncios generales aparecerán aquí</p>
+                          </div>
                         </div>
                       ) : (
-                        <div className="text-center">
-                          <AlertCircle className="w-12 h-12 text-slate-300 mx-auto mb-4" />
-                          <p className="text-slate-600 font-medium">No hay coordinador disponible</p>
-                          <p className="text-sm text-slate-400 mt-2">Contacta con el club para más información</p>
-                        </div>
+                        groupMessagesByDate(currentAnnouncements).map((item, idx) => 
+                          item.type === 'date' ? (
+                            <DateSeparator key={`date-${idx}`} date={item.date} />
+                          ) : (
+                            <div key={item.data.id} className="bg-white rounded-xl shadow-sm border p-4">
+                              <div className="flex items-start gap-3">
+                                <div className="w-10 h-10 rounded-full bg-cyan-100 flex items-center justify-center flex-shrink-0">
+                                  <span className="text-lg">🎓</span>
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <div className="flex items-center gap-2 mb-2">
+                                    <span className="text-sm font-bold text-cyan-700">
+                                      {item.data.remitente_nombre || "Coordinador"}
+                                    </span>
+                                    {item.data.prioridad !== "Normal" && (
+                                      <Badge className={`${item.data.prioridad === "Urgente" ? "bg-red-500" : "bg-yellow-500"} text-white text-xs`}>
+                                        {item.data.prioridad === "Urgente" ? "🚨 Urgente" : "⚠️ Importante"}
+                                      </Badge>
+                                    )}
+                                    <span className="text-xs text-slate-400 ml-auto">
+                                      {format(new Date(item.data.created_date), "d MMM HH:mm", { locale: es })}
+                                    </span>
+                                  </div>
+                                  <p className="text-sm text-slate-800 whitespace-pre-wrap leading-relaxed">{item.data.mensaje}</p>
+                                  {item.data.poll && (
+                                    <div className="mt-3">
+                                      <PollMessage 
+                                        poll={item.data.poll} 
+                                        onVote={(msgId, optIdx) => voteOnPollMutation.mutate({ messageId: msgId, optionIndex: optIdx })}
+                                        userEmail={user?.email}
+                                        messageId={item.data.id}
+                                      />
+                                    </div>
+                                  )}
+                                  {item.data.archivos_adjuntos?.length > 0 && (
+                                    <div className="mt-3">
+                                      <MessageAttachments attachments={item.data.archivos_adjuntos} />
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                          )
+                        )
                       )}
+                      <div ref={coordinationMessagesEndRef} />
                     </div>
                   )}
                 </div>
