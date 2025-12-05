@@ -228,6 +228,7 @@ export default function GalleryAlbum({ album, onEdit, onDelete, isAdmin }) {
         </Card>
       </motion.div>
 
+      {/* Grid Gallery Dialog */}
       <Dialog open={showGallery} onOpenChange={setShowGallery}>
         <DialogContent className="max-w-4xl h-[90vh] p-0">
           <DialogHeader className="p-4 border-b">
@@ -237,136 +238,123 @@ export default function GalleryAlbum({ album, onEdit, onDelete, isAdmin }) {
                 <p className="text-xs text-slate-500">
                   {selectionMode 
                     ? `${selectedPhotos.length} foto(s) seleccionada(s)`
-                    : `Foto ${selectedPhotoIndex + 1} de ${album.fotos?.length || 0}`
+                    : `${album.fotos?.length || 0} fotos`
                   }
                 </p>
               </div>
-              {isAdmin && onEdit && (
-                <div className="flex gap-2">
-                  {selectionMode ? (
-                    <>
+              <div className="flex gap-2">
+                {/* Download and Share for everyone */}
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={handleShareWhatsApp}
+                  className="gap-1"
+                >
+                  <Share2 className="w-4 h-4 text-green-600" />
+                  WhatsApp
+                </Button>
+                {album.fotos?.length > 0 && (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={handleDownloadAll}
+                    disabled={downloading}
+                    className="gap-1"
+                  >
+                    <Download className={`w-4 h-4 ${downloading ? 'animate-bounce' : ''}`} />
+                    {downloading ? 'Descargando...' : 'Descargar todo'}
+                  </Button>
+                )}
+                
+                {isAdmin && onEdit && (
+                  <>
+                    {selectionMode ? (
+                      <>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => {
+                            setSelectionMode(false);
+                            setSelectedPhotos([]);
+                          }}
+                        >
+                          Cancelar
+                        </Button>
+                        {selectedPhotos.length > 0 && (
+                          <Button
+                            size="sm"
+                            variant="destructive"
+                            onClick={handleDeleteSelectedPhotos}
+                          >
+                            <Trash2 className="w-4 h-4 mr-2" />
+                            Eliminar ({selectedPhotos.length})
+                          </Button>
+                        )}
+                      </>
+                    ) : (
                       <Button
                         size="sm"
                         variant="outline"
-                        onClick={() => {
-                          setSelectionMode(false);
-                          setSelectedPhotos([]);
-                        }}
+                        onClick={() => setSelectionMode(true)}
                       >
-                        Cancelar
+                        Seleccionar
                       </Button>
-                      {selectedPhotos.length > 0 && (
-                        <Button
-                          size="sm"
-                          variant="destructive"
-                          onClick={handleDeleteSelectedPhotos}
-                        >
-                          <Trash2 className="w-4 h-4 mr-2" />
-                          Eliminar ({selectedPhotos.length})
-                        </Button>
-                      )}
-                    </>
-                  ) : (
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => setSelectionMode(true)}
-                    >
-                      Seleccionar
-                    </Button>
-                  )}
-                </div>
-              )}
-            </div>
-          </DialogHeader>
-          
-          <div className="flex-1 flex items-center justify-center bg-slate-900 relative overflow-hidden">
-            {album.fotos && album.fotos.length > 0 && (
-              <>
-                {!selectionMode && (
-                  <>
-                    <img
-                      src={album.fotos[selectedPhotoIndex].url}
-                      alt={`Foto ${selectedPhotoIndex + 1}`}
-                      className="max-h-full max-w-full object-contain"
-                    />
-
-                    {album.fotos.length > 1 && (
-                      <>
-                        <button
-                          onClick={prevPhoto}
-                          className="absolute left-2 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white text-slate-900 rounded-full p-2 shadow-lg"
-                        >
-                          ←
-                        </button>
-                        <button
-                          onClick={nextPhoto}
-                          className="absolute right-2 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white text-slate-900 rounded-full p-2 shadow-lg"
-                        >
-                          →
-                        </button>
-                      </>
                     )}
                   </>
                 )}
-                
-                {selectionMode && (
-                  <div className="w-full h-full overflow-y-auto p-4">
-                    <div className="grid grid-cols-3 gap-4">
-                      {album.fotos.map((foto, index) => (
-                        <div 
-                          key={index} 
-                          className="relative cursor-pointer group"
-                          onClick={() => togglePhotoSelection(index)}
-                        >
-                          <img
-                            src={foto.url}
-                            alt={`Foto ${index + 1}`}
-                            className={`w-full h-40 object-cover rounded-lg transition-all ${
-                              selectedPhotos.includes(index) 
-                                ? 'ring-4 ring-orange-500 opacity-75' 
-                                : 'group-hover:opacity-75'
-                            }`}
-                          />
-                          {selectedPhotos.includes(index) && (
-                            <div className="absolute inset-0 flex items-center justify-center">
-                              <div className="bg-orange-500 rounded-full p-2">
-                                <Check className="w-6 h-6 text-white" />
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </>
-            )}
-          </div>
-
-          {album.fotos && album.fotos.length > 1 && (
-            <div className="p-3 border-t bg-white overflow-x-auto">
-              <div className="flex gap-2">
+              </div>
+            </div>
+          </DialogHeader>
+          
+          <div className="flex-1 overflow-y-auto p-4 bg-slate-100">
+            {album.fotos && album.fotos.length > 0 && (
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                 {album.fotos.map((foto, index) => (
-                  <button
-                    key={index}
-                    onClick={() => setSelectedPhotoIndex(index)}
-                    className={`flex-shrink-0 ${
-                      index === selectedPhotoIndex ? 'ring-2 ring-orange-600' : ''
-                    }`}
+                  <div 
+                    key={index} 
+                    className="relative cursor-pointer group aspect-square"
+                    onClick={() => selectionMode ? togglePhotoSelection(index) : openLightbox(index)}
                   >
                     <img
                       src={foto.url}
-                      alt={`Mini ${index + 1}`}
-                      className="w-16 h-16 object-cover rounded"
+                      alt={`Foto ${index + 1}`}
+                      className={`w-full h-full object-cover rounded-lg transition-all ${
+                        selectedPhotos.includes(index) 
+                          ? 'ring-4 ring-orange-500 opacity-75' 
+                          : 'group-hover:scale-105 group-hover:shadow-lg'
+                      }`}
                     />
-                  </button>
+                    {selectedPhotos.includes(index) && (
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <div className="bg-orange-500 rounded-full p-2">
+                          <Check className="w-6 h-6 text-white" />
+                        </div>
+                      </div>
+                    )}
+                    {!selectionMode && (
+                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors rounded-lg flex items-center justify-center">
+                        <span className="text-white opacity-0 group-hover:opacity-100 transition-opacity text-sm font-medium">
+                          Ver
+                        </span>
+                      </div>
+                    )}
+                  </div>
                 ))}
               </div>
-            </div>
-          )}
+            )}
+          </div>
         </DialogContent>
       </Dialog>
+
+      {/* Lightbox for full-screen viewing */}
+      <PhotoLightbox
+        isOpen={showLightbox}
+        onClose={() => setShowLightbox(false)}
+        photos={album.fotos || []}
+        currentIndex={selectedPhotoIndex}
+        onIndexChange={setSelectedPhotoIndex}
+        albumTitle={album.titulo}
+      />
     </>
   );
 }
