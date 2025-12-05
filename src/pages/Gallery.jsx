@@ -242,6 +242,8 @@ export default function Gallery() {
               setEditingAlbum(null);
             }}
             isSubmitting={createAlbumMutation.isPending || updateAlbumMutation.isPending}
+            userRole={userRole}
+            coachCategories={coachCategories}
           />
         )}
       </AnimatePresence>
