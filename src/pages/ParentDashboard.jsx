@@ -453,6 +453,32 @@ export default function ParentDashboard() {
     (p.estado === "Pendiente" || p.estado === "En revisión")
   ).length;
 
+  // Calcular pagos vencidos (pendientes con fecha pasada)
+  const overduePayments = myPayments.filter(p => {
+    if (p.estado !== "Pendiente") return false;
+    // Si el pago es de un mes que ya pasó, está vencido
+    const currentMonth = new Date().getMonth() + 1;
+    const monthMapping = { "Junio": 6, "Septiembre": 9, "Diciembre": 12 };
+    const paymentMonth = monthMapping[p.mes];
+    return paymentMonth && currentMonth > paymentMonth;
+  }).length;
+
+  // Calcular álbumes nuevos de galería (últimos 7 días)
+  const { data: galleries = [] } = useQuery({
+    queryKey: ['galleries'],
+    queryFn: () => base44.entities.PhotoGallery.list('-created_date', 10),
+    staleTime: 300000,
+    enabled: !!user,
+  });
+
+  const oneWeekAgo = new Date();
+  oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+  const newGalleryPhotos = galleries.filter(g => {
+    if (!g.visible_para_padres) return false;
+    if (g.categoria !== "Todas las Categorías" && !myPlayersSports.includes(g.categoria)) return false;
+    return new Date(g.created_date) > oneWeekAgo;
+  }).length;
+
   // Menú base que siempre se muestra (sin depender de datos cargados)
   const baseMenuItems = [
     // 💬 COMUNICACIÓN (uso diario)
@@ -645,6 +671,8 @@ export default function ParentDashboard() {
           pendingSurveys={activeSurveys.length}
           pendingSignatures={pendingFederationSignatures}
           upcomingEvents={0}
+          overduePayments={overduePayments}
+          newGalleryPhotos={newGalleryPhotos}
           isAdmin={false}
           isCoach={false}
           isParent={true}
