@@ -114,6 +114,8 @@ export default function ToastContainer({ user, isAdmin, isCoach }) {
       // Evitar mostrar mensajes ya vistos
       if (shownIds.includes(msg.id)) return;
       if (msg.leido) return;
+      // No mostrar mis propios mensajes
+      if (msg.remitente_email === user.email) return;
       
       // Verificar si el mensaje es relevante para el usuario
       let isRelevant = false;
@@ -127,17 +129,17 @@ export default function ToastContainer({ user, isAdmin, isCoach }) {
       }
 
       if (isRelevant) {
-        // Solo mostrar si es reciente (últimos 5 minutos)
+        // Solo mostrar si es reciente (últimos 2 minutos para evitar spam al recargar)
         const msgDate = new Date(msg.created_date);
-        const fiveMinAgo = new Date(Date.now() - 5 * 60 * 1000);
-        if (msgDate > fiveMinAgo) {
+        const twoMinAgo = new Date(Date.now() - 2 * 60 * 1000);
+        if (msgDate > twoMinAgo) {
           addToast({
             type: "message",
             sourceId: msg.id,
-            title: msg.prioridad === "Urgente" ? "🚨 Mensaje Urgente" : "Nuevo Mensaje",
-            message: `${msg.remitente_nombre}: ${msg.mensaje.substring(0, 80)}...`,
+            title: msg.prioridad === "Urgente" ? "🚨 Mensaje Urgente" : "💬 Nuevo Mensaje",
+            message: `${msg.remitente_nombre}: ${msg.mensaje.substring(0, 60)}${msg.mensaje.length > 60 ? '...' : ''}`,
             extra: msg.grupo_id || msg.deporte,
-            duration: msg.prioridad === "Urgente" ? 12000 : 8000
+            duration: msg.prioridad === "Urgente" ? 10000 : 6000
           });
         }
       }
