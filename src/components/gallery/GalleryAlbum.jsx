@@ -203,6 +203,38 @@ export default function GalleryAlbum({ album, onEdit, onDelete, isAdmin, onQuick
               </Badge>
 
               <div className="flex gap-1">
+                {/* Quick upload button for coaches/admins */}
+                {isAdmin && onQuickUpload && (
+                  <>
+                    <input
+                      type="file"
+                      accept="image/*,video/*"
+                      multiple
+                      onChange={handleQuickUpload}
+                      className="hidden"
+                      ref={quickUploadRef}
+                      disabled={quickUploading}
+                    />
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        quickUploadRef.current?.click();
+                      }}
+                      disabled={quickUploading}
+                      className="h-6 w-6 p-0 bg-green-50 border-green-300 hover:bg-green-100"
+                      title="Añadir fotos rápido"
+                    >
+                      {quickUploading ? (
+                        <Loader2 className="w-3 h-3 text-green-600 animate-spin" />
+                      ) : (
+                        <Plus className="w-3 h-3 text-green-600" />
+                      )}
+                    </Button>
+                  </>
+                )}
+
                 {/* Share and Download buttons for everyone */}
                 <Button
                   variant="outline"
@@ -231,7 +263,7 @@ export default function GalleryAlbum({ album, onEdit, onDelete, isAdmin, onQuick
                     <Download className={`w-3 h-3 text-blue-600 ${downloading ? 'animate-bounce' : ''}`} />
                   </Button>
                 )}
-                
+
                 {isAdmin && (
                   <>
                     {onEdit && (
