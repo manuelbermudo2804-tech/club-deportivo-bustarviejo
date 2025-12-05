@@ -1,42 +1,52 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 
 export default function ChatNotificationListener({ user }) {
   const lastSeenChatId = useRef(null);
   const lastSeenPrivateId = useRef(null);
+  const [userCategories, setUserCategories] = useState([]);
 
-  console.log('🎯 ChatNotificationListener montado, user:', user?.email);
+  // Obtener categorías del usuario (para padres, basado en sus hijos)
+  useEffect(() => {
+    if (!user) return;
+    
+    const fetchCategories = async () => {
+      try {
+        if (user.role === "admin" || user.es_entrenador || user.es_coordinador) {
+          setUserCategories(user.categorias_entrena || []);
+        } else {
+          // Para padres, obtener categorías de sus hijos
+          const players = await base44.entities.Player.list();
+          const myPlayers = players.filter(p => 
+            p.email_padre === user.email || p.email_tutor_2 === user.email
+          );
+          const categories = [...new Set(myPlayers.map(p => p.deporte).filter(Boolean))];
+          setUserCategories(categories);
+        }
+      } catch (e) {
+        console.log('Error fetching categories:', e);
+      }
+    };
+    fetchCategories();
+  }, [user]);
 
   // Mensajes de grupo
   const { data: chatMessages = [] } = useQuery({
     queryKey: ['chatMessagesListener'],
-    queryFn: async () => {
-      console.log('📡 Fetching mensajes grupo...');
-      const result = await base44.entities.ChatMessage.list('-created_date', 20);
-      console.log('📨 Mensajes grupo recibidos:', result?.length);
-      return result;
-    },
+    queryFn: () => base44.entities.ChatMessage.list('-created_date', 30),
     initialData: [],
-    refetchInterval: 10000,
+    refetchInterval: 8000,
     enabled: !!user,
   });
 
-  // Mensajes privados (para entrenadores/coordinadores/admin)
+  // Mensajes privados
   const { data: privateMessages = [] } = useQuery({
     queryKey: ['privateMessagesListener'],
-    queryFn: async () => {
-      if (!user?.role === "admin" && !user?.es_entrenador && !user?.es_coordinador) {
-        return [];
-      }
-      console.log('📡 Fetching mensajes privados...');
-      const result = await base44.entities.PrivateMessage.list('-created_date', 20);
-      console.log('📨 Mensajes privados recibidos:', result?.length);
-      return result;
-    },
+    queryFn: () => base44.entities.PrivateMessage.list('-created_date', 30),
     initialData: [],
-    refetchInterval: 10000,
-    enabled: !!user && (user.role === "admin" || user.es_entrenador || user.es_coordinador),
+    refetchInterval: 8000,
+    enabled: !!user,
   });
 
   // Procesar mensajes de grupo
@@ -47,61 +57,77 @@ export default function ChatNotificationListener({ user }) {
       const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
       
       const relevantMessages = chatMessages.filter(m => {
-        if (!m) return false;
-        if (m.remitente_email === user.email) return false;
+        if (!m || m.remitente_email === user.email) return false;
         
         const msgDate = new Date(m.created_date);
         if (msgDate < fiveMinutesAgo) return false;
-        
+
+        const msgCategory = m.grupo_id || m.deporte;
+
+        // ADMIN: recibe mensajes de padres de cualquier grupo
         if (user.role === "admin") {
           return m.tipo === "padre_a_grupo";
         }
         
+        // ENTRENADOR/COORDINADOR: recibe mensajes de padres de sus categorías
         if (user.es_entrenador || user.es_coordinador) {
-          const categoriesCoached = user.categorias_entrena || [];
-          return m.tipo === "padre_a_grupo" && categoriesCoached.includes(m.grupo_id || m.deporte);
+          if (m.tipo === "padre_a_grupo") {
+            const coachCategories = user.categorias_entrena || [];
+            return coachCategories.includes(msgCategory);
+          }
         }
         
-        return m.tipo === "admin_a_grupo";
+        // PADRES: reciben mensajes admin_a_grupo de las categorías de sus hijos
+        if (m.tipo === "admin_a_grupo") {
+          return userCategories.includes(msgCategory);
+        }
+        
+        return false;
       });
 
       const latestMessage = relevantMessages[0];
       
       if (latestMessage && latestMessage.id !== lastSeenChatId.current) {
-        console.log('🔔 Nuevo mensaje grupo:', latestMessage.mensaje?.substring(0, 30));
         showNotification(latestMessage.remitente_nombre, latestMessage.mensaje, latestMessage.id, latestMessage.prioridad);
         lastSeenChatId.current = latestMessage.id;
       }
     } catch (e) {
       console.log('ChatNotificationListener chat error:', e);
     }
-  }, [chatMessages, user]);
+  }, [chatMessages, user, userCategories]);
 
   // Procesar mensajes privados
   useEffect(() => {
     if (!user || !privateMessages || privateMessages.length === 0) return;
-    if (user.role !== "admin" && !user.es_entrenador && !user.es_coordinador) return;
 
     try {
       const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
       
       const relevantMessages = privateMessages.filter(m => {
-        if (!m) return false;
-        if (m.remitente_email === user.email) return false;
+        if (!m || m.remitente_email === user.email) return false;
         
         const msgDate = new Date(m.created_date);
         if (msgDate < fiveMinutesAgo) return false;
         
-        // Solo mensajes de padres a entrenadores/admin
-        return m.remitente_tipo === "padre";
+        // Mensaje dirigido directamente a este usuario
+        if (m.destinatario_email === user.email) return true;
+        
+        // Para entrenadores/coordinadores/admin: mensajes de padres en sus conversaciones
+        if (user.role === "admin" || user.es_entrenador || user.es_coordinador) {
+          if (m.remitente_tipo === "padre") return true;
+        }
+        
+        // Para padres: mensajes de entrenadores/admin en sus conversaciones
+        if (m.remitente_tipo === "entrenador" || m.remitente_tipo === "admin" || m.remitente_tipo === "coordinador") {
+          return true;
+        }
+        
+        return false;
       });
-
-      console.log('🔍 Mensajes privados relevantes:', relevantMessages.length);
       
       const latestMessage = relevantMessages[0];
       
       if (latestMessage && latestMessage.id !== lastSeenPrivateId.current) {
-        console.log('🔔 Nuevo mensaje privado:', latestMessage.mensaje?.substring(0, 30));
         showNotification(`📩 ${latestMessage.remitente_nombre}`, latestMessage.mensaje, latestMessage.id);
         lastSeenPrivateId.current = latestMessage.id;
       }
@@ -120,9 +146,8 @@ export default function ChatNotificationListener({ user }) {
           tag: id,
           requireInteraction: false
         });
-        console.log('✅ Notificación enviada');
       } catch (e) {
-        console.log('❌ Notification error:', e);
+        console.log('Notification error:', e);
       }
     }
   };
