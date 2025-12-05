@@ -281,6 +281,14 @@ export default function ParentDashboard() {
     return false;
   }).length;
 
+  // Calcular mensajes privados no leídos
+  const unreadPrivateMessages = privateConversations.reduce((count, conv) => {
+    if (conv.participante_familia_email === user?.email) {
+      return count + (conv.no_leidos_familia || 0);
+    }
+    return count;
+  }, 0);
+
   const today = new Date().toISOString().split('T')[0];
   const upcomingCallups = callups.filter(c => 
     c.publicada && c.fecha_partido >= today && !c.cerrada
