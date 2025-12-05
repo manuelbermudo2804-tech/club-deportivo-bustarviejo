@@ -321,6 +321,32 @@ export default function NotificationCenter() {
               </div>
             )}
 
+            {/* Private Messages */}
+            {unreadPrivateConversations.map(conv => {
+              const isFamily = conv.participante_familia_email === user?.email;
+              const unreadCount = isFamily ? conv.no_leidos_familia : conv.no_leidos_staff;
+              const otherName = isFamily ? conv.participante_staff_nombre : conv.participante_familia_nombre;
+              const chatUrl = isFamily ? "ParentChat" : "CoachChat";
+              
+              return (
+                <Link key={conv.id} to={createPageUrl(chatUrl)} onClick={() => setIsOpen(false)}>
+                  <div className="flex items-start gap-3 p-3 rounded-lg hover:opacity-80 transition-all border-2 border-blue-300 bg-blue-50">
+                    <MessageCircle className="w-5 h-5 text-blue-600 mt-1" />
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-1">
+                        <p className="text-sm font-semibold text-slate-900">📩 Mensaje privado de {otherName}</p>
+                        <Badge className="bg-blue-500 text-white text-xs">{unreadCount} nuevo{unreadCount > 1 ? 's' : ''}</Badge>
+                      </div>
+                      <p className="text-sm text-slate-700">{conv.ultimo_mensaje?.substring(0, 80)}...</p>
+                      <p className="text-xs text-slate-500 mt-1">
+                        {conv.ultimo_mensaje_fecha ? format(new Date(conv.ultimo_mensaje_fecha), "dd MMM, HH:mm", { locale: es }) : ''}
+                      </p>
+                    </div>
+                  </div>
+                </Link>
+              );
+            })}
+
             {/* App Notifications */}
             {unviewedAppNotifications.map(notif => {
               const Icon = getNotificationIcon(notif.tipo?.includes("callup") || notif.tipo?.includes("convocatoria") ? "callup" : notif.tipo?.includes("pago") ? "payment" : notif.tipo?.includes("evaluacion") ? "event" : "message");
