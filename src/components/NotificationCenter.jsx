@@ -313,7 +313,10 @@ export default function NotificationCenter() {
             {urgentMessages.map(msg => {
               const Icon = getNotificationIcon("message");
               return (
-                <Link key={msg.id} to={createPageUrl("ParentChat")} onClick={() => setIsOpen(false)}>
+                <Link key={msg.id} to={createPageUrl("ParentChat")} onClick={() => {
+                  handleMarkAsRead(msg);
+                  setIsOpen(false);
+                }}>
                   <div className={`flex items-start gap-3 p-3 rounded-lg hover:opacity-80 transition-all border-2 border-red-300 ${getNotificationColor("message", "Urgente")}`}>
                     <Icon className="w-5 h-5 text-red-600 mt-1 animate-pulse" />
                     <div className="flex-1">
