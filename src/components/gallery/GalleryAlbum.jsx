@@ -64,6 +64,54 @@ export default function GalleryAlbum({ album, onEdit, onDelete, isAdmin }) {
     }
   };
 
+  // Download all photos as individual files
+  const handleDownloadAll = async () => {
+    if (!album.fotos || album.fotos.length === 0) return;
+    
+    setDownloading(true);
+    toast.info(`📥 Descargando ${album.fotos.length} fotos...`);
+    
+    try {
+      for (let i = 0; i < album.fotos.length; i++) {
+        const foto = album.fotos[i];
+        const response = await fetch(foto.url);
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `${album.titulo.replace(/\s+/g, '_')}_${i + 1}.jpg`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+        // Small delay between downloads
+        await new Promise(resolve => setTimeout(resolve, 300));
+      }
+      toast.success(`✅ ${album.fotos.length} fotos descargadas`);
+    } catch (error) {
+      console.error("Error downloading:", error);
+      toast.error("Error al descargar algunas fotos");
+    }
+    setDownloading(false);
+  };
+
+  // Share album via WhatsApp
+  const handleShareWhatsApp = () => {
+    const text = `📸 *${album.titulo}*\n\n` +
+      `📅 ${format(new Date(album.fecha_evento), "dd 'de' MMMM 'de' yyyy", { locale: es })}\n` +
+      `🏷️ ${album.categoria}\n` +
+      `📷 ${album.fotos?.length || 0} fotos\n\n` +
+      `Mira el álbum en la app del CD Bustarviejo`;
+    
+    const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(text)}`;
+    window.open(whatsappUrl, "_blank");
+  };
+
+  const openLightbox = (index) => {
+    setSelectedPhotoIndex(index);
+    setShowLightbox(true);
+  };
+
   return (
     <>
       <motion.div
