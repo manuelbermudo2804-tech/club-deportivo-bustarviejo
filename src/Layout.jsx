@@ -21,7 +21,7 @@ import { TutorialProvider } from "./components/tutorials/TutorialProvider";
 import NotificationManager from "./components/notifications/NotificationManager";
 import AutomaticNotificationEngine from "./components/notifications/AutomaticNotificationEngine";
 import EmailNotificationTrigger from "./components/notifications/EmailNotificationTrigger";
-import ToastContainer from "./components/notifications/ToastContainer";
+// ToastContainer eliminado - causaba spam de notificaciones
 import EventReminderEngine from "./components/events/EventReminderEngine";
 import DocumentReminderEngine from "./components/documents/DocumentReminderEngine";
 import ParentOnboarding from "@/components/onboarding/ParentOnboarding";
@@ -1502,7 +1502,7 @@ export default function Layout({ children, currentPageName }) {
       {user && <ChatNotificationListener user={user} />}
       {user && <DocumentReminderEngine user={user} />}
       {user && <NotificationManager user={user} />}
-        {user && <ToastContainer user={user} isAdmin={isAdmin} isCoach={isCoach} />}
+        {/* ToastContainer eliminado */}
 
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
         
