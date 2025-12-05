@@ -39,14 +39,22 @@ export default function ParentPlayers() {
     },
   });
 
-  const { data: players, isLoading } = useQuery({
+  const { data: players = [], isLoading } = useQuery({
     queryKey: ['myPlayers', user?.email, seasonConfig?.permitir_renovaciones],
     queryFn: async () => {
+      if (!user?.email) return [];
       const allPlayers = await base44.entities.Player.list();
-      // Filtrar jugadores del padre/tutor
+      console.log('🔍 [ParentPlayers] Total jugadores:', allPlayers.length);
+      console.log('🔍 [ParentPlayers] Usuario email:', user?.email);
+      
+      // Filtrar jugadores del padre/tutor (comparación case-insensitive)
+      const userEmailLower = user.email.toLowerCase();
       const myPlayers = allPlayers.filter(p => 
-        p.email_padre === user?.email || p.email_tutor_2 === user?.email
+        p.email_padre?.toLowerCase() === userEmailLower || 
+        p.email_tutor_2?.toLowerCase() === userEmailLower
       );
+      
+      console.log('🔍 [ParentPlayers] Mis jugadores encontrados:', myPlayers.length, myPlayers.map(p => p.nombre));
       
       // Si permitir_renovaciones está activo, mostrar TODOS (activos e inactivos para renovar)
       // Si no, solo mostrar los ACTIVOS
@@ -56,7 +64,6 @@ export default function ParentPlayers() {
       return myPlayers.filter(p => p.activo === true);
     },
     enabled: !!user?.email,
-    initialData: [],
   });
 
   const { data: allPlayers } = useQuery({
