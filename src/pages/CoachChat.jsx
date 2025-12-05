@@ -60,7 +60,9 @@ export default function CoachChat() {
     queryKey: ['chatMessages'],
     queryFn: () => base44.entities.ChatMessage.list('-created_date'),
     refetchOnWindowFocus: true,
-    refetchInterval: 2000, // Polling cada 2 segundos para mensajes más instantáneos
+    staleTime: 0, // Siempre considerar datos stale para refetch inmediato
+    gcTime: 5000,
+    refetchInterval: 1500, // Polling cada 1.5 segundos
   });
 
   const { data: allPlayers = [], isLoading: loadingPlayers } = useQuery({
@@ -71,7 +73,9 @@ export default function CoachChat() {
   const { data: privateConversations = [], refetch: refetchConversations } = useQuery({
     queryKey: ['privateConversations'],
     queryFn: () => base44.entities.PrivateConversation.list('-ultimo_mensaje_fecha'),
-    refetchInterval: 1500, // Polling cada 1.5 segundos para notificaciones instantáneas
+    staleTime: 0,
+    gcTime: 5000,
+    refetchInterval: 1000, // Polling cada 1 segundo
     refetchOnWindowFocus: true,
   });
 
@@ -81,7 +85,9 @@ export default function CoachChat() {
       ? base44.entities.PrivateMessage.filter({ conversacion_id: selectedConversation.id }, '-created_date')
       : [],
     enabled: !!selectedConversation?.id,
-    refetchInterval: 1000, // Polling cada 1 segundo cuando hay chat abierto
+    staleTime: 0,
+    gcTime: 5000,
+    refetchInterval: 800, // Polling cada 0.8 segundos cuando hay chat abierto
   });
 
   const isAdmin = user?.role === "admin";
@@ -213,10 +219,8 @@ export default function CoachChat() {
       setMessageContent("");
       setAttachments([]);
       setPriority("Normal");
-      // Invalidar y refetch inmediatamente para que aparezca el mensaje
-      await queryClient.invalidateQueries({ queryKey: ['chatMessages'] });
-      await refetchMessages();
-      toast.success("Mensaje enviado al grupo");
+      // Refetch inmediato sin esperar invalidación
+      refetchMessages();
     },
   });
 
