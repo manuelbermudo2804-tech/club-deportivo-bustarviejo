@@ -245,6 +245,18 @@ export default function PushNotificationManager() {
             <Bell className="w-4 h-4 mr-2" />
             Notificación local (este dispositivo)
           </Button>
+          <Button
+            onClick={async () => {
+              await base44.auth.updateMe({ push_enabled: false, fcm_token: null });
+              setIsSubscribed(false);
+              alert("Estado reseteado. Ahora pulsa 'Activar Notificaciones Push'");
+            }}
+            variant="outline"
+            className="w-full text-red-600 border-red-300"
+            size="sm"
+          >
+            🔄 Resetear y volver a activar
+          </Button>
         </div>
       ) : (
         <div className="space-y-2">
