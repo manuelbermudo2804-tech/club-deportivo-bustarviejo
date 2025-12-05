@@ -131,11 +131,13 @@ export default function Gallery() {
   const isParentOrPlayer = userRole === "parent" || userRole === "player";
 
   // Filter albums based on role and visibility
+  // Por defecto los álbumes son visibles (visible_para_padres !== false)
   const visibleAlbums = (() => {
     if (userRole === "admin") {
       return albums;
     } else {
-      return albums.filter(album => album.visible_para_padres);
+      // Mostrar álbumes donde visible_para_padres no sea explícitamente false
+      return albums.filter(album => album.visible_para_padres !== false);
     }
   })();
 
