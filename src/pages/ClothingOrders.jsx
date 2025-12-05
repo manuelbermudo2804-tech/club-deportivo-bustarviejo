@@ -47,7 +47,7 @@ export default function ClothingOrders() {
   const { data: user, refetch: refetchUser } = useQuery({
     queryKey: ['currentUser'],
     queryFn: () => base44.auth.me(),
-    staleTime: 0, // Siempre refetch para tener crédito actualizado
+    staleTime: 30000, // 30 segundos
   });
 
   useEffect(() => {
@@ -78,6 +78,7 @@ export default function ClothingOrders() {
     queryKey: ['allPlayersForClothing'],
     queryFn: () => base44.entities.Player.list(),
     initialData: [],
+    staleTime: 60000, // 1 minuto
   });
 
   const players = allPlayers.filter(p => {
@@ -100,6 +101,7 @@ export default function ClothingOrders() {
     },
     enabled: !!user?.email,
     initialData: [],
+    staleTime: 30000, // 30 segundos
   });
 
   const createOrderMutation = useMutation({
