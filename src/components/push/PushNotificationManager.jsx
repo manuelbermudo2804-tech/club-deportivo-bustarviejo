@@ -182,14 +182,19 @@ export default function PushNotificationManager() {
   };
 
   const sendRemotePushTest = async () => {
+    console.log("🚀 [PUSH TEST] Iniciando envío de push...");
+    alert("Iniciando envío de push...");
+    
     try {
       const user = await base44.auth.me();
+      console.log("🚀 [PUSH TEST] Usuario:", user?.email);
+      
       if (!user?.email) {
-        toast.error("No se pudo obtener el usuario");
+        alert("Error: No se pudo obtener el usuario");
         return;
       }
       
-      toast.loading("Enviando push a tus dispositivos...");
+      alert("Llamando a sendWebPush...");
       
       const result = await base44.functions.invoke('sendWebPush', {
         title: "🧪 Prueba de Push - CD Bustarviejo",
@@ -199,7 +204,8 @@ export default function PushNotificationManager() {
         data: { tipo: "test" }
       });
       
-      toast.dismiss();
+      console.log("🚀 [PUSH TEST] Resultado:", result);
+      alert("Resultado: " + JSON.stringify(result.data));
       
       if (result.data?.success || result.data?.sent > 0) {
         toast.success(`✅ Push enviado - revisa tu móvil`);
@@ -207,9 +213,8 @@ export default function PushNotificationManager() {
         toast.error("No se pudo enviar el push: " + (result.data?.error || "sin suscripción"));
       }
     } catch (error) {
-      toast.dismiss();
-      console.error("Error enviando push:", error);
-      toast.error("Error: " + error.message);
+      console.error("🚀 [PUSH TEST] Error:", error);
+      alert("Error: " + error.message);
     }
   };
 
