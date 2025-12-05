@@ -123,16 +123,27 @@ export default function GalleryForm({ album, onSubmit, onCancel, isSubmitting, u
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="Todas las Categorías">Todas las Categorías</SelectItem>
-                    <SelectItem value="Fútbol Pre-Benjamín (Mixto)">⚽ Pre-Benjamín</SelectItem>
-                    <SelectItem value="Fútbol Benjamín (Mixto)">⚽ Benjamín</SelectItem>
-                    <SelectItem value="Fútbol Alevín (Mixto)">⚽ Alevín</SelectItem>
-                    <SelectItem value="Fútbol Infantil (Mixto)">⚽ Infantil</SelectItem>
-                    <SelectItem value="Fútbol Cadete">⚽ Cadete</SelectItem>
-                    <SelectItem value="Fútbol Juvenil">⚽ Juvenil</SelectItem>
-                    <SelectItem value="Fútbol Aficionado">⚽ Aficionado</SelectItem>
-                    <SelectItem value="Fútbol Femenino">⚽ Fútbol Femenino</SelectItem>
-                    <SelectItem value="Baloncesto (Mixto)">🏀 Baloncesto</SelectItem>
+                    {userRole === "admin" ? (
+                      <>
+                        <SelectItem value="Todas las Categorías">Todas las Categorías</SelectItem>
+                        <SelectItem value="Fútbol Pre-Benjamín (Mixto)">⚽ Pre-Benjamín</SelectItem>
+                        <SelectItem value="Fútbol Benjamín (Mixto)">⚽ Benjamín</SelectItem>
+                        <SelectItem value="Fútbol Alevín (Mixto)">⚽ Alevín</SelectItem>
+                        <SelectItem value="Fútbol Infantil (Mixto)">⚽ Infantil</SelectItem>
+                        <SelectItem value="Fútbol Cadete">⚽ Cadete</SelectItem>
+                        <SelectItem value="Fútbol Juvenil">⚽ Juvenil</SelectItem>
+                        <SelectItem value="Fútbol Aficionado">⚽ Aficionado</SelectItem>
+                        <SelectItem value="Fútbol Femenino">⚽ Fútbol Femenino</SelectItem>
+                        <SelectItem value="Baloncesto (Mixto)">🏀 Baloncesto</SelectItem>
+                      </>
+                    ) : (
+                      // Entrenadores/Coordinadores solo ven sus categorías
+                      coachCategories.map(cat => (
+                        <SelectItem key={cat} value={cat}>
+                          {cat.includes("Baloncesto") ? "🏀" : "⚽"} {cat}
+                        </SelectItem>
+                      ))
+                    )}
                   </SelectContent>
                 </Select>
               </div>
