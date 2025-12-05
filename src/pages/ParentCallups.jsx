@@ -27,6 +27,8 @@ import {
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
 import WeatherWidget from "../components/callups/WeatherWidget";
+import CallupCountdown from "../components/callups/CallupCountdown";
+import CallupMap from "../components/callups/CallupMap";
 import { usePageTutorial } from "../components/tutorials/useTutorial";
 
 export default function ParentCallups() {
