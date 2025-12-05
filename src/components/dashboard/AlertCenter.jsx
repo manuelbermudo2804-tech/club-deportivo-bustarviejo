@@ -96,6 +96,17 @@ export default function AlertCenter({
 
   // Alertas para entrenadores/coordinadores
   if (isCoach || isAdmin) {
+    if (pendingCallupResponses > 0) {
+      alerts.push({
+        id: "callup-responses",
+        icon: ClipboardCheck,
+        title: "⚽ Respuestas convocatorias",
+        description: `${pendingCallupResponses} jugador${pendingCallupResponses > 1 ? 'es' : ''} sin confirmar`,
+        url: createPageUrl("CoachCallups"),
+        color: "bg-red-500",
+        priority: 1
+      });
+    }
     if (pendingAttendance > 0) {
       alerts.push({
         id: "attendance",
@@ -104,7 +115,7 @@ export default function AlertCenter({
         description: `${pendingAttendance} entrenamiento${pendingAttendance > 1 ? 's' : ''} sin registrar`,
         url: createPageUrl("TeamAttendanceEvaluation"),
         color: "bg-blue-500",
-        priority: 1
+        priority: 2
       });
     }
     if (pendingEvaluations > 0) {
@@ -115,7 +126,7 @@ export default function AlertCenter({
         description: `${pendingEvaluations} jugador${pendingEvaluations > 1 ? 'es' : ''} por evaluar`,
         url: createPageUrl("TeamAttendanceEvaluation"),
         color: "bg-indigo-500",
-        priority: 2
+        priority: 3
       });
     }
   }
