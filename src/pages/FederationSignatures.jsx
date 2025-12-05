@@ -324,12 +324,21 @@ export default function FederationSignatures() {
                   </a>
                   <Button
                     onClick={() => handleMarkSignatureComplete(player, "tutor")}
-                    disabled={updatePlayerMutation.isPending || !visitedLinks[`firma_tutor_visited_${player.id}`]}
+                    disabled={processingSignature[`${player.id}_tutor`] || !visitedLinks[`firma_tutor_visited_${player.id}`]}
                     className={`w-full ${visitedLinks[`firma_tutor_visited_${player.id}`] ? 'bg-green-600 hover:bg-green-700' : 'bg-gray-400 cursor-not-allowed'}`}
                     title={!visitedLinks[`firma_tutor_visited_${player.id}`] ? 'Primero debes abrir el enlace azul para firmar' : ''}
                   >
-                    <CheckCircle2 className="w-4 h-4 mr-2" />
-                    Ya he firmado - Marcar como completada
+                    {processingSignature[`${player.id}_tutor`] ? (
+                      <>
+                        <div className="w-4 h-4 mr-2 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                        Guardando...
+                      </>
+                    ) : (
+                      <>
+                        <CheckCircle2 className="w-4 h-4 mr-2" />
+                        Ya he firmado - Marcar como completada
+                      </>
+                    )}
                   </Button>
                   {!visitedLinks[`firma_tutor_visited_${player.id}`] && (
                     <p className="text-xs text-center text-slate-500">
