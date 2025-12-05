@@ -520,6 +520,7 @@ export default function ParentChat() {
                             </div>
                           </div>
                         ))}
+                      <div ref={coordinationMessagesEndRef} />
                     </div>
                   </div>
                 )}
