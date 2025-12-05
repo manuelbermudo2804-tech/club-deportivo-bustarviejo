@@ -42,32 +42,51 @@ export default function PushNotificationManager() {
   };
 
   const subscribeToPush = async () => {
+    console.log('[Notif] Iniciando suscripción...');
     setIsLoading(true);
 
     try {
-      // Solicitar permiso
-      const permission = await Notification.requestPermission();
+      // Verificar permiso actual
+      console.log('[Notif] Permiso actual:', Notification.permission);
+      
+      let permission = Notification.permission;
+      
+      // Si no está concedido, solicitarlo
       if (permission !== 'granted') {
-        toast.error("Permiso de notificaciones denegado");
+        console.log('[Notif] Solicitando permiso...');
+        permission = await Notification.requestPermission();
+        console.log('[Notif] Resultado permiso:', permission);
+      }
+      
+      if (permission !== 'granted') {
+        toast.error("❌ Permiso de notificaciones denegado. Revisa los ajustes del navegador.");
         setIsLoading(false);
         return;
       }
 
+      console.log('[Notif] Guardando en usuario...');
+      
       // Guardar en el usuario que activó notificaciones
       await base44.auth.updateMe({
         push_enabled: true,
         push_subscribed_at: new Date().toISOString()
       });
 
+      console.log('[Notif] Usuario actualizado, mostrando notificación...');
+
       setIsSubscribed(true);
       setShowDialog(false);
       toast.success("✅ ¡Notificaciones activadas!");
 
       // Mostrar notificación de prueba
-      new Notification("🎉 CD Bustarviejo", {
-        body: "Recibirás notificaciones cuando la app esté abierta o en segundo plano",
-        icon: "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6911b8e453ca3ac01fb134d6/e3f0a8e26_logo_cd_bustarviejo_mediano.jpg"
-      });
+      try {
+        new Notification("🎉 CD Bustarviejo", {
+          body: "Recibirás notificaciones cuando la app esté abierta o en segundo plano",
+          icon: "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6911b8e453ca3ac01fb134d6/e3f0a8e26_logo_cd_bustarviejo_mediano.jpg"
+        });
+      } catch (notifError) {
+        console.log('[Notif] Error mostrando notificación:', notifError);
+      }
 
     } catch (error) {
       console.error("[Notif] Error:", error);
