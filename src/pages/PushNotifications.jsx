@@ -86,25 +86,7 @@ export default function PushNotifications() {
         throw new Error("No hay destinatarios para esta notificación");
       }
 
-      // 1. Enviar PUSH REAL a través del backend
-      try {
-        const pushResult = await base44.functions.invoke('sendWebPush', {
-          title: `${data.icono} ${data.titulo}`,
-          body: data.mensaje,
-          recipientEmails: destinatarios,
-          url: data.enlace_destino || null,
-          data: {
-            tipo: data.tipo_destinatario,
-            prioridad: data.prioridad
-          }
-        });
-        console.log('✅ Push enviado:', pushResult.data);
-      } catch (pushError) {
-        console.error('Error enviando push:', pushError);
-        // Continuar aunque falle el push - al menos guardamos la notificación in-app
-      }
-
-      // 2. Guardar notificación en BD
+      // Guardar notificación en BD
       const notification = await base44.entities.PushNotification.create({
         ...data,
         enviada: true,
