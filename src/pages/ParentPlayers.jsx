@@ -98,6 +98,12 @@ export default function ParentPlayers() {
     initialData: [],
   });
 
+  const { data: callups } = useQuery({
+    queryKey: ['callups'],
+    queryFn: () => base44.entities.Convocatoria.list('-fecha_partido'),
+    initialData: [],
+  });
+
   const createPlayerMutation = useMutation({
     mutationFn: async (playerData) => {
       const dataWithParentEmail = {
