@@ -29,6 +29,9 @@ export default function ParentPlayers() {
   const { data: user } = useQuery({
     queryKey: ['currentUser'],
     queryFn: () => base44.auth.me(),
+    staleTime: 300000, // 5 minutos
+    gcTime: 600000,
+    refetchOnWindowFocus: false,
   });
 
   const { data: seasonConfig } = useQuery({
@@ -37,6 +40,9 @@ export default function ParentPlayers() {
       const configs = await base44.entities.SeasonConfig.list();
       return configs.find(c => c.activa === true);
     },
+    staleTime: 300000, // 5 minutos
+    gcTime: 600000,
+    refetchOnWindowFocus: false,
   });
 
   const { data: players = [], isLoading } = useQuery({
@@ -64,6 +70,9 @@ export default function ParentPlayers() {
       return myPlayers.filter(p => p.activo === true);
     },
     enabled: !!user?.email,
+    staleTime: 60000, // 1 minuto
+    gcTime: 300000,
+    refetchOnWindowFocus: false,
   });
 
   const { data: allPlayers } = useQuery({
@@ -72,36 +81,54 @@ export default function ParentPlayers() {
       return await base44.entities.Player.list();
     },
     initialData: [],
+    staleTime: 60000, // 1 minuto
+    gcTime: 300000,
+    refetchOnWindowFocus: false,
   });
 
   const { data: schedules } = useQuery({
     queryKey: ['trainingSchedules'],
     queryFn: () => base44.entities.TrainingSchedule.list(),
     initialData: [],
+    staleTime: 300000, // 5 minutos
+    gcTime: 600000,
+    refetchOnWindowFocus: false,
   });
 
   const { data: attendances } = useQuery({
     queryKey: ['attendances'],
     queryFn: () => base44.entities.Attendance.list('-fecha'),
     initialData: [],
+    staleTime: 300000, // 5 minutos
+    gcTime: 600000,
+    refetchOnWindowFocus: false,
   });
 
   const { data: evaluations } = useQuery({
     queryKey: ['evaluations'],
     queryFn: () => base44.entities.PlayerEvaluation.list('-fecha_evaluacion'),
     initialData: [],
+    staleTime: 300000, // 5 minutos
+    gcTime: 600000,
+    refetchOnWindowFocus: false,
   });
 
   const { data: payments } = useQuery({
     queryKey: ['payments'],
     queryFn: () => base44.entities.Payment.list('-created_date'),
     initialData: [],
+    staleTime: 60000, // 1 minuto
+    gcTime: 300000,
+    refetchOnWindowFocus: false,
   });
 
   const { data: callups } = useQuery({
     queryKey: ['callups'],
     queryFn: () => base44.entities.Convocatoria.list('-fecha_partido'),
     initialData: [],
+    staleTime: 60000, // 1 minuto
+    gcTime: 300000,
+    refetchOnWindowFocus: false,
   });
 
   const createPlayerMutation = useMutation({
