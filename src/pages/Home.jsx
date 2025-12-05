@@ -114,6 +114,16 @@ export default function Home() {
     enabled: !!user,
   });
 
+  const { data: privateConversations = [] } = useQuery({
+    queryKey: ['privateConversationsHome'],
+    queryFn: () => base44.entities.PrivateConversation.list('-ultimo_mensaje_fecha'),
+    initialData: [],
+    staleTime: 60000,
+    gcTime: 300000,
+    refetchOnWindowFocus: true,
+    enabled: !!user,
+  });
+
   const { data: callups } = useQuery({
     queryKey: ['callups'],
     queryFn: () => base44.entities.Convocatoria.list(),
