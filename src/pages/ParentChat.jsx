@@ -110,10 +110,8 @@ export default function ParentChat() {
     if (!selectedCategory) return [];
     return messages.filter(msg => {
       const msgDeporte = normalizeDeporte(msg.grupo_id || msg.deporte);
-      // En coordinación mostrar todos los mensajes, en equipos solo admin_a_grupo
-      if (selectedCategory === "Coordinación Deportiva") {
-        return msgDeporte === selectedCategory;
-      }
+      // Mostrar mensajes admin_a_grupo de la categoría seleccionada
+      // Incluyendo Coordinación Deportiva - los anuncios del coordinador van a TODAS las familias
       return msgDeporte === selectedCategory && msg.tipo === "admin_a_grupo";
     });
   }, [messages, selectedCategory]);
