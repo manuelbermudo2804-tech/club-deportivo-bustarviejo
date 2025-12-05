@@ -391,8 +391,7 @@ export default function ParentChat() {
             {myCategories.map(cat => {
               const unread = getUnreadCount(cat);
               const privateUnread = getPrivateUnreadCount(cat);
-              const totalUnread = unread + privateUnread;
-              
+
               return (
                 <button
                   key={cat}
@@ -408,30 +407,32 @@ export default function ParentChat() {
                     selectedCategory === cat ? 'bg-orange-50 border-l-4 border-l-orange-600' : 'hover:bg-slate-50 border-l-4 border-l-transparent'
                   }`}
                 >
-                  <div className={`w-10 h-10 rounded-full flex items-center justify-center relative ${
+                  <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
                     selectedCategory === cat ? 'bg-orange-600 text-white' : 'bg-orange-100'
                   }`}>
                     <span className="text-lg">{sportEmojis[cat] || "⚽"}</span>
-                    {/* Badge pequeño en el icono para mensajes privados */}
-                    {privateUnread > 0 && (
-                      <span className="absolute -top-1 -right-1 bg-green-500 text-white text-[10px] font-bold w-5 h-5 rounded-full flex items-center justify-center animate-pulse border-2 border-white">
-                        {privateUnread}
-                      </span>
-                    )}
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="font-semibold text-slate-900 truncate text-sm">{cat}</div>
                     <div className="text-xs text-slate-500">
                       {cat === "Coordinación Deportiva" 
-                        ? (privateUnread > 0 ? `💬 ${privateUnread} mensaje(s) nuevo(s)` : "Chat con el coordinador")
+                        ? (privateUnread > 0 ? `💬 ${privateUnread} respuesta(s) privada(s)` : "Chat con el coordinador")
                         : myPlayers.filter(p => normalizeDeporte(p.deporte) === cat).map(p => p.nombre.split(' ')[0]).join(', ')}
                     </div>
                   </div>
-                  {totalUnread > 0 && (
-                    <Badge className={`text-white text-xs animate-pulse ${privateUnread > 0 ? 'bg-green-500' : 'bg-red-500'}`}>
-                      {totalUnread}
-                    </Badge>
-                  )}
+                  {/* Badges separados: azul para anuncios, verde para privados */}
+                  <div className="flex flex-col gap-1 items-end">
+                    {unread > 0 && (
+                      <Badge className="bg-blue-500 text-white text-[10px] px-2 py-0.5 animate-pulse" title="Anuncios nuevos">
+                        📢 {unread}
+                      </Badge>
+                    )}
+                    {privateUnread > 0 && (
+                      <Badge className="bg-green-500 text-white text-[10px] px-2 py-0.5 animate-pulse" title="Mensajes privados">
+                        🔒 {privateUnread}
+                      </Badge>
+                    )}
+                  </div>
                 </button>
               );
             })}
