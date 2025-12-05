@@ -582,6 +582,177 @@ CDBUSTARVIEJO@GMAIL.COM
           <Card className="p-8"><div className="text-center"><Loader2 className="w-12 h-12 text-orange-600 animate-spin mx-auto mb-4" /><p className="text-lg font-semibold text-slate-900">Generando...</p></div></Card>
         </div>
       )}
+
+      {/* Dialog: Enviar por Email */}
+      <Dialog open={emailDialog.open} onOpenChange={(open) => !open && setEmailDialog({ open: false, player: null, tipo: null })}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Mail className="w-5 h-5 text-orange-600" />
+              Enviar Certificado por Email
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+              <p className="text-sm text-blue-800">
+                <strong>Certificado:</strong> {emailDialog.tipo}
+              </p>
+              <p className="text-sm text-blue-800">
+                <strong>Jugador:</strong> {emailDialog.player?.nombre}
+              </p>
+            </div>
+            <div>
+              <Label htmlFor="email">Email de destino</Label>
+              <Input
+                id="email"
+                type="email"
+                value={emailDestino}
+                onChange={(e) => setEmailDestino(e.target.value)}
+                placeholder="ejemplo@email.com"
+                className="mt-1"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEmailDialog({ open: false, player: null, tipo: null })}>
+              Cancelar
+            </Button>
+            <Button onClick={handleEmailCertificate} className="bg-orange-600 hover:bg-orange-700">
+              <Send className="w-4 h-4 mr-2" />
+              Enviar y Descargar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog: Certificado de Torneo */}
+      <Dialog open={torneoDialog.open} onOpenChange={(open) => !open && setTorneoDialog({ open: false, player: null })}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Trophy className="w-5 h-5 text-purple-600" />
+              Certificado de Participación en Torneo
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="bg-purple-50 border border-purple-200 rounded-lg p-3">
+              <p className="text-sm text-purple-800">
+                <strong>Jugador:</strong> {torneoDialog.player?.nombre}
+              </p>
+            </div>
+            <div>
+              <Label htmlFor="torneo-nombre">Nombre del Torneo *</Label>
+              <Input
+                id="torneo-nombre"
+                value={torneoData.nombre}
+                onChange={(e) => setTorneoData({ ...torneoData, nombre: e.target.value })}
+                placeholder="Ej: Torneo de Navidad"
+                className="mt-1"
+              />
+            </div>
+            <div>
+              <Label htmlFor="torneo-fecha">Fecha del Torneo</Label>
+              <Input
+                id="torneo-fecha"
+                type="date"
+                value={torneoData.fecha}
+                onChange={(e) => setTorneoData({ ...torneoData, fecha: e.target.value })}
+                className="mt-1"
+              />
+            </div>
+            <div>
+              <Label htmlFor="torneo-posicion">Posición Obtenida</Label>
+              <Select value={torneoData.posicion} onValueChange={(v) => setTorneoData({ ...torneoData, posicion: v })}>
+                <SelectTrigger className="mt-1">
+                  <SelectValue placeholder="Selecciona posición (opcional)" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="🥇 Campeón">🥇 Campeón</SelectItem>
+                  <SelectItem value="🥈 Subcampeón">🥈 Subcampeón</SelectItem>
+                  <SelectItem value="🥉 Tercer puesto">🥉 Tercer puesto</SelectItem>
+                  <SelectItem value="Participante">Participante</SelectItem>
+                  <SelectItem value="Fair Play">🤝 Premio Fair Play</SelectItem>
+                  <SelectItem value="Mejor Jugador">⭐ Mejor Jugador</SelectItem>
+                  <SelectItem value="Mejor Portero">🧤 Mejor Portero</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setTorneoDialog({ open: false, player: null })}>
+              Cancelar
+            </Button>
+            <Button onClick={handleTorneoCertificate} className="bg-purple-600 hover:bg-purple-700">
+              <Download className="w-4 h-4 mr-2" />
+              Generar Certificado
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog: Historial de Certificados */}
+      <Dialog open={historyDialog.open} onOpenChange={(open) => !open && setHistoryDialog({ open: false, player: null })}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <History className="w-5 h-5 text-slate-600" />
+              Historial de Certificados - {historyDialog.player?.nombre}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="max-h-[60vh] overflow-y-auto">
+            {historyDialog.player && getPlayerCertificates(historyDialog.player.id).length === 0 ? (
+              <div className="text-center py-8 text-slate-500">
+                <FileText className="w-12 h-12 mx-auto mb-2 opacity-50" />
+                <p>No hay certificados generados</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {historyDialog.player && getPlayerCertificates(historyDialog.player.id).map(cert => (
+                  <div key={cert.id} className="bg-slate-50 rounded-xl p-4 border">
+                    <div className="flex items-start justify-between">
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <Badge className={
+                            cert.tipo_certificado === "Inscripción" ? "bg-blue-500" :
+                            cert.tipo_certificado === "Pagos al Día" ? "bg-green-500" :
+                            cert.tipo_certificado === "Asistencia" ? "bg-orange-500" :
+                            "bg-purple-500"
+                          }>
+                            {cert.tipo_certificado}
+                          </Badge>
+                          {cert.enviado_por_email && (
+                            <Badge variant="outline" className="text-xs">
+                              <Mail className="w-3 h-3 mr-1" />
+                              Enviado
+                            </Badge>
+                          )}
+                        </div>
+                        <p className="text-sm text-slate-600 mt-1">
+                          {format(new Date(cert.fecha_emision), "dd/MM/yyyy HH:mm", { locale: es })}
+                        </p>
+                        {cert.nombre_torneo && (
+                          <p className="text-sm text-purple-700 mt-1">
+                            🏆 {cert.nombre_torneo} {cert.posicion_torneo && `- ${cert.posicion_torneo}`}
+                          </p>
+                        )}
+                        {cert.email_destino && (
+                          <p className="text-xs text-slate-500 mt-1">
+                            Enviado a: {cert.email_destino}
+                          </p>
+                        )}
+                      </div>
+                      <div className="text-right">
+                        <p className="text-xs text-slate-400">Código</p>
+                        <p className="text-xs font-mono text-slate-600">{cert.codigo_verificacion}</p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
