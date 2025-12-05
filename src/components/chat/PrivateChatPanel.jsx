@@ -23,6 +23,8 @@ export default function PrivateChatPanel({
 }) {
   const [messageContent, setMessageContent] = useState("");
   const [attachments, setAttachments] = useState([]);
+  const [isSending, setIsSending] = useState(false);
+  const [optimisticMessages, setOptimisticMessages] = useState([]);
   const messagesEndRef = useRef(null);
   const queryClient = useQueryClient();
 
@@ -67,27 +69,55 @@ export default function PrivateChatPanel({
       return newMessage;
     },
     onSuccess: async () => {
-      setMessageContent("");
-      setAttachments([]);
-      // Invalidar y refetch inmediatamente para que aparezca el mensaje
+      // Limpiar mensaje optimista y refrescar
+      setOptimisticMessages([]);
+      setIsSending(false);
       await queryClient.invalidateQueries({ queryKey: ['privateMessages', conversation.id] });
       await queryClient.invalidateQueries({ queryKey: ['privateConversations'] });
       await queryClient.invalidateQueries({ queryKey: ['myPrivateConversations'] });
       onMessageSent?.();
     },
+    onError: () => {
+      // Si falla, quitar el mensaje optimista
+      setOptimisticMessages([]);
+      setIsSending(false);
+      toast.error("Error al enviar mensaje");
+    },
   });
 
   const handleSendMessage = () => {
     if (!messageContent.trim() && attachments.length === 0) return;
+    if (isSending) return;
+
+    const msgText = messageContent || "(Archivo adjunto)";
+    
+    // Mensaje optimista - aparece inmediatamente
+    const optimisticMsg = {
+      id: `temp-${Date.now()}`,
+      conversacion_id: conversation.id,
+      remitente_email: user.email,
+      remitente_nombre: user.full_name,
+      remitente_tipo: isStaff ? "staff" : "familia",
+      mensaje: msgText,
+      leido: false,
+      archivos_adjuntos: attachments,
+      created_date: new Date().toISOString(),
+      _isOptimistic: true
+    };
+    
+    setOptimisticMessages([optimisticMsg]);
+    setMessageContent("");
+    setAttachments([]);
+    setIsSending(true);
 
     sendMessageMutation.mutate({
       conversacion_id: conversation.id,
       remitente_email: user.email,
       remitente_nombre: user.full_name,
       remitente_tipo: isStaff ? "staff" : "familia",
-      mensaje: messageContent || "(Archivo adjunto)",
+      mensaje: msgText,
       leido: false,
-      archivos_adjuntos: attachments
+      archivos_adjuntos: optimisticMsg.archivos_adjuntos
     });
   };
 
@@ -145,7 +175,7 @@ export default function PrivateChatPanel({
           backgroundColor: '#e5ddd5'
         }}
       >
-        {messages.length === 0 ? (
+        {messages.length === 0 && optimisticMessages.length === 0 ? (
           <div className="flex items-center justify-center h-full">
             <div className="text-center text-slate-500 bg-white/80 rounded-xl p-6">
               <MessageCircle className="w-12 h-12 mx-auto mb-2 opacity-50" />
@@ -154,7 +184,7 @@ export default function PrivateChatPanel({
             </div>
           </div>
         ) : (
-          messages
+          [...messages, ...optimisticMessages]
             .sort((a, b) => new Date(a.created_date) - new Date(b.created_date))
             .map((msg) => {
               const isMyMessage = msg.remitente_email === user?.email;
@@ -165,7 +195,7 @@ export default function PrivateChatPanel({
                       isMyMessage
                         ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-br-sm'
                         : 'bg-white text-slate-900 rounded-bl-sm'
-                    }`}>
+                    } ${msg._isOptimistic ? 'opacity-70' : ''}`}>
                       <div className="px-4 py-3">
                         <div className="flex items-center gap-2 mb-1">
                           <span className={`text-sm font-bold ${isMyMessage ? 'text-blue-100' : 'text-slate-700'}`}>
@@ -186,8 +216,14 @@ export default function PrivateChatPanel({
                         <span className={`text-xs ${isMyMessage ? 'text-blue-200' : 'text-slate-400'}`}>
                           {format(new Date(msg.created_date), "HH:mm")}
                         </span>
-                        {isMyMessage && msg.leido && (
+                        {isMyMessage && msg._isOptimistic && (
+                          <span className="text-xs text-blue-200">⏳</span>
+                        )}
+                        {isMyMessage && !msg._isOptimistic && msg.leido && (
                           <span className="text-xs text-blue-200">✓✓</span>
+                        )}
+                        {isMyMessage && !msg._isOptimistic && !msg.leido && (
+                          <span className="text-xs text-blue-200">✓</span>
                         )}
                       </div>
                     </div>
@@ -237,10 +273,14 @@ export default function PrivateChatPanel({
           
           <Button
             onClick={handleSendMessage}
-            disabled={(!messageContent.trim() && attachments.length === 0) || sendMessageMutation.isPending}
+            disabled={(!messageContent.trim() && attachments.length === 0) || isSending}
             className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 rounded-full w-10 h-10 p-0 flex items-center justify-center shadow-lg"
           >
-            <Send className="w-4 h-4" />
+            {isSending ? (
+              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+            ) : (
+              <Send className="w-4 h-4" />
+            )}
           </Button>
         </div>
       </div>
