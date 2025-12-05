@@ -513,16 +513,17 @@ export default function ParentChat() {
                                   </div>
                                 )}
 
-                                {msg.archivos_adjuntos?.length > 0 && (
-                                  <div className="mt-4">
-                                    <MessageAttachments attachments={msg.archivos_adjuntos} />
+                                {item.data.archivos_adjuntos?.length > 0 && (
+                                      <div className="mt-4">
+                                        <MessageAttachments attachments={item.data.archivos_adjuntos} />
+                                      </div>
+                                    )}
                                   </div>
+                                </div>
+                                </div>
+                                )
                                 )}
-                              </div>
-                            </div>
-                          </div>
-                        ))}
-                      <div ref={coordinationMessagesEndRef} />
+                                <div ref={coordinationMessagesEndRef} />
                     </div>
                   </div>
                 )}
