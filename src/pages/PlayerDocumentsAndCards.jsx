@@ -160,6 +160,18 @@ export default function PlayerDocumentsAndCards() {
         detalles.push(`Fecha de inscripción: ${format(new Date(player.created_date), "dd 'de' MMMM 'de' yyyy", { locale: es })}`);
         detalles.push(`Categoría: ${player.deporte}`);
         detalles.push(`Temporada: ${season}`);
+      } else if (tipo === "Participación en Torneo") {
+        if (!torneoInfo?.nombre) {
+          toast.error("Debes especificar los datos del torneo");
+          setGenerating(false);
+          return;
+        }
+        mensaje = `Ha participado en el torneo "${torneoInfo.nombre}" representando al Club Deportivo Bustarviejo.`;
+        detalles.push(`Torneo: ${torneoInfo.nombre}`);
+        if (torneoInfo.fecha) detalles.push(`Fecha: ${format(new Date(torneoInfo.fecha), "dd 'de' MMMM 'de' yyyy", { locale: es })}`);
+        if (torneoInfo.posicion) detalles.push(`Posición obtenida: ${torneoInfo.posicion}`);
+        detalles.push(`Categoría: ${player.deporte}`);
+        detalles.push(`Temporada: ${season}`);
       } else if (tipo === "Pagos al Día") {
         // Buscar pagos del jugador en la temporada actual (normalizando formato)
         const playerPayments = payments.filter(p => 
