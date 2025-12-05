@@ -206,8 +206,32 @@ export default function NotificationCenter() {
     return daysUntil >= 0 && daysUntil <= 3 && myPlayers.some(p => p.id === r.jugador_id);
   });
 
+  // Conversaciones privadas con mensajes no leídos
+  const unreadPrivateConversations = privateConversations.filter(conv => {
+    if (!user) return false;
+    // Si soy familia, mirar no_leidos_familia
+    if (conv.participante_familia_email === user.email) {
+      return (conv.no_leidos_familia || 0) > 0;
+    }
+    // Si soy staff (entrenador/coordinador/admin), mirar no_leidos_staff
+    if (conv.participante_staff_email === user.email) {
+      return (conv.no_leidos_staff || 0) > 0;
+    }
+    return false;
+  });
+
+  const totalUnreadPrivate = unreadPrivateConversations.reduce((sum, conv) => {
+    if (conv.participante_familia_email === user?.email) {
+      return sum + (conv.no_leidos_familia || 0);
+    }
+    if (conv.participante_staff_email === user?.email) {
+      return sum + (conv.no_leidos_staff || 0);
+    }
+    return sum;
+  }, 0);
+
   const criticalNotifications = urgentMessages.length + urgentAnnouncements.length + pendingPayments.length;
-  const totalNotifications = unreadMessagesRecent.length + pendingCallups.length + pendingPayments.length + recentAnnouncements.length + unviewedAppNotifications.length;
+  const totalNotifications = unreadMessagesRecent.length + pendingCallups.length + pendingPayments.length + recentAnnouncements.length + unviewedAppNotifications.length + totalUnreadPrivate;
 
   const getNotificationIcon = (type) => {
     switch(type) {
