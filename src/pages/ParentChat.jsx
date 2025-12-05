@@ -473,91 +473,75 @@ export default function ParentChat() {
             selectedCategory === "Coordinación Deportiva" ? (
               /* Coordinación Deportiva: mostrar anuncios generales + chat privado */
               <div className="space-y-4">
-                {/* Sección de Anuncios Generales del Coordinador */}
+                {/* Sección de Anuncios Generales del Coordinador - Compacta */}
                 {currentAnnouncements.length > 0 && (
                   <div className="bg-white rounded-xl shadow-md border overflow-hidden">
-                    <div className="bg-gradient-to-r from-cyan-600 to-cyan-700 p-4 text-white flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
-                        <span className="text-xl">📢</span>
-                      </div>
+                    <div className="bg-gradient-to-r from-cyan-600 to-cyan-700 p-2 text-white flex items-center gap-2">
+                      <span className="text-lg">📢</span>
                       <div className="flex-1">
-                        <h2 className="font-bold">Anuncios Grupo</h2>
-                        <p className="text-xs text-cyan-100">Mensajes generales del coordinador para todas las familias</p>
+                        <h2 className="font-bold text-sm">Anuncios ({currentAnnouncements.length})</h2>
                       </div>
                     </div>
-                    <div className="max-h-[40vh] overflow-y-auto p-4 space-y-3" style={{ backgroundColor: '#e5ddd5' }}>
+                    <div className="max-h-[25vh] overflow-y-auto p-2 space-y-2" style={{ backgroundColor: '#e5ddd5' }}>
                       {groupMessagesByDate(currentAnnouncements).map((item, idx) => 
                         item.type === 'date' ? (
                           <DateSeparator key={`date-${idx}`} date={item.date} />
                         ) : (
-                            <div key={item.data.id} className="flex justify-center my-4">
-                              <div className="w-full max-w-[98%] rounded-2xl shadow-2xl overflow-hidden bg-gradient-to-br from-cyan-50 via-white to-blue-50 border-4 border-cyan-500 ring-4 ring-cyan-300/50">
-                                {/* Banner muy destacado */}
-                                <div className="bg-gradient-to-r from-cyan-600 via-blue-600 to-cyan-700 px-4 py-3 flex items-center justify-center gap-3">
-                                  <span className="text-2xl animate-bounce">📢</span>
-                                  <span className="text-white font-black text-base tracking-wide">ANUNCIO OFICIAL - COORDINACIÓN DEPORTIVA</span>
-                                  <span className="text-2xl animate-bounce">📢</span>
-                                </div>
-                                <div className="px-5 py-5">
-                                  <div className="flex items-center gap-3 mb-4">
-                                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center shadow-xl ring-2 ring-white">
-                                      <span className="text-xl">🎓</span>
-                                    </div>
-                                    <div className="flex-1">
-                                      <span className="text-base font-black text-cyan-800 block">
-                                        {item.data.remitente_nombre || "Coordinador Deportivo"}
-                                      </span>
-                                      <span className="text-xs text-slate-600 font-medium">
-                                        {format(new Date(item.data.created_date), "EEEE d 'de' MMMM, HH:mm", { locale: es })}
-                                      </span>
-                                    </div>
-                                    {item.data.prioridad !== "Normal" && (
-                                      <Badge className={`${item.data.prioridad === "Urgente" ? "bg-red-600 animate-pulse" : "bg-yellow-500"} text-white font-bold px-4 py-1 text-sm`}>
-                                        {item.data.prioridad === "Urgente" ? "🚨 URGENTE" : "⚠️ IMPORTANTE"}
-                                      </Badge>
-                                    )}
-                                  </div>
-                                  <div className="bg-white rounded-xl p-5 border-2 border-cyan-200 shadow-lg">
-                                    <p className="text-base leading-relaxed whitespace-pre-wrap text-slate-800 font-medium">{item.data.mensaje}</p>
-                                  </div>
-
-                                  {item.data.poll && (
-                                    <div className="mt-4">
-                                      <PollMessage 
-                                        poll={item.data.poll} 
-                                        onVote={(msgId, optIdx) => voteOnPollMutation.mutate({ messageId: msgId, optionIndex: optIdx })}
-                                        userEmail={user?.email}
-                                        messageId={item.data.id}
-                                      />
-                                    </div>
+                          <div key={item.data.id} className="bg-white rounded-lg shadow-sm border border-cyan-200 p-3">
+                            <div className="flex items-start gap-2">
+                              <div className="w-8 h-8 rounded-full bg-cyan-100 flex items-center justify-center flex-shrink-0">
+                                <span className="text-sm">🎓</span>
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center gap-2 mb-1">
+                                  <span className="text-xs font-bold text-cyan-700">
+                                    {item.data.remitente_nombre || "Coordinador"}
+                                  </span>
+                                  {item.data.prioridad !== "Normal" && (
+                                    <Badge className={`${item.data.prioridad === "Urgente" ? "bg-red-500" : "bg-yellow-500"} text-white text-[10px] px-1.5 py-0`}>
+                                      {item.data.prioridad === "Urgente" ? "🚨" : "⚠️"}
+                                    </Badge>
                                   )}
-
-                                {item.data.archivos_adjuntos?.length > 0 && (
-                                      <div className="mt-4">
-                                        <MessageAttachments attachments={item.data.archivos_adjuntos} />
-                                      </div>
-                                    )}
+                                  <span className="text-[10px] text-slate-400 ml-auto">
+                                    {format(new Date(item.data.created_date), "d MMM HH:mm", { locale: es })}
+                                  </span>
+                                </div>
+                                <p className="text-sm text-slate-800 whitespace-pre-wrap line-clamp-3">{item.data.mensaje}</p>
+                                {item.data.poll && (
+                                  <div className="mt-2">
+                                    <PollMessage 
+                                      poll={item.data.poll} 
+                                      onVote={(msgId, optIdx) => voteOnPollMutation.mutate({ messageId: msgId, optionIndex: optIdx })}
+                                      userEmail={user?.email}
+                                      messageId={item.data.id}
+                                    />
                                   </div>
-                                </div>
-                                </div>
-                                )
                                 )}
-                                <div ref={coordinationMessagesEndRef} />
+                                {item.data.archivos_adjuntos?.length > 0 && (
+                                  <div className="mt-2">
+                                    <MessageAttachments attachments={item.data.archivos_adjuntos} />
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        )
+                      )}
+                      <div ref={coordinationMessagesEndRef} />
                     </div>
                   </div>
                 )}
 
                 {/* Chat privado con coordinador */}
-                <div className="bg-white rounded-xl shadow-md border overflow-hidden">
-                  <div className="bg-gradient-to-r from-green-600 to-green-700 p-3 text-white flex items-center gap-3">
-                    <Lock className="w-5 h-5" />
+                <div className="bg-white rounded-xl shadow-md border overflow-hidden flex-1">
+                  <div className="bg-gradient-to-r from-green-600 to-green-700 p-2 text-white flex items-center gap-2">
+                    <Lock className="w-4 h-4" />
                     <div className="flex-1">
-                      <h2 className="font-bold text-sm">💬 Chat Privado con Coordinador</h2>
-                      <p className="text-xs text-green-100">Solo tú y el coordinador ven estos mensajes</p>
+                      <h2 className="font-bold text-sm">💬 Chat Privado</h2>
                     </div>
                   </div>
                   {activePrivateChat ? (
-                    <div style={{ height: currentAnnouncements.length > 0 ? '35vh' : '60vh' }}>
+                    <div style={{ height: currentAnnouncements.length > 0 ? '45vh' : '60vh' }}>
                       <PrivateChatPanel
                         conversation={activePrivateChat}
                         messages={privateMessages}
