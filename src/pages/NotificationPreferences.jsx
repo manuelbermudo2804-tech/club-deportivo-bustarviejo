@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Bell, Save, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import PushNotificationManager from "../components/push/PushNotificationManager";
 
 export default function NotificationPreferences() {
   const [user, setUser] = useState(null);
@@ -139,6 +140,15 @@ export default function NotificationPreferences() {
         </h1>
         <p className="text-slate-600 mt-1">Personaliza cómo y cuándo recibes notificaciones</p>
       </div>
+
+      <Card className="border-2 border-green-300 bg-green-50">
+        <CardHeader>
+          <CardTitle className="text-green-800">📲 Notificaciones Push</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <PushNotificationManager />
+        </CardContent>
+      </Card>
 
       <Alert className="bg-blue-50 border-blue-200">
         <AlertDescription className="text-blue-800">
