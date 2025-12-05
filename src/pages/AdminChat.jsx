@@ -34,6 +34,8 @@ export default function AdminChat() {
   const [showAuditDialog, setShowAuditDialog] = useState(false);
   const [auditReason, setAuditReason] = useState("");
   const [auditAccess, setAuditAccess] = useState(false);
+  const [isSending, setIsSending] = useState(false);
+  const [optimisticMessages, setOptimisticMessages] = useState([]);
   const messagesEndRef = useRef(null);
   const queryClient = useQueryClient();
   const [user, setUser] = useState(null);
@@ -185,8 +187,8 @@ export default function AdminChat() {
       }
     },
     onSuccess: async (result, variables) => {
-      setMessageContent("");
-      setAttachments([]);
+      setOptimisticMessages([]);
+      setIsSending(false);
       setPriority("Normal");
       setSendToAll(false);
       setSelectedRecipient("all");
@@ -212,7 +214,11 @@ export default function AdminChat() {
       
       await queryClient.invalidateQueries({ queryKey: ['chatMessages'] });
       await refetchMessages();
-      toast.success(sendToAll ? "Anuncio enviado a todos los grupos" : "Mensaje enviado");
+    },
+    onError: () => {
+      setOptimisticMessages([]);
+      setIsSending(false);
+      toast.error("Error al enviar mensaje");
     },
   });
 
@@ -451,15 +457,42 @@ export default function AdminChat() {
       toast.error("Selecciona un grupo");
       return;
     }
+    
+    if (isSending) return;
 
     const senderName = user.role === "admin" 
       ? "Administración CD Bustarviejo" 
       : user.full_name || "Coordinador";
 
+    const msgText = messageContent.trim() || "(Archivo adjunto)";
+
+    // Mensaje optimista
+    if (!sendToAll && selectedGroup) {
+      const optimisticMsg = {
+        id: `temp-${Date.now()}`,
+        remitente_email: user.email,
+        remitente_nombre: senderName,
+        mensaje: msgText,
+        prioridad: priority,
+        tipo: "admin_a_grupo",
+        deporte: selectedGroup,
+        grupo_id: selectedGroup,
+        leido: false,
+        archivos_adjuntos: attachments,
+        created_date: new Date().toISOString(),
+        _isOptimistic: true
+      };
+      setOptimisticMessages([optimisticMsg]);
+    }
+    
+    setMessageContent("");
+    setAttachments([]);
+    setIsSending(true);
+
     const messageData = {
       remitente_email: user.email,
       remitente_nombre: senderName,
-      mensaje: messageContent.trim() || "(Archivo adjunto)",
+      mensaje: msgText,
       prioridad: priority,
       tipo: "admin_a_grupo",
       deporte: sendToAll ? "Todos" : selectedGroup,
@@ -809,7 +842,7 @@ export default function AdminChat() {
                   <p className="text-sm">Escribe tu anuncio abajo</p>
                 </div>
               </div>
-            ) : currentGroup?.messages.length === 0 ? (
+            ) : currentGroup?.messages.length === 0 && optimisticMessages.length === 0 ? (
               <div className="flex items-center justify-center h-full">
                 <div className="text-center text-slate-500">
                   <AlertCircle className="w-12 h-12 mx-auto mb-2 opacity-50" />
@@ -817,7 +850,7 @@ export default function AdminChat() {
                 </div>
               </div>
             ) : (
-              currentGroup.messages
+              [...(currentGroup?.messages || []), ...optimisticMessages]
                 .sort((a, b) => new Date(a.created_date) - new Date(b.created_date))
                 .map((msg) => {
                   const readStatus = getReadStatus(msg);
@@ -837,7 +870,7 @@ export default function AdminChat() {
                             : isJugador
                             ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-bl-none'
                             : 'bg-white text-slate-900 rounded-bl-none'
-                        }`}
+                        } ${msg._isOptimistic ? 'opacity-70' : ''}`}
                       >
                         <button
                           onClick={() => {
@@ -890,7 +923,8 @@ export default function AdminChat() {
                             <span className={`text-[10px] ${isAdmin ? 'text-green-100' : isJugador ? 'text-blue-100' : 'text-slate-500'}`}>
                               {format(new Date(msg.created_date), "HH:mm")}
                             </span>
-                            {isAdmin && (
+                            {msg._isOptimistic && <span className="text-[10px] text-green-200">⏳</span>}
+                            {isAdmin && !msg._isOptimistic && (
                               <span className="ml-1">
                                 {readStatus === "read" ? (
                                   <CheckCheck className="w-3 h-3 text-blue-400" />
@@ -984,10 +1018,14 @@ export default function AdminChat() {
               
               <Button
                 onClick={handleSendMessage}
-                disabled={(!messageContent.trim() && attachments.length === 0) || sendMessageMutation.isPending}
+                disabled={(!messageContent.trim() && attachments.length === 0) || isSending}
                 className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 rounded-full w-10 h-10 p-0 flex items-center justify-center shadow-lg"
               >
-                <Send className="w-4 h-4" />
+                {isSending ? (
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                ) : (
+                  <Send className="w-4 h-4" />
+                )}
               </Button>
             </div>
           </div>

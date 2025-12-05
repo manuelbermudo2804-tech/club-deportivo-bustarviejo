@@ -37,6 +37,8 @@ export default function CoachChat() {
   const [showSearchDialog, setShowSearchDialog] = useState(false);
   const [showPinnedDialog, setShowPinnedDialog] = useState(false);
   const [showMediaDialog, setShowMediaDialog] = useState(false);
+  const [isSending, setIsSending] = useState(false);
+  const [optimisticMessages, setOptimisticMessages] = useState([]);
   const messagesEndRef = useRef(null);
   const queryClient = useQueryClient();
   const [user, setUser] = useState(null);
@@ -216,11 +218,15 @@ export default function CoachChat() {
       return newMessage;
     },
     onSuccess: async () => {
-      setMessageContent("");
-      setAttachments([]);
+      setOptimisticMessages([]);
+      setIsSending(false);
       setPriority("Normal");
-      // Refetch inmediato sin esperar invalidación
       refetchMessages();
+    },
+    onError: () => {
+      setOptimisticMessages([]);
+      setIsSending(false);
+      toast.error("Error al enviar mensaje");
     },
   });
 
@@ -341,18 +347,42 @@ export default function CoachChat() {
       toast.error("Escribe un mensaje");
       return;
     }
+    if (isSending) return;
+
+    const msgText = messageContent || "(Archivo adjunto)";
+    
+    // Mensaje optimista - aparece inmediatamente
+    const optimisticMsg = {
+      id: `temp-${Date.now()}`,
+      remitente_email: user.email,
+      remitente_nombre: user.full_name || "Staff",
+      mensaje: msgText,
+      prioridad: priority,
+      tipo: "admin_a_grupo",
+      deporte: selectedCategory,
+      grupo_id: selectedCategory,
+      leido: false,
+      archivos_adjuntos: attachments,
+      created_date: new Date().toISOString(),
+      _isOptimistic: true
+    };
+    
+    setOptimisticMessages([optimisticMsg]);
+    setMessageContent("");
+    setAttachments([]);
+    setIsSending(true);
     
     sendMessageMutation.mutate({
       remitente_email: user.email,
       remitente_nombre: user.full_name || "Staff",
-      mensaje: messageContent || "(Archivo adjunto)",
+      mensaje: msgText,
       prioridad: priority,
       tipo: "admin_a_grupo",
       deporte: selectedCategory,
       categoria: "",
       grupo_id: selectedCategory,
       leido: false,
-      archivos_adjuntos: attachments,
+      archivos_adjuntos: optimisticMsg.archivos_adjuntos,
     });
   };
 
@@ -591,7 +621,7 @@ export default function CoachChat() {
                   </div>
 
                   <div className="flex-1 overflow-y-auto p-4 space-y-2" style={{ backgroundColor: '#e5ddd5' }}>
-                    {currentGroupMessages.length === 0 ? (
+                    {currentGroupMessages.length === 0 && optimisticMessages.length === 0 ? (
                       <div className="flex items-center justify-center h-full">
                         <div className="text-center text-slate-500 bg-white/80 rounded-xl p-6">
                           <AlertCircle className="w-12 h-12 mx-auto mb-2 opacity-50" />
@@ -599,7 +629,7 @@ export default function CoachChat() {
                         </div>
                       </div>
                     ) : (
-                      currentGroupMessages
+                      [...currentGroupMessages, ...optimisticMessages]
                         .sort((a, b) => new Date(a.created_date) - new Date(b.created_date))
                         .map((msg) => {
                           const isMyMessage = msg.remitente_email === user?.email || msg.tipo === "admin_a_grupo";
@@ -611,7 +641,7 @@ export default function CoachChat() {
                                 isCoordinationChat && isFromFamily 
                                   ? 'bg-white text-slate-900 rounded-bl-none' 
                                   : 'bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-br-none'
-                              }`}>
+                              } ${msg._isOptimistic ? 'opacity-70' : ''}`}>
                                 <div className="px-3 py-2">
                                   <div className="flex items-center gap-2 mb-1">
                                     <span className={`text-xs font-semibold ${isCoordinationChat && isFromFamily ? 'text-orange-600' : 'opacity-80'}`}>
@@ -641,15 +671,16 @@ export default function CoachChat() {
                                     <span className={`text-[10px] ${isCoordinationChat && isFromFamily ? 'text-slate-400' : 'opacity-70'}`}>
                                       {format(new Date(msg.created_date), "HH:mm")}
                                     </span>
+                                    {msg._isOptimistic && <span className="text-[10px] opacity-70">⏳</span>}
                                     {msg.anclado && <Pin className="w-3 h-3 opacity-70" />}
-                                    {msg.tipo === "admin_a_grupo" && (
+                                    {msg.tipo === "admin_a_grupo" && !msg._isOptimistic && (
                                       <ReadConfirmation 
                                         message={msg} 
                                         totalRecipients={getGroupRecipientCount(selectedCategory)}
                                         isAdmin={true}
                                       />
                                     )}
-                                    {msg.tipo === "admin_a_grupo" && (
+                                    {msg.tipo === "admin_a_grupo" && !msg._isOptimistic && (
                                       <button
                                         onClick={() => togglePinMutation.mutate({ messageId: msg.id, pin: !msg.anclado })}
                                         className="p-1 rounded hover:bg-white/20 transition-colors opacity-70 hover:opacity-100"
@@ -711,10 +742,14 @@ export default function CoachChat() {
                       />
                       <Button
                         onClick={handleSendGroupMessage}
-                        disabled={(!messageContent.trim() && attachments.length === 0) || sendMessageMutation.isPending}
+                        disabled={(!messageContent.trim() && attachments.length === 0) || isSending}
                         className={`rounded-full w-10 h-10 p-0 ${isStaffChat ? 'bg-purple-600 hover:bg-purple-700' : isCoordinationChat ? 'bg-green-600 hover:bg-green-700' : 'bg-blue-600 hover:bg-blue-700'}`}
                       >
-                        <Send className="w-4 h-4" />
+                        {isSending ? (
+                          <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                        ) : (
+                          <Send className="w-4 h-4" />
+                        )}
                       </Button>
                     </div>
                   </div>
