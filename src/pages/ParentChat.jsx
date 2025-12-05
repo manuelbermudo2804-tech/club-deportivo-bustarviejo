@@ -72,9 +72,9 @@ export default function ParentChat() {
     queryKey: ['myPrivateConversations', user?.email],
     queryFn: () => user ? base44.entities.PrivateConversation.filter({ participante_familia_email: user.email }, '-ultimo_mensaje_fecha') : [],
     enabled: !!user?.email,
-    staleTime: 30000,
-    gcTime: 60000,
-    refetchInterval: 15000, // Polling cada 15 segundos
+    staleTime: 3000, // 3 segundos - más inmediato
+    gcTime: 30000,
+    refetchInterval: 5000, // Polling cada 5 segundos para detectar nuevos mensajes rápido
     refetchOnWindowFocus: true,
   });
 
