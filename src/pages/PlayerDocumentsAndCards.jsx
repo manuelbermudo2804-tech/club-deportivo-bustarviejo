@@ -366,7 +366,8 @@ CDBUSTARVIEJO@GMAIL.COM
   const certificateTypes = [
     { id: "Inscripción", icon: FileText, color: "from-blue-500 to-blue-600", bgColor: "bg-blue-50", description: "Certifica la inscripción del jugador" },
     { id: "Pagos al Día", icon: CheckCircle2, color: "from-green-500 to-green-600", bgColor: "bg-green-50", description: "Certifica que no hay pagos pendientes" },
-    { id: "Asistencia", icon: Award, color: "from-orange-500 to-orange-600", bgColor: "bg-orange-50", description: "Certifica el porcentaje de asistencia" }
+    { id: "Asistencia", icon: Award, color: "from-orange-500 to-orange-600", bgColor: "bg-orange-50", description: "Certifica el porcentaje de asistencia" },
+    { id: "Participación en Torneo", icon: Trophy, color: "from-purple-500 to-purple-600", bgColor: "bg-purple-50", description: "Certifica participación en torneo", special: true }
   ];
 
   return (
