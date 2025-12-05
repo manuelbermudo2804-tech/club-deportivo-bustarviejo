@@ -143,12 +143,12 @@ export default function CallupMap({ ubicacion, enlaceUbicacion, localVisitante }
   }
 
   return (
-    <div className="rounded-xl overflow-hidden border-2 border-blue-200">
-      <div className="h-40 relative">
+    <div className="rounded-xl overflow-hidden border-2 border-blue-200 relative z-0">
+      <div className="h-40 relative z-0">
         <MapContainer
           center={coordinates}
           zoom={15}
-          style={{ height: "100%", width: "100%" }}
+          style={{ height: "100%", width: "100%", zIndex: 0 }}
           zoomControl={false}
           attributionControl={false}
         >
