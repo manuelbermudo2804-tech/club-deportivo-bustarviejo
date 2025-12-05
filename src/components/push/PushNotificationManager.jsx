@@ -53,6 +53,18 @@ export default function PushNotificationManager() {
     }
   };
 
+  // Convertir VAPID key de base64 a Uint8Array
+  const urlBase64ToUint8Array = (base64String) => {
+    const padding = '='.repeat((4 - base64String.length % 4) % 4);
+    const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+    const rawData = window.atob(base64);
+    const outputArray = new Uint8Array(rawData.length);
+    for (let i = 0; i < rawData.length; ++i) {
+      outputArray[i] = rawData.charCodeAt(i);
+    }
+    return outputArray;
+  };
+
   const subscribeToPush = async () => {
     console.log('[Notif] Iniciando suscripción...');
     setIsLoading(true);
@@ -70,31 +82,73 @@ export default function PushNotificationManager() {
         console.log('[Notif] Resultado permiso:', permission);
       }
       
-      // En Edge a veces el permiso tarda en actualizarse - continuar igualmente si el usuario dijo permitir
       if (permission === 'denied') {
-        toast.error("❌ Permiso bloqueado. En Edge: Configuración → Cookies y permisos → Notificaciones → Permitir este sitio");
+        toast.error("❌ Permiso bloqueado. Ve a configuración del navegador → Notificaciones → Permitir este sitio");
         setIsLoading(false);
         return;
       }
 
+      // Registrar Service Worker y obtener suscripción Web Push
+      let subscription = null;
+      
+      if ('serviceWorker' in navigator && 'PushManager' in window) {
+        console.log('[Notif] Registrando Service Worker...');
+        
+        try {
+          // Obtener VAPID key del backend
+          const vapidResponse = await base44.functions.invoke('getVapidKey', {});
+          const vapidPublicKey = vapidResponse.data?.vapidKey;
+          
+          if (vapidPublicKey) {
+            console.log('[Notif] VAPID key obtenida');
+            
+            // Registrar SW
+            const registration = await navigator.serviceWorker.register('/sw.js').catch(() => null);
+            
+            if (registration) {
+              await navigator.serviceWorker.ready;
+              console.log('[Notif] SW registrado');
+              
+              // Crear suscripción push
+              subscription = await registration.pushManager.subscribe({
+                userVisibleOnly: true,
+                applicationServerKey: urlBase64ToUint8Array(vapidPublicKey)
+              });
+              
+              console.log('[Notif] Suscripción creada:', subscription.endpoint);
+            }
+          }
+        } catch (swError) {
+          console.log('[Notif] No se pudo crear suscripción push (normal en desarrollo):', swError.message);
+        }
+      }
+
       console.log('[Notif] Guardando en usuario...');
       
-      // Guardar en el usuario que activó notificaciones
-      await base44.auth.updateMe({
+      // Guardar en el usuario - con o sin suscripción
+      const updateData = {
         push_enabled: true,
         push_subscribed_at: new Date().toISOString()
-      });
+      };
+      
+      if (subscription) {
+        updateData.fcm_token = JSON.stringify(subscription);
+      }
+      
+      await base44.auth.updateMe(updateData);
 
       console.log('[Notif] Usuario actualizado, mostrando notificación...');
 
       setIsSubscribed(true);
       setShowDialog(false);
-      toast.success("✅ ¡Notificaciones activadas!");
+      toast.success(subscription ? "✅ ¡Notificaciones Push activadas!" : "✅ ¡Notificaciones locales activadas!");
 
       // Mostrar notificación de prueba
       try {
         new Notification("🎉 CD Bustarviejo", {
-          body: "Recibirás notificaciones cuando la app esté abierta o en segundo plano",
+          body: subscription 
+            ? "Recibirás notificaciones incluso con la app cerrada" 
+            : "Recibirás notificaciones cuando la app esté abierta",
           icon: "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6911b8e453ca3ac01fb134d6/e3f0a8e26_logo_cd_bustarviejo_mediano.jpg"
         });
       } catch (notifError) {
