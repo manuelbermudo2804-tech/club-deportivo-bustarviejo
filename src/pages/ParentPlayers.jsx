@@ -91,14 +91,6 @@ export default function ParentPlayers() {
     initialData: [],
   });
 
-  const { data: seasonConfig } = useQuery({
-    queryKey: ['seasonConfig'],
-    queryFn: async () => {
-      const configs = await base44.entities.SeasonConfig.list();
-      return configs.find(c => c.activa === true);
-    },
-  });
-
   const createPlayerMutation = useMutation({
     mutationFn: async (playerData) => {
       const dataWithParentEmail = {
