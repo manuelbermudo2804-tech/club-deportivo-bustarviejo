@@ -213,6 +213,25 @@ export default function PushNotificationManager() {
     }
   };
 
+  const [debugInfo, setDebugInfo] = useState(null);
+
+  const checkDebugInfo = async () => {
+    try {
+      const user = await base44.auth.me();
+      setDebugInfo({
+        email: user?.email,
+        push_enabled: user?.push_enabled,
+        has_fcm_token: !!user?.fcm_token,
+        fcm_token_preview: user?.fcm_token ? user.fcm_token.substring(0, 50) + '...' : 'NO HAY TOKEN',
+        notification_permission: Notification.permission,
+        sw_supported: 'serviceWorker' in navigator,
+        push_supported: 'PushManager' in window
+      });
+    } catch (e) {
+      setDebugInfo({ error: e.message });
+    }
+  };
+
   return (
     <>
       {isSubscribed ? (
@@ -240,6 +259,19 @@ export default function PushNotificationManager() {
             <Bell className="w-4 h-4 mr-2" />
             Notificación local (este dispositivo)
           </Button>
+          <Button
+            onClick={checkDebugInfo}
+            variant="outline"
+            className="w-full text-xs"
+            size="sm"
+          >
+            🔍 Ver diagnóstico
+          </Button>
+          {debugInfo && (
+            <div className="p-2 bg-slate-100 rounded text-xs font-mono overflow-auto max-h-40">
+              <pre>{JSON.stringify(debugInfo, null, 2)}</pre>
+            </div>
+          )}
         </div>
       ) : (
         <div className="space-y-2">
