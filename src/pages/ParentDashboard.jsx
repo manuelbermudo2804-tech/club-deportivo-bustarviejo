@@ -204,6 +204,16 @@ export default function ParentDashboard() {
     enabled: !!user,
   });
 
+  const { data: privateConversations = [] } = useQuery({
+    queryKey: ['privateConversationsParent'],
+    queryFn: () => base44.entities.PrivateConversation.list('-ultimo_mensaje_fecha'),
+    staleTime: 60000,
+    gcTime: 300000,
+    refetchOnWindowFocus: true,
+    refetchInterval: 5000,
+    enabled: !!user,
+  });
+
   const { data: allDocuments = [] } = useQuery({
     queryKey: ['documents'],
     queryFn: () => base44.entities.Document.list('-created_date'),
