@@ -71,15 +71,11 @@ export default function PushNotificationManager() {
 
     try {
       // Verificar permiso actual
-      console.log('[Notif] Permiso actual:', Notification.permission);
-      
       let permission = Notification.permission;
       
       // Si no está concedido, solicitarlo
       if (permission !== 'granted') {
-        console.log('[Notif] Solicitando permiso...');
         permission = await Notification.requestPermission();
-        console.log('[Notif] Resultado permiso:', permission);
       }
       
       if (permission === 'denied') {
@@ -88,70 +84,17 @@ export default function PushNotificationManager() {
         return;
       }
 
-      // Registrar Service Worker y obtener suscripción Web Push
-      let subscription = null;
+      // En Base44 no podemos usar Service Workers, así que activamos notificaciones locales
+      // y guardamos el estado para que el sistema sepa que el usuario quiere recibir notificaciones
       
-      if ('serviceWorker' in navigator && 'PushManager' in window) {
-        console.log('[Notif] Registrando Service Worker...');
-        alert("Paso 1: Obteniendo VAPID key...");
-        
-        try {
-          // Obtener VAPID key del backend
-          const vapidResponse = await base44.functions.invoke('getVapidKey', {});
-          const vapidPublicKey = vapidResponse.data?.vapidKey;
-          
-          alert("Paso 2: VAPID key: " + (vapidPublicKey ? "OK" : "FALTA"));
-          
-          if (vapidPublicKey) {
-            console.log('[Notif] VAPID key obtenida');
-            
-            // Registrar SW
-            alert("Paso 3: Registrando Service Worker...");
-            const registration = await navigator.serviceWorker.register('/sw.js').catch((e) => {
-              alert("Error SW: " + e.message);
-              return null;
-            });
-            
-            if (registration) {
-              await navigator.serviceWorker.ready;
-              console.log('[Notif] SW registrado');
-              alert("Paso 4: SW registrado, creando suscripción...");
-              
-              // Crear suscripción push
-              subscription = await registration.pushManager.subscribe({
-                userVisibleOnly: true,
-                applicationServerKey: urlBase64ToUint8Array(vapidPublicKey)
-              });
-              
-              alert("Paso 5: Suscripción creada: " + subscription.endpoint.substring(0, 50) + "...");
-              console.log('[Notif] Suscripción creada:', subscription.endpoint);
-            } else {
-              alert("Error: No se pudo registrar el SW");
-            }
-          }
-        } catch (swError) {
-          alert("Error en suscripción: " + swError.message);
-          console.log('[Notif] No se pudo crear suscripción push:', swError.message);
-        }
-      } else {
-        alert("PushManager no soportado en este navegador");
-      }
-
-      console.log('[Notif] Guardando en usuario...');
-      alert("Paso 6: Guardando. Suscripción: " + (subscription ? "SÍ" : "NO"));
-      
-      // Guardar en el usuario - con o sin suscripción
       const updateData = {
         push_enabled: true,
-        push_subscribed_at: new Date().toISOString()
+        push_subscribed_at: new Date().toISOString(),
+        // Guardamos un identificador único para este dispositivo
+        device_id: 'device_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9)
       };
       
-      if (subscription) {
-        updateData.fcm_token = JSON.stringify(subscription);
-      }
-      
       await base44.auth.updateMe(updateData);
-      alert("Paso 7: Guardado completado");
 
       console.log('[Notif] Usuario actualizado, mostrando notificación...');
 
