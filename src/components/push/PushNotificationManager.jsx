@@ -30,50 +30,27 @@ export default function PushNotificationManager() {
       }
 
       setIsSupported(true);
-      console.log('[Notif] Permiso detectado:', Notification.permission);
 
-      // Verificar si ya tiene permiso O si el usuario ya activó antes en BD
-      if (Notification.permission === 'granted') {
-        console.log('[Notif] Ya tiene permiso del navegador');
-        setIsSubscribed(true);
-      } else {
-        // Verificar en BD si ya lo activó antes
-        try {
-          const user = await base44.auth.me();
-          if (user?.push_enabled === true) {
-            console.log('[Notif] Usuario tiene push_enabled en BD, mostrando botones');
-            setIsSubscribed(true);
-          }
-        } catch (e) {
-          console.log('[Notif] Error verificando usuario:', e);
+      // Verificar en BD si ya está suscrito
+      try {
+        const user = await base44.auth.me();
+        if (user?.push_enabled === true && user?.fcm_token) {
+          setIsSubscribed(true);
         }
+      } catch (e) {
+        console.log('[Notif] Error verificando usuario:', e);
       }
     } catch (error) {
       console.log('[Notif] Error checking support:', error);
     }
   };
 
-  // Convertir VAPID key de base64 a Uint8Array
-  const urlBase64ToUint8Array = (base64String) => {
-    const padding = '='.repeat((4 - base64String.length % 4) % 4);
-    const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
-    const rawData = window.atob(base64);
-    const outputArray = new Uint8Array(rawData.length);
-    for (let i = 0; i < rawData.length; ++i) {
-      outputArray[i] = rawData.charCodeAt(i);
-    }
-    return outputArray;
-  };
-
   const subscribeToPush = async () => {
-    console.log('[Notif] Iniciando suscripción...');
     setIsLoading(true);
 
     try {
-      // Verificar permiso actual
+      // Solicitar permiso
       let permission = Notification.permission;
-      
-      // Si no está concedido, solicitarlo
       if (permission !== 'granted') {
         permission = await Notification.requestPermission();
       }
@@ -84,14 +61,14 @@ export default function PushNotificationManager() {
         return;
       }
 
-      // En Base44 no podemos usar Service Workers, así que activamos notificaciones locales
-      // y guardamos el estado para que el sistema sepa que el usuario quiere recibir notificaciones
-      
+      // Guardar que quiere notificaciones (las recibirá cuando la app esté abierta)
+      // Para push real con app cerrada, necesitaríamos una app nativa
       const updateData = {
         push_enabled: true,
         push_subscribed_at: new Date().toISOString(),
-        // Guardamos un identificador único para este dispositivo
-        device_id: 'device_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9)
+        device_id: 'web_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9),
+        // Marcamos que es web para diferenciar de futuras apps nativas
+        notification_type: 'web_local'
       };
       
       await base44.auth.updateMe(updateData);
@@ -101,18 +78,14 @@ export default function PushNotificationManager() {
       toast.success("✅ ¡Notificaciones activadas!");
 
       // Mostrar notificación de prueba
-      try {
-        new Notification("🎉 CD Bustarviejo", {
-          body: "Recibirás notificaciones cuando la app esté abierta",
-          icon: "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6911b8e453ca3ac01fb134d6/e3f0a8e26_logo_cd_bustarviejo_mediano.jpg"
-        });
-      } catch (notifError) {
-        console.log('[Notif] Error mostrando notificación:', notifError);
-      }
+      new Notification("🎉 CD Bustarviejo", {
+        body: "Recibirás notificaciones mientras uses la app",
+        icon: "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6911b8e453ca3ac01fb134d6/e3f0a8e26_logo_cd_bustarviejo_mediano.jpg"
+      });
 
     } catch (error) {
       console.error("[Notif] Error:", error);
-      toast.error("Error al activar notificaciones: " + error.message);
+      toast.error("Error: " + error.message);
     } finally {
       setIsLoading(false);
     }
