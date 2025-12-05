@@ -3,8 +3,13 @@ import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 
 export default function ChatNotificationListener({ user }) {
-  const lastSeenChatId = useRef(null);
-  const lastSeenPrivateId = useRef(null);
+  // Usar localStorage para persistir el último mensaje visto
+  const lastSeenChatId = useRef(
+    typeof window !== 'undefined' ? localStorage.getItem('lastSeenChatId') : null
+  );
+  const lastSeenPrivateId = useRef(
+    typeof window !== 'undefined' ? localStorage.getItem('lastSeenPrivateId') : null
+  );
   const [userCategories, setUserCategories] = useState([]);
 
   // Obtener categorías del usuario (para padres, basado en sus hijos)
@@ -104,6 +109,9 @@ export default function ChatNotificationListener({ user }) {
         console.log('🆕 Nuevo mensaje detectado:', latestMessage.id);
         showNotification(latestMessage.remitente_nombre, latestMessage.mensaje, latestMessage.id, latestMessage.prioridad);
         lastSeenChatId.current = latestMessage.id;
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('lastSeenChatId', latestMessage.id);
+        }
       }
     } catch (e) {
       console.log('ChatNotificationListener chat error:', e);
@@ -149,6 +157,9 @@ export default function ChatNotificationListener({ user }) {
         console.log('🆕 Nuevo mensaje privado detectado:', latestMessage.id);
         showNotification(`📩 ${latestMessage.remitente_nombre}`, latestMessage.mensaje, latestMessage.id);
         lastSeenPrivateId.current = latestMessage.id;
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('lastSeenPrivateId', latestMessage.id);
+        }
       }
     } catch (e) {
       console.log('ChatNotificationListener private error:', e);
