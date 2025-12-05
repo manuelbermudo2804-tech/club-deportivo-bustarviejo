@@ -40,10 +40,10 @@ export default function ParentChat() {
   const { data: messages = [], isLoading: loadingMessages, refetch: refetchMessages } = useQuery({
     queryKey: ['chatMessages'],
     queryFn: () => base44.entities.ChatMessage.list('-created_date'),
-    staleTime: 0,
-    gcTime: 5000,
+    staleTime: 30000, // 30 segundos
+    gcTime: 60000,
     refetchOnWindowFocus: true,
-    refetchInterval: 1500, // Actualizar cada 1.5 segundos para mensajes instantáneos
+    refetchInterval: 15000, // Polling cada 15 segundos
   });
 
   const { data: players = [], isLoading: loadingPlayers } = useQuery({
@@ -72,9 +72,9 @@ export default function ParentChat() {
     queryKey: ['myPrivateConversations', user?.email],
     queryFn: () => user ? base44.entities.PrivateConversation.filter({ participante_familia_email: user.email }, '-ultimo_mensaje_fecha') : [],
     enabled: !!user?.email,
-    staleTime: 0,
-    gcTime: 5000,
-    refetchInterval: 1000, // Polling cada 1 segundo
+    staleTime: 30000,
+    gcTime: 60000,
+    refetchInterval: 15000, // Polling cada 15 segundos
     refetchOnWindowFocus: true,
   });
 
@@ -84,9 +84,9 @@ export default function ParentChat() {
       ? base44.entities.PrivateMessage.filter({ conversacion_id: activePrivateChat.id }, '-created_date')
       : [],
     enabled: !!activePrivateChat?.id,
-    staleTime: 0,
-    gcTime: 5000,
-    refetchInterval: 800, // Polling cada 0.8 segundos
+    staleTime: 10000,
+    gcTime: 30000,
+    refetchInterval: 5000, // Polling cada 5 segundos
   });
 
   const normalizeDeporte = (deporte) => {
