@@ -403,13 +403,25 @@ export default function Home() {
       });
     }
 
+    // Calcular mensajes privados no leídos
+    let unreadPrivateMessages = 0;
+    if (user && privateConversations) {
+      privateConversations.forEach(conv => {
+        if (conv.participante_familia_email === user.email) {
+          unreadPrivateMessages += (conv.no_leidos_familia || 0);
+        } else if (conv.participante_staff_email === user.email) {
+          unreadPrivateMessages += (conv.no_leidos_staff || 0);
+        }
+      });
+    }
+
     return { 
-      activePlayers, pendingPayments, reviewPayments, paidPayments, unreadMessages, 
+      activePlayers, pendingPayments, reviewPayments, paidPayments, unreadMessages, unreadPrivateMessages,
       pendingCallups, pendingSignatures, adminPendingSignatures, pendingPlayerAccess,
       pendingClothingOrders, pendingLotteryOrders, pendingMemberRequests, 
       recentSurveyResponses, pendingEventConfirmations
     };
-  }, [players, payments, messages, callups, user, hasPlayers, isAdmin, allUsers, clothingOrders, lotteryOrders, clubMembers, surveyResponses, events]);
+  }, [players, payments, messages, callups, user, hasPlayers, isAdmin, allUsers, clothingOrders, lotteryOrders, clubMembers, surveyResponses, events, privateConversations]);
 
   const handleMatchAppClick = useMemo(() => () => {
     const userAgent = navigator.userAgent || navigator.vendor || window.opera;
