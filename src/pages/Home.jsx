@@ -981,6 +981,7 @@ export default function Home() {
             pendingDocuments={0}
             pendingPayments={isAdmin || isTreasurer ? stats.reviewPayments : 0}
             unreadMessages={stats.unreadMessages}
+            unreadPrivateMessages={stats.unreadPrivateMessages}
             pendingSurveys={0}
             pendingSignatures={hasPlayers ? stats.pendingSignatures : 0}
             upcomingEvents={0}
