@@ -640,6 +640,7 @@ export default function ParentDashboard() {
           pendingDocuments={pendingDocuments.length}
           pendingPayments={pendingPayments}
           unreadMessages={unreadMessages}
+          unreadPrivateMessages={unreadPrivateMessages}
           pendingSurveys={activeSurveys.length}
           pendingSignatures={pendingFederationSignatures}
           upcomingEvents={0}
