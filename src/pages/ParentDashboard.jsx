@@ -207,10 +207,10 @@ export default function ParentDashboard() {
   const { data: privateConversations = [] } = useQuery({
     queryKey: ['privateConversationsParent'],
     queryFn: () => base44.entities.PrivateConversation.list('-ultimo_mensaje_fecha'),
-    staleTime: 60000,
-    gcTime: 300000,
+    staleTime: 30000,
+    gcTime: 60000,
     refetchOnWindowFocus: true,
-    refetchInterval: 5000,
+    refetchInterval: 10000,
     enabled: !!user,
   });
 
