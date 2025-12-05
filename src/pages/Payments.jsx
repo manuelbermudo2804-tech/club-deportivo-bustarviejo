@@ -120,13 +120,13 @@ export default function Payments() {
 
         if (adminCheck || treasurerCheck) {
           const allPlayers = await base44.entities.Player.list();
-          // SOLO jugadores ACTIVOS de la temporada actual
-          setMyPlayers(allPlayers.filter(p => p.activo === true));
+          // Mostrar TODOS los jugadores para poder ver sus pagos históricos
+          setMyPlayers(allPlayers);
         } else if (coachCheck) {
           const allPlayers = await base44.entities.Player.list();
-          // SOLO jugadores ACTIVOS de la temporada actual
+          // Para entrenadores, mostrar sus hijos (activos e inactivos para ver historial)
           const userPlayers = allPlayers.filter(p =>
-            (p.email_padre === currentUser.email || p.email_tutor_2 === currentUser.email) && p.activo === true
+            (p.email_padre === currentUser.email || p.email_tutor_2 === currentUser.email)
           );
           setMyPlayers(userPlayers);
         }
