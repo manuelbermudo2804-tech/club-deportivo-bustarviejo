@@ -17,9 +17,11 @@ import PhotoLightbox from "./PhotoLightbox";
 
 export default function GalleryAlbum({ album, onEdit, onDelete, isAdmin }) {
   const [showGallery, setShowGallery] = useState(false);
+  const [showLightbox, setShowLightbox] = useState(false);
   const [selectedPhotoIndex, setSelectedPhotoIndex] = useState(0);
   const [selectedPhotos, setSelectedPhotos] = useState([]);
   const [selectionMode, setSelectionMode] = useState(false);
+  const [downloading, setDownloading] = useState(false);
 
   const eventTypeEmojis = {
     "Partido": "⚽",
