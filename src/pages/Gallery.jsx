@@ -171,7 +171,7 @@ export default function Gallery() {
         <div>
           <h1 className="text-2xl lg:text-3xl font-bold text-slate-900">📸 Galería de Fotos</h1>
           <p className="text-slate-600 mt-1 text-sm">
-            {canEdit ? "Álbumes del club" : "Revive los mejores momentos del club"}
+            {canEdit ? (userRole === "coach" ? "Sube fotos de tus equipos" : "Álbumes del club") : "Revive los mejores momentos del club"}
           </p>
         </div>
         {canEdit && (
