@@ -49,6 +49,15 @@ export default function ChatNotificationListener({ user }) {
     enabled: !!user,
   });
 
+  // Conversaciones privadas (para saber quién participa en cada una)
+  const { data: privateConversations = [] } = useQuery({
+    queryKey: ['privateConversationsListener'],
+    queryFn: () => base44.entities.PrivateConversation.list(),
+    initialData: [],
+    refetchInterval: 5000,
+    enabled: !!user,
+  });
+
   // Procesar mensajes de grupo
   useEffect(() => {
     if (!user || !chatMessages || chatMessages.length === 0) return;
