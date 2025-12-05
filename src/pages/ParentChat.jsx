@@ -471,47 +471,47 @@ export default function ParentChat() {
                         item.type === 'date' ? (
                           <DateSeparator key={`date-${idx}`} date={item.date} />
                         ) : (
-                          <div key={msg.id} className="flex justify-center my-4">
-                            <div className="w-full max-w-[98%] rounded-2xl shadow-2xl overflow-hidden bg-gradient-to-br from-cyan-50 via-white to-blue-50 border-4 border-cyan-500 ring-4 ring-cyan-300/50">
-                              {/* Banner muy destacado */}
-                              <div className="bg-gradient-to-r from-cyan-600 via-blue-600 to-cyan-700 px-4 py-3 flex items-center justify-center gap-3">
-                                <span className="text-2xl animate-bounce">📢</span>
-                                <span className="text-white font-black text-base tracking-wide">ANUNCIO OFICIAL - COORDINACIÓN DEPORTIVA</span>
-                                <span className="text-2xl animate-bounce">📢</span>
-                              </div>
-                              <div className="px-5 py-5">
-                                <div className="flex items-center gap-3 mb-4">
-                                  <div className="w-12 h-12 rounded-full bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center shadow-xl ring-2 ring-white">
-                                    <span className="text-xl">🎓</span>
-                                  </div>
-                                  <div className="flex-1">
-                                    <span className="text-base font-black text-cyan-800 block">
-                                      {msg.remitente_nombre || "Coordinador Deportivo"}
-                                    </span>
-                                    <span className="text-xs text-slate-600 font-medium">
-                                      {format(new Date(msg.created_date), "EEEE d 'de' MMMM, HH:mm", { locale: es })}
-                                    </span>
-                                  </div>
-                                  {msg.prioridad !== "Normal" && (
-                                    <Badge className={`${msg.prioridad === "Urgente" ? "bg-red-600 animate-pulse" : "bg-yellow-500"} text-white font-bold px-4 py-1 text-sm`}>
-                                      {msg.prioridad === "Urgente" ? "🚨 URGENTE" : "⚠️ IMPORTANTE"}
-                                    </Badge>
-                                  )}
+                            <div key={item.data.id} className="flex justify-center my-4">
+                              <div className="w-full max-w-[98%] rounded-2xl shadow-2xl overflow-hidden bg-gradient-to-br from-cyan-50 via-white to-blue-50 border-4 border-cyan-500 ring-4 ring-cyan-300/50">
+                                {/* Banner muy destacado */}
+                                <div className="bg-gradient-to-r from-cyan-600 via-blue-600 to-cyan-700 px-4 py-3 flex items-center justify-center gap-3">
+                                  <span className="text-2xl animate-bounce">📢</span>
+                                  <span className="text-white font-black text-base tracking-wide">ANUNCIO OFICIAL - COORDINACIÓN DEPORTIVA</span>
+                                  <span className="text-2xl animate-bounce">📢</span>
                                 </div>
-                                <div className="bg-white rounded-xl p-5 border-2 border-cyan-200 shadow-lg">
-                                  <p className="text-base leading-relaxed whitespace-pre-wrap text-slate-800 font-medium">{msg.mensaje}</p>
-                                </div>
+                                <div className="px-5 py-5">
+                                  <div className="flex items-center gap-3 mb-4">
+                                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center shadow-xl ring-2 ring-white">
+                                      <span className="text-xl">🎓</span>
+                                    </div>
+                                    <div className="flex-1">
+                                      <span className="text-base font-black text-cyan-800 block">
+                                        {item.data.remitente_nombre || "Coordinador Deportivo"}
+                                      </span>
+                                      <span className="text-xs text-slate-600 font-medium">
+                                        {format(new Date(item.data.created_date), "EEEE d 'de' MMMM, HH:mm", { locale: es })}
+                                      </span>
+                                    </div>
+                                    {item.data.prioridad !== "Normal" && (
+                                      <Badge className={`${item.data.prioridad === "Urgente" ? "bg-red-600 animate-pulse" : "bg-yellow-500"} text-white font-bold px-4 py-1 text-sm`}>
+                                        {item.data.prioridad === "Urgente" ? "🚨 URGENTE" : "⚠️ IMPORTANTE"}
+                                      </Badge>
+                                    )}
+                                  </div>
+                                  <div className="bg-white rounded-xl p-5 border-2 border-cyan-200 shadow-lg">
+                                    <p className="text-base leading-relaxed whitespace-pre-wrap text-slate-800 font-medium">{item.data.mensaje}</p>
+                                  </div>
 
-                                {msg.poll && (
-                                  <div className="mt-4">
-                                    <PollMessage 
-                                      poll={msg.poll} 
-                                      onVote={(msgId, optIdx) => voteOnPollMutation.mutate({ messageId: msgId, optionIndex: optIdx })}
-                                      userEmail={user?.email}
-                                      messageId={msg.id}
-                                    />
-                                  </div>
-                                )}
+                                  {item.data.poll && (
+                                    <div className="mt-4">
+                                      <PollMessage 
+                                        poll={item.data.poll} 
+                                        onVote={(msgId, optIdx) => voteOnPollMutation.mutate({ messageId: msgId, optionIndex: optIdx })}
+                                        userEmail={user?.email}
+                                        messageId={item.data.id}
+                                      />
+                                    </div>
+                                  )}
 
                                 {item.data.archivos_adjuntos?.length > 0 && (
                                       <div className="mt-4">
