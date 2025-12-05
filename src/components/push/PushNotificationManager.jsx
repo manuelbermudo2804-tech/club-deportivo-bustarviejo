@@ -91,7 +91,39 @@ export default function PushNotificationManager() {
         body: "¡Las notificaciones funcionan correctamente!",
         icon: "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6911b8e453ca3ac01fb134d6/e3f0a8e26_logo_cd_bustarviejo_mediano.jpg"
       });
-      toast.success("✅ Notificación de prueba enviada");
+      toast.success("✅ Notificación local enviada (solo este dispositivo)");
+    }
+  };
+
+  const sendRemotePushTest = async () => {
+    try {
+      const user = await base44.auth.me();
+      if (!user?.email) {
+        toast.error("No se pudo obtener el usuario");
+        return;
+      }
+      
+      toast.loading("Enviando push a tus dispositivos...");
+      
+      const result = await base44.functions.invoke('sendWebPush', {
+        title: "🧪 Prueba de Push - CD Bustarviejo",
+        body: "¡Esta notificación llegó correctamente a tu dispositivo!",
+        recipientEmails: [user.email],
+        url: null,
+        data: { tipo: "test" }
+      });
+      
+      toast.dismiss();
+      
+      if (result.data?.success || result.data?.sent > 0) {
+        toast.success(`✅ Push enviado - revisa tu móvil`);
+      } else {
+        toast.error("No se pudo enviar el push: " + (result.data?.error || "sin suscripción"));
+      }
+    } catch (error) {
+      toast.dismiss();
+      console.error("Error enviando push:", error);
+      toast.error("Error: " + error.message);
     }
   };
 
@@ -106,13 +138,21 @@ export default function PushNotificationManager() {
             </div>
           </div>
           <Button
+            onClick={sendRemotePushTest}
+            className="w-full bg-green-600 hover:bg-green-700 text-white"
+            size="sm"
+          >
+            <Bell className="w-4 h-4 mr-2" />
+            📲 Enviar Push a mi móvil
+          </Button>
+          <Button
             onClick={sendTestNotification}
             variant="outline"
             className="w-full"
             size="sm"
           >
             <Bell className="w-4 h-4 mr-2" />
-            Enviar notificación de prueba
+            Notificación local (este dispositivo)
           </Button>
         </div>
       ) : (
