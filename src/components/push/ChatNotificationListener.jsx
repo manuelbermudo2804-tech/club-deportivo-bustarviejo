@@ -125,23 +125,17 @@ export default function ChatNotificationListener({ user }) {
         const msgDate = new Date(m.created_date);
         if (msgDate < fiveMinutesAgo) return false;
         
-        // Verificar si el usuario es participante de esta conversación
-        const isParticipant = m.participantes?.includes(user.email) || 
-                              m.destinatario_email === user.email ||
-                              m.conversation_id?.includes(user.email);
+        // Buscar la conversación de este mensaje
+        const conversation = privateConversations.find(c => c.id === m.conversacion_id);
         
-        console.log('📩 Mensaje:', m.id, 'de:', m.remitente_email, 'participantes:', m.participantes, 'isParticipant:', isParticipant);
-        
-        if (isParticipant) return true;
-        
-        // Fallback: Para entrenadores/coordinadores/admin que reciben de padres
-        if (user.role === "admin" || user.es_entrenador || user.es_coordinador) {
-          if (m.remitente_tipo === "padre" || m.staff_email === user.email) return true;
-        }
-        
-        // Fallback: Para padres que reciben de staff
-        if (m.remitente_tipo === "entrenador" || m.remitente_tipo === "admin" || m.remitente_tipo === "coordinador") {
-          if (m.padre_email === user.email) return true;
+        if (conversation) {
+          // El usuario es participante si es el staff O la familia de esta conversación
+          const isStaff = conversation.participante_staff_email === user.email;
+          const isFamilia = conversation.participante_familia_email === user.email;
+          
+          console.log('📩 Mensaje:', m.id, 'Conv:', m.conversacion_id, 'isStaff:', isStaff, 'isFamilia:', isFamilia);
+          
+          if (isStaff || isFamilia) return true;
         }
         
         return false;
@@ -159,7 +153,7 @@ export default function ChatNotificationListener({ user }) {
     } catch (e) {
       console.log('ChatNotificationListener private error:', e);
     }
-  }, [privateMessages, user]);
+  }, [privateMessages, user, privateConversations]);
 
   const showNotification = (title, body, id, priority) => {
     console.log('🔔 showNotification llamada:', { title, body: body?.substring(0, 30), id });
