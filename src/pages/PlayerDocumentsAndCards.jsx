@@ -38,8 +38,15 @@ export default function PlayerDocumentsAndCards() {
   const [user, setUser] = useState(null);
   const [myPlayers, setMyPlayers] = useState([]);
   const [generating, setGenerating] = useState(false);
+  const [emailDialog, setEmailDialog] = useState({ open: false, player: null, tipo: null });
+  const [emailDestino, setEmailDestino] = useState("");
+  const [torneoDialog, setTorneoDialog] = useState({ open: false, player: null });
+  const [torneoData, setTorneoData] = useState({ nombre: "", fecha: "", posicion: "" });
+  const [historyDialog, setHistoryDialog] = useState({ open: false, player: null });
   const cardRefs = useRef({});
+  const qrRefs = useRef({});
   const season = getCurrentSeason();
+  const queryClient = useQueryClient();
 
   useEffect(() => {
     const fetchUser = async () => {
