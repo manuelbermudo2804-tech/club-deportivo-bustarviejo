@@ -352,13 +352,32 @@ CDBUSTARVIEJO@GMAIL.COM
       const html2canvas = (await import('html2canvas')).default;
       const canvas = await html2canvas(card, { backgroundColor: '#ffffff', scale: 2 });
       const link = document.createElement('a');
-      link.download = `carnet_${player.nombre.replace(/\s+/g, '_')}.png`;
+      link.download = `carnet_frontal_${player.nombre.replace(/\s+/g, '_')}.png`;
       link.href = canvas.toDataURL();
       link.click();
-      toast.success("✅ Carnet descargado");
+      toast.success("✅ Carnet frontal descargado");
     } catch (error) {
       console.error('Error downloading card:', error);
       toast.error("Error al descargar el carnet");
+    }
+    setGenerating(false);
+  };
+
+  const downloadCardBack = async (player) => {
+    setGenerating(true);
+    const card = cardRefs.current[`${player.id}_back`];
+    if (!card) { toast.error("Error: Trasera no encontrada"); setGenerating(false); return; }
+    try {
+      const html2canvas = (await import('html2canvas')).default;
+      const canvas = await html2canvas(card, { backgroundColor: '#ffffff', scale: 2 });
+      const link = document.createElement('a');
+      link.download = `carnet_trasera_${player.nombre.replace(/\s+/g, '_')}.png`;
+      link.href = canvas.toDataURL();
+      link.click();
+      toast.success("✅ Trasera del carnet descargada");
+    } catch (error) {
+      console.error('Error downloading card back:', error);
+      toast.error("Error al descargar la trasera");
     }
     setGenerating(false);
   };
