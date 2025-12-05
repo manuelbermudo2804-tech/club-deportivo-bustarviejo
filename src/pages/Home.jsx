@@ -106,11 +106,11 @@ export default function Home() {
     queryKey: ['chatMessages'],
     queryFn: () => base44.entities.ChatMessage.list(),
     initialData: [],
-    staleTime: 300000,
-    gcTime: 600000,
-    refetchOnWindowFocus: false,
-    refetchOnMount: false,
-    refetchInterval: false,
+    staleTime: 5000, // 5 segundos - actualizar rápido para quitar badges
+    gcTime: 30000,
+    refetchOnWindowFocus: true,
+    refetchOnMount: true,
+    refetchInterval: 10000, // Refrescar cada 10 segundos
     enabled: !!user,
   });
 
@@ -118,9 +118,11 @@ export default function Home() {
     queryKey: ['privateConversationsHome'],
     queryFn: () => base44.entities.PrivateConversation.list('-ultimo_mensaje_fecha'),
     initialData: [],
-    staleTime: 60000,
-    gcTime: 300000,
+    staleTime: 5000, // 5 segundos
+    gcTime: 30000,
     refetchOnWindowFocus: true,
+    refetchOnMount: true,
+    refetchInterval: 10000, // Refrescar cada 10 segundos
     enabled: !!user,
   });
 

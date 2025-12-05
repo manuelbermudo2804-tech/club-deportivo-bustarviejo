@@ -141,11 +141,11 @@ export default function ParentDashboard() {
   const { data: messages = [] } = useQuery({
     queryKey: ['messages'],
     queryFn: () => base44.entities.ChatMessage.list('-created_date'),
-    staleTime: 300000,
-    gcTime: 600000,
-    refetchOnWindowFocus: false,
-    refetchOnMount: false,
-    refetchInterval: false,
+    staleTime: 5000, // 5 segundos - actualizar rápido para quitar badges
+    gcTime: 30000,
+    refetchOnWindowFocus: true,
+    refetchOnMount: true,
+    refetchInterval: 10000, // Refrescar cada 10 segundos
     enabled: !!user,
   });
 
@@ -207,9 +207,10 @@ export default function ParentDashboard() {
   const { data: privateConversations = [] } = useQuery({
     queryKey: ['privateConversationsParent'],
     queryFn: () => base44.entities.PrivateConversation.list('-ultimo_mensaje_fecha'),
-    staleTime: 30000,
-    gcTime: 60000,
+    staleTime: 5000, // 5 segundos
+    gcTime: 30000,
     refetchOnWindowFocus: true,
+    refetchOnMount: true,
     refetchInterval: 10000,
     enabled: !!user,
   });
