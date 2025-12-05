@@ -412,6 +412,10 @@ export default function Home() {
         if (conv.participante_familia_email === user.email) {
           unreadPrivateMessages += (conv.no_leidos_familia || 0);
         } else if (conv.participante_staff_email === user.email) {
+          // Staff asignado directamente
+          unreadPrivateMessages += (conv.no_leidos_staff || 0);
+        } else if (isAdmin || isCoordinator) {
+          // Admin y Coordinador ven TODAS las conversaciones con mensajes no leídos
           unreadPrivateMessages += (conv.no_leidos_staff || 0);
         }
       });
