@@ -116,7 +116,7 @@ export default function ParentChat() {
     });
   }, [messages, selectedCategory]);
 
-  // Contador no leídos
+  // Contador no leídos (mensajes de grupo)
   const getUnreadCount = (categoria) => {
     return messages.filter(msg => {
       const msgDeporte = normalizeDeporte(msg.grupo_id || msg.deporte);
@@ -126,7 +126,21 @@ export default function ParentChat() {
 
   // Contador privados no leídos para familias
   const getPrivateUnreadCount = (categoria) => {
-    const convs = privateConversations.filter(c => c.categoria === categoria && !c.archivada);
+    // Para Coordinación Deportiva, buscar conversaciones con el coordinador
+    if (categoria === "Coordinación Deportiva") {
+      const convs = privateConversations.filter(c => 
+        c.participante_familia_email === user?.email &&
+        c.categoria === "Coordinación Deportiva" && 
+        !c.archivada
+      );
+      return convs.reduce((sum, c) => sum + (c.no_leidos_familia || 0), 0);
+    }
+    // Para otras categorías
+    const convs = privateConversations.filter(c => 
+      c.participante_familia_email === user?.email &&
+      c.categoria === categoria && 
+      !c.archivada
+    );
     return convs.reduce((sum, c) => sum + (c.no_leidos_familia || 0), 0);
   };
 
