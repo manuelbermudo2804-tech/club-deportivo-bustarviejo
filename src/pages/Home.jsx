@@ -996,8 +996,8 @@ export default function Home() {
       <div className="px-4 lg:px-8 py-6 space-y-4 lg:space-y-6">
         <SocialLinks />
 
-        {/* CENTRO DE ALERTAS - Visible para todos los roles con hijos o con tareas admin */}
-        {(isAdmin || ((isCoach || isCoordinator || isTreasurer) && hasPlayers)) && (
+        {/* CENTRO DE ALERTAS - Visible para todos los roles con hijos o con tareas admin/coach/coordinator */}
+        {(isAdmin || isCoach || isCoordinator || isTreasurer || hasPlayers) && (
           <AlertCenter 
             pendingCallups={stats.pendingCallups}
             pendingDocuments={0}
