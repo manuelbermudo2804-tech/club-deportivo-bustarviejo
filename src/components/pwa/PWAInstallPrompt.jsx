@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Download, X, Smartphone } from 'lucide-react';
-import { toast } from 'sonner';
+// toast eliminado - causaba spam
 
 export default function PWAInstallPrompt() {
   const [deferredPrompt, setDeferredPrompt] = useState(null);
@@ -93,7 +93,7 @@ export default function PWAInstallPrompt() {
     const { outcome } = await deferredPrompt.userChoice;
     
     if (outcome === 'accepted') {
-      toast.success('¡App instalada correctamente!');
+      console.log('✅ App instalada correctamente');
     }
     
     setDeferredPrompt(null);
