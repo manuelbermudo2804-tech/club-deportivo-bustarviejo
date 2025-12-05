@@ -5,9 +5,16 @@ import { base44 } from "@/api/base44Client";
 export default function ChatNotificationListener({ user }) {
   const lastSeenMessageId = useRef(null);
 
+  console.log('🎯 ChatNotificationListener montado, user:', user?.email);
+
   const { data: messages = [] } = useQuery({
     queryKey: ['chatMessagesListener'],
-    queryFn: () => base44.entities.ChatMessage.list('-created_date'),
+    queryFn: async () => {
+      console.log('📡 Fetching mensajes...');
+      const result = await base44.entities.ChatMessage.list('-created_date');
+      console.log('📨 Mensajes recibidos:', result?.length);
+      return result;
+    },
     initialData: [],
     refetchInterval: 5000,
     enabled: !!user,
