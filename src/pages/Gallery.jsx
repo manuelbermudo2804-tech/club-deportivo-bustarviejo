@@ -317,6 +317,7 @@ export default function Gallery() {
                   } : undefined}
                   isAdmin={canEditThisAlbum}
                   isReadOnly={userRole === "player"}
+                  onQuickUpload={canEditThisAlbum ? handleQuickUpload : undefined}
                 />
               );
             })}
