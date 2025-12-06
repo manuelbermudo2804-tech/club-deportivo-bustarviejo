@@ -4,6 +4,8 @@ import { useQuery } from "@tanstack/react-query";
 import { Link, useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { Users, Calendar, Bell, MessageCircle, CreditCard, Image, Megaphone, Clock, ShoppingBag, FileText, Award, AlertCircle, Clover, Heart, FileSignature, Euro, Share2, Sparkles } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 
 import SocialLinks from "../components/SocialLinks";
@@ -643,6 +645,26 @@ export default function ParentDashboard() {
 
       <div className="px-4 lg:px-8 py-6 space-y-4 lg:space-y-6">
         <SocialLinks />
+
+        {/* Banner Chat Coordinador */}
+        <Card className="border-2 border-cyan-300 bg-gradient-to-r from-cyan-50 to-blue-50 shadow-lg hover:shadow-xl transition-shadow">
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 bg-cyan-600 rounded-full flex items-center justify-center flex-shrink-0">
+                <MessageCircle className="w-6 h-6 text-white" />
+              </div>
+              <div className="flex-1">
+                <h3 className="font-bold text-cyan-900">¿Dudas sobre partidos o entrenamientos?</h3>
+                <p className="text-sm text-cyan-700">Pregunta al coordinador deportivo</p>
+              </div>
+              <Link to={createPageUrl("ParentCoordinatorChat")}>
+                <Button className="bg-cyan-600 hover:bg-cyan-700">
+                  Chatear
+                </Button>
+              </Link>
+            </div>
+          </CardContent>
+        </Card>
 
         {/* ÚNICO CENTRO DE ALERTAS CONSOLIDADO - Todo en un solo banner */}
         <AlertCenter 

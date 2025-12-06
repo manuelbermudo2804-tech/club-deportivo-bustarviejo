@@ -1054,8 +1054,6 @@ export default function Layout({ children, currentPageName }) {
 
     // 💬 CHAT COORDINADOR
     { title: "💬 Chat con Familias", url: createPageUrl("CoordinatorChat"), icon: MessageCircle },
-      // 🏠 INICIO
-      { title: "🏠 Inicio", url: createPageUrl("Home"), icon: Home },
 
       // 💬 COMUNICACIÓN (uso diario)
 
