@@ -485,6 +485,7 @@ export default function CoachChat() {
       return newMessage;
     },
     onSuccess: () => {
+      // Refrescar sin toast - ya ve el mensaje optimista
       refetchPrivateMessages();
       refetchConversations();
       refetchAllPrivateMessages();
@@ -494,13 +495,12 @@ export default function CoachChat() {
       queryClient.invalidateQueries({ queryKey: ['privateConversationsHome'] });
       setIsSending(false);
       setOptimisticMessages([]);
-      toast.success("✅ Respuesta enviada a la familia");
     },
     onError: (error, variables) => {
       console.error("Error enviando mensaje:", error);
       setIsSending(false);
       setOptimisticMessages([]);
-      toast.error("❌ No se pudo enviar. Reintentando...");
+      toast.error("❌ Error al enviar, reintentando...");
       setTimeout(() => {
         sendPrivateMessageMutation.mutate(variables);
       }, 2000);

@@ -348,17 +348,17 @@ export default function ParentChat() {
       return newMessage;
     },
     onSuccess: () => {
+      // Refrescar sin mostrar toast - el usuario ya ve el mensaje optimista
       refetchPrivateMessages();
       refetchConversations();
       queryClient.invalidateQueries({ queryKey: ['privateConversations'] });
       queryClient.invalidateQueries({ queryKey: ['myPrivateConversations'] });
       queryClient.invalidateQueries({ queryKey: ['privateConversationsParent'] });
       queryClient.invalidateQueries({ queryKey: ['privateConversationsHome'] });
-      toast.success("✅ Mensaje enviado al entrenador");
     },
     onError: (error, variables) => {
       console.error("Error enviando mensaje:", error);
-      toast.error("❌ No se pudo enviar. Reintentando...");
+      toast.error("❌ Error al enviar, reintentando...");
       setTimeout(() => {
         sendPrivateMessageMutation.mutate(variables);
       }, 2000);

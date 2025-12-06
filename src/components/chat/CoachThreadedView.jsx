@@ -34,6 +34,7 @@ export default function CoachThreadedView({
   const [messageContent, setMessageContent] = useState("");
   const [attachments, setAttachments] = useState([]);
   const [replyingToFamily, setReplyingToFamily] = useState(null);
+  const [optimisticMessages, setOptimisticMessages] = useState([]);
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
   const typingTimeoutRef = useRef(null);
@@ -126,8 +127,29 @@ export default function CoachThreadedView({
       });
     });
 
+    // Mensajes optimistas (aparecen INSTANTÁNEAMENTE)
+    optimisticMessages.forEach(msg => {
+      if (msg.tipo === "admin_a_grupo") {
+        items.push({
+          type: 'group_announcement',
+          data: msg,
+          timestamp: new Date(msg.created_date),
+          sortKey: new Date(msg.created_date).getTime()
+        });
+      } else {
+        const conv = privateConversations.find(c => c.id === msg.conversacion_id);
+        items.push({
+          type: 'private_message',
+          data: msg,
+          conversation: conv || { participante_familia_nombre: "Familia" },
+          timestamp: new Date(msg.created_date),
+          sortKey: new Date(msg.created_date).getTime()
+        });
+      }
+    });
+
     return items.sort((a, b) => a.sortKey - b.sortKey);
-  }, [groupMessages, allPrivateMessages, privateConversations]);
+  }, [groupMessages, allPrivateMessages, privateConversations, optimisticMessages]);
 
   // Agrupar por fechas
   const groupedByDate = React.useMemo(() => {
@@ -154,31 +176,95 @@ export default function CoachThreadedView({
   const handleSend = () => {
     if (!messageContent.trim() && attachments.length === 0) return;
 
+    const msgText = messageContent || "(Archivo adjunto)";
+
     if (replyingToFamily) {
-      // Respuesta privada a familia específica
+      // Mensaje optimista para respuesta privada
+      const optimisticMsg = {
+        id: `temp-${Date.now()}`,
+        conversacion_id: replyingToFamily.conversationId,
+        remitente_email: user.email,
+        remitente_nombre: user.full_name,
+        remitente_tipo: "staff",
+        mensaje: msgText,
+        leido: false,
+        archivos_adjuntos: [...attachments],
+        created_date: new Date().toISOString(),
+        _isOptimistic: true
+      };
+      
+      setOptimisticMessages([optimisticMsg]);
+      
+      const tempMsg = messageContent;
+      const tempAttachments = [...attachments];
+      setMessageContent("");
+      setAttachments([]);
+      setReplyingToFamily(null);
+      
+      setTimeout(() => {
+        messagesEndRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
+      }, 50);
+
       onSendPrivateMessage({
         conversationId: replyingToFamily.conversationId,
-        message: messageContent,
-        attachments
+        message: tempMsg,
+        attachments: tempAttachments
       });
-    } else {
-      // Anuncio grupal
-      onSendGroupMessage({
-        message: messageContent,
-        attachments
-      });
-    }
 
-    setMessageContent("");
-    setAttachments([]);
-    setReplyingToFamily(null);
+      setTimeout(() => setOptimisticMessages([]), 3000);
+    } else {
+      // Mensaje optimista para anuncio grupal
+      const optimisticMsg = {
+        id: `temp-${Date.now()}`,
+        remitente_email: user.email,
+        remitente_nombre: user.full_name,
+        mensaje: msgText,
+        tipo: "admin_a_grupo",
+        archivos_adjuntos: [...attachments],
+        created_date: new Date().toISOString(),
+        _isOptimistic: true
+      };
+      
+      setOptimisticMessages([optimisticMsg]);
+      
+      const tempMsg = messageContent;
+      const tempAttachments = [...attachments];
+      setMessageContent("");
+      setAttachments([]);
+      
+      setTimeout(() => {
+        messagesEndRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
+      }, 50);
+
+      onSendGroupMessage({
+        message: tempMsg,
+        attachments: tempAttachments
+      });
+
+      setTimeout(() => setOptimisticMessages([]), 3000);
+    }
   };
 
+  // Scroll INTELIGENTE solo cuando hay mensajes nuevos REALES
+  const prevRealMessagesCountRef = useRef(0);
   useEffect(() => {
-    setTimeout(() => {
-      messagesEndRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
-    }, 100);
-  }, [threadedMessages.length]);
+    const realCount = groupMessages.length + allPrivateMessages.length;
+    
+    if (prevRealMessagesCountRef.current > 0 && realCount > prevRealMessagesCountRef.current) {
+      const container = messagesEndRef.current?.parentElement;
+      if (container) {
+        const isNearBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 150;
+        
+        if (isNearBottom) {
+          setTimeout(() => {
+            messagesEndRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
+          }, 100);
+        }
+      }
+    }
+    
+    prevRealMessagesCountRef.current = realCount;
+  }, [groupMessages.length, allPrivateMessages.length]);
 
   return (
     <div className="flex flex-col h-full">
@@ -205,7 +291,7 @@ export default function CoachThreadedView({
               const msg = item.data;
               return (
                 <div key={msg.id} className="flex justify-end">
-                  <div className="max-w-[75%] rounded-2xl shadow-md bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-br-sm">
+                  <div className={`max-w-[75%] rounded-2xl shadow-md bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-br-sm ${msg._isOptimistic ? 'opacity-70' : ''}`}>
                     <div className="px-4 py-3">
                       <div className="flex items-center gap-2 mb-2">
                         <Badge className="bg-blue-500">📢 Anuncio Grupal</Badge>
@@ -240,7 +326,11 @@ export default function CoachThreadedView({
                         <span className="text-[10px] opacity-70">
                           {format(new Date(msg.created_date), "HH:mm", { locale: es })}
                         </span>
-                        <ReadConfirmation message={msg} players={allPlayers.filter(p => p.deporte === category)} isAdmin={true} />
+                        {msg._isOptimistic ? (
+                          <span className="text-xs opacity-70" title="Enviando...">⏳</span>
+                        ) : (
+                          <ReadConfirmation message={msg} players={allPlayers.filter(p => p.deporte === category)} isAdmin={true} />
+                        )}
                       </div>
                     </div>
                   </div>
@@ -260,7 +350,7 @@ export default function CoachThreadedView({
                     isStaffMessage 
                       ? 'bg-gradient-to-r from-green-600 to-green-700 text-white rounded-br-sm'
                       : 'bg-white text-slate-900 rounded-bl-sm border-2 border-green-400'
-                  }`}>
+                  } ${msg._isOptimistic ? 'opacity-70' : ''}`}>
                     <div className="px-4 py-3">
                       <div className="flex items-center gap-2 mb-2">
                         {!isStaffMessage && (
@@ -299,8 +389,14 @@ export default function CoachThreadedView({
                         <span className={`text-[10px] ${isStaffMessage ? 'text-white opacity-70' : 'text-slate-500'}`}>
                           {format(new Date(msg.created_date), "HH:mm", { locale: es })}
                         </span>
-                        {isStaffMessage && msg.leido && (
+                        {isStaffMessage && msg._isOptimistic && (
+                          <span className="text-xs text-white opacity-70" title="Enviando...">⏳</span>
+                        )}
+                        {isStaffMessage && !msg._isOptimistic && msg.leido && (
                           <span className="text-xs text-green-200" title="Leído por familia">✓✓</span>
+                        )}
+                        {isStaffMessage && !msg._isOptimistic && !msg.leido && (
+                          <span className="text-xs text-green-300" title="Enviado">✓</span>
                         )}
                       </div>
                     </div>
@@ -414,18 +510,14 @@ export default function CoachThreadedView({
 
           <Button
             onClick={handleSend}
-            disabled={(!messageContent.trim() && attachments.length === 0) || isSending}
+            disabled={(!messageContent.trim() && attachments.length === 0)}
             className={`rounded-full w-12 h-12 p-0 flex-shrink-0 ${
               replyingToFamily 
                 ? 'bg-green-600 hover:bg-green-700' 
                 : 'bg-blue-600 hover:bg-blue-700'
             }`}
           >
-            {isSending ? (
-              <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-            ) : (
-              <Send className="w-5 h-5" />
-            )}
+            <Send className="w-5 h-5" />
           </Button>
         </div>
       </div>
