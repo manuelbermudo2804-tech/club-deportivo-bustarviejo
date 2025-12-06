@@ -1439,7 +1439,7 @@ export default function Layout({ children, currentPageName }) {
 
               <SessionManager />
               <NotificationBadge />
-              {user && <ChatNotificationListener user={user} />}
+              {/* {user && <ChatNotificationListener user={user} />} */}
               {user && <AppNotificationListener user={user} />}
               {user && <DocumentReminderEngine user={user} />}
       {user && <NotificationManager user={user} />}
