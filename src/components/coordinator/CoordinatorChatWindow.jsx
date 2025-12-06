@@ -144,22 +144,6 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
     }, 3000);
   };
 
-  // Polling para estado "escribiendo"
-  const { data: conversationState } = useQuery({
-    queryKey: ['coordinatorConversationState', conversation?.id],
-    queryFn: async () => {
-      if (!conversation?.id) return null;
-      const data = await base44.entities.CoordinatorConversation.filter({ id: conversation.id });
-      return data[0];
-    },
-    refetchInterval: 2000,
-    enabled: !!conversation?.id,
-  });
-
-  const otherPersonTyping = isCoordinator 
-    ? conversationState?.padre_escribiendo 
-    : conversationState?.coordinador_escribiendo;
-
   const handleFileUpload = async (e) => {
     const files = Array.from(e.target.files);
     setUploading(true);
