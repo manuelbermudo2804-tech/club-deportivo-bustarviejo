@@ -652,13 +652,22 @@ export default function ParentDashboard() {
       <div className="px-4 lg:px-8 py-6 space-y-4 lg:space-y-6">
         <SocialLinks />
 
-        {/* CENTRO DE ALERTAS */}
+        {/* BANNER CHAT - MENSAJES NUEVOS (prioritario si hay mensajes) */}
+        {(unreadMessages > 0 || unreadPrivateMessages > 0) && (
+          <ChatAlertBanner 
+            unreadGroupMessages={unreadMessages}
+            unreadPrivateMessages={unreadPrivateMessages}
+            urgentMessages={urgentUnreadMessages}
+          />
+        )}
+
+        {/* CENTRO DE ALERTAS - Sin incluir mensajes de chat */}
         <AlertCenter 
           pendingCallups={pendingCallups}
           pendingDocuments={pendingDocuments.length}
           pendingPayments={pendingPayments}
-          unreadMessages={unreadMessages}
-          unreadPrivateMessages={unreadPrivateMessages}
+          unreadMessages={0}
+          unreadPrivateMessages={0}
           pendingSurveys={activeSurveys.length}
           pendingSignatures={pendingFederationSignatures}
           upcomingEvents={0}
@@ -667,13 +676,6 @@ export default function ParentDashboard() {
           isAdmin={false}
           isCoach={false}
           isParent={true}
-        />
-
-        {/* BANNER CHAT - MENSAJES NUEVOS */}
-        <ChatAlertBanner 
-          unreadGroupMessages={unreadMessages}
-          unreadPrivateMessages={unreadPrivateMessages}
-          urgentMessages={urgentUnreadMessages}
         />
 
         {/* COORDINADOR DEPORTIVO BANNER */}
@@ -835,29 +837,7 @@ export default function ParentDashboard() {
           </Link>
         )}
 
-        {/* MENSAJES URGENTES */}
-        {urgentUnreadMessages > 0 && (
-          <Link to={createPageUrl("ParentChat")}>
-            <div className="bg-gradient-to-r from-red-600 to-red-700 rounded-2xl p-4 shadow-xl transition-all hover:scale-105 active:scale-95 border-2 border-red-500 animate-pulse">
-              <div className="flex items-start gap-3">
-                <MessageCircle className="w-6 h-6 text-white flex-shrink-0 mt-0.5" />
-                <div className="flex-1">
-                  <p className="text-white font-bold text-base lg:text-lg">
-                    🚨 ¡Mensajes Urgentes!
-                  </p>
-                  <p className="text-red-100 text-xs lg:text-sm mt-1">
-                    {urgentUnreadMessages === 1 
-                      ? "Tienes 1 mensaje urgente sin leer" 
-                      : `Tienes ${urgentUnreadMessages} mensajes urgentes sin leer`}
-                  </p>
-                  <p className="text-white text-xs mt-2 font-semibold">
-                    👉 Pulsa aquí para leer
-                  </p>
-                </div>
-              </div>
-            </div>
-          </Link>
-        )}
+        {/* Banner de mensajes urgentes ELIMINADO - ya está en ChatAlertBanner */}
 
         {/* ANUNCIOS URGENTES */}
         {urgentAnnouncements.length > 0 && (

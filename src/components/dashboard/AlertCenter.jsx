@@ -141,31 +141,8 @@ export default function AlertCenter({
     }
   }
 
-  // Alertas de mensajes solo para padres y entrenadores (NO admin)
-  if (!isAdmin) {
-    if (unreadMessages > 0) {
-      alerts.push({
-        id: "messages",
-        icon: MessageCircle,
-        title: "Mensajes sin leer",
-        description: `${unreadMessages} mensaje${unreadMessages > 1 ? 's' : ''} nuevo${unreadMessages > 1 ? 's' : ''}`,
-        url: isCoach ? createPageUrl("CoachChat") : createPageUrl("ParentChat"),
-        color: "bg-green-500",
-        priority: 5
-      });
-    }
-
-    if (unreadPrivateMessages > 0) {
-      alerts.push({
-        id: "private-messages",
-        icon: MessageCircle,
-        title: "📩 Mensajes privados",
-        description: `${unreadPrivateMessages} mensaje${unreadPrivateMessages > 1 ? 's' : ''} privado${unreadPrivateMessages > 1 ? 's' : ''} sin leer`,
-        url: isCoach ? createPageUrl("CoachChat") : createPageUrl("ParentChat"),
-        color: "bg-blue-500",
-        priority: 2
-      });
-    }
+  // ALERTAS DE MENSAJES ELIMINADAS - Ahora se usan en ChatAlertBanner
+  // NO mostrar mensajes de chat aquí para evitar duplicación
 
     if (upcomingEvents > 0) {
       alerts.push({

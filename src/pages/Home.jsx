@@ -1024,8 +1024,8 @@ export default function Home() {
       <div className="px-4 lg:px-8 py-6 space-y-4 lg:space-y-6">
         <SocialLinks />
 
-        {/* BANNER MENSAJES CHAT - Para staff con mensajes privados pendientes */}
-        {(isAdmin || isCoach || isCoordinator) && stats.unreadPrivateMessages > 0 && (
+        {/* BANNER MENSAJES CHAT - Para staff con mensajes privados/grupo pendientes */}
+        {(isAdmin || isCoach || isCoordinator || isTreasurer) && (stats.unreadMessages > 0 || stats.unreadPrivateMessages > 0) && (
           <ChatAlertBanner 
             unreadGroupMessages={stats.unreadMessages}
             unreadPrivateMessages={stats.unreadPrivateMessages}
@@ -1033,14 +1033,14 @@ export default function Home() {
           />
         )}
 
-        {/* CENTRO DE ALERTAS - Visible para todos los roles con hijos o con tareas admin/coach/coordinator */}
+        {/* CENTRO DE ALERTAS - Sin incluir mensajes de chat (evitar duplicación) */}
         {(isAdmin || isCoach || isCoordinator || isTreasurer || hasPlayers) && (
           <AlertCenter 
             pendingCallups={stats.pendingCallups}
             pendingDocuments={0}
             pendingPayments={isAdmin || isTreasurer ? stats.reviewPayments : 0}
-            unreadMessages={stats.unreadMessages}
-            unreadPrivateMessages={stats.unreadPrivateMessages}
+            unreadMessages={0}
+            unreadPrivateMessages={0}
             pendingSurveys={0}
             pendingSignatures={hasPlayers ? stats.pendingSignatures : 0}
             pendingCallupResponses={stats.pendingCallupResponses}
