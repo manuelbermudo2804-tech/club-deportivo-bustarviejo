@@ -367,6 +367,10 @@ export default function ParentChat() {
                   onClick={() => {
                     setActivePrivateChat(null);
                     setSelectedCategory(cat);
+                    // Scroll al final al abrir
+                    setTimeout(() => {
+                      messagesEndRef.current?.scrollIntoView({ behavior: "auto", block: "end" });
+                    }, 150);
                   }}
                   className="w-full p-4 flex items-center gap-3 bg-white hover:bg-slate-50 active:bg-slate-100 transition-colors text-left"
                 >
@@ -581,7 +585,10 @@ export default function ParentChat() {
                         if (selectedCategory !== cat) {
                           setActivePrivateChat(null);
                           setSelectedCategory(cat);
-                          window.scrollTo({ top: 0, behavior: 'smooth' });
+                          // Scroll al final al abrir
+                          setTimeout(() => {
+                            messagesEndRef.current?.scrollIntoView({ behavior: "auto", block: "end" });
+                          }, 150);
                         }
                       }}
                       className={`w-full p-3 flex items-center gap-3 transition-colors text-left ${

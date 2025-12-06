@@ -535,6 +535,11 @@ export default function AdminChat() {
         }
       }
     }
+    
+    // Scroll al final INMEDIATO al abrir chat
+    setTimeout(() => {
+      messagesEndRef.current?.scrollIntoView({ behavior: "auto", block: "end" });
+    }, 100);
   };
 
   const handleFileUploaded = (attachment) => {
