@@ -219,11 +219,9 @@ export default function CoachChat() {
 
   const currentGroupMessages = useMemo(() => {
     if (!selectedCategory) return [];
+    if (selectedCategory === "Coordinación Deportiva") return [];
     return messages.filter(msg => {
       const msgDeporte = normalizeDeporte(msg.grupo_id || msg.deporte);
-      if (selectedCategory === "Coordinación Deportiva") {
-        return msgDeporte === selectedCategory;
-      }
       return msgDeporte === selectedCategory && msg.tipo === "admin_a_grupo";
     });
   }, [messages, selectedCategory]);

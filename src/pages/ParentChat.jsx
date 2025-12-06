@@ -99,7 +99,7 @@ export default function ParentChat() {
   ];
 
   const currentAnnouncements = useMemo(() => {
-    if (!selectedCategory) return [];
+    if (!selectedCategory || selectedCategory === "Coordinación Deportiva") return [];
     return messages.filter(msg => {
       const msgDeporte = normalizeDeporte(msg.grupo_id || msg.deporte);
       return msgDeporte === selectedCategory && msg.tipo === "admin_a_grupo";
@@ -107,6 +107,7 @@ export default function ParentChat() {
   }, [messages, selectedCategory]);
 
   const getUnreadCount = (categoria) => {
+    if (categoria === "Coordinación Deportiva") return 0;
     return messages.filter(msg => {
       const msgDeporte = normalizeDeporte(msg.grupo_id || msg.deporte);
       return msgDeporte === categoria && !msg.leido && msg.tipo === "admin_a_grupo";
