@@ -165,8 +165,8 @@ export default function ParentCoachChat() {
 
   return (
     <div className="p-4 lg:max-w-5xl lg:mx-auto">
-      <Card className="border-blue-200 shadow-lg">
-        <CardHeader className="bg-gradient-to-r from-blue-600 to-blue-700 text-white">
+      <Card className="border-blue-200 shadow-lg h-[calc(100vh-120px)] flex flex-col overflow-hidden">
+        <CardHeader className="bg-gradient-to-r from-blue-600 to-blue-700 text-white flex-shrink-0">
           <div className="flex items-center justify-between">
             <div>
               <CardTitle className="flex items-center gap-2">
@@ -186,9 +186,9 @@ export default function ParentCoachChat() {
             </Button>
           </div>
         </CardHeader>
-        <CardContent className="p-0">
-          <Tabs value={selectedCategory} onValueChange={setSelectedCategory}>
-            <TabsList className="w-full justify-start overflow-x-auto p-2 bg-slate-50">
+        <CardContent className="p-0 flex-1 flex flex-col min-h-0 overflow-hidden">
+          <Tabs value={selectedCategory} onValueChange={setSelectedCategory} className="flex-1 flex flex-col min-h-0">
+            <TabsList className="w-full justify-start overflow-x-auto p-2 bg-slate-50 flex-shrink-0">
               {categories.map(cat => (
                 <TabsTrigger key={cat} value={cat} className="whitespace-nowrap">
                   {cat}
@@ -197,8 +197,8 @@ export default function ParentCoachChat() {
             </TabsList>
             
             {categories.map(cat => (
-              <TabsContent key={cat} value={cat} className="h-[calc(100vh-280px)] flex flex-col">
-                <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-slate-50">
+              <TabsContent key={cat} value={cat} className="flex-1 flex flex-col min-h-0">
+                <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-slate-50 min-h-0">
                   {messages.length === 0 ? (
                     <div className="text-center py-12">
                       <MessageCircle className="w-12 h-12 text-slate-300 mx-auto mb-2" />
@@ -264,7 +264,7 @@ export default function ParentCoachChat() {
                   <div ref={messagesEndRef} />
                 </div>
 
-                <div className="p-4 bg-white border-t">
+                <div className="p-4 bg-white border-t flex-shrink-0">
                   {attachments.length > 0 && (
                     <div className="mb-2 flex flex-wrap gap-2">
                       {attachments.map((file, idx) => (
