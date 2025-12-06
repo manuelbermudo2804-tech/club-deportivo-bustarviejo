@@ -295,11 +295,11 @@ export default function CoachThreadedView({
   }, [groupMessages.length, allPrivateMessages.length]);
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col h-full" style={{ minHeight: '400px' }}>
       {/* Messages area */}
       <div 
         className="flex-1 overflow-y-auto p-4 space-y-3"
-        style={{ backgroundColor: '#e5ddd5' }}
+        style={{ backgroundColor: '#e5ddd5', minHeight: '200px' }}
       >
         {groupedByDate.length === 0 ? (
           <div className="flex items-center justify-center h-full">
@@ -467,8 +467,8 @@ export default function CoachThreadedView({
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Input area */}
-      <div className="bg-white border-t flex-shrink-0">
+      {/* Input area - SIEMPRE VISIBLE */}
+      <div className="bg-white border-t flex-shrink-0" style={{ minHeight: '140px' }}>
         {replyingToFamily && (
           <div className="bg-green-50 px-4 py-2 border-b flex items-center justify-between">
             <div className="flex items-center gap-2">
@@ -507,7 +507,7 @@ export default function CoachThreadedView({
           </div>
         )}
 
-        <div className="p-3 flex gap-2 items-end">
+        <div className="p-3 flex gap-2 items-end" style={{ minHeight: '60px' }}>
           <FileAttachmentButton 
             onFileUploaded={(att) => setAttachments(prev => [...prev, att])} 
             disabled={isSending} 
@@ -517,11 +517,11 @@ export default function CoachThreadedView({
             <select
               value={priority}
               onChange={(e) => onPriorityChange(e.target.value)}
-              className="px-3 py-2 border rounded-full text-sm"
+              className="px-3 py-2 border rounded-full text-sm bg-white"
             >
-              <option value="Normal">Normal</option>
-              <option value="Importante">Importante</option>
-              <option value="Urgente">Urgente</option>
+              <option value="Normal">📝 Normal</option>
+              <option value="Importante">⚠️ Importante</option>
+              <option value="Urgente">🔴 Urgente</option>
             </select>
           )}
           
@@ -531,8 +531,9 @@ export default function CoachThreadedView({
             onChange={handleInputChange}
             placeholder={replyingToFamily 
               ? `Respuesta privada a ${replyingToFamily.familyName}...` 
-              : "Anuncio al grupo..."}
+              : "Escribe un anuncio al grupo..."}
             className="flex-1 rounded-full text-base"
+            style={{ minHeight: '44px' }}
             onKeyDown={(e) => {
               if (e.key === 'Enter' && !e.shiftKey) {
                 e.preventDefault();
@@ -547,7 +548,7 @@ export default function CoachThreadedView({
           <Button
             onClick={handleSend}
             disabled={(!messageContent.trim() && attachments.length === 0)}
-            className={`rounded-full w-12 h-12 p-0 flex-shrink-0 ${
+            className={`rounded-full w-12 h-12 p-0 flex-shrink-0 shadow-lg ${
               replyingToFamily 
                 ? 'bg-green-600 hover:bg-green-700' 
                 : 'bg-blue-600 hover:bg-blue-700'
