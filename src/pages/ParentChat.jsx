@@ -131,6 +131,15 @@ export default function ParentChat() {
         twelveMonthsAgo.setMonth(twelveMonthsAgo.getMonth() - 12);
         const recentMsgs = msgs.filter(msg => new Date(msg.created_date) >= twelveMonthsAgo);
 
+        // Si no hay mensajes recientes pero el contador está activo, resetear
+        if (recentMsgs.length === 0 && activePrivateChat.no_leidos_familia > 0) {
+          base44.entities.PrivateConversation.update(activePrivateChat.id, { no_leidos_familia: 0 }).then(() => {
+            queryClient.invalidateQueries({ queryKey: ['myPrivateConversations'] });
+            queryClient.invalidateQueries({ queryKey: ['privateConversationsParent'] });
+            queryClient.invalidateQueries({ queryKey: ['privateConversationsHome'] });
+          }).catch(() => {});
+        }
+
         // MARCAR COMO LEÍDOS automáticamente los mensajes del staff
         const unreadStaffMessages = recentMsgs.filter(msg => !msg.leido && msg.remitente_tipo === "staff");
         if (unreadStaffMessages.length > 0) {
