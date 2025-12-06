@@ -64,9 +64,9 @@ export default function CoachChat() {
     queryKey: ['chatMessages'],
     queryFn: () => base44.entities.ChatMessage.list('-created_date'),
     refetchOnWindowFocus: true,
-    staleTime: 5000,
-    gcTime: 30000,
-    refetchInterval: 10000,
+    staleTime: 10000,
+    gcTime: 60000,
+    refetchInterval: 30000,
   });
 
   const { data: allPlayers = [], isLoading: loadingPlayers } = useQuery({
@@ -77,9 +77,9 @@ export default function CoachChat() {
   const { data: privateConversations = [], refetch: refetchConversations } = useQuery({
     queryKey: ['privateConversations'],
     queryFn: () => base44.entities.PrivateConversation.list('-ultimo_mensaje_fecha'),
-    staleTime: 5000,
-    gcTime: 30000,
-    refetchInterval: 10000,
+    staleTime: 10000,
+    gcTime: 60000,
+    refetchInterval: 30000,
     refetchOnWindowFocus: true,
   });
 
@@ -89,9 +89,9 @@ export default function CoachChat() {
       ? base44.entities.PrivateMessage.filter({ conversacion_id: selectedConversation.id }, '-created_date')
       : [],
     enabled: !!selectedConversation?.id,
-    staleTime: 5000,
-    gcTime: 30000,
-    refetchInterval: 10000,
+    staleTime: 10000,
+    gcTime: 60000,
+    refetchInterval: 30000,
   });
 
   // Obtener TODOS los mensajes privados de la categoría para vista unificada
@@ -112,8 +112,8 @@ export default function CoachChat() {
       return allMessages.flat();
     },
     enabled: !!selectedCategory && selectedCategory !== "Coordinación Deportiva" && selectedCategory !== "Chat Interno Staff",
-    staleTime: 5000,
-    refetchInterval: 10000,
+    staleTime: 10000,
+    refetchInterval: 30000,
   });
 
   const isAdmin = user?.role === "admin";

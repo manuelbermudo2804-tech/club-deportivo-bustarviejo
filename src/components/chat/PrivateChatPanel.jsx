@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Send, X, ArrowLeft, MessageCircle, User } from "lucide-react";
+import { Send, X, ArrowLeft, MessageCircle, User, Archive, ArchiveRestore } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
@@ -23,7 +23,8 @@ export default function PrivateChatPanel({
   onClose, 
   onMessageSent,
   isStaff = true,
-  hideHeader = false 
+  hideHeader = false,
+  onArchive
 }) {
   const [messageContent, setMessageContent] = useState("");
   const [attachments, setAttachments] = useState([]);
@@ -35,16 +36,30 @@ export default function PrivateChatPanel({
   const inputRef = useRef(null);
   const queryClient = useQueryClient();
 
-  // Scroll fluido mejorado para móvil
+  const prevMessagesCountRef = useRef(0);
+  const scrollContainerRef = useRef(null);
+  
+  // Scroll INTELIGENTE - solo cuando hay mensajes nuevos y el usuario está abajo
   useEffect(() => {
-    if (messagesEndRef.current) {
-      messagesEndRef.current.scrollIntoView({ 
-        behavior: "smooth", 
-        block: "end",
-        inline: "nearest"
-      });
+    const currentCount = messages.length + optimisticMessages.length;
+    
+    // Solo hacer scroll si aumentó el contador (hay mensajes nuevos)
+    if (prevMessagesCountRef.current > 0 && currentCount > prevMessagesCountRef.current) {
+      const container = messagesEndRef.current?.parentElement;
+      if (container) {
+        const isNearBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 150;
+        
+        // Solo scroll automático si el usuario está cerca del final
+        if (isNearBottom) {
+          setTimeout(() => {
+            messagesEndRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
+          }, 100);
+        }
+      }
     }
-  }, [messages, optimisticMessages]);
+    
+    prevMessagesCountRef.current = currentCount;
+  }, [messages.length, optimisticMessages.length]);
 
   // Marcar mensajes como leídos
   useEffect(() => {
@@ -53,17 +68,17 @@ export default function PrivateChatPanel({
     const unreadMessages = messages.filter(msg => 
       !msg.leido && msg.remitente_email !== user.email
     );
-    
+
     if (unreadMessages.length > 0) {
-      unreadMessages.forEach(msg => {
-        base44.entities.PrivateMessage.update(msg.id, { leido: true });
-      });
-      
-      // Actualizar contador en conversación
+      // Marcar como leído de forma optimista (sin await)
+      Promise.all(unreadMessages.map(msg => 
+        base44.entities.PrivateMessage.update(msg.id, { leido: true }).catch(() => {})
+      ));
+
       const updateData = isStaff 
         ? { no_leidos_staff: 0 }
         : { no_leidos_familia: 0 };
-      base44.entities.PrivateConversation.update(conversation.id, updateData);
+      base44.entities.PrivateConversation.update(conversation.id, updateData).catch(() => {});
     }
   }, [conversation?.id, messages?.length, user?.email, isStaff]);
 
@@ -105,7 +120,7 @@ export default function PrivateChatPanel({
 
     const msgText = messageContent || "(Archivo adjunto)";
     
-    // Mensaje optimista - aparece inmediatamente
+    // Mensaje optimista - aparece INSTANTÁNEAMENTE
     const optimisticMsg = {
       id: `temp-${Date.now()}`,
       conversacion_id: conversation.id,
@@ -114,7 +129,7 @@ export default function PrivateChatPanel({
       remitente_tipo: isStaff ? "staff" : "familia",
       mensaje: msgText,
       leido: false,
-      archivos_adjuntos: attachments,
+      archivos_adjuntos: [...attachments],
       reply_to: replyingTo ? {
         id: replyingTo.id,
         mensaje: replyingTo.mensaje?.substring(0, 100),
@@ -124,11 +139,21 @@ export default function PrivateChatPanel({
       _isOptimistic: true
     };
     
+    // Añadir el mensaje optimista ANTES de limpiar el input
     setOptimisticMessages([optimisticMsg]);
+    
+    // Limpiar input INMEDIATAMENTE (feedback instantáneo como WhatsApp)
+    const tempAttachments = [...attachments];
+    const tempReplyTo = replyingTo;
     setMessageContent("");
     setAttachments([]);
     setReplyingTo(null);
     setIsSending(true);
+
+    // Scroll inmediato al enviar
+    setTimeout(() => {
+      messagesEndRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
+    }, 50);
 
     sendMessageMutation.mutate({
       conversacion_id: conversation.id,
@@ -137,8 +162,12 @@ export default function PrivateChatPanel({
       remitente_tipo: isStaff ? "staff" : "familia",
       mensaje: msgText,
       leido: false,
-      archivos_adjuntos: optimisticMsg.archivos_adjuntos,
-      reply_to: optimisticMsg.reply_to
+      archivos_adjuntos: tempAttachments,
+      reply_to: tempReplyTo ? {
+        id: tempReplyTo.id,
+        mensaje: tempReplyTo.mensaje?.substring(0, 100),
+        remitente_nombre: tempReplyTo.remitente_nombre
+      } : null
     });
   };
 
@@ -208,6 +237,12 @@ export default function PrivateChatPanel({
     ? { nombre: conversation.participante_familia_nombre, email: conversation.participante_familia_email }
     : { nombre: conversation.participante_staff_nombre, email: conversation.participante_staff_email };
 
+  const handleArchiveToggle = () => {
+    if (onArchive) {
+      onArchive(conversation.id, !conversation.archivada);
+    }
+  };
+
   return (
     <div className="flex flex-col h-full bg-white">
       {/* Header - solo si no está oculto */}
@@ -248,6 +283,21 @@ export default function PrivateChatPanel({
             <Badge className="bg-white/20 text-white text-xs">
               {conversation.jugadores_relacionados.map(j => j.jugador_nombre).join(", ")}
             </Badge>
+          )}
+          
+          {/* Botón de archivar - solo para staff */}
+          {isStaff && onArchive && (
+            <button
+              onClick={handleArchiveToggle}
+              className="p-2 hover:bg-white/20 rounded-lg transition-colors"
+              title={conversation.archivada ? "Desarchivar" : "Archivar conversación"}
+            >
+              {conversation.archivada ? (
+                <ArchiveRestore className="w-5 h-5" />
+              ) : (
+                <Archive className="w-5 h-5" />
+              )}
+            </button>
           )}
         </div>
       )}

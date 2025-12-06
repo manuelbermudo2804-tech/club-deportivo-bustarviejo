@@ -362,25 +362,4 @@ export default function CoachThreadedView({
       </div>
     </div>
   );
-
-  function handleSend() {
-    if (!messageContent.trim() && attachments.length === 0) return;
-
-    if (replyingToFamily) {
-      onSendPrivateMessage({
-        conversationId: replyingToFamily.conversationId,
-        message: messageContent,
-        attachments
-      });
-    } else {
-      onSendGroupMessage({
-        message: messageContent,
-        attachments
-      });
-    }
-
-    setMessageContent("");
-    setAttachments([]);
-    setReplyingToFamily(null);
-  }
 }

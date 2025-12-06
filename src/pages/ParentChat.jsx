@@ -43,10 +43,10 @@ export default function ParentChat() {
   const { data: messages = [], isLoading: loadingMessages } = useQuery({
     queryKey: ['chatMessages'],
     queryFn: () => base44.entities.ChatMessage.list('-created_date'),
-    staleTime: 5000,
-    gcTime: 30000,
+    staleTime: 10000,
+    gcTime: 60000,
     refetchOnWindowFocus: true,
-    refetchInterval: 10000,
+    refetchInterval: 30000,
   });
 
   const { data: players = [], isLoading: loadingPlayers } = useQuery({
@@ -67,9 +67,9 @@ export default function ParentChat() {
     queryKey: ['myPrivateConversations', user?.email],
     queryFn: () => user ? base44.entities.PrivateConversation.filter({ participante_familia_email: user.email }, '-ultimo_mensaje_fecha') : [],
     enabled: !!user?.email,
-    staleTime: 5000,
-    gcTime: 30000,
-    refetchInterval: 10000,
+    staleTime: 10000,
+    gcTime: 60000,
+    refetchInterval: 30000,
     refetchOnWindowFocus: true,
   });
 
@@ -79,9 +79,9 @@ export default function ParentChat() {
       ? base44.entities.PrivateMessage.filter({ conversacion_id: activePrivateChat.id }, '-created_date')
       : [],
     enabled: !!activePrivateChat?.id,
-    staleTime: 5000,
-    gcTime: 30000,
-    refetchInterval: 10000,
+    staleTime: 10000,
+    gcTime: 60000,
+    refetchInterval: 30000,
   });
 
   const normalizeDeporte = (deporte) => {
