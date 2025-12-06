@@ -240,6 +240,17 @@ export default function ParentDashboard() {
     enabled: !!user,
   });
 
+  const { data: coordinatorConversations = [] } = useQuery({
+    queryKey: ['coordinatorConversations'],
+    queryFn: () => base44.entities.CoordinatorConversation.list(),
+    staleTime: 30000,
+    gcTime: 300000,
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
+    refetchInterval: false,
+    enabled: !!user,
+  });
+
   // SOLO jugadores ACTIVOS de la temporada actual
   const myPlayers = (user && players) ? players.filter(p => 
     (p.email_padre === user.email || p.email_tutor_2 === user.email) && p.activo === true
@@ -293,6 +304,14 @@ export default function ParentDashboard() {
   const unreadPrivateMessages = privateConversations.reduce((count, conv) => {
     if (conv.participante_familia_email === user?.email) {
       return count + (conv.no_leidos_familia || 0);
+    }
+    return count;
+  }, 0);
+
+  // Calcular mensajes coordinador no leídos
+  const unreadCoordinatorMessages = coordinatorConversations.reduce((count, conv) => {
+    if (conv.padre_email === user?.email) {
+      return count + (conv.no_leidos_padre || 0);
     }
     return count;
   }, 0);
@@ -647,26 +666,31 @@ export default function ParentDashboard() {
         <SocialLinks />
 
         {/* Banner Chat Coordinador */}
-        <Card className="border-2 border-cyan-300 bg-gradient-to-r from-cyan-50 to-blue-50 shadow-lg hover:shadow-xl transition-shadow">
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="w-12 h-12 bg-cyan-600 rounded-full flex items-center justify-center flex-shrink-0">
-                <MessageCircle className="w-6 h-6 text-white" />
-              </div>
-              <div className="flex-1">
-                <h3 className="font-bold text-cyan-900">💬 Habla con el Coordinador Deportivo</h3>
-                <p className="text-xs text-cyan-700">
-                  <strong>Estamos para ayudarte:</strong> Dudas de partidos, horarios, convocatorias, equipos, quejas o sugerencias
-                </p>
-              </div>
-              <Link to={createPageUrl("ParentCoordinatorChat")}>
+        <Link to={createPageUrl("ParentCoordinatorChat")}>
+          <Card className="border-2 border-cyan-300 bg-gradient-to-r from-cyan-50 to-blue-50 shadow-lg hover:shadow-xl transition-all hover:scale-[1.02] cursor-pointer">
+            <CardContent className="p-4">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 bg-cyan-600 rounded-full flex items-center justify-center flex-shrink-0 relative">
+                  <MessageCircle className="w-6 h-6 text-white" />
+                  {unreadCoordinatorMessages > 0 && (
+                    <div className="absolute -top-1 -right-1 w-6 h-6 bg-red-500 rounded-full flex items-center justify-center border-2 border-white animate-pulse">
+                      <span className="text-white text-xs font-bold">{unreadCoordinatorMessages}</span>
+                    </div>
+                  )}
+                </div>
+                <div className="flex-1">
+                  <h3 className="font-bold text-cyan-900">💬 Chat con Coordinador</h3>
+                  <p className="text-xs text-cyan-700">
+                    {unreadCoordinatorMessages > 0 ? `${unreadCoordinatorMessages} mensaje${unreadCoordinatorMessages > 1 ? 's' : ''} nuevo${unreadCoordinatorMessages > 1 ? 's' : ''}` : 'Partidos, horarios, dudas deportivas'}
+                  </p>
+                </div>
                 <Button className="bg-cyan-600 hover:bg-cyan-700 font-bold">
-                  Chatear
+                  Abrir
                 </Button>
-              </Link>
-            </div>
-          </CardContent>
-        </Card>
+              </div>
+            </CardContent>
+          </Card>
+        </Link>
 
         {/* ÚNICO CENTRO DE ALERTAS CONSOLIDADO - Todo en un solo banner */}
         <AlertCenter 
@@ -678,6 +702,7 @@ export default function ParentDashboard() {
           upcomingEvents={0}
           overduePayments={overduePayments}
           newGalleryPhotos={0}
+          unreadCoordinatorMessages={unreadCoordinatorMessages}
           isAdmin={false}
           isCoach={false}
           isParent={true}
