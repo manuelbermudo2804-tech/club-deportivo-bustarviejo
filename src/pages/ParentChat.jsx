@@ -10,6 +10,7 @@ import { format } from "date-fns";
 import { es } from "date-fns/locale";
 
 import PrivateChatPanel from "../components/chat/PrivateChatPanel";
+import ParentThreadedView from "../components/chat/ParentThreadedView";
 import FileAttachmentButton from "../components/chat/FileAttachmentButton";
 import MessageAttachments from "../components/chat/MessageAttachments";
 import PollMessage from "../components/chat/PollMessage";
