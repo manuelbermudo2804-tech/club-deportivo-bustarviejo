@@ -516,12 +516,27 @@ export default function CoachChat() {
               </div>
             </div>
 
+            <div className="p-3 bg-cyan-50 border-b flex items-center justify-between flex-shrink-0">
+              <p className="text-sm text-cyan-800 font-medium">
+                {showArchived ? "📦 Archivadas" : "💬 Conversaciones Activas"}
+              </p>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowArchived(!showArchived)}
+                className="text-cyan-700 hover:bg-cyan-100"
+              >
+                <Archive className="w-4 h-4 mr-2" />
+                {showArchived ? "Ver Activas" : "Ver Archivadas"}
+              </Button>
+            </div>
+
             <div className="flex-1 overflow-y-auto bg-slate-50">
               {categoryPrivateConversations.length === 0 ? (
                 <div className="flex items-center justify-center h-full p-6">
                   <div className="text-center text-slate-500 bg-white rounded-xl p-6">
                     <MessageCircle className="w-12 h-12 mx-auto mb-2 opacity-50" />
-                    <p className="text-sm">No hay conversaciones</p>
+                    <p className="text-sm">{showArchived ? "No hay conversaciones archivadas" : "No hay conversaciones activas"}</p>
                   </div>
                 </div>
               ) : (
@@ -548,6 +563,9 @@ export default function CoachChat() {
                       </div>
                       {(conv.no_leidos_staff || 0) > 0 && (
                         <Badge className="bg-cyan-500 text-white">{conv.no_leidos_staff}</Badge>
+                      )}
+                      {conv.archivada && (
+                        <Badge className="bg-slate-400 text-white text-xs">📦 Archivada</Badge>
                       )}
                     </button>
                   ))}
@@ -620,48 +638,77 @@ export default function CoachChat() {
                     <p className="text-slate-600 font-medium">Selecciona una categoría</p>
                   </div>
                 ) : selectedCategory === "Coordinación Deportiva" ? (
-                  <div className="bg-white rounded-xl shadow-md border overflow-hidden" style={{ height: '70vh' }}>
-                    <div className="p-4 bg-gradient-to-r from-cyan-600 to-cyan-700 text-white">
-                      <h3 className="font-bold">Coordinación Deportiva</h3>
-                      <p className="text-xs text-cyan-100">Chats privados con familias</p>
+                  selectedConversation ? (
+                    <div className="bg-white rounded-xl shadow-md border overflow-hidden" style={{ height: '70vh' }}>
+                      <PrivateChatPanel
+                        conversation={selectedConversation}
+                        messages={privateMessages}
+                        user={user}
+                        isStaff={true}
+                        onClose={() => setSelectedConversation(null)}
+                        onMessageSent={handlePrivateMessageSent}
+                        onArchive={(convId, archive) => {
+                          archiveConversationMutation.mutate({ convId, archive });
+                        }}
+                      />
                     </div>
-                    <div className="h-[calc(100%-4rem)] overflow-y-auto divide-y">
-                      {categoryPrivateConversations.length === 0 ? (
-                        <div className="flex items-center justify-center h-full">
-                          <div className="text-center text-slate-500">
-                            <MessageCircle className="w-12 h-12 mx-auto mb-2 opacity-50" />
-                            <p className="text-sm">No hay conversaciones privadas</p>
-                          </div>
+                  ) : (
+                    <div className="bg-white rounded-xl shadow-md border overflow-hidden" style={{ height: '70vh' }}>
+                      <div className="p-4 bg-gradient-to-r from-cyan-600 to-cyan-700 text-white flex items-center justify-between">
+                        <div>
+                          <h3 className="font-bold">Coordinación Deportiva</h3>
+                          <p className="text-xs text-cyan-100">Chats privados con familias</p>
                         </div>
-                      ) : (
-                        categoryPrivateConversations.map(conv => (
-                          <button
-                            key={conv.id}
-                            onClick={() => {
-                              setSelectedConversation(conv);
-                              if (isMobile) setFullscreenChat(true);
-                            }}
-                            className="w-full p-4 flex items-center gap-3 hover:bg-slate-50 transition-colors text-left"
-                          >
-                            <div className="w-12 h-12 rounded-full bg-cyan-100 flex items-center justify-center flex-shrink-0">
-                              <User className="w-6 h-6 text-cyan-700" />
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <p className="font-semibold text-slate-900 truncate">
-                                {conv.participante_familia_nombre}
-                              </p>
-                              <p className="text-sm text-slate-500 truncate">
-                                {conv.ultimo_mensaje || "Sin mensajes"}
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setShowArchived(!showArchived)}
+                          className="text-white hover:bg-white/20"
+                        >
+                          <Archive className="w-4 h-4 mr-2" />
+                          {showArchived ? "Ver Activas" : "Ver Archivadas"}
+                        </Button>
+                      </div>
+                      <div className="h-[calc(100%-4rem)] overflow-y-auto divide-y">
+                        {categoryPrivateConversations.length === 0 ? (
+                          <div className="flex items-center justify-center h-full">
+                            <div className="text-center text-slate-500">
+                              <MessageCircle className="w-12 h-12 mx-auto mb-2 opacity-50" />
+                              <p className="text-sm">
+                                {showArchived ? "No hay conversaciones archivadas" : "No hay conversaciones activas"}
                               </p>
                             </div>
-                            {(conv.no_leidos_staff || 0) > 0 && (
-                              <Badge className="bg-cyan-500 text-white">{conv.no_leidos_staff}</Badge>
-                            )}
-                          </button>
-                        ))
-                      )}
+                          </div>
+                        ) : (
+                          categoryPrivateConversations.map(conv => (
+                            <button
+                              key={conv.id}
+                              onClick={() => setSelectedConversation(conv)}
+                              className="w-full p-4 flex items-center gap-3 hover:bg-slate-50 transition-colors text-left"
+                            >
+                              <div className="w-12 h-12 rounded-full bg-cyan-100 flex items-center justify-center flex-shrink-0">
+                                <User className="w-6 h-6 text-cyan-700" />
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <p className="font-semibold text-slate-900 truncate">
+                                  {conv.participante_familia_nombre}
+                                </p>
+                                <p className="text-sm text-slate-500 truncate">
+                                  {conv.ultimo_mensaje || "Sin mensajes"}
+                                </p>
+                              </div>
+                              {(conv.no_leidos_staff || 0) > 0 && (
+                                <Badge className="bg-cyan-500 text-white">{conv.no_leidos_staff}</Badge>
+                              )}
+                              {conv.archivada && (
+                                <Badge className="bg-slate-400 text-white text-xs">Archivada</Badge>
+                              )}
+                            </button>
+                          ))
+                        )}
+                      </div>
                     </div>
-                  </div>
+                  )
                 ) : (
                   <div className="bg-white rounded-xl shadow-md border p-4 text-center">
                     <p className="text-slate-600">Chat de {selectedCategory}</p>
