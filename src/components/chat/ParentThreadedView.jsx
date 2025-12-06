@@ -10,10 +10,10 @@ import MessageAttachments from "./MessageAttachments";
 import PollMessage from "./PollMessage";
 import FileAttachmentButton from "./FileAttachmentButton";
 import DateSeparator from "./DateSeparator";
-import QuickReplies from "./QuickReplies";
 import useChatSound from "./useChatSound";
 import LinkPreview from "./LinkPreview";
 import TypingIndicator from "./TypingIndicator";
+import QuickReplies from "./QuickReplies";
 
 export default function ParentThreadedView({
   category,

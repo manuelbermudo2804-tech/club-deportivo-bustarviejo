@@ -47,6 +47,13 @@ export default function CoachChat() {
   const messagesEndRef = useRef(null);
   const queryClient = useQueryClient();
   const [user, setUser] = useState(null);
+  const { checkNewMessages } = useChatSound();
+
+  // Detectar mensajes nuevos y reproducir sonido
+  useEffect(() => {
+    const allMessages = [...messages, ...allPrivateMessagesCategory];
+    checkNewMessages(allMessages, user?.email);
+  }, [messages.length, allPrivateMessagesCategory.length, user?.email]);
 
   // Polling adaptativo
   useAdaptivePolling({
@@ -243,12 +250,19 @@ export default function CoachChat() {
       setIsSending(false);
       setPriority("Normal");
       refetchMessages();
+      const totalFamilies = allPlayers.filter(p => p.deporte === selectedCategory && p.activo).length;
+      toast.success(`✅ Anuncio enviado a ${totalFamilies} ${totalFamilies === 1 ? 'familia' : 'familias'}`);
     },
-    onError: () => {
+    onError: (error, variables) => {
+      console.error("Error enviando anuncio:", error);
       setOptimisticMessages([]);
       setIsSending(false);
-      toast.error("Error al enviar mensaje");
+      toast.error("❌ No se pudo enviar. Reintentando...");
+      setTimeout(() => {
+        sendMessageMutation.mutate(variables);
+      }, 2000);
     },
+    retry: 2,
   });
 
   const voteOnPollMutation = useMutation({
@@ -421,15 +435,21 @@ export default function CoachChat() {
     onSuccess: () => {
       refetchPrivateMessages();
       refetchConversations();
+      refetchAllPrivateMessages();
       setIsSending(false);
       setOptimisticMessages([]);
-      toast.success("✅ Respuesta enviada");
+      toast.success("✅ Respuesta enviada a la familia");
     },
-    onError: () => {
+    onError: (error, variables) => {
+      console.error("Error enviando mensaje:", error);
       setIsSending(false);
       setOptimisticMessages([]);
-      toast.error("Error al enviar");
-    }
+      toast.error("❌ No se pudo enviar. Reintentando...");
+      setTimeout(() => {
+        sendPrivateMessageMutation.mutate(variables);
+      }, 2000);
+    },
+    retry: 2,
   });
 
   const sportEmojis = {
@@ -533,7 +553,7 @@ export default function CoachChat() {
           </div>
         )}
 
-        {/* MÓVIL: Chat a pantalla completa */}
+        {/* MÓVIL: Chat VISTA UNIFICADA (anuncios + privados) */}
         {isMobile && selectedCategory && !fullscreenChat && selectedCategory !== "Coordinación Deportiva" && (
           <div className="flex-1 flex flex-col overflow-hidden">
             <div className={`p-4 text-white flex items-center gap-3 shadow-md flex-shrink-0 ${
@@ -552,63 +572,42 @@ export default function CoachChat() {
               <div className="flex-1 min-w-0">
                 <h2 className="font-bold text-lg truncate">{selectedCategory}</h2>
                 <p className="text-xs opacity-90 truncate">
-                  {isStaffChat ? "Chat interno" : "Anuncios grupo"}
+                  💬 Anuncios + respuestas privadas
                 </p>
               </div>
             </div>
 
-            <div className="flex-1 overflow-y-auto p-3 space-y-2" style={{ backgroundColor: '#e5ddd5' }}>
-              {currentGroupMessages.length === 0 ? (
-                <div className="flex items-center justify-center h-full">
-                  <div className="text-center text-slate-500 bg-white/80 rounded-xl p-6">
-                    <AlertCircle className="w-12 h-12 mx-auto mb-2 opacity-50" />
-                    <p className="text-sm">No hay mensajes</p>
-                  </div>
-                </div>
-              ) : (
-                currentGroupMessages.map((msg) => (
-                  <div key={msg.id} className="flex justify-end mb-2">
-                    <div className="max-w-[85%] rounded-2xl shadow-md bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-br-sm">
-                      <div className="px-3 py-2">
-                        <p className="text-sm leading-relaxed">{msg.mensaje}</p>
-                        <span className="text-[10px] opacity-70">
-                          {format(new Date(msg.created_date), "HH:mm")}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                ))
-              )}
-              <div ref={messagesEndRef} />
-            </div>
-
-            <div className="bg-white border-t p-3 flex-shrink-0 safe-area-bottom">
-              <div className="flex gap-2 items-end">
-                <Input
-                  value={messageContent}
-                  onChange={(e) => setMessageContent(e.target.value)}
-                  placeholder="Escribe..."
-                  className="flex-1 rounded-full text-base"
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' && !e.shiftKey) {
-                      e.preventDefault();
-                      handleSendGroupMessage();
-                    }
-                  }}
-                />
-                <Button
-                  onClick={handleSendGroupMessage}
-                  disabled={!messageContent.trim() || isSending}
-                  className="rounded-full w-12 h-12 p-0 flex-shrink-0 bg-blue-600 hover:bg-blue-700"
-                >
-                  {isSending ? (
-                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                  ) : (
-                    <Send className="w-5 h-5" />
-                  )}
-                </Button>
-              </div>
-            </div>
+            <CoachThreadedView
+              category={selectedCategory}
+              groupMessages={currentGroupMessages}
+              privateConversations={categoryPrivateConversations}
+              allPrivateMessages={allPrivateMessagesCategory}
+              allPlayers={allPlayers.filter(p => p.deporte === selectedCategory)}
+              user={user}
+              onSendGroupMessage={({ message, attachments }) => {
+                setIsSending(true);
+                sendMessageMutation.mutate({
+                  remitente_email: user.email,
+                  remitente_nombre: user.full_name,
+                  mensaje: message,
+                  prioridad: priority,
+                  tipo: "admin_a_grupo",
+                  deporte: selectedCategory,
+                  grupo_id: selectedCategory,
+                  leido: false,
+                  archivos_adjuntos: attachments,
+                });
+              }}
+              onSendPrivateMessage={({ conversationId, message, attachments }) => {
+                sendPrivateMessageMutation.mutate({ conversationId, message, attachments });
+              }}
+              onVotePoll={(msgId, optIdx) => voteOnPollMutation.mutate({ messageId: msgId, optionIndex: optIdx })}
+              isSending={isSending || sendPrivateMessageMutation.isPending}
+              sportEmoji={sportEmojis[selectedCategory]}
+              priority={priority}
+              onPriorityChange={setPriority}
+              onTypingChange={setIsTyping}
+            />
           </div>
         )}
 
@@ -943,9 +942,91 @@ export default function CoachChat() {
                       </div>
                     </div>
                   )
+                ) : selectedCategory === "Chat Interno Staff" ? (
+                  <div className="bg-white rounded-xl shadow-md border overflow-hidden" style={{ height: '70vh' }}>
+                    <div className="bg-gradient-to-r from-purple-600 to-purple-700 p-4 text-white flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
+                        <span className="text-xl">👥</span>
+                      </div>
+                      <div className="flex-1">
+                        <h2 className="font-bold">Chat Interno Staff</h2>
+                        <p className="text-xs text-purple-100">Comunicación entre entrenadores</p>
+                      </div>
+                    </div>
+                    <CoachThreadedView
+                      category={selectedCategory}
+                      groupMessages={currentGroupMessages}
+                      privateConversations={categoryPrivateConversations}
+                      allPrivateMessages={allPrivateMessagesCategory}
+                      allPlayers={allPlayers.filter(p => p.deporte === selectedCategory)}
+                      user={user}
+                      onSendGroupMessage={({ message, attachments }) => {
+                        setIsSending(true);
+                        sendMessageMutation.mutate({
+                          remitente_email: user.email,
+                          remitente_nombre: user.full_name,
+                          mensaje: message,
+                          prioridad: priority,
+                          tipo: "admin_a_grupo",
+                          deporte: selectedCategory,
+                          grupo_id: selectedCategory,
+                          leido: false,
+                          archivos_adjuntos: attachments,
+                        });
+                      }}
+                      onSendPrivateMessage={({ conversationId, message, attachments }) => {
+                        sendPrivateMessageMutation.mutate({ conversationId, message, attachments });
+                      }}
+                      onVotePoll={(msgId, optIdx) => voteOnPollMutation.mutate({ messageId: msgId, optionIndex: optIdx })}
+                      isSending={isSending || sendPrivateMessageMutation.isPending}
+                      sportEmoji={sportEmojis[selectedCategory]}
+                      priority={priority}
+                      onPriorityChange={setPriority}
+                      onTypingChange={setIsTyping}
+                    />
+                  </div>
                 ) : (
-                  <div className="bg-white rounded-xl shadow-md border p-4 text-center">
-                    <p className="text-slate-600">Chat de {selectedCategory}</p>
+                  <div className="bg-white rounded-xl shadow-md border overflow-hidden" style={{ height: '70vh' }}>
+                    <div className="bg-gradient-to-r from-blue-600 to-blue-700 p-4 text-white flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
+                        <span className="text-xl">{sportEmojis[selectedCategory] || "⚽"}</span>
+                      </div>
+                      <div className="flex-1">
+                        <h2 className="font-bold">{selectedCategory}</h2>
+                        <p className="text-xs text-blue-100">💬 Anuncios + respuestas privadas</p>
+                      </div>
+                    </div>
+                    <CoachThreadedView
+                      category={selectedCategory}
+                      groupMessages={currentGroupMessages}
+                      privateConversations={categoryPrivateConversations}
+                      allPrivateMessages={allPrivateMessagesCategory}
+                      allPlayers={allPlayers.filter(p => p.deporte === selectedCategory)}
+                      user={user}
+                      onSendGroupMessage={({ message, attachments }) => {
+                        setIsSending(true);
+                        sendMessageMutation.mutate({
+                          remitente_email: user.email,
+                          remitente_nombre: user.full_name,
+                          mensaje: message,
+                          prioridad: priority,
+                          tipo: "admin_a_grupo",
+                          deporte: selectedCategory,
+                          grupo_id: selectedCategory,
+                          leido: false,
+                          archivos_adjuntos: attachments,
+                        });
+                      }}
+                      onSendPrivateMessage={({ conversationId, message, attachments }) => {
+                        sendPrivateMessageMutation.mutate({ conversationId, message, attachments });
+                      }}
+                      onVotePoll={(msgId, optIdx) => voteOnPollMutation.mutate({ messageId: msgId, optionIndex: optIdx })}
+                      isSending={isSending || sendPrivateMessageMutation.isPending}
+                      sportEmoji={sportEmojis[selectedCategory]}
+                      priority={priority}
+                      onPriorityChange={setPriority}
+                      onTypingChange={setIsTyping}
+                    />
                   </div>
                 )}
               </div>
