@@ -144,17 +144,16 @@ export default function AlertCenter({
   // ALERTAS DE MENSAJES ELIMINADAS - Ahora se usan en ChatAlertBanner
   // NO mostrar mensajes de chat aquí para evitar duplicación
 
-    if (upcomingEvents > 0) {
-      alerts.push({
-        id: "events",
-        icon: Calendar,
-        title: "Eventos próximos",
-        description: `${upcomingEvents} evento${upcomingEvents > 1 ? 's' : ''} esta semana`,
-        url: createPageUrl("ParentEventRSVP"),
-        color: "bg-cyan-500",
-        priority: 6
-      });
-    }
+  if (!isAdmin && upcomingEvents > 0) {
+    alerts.push({
+      id: "events",
+      icon: Calendar,
+      title: "Eventos próximos",
+      description: `${upcomingEvents} evento${upcomingEvents > 1 ? 's' : ''} esta semana`,
+      url: createPageUrl("ParentEventRSVP"),
+      color: "bg-cyan-500",
+      priority: 6
+    });
   }
 
   // Alertas para admin
