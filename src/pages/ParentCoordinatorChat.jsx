@@ -191,8 +191,8 @@ export default function ParentCoordinatorChat() {
   }
 
   return (
-    <div className="lg:max-w-4xl lg:mx-auto lg:p-4 lg:space-y-4 fixed inset-0 lg:relative flex flex-col">
-      <Card className="border-cyan-200 shadow-lg flex-1 flex flex-col lg:rounded-lg rounded-none">
+    <div className="p-4 lg:max-w-4xl lg:mx-auto">
+      <Card className="border-cyan-200 shadow-lg h-[calc(100vh-120px)] flex flex-col overflow-hidden">
         <CardHeader className="bg-gradient-to-r from-cyan-600 to-cyan-700 text-white">
           <div className="flex items-center justify-between">
             <CardTitle className="flex items-center gap-2">
@@ -210,8 +210,8 @@ export default function ParentCoordinatorChat() {
             </Button>
           </div>
         </CardHeader>
-        <CardContent className="p-0 flex-1 flex flex-col">
-          <Alert className="m-4 bg-cyan-50 border-cyan-200">
+        <CardContent className="p-0 flex-1 flex flex-col min-h-0">
+          <Alert className="m-4 bg-cyan-50 border-cyan-200 flex-shrink-0">
             <MessageCircle className="w-4 h-4 text-cyan-600" />
             <AlertDescription className="text-cyan-800 text-xs">
               <strong>💬 Chat con el Coordinador:</strong> Partidos, horarios, equipos, quejas o sugerencias
@@ -220,7 +220,7 @@ export default function ParentCoordinatorChat() {
 
           {/* Galería de archivos */}
           {showGallery && (
-            <div className="p-4 bg-white border-b max-h-[300px] overflow-y-auto">
+            <div className="p-4 bg-white border-b max-h-[200px] overflow-y-auto flex-shrink-0">
               <div className="flex items-center justify-between mb-3">
                 <h3 className="font-semibold text-slate-900">📁 Archivos Compartidos</h3>
                 <Button size="sm" variant="ghost" onClick={() => setShowGallery(false)}>
@@ -259,7 +259,7 @@ export default function ParentCoordinatorChat() {
           )}
 
           {/* Mensajes */}
-          <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-slate-50">
+          <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-slate-50 min-h-0">
             {messages.length === 0 ? (
               <div className="text-center py-12">
                 <MessageCircle className="w-12 h-12 text-slate-300 mx-auto mb-2" />
@@ -325,7 +325,7 @@ export default function ParentCoordinatorChat() {
           </div>
 
           {/* Input */}
-          <div className="p-4 bg-white border-t">
+          <div className="p-4 bg-white border-t flex-shrink-0">
             {attachments.length > 0 && (
               <div className="mb-2 flex flex-wrap gap-2">
                 {attachments.map((file, idx) => (
