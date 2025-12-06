@@ -144,7 +144,7 @@ export default function AlertCenter({
   // ALERTAS DE MENSAJES ELIMINADAS - Ahora se usan en ChatAlertBanner
   // NO mostrar mensajes de chat aquí para evitar duplicación
 
-  if (!isAdmin && upcomingEvents > 0) {
+  if (upcomingEvents > 0) {
     alerts.push({
       id: "events",
       icon: Calendar,
