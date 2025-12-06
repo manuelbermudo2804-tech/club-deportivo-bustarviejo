@@ -62,6 +62,22 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
     enabled: !!conversation?.id,
   });
 
+  // Polling para estado "escribiendo"
+  const { data: conversationState } = useQuery({
+    queryKey: ['coordinatorConversationState', conversation?.id],
+    queryFn: async () => {
+      if (!conversation?.id) return null;
+      const data = await base44.entities.CoordinatorConversation.filter({ id: conversation.id });
+      return data[0];
+    },
+    refetchInterval: 2000,
+    enabled: !!conversation?.id,
+  });
+
+  const otherPersonTyping = isCoordinator 
+    ? conversationState?.padre_escribiendo 
+    : conversationState?.coordinador_escribiendo;
+
   // Reproducir sonido cuando llega un mensaje nuevo
   useEffect(() => {
     if (messages.length > 0 && notificationSoundRef.current) {
