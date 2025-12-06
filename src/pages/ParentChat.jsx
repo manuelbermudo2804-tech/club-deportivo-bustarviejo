@@ -53,18 +53,32 @@ export default function ParentChat() {
     base44.auth.me().then(setUser).catch(console.error);
   }, []);
 
-  const { data: messages = [], isLoading: loadingMessages } = useQuery({
+  const { data: messages = [], isLoading: loadingMessages, error: messagesError } = useQuery({
     queryKey: ['chatMessages'],
-    queryFn: () => base44.entities.ChatMessage.list('-created_date'),
+    queryFn: async () => {
+      try {
+        return await base44.entities.ChatMessage.list('-created_date');
+      } catch (error) {
+        console.error('Error loading messages:', error);
+        return [];
+      }
+    },
     staleTime: 10000,
     gcTime: 60000,
     refetchOnWindowFocus: true,
-    refetchInterval: false, // Controlado por useAdaptivePolling
+    refetchInterval: false,
   });
 
-  const { data: players = [], isLoading: loadingPlayers } = useQuery({
+  const { data: players = [], isLoading: loadingPlayers, error: playersError } = useQuery({
     queryKey: ['allPlayers'],
-    queryFn: () => base44.entities.Player.list(),
+    queryFn: async () => {
+      try {
+        return await base44.entities.Player.list();
+      } catch (error) {
+        console.error('Error loading players:', error);
+        return [];
+      }
+    },
   });
 
   const COORDINATOR_EMAIL = "manuel.bermudo@gvcgaesco.es";
@@ -76,44 +90,56 @@ export default function ParentChat() {
     es_coordinador: true
   }), []);
 
-  const { data: privateConversations = [], refetch: refetchConversations, isLoading: loadingConversations } = useQuery({
+  const { data: privateConversations = [], refetch: refetchConversations, isLoading: loadingConversations, error: conversationsError } = useQuery({
     queryKey: ['myPrivateConversations', user?.email],
-    queryFn: () => user ? base44.entities.PrivateConversation.filter({ participante_familia_email: user.email }, '-ultimo_mensaje_fecha') : [],
+    queryFn: async () => {
+      try {
+        if (!user?.email) return [];
+        return await base44.entities.PrivateConversation.filter({ participante_familia_email: user.email }, '-ultimo_mensaje_fecha');
+      } catch (error) {
+        console.error('Error loading conversations:', error);
+        return [];
+      }
+    },
     enabled: !!user?.email,
     staleTime: 10000,
     gcTime: 60000,
-    refetchInterval: false, // Controlado por useAdaptivePolling
+    refetchInterval: false,
     refetchOnWindowFocus: true,
   });
 
-  const { data: privateMessages = [], refetch: refetchPrivateMessages } = useQuery({
+  const { data: privateMessages = [], refetch: refetchPrivateMessages, error: privateMessagesError } = useQuery({
     queryKey: ['privateMessages', activePrivateChat?.id],
     queryFn: async () => {
-      if (!activePrivateChat) return [];
-      
-      const msgs = await base44.entities.PrivateMessage.filter({ conversacion_id: activePrivateChat.id }, '-created_date');
-      
-      // MARCAR COMO LEÍDOS automáticamente los mensajes del staff
-      const unreadStaffMessages = msgs.filter(msg => !msg.leido && msg.remitente_tipo === "staff");
-      if (unreadStaffMessages.length > 0) {
-        Promise.all(unreadStaffMessages.map(msg => 
-          base44.entities.PrivateMessage.update(msg.id, { leido: true }).catch(() => {})
-        )).then(() => {
-          // Actualizar contador de conversación
-          base44.entities.PrivateConversation.update(activePrivateChat.id, { no_leidos_familia: 0 }).then(() => {
-            queryClient.invalidateQueries({ queryKey: ['myPrivateConversations'] });
-            queryClient.invalidateQueries({ queryKey: ['privateConversationsParent'] });
-            queryClient.invalidateQueries({ queryKey: ['privateConversationsHome'] });
-          }).catch(() => {});
-        });
+      try {
+        if (!activePrivateChat) return [];
+        
+        const msgs = await base44.entities.PrivateMessage.filter({ conversacion_id: activePrivateChat.id }, '-created_date');
+        
+        // MARCAR COMO LEÍDOS automáticamente los mensajes del staff
+        const unreadStaffMessages = msgs.filter(msg => !msg.leido && msg.remitente_tipo === "staff");
+        if (unreadStaffMessages.length > 0) {
+          Promise.all(unreadStaffMessages.map(msg => 
+            base44.entities.PrivateMessage.update(msg.id, { leido: true }).catch(() => {})
+          )).then(() => {
+            base44.entities.PrivateConversation.update(activePrivateChat.id, { no_leidos_familia: 0 }).then(() => {
+              queryClient.invalidateQueries({ queryKey: ['myPrivateConversations'] });
+              queryClient.invalidateQueries({ queryKey: ['privateConversationsParent'] });
+              queryClient.invalidateQueries({ queryKey: ['privateConversationsHome'] });
+            }).catch(() => {});
+          });
+        }
+        
+        return msgs;
+      } catch (error) {
+        console.error('Error loading private messages:', error);
+        return [];
       }
-      
-      return msgs;
     },
     enabled: !!activePrivateChat?.id,
     staleTime: 10000,
     gcTime: 60000,
-    refetchInterval: false, // Controlado por useAdaptivePolling
+    refetchInterval: false,
   });
 
   // Detectar mensajes nuevos y reproducir sonido - DESPUÉS de declarar messages
@@ -134,6 +160,16 @@ export default function ParentChat() {
     "Coordinación Deportiva",
     ...new Set(myPlayers.map(p => normalizeDeporte(p.deporte)).filter(Boolean))
   ];
+
+  console.log('🔍 ParentChat state:', {
+    user: user?.email,
+    selectedCategory,
+    activePrivateChat: activePrivateChat?.id,
+    myCategories: myCategories.length,
+    messages: messages.length,
+    privateMessages: privateMessages.length,
+    isMobile
+  });
 
   const currentAnnouncements = useMemo(() => {
     if (!selectedCategory || selectedCategory === "Coordinación Deportiva") return [];
@@ -291,9 +327,12 @@ export default function ParentChat() {
     if (loadingConversations || !user) return;
     
     if (selectedCategory === "Coordinación Deportiva" && coordinator) {
+      console.log('🎓 Coordinación seleccionada, buscando conversación...');
+      
       if (activePrivateChat && 
           activePrivateChat.participante_staff_email === coordinator.email && 
           activePrivateChat.categoria === "Coordinación Deportiva") {
+        console.log('✅ Ya hay conversación activa');
         return;
       }
       
@@ -303,8 +342,10 @@ export default function ParentChat() {
       );
       
       if (existingConv) {
+        console.log('✅ Conversación encontrada, activando:', existingConv.id);
         setActivePrivateChat(existingConv);
       } else if (!createOrOpenPrivateChat.isPending) {
+        console.log('🆕 Creando nueva conversación con coordinador...');
         createOrOpenPrivateChat.mutate({ staffEmail: coordinator.email, categoria: "Coordinación Deportiva" });
       }
     }
@@ -374,6 +415,11 @@ export default function ParentChat() {
     prevMessagesCountRef.current = currentCount;
   }, [currentAnnouncements.length, privateMessages.length, playNotificationSound]);
 
+  // Error handling
+  if (messagesError || playersError || conversationsError) {
+    console.error('Chat errors:', { messagesError, playersError, conversationsError });
+  }
+
   if (loadingMessages || loadingPlayers || loadingConversations || !user) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-slate-50">
@@ -431,6 +477,13 @@ export default function ParentChat() {
       </div>
     );
   }
+
+  console.log('🎨 RENDERING ParentChat:', {
+    isMobile,
+    selectedCategory,
+    activePrivateChat: activePrivateChat?.id,
+    myCategories: myCategories.length
+  });
 
   return (
     <div className={`${isMobile ? 'fixed inset-0 flex flex-col overflow-hidden bg-white' : 'p-4 lg:p-6 min-h-screen bg-slate-50'}`} style={isMobile ? { top: '120px' } : {}}>
@@ -490,11 +543,12 @@ export default function ParentChat() {
 
       {/* MÓVIL: Coordinación Deportiva */}
       {isMobile && selectedCategory === "Coordinación Deportiva" && (
-        <div className="flex-1 flex flex-col overflow-hidden">
+        <div className="flex-1 flex flex-col overflow-hidden bg-white">
           <div className="bg-gradient-to-r from-cyan-600 to-cyan-700 text-white flex-shrink-0">
             <div className="flex items-center gap-3 p-4">
               <button
                 onClick={() => {
+                  console.log('🔙 Volviendo desde Coordinación');
                   setSelectedCategory(null);
                   setActivePrivateChat(null);
                 }}
@@ -516,10 +570,11 @@ export default function ParentChat() {
             <div className="flex-1 flex flex-col overflow-hidden">
               <PrivateChatPanel
                 conversation={activePrivateChat}
-                messages={privateMessages}
+                messages={privateMessages || []}
                 user={user}
                 isStaff={false}
                 onClose={() => {
+                  console.log('🔙 Cerrando chat de coordinación');
                   setActivePrivateChat(null);
                   setSelectedCategory(null);
                 }}
@@ -529,9 +584,10 @@ export default function ParentChat() {
             </div>
           ) : (
             <div className="flex items-center justify-center flex-1 bg-slate-50">
-              <div className="text-center">
+              <div className="text-center p-6">
                 <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-cyan-600 border-r-transparent mb-4"></div>
-                <p className="text-slate-600">Abriendo chat...</p>
+                <p className="text-slate-600 font-medium">Abriendo chat con coordinación...</p>
+                <p className="text-xs text-slate-400 mt-2">Espera un momento</p>
               </div>
             </div>
           )}
@@ -540,10 +596,13 @@ export default function ParentChat() {
 
       {/* MÓVIL: Chat de equipos normal - VISTA UNIFICADA */}
       {isMobile && selectedCategory && selectedCategory !== "Coordinación Deportiva" && (
-        <div className="flex-1 flex flex-col overflow-hidden">
+        <div className="flex-1 flex flex-col overflow-hidden bg-white">
           <div className="bg-gradient-to-r from-blue-600 to-blue-700 p-4 text-white flex items-center gap-3 shadow-md flex-shrink-0">
             <button
-              onClick={() => setSelectedCategory(null)}
+              onClick={() => {
+                console.log('🔙 Volviendo desde:', selectedCategory);
+                setSelectedCategory(null);
+              }}
               className="p-2 hover:bg-white/20 rounded-lg transition-colors -ml-1"
             >
               <ArrowLeft className="w-6 h-6" />
@@ -564,19 +623,19 @@ export default function ParentChat() {
 
           <ParentThreadedView
             category={selectedCategory}
-            groupMessages={currentAnnouncements}
-            myPrivateConversation={privateConversations.find(c => c.categoria === selectedCategory && !c.archivada)}
-            myPrivateMessages={privateMessages}
+            groupMessages={currentAnnouncements || []}
+            myPrivateConversation={privateConversations.find(c => c.categoria === selectedCategory && !c.archivada) || null}
+            myPrivateMessages={privateMessages || []}
             user={user}
             onReplyPrivate={handleReplyPrivate}
             onSendPrivateMessage={({ conversationId, message, attachments }) => {
               sendPrivateMessageMutation.mutate({ conversationId, message, attachments });
             }}
             onVotePoll={(msgId, optIdx) => voteOnPollMutation.mutate({ messageId: msgId, optionIndex: optIdx })}
-            isSending={sendPrivateMessageMutation.isPending}
+            isSending={sendPrivateMessageMutation?.isPending || false}
             sportEmoji={sportEmojis[selectedCategory]}
             onTypingChange={setIsTyping}
-            />
+          />
         </div>
       )}
 
