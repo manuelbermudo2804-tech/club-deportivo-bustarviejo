@@ -233,13 +233,13 @@ export default function ParentCoordinatorChat() {
   }
 
   return (
-    <div className="p-4 lg:max-w-4xl lg:mx-auto">
-      <Card className="border-cyan-200 shadow-lg h-[calc(100vh-120px)] flex flex-col overflow-hidden">
-        <CardHeader className="bg-gradient-to-r from-cyan-600 to-cyan-700 text-white">
+    <div className="p-2 sm:p-4 lg:max-w-4xl lg:mx-auto h-[calc(100vh-110px)]">
+      <Card className="border-cyan-200 shadow-lg h-full flex flex-col overflow-hidden">
+        <CardHeader className="bg-gradient-to-r from-cyan-600 to-cyan-700 text-white p-3 sm:p-6">
           <div className="flex items-center justify-between">
-            <CardTitle className="flex items-center gap-2">
-              <MessageCircle className="w-6 h-6" />
-              Chat con el Coordinador
+            <CardTitle className="flex items-center gap-2 text-base sm:text-xl">
+              <MessageCircle className="w-5 h-5 sm:w-6 sm:h-6" />
+              Chat Coordinador
             </CardTitle>
             <Button 
               variant="ghost" 

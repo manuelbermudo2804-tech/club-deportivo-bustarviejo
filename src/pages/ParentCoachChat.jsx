@@ -164,34 +164,35 @@ export default function ParentCoachChat() {
   const categories = [...new Set(myPlayers.map(p => p.deporte))];
 
   return (
-    <div className="p-4 lg:max-w-5xl lg:mx-auto">
-      <Card className="border-blue-200 shadow-lg h-[calc(100vh-120px)] flex flex-col overflow-hidden">
-        <CardHeader className="bg-gradient-to-r from-blue-600 to-blue-700 text-white flex-shrink-0">
+    <div className="p-2 sm:p-4 lg:max-w-5xl lg:mx-auto h-[calc(100vh-110px)]">
+      <Card className="border-blue-200 shadow-lg h-full flex flex-col overflow-hidden">
+        <CardHeader className="bg-gradient-to-r from-blue-600 to-blue-700 text-white flex-shrink-0 p-3 sm:p-6">
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle className="flex items-center gap-2">
-                <MessageCircle className="w-6 h-6" />
-                Chat Grupal con Entrenador
+              <CardTitle className="flex items-center gap-2 text-base sm:text-xl">
+                <MessageCircle className="w-5 h-5 sm:w-6 sm:h-6" />
+                Chat con Entrenador
               </CardTitle>
-              <p className="text-sm text-blue-100">Comunicación con el entrenador y otras familias</p>
+              <p className="text-xs sm:text-sm text-blue-100 hidden sm:block">Comunicación con el entrenador y otras familias</p>
             </div>
             <Button
               variant="ghost"
               size="sm"
               onClick={() => setShowParticipants(true)}
-              className="text-white hover:bg-white/20"
+              className="text-white hover:bg-white/20 text-xs sm:text-sm"
             >
-              <Users className="w-4 h-4 mr-2" />
-              {parentEmails.length} familias
+              <Users className="w-3 h-3 sm:w-4 sm:h-4 sm:mr-2" />
+              <span className="hidden sm:inline">{parentEmails.length} familias</span>
+              <span className="sm:hidden">{parentEmails.length}</span>
             </Button>
           </div>
         </CardHeader>
         <CardContent className="p-0 flex-1 flex flex-col min-h-0 overflow-hidden">
           <Tabs value={selectedCategory} onValueChange={setSelectedCategory} className="flex-1 flex flex-col min-h-0">
-            <TabsList className="w-full justify-start overflow-x-auto p-2 bg-slate-50 flex-shrink-0">
+            <TabsList className="w-full justify-start overflow-x-auto p-1 sm:p-2 bg-slate-50 flex-shrink-0">
               {categories.map(cat => (
-                <TabsTrigger key={cat} value={cat} className="whitespace-nowrap">
-                  {cat}
+                <TabsTrigger key={cat} value={cat} className="whitespace-nowrap text-xs sm:text-sm px-2 sm:px-4">
+                  {cat.replace('Fútbol ', '').replace(' (Mixto)', '')}
                 </TabsTrigger>
               ))}
             </TabsList>
@@ -264,9 +265,9 @@ export default function ParentCoachChat() {
                   <div ref={messagesEndRef} />
                 </div>
 
-                <div className="p-4 bg-white border-t flex-shrink-0">
+                <div className="p-2 sm:p-4 bg-white border-t flex-shrink-0">
                   {attachments.length > 0 && (
-                    <div className="mb-2 flex flex-wrap gap-2">
+                    <div className="mb-2 flex flex-wrap gap-1 sm:gap-2">
                       {attachments.map((file, idx) => (
                         <div key={idx} className="relative">
                           {file.tipo?.startsWith('image/') ? (
@@ -293,7 +294,7 @@ export default function ParentCoachChat() {
                     </div>
                   )}
                   
-                  <div className="flex gap-2 items-end">
+                  <div className="flex gap-1 sm:gap-2 items-end">
                     <div className="flex flex-col gap-1">
                       <input 
                         ref={fileInputRef}
@@ -309,12 +310,12 @@ export default function ParentCoachChat() {
                         variant="outline" 
                         size="icon" 
                         disabled={uploading} 
-                        className="h-10 w-10"
+                        className="h-9 w-9 sm:h-10 sm:w-10"
                         onClick={() => fileInputRef.current?.click()}
                       >
-                        <Paperclip className="w-5 h-5" />
+                        <Paperclip className="w-4 h-4 sm:w-5 sm:h-5" />
                       </Button>
-                      
+
                       <input 
                         ref={cameraInputRef}
                         type="file" 
@@ -329,15 +330,15 @@ export default function ParentCoachChat() {
                         variant="outline" 
                         size="icon" 
                         disabled={uploading} 
-                        className="h-10 w-10"
+                        className="h-9 w-9 sm:h-10 sm:w-10"
                         onClick={() => cameraInputRef.current?.click()}
                       >
-                        <Camera className="w-5 h-5" />
+                        <Camera className="w-4 h-4 sm:w-5 sm:h-5" />
                       </Button>
                     </div>
-                    
+
                     <Textarea
-                      placeholder="Escribe al grupo..."
+                      placeholder="Escribe..."
                       value={messageText}
                       onChange={(e) => setMessageText(e.target.value)}
                       onKeyDown={(e) => {
@@ -346,16 +347,16 @@ export default function ParentCoachChat() {
                           handleSend();
                         }
                       }}
-                      className="flex-1 min-h-[44px] resize-none"
+                      className="flex-1 min-h-[36px] sm:min-h-[44px] resize-none text-sm"
                       rows={1}
                     />
-                    
+
                     <Button 
                       onClick={handleSend} 
                       disabled={!messageText.trim() && attachments.length === 0} 
-                      className="bg-blue-600 hover:bg-blue-700 h-10 w-10 p-0"
+                      className="bg-blue-600 hover:bg-blue-700 h-9 w-9 sm:h-10 sm:w-10 p-0"
                     >
-                      <Send className="w-5 h-5" />
+                      <Send className="w-4 h-4 sm:w-5 sm:h-5" />
                     </Button>
                   </div>
                 </div>
