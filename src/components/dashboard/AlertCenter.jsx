@@ -18,7 +18,10 @@ import {
   ShoppingBag,
   Image,
   Users,
-  Clover
+  Clover,
+  Lock,
+  Mail,
+  User
 } from "lucide-react";
 
 export default function AlertCenter({ 
@@ -39,9 +42,13 @@ export default function AlertCenter({
   newGalleryPhotos = 0,
   pendingInvitations = 0,
   overduePayments = 0,
+  recentSurveyResponses = 0,
+  pendingEventConfirmations = 0,
+  pendingPlayerAccess = 0,
   isAdmin = false,
   isCoach = false,
-  isParent = true
+  isParent = true,
+  isTreasurer = false
 }) {
   const alerts = [];
 
@@ -181,48 +188,111 @@ export default function AlertCenter({
 
   // Alertas para admin
   if (isAdmin) {
+    if (pendingPayments > 0) {
+      alerts.push({
+        id: "payments-admin",
+        icon: CreditCard,
+        title: "💳 Pagos en Revisión",
+        description: `${pendingPayments} pago${pendingPayments > 1 ? 's' : ''} esperando revisión`,
+        url: createPageUrl("Payments"),
+        color: "bg-green-600",
+        priority: 3
+      });
+    }
+
+    if (pendingSignatures > 0) {
+      alerts.push({
+        id: "signatures-admin",
+        icon: FileSignature,
+        title: "🖊️ Firmas Pendientes",
+        description: `${pendingSignatures} firma${pendingSignatures > 1 ? 's' : ''} de federación sin completar`,
+        url: createPageUrl("FederationSignaturesAdmin"),
+        color: "bg-yellow-600",
+        priority: 4
+      });
+    }
+
     if (pendingClothingOrders > 0) {
       alerts.push({
         id: "clothing",
         icon: ShoppingBag,
-        title: "🛍️ Pedidos ropa",
-        description: `${pendingClothingOrders} pedido${pendingClothingOrders > 1 ? 's' : ''} por revisar`,
+        title: "🛍️ Pedidos de Ropa",
+        description: `${pendingClothingOrders} pedido${pendingClothingOrders > 1 ? 's' : ''} pendiente${pendingClothingOrders > 1 ? 's' : ''}`,
         url: createPageUrl("ClothingOrders"),
-        color: "bg-teal-500",
-        priority: 4
+        color: "bg-teal-600",
+        priority: 5
       });
     }
+
     if (pendingMemberRequests > 0) {
       alerts.push({
         id: "members",
         icon: Users,
-        title: "🎫 Solicitudes socio",
-        description: `${pendingMemberRequests} solicitud${pendingMemberRequests > 1 ? 'es' : ''} pendiente${pendingMemberRequests > 1 ? 's' : ''}`,
+        title: "🎫 Solicitudes de Socio",
+        description: `${pendingMemberRequests} solicitud${pendingMemberRequests > 1 ? 'es' : ''} en revisión`,
         url: createPageUrl("ClubMembersManagement"),
-        color: "bg-pink-500",
-        priority: 4
+        color: "bg-pink-600",
+        priority: 6
       });
     }
+
     if (pendingLotteryOrders > 0) {
       alerts.push({
         id: "lottery",
         icon: Clover,
-        title: "🍀 Pedidos lotería",
-        description: `${pendingLotteryOrders} pedido${pendingLotteryOrders > 1 ? 's' : ''} por revisar`,
+        title: "🍀 Pedidos de Lotería",
+        description: `${pendingLotteryOrders} pedido${pendingLotteryOrders > 1 ? 's' : ''} pendiente${pendingLotteryOrders > 1 ? 's' : ''}`,
         url: createPageUrl("LotteryManagement"),
-        color: "bg-green-600",
-        priority: 5
+        color: "bg-green-700",
+        priority: 7
       });
     }
+
+    if (recentSurveyResponses > 0) {
+      alerts.push({
+        id: "survey-responses",
+        icon: FileText,
+        title: "📋 Respuestas de Encuestas",
+        description: `${recentSurveyResponses} respuesta${recentSurveyResponses > 1 ? 's' : ''} nueva${recentSurveyResponses > 1 ? 's' : ''} (últimas 24h)`,
+        url: createPageUrl("Surveys"),
+        color: "bg-purple-600",
+        priority: 8
+      });
+    }
+
+    if (pendingEventConfirmations > 0) {
+      alerts.push({
+        id: "event-confirmations",
+        icon: Calendar,
+        title: "🎉 Confirmaciones de Eventos",
+        description: `${pendingEventConfirmations} confirmación${pendingEventConfirmations > 1 ? 'es' : ''} reciente${pendingEventConfirmations > 1 ? 's' : ''} (24h)`,
+        url: createPageUrl("EventManagement"),
+        color: "bg-indigo-600",
+        priority: 9
+      });
+    }
+
+    if (pendingPlayerAccess > 0) {
+      alerts.push({
+        id: "player-access",
+        icon: User,
+        title: "⚽ Jugadores +18 sin Acceso",
+        description: `${pendingPlayerAccess} jugador${pendingPlayerAccess > 1 ? 'es' : ''} mayor${pendingPlayerAccess > 1 ? 'es' : ''} de edad necesita acceso`,
+        url: createPageUrl("UserManagement"),
+        color: "bg-purple-600",
+        priority: 10
+      });
+    }
+
     if (pendingInvitations > 0) {
       alerts.push({
         id: "invitations",
-        icon: Users,
-        title: "📧 Invitaciones",
-        description: `${pendingInvitations} invitación${pendingInvitations > 1 ? 'es' : ''} solicitada${pendingInvitations > 1 ? 's' : ''}`,
+        icon: Mail,
+        title: "📧 Invitaciones Solicitadas",
+        description: `${pendingInvitations} solicitud${pendingInvitations > 1 ? 'es' : ''} de invitación pendiente${pendingInvitations > 1 ? 's' : ''}`,
         url: createPageUrl("EmailInvitations"),
-        color: "bg-cyan-500",
-        priority: 3
+        color: "bg-cyan-600",
+        priority: 11
       });
     }
   }
