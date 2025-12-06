@@ -16,6 +16,7 @@ import ThemeToggle from "./components/ThemeToggle";
 import NotificationCenter from "./components/NotificationCenter";
 import LanguageSelector from "./components/LanguageSelector";
 import ChatNotificationListener from "./components/push/ChatNotificationListener";
+import AppNotificationListener from "./components/push/AppNotificationListener";
 import WelcomeScreen from "./components/WelcomeScreen.jsx";
 import { TutorialProvider } from "./components/tutorials/TutorialProvider";
 import NotificationManager from "./components/notifications/NotificationManager";
@@ -830,16 +831,28 @@ export default function Layout({ children, currentPageName }) {
   // Contador de mensajes privados no leídos (familias Y staff)
   useEffect(() => {
     if (!user) return;
-    
+
     const checkPrivateMessages = async () => {
       try {
         let totalUnread = 0;
-        
+
         if (isAdmin || isCoach || isCoordinator || isTreasurer) {
           // Staff: ver mensajes no leídos de familias
           const conversations = await base44.entities.PrivateConversation.list();
+          const allPlayers = await base44.entities.Player.list();
+
           conversations.forEach(conv => {
             if (!conv.archivada) {
+              // CRÍTICO: Solo contar si hay jugadores activos relacionados
+              const jugadoresRelacionados = conv.jugadores_relacionados || [];
+              const tieneJugadoresActivos = jugadoresRelacionados.some(jr => {
+                const player = allPlayers.find(p => p.id === jr.jugador_id);
+                return player?.activo === true;
+              });
+
+              // Solo contar si tiene jugadores activos
+              if (!tieneJugadoresActivos) return;
+
               // Admin/Coordinador ven todas
               if (isAdmin || isCoordinator) {
                 totalUnread += (conv.no_leidos_staff || 0);
@@ -855,12 +868,22 @@ export default function Layout({ children, currentPageName }) {
           const conversations = await base44.entities.PrivateConversation.filter({ 
             participante_familia_email: user.email 
           });
-          
+          const allPlayers = await base44.entities.Player.list();
+
           totalUnread = conversations
-            .filter(c => !c.archivada)
+            .filter(c => {
+              if (c.archivada) return false;
+
+              // CRÍTICO: Solo contar si tiene jugadores activos
+              const jugadoresRelacionados = c.jugadores_relacionados || [];
+              return jugadoresRelacionados.some(jr => {
+                const player = allPlayers.find(p => p.id === jr.jugador_id);
+                return player?.activo === true;
+              });
+            })
             .reduce((sum, c) => sum + (c.no_leidos_familia || 0), 0);
         }
-        
+
         setPrivateMessagesCount(totalUnread);
       } catch (error) {
         console.error("Error checking private messages:", error);
@@ -1542,9 +1565,10 @@ export default function Layout({ children, currentPageName }) {
               )}
 
               <SessionManager />
-      <NotificationBadge />
-      {user && <ChatNotificationListener user={user} />}
-      {user && <DocumentReminderEngine user={user} />}
+              <NotificationBadge />
+              {user && <ChatNotificationListener user={user} />}
+              {user && <AppNotificationListener user={user} />}
+              {user && <DocumentReminderEngine user={user} />}
       {user && <NotificationManager user={user} />}
         {/* ToastContainer eliminado */}
 
