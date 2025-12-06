@@ -974,6 +974,21 @@ export default function SeasonManagement() {
                 onCheckedChange={(checked) => toggleFeature('notificaciones_admin_email', checked)}
               />
             </div>
+
+            {/* Notificaciones Push */}
+            <div className="flex items-center justify-between p-4 bg-slate-50 rounded-lg">
+              <div className="flex items-center gap-3">
+                <Bell className="w-5 h-5 text-blue-600" />
+                <div>
+                  <p className="font-medium">📲 Notificaciones Push</p>
+                  <p className="text-xs text-slate-600">Enviar notificaciones push en chats y eventos</p>
+                </div>
+              </div>
+              <Switch
+                checked={activeSeason?.notificaciones_push_activas !== false}
+                onCheckedChange={(checked) => toggleFeature('notificaciones_push_activas', checked)}
+              />
+            </div>
           </CardContent>
         )}
       </Card>
