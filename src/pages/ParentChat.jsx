@@ -635,7 +635,7 @@ export default function ParentChat() {
             category={selectedCategory}
             groupMessages={currentAnnouncements || []}
             myPrivateConversation={privateConversations.find(c => c.categoria === selectedCategory && !c.archivada) || null}
-            myPrivateMessages={privateMessages || []}
+            myPrivateMessages={activePrivateChat ? privateMessages : []}
             user={user}
             onReplyPrivate={handleReplyPrivate}
             onSendPrivateMessage={({ conversationId, message, attachments }) => {
@@ -764,7 +764,7 @@ export default function ParentChat() {
                     category={selectedCategory}
                     groupMessages={currentAnnouncements}
                     myPrivateConversation={privateConversations.find(c => c.categoria === selectedCategory && !c.archivada)}
-                    myPrivateMessages={privateMessages}
+                    myPrivateMessages={activePrivateChat ? privateMessages : []}
                     user={user}
                     onReplyPrivate={handleReplyPrivate}
                     onSendPrivateMessage={({ conversationId, message, attachments }) => {
