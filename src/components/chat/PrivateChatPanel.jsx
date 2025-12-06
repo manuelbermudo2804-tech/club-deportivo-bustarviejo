@@ -68,26 +68,37 @@ export default function PrivateChatPanel({
     prevMessagesCountRef.current = currentCount;
   }, [messages.length, optimisticMessages.length]);
 
-  // Marcar mensajes como leídos
+  // Marcar mensajes como leídos y REFRESCAR queries
   useEffect(() => {
     if (!conversation || !messages || !user) return;
-    
+
     const unreadMessages = messages.filter(msg => 
       !msg.leido && msg.remitente_email !== user.email
     );
 
     if (unreadMessages.length > 0) {
-      // Marcar como leído de forma optimista (sin await)
+      // Marcar como leído
       Promise.all(unreadMessages.map(msg => 
         base44.entities.PrivateMessage.update(msg.id, { leido: true }).catch(() => {})
-      ));
+      )).then(() => {
+        // Refrescar queries después de marcar como leído
+        queryClient.invalidateQueries({ queryKey: ['privateMessages', conversation.id] });
+        queryClient.invalidateQueries({ queryKey: ['privateConversations'] });
+        queryClient.invalidateQueries({ queryKey: ['myPrivateConversations'] });
+      });
 
       const updateData = isStaff 
         ? { no_leidos_staff: 0 }
         : { no_leidos_familia: 0 };
-      base44.entities.PrivateConversation.update(conversation.id, updateData).catch(() => {});
+      base44.entities.PrivateConversation.update(conversation.id, updateData).then(() => {
+        // Refrescar queries de conversaciones
+        queryClient.invalidateQueries({ queryKey: ['privateConversations'] });
+        queryClient.invalidateQueries({ queryKey: ['myPrivateConversations'] });
+        queryClient.invalidateQueries({ queryKey: ['privateConversationsParent'] });
+        queryClient.invalidateQueries({ queryKey: ['privateConversationsHome'] });
+      }).catch(() => {});
     }
-  }, [conversation?.id, messages?.length, user?.email, isStaff]);
+  }, [conversation?.id, messages?.length, user?.email, isStaff, queryClient]);
 
   const sendMessageMutation = useMutation({
     mutationFn: async (messageData) => {

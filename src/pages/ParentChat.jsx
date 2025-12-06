@@ -161,7 +161,11 @@ export default function ParentChat() {
         });
       }));
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['chatMessages'] }),
+    onSuccess: () => {
+      // Refrescar TODAS las queries de mensajes
+      queryClient.invalidateQueries({ queryKey: ['chatMessages'] });
+      queryClient.invalidateQueries({ queryKey: ['messages'] });
+    },
   });
 
   const voteOnPollMutation = useMutation({
