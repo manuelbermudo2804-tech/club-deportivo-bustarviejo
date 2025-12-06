@@ -316,6 +316,23 @@ export default function ParentDashboard() {
     return count;
   }, 0);
 
+  // Calcular mensajes del chat entrenador-padres no leídos
+  const unreadCoachMessages = messages.filter(m => {
+    // Solo mensajes del grupo de mis categorías
+    const myGroupSports = [...new Set(myPlayers.map(p => p.deporte))];
+    const isMyGroup = myGroupSports.includes(m.deporte);
+    
+    if (!isMyGroup) return false;
+    
+    // Mensajes del entrenador sin leer
+    if (m.tipo === "entrenador_a_grupo" && !m.leido) return true;
+    
+    // Mensajes privados del entrenador para mí sin leer
+    if (m.destinatario_email === user?.email && !m.leido) return true;
+    
+    return false;
+  }).length;
+
   const today = new Date().toISOString().split('T')[0];
   const upcomingCallups = callups.filter(c => 
     c.publicada && c.fecha_partido >= today && !c.cerrada
@@ -692,6 +709,35 @@ export default function ParentDashboard() {
           </Card>
         </Link>
 
+        {/* Banner Chat Entrenador */}
+        {myPlayers.length > 0 && (
+          <Link to={createPageUrl("ParentCoachChat")}>
+            <Card className="border-2 border-blue-300 bg-gradient-to-r from-blue-50 to-indigo-50 shadow-lg hover:shadow-xl transition-all hover:scale-[1.02] cursor-pointer">
+              <CardContent className="p-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center flex-shrink-0 relative">
+                    <MessageCircle className="w-6 h-6 text-white" />
+                    {unreadCoachMessages > 0 && (
+                      <div className="absolute -top-1 -right-1 w-6 h-6 bg-red-500 rounded-full flex items-center justify-center border-2 border-white animate-pulse">
+                        <span className="text-white text-xs font-bold">{unreadCoachMessages}</span>
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="font-bold text-blue-900">⚽ Chat con Entrenador</h3>
+                    <p className="text-xs text-blue-700">
+                      {unreadCoachMessages > 0 ? `${unreadCoachMessages} mensaje${unreadCoachMessages > 1 ? 's' : ''} nuevo${unreadCoachMessages > 1 ? 's' : ''}` : 'Comunicación directa con tu entrenador'}
+                    </p>
+                  </div>
+                  <Button className="bg-blue-600 hover:bg-blue-700 font-bold">
+                    Abrir
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </Link>
+        )}
+
         {/* ÚNICO CENTRO DE ALERTAS CONSOLIDADO - Todo en un solo banner */}
         <AlertCenter 
           pendingCallups={pendingCallups}
@@ -703,6 +749,7 @@ export default function ParentDashboard() {
           overduePayments={overduePayments}
           newGalleryPhotos={0}
           unreadCoordinatorMessages={0}
+          unreadCoachMessages={unreadCoachMessages}
           isAdmin={false}
           isCoach={false}
           isParent={true}

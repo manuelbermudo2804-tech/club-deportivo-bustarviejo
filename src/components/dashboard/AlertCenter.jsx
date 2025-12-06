@@ -44,6 +44,7 @@ export default function AlertCenter({
   pendingEventConfirmations = 0,
   pendingPlayerAccess = 0,
   unreadCoordinatorMessages = 0,
+  unreadCoachMessages = 0,
   isAdmin = false,
   isCoach = false,
   isParent = true,
@@ -62,6 +63,17 @@ export default function AlertCenter({
         description: `${unreadCoordinatorMessages} mensaje${unreadCoordinatorMessages > 1 ? 's' : ''} sin leer`,
         url: createPageUrl("ParentCoordinatorChat"),
         color: "bg-cyan-500",
+        priority: 1
+      });
+    }
+    if (unreadCoachMessages > 0) {
+      alerts.push({
+        id: "coach-chat",
+        icon: MessageCircle,
+        title: "⚽ Mensajes del Entrenador",
+        description: `${unreadCoachMessages} mensaje${unreadCoachMessages > 1 ? 's' : ''} sin leer`,
+        url: createPageUrl("ParentCoachChat"),
+        color: "bg-blue-500",
         priority: 1
       });
     }
