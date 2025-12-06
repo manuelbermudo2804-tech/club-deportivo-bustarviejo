@@ -396,18 +396,20 @@ export default function ParentChat() {
           </div>
 
           {activePrivateChat ? (
-            <PrivateChatPanel
-              conversation={activePrivateChat}
-              messages={privateMessages}
-              user={user}
-              isStaff={false}
-              onClose={() => {
-                setActivePrivateChat(null);
-                setSelectedCategory(null);
-              }}
-              onMessageSent={handlePrivateMessageSent}
-              hideHeader={true}
-            />
+            <div className="flex-1 flex flex-col overflow-hidden">
+              <PrivateChatPanel
+                conversation={activePrivateChat}
+                messages={privateMessages}
+                user={user}
+                isStaff={false}
+                onClose={() => {
+                  setActivePrivateChat(null);
+                  setSelectedCategory(null);
+                }}
+                onMessageSent={handlePrivateMessageSent}
+                hideHeader={true}
+              />
+            </div>
           ) : (
             <div className="flex items-center justify-center flex-1 bg-slate-50">
               <div className="text-center">
