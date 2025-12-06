@@ -72,6 +72,11 @@ export default function PushNotifications() {
   // Enviar notificación con PUSH REAL
   const sendNotificationMutation = useMutation({
     mutationFn: async (data) => {
+      // Verificar si las push están activas
+      if (!pushEnabled) {
+        throw new Error("Las notificaciones push están desactivadas. Actívalas con el switch de arriba.");
+      }
+
       // Calcular destinatarios
       let destinatarios = [];
       const playersList = players || [];
@@ -206,8 +211,8 @@ export default function PushNotifications() {
                 </p>
                 <p className="text-xs text-slate-600">
                   {pushEnabled 
-                    ? "Las notificaciones push se enviarán automáticamente en chats y eventos" 
-                    : "⚠️ Las notificaciones push están desactivadas globalmente"}
+                    ? "Se enviarán push automáticas (chats, eventos) y manuales (las de abajo)" 
+                    : "⚠️ BLOQUEADAS: No se enviarán push automáticas NI manuales hasta activar"}
                 </p>
               </div>
             </div>
@@ -228,7 +233,7 @@ export default function PushNotifications() {
         <Alert className="bg-red-50 border-red-200">
           <AlertTriangle className="w-4 h-4 text-red-600" />
           <AlertDescription className="text-red-800 ml-2">
-            <strong>Push desactivadas:</strong> No se enviarán notificaciones push hasta que las actives con el switch de arriba.
+            <strong>⚠️ Push BLOQUEADAS:</strong> No se puede enviar ninguna notificación (ni automáticas de chat, ni manuales) hasta que actives el switch de arriba. El botón "Nueva Notificación" está deshabilitado.
           </AlertDescription>
         </Alert>
       )}
