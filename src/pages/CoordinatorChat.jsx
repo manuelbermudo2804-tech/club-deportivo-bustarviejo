@@ -75,9 +75,9 @@ export default function CoordinatorChat() {
   const totalUnread = activeConversations.reduce((sum, c) => sum + (c.no_leidos_coordinador || 0), 0);
 
   return (
-    <div className="flex h-screen">
+    <div className="fixed inset-0 flex">
       {/* Lista de conversaciones */}
-      <div className="w-96 border-r bg-slate-50 flex flex-col">
+      <div className="w-96 border-r bg-slate-50 flex flex-col overflow-hidden">
         <div className="p-4 bg-gradient-to-r from-cyan-600 to-cyan-700 text-white">
           <h1 className="text-xl font-bold flex items-center gap-2 mb-3">
             <MessageCircle className="w-6 h-6" />
@@ -204,7 +204,7 @@ export default function CoordinatorChat() {
       </div>
 
       {/* Ventana de chat */}
-      <div className="flex-1">
+      <div className="flex-1 overflow-hidden">
         {selectedConversation ? (
           <CoordinatorChatWindow
             conversation={selectedConversation}
