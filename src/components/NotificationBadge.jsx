@@ -17,7 +17,11 @@ export default function NotificationBadge() {
 
   const { data: players } = useQuery({
     queryKey: ['players'],
-    queryFn: () => base44.entities.Player.list(),
+    queryFn: async () => {
+      const all = await base44.entities.Player.list();
+      // CRÍTICO: Solo jugadores activos
+      return all.filter(p => p.activo === true);
+    },
     initialData: [],
     enabled: !!user,
   });
