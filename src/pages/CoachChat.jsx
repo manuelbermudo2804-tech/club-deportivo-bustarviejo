@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Send, AlertCircle, Users, MessageCircle, User, Archive, ArrowLeft, BarChart3, Pin, Search, Image } from "lucide-react";
+import { Send, AlertCircle, Users, MessageCircle, User, Archive, ArrowLeft, BarChart3, Pin, Search, Image, ArchiveRestore } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
@@ -542,32 +542,47 @@ export default function CoachChat() {
               ) : (
                 <div className="divide-y">
                   {categoryPrivateConversations.map(conv => (
-                    <button
-                      key={conv.id}
-                      onClick={() => {
-                        setSelectedConversation(conv);
-                        setFullscreenChat(true);
-                      }}
-                      className="w-full p-4 flex items-center gap-3 bg-white hover:bg-slate-50 transition-colors text-left"
-                    >
-                      <div className="w-12 h-12 rounded-full bg-cyan-100 flex items-center justify-center flex-shrink-0">
-                        <User className="w-6 h-6 text-cyan-700" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="font-semibold text-slate-900 truncate">
-                          {conv.participante_familia_nombre}
-                        </p>
-                        <p className="text-sm text-slate-500 truncate">
-                          {conv.ultimo_mensaje || "Sin mensajes"}
-                        </p>
-                      </div>
-                      {(conv.no_leidos_staff || 0) > 0 && (
-                        <Badge className="bg-cyan-500 text-white">{conv.no_leidos_staff}</Badge>
-                      )}
-                      {conv.archivada && (
-                        <Badge className="bg-slate-400 text-white text-xs">📦 Archivada</Badge>
-                      )}
-                    </button>
+                    <div key={conv.id} className="flex items-center bg-white hover:bg-slate-50">
+                      <button
+                        onClick={() => {
+                          setSelectedConversation(conv);
+                          setFullscreenChat(true);
+                        }}
+                        className="flex-1 p-4 flex items-center gap-3 transition-colors text-left"
+                      >
+                        <div className="w-12 h-12 rounded-full bg-cyan-100 flex items-center justify-center flex-shrink-0">
+                          <User className="w-6 h-6 text-cyan-700" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-semibold text-slate-900 truncate">
+                            {conv.participante_familia_nombre}
+                          </p>
+                          <p className="text-sm text-slate-500 truncate">
+                            {conv.ultimo_mensaje || "Sin mensajes"}
+                          </p>
+                        </div>
+                        {(conv.no_leidos_staff || 0) > 0 && (
+                          <Badge className="bg-cyan-500 text-white">{conv.no_leidos_staff}</Badge>
+                        )}
+                        {conv.archivada && (
+                          <Badge className="bg-slate-400 text-white text-xs">📦</Badge>
+                        )}
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          archiveConversationMutation.mutate({ convId: conv.id, archive: !conv.archivada });
+                        }}
+                        className="p-3 text-slate-400 hover:text-cyan-600 hover:bg-cyan-50 transition-colors"
+                        title={conv.archivada ? "Desarchivar" : "Archivar"}
+                      >
+                        {conv.archivada ? (
+                          <ArchiveRestore className="w-5 h-5" />
+                        ) : (
+                          <Archive className="w-5 h-5" />
+                        )}
+                      </button>
+                    </div>
                   ))}
                 </div>
               )}
