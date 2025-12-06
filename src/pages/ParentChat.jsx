@@ -651,7 +651,7 @@ export default function ParentChat() {
                       sendPrivateMessageMutation.mutate({ conversationId, message, attachments });
                     }}
                     onVotePoll={(msgId, optIdx) => voteOnPollMutation.mutate({ messageId: msgId, optionIndex: optIdx })}
-                    isSending={sendPrivateMessageMutation.isPending}
+                    isSending={sendPrivateMessageMutation?.isPending || false}
                     sportEmoji={sportEmojis[selectedCategory]}
                   />
                 </div>
