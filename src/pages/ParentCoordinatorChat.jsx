@@ -233,12 +233,12 @@ export default function ParentCoordinatorChat() {
   }
 
   return (
-    <div className="p-2 sm:p-4 lg:max-w-4xl lg:mx-auto h-[calc(100vh-110px)]">
-      <Card className="border-cyan-200 shadow-lg h-full flex flex-col overflow-hidden">
-        <CardHeader className="bg-gradient-to-r from-cyan-600 to-cyan-700 text-white p-3 sm:p-6">
+    <div className="p-0 sm:p-4 lg:max-w-4xl lg:mx-auto h-screen sm:h-[calc(100vh-110px)]">
+      <Card className="border-cyan-200 shadow-lg h-full flex flex-col overflow-hidden sm:rounded-lg rounded-none">
+        <CardHeader className="bg-gradient-to-r from-cyan-600 to-cyan-700 text-white p-2 sm:p-6">
           <div className="flex items-center justify-between">
-            <CardTitle className="flex items-center gap-2 text-base sm:text-xl">
-              <MessageCircle className="w-5 h-5 sm:w-6 sm:h-6" />
+            <CardTitle className="flex items-center gap-2 text-sm sm:text-xl">
+              <MessageCircle className="w-4 h-4 sm:w-6 sm:h-6" />
               Chat Coordinador
             </CardTitle>
             <Button 
@@ -253,7 +253,7 @@ export default function ParentCoordinatorChat() {
             </Button>
           </div>
         </CardHeader>
-        <CardContent className="p-0 flex-1 flex flex-col min-h-0">
+        <CardContent className="p-0 flex-1 flex flex-col overflow-hidden">
           <Alert className="m-2 sm:m-4 bg-cyan-50 border-cyan-200 flex-shrink-0">
             <MessageCircle className="w-4 h-4 text-cyan-600" />
             <AlertDescription className="text-cyan-800 text-xs">
@@ -302,11 +302,11 @@ export default function ParentCoordinatorChat() {
           )}
 
           {/* Mensajes */}
-          <div className="flex-1 overflow-y-auto p-2 sm:p-4 space-y-2 sm:space-y-3 bg-slate-50 min-h-0">
+          <div className="flex-1 overflow-y-auto p-2 sm:p-4 space-y-2 bg-slate-50">
                     {!messages || messages.length === 0 ? (
-                      <div className="text-center py-12">
-                        <MessageCircle className="w-12 h-12 text-slate-300 mx-auto mb-2" />
-                        <p className="text-slate-500 text-sm">¡Inicia la conversación con el coordinador!</p>
+                      <div className="text-center py-8">
+                        <MessageCircle className="w-10 h-10 text-slate-300 mx-auto mb-2" />
+                        <p className="text-slate-500 text-xs sm:text-sm">¡Inicia la conversación!</p>
                       </div>
                     ) : (
                       messages.map((msg) => {
@@ -315,9 +315,9 @@ export default function ParentCoordinatorChat() {
                 
                 return (
                   <div key={msg.id} className={`flex ${isPadre ? 'justify-end' : 'justify-start'}`}>
-                    <div className={`max-w-[70%] ${isPadre ? 'bg-slate-800 text-white' : 'bg-white text-slate-900 border'} rounded-2xl p-3 shadow-sm`}>
-                      <p className="text-xs font-semibold mb-1 opacity-70">{msg.autor_nombre}</p>
-                      <p className="text-sm whitespace-pre-wrap">{msg.mensaje}</p>
+                    <div className={`max-w-[75%] sm:max-w-[70%] ${isPadre ? 'bg-slate-800 text-white' : 'bg-white text-slate-900 border'} rounded-2xl p-2 sm:p-3 shadow-sm`}>
+                      <p className="text-[10px] sm:text-xs font-semibold mb-1 opacity-70">{msg.autor_nombre}</p>
+                      <p className="text-xs sm:text-sm whitespace-pre-wrap">{msg.mensaje}</p>
                       {msg.adjuntos?.length > 0 && (
                         <div className="mt-2 space-y-1">
                           {msg.adjuntos.map((file, idx) => (
@@ -346,7 +346,7 @@ export default function ParentCoordinatorChat() {
                         </div>
                       )}
                       <div className="flex items-center justify-between mt-1">
-                        <p className="text-xs opacity-60">
+                        <p className="text-[10px] sm:text-xs opacity-60">
                           {format(new Date(msg.created_date), "HH:mm", { locale: es })}
                         </p>
                         {isPadre && (
