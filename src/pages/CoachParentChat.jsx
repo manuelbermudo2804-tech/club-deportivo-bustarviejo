@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Send, Paperclip, X, FileText, Download, MessageCircle, Camera, Users } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
@@ -18,6 +19,7 @@ export default function CoachParentChat() {
   const [attachments, setAttachments] = useState([]);
   const [uploading, setUploading] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState(null);
+  const [showParticipants, setShowParticipants] = useState(false);
   const messagesEndRef = useRef(null);
   const fileInputRef = useRef(null);
   const cameraInputRef = useRef(null);
@@ -176,13 +178,15 @@ export default function CoachParentChat() {
               </CardTitle>
               <p className="text-sm text-blue-100">Comunicación con los padres de tu categoría</p>
             </div>
-            <div className="text-right">
-              <p className="text-xs text-blue-100">Familias en este grupo:</p>
-              <Badge className="bg-white text-blue-700 text-lg font-bold">
-                <Users className="w-4 h-4 mr-1" />
-                {parentEmails.length}
-              </Badge>
-            </div>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setShowParticipants(true)}
+              className="text-white hover:bg-white/20"
+            >
+              <Users className="w-4 h-4 mr-2" />
+              {parentEmails.length} familias
+            </Button>
           </div>
         </CardHeader>
         <CardContent className="p-0">
@@ -362,6 +366,35 @@ export default function CoachParentChat() {
           </Tabs>
         </CardContent>
       </Card>
+
+      <Dialog open={showParticipants} onOpenChange={setShowParticipants}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>👥 Participantes del Grupo - {selectedCategory}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3 max-h-[400px] overflow-y-auto">
+            <div className="bg-blue-50 rounded-lg p-3 border-2 border-blue-200">
+              <p className="text-sm font-bold text-blue-900">🏃 Entrenador</p>
+              <p className="text-xs text-blue-700 mt-1">{user?.full_name}</p>
+            </div>
+            
+            <div>
+              <p className="text-sm font-bold text-slate-900 mb-2">👨‍👩‍👧 Familias ({parentEmails.length})</p>
+              <div className="space-y-2">
+                {categoryPlayers.map((player, idx) => (
+                  <div key={idx} className="bg-slate-50 rounded-lg p-3 border">
+                    <p className="text-sm font-medium text-slate-900">{player.nombre}</p>
+                    <div className="text-xs text-slate-600 mt-1 space-y-0.5">
+                      {player.email_padre && <p>📧 {player.email_padre}</p>}
+                      {player.email_tutor_2 && <p>📧 {player.email_tutor_2}</p>}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

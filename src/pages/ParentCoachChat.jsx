@@ -6,7 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Send, Paperclip, X, FileText, Download, MessageCircle, Camera, Check, CheckCheck } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Send, Paperclip, X, FileText, Download, MessageCircle, Camera, Users } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { toast } from "sonner";
@@ -18,6 +19,7 @@ export default function ParentCoachChat() {
   const [attachments, setAttachments] = useState([]);
   const [uploading, setUploading] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState(null);
+  const [showParticipants, setShowParticipants] = useState(false);
   const messagesEndRef = useRef(null);
   const fileInputRef = useRef(null);
   const cameraInputRef = useRef(null);
@@ -51,6 +53,16 @@ export default function ParentCoachChat() {
     refetchInterval: 3000,
     enabled: !!selectedCategory,
   });
+
+  const { data: allPlayers = [] } = useQuery({
+    queryKey: ['players'],
+    queryFn: () => base44.entities.Player.list(),
+  });
+
+  const categoryPlayers = allPlayers.filter(p => p.deporte === selectedCategory && p.activo);
+  const parentEmails = [...new Set(categoryPlayers.flatMap(p => 
+    [p.email_padre, p.email_tutor_2].filter(Boolean)
+  ))];
 
   useEffect(() => {
     if (messagesEndRef.current) {
@@ -149,11 +161,24 @@ export default function ParentCoachChat() {
     <div className="p-4 lg:max-w-5xl lg:mx-auto">
       <Card className="border-blue-200 shadow-lg">
         <CardHeader className="bg-gradient-to-r from-blue-600 to-blue-700 text-white">
-          <CardTitle className="flex items-center gap-2">
-            <MessageCircle className="w-6 h-6" />
-            Chat Grupal con Entrenador
-          </CardTitle>
-          <p className="text-sm text-blue-100">Comunicación con el entrenador y otras familias</p>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="flex items-center gap-2">
+                <MessageCircle className="w-6 h-6" />
+                Chat Grupal con Entrenador
+              </CardTitle>
+              <p className="text-sm text-blue-100">Comunicación con el entrenador y otras familias</p>
+            </div>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setShowParticipants(true)}
+              className="text-white hover:bg-white/20"
+            >
+              <Users className="w-4 h-4 mr-2" />
+              {parentEmails.length} familias
+            </Button>
+          </div>
         </CardHeader>
         <CardContent className="p-0">
           <Tabs value={selectedCategory} onValueChange={setSelectedCategory}>
@@ -333,6 +358,34 @@ export default function ParentCoachChat() {
           </Tabs>
         </CardContent>
       </Card>
+
+      <Dialog open={showParticipants} onOpenChange={setShowParticipants}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>👥 Participantes del Grupo - {selectedCategory}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3 max-h-[400px] overflow-y-auto">
+            <div className="bg-blue-50 rounded-lg p-3 border-2 border-blue-200">
+              <p className="text-sm font-bold text-blue-900">🏃 Entrenador de la categoría</p>
+            </div>
+            
+            <div>
+              <p className="text-sm font-bold text-slate-900 mb-2">👨‍👩‍👧 Familias ({parentEmails.length})</p>
+              <div className="space-y-2">
+                {categoryPlayers.map((player, idx) => (
+                  <div key={idx} className="bg-slate-50 rounded-lg p-3 border">
+                    <p className="text-sm font-medium text-slate-900">⚽ {player.nombre}</p>
+                    <div className="text-xs text-slate-600 mt-1 space-y-0.5">
+                      {player.nombre_tutor_legal && <p>👤 {player.nombre_tutor_legal}</p>}
+                      {player.nombre_tutor_2 && <p>👤 {player.nombre_tutor_2}</p>}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
