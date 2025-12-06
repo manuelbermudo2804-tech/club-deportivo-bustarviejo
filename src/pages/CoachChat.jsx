@@ -122,15 +122,20 @@ export default function CoachChat() {
   const categoryPrivateConversations = useMemo(() => {
     if (!selectedCategory) return [];
     return privateConversations.filter(conv => {
+      // Solo mostrar conversaciones donde el usuario es participante staff
       if (!isAdmin && !isCoordinator && conv.participante_staff_email !== user?.email) return false;
+      
+      // Filtro por categoría - hay que matchear
       if (conv.categoria !== selectedCategory) return false;
       
+      // Auto-desarchivar si tiene mensajes no leídos
       const hasUnread = (conv.no_leidos_staff || 0) > 0;
       if (hasUnread && conv.archivada === true) {
         base44.entities.PrivateConversation.update(conv.id, { archivada: false })
           .then(() => refetchConversations());
       }
       
+      // Filtrar por archivadas o activas
       if (showArchived) return conv.archivada === true;
       return !conv.archivada;
     });
