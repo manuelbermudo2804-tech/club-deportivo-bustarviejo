@@ -507,6 +507,7 @@ export default function Layout({ children, currentPageName }) {
   const [pendingDocumentsCount, setPendingDocumentsCount] = useState(0);
   const [pendingSignaturesCount, setPendingSignaturesCount] = useState(0);
   const [pendingCallupResponses, setPendingCallupResponses] = useState(0); // Para entrenadores: respuestas sin confirmar
+  const [privateMessagesCount, setPrivateMessagesCount] = useState(0); // Mensajes privados no leídos
   const [showSpecialScreen, setShowSpecialScreen] = useState(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [currentLang, setCurrentLang] = useState('es');
@@ -822,6 +823,31 @@ export default function Layout({ children, currentPageName }) {
 
     checkUnreadMessages();
   }, [user, isAdmin, isCoach]);
+
+  // Contador de mensajes privados no leídos (solo familias)
+  useEffect(() => {
+    if (!user || isAdmin || isCoach || isCoordinator || isTreasurer || isPlayer) return;
+    
+    const checkPrivateMessages = async () => {
+      try {
+        const conversations = await base44.entities.PrivateConversation.filter({ 
+          participante_familia_email: user.email 
+        });
+        
+        const totalUnread = conversations
+          .filter(c => !c.archivada)
+          .reduce((sum, c) => sum + (c.no_leidos_familia || 0), 0);
+        
+        setPrivateMessagesCount(totalUnread);
+      } catch (error) {
+        console.error("Error checking private messages:", error);
+      }
+    };
+
+    checkPrivateMessages();
+    const interval = setInterval(checkPrivateMessages, 10000); // Refrescar cada 10s
+    return () => clearInterval(interval);
+  }, [user, isAdmin, isCoach, isCoordinator, isTreasurer, isPlayer]);
 
   useEffect(() => {
     if (!user) return;
@@ -1526,9 +1552,14 @@ export default function Layout({ children, currentPageName }) {
               <ThemeToggle />
               <button
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                className="p-3 text-white hover:bg-white/20 rounded-xl transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center"
+                className="p-3 text-white hover:bg-white/20 rounded-xl transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center relative"
               >
                 {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+                {privateMessagesCount > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-green-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center animate-pulse ring-2 ring-white">
+                    {privateMessagesCount}
+                  </span>
+                )}
               </button>
             </div>
           </div>

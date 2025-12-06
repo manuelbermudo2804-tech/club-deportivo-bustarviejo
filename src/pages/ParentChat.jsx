@@ -394,7 +394,7 @@ export default function ParentChat() {
                       </Badge>
                     )}
                     {privateUnread > 0 && (
-                      <Badge className="bg-green-500 text-white text-xs px-2 py-1 animate-pulse font-bold">
+                      <Badge className="bg-green-500 text-white text-sm px-3 py-1.5 animate-bounce font-bold shadow-lg ring-2 ring-green-300">
                         🔒 {privateUnread}
                       </Badge>
                     )}
@@ -556,9 +556,9 @@ export default function ParentChat() {
                   );
                   if (conv) setActivePrivateChat(conv);
                 }}
-                className="w-full bg-green-500 hover:bg-green-600 text-white gap-2 py-6 text-base"
+                className="w-full bg-green-500 hover:bg-green-600 text-white gap-2 py-6 text-base font-bold animate-pulse shadow-lg"
               >
-                <MessageCircle className="w-5 h-5" />
+                <MessageCircle className="w-5 h-5 animate-bounce" />
                 ✉️ {getPrivateUnreadCount(selectedCategory)} respuesta(s) del entrenador
               </Button>
             </div>
@@ -622,7 +622,7 @@ export default function ParentChat() {
                           </Badge>
                         )}
                         {privateUnread > 0 && (
-                          <Badge className="bg-green-500 text-white text-[10px] px-2 py-0.5 animate-pulse">
+                          <Badge className="bg-green-500 text-white text-xs px-2.5 py-1 animate-bounce font-bold shadow-lg ring-2 ring-green-300">
                             🔒 {privateUnread}
                           </Badge>
                         )}
@@ -744,7 +744,7 @@ export default function ParentChat() {
                   </div>
 
                   {getPrivateUnreadCount(selectedCategory) > 0 && (
-                    <div className="bg-blue-50 border-t px-4 py-3 flex-shrink-0">
+                    <div className="bg-green-50 border-t px-4 py-3 flex-shrink-0">
                       <Button
                         variant="ghost"
                         onClick={() => {
@@ -755,9 +755,9 @@ export default function ParentChat() {
                           );
                           if (conv) setActivePrivateChat(conv);
                         }}
-                        className="w-full text-green-700 hover:bg-green-100 gap-2"
+                        className="w-full text-green-700 hover:bg-green-100 gap-2 font-bold animate-pulse"
                       >
-                        <MessageCircle className="w-4 h-4" />
+                        <MessageCircle className="w-4 h-4 animate-bounce" />
                         ✉️ Tienes {getPrivateUnreadCount(selectedCategory)} respuesta(s) del entrenador
                       </Button>
                     </div>
