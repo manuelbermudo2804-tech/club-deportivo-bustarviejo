@@ -259,6 +259,15 @@ export default function Home() {
 
   const pendingInvitationRequests = invitationRequests.filter(r => r.estado === "pendiente").length;
 
+  const { data: coordinatorConversations = [] } = useQuery({
+    queryKey: ['coordinatorConversations'],
+    queryFn: () => base44.entities.CoordinatorConversation.list(),
+    staleTime: 30000,
+    gcTime: 300000,
+    refetchOnWindowFocus: false,
+    enabled: !!user,
+  });
+
   const myPlayers = useMemo(() => {
     if (!user || !isCoach || !hasPlayers || !players) return [];
     return players.filter(p => p.email_padre === user.email || p.email_tutor_2 === user.email);
@@ -447,11 +456,23 @@ export default function Home() {
       });
     }
 
+    // Calcular mensajes coordinador no leídos
+    let unreadCoordinatorMessages = 0;
+    if (user && coordinatorConversations) {
+      coordinatorConversations.forEach(conv => {
+        if (isCoordinator || isAdmin) {
+          unreadCoordinatorMessages += (conv.no_leidos_coordinador || 0);
+        } else if (conv.padre_email === user.email) {
+          unreadCoordinatorMessages += (conv.no_leidos_padre || 0);
+        }
+      });
+    }
+
     return { 
       activePlayers, pendingPayments, reviewPayments, paidPayments, unreadMessages, unreadPrivateMessages,
       pendingCallups, pendingSignatures, adminPendingSignatures, pendingPlayerAccess,
       pendingClothingOrders, pendingLotteryOrders, pendingMemberRequests, 
-      recentSurveyResponses, pendingEventConfirmations, pendingCallupResponses
+      recentSurveyResponses, pendingEventConfirmations, pendingCallupResponses, unreadCoordinatorMessages
     };
   }, [players, payments, messages, callups, user, hasPlayers, isAdmin, allUsers, clothingOrders, lotteryOrders, clubMembers, surveyResponses, events, privateConversations]);
 
@@ -1017,10 +1038,12 @@ export default function Home() {
             recentSurveyResponses={stats.recentSurveyResponses}
             pendingEventConfirmations={stats.pendingEventConfirmations}
             pendingPlayerAccess={stats.pendingPlayerAccess}
+            unreadCoordinatorMessages={stats.unreadCoordinatorMessages}
             isAdmin={isAdmin}
             isCoach={isCoach || isCoordinator}
             isParent={hasPlayers}
             isTreasurer={isTreasurer}
+            isCoordinator={isCoordinator}
           />
         )}
 
