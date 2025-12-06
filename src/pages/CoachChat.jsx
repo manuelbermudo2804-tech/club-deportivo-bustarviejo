@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Send, AlertCircle, Users, MessageCircle, User, Archive, ArrowLeft, BarChart3, Pin, Search, Image, ArchiveRestore } from "lucide-react";
+import { Send, AlertCircle, Users, MessageCircle, User, Archive, ArrowLeft, BarChart3, Pin, Search, Image, ArchiveRestore, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
@@ -145,6 +145,22 @@ export default function CoachChat() {
       setSelectedConversation(null);
       setFullscreenChat(false);
       toast.success(archive ? "📁 Archivada" : "✅ Restaurada");
+    },
+  });
+
+  const deleteConversationMutation = useMutation({
+    mutationFn: async (convId) => {
+      // Borrar todos los mensajes de la conversación primero
+      const msgs = await base44.entities.PrivateMessage.filter({ conversacion_id: convId });
+      await Promise.all(msgs.map(m => base44.entities.PrivateMessage.delete(m.id)));
+      // Borrar la conversación
+      await base44.entities.PrivateConversation.delete(convId);
+    },
+    onSuccess: () => {
+      refetchConversations();
+      setSelectedConversation(null);
+      setFullscreenChat(false);
+      toast.success("🗑️ Conversación eliminada");
     },
   });
 
@@ -519,16 +535,60 @@ export default function CoachChat() {
             <div className="p-3 bg-cyan-50 border-b flex items-center justify-between flex-shrink-0">
               <p className="text-sm text-cyan-800 font-medium">
                 {showArchived ? "📦 Archivadas" : "💬 Conversaciones Activas"}
+                {categoryPrivateConversations.length > 0 && (
+                  <span className="ml-2 text-cyan-600">({categoryPrivateConversations.length})</span>
+                )}
               </p>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setShowArchived(!showArchived)}
-                className="text-cyan-700 hover:bg-cyan-100"
-              >
-                <Archive className="w-4 h-4 mr-2" />
-                {showArchived ? "Ver Activas" : "Ver Archivadas"}
-              </Button>
+              <div className="flex gap-2">
+                {categoryPrivateConversations.length > 0 && showArchived && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={async () => {
+                      if (window.confirm(`⚠️ ¿ELIMINAR PERMANENTEMENTE todas las conversaciones archivadas (${categoryPrivateConversations.length})? Esta acción no se puede deshacer.`)) {
+                        for (const conv of categoryPrivateConversations) {
+                          const msgs = await base44.entities.PrivateMessage.filter({ conversacion_id: conv.id });
+                          await Promise.all(msgs.map(m => base44.entities.PrivateMessage.delete(m.id)));
+                          await base44.entities.PrivateConversation.delete(conv.id);
+                        }
+                        refetchConversations();
+                        toast.success(`🗑️ ${categoryPrivateConversations.length} conversaciones eliminadas`);
+                      }
+                    }}
+                    className="text-red-700 hover:bg-red-100"
+                  >
+                    <Trash2 className="w-4 h-4 mr-2" />
+                    Eliminar todas
+                  </Button>
+                )}
+                {categoryPrivateConversations.length > 0 && !showArchived && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={async () => {
+                      if (window.confirm(`¿Archivar todas (${categoryPrivateConversations.length})?`)) {
+                        for (const conv of categoryPrivateConversations) {
+                          await base44.entities.PrivateConversation.update(conv.id, { archivada: true });
+                        }
+                        refetchConversations();
+                        toast.success(`✅ ${categoryPrivateConversations.length} conversaciones archivadas`);
+                      }
+                    }}
+                    className="text-orange-700 hover:bg-orange-100"
+                  >
+                    <Archive className="w-4 h-4 mr-2" />
+                    Archivar todas
+                  </Button>
+                )}
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowArchived(!showArchived)}
+                  className="text-cyan-700 hover:bg-cyan-100"
+                >
+                  {showArchived ? "Ver Activas" : "Ver Archivadas"}
+                </Button>
+              </div>
             </div>
 
             <div className="flex-1 overflow-y-auto bg-slate-50">
@@ -568,20 +628,36 @@ export default function CoachChat() {
                           <Badge className="bg-slate-400 text-white text-xs">📦</Badge>
                         )}
                       </button>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          archiveConversationMutation.mutate({ convId: conv.id, archive: !conv.archivada });
-                        }}
-                        className="p-3 text-slate-400 hover:text-cyan-600 hover:bg-cyan-50 transition-colors"
-                        title={conv.archivada ? "Desarchivar" : "Archivar"}
-                      >
-                        {conv.archivada ? (
-                          <ArchiveRestore className="w-5 h-5" />
-                        ) : (
-                          <Archive className="w-5 h-5" />
+                      <div className="flex">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            archiveConversationMutation.mutate({ convId: conv.id, archive: !conv.archivada });
+                          }}
+                          className="p-3 text-slate-400 hover:text-cyan-600 hover:bg-cyan-50 transition-colors"
+                          title={conv.archivada ? "Desarchivar" : "Archivar"}
+                        >
+                          {conv.archivada ? (
+                            <ArchiveRestore className="w-5 h-5" />
+                          ) : (
+                            <Archive className="w-5 h-5" />
+                          )}
+                        </button>
+                        {conv.archivada && (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              if (window.confirm(`¿Eliminar permanentemente el chat con ${conv.participante_familia_nombre}?`)) {
+                                deleteConversationMutation.mutate(conv.id);
+                              }
+                            }}
+                            className="p-3 text-slate-400 hover:text-red-600 hover:bg-red-50 transition-colors"
+                            title="Eliminar conversación"
+                          >
+                            <Trash2 className="w-5 h-5" />
+                          </button>
                         )}
-                      </button>
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -673,17 +749,60 @@ export default function CoachChat() {
                       <div className="p-4 bg-gradient-to-r from-cyan-600 to-cyan-700 text-white flex items-center justify-between">
                         <div>
                           <h3 className="font-bold">Coordinación Deportiva</h3>
-                          <p className="text-xs text-cyan-100">Chats privados con familias</p>
+                          <p className="text-xs text-cyan-100">
+                            {categoryPrivateConversations.length} {showArchived ? 'archivadas' : 'activas'}
+                          </p>
                         </div>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => setShowArchived(!showArchived)}
-                          className="text-white hover:bg-white/20"
-                        >
-                          <Archive className="w-4 h-4 mr-2" />
-                          {showArchived ? "Ver Activas" : "Ver Archivadas"}
-                        </Button>
+                        <div className="flex gap-2">
+                          {categoryPrivateConversations.length > 0 && showArchived && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={async () => {
+                                if (window.confirm(`⚠️ ¿ELIMINAR PERMANENTEMENTE todas las conversaciones archivadas (${categoryPrivateConversations.length})? Esta acción no se puede deshacer.`)) {
+                                  for (const conv of categoryPrivateConversations) {
+                                    const msgs = await base44.entities.PrivateMessage.filter({ conversacion_id: conv.id });
+                                    await Promise.all(msgs.map(m => base44.entities.PrivateMessage.delete(m.id)));
+                                    await base44.entities.PrivateConversation.delete(conv.id);
+                                  }
+                                  refetchConversations();
+                                  toast.success(`🗑️ ${categoryPrivateConversations.length} conversaciones eliminadas`);
+                                }
+                              }}
+                              className="text-white hover:bg-red-500/20"
+                            >
+                              <Trash2 className="w-4 h-4 mr-2" />
+                              Eliminar todas
+                            </Button>
+                          )}
+                          {categoryPrivateConversations.length > 0 && !showArchived && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={async () => {
+                                if (window.confirm(`¿Archivar todas (${categoryPrivateConversations.length})?`)) {
+                                  for (const conv of categoryPrivateConversations) {
+                                    await base44.entities.PrivateConversation.update(conv.id, { archivada: true });
+                                  }
+                                  refetchConversations();
+                                  toast.success(`✅ ${categoryPrivateConversations.length} conversaciones archivadas`);
+                                }
+                              }}
+                              className="text-white hover:bg-white/20"
+                            >
+                              <Archive className="w-4 h-4 mr-2" />
+                              Archivar todas
+                            </Button>
+                          )}
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => setShowArchived(!showArchived)}
+                            className="text-white hover:bg-white/20"
+                          >
+                            {showArchived ? "Ver Activas" : "Ver Archivadas"}
+                          </Button>
+                        </div>
                       </div>
                       <div className="h-[calc(100%-4rem)] overflow-y-auto divide-y">
                         {categoryPrivateConversations.length === 0 ? (
