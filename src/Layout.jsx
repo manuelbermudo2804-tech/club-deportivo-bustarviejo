@@ -1049,6 +1049,11 @@ export default function Layout({ children, currentPageName }) {
   ];
 
   const coordinatorNavigationItems = [
+    // 🏠 INICIO
+    { title: "🏠 Inicio", url: createPageUrl("Home"), icon: Home },
+
+    // 💬 CHAT COORDINADOR
+    { title: "💬 Chat con Familias", url: createPageUrl("CoordinatorChat"), icon: MessageCircle },
       // 🏠 INICIO
       { title: "🏠 Inicio", url: createPageUrl("Home"), icon: Home },
 
@@ -1098,7 +1103,8 @@ export default function Layout({ children, currentPageName }) {
     // 🏠 INICIO
     { title: "🏠 Inicio", url: createPageUrl("ParentDashboard"), icon: Home },
 
-    // 💬 COMUNICACIÓN (uso diario)
+    // 💬 CHAT CON COORDINADOR
+    { title: "💬 Chat Coordinador", url: createPageUrl("ParentCoordinatorChat"), icon: MessageCircle },
 
     // ⚽ ACCIONES URGENTES
     { title: "🏆 Convocatorias", url: createPageUrl("ParentCallups"), icon: Bell, badge: pendingCallupsCount > 0 ? pendingCallupsCount : null, urgentBadge: pendingCallupsCount > 0 },
