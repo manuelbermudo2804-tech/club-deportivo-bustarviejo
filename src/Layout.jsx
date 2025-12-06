@@ -963,6 +963,7 @@ export default function Layout({ children, currentPageName }) {
       { title: "🏠 Inicio", url: createPageUrl("Home"), icon: Home },
 
       // 💬 COMUNICACIÓN (uso diario)
+      { title: "💬 Chat con Familias", url: createPageUrl("CoachParentChat"), icon: MessageCircle },
 
       // ⚽ GESTIÓN DEPORTIVA (trabajo principal)
       { title: "🎓 Convocatorias", url: createPageUrl("CoachCallups"), icon: Bell, badge: pendingCallupResponses > 0 ? pendingCallupResponses : null, urgentBadge: pendingCallupResponses > 0 },
@@ -1052,10 +1053,9 @@ export default function Layout({ children, currentPageName }) {
     // 🏠 INICIO
     { title: "🏠 Inicio", url: createPageUrl("Home"), icon: Home },
 
-    // 💬 CHAT COORDINADOR
-    { title: "💬 Chat con Familias", url: createPageUrl("CoordinatorChat"), icon: MessageCircle },
-
-      // 💬 COMUNICACIÓN (uso diario)
+    // 💬 CHATS
+    { title: "💬 Chat Coordinador", url: createPageUrl("CoordinatorChat"), icon: MessageCircle },
+    ...(user?.es_entrenador ? [{ title: "⚽ Chat Entrenador", url: createPageUrl("CoachParentChat"), icon: MessageCircle }] : []),
 
       // ⚽ GESTIÓN DEPORTIVA (trabajo principal)
       { title: user?.es_entrenador ? "🎓 Convocatorias" : "🎓 Ver Convocatorias", url: createPageUrl("CoachCallups"), icon: Bell, badge: pendingCallupResponses > 0 ? pendingCallupResponses : null, urgentBadge: pendingCallupResponses > 0 },
@@ -1101,8 +1101,9 @@ export default function Layout({ children, currentPageName }) {
     // 🏠 INICIO
     { title: "🏠 Inicio", url: createPageUrl("ParentDashboard"), icon: Home },
 
-    // 💬 CHAT CON COORDINADOR
+    // 💬 CHATS
     { title: "💬 Chat Coordinador", url: createPageUrl("ParentCoordinatorChat"), icon: MessageCircle },
+    { title: "⚽ Chat Entrenador", url: createPageUrl("ParentCoachChat"), icon: MessageCircle },
 
     // ⚽ ACCIONES URGENTES
     { title: "🏆 Convocatorias", url: createPageUrl("ParentCallups"), icon: Bell, badge: pendingCallupsCount > 0 ? pendingCallupsCount : null, urgentBadge: pendingCallupsCount > 0 },
