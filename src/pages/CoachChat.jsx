@@ -22,6 +22,7 @@ import PinnedMessagesDialog from "../components/chat/PinnedMessagesDialog";
 import MediaGalleryDialog from "../components/chat/MediaGalleryDialog";
 import CoachThreadedView from "../components/chat/CoachThreadedView";
 import { usePageTutorial } from "../components/tutorials/useTutorial";
+import useAdaptivePolling from "../components/chat/useAdaptivePolling";
 
 export default function CoachChat() {
   usePageTutorial("coach_chat");
@@ -41,9 +42,22 @@ export default function CoachChat() {
   const [fullscreenChat, setFullscreenChat] = useState(false);
   const [isSending, setIsSending] = useState(false);
   const [optimisticMessages, setOptimisticMessages] = useState([]);
+  const [isTyping, setIsTyping] = useState(false);
   const messagesEndRef = useRef(null);
   const queryClient = useQueryClient();
   const [user, setUser] = useState(null);
+
+  // Polling adaptativo
+  useAdaptivePolling({
+    queryKeys: [
+      ['chatMessages'],
+      ['privateConversations'],
+      ['privateMessages', selectedConversation?.id],
+      ['allPrivateMessagesCategory', selectedCategory]
+    ],
+    isActive: !!selectedCategory,
+    isTyping: isTyping
+  });
 
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth < 768);
