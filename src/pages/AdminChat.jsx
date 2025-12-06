@@ -1348,9 +1348,11 @@ export default function AdminChat() {
               </Button>
             </div>
           </div>
-          </>
+        </div>
+      )}
+      </>
         )}
       </div>
-
-      {/* Sidebar Desktop */}
-      <div className="w-80 border-l bg-slate-50 flex-col overflow-hidden flex">
+    </>
+  );
+}
