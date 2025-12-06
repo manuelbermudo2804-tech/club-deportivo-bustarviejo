@@ -373,6 +373,7 @@ export default function ParentThreadedView({
       {/* Input area - SIEMPRE mostrar */}
       <div className="bg-white border-t flex-shrink-0">
         {replyingToStaff && (
+          <>
           <QuickReplies 
             visible={showQuickReplies} 
             onSelect={(text) => {
@@ -459,8 +460,17 @@ export default function ParentThreadedView({
               )}
             </Button>
           </div>
-        </div>
-      )}
+          </>
+        )}
+
+        {!replyingToStaff && (
+          <div className="p-4 bg-slate-50 flex items-center justify-center border-t">
+            <p className="text-sm text-slate-500 text-center">
+              💬 Pulsa <strong>"Responder"</strong> en un mensaje del entrenador para escribir
+            </p>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
