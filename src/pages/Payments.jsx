@@ -767,6 +767,9 @@ export default function Payments() {
               ) : (() => {
                 // Filtrar jugadores por búsqueda Y filtros avanzados
                 const playersToShow = (players || []).filter(player => {
+                 // CRÍTICO: Solo mostrar jugadores ACTIVOS (no mostrar jugadores de temporadas anteriores pendientes de renovación)
+                 if (!player.activo) return false;
+
                  // Filtro de búsqueda
                  const matchesSearch = searchTerm === "" || player.nombre?.toLowerCase().includes(searchTerm.toLowerCase());
 
