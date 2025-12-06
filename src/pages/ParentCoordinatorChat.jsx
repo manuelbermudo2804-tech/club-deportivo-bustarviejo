@@ -189,8 +189,8 @@ export default function ParentCoordinatorChat() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto p-4 space-y-4">
-      <Card className="border-cyan-200 shadow-lg">
+    <div className="lg:max-w-4xl lg:mx-auto lg:p-4 lg:space-y-4 fixed inset-0 lg:relative flex flex-col">
+      <Card className="border-cyan-200 shadow-lg flex-1 flex flex-col lg:rounded-lg rounded-none">
         <CardHeader className="bg-gradient-to-r from-cyan-600 to-cyan-700 text-white">
           <div className="flex items-center justify-between">
             <CardTitle className="flex items-center gap-2">
@@ -208,7 +208,7 @@ export default function ParentCoordinatorChat() {
             </Button>
           </div>
         </CardHeader>
-        <CardContent className="p-0">
+        <CardContent className="p-0 flex-1 flex flex-col">
           <Alert className="m-4 bg-cyan-50 border-cyan-200">
             <MessageCircle className="w-4 h-4 text-cyan-600" />
             <AlertDescription className="text-cyan-800 text-xs">
@@ -257,7 +257,7 @@ export default function ParentCoordinatorChat() {
           )}
 
           {/* Mensajes */}
-          <div className="h-[500px] overflow-y-auto p-4 space-y-3 bg-slate-50">
+          <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-slate-50">
             {messages.length === 0 ? (
               <div className="text-center py-12">
                 <MessageCircle className="w-12 h-12 text-slate-300 mx-auto mb-2" />
@@ -351,18 +351,18 @@ export default function ParentCoordinatorChat() {
                 ))}
               </div>
             )}
-            <div className="flex gap-2">
-              <div className="flex gap-1">
+            <div className="flex gap-2 items-end">
+              <div className="flex flex-col gap-1">
                 <label className="cursor-pointer">
                   <input type="file" multiple accept="*/*" className="hidden" onChange={handleFileUpload} disabled={uploading} />
-                  <Button type="button" variant="outline" size="icon" disabled={uploading}>
-                    <Paperclip className="w-4 h-4" />
+                  <Button type="button" variant="outline" size="icon" disabled={uploading} className="h-10 w-10">
+                    <Paperclip className="w-5 h-5" />
                   </Button>
                 </label>
                 <label className="cursor-pointer">
                   <input type="file" accept="image/*" capture="environment" className="hidden" onChange={handleCameraCapture} disabled={uploading} />
-                  <Button type="button" variant="outline" size="icon" disabled={uploading}>
-                    <Camera className="w-4 h-4" />
+                  <Button type="button" variant="outline" size="icon" disabled={uploading} className="h-10 w-10">
+                    <Camera className="w-5 h-5" />
                   </Button>
                 </label>
               </div>
@@ -376,11 +376,11 @@ export default function ParentCoordinatorChat() {
                     handleSend();
                   }
                 }}
-                className="flex-1"
-                rows={2}
+                className="flex-1 min-h-[44px] resize-none"
+                rows={1}
               />
-              <Button onClick={handleSend} disabled={!messageText.trim() && attachments.length === 0} className="bg-cyan-600 hover:bg-cyan-700">
-                <Send className="w-4 h-4" />
+              <Button onClick={handleSend} disabled={!messageText.trim() && attachments.length === 0} className="bg-cyan-600 hover:bg-cyan-700 h-10 w-10 p-0">
+                <Send className="w-5 h-5" />
               </Button>
             </div>
           </div>
