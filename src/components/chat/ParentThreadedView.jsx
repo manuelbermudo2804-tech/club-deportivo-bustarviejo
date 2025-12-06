@@ -36,12 +36,33 @@ export default function ParentThreadedView({
   const inputRef = useRef(null);
   const typingTimeoutRef = useRef(null);
   const { checkNewMessages } = useChatSound();
+  const markedAsReadRef = useRef(new Set());
 
-  // Detectar mensajes nuevos y reproducir sonido
+  // Detectar mensajes nuevos y reproducir sonido + MARCAR COMO LEÍDO
   useEffect(() => {
     const allMessages = [...groupMessages, ...myPrivateMessages];
     checkNewMessages(allMessages, user?.email);
-  }, [groupMessages.length, myPrivateMessages.length, user?.email]);
+    
+    // Marcar mensajes privados del staff como leídos
+    const unreadPrivate = myPrivateMessages.filter(msg => 
+      !msg.leido && 
+      msg.remitente_tipo === "staff" && 
+      !markedAsReadRef.current.has(msg.id)
+    );
+    
+    if (unreadPrivate.length > 0 && myPrivateConversation) {
+      unreadPrivate.forEach(msg => markedAsReadRef.current.add(msg.id));
+      
+      Promise.all(unreadPrivate.map(msg => 
+        base44.entities.PrivateMessage.update(msg.id, { leido: true }).catch(() => {})
+      )).then(() => {
+        // Actualizar contador de conversación
+        base44.entities.PrivateConversation.update(myPrivateConversation.id, { 
+          no_leidos_familia: 0 
+        }).catch(() => {});
+      });
+    }
+  }, [groupMessages.length, myPrivateMessages.length, user?.email, myPrivateMessages, myPrivateConversation]);
 
   // Detectar cuando el usuario está escribiendo
   const handleInputChange = (e) => {

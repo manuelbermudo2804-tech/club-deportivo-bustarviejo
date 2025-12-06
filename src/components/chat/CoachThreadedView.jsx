@@ -37,12 +37,41 @@ export default function CoachThreadedView({
   const inputRef = useRef(null);
   const typingTimeoutRef = useRef(null);
   const { checkNewMessages } = useChatSound();
+  const markedAsReadRef = useRef(new Set());
 
-  // Detectar mensajes nuevos y reproducir sonido
+  // Detectar mensajes nuevos y reproducir sonido + MARCAR COMO LEÍDO
   useEffect(() => {
     const allMessages = [...groupMessages, ...allPrivateMessages];
     checkNewMessages(allMessages, user?.email);
-  }, [groupMessages.length, allPrivateMessages.length, user?.email]);
+    
+    // Marcar mensajes privados de familias como leídos
+    const unreadPrivate = allPrivateMessages.filter(msg => 
+      !msg.leido && 
+      msg.remitente_tipo === "familia" && 
+      !markedAsReadRef.current.has(msg.id)
+    );
+    
+    if (unreadPrivate.length > 0) {
+      unreadPrivate.forEach(msg => markedAsReadRef.current.add(msg.id));
+      
+      Promise.all(unreadPrivate.map(msg => 
+        base44.entities.PrivateMessage.update(msg.id, { leido: true }).catch(() => {})
+      )).then(() => {
+        // Actualizar contadores por conversación
+        const convsToUpdate = new Map();
+        unreadPrivate.forEach(msg => {
+          if (!convsToUpdate.has(msg.conversacion_id)) {
+            convsToUpdate.set(msg.conversacion_id, []);
+          }
+          convsToUpdate.get(msg.conversacion_id).push(msg.id);
+        });
+        
+        convsToUpdate.forEach((msgIds, convId) => {
+          base44.entities.PrivateConversation.update(convId, { no_leidos_staff: 0 }).catch(() => {});
+        });
+      });
+    }
+  }, [groupMessages.length, allPrivateMessages.length, user?.email, allPrivateMessages]);
 
   const handleInputChange = (e) => {
     const value = e.target.value;

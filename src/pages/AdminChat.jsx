@@ -262,6 +262,7 @@ export default function AdminChat() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['chatMessages'] });
+      queryClient.invalidateQueries({ queryKey: ['messages'] });
     },
   });
 

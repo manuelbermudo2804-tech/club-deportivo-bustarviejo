@@ -822,21 +822,44 @@ export default function Layout({ children, currentPageName }) {
     };
 
     checkUnreadMessages();
+    // Refrescar cada 15 segundos
+    const interval = setInterval(checkUnreadMessages, 15000);
+    return () => clearInterval(interval);
   }, [user, isAdmin, isCoach]);
 
-  // Contador de mensajes privados no leídos (solo familias)
+  // Contador de mensajes privados no leídos (familias Y staff)
   useEffect(() => {
-    if (!user || isAdmin || isCoach || isCoordinator || isTreasurer || isPlayer) return;
+    if (!user) return;
     
     const checkPrivateMessages = async () => {
       try {
-        const conversations = await base44.entities.PrivateConversation.filter({ 
-          participante_familia_email: user.email 
-        });
+        let totalUnread = 0;
         
-        const totalUnread = conversations
-          .filter(c => !c.archivada)
-          .reduce((sum, c) => sum + (c.no_leidos_familia || 0), 0);
+        if (isAdmin || isCoach || isCoordinator || isTreasurer) {
+          // Staff: ver mensajes no leídos de familias
+          const conversations = await base44.entities.PrivateConversation.list();
+          conversations.forEach(conv => {
+            if (!conv.archivada) {
+              // Admin/Coordinador ven todas
+              if (isAdmin || isCoordinator) {
+                totalUnread += (conv.no_leidos_staff || 0);
+              } 
+              // Entrenador solo sus conversaciones
+              else if (conv.participante_staff_email === user.email) {
+                totalUnread += (conv.no_leidos_staff || 0);
+              }
+            }
+          });
+        } else if (!isPlayer) {
+          // Familias: ver mensajes no leídos del staff
+          const conversations = await base44.entities.PrivateConversation.filter({ 
+            participante_familia_email: user.email 
+          });
+          
+          totalUnread = conversations
+            .filter(c => !c.archivada)
+            .reduce((sum, c) => sum + (c.no_leidos_familia || 0), 0);
+        }
         
         setPrivateMessagesCount(totalUnread);
       } catch (error) {
@@ -845,7 +868,7 @@ export default function Layout({ children, currentPageName }) {
     };
 
     checkPrivateMessages();
-    const interval = setInterval(checkPrivateMessages, 10000); // Refrescar cada 10s
+    const interval = setInterval(checkPrivateMessages, 15000); // Refrescar cada 15s
     return () => clearInterval(interval);
   }, [user, isAdmin, isCoach, isCoordinator, isTreasurer, isPlayer]);
 
