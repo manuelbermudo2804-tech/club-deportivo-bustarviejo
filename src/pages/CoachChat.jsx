@@ -378,44 +378,8 @@ export default function CoachChat() {
   const handlePrivateMessageSent = () => {
     refetchPrivateMessages();
     refetchConversations();
+    refetchAllPrivateMessages();
   };
-
-  const sendPrivateMessageMutation = useMutation({
-    mutationFn: async ({ conversationId, message, attachments }) => {
-      const newMessage = await base44.entities.PrivateMessage.create({
-        conversacion_id: conversationId,
-        remitente_email: user.email,
-        remitente_nombre: user.full_name,
-        remitente_tipo: "staff",
-        mensaje: message,
-        leido: false,
-        archivos_adjuntos: attachments
-      });
-
-      const conv = privateConversations.find(c => c.id === conversationId);
-      await base44.entities.PrivateConversation.update(conversationId, {
-        ultimo_mensaje: message.substring(0, 100),
-        ultimo_mensaje_fecha: new Date().toISOString(),
-        ultimo_mensaje_de: "staff",
-        no_leidos_familia: (conv?.no_leidos_familia || 0) + 1
-      });
-
-      return newMessage;
-    },
-    onSuccess: () => {
-      refetchPrivateMessages();
-      refetchConversations();
-      queryClient.invalidateQueries({ queryKey: ['allPrivateMessagesCategory'] });
-      setIsSending(false);
-      setOptimisticMessages([]);
-      toast.success("✅ Respuesta enviada");
-    },
-    onError: () => {
-      setIsSending(false);
-      setOptimisticMessages([]);
-      toast.error("Error al enviar");
-    }
-  });
 
   const sendPrivateMessageMutation = useMutation({
     mutationFn: async ({ conversationId, message, attachments }) => {
