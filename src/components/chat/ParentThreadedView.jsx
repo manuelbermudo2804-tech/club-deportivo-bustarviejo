@@ -14,6 +14,7 @@ import useChatSound from "./useChatSound";
 import LinkPreview from "./LinkPreview";
 import TypingIndicator from "./TypingIndicator";
 import QuickReplies from "./QuickReplies";
+import { useQueryClient } from "@tanstack/react-query";
 
 export default function ParentThreadedView({
   category,
@@ -37,6 +38,7 @@ export default function ParentThreadedView({
   const typingTimeoutRef = useRef(null);
   const { checkNewMessages } = useChatSound();
   const markedAsReadRef = useRef(new Set());
+  const queryClient = useQueryClient();
 
   // Detectar mensajes nuevos y reproducir sonido + MARCAR COMO LEÍDO
   useEffect(() => {
@@ -51,14 +53,23 @@ export default function ParentThreadedView({
     );
     
     if (unreadPrivate.length > 0 && myPrivateConversation) {
+      console.log(`📖 ParentThreadedView: Marcando ${unreadPrivate.length} mensajes del staff como leídos`);
       unreadPrivate.forEach(msg => markedAsReadRef.current.add(msg.id));
       
       Promise.all(unreadPrivate.map(msg => 
         base44.entities.PrivateMessage.update(msg.id, { leido: true }).catch(() => {})
       )).then(() => {
+        console.log('✅ Mensajes del staff marcados, actualizando contador...');
+        
         // Actualizar contador de conversación
         base44.entities.PrivateConversation.update(myPrivateConversation.id, { 
           no_leidos_familia: 0 
+        }).then(() => {
+          // Refrescar TODAS las queries
+          queryClient.invalidateQueries({ queryKey: ['privateConversations'] });
+          queryClient.invalidateQueries({ queryKey: ['myPrivateConversations'] });
+          queryClient.invalidateQueries({ queryKey: ['privateConversationsParent'] });
+          queryClient.invalidateQueries({ queryKey: ['privateConversationsHome'] });
         }).catch(() => {});
       });
     }

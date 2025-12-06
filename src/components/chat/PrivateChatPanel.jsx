@@ -77,20 +77,30 @@ export default function PrivateChatPanel({
     );
 
     if (unreadMessages.length > 0) {
+      console.log(`📖 PrivateChatPanel: Marcando ${unreadMessages.length} mensajes como leídos`);
+      
       // Marcar como leído
       Promise.all(unreadMessages.map(msg => 
         base44.entities.PrivateMessage.update(msg.id, { leido: true }).catch(() => {})
       )).then(() => {
-        // Refrescar queries después de marcar como leído
-        queryClient.invalidateQueries({ queryKey: ['privateMessages', conversation.id] });
+        console.log('✅ Mensajes marcados, refrescando queries...');
+        
+        // Refrescar TODAS las queries
+        queryClient.invalidateQueries({ queryKey: ['privateMessages'] });
         queryClient.invalidateQueries({ queryKey: ['privateConversations'] });
         queryClient.invalidateQueries({ queryKey: ['myPrivateConversations'] });
+        queryClient.invalidateQueries({ queryKey: ['privateConversationsParent'] });
+        queryClient.invalidateQueries({ queryKey: ['privateConversationsHome'] });
+        queryClient.invalidateQueries({ queryKey: ['allPrivateMessagesCategory'] });
       });
 
       const updateData = isStaff 
         ? { no_leidos_staff: 0 }
         : { no_leidos_familia: 0 };
+      
       base44.entities.PrivateConversation.update(conversation.id, updateData).then(() => {
+        console.log('✅ Contador actualizado en conversación');
+        
         // Refrescar queries de conversaciones
         queryClient.invalidateQueries({ queryKey: ['privateConversations'] });
         queryClient.invalidateQueries({ queryKey: ['myPrivateConversations'] });
@@ -119,9 +129,15 @@ export default function PrivateChatPanel({
       // Limpiar mensaje optimista y refrescar
       setOptimisticMessages([]);
       setIsSending(false);
-      await queryClient.invalidateQueries({ queryKey: ['privateMessages', conversation.id] });
+      
+      // Refrescar TODAS las queries de mensajes privados
+      await queryClient.invalidateQueries({ queryKey: ['privateMessages'] });
       await queryClient.invalidateQueries({ queryKey: ['privateConversations'] });
       await queryClient.invalidateQueries({ queryKey: ['myPrivateConversations'] });
+      await queryClient.invalidateQueries({ queryKey: ['privateConversationsParent'] });
+      await queryClient.invalidateQueries({ queryKey: ['privateConversationsHome'] });
+      await queryClient.invalidateQueries({ queryKey: ['allPrivateMessagesCategory'] });
+      
       onMessageSent?.();
     },
     onError: () => {

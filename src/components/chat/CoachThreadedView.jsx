@@ -13,6 +13,7 @@ import DateSeparator from "./DateSeparator";
 import ReadConfirmation from "./ReadConfirmation";
 import LinkPreview from "./LinkPreview";
 import useChatSound from "./useChatSound";
+import { useQueryClient } from "@tanstack/react-query";
 
 export default function CoachThreadedView({
   category,
@@ -38,6 +39,7 @@ export default function CoachThreadedView({
   const typingTimeoutRef = useRef(null);
   const { checkNewMessages } = useChatSound();
   const markedAsReadRef = useRef(new Set());
+  const queryClient = useQueryClient();
 
   // Detectar mensajes nuevos y reproducir sonido + MARCAR COMO LEÍDO
   useEffect(() => {
@@ -52,11 +54,14 @@ export default function CoachThreadedView({
     );
     
     if (unreadPrivate.length > 0) {
+      console.log(`📖 CoachThreadedView: Marcando ${unreadPrivate.length} mensajes privados como leídos`);
       unreadPrivate.forEach(msg => markedAsReadRef.current.add(msg.id));
       
       Promise.all(unreadPrivate.map(msg => 
         base44.entities.PrivateMessage.update(msg.id, { leido: true }).catch(() => {})
       )).then(() => {
+        console.log('✅ Mensajes privados marcados, actualizando contadores...');
+        
         // Actualizar contadores por conversación
         const convsToUpdate = new Map();
         unreadPrivate.forEach(msg => {
@@ -69,9 +74,16 @@ export default function CoachThreadedView({
         convsToUpdate.forEach((msgIds, convId) => {
           base44.entities.PrivateConversation.update(convId, { no_leidos_staff: 0 }).catch(() => {});
         });
+        
+        // Refrescar TODAS las queries
+        queryClient.invalidateQueries({ queryKey: ['privateConversations'] });
+        queryClient.invalidateQueries({ queryKey: ['myPrivateConversations'] });
+        queryClient.invalidateQueries({ queryKey: ['privateConversationsParent'] });
+        queryClient.invalidateQueries({ queryKey: ['privateConversationsHome'] });
+        queryClient.invalidateQueries({ queryKey: ['allPrivateMessagesCategory'] });
       });
     }
-  }, [groupMessages.length, allPrivateMessages.length, user?.email, allPrivateMessages]);
+  }, [groupMessages.length, allPrivateMessages.length, user?.email, allPrivateMessages, queryClient]);
 
   const handleInputChange = (e) => {
     const value = e.target.value;
