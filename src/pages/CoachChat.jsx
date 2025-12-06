@@ -645,6 +645,7 @@ export default function CoachChat() {
                         messages={privateMessages}
                         user={user}
                         isStaff={true}
+                        hideHeader={false}
                         onClose={() => setSelectedConversation(null)}
                         onMessageSent={handlePrivateMessageSent}
                         onArchive={(convId, archive) => {
