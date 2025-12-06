@@ -199,7 +199,7 @@ export default function ParentCoachChat() {
             
             {categories.map(cat => (
               <TabsContent key={cat} value={cat} className="flex-1 flex flex-col min-h-0">
-                <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-slate-50 min-h-0">
+                <div className="flex-1 overflow-y-auto p-2 sm:p-4 space-y-2 sm:space-y-3 bg-slate-50 min-h-0">
                   {messages.length === 0 ? (
                     <div className="text-center py-12">
                       <MessageCircle className="w-12 h-12 text-slate-300 mx-auto mb-2" />

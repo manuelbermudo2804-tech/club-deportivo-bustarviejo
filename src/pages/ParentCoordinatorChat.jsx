@@ -245,18 +245,19 @@ export default function ParentCoordinatorChat() {
               variant="ghost" 
               size="sm"
               onClick={() => setShowGallery(!showGallery)}
-              className="text-white hover:bg-white/20"
+              className="text-white hover:bg-white/20 text-xs sm:text-sm"
             >
-              <Folder className="w-4 h-4 mr-2" />
-              Archivos ({allSharedFiles.length})
+              <Folder className="w-3 h-3 sm:w-4 sm:h-4 sm:mr-2" />
+              <span className="hidden sm:inline">Archivos ({allSharedFiles.length})</span>
+              <span className="sm:hidden">{allSharedFiles.length}</span>
             </Button>
           </div>
         </CardHeader>
         <CardContent className="p-0 flex-1 flex flex-col min-h-0">
-          <Alert className="m-4 bg-cyan-50 border-cyan-200 flex-shrink-0">
+          <Alert className="m-2 sm:m-4 bg-cyan-50 border-cyan-200 flex-shrink-0">
             <MessageCircle className="w-4 h-4 text-cyan-600" />
             <AlertDescription className="text-cyan-800 text-xs">
-              <strong>💬 Chat con el Coordinador:</strong> Partidos, horarios, equipos, quejas o sugerencias
+              <strong>💬 Chat Coordinador:</strong> Partidos, horarios, quejas
             </AlertDescription>
           </Alert>
 
@@ -301,7 +302,7 @@ export default function ParentCoordinatorChat() {
           )}
 
           {/* Mensajes */}
-          <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-slate-50 min-h-0">
+          <div className="flex-1 overflow-y-auto p-2 sm:p-4 space-y-2 sm:space-y-3 bg-slate-50 min-h-0">
                     {!messages || messages.length === 0 ? (
                       <div className="text-center py-12">
                         <MessageCircle className="w-12 h-12 text-slate-300 mx-auto mb-2" />
@@ -367,9 +368,9 @@ export default function ParentCoordinatorChat() {
           </div>
 
           {/* Input */}
-          <div className="p-4 bg-white border-t flex-shrink-0">
+          <div className="p-2 sm:p-4 bg-white border-t flex-shrink-0">
             {attachments.length > 0 && (
-              <div className="mb-2 flex flex-wrap gap-2">
+              <div className="mb-2 flex flex-wrap gap-1 sm:gap-2">
                 {attachments.map((file, idx) => (
                   <div key={idx} className="relative">
                     {file.tipo?.startsWith('image/') ? (
@@ -395,7 +396,7 @@ export default function ParentCoordinatorChat() {
                 ))}
               </div>
             )}
-            <div className="flex gap-2 items-end">
+            <div className="flex gap-1 sm:gap-2 items-end">
               <div className="flex flex-col gap-1">
                 <input 
                   ref={fileInputRef}
@@ -411,10 +412,10 @@ export default function ParentCoordinatorChat() {
                   variant="outline" 
                   size="icon" 
                   disabled={uploading} 
-                  className="h-10 w-10"
+                  className="h-9 w-9 sm:h-10 sm:w-10"
                   onClick={() => fileInputRef.current?.click()}
                 >
-                  <Paperclip className="w-5 h-5" />
+                  <Paperclip className="w-4 h-4 sm:w-5 sm:h-5" />
                 </Button>
                 
                 <input 
@@ -431,14 +432,14 @@ export default function ParentCoordinatorChat() {
                   variant="outline" 
                   size="icon" 
                   disabled={uploading} 
-                  className="h-10 w-10"
+                  className="h-9 w-9 sm:h-10 sm:w-10"
                   onClick={() => cameraInputRef.current?.click()}
                 >
-                  <Camera className="w-5 h-5" />
+                  <Camera className="w-4 h-4 sm:w-5 sm:h-5" />
                 </Button>
               </div>
               <Textarea
-                placeholder="Escribe tu mensaje..."
+                placeholder="Escribe..."
                 value={messageText}
                 onChange={(e) => {
                   setMessageText(e.target.value);
@@ -450,11 +451,11 @@ export default function ParentCoordinatorChat() {
                     handleSend();
                   }
                 }}
-                className="flex-1 min-h-[44px] resize-none"
+                className="flex-1 min-h-[36px] sm:min-h-[44px] resize-none text-sm"
                 rows={1}
               />
-              <Button onClick={handleSend} disabled={!messageText.trim() && attachments.length === 0} className="bg-cyan-600 hover:bg-cyan-700 h-10 w-10 p-0">
-                <Send className="w-5 h-5" />
+              <Button onClick={handleSend} disabled={!messageText.trim() && attachments.length === 0} className="bg-cyan-600 hover:bg-cyan-700 h-9 w-9 sm:h-10 sm:w-10 p-0">
+                <Send className="w-4 h-4 sm:w-5 sm:h-5" />
               </Button>
             </div>
           </div>
