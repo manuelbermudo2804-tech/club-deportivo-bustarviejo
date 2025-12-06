@@ -20,6 +20,7 @@ import ReadConfirmation from "../components/chat/ReadConfirmation";
 import ChatSearchDialog from "../components/chat/ChatSearchDialog";
 import PinnedMessagesDialog from "../components/chat/PinnedMessagesDialog";
 import MediaGalleryDialog from "../components/chat/MediaGalleryDialog";
+import ThreadedChatView from "../components/chat/ThreadedChatView";
 import { usePageTutorial } from "../components/tutorials/useTutorial";
 
 export default function CoachChat() {
@@ -27,7 +28,6 @@ export default function CoachChat() {
   
   const [messageContent, setMessageContent] = useState("");
   const [selectedCategory, setSelectedCategory] = useState(null);
-  const [activeTab, setActiveTab] = useState("chat");
   const [chatSubMode, setChatSubMode] = useState("anuncios");
   const [attachments, setAttachments] = useState([]);
   const [priority, setPriority] = useState("Normal");
@@ -83,7 +83,7 @@ export default function CoachChat() {
     refetchOnWindowFocus: true,
   });
 
-  const { data: privateMessages = [], refetch: refetchPrivateMessages } = useQuery({
+  const { data: privateMessagesForConv = [], refetch: refetchPrivateMessages } = useQuery({
     queryKey: ['privateMessages', selectedConversation?.id],
     queryFn: () => selectedConversation 
       ? base44.entities.PrivateMessage.filter({ conversacion_id: selectedConversation.id }, '-created_date')
@@ -91,6 +91,28 @@ export default function CoachChat() {
     enabled: !!selectedConversation?.id,
     staleTime: 5000,
     gcTime: 30000,
+    refetchInterval: 10000,
+  });
+
+  // Obtener TODOS los mensajes privados de la categoría para vista unificada
+  const { data: allPrivateMessagesCategory = [] } = useQuery({
+    queryKey: ['allPrivateMessagesCategory', selectedCategory],
+    queryFn: async () => {
+      if (!selectedCategory || selectedCategory === "Coordinación Deportiva" || selectedCategory === "Chat Interno Staff") {
+        return [];
+      }
+      
+      const convIds = categoryPrivateConversations.map(c => c.id);
+      if (convIds.length === 0) return [];
+
+      const allMessages = await Promise.all(
+        convIds.map(id => base44.entities.PrivateMessage.filter({ conversacion_id: id }, '-created_date'))
+      );
+
+      return allMessages.flat();
+    },
+    enabled: !!selectedCategory && selectedCategory !== "Coordinación Deportiva" && selectedCategory !== "Chat Interno Staff",
+    staleTime: 5000,
     refetchInterval: 10000,
   });
 
@@ -358,6 +380,42 @@ export default function CoachChat() {
     refetchConversations();
   };
 
+  const sendPrivateMessageMutation = useMutation({
+    mutationFn: async ({ conversationId, message, attachments }) => {
+      const newMessage = await base44.entities.PrivateMessage.create({
+        conversacion_id: conversationId,
+        remitente_email: user.email,
+        remitente_nombre: user.full_name,
+        remitente_tipo: "staff",
+        mensaje: message,
+        leido: false,
+        archivos_adjuntos: attachments
+      });
+
+      const conv = privateConversations.find(c => c.id === conversationId);
+      await base44.entities.PrivateConversation.update(conversationId, {
+        ultimo_mensaje: message.substring(0, 100),
+        ultimo_mensaje_fecha: new Date().toISOString(),
+        ultimo_mensaje_de: "staff",
+        no_leidos_familia: (conv?.no_leidos_familia || 0) + 1
+      });
+
+      return newMessage;
+    },
+    onSuccess: () => {
+      refetchPrivateMessages();
+      refetchConversations();
+      setIsSending(false);
+      setOptimisticMessages([]);
+      toast.success("✅ Respuesta enviada");
+    },
+    onError: () => {
+      setIsSending(false);
+      setOptimisticMessages([]);
+      toast.error("Error al enviar");
+    }
+  });
+
   const sportEmojis = {
     "Chat Interno Staff": "👥",
     "Coordinación Deportiva": "🎓",
@@ -459,10 +517,13 @@ export default function CoachChat() {
           </div>
         )}
 
-        {/* MÓVIL: Chat de equipo normal CON TABS */}
-        {isMobile && selectedCategory && !fullscreenChat && selectedCategory !== "Coordinación Deportiva" && selectedCategory !== "Chat Interno Staff" && (
+        {/* MÓVIL: Chat a pantalla completa */}
+        {isMobile && selectedCategory && !fullscreenChat && selectedCategory !== "Coordinación Deportiva" && (
           <div className="flex-1 flex flex-col overflow-hidden">
-            <div className="bg-gradient-to-r from-blue-600 to-blue-700 p-4 text-white flex items-center gap-3 shadow-md flex-shrink-0">
+            <div className={`p-4 text-white flex items-center gap-3 shadow-md flex-shrink-0 ${
+              isStaffChat ? 'bg-gradient-to-r from-purple-600 to-purple-700' 
+              : 'bg-gradient-to-r from-blue-600 to-blue-700'
+            }`}>
               <button
                 onClick={() => setSelectedCategory(null)}
                 className="p-2 hover:bg-white/20 rounded-lg transition-colors -ml-1"
@@ -475,149 +536,63 @@ export default function CoachChat() {
               <div className="flex-1 min-w-0">
                 <h2 className="font-bold text-lg truncate">{selectedCategory}</h2>
                 <p className="text-xs opacity-90 truncate">
-                  {activeTab === "chat" ? "Anuncios grupo" : "Respuestas privadas"}
+                  {isStaffChat ? "Chat interno" : "Anuncios grupo"}
                 </p>
               </div>
             </div>
 
-            {/* Tabs para Chat Grupal / Respuestas Privadas */}
-            <div className="bg-white border-b flex flex-shrink-0">
-              <button
-                onClick={() => setActiveTab("chat")}
-                className={`flex-1 py-3 text-sm font-medium transition-colors ${
-                  activeTab === "chat"
-                    ? "text-blue-600 border-b-2 border-blue-600 bg-blue-50"
-                    : "text-slate-600 hover:bg-slate-50"
-                }`}
-              >
-                💬 Anuncios Grupales
-              </button>
-              <button
-                onClick={() => setActiveTab("private")}
-                className={`flex-1 py-3 text-sm font-medium transition-colors relative ${
-                  activeTab === "private"
-                    ? "text-green-600 border-b-2 border-green-600 bg-green-50"
-                    : "text-slate-600 hover:bg-slate-50"
-                }`}
-              >
-                🔒 Respuestas Privadas
-                {categoryPrivateConversations.filter(c => !c.archivada && (c.no_leidos_staff || 0) > 0).length > 0 && (
-                  <Badge className="absolute top-1 right-2 bg-red-500 text-white text-xs px-1.5 py-0.5 animate-pulse">
-                    {categoryPrivateConversations.filter(c => !c.archivada).reduce((sum, c) => sum + (c.no_leidos_staff || 0), 0)}
-                  </Badge>
-                )}
-              </button>
+            <div className="flex-1 overflow-y-auto p-3 space-y-2" style={{ backgroundColor: '#e5ddd5' }}>
+              {currentGroupMessages.length === 0 ? (
+                <div className="flex items-center justify-center h-full">
+                  <div className="text-center text-slate-500 bg-white/80 rounded-xl p-6">
+                    <AlertCircle className="w-12 h-12 mx-auto mb-2 opacity-50" />
+                    <p className="text-sm">No hay mensajes</p>
+                  </div>
+                </div>
+              ) : (
+                currentGroupMessages.map((msg) => (
+                  <div key={msg.id} className="flex justify-end mb-2">
+                    <div className="max-w-[85%] rounded-2xl shadow-md bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-br-sm">
+                      <div className="px-3 py-2">
+                        <p className="text-sm leading-relaxed">{msg.mensaje}</p>
+                        <span className="text-[10px] opacity-70">
+                          {format(new Date(msg.created_date), "HH:mm")}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                ))
+              )}
+              <div ref={messagesEndRef} />
             </div>
 
-            {/* Panel anuncios grupales */}
-            {activeTab === "chat" && (
-              <>
-                <div className="flex-1 overflow-y-auto p-3 space-y-2" style={{ backgroundColor: '#e5ddd5' }}>
-                  {currentGroupMessages.length === 0 ? (
-                    <div className="flex items-center justify-center h-full">
-                      <div className="text-center text-slate-500 bg-white/80 rounded-xl p-6">
-                        <AlertCircle className="w-12 h-12 mx-auto mb-2 opacity-50" />
-                        <p className="text-sm">No hay mensajes</p>
-                      </div>
-                    </div>
+            <div className="bg-white border-t p-3 flex-shrink-0 safe-area-bottom">
+              <div className="flex gap-2 items-end">
+                <Input
+                  value={messageContent}
+                  onChange={(e) => setMessageContent(e.target.value)}
+                  placeholder="Escribe..."
+                  className="flex-1 rounded-full text-base"
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                      e.preventDefault();
+                      handleSendGroupMessage();
+                    }
+                  }}
+                />
+                <Button
+                  onClick={handleSendGroupMessage}
+                  disabled={!messageContent.trim() || isSending}
+                  className="rounded-full w-12 h-12 p-0 flex-shrink-0 bg-blue-600 hover:bg-blue-700"
+                >
+                  {isSending ? (
+                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
                   ) : (
-                    currentGroupMessages.map((msg) => (
-                      <div key={msg.id} className="flex justify-end mb-2">
-                        <div className="max-w-[85%] rounded-2xl shadow-md bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-br-sm">
-                          <div className="px-3 py-2">
-                            <p className="text-sm leading-relaxed">{msg.mensaje}</p>
-                            {msg.archivos_adjuntos?.length > 0 && (
-                              <div className="mt-2">
-                                <MessageAttachments attachments={msg.archivos_adjuntos} />
-                              </div>
-                            )}
-                            <span className="text-[10px] opacity-70">
-                              {format(new Date(msg.created_date), "HH:mm")}
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                    ))
+                    <Send className="w-5 h-5" />
                   )}
-                  <div ref={messagesEndRef} />
-                </div>
-
-                <div className="bg-white border-t p-3 flex-shrink-0 safe-area-bottom">
-                  <div className="flex gap-2 items-end">
-                    <FileAttachmentButton
-                      onFileUploaded={(att) => setAttachments(prev => [...prev, att])}
-                      disabled={isSending}
-                    />
-                    <Input
-                      value={messageContent}
-                      onChange={(e) => setMessageContent(e.target.value)}
-                      placeholder="Anuncio al grupo..."
-                      className="flex-1 rounded-full text-base"
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter' && !e.shiftKey) {
-                          e.preventDefault();
-                          handleSendGroupMessage();
-                        }
-                      }}
-                    />
-                    <Button
-                      onClick={handleSendGroupMessage}
-                      disabled={(!messageContent.trim() && attachments.length === 0) || isSending}
-                      className="rounded-full w-12 h-12 p-0 flex-shrink-0 bg-blue-600 hover:bg-blue-700"
-                    >
-                      {isSending ? (
-                        <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                      ) : (
-                        <Send className="w-5 h-5" />
-                      )}
-                    </Button>
-                  </div>
-                </div>
-              </>
-            )}
-
-            {/* Panel respuestas privadas */}
-            {activeTab === "private" && (
-              <div className="flex-1 overflow-y-auto bg-slate-50">
-                {categoryPrivateConversations.length === 0 ? (
-                  <div className="flex items-center justify-center h-full p-6">
-                    <div className="text-center text-slate-500 bg-white rounded-xl p-6">
-                      <MessageCircle className="w-12 h-12 mx-auto mb-2 opacity-50" />
-                      <p className="text-sm">No hay respuestas privadas</p>
-                      <p className="text-xs text-slate-400 mt-1">Aparecerán aquí cuando las familias respondan en privado</p>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="divide-y">
-                    {categoryPrivateConversations.map(conv => (
-                      <button
-                        key={conv.id}
-                        onClick={() => {
-                          setSelectedConversation(conv);
-                          setFullscreenChat(true);
-                        }}
-                        className="w-full p-4 flex items-center gap-3 bg-white hover:bg-slate-50 transition-colors text-left"
-                      >
-                        <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0">
-                          <User className="w-6 h-6 text-green-700" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="font-semibold text-slate-900 truncate">
-                            {conv.participante_familia_nombre}
-                          </p>
-                          <p className="text-sm text-slate-500 truncate">
-                            {conv.ultimo_mensaje || "Sin mensajes"}
-                          </p>
-                        </div>
-                        {(conv.no_leidos_staff || 0) > 0 && (
-                          <Badge className="bg-green-500 text-white animate-pulse">{conv.no_leidos_staff}</Badge>
-                        )}
-                      </button>
-                    ))}
-                  </div>
-                )}
+                </Button>
               </div>
-            )}
+            </div>
           </div>
         )}
 
@@ -841,7 +816,7 @@ export default function CoachChat() {
                     <div className="bg-white rounded-xl shadow-md border overflow-hidden" style={{ height: '70vh' }}>
                       <PrivateChatPanel
                         conversation={selectedConversation}
-                        messages={privateMessages}
+                        messages={privateMessagesForConv}
                         user={user}
                         isStaff={true}
                         hideHeader={false}
@@ -952,170 +927,9 @@ export default function CoachChat() {
                       </div>
                     </div>
                   )
-                ) : selectedCategory === "Chat Interno Staff" ? (
-                  <div className="bg-white rounded-xl shadow-md border overflow-hidden" style={{ height: '70vh' }}>
-                    <div className="p-4 bg-gradient-to-r from-purple-600 to-purple-700 text-white">
-                      <h3 className="font-bold">👥 Chat Interno Staff</h3>
-                      <p className="text-xs text-purple-100">Comunicación entre entrenadores y coordinación</p>
-                    </div>
-                    <div className="p-6 text-center text-slate-500">
-                      <Users className="w-12 h-12 mx-auto mb-2 opacity-50" />
-                      <p className="text-sm">Chat grupal de staff</p>
-                    </div>
-                  </div>
                 ) : (
-                  // Equipo normal - TABS para Anuncios Grupales y Respuestas Privadas
-                  <div className="bg-white rounded-xl shadow-md border overflow-hidden" style={{ height: '70vh' }}>
-                    <div className="bg-gradient-to-r from-blue-600 to-blue-700 p-4 text-white flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
-                        <span className="text-xl">{sportEmojis[selectedCategory]}</span>
-                      </div>
-                      <div className="flex-1">
-                        <h2 className="font-bold">{selectedCategory}</h2>
-                        <p className="text-xs text-blue-100">
-                          {activeTab === "chat" ? "Anuncios del grupo" : "Respuestas privadas"}
-                        </p>
-                      </div>
-                    </div>
-
-                    {/* Tabs */}
-                    <div className="bg-white border-b flex">
-                      <button
-                        onClick={() => setActiveTab("chat")}
-                        className={`flex-1 py-3 text-sm font-medium transition-colors ${
-                          activeTab === "chat"
-                            ? "text-blue-600 border-b-2 border-blue-600 bg-blue-50"
-                            : "text-slate-600 hover:bg-slate-50"
-                        }`}
-                      >
-                        💬 Anuncios Grupales
-                      </button>
-                      <button
-                        onClick={() => setActiveTab("private")}
-                        className={`flex-1 py-3 text-sm font-medium transition-colors relative ${
-                          activeTab === "private"
-                            ? "text-green-600 border-b-2 border-green-600 bg-green-50"
-                            : "text-slate-600 hover:bg-slate-50"
-                        }`}
-                      >
-                        🔒 Respuestas Privadas
-                        {categoryPrivateConversations.filter(c => !c.archivada && (c.no_leidos_staff || 0) > 0).length > 0 && (
-                          <Badge className="absolute top-1 right-4 bg-red-500 text-white text-xs px-2 py-0.5 animate-pulse">
-                            {categoryPrivateConversations.filter(c => !c.archivada).reduce((sum, c) => sum + (c.no_leidos_staff || 0), 0)}
-                          </Badge>
-                        )}
-                      </button>
-                    </div>
-
-                    {/* Contenido tab anuncios */}
-                    {activeTab === "chat" && (
-                      <>
-                        <div className="overflow-y-auto p-4 space-y-3" style={{ height: 'calc(70vh - 200px)', backgroundColor: '#e5ddd5' }}>
-                          {currentGroupMessages.length === 0 ? (
-                            <div className="flex items-center justify-center h-full">
-                              <div className="text-center text-slate-500 bg-white/80 rounded-xl p-6">
-                                <AlertCircle className="w-12 h-12 mx-auto mb-2 opacity-50" />
-                                <p className="text-sm">No hay mensajes del grupo</p>
-                              </div>
-                            </div>
-                          ) : (
-                            currentGroupMessages.map((msg) => (
-                              <div key={msg.id} className="flex justify-end mb-2">
-                                <div className="max-w-[85%] rounded-2xl shadow-md bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-br-sm">
-                                  <div className="px-3 py-2">
-                                    <p className="text-sm leading-relaxed">{msg.mensaje}</p>
-                                    {msg.archivos_adjuntos?.length > 0 && (
-                                      <div className="mt-2">
-                                        <MessageAttachments attachments={msg.archivos_adjuntos} />
-                                      </div>
-                                    )}
-                                    <span className="text-[10px] opacity-70">
-                                      {format(new Date(msg.created_date), "HH:mm")}
-                                    </span>
-                                  </div>
-                                </div>
-                              </div>
-                            ))
-                          )}
-                          <div ref={messagesEndRef} />
-                        </div>
-
-                        <div className="bg-white border-t p-3">
-                          <div className="flex gap-2 items-end">
-                            <FileAttachmentButton
-                              onFileUploaded={(att) => setAttachments(prev => [...prev, att])}
-                              disabled={isSending}
-                            />
-                            <Input
-                              value={messageContent}
-                              onChange={(e) => setMessageContent(e.target.value)}
-                              placeholder="Anuncio al grupo..."
-                              className="flex-1 rounded-full text-base"
-                              onKeyDown={(e) => {
-                                if (e.key === 'Enter' && !e.shiftKey) {
-                                  e.preventDefault();
-                                  handleSendGroupMessage();
-                                }
-                              }}
-                            />
-                            <Button
-                              onClick={handleSendGroupMessage}
-                              disabled={(!messageContent.trim() && attachments.length === 0) || isSending}
-                              className="rounded-full w-12 h-12 p-0 flex-shrink-0 bg-blue-600 hover:bg-blue-700"
-                            >
-                              {isSending ? (
-                                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                              ) : (
-                                <Send className="w-5 h-5" />
-                              )}
-                            </Button>
-                          </div>
-                        </div>
-                      </>
-                    )}
-
-                    {/* Contenido tab respuestas privadas */}
-                    {activeTab === "private" && (
-                      <div className="overflow-y-auto bg-slate-50" style={{ height: 'calc(70vh - 120px)' }}>
-                        {categoryPrivateConversations.length === 0 ? (
-                          <div className="flex items-center justify-center h-full p-6">
-                            <div className="text-center text-slate-500 bg-white rounded-xl p-6">
-                              <MessageCircle className="w-12 h-12 mx-auto mb-2 opacity-50" />
-                              <p className="text-sm">No hay respuestas privadas</p>
-                              <p className="text-xs text-slate-400 mt-1">Aparecerán cuando las familias respondan en privado</p>
-                            </div>
-                          </div>
-                        ) : (
-                          <div className="divide-y">
-                            {categoryPrivateConversations.map(conv => (
-                              <button
-                                key={conv.id}
-                                onClick={() => {
-                                  setSelectedConversation(conv);
-                                  setFullscreenChat(true);
-                                }}
-                                className="w-full p-4 flex items-center gap-3 bg-white hover:bg-slate-50 transition-colors text-left"
-                              >
-                                <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0">
-                                  <User className="w-6 h-6 text-green-700" />
-                                </div>
-                                <div className="flex-1 min-w-0">
-                                  <p className="font-semibold text-slate-900 truncate">
-                                    {conv.participante_familia_nombre}
-                                  </p>
-                                  <p className="text-sm text-slate-500 truncate">
-                                    {conv.ultimo_mensaje || "Sin mensajes"}
-                                  </p>
-                                </div>
-                                {(conv.no_leidos_staff || 0) > 0 && (
-                                  <Badge className="bg-green-500 text-white animate-pulse">{conv.no_leidos_staff}</Badge>
-                                )}
-                              </button>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                    )}
+                  <div className="bg-white rounded-xl shadow-md border p-4 text-center">
+                    <p className="text-slate-600">Chat de {selectedCategory}</p>
                   </div>
                 )}
               </div>
@@ -1128,7 +942,7 @@ export default function CoachChat() {
           <div className="fixed inset-0 z-50 bg-white">
             <PrivateChatPanel
               conversation={selectedConversation}
-              messages={privateMessages}
+              messages={privateMessagesForConv}
               user={user}
               isStaff={true}
               onClose={() => {
