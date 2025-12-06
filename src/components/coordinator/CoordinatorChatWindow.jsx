@@ -73,8 +73,11 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
   }, [messages.length]);
 
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
+    // Scroll inmediato y confiable al final
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: "smooth", block: "end" });
+    }
+  }, [messages, otherPersonTyping]);
 
   // Marcar como leído cuando abre la conversación
   useEffect(() => {

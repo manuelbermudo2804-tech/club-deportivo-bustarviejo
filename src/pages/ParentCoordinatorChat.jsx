@@ -22,6 +22,7 @@ export default function ParentCoordinatorChat() {
   const messagesEndRef = useRef(null);
   const fileInputRef = useRef(null);
   const cameraInputRef = useRef(null);
+  const typingTimeoutRef = useRef(null);
   const queryClient = useQueryClient();
 
   useEffect(() => {
@@ -69,9 +70,23 @@ export default function ParentCoordinatorChat() {
     refetchInterval: 3000,
   });
 
+  // Polling para estado "escribiendo"
+  const { data: conversationState } = useQuery({
+    queryKey: ['coordinatorConversationState', conversation?.id],
+    queryFn: () => base44.entities.CoordinatorConversation.filter({ id: conversation.id }),
+    refetchInterval: 2000,
+    select: (data) => data[0],
+    enabled: !!conversation,
+  });
+
+  const coordinatorTyping = conversationState?.coordinador_escribiendo;
+
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
+    // Scroll inmediato y confiable
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: "smooth", block: "end" });
+    }
+  }, [messages, coordinatorTyping]);
 
   // Marcar como leído cuando abre el chat
   useEffect(() => {
@@ -140,6 +155,24 @@ export default function ParentCoordinatorChat() {
     } finally {
       setUploading(false);
     }
+  };
+
+  // Indicador "escribiendo..."
+  const handleTyping = async () => {
+    if (!conversation) return;
+    
+    clearTimeout(typingTimeoutRef.current);
+    
+    await base44.entities.CoordinatorConversation.update(conversation.id, {
+      padre_escribiendo: true,
+      ultima_actividad_escribiendo: new Date().toISOString()
+    });
+
+    typingTimeoutRef.current = setTimeout(async () => {
+      await base44.entities.CoordinatorConversation.update(conversation.id, {
+        padre_escribiendo: false
+      });
+    }, 3000);
   };
 
   // Filtrar todos los archivos compartidos
@@ -398,7 +431,10 @@ export default function ParentCoordinatorChat() {
               <Textarea
                 placeholder="Escribe tu mensaje..."
                 value={messageText}
-                onChange={(e) => setMessageText(e.target.value)}
+                onChange={(e) => {
+                  setMessageText(e.target.value);
+                  handleTyping();
+                }}
                 onKeyDown={(e) => {
                   if (e.key === 'Enter' && !e.shiftKey) {
                     e.preventDefault();
