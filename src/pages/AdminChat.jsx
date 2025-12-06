@@ -44,11 +44,6 @@ export default function AdminChat() {
   const [user, setUser] = useState(null);
   const { checkNewMessages } = useChatSound();
 
-  // Detectar mensajes nuevos y reproducir sonido
-  useEffect(() => {
-    checkNewMessages(messages, user?.email);
-  }, [messages.length, user?.email]);
-
   // Polling adaptativo
   useAdaptivePolling({
     queryKeys: [
@@ -106,6 +101,11 @@ export default function AdminChat() {
     enabled: auditAccess,
     refetchInterval: false,
   });
+
+  // Detectar mensajes nuevos y reproducir sonido - DESPUÉS de declarar messages
+  useEffect(() => {
+    checkNewMessages(messages, user?.email);
+  }, [messages?.length, user?.email, checkNewMessages]);
 
   const voteOnPollMutation = useMutation({
     mutationFn: async ({ messageId, optionIndex }) => {

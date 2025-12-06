@@ -49,12 +49,6 @@ export default function CoachChat() {
   const [user, setUser] = useState(null);
   const { checkNewMessages } = useChatSound();
 
-  // Detectar mensajes nuevos y reproducir sonido
-  useEffect(() => {
-    const allMessages = [...messages, ...allPrivateMessagesCategory];
-    checkNewMessages(allMessages, user?.email);
-  }, [messages.length, allPrivateMessagesCategory.length, user?.email]);
-
   // Polling adaptativo
   useAdaptivePolling({
     queryKeys: [
@@ -137,6 +131,12 @@ export default function CoachChat() {
     staleTime: 10000,
     refetchInterval: false, // Controlado por useAdaptivePolling
   });
+
+  // Detectar mensajes nuevos y reproducir sonido - DESPUÉS de declarar messages
+  useEffect(() => {
+    const allMessages = [...messages, ...allPrivateMessagesCategory];
+    checkNewMessages(allMessages, user?.email);
+  }, [messages?.length, allPrivateMessagesCategory?.length, user?.email, checkNewMessages]);
 
   const isAdmin = user?.role === "admin";
   const isCoordinator = user?.es_coordinador === true;
