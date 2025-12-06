@@ -1,199 +1,367 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { base44 } from "@/api/base44Client";
-import { useQuery } from "@tanstack/react-query";
-import { Card, CardContent } from "@/components/ui/card";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { MessageCircle, Search, Archive, ArchiveRestore, Users, X } from "lucide-react";
+import { Send, Paperclip, X, FileText, Download, MessageCircle, Camera, Users } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
-import CoachChatWindow from "../components/coach/CoachChatWindow";
+import { toast } from "sonner";
 
 export default function CoachParentChat() {
   const [user, setUser] = useState(null);
   const [isCoach, setIsCoach] = useState(false);
-  const [selectedConversation, setSelectedConversation] = useState(null);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [categoryFilter, setCategoryFilter] = useState("all");
+  const [messageText, setMessageText] = useState("");
+  const [attachments, setAttachments] = useState([]);
+  const [uploading, setUploading] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState(null);
+  const messagesEndRef = useRef(null);
+  const fileInputRef = useRef(null);
+  const cameraInputRef = useRef(null);
+  const queryClient = useQueryClient();
 
   useEffect(() => {
     const fetchUser = async () => {
-      try {
-        const currentUser = await base44.auth.me();
-        setUser(currentUser);
-        setIsCoach(currentUser.es_entrenador === true || currentUser.role === "admin");
-      } catch (error) {
-        console.error("Error loading user:", error);
+      const currentUser = await base44.auth.me();
+      setUser(currentUser);
+      const coach = currentUser.es_entrenador === true || currentUser.role === "admin";
+      setIsCoach(coach);
+      
+      if (coach) {
+        const categories = currentUser.role === "admin" 
+          ? ["Todas"] 
+          : (currentUser.categorias_entrena || []);
+        
+        if (categories.length > 0 && !selectedCategory) {
+          setSelectedCategory(categories[0]);
+        }
       }
     };
     fetchUser();
   }, []);
 
-  const { data: conversations = [] } = useQuery({
-    queryKey: ['coachParentConversations', user?.email],
+  const { data: messages = [] } = useQuery({
+    queryKey: ['coachGroupMessages', selectedCategory],
     queryFn: async () => {
-      if (!user?.email) return [];
-      const all = await base44.entities.CoachConversation.list('-ultimo_mensaje_fecha');
+      if (!selectedCategory) return [];
       
-      // Filtrar por categorías que entrena
-      if (user.role === "admin") {
-        return all;
+      if (selectedCategory === "Todas") {
+        return await base44.entities.ChatMessage.list('-created_date');
       }
       
-      const myCategories = user.categorias_entrena || [];
-      return all.filter(c => myCategories.includes(c.categoria));
+      const grupo_id = selectedCategory.toLowerCase().replace(/\s+/g, '_');
+      return await base44.entities.ChatMessage.filter({ grupo_id }, 'created_date');
     },
-    enabled: !!user?.email && isCoach,
-    refetchInterval: 5000,
+    refetchInterval: 3000,
+    enabled: !!selectedCategory,
   });
+
+  const { data: allPlayers = [] } = useQuery({
+    queryKey: ['players'],
+    queryFn: () => base44.entities.Player.list(),
+  });
+
+  useEffect(() => {
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [messages]);
+
+  const handleFileUpload = async (e) => {
+    const files = Array.from(e.target.files);
+    setUploading(true);
+
+    try {
+      const uploaded = [];
+      for (const file of files) {
+        const { file_url } = await base44.integrations.Core.UploadFile({ file });
+        uploaded.push({
+          url: file_url,
+          nombre: file.name,
+          tipo: file.type,
+          tamano: file.size
+        });
+      }
+      setAttachments([...attachments, ...uploaded]);
+      toast.success("Archivos adjuntados");
+    } catch (error) {
+      toast.error("Error al subir archivos");
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleCameraCapture = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    
+    setUploading(true);
+    try {
+      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+      setAttachments([...attachments, {
+        url: file_url,
+        nombre: file.name,
+        tipo: file.type,
+        tamano: file.size
+      }]);
+      toast.success("Foto capturada");
+    } catch (error) {
+      toast.error("Error al capturar foto");
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const sendMessageMutation = useMutation({
+    mutationFn: async (data) => {
+      const grupo_id = selectedCategory.toLowerCase().replace(/\s+/g, '_');
+      
+      await base44.entities.ChatMessage.create({
+        grupo_id,
+        deporte: selectedCategory,
+        tipo: "entrenador_a_grupo",
+        remitente_email: user.email,
+        remitente_nombre: user.full_name,
+        mensaje: data.mensaje,
+        archivos_adjuntos: data.adjuntos,
+        prioridad: "Normal",
+        leido: false
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['coachGroupMessages', selectedCategory] });
+      setMessageText("");
+      setAttachments([]);
+      toast.success("Mensaje enviado a toda la categoría");
+    },
+  });
+
+  const handleSend = () => {
+    if (!messageText.trim() && attachments.length === 0) return;
+    sendMessageMutation.mutate({ mensaje: messageText, adjuntos: attachments });
+  };
 
   if (!isCoach) {
     return (
       <div className="p-6 text-center">
-        <p className="text-slate-500">Solo los entrenadores pueden acceder a esta sección</p>
+        <p className="text-slate-500">Solo entrenadores pueden acceder a esta sección</p>
       </div>
     );
   }
 
-  const activeConversations = conversations.filter(c => !c.archivada);
-  const archivedConversations = conversations.filter(c => c.archivada);
+  const categories = user?.role === "admin" 
+    ? ["Todas las categorías", ...new Set(allPlayers.map(p => p.deporte))]
+    : (user?.categorias_entrena || []);
 
-  const filteredActive = activeConversations.filter(conv => {
-    const matchesSearch = conv.padre_nombre.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      conv.jugadores_asociados?.some(j => j.jugador_nombre.toLowerCase().includes(searchQuery.toLowerCase()));
-    
-    const matchesCategory = categoryFilter === "all" || conv.categoria === categoryFilter;
+  const categoryPlayers = selectedCategory === "Todas las categorías" 
+    ? allPlayers 
+    : allPlayers.filter(p => p.deporte === selectedCategory);
 
-    return matchesSearch && matchesCategory;
-  });
-
-  const categories = [...new Set(conversations.map(c => c.categoria))].sort();
-  const totalUnread = activeConversations.reduce((sum, c) => sum + (c.no_leidos_entrenador || 0), 0);
+  const parentEmails = [...new Set(categoryPlayers.flatMap(p => 
+    [p.email_padre, p.email_tutor_2].filter(Boolean)
+  ))];
 
   return (
-    <div className="fixed inset-0 flex lg:static lg:min-h-[calc(100vh-4rem)]">
-      <div className={`${selectedConversation ? 'hidden lg:flex' : 'flex'} w-full lg:w-96 border-r bg-slate-50 flex-col overflow-hidden`}>
-        <div className="p-4 bg-gradient-to-r from-blue-600 to-blue-700 text-white">
-          <h1 className="text-xl font-bold flex items-center gap-2 mb-1">
-            <MessageCircle className="w-6 h-6" />
-            Chat con Familias
-          </h1>
-          <p className="text-xs text-blue-100 mb-3">
-            Comunicación directa con los padres
-          </p>
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-            <Input
-              placeholder="Buscar padre o jugador..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-9 bg-white"
-            />
-          </div>
-        </div>
-
-        <Tabs defaultValue="active" className="flex-1 flex flex-col">
-          <TabsList className="mx-4 mt-3">
-            <TabsTrigger value="active" className="flex-1">
-              Activas ({filteredActive.length})
-              {totalUnread > 0 && (
-                <Badge className="ml-2 bg-red-500">{totalUnread}</Badge>
-              )}
-            </TabsTrigger>
-            <TabsTrigger value="archived" className="flex-1">
-              Archivadas ({archivedConversations.length})
-            </TabsTrigger>
-          </TabsList>
-
-          <div className="px-4 py-2">
-            <select
-              value={categoryFilter}
-              onChange={(e) => setCategoryFilter(e.target.value)}
-              className="w-full text-sm border rounded-lg px-3 py-2"
-            >
-              <option value="all">Todas las categorías</option>
-              {categories.map(cat => (
-                <option key={cat} value={cat}>{cat}</option>
-              ))}
-            </select>
-          </div>
-
-          <TabsContent value="active" className="flex-1 overflow-y-auto px-2">
-            {filteredActive.length === 0 ? (
-              <div className="text-center py-12">
-                <Users className="w-12 h-12 text-slate-300 mx-auto mb-2" />
-                <p className="text-sm text-slate-500">No hay conversaciones</p>
-              </div>
-            ) : (
-              filteredActive.map(conv => (
-                <Card
-                  key={conv.id}
-                  className={`mb-2 cursor-pointer hover:shadow-md transition-all ${
-                    selectedConversation?.id === conv.id ? 'ring-2 ring-blue-500' : ''
-                  }`}
-                  onClick={() => setSelectedConversation(conv)}
-                >
-                  <CardContent className="p-3">
-                    <div className="flex items-start justify-between mb-1">
-                      <div className="flex-1">
-                        <p className="font-bold text-sm text-slate-900">{conv.padre_nombre}</p>
-                        <p className="text-xs text-slate-500">{conv.categoria}</p>
-                        <p className="text-xs text-slate-400">
-                          {conv.jugadores_asociados?.map(j => j.jugador_nombre).join(', ')}
-                        </p>
-                      </div>
-                      {conv.no_leidos_entrenador > 0 && (
-                        <Badge className="bg-red-500 text-white">{conv.no_leidos_entrenador}</Badge>
-                      )}
-                    </div>
-                    <p className="text-xs text-slate-600 truncate">{conv.ultimo_mensaje}</p>
-                    <p className="text-xs text-slate-400 mt-1">
-                      {conv.ultimo_mensaje_fecha && format(new Date(conv.ultimo_mensaje_fecha), "dd MMM, HH:mm", { locale: es })}
-                    </p>
-                  </CardContent>
-                </Card>
-              ))
-            )}
-          </TabsContent>
-
-          <TabsContent value="archived" className="flex-1 overflow-y-auto px-2">
-            {archivedConversations.length === 0 ? (
-              <div className="text-center py-12">
-                <Archive className="w-12 h-12 text-slate-300 mx-auto mb-2" />
-                <p className="text-sm text-slate-500">No hay conversaciones archivadas</p>
-              </div>
-            ) : (
-              archivedConversations.map(conv => (
-                <Card key={conv.id} className="mb-2 opacity-60">
-                  <CardContent className="p-3">
-                    <p className="font-bold text-sm text-slate-900">{conv.padre_nombre}</p>
-                    <p className="text-xs text-slate-500">{conv.categoria}</p>
-                  </CardContent>
-                </Card>
-              ))
-            )}
-          </TabsContent>
-        </Tabs>
-      </div>
-
-      <div className={`${selectedConversation ? 'flex' : 'hidden lg:flex'} flex-1 overflow-hidden`}>
-        {selectedConversation ? (
-          <CoachChatWindow
-            conversation={selectedConversation}
-            user={user}
-            onClose={() => setSelectedConversation(null)}
-          />
-        ) : (
-          <div className="h-full flex items-center justify-center bg-slate-50">
-            <div className="text-center">
-              <MessageCircle className="w-16 h-16 text-slate-300 mx-auto mb-3" />
-              <p className="text-slate-500">Selecciona una conversación para empezar</p>
+    <div className="p-4 lg:max-w-6xl lg:mx-auto">
+      <Card className="border-blue-200 shadow-lg">
+        <CardHeader className="bg-gradient-to-r from-blue-600 to-blue-700 text-white">
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="flex items-center gap-2">
+                <MessageCircle className="w-6 h-6" />
+                Chat Grupal con Familias
+              </CardTitle>
+              <p className="text-sm text-blue-100">Comunicación con los padres de tu categoría</p>
+            </div>
+            <div className="text-right">
+              <p className="text-xs text-blue-100">Familias en este grupo:</p>
+              <Badge className="bg-white text-blue-700 text-lg font-bold">
+                <Users className="w-4 h-4 mr-1" />
+                {parentEmails.length}
+              </Badge>
             </div>
           </div>
-        )}
-      </div>
+        </CardHeader>
+        <CardContent className="p-0">
+          <Tabs value={selectedCategory} onValueChange={setSelectedCategory}>
+            <TabsList className="w-full justify-start overflow-x-auto p-2 bg-slate-50">
+              {categories.map(cat => (
+                <TabsTrigger key={cat} value={cat} className="whitespace-nowrap">
+                  {cat}
+                </TabsTrigger>
+              ))}
+            </TabsList>
+            
+            {categories.map(cat => (
+              <TabsContent key={cat} value={cat} className="h-[calc(100vh-300px)] flex flex-col">
+                <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-slate-50">
+                  {messages.length === 0 ? (
+                    <div className="text-center py-12">
+                      <MessageCircle className="w-12 h-12 text-slate-300 mx-auto mb-2" />
+                      <p className="text-slate-500 text-sm">Aún no hay mensajes en este grupo</p>
+                      <p className="text-slate-400 text-xs mt-2">Envía el primer mensaje a las familias</p>
+                    </div>
+                  ) : (
+                    messages.map((msg) => {
+                      const isMine = msg.remitente_email === user.email;
+                      const isCoach = msg.tipo === "entrenador_a_grupo";
+                      
+                      return (
+                        <div key={msg.id} className={`flex ${isMine ? 'justify-end' : 'justify-start'}`}>
+                          <div className={`max-w-[70%] ${
+                            isMine ? 'bg-blue-600 text-white' : 
+                            isCoach ? 'bg-green-600 text-white' : 
+                            'bg-white text-slate-900 border'
+                          } rounded-2xl p-3 shadow-sm`}>
+                            <div className="flex items-center gap-2 mb-1">
+                              <p className="text-xs font-semibold opacity-70">
+                                {isCoach && !isMine ? '🏃 ' : ''}{msg.remitente_nombre}
+                              </p>
+                              {isCoach && <Badge className="text-xs bg-green-500">Entrenador</Badge>}
+                            </div>
+                            <p className="text-sm whitespace-pre-wrap">{msg.mensaje}</p>
+                            
+                            {msg.archivos_adjuntos?.length > 0 && (
+                              <div className="mt-2 space-y-1">
+                                {msg.archivos_adjuntos.map((file, idx) => (
+                                  file.tipo?.startsWith('image/') ? (
+                                    <img 
+                                      key={idx}
+                                      src={file.url}
+                                      alt={file.nombre}
+                                      className="rounded max-w-full h-auto"
+                                    />
+                                  ) : (
+                                    <a
+                                      key={idx}
+                                      href={file.url}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="flex items-center gap-2 text-xs p-2 rounded bg-black/20"
+                                    >
+                                      <FileText className="w-3 h-3" />
+                                      <span className="flex-1 truncate">{file.nombre}</span>
+                                      <Download className="w-3 h-3" />
+                                    </a>
+                                  )
+                                ))}
+                              </div>
+                            )}
+                            
+                            <p className="text-xs opacity-60 mt-1">
+                              {format(new Date(msg.created_date), "HH:mm", { locale: es })}
+                            </p>
+                          </div>
+                        </div>
+                      );
+                    })
+                  )}
+                  <div ref={messagesEndRef} />
+                </div>
+
+                <div className="p-4 bg-white border-t">
+                  {attachments.length > 0 && (
+                    <div className="mb-2 flex flex-wrap gap-2">
+                      {attachments.map((file, idx) => (
+                        <div key={idx} className="relative">
+                          {file.tipo?.startsWith('image/') ? (
+                            <div className="relative">
+                              <img src={file.url} alt="" className="w-16 h-16 object-cover rounded" />
+                              <button 
+                                onClick={() => setAttachments(attachments.filter((_, i) => i !== idx))}
+                                className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center"
+                              >
+                                <X className="w-3 h-3" />
+                              </button>
+                            </div>
+                          ) : (
+                            <div className="bg-slate-100 rounded px-2 py-1 text-xs flex items-center gap-2">
+                              <FileText className="w-3 h-3" />
+                              <span className="truncate max-w-[100px]">{file.nombre}</span>
+                              <button onClick={() => setAttachments(attachments.filter((_, i) => i !== idx))}>
+                                <X className="w-3 h-3" />
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  
+                  <div className="flex gap-2 items-end">
+                    <div className="flex flex-col gap-1">
+                      <input 
+                        ref={fileInputRef}
+                        type="file" 
+                        multiple 
+                        accept="*/*" 
+                        className="hidden" 
+                        onChange={handleFileUpload} 
+                        disabled={uploading} 
+                      />
+                      <Button 
+                        type="button" 
+                        variant="outline" 
+                        size="icon" 
+                        disabled={uploading} 
+                        className="h-10 w-10"
+                        onClick={() => fileInputRef.current?.click()}
+                      >
+                        <Paperclip className="w-5 h-5" />
+                      </Button>
+                      
+                      <input 
+                        ref={cameraInputRef}
+                        type="file" 
+                        accept="image/*" 
+                        capture="environment" 
+                        className="hidden" 
+                        onChange={handleCameraCapture} 
+                        disabled={uploading} 
+                      />
+                      <Button 
+                        type="button" 
+                        variant="outline" 
+                        size="icon" 
+                        disabled={uploading} 
+                        className="h-10 w-10"
+                        onClick={() => cameraInputRef.current?.click()}
+                      >
+                        <Camera className="w-5 h-5" />
+                      </Button>
+                    </div>
+                    
+                    <Textarea
+                      placeholder={`Mensaje a ${parentEmails.length} familias...`}
+                      value={messageText}
+                      onChange={(e) => setMessageText(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' && !e.shiftKey) {
+                          e.preventDefault();
+                          handleSend();
+                        }
+                      }}
+                      className="flex-1 min-h-[44px] resize-none"
+                      rows={1}
+                    />
+                    
+                    <Button 
+                      onClick={handleSend} 
+                      disabled={!messageText.trim() && attachments.length === 0} 
+                      className="bg-blue-600 hover:bg-blue-700 h-10 w-10 p-0"
+                    >
+                      <Send className="w-5 h-5" />
+                    </Button>
+                  </div>
+                </div>
+              </TabsContent>
+            ))}
+          </Tabs>
+        </CardContent>
+      </Card>
     </div>
   );
 }
