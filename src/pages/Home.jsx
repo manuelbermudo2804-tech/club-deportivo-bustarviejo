@@ -1030,6 +1030,8 @@ export default function Home() {
             unreadGroupMessages={stats.unreadMessages}
             unreadPrivateMessages={stats.unreadPrivateMessages}
             urgentMessages={0}
+            isCoach={isCoach || isCoordinator}
+            isAdmin={isAdmin || isTreasurer}
           />
         )}
 

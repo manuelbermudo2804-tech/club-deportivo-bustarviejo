@@ -658,6 +658,8 @@ export default function ParentDashboard() {
             unreadGroupMessages={unreadMessages}
             unreadPrivateMessages={unreadPrivateMessages}
             urgentMessages={urgentUnreadMessages}
+            isCoach={false}
+            isAdmin={false}
           />
         )}
 
