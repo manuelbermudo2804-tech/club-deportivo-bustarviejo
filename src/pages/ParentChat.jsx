@@ -205,6 +205,38 @@ export default function ParentChat() {
     },
   });
 
+  const sendPrivateMessageMutation = useMutation({
+    mutationFn: async ({ conversationId, message, attachments }) => {
+      const newMessage = await base44.entities.PrivateMessage.create({
+        conversacion_id: conversationId,
+        remitente_email: user.email,
+        remitente_nombre: user.full_name,
+        remitente_tipo: "familia",
+        mensaje: message,
+        leido: false,
+        archivos_adjuntos: attachments
+      });
+
+      const conv = privateConversations.find(c => c.id === conversationId);
+      await base44.entities.PrivateConversation.update(conversationId, {
+        ultimo_mensaje: message.substring(0, 100),
+        ultimo_mensaje_fecha: new Date().toISOString(),
+        ultimo_mensaje_de: "familia",
+        no_leidos_staff: (conv?.no_leidos_staff || 0) + 1
+      });
+
+      return newMessage;
+    },
+    onSuccess: () => {
+      refetchPrivateMessages();
+      refetchConversations();
+      toast.success("✅ Mensaje enviado al entrenador");
+    },
+    onError: () => {
+      toast.error("Error al enviar");
+    }
+  });
+
   useEffect(() => {
     if (loadingConversations || !user) return;
     
@@ -456,7 +488,7 @@ export default function ParentChat() {
         </div>
       )}
 
-      {/* MÓVIL: Chat de equipos normal */}
+      {/* MÓVIL: Chat de equipos normal - VISTA UNIFICADA */}
       {isMobile && selectedCategory && selectedCategory !== "Coordinación Deportiva" && (
         <div className="flex-1 flex flex-col overflow-hidden">
           <div className="bg-gradient-to-r from-blue-600 to-blue-700 p-4 text-white flex items-center gap-3 shadow-md flex-shrink-0">
@@ -471,98 +503,29 @@ export default function ParentChat() {
             </div>
             <div className="flex-1 min-w-0">
               <h2 className="font-bold text-lg truncate">{selectedCategory}</h2>
-              <p className="text-xs text-blue-100 truncate">📢 Mensajes del entrenador</p>
+              <p className="text-xs text-blue-100 truncate">💬 Chat con entrenador</p>
             </div>
-          </div>
-
-          <div className="flex-1 overflow-y-auto p-3 space-y-3" style={{ backgroundColor: '#e5ddd5' }}>
-            {currentAnnouncements.length === 0 ? (
-              <div className="flex items-center justify-center h-full">
-                <div className="text-center text-slate-500 bg-white/80 rounded-xl p-6">
-                  <AlertCircle className="w-12 h-12 mx-auto mb-2 opacity-50" />
-                  <p className="text-sm">No hay mensajes</p>
-                </div>
-              </div>
-            ) : (
-              groupMessagesByDate(currentAnnouncements).map((item, idx) => 
-                item.type === 'date' ? (
-                  <DateSeparator key={`date-${idx}`} date={item.date} />
-                ) : (
-                  <div key={item.data.id} className="flex justify-start">
-                    <div className="max-w-[85%] bg-white rounded-2xl shadow-md overflow-hidden rounded-bl-sm">
-                      <div className="px-3 py-2">
-                        <div className="flex items-center gap-2 mb-2">
-                          <span className="text-xs font-bold text-orange-700">
-                            🏃 {item.data.remitente_nombre || "Entrenador"}
-                          </span>
-                          {item.data.prioridad !== "Normal" && (
-                            <Badge className={item.data.prioridad === "Urgente" ? "bg-red-500" : "bg-yellow-500"}>
-                              {item.data.prioridad}
-                            </Badge>
-                          )}
-                          <span className="text-[10px] ml-auto text-slate-400">
-                            {format(new Date(item.data.created_date), "HH:mm")}
-                          </span>
-                        </div>
-                        <p className="text-sm leading-relaxed break-words text-slate-800">{item.data.mensaje}</p>
-
-                        {item.data.poll && (
-                          <PollMessage 
-                            poll={item.data.poll} 
-                            onVote={(msgId, optIdx) => voteOnPollMutation.mutate({ messageId: msgId, optionIndex: optIdx })}
-                            userEmail={user?.email}
-                            messageId={item.data.id}
-                          />
-                        )}
-
-                        {item.data.archivos_adjuntos?.length > 0 && (
-                          <div className="mt-2">
-                            <MessageAttachments attachments={item.data.archivos_adjuntos} />
-                          </div>
-                        )}
-                      </div>
-
-                      {isCoachSender(item.data) && !isAutomaticMessage(item.data) && (
-                        <div className="bg-slate-50 px-3 py-2 border-t">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleReplyPrivate(item.data.remitente_email)}
-                            disabled={createOrOpenPrivateChat.isPending}
-                            className="text-green-700 hover:bg-green-50 w-full gap-2"
-                          >
-                            <Lock className="w-3 h-3" />
-                            💬 Responder en privado
-                          </Button>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                )
-              )
+            {getPrivateUnreadCount(selectedCategory) > 0 && (
+              <Badge className="bg-red-500 text-white animate-pulse">
+                {getPrivateUnreadCount(selectedCategory)}
+              </Badge>
             )}
-            <div ref={messagesEndRef} />
           </div>
 
-          {getPrivateUnreadCount(selectedCategory) > 0 && (
-            <div className="bg-white border-t px-3 py-3 flex-shrink-0 safe-area-bottom">
-              <Button
-                size="sm"
-                onClick={() => {
-                  const conv = privateConversations.find(c => 
-                    c.categoria === selectedCategory && 
-                    !c.archivada && 
-                    (c.no_leidos_familia || 0) > 0
-                  );
-                  if (conv) setActivePrivateChat(conv);
-                }}
-                className="w-full bg-green-500 hover:bg-green-600 text-white gap-2 py-6 text-base font-bold animate-pulse shadow-lg"
-              >
-                <MessageCircle className="w-5 h-5 animate-bounce" />
-                ✉️ {getPrivateUnreadCount(selectedCategory)} respuesta(s) del entrenador
-              </Button>
-            </div>
-          )}
+          <ParentThreadedView
+            category={selectedCategory}
+            groupMessages={currentAnnouncements}
+            myPrivateConversation={privateConversations.find(c => c.categoria === selectedCategory && !c.archivada)}
+            myPrivateMessages={privateMessages}
+            user={user}
+            onReplyPrivate={handleReplyPrivate}
+            onSendPrivateMessage={({ conversationId, message, attachments }) => {
+              sendPrivateMessageMutation.mutate({ conversationId, message, attachments });
+            }}
+            onVotePoll={(msgId, optIdx) => voteOnPollMutation.mutate({ messageId: msgId, optionIndex: optIdx })}
+            isSending={sendPrivateMessageMutation.isPending}
+            sportEmoji={sportEmojis[selectedCategory]}
+          />
         </div>
       )}
 
@@ -668,100 +631,29 @@ export default function ParentChat() {
                     </div>
                     <div className="flex-1">
                       <h2 className="font-bold">{selectedCategory}</h2>
-                      <p className="text-xs text-blue-100">📢 Mensajes del entrenador</p>
+                      <p className="text-xs text-blue-100">💬 Chat con entrenador</p>
                     </div>
-                  </div>
-
-                  <div className="flex-1 overflow-y-auto p-4 space-y-3" style={{ backgroundColor: '#e5ddd5' }}>
-                    {currentAnnouncements.length === 0 ? (
-                      <div className="flex items-center justify-center h-full">
-                        <div className="text-center text-slate-500 bg-white/80 rounded-xl p-6">
-                          <AlertCircle className="w-12 h-12 mx-auto mb-2 opacity-50" />
-                          <p className="text-sm">No hay mensajes del entrenador</p>
-                        </div>
-                      </div>
-                    ) : (
-                      groupMessagesByDate(currentAnnouncements).map((item, idx) => 
-                        item.type === 'date' ? (
-                          <DateSeparator key={`date-${idx}`} date={item.date} />
-                        ) : (
-                          <div key={item.data.id} className="flex justify-start">
-                            <div className="max-w-[90%] rounded-xl shadow-sm overflow-hidden bg-white">
-                              <div className="px-4 py-3">
-                                <div className="flex items-center gap-2 mb-2">
-                                  <span className="text-xs font-bold text-orange-700">
-                                    🏃 {item.data.remitente_nombre || "Entrenador"}
-                                  </span>
-                                  {item.data.prioridad !== "Normal" && (
-                                    <Badge className={item.data.prioridad === "Urgente" ? "bg-red-500" : "bg-yellow-500"}>
-                                      {item.data.prioridad}
-                                    </Badge>
-                                  )}
-                                  <span className="text-[10px] ml-auto text-slate-400">
-                                    {format(new Date(item.data.created_date), "HH:mm", { locale: es })}
-                                  </span>
-                                </div>
-                                <p className="text-sm leading-relaxed whitespace-pre-wrap text-slate-800">{item.data.mensaje}</p>
-
-                                {item.data.poll && (
-                                  <div className="mt-3">
-                                    <PollMessage 
-                                      poll={item.data.poll} 
-                                      onVote={(msgId, optIdx) => voteOnPollMutation.mutate({ messageId: msgId, optionIndex: optIdx })}
-                                      userEmail={user?.email}
-                                      messageId={item.data.id}
-                                    />
-                                  </div>
-                                )}
-
-                                {item.data.archivos_adjuntos?.length > 0 && (
-                                  <div className="mt-3">
-                                    <MessageAttachments attachments={item.data.archivos_adjuntos} />
-                                  </div>
-                                )}
-                              </div>
-
-                              {isCoachSender(item.data) && !isAutomaticMessage(item.data) && selectedCategory !== "Coordinación Deportiva" && (
-                                <div className="bg-slate-50 px-4 py-2 border-t">
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={() => handleReplyPrivate(item.data.remitente_email)}
-                                    disabled={createOrOpenPrivateChat.isPending}
-                                    className="text-green-700 hover:text-green-800 hover:bg-green-50 w-full justify-center gap-2"
-                                  >
-                                    <Lock className="w-3 h-3" />
-                                    💬 Responder en privado
-                                  </Button>
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                        )
-                      )
+                    {getPrivateUnreadCount(selectedCategory) > 0 && (
+                      <Badge className="bg-red-500 text-white animate-pulse">
+                        {getPrivateUnreadCount(selectedCategory)} nuevas
+                      </Badge>
                     )}
-                    <div ref={messagesEndRef} />
                   </div>
 
-                  {getPrivateUnreadCount(selectedCategory) > 0 && (
-                    <div className="bg-green-50 border-t px-4 py-3 flex-shrink-0">
-                      <Button
-                        variant="ghost"
-                        onClick={() => {
-                          const conv = privateConversations.find(c => 
-                            c.categoria === selectedCategory && 
-                            !c.archivada && 
-                            (c.no_leidos_familia || 0) > 0
-                          );
-                          if (conv) setActivePrivateChat(conv);
-                        }}
-                        className="w-full text-green-700 hover:bg-green-100 gap-2 font-bold animate-pulse"
-                      >
-                        <MessageCircle className="w-4 h-4 animate-bounce" />
-                        ✉️ Tienes {getPrivateUnreadCount(selectedCategory)} respuesta(s) del entrenador
-                      </Button>
-                    </div>
-                  )}
+                  <ParentThreadedView
+                    category={selectedCategory}
+                    groupMessages={currentAnnouncements}
+                    myPrivateConversation={privateConversations.find(c => c.categoria === selectedCategory && !c.archivada)}
+                    myPrivateMessages={privateMessages}
+                    user={user}
+                    onReplyPrivate={handleReplyPrivate}
+                    onSendPrivateMessage={({ conversationId, message, attachments }) => {
+                      sendPrivateMessageMutation.mutate({ conversationId, message, attachments });
+                    }}
+                    onVotePoll={(msgId, optIdx) => voteOnPollMutation.mutate({ messageId: msgId, optionIndex: optIdx })}
+                    isSending={sendPrivateMessageMutation.isPending}
+                    sportEmoji={sportEmojis[selectedCategory]}
+                  />
                 </div>
               )}
             </div>

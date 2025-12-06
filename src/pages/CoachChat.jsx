@@ -20,7 +20,7 @@ import ReadConfirmation from "../components/chat/ReadConfirmation";
 import ChatSearchDialog from "../components/chat/ChatSearchDialog";
 import PinnedMessagesDialog from "../components/chat/PinnedMessagesDialog";
 import MediaGalleryDialog from "../components/chat/MediaGalleryDialog";
-import ThreadedChatView from "../components/chat/ThreadedChatView";
+import CoachThreadedView from "../components/chat/CoachThreadedView";
 import { usePageTutorial } from "../components/tutorials/useTutorial";
 
 export default function CoachChat() {
@@ -95,7 +95,7 @@ export default function CoachChat() {
   });
 
   // Obtener TODOS los mensajes privados de la categoría para vista unificada
-  const { data: allPrivateMessagesCategory = [] } = useQuery({
+  const { data: allPrivateMessagesCategory = [], refetch: refetchAllPrivateMessages } = useQuery({
     queryKey: ['allPrivateMessagesCategory', selectedCategory],
     queryFn: async () => {
       if (!selectedCategory || selectedCategory === "Coordinación Deportiva" || selectedCategory === "Chat Interno Staff") {
@@ -379,6 +379,43 @@ export default function CoachChat() {
     refetchPrivateMessages();
     refetchConversations();
   };
+
+  const sendPrivateMessageMutation = useMutation({
+    mutationFn: async ({ conversationId, message, attachments }) => {
+      const newMessage = await base44.entities.PrivateMessage.create({
+        conversacion_id: conversationId,
+        remitente_email: user.email,
+        remitente_nombre: user.full_name,
+        remitente_tipo: "staff",
+        mensaje: message,
+        leido: false,
+        archivos_adjuntos: attachments
+      });
+
+      const conv = privateConversations.find(c => c.id === conversationId);
+      await base44.entities.PrivateConversation.update(conversationId, {
+        ultimo_mensaje: message.substring(0, 100),
+        ultimo_mensaje_fecha: new Date().toISOString(),
+        ultimo_mensaje_de: "staff",
+        no_leidos_familia: (conv?.no_leidos_familia || 0) + 1
+      });
+
+      return newMessage;
+    },
+    onSuccess: () => {
+      refetchPrivateMessages();
+      refetchConversations();
+      queryClient.invalidateQueries({ queryKey: ['allPrivateMessagesCategory'] });
+      setIsSending(false);
+      setOptimisticMessages([]);
+      toast.success("✅ Respuesta enviada");
+    },
+    onError: () => {
+      setIsSending(false);
+      setOptimisticMessages([]);
+      toast.error("Error al enviar");
+    }
+  });
 
   const sendPrivateMessageMutation = useMutation({
     mutationFn: async ({ conversationId, message, attachments }) => {
