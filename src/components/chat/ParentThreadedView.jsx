@@ -29,6 +29,13 @@ export default function ParentThreadedView({
   sportEmoji = "⚽",
   onTypingChange
 }) {
+  console.log('🎨 ParentThreadedView render:', {
+    category,
+    groupMessages: groupMessages?.length || 0,
+    myPrivateConversation: myPrivateConversation?.id,
+    myPrivateMessages: myPrivateMessages?.length || 0,
+    user: user?.email
+  });
   const [messageContent, setMessageContent] = useState("");
   const [attachments, setAttachments] = useState([]);
   const [replyingToStaff, setReplyingToStaff] = useState(false);
@@ -147,7 +154,12 @@ export default function ParentThreadedView({
 
   const handleSendPrivateReply = () => {
     if (!messageContent.trim() && attachments.length === 0) return;
-    if (!myPrivateConversation) return;
+    
+    // Si no hay conversación, esperar a que se cree
+    if (!myPrivateConversation) {
+      console.log('⚠️ Esperando a que se cree la conversación...');
+      return;
+    }
 
     onSendPrivateMessage({
       conversationId: myPrivateConversation.id,
@@ -358,8 +370,8 @@ export default function ParentThreadedView({
         <div ref={messagesEndRef} />
       </div>
 
-      {/* BOTÓN GIGANTE para iniciar chat privado - SIEMPRE visible si no hay conversación */}
-      {!myPrivateConversation && !replyingToStaff && (
+      {/* BOTÓN GIGANTE solo si NO hay mensajes ni conversación iniciada */}
+      {!myPrivateConversation && !replyingToStaff && groupMessages.length === 0 && myPrivateMessages.length === 0 && (
         <div className="p-4 bg-gradient-to-r from-green-600 to-green-700 border-t-4 border-green-500">
           <div className="flex items-center gap-3 mb-3">
             <div className="bg-white/20 backdrop-blur-sm rounded-xl p-2 flex-shrink-0">
@@ -389,8 +401,8 @@ export default function ParentThreadedView({
         </div>
       )}
 
-      {/* Input area - solo si está respondiendo */}
-      {replyingToStaff && myPrivateConversation && (
+      {/* Input area - solo si está respondiendo Y hay conversación */}
+      {replyingToStaff && (
         <div className="bg-white border-t flex-shrink-0">
           <QuickReplies 
             visible={showQuickReplies} 
