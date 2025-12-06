@@ -142,11 +142,11 @@ export default function ParentDashboard() {
   const { data: messages = [] } = useQuery({
     queryKey: ['messages'],
     queryFn: () => base44.entities.ChatMessage.list('-created_date', 50),
-    staleTime: 15000, // 15 segundos
+    staleTime: 30000, // 30 segundos
     gcTime: 300000,
-    refetchOnWindowFocus: true,
-    refetchOnMount: true,
-    refetchInterval: 15000, // Refrescar cada 15s para actualizar contadores
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
+    refetchInterval: false,
     enabled: !!user,
   });
 
@@ -208,11 +208,11 @@ export default function ParentDashboard() {
   const { data: privateConversations = [] } = useQuery({
     queryKey: ['privateConversationsParent'],
     queryFn: () => base44.entities.PrivateConversation.list('-ultimo_mensaje_fecha', 30),
-    staleTime: 15000, // 15 segundos
+    staleTime: 30000, // 30 segundos
     gcTime: 300000,
-    refetchOnWindowFocus: true,
-    refetchOnMount: true,
-    refetchInterval: 15000, // Refrescar cada 15s para actualizar contadores
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
+    refetchInterval: false,
     enabled: !!user,
   });
 
@@ -652,24 +652,13 @@ export default function ParentDashboard() {
       <div className="px-4 lg:px-8 py-6 space-y-4 lg:space-y-6">
         <SocialLinks />
 
-        {/* BANNER CHAT - MENSAJES NUEVOS (prioritario si hay mensajes) */}
-        {(unreadMessages > 0 || unreadPrivateMessages > 0) && (
-          <ChatAlertBanner 
-            unreadGroupMessages={unreadMessages}
-            unreadPrivateMessages={unreadPrivateMessages}
-            urgentMessages={urgentUnreadMessages}
-            isCoach={false}
-            isAdmin={false}
-          />
-        )}
-
-        {/* CENTRO DE ALERTAS - Sin incluir mensajes de chat */}
+        {/* ÚNICO CENTRO DE ALERTAS CONSOLIDADO - Todo en un solo banner */}
         <AlertCenter 
           pendingCallups={pendingCallups}
           pendingDocuments={pendingDocuments.length}
           pendingPayments={pendingPayments}
-          unreadMessages={0}
-          unreadPrivateMessages={0}
+          unreadMessages={unreadMessages}
+          unreadPrivateMessages={unreadPrivateMessages}
           pendingSurveys={activeSurveys.length}
           pendingSignatures={pendingFederationSignatures}
           upcomingEvents={0}
@@ -767,147 +756,7 @@ export default function ParentDashboard() {
           </Link>
         )}
 
-        {/* DOCUMENTOS PENDIENTES */}
-        {pendingDocuments.length > 0 && (
-          <Link to={createPageUrl("ParentDocuments")}>
-            <div className="bg-gradient-to-r from-red-600 to-red-700 rounded-2xl p-4 shadow-xl transition-all hover:scale-105 active:scale-95 border-2 border-red-500 animate-pulse">
-              <div className="flex items-start gap-3">
-                <FileText className="w-6 h-6 text-white flex-shrink-0 mt-0.5" />
-                <div className="flex-1">
-                  <p className="text-white font-bold text-base lg:text-lg">
-                    📄 ¡Documentos Pendientes de Firma!
-                  </p>
-                  <p className="text-red-100 text-xs lg:text-sm mt-1">
-                    {pendingDocuments.length === 1 
-                      ? "Tienes 1 documento que requiere tu firma" 
-                      : `Tienes ${pendingDocuments.length} documentos que requieren tu firma`}
-                  </p>
-                  <p className="text-white text-xs mt-2 font-semibold">
-                    👉 Pulsa aquí para firmar
-                  </p>
-                </div>
-              </div>
-            </div>
-          </Link>
-        )}
 
-        {/* ENCUESTAS */}
-        {activeSurveys.length > 0 && (
-          <Link to={createPageUrl("Surveys")}>
-            <div className="bg-gradient-to-r from-purple-600 to-purple-700 rounded-2xl p-4 shadow-xl transition-all hover:scale-105 active:scale-95 border-2 border-purple-500 animate-pulse">
-              <div className="flex items-start gap-3">
-                <MessageCircle className="w-6 h-6 text-white flex-shrink-0 mt-0.5" />
-                <div className="flex-1">
-                  <p className="text-white font-bold text-base lg:text-lg">
-                    📋 ¡Nueva Encuesta Disponible!
-                  </p>
-                  <p className="text-purple-100 text-xs lg:text-sm mt-1">
-                    {activeSurveys.length === 1 
-                      ? "Hay 1 encuesta esperando tu opinión" 
-                      : `Hay ${activeSurveys.length} encuestas esperando tu opinión`}
-                  </p>
-                  <p className="text-white text-xs mt-2 font-semibold">
-                    👉 Pulsa aquí para participar
-                  </p>
-                </div>
-              </div>
-            </div>
-          </Link>
-        )}
-
-        {/* CONVOCATORIAS PENDIENTES */}
-        {pendingCallups > 0 && (
-          <Link to={createPageUrl("ParentCallups")}>
-            <div className="bg-gradient-to-r from-yellow-600 to-yellow-700 rounded-2xl p-4 shadow-xl transition-all hover:scale-105 active:scale-95 border-2 border-yellow-500 animate-pulse">
-              <div className="flex items-start gap-3">
-                <Bell className="w-6 h-6 text-white flex-shrink-0 mt-0.5" />
-                <div className="flex-1">
-                  <p className="text-white font-bold text-base lg:text-lg">
-                    🏆 ¡Convocatorias Pendientes!
-                  </p>
-                  <p className="text-yellow-100 text-xs lg:text-sm mt-1">
-                    {pendingCallups === 1 
-                      ? "Tienes 1 convocatoria esperando confirmación" 
-                      : `Tienes ${pendingCallups} convocatorias esperando confirmación`}
-                  </p>
-                  <p className="text-white text-xs mt-2 font-semibold">
-                    👉 Pulsa aquí para confirmar asistencia
-                  </p>
-                </div>
-              </div>
-            </div>
-          </Link>
-        )}
-
-        {/* Banner de mensajes urgentes ELIMINADO - ya está en ChatAlertBanner */}
-
-        {/* ANUNCIOS URGENTES */}
-        {urgentAnnouncements.length > 0 && (
-          <Link to={createPageUrl("Announcements")}>
-            <div className="bg-gradient-to-r from-red-600 to-red-700 rounded-2xl p-4 shadow-xl transition-all hover:scale-105 active:scale-95 border-2 border-red-500 animate-pulse">
-              <div className="flex items-start gap-3">
-                <Megaphone className="w-6 h-6 text-white flex-shrink-0 mt-0.5" />
-                <div className="flex-1">
-                  <p className="text-white font-bold text-base lg:text-lg">
-                    🚨 ¡Anuncio Urgente!
-                  </p>
-                  <p className="text-red-100 text-xs lg:text-sm mt-1">
-                    {urgentAnnouncements[0].titulo}
-                  </p>
-                  <p className="text-white text-xs mt-2 font-semibold">
-                    👉 Pulsa aquí para leer • Válido 24h
-                  </p>
-                </div>
-              </div>
-            </div>
-          </Link>
-        )}
-
-        {/* ANUNCIOS IMPORTANTES */}
-        {importantAnnouncements.length > 0 && urgentAnnouncements.length === 0 && (
-          <Link to={createPageUrl("Announcements")}>
-            <div className="bg-gradient-to-r from-orange-600 to-orange-700 rounded-2xl p-4 shadow-xl transition-all hover:scale-105 active:scale-95 border-2 border-orange-500 animate-pulse">
-              <div className="flex items-start gap-3">
-                <Megaphone className="w-6 h-6 text-white flex-shrink-0 mt-0.5" />
-                <div className="flex-1">
-                  <p className="text-white font-bold text-base lg:text-lg">
-                    ⚠️ Anuncio Importante
-                  </p>
-                  <p className="text-orange-100 text-xs lg:text-sm mt-1">
-                    {importantAnnouncements[0].titulo}
-                  </p>
-                  <p className="text-white text-xs mt-2 font-semibold">
-                    👉 Pulsa aquí para leer • Válido 48h
-                  </p>
-                </div>
-              </div>
-            </div>
-          </Link>
-        )}
-
-        {/* PEDIDOS PENDIENTES */}
-        {pendingClothingOrders.length > 0 && (
-          <Link to={createPageUrl("ClothingOrders")}>
-            <div className="bg-gradient-to-r from-indigo-600 to-indigo-700 rounded-2xl p-4 shadow-xl transition-all hover:scale-105 active:scale-95 border-2 border-indigo-500 animate-pulse">
-              <div className="flex items-start gap-3">
-                <ShoppingBag className="w-6 h-6 text-white flex-shrink-0 mt-0.5" />
-                <div className="flex-1">
-                  <p className="text-white font-bold text-base lg:text-lg">
-                    🛍️ Pedidos de Equipación Pendientes
-                  </p>
-                  <p className="text-indigo-100 text-xs lg:text-sm mt-1">
-                    {pendingClothingOrders.length === 1 
-                      ? "Tienes 1 pedido pendiente de pago/confirmación" 
-                      : `Tienes ${pendingClothingOrders.length} pedidos pendientes`}
-                  </p>
-                  <p className="text-white text-xs mt-2 font-semibold">
-                    👉 Pulsa aquí para ver estado
-                  </p>
-                </div>
-              </div>
-            </div>
-          </Link>
-        )}
 
 
 
