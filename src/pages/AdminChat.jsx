@@ -466,7 +466,15 @@ export default function AdminChat() {
 
     const msgText = messageContent.trim() || "(Archivo adjunto)";
 
-    // Mensaje optimista - aparece INSTANTÁNEAMENTE
+    // Guardar attachments temporalmente ANTES de limpiar
+    const tempAttachments = [...attachments];
+    
+    // Limpiar input PRIMERO (feedback instantáneo como WhatsApp)
+    setMessageContent("");
+    setAttachments([]);
+    setIsSending(true);
+
+    // Mensaje optimista - aparece INSTANTÁNEAMENTE después de limpiar input
     if (!sendToAll && selectedGroup) {
       const optimisticMsg = {
         id: `temp-${Date.now()}`,
@@ -478,23 +486,17 @@ export default function AdminChat() {
         deporte: selectedGroup,
         grupo_id: selectedGroup,
         leido: false,
-        archivos_adjuntos: [...attachments],
+        archivos_adjuntos: tempAttachments,
         created_date: new Date().toISOString(),
         _isOptimistic: true
       };
       setOptimisticMessages([optimisticMsg]);
+      
+      // Scroll inmediato al enviar
+      setTimeout(() => {
+        messagesEndRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
+      }, 50);
     }
-    
-    // Limpiar input INMEDIATAMENTE (feedback instantáneo como WhatsApp)
-    const tempAttachments = [...attachments];
-    setMessageContent("");
-    setAttachments([]);
-    setIsSending(true);
-
-    // Scroll inmediato al enviar
-    setTimeout(() => {
-      messagesEndRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
-    }, 50);
 
     const messageData = {
       remitente_email: user.email,
