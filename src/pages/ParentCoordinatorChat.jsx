@@ -65,18 +65,24 @@ export default function ParentCoordinatorChat() {
 
   const { data: messages = [] } = useQuery({
     queryKey: ['parentCoordinatorMessages', conversation?.id],
-    queryFn: () => base44.entities.CoordinatorMessage.filter({ conversacion_id: conversation.id }, 'created_date'),
-    enabled: !!conversation,
+    queryFn: async () => {
+      if (!conversation?.id) return [];
+      return await base44.entities.CoordinatorMessage.filter({ conversacion_id: conversation.id }, 'created_date');
+    },
+    enabled: !!conversation?.id,
     refetchInterval: 3000,
   });
 
   // Polling para estado "escribiendo"
   const { data: conversationState } = useQuery({
     queryKey: ['coordinatorConversationState', conversation?.id],
-    queryFn: () => base44.entities.CoordinatorConversation.filter({ id: conversation.id }),
+    queryFn: async () => {
+      if (!conversation?.id) return null;
+      const data = await base44.entities.CoordinatorConversation.filter({ id: conversation.id });
+      return data[0];
+    },
     refetchInterval: 2000,
-    select: (data) => data[0],
-    enabled: !!conversation,
+    enabled: !!conversation?.id,
   });
 
   const coordinatorTyping = conversationState?.coordinador_escribiendo;

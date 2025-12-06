@@ -53,9 +53,13 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
   const isCoordinator = user.es_coordinador || user.role === "admin";
 
   const { data: messages = [] } = useQuery({
-    queryKey: ['coordinatorMessages', conversation.id],
-    queryFn: () => base44.entities.CoordinatorMessage.filter({ conversacion_id: conversation.id }, 'created_date'),
+    queryKey: ['coordinatorMessages', conversation?.id],
+    queryFn: async () => {
+      if (!conversation?.id) return [];
+      return await base44.entities.CoordinatorMessage.filter({ conversacion_id: conversation.id }, 'created_date');
+    },
     refetchInterval: 3000,
+    enabled: !!conversation?.id,
   });
 
   // Reproducir sonido cuando llega un mensaje nuevo
@@ -126,10 +130,14 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
 
   // Polling para estado "escribiendo"
   const { data: conversationState } = useQuery({
-    queryKey: ['coordinatorConversationState', conversation.id],
-    queryFn: () => base44.entities.CoordinatorConversation.filter({ id: conversation.id }),
+    queryKey: ['coordinatorConversationState', conversation?.id],
+    queryFn: async () => {
+      if (!conversation?.id) return null;
+      const data = await base44.entities.CoordinatorConversation.filter({ id: conversation.id });
+      return data[0];
+    },
     refetchInterval: 2000,
-    select: (data) => data[0]
+    enabled: !!conversation?.id,
   });
 
   const otherPersonTyping = isCoordinator 
