@@ -5,7 +5,9 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Bell, Plus } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Bell, Plus, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
 import { AnimatePresence } from "framer-motion";
 import { createPageUrl } from "@/utils";
@@ -46,6 +48,25 @@ export default function PushNotifications() {
     queryKey: ['usersForPush'],
     queryFn: () => base44.entities.User.list(),
     initialData: [],
+  });
+
+  // Obtener configuración de temporada
+  const { data: seasonConfigs = [] } = useQuery({
+    queryKey: ['seasonConfig'],
+    queryFn: () => base44.entities.SeasonConfig.list(),
+  });
+
+  const activeSeason = seasonConfigs.find(s => s.activa === true);
+  const pushEnabled = activeSeason?.notificaciones_push_activas !== false;
+
+  const togglePushMutation = useMutation({
+    mutationFn: (enabled) => base44.entities.SeasonConfig.update(activeSeason.id, { 
+      notificaciones_push_activas: enabled 
+    }),
+    onSuccess: (_, enabled) => {
+      queryClient.invalidateQueries({ queryKey: ['seasonConfig'] });
+      toast.success(enabled ? "✅ Push activadas" : "⏸️ Push desactivadas");
+    },
   });
 
   // Enviar notificación con PUSH REAL
@@ -162,11 +183,55 @@ export default function PushNotifications() {
         <Button
           onClick={() => setShowForm(!showForm)}
           className="bg-orange-600 hover:bg-orange-700"
+          disabled={!pushEnabled}
         >
           <Plus className="w-4 h-4 mr-2" />
           Nueva Notificación
         </Button>
       </div>
+
+      {/* Control de activación/desactivación de Push */}
+      <Card className={`border-2 ${pushEnabled ? 'border-green-200 bg-green-50' : 'border-red-200 bg-red-50'}`}>
+        <CardContent className="p-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className={`w-12 h-12 rounded-full flex items-center justify-center ${
+                pushEnabled ? 'bg-green-100' : 'bg-red-100'
+              }`}>
+                <Bell className={`w-6 h-6 ${pushEnabled ? 'text-green-600' : 'text-red-600'}`} />
+              </div>
+              <div>
+                <p className="font-bold text-slate-900">
+                  📲 Notificaciones Push {pushEnabled ? 'Activadas' : 'Desactivadas'}
+                </p>
+                <p className="text-xs text-slate-600">
+                  {pushEnabled 
+                    ? "Las notificaciones push se enviarán automáticamente en chats y eventos" 
+                    : "⚠️ Las notificaciones push están desactivadas globalmente"}
+                </p>
+              </div>
+            </div>
+            <Switch
+              checked={pushEnabled}
+              onCheckedChange={(checked) => {
+                if (activeSeason) {
+                  togglePushMutation.mutate(checked);
+                }
+              }}
+              disabled={!activeSeason}
+            />
+          </div>
+        </CardContent>
+      </Card>
+
+      {!pushEnabled && (
+        <Alert className="bg-red-50 border-red-200">
+          <AlertTriangle className="w-4 h-4 text-red-600" />
+          <AlertDescription className="text-red-800 ml-2">
+            <strong>Push desactivadas:</strong> No se enviarán notificaciones push hasta que las actives con el switch de arriba.
+          </AlertDescription>
+        </Alert>
+      )}
 
       {/* Estadísticas */}
       <div className="grid grid-cols-3 gap-3">

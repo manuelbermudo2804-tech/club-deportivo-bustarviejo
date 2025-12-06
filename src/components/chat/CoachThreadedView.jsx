@@ -29,7 +29,8 @@ export default function CoachThreadedView({
   sportEmoji = "⚽",
   priority = "Normal",
   onPriorityChange,
-  onTypingChange
+  onTypingChange,
+  familyTyping = null
 }) {
   const [messageContent, setMessageContent] = useState("");
   const [attachments, setAttachments] = useState([]);
