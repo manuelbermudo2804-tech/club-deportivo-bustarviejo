@@ -292,6 +292,17 @@ export default function ChatNotificationListener({ user }) {
 
   const showNotification = (title, body, id, priority) => {
     console.log('🔔 showNotification llamada:', { title, body: body?.substring(0, 30), id });
+    
+    // NO mostrar notificación si el usuario está en la página del chat
+    if (typeof window !== 'undefined') {
+      const currentPath = window.location.pathname;
+      const isInChat = currentPath.includes('ParentCoordinatorChat') || currentPath.includes('CoordinatorChat');
+      if (isInChat && document.visibilityState === 'visible') {
+        console.log('⏸️ Usuario está viendo el chat - notificación omitida');
+        return;
+      }
+    }
+    
     console.log('🔔 Notification.permission:', typeof window !== 'undefined' ? Notification?.permission : 'N/A');
     
     if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted') {
