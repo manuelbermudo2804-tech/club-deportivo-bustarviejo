@@ -20,6 +20,8 @@ export default function ParentCoordinatorChat() {
   const [showGallery, setShowGallery] = useState(false);
   const [showImagePreview, setShowImagePreview] = useState(null);
   const messagesEndRef = useRef(null);
+  const fileInputRef = useRef(null);
+  const cameraInputRef = useRef(null);
   const queryClient = useQueryClient();
 
   useEffect(() => {
@@ -353,18 +355,45 @@ export default function ParentCoordinatorChat() {
             )}
             <div className="flex gap-2 items-end">
               <div className="flex flex-col gap-1">
-                <label className="cursor-pointer">
-                  <input type="file" multiple accept="*/*" className="hidden" onChange={handleFileUpload} disabled={uploading} />
-                  <Button type="button" variant="outline" size="icon" disabled={uploading} className="h-10 w-10">
-                    <Paperclip className="w-5 h-5" />
-                  </Button>
-                </label>
-                <label className="cursor-pointer">
-                  <input type="file" accept="image/*" capture="environment" className="hidden" onChange={handleCameraCapture} disabled={uploading} />
-                  <Button type="button" variant="outline" size="icon" disabled={uploading} className="h-10 w-10">
-                    <Camera className="w-5 h-5" />
-                  </Button>
-                </label>
+                <input 
+                  ref={fileInputRef}
+                  type="file" 
+                  multiple 
+                  accept="*/*" 
+                  className="hidden" 
+                  onChange={handleFileUpload} 
+                  disabled={uploading} 
+                />
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  size="icon" 
+                  disabled={uploading} 
+                  className="h-10 w-10"
+                  onClick={() => fileInputRef.current?.click()}
+                >
+                  <Paperclip className="w-5 h-5" />
+                </Button>
+                
+                <input 
+                  ref={cameraInputRef}
+                  type="file" 
+                  accept="image/*" 
+                  capture="environment" 
+                  className="hidden" 
+                  onChange={handleCameraCapture} 
+                  disabled={uploading} 
+                />
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  size="icon" 
+                  disabled={uploading} 
+                  className="h-10 w-10"
+                  onClick={() => cameraInputRef.current?.click()}
+                >
+                  <Camera className="w-5 h-5" />
+                </Button>
               </div>
               <Textarea
                 placeholder="Escribe tu mensaje..."
