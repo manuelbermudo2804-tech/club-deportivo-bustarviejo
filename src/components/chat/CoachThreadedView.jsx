@@ -12,6 +12,7 @@ import FileAttachmentButton from "./FileAttachmentButton";
 import DateSeparator from "./DateSeparator";
 import ReadConfirmation from "./ReadConfirmation";
 import LinkPreview from "./LinkPreview";
+import useChatSound from "./useChatSound";
 
 export default function CoachThreadedView({
   category,

@@ -250,9 +250,15 @@ export default function ParentChat() {
       refetchConversations();
       toast.success("✅ Mensaje enviado al entrenador");
     },
-    onError: () => {
-      toast.error("Error al enviar");
-    }
+    onError: (error, variables) => {
+      console.error("Error enviando mensaje:", error);
+      toast.error("❌ No se pudo enviar. Reintentando...");
+      // Retry automático
+      setTimeout(() => {
+        sendPrivateMessageMutation.mutate(variables);
+      }, 2000);
+    },
+    retry: 2,
   });
 
   useEffect(() => {
