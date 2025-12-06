@@ -361,8 +361,8 @@ export default function PrivateChatPanel({
           <div className="flex items-center justify-center h-full">
             <div className="text-center text-slate-500 bg-white/80 rounded-xl p-6">
               <MessageCircle className="w-12 h-12 mx-auto mb-2 opacity-50" />
-              <p className="text-sm font-medium">Inicia la conversación</p>
-              <p className="text-xs text-slate-400 mt-1">Los mensajes son privados</p>
+              <p className="text-sm font-medium">No hay mensajes del entrenador</p>
+              <p className="text-xs text-slate-400 mt-1">Escribe abajo para empezar</p>
             </div>
           </div>
         ) : (
