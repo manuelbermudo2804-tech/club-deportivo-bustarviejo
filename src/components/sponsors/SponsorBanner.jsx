@@ -9,14 +9,20 @@ export default function SponsorBanner() {
   const { data: sponsors = [] } = useQuery({
     queryKey: ['activeSponsors'],
     queryFn: async () => {
-      const all = await base44.entities.Sponsor.list();
-      return all.filter(s => s.estado === "Activo").sort((a, b) => {
-        const order = { "Principal": 0, "Oro": 1, "Plata": 2, "Bronce": 3, "Colaborador": 4 };
-        return (order[a.nivel_patrocinio] || 5) - (order[b.nivel_patrocinio] || 5);
-      });
+      try {
+        const all = await base44.entities.Sponsor.list();
+        return all.filter(s => s.estado === "Activo").sort((a, b) => {
+          const order = { "Principal": 0, "Oro": 1, "Plata": 2, "Bronce": 3, "Colaborador": 4 };
+          return (order[a.nivel_patrocinio] || 5) - (order[b.nivel_patrocinio] || 5);
+        });
+      } catch (error) {
+        console.error("Error cargando patrocinadores:", error);
+        return [];
+      }
     },
-    staleTime: 30 * 1000, // Refrescar cada 30 segundos
-    refetchOnWindowFocus: true,
+    staleTime: 5 * 60 * 1000, // Refrescar cada 5 minutos
+    refetchOnWindowFocus: false,
+    retry: 1,
   });
 
   // Los patrocinadores principales aparecen más tiempo

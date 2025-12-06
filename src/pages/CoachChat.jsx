@@ -200,6 +200,14 @@ export default function CoachChat() {
         if (!isAdmin && !isCoordinator && conv.participante_staff_email !== user?.email) return false;
         if (conv.categoria !== "Coordinación Deportiva") return false;
         
+        // CRÍTICO: Solo mostrar si tiene jugadores activos
+        const jugadoresRelacionados = conv.jugadores_relacionados || [];
+        const tieneJugadoresActivos = jugadoresRelacionados.some(jr => {
+          const player = allPlayers.find(p => p.id === jr.jugador_id);
+          return player?.activo === true;
+        });
+        if (!tieneJugadoresActivos) return false;
+        
         const hasUnread = (conv.no_leidos_staff || 0) > 0;
         if (hasUnread && conv.archivada === true) {
           base44.entities.PrivateConversation.update(conv.id, { archivada: false })
@@ -219,6 +227,14 @@ export default function CoachChat() {
       // La conversación debe ser de la categoría seleccionada (ej: "Fútbol Benjamín (Mixto)")
       if (conv.categoria !== selectedCategory) return false;
       
+      // CRÍTICO: Solo mostrar si tiene jugadores activos
+      const jugadoresRelacionados = conv.jugadores_relacionados || [];
+      const tieneJugadoresActivos = jugadoresRelacionados.some(jr => {
+        const player = allPlayers.find(p => p.id === jr.jugador_id);
+        return player?.activo === true;
+      });
+      if (!tieneJugadoresActivos) return false;
+      
       // Auto-desarchivar si tiene mensajes no leídos
       const hasUnread = (conv.no_leidos_staff || 0) > 0;
       if (hasUnread && conv.archivada === true) {
@@ -230,7 +246,7 @@ export default function CoachChat() {
       if (showArchived) return conv.archivada === true;
       return !conv.archivada;
     });
-  }, [privateConversations, selectedCategory, isAdmin, isCoordinator, user, showArchived]);
+  }, [privateConversations, selectedCategory, isAdmin, isCoordinator, user, showArchived, allPlayers]);
 
   const archiveConversationMutation = useMutation({
     mutationFn: async ({ convId, archive }) => {
@@ -261,11 +277,20 @@ export default function CoachChat() {
   });
 
   const getUnreadCountForCategory = (categoria) => {
-    return privateConversations.filter(c => 
-      c.categoria === categoria && 
-      (c.no_leidos_staff || 0) > 0 &&
-      (isAdmin || isCoordinator || c.participante_staff_email === user?.email)
-    ).reduce((sum, c) => sum + (c.no_leidos_staff || 0), 0);
+    return privateConversations.filter(c => {
+      if (c.categoria !== categoria) return false;
+      if ((c.no_leidos_staff || 0) === 0) return false;
+      if (!isAdmin && !isCoordinator && c.participante_staff_email !== user?.email) return false;
+      
+      // CRÍTICO: Solo contar si tiene jugadores activos
+      const jugadoresRelacionados = c.jugadores_relacionados || [];
+      const tieneJugadoresActivos = jugadoresRelacionados.some(jr => {
+        const player = allPlayers.find(p => p.id === jr.jugador_id);
+        return player?.activo === true;
+      });
+      
+      return tieneJugadoresActivos;
+    }).reduce((sum, c) => sum + (c.no_leidos_staff || 0), 0);
   };
 
   const sendMessageMutation = useMutation({

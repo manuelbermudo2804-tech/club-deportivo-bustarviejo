@@ -95,13 +95,22 @@ export default function ParentChat() {
     queryFn: async () => {
       try {
         if (!user?.email) return [];
-        return await base44.entities.PrivateConversation.filter({ participante_familia_email: user.email }, '-ultimo_mensaje_fecha');
+        const allConvs = await base44.entities.PrivateConversation.filter({ participante_familia_email: user.email }, '-ultimo_mensaje_fecha');
+        
+        // CRÍTICO: Solo devolver conversaciones con jugadores activos
+        return allConvs.filter(conv => {
+          const jugadoresRelacionados = conv.jugadores_relacionados || [];
+          return jugadoresRelacionados.some(jr => {
+            const player = players.find(p => p.id === jr.jugador_id);
+            return player?.activo === true;
+          });
+        });
       } catch (error) {
         console.error('Error loading conversations:', error);
         return [];
       }
     },
-    enabled: !!user?.email,
+    enabled: !!user?.email && players.length > 0,
     staleTime: 10000,
     gcTime: 60000,
     refetchInterval: false,
