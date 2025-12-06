@@ -121,11 +121,30 @@ export default function CoachChat() {
 
   const categoryPrivateConversations = useMemo(() => {
     if (!selectedCategory) return [];
+    
+    // Para Coordinación Deportiva, mostrar todas las conversaciones con ese tag
+    if (selectedCategory === "Coordinación Deportiva 🎓") {
+      return privateConversations.filter(conv => {
+        if (!isAdmin && !isCoordinator && conv.participante_staff_email !== user?.email) return false;
+        if (conv.categoria !== "Coordinación Deportiva") return false;
+        
+        const hasUnread = (conv.no_leidos_staff || 0) > 0;
+        if (hasUnread && conv.archivada === true) {
+          base44.entities.PrivateConversation.update(conv.id, { archivada: false })
+            .then(() => refetchConversations());
+        }
+        
+        if (showArchived) return conv.archivada === true;
+        return !conv.archivada;
+      });
+    }
+    
+    // Para categorías de equipos (entrenadores), mostrar conversaciones privadas con familias
     return privateConversations.filter(conv => {
-      // Solo mostrar conversaciones donde el usuario es participante staff
+      // El entrenador debe ser participante staff de esa conversación
       if (!isAdmin && !isCoordinator && conv.participante_staff_email !== user?.email) return false;
       
-      // Filtro por categoría - hay que matchear
+      // La conversación debe ser de la categoría seleccionada (ej: "Fútbol Benjamín (Mixto)")
       if (conv.categoria !== selectedCategory) return false;
       
       // Auto-desarchivar si tiene mensajes no leídos
