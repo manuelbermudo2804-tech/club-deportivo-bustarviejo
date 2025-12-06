@@ -37,6 +37,7 @@ export default function CoachChat() {
   const [showSearchDialog, setShowSearchDialog] = useState(false);
   const [showPinnedDialog, setShowPinnedDialog] = useState(false);
   const [showMediaDialog, setShowMediaDialog] = useState(false);
+  const [fullscreenChat, setFullscreenChat] = useState(false); // Para modo WhatsApp fullscreen
   const [isSending, setIsSending] = useState(false);
   const [optimisticMessages, setOptimisticMessages] = useState([]);
   const messagesEndRef = useRef(null);
@@ -124,7 +125,7 @@ export default function CoachChat() {
   }, [user, allPlayers, isAdmin, isCoordinator, isCoach]);
 
   // Conversaciones privadas de la categoría seleccionada
-  // IMPORTANTE: Mostrar conversaciones con mensajes nuevos aunque estén archivadas
+  // IMPORTANTE: Auto-desarchivar si llega mensaje nuevo
   const categoryPrivateConversations = useMemo(() => {
     if (!selectedCategory) return [];
     return privateConversations.filter(conv => {
@@ -132,9 +133,12 @@ export default function CoachChat() {
       if (!isAdmin && !isCoordinator && conv.participante_staff_email !== user?.email) return false;
       if (conv.categoria !== selectedCategory) return false;
       
-      // Si tiene mensajes no leídos, mostrarla SIEMPRE (aunque esté archivada)
+      // Auto-desarchivar si tiene mensajes nuevos (comportamiento WhatsApp)
       const hasUnread = (conv.no_leidos_staff || 0) > 0;
-      if (hasUnread) return true;
+      if (hasUnread && conv.archivada === true) {
+        base44.entities.PrivateConversation.update(conv.id, { archivada: false })
+          .then(() => refetchConversations());
+      }
       
       // Filtrar por archivadas o activas
       if (showArchived) return conv.archivada === true;
@@ -160,7 +164,8 @@ export default function CoachChat() {
     onSuccess: (_, { archive }) => {
       refetchConversations();
       setSelectedConversation(null);
-      toast.success(archive ? "Conversación archivada" : "Conversación restaurada");
+      setFullscreenChat(false); // Cerrar pantalla completa al archivar
+      toast.success(archive ? "📁 Archivada" : "✅ Restaurada");
     },
   });
 
@@ -791,131 +796,132 @@ export default function CoachChat() {
                   </div>
                 </div>
               ) : (
-                /* SUB-MODO PRIVADO */
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-                  {/* Lista de conversaciones privadas */}
-                  <div className="lg:col-span-1 bg-white rounded-xl shadow-md border overflow-hidden" style={{ height: 'calc(70vh - 100px)' }}>
-                    <div className="bg-gradient-to-r from-green-600 to-green-700 p-3 text-white">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <h3 className="font-bold text-sm">{showArchived ? "Archivadas" : "Conversaciones activas"}</h3>
-                          <p className="text-xs text-green-100">{categoryPrivateConversations.length} conversaciones</p>
+                /* SUB-MODO PRIVADO - ESTILO WHATSAPP */
+                <>
+                  {/* MODO FULLSCREEN - Chat abierto */}
+                  {fullscreenChat && selectedConversation ? (
+                    <div className="fixed inset-0 z-50 bg-white">
+                      <PrivateChatPanel
+                        conversation={selectedConversation}
+                        messages={privateMessages}
+                        user={user}
+                        isStaff={true}
+                        onClose={() => {
+                          setSelectedConversation(null);
+                          setFullscreenChat(false);
+                        }}
+                        onMessageSent={handlePrivateMessageSent}
+                        onArchive={(convId, archive) => {
+                          archiveConversationMutation.mutate({ convId, archive });
+                        }}
+                      />
+                    </div>
+                  ) : (
+                    /* MODO LISTA - Mostrar conversaciones */
+                    <div className="bg-white rounded-xl shadow-md border overflow-hidden" style={{ height: 'calc(70vh - 100px)' }}>
+                      <div className="bg-gradient-to-r from-green-600 to-green-700 p-4 text-white">
+                        <div className="flex items-center justify-between mb-3">
+                          <div>
+                            <h3 className="font-bold text-base">{showArchived ? "📁 Archivadas" : "💬 Conversaciones"}</h3>
+                            <p className="text-xs text-green-100">{categoryPrivateConversations.length} {showArchived ? "archivadas" : "activas"}</p>
+                          </div>
                         </div>
                         <Button
                           variant="ghost"
                           size="sm"
                           onClick={() => setShowArchived(!showArchived)}
-                          className="text-white hover:bg-white/20 gap-1 text-xs h-8 px-2"
+                          className="text-white hover:bg-white/20 w-full justify-center gap-2"
                         >
                           {showArchived ? (
                             <>
-                              <MessageCircle className="w-3 h-3" />
-                              Activas
+                              <MessageCircle className="w-4 h-4" />
+                              Ver conversaciones activas
                             </>
                           ) : (
                             <>
-                              <Archive className="w-3 h-3" />
-                              {archivedCount > 0 && `(${archivedCount})`}
+                              <Archive className="w-4 h-4" />
+                              Ver archivadas {archivedCount > 0 && `(${archivedCount})`}
                             </>
                           )}
                         </Button>
                       </div>
-                    </div>
-                    <div className="divide-y overflow-y-auto" style={{ maxHeight: 'calc(100% - 70px)' }}>
-                      {categoryPrivateConversations.length === 0 ? (
-                        <div className="p-6 text-center text-slate-500">
-                          <MessageCircle className="w-10 h-10 mx-auto mb-2 opacity-30" />
-                          <p className="text-sm font-medium">Sin mensajes privados</p>
-                          <p className="text-xs mt-1">Las familias pueden escribirte desde su app</p>
-                        </div>
-                      ) : (
-                        categoryPrivateConversations.map(conv => (
-                          <button
-                            key={conv.id}
-                            onClick={() => setSelectedConversation(conv)}
-                            className={`w-full p-3 flex items-center gap-3 transition-colors text-left ${
-                              selectedConversation?.id === conv.id 
-                                ? 'bg-green-50 border-l-4 border-l-green-600' 
-                                : 'hover:bg-slate-50 border-l-4 border-l-transparent'
-                            }`}
-                          >
-                            <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${
-                              (conv.no_leidos_staff || 0) > 0 ? 'bg-green-600 text-white' : 'bg-slate-200'
-                            }`}>
-                              <User className="w-5 h-5" />
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <div className="font-semibold text-slate-900 truncate text-sm">
-                                {conv.participante_familia_nombre || conv.participante_familia_email?.split('@')[0]}
-                              </div>
-                              {conv.ultimo_mensaje && (
-                                <div className="text-xs text-slate-400 truncate">
-                                  {conv.ultimo_mensaje_de === 'staff' ? '↩️ ' : '📩 '}{conv.ultimo_mensaje}
+                      
+                      <div className="divide-y overflow-y-auto" style={{ maxHeight: 'calc(100% - 140px)' }}>
+                        {categoryPrivateConversations.length === 0 ? (
+                          <div className="p-8 text-center text-slate-500">
+                            <MessageCircle className="w-16 h-16 mx-auto mb-3 opacity-20" />
+                            <p className="font-medium text-lg">
+                              {showArchived ? "Sin conversaciones archivadas" : "Sin conversaciones activas"}
+                            </p>
+                            <p className="text-sm mt-2 text-slate-400">
+                              {showArchived 
+                                ? "Las conversaciones archivadas aparecerán aquí" 
+                                : "Las familias pueden escribirte desde su app"}
+                            </p>
+                          </div>
+                        ) : (
+                          categoryPrivateConversations.map(conv => {
+                            const hasUnread = (conv.no_leidos_staff || 0) > 0;
+                            
+                            return (
+                              <button
+                                key={conv.id}
+                                onClick={() => {
+                                  setSelectedConversation(conv);
+                                  setFullscreenChat(true); // Abrir en pantalla completa estilo WhatsApp
+                                }}
+                                className="w-full p-4 flex items-center gap-3 hover:bg-slate-50 transition-colors text-left border-l-4 border-l-transparent hover:border-l-green-600"
+                              >
+                                <div className={`w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0 ${
+                                  hasUnread ? 'bg-green-600 text-white' : 'bg-slate-200 text-slate-600'
+                                }`}>
+                                  <User className="w-6 h-6" />
                                 </div>
-                              )}
-                            </div>
-                            {(conv.no_leidos_staff || 0) > 0 && (
-                              <Badge className="bg-green-600 text-white text-xs animate-pulse">{conv.no_leidos_staff}</Badge>
-                            )}
-                          </button>
-                        ))
-                      )}
-                    </div>
-                  </div>
+                                
+                                <div className="flex-1 min-w-0">
+                                  <div className="flex items-center gap-2 mb-1">
+                                    <span className="font-bold text-slate-900 truncate">
+                                      {conv.participante_familia_nombre || conv.participante_familia_email?.split('@')[0]}
+                                    </span>
+                                    {conv.archivada && (
+                                      <Badge variant="outline" className="text-[10px]">📁</Badge>
+                                    )}
+                                  </div>
+                                  
+                                  {conv.jugadores_relacionados?.length > 0 && (
+                                    <div className="text-xs text-slate-500 mb-1">
+                                      👦 {conv.jugadores_relacionados.map(j => j.jugador_nombre).join(", ")}
+                                    </div>
+                                  )}
+                                  
+                                  {conv.ultimo_mensaje && (
+                                    <div className={`text-sm truncate ${hasUnread ? 'font-semibold text-slate-900' : 'text-slate-400'}`}>
+                                      {conv.ultimo_mensaje_de === 'staff' ? '↩️ ' : ''}
+                                      {conv.ultimo_mensaje}
+                                    </div>
+                                  )}
+                                </div>
 
-                  {/* Chat privado */}
-                  <div className="lg:col-span-2 bg-white rounded-xl shadow-md border overflow-hidden" style={{ height: 'calc(70vh - 100px)' }}>
-                    {selectedConversation ? (
-                      <div className="flex flex-col h-full">
-                        {/* Botón archivar/restaurar */}
-                        <div className="bg-slate-50 border-b px-3 py-2 flex justify-end">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => archiveConversationMutation.mutate({ 
-                              convId: selectedConversation.id, 
-                              archive: !selectedConversation.archivada 
-                            })}
-                            disabled={archiveConversationMutation.isPending}
-                            className={`text-xs gap-1 ${selectedConversation.archivada ? 'text-green-600 hover:text-green-700' : 'text-slate-600 hover:text-slate-700'}`}
-                          >
-                            {selectedConversation.archivada ? (
-                              <>
-                                <ArchiveRestore className="w-3 h-3" />
-                                Restaurar
-                              </>
-                            ) : (
-                              <>
-                                <Archive className="w-3 h-3" />
-                                Archivar
-                              </>
-                            )}
-                          </Button>
-                        </div>
-                        <div className="flex-1 overflow-hidden">
-                          <PrivateChatPanel
-                            conversation={selectedConversation}
-                            messages={privateMessages}
-                            user={user}
-                            isStaff={true}
-                            onClose={() => setSelectedConversation(null)}
-                            onMessageSent={handlePrivateMessageSent}
-                          />
-                        </div>
+                                <div className="flex flex-col items-end gap-1">
+                                  {hasUnread && (
+                                    <Badge className="bg-green-600 text-white text-xs h-6 min-w-6 rounded-full animate-pulse">
+                                      {conv.no_leidos_staff}
+                                    </Badge>
+                                  )}
+                                  {conv.ultimo_mensaje_fecha && (
+                                    <span className="text-[10px] text-slate-400">
+                                      {format(new Date(conv.ultimo_mensaje_fecha), "d MMM", { locale: es })}
+                                    </span>
+                                  )}
+                                </div>
+                              </button>
+                            );
+                          })
+                        )}
                       </div>
-                    ) : (
-                      <div className="flex items-center justify-center h-full text-slate-500">
-                        <div className="text-center">
-                          <MessageCircle className="w-12 h-12 mx-auto mb-3 opacity-30" />
-                          <p className="font-medium">Mensajes Privados</p>
-                          <p className="text-xs mt-2 max-w-xs mx-auto">
-                            Solo tú y la familia ven estos mensajes. Selecciona una conversación de la izquierda.
-                          </p>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </div>
+                    </div>
+                  )}
+                </>
               )}
             </>
           ) : (
