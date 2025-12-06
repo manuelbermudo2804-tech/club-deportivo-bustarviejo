@@ -32,11 +32,6 @@ export default function ParentChat() {
   const queryClient = useQueryClient();
   const { playNotificationSound, checkNewMessages } = useChatSound();
 
-  // Detectar mensajes nuevos y reproducir sonido
-  useEffect(() => {
-    checkNewMessages(messages, user?.email);
-  }, [messages.length, user?.email]);
-
   // Polling adaptativo inteligente
   useAdaptivePolling({
     queryKeys: [
@@ -101,6 +96,11 @@ export default function ParentChat() {
     gcTime: 60000,
     refetchInterval: false, // Controlado por useAdaptivePolling
   });
+
+  // Detectar mensajes nuevos y reproducir sonido - DESPUÉS de declarar messages
+  useEffect(() => {
+    checkNewMessages(messages, user?.email);
+  }, [messages?.length, user?.email, checkNewMessages]);
 
   const normalizeDeporte = (deporte) => {
     if (!deporte) return null;
