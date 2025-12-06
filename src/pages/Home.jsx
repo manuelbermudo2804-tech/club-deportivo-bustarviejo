@@ -107,11 +107,11 @@ export default function Home() {
     queryKey: ['chatMessages'],
     queryFn: () => base44.entities.ChatMessage.list('-created_date', 50),
     initialData: [],
-    staleTime: 15000, // 15 segundos
+    staleTime: 30000, // 30 segundos
     gcTime: 300000,
-    refetchOnWindowFocus: true,
-    refetchOnMount: true,
-    refetchInterval: 15000, // Refrescar cada 15s para actualizar contadores
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
+    refetchInterval: false,
     enabled: !!user,
   });
 
@@ -119,11 +119,11 @@ export default function Home() {
     queryKey: ['privateConversationsHome'],
     queryFn: () => base44.entities.PrivateConversation.list('-ultimo_mensaje_fecha', 30),
     initialData: [],
-    staleTime: 15000, // 15 segundos
+    staleTime: 30000, // 30 segundos
     gcTime: 300000,
-    refetchOnWindowFocus: true,
-    refetchOnMount: true,
-    refetchInterval: 15000, // Refrescar cada 15s para actualizar contadores
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
+    refetchInterval: false,
     enabled: !!user,
   });
 
@@ -1024,52 +1024,50 @@ export default function Home() {
       <div className="px-4 lg:px-8 py-6 space-y-4 lg:space-y-6">
         <SocialLinks />
 
-        {/* BANNER MENSAJES CHAT - Para staff con mensajes privados/grupo pendientes */}
-        {(isAdmin || isCoach || isCoordinator || isTreasurer) && (stats.unreadMessages > 0 || stats.unreadPrivateMessages > 0) && (
-          <ChatAlertBanner 
-            unreadGroupMessages={stats.unreadMessages}
-            unreadPrivateMessages={stats.unreadPrivateMessages}
-            urgentMessages={0}
-            isCoach={isCoach || isCoordinator}
-            isAdmin={isAdmin || isTreasurer}
-          />
-        )}
-
-        {/* CENTRO DE ALERTAS - Sin incluir mensajes de chat (evitar duplicación) */}
-        {(isAdmin || isCoach || isCoordinator || isTreasurer || hasPlayers) && (
-          <AlertCenter 
-            pendingCallups={stats.pendingCallups}
-            pendingDocuments={0}
-            pendingPayments={isAdmin || isTreasurer ? stats.reviewPayments : 0}
-            unreadMessages={0}
-            unreadPrivateMessages={0}
-            pendingSurveys={0}
-            pendingSignatures={hasPlayers ? stats.pendingSignatures : 0}
-            pendingCallupResponses={stats.pendingCallupResponses}
-            upcomingEvents={0}
-            pendingClothingOrders={stats.pendingClothingOrders}
-            pendingMemberRequests={stats.pendingMemberRequests}
-            pendingLotteryOrders={stats.pendingLotteryOrders}
-            pendingInvitations={pendingInvitationRequests}
-            isAdmin={isAdmin}
-            isCoach={isCoach || isCoordinator}
-            isParent={hasPlayers}
-          />
-        )}
-
-        {/* Alerta de Jugadores Duplicados - Solo Admin */}
-        {isAdmin && <DuplicatePlayersAlert />}
-
-        {/* Banner de Tareas Pendientes del Club para Admin */}
-        {isAdmin && (stats.reviewPayments > 0 || stats.adminPendingSignatures > 0 || stats.unreadMessages > 0 || stats.pendingPlayerAccess > 0 || (pendingInvitationRequests || 0) > 0 || stats.pendingClothingOrders > 0 || stats.pendingMemberRequests > 0 || stats.pendingLotteryOrders > 0 || stats.recentSurveyResponses > 0 || stats.pendingEventConfirmations > 0) && (
+        {/* BANNER ÚNICO DE ALERTAS - Consolidado para evitar duplicados */}
+        {(isAdmin || isCoach || isCoordinator || isTreasurer) && (
+          stats.unreadMessages > 0 || 
+          stats.unreadPrivateMessages > 0 || 
+          stats.reviewPayments > 0 || 
+          stats.adminPendingSignatures > 0 || 
+          stats.pendingPlayerAccess > 0 || 
+          stats.pendingClothingOrders > 0 || 
+          stats.pendingMemberRequests > 0 || 
+          stats.pendingLotteryOrders > 0 || 
+          stats.recentSurveyResponses > 0 || 
+          stats.pendingEventConfirmations > 0 || 
+          pendingInvitationRequests > 0 ||
+          stats.pendingCallupResponses > 0
+        ) && (
           <div className="bg-gradient-to-r from-red-600 to-orange-600 rounded-2xl p-3 lg:p-4 shadow-xl border-2 border-red-500">
             <div className="flex items-start gap-2 lg:gap-3">
               <Bell className="w-5 h-5 lg:w-6 lg:h-6 text-white flex-shrink-0 mt-0.5 animate-bounce" />
               <div className="flex-1">
                 <p className="text-white font-bold text-sm lg:text-lg">
-                  📋 Tareas Pendientes del Club
+                  📋 Tareas Pendientes
                 </p>
                 <div className="flex flex-wrap gap-2 mt-2">
+                  {stats.unreadMessages > 0 && (
+                    <Link to={isAdmin ? createPageUrl("AdminChat") : createPageUrl("CoachChat")}>
+                      <span className="inline-flex items-center gap-1 bg-blue-500 text-white text-xs px-2 py-1 rounded-full font-semibold hover:bg-blue-600 transition-colors">
+                        💬 {stats.unreadMessages} mensajes grupo
+                      </span>
+                    </Link>
+                  )}
+                  {stats.unreadPrivateMessages > 0 && (
+                    <Link to={isAdmin ? createPageUrl("AdminChat") : createPageUrl("CoachChat")}>
+                      <span className="inline-flex items-center gap-1 bg-green-500 text-white text-xs px-2 py-1 rounded-full font-semibold hover:bg-green-600 transition-colors animate-pulse">
+                        🔒 {stats.unreadPrivateMessages} chats privados
+                      </span>
+                    </Link>
+                  )}
+                  {stats.pendingCallupResponses > 0 && (
+                    <Link to={createPageUrl("CoachCallups")}>
+                      <span className="inline-flex items-center gap-1 bg-yellow-500 text-white text-xs px-2 py-1 rounded-full font-semibold hover:bg-yellow-600 transition-colors">
+                        🎓 {stats.pendingCallupResponses} respuestas convocatoria
+                      </span>
+                    </Link>
+                  )}
                   {stats.reviewPayments > 0 && (
                     <Link to={createPageUrl("Payments")}>
                       <span className="inline-flex items-center gap-1 bg-green-500 text-white text-xs px-2 py-1 rounded-full font-semibold hover:bg-green-600 transition-colors">
@@ -1080,14 +1078,7 @@ export default function Home() {
                   {stats.adminPendingSignatures > 0 && (
                     <Link to={createPageUrl("FederationSignaturesAdmin")}>
                       <span className="inline-flex items-center gap-1 bg-yellow-500 text-white text-xs px-2 py-1 rounded-full font-semibold hover:bg-yellow-600 transition-colors">
-                        🖊️ {stats.adminPendingSignatures} firmas pendientes
-                      </span>
-                    </Link>
-                  )}
-                  {stats.unreadMessages > 0 && (
-                    <Link to={createPageUrl("AdminChat")}>
-                      <span className="inline-flex items-center gap-1 bg-blue-500 text-white text-xs px-2 py-1 rounded-full font-semibold hover:bg-blue-600 transition-colors">
-                        💬 {stats.unreadMessages} mensajes sin leer
+                        🖊️ {stats.adminPendingSignatures} firmas federación
                       </span>
                     </Link>
                   )}
@@ -1114,14 +1105,14 @@ export default function Home() {
                   )}
                   {stats.recentSurveyResponses > 0 && (
                     <Link to={createPageUrl("Surveys")}>
-                      <span className="inline-flex items-center gap-1 bg-purple-500 text-white text-xs px-2 py-1 rounded-full font-semibold hover:bg-purple-600 transition-colors animate-pulse">
+                      <span className="inline-flex items-center gap-1 bg-purple-500 text-white text-xs px-2 py-1 rounded-full font-semibold hover:bg-purple-600 transition-colors">
                         📋 {stats.recentSurveyResponses} respuestas encuesta (24h)
                       </span>
                     </Link>
                   )}
                   {stats.pendingEventConfirmations > 0 && (
                     <Link to={createPageUrl("EventManagement")}>
-                      <span className="inline-flex items-center gap-1 bg-indigo-500 text-white text-xs px-2 py-1 rounded-full font-semibold hover:bg-indigo-600 transition-colors animate-pulse">
+                      <span className="inline-flex items-center gap-1 bg-indigo-500 text-white text-xs px-2 py-1 rounded-full font-semibold hover:bg-indigo-600 transition-colors">
                         🎉 {stats.pendingEventConfirmations} confirmaciones evento (24h)
                       </span>
                     </Link>
@@ -1135,8 +1126,68 @@ export default function Home() {
                   )}
                   {(pendingInvitationRequests || 0) > 0 && (
                     <Link to={createPageUrl("EmailInvitations")}>
-                      <span className="inline-flex items-center gap-1 bg-cyan-500 text-white text-xs px-2 py-1 rounded-full font-semibold hover:bg-cyan-600 transition-colors animate-pulse">
+                      <span className="inline-flex items-center gap-1 bg-cyan-500 text-white text-xs px-2 py-1 rounded-full font-semibold hover:bg-cyan-600 transition-colors">
                         📧 {pendingInvitationRequests} invitaciones solicitadas
+                      </span>
+                    </Link>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Banner de Tareas Pendientes para Admin CON hijos */}
+        {isAdmin && hasPlayers && (stats.pendingSignatures > 0 || stats.pendingCallups > 0) && (
+          <div className="bg-gradient-to-r from-purple-600 to-indigo-600 rounded-2xl p-3 lg:p-4 shadow-xl border-2 border-purple-500">
+            <div className="flex items-start gap-2 lg:gap-3">
+              <Users className="w-5 h-5 lg:w-6 lg:h-6 text-white flex-shrink-0 mt-0.5" />
+              <div className="flex-1">
+                <p className="text-white font-bold text-sm lg:text-lg">
+                  👨‍👩‍👧 Tareas de Mis Hijos
+                </p>
+                <div className="flex flex-wrap gap-2 mt-2">
+                  {stats.pendingSignatures > 0 && (
+                    <Link to={createPageUrl("FederationSignatures")}>
+                      <span className="inline-flex items-center gap-1 bg-yellow-500 text-white text-xs px-2 py-1 rounded-full font-semibold hover:bg-yellow-600 transition-colors">
+                        🖊️ {stats.pendingSignatures} {stats.pendingSignatures === 1 ? 'firma' : 'firmas'}
+                      </span>
+                    </Link>
+                  )}
+                  {stats.pendingCallups > 0 && (
+                    <Link to={createPageUrl("ParentCallups")}>
+                      <span className="inline-flex items-center gap-1 bg-green-500 text-white text-xs px-2 py-1 rounded-full font-semibold hover:bg-green-600 transition-colors">
+                        ⚽ {stats.pendingCallups} {stats.pendingCallups === 1 ? 'convocatoria' : 'convocatorias'}
+                      </span>
+                    </Link>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Banner de Tareas Pendientes para Entrenadores/Coordinadores/Tesoreros con hijos */}
+        {!isAdmin && (isCoach || isCoordinator || isTreasurer) && hasPlayers && (stats.pendingSignatures > 0 || stats.pendingCallups > 0) && (
+          <div className="bg-gradient-to-r from-purple-600 to-indigo-600 rounded-2xl p-3 lg:p-4 shadow-xl border-2 border-purple-500">
+            <div className="flex items-start gap-2 lg:gap-3">
+              <Bell className="w-5 h-5 lg:w-6 lg:h-6 text-white flex-shrink-0 mt-0.5" />
+              <div className="flex-1">
+                <p className="text-white font-bold text-sm lg:text-lg">
+                  👨‍👩‍👧 Tareas Pendientes de Mis Hijos
+                </p>
+                <div className="flex flex-wrap gap-2 mt-2">
+                  {stats.pendingSignatures > 0 && (
+                    <Link to={createPageUrl("FederationSignatures")}>
+                      <span className="inline-flex items-center gap-1 bg-yellow-500 text-white text-xs px-2 py-1 rounded-full font-semibold hover:bg-yellow-600 transition-colors">
+                        🖊️ {stats.pendingSignatures} {stats.pendingSignatures === 1 ? 'firma' : 'firmas'}
+                      </span>
+                    </Link>
+                  )}
+                  {stats.pendingCallups > 0 && (
+                    <Link to={createPageUrl("ParentCallups")}>
+                      <span className="inline-flex items-center gap-1 bg-green-500 text-white text-xs px-2 py-1 rounded-full font-semibold hover:bg-green-600 transition-colors">
+                        ⚽ {stats.pendingCallups} {stats.pendingCallups === 1 ? 'convocatoria' : 'convocatorias'}
                       </span>
                     </Link>
                   )}
