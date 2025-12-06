@@ -388,7 +388,7 @@ export default function CoachChat() {
                       setSelectedCategory(cat);
                       if (cat === "Chat Interno Staff") {
                         setChatSubMode("anuncios");
-                      } else if (isCoordinator && !isCoach) {
+                      } else if (cat === "Coordinación Deportiva" || (isCoordinator && !isCoach)) {
                         setChatSubMode("privado");
                       } else {
                         setChatSubMode("anuncios");
