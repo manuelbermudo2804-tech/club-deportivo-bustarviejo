@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Send, Paperclip, X, FileText, Download, Mic, Play, Pause, Search, Star, Tag, Smile, ThumbsUp, Heart, CheckCircle, Image as ImageIcon, MessageCircle, Camera, BarChart3 } from "lucide-react";
+import { Send, Paperclip, X, FileText, Download, Mic, Play, Pause, Search, Star, Tag, Smile, ThumbsUp, Heart, CheckCircle, Image as ImageIcon, MessageCircle, Camera, BarChart3, Check, CheckCheck, Folder } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { toast } from "sonner";
@@ -35,6 +35,7 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
   const [showReactions, setShowReactions] = useState(null);
   const [showImagePreview, setShowImagePreview] = useState(null);
   const [showPollDialog, setShowPollDialog] = useState(false);
+  const [showGallery, setShowGallery] = useState(false);
   const [pollQuestion, setPollQuestion] = useState("");
   const [pollOptions, setPollOptions] = useState(["", ""]);
   
@@ -308,6 +309,9 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
     toast.success("Etiqueta actualizada");
   };
 
+  // Filtrar todos los archivos compartidos
+  const allSharedFiles = messages.flatMap(m => m.adjuntos || []);
+
   const sendMessageMutation = useMutation({
     mutationFn: async (data) => {
       const newMessage = await base44.entities.CoordinatorMessage.create({
@@ -388,9 +392,19 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
               {conversation.jugadores_asociados?.map(j => `${j.jugador_nombre} (${j.categoria})`).join(', ')}
             </p>
           </div>
-          <Button variant="ghost" size="sm" onClick={onClose}>
-            <X className="w-4 h-4" />
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button 
+              variant="ghost" 
+              size="sm"
+              onClick={() => setShowGallery(!showGallery)}
+            >
+              <Folder className="w-4 h-4 mr-1" />
+              {allSharedFiles.length}
+            </Button>
+            <Button variant="ghost" size="sm" onClick={onClose}>
+              <X className="w-4 h-4" />
+            </Button>
+          </div>
         </div>
 
         {/* Barra de herramientas (solo para coordinador) */}
@@ -430,6 +444,46 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
           />
         </div>
       </div>
+
+      {/* Galería de archivos */}
+      {showGallery && (
+        <div className="p-4 bg-white border-b max-h-[300px] overflow-y-auto">
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="font-semibold text-slate-900">📁 Archivos Compartidos</h3>
+            <Button size="sm" variant="ghost" onClick={() => setShowGallery(false)}>
+              <X className="w-4 h-4" />
+            </Button>
+          </div>
+          {allSharedFiles.length === 0 ? (
+            <p className="text-sm text-slate-500 text-center py-4">No hay archivos compartidos</p>
+          ) : (
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+              {allSharedFiles.map((file, idx) => (
+                file.tipo?.startsWith('image/') ? (
+                  <img 
+                    key={idx}
+                    src={file.url}
+                    alt={file.nombre}
+                    className="w-full h-24 object-cover rounded cursor-pointer hover:opacity-80"
+                    onClick={() => setShowImagePreview(file.url)}
+                  />
+                ) : (
+                  <a
+                    key={idx}
+                    href={file.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex flex-col items-center gap-1 p-3 bg-slate-100 rounded hover:bg-slate-200"
+                  >
+                    <FileText className="w-8 h-8 text-slate-600" />
+                    <span className="text-xs truncate w-full text-center">{file.nombre}</span>
+                  </a>
+                )
+              ))}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Mensajes */}
       <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-slate-50">
@@ -499,18 +553,30 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
                 <div className="flex items-center justify-between mt-1">
                   <p className="text-xs opacity-60">
                     {format(new Date(msg.created_date), "HH:mm", { locale: es })}
-                    {isMine && (isCoordinator ? msg.leido_padre : msg.leido_coordinador) && " · Visto"}
                   </p>
                   
-                  {/* Botón de reacciones */}
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    className="opacity-0 group-hover:opacity-100 h-6 w-6 p-0"
-                    onClick={() => setShowReactions(msg.id)}
-                  >
-                    <Smile className="w-3 h-3" />
-                  </Button>
+                  <div className="flex items-center gap-2">
+                    {/* Confirmación de lectura (doble check) */}
+                    {isMine && (
+                      <div className="flex items-center gap-1">
+                        {(isCoordinator ? msg.leido_padre : msg.leido_coordinador) ? (
+                          <CheckCheck className="w-4 h-4 text-cyan-400" />
+                        ) : (
+                          <Check className="w-4 h-4 opacity-50" />
+                        )}
+                      </div>
+                    )}
+                    
+                    {/* Botón de reacciones */}
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="opacity-0 group-hover:opacity-100 h-6 w-6 p-0"
+                      onClick={() => setShowReactions(msg.id)}
+                    >
+                      <Smile className="w-3 h-3" />
+                    </Button>
+                  </div>
                 </div>
 
                 {/* Selector de reacciones */}

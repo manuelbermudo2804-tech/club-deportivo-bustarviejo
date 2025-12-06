@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Send, Paperclip, X, FileText, Download, MessageCircle, Info } from "lucide-react";
+import { Send, Paperclip, X, FileText, Download, MessageCircle, Info, Check, CheckCheck, Folder, Image as ImageIcon, Camera } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { toast } from "sonner";
@@ -17,6 +17,8 @@ export default function ParentCoordinatorChat() {
   const [attachments, setAttachments] = useState([]);
   const [uploading, setUploading] = useState(false);
   const [conversation, setConversation] = useState(null);
+  const [showGallery, setShowGallery] = useState(false);
+  const [showImagePreview, setShowImagePreview] = useState(null);
   const messagesEndRef = useRef(null);
   const queryClient = useQueryClient();
 
@@ -117,6 +119,30 @@ export default function ParentCoordinatorChat() {
     }
   };
 
+  const handleCameraCapture = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    
+    setUploading(true);
+    try {
+      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+      setAttachments([...attachments, {
+        url: file_url,
+        nombre: file.name,
+        tipo: file.type,
+        tamano: file.size
+      }]);
+      toast.success("Foto capturada");
+    } catch (error) {
+      toast.error("Error al capturar foto");
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  // Filtrar todos los archivos compartidos
+  const allSharedFiles = messages.flatMap(m => m.adjuntos || []);
+
   const sendMessageMutation = useMutation({
     mutationFn: async (data) => {
       const newMessage = await base44.entities.CoordinatorMessage.create({
@@ -166,10 +192,21 @@ export default function ParentCoordinatorChat() {
     <div className="max-w-4xl mx-auto p-4 space-y-4">
       <Card className="border-cyan-200 shadow-lg">
         <CardHeader className="bg-gradient-to-r from-cyan-600 to-cyan-700 text-white">
-          <CardTitle className="flex items-center gap-2">
-            <MessageCircle className="w-6 h-6" />
-            Chat con el Coordinador
-          </CardTitle>
+          <div className="flex items-center justify-between">
+            <CardTitle className="flex items-center gap-2">
+              <MessageCircle className="w-6 h-6" />
+              Chat con el Coordinador
+            </CardTitle>
+            <Button 
+              variant="ghost" 
+              size="sm"
+              onClick={() => setShowGallery(!showGallery)}
+              className="text-white hover:bg-white/20"
+            >
+              <Folder className="w-4 h-4 mr-2" />
+              Archivos ({allSharedFiles.length})
+            </Button>
+          </div>
         </CardHeader>
         <CardContent className="p-0">
           <Alert className="m-4 bg-cyan-50 border-cyan-200">
@@ -178,6 +215,46 @@ export default function ParentCoordinatorChat() {
               <strong>💬 Chat con el Coordinador:</strong> Partidos, horarios, equipos, quejas o sugerencias
             </AlertDescription>
           </Alert>
+
+          {/* Galería de archivos */}
+          {showGallery && (
+            <div className="p-4 bg-white border-b max-h-[300px] overflow-y-auto">
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="font-semibold text-slate-900">📁 Archivos Compartidos</h3>
+                <Button size="sm" variant="ghost" onClick={() => setShowGallery(false)}>
+                  <X className="w-4 h-4" />
+                </Button>
+              </div>
+              {allSharedFiles.length === 0 ? (
+                <p className="text-sm text-slate-500 text-center py-4">No hay archivos compartidos</p>
+              ) : (
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                  {allSharedFiles.map((file, idx) => (
+                    file.tipo?.startsWith('image/') ? (
+                      <img 
+                        key={idx}
+                        src={file.url}
+                        alt={file.nombre}
+                        className="w-full h-24 object-cover rounded cursor-pointer hover:opacity-80"
+                        onClick={() => setShowImagePreview(file.url)}
+                      />
+                    ) : (
+                      <a
+                        key={idx}
+                        href={file.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex flex-col items-center gap-1 p-3 bg-slate-100 rounded hover:bg-slate-200"
+                      >
+                        <FileText className="w-8 h-8 text-slate-600" />
+                        <span className="text-xs truncate w-full text-center">{file.nombre}</span>
+                      </a>
+                    )
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Mensajes */}
           <div className="h-[500px] overflow-y-auto p-4 space-y-3 bg-slate-50">
@@ -189,6 +266,8 @@ export default function ParentCoordinatorChat() {
             ) : (
               messages.map((msg) => {
                 const isPadre = msg.autor === "padre";
+                const isImage = msg.adjuntos?.some(f => f.tipo?.startsWith('image/'));
+                
                 return (
                   <div key={msg.id} className={`flex ${isPadre ? 'justify-end' : 'justify-start'}`}>
                     <div className={`max-w-[70%] ${isPadre ? 'bg-slate-800 text-white' : 'bg-white text-slate-900 border'} rounded-2xl p-3 shadow-sm`}>
@@ -197,24 +276,44 @@ export default function ParentCoordinatorChat() {
                       {msg.adjuntos?.length > 0 && (
                         <div className="mt-2 space-y-1">
                           {msg.adjuntos.map((file, idx) => (
-                            <a
-                              key={idx}
-                              href={file.url}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className={`flex items-center gap-2 text-xs p-2 rounded ${isPadre ? 'bg-slate-700' : 'bg-slate-100'}`}
-                            >
-                              <FileText className="w-3 h-3" />
-                              <span className="flex-1 truncate">{file.nombre}</span>
-                              <Download className="w-3 h-3" />
-                            </a>
+                            file.tipo?.startsWith('image/') ? (
+                              <img 
+                                key={idx}
+                                src={file.url}
+                                alt={file.nombre}
+                                className="rounded cursor-pointer max-w-full h-auto hover:opacity-80"
+                                onClick={() => setShowImagePreview(file.url)}
+                              />
+                            ) : (
+                              <a
+                                key={idx}
+                                href={file.url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className={`flex items-center gap-2 text-xs p-2 rounded ${isPadre ? 'bg-slate-700' : 'bg-slate-100'}`}
+                              >
+                                <FileText className="w-3 h-3" />
+                                <span className="flex-1 truncate">{file.nombre}</span>
+                                <Download className="w-3 h-3" />
+                              </a>
+                            )
                           ))}
                         </div>
                       )}
-                      <p className="text-xs mt-1 opacity-60">
-                        {format(new Date(msg.created_date), "HH:mm", { locale: es })}
-                        {isPadre && msg.leido_coordinador && " · Visto"}
-                      </p>
+                      <div className="flex items-center justify-between mt-1">
+                        <p className="text-xs opacity-60">
+                          {format(new Date(msg.created_date), "HH:mm", { locale: es })}
+                        </p>
+                        {isPadre && (
+                          <div className="flex items-center gap-1">
+                            {msg.leido_coordinador ? (
+                              <CheckCheck className="w-4 h-4 text-cyan-400" />
+                            ) : (
+                              <Check className="w-4 h-4 opacity-50" />
+                            )}
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </div>
                 );
@@ -228,23 +327,45 @@ export default function ParentCoordinatorChat() {
             {attachments.length > 0 && (
               <div className="mb-2 flex flex-wrap gap-2">
                 {attachments.map((file, idx) => (
-                  <div key={idx} className="bg-slate-100 rounded px-2 py-1 text-xs flex items-center gap-2">
-                    <FileText className="w-3 h-3" />
-                    <span className="truncate max-w-[150px]">{file.nombre}</span>
-                    <button onClick={() => setAttachments(attachments.filter((_, i) => i !== idx))}>
-                      <X className="w-3 h-3" />
-                    </button>
+                  <div key={idx} className="relative">
+                    {file.tipo?.startsWith('image/') ? (
+                      <div className="relative">
+                        <img src={file.url} alt="" className="w-16 h-16 object-cover rounded" />
+                        <button 
+                          onClick={() => setAttachments(attachments.filter((_, i) => i !== idx))}
+                          className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center"
+                        >
+                          <X className="w-3 h-3" />
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="bg-slate-100 rounded px-2 py-1 text-xs flex items-center gap-2">
+                        <FileText className="w-3 h-3" />
+                        <span className="truncate max-w-[150px]">{file.nombre}</span>
+                        <button onClick={() => setAttachments(attachments.filter((_, i) => i !== idx))}>
+                          <X className="w-3 h-3" />
+                        </button>
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>
             )}
             <div className="flex gap-2">
-              <label className="cursor-pointer">
-                <input type="file" multiple className="hidden" onChange={handleFileUpload} disabled={uploading} />
-                <Button type="button" variant="outline" size="icon" disabled={uploading}>
-                  <Paperclip className="w-4 h-4" />
-                </Button>
-              </label>
+              <div className="flex gap-1">
+                <label className="cursor-pointer">
+                  <input type="file" multiple accept="*/*" className="hidden" onChange={handleFileUpload} disabled={uploading} />
+                  <Button type="button" variant="outline" size="icon" disabled={uploading}>
+                    <Paperclip className="w-4 h-4" />
+                  </Button>
+                </label>
+                <label className="cursor-pointer">
+                  <input type="file" accept="image/*" capture="environment" className="hidden" onChange={handleCameraCapture} disabled={uploading} />
+                  <Button type="button" variant="outline" size="icon" disabled={uploading}>
+                    <Camera className="w-4 h-4" />
+                  </Button>
+                </label>
+              </div>
               <Textarea
                 placeholder="Escribe tu mensaje..."
                 value={messageText}
@@ -265,6 +386,23 @@ export default function ParentCoordinatorChat() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Vista previa de imagen */}
+      {showImagePreview && (
+        <div className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4" onClick={() => setShowImagePreview(null)}>
+          <div className="relative max-w-4xl w-full">
+            <Button 
+              variant="ghost" 
+              size="icon"
+              onClick={() => setShowImagePreview(null)}
+              className="absolute top-4 right-4 bg-white/20 hover:bg-white/30 text-white"
+            >
+              <X className="w-6 h-6" />
+            </Button>
+            <img src={showImagePreview} alt="Preview" className="w-full h-auto rounded-lg" />
+          </div>
+        </div>
+      )}
     </div>
   );
 }
