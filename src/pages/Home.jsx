@@ -13,7 +13,7 @@ import ClubStats from "../components/dashboard/ClubStats";
 import DashboardCardSkeleton from "../components/skeletons/DashboardCardSkeleton";
 import AlertCenter from "../components/dashboard/AlertCenter";
 import DuplicatePlayersAlert from "../components/admin/DuplicatePlayersAlert";
-import ChatAlertBanner from "../components/dashboard/ChatAlertBanner";
+
 
 const CLUB_LOGO_URL = "https://www.cdbustarviejo.com/uploads/2/4/0/4/2404974/logo-cd-bustarviejo-cuadrado-xpeq_orig.png";
 
@@ -496,14 +496,7 @@ export default function Home() {
           badge: stats.pendingPayments + stats.reviewPayments,
           badgeLabel: "pendientes"
         },
-        {
-          title: "💬 Chat Grupos",
-          icon: MessageCircle,
-          url: createPageUrl("AdminChat"),
-          gradient: "from-teal-600 to-teal-700",
-          badge: stats.unreadMessages,
-          badgeLabel: "nuevos"
-        },
+
         {
           title: "🖊️ Firmas Federación",
           icon: FileSignature,
@@ -859,14 +852,7 @@ export default function Home() {
           url: createPageUrl("CoachCallups"),
           gradient: "from-yellow-600 to-yellow-700",
         },
-        {
-          title: "💬 Chat Equipos",
-          icon: MessageCircle,
-          url: createPageUrl("CoachChat"),
-          gradient: "from-blue-600 to-blue-700",
-          badge: stats.unreadMessages,
-          badgeLabel: "nuevos"
-        }
+
       );
 
       // 2. GESTIÓN DEPORTIVA

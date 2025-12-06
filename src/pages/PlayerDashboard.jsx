@@ -397,35 +397,26 @@ export default function PlayerDashboard() {
           </CardContent>
         </Card>
 
-        {/* Mensajes y Anuncios */}
+        {/* Anuncios del Equipo */}
         <Card className="border-none shadow-lg">
           <CardHeader className="pb-2">
             <CardTitle className="flex items-center justify-between">
               <span className="flex items-center gap-2 text-lg">
-                <MessageCircle className="w-5 h-5 text-blue-600" />
-                Mensajes del Equipo
+                <Megaphone className="w-5 h-5 text-pink-600" />
+                Anuncios del Equipo
               </span>
-              <Link to={createPageUrl("ParentChat")}>
-                <Button variant="ghost" size="sm" className="text-blue-600">
-                  Ver chat <ChevronRight className="w-4 h-4 ml-1" />
+              <Link to={createPageUrl("Announcements")}>
+                <Button variant="ghost" size="sm" className="text-pink-600">
+                  Ver todos <ChevronRight className="w-4 h-4 ml-1" />
                 </Button>
               </Link>
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
-            {unreadMessages.length > 0 && (
-              <div className="bg-blue-50 border border-blue-200 rounded-xl p-3 mb-3">
-                <p className="text-sm text-blue-800 font-medium">
-                  <MessageCircle className="w-4 h-4 inline mr-1" />
-                  Tienes <strong>{unreadMessages.length}</strong> mensaje{unreadMessages.length > 1 ? 's' : ''} sin leer
-                </p>
-              </div>
-            )}
-            
-            {announcements.length === 0 && unreadMessages.length === 0 ? (
+            {announcements.length === 0 ? (
               <div className="text-center py-6 text-slate-500">
-                <MessageCircle className="w-10 h-10 mx-auto mb-2 text-slate-300" />
-                <p>No hay mensajes nuevos</p>
+                <Megaphone className="w-10 h-10 mx-auto mb-2 text-slate-300" />
+                <p>No hay anuncios nuevos</p>
               </div>
             ) : (
               announcements.map(announcement => (
@@ -501,19 +492,7 @@ export default function PlayerDashboard() {
           </div>
         </Link>
 
-        <Link to={createPageUrl("ParentChat")} className="group">
-          <div className="relative bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 active:scale-95">
-            <div className="p-6 flex flex-col items-center justify-center min-h-[140px]">
-              <MessageCircle className="w-12 h-12 text-white mb-3" />
-              <h3 className="text-white font-bold text-center text-base">💬 Chat Equipo</h3>
-              {unreadMessages.length > 0 && (
-                <Badge className="mt-2 bg-red-500 text-white animate-pulse">
-                  {unreadMessages.length} nuevos
-                </Badge>
-              )}
-            </div>
-          </div>
-        </Link>
+
 
         <Link to={createPageUrl("CalendarAndSchedules")} className="group">
           <div className="relative bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 active:scale-95">

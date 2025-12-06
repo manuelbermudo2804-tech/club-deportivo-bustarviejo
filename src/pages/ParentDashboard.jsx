@@ -12,7 +12,7 @@ import ParentOnboarding from "@/components/onboarding/ParentOnboarding";
 import AlertCenter from "../components/dashboard/AlertCenter";
 import ContactCard from "../components/ContactCard";
 import { usePageTutorial } from "../components/tutorials/useTutorial";
-import ChatAlertBanner from "../components/dashboard/ChatAlertBanner";
+
 
 // Componente para compartir Fútbol Femenino (sin referidos)
 function FemeninoShareBanner() {
@@ -473,12 +473,7 @@ export default function ParentDashboard() {
   // Menú base que siempre se muestra (sin depender de datos cargados)
   const baseMenuItems = [
     // 💬 COMUNICACIÓN (uso diario)
-    {
-      title: "💬 Chat Equipo",
-      icon: MessageCircle,
-      url: createPageUrl("ParentChat"),
-      gradient: "from-teal-600 to-teal-700",
-    },
+
     // ⚽ ACCIONES URGENTES
     {
       title: "🏆 Convocatorias",
@@ -669,52 +664,7 @@ export default function ParentDashboard() {
           isParent={true}
         />
 
-        {/* COORDINADOR DEPORTIVO BANNER */}
-        <div className="bg-gradient-to-r from-blue-600 via-blue-700 to-cyan-600 rounded-2xl p-4 lg:p-6 shadow-xl border-2 border-blue-500">
-          <div className="flex items-start gap-3 lg:gap-4">
-            <div className="w-10 h-10 lg:w-12 lg:h-12 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center flex-shrink-0">
-              <span className="text-2xl lg:text-3xl">🎓</span>
-            </div>
-            <div className="flex-1 min-w-0">
-              <h3 className="text-white font-bold text-base lg:text-xl mb-1 lg:mb-2">
-                ¿Dudas técnicas o deportivas? Habla con nuestro Coordinador
-              </h3>
-              <div className="space-y-1.5 lg:space-y-2 mb-3 lg:mb-4">
-                <p className="text-blue-50 text-xs lg:text-sm">
-                  El <strong>Coordinador-Director Deportivo</strong> del club está para ayudarte con temas técnicos:
-                </p>
-                <ul className="space-y-1 text-blue-50 text-xs lg:text-sm">
-                  <li className="flex items-start gap-2">
-                    <span className="text-yellow-300 flex-shrink-0">⚽</span>
-                    <span>Consultas sobre entrenamientos, metodología y equipos</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="text-green-300 flex-shrink-0">📊</span>
-                    <span>Dudas sobre rendimiento, evolución o evaluaciones</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="text-orange-300 flex-shrink-0">🎯</span>
-                    <span>Sugerencias deportivas y mejoras técnicas</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="text-red-300 flex-shrink-0">⚠️</span>
-                    <span>Quejas o problemas relacionados con lo deportivo</span>
-                  </li>
-                </ul>
-                <p className="text-blue-100 text-[10px] lg:text-xs mt-2 pt-2 border-t border-blue-400/30">
-                  <strong>Nota:</strong> Para pagos, inscripciones o temas administrativos, contacta con la oficina del club
-                </p>
-              </div>
-              <button 
-                onClick={() => navigate(createPageUrl("ParentChat") + "?group=" + encodeURIComponent("Coordinación Deportiva"))}
-                className="w-full lg:w-auto bg-white hover:bg-blue-50 text-blue-700 font-bold py-2.5 px-6 rounded-xl shadow-lg transition-all hover:scale-105 active:scale-95 flex items-center justify-center gap-2"
-              >
-                <MessageCircle className="w-4 h-4 lg:w-5 lg:h-5" />
-                <span className="text-sm lg:text-base">Contactar con Coordinación</span>
-              </button>
-            </div>
-          </div>
-        </div>
+
 
         {/* HAZTE SOCIO BANNER */}
         <Link to={createPageUrl("ClubMembership")}>
