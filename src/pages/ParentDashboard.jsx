@@ -702,7 +702,7 @@ export default function ParentDashboard() {
           upcomingEvents={0}
           overduePayments={overduePayments}
           newGalleryPhotos={0}
-          unreadCoordinatorMessages={unreadCoordinatorMessages}
+          unreadCoordinatorMessages={0}
           isAdmin={false}
           isCoach={false}
           isParent={true}

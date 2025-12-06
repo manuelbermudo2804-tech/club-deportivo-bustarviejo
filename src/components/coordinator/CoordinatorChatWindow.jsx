@@ -343,18 +343,6 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
         archivada: false
       });
 
-      // Notificación push
-      const targetEmail = isCoordinator ? conversation.padre_email : user.email;
-      await base44.entities.AppNotification.create({
-        usuario_email: targetEmail,
-        titulo: `💬 ${isCoordinator ? 'Coordinador' : conversation.padre_nombre}`,
-        mensaje: data.mensaje.substring(0, 100),
-        tipo: "coordinador_chat",
-        icono: "💬",
-        enlace: isCoordinator ? "ParentCoordinatorChat" : "CoordinatorChat",
-        vista: false
-      });
-
       return newMessage;
     },
     onSuccess: () => {
