@@ -419,11 +419,10 @@ export default function CoachChat() {
         )}
 
         {/* MÓVIL: Chat a pantalla completa */}
-        {isMobile && selectedCategory && !fullscreenChat && (
+        {isMobile && selectedCategory && !fullscreenChat && selectedCategory !== "Coordinación Deportiva" && (
           <div className="flex-1 flex flex-col overflow-hidden">
             <div className={`p-4 text-white flex items-center gap-3 shadow-md flex-shrink-0 ${
               isStaffChat ? 'bg-gradient-to-r from-purple-600 to-purple-700' 
-              : isCoordinationChat ? 'bg-gradient-to-r from-green-600 to-green-700' 
               : 'bg-gradient-to-r from-blue-600 to-blue-700'
             }`}>
               <button
@@ -438,7 +437,7 @@ export default function CoachChat() {
               <div className="flex-1 min-w-0">
                 <h2 className="font-bold text-lg truncate">{selectedCategory}</h2>
                 <p className="text-xs opacity-90 truncate">
-                  {isStaffChat ? "Chat interno" : isCoordinationChat ? "Chat coordinación" : "Anuncios grupo"}
+                  {isStaffChat ? "Chat interno" : "Anuncios grupo"}
                 </p>
               </div>
             </div>
@@ -494,6 +493,66 @@ export default function CoachChat() {
                   )}
                 </Button>
               </div>
+            </div>
+          </div>
+        )}
+
+        {/* MÓVIL: Coordinación Deportiva - Solo lista de chats privados */}
+        {isMobile && selectedCategory === "Coordinación Deportiva" && !fullscreenChat && (
+          <div className="flex-1 flex flex-col overflow-hidden">
+            <div className="p-4 bg-gradient-to-r from-cyan-600 to-cyan-700 text-white flex items-center gap-3 shadow-md flex-shrink-0">
+              <button
+                onClick={() => setSelectedCategory(null)}
+                className="p-2 hover:bg-white/20 rounded-lg transition-colors -ml-1"
+              >
+                <ArrowLeft className="w-6 h-6" />
+              </button>
+              <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center flex-shrink-0">
+                <span className="text-2xl">🎓</span>
+              </div>
+              <div className="flex-1 min-w-0">
+                <h2 className="font-bold text-lg">Coordinación</h2>
+                <p className="text-xs opacity-90">Chats privados con familias</p>
+              </div>
+            </div>
+
+            <div className="flex-1 overflow-y-auto bg-slate-50">
+              {categoryPrivateConversations.length === 0 ? (
+                <div className="flex items-center justify-center h-full p-6">
+                  <div className="text-center text-slate-500 bg-white rounded-xl p-6">
+                    <MessageCircle className="w-12 h-12 mx-auto mb-2 opacity-50" />
+                    <p className="text-sm">No hay conversaciones</p>
+                  </div>
+                </div>
+              ) : (
+                <div className="divide-y">
+                  {categoryPrivateConversations.map(conv => (
+                    <button
+                      key={conv.id}
+                      onClick={() => {
+                        setSelectedConversation(conv);
+                        setFullscreenChat(true);
+                      }}
+                      className="w-full p-4 flex items-center gap-3 bg-white hover:bg-slate-50 transition-colors text-left"
+                    >
+                      <div className="w-12 h-12 rounded-full bg-cyan-100 flex items-center justify-center flex-shrink-0">
+                        <User className="w-6 h-6 text-cyan-700" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-semibold text-slate-900 truncate">
+                          {conv.participante_familia_nombre}
+                        </p>
+                        <p className="text-sm text-slate-500 truncate">
+                          {conv.ultimo_mensaje || "Sin mensajes"}
+                        </p>
+                      </div>
+                      {(conv.no_leidos_staff || 0) > 0 && (
+                        <Badge className="bg-cyan-500 text-white">{conv.no_leidos_staff}</Badge>
+                      )}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         )}
@@ -559,6 +618,49 @@ export default function CoachChat() {
                   <div className="bg-white rounded-xl shadow-md border p-12 text-center">
                     <Users className="w-16 h-16 mx-auto mb-4 text-slate-300" />
                     <p className="text-slate-600 font-medium">Selecciona una categoría</p>
+                  </div>
+                ) : selectedCategory === "Coordinación Deportiva" ? (
+                  <div className="bg-white rounded-xl shadow-md border overflow-hidden" style={{ height: '70vh' }}>
+                    <div className="p-4 bg-gradient-to-r from-cyan-600 to-cyan-700 text-white">
+                      <h3 className="font-bold">Coordinación Deportiva</h3>
+                      <p className="text-xs text-cyan-100">Chats privados con familias</p>
+                    </div>
+                    <div className="h-[calc(100%-4rem)] overflow-y-auto divide-y">
+                      {categoryPrivateConversations.length === 0 ? (
+                        <div className="flex items-center justify-center h-full">
+                          <div className="text-center text-slate-500">
+                            <MessageCircle className="w-12 h-12 mx-auto mb-2 opacity-50" />
+                            <p className="text-sm">No hay conversaciones privadas</p>
+                          </div>
+                        </div>
+                      ) : (
+                        categoryPrivateConversations.map(conv => (
+                          <button
+                            key={conv.id}
+                            onClick={() => {
+                              setSelectedConversation(conv);
+                              if (isMobile) setFullscreenChat(true);
+                            }}
+                            className="w-full p-4 flex items-center gap-3 hover:bg-slate-50 transition-colors text-left"
+                          >
+                            <div className="w-12 h-12 rounded-full bg-cyan-100 flex items-center justify-center flex-shrink-0">
+                              <User className="w-6 h-6 text-cyan-700" />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="font-semibold text-slate-900 truncate">
+                                {conv.participante_familia_nombre}
+                              </p>
+                              <p className="text-sm text-slate-500 truncate">
+                                {conv.ultimo_mensaje || "Sin mensajes"}
+                              </p>
+                            </div>
+                            {(conv.no_leidos_staff || 0) > 0 && (
+                              <Badge className="bg-cyan-500 text-white">{conv.no_leidos_staff}</Badge>
+                            )}
+                          </button>
+                        ))
+                      )}
+                    </div>
                   </div>
                 ) : (
                   <div className="bg-white rounded-xl shadow-md border p-4 text-center">
