@@ -26,13 +26,28 @@ export default function CoachThreadedView({
   isSending = false,
   sportEmoji = "⚽",
   priority = "Normal",
-  onPriorityChange
+  onPriorityChange,
+  onTypingChange
 }) {
   const [messageContent, setMessageContent] = useState("");
   const [attachments, setAttachments] = useState([]);
   const [replyingToFamily, setReplyingToFamily] = useState(null);
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
+  const typingTimeoutRef = useRef(null);
+
+  const handleInputChange = (e) => {
+    const value = e.target.value;
+    setMessageContent(value);
+
+    if (onTypingChange && value.length > 0) {
+      onTypingChange(true);
+      if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+      typingTimeoutRef.current = setTimeout(() => onTypingChange(false), 3000);
+    } else if (onTypingChange && value.length === 0) {
+      onTypingChange(false);
+    }
+  };
 
   // Crear estructura de hilos unificada cronológica
   const threadedMessages = React.useMemo(() => {
@@ -332,7 +347,7 @@ export default function CoachThreadedView({
           <Input
             ref={inputRef}
             value={messageContent}
-            onChange={(e) => setMessageContent(e.target.value)}
+            onChange={handleInputChange}
             placeholder={replyingToFamily 
               ? `Respuesta privada a ${replyingToFamily.familyName}...` 
               : "Anuncio al grupo..."}

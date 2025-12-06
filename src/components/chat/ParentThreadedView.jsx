@@ -24,7 +24,8 @@ export default function ParentThreadedView({
   onSendPrivateMessage,
   onVotePoll,
   isSending = false,
-  sportEmoji = "⚽"
+  sportEmoji = "⚽",
+  onTypingChange
 }) {
   const [messageContent, setMessageContent] = useState("");
   const [attachments, setAttachments] = useState([]);
@@ -32,6 +33,28 @@ export default function ParentThreadedView({
   const [showQuickReplies, setShowQuickReplies] = useState(false);
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
+  const typingTimeoutRef = useRef(null);
+
+  // Detectar cuando el usuario está escribiendo
+  const handleInputChange = (e) => {
+    const value = e.target.value;
+    setMessageContent(value);
+
+    // Notificar que está escribiendo
+    if (onTypingChange && value.length > 0) {
+      onTypingChange(true);
+
+      // Cancelar typing después de 3s sin escribir
+      if (typingTimeoutRef.current) {
+        clearTimeout(typingTimeoutRef.current);
+      }
+      typingTimeoutRef.current = setTimeout(() => {
+        onTypingChange(false);
+      }, 3000);
+    } else if (onTypingChange && value.length === 0) {
+      onTypingChange(false);
+    }
+  };
 
   // Crear estructura de hilos - SOLO mensajes de ESTA familia
   const threadedMessages = React.useMemo(() => {
@@ -356,7 +379,7 @@ export default function ParentThreadedView({
             <Input
               ref={inputRef}
               value={messageContent}
-              onChange={(e) => setMessageContent(e.target.value)}
+              onChange={handleInputChange}
               placeholder="Escribe tu respuesta privada al entrenador..."
               className="flex-1 rounded-full text-base"
               onKeyDown={(e) => {

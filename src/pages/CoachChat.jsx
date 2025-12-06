@@ -66,7 +66,7 @@ export default function CoachChat() {
     refetchOnWindowFocus: true,
     staleTime: 10000,
     gcTime: 60000,
-    refetchInterval: 30000,
+    refetchInterval: false, // Controlado por useAdaptivePolling
   });
 
   const { data: allPlayers = [], isLoading: loadingPlayers } = useQuery({
@@ -79,7 +79,7 @@ export default function CoachChat() {
     queryFn: () => base44.entities.PrivateConversation.list('-ultimo_mensaje_fecha'),
     staleTime: 10000,
     gcTime: 60000,
-    refetchInterval: 30000,
+    refetchInterval: false, // Controlado por useAdaptivePolling
     refetchOnWindowFocus: true,
   });
 
@@ -91,7 +91,7 @@ export default function CoachChat() {
     enabled: !!selectedConversation?.id,
     staleTime: 10000,
     gcTime: 60000,
-    refetchInterval: 30000,
+    refetchInterval: false, // Controlado por useAdaptivePolling
   });
 
   // Obtener TODOS los mensajes privados de la categoría para vista unificada
@@ -113,7 +113,7 @@ export default function CoachChat() {
     },
     enabled: !!selectedCategory && selectedCategory !== "Coordinación Deportiva" && selectedCategory !== "Chat Interno Staff",
     staleTime: 10000,
-    refetchInterval: 30000,
+    refetchInterval: false, // Controlado por useAdaptivePolling
   });
 
   const isAdmin = user?.role === "admin";

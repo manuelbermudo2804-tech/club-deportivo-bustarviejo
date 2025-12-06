@@ -15,6 +15,7 @@ import MessageAttachments from "../components/chat/MessageAttachments";
 import PollMessage from "../components/chat/PollMessage";
 import DateSeparator, { groupMessagesByDate } from "../components/chat/DateSeparator";
 import useChatSound from "../components/chat/useChatSound";
+import useAdaptivePolling from "../components/chat/useAdaptivePolling";
 
 const FAMILIES_CAN_SEND_ATTACHMENTS = true;
 
@@ -24,11 +25,23 @@ export default function ParentChat() {
   const [coordinationTab, setCoordinationTab] = useState("chat");
   const [user, setUser] = useState(null);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  const [isTyping, setIsTyping] = useState(false);
   const messagesEndRef = useRef(null);
   const coordinationMessagesEndRef = useRef(null);
   const prevMessagesCountRef = useRef(0);
   const queryClient = useQueryClient();
   const { playNotificationSound } = useChatSound();
+
+  // Polling adaptativo inteligente
+  useAdaptivePolling({
+    queryKeys: [
+      ['chatMessages'],
+      ['myPrivateConversations', user?.email],
+      ['privateMessages', activePrivateChat?.id]
+    ],
+    isActive: !!selectedCategory,
+    isTyping: isTyping
+  });
 
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth < 768);
@@ -46,7 +59,7 @@ export default function ParentChat() {
     staleTime: 10000,
     gcTime: 60000,
     refetchOnWindowFocus: true,
-    refetchInterval: 30000,
+    refetchInterval: false, // Controlado por useAdaptivePolling
   });
 
   const { data: players = [], isLoading: loadingPlayers } = useQuery({
@@ -69,7 +82,7 @@ export default function ParentChat() {
     enabled: !!user?.email,
     staleTime: 10000,
     gcTime: 60000,
-    refetchInterval: 30000,
+    refetchInterval: false, // Controlado por useAdaptivePolling
     refetchOnWindowFocus: true,
   });
 
@@ -81,7 +94,7 @@ export default function ParentChat() {
     enabled: !!activePrivateChat?.id,
     staleTime: 10000,
     gcTime: 60000,
-    refetchInterval: 30000,
+    refetchInterval: false, // Controlado por useAdaptivePolling
   });
 
   const normalizeDeporte = (deporte) => {
@@ -525,7 +538,8 @@ export default function ParentChat() {
             onVotePoll={(msgId, optIdx) => voteOnPollMutation.mutate({ messageId: msgId, optionIndex: optIdx })}
             isSending={sendPrivateMessageMutation.isPending}
             sportEmoji={sportEmojis[selectedCategory]}
-          />
+            onTypingChange={setIsTyping}
+            />
         </div>
       )}
 
@@ -653,6 +667,7 @@ export default function ParentChat() {
                     onVotePoll={(msgId, optIdx) => voteOnPollMutation.mutate({ messageId: msgId, optionIndex: optIdx })}
                     isSending={sendPrivateMessageMutation?.isPending || false}
                     sportEmoji={sportEmojis[selectedCategory]}
+                    onTypingChange={setIsTyping}
                   />
                 </div>
               )}
