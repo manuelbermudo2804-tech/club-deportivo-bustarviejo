@@ -8,8 +8,6 @@ import ParentPayments from './pages/ParentPayments';
 import ParentPlayers from './pages/ParentPlayers';
 import Announcements from './pages/Announcements';
 import PaymentHistory from './pages/PaymentHistory';
-import AdminChat from './pages/AdminChat';
-import ParentChat from './pages/ParentChat';
 import UserManagement from './pages/UserManagement';
 import OrderManagement from './pages/OrderManagement';
 import ParentOrders from './pages/ParentOrders';
@@ -20,7 +18,6 @@ import AdminGallery from './pages/AdminGallery';
 import ParentGallery from './pages/ParentGallery';
 import CoachCallups from './pages/CoachCallups';
 import ParentCallups from './pages/ParentCallups';
-import CoachChat from './pages/CoachChat';
 import TeamRosters from './pages/TeamRosters';
 import CoachAttendance from './pages/CoachAttendance';
 import PlayerEvaluations from './pages/PlayerEvaluations';
@@ -83,8 +80,6 @@ export const PAGES = {
     "ParentPlayers": ParentPlayers,
     "Announcements": Announcements,
     "PaymentHistory": PaymentHistory,
-    "AdminChat": AdminChat,
-    "ParentChat": ParentChat,
     "UserManagement": UserManagement,
     "OrderManagement": OrderManagement,
     "ParentOrders": ParentOrders,
@@ -95,7 +90,6 @@ export const PAGES = {
     "ParentGallery": ParentGallery,
     "CoachCallups": CoachCallups,
     "ParentCallups": ParentCallups,
-    "CoachChat": CoachChat,
     "TeamRosters": TeamRosters,
     "CoachAttendance": CoachAttendance,
     "PlayerEvaluations": PlayerEvaluations,
