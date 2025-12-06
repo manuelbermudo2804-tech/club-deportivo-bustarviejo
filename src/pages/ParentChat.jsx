@@ -349,7 +349,7 @@ export default function ParentChat() {
   }
 
   return (
-    <div className={`${isMobile ? 'h-screen flex flex-col overflow-hidden' : 'p-4 lg:p-6 min-h-screen bg-slate-50'}`}>
+    <div className={`${isMobile ? 'fixed inset-0 flex flex-col overflow-hidden bg-white' : 'p-4 lg:p-6 min-h-screen bg-slate-50'}`} style={isMobile ? { top: '120px' } : {}}>
       {/* MÓVIL: Lista de equipos */}
       {isMobile && !selectedCategory && (
         <div className="flex-1 flex flex-col overflow-hidden">

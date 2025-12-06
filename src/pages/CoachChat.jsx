@@ -370,7 +370,7 @@ export default function CoachChat() {
         messages={currentGroupMessages}
       />
       
-      <div className={`${isMobile ? 'h-screen flex flex-col overflow-hidden' : 'p-4 lg:p-6'}`}>
+      <div className={`${isMobile ? 'fixed inset-0 flex flex-col overflow-hidden bg-white' : 'p-4 lg:p-6'}`} style={isMobile ? { top: '120px' } : {}}>
         {/* MÓVIL: Lista de categorías */}
         {isMobile && !selectedCategory && !fullscreenChat && (
           <div className="flex-1 flex flex-col overflow-hidden">

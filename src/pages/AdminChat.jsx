@@ -677,7 +677,7 @@ export default function AdminChat() {
         </DialogContent>
       </Dialog>
       
-      <div className={`${isMobile ? 'fixed inset-0 flex flex-col bg-white' : 'p-4 lg:p-6 min-h-screen bg-slate-50'}`} style={isMobile ? { top: '120px' } : {}}>
+      <div className={`${isMobile ? 'fixed inset-0 flex flex-col bg-white overflow-hidden' : 'p-4 lg:p-6 min-h-screen bg-slate-50'}`} style={isMobile ? { top: '120px' } : {}}>
         
         {/* Tabs de navegación */}
         <div className="bg-white border-b px-4 py-2 flex-shrink-0">
