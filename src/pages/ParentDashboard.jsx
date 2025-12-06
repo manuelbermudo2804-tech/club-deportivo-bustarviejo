@@ -682,60 +682,51 @@ export default function ParentDashboard() {
       <div className="px-4 lg:px-8 py-6 space-y-4 lg:space-y-6">
         <SocialLinks />
 
-        {/* Banner Chat Coordinador */}
-        <Link to={createPageUrl("ParentCoordinatorChat")}>
-          <Card className="border-2 border-cyan-300 bg-gradient-to-r from-cyan-50 to-blue-50 shadow-lg hover:shadow-xl transition-all hover:scale-[1.02] cursor-pointer">
+        {/* Banner Unificado de Chats */}
+        {myPlayers.length > 0 && (
+          <Card className="border-2 border-purple-300 bg-gradient-to-r from-purple-50 to-pink-50 shadow-lg overflow-hidden">
             <CardContent className="p-4">
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 bg-cyan-600 rounded-full flex items-center justify-center flex-shrink-0 relative">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="w-12 h-12 bg-gradient-to-br from-purple-600 to-pink-600 rounded-full flex items-center justify-center flex-shrink-0">
                   <MessageCircle className="w-6 h-6 text-white" />
-                  {unreadCoordinatorMessages > 0 && (
-                    <div className="absolute -top-1 -right-1 w-6 h-6 bg-red-500 rounded-full flex items-center justify-center border-2 border-white animate-pulse">
-                      <span className="text-white text-xs font-bold">{unreadCoordinatorMessages}</span>
-                    </div>
-                  )}
                 </div>
                 <div className="flex-1">
-                  <h3 className="font-bold text-cyan-900">💬 Chat con Coordinador</h3>
-                  <p className="text-xs text-cyan-700">
-                    {unreadCoordinatorMessages > 0 ? `${unreadCoordinatorMessages} mensaje${unreadCoordinatorMessages > 1 ? 's' : ''} nuevo${unreadCoordinatorMessages > 1 ? 's' : ''}` : 'Partidos, horarios, dudas deportivas'}
+                  <h3 className="font-bold text-purple-900">💬 Mensajes</h3>
+                  <p className="text-xs text-purple-700">
+                    {(unreadCoordinatorMessages + unreadCoachMessages) > 0 
+                      ? `${unreadCoordinatorMessages + unreadCoachMessages} mensaje${(unreadCoordinatorMessages + unreadCoachMessages) > 1 ? 's' : ''} nuevo${(unreadCoordinatorMessages + unreadCoachMessages) > 1 ? 's' : ''}`
+                      : 'Chats con coordinador y entrenador'}
                   </p>
                 </div>
-                <Button className="bg-cyan-600 hover:bg-cyan-700 font-bold">
-                  Abrir
-                </Button>
               </div>
-            </CardContent>
-          </Card>
-        </Link>
-
-        {/* Banner Chat Entrenador */}
-        {myPlayers.length > 0 && (
-          <Link to={createPageUrl("ParentCoachChat")}>
-            <Card className="border-2 border-blue-300 bg-gradient-to-r from-blue-50 to-indigo-50 shadow-lg hover:shadow-xl transition-all hover:scale-[1.02] cursor-pointer">
-              <CardContent className="p-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center flex-shrink-0 relative">
-                    <MessageCircle className="w-6 h-6 text-white" />
+              
+              <div className="grid grid-cols-2 gap-2">
+                <Link to={createPageUrl("ParentCoordinatorChat")} className="relative">
+                  <div className="bg-gradient-to-br from-cyan-600 to-cyan-700 rounded-xl p-3 text-white hover:scale-105 transition-all shadow-lg">
+                    {unreadCoordinatorMessages > 0 && (
+                      <div className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 rounded-full flex items-center justify-center border-2 border-white animate-pulse">
+                        <span className="text-white text-xs font-bold">{unreadCoordinatorMessages}</span>
+                      </div>
+                    )}
+                    <p className="text-sm font-bold mb-1">🏟️ Coordinador</p>
+                    <p className="text-xs text-cyan-100">Partidos y horarios</p>
+                  </div>
+                </Link>
+                
+                <Link to={createPageUrl("ParentCoachChat")} className="relative">
+                  <div className="bg-gradient-to-br from-blue-600 to-blue-700 rounded-xl p-3 text-white hover:scale-105 transition-all shadow-lg">
                     {unreadCoachMessages > 0 && (
-                      <div className="absolute -top-1 -right-1 w-6 h-6 bg-red-500 rounded-full flex items-center justify-center border-2 border-white animate-pulse">
+                      <div className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 rounded-full flex items-center justify-center border-2 border-white animate-pulse">
                         <span className="text-white text-xs font-bold">{unreadCoachMessages}</span>
                       </div>
                     )}
+                    <p className="text-sm font-bold mb-1">⚽ Entrenador</p>
+                    <p className="text-xs text-blue-100">Chat del equipo</p>
                   </div>
-                  <div className="flex-1">
-                    <h3 className="font-bold text-blue-900">⚽ Chat con Entrenador</h3>
-                    <p className="text-xs text-blue-700">
-                      {unreadCoachMessages > 0 ? `${unreadCoachMessages} mensaje${unreadCoachMessages > 1 ? 's' : ''} nuevo${unreadCoachMessages > 1 ? 's' : ''}` : 'Comunicación directa con tu entrenador'}
-                    </p>
-                  </div>
-                  <Button className="bg-blue-600 hover:bg-blue-700 font-bold">
-                    Abrir
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          </Link>
+                </Link>
+              </div>
+            </CardContent>
+          </Card>
         )}
 
         {/* ÚNICO CENTRO DE ALERTAS CONSOLIDADO - Todo en un solo banner */}
