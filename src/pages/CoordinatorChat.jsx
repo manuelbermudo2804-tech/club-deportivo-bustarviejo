@@ -24,9 +24,13 @@ export default function CoordinatorChat() {
 
   useEffect(() => {
     const fetchUser = async () => {
-      const currentUser = await base44.auth.me();
-      setUser(currentUser);
-      setIsCoordinator(currentUser.es_coordinador === true || currentUser.role === "admin");
+      try {
+        const currentUser = await base44.auth.me();
+        setUser(currentUser);
+        setIsCoordinator(currentUser.es_coordinador === true || currentUser.role === "admin");
+      } catch (error) {
+        console.error("Error loading user:", error);
+      }
     };
     fetchUser();
   }, []);

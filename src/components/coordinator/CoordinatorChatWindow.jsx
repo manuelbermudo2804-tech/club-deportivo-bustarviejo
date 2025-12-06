@@ -365,6 +365,17 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
     ? messages.filter(m => m.mensaje?.toLowerCase().includes(searchTerm.toLowerCase()))
     : messages;
 
+  if (!conversation || !user) {
+    return (
+      <div className="flex items-center justify-center h-full">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-cyan-600 mx-auto mb-2"></div>
+          <p className="text-slate-500 text-sm">Cargando chat...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-col h-full w-full">
       <audio ref={audioRef} onEnded={() => setPlayingAudio(null)} />

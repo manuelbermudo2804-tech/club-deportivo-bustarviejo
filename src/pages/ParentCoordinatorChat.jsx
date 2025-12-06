@@ -215,10 +215,13 @@ export default function ParentCoordinatorChat() {
     sendMessageMutation.mutate({ mensaje: messageText, adjuntos: attachments });
   };
 
-  if (!conversation) {
+  if (!conversation || !user) {
     return (
-      <div className="p-6 text-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-cyan-600 mx-auto"></div>
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-cyan-600 mx-auto mb-2"></div>
+          <p className="text-slate-500 text-sm">Cargando chat...</p>
+        </div>
       </div>
     );
   }
@@ -293,13 +296,13 @@ export default function ParentCoordinatorChat() {
 
           {/* Mensajes */}
           <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-slate-50 min-h-0">
-            {messages.length === 0 ? (
-              <div className="text-center py-12">
-                <MessageCircle className="w-12 h-12 text-slate-300 mx-auto mb-2" />
-                <p className="text-slate-500 text-sm">¡Inicia la conversación con el coordinador!</p>
-              </div>
-            ) : (
-              messages.map((msg) => {
+                    {!messages || messages.length === 0 ? (
+                      <div className="text-center py-12">
+                        <MessageCircle className="w-12 h-12 text-slate-300 mx-auto mb-2" />
+                        <p className="text-slate-500 text-sm">¡Inicia la conversación con el coordinador!</p>
+                      </div>
+                    ) : (
+                      messages.map((msg) => {
                 const isPadre = msg.autor === "padre";
                 const isImage = msg.adjuntos?.some(f => f.tipo?.startsWith('image/'));
                 
