@@ -28,8 +28,6 @@ export default function AlertCenter({
   pendingCallups = 0,
   pendingDocuments = 0,
   pendingPayments = 0,
-  unreadMessages = 0,
-  unreadPrivateMessages = 0,
   pendingAttendance = 0,
   pendingEvaluations = 0,
   pendingSurveys = 0,
@@ -45,17 +43,28 @@ export default function AlertCenter({
   recentSurveyResponses = 0,
   pendingEventConfirmations = 0,
   pendingPlayerAccess = 0,
+  unreadCoordinatorMessages = 0,
   isAdmin = false,
   isCoach = false,
   isParent = true,
-  isTreasurer = false
+  isTreasurer = false,
+  isCoordinator = false
 }) {
   const alerts = [];
 
-  // Chat temporalmente desactivado
-
   // Alertas para padres
   if (isParent) {
+    if (unreadCoordinatorMessages > 0) {
+      alerts.push({
+        id: "coordinator-chat",
+        icon: MessageCircle,
+        title: "💬 Mensajes del Coordinador",
+        description: `${unreadCoordinatorMessages} mensaje${unreadCoordinatorMessages > 1 ? 's' : ''} sin leer`,
+        url: createPageUrl("ParentCoordinatorChat"),
+        color: "bg-cyan-500",
+        priority: 1
+      });
+    }
     if (pendingCallups > 0) {
       alerts.push({
         id: "callups",
@@ -64,7 +73,7 @@ export default function AlertCenter({
         description: `${pendingCallups} convocatoria${pendingCallups > 1 ? 's' : ''} por confirmar`,
         url: createPageUrl("ParentCallups"),
         color: "bg-red-500",
-        priority: 1
+        priority: 2
       });
     }
     if (pendingDocuments > 0) {
@@ -109,6 +118,21 @@ export default function AlertCenter({
         url: createPageUrl("FederationSignatures"),
         color: "bg-yellow-500",
         priority: 2
+      });
+    }
+  }
+
+  // Alertas para coordinadores
+  if (isCoordinator) {
+    if (unreadCoordinatorMessages > 0) {
+      alerts.push({
+        id: "coordinator-chat-admin",
+        icon: MessageCircle,
+        title: "💬 Mensajes de Familias",
+        description: `${unreadCoordinatorMessages} mensaje${unreadCoordinatorMessages > 1 ? 's' : ''} sin leer`,
+        url: createPageUrl("CoordinatorChat"),
+        color: "bg-cyan-500",
+        priority: 1
       });
     }
   }
