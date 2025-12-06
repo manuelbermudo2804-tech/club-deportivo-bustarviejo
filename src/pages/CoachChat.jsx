@@ -62,9 +62,9 @@ export default function CoachChat() {
     queryKey: ['chatMessages'],
     queryFn: () => base44.entities.ChatMessage.list('-created_date'),
     refetchOnWindowFocus: true,
-    staleTime: 1000, // 1 segundo
+    staleTime: 5000,
     gcTime: 30000,
-    refetchInterval: 2000, // Polling cada 2 segundos
+    refetchInterval: 10000,
   });
 
   const { data: allPlayers = [], isLoading: loadingPlayers } = useQuery({
@@ -75,9 +75,9 @@ export default function CoachChat() {
   const { data: privateConversations = [], refetch: refetchConversations } = useQuery({
     queryKey: ['privateConversations'],
     queryFn: () => base44.entities.PrivateConversation.list('-ultimo_mensaje_fecha'),
-    staleTime: 1000,
+    staleTime: 5000,
     gcTime: 30000,
-    refetchInterval: 2000, // Polling cada 2 segundos
+    refetchInterval: 10000,
     refetchOnWindowFocus: true,
   });
 
@@ -87,9 +87,9 @@ export default function CoachChat() {
       ? base44.entities.PrivateMessage.filter({ conversacion_id: selectedConversation.id }, '-created_date')
       : [],
     enabled: !!selectedConversation?.id,
-    staleTime: 1000,
+    staleTime: 5000,
     gcTime: 30000,
-    refetchInterval: 2000, // Polling cada 2 segundos
+    refetchInterval: 10000,
   });
 
   const isAdmin = user?.role === "admin";
@@ -358,7 +358,7 @@ export default function CoachChat() {
         ? `${user.full_name} (Entrenador)` 
         : user.full_name || "Staff";
     
-    // Mensaje optimista - aparece inmediatamente
+    // Mensaje optimista - aparece INSTANTÁNEAMENTE
     const optimisticMsg = {
       id: `temp-${Date.now()}`,
       remitente_email: user.email,
@@ -375,21 +375,30 @@ export default function CoachChat() {
     };
     
     setOptimisticMessages([optimisticMsg]);
+    
+    // Limpiar input INMEDIATAMENTE para feedback instantáneo
+    const tempMessage = msgText;
+    const tempAttachments = [...attachments];
     setMessageContent("");
     setAttachments([]);
     setIsSending(true);
     
+    // Scroll instantáneo al enviar
+    setTimeout(() => {
+      messagesEndRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
+    }, 50);
+    
     sendMessageMutation.mutate({
       remitente_email: user.email,
       remitente_nombre: senderName,
-      mensaje: msgText,
+      mensaje: tempMessage,
       prioridad: priority,
       tipo: "admin_a_grupo",
       deporte: selectedCategory,
       categoria: "",
       grupo_id: selectedCategory,
       leido: false,
-      archivos_adjuntos: optimisticMsg.archivos_adjuntos,
+      archivos_adjuntos: tempAttachments,
     });
   };
 
@@ -412,8 +421,25 @@ export default function CoachChat() {
     "Baloncesto (Mixto)": "🏀"
   };
 
+  const prevMessagesCountRef = useRef(0);
+  
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    const currentCount = currentGroupMessages.length + privateMessages.length;
+    
+    // Solo hacer scroll si hay mensajes NUEVOS
+    if (prevMessagesCountRef.current > 0 && currentCount > prevMessagesCountRef.current) {
+      const container = messagesEndRef.current?.parentElement;
+      if (container) {
+        const isNearBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 200;
+        if (isNearBottom) {
+          setTimeout(() => {
+            messagesEndRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
+          }, 100);
+        }
+      }
+    }
+    
+    prevMessagesCountRef.current = currentCount;
   }, [currentGroupMessages.length, privateMessages.length]);
 
   if (loadingPlayers || !user) {

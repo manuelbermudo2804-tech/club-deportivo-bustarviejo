@@ -59,10 +59,10 @@ export default function AdminChat() {
     queryKey: ['chatMessages'],
     queryFn: () => base44.entities.ChatMessage.list('-created_date'),
     initialData: [],
-    staleTime: 1000, // 1 segundo
+    staleTime: 5000,
     gcTime: 30000,
     refetchOnWindowFocus: true,
-    refetchInterval: 2000, // Polling cada 2 segundos
+    refetchInterval: 10000,
   });
 
   const { data: players } = useQuery({
@@ -466,7 +466,7 @@ export default function AdminChat() {
 
     const msgText = messageContent.trim() || "(Archivo adjunto)";
 
-    // Mensaje optimista
+    // Mensaje optimista - aparece INSTANTÁNEAMENTE
     if (!sendToAll && selectedGroup) {
       const optimisticMsg = {
         id: `temp-${Date.now()}`,
@@ -483,6 +483,11 @@ export default function AdminChat() {
         _isOptimistic: true
       };
       setOptimisticMessages([optimisticMsg]);
+      
+      // Scroll instantáneo al enviar
+      setTimeout(() => {
+        messagesEndRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
+      }, 50);
     }
     
     setMessageContent("");
@@ -582,9 +587,26 @@ export default function AdminChat() {
     return parent?.name || email;
   };
 
+  const prevMessagesCountRef = useRef(0);
+  
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [currentGroup?.messages, sendToAll]);
+    const currentCount = currentGroup?.messages?.length || 0;
+    
+    // Solo scroll si hay mensajes NUEVOS
+    if (prevMessagesCountRef.current > 0 && currentCount > prevMessagesCountRef.current) {
+      const container = messagesEndRef.current?.parentElement;
+      if (container) {
+        const isNearBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 200;
+        if (isNearBottom) {
+          setTimeout(() => {
+            messagesEndRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
+          }, 100);
+        }
+      }
+    }
+    
+    prevMessagesCountRef.current = currentCount;
+  }, [currentGroup?.messages?.length]);
 
   const getReadStatus = (msg) => {
     if (msg.tipo !== "admin_a_grupo") return null;

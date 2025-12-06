@@ -46,10 +46,10 @@ export default function ParentChat() {
   const { data: messages = [], isLoading: loadingMessages, refetch: refetchMessages } = useQuery({
     queryKey: ['chatMessages'],
     queryFn: () => base44.entities.ChatMessage.list('-created_date'),
-    staleTime: 1000, // 1 segundo
+    staleTime: 5000,
     gcTime: 30000,
     refetchOnWindowFocus: true,
-    refetchInterval: 2000, // Polling cada 2 segundos
+    refetchInterval: 10000,
   });
 
   const { data: players = [], isLoading: loadingPlayers } = useQuery({
@@ -78,9 +78,9 @@ export default function ParentChat() {
     queryKey: ['myPrivateConversations', user?.email],
     queryFn: () => user ? base44.entities.PrivateConversation.filter({ participante_familia_email: user.email }, '-ultimo_mensaje_fecha') : [],
     enabled: !!user?.email,
-    staleTime: 1000, // 1 segundo
+    staleTime: 5000,
     gcTime: 30000,
-    refetchInterval: 2000, // Polling cada 2 segundos
+    refetchInterval: 10000,
     refetchOnWindowFocus: true,
   });
 
@@ -90,9 +90,9 @@ export default function ParentChat() {
       ? base44.entities.PrivateMessage.filter({ conversacion_id: activePrivateChat.id }, '-created_date')
       : [],
     enabled: !!activePrivateChat?.id,
-    staleTime: 10000,
+    staleTime: 5000,
     gcTime: 30000,
-    refetchInterval: 5000, // Polling cada 5 segundos
+    refetchInterval: 10000,
   });
 
   const normalizeDeporte = (deporte) => {
@@ -212,32 +212,28 @@ export default function ParentChat() {
     }
   }, [selectedCategory, currentAnnouncements.length, activePrivateChat]);
 
-  // Scroll fluido mejorado + sonido de notificación
+  // Scroll solo cuando HAY mensajes nuevos (no en cada render)
   useEffect(() => {
-    // Detectar mensajes nuevos para sonido
     const currentCount = currentAnnouncements.length + privateMessages.length;
+    
+    // Solo hacer scroll si aumentó el contador
     if (prevMessagesCountRef.current > 0 && currentCount > prevMessagesCountRef.current) {
-      // Hay mensajes nuevos - reproducir sonido
       playNotificationSound();
+      
+      // Scroll SOLO si el usuario está cerca del final
+      const container = messagesEndRef.current?.parentElement;
+      if (container) {
+        const isNearBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 200;
+        if (isNearBottom) {
+          setTimeout(() => {
+            messagesEndRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
+          }, 100);
+        }
+      }
     }
+    
     prevMessagesCountRef.current = currentCount;
-
-    // Scroll fluido
-    if (messagesEndRef.current) {
-      messagesEndRef.current.scrollIntoView({ 
-        behavior: "smooth", 
-        block: "end",
-        inline: "nearest"
-      });
-    }
   }, [currentAnnouncements.length, privateMessages.length, playNotificationSound]);
-
-  // Scroll para anuncios de Coordinación Deportiva
-  useEffect(() => {
-    if (selectedCategory === "Coordinación Deportiva" && currentAnnouncements.length > 0) {
-      coordinationMessagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-    }
-  }, [currentAnnouncements, selectedCategory]);
 
   // Verificar si el remitente es entrenador (siempre true para mensajes admin_a_grupo ya que vienen de entrenadores)
   const isCoachSender = (msg) => {
