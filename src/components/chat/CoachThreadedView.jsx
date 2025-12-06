@@ -35,6 +35,13 @@ export default function CoachThreadedView({
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
   const typingTimeoutRef = useRef(null);
+  const { checkNewMessages } = useChatSound();
+
+  // Detectar mensajes nuevos y reproducir sonido
+  useEffect(() => {
+    const allMessages = [...groupMessages, ...allPrivateMessages];
+    checkNewMessages(allMessages, user?.email);
+  }, [groupMessages.length, allPrivateMessages.length, user?.email]);
 
   const handleInputChange = (e) => {
     const value = e.target.value;

@@ -13,6 +13,7 @@ import ClubStats from "../components/dashboard/ClubStats";
 import DashboardCardSkeleton from "../components/skeletons/DashboardCardSkeleton";
 import AlertCenter from "../components/dashboard/AlertCenter";
 import DuplicatePlayersAlert from "../components/admin/DuplicatePlayersAlert";
+import ChatAlertBanner from "../components/dashboard/ChatAlertBanner";
 
 const CLUB_LOGO_URL = "https://www.cdbustarviejo.com/uploads/2/4/0/4/2404974/logo-cd-bustarviejo-cuadrado-xpeq_orig.png";
 
@@ -1022,6 +1023,15 @@ export default function Home() {
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-black pt-4 lg:pt-0">
       <div className="px-4 lg:px-8 py-6 space-y-4 lg:space-y-6">
         <SocialLinks />
+
+        {/* BANNER MENSAJES CHAT - Para staff con mensajes privados pendientes */}
+        {(isAdmin || isCoach || isCoordinator) && stats.unreadPrivateMessages > 0 && (
+          <ChatAlertBanner 
+            unreadGroupMessages={stats.unreadMessages}
+            unreadPrivateMessages={stats.unreadPrivateMessages}
+            urgentMessages={0}
+          />
+        )}
 
         {/* CENTRO DE ALERTAS - Visible para todos los roles con hijos o con tareas admin/coach/coordinator */}
         {(isAdmin || isCoach || isCoordinator || isTreasurer || hasPlayers) && (

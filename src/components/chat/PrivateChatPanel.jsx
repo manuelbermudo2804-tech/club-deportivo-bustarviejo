@@ -15,6 +15,7 @@ import MessageAttachments from "./MessageAttachments";
 import MessageContextMenu from "./MessageContextMenu";
 import MessageReactions from "./MessageReactions";
 import ReplyPreview from "./ReplyPreview";
+import useChatSound from "./useChatSound";
 
 export default function PrivateChatPanel({ 
   conversation, 
@@ -35,6 +36,12 @@ export default function PrivateChatPanel({
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
   const queryClient = useQueryClient();
+  const { checkNewMessages } = useChatSound();
+
+  // Detectar mensajes nuevos y reproducir sonido
+  useEffect(() => {
+    checkNewMessages(messages, user?.email);
+  }, [messages.length, user?.email]);
 
   const prevMessagesCountRef = useRef(0);
   const scrollContainerRef = useRef(null);

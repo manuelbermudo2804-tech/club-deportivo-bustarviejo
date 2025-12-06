@@ -23,6 +23,7 @@ import MediaGalleryDialog from "../components/chat/MediaGalleryDialog";
 import CoachThreadedView from "../components/chat/CoachThreadedView";
 import { usePageTutorial } from "../components/tutorials/useTutorial";
 import useAdaptivePolling from "../components/chat/useAdaptivePolling";
+import useChatSound from "../components/chat/useChatSound";
 
 export default function CoachChat() {
   usePageTutorial("coach_chat");

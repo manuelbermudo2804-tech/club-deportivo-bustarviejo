@@ -10,6 +10,8 @@ import MessageAttachments from "./MessageAttachments";
 import PollMessage from "./PollMessage";
 import FileAttachmentButton from "./FileAttachmentButton";
 import DateSeparator from "./DateSeparator";
+import QuickReplies from "./QuickReplies";
+import useChatSound from "./useChatSound";
 import LinkPreview from "./LinkPreview";
 import QuickReplies from "./QuickReplies";
 import TypingIndicator from "./TypingIndicator";
@@ -34,6 +36,13 @@ export default function ParentThreadedView({
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
   const typingTimeoutRef = useRef(null);
+  const { checkNewMessages } = useChatSound();
+
+  // Detectar mensajes nuevos y reproducir sonido
+  useEffect(() => {
+    const allMessages = [...groupMessages, ...myPrivateMessages];
+    checkNewMessages(allMessages, user?.email);
+  }, [groupMessages.length, myPrivateMessages.length, user?.email]);
 
   // Detectar cuando el usuario está escribiendo
   const handleInputChange = (e) => {

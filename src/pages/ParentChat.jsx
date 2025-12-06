@@ -30,7 +30,12 @@ export default function ParentChat() {
   const coordinationMessagesEndRef = useRef(null);
   const prevMessagesCountRef = useRef(0);
   const queryClient = useQueryClient();
-  const { playNotificationSound } = useChatSound();
+  const { playNotificationSound, checkNewMessages } = useChatSound();
+
+  // Detectar mensajes nuevos y reproducir sonido
+  useEffect(() => {
+    checkNewMessages(messages, user?.email);
+  }, [messages.length, user?.email]);
 
   // Polling adaptativo inteligente
   useAdaptivePolling({

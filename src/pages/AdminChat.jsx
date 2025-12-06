@@ -19,6 +19,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { Eye, Lock, Shield } from "lucide-react";
+import useAdaptivePolling from "../components/chat/useAdaptivePolling";
 
 export default function AdminChat() {
   const [selectedGroup, setSelectedGroup] = useState(null);
@@ -36,9 +37,21 @@ export default function AdminChat() {
   const [auditAccess, setAuditAccess] = useState(false);
   const [isSending, setIsSending] = useState(false);
   const [optimisticMessages, setOptimisticMessages] = useState([]);
+  const [isTyping, setIsTyping] = useState(false);
   const messagesEndRef = useRef(null);
   const queryClient = useQueryClient();
   const [user, setUser] = useState(null);
+
+  // Polling adaptativo
+  useAdaptivePolling({
+    queryKeys: [
+      ['chatMessages'],
+      ['privateMessages'],
+      ['privateConversations']
+    ],
+    isActive: !!(selectedGroup || sendToAll),
+    isTyping: isTyping
+  });
 
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth < 768);
@@ -62,7 +75,7 @@ export default function AdminChat() {
     staleTime: 5000,
     gcTime: 30000,
     refetchOnWindowFocus: true,
-    refetchInterval: 10000,
+    refetchInterval: false, // Controlado por useAdaptivePolling
   });
 
   const { data: players } = useQuery({
@@ -76,6 +89,7 @@ export default function AdminChat() {
     queryFn: () => base44.entities.PrivateMessage.list('-created_date'),
     initialData: [],
     enabled: auditAccess,
+    refetchInterval: false,
   });
 
   const { data: privateConversations } = useQuery({
@@ -83,6 +97,7 @@ export default function AdminChat() {
     queryFn: () => base44.entities.PrivateConversation.list('-updated_date'),
     initialData: [],
     enabled: auditAccess,
+    refetchInterval: false,
   });
 
   const voteOnPollMutation = useMutation({
@@ -1029,7 +1044,14 @@ export default function AdminChat() {
               
               <Input
                 value={messageContent}
-                onChange={(e) => setMessageContent(e.target.value)}
+                onChange={(e) => {
+                  setMessageContent(e.target.value);
+                  // Detectar typing
+                  if (e.target.value.length > 0) {
+                    setIsTyping(true);
+                    setTimeout(() => setIsTyping(false), 3000);
+                  }
+                }}
                 placeholder="Escribe un mensaje..."
                 className="flex-1 rounded-full"
                 onKeyDown={(e) => {
@@ -1325,7 +1347,13 @@ export default function AdminChat() {
               
               <Input
                 value={messageContent}
-                onChange={(e) => setMessageContent(e.target.value)}
+                onChange={(e) => {
+                  setMessageContent(e.target.value);
+                  if (e.target.value.length > 0) {
+                    setIsTyping(true);
+                    setTimeout(() => setIsTyping(false), 3000);
+                  }
+                }}
                 placeholder="Escribe un mensaje..."
                 className="flex-1 rounded-full text-base"
                 onKeyDown={(e) => {

@@ -1,46 +1,52 @@
-import { useRef, useCallback } from "react";
+import { useRef, useEffect } from "react";
 
-// Hook para reproducir sonido de notificación en el chat
 export default function useChatSound() {
-  const audioRef = useRef(null);
-  const lastPlayedRef = useRef(0);
-
-  const playNotificationSound = useCallback(() => {
-    // Evitar spam de sonidos (mínimo 2 segundos entre sonidos)
-    const now = Date.now();
-    if (now - lastPlayedRef.current < 2000) return;
-    lastPlayedRef.current = now;
-
+  const lastMessageCountRef = useRef(0);
+  
+  // Sonido de notificación sutil (no intrusivo)
+  const playNotificationSound = () => {
     try {
-      // Crear AudioContext si es necesario (mejor soporte móvil)
-      const AudioContext = window.AudioContext || window.webkitAudioContext;
-      if (!AudioContext) return;
-
-      const audioContext = new AudioContext();
-      
-      // Crear un sonido de notificación simple y agradable
+      // Usar Web Audio API para sonido más confiable
+      const audioContext = new (window.AudioContext || window.webkitAudioContext)();
       const oscillator = audioContext.createOscillator();
       const gainNode = audioContext.createGain();
       
       oscillator.connect(gainNode);
       gainNode.connect(audioContext.destination);
       
-      // Sonido tipo "pop" agradable
-      oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
-      oscillator.frequency.exponentialRampToValueAtTime(600, audioContext.currentTime + 0.1);
+      // Configurar sonido agradable (tipo WhatsApp)
+      oscillator.frequency.value = 800; // Hz
+      oscillator.type = 'sine';
       
-      gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
-      gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.15);
+      // Volumen bajo y fade out
+      gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
+      gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
       
-      oscillator.type = "sine";
       oscillator.start(audioContext.currentTime);
-      oscillator.stop(audioContext.currentTime + 0.15);
-      
+      oscillator.stop(audioContext.currentTime + 0.3);
     } catch (error) {
-      // Silenciar errores de audio (puede fallar en algunos navegadores)
-      console.log("Audio notification not supported");
+      console.log("No se pudo reproducir sonido:", error);
     }
-  }, []);
+  };
 
-  return { playNotificationSound };
+  // Función para detectar mensajes nuevos y reproducir sonido
+  const checkNewMessages = (messages = [], userEmail = "") => {
+    if (!messages || messages.length === 0) return;
+    
+    const currentCount = messages.length;
+    
+    // Solo reproducir si aumentó el contador Y el último mensaje NO es del usuario actual
+    if (lastMessageCountRef.current > 0 && currentCount > lastMessageCountRef.current) {
+      const lastMessage = messages[messages.length - 1];
+      
+      // Solo sonido si el mensaje es de otra persona
+      if (lastMessage && lastMessage.remitente_email !== userEmail) {
+        playNotificationSound();
+      }
+    }
+    
+    lastMessageCountRef.current = currentCount;
+  };
+
+  return { playNotificationSound, checkNewMessages };
 }

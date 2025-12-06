@@ -12,6 +12,7 @@ import ParentOnboarding from "@/components/onboarding/ParentOnboarding";
 import AlertCenter from "../components/dashboard/AlertCenter";
 import ContactCard from "../components/ContactCard";
 import { usePageTutorial } from "../components/tutorials/useTutorial";
+import ChatAlertBanner from "../components/dashboard/ChatAlertBanner";
 
 // Componente para compartir Fútbol Femenino (sin referidos)
 function FemeninoShareBanner() {
@@ -666,6 +667,13 @@ export default function ParentDashboard() {
           isAdmin={false}
           isCoach={false}
           isParent={true}
+        />
+
+        {/* BANNER CHAT - MENSAJES NUEVOS */}
+        <ChatAlertBanner 
+          unreadGroupMessages={unreadMessages}
+          unreadPrivateMessages={unreadPrivateMessages}
+          urgentMessages={urgentUnreadMessages}
         />
 
         {/* COORDINADOR DEPORTIVO BANNER */}
