@@ -100,57 +100,94 @@ export default function CoachThreadedView({
     }
   };
 
-  // Crear estructura de hilos unificada cronológica
+  // Crear estructura de hilos unificada cronológica CON DEDUPLICACIÓN
   const threadedMessages = React.useMemo(() => {
     const items = [];
+    const seenMessages = new Set();
 
-    // Anuncios grupales del entrenador
+    // Helper para detectar duplicados por contenido y tiempo
+    const getMessageKey = (msg, isOptimistic) => {
+      if (isOptimistic) return `temp-${msg.id}`;
+      return `${msg.mensaje?.substring(0, 50)}-${msg.remitente_email}-${Math.floor(new Date(msg.created_date).getTime() / 60000)}`;
+    };
+
+    // Anuncios grupales del entrenador (solo reales)
     groupMessages.forEach(msg => {
-      items.push({
-        type: 'group_announcement',
-        data: msg,
-        timestamp: new Date(msg.created_date),
-        sortKey: new Date(msg.created_date).getTime()
-      });
-    });
-
-    // Respuestas privadas de TODAS las familias
-    allPrivateMessages.forEach(msg => {
-      const conv = privateConversations.find(c => c.id === msg.conversacion_id);
-      if (!conv) return;
-
-      items.push({
-        type: 'private_message',
-        data: msg,
-        conversation: conv,
-        timestamp: new Date(msg.created_date),
-        sortKey: new Date(msg.created_date).getTime()
-      });
-    });
-
-    // Mensajes optimistas (aparecen INSTANTÁNEAMENTE)
-    optimisticMessages.forEach(msg => {
-      if (msg.tipo === "admin_a_grupo") {
+      const key = getMessageKey(msg, false);
+      if (!seenMessages.has(key)) {
+        seenMessages.add(key);
         items.push({
           type: 'group_announcement',
           data: msg,
           timestamp: new Date(msg.created_date),
           sortKey: new Date(msg.created_date).getTime()
         });
-      } else {
-        const conv = privateConversations.find(c => c.id === msg.conversacion_id);
+      }
+    });
+
+    // Respuestas privadas de TODAS las familias (solo reales)
+    allPrivateMessages.forEach(msg => {
+      const conv = privateConversations.find(c => c.id === msg.conversacion_id);
+      if (!conv) return;
+
+      const key = getMessageKey(msg, false);
+      if (!seenMessages.has(key)) {
+        seenMessages.add(key);
         items.push({
           type: 'private_message',
           data: msg,
-          conversation: conv || { participante_familia_nombre: "Familia" },
+          conversation: conv,
           timestamp: new Date(msg.created_date),
           sortKey: new Date(msg.created_date).getTime()
         });
       }
     });
 
+    // Mensajes optimistas SOLO si no existe uno real similar
+    optimisticMessages.forEach(msg => {
+      const tempKey = getMessageKey(msg, true);
+      
+      if (msg.tipo === "admin_a_grupo") {
+        // Verificar si ya existe un mensaje real similar
+        const hasSimilarReal = groupMessages.some(real => 
+          real.mensaje === msg.mensaje && 
+          real.remitente_email === msg.remitente_email &&
+          Math.abs(new Date(real.created_date) - new Date(msg.created_date)) < 10000
+        );
+        
+        if (!hasSimilarReal && !seenMessages.has(tempKey)) {
+          seenMessages.add(tempKey);
+          items.push({
+            type: 'group_announcement',
+            data: msg,
+            timestamp: new Date(msg.created_date),
+            sortKey: new Date(msg.created_date).getTime()
+          });
+        }
+      } else {
+        // Verificar si ya existe un mensaje privado real similar
+        const hasSimilarReal = allPrivateMessages.some(real => 
+          real.mensaje === msg.mensaje && 
+          real.remitente_email === msg.remitente_email &&
+          Math.abs(new Date(real.created_date) - new Date(msg.created_date)) < 10000
+        );
+        
+        if (!hasSimilarReal && !seenMessages.has(tempKey)) {
+          seenMessages.add(tempKey);
+          const conv = privateConversations.find(c => c.id === msg.conversacion_id);
+          items.push({
+            type: 'private_message',
+            data: msg,
+            conversation: conv || { participante_familia_nombre: "Familia" },
+            timestamp: new Date(msg.created_date),
+            sortKey: new Date(msg.created_date).getTime()
+          });
+        }
+      }
+    });
+
     return items.sort((a, b) => a.sortKey - b.sortKey);
-  }, [groupMessages, allPrivateMessages, privateConversations, optimisticMessages]);
+  }, [groupMessages, allPrivateMessages, privateConversations, optimisticMessages, user?.email]);
 
   // Agrupar por fechas
   const groupedByDate = React.useMemo(() => {
