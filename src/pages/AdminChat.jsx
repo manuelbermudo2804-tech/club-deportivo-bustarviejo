@@ -677,7 +677,7 @@ export default function AdminChat() {
         </DialogContent>
       </Dialog>
       
-      <div className="fixed inset-0 flex flex-col bg-white overflow-hidden" style={{ top: isMobile ? '120px' : '0', left: isMobile ? '0' : '288px' }}>
+      <div className={`${isMobile ? 'fixed inset-0 flex flex-col bg-white' : 'p-4 lg:p-6 min-h-screen bg-slate-50'}`} style={isMobile ? { top: '120px' } : {}}>
         
         {/* Tabs de navegación */}
         <div className="bg-white border-b px-4 py-2 flex-shrink-0">
@@ -772,79 +772,73 @@ export default function AdminChat() {
         )}
 
         {activeTab === "grupos" && (
-          <div className="flex-1 flex overflow-hidden">
-      {/* Mobile chat list */}
-      {isMobile && !selectedGroup && !sendToAll && (
-        <div className="fixed inset-0 bg-white overflow-y-auto" style={{ top: '120px', left: 0 }}>
-          <div className="p-4 bg-gradient-to-r from-orange-600 to-orange-700 text-white">
-            <h2 className="text-xl font-bold">Chats</h2>
-            <p className="text-sm text-orange-100">{allGroupsList.length} grupos disponibles</p>
-          </div>
-          <div className="divide-y">
-            {allGroupsList.map(group => {
-              const displayGroup = group.isSendToAll ? { ...group, unreadCount: 0, urgentCount: 0 } : groups[group.id] || group;
-              return (
-                <button
-                  key={group.id}
-                  onClick={() => handleSelectGroup(group.id, group.isSendToAll)}
-                  className="w-full p-4 flex items-center gap-3 bg-white hover:bg-slate-50 transition-colors text-left"
-                >
-                  <div className={`w-14 h-14 rounded-full flex items-center justify-center flex-shrink-0 ${
-                    group.isSendToAll ? 'bg-green-100' : 'bg-orange-100'
-                  }`}>
-                    <span className="text-2xl">{group.isSendToAll ? '📢' : sportEmojis[group.deporte] || '⚽'}</span>
+          <>
+          {/* MÓVIL: Lista de grupos (sin chat visible) */}
+          {isMobile && !selectedGroup && !sendToAll && (
+            <div className="flex-1 flex flex-col overflow-hidden">
+              <div className="p-4 bg-gradient-to-r from-orange-600 to-orange-700 text-white flex-shrink-0">
+                <h2 className="text-xl font-bold">💬 Chats</h2>
+                <p className="text-sm text-orange-100">{allGroupsList.length} grupos disponibles</p>
+              </div>
+              <div className="flex-1 overflow-y-auto divide-y">
+                {allGroupsList.map(group => {
+                  const displayGroup = group.isSendToAll ? { ...group, unreadCount: 0, urgentCount: 0 } : groups[group.id] || group;
+                  return (
+                    <button
+                      key={group.id}
+                      onClick={() => handleSelectGroup(group.id, group.isSendToAll)}
+                      className="w-full p-4 flex items-center gap-3 bg-white hover:bg-slate-50 active:bg-slate-100 transition-colors text-left"
+                    >
+                      <div className={`w-14 h-14 rounded-full flex items-center justify-center flex-shrink-0 ${
+                        group.isSendToAll ? 'bg-green-100' : 'bg-orange-100'
+                      }`}>
+                        <span className="text-2xl">{group.isSendToAll ? '📢' : sportEmojis[group.deporte] || '⚽'}</span>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="font-bold text-slate-900 truncate text-base">{group.isSendToAll ? '📢 Todos los Grupos' : group.deporte}</div>
+                        <div className="text-sm text-slate-600 truncate">
+                          {group.isSendToAll ? 'Anuncio general' : `${displayGroup.messages?.length || 0} mensajes`}
+                        </div>
+                      </div>
+                      {displayGroup.unreadCount > 0 && (
+                        <Badge className={`${
+                          displayGroup.urgentCount > 0 ? 'bg-red-600 animate-pulse' : 'bg-orange-600'
+                        } text-white text-sm h-8 min-w-8 rounded-full flex items-center justify-center shadow-lg font-bold`}>
+                          {displayGroup.unreadCount}
+                        </Badge>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* MÓVIL: Chat a pantalla completa */}
+          {isMobile && (selectedGroup || sendToAll) && (
+            <div className="flex-1 flex flex-col overflow-hidden">
+
+      {/* DESKTOP: Chat area con sidebar */}
+      {!isMobile && (
+        <div className="flex-1 flex overflow-hidden">
+          <div className="flex-1 flex flex-col overflow-hidden">
+            {(selectedGroup || sendToAll) && (
+              <>
+                <div className={`p-4 text-white flex items-center gap-3 shadow-md flex-shrink-0 ${
+                  sendToAll ? 'bg-gradient-to-r from-green-600 to-green-700' : 'bg-gradient-to-r from-orange-600 to-orange-700'
+                }`}>
+                  <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
+                    {sendToAll ? <Users className="w-6 h-6" /> : <span className="text-xl">{sportEmojis[currentGroup?.deporte]}</span>}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="font-bold text-slate-900 truncate">{group.isSendToAll ? '📢 Todos los Grupos' : group.deporte}</div>
-                    <div className="text-sm text-slate-600 truncate">
-                      {group.isSendToAll ? 'Anuncio general' : `${displayGroup.messages?.length || 0} mensajes`}
-                    </div>
+                    <h2 className="font-bold text-base truncate">
+                      {sendToAll ? '📢 Anuncio a Todos los Grupos' : currentGroup?.deporte}
+                    </h2>
+                    <p className="text-xs opacity-90 truncate">
+                      {sendToAll ? `${Object.keys(groups).length} grupos • ${players.length} jugadores` : `${currentGroup?.players.length || 0} jugadores`}
+                    </p>
                   </div>
-                  {displayGroup.unreadCount > 0 && (
-                    <Badge className={`${
-                      displayGroup.urgentCount > 0 ? 'bg-red-600 animate-pulse' : 'bg-orange-600'
-                    } text-white text-sm h-7 min-w-7 rounded-full flex items-center justify-center shadow-lg`}>
-                      {displayGroup.unreadCount}
-                    </Badge>
-                  )}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      )}
-
-      {/* Main chat area */}
-      <div className="flex-1 flex flex-col overflow-hidden">
-        {(selectedGroup || sendToAll) && (
-          <>
-            <div className={`p-4 text-white flex items-center gap-3 shadow-md flex-shrink-0 min-h-[72px] ${
-              sendToAll ? 'bg-gradient-to-r from-green-600 to-green-700' : 'bg-gradient-to-r from-orange-600 to-orange-700'
-            }`}>
-            {isMobile && (
-              <button
-                onClick={() => {
-                  setSelectedGroup(null);
-                  setSendToAll(false);
-                }}
-                className="mr-2 p-2 hover:bg-white/20 rounded-lg transition-colors"
-              >
-                <ArrowLeft className="w-5 h-5" />
-              </button>
-            )}
-            <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
-              {sendToAll ? <Users className="w-6 h-6" /> : <span className="text-xl">{sportEmojis[currentGroup?.deporte]}</span>}
-            </div>
-            <div className="flex-1 min-w-0">
-              <h2 className="font-bold text-base truncate">
-                {sendToAll ? '📢 Anuncio a Todos los Grupos' : currentGroup?.deporte}
-              </h2>
-              <p className="text-xs opacity-90 truncate">
-                {sendToAll ? `${Object.keys(groups).length} grupos • ${players.length} jugadores` : `${currentGroup?.players.length || 0} jugadores`}
-              </p>
-            </div>
-
-          </div>
+                </div>
 
           {sendToAll && (
             <div className="p-4 flex-shrink-0">
@@ -1057,14 +1051,13 @@ export default function AdminChat() {
                 )}
               </Button>
             </div>
+                </div>
+              </>
+            )}
           </div>
-          </>
-        )}
-      </div>
 
-      {/* Sidebar with chat list - Desktop only */}
-      {!isMobile && (
-        <div className="hidden lg:flex w-80 border-l bg-slate-50 flex-col overflow-hidden">
+          {/* Sidebar Desktop */}
+          <div className="w-80 border-l bg-slate-50 flex-col overflow-hidden flex">
           <div className="p-4 bg-white border-b">
             <h3 className="font-bold text-slate-900">Chats</h3>
             <p className="text-xs text-slate-600 mt-1">{filteredGroups.length} grupos disponibles</p>
@@ -1122,10 +1115,242 @@ export default function AdminChat() {
             ))}
           </div>
         </div>
-      )}
         </div>
+      )}
+
+      {/* MÓVIL: Chat a pantalla completa */}
+      {isMobile && (selectedGroup || sendToAll) && (
+        <div className="flex-1 flex flex-col overflow-hidden">
+          <div className={`p-4 text-white flex items-center gap-3 shadow-md flex-shrink-0 ${
+            sendToAll ? 'bg-gradient-to-r from-green-600 to-green-700' : 'bg-gradient-to-r from-orange-600 to-orange-700'
+          }`}>
+            <button
+              onClick={() => {
+                setSelectedGroup(null);
+                setSendToAll(false);
+              }}
+              className="p-2 hover:bg-white/20 rounded-lg transition-colors -ml-1"
+            >
+              <ArrowLeft className="w-6 h-6" />
+            </button>
+            <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center flex-shrink-0">
+              {sendToAll ? <Users className="w-6 h-6" /> : <span className="text-2xl">{sportEmojis[currentGroup?.deporte]}</span>}
+            </div>
+            <div className="flex-1 min-w-0">
+              <h2 className="font-bold text-lg truncate">
+                {sendToAll ? '📢 Todos' : currentGroup?.deporte}
+              </h2>
+              <p className="text-xs opacity-90 truncate">
+                {sendToAll ? `${Object.keys(groups).length} grupos` : `${currentGroup?.players.length || 0} jugadores`}
+              </p>
+            </div>
+          </div>
+
+          {sendToAll && (
+            <div className="px-4 pt-3 pb-2 flex-shrink-0 bg-slate-50">
+              <Alert className="bg-blue-50 border-blue-300">
+                <AlertCircle className="h-4 w-4 text-blue-600" />
+                <AlertDescription className="text-blue-800 text-sm">
+                  Tu mensaje se enviará a todos los grupos del club.
+                </AlertDescription>
+              </Alert>
+            </div>
+          )}
+
+          <div 
+            className="flex-1 overflow-y-auto overflow-x-hidden p-3 space-y-2"
+            style={{
+              backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23d4c5b9' fill-opacity='0.1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
+              backgroundColor: '#e5ddd5'
+            }}
+          >
+            {sendToAll ? (
+              <div className="flex items-center justify-center h-full">
+                <div className="text-center text-slate-500 bg-white/80 rounded-xl p-6">
+                  <Users className="w-12 h-12 mx-auto mb-2 opacity-50" />
+                  <p className="text-sm">Escribe tu anuncio abajo</p>
+                </div>
+              </div>
+            ) : currentGroup?.messages.length === 0 && optimisticMessages.length === 0 ? (
+              <div className="flex items-center justify-center h-full">
+                <div className="text-center text-slate-500 bg-white/80 rounded-xl p-6">
+                  <AlertCircle className="w-12 h-12 mx-auto mb-2 opacity-50" />
+                  <p className="text-sm">No hay mensajes</p>
+                </div>
+              </div>
+            ) : (
+              [...(currentGroup?.messages || []), ...optimisticMessages]
+                .sort((a, b) => new Date(a.created_date) - new Date(b.created_date))
+                .map((msg) => {
+                  const readStatus = getReadStatus(msg);
+                  const isJugador = msg.tipo === "jugador_a_equipo";
+                  const isPadre = msg.tipo === "padre_a_grupo";
+                  const isAdmin = msg.tipo === "admin_a_grupo";
+                  
+                  return (
+                    <div
+                      key={msg.id}
+                      className={`flex ${isAdmin ? 'justify-end' : 'justify-start'} mb-2 px-1`}
+                    >
+                      <div
+                        className={`max-w-[85%] rounded-2xl shadow-md overflow-hidden ${
+                          isAdmin
+                            ? 'bg-gradient-to-r from-green-600 to-green-700 text-white rounded-br-sm'
+                            : isJugador
+                            ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-bl-sm'
+                            : 'bg-white text-slate-900 rounded-bl-sm'
+                        } ${msg._isOptimistic ? 'opacity-70' : ''}`}
+                      >
+                        <div className="px-3 py-2">
+                          <div className="flex items-center gap-2 mb-1 flex-wrap">
+                            <span className={`text-xs font-bold truncate ${
+                              isAdmin ? 'text-green-100' : isJugador ? 'text-blue-100' : 'text-orange-700'
+                            }`}>
+                              {isAdmin ? '🎓 ' : isJugador ? '⚽ ' : '👨‍👩‍👧 '}{msg.remitente_nombre}
+                            </span>
+                            {msg.destinatario_nombre && (
+                              <span className={`text-[10px] px-1.5 py-0.5 rounded truncate ${
+                                isAdmin ? 'bg-green-800 text-green-100' : 'bg-slate-200 text-slate-700'
+                              }`}>
+                                → {msg.destinatario_nombre}
+                              </span>
+                            )}
+                            {msg.prioridad !== "Normal" && (
+                              <span className="text-xs flex-shrink-0">{msg.prioridad === "Urgente" ? "🔴" : "⚠️"}</span>
+                            )}
+                          </div>
+                          <p className="text-sm leading-relaxed break-words">{msg.mensaje}</p>
+
+                          {msg.poll && (
+                            <div className="mt-3">
+                              <PollMessage 
+                                poll={msg.poll} 
+                                onVote={(msgId, optIdx) => voteOnPollMutation.mutate({ messageId: msgId, optionIndex: optIdx })}
+                                userEmail={user.email}
+                                messageId={msg.id}
+                              />
+                            </div>
+                          )}
+
+                          {msg.archivos_adjuntos?.length > 0 && (
+                            <div className="mt-2">
+                              <MessageAttachments attachments={msg.archivos_adjuntos} />
+                            </div>
+                          )}
+                          
+                          <div className="flex items-center justify-end gap-1 mt-1">
+                            <span className={`text-[10px] ${isAdmin ? 'text-green-100' : isJugador ? 'text-blue-100' : 'text-slate-500'}`}>
+                              {format(new Date(msg.created_date), "HH:mm")}
+                            </span>
+                            {msg._isOptimistic && <span className="text-[10px] text-green-200" title="Enviando...">⏳</span>}
+                            {isAdmin && !msg._isOptimistic && (
+                              <span className="ml-1" title={readStatus === "read" ? "Leído" : "Entregado"}>
+                                {readStatus === "read" ? (
+                                  <CheckCheck className="w-3 h-3 text-cyan-300" />
+                                ) : (
+                                  <Check className="w-3 h-3 text-green-200" />
+                                )}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })
+            )}
+            <div ref={messagesEndRef} />
+          </div>
+
+          <div className="bg-white border-t p-3 flex-shrink-0 safe-area-bottom">
+            {attachments.length > 0 && (
+              <div className="mb-2 flex flex-wrap gap-2">
+                {attachments.map((att, index) => (
+                  <div key={index} className="bg-slate-100 rounded-lg px-3 py-1.5 text-sm flex items-center gap-2">
+                    <span className="text-xs truncate max-w-[150px]">{att.nombre}</span>
+                    <button onClick={() => handleRemoveAttachment(index)} className="text-slate-500 hover:text-red-600">
+                      <X className="w-3 h-3" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            <div className="grid grid-cols-2 gap-2 mb-2">
+              <Select value={priority} onValueChange={setPriority}>
+                <SelectTrigger className="h-10 text-sm">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Normal">📝 Normal</SelectItem>
+                  <SelectItem value="Importante">⚠️ Importante</SelectItem>
+                  <SelectItem value="Urgente">🔴 Urgente</SelectItem>
+                </SelectContent>
+              </Select>
+              
+              {!sendToAll && selectedGroup && (
+                <Select value={selectedRecipient} onValueChange={setSelectedRecipient}>
+                  <SelectTrigger className="h-10 text-sm">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">👥 Todos</SelectItem>
+                    {getGroupParents().map(parent => (
+                      <SelectItem key={parent.email} value={parent.email}>
+                        👤 {parent.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+            </div>
+
+            <div className="flex gap-2 items-end">
+              <FileAttachmentButton
+                onFileUploaded={handleFileUploaded}
+                disabled={sendMessageMutation.isPending}
+              />
+              
+              <Button
+                onClick={() => setShowPollDialog(true)}
+                disabled={!isBusinessHours()}
+                variant="ghost"
+                size="icon"
+                className="text-slate-600 hover:text-orange-600 hover:bg-orange-50 flex-shrink-0"
+                title="Crear encuesta rápida"
+              >
+                📊
+              </Button>
+              
+              <Input
+                value={messageContent}
+                onChange={(e) => setMessageContent(e.target.value)}
+                placeholder="Escribe un mensaje..."
+                className="flex-1 rounded-full text-base"
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    handleSendMessage();
+                  }
+                }}
+              />
+              
+              <Button
+                onClick={handleSendMessage}
+                disabled={(!messageContent.trim() && attachments.length === 0) || isSending}
+                className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 rounded-full w-12 h-12 p-0 flex items-center justify-center shadow-lg flex-shrink-0"
+              >
+                {isSending ? (
+                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                ) : (
+                  <Send className="w-5 h-5" />
+                )}
+              </Button>
+            </div>
+          </div>
+          </>
         )}
-    </div>
-    </>
-  );
-}
+      </div>
+
+      {/* Sidebar Desktop */}
+      <div className="w-80 border-l bg-slate-50 flex-col overflow-hidden flex">

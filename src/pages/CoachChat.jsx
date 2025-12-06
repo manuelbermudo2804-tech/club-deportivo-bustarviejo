@@ -484,20 +484,67 @@ export default function CoachChat() {
       messages={currentGroupMessages}
     />
     
-    <div className="p-4 lg:p-6 space-y-4">
-      {/* Header */}
-      <div>
-        <h1 className="text-2xl lg:text-3xl font-bold text-slate-900">
-          {isAdmin ? "Chat del Club" : isCoordinator ? "Chat Coordinación" : "Chat de Equipos"}
-        </h1>
-        <p className="text-slate-600 text-sm">
-          Selecciona una categoría para ver anuncios y mensajes privados
-        </p>
-      </div>
+    <div className={`${isMobile ? 'h-screen flex flex-col overflow-hidden' : 'p-4 lg:p-6'} space-y-4`}>
+      {/* MÓVIL: Lista de categorías (sin chat visible) */}
+      {isMobile && !selectedCategory && (
+        <div className="flex-1 flex flex-col overflow-hidden">
+          <div className="p-4 bg-gradient-to-r from-blue-600 to-blue-700 text-white flex-shrink-0">
+            <h2 className="text-xl font-bold">💬 Mis Equipos</h2>
+            <p className="text-sm text-blue-100">{myCategories.length} categorías</p>
+          </div>
+          <div className="flex-1 overflow-y-auto divide-y">
+            {myCategories.map(cat => {
+              const unread = getUnreadCountForCategory(cat);
+              return (
+                <button
+                  key={cat}
+                  onClick={() => {
+                    setSelectedCategory(cat);
+                    if (cat === "Chat Interno Staff") {
+                      setChatSubMode("anuncios");
+                    } else if (isCoordinator && !isCoach) {
+                      setChatSubMode("privado");
+                    } else {
+                      setChatSubMode("anuncios");
+                    }
+                    setSelectedConversation(null);
+                  }}
+                  className="w-full p-4 flex items-center gap-3 bg-white hover:bg-slate-50 active:bg-slate-100 transition-colors text-left"
+                >
+                  <div className="w-14 h-14 rounded-full flex items-center justify-center bg-blue-100 flex-shrink-0">
+                    <span className="text-2xl">{sportEmojis[cat] || "⚽"}</span>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="font-bold text-slate-900 truncate text-base">{cat}</div>
+                    <div className="text-sm text-slate-500 truncate">
+                      {allPlayers.filter(p => p.deporte === cat && p.activo).length} jugadores
+                    </div>
+                  </div>
+                  {unread > 0 && (
+                    <Badge className="bg-red-500 text-white text-sm h-8 min-w-8 rounded-full animate-pulse font-bold">{unread}</Badge>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
-        {/* Lista de categorías */}
-        <div className="lg:col-span-1 bg-white rounded-xl shadow-md border overflow-hidden">
+      {/* DESKTOP: Header y Grid */}
+      {!isMobile && (
+        <>
+          <div className="flex-shrink-0">
+            <h1 className="text-2xl lg:text-3xl font-bold text-slate-900">
+              {isAdmin ? "Chat del Club" : isCoordinator ? "Chat Coordinación" : "Chat de Equipos"}
+            </h1>
+            <p className="text-slate-600 text-sm">
+              Selecciona una categoría para ver anuncios y mensajes privados
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 flex-1">
+            {/* Lista de categorías Desktop */}
+            <div className="lg:col-span-1 bg-white rounded-xl shadow-md border overflow-hidden h-fit">
           <div className="p-4 bg-gradient-to-r from-orange-600 to-orange-700 text-white">
             <h3 className="font-bold">Mis Equipos</h3>
             <p className="text-xs text-orange-100">{myCategories.length} categorías</p>
@@ -548,8 +595,8 @@ export default function CoachChat() {
           </div>
         </div>
 
-        {/* Panel principal */}
-        <div className="lg:col-span-3 space-y-4">
+            {/* Panel principal Desktop */}
+            <div className="lg:col-span-3 space-y-4">
           {selectedCategory ? (
             <>
               
@@ -931,9 +978,231 @@ export default function CoachChat() {
               <p className="text-sm text-slate-400 mt-2">Elige un equipo de la izquierda para ver sus chats</p>
             </div>
           )}
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* MÓVIL: Chat a pantalla completa */}
+      {isMobile && selectedCategory && !fullscreenChat && (
+        <div className="flex-1 flex flex-col overflow-hidden">
+          {effectiveChatMode === "anuncios" ? (
+            <>
+              <div className={`p-4 text-white flex items-center gap-3 shadow-md flex-shrink-0 ${
+                isStaffChat ? 'bg-gradient-to-r from-purple-600 to-purple-700' 
+                : isCoordinationChat ? 'bg-gradient-to-r from-green-600 to-green-700' 
+                : 'bg-gradient-to-r from-blue-600 to-blue-700'
+              }`}>
+                <button
+                  onClick={() => setSelectedCategory(null)}
+                  className="p-2 hover:bg-white/20 rounded-lg transition-colors -ml-1"
+                >
+                  <ArrowLeft className="w-6 h-6" />
+                </button>
+                <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center flex-shrink-0">
+                  <span className="text-2xl">{sportEmojis[selectedCategory]}</span>
+                </div>
+                <div className="flex-1 min-w-0">
+                  <h2 className="font-bold text-lg truncate">{selectedCategory}</h2>
+                  <p className="text-xs opacity-90 truncate">
+                    {isStaffChat ? "Chat interno" : isCoordinationChat ? "Chat coordinación" : "Anuncios grupo"}
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex-1 overflow-y-auto p-3 space-y-2" style={{ backgroundColor: '#e5ddd5' }}>
+                {currentGroupMessages.length === 0 && optimisticMessages.length === 0 ? (
+                  <div className="flex items-center justify-center h-full">
+                    <div className="text-center text-slate-500 bg-white/80 rounded-xl p-6">
+                      <AlertCircle className="w-12 h-12 mx-auto mb-2 opacity-50" />
+                      <p className="text-sm">No hay mensajes</p>
+                    </div>
+                  </div>
+                ) : (
+                  [...currentGroupMessages, ...optimisticMessages]
+                    .sort((a, b) => new Date(a.created_date) - new Date(b.created_date))
+                    .map((msg) => {
+                      const isMyMessage = msg.remitente_email === user?.email || msg.tipo === "admin_a_grupo";
+                      const isFromFamily = msg.tipo === "padre_a_grupo";
+                      
+                      return (
+                        <div key={msg.id} className={`flex ${isCoordinationChat && isFromFamily ? 'justify-start' : 'justify-end'} mb-2`}>
+                          <div className={`max-w-[85%] rounded-2xl shadow-md ${
+                            isCoordinationChat && isFromFamily 
+                              ? 'bg-white text-slate-900 rounded-bl-sm' 
+                              : 'bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-br-sm'
+                          } ${msg._isOptimistic ? 'opacity-70' : ''}`}>
+                            <div className="px-3 py-2">
+                              <div className="flex items-center gap-2 mb-1">
+                                <span className={`text-xs font-bold ${isCoordinationChat && isFromFamily ? 'text-orange-600' : 'text-blue-100'}`}>
+                                  {isCoordinationChat && isFromFamily ? '👤 ' : '🎓 '}{msg.remitente_nombre}
+                                </span>
+                                {msg.prioridad !== "Normal" && (
+                                  <span className="text-xs">{msg.prioridad === "Urgente" ? "🔴" : "⚠️"}</span>
+                                )}
+                              </div>
+                              <p className="text-sm leading-relaxed break-words">{msg.mensaje}</p>
+
+                              {msg.poll && (
+                                <PollMessage 
+                                  poll={msg.poll} 
+                                  onVote={(msgId, optIdx) => voteOnPollMutation.mutate({ messageId: msgId, optionIndex: optIdx })}
+                                  userEmail={user?.email}
+                                  messageId={msg.id}
+                                />
+                              )}
+
+                              {msg.archivos_adjuntos?.length > 0 && (
+                                <div className="mt-2">
+                                  <MessageAttachments attachments={msg.archivos_adjuntos} />
+                                </div>
+                              )}
+                              <div className="flex items-center justify-end gap-1 mt-1">
+                                <span className={`text-[10px] ${isCoordinationChat && isFromFamily ? 'text-slate-400' : 'text-blue-100'}`}>
+                                  {format(new Date(msg.created_date), "HH:mm")}
+                                </span>
+                                {msg._isOptimistic && <span className="text-[10px] opacity-70">⏳</span>}
+                                {!msg._isOptimistic && msg.tipo === "admin_a_grupo" && <span className="text-[10px]">✓</span>}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })
+                )}
+                <div ref={messagesEndRef} />
+              </div>
+
+              <div className="bg-white border-t p-3 flex-shrink-0 safe-area-bottom">
+                <div className="mb-2">
+                  <Select value={priority} onValueChange={setPriority}>
+                    <SelectTrigger className="h-10 text-sm">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Normal">📝 Normal</SelectItem>
+                      <SelectItem value="Importante">⚠️ Importante</SelectItem>
+                      <SelectItem value="Urgente">🔴 Urgente</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="flex gap-2 items-end">
+                  <FileAttachmentButton
+                    onFileUploaded={(att) => setAttachments(prev => [...prev, att])}
+                    disabled={sendMessageMutation.isPending}
+                  />
+                  {!isStaffChat && (
+                    <Button
+                      onClick={() => setShowPollDialog(true)}
+                      variant="ghost"
+                      size="icon"
+                      className="text-slate-600 hover:text-orange-600 flex-shrink-0"
+                    >
+                      📊
+                    </Button>
+                  )}
+                  <Input
+                    value={messageContent}
+                    onChange={(e) => setMessageContent(e.target.value)}
+                    placeholder={isStaffChat ? "Escribe a los entrenadores..." : isCoordinationChat ? "Responde a las familias..." : "Escribe un anuncio..."}
+                    className="flex-1 rounded-full text-base"
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault();
+                        handleSendGroupMessage();
+                      }
+                    }}
+                  />
+                  <Button
+                    onClick={handleSendGroupMessage}
+                    disabled={(!messageContent.trim() && attachments.length === 0) || isSending}
+                    className={`rounded-full w-12 h-12 p-0 flex-shrink-0 ${isStaffChat ? 'bg-purple-600 hover:bg-purple-700' : isCoordinationChat ? 'bg-green-600 hover:bg-green-700' : 'bg-blue-600 hover:bg-blue-700'}`}
+                  >
+                    {isSending ? (
+                      <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    ) : (
+                      <Send className="w-5 h-5" />
+                    )}
+                  </Button>
+                </div>
+              </div>
+            </>
+          ) : (
+            /* Lista de conversaciones privadas móvil */
+            <div className="flex-1 flex flex-col overflow-hidden">
+              <div className="bg-gradient-to-r from-green-600 to-green-700 p-4 text-white flex-shrink-0">
+                <button
+                  onClick={() => setSelectedCategory(null)}
+                  className="mb-3 p-2 hover:bg-white/20 rounded-lg transition-colors -ml-2 inline-flex items-center gap-2"
+                >
+                  <ArrowLeft className="w-5 h-5" />
+                  <span className="text-sm">Volver</span>
+                </button>
+                <h3 className="font-bold text-lg">💬 Conversaciones</h3>
+                <p className="text-xs text-green-100">{categoryPrivateConversations.length} {showArchived ? "archivadas" : "activas"}</p>
+              </div>
+              <div className="flex-1 overflow-y-auto divide-y">
+                {categoryPrivateConversations.length === 0 ? (
+                  <div className="flex items-center justify-center h-full p-6">
+                    <div className="text-center text-slate-500">
+                      <MessageCircle className="w-16 h-16 mx-auto mb-3 opacity-20" />
+                      <p className="font-medium">Sin conversaciones</p>
+                    </div>
+                  </div>
+                ) : (
+                  categoryPrivateConversations.map(conv => {
+                    const hasUnread = (conv.no_leidos_staff || 0) > 0;
+                    return (
+                      <button
+                        key={conv.id}
+                        onClick={() => {
+                          setSelectedConversation(conv);
+                          setFullscreenChat(true);
+                        }}
+                        className="w-full p-4 flex items-center gap-3 hover:bg-slate-50 active:bg-slate-100 transition-colors text-left"
+                      >
+                        <div className={`w-14 h-14 rounded-full flex items-center justify-center flex-shrink-0 ${
+                          hasUnread ? 'bg-green-600 text-white' : 'bg-slate-200 text-slate-600'
+                        }`}>
+                          <User className="w-7 h-7" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="font-bold text-slate-900 truncate text-base">
+                            {conv.participante_familia_nombre || conv.participante_familia_email?.split('@')[0]}
+                          </div>
+                          {conv.ultimo_mensaje && (
+                            <div className={`text-sm truncate ${hasUnread ? 'font-semibold text-slate-900' : 'text-slate-400'}`}>
+                              {conv.ultimo_mensaje_de === 'staff' ? '↩️ ' : ''}{conv.ultimo_mensaje}
+                            </div>
+                          )}
+                        </div>
+                        {hasUnread && (
+                          <Badge className="bg-green-600 text-white text-sm h-8 min-w-8 rounded-full animate-pulse font-bold">
+                            {conv.no_leidos_staff}
+                          </Badge>
+                        )}
+                      </button>
+                    );
+                  })
+                )}
+              </div>
+            </div>
+          )}
         </div>
-      </div>
-    </div>
-    </>
-  );
-}
+      )}
+
+      {/* DESKTOP: Header y contenido */}
+      {!isMobile && (
+        <>
+          <div className="flex-shrink-0">
+            <h1 className="text-2xl lg:text-3xl font-bold text-slate-900">
+              {isAdmin ? "Chat del Club" : isCoordinator ? "Chat Coordinación" : "Chat de Equipos"}
+            </h1>
+            <p className="text-slate-600 text-sm">
+              Selecciona una categoría para ver anuncios y mensajes privados
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
+            {/* Lista de categorías Desktop */}
+            <div className="lg:col-span-1 bg-white rounded-xl shadow-md border overflow-hidden">
