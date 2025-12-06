@@ -374,16 +374,16 @@ export default function ParentThreadedView({
       <div className="bg-white border-t flex-shrink-0">
         {replyingToStaff && (
           <>
-          <QuickReplies 
-            visible={showQuickReplies} 
-            onSelect={(text) => {
-              setMessageContent(text);
-              setShowQuickReplies(false);
-              setTimeout(() => inputRef.current?.focus(), 100);
-            }}
-          />
+            <QuickReplies 
+              visible={showQuickReplies} 
+              onSelect={(text) => {
+                setMessageContent(text);
+                setShowQuickReplies(false);
+                setTimeout(() => inputRef.current?.focus(), 100);
+              }}
+            />
 
-          <div className="bg-green-50 px-4 py-2 border-b flex items-center justify-between">
+            <div className="bg-green-50 px-4 py-2 border-b flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Lock className="w-4 h-4 text-green-700" />
               <span className="text-sm text-green-800 font-medium">
@@ -402,9 +402,9 @@ export default function ParentThreadedView({
             >
               Cancelar
             </Button>
-          </div>
+            </div>
 
-          {attachments.length > 0 && (
+            {attachments.length > 0 && (
             <div className="p-2 bg-slate-50 border-b">
               <div className="flex flex-wrap gap-2">
                 {attachments.map((att, index) => (
@@ -421,9 +421,9 @@ export default function ParentThreadedView({
                 ))}
               </div>
             </div>
-          )}
+            )}
 
-          <div className="p-3 flex gap-2 items-end">
+            <div className="p-3 flex gap-2 items-end">
             <FileAttachmentButton 
               onFileUploaded={(att) => setAttachments(prev => [...prev, att])} 
               disabled={isSending} 
@@ -459,7 +459,7 @@ export default function ParentThreadedView({
                 <Send className="w-5 h-5" />
               )}
             </Button>
-          </div>
+            </div>
           </>
         )}
 
