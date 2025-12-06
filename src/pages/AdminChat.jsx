@@ -20,6 +20,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { Textarea } from "@/components/ui/textarea";
 import { Eye, Lock, Shield } from "lucide-react";
 import useAdaptivePolling from "../components/chat/useAdaptivePolling";
+import useChatSound from "../components/chat/useChatSound";
 
 export default function AdminChat() {
   const [selectedGroup, setSelectedGroup] = useState(null);
@@ -41,6 +42,12 @@ export default function AdminChat() {
   const messagesEndRef = useRef(null);
   const queryClient = useQueryClient();
   const [user, setUser] = useState(null);
+  const { checkNewMessages } = useChatSound();
+
+  // Detectar mensajes nuevos y reproducir sonido
+  useEffect(() => {
+    checkNewMessages(messages, user?.email);
+  }, [messages.length, user?.email]);
 
   // Polling adaptativo
   useAdaptivePolling({
@@ -229,12 +236,21 @@ export default function AdminChat() {
       
       await queryClient.invalidateQueries({ queryKey: ['chatMessages'] });
       await refetchMessages();
+      
+      const recipientCount = variables.sendToAll ? Object.keys(groups).length : 1;
+      const deliveryMsg = `✅ Enviado a ${recipientCount} ${recipientCount === 1 ? 'grupo' : 'grupos'}`;
+      toast.success(deliveryMsg);
     },
-    onError: () => {
+    onError: (error, variables) => {
+      console.error("Error enviando mensaje:", error);
       setOptimisticMessages([]);
       setIsSending(false);
-      toast.error("Error al enviar mensaje");
+      toast.error("❌ No se pudo enviar. Reintentando...");
+      setTimeout(() => {
+        sendMessageMutation.mutate(variables);
+      }, 2000);
     },
+    retry: 2,
   });
 
   const markAsReadMutation = useMutation({
