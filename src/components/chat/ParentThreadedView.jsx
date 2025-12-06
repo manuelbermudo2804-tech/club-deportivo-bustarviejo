@@ -40,6 +40,7 @@ export default function ParentThreadedView({
   const [attachments, setAttachments] = useState([]);
   const [replyingToStaff, setReplyingToStaff] = useState(false);
   const [showQuickReplies, setShowQuickReplies] = useState(false);
+  const [optimisticMessages, setOptimisticMessages] = useState([]);
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
   const typingTimeoutRef = useRef(null);
@@ -127,8 +128,18 @@ export default function ParentThreadedView({
       });
     });
 
+    // Mensajes optimistas (aparecen INSTANTÁNEAMENTE)
+    optimisticMessages.forEach(msg => {
+      items.push({
+        type: 'private_reply',
+        data: msg,
+        timestamp: new Date(msg.created_date),
+        sortKey: new Date(msg.created_date).getTime()
+      });
+    });
+
     return items.sort((a, b) => a.sortKey - b.sortKey);
-  }, [groupMessages, myPrivateMessages]);
+  }, [groupMessages, myPrivateMessages, optimisticMessages]);
 
   // Agrupar por fechas
   const groupedByDate = React.useMemo(() => {
@@ -161,15 +172,47 @@ export default function ParentThreadedView({
       return;
     }
 
-    onSendPrivateMessage({
-      conversationId: myPrivateConversation.id,
-      message: messageContent,
-      attachments
-    });
-
+    const msgText = messageContent || "(Archivo adjunto)";
+    
+    // Mensaje optimista - aparece INSTANTÁNEAMENTE
+    const optimisticMsg = {
+      id: `temp-${Date.now()}`,
+      conversacion_id: myPrivateConversation.id,
+      remitente_email: user.email,
+      remitente_nombre: user.full_name,
+      remitente_tipo: "familia",
+      mensaje: msgText,
+      leido: false,
+      archivos_adjuntos: [...attachments],
+      created_date: new Date().toISOString(),
+      _isOptimistic: true
+    };
+    
+    // Añadir INMEDIATAMENTE
+    setOptimisticMessages([optimisticMsg]);
+    
+    // Guardar datos y limpiar INMEDIATAMENTE
+    const tempMsg = messageContent;
+    const tempAttachments = [...attachments];
     setMessageContent("");
     setAttachments([]);
-    setReplyingToStaff(false);
+    
+    // Scroll inmediato
+    setTimeout(() => {
+      messagesEndRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
+    }, 50);
+
+    // Enviar al servidor
+    onSendPrivateMessage({
+      conversationId: myPrivateConversation.id,
+      message: tempMsg,
+      attachments: tempAttachments
+    });
+
+    // Limpiar mensaje optimista después de enviar
+    setTimeout(() => {
+      setOptimisticMessages([]);
+    }, 3000);
   };
 
   const isAutomaticMessage = (msg) => {
@@ -179,11 +222,26 @@ export default function ParentThreadedView({
            mensaje.includes("encuesta");
   };
 
+  // Scroll INTELIGENTE solo cuando hay mensajes nuevos REALES
+  const prevRealMessagesCountRef = useRef(0);
   useEffect(() => {
-    setTimeout(() => {
-      messagesEndRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
-    }, 100);
-  }, [threadedMessages.length]);
+    const realCount = groupMessages.length + myPrivateMessages.length;
+    
+    if (prevRealMessagesCountRef.current > 0 && realCount > prevRealMessagesCountRef.current) {
+      const container = messagesEndRef.current?.parentElement;
+      if (container) {
+        const isNearBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 150;
+        
+        if (isNearBottom) {
+          setTimeout(() => {
+            messagesEndRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
+          }, 100);
+        }
+      }
+    }
+    
+    prevRealMessagesCountRef.current = realCount;
+  }, [groupMessages.length, myPrivateMessages.length]);
 
   return (
     <div className="flex flex-col h-full">
@@ -302,7 +360,7 @@ export default function ParentThreadedView({
                     isMyMessage 
                       ? 'bg-gradient-to-r from-green-600 to-green-700 text-white rounded-br-sm'
                       : 'bg-gradient-to-r from-blue-100 to-blue-200 text-slate-900 rounded-bl-sm border-2 border-blue-400'
-                  }`}>
+                  } ${msg._isOptimistic ? 'opacity-70' : ''}`}>
                     <div className="px-4 py-3">
                       <div className="flex items-center gap-2 mb-2">
                         {isMyMessage ? (
@@ -337,8 +395,14 @@ export default function ParentThreadedView({
                         <span className={`text-[10px] ${isMyMessage ? 'text-white opacity-70' : 'text-slate-500'}`}>
                           {format(new Date(msg.created_date), "HH:mm", { locale: es })}
                         </span>
-                        {isMyMessage && msg.leido && (
+                        {isMyMessage && msg._isOptimistic && (
+                          <span className="text-xs text-white opacity-70" title="Enviando...">⏳</span>
+                        )}
+                        {isMyMessage && !msg._isOptimistic && msg.leido && (
                           <span className="text-xs text-green-200" title="Leído por entrenador">✓✓</span>
+                        )}
+                        {isMyMessage && !msg._isOptimistic && !msg.leido && (
+                          <span className="text-xs text-green-300" title="Enviado">✓</span>
                         )}
                       </div>
                     </div>
@@ -450,14 +514,10 @@ export default function ParentThreadedView({
 
             <Button
               onClick={handleSendPrivateReply}
-              disabled={(!messageContent.trim() && attachments.length === 0) || isSending}
+              disabled={(!messageContent.trim() && attachments.length === 0)}
               className="rounded-full w-12 h-12 p-0 flex-shrink-0 bg-green-600 hover:bg-green-700"
             >
-              {isSending ? (
-                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-              ) : (
-                <Send className="w-5 h-5" />
-              )}
+              <Send className="w-5 h-5" />
             </Button>
             </div>
           </>
