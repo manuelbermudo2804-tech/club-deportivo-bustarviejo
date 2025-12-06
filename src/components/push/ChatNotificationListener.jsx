@@ -77,6 +77,34 @@ export default function ChatNotificationListener({ user }) {
     staleTime: 5 * 60 * 1000,
   });
 
+  // Conversaciones del coordinador
+  const { data: coordinatorConversations = [] } = useQuery({
+    queryKey: ['coordinatorConversationsListener'],
+    queryFn: () => base44.entities.CoordinatorConversation.list(),
+    initialData: [],
+    refetchInterval: false,
+    enabled: !!user,
+    staleTime: 5 * 60 * 1000,
+  });
+
+  // Mensajes del coordinador - polling cada 30 segundos
+  const { data: coordinatorMessages = [] } = useQuery({
+    queryKey: ['coordinatorMessagesListener'],
+    queryFn: () => base44.entities.CoordinatorMessage.list('-created_date', 30),
+    initialData: [],
+    refetchInterval: 30000,
+    enabled: !!user,
+    staleTime: 25000,
+  });
+
+  const [notifiedCoordinatorIds, setNotifiedCoordinatorIds] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const stored = localStorage.getItem('notifiedCoordinatorIds');
+      return stored ? new Set(JSON.parse(stored)) : new Set();
+    }
+    return new Set();
+  });
+
   // Procesar mensajes de grupo
   useEffect(() => {
     if (!user || !chatMessages || chatMessages.length === 0) return;
@@ -205,6 +233,62 @@ export default function ChatNotificationListener({ user }) {
       console.log('ChatNotificationListener private error:', e);
     }
   }, [privateMessages, user, privateConversations]);
+
+  // Procesar mensajes del coordinador
+  useEffect(() => {
+    if (!user || !coordinatorMessages || coordinatorMessages.length === 0) return;
+
+    console.log('👔 Procesando mensajes coordinador. Total:', coordinatorMessages.length, 'User:', user.email);
+
+    try {
+      const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
+      
+      const relevantMessages = coordinatorMessages.filter(m => {
+        if (!m || m.autor_email === user.email) return false;
+        
+        const msgDate = new Date(m.created_date);
+        if (msgDate < fiveMinutesAgo) return false;
+        
+        // Buscar la conversación de este mensaje
+        const conversation = coordinatorConversations.find(c => c.id === m.conversacion_id);
+        
+        if (conversation) {
+          // El usuario es participante si es el padre de esta conversación O es coordinador
+          const isPadre = conversation.padre_email === user.email;
+          const isCoordinador = user.es_coordinador || user.role === "admin";
+          
+          console.log('👔 Mensaje:', m.id, 'Conv:', m.conversacion_id, 'isPadre:', isPadre, 'isCoordinador:', isCoordinador);
+          
+          if (isPadre || isCoordinador) return true;
+        }
+        
+        return false;
+      });
+      
+      console.log('👔 Mensajes coordinador relevantes:', relevantMessages.length);
+      
+      // Notificar solo mensajes que NO hemos notificado antes
+      relevantMessages.forEach(msg => {
+        if (!notifiedCoordinatorIds.has(msg.id)) {
+          console.log('🆕 Nuevo mensaje coordinador detectado:', msg.id);
+          showNotification(`👔 ${msg.autor_nombre}`, msg.mensaje, msg.id);
+          
+          // Agregar al Set de notificados
+          setNotifiedCoordinatorIds(prev => {
+            const newSet = new Set(prev);
+            newSet.add(msg.id);
+            // Guardar en localStorage
+            if (typeof window !== 'undefined') {
+              localStorage.setItem('notifiedCoordinatorIds', JSON.stringify([...newSet]));
+            }
+            return newSet;
+          });
+        }
+      });
+    } catch (e) {
+      console.log('ChatNotificationListener coordinator error:', e);
+    }
+  }, [coordinatorMessages, user, coordinatorConversations]);
 
   const showNotification = (title, body, id, priority) => {
     console.log('🔔 showNotification llamada:', { title, body: body?.substring(0, 30), id });
