@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { User, Send, MessageCircle, Lock } from "lucide-react";
+import { User, Send, MessageCircle, Lock, Zap } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 
@@ -10,6 +10,9 @@ import MessageAttachments from "./MessageAttachments";
 import PollMessage from "./PollMessage";
 import FileAttachmentButton from "./FileAttachmentButton";
 import DateSeparator from "./DateSeparator";
+import LinkPreview from "./LinkPreview";
+import QuickReplies from "./QuickReplies";
+import TypingIndicator from "./TypingIndicator";
 
 export default function ParentThreadedView({
   category,
@@ -26,6 +29,7 @@ export default function ParentThreadedView({
   const [messageContent, setMessageContent] = useState("");
   const [attachments, setAttachments] = useState([]);
   const [replyingToStaff, setReplyingToStaff] = useState(false);
+  const [showQuickReplies, setShowQuickReplies] = useState(false);
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
 
@@ -148,6 +152,8 @@ export default function ParentThreadedView({
                       </div>
                       <p className="text-sm leading-relaxed break-words text-slate-800">{msg.mensaje}</p>
 
+                      <LinkPreview message={msg.mensaje} />
+
                       {msg.poll && (
                         <div className="mt-2">
                           <PollMessage 
@@ -169,21 +175,40 @@ export default function ParentThreadedView({
                     {/* Botón responder en privado */}
                     {!isAutomaticMessage(msg) && (
                       <div className="bg-slate-50 px-4 py-2 border-t">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => {
-                            if (!myPrivateConversation) {
-                              onReplyPrivate(msg.remitente_email);
-                            }
-                            setReplyingToStaff(true);
-                            setTimeout(() => inputRef.current?.focus(), 100);
-                          }}
-                          className="text-green-700 hover:bg-green-50 w-full gap-2"
-                        >
-                          <Lock className="w-3 h-3" />
-                          💬 Responder en privado
-                        </Button>
+                        <div className="flex gap-2">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => {
+                              if (!myPrivateConversation) {
+                                onReplyPrivate(msg.remitente_email);
+                              }
+                              setReplyingToStaff(true);
+                              setShowQuickReplies(false);
+                              setTimeout(() => inputRef.current?.focus(), 100);
+                            }}
+                            className="text-green-700 hover:bg-green-50 flex-1 gap-2"
+                          >
+                            <Lock className="w-3 h-3" />
+                            💬 Responder
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => {
+                              if (!myPrivateConversation) {
+                                onReplyPrivate(msg.remitente_email);
+                              }
+                              setReplyingToStaff(true);
+                              setShowQuickReplies(true);
+                              setTimeout(() => inputRef.current?.focus(), 100);
+                            }}
+                            className="text-orange-600 hover:bg-orange-50 gap-1"
+                            title="Respuestas rápidas"
+                          >
+                            <Zap className="w-4 h-4" />
+                          </Button>
+                        </div>
                       </div>
                     )}
                   </div>
@@ -225,6 +250,8 @@ export default function ParentThreadedView({
                       
                       <p className="text-sm leading-relaxed break-words">{msg.mensaje}</p>
                       
+                      <LinkPreview message={msg.mensaje} />
+
                       {msg.archivos_adjuntos?.length > 0 && (
                         <div className="mt-2">
                           <MessageAttachments attachments={msg.archivos_adjuntos} />
@@ -271,6 +298,15 @@ export default function ParentThreadedView({
       {/* Input area - solo si está respondiendo */}
       {replyingToStaff && myPrivateConversation && (
         <div className="bg-white border-t flex-shrink-0">
+          <QuickReplies 
+            visible={showQuickReplies} 
+            onSelect={(text) => {
+              setMessageContent(text);
+              setShowQuickReplies(false);
+              setTimeout(() => inputRef.current?.focus(), 100);
+            }}
+          />
+
           <div className="bg-green-50 px-4 py-2 border-b flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Lock className="w-4 h-4 text-green-700" />

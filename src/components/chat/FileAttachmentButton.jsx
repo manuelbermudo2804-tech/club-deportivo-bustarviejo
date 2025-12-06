@@ -10,6 +10,7 @@ import {
   MapPin,
   Loader2 
 } from "lucide-react";
+import VoiceRecorder from "./VoiceRecorder";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -156,8 +157,16 @@ export default function FileAttachmentButton({ onFileUploaded, disabled }) {
     );
   };
 
+  const handleVoiceRecordingComplete = async (audioFile) => {
+    await handleFileUpload(audioFile, 'audio');
+  };
+
   return (
     <>
+      <VoiceRecorder 
+        onRecordingComplete={handleVoiceRecordingComplete}
+        disabled={disabled || uploading}
+      />
       <input
         type="file"
         id="camera-input"

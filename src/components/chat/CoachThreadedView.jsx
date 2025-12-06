@@ -11,6 +11,7 @@ import PollMessage from "./PollMessage";
 import FileAttachmentButton from "./FileAttachmentButton";
 import DateSeparator from "./DateSeparator";
 import ReadConfirmation from "./ReadConfirmation";
+import LinkPreview from "./LinkPreview";
 
 export default function CoachThreadedView({
   category,
@@ -152,6 +153,8 @@ export default function CoachThreadedView({
                       </div>
                       <p className="text-sm leading-relaxed break-words">{msg.mensaje}</p>
                       
+                      <LinkPreview message={msg.mensaje} />
+
                       {msg.archivos_adjuntos?.length > 0 && (
                         <div className="mt-2">
                           <MessageAttachments attachments={msg.archivos_adjuntos} />
@@ -220,6 +223,8 @@ export default function CoachThreadedView({
                       
                       <p className="text-sm leading-relaxed break-words">{msg.mensaje}</p>
                       
+                      <LinkPreview message={msg.mensaje} />
+
                       {msg.archivos_adjuntos?.length > 0 && (
                         <div className="mt-2">
                           <MessageAttachments attachments={msg.archivos_adjuntos} />
