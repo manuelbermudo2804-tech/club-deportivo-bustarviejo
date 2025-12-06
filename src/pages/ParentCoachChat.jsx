@@ -44,14 +44,20 @@ export default function ParentCoachChat() {
   }, []);
 
   const { data: messages = [] } = useQuery({
-    queryKey: ['coachGroupMessages', selectedCategory],
+    queryKey: ['coachGroupMessages', selectedCategory, user?.email],
     queryFn: async () => {
-      if (!selectedCategory) return [];
+      if (!selectedCategory || !user) return [];
       const grupo_id = selectedCategory.toLowerCase().replace(/\s+/g, '_');
-      return await base44.entities.ChatMessage.filter({ grupo_id }, 'created_date');
+      const allMessages = await base44.entities.ChatMessage.filter({ grupo_id }, 'created_date');
+      
+      // Filtrar: solo mensajes grupales (sin destinatario) O mensajes privados para este usuario
+      return allMessages.filter(msg => 
+        !msg.destinatario_email || 
+        msg.destinatario_email === user.email
+      );
     },
     refetchInterval: 3000,
-    enabled: !!selectedCategory,
+    enabled: !!selectedCategory && !!user,
   });
 
   const { data: allPlayers = [] } = useQuery({
