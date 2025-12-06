@@ -68,6 +68,8 @@ import JoinFemenino from './pages/JoinFemenino';
 import FemeninoInterests from './pages/FemeninoInterests';
 import CoordinatorChat from './pages/CoordinatorChat';
 import ParentCoordinatorChat from './pages/ParentCoordinatorChat';
+import ParentCoachChat from './pages/ParentCoachChat';
+import CoachParentChat from './pages/CoachParentChat';
 import __Layout from './Layout.jsx';
 
 
@@ -142,6 +144,8 @@ export const PAGES = {
     "FemeninoInterests": FemeninoInterests,
     "CoordinatorChat": CoordinatorChat,
     "ParentCoordinatorChat": ParentCoordinatorChat,
+    "ParentCoachChat": ParentCoachChat,
+    "CoachParentChat": CoachParentChat,
 }
 
 export const pagesConfig = {
