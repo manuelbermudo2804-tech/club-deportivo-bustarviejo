@@ -241,9 +241,37 @@ export default function CoachThreadedView({
         attachments: tempAttachments
       });
 
-      setTimeout(() => setOptimisticMessages([]), 3000);
+      // Los mensajes optimistas se limpiarán cuando llegue el mensaje real
     }
   };
+  
+  // Limpiar mensajes optimistas cuando llegan los reales
+  useEffect(() => {
+    if (optimisticMessages.length > 0) {
+      const hasGroupOptimistic = optimisticMessages.some(m => m.tipo === "admin_a_grupo");
+      const hasPrivateOptimistic = optimisticMessages.some(m => !m.tipo || m.remitente_tipo);
+      
+      if (hasGroupOptimistic && groupMessages.length > 0) {
+        const latestReal = groupMessages[groupMessages.length - 1];
+        const latestOptimistic = optimisticMessages.find(m => m.tipo === "admin_a_grupo");
+        
+        if (latestReal && latestOptimistic && 
+            new Date(latestReal.created_date) >= new Date(latestOptimistic.created_date)) {
+          setOptimisticMessages(prev => prev.filter(m => m.tipo !== "admin_a_grupo"));
+        }
+      }
+      
+      if (hasPrivateOptimistic && allPrivateMessages.length > 0) {
+        const latestReal = allPrivateMessages[allPrivateMessages.length - 1];
+        const latestOptimistic = optimisticMessages.find(m => !m.tipo || m.remitente_tipo);
+        
+        if (latestReal && latestOptimistic && 
+            new Date(latestReal.created_date) >= new Date(latestOptimistic.created_date)) {
+          setOptimisticMessages(prev => prev.filter(m => m.tipo === "admin_a_grupo"));
+        }
+      }
+    }
+  }, [groupMessages.length, allPrivateMessages.length, optimisticMessages.length]);
 
   // Scroll INTELIGENTE solo cuando hay mensajes nuevos REALES
   const prevRealMessagesCountRef = useRef(0);
@@ -428,6 +456,14 @@ export default function CoachThreadedView({
             return null;
           })
         )}
+        
+        {/* Indicador de "escribiendo..." de familia */}
+        {familyTyping && (
+          <div className="flex justify-start ml-8">
+            <RemoteTypingIndicator userName={familyTyping} />
+          </div>
+        )}
+        
         <div ref={messagesEndRef} />
       </div>
 

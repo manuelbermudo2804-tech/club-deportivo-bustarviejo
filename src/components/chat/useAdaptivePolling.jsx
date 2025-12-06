@@ -33,17 +33,17 @@ export default function useAdaptivePolling({
       let interval;
       
       if (!isVisibleRef.current) {
-        // Pestaña en background: 60s
-        interval = 60000;
-      } else if (isActive && isTyping) {
-        // Usuario activo escribiendo: 5s (tiempo real)
-        interval = 5000;
-      } else if (isActive) {
-        // Chat abierto pero no escribiendo: 15s
-        interval = 15000;
-      } else {
-        // Chat cerrado o inactivo: 30s
+        // Pestaña en background: 30s
         interval = 30000;
+      } else if (isActive && isTyping) {
+        // Usuario activo escribiendo: 2s (ultra-rápido como WhatsApp)
+        interval = 2000;
+      } else if (isActive) {
+        // Chat abierto pero no escribiendo: 5s (muy rápido)
+        interval = 5000;
+      } else {
+        // Chat cerrado o inactivo: 20s
+        interval = 20000;
       }
 
       intervalRef.current = setInterval(() => {

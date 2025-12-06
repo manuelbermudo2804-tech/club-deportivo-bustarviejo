@@ -326,7 +326,7 @@ export default function ParentChat() {
   });
 
   const sendPrivateMessageMutation = useMutation({
-    mutationFn: async ({ conversationId, message, attachments }) => {
+    mutationFn: async ({ conversationId, message, attachments, optimisticId }) => {
       const newMessage = await base44.entities.PrivateMessage.create({
         conversacion_id: conversationId,
         remitente_email: user.email,
@@ -345,16 +345,12 @@ export default function ParentChat() {
         no_leidos_staff: (conv?.no_leidos_staff || 0) + 1
       });
 
-      return newMessage;
+      return { newMessage, optimisticId };
     },
-    onSuccess: () => {
-      // Refrescar sin mostrar toast - el usuario ya ve el mensaje optimista
-      refetchPrivateMessages();
-      refetchConversations();
-      queryClient.invalidateQueries({ queryKey: ['privateConversations'] });
+    onSuccess: (data) => {
+      // Refrescar queries rápido
+      queryClient.invalidateQueries({ queryKey: ['privateMessages'] });
       queryClient.invalidateQueries({ queryKey: ['myPrivateConversations'] });
-      queryClient.invalidateQueries({ queryKey: ['privateConversationsParent'] });
-      queryClient.invalidateQueries({ queryKey: ['privateConversationsHome'] });
     },
     onError: (error, variables) => {
       console.error("Error enviando mensaje:", error);

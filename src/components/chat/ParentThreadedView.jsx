@@ -14,6 +14,7 @@ import useChatSound from "./useChatSound";
 import LinkPreview from "./LinkPreview";
 import TypingIndicator from "./TypingIndicator";
 import QuickReplies from "./QuickReplies";
+import RemoteTypingIndicator from "./RemoteTypingIndicator";
 import { useQueryClient } from "@tanstack/react-query";
 
 export default function ParentThreadedView({
@@ -27,7 +28,9 @@ export default function ParentThreadedView({
   onVotePoll,
   isSending = false,
   sportEmoji = "⚽",
-  onTypingChange
+  onTypingChange,
+  staffTyping = false,
+  staffName = "Entrenador"
 }) {
   console.log('🎨 ParentThreadedView render:', {
     category,
@@ -82,6 +85,21 @@ export default function ParentThreadedView({
       });
     }
   }, [groupMessages.length, myPrivateMessages.length, user?.email, myPrivateMessages, myPrivateConversation]);
+
+  // Limpiar mensajes optimistas cuando llegan los reales
+  useEffect(() => {
+    if (optimisticMessages.length > 0 && myPrivateMessages.length > 0) {
+      const latestReal = myPrivateMessages[myPrivateMessages.length - 1];
+      const latestOptimistic = optimisticMessages[0];
+
+      // Si el mensaje real es más reciente que el optimista, limpiar
+      if (latestReal && latestOptimistic && 
+          new Date(latestReal.created_date) >= new Date(latestOptimistic.created_date)) {
+        console.log('✅ Mensaje optimista reemplazado por real');
+        setOptimisticMessages([]);
+      }
+    }
+  }, [myPrivateMessages.length, optimisticMessages.length]);
 
   // Detectar cuando el usuario está escribiendo
   const handleInputChange = (e) => {
@@ -209,10 +227,7 @@ export default function ParentThreadedView({
       attachments: tempAttachments
     });
 
-    // Limpiar mensaje optimista después de enviar
-    setTimeout(() => {
-      setOptimisticMessages([]);
-    }, 3000);
+    // Los mensajes optimistas se limpiarán cuando llegue el mensaje real de la BD
   };
 
   const isAutomaticMessage = (msg) => {
@@ -429,9 +444,17 @@ export default function ParentThreadedView({
             }
 
             return null;
-          })
-        )}
-        <div ref={messagesEndRef} />
+            })
+            )}
+
+            {/* Indicador de "escribiendo..." */}
+            {staffTyping && replyingToStaff && (
+            <div className="flex justify-start ml-8">
+            <RemoteTypingIndicator userName={staffName} />
+            </div>
+            )}
+
+            <div ref={messagesEndRef} />
       </div>
 
       {/* Input area - SIEMPRE mostrar */}

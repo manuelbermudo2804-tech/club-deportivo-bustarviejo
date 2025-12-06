@@ -463,7 +463,7 @@ export default function CoachChat() {
   };
 
   const sendPrivateMessageMutation = useMutation({
-    mutationFn: async ({ conversationId, message, attachments }) => {
+    mutationFn: async ({ conversationId, message, attachments, optimisticId }) => {
       const newMessage = await base44.entities.PrivateMessage.create({
         conversacion_id: conversationId,
         remitente_email: user.email,
@@ -482,19 +482,12 @@ export default function CoachChat() {
         no_leidos_familia: (conv?.no_leidos_familia || 0) + 1
       });
 
-      return newMessage;
+      return { newMessage, optimisticId };
     },
     onSuccess: () => {
-      // Refrescar sin toast - ya ve el mensaje optimista
-      refetchPrivateMessages();
-      refetchConversations();
-      refetchAllPrivateMessages();
+      queryClient.invalidateQueries({ queryKey: ['privateMessages'] });
       queryClient.invalidateQueries({ queryKey: ['privateConversations'] });
-      queryClient.invalidateQueries({ queryKey: ['myPrivateConversations'] });
-      queryClient.invalidateQueries({ queryKey: ['privateConversationsParent'] });
-      queryClient.invalidateQueries({ queryKey: ['privateConversationsHome'] });
       setIsSending(false);
-      setOptimisticMessages([]);
     },
     onError: (error, variables) => {
       console.error("Error enviando mensaje:", error);

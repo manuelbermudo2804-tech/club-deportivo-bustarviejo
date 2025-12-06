@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { base44 } from "@/api/base44Client";
 import { toast } from "sonner";
+import { compressImage } from "./ImageCompressor";
 
 export default function FileAttachmentButton({ onFileUploaded, disabled }) {
   const [uploading, setUploading] = useState(false);
@@ -28,8 +29,22 @@ export default function FileAttachmentButton({ onFileUploaded, disabled }) {
 
     setUploading(true);
     try {
-      console.log(`⬆️ Subiendo ${tipo}: ${file.name} (${(file.size / 1024 / 1024).toFixed(2)}MB)`);
-      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+      const originalSize = (file.size / 1024 / 1024).toFixed(2);
+      console.log(`⬆️ Subiendo ${tipo}: ${file.name} (${originalSize}MB)`);
+      
+      // Comprimir imágenes automáticamente
+      let fileToUpload = file;
+      if (tipo === 'imagen') {
+        toast.loading("📸 Optimizando imagen...");
+        fileToUpload = await compressImage(file);
+        const compressedSize = (fileToUpload.size / 1024 / 1024).toFixed(2);
+        if (compressedSize < originalSize) {
+          console.log(`✅ Imagen comprimida: ${originalSize}MB → ${compressedSize}MB (${Math.round((1 - fileToUpload.size / file.size) * 100)}% reducción)`);
+        }
+        toast.dismiss();
+      }
+      
+      const { file_url } = await base44.integrations.Core.UploadFile({ file: fileToUpload });
       
       const attachment = {
         url: file_url,
