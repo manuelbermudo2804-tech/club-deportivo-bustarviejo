@@ -78,22 +78,8 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
     ? conversationState?.padre_escribiendo 
     : conversationState?.coordinador_escribiendo;
 
-  // Reproducir sonido cuando llega un mensaje nuevo
+  // Scroll automático cuando cambian los mensajes o el indicador de escritura
   useEffect(() => {
-    if (messages.length > 0 && notificationSoundRef.current) {
-      const lastMessage = messages[messages.length - 1];
-      const isFromOther = isCoordinator ? lastMessage.autor === "padre" : lastMessage.autor === "coordinador";
-      
-      // Solo reproducir si es de la otra persona y es reciente (últimos 5 segundos)
-      const messageAge = Date.now() - new Date(lastMessage.created_date).getTime();
-      if (isFromOther && messageAge < 5000) {
-        notificationSoundRef.current.play().catch(() => {});
-      }
-    }
-  }, [messages.length]);
-
-  useEffect(() => {
-    // Scroll inmediato y confiable al final
     if (messagesEndRef.current) {
       messagesEndRef.current.scrollIntoView({ behavior: "smooth", block: "end" });
     }
@@ -101,6 +87,8 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
 
   // Marcar como leído cuando abre la conversación
   useEffect(() => {
+    if (!conversation?.id) return;
+    
     const markAsRead = async () => {
       const field = isCoordinator ? 'no_leidos_coordinador' : 'no_leidos_padre';
       const msgField = isCoordinator ? 'leido_coordinador' : 'leido_padre';
@@ -124,10 +112,12 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
       }
     };
     markAsRead();
-  }, [conversation.id, messages]);
+  }, [conversation?.id, messages]);
 
   // Indicador "escribiendo..."
   const handleTyping = async () => {
+    if (!conversation?.id) return;
+    
     const field = isCoordinator ? 'coordinador_escribiendo' : 'padre_escribiendo';
     
     clearTimeout(typingTimeoutRef.current);
