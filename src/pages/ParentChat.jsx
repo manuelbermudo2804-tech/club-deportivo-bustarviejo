@@ -122,12 +122,17 @@ export default function ParentChat() {
     queryKey: ['privateMessages', activePrivateChat?.id],
     queryFn: async () => {
       try {
-        if (!activePrivateChat) return [];
-        
+        if (!activePrivateChat || activePrivateChat.archivada) return [];
+
         const msgs = await base44.entities.PrivateMessage.filter({ conversacion_id: activePrivateChat.id }, '-created_date');
-        
+
+        // Filtrar mensajes de la última temporada (últimos 12 meses)
+        const twelveMonthsAgo = new Date();
+        twelveMonthsAgo.setMonth(twelveMonthsAgo.getMonth() - 12);
+        const recentMsgs = msgs.filter(msg => new Date(msg.created_date) >= twelveMonthsAgo);
+
         // MARCAR COMO LEÍDOS automáticamente los mensajes del staff
-        const unreadStaffMessages = msgs.filter(msg => !msg.leido && msg.remitente_tipo === "staff");
+        const unreadStaffMessages = recentMsgs.filter(msg => !msg.leido && msg.remitente_tipo === "staff");
         if (unreadStaffMessages.length > 0) {
           Promise.all(unreadStaffMessages.map(msg => 
             base44.entities.PrivateMessage.update(msg.id, { leido: true }).catch(() => {})
@@ -139,14 +144,14 @@ export default function ParentChat() {
             }).catch(() => {});
           });
         }
-        
-        return msgs;
+
+        return recentMsgs;
       } catch (error) {
         console.error('Error loading private messages:', error);
         return [];
       }
     },
-    enabled: !!activePrivateChat?.id,
+    enabled: !!activePrivateChat?.id && !activePrivateChat?.archivada,
     staleTime: 10000,
     gcTime: 60000,
     refetchInterval: false,
