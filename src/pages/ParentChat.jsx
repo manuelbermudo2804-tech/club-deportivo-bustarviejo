@@ -315,6 +315,41 @@ export default function ParentChat() {
     );
   }
 
+  // Vista de chat privado cuando NO es Coordinación Deportiva
+  if (activePrivateChat && selectedCategory !== "Coordinación Deportiva") {
+    return (
+      <div className="p-4 lg:p-6 min-h-screen bg-slate-50">
+        <div className="max-w-3xl mx-auto">
+          <div className="mb-4">
+            <Button 
+              variant="ghost" 
+              onClick={() => setActivePrivateChat(null)}
+              className="mb-2"
+            >
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Volver a anuncios
+            </Button>
+            <div className="flex items-center gap-2 text-sm text-green-700 bg-green-50 px-3 py-2 rounded-lg">
+              <Lock className="w-4 h-4" />
+              <span className="font-medium">Chat privado</span>
+              <span className="text-green-600">- Solo tú y {activePrivateChat.participante_staff_nombre} ven estos mensajes</span>
+            </div>
+          </div>
+          <div className="bg-white rounded-xl shadow-md border overflow-hidden" style={{ height: '70vh' }}>
+            <PrivateChatPanel
+              conversation={activePrivateChat}
+              messages={privateMessages}
+              user={user}
+              isStaff={false}
+              onClose={() => setActivePrivateChat(null)}
+              onMessageSent={handlePrivateMessageSent}
+            />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className={`${isMobile ? 'fixed inset-0 flex flex-col overflow-hidden bg-white' : 'p-4 lg:p-6 min-h-screen bg-slate-50'}`} style={isMobile ? { top: '120px' } : {}}>
       {/* MÓVIL: Lista de equipos */}
