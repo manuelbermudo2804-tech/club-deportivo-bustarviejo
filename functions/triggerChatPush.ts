@@ -34,6 +34,19 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Message content and recipients required' }, { status: 400 });
     }
 
+    // Verificar si las notificaciones push están activas
+    const seasonConfigs = await base44.asServiceRole.entities.SeasonConfig.list();
+    const activeConfig = seasonConfigs.find(c => c.activa === true);
+    
+    if (activeConfig?.notificaciones_push_activas === false) {
+      console.log('⏸️ Notificaciones push desactivadas por admin');
+      return Response.json({ 
+        success: true, 
+        message: 'Push notifications disabled by admin',
+        sent: 0 
+      });
+    }
+
     if (!VAPID_PUBLIC_KEY || !VAPID_PRIVATE_KEY) {
       return Response.json({ error: 'VAPID keys not configured', sent: 0 });
     }
