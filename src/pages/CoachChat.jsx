@@ -125,7 +125,34 @@ export default function CoachChat() {
         convIds.map(id => base44.entities.PrivateMessage.filter({ conversacion_id: id }, '-created_date'))
       );
 
-      return allMessages.flat();
+      const flatMessages = allMessages.flat();
+      
+      // MARCAR COMO LEÍDOS automáticamente cuando se abre la categoría
+      const unreadMessages = flatMessages.filter(msg => !msg.leido && msg.remitente_tipo === "familia");
+      if (unreadMessages.length > 0) {
+        Promise.all(unreadMessages.map(msg => 
+          base44.entities.PrivateMessage.update(msg.id, { leido: true }).catch(() => {})
+        )).then(() => {
+          // Actualizar contadores de conversaciones
+          const convsToUpdate = new Map();
+          unreadMessages.forEach(msg => {
+            if (!convsToUpdate.has(msg.conversacion_id)) {
+              convsToUpdate.set(msg.conversacion_id, []);
+            }
+            convsToUpdate.get(msg.conversacion_id).push(msg.id);
+          });
+          
+          convsToUpdate.forEach((msgIds, convId) => {
+            base44.entities.PrivateConversation.update(convId, { no_leidos_staff: 0 }).catch(() => {});
+          });
+          
+          // Refrescar queries
+          queryClient.invalidateQueries({ queryKey: ['privateConversations'] });
+          queryClient.invalidateQueries({ queryKey: ['myPrivateConversations'] });
+        });
+      }
+
+      return flatMessages;
     },
     enabled: !!selectedCategory && selectedCategory !== "Coordinación Deportiva" && selectedCategory !== "Chat Interno Staff",
     staleTime: 10000,
@@ -436,6 +463,10 @@ export default function CoachChat() {
       refetchPrivateMessages();
       refetchConversations();
       refetchAllPrivateMessages();
+      queryClient.invalidateQueries({ queryKey: ['privateConversations'] });
+      queryClient.invalidateQueries({ queryKey: ['myPrivateConversations'] });
+      queryClient.invalidateQueries({ queryKey: ['privateConversationsParent'] });
+      queryClient.invalidateQueries({ queryKey: ['privateConversationsHome'] });
       setIsSending(false);
       setOptimisticMessages([]);
       toast.success("✅ Respuesta enviada a la familia");

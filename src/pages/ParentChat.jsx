@@ -88,9 +88,28 @@ export default function ParentChat() {
 
   const { data: privateMessages = [], refetch: refetchPrivateMessages } = useQuery({
     queryKey: ['privateMessages', activePrivateChat?.id],
-    queryFn: () => activePrivateChat 
-      ? base44.entities.PrivateMessage.filter({ conversacion_id: activePrivateChat.id }, '-created_date')
-      : [],
+    queryFn: async () => {
+      if (!activePrivateChat) return [];
+      
+      const msgs = await base44.entities.PrivateMessage.filter({ conversacion_id: activePrivateChat.id }, '-created_date');
+      
+      // MARCAR COMO LEÍDOS automáticamente los mensajes del staff
+      const unreadStaffMessages = msgs.filter(msg => !msg.leido && msg.remitente_tipo === "staff");
+      if (unreadStaffMessages.length > 0) {
+        Promise.all(unreadStaffMessages.map(msg => 
+          base44.entities.PrivateMessage.update(msg.id, { leido: true }).catch(() => {})
+        )).then(() => {
+          // Actualizar contador de conversación
+          base44.entities.PrivateConversation.update(activePrivateChat.id, { no_leidos_familia: 0 }).then(() => {
+            queryClient.invalidateQueries({ queryKey: ['myPrivateConversations'] });
+            queryClient.invalidateQueries({ queryKey: ['privateConversationsParent'] });
+            queryClient.invalidateQueries({ queryKey: ['privateConversationsHome'] });
+          }).catch(() => {});
+        });
+      }
+      
+      return msgs;
+    },
     enabled: !!activePrivateChat?.id,
     staleTime: 10000,
     gcTime: 60000,
@@ -252,12 +271,15 @@ export default function ParentChat() {
     onSuccess: () => {
       refetchPrivateMessages();
       refetchConversations();
+      queryClient.invalidateQueries({ queryKey: ['privateConversations'] });
+      queryClient.invalidateQueries({ queryKey: ['myPrivateConversations'] });
+      queryClient.invalidateQueries({ queryKey: ['privateConversationsParent'] });
+      queryClient.invalidateQueries({ queryKey: ['privateConversationsHome'] });
       toast.success("✅ Mensaje enviado al entrenador");
     },
     onError: (error, variables) => {
       console.error("Error enviando mensaje:", error);
       toast.error("❌ No se pudo enviar. Reintentando...");
-      // Retry automático
       setTimeout(() => {
         sendPrivateMessageMutation.mutate(variables);
       }, 2000);
