@@ -353,7 +353,7 @@ export default function Payments() {
     
     if (!players || !payments) return 0;
     
-    players.forEach(player => {
+    players.filter(p => p.activo === true).forEach(player => {
       const playerPayments = payments.filter(p => 
         p.jugador_id === player.id && 
         (targetTemporada === null || matchTemporada(p.temporada, targetTemporada))
@@ -390,7 +390,7 @@ export default function Payments() {
     
     if (!players || !payments) return 0;
     
-    players.forEach(player => {
+    players.filter(p => p.activo === true).forEach(player => {
       const playerPayments = payments.filter(p => 
         p.jugador_id === player.id && 
         (targetTemporada === null || matchTemporada(p.temporada, targetTemporada))
