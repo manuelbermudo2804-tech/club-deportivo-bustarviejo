@@ -502,13 +502,12 @@ export default function Layout({ children, currentPageName }) {
   const [isTreasurer, setIsTreasurer] = useState(false);
   const [isPlayer, setIsPlayer] = useState(false);
   const [hasPlayers, setHasPlayers] = useState(false);
-  const [unreadMessagesCount, setUnreadMessagesCount] = useState(0);
-  const [urgentMessagesCount, setUrgentMessagesCount] = useState(0);
+
   const [pendingCallupsCount, setPendingCallupsCount] = useState(0);
   const [pendingDocumentsCount, setPendingDocumentsCount] = useState(0);
   const [pendingSignaturesCount, setPendingSignaturesCount] = useState(0);
   const [pendingCallupResponses, setPendingCallupResponses] = useState(0); // Para entrenadores: respuestas sin confirmar
-  const [privateMessagesCount, setPrivateMessagesCount] = useState(0); // Mensajes privados no leídos
+
   const [showSpecialScreen, setShowSpecialScreen] = useState(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [currentLang, setCurrentLang] = useState('es');
@@ -765,135 +764,9 @@ export default function Layout({ children, currentPageName }) {
             }
           }, [user, isLoading, isAdmin, isCoach, isCoordinator, isTreasurer, isPlayer, location.pathname, navigate]);
 
-  useEffect(() => {
-    if (!user) return;
-    
-    const checkUnreadMessages = async () => {
-      try {
-        const allMessages = await base44.entities.ChatMessage.list();
-        let unread = 0;
-        let urgent = 0;
-        
-        if (isAdmin) {
-          allMessages.forEach(msg => {
-            if (!msg.leido && (msg.tipo === "padre_a_grupo" || msg.tipo === "jugador_a_equipo")) {
-              unread++;
-              if (msg.prioridad === "Urgente") {
-                urgent++;
-              }
-            }
-          });
-        } else if (isCoach) {
-          const categoriesCoached = user.categorias_entrena || [];
-          allMessages.forEach(msg => {
-            if (!msg.leido && msg.tipo === "padre_a_grupo") {
-              const msgDeporte = msg.grupo_id || msg.deporte;
-              if (categoriesCoached.includes(msgDeporte)) {
-                unread++;
-                if (msg.prioridad === "Urgente") {
-                  urgent++;
-                }
-              }
-            }
-          });
-        } else {
-          const allPlayers = await base44.entities.Player.list();
-          const myPlayers = allPlayers.filter(p => 
-            p.email_padre === user.email || p.email_tutor_2 === user.email
-          );
-          const myGroupSports = [...new Set(myPlayers.map(p => p.deporte))];
-          
-          allMessages.forEach(msg => {
-            if (!msg.leido && 
-                msg.tipo === "admin_a_grupo" && 
-                myGroupSports.includes(msg.grupo_id || msg.deporte)) {
-              unread++;
-              if (msg.prioridad === "Urgente") {
-                urgent++;
-              }
-            }
-          });
-        }
-        
-        setUnreadMessagesCount(unread);
-        setUrgentMessagesCount(urgent);
-      } catch (error) {
-        console.error("Error checking unread messages:", error);
-      }
-    };
 
-    checkUnreadMessages();
-    // Refrescar cada 15 segundos
-    const interval = setInterval(checkUnreadMessages, 15000);
-    return () => clearInterval(interval);
-  }, [user, isAdmin, isCoach]);
 
-  // Contador de mensajes privados no leídos (familias Y staff)
-  useEffect(() => {
-    if (!user) return;
 
-    const checkPrivateMessages = async () => {
-      try {
-        let totalUnread = 0;
-
-        if (isAdmin || isCoach || isCoordinator || isTreasurer) {
-          // Staff: ver mensajes no leídos de familias
-          const conversations = await base44.entities.PrivateConversation.list();
-          const allPlayers = await base44.entities.Player.list();
-
-          conversations.forEach(conv => {
-            if (!conv.archivada) {
-              // CRÍTICO: Solo contar si hay jugadores activos relacionados
-              const jugadoresRelacionados = conv.jugadores_relacionados || [];
-              const tieneJugadoresActivos = jugadoresRelacionados.some(jr => {
-                const player = allPlayers.find(p => p.id === jr.jugador_id);
-                return player?.activo === true;
-              });
-
-              // Solo contar si tiene jugadores activos
-              if (!tieneJugadoresActivos) return;
-
-              // Admin/Coordinador ven todas
-              if (isAdmin || isCoordinator) {
-                totalUnread += (conv.no_leidos_staff || 0);
-              } 
-              // Entrenador solo sus conversaciones
-              else if (conv.participante_staff_email === user.email) {
-                totalUnread += (conv.no_leidos_staff || 0);
-              }
-            }
-          });
-        } else if (!isPlayer) {
-          // Familias: ver mensajes no leídos del staff
-          const conversations = await base44.entities.PrivateConversation.filter({ 
-            participante_familia_email: user.email 
-          });
-          const allPlayers = await base44.entities.Player.list();
-
-          totalUnread = conversations
-            .filter(c => {
-              if (c.archivada) return false;
-
-              // CRÍTICO: Solo contar si tiene jugadores activos
-              const jugadoresRelacionados = c.jugadores_relacionados || [];
-              return jugadoresRelacionados.some(jr => {
-                const player = allPlayers.find(p => p.id === jr.jugador_id);
-                return player?.activo === true;
-              });
-            })
-            .reduce((sum, c) => sum + (c.no_leidos_familia || 0), 0);
-        }
-
-        setPrivateMessagesCount(totalUnread);
-      } catch (error) {
-        console.error("Error checking private messages:", error);
-      }
-    };
-
-    checkPrivateMessages();
-    const interval = setInterval(checkPrivateMessages, 15000); // Refrescar cada 15s
-    return () => clearInterval(interval);
-  }, [user, isAdmin, isCoach, isCoordinator, isTreasurer, isPlayer]);
 
   useEffect(() => {
     if (!user) return;
@@ -1598,11 +1471,7 @@ export default function Layout({ children, currentPageName }) {
                 className="p-3 text-white hover:bg-white/20 rounded-xl transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center relative"
               >
                 {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-                {privateMessagesCount > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-green-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center animate-pulse ring-2 ring-white">
-                    {privateMessagesCount}
-                  </span>
-                )}
+
               </button>
             </div>
           </div>

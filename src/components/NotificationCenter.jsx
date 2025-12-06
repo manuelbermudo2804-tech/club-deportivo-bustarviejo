@@ -230,8 +230,8 @@ export default function NotificationCenter() {
     return sum;
   }, 0);
 
-  const criticalNotifications = urgentMessages.length + urgentAnnouncements.length + pendingPayments.length;
-  const totalNotifications = unreadMessagesRecent.length + pendingCallups.length + pendingPayments.length + recentAnnouncements.length + unviewedAppNotifications.length + totalUnreadPrivate;
+  const criticalNotifications = urgentAnnouncements.length + pendingPayments.length;
+  const totalNotifications = pendingCallups.length + pendingPayments.length + recentAnnouncements.length + unviewedAppNotifications.length;
 
   const getNotificationIcon = (type) => {
     switch(type) {
@@ -289,16 +289,11 @@ export default function NotificationCenter() {
         </DialogHeader>
 
         <Tabs defaultValue="all" className="w-full">
-          <TabsList className="w-full grid grid-cols-7 gap-1">
+          <TabsList className="w-full grid grid-cols-5 gap-1">
             <TabsTrigger value="all" className="text-xs">
               Todas ({totalNotifications})
             </TabsTrigger>
-            <TabsTrigger value="private" className="text-xs">
-              📩 ({totalUnreadPrivate})
-            </TabsTrigger>
-            <TabsTrigger value="messages" className="text-xs">
-              💬 ({unreadMessagesRecent.length})
-            </TabsTrigger>
+
             <TabsTrigger value="callups" className="text-xs">
               🏆 ({pendingCallups.length})
             </TabsTrigger>
@@ -324,31 +319,7 @@ export default function NotificationCenter() {
               </div>
             )}
 
-            {/* Private Messages */}
-            {unreadPrivateConversations.map(conv => {
-              const isFamily = conv.participante_familia_email === user?.email;
-              const unreadCount = isFamily ? conv.no_leidos_familia : conv.no_leidos_staff;
-              const otherName = isFamily ? conv.participante_staff_nombre : conv.participante_familia_nombre;
-              const chatUrl = isFamily ? "ParentChat" : "CoachChat";
-              
-              return (
-                <Link key={conv.id} to={createPageUrl(chatUrl)} onClick={() => setIsOpen(false)}>
-                  <div className="flex items-start gap-3 p-3 rounded-lg hover:opacity-80 transition-all border-2 border-blue-300 bg-blue-50">
-                    <MessageCircle className="w-5 h-5 text-blue-600 mt-1" />
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-1">
-                        <p className="text-sm font-semibold text-slate-900">📩 Mensaje privado de {otherName}</p>
-                        <Badge className="bg-blue-500 text-white text-xs">{unreadCount} nuevo{unreadCount > 1 ? 's' : ''}</Badge>
-                      </div>
-                      <p className="text-sm text-slate-700">{conv.ultimo_mensaje?.substring(0, 80)}...</p>
-                      <p className="text-xs text-slate-500 mt-1">
-                        {conv.ultimo_mensaje_fecha ? format(new Date(conv.ultimo_mensaje_fecha), "dd MMM, HH:mm", { locale: es }) : ''}
-                      </p>
-                    </div>
-                  </div>
-                </Link>
-              );
-            })}
+
 
             {/* App Notifications */}
             {unviewedAppNotifications.map(notif => {
@@ -373,30 +344,7 @@ export default function NotificationCenter() {
               );
             })}
 
-            {/* Urgent Messages */}
-            {urgentMessages.map(msg => {
-              const Icon = getNotificationIcon("message");
-              return (
-                <Link key={msg.id} to={createPageUrl("ParentChat")} onClick={() => {
-                  handleMarkAsRead(msg);
-                  setIsOpen(false);
-                }}>
-                  <div className={`flex items-start gap-3 p-3 rounded-lg hover:opacity-80 transition-all border-2 border-red-300 ${getNotificationColor("message", "Urgente")}`}>
-                    <Icon className="w-5 h-5 text-red-600 mt-1 animate-pulse" />
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-1">
-                        <p className="text-sm font-semibold text-slate-900">{msg.remitente_nombre}</p>
-                        <Badge className="bg-red-500 text-white text-xs animate-pulse">🚨 Urgente</Badge>
-                      </div>
-                      <p className="text-sm text-slate-700">{msg.mensaje.substring(0, 100)}...</p>
-                      <p className="text-xs text-slate-500 mt-1">
-                        {format(new Date(msg.created_date), "dd MMM, HH:mm", { locale: es })}
-                      </p>
-                    </div>
-                  </div>
-                </Link>
-              );
-            })}
+
 
             {/* Urgent Announcements */}
             {urgentAnnouncements.map(ann => (
@@ -446,27 +394,7 @@ export default function NotificationCenter() {
               </Link>
             ))}
 
-            {/* Regular Messages */}
-            {unreadMessages.filter(m => m.prioridad !== "Urgente").map(msg => {
-              const Icon = getNotificationIcon("message");
-              return (
-                <Link key={msg.id} to={createPageUrl("ParentChat")} onClick={() => {
-                  handleMarkAsRead(msg);
-                  setIsOpen(false);
-                }}>
-                  <div className={`flex items-start gap-3 p-3 rounded-lg hover:opacity-80 transition-all ${getNotificationColor("message", msg.prioridad)}`}>
-                    <Icon className="w-5 h-5 text-blue-600 mt-1" />
-                    <div className="flex-1">
-                      <p className="text-sm font-semibold text-slate-900">{msg.remitente_nombre}</p>
-                      <p className="text-sm text-slate-700">{msg.mensaje.substring(0, 100)}...</p>
-                      <p className="text-xs text-slate-500 mt-1">
-                        {format(new Date(msg.created_date), "dd MMM, HH:mm", { locale: es })}
-                      </p>
-                    </div>
-                  </div>
-                </Link>
-              );
-            })}
+
 
             {/* Pending Callups */}
             {pendingCallups.map(callup => {
@@ -514,7 +442,7 @@ export default function NotificationCenter() {
 
           <TabsContent value="history" className="space-y-3 mt-4">
             <div className="text-sm text-slate-600 mb-4">
-              Últimas 30 días • {recentAppNotifications.length + unreadMessages.length + recentAnnouncements.length} notificaciones
+              Últimas 30 días • {recentAppNotifications.length + recentAnnouncements.length} notificaciones
             </div>
             
             {recentAppNotifications.map(notif => (
@@ -531,18 +459,7 @@ export default function NotificationCenter() {
               </div>
             ))}
 
-            {unreadMessages.map(msg => (
-              <div key={msg.id} className="flex items-start gap-3 p-3 bg-blue-50 rounded-lg">
-                <MessageCircle className="w-5 h-5 text-blue-600 mt-1" />
-                <div className="flex-1">
-                  <p className="text-sm font-semibold text-slate-900">{msg.remitente_nombre}</p>
-                  <p className="text-sm text-slate-700">{msg.mensaje.substring(0, 100)}...</p>
-                  <p className="text-xs text-slate-500 mt-1">
-                    {format(new Date(msg.created_date), "dd MMM, HH:mm", { locale: es })}
-                  </p>
-                </div>
-              </div>
-            ))}
+
 
             {recentAnnouncements.map(ann => (
               <div key={ann.id} className="flex items-start gap-3 p-3 bg-purple-50 rounded-lg">
@@ -556,7 +473,7 @@ export default function NotificationCenter() {
               </div>
             ))}
 
-            {recentAppNotifications.length === 0 && unreadMessages.length === 0 && recentAnnouncements.length === 0 && (
+            {recentAppNotifications.length === 0 && recentAnnouncements.length === 0 && (
               <div className="text-center py-12">
                 <Bell className="w-16 h-16 text-slate-300 mx-auto mb-3" />
                 <p className="text-slate-600">Sin notificaciones en los últimos 30 días</p>
@@ -564,32 +481,7 @@ export default function NotificationCenter() {
             )}
           </TabsContent>
 
-          <TabsContent value="messages" className="space-y-3 mt-4">
-            {unreadMessages.length === 0 ? (
-              <div className="text-center py-12">
-                <MessageCircle className="w-16 h-16 text-blue-500 mx-auto mb-3" />
-                <p className="text-slate-600">No hay mensajes sin leer</p>
-              </div>
-            ) : (
-              unreadMessages.map(msg => (
-                <Link key={msg.id} to={createPageUrl("ParentChat")} onClick={() => {
-                  handleMarkAsRead(msg);
-                  setIsOpen(false);
-                }}>
-                  <div className="flex items-start gap-3 p-3 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors cursor-pointer">
-                    <MessageCircle className="w-5 h-5 text-blue-600 mt-1" />
-                    <div className="flex-1">
-                      <p className="text-sm font-semibold text-slate-900">{msg.remitente_nombre}</p>
-                      <p className="text-sm text-slate-700">{msg.mensaje.substring(0, 100)}...</p>
-                      <p className="text-xs text-slate-500 mt-1">
-                        {format(new Date(msg.created_date), "dd MMM, HH:mm", { locale: es })}
-                      </p>
-                    </div>
-                  </div>
-                </Link>
-              ))
-            )}
-          </TabsContent>
+
 
           <TabsContent value="callups" className="space-y-3 mt-4">
             {pendingCallups.length === 0 ? (
@@ -665,39 +557,7 @@ export default function NotificationCenter() {
             )}
           </TabsContent>
 
-          <TabsContent value="private" className="space-y-3 mt-4">
-            {unreadPrivateConversations.length === 0 ? (
-              <div className="text-center py-12">
-                <MessageCircle className="w-16 h-16 text-blue-500 mx-auto mb-3" />
-                <p className="text-slate-600">No hay mensajes privados sin leer</p>
-              </div>
-            ) : (
-              unreadPrivateConversations.map(conv => {
-                const isFamily = conv.participante_familia_email === user?.email;
-                const unreadCount = isFamily ? conv.no_leidos_familia : conv.no_leidos_staff;
-                const otherName = isFamily ? conv.participante_staff_nombre : conv.participante_familia_nombre;
-                const chatUrl = isFamily ? "ParentChat" : "CoachChat";
-                
-                return (
-                  <Link key={conv.id} to={createPageUrl(chatUrl)} onClick={() => setIsOpen(false)}>
-                    <div className="flex items-start gap-3 p-3 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors cursor-pointer">
-                      <MessageCircle className="w-5 h-5 text-blue-600 mt-1" />
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2">
-                          <p className="text-sm font-semibold text-slate-900">📩 {otherName}</p>
-                          <Badge className="bg-blue-500 text-white text-xs">{unreadCount}</Badge>
-                        </div>
-                        <p className="text-sm text-slate-700">{conv.ultimo_mensaje?.substring(0, 80)}...</p>
-                        <p className="text-xs text-slate-500 mt-1">
-                          {conv.ultimo_mensaje_fecha ? format(new Date(conv.ultimo_mensaje_fecha), "dd MMM, HH:mm", { locale: es }) : ''}
-                        </p>
-                      </div>
-                    </div>
-                  </Link>
-                );
-              })
-            )}
-          </TabsContent>
+
         </Tabs>
       </DialogContent>
     </Dialog>
