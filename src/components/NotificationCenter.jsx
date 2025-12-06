@@ -32,7 +32,7 @@ export default function NotificationCenter() {
     queryKey: ['messages'],
     queryFn: () => base44.entities.ChatMessage.list('-created_date'),
     initialData: [],
-    refetchInterval: 2000,
+    refetchInterval: isOpen ? 15000 : false,
   });
 
   const { data: allNotifications } = useQuery({
@@ -43,49 +43,49 @@ export default function NotificationCenter() {
     },
     enabled: !!user?.email,
     initialData: [],
-    refetchInterval: 3000,
+    refetchInterval: isOpen ? 10000 : false,
   });
 
   const { data: callups } = useQuery({
     queryKey: ['callups'],
     queryFn: () => base44.entities.Convocatoria.list('-created_date'),
     initialData: [],
-    refetchInterval: 5000,
+    refetchInterval: isOpen ? 30000 : false,
   });
 
   const { data: announcements } = useQuery({
     queryKey: ['announcements'],
     queryFn: () => base44.entities.Announcement.list('-fecha_publicacion'),
     initialData: [],
-    refetchInterval: 5000,
+    refetchInterval: isOpen ? 30000 : false,
   });
 
   const { data: payments } = useQuery({
     queryKey: ['payments'],
     queryFn: () => base44.entities.Payment.list('-created_date'),
     initialData: [],
-    refetchInterval: 5000,
+    refetchInterval: isOpen ? 30000 : false,
   });
 
   const { data: players } = useQuery({
     queryKey: ['players'],
     queryFn: () => base44.entities.Player.list(),
     initialData: [],
-    refetchInterval: 10000,
+    refetchInterval: false,
   });
 
   const { data: reminders } = useQuery({
     queryKey: ['reminders'],
     queryFn: () => base44.entities.Reminder.list('-fecha_envio'),
     initialData: [],
-    refetchInterval: 10000,
+    refetchInterval: isOpen ? 30000 : false,
   });
 
   const { data: events } = useQuery({
     queryKey: ['events'],
     queryFn: () => base44.entities.Event.list(),
     initialData: [],
-    refetchInterval: 10000,
+    refetchInterval: isOpen ? 30000 : false,
   });
 
   // Mensajes privados
@@ -93,7 +93,7 @@ export default function NotificationCenter() {
     queryKey: ['privateConversationsNotif'],
     queryFn: () => base44.entities.PrivateConversation.list('-ultimo_mensaje_fecha'),
     initialData: [],
-    refetchInterval: 2000,
+    refetchInterval: isOpen ? 15000 : false,
   });
 
   const markMessageAsReadMutation = useMutation({
