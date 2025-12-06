@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Send, AlertCircle, Users, MessageCircle, User, Archive, ArchiveRestore, Filter, BarChart3, Check, CheckCheck, Search, Pin, Image, MoreVertical } from "lucide-react";
+import { Send, AlertCircle, Users, MessageCircle, User, Archive, ArrowLeft, BarChart3, Pin, Search, Image } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
@@ -26,8 +26,8 @@ export default function CoachChat() {
   usePageTutorial("coach_chat");
   
   const [messageContent, setMessageContent] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState(null); // Categoría seleccionada
-  const [chatSubMode, setChatSubMode] = useState("anuncios"); // "anuncios" o "privado" dentro de cada categoría
+  const [selectedCategory, setSelectedCategory] = useState(null);
+  const [chatSubMode, setChatSubMode] = useState("anuncios");
   const [attachments, setAttachments] = useState([]);
   const [priority, setPriority] = useState("Normal");
   const [isMobile, setIsMobile] = useState(false);
@@ -37,7 +37,7 @@ export default function CoachChat() {
   const [showSearchDialog, setShowSearchDialog] = useState(false);
   const [showPinnedDialog, setShowPinnedDialog] = useState(false);
   const [showMediaDialog, setShowMediaDialog] = useState(false);
-  const [fullscreenChat, setFullscreenChat] = useState(false); // Para modo WhatsApp fullscreen
+  const [fullscreenChat, setFullscreenChat] = useState(false);
   const [isSending, setIsSending] = useState(false);
   const [optimisticMessages, setOptimisticMessages] = useState([]);
   const messagesEndRef = useRef(null);
@@ -97,66 +97,45 @@ export default function CoachChat() {
   const isCoordinator = user?.es_coordinador === true;
   const isCoach = user?.es_entrenador === true;
 
-  // Categorías que este usuario puede ver
   const myCategories = useMemo(() => {
     if (!user) return [];
     
     let categories = [];
     
-    // Chat interno staff - visible para entrenadores, coordinadores y admins
     if (isAdmin || isCoordinator || isCoach) {
       categories.push("Chat Interno Staff");
     }
     
-    // Los coordinadores y admins ven "Coordinación Deportiva" (mensajes de familias)
     if (isAdmin || isCoordinator) {
       categories.push("Coordinación Deportiva");
     }
     
-    // Admin y Coordinador ven TODAS las categorías de equipos
     if (isAdmin || isCoordinator) {
       categories = [...categories, ...new Set(allPlayers.map(p => p.deporte).filter(Boolean))];
     } else {
-      // Entrenadores solo ven los equipos que entrenan
       categories = [...categories, ...(user.categorias_entrena || [])];
     }
     
     return [...new Set(categories)];
   }, [user, allPlayers, isAdmin, isCoordinator, isCoach]);
 
-  // Conversaciones privadas de la categoría seleccionada
-  // IMPORTANTE: Auto-desarchivar si llega mensaje nuevo
   const categoryPrivateConversations = useMemo(() => {
     if (!selectedCategory) return [];
     return privateConversations.filter(conv => {
-      // Admin y coordinador ven todas las conversaciones, entrenadores solo las suyas
       if (!isAdmin && !isCoordinator && conv.participante_staff_email !== user?.email) return false;
       if (conv.categoria !== selectedCategory) return false;
       
-      // Auto-desarchivar si tiene mensajes nuevos (comportamiento WhatsApp)
       const hasUnread = (conv.no_leidos_staff || 0) > 0;
       if (hasUnread && conv.archivada === true) {
         base44.entities.PrivateConversation.update(conv.id, { archivada: false })
           .then(() => refetchConversations());
       }
       
-      // Filtrar por archivadas o activas
       if (showArchived) return conv.archivada === true;
       return !conv.archivada;
     });
   }, [privateConversations, selectedCategory, isAdmin, isCoordinator, user, showArchived]);
 
-  // Contador de archivadas para mostrar en el filtro
-  const archivedCount = useMemo(() => {
-    if (!selectedCategory) return 0;
-    return privateConversations.filter(conv => {
-      if (!isAdmin && !isCoordinator && conv.participante_staff_email !== user?.email) return false;
-      if (conv.categoria !== selectedCategory) return false;
-      return conv.archivada === true;
-    }).length;
-  }, [privateConversations, selectedCategory, isAdmin, isCoordinator, user]);
-
-  // Mutación para archivar/desarchivar
   const archiveConversationMutation = useMutation({
     mutationFn: async ({ convId, archive }) => {
       await base44.entities.PrivateConversation.update(convId, { archivada: archive });
@@ -164,12 +143,11 @@ export default function CoachChat() {
     onSuccess: (_, { archive }) => {
       refetchConversations();
       setSelectedConversation(null);
-      setFullscreenChat(false); // Cerrar pantalla completa al archivar
+      setFullscreenChat(false);
       toast.success(archive ? "📁 Archivada" : "✅ Restaurada");
     },
   });
 
-  // Contador de no leídos por categoría (incluye archivadas con mensajes nuevos)
   const getUnreadCountForCategory = (categoria) => {
     return privateConversations.filter(c => 
       c.categoria === categoria && 
@@ -177,50 +155,10 @@ export default function CoachChat() {
       (isAdmin || isCoordinator || c.participante_staff_email === user?.email)
     ).reduce((sum, c) => sum + (c.no_leidos_staff || 0), 0);
   };
-  
-  // Contador total de no leídos para mostrar en el badge del menú
-  const totalUnreadCount = useMemo(() => {
-    return privateConversations.filter(c => 
-      (c.no_leidos_staff || 0) > 0 &&
-      (isAdmin || isCoordinator || c.participante_staff_email === user?.email)
-    ).reduce((sum, c) => sum + (c.no_leidos_staff || 0), 0);
-  }, [privateConversations, isAdmin, isCoordinator, user]);
 
   const sendMessageMutation = useMutation({
     mutationFn: async (messageData) => {
-      const newMessage = await base44.entities.ChatMessage.create(messageData);
-      
-      // Auto-crear álbum para imágenes
-      const imageAttachments = messageData.archivos_adjuntos?.filter(att => att.tipo === "imagen") || [];
-      if (imageAttachments.length > 0) {
-        await base44.entities.PhotoGallery.create({
-          titulo: `Chat - ${messageData.deporte} (${format(new Date(), "d MMM yyyy", { locale: es })})`,
-          descripcion: messageData.mensaje || "Fotos del chat",
-          fecha_evento: new Date().toISOString().split('T')[0],
-          categoria: messageData.deporte,
-          tipo_evento: "Otro",
-          fotos: imageAttachments.map(img => ({ url: img.url, descripcion: "", jugadores_etiquetados: [] })),
-          visible_para_padres: true,
-          destacado: false
-        });
-      }
-
-      // Notificar por email si es importante/urgente
-      if ((messageData.prioridad === "Importante" || messageData.prioridad === "Urgente") && messageData.tipo === "admin_a_grupo") {
-        const groupPlayers = allPlayers.filter(p => p.deporte === messageData.deporte);
-        const parentEmails = [...new Set(groupPlayers.map(p => p.email_padre).filter(Boolean))];
-        const priorityEmoji = messageData.prioridad === "Urgente" ? "🔴" : "⚠️";
-        
-        parentEmails.forEach(email => {
-          base44.integrations.Core.SendEmail({
-            to: email,
-            subject: `${priorityEmoji} [${messageData.prioridad.toUpperCase()}] CD Bustarviejo - ${messageData.deporte}`,
-            body: `Nuevo mensaje ${messageData.prioridad.toLowerCase()} del entrenador.\n\n${messageData.mensaje}\n\nAccede a la app para ver más detalles.`
-          }).catch(console.error);
-        });
-      }
-      
-      return newMessage;
+      return await base44.entities.ChatMessage.create(messageData);
     },
     onSuccess: async () => {
       setOptimisticMessages([]);
@@ -260,15 +198,95 @@ export default function CoachChat() {
     },
   });
 
-  // Contar destinatarios del grupo para confirmaciones de lectura
-  const getGroupRecipientCount = (categoria) => {
-    const groupPlayers = allPlayers.filter(p => p.deporte === categoria);
-    const uniqueParents = new Set();
-    groupPlayers.forEach(p => {
-      if (p.email_padre) uniqueParents.add(p.email_padre);
-      if (p.email_tutor_2) uniqueParents.add(p.email_tutor_2);
+  const togglePinMutation = useMutation({
+    mutationFn: async ({ messageId, pin }) => {
+      await base44.entities.ChatMessage.update(messageId, { 
+        anclado: pin,
+        anclado_por: pin ? user.email : null,
+        anclado_fecha: pin ? new Date().toISOString() : null
+      });
+    },
+    onSuccess: (_, { pin }) => {
+      refetchMessages();
+      toast.success(pin ? "📌 Mensaje anclado" : "Mensaje desanclado");
+    },
+  });
+
+  const normalizeDeporte = (deporte) => {
+    if (!deporte) return null;
+    return deporte.trim().replace(/_undefined$/, '').replace(/_$/, '');
+  };
+
+  const currentGroupMessages = useMemo(() => {
+    if (!selectedCategory) return [];
+    return messages.filter(msg => {
+      const msgDeporte = normalizeDeporte(msg.grupo_id || msg.deporte);
+      if (selectedCategory === "Coordinación Deportiva") {
+        return msgDeporte === selectedCategory;
+      }
+      return msgDeporte === selectedCategory && msg.tipo === "admin_a_grupo";
     });
-    return uniqueParents.size;
+  }, [messages, selectedCategory]);
+
+  const isCoordinationChat = selectedCategory === "Coordinación Deportiva";
+  const isStaffChat = selectedCategory === "Chat Interno Staff";
+  const effectiveChatMode = isStaffChat ? "anuncios" : chatSubMode;
+
+  const handleSendGroupMessage = () => {
+    if (!user || !selectedCategory) return;
+    if (!messageContent.trim() && attachments.length === 0) {
+      toast.error("Escribe un mensaje");
+      return;
+    }
+    if (isSending) return;
+
+    const msgText = messageContent || "(Archivo adjunto)";
+    
+    const senderName = isCoordinator 
+      ? "Coordinación Deportiva" 
+      : isCoach 
+        ? `${user.full_name} (Entrenador)` 
+        : user.full_name || "Staff";
+    
+    const optimisticMsg = {
+      id: `temp-${Date.now()}`,
+      remitente_email: user.email,
+      remitente_nombre: senderName,
+      mensaje: msgText,
+      prioridad: priority,
+      tipo: "admin_a_grupo",
+      deporte: selectedCategory,
+      grupo_id: selectedCategory,
+      leido: false,
+      archivos_adjuntos: attachments,
+      created_date: new Date().toISOString(),
+      _isOptimistic: true
+    };
+    
+    setOptimisticMessages([optimisticMsg]);
+    
+    const tempMessage = msgText;
+    const tempAttachments = [...attachments];
+    setMessageContent("");
+    setAttachments([]);
+    setIsSending(true);
+    
+    setTimeout(() => {
+      messagesEndRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
+    }, 50);
+    
+    sendMessageMutation.mutate({
+      remitente_email: user.email,
+      remitente_nombre: senderName,
+      mensaje: tempMessage,
+      prioridad: priority,
+      tipo: "admin_a_grupo",
+      deporte: selectedCategory,
+      categoria: "",
+      grupo_id: selectedCategory,
+      leido: false,
+      archivos_adjuntos: tempAttachments,
+    });
   };
 
   const handleSendPoll = async (pollData) => {
@@ -296,117 +314,6 @@ export default function CoachChat() {
     refetchMessages();
   };
 
-  const markAsReadMutation = useMutation({
-    mutationFn: async (messageIds) => {
-      await Promise.all(messageIds.map(id => 
-        base44.entities.ChatMessage.update(id, { leido: true })
-      ));
-    },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['chatMessages'] }),
-  });
-
-  const togglePinMutation = useMutation({
-    mutationFn: async ({ messageId, pin }) => {
-      await base44.entities.ChatMessage.update(messageId, { 
-        anclado: pin,
-        anclado_por: pin ? user.email : null,
-        anclado_fecha: pin ? new Date().toISOString() : null
-      });
-    },
-    onSuccess: (_, { pin }) => {
-      refetchMessages();
-      toast.success(pin ? "📌 Mensaje anclado" : "Mensaje desanclado");
-    },
-  });
-
-  const normalizeDeporte = (deporte) => {
-    if (!deporte) return null;
-    return deporte.trim().replace(/_undefined$/, '').replace(/_$/, '');
-  };
-
-  // Mensajes del grupo seleccionado (anuncios)
-  const currentGroupMessages = useMemo(() => {
-    if (!selectedCategory) return [];
-    return messages.filter(msg => {
-      const msgDeporte = normalizeDeporte(msg.grupo_id || msg.deporte);
-      // En coordinación mostrar todos los mensajes (de padres y staff)
-      if (selectedCategory === "Coordinación Deportiva") {
-        return msgDeporte === selectedCategory;
-      }
-      return msgDeporte === selectedCategory && msg.tipo === "admin_a_grupo";
-    });
-  }, [messages, selectedCategory]);
-
-  // Verificar si es chat de coordinación (bidireccional)
-  const isCoordinationChat = selectedCategory === "Coordinación Deportiva";
-  
-  // Verificar si es chat interno staff
-  const isStaffChat = selectedCategory === "Chat Interno Staff";
-
-  // Determinar el modo efectivo del chat (staff siempre anuncios, resto usa tabs)
-  const effectiveChatMode = isStaffChat ? "anuncios" : chatSubMode;
-
-  const handleSendGroupMessage = () => {
-    if (!user || !selectedCategory) return;
-    if (!messageContent.trim() && attachments.length === 0) {
-      toast.error("Escribe un mensaje");
-      return;
-    }
-    if (isSending) return;
-
-    const msgText = messageContent || "(Archivo adjunto)";
-    
-    // Determinar nombre del remitente según el rol
-    const senderName = isCoordinator 
-      ? "Coordinación Deportiva" 
-      : isCoach 
-        ? `${user.full_name} (Entrenador)` 
-        : user.full_name || "Staff";
-    
-    // Mensaje optimista - aparece INSTANTÁNEAMENTE
-    const optimisticMsg = {
-      id: `temp-${Date.now()}`,
-      remitente_email: user.email,
-      remitente_nombre: senderName,
-      mensaje: msgText,
-      prioridad: priority,
-      tipo: "admin_a_grupo",
-      deporte: selectedCategory,
-      grupo_id: selectedCategory,
-      leido: false,
-      archivos_adjuntos: attachments,
-      created_date: new Date().toISOString(),
-      _isOptimistic: true
-    };
-    
-    setOptimisticMessages([optimisticMsg]);
-    
-    // Limpiar input INMEDIATAMENTE para feedback instantáneo
-    const tempMessage = msgText;
-    const tempAttachments = [...attachments];
-    setMessageContent("");
-    setAttachments([]);
-    setIsSending(true);
-    
-    // Scroll instantáneo al enviar
-    setTimeout(() => {
-      messagesEndRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
-    }, 50);
-    
-    sendMessageMutation.mutate({
-      remitente_email: user.email,
-      remitente_nombre: senderName,
-      mensaje: tempMessage,
-      prioridad: priority,
-      tipo: "admin_a_grupo",
-      deporte: selectedCategory,
-      categoria: "",
-      grupo_id: selectedCategory,
-      leido: false,
-      archivos_adjuntos: tempAttachments,
-    });
-  };
-
   const handlePrivateMessageSent = () => {
     refetchPrivateMessages();
     refetchConversations();
@@ -426,27 +333,6 @@ export default function CoachChat() {
     "Baloncesto (Mixto)": "🏀"
   };
 
-  const prevMessagesCountRef = useRef(0);
-  
-  useEffect(() => {
-    const currentCount = currentGroupMessages.length + privateMessages.length;
-    
-    // Solo hacer scroll si hay mensajes NUEVOS
-    if (prevMessagesCountRef.current > 0 && currentCount > prevMessagesCountRef.current) {
-      const container = messagesEndRef.current?.parentElement;
-      if (container) {
-        const isNearBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 200;
-        if (isNearBottom) {
-          setTimeout(() => {
-            messagesEndRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
-          }, 100);
-        }
-      }
-    }
-    
-    prevMessagesCountRef.current = currentCount;
-  }, [currentGroupMessages.length, privateMessages.length]);
-
   if (loadingPlayers || !user) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -460,105 +346,46 @@ export default function CoachChat() {
 
   return (
     <>
-    <QuickPollDialog
-      isOpen={showPollDialog}
-      onClose={() => setShowPollDialog(false)}
-      onSend={handleSendPoll}
-      groupName={selectedCategory}
-    />
-    <ChatSearchDialog
-      isOpen={showSearchDialog}
-      onClose={() => setShowSearchDialog(false)}
-      messages={currentGroupMessages}
-    />
-    <PinnedMessagesDialog
-      isOpen={showPinnedDialog}
-      onClose={() => setShowPinnedDialog(false)}
-      messages={currentGroupMessages}
-      onUnpin={(msgId) => togglePinMutation.mutate({ messageId: msgId, pin: false })}
-      isAdmin={true}
-    />
-    <MediaGalleryDialog
-      isOpen={showMediaDialog}
-      onClose={() => setShowMediaDialog(false)}
-      messages={currentGroupMessages}
-    />
-    
-    <div className={`${isMobile ? 'h-screen flex flex-col overflow-hidden' : 'p-4 lg:p-6'} space-y-4`}>
-      {/* MÓVIL: Lista de categorías (sin chat visible) */}
-      {isMobile && !selectedCategory && (
-        <div className="flex-1 flex flex-col overflow-hidden">
-          <div className="p-4 bg-gradient-to-r from-blue-600 to-blue-700 text-white flex-shrink-0">
-            <h2 className="text-xl font-bold">💬 Mis Equipos</h2>
-            <p className="text-sm text-blue-100">{myCategories.length} categorías</p>
-          </div>
-          <div className="flex-1 overflow-y-auto divide-y">
-            {myCategories.map(cat => {
-              const unread = getUnreadCountForCategory(cat);
-              return (
-                <button
-                  key={cat}
-                  onClick={() => {
-                    setSelectedCategory(cat);
-                    if (cat === "Chat Interno Staff") {
-                      setChatSubMode("anuncios");
-                    } else if (isCoordinator && !isCoach) {
-                      setChatSubMode("privado");
-                    } else {
-                      setChatSubMode("anuncios");
-                    }
-                    setSelectedConversation(null);
-                  }}
-                  className="w-full p-4 flex items-center gap-3 bg-white hover:bg-slate-50 active:bg-slate-100 transition-colors text-left"
-                >
-                  <div className="w-14 h-14 rounded-full flex items-center justify-center bg-blue-100 flex-shrink-0">
-                    <span className="text-2xl">{sportEmojis[cat] || "⚽"}</span>
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="font-bold text-slate-900 truncate text-base">{cat}</div>
-                    <div className="text-sm text-slate-500 truncate">
-                      {allPlayers.filter(p => p.deporte === cat && p.activo).length} jugadores
-                    </div>
-                  </div>
-                  {unread > 0 && (
-                    <Badge className="bg-red-500 text-white text-sm h-8 min-w-8 rounded-full animate-pulse font-bold">{unread}</Badge>
-                  )}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      )}
-
-      {/* DESKTOP: Header y Grid */}
-      {!isMobile && (
-        <>
-          <div className="flex-shrink-0">
-            <h1 className="text-2xl lg:text-3xl font-bold text-slate-900">
-              {isAdmin ? "Chat del Club" : isCoordinator ? "Chat Coordinación" : "Chat de Equipos"}
-            </h1>
-            <p className="text-slate-600 text-sm">
-              Selecciona una categoría para ver anuncios y mensajes privados
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 flex-1">
-            {/* Lista de categorías Desktop */}
-            <div className="lg:col-span-1 bg-white rounded-xl shadow-md border overflow-hidden h-fit">
-          <div className="p-4 bg-gradient-to-r from-orange-600 to-orange-700 text-white">
-            <h3 className="font-bold">Mis Equipos</h3>
-            <p className="text-xs text-orange-100">{myCategories.length} categorías</p>
-          </div>
-          <div className="divide-y max-h-[60vh] overflow-y-auto">
-            {myCategories.map(cat => {
-              const unread = getUnreadCountForCategory(cat);
-              return (
-                <button
-                  key={cat}
-                  onClick={() => {
-                    if (selectedCategory !== cat) {
+      <QuickPollDialog
+        isOpen={showPollDialog}
+        onClose={() => setShowPollDialog(false)}
+        onSend={handleSendPoll}
+        groupName={selectedCategory}
+      />
+      <ChatSearchDialog
+        isOpen={showSearchDialog}
+        onClose={() => setShowSearchDialog(false)}
+        messages={currentGroupMessages}
+      />
+      <PinnedMessagesDialog
+        isOpen={showPinnedDialog}
+        onClose={() => setShowPinnedDialog(false)}
+        messages={currentGroupMessages}
+        onUnpin={(msgId) => togglePinMutation.mutate({ messageId: msgId, pin: false })}
+        isAdmin={true}
+      />
+      <MediaGalleryDialog
+        isOpen={showMediaDialog}
+        onClose={() => setShowMediaDialog(false)}
+        messages={currentGroupMessages}
+      />
+      
+      <div className={`${isMobile ? 'h-screen flex flex-col overflow-hidden' : 'p-4 lg:p-6'}`}>
+        {/* MÓVIL: Lista de categorías */}
+        {isMobile && !selectedCategory && !fullscreenChat && (
+          <div className="flex-1 flex flex-col overflow-hidden">
+            <div className="p-4 bg-gradient-to-r from-blue-600 to-blue-700 text-white flex-shrink-0">
+              <h2 className="text-xl font-bold">💬 Mis Equipos</h2>
+              <p className="text-sm text-blue-100">{myCategories.length} categorías</p>
+            </div>
+            <div className="flex-1 overflow-y-auto divide-y">
+              {myCategories.map(cat => {
+                const unread = getUnreadCountForCategory(cat);
+                return (
+                  <button
+                    key={cat}
+                    onClick={() => {
                       setSelectedCategory(cat);
-                      // Coordinadores: privado primero, Entrenadores: anuncios primero
                       if (cat === "Chat Interno Staff") {
                         setChatSubMode("anuncios");
                       } else if (isCoordinator && !isCoach) {
@@ -567,642 +394,196 @@ export default function CoachChat() {
                         setChatSubMode("anuncios");
                       }
                       setSelectedConversation(null);
-                      // Scroll hacia arriba al seleccionar categoría
-                      window.scrollTo({ top: 0, behavior: 'smooth' });
-                    }
-                  }}
-                  className={`w-full p-3 flex items-center gap-3 transition-colors text-left ${
-                    selectedCategory === cat ? 'bg-orange-50 border-l-4 border-l-orange-600' : 'hover:bg-slate-50 border-l-4 border-l-transparent'
-                  }`}
-                >
-                  <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                    selectedCategory === cat ? 'bg-orange-600 text-white' : 'bg-orange-100'
-                  }`}>
-                    <span className="text-lg">{sportEmojis[cat] || "⚽"}</span>
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="font-semibold text-slate-900 truncate text-sm">{cat}</div>
-                    <div className="text-xs text-slate-500">
-                      {allPlayers.filter(p => p.deporte === cat && p.activo).length} jugadores
+                    }}
+                    className="w-full p-4 flex items-center gap-3 bg-white hover:bg-slate-50 active:bg-slate-100 transition-colors text-left"
+                  >
+                    <div className="w-14 h-14 rounded-full flex items-center justify-center bg-blue-100 flex-shrink-0">
+                      <span className="text-2xl">{sportEmojis[cat] || "⚽"}</span>
                     </div>
-                  </div>
-                  {unread > 0 && (
-                    <Badge className="bg-red-500 text-white text-xs animate-pulse">{unread}</Badge>
-                  )}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-
-            {/* Panel principal Desktop */}
-            <div className="lg:col-span-3 space-y-4">
-          {selectedCategory ? (
-            <>
-              
-              {/* Sub-tabs dentro de cada categoría */}
-              <div className="bg-white rounded-xl shadow-md border p-3">
-                <div className="flex items-center justify-between mb-2">
-                  <h2 className="font-bold text-lg text-slate-900">
-                    {sportEmojis[selectedCategory] || "⚽"} {selectedCategory}
-                  </h2>
-                </div>
-                {/* Coordinadores y admins pueden enviar anuncios a TODAS las categorías incluyendo Coordinación Deportiva */}
-                {!isStaffChat && (
-                  <Tabs value={chatSubMode} onValueChange={(v) => { setChatSubMode(v); setSelectedConversation(null); }}>
-                    <TabsList className="w-full">
-                      {isCoordinator && !isCoach ? (
-                        <>
-                          <TabsTrigger value="privado" className="flex-1 gap-2">
-                            <MessageCircle className="w-4 h-4" />
-                            🔒 Privado Familias
-                            {getUnreadCountForCategory(selectedCategory) > 0 && (
-                              <Badge className="bg-red-500 text-white text-xs ml-1">{getUnreadCountForCategory(selectedCategory)}</Badge>
-                            )}
-                          </TabsTrigger>
-                          <TabsTrigger value="anuncios" className="flex-1 gap-2">
-                            <Users className="w-4 h-4" />
-                            📢 Anuncios Grupo
-                            <span className="text-[10px] text-slate-500 hidden md:inline">(todos ven)</span>
-                          </TabsTrigger>
-                        </>
-                      ) : (
-                        <>
-                          <TabsTrigger value="anuncios" className="flex-1 gap-2">
-                            <Users className="w-4 h-4" />
-                            📢 Anuncios Grupo
-                            <span className="text-[10px] text-slate-500 hidden md:inline">(todos ven)</span>
-                          </TabsTrigger>
-                          <TabsTrigger value="privado" className="flex-1 gap-2">
-                            <MessageCircle className="w-4 h-4" />
-                            🔒 Privado Familias
-                            {getUnreadCountForCategory(selectedCategory) > 0 && (
-                              <Badge className="bg-red-500 text-white text-xs ml-1">{getUnreadCountForCategory(selectedCategory)}</Badge>
-                            )}
-                          </TabsTrigger>
-                        </>
-                      )}
-                    </TabsList>
-                  </Tabs>
-                )}
-              </div>
-
-              {effectiveChatMode === "anuncios" ? (
-                /* SUB-MODO ANUNCIOS */
-                <div className="bg-white rounded-xl shadow-md border overflow-hidden flex flex-col" style={{ height: 'calc(70vh - 100px)' }}>
-                  <div className={`p-3 text-white flex items-center gap-3 flex-shrink-0 ${
-                    isStaffChat
-                      ? 'bg-gradient-to-r from-purple-600 to-purple-700'
-                      : isCoordinationChat 
-                        ? 'bg-gradient-to-r from-green-600 to-green-700' 
-                        : 'bg-gradient-to-r from-blue-600 to-blue-700'
-                  }`}>
-                    <Users className="w-5 h-5" />
-                    <div className="flex-1">
-                      <h3 className="font-bold text-sm">
-                        {isStaffChat 
-                          ? "Chat Interno - Entrenadores y Coordinación" 
-                          : isCoordinationChat 
-                            ? "Chat de Coordinación" 
-                            : `Anuncios para ${selectedCategory}`}
-                      </h3>
-                      <p className="text-xs opacity-80">
-                        {isStaffChat
-                          ? "Solo entrenadores y coordinador ven estos mensajes"
-                          : isCoordinationChat 
-                            ? "Mensajes de familias - responde directamente aquí" 
-                            : "Todos los padres del grupo verán estos mensajes"}
-                      </p>
-                    </div>
-                    {/* Botones de herramientas */}
-                    <div className="flex items-center gap-1">
-                      <button
-                        onClick={() => setShowSearchDialog(true)}
-                        className="p-2 rounded-full hover:bg-white/20 transition-colors"
-                        title="Buscar mensajes"
-                      >
-                        <Search className="w-4 h-4" />
-                      </button>
-                      <button
-                        onClick={() => setShowPinnedDialog(true)}
-                        className="p-2 rounded-full hover:bg-white/20 transition-colors relative"
-                        title="Mensajes anclados"
-                      >
-                        <Pin className="w-4 h-4" />
-                        {currentGroupMessages.filter(m => m.anclado).length > 0 && (
-                          <span className="absolute -top-1 -right-1 w-4 h-4 bg-orange-500 rounded-full text-[10px] flex items-center justify-center">
-                            {currentGroupMessages.filter(m => m.anclado).length}
-                          </span>
-                        )}
-                      </button>
-                      <button
-                        onClick={() => setShowMediaDialog(true)}
-                        className="p-2 rounded-full hover:bg-white/20 transition-colors"
-                        title="Galería de medios"
-                      >
-                        <Image className="w-4 h-4" />
-                      </button>
-                    </div>
-                  </div>
-
-                  <div className="flex-1 overflow-y-auto p-4 space-y-2" style={{ backgroundColor: '#e5ddd5' }}>
-                    {currentGroupMessages.length === 0 && optimisticMessages.length === 0 ? (
-                      <div className="flex items-center justify-center h-full">
-                        <div className="text-center text-slate-500 bg-white/80 rounded-xl p-6">
-                          <AlertCircle className="w-12 h-12 mx-auto mb-2 opacity-50" />
-                          <p className="text-sm">No hay anuncios</p>
-                        </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="font-bold text-slate-900 truncate text-base">{cat}</div>
+                      <div className="text-sm text-slate-500 truncate">
+                        {allPlayers.filter(p => p.deporte === cat && p.activo).length} jugadores
                       </div>
-                    ) : (
-                      [...currentGroupMessages, ...optimisticMessages]
-                        .sort((a, b) => new Date(a.created_date) - new Date(b.created_date))
-                        .map((msg) => {
-                          const isMyMessage = msg.remitente_email === user?.email || msg.tipo === "admin_a_grupo";
-                          const isFromFamily = msg.tipo === "padre_a_grupo";
-                          
-                          return (
-                            <div key={msg.id} className={`flex ${isCoordinationChat && isFromFamily ? 'justify-start' : 'justify-end'} mb-1`}>
-                              <div className={`max-w-[80%] rounded-lg shadow-sm ${
-                                isCoordinationChat && isFromFamily 
-                                  ? 'bg-white text-slate-900 rounded-bl-none' 
-                                  : 'bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-br-none'
-                              } ${msg._isOptimistic ? 'opacity-70' : ''}`}>
-                                <div className="px-3 py-2">
-                                  <div className="flex items-center gap-2 mb-1">
-                                    <span className={`text-xs font-semibold ${isCoordinationChat && isFromFamily ? 'text-orange-600' : 'opacity-80'}`}>
-                                      {isCoordinationChat && isFromFamily ? '👤 ' : ''}{msg.remitente_nombre}
-                                    </span>
-                                    {msg.prioridad !== "Normal" && (
-                                      <span className="text-xs">{msg.prioridad === "Urgente" ? "🔴" : "⚠️"}</span>
-                                    )}
-                                  </div>
-                                  <p className="text-sm leading-relaxed">{msg.mensaje}</p>
-
-                                  {msg.poll && (
-                                    <PollMessage 
-                                      poll={msg.poll} 
-                                      onVote={(msgId, optIdx) => voteOnPollMutation.mutate({ messageId: msgId, optionIndex: optIdx })}
-                                      userEmail={user?.email}
-                                      messageId={msg.id}
-                                    />
-                                  )}
-
-                                  {msg.archivos_adjuntos?.length > 0 && (
-                                    <div className="mt-2">
-                                      <MessageAttachments attachments={msg.archivos_adjuntos} />
-                                    </div>
-                                  )}
-                                  <div className="flex items-center justify-end gap-1 mt-1">
-                                    <span className={`text-[10px] ${isCoordinationChat && isFromFamily ? 'text-slate-400' : 'opacity-70'}`}>
-                                      {format(new Date(msg.created_date), "HH:mm")}
-                                    </span>
-                                    {msg._isOptimistic && <span className="text-[10px] opacity-70" title="Enviando...">⏳</span>}
-                                    {!msg._isOptimistic && msg.tipo === "admin_a_grupo" && (
-                                      <span className="text-[10px] opacity-80" title="Entregado">✓</span>
-                                    )}
-                                    {msg.anclado && <Pin className="w-3 h-3 opacity-70" />}
-                                    {msg.tipo === "admin_a_grupo" && !msg._isOptimistic && (
-                                      <ReadConfirmation 
-                                        message={msg} 
-                                        totalRecipients={getGroupRecipientCount(selectedCategory)}
-                                        isAdmin={true}
-                                      />
-                                    )}
-                                    {msg.tipo === "admin_a_grupo" && !msg._isOptimistic && (
-                                      <button
-                                        onClick={() => togglePinMutation.mutate({ messageId: msg.id, pin: !msg.anclado })}
-                                        className="p-1 rounded hover:bg-white/20 transition-colors opacity-70 hover:opacity-100"
-                                        title={msg.anclado ? "Desanclar" : "Anclar mensaje"}
-                                      >
-                                        <Pin className={`w-3 h-3 ${msg.anclado ? 'text-orange-300' : ''}`} />
-                                      </button>
-                                    )}
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                          );
-                        })
+                    </div>
+                    {unread > 0 && (
+                      <Badge className="bg-red-500 text-white text-sm h-8 min-w-8 rounded-full animate-pulse font-bold">{unread}</Badge>
                     )}
-                    <div ref={messagesEndRef} />
-                  </div>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
 
-                  <div className="bg-white border-t p-3 flex-shrink-0">
-                    <div className="mb-2">
-                      <Select value={priority} onValueChange={setPriority}>
-                        <SelectTrigger className="h-9 text-sm">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="Normal">📝 Normal</SelectItem>
-                          <SelectItem value="Importante">⚠️ Importante (Email)</SelectItem>
-                          <SelectItem value="Urgente">🔴 Urgente (Email)</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="flex gap-2 items-end">
-                      <FileAttachmentButton
-                        onFileUploaded={(att) => setAttachments(prev => [...prev, att])}
-                        disabled={sendMessageMutation.isPending}
-                      />
-                      {!isStaffChat && (
-                        <Button
-                          onClick={() => setShowPollDialog(true)}
-                          variant="ghost"
-                          size="icon"
-                          className="text-slate-600 hover:text-orange-600 hover:bg-orange-50"
-                          title="Crear encuesta rápida"
-                        >
-                          <BarChart3 className="w-5 h-5" />
-                        </Button>
-                      )}
-                      <Input
-                        value={messageContent}
-                        onChange={(e) => setMessageContent(e.target.value)}
-                        placeholder={isStaffChat ? "Escribe a los entrenadores..." : isCoordinationChat ? "Responde a las familias..." : "Escribe un anuncio para el grupo..."}
-                        className="flex-1 rounded-full"
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter' && !e.shiftKey) {
-                            e.preventDefault();
-                            handleSendGroupMessage();
-                          }
-                        }}
-                      />
-                      <Button
-                        onClick={handleSendGroupMessage}
-                        disabled={(!messageContent.trim() && attachments.length === 0) || isSending}
-                        className={`rounded-full w-10 h-10 p-0 ${isStaffChat ? 'bg-purple-600 hover:bg-purple-700' : isCoordinationChat ? 'bg-green-600 hover:bg-green-700' : 'bg-blue-600 hover:bg-blue-700'}`}
-                      >
-                        {isSending ? (
-                          <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                        ) : (
-                          <Send className="w-4 h-4" />
-                        )}
-                      </Button>
-                    </div>
+        {/* MÓVIL: Chat a pantalla completa */}
+        {isMobile && selectedCategory && !fullscreenChat && (
+          <div className="flex-1 flex flex-col overflow-hidden">
+            <div className={`p-4 text-white flex items-center gap-3 shadow-md flex-shrink-0 ${
+              isStaffChat ? 'bg-gradient-to-r from-purple-600 to-purple-700' 
+              : isCoordinationChat ? 'bg-gradient-to-r from-green-600 to-green-700' 
+              : 'bg-gradient-to-r from-blue-600 to-blue-700'
+            }`}>
+              <button
+                onClick={() => setSelectedCategory(null)}
+                className="p-2 hover:bg-white/20 rounded-lg transition-colors -ml-1"
+              >
+                <ArrowLeft className="w-6 h-6" />
+              </button>
+              <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center flex-shrink-0">
+                <span className="text-2xl">{sportEmojis[selectedCategory]}</span>
+              </div>
+              <div className="flex-1 min-w-0">
+                <h2 className="font-bold text-lg truncate">{selectedCategory}</h2>
+                <p className="text-xs opacity-90 truncate">
+                  {isStaffChat ? "Chat interno" : isCoordinationChat ? "Chat coordinación" : "Anuncios grupo"}
+                </p>
+              </div>
+            </div>
+
+            <div className="flex-1 overflow-y-auto p-3 space-y-2" style={{ backgroundColor: '#e5ddd5' }}>
+              {currentGroupMessages.length === 0 ? (
+                <div className="flex items-center justify-center h-full">
+                  <div className="text-center text-slate-500 bg-white/80 rounded-xl p-6">
+                    <AlertCircle className="w-12 h-12 mx-auto mb-2 opacity-50" />
+                    <p className="text-sm">No hay mensajes</p>
                   </div>
                 </div>
               ) : (
-                /* SUB-MODO PRIVADO - ESTILO WHATSAPP */
-                <>
-                  {/* MODO FULLSCREEN - Chat abierto */}
-                  {fullscreenChat && selectedConversation ? (
-                    <div className="fixed inset-0 z-50 bg-white">
-                      <PrivateChatPanel
-                        conversation={selectedConversation}
-                        messages={privateMessages}
-                        user={user}
-                        isStaff={true}
-                        onClose={() => {
-                          setSelectedConversation(null);
-                          setFullscreenChat(false);
-                        }}
-                        onMessageSent={handlePrivateMessageSent}
-                        onArchive={(convId, archive) => {
-                          archiveConversationMutation.mutate({ convId, archive });
-                        }}
-                      />
-                    </div>
-                  ) : (
-                    /* MODO LISTA - Mostrar conversaciones */
-                    <div className="bg-white rounded-xl shadow-md border overflow-hidden" style={{ height: 'calc(70vh - 100px)' }}>
-                      <div className="bg-gradient-to-r from-green-600 to-green-700 p-4 text-white">
-                        <div className="flex items-center justify-between mb-3">
-                          <div>
-                            <h3 className="font-bold text-base">{showArchived ? "📁 Archivadas" : "💬 Conversaciones"}</h3>
-                            <p className="text-xs text-green-100">{categoryPrivateConversations.length} {showArchived ? "archivadas" : "activas"}</p>
-                          </div>
-                        </div>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => setShowArchived(!showArchived)}
-                          className="text-white hover:bg-white/20 w-full justify-center gap-2"
-                        >
-                          {showArchived ? (
-                            <>
-                              <MessageCircle className="w-4 h-4" />
-                              Ver conversaciones activas
-                            </>
-                          ) : (
-                            <>
-                              <Archive className="w-4 h-4" />
-                              Ver archivadas {archivedCount > 0 && `(${archivedCount})`}
-                            </>
-                          )}
-                        </Button>
-                      </div>
-                      
-                      <div className="divide-y overflow-y-auto" style={{ maxHeight: 'calc(100% - 140px)' }}>
-                        {categoryPrivateConversations.length === 0 ? (
-                          <div className="p-8 text-center text-slate-500">
-                            <MessageCircle className="w-16 h-16 mx-auto mb-3 opacity-20" />
-                            <p className="font-medium text-lg">
-                              {showArchived ? "Sin conversaciones archivadas" : "Sin conversaciones activas"}
-                            </p>
-                            <p className="text-sm mt-2 text-slate-400">
-                              {showArchived 
-                                ? "Las conversaciones archivadas aparecerán aquí" 
-                                : "Las familias pueden escribirte desde su app"}
-                            </p>
-                          </div>
-                        ) : (
-                          categoryPrivateConversations.map(conv => {
-                            const hasUnread = (conv.no_leidos_staff || 0) > 0;
-                            
-                            return (
-                              <button
-                                key={conv.id}
-                                onClick={() => {
-                                  setSelectedConversation(conv);
-                                  setFullscreenChat(true); // Abrir en pantalla completa estilo WhatsApp
-                                }}
-                                className="w-full p-4 flex items-center gap-3 hover:bg-slate-50 transition-colors text-left border-l-4 border-l-transparent hover:border-l-green-600"
-                              >
-                                <div className={`w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0 ${
-                                  hasUnread ? 'bg-green-600 text-white' : 'bg-slate-200 text-slate-600'
-                                }`}>
-                                  <User className="w-6 h-6" />
-                                </div>
-                                
-                                <div className="flex-1 min-w-0">
-                                  <div className="flex items-center gap-2 mb-1">
-                                    <span className="font-bold text-slate-900 truncate">
-                                      {conv.participante_familia_nombre || conv.participante_familia_email?.split('@')[0]}
-                                    </span>
-                                    {conv.archivada && (
-                                      <Badge variant="outline" className="text-[10px]">📁</Badge>
-                                    )}
-                                  </div>
-                                  
-                                  {conv.jugadores_relacionados?.length > 0 && (
-                                    <div className="text-xs text-slate-500 mb-1">
-                                      👦 {conv.jugadores_relacionados.map(j => j.jugador_nombre).join(", ")}
-                                    </div>
-                                  )}
-                                  
-                                  {conv.ultimo_mensaje && (
-                                    <div className={`text-sm truncate ${hasUnread ? 'font-semibold text-slate-900' : 'text-slate-400'}`}>
-                                      {conv.ultimo_mensaje_de === 'staff' ? '↩️ ' : ''}
-                                      {conv.ultimo_mensaje}
-                                    </div>
-                                  )}
-                                </div>
-
-                                <div className="flex flex-col items-end gap-1">
-                                  {hasUnread && (
-                                    <Badge className="bg-green-600 text-white text-xs h-6 min-w-6 rounded-full animate-pulse">
-                                      {conv.no_leidos_staff}
-                                    </Badge>
-                                  )}
-                                  {conv.ultimo_mensaje_fecha && (
-                                    <span className="text-[10px] text-slate-400">
-                                      {format(new Date(conv.ultimo_mensaje_fecha), "d MMM", { locale: es })}
-                                    </span>
-                                  )}
-                                </div>
-                              </button>
-                            );
-                          })
-                        )}
+                currentGroupMessages.map((msg) => (
+                  <div key={msg.id} className="flex justify-end mb-2">
+                    <div className="max-w-[85%] rounded-2xl shadow-md bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-br-sm">
+                      <div className="px-3 py-2">
+                        <p className="text-sm leading-relaxed">{msg.mensaje}</p>
+                        <span className="text-[10px] opacity-70">
+                          {format(new Date(msg.created_date), "HH:mm")}
+                        </span>
                       </div>
                     </div>
-                  )}
-                </>
+                  </div>
+                ))
               )}
-            </>
-          ) : (
-            <div className="bg-white rounded-xl shadow-md border p-12 text-center">
-              <Users className="w-16 h-16 mx-auto mb-4 text-slate-300" />
-              <p className="text-slate-600 font-medium">Selecciona una categoría</p>
-              <p className="text-sm text-slate-400 mt-2">Elige un equipo de la izquierda para ver sus chats</p>
+              <div ref={messagesEndRef} />
             </div>
-          )}
+
+            <div className="bg-white border-t p-3 flex-shrink-0 safe-area-bottom">
+              <div className="flex gap-2 items-end">
+                <Input
+                  value={messageContent}
+                  onChange={(e) => setMessageContent(e.target.value)}
+                  placeholder="Escribe..."
+                  className="flex-1 rounded-full text-base"
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                      e.preventDefault();
+                      handleSendGroupMessage();
+                    }
+                  }}
+                />
+                <Button
+                  onClick={handleSendGroupMessage}
+                  disabled={!messageContent.trim() || isSending}
+                  className="rounded-full w-12 h-12 p-0 flex-shrink-0 bg-blue-600 hover:bg-blue-700"
+                >
+                  {isSending ? (
+                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  ) : (
+                    <Send className="w-5 h-5" />
+                  )}
+                </Button>
+              </div>
             </div>
           </div>
-        </>
-      )}
+        )}
 
-      {/* MÓVIL: Chat a pantalla completa */}
-      {isMobile && selectedCategory && !fullscreenChat && (
-        <div className="flex-1 flex flex-col overflow-hidden">
-          {effectiveChatMode === "anuncios" ? (
-            <>
-              <div className={`p-4 text-white flex items-center gap-3 shadow-md flex-shrink-0 ${
-                isStaffChat ? 'bg-gradient-to-r from-purple-600 to-purple-700' 
-                : isCoordinationChat ? 'bg-gradient-to-r from-green-600 to-green-700' 
-                : 'bg-gradient-to-r from-blue-600 to-blue-700'
-              }`}>
-                <button
-                  onClick={() => setSelectedCategory(null)}
-                  className="p-2 hover:bg-white/20 rounded-lg transition-colors -ml-1"
-                >
-                  <ArrowLeft className="w-6 h-6" />
-                </button>
-                <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center flex-shrink-0">
-                  <span className="text-2xl">{sportEmojis[selectedCategory]}</span>
+        {/* DESKTOP */}
+        {!isMobile && (
+          <>
+            <div className="mb-4">
+              <h1 className="text-2xl lg:text-3xl font-bold text-slate-900">
+                {isAdmin ? "Chat del Club" : isCoordinator ? "Chat Coordinación" : "Chat de Equipos"}
+              </h1>
+              <p className="text-slate-600 text-sm">Selecciona una categoría</p>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
+              <div className="lg:col-span-1 bg-white rounded-xl shadow-md border overflow-hidden h-fit">
+                <div className="p-4 bg-gradient-to-r from-orange-600 to-orange-700 text-white">
+                  <h3 className="font-bold">Mis Equipos</h3>
+                  <p className="text-xs text-orange-100">{myCategories.length} categorías</p>
                 </div>
-                <div className="flex-1 min-w-0">
-                  <h2 className="font-bold text-lg truncate">{selectedCategory}</h2>
-                  <p className="text-xs opacity-90 truncate">
-                    {isStaffChat ? "Chat interno" : isCoordinationChat ? "Chat coordinación" : "Anuncios grupo"}
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex-1 overflow-y-auto p-3 space-y-2" style={{ backgroundColor: '#e5ddd5' }}>
-                {currentGroupMessages.length === 0 && optimisticMessages.length === 0 ? (
-                  <div className="flex items-center justify-center h-full">
-                    <div className="text-center text-slate-500 bg-white/80 rounded-xl p-6">
-                      <AlertCircle className="w-12 h-12 mx-auto mb-2 opacity-50" />
-                      <p className="text-sm">No hay mensajes</p>
-                    </div>
-                  </div>
-                ) : (
-                  [...currentGroupMessages, ...optimisticMessages]
-                    .sort((a, b) => new Date(a.created_date) - new Date(b.created_date))
-                    .map((msg) => {
-                      const isMyMessage = msg.remitente_email === user?.email || msg.tipo === "admin_a_grupo";
-                      const isFromFamily = msg.tipo === "padre_a_grupo";
-                      
-                      return (
-                        <div key={msg.id} className={`flex ${isCoordinationChat && isFromFamily ? 'justify-start' : 'justify-end'} mb-2`}>
-                          <div className={`max-w-[85%] rounded-2xl shadow-md ${
-                            isCoordinationChat && isFromFamily 
-                              ? 'bg-white text-slate-900 rounded-bl-sm' 
-                              : 'bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-br-sm'
-                          } ${msg._isOptimistic ? 'opacity-70' : ''}`}>
-                            <div className="px-3 py-2">
-                              <div className="flex items-center gap-2 mb-1">
-                                <span className={`text-xs font-bold ${isCoordinationChat && isFromFamily ? 'text-orange-600' : 'text-blue-100'}`}>
-                                  {isCoordinationChat && isFromFamily ? '👤 ' : '🎓 '}{msg.remitente_nombre}
-                                </span>
-                                {msg.prioridad !== "Normal" && (
-                                  <span className="text-xs">{msg.prioridad === "Urgente" ? "🔴" : "⚠️"}</span>
-                                )}
-                              </div>
-                              <p className="text-sm leading-relaxed break-words">{msg.mensaje}</p>
-
-                              {msg.poll && (
-                                <PollMessage 
-                                  poll={msg.poll} 
-                                  onVote={(msgId, optIdx) => voteOnPollMutation.mutate({ messageId: msgId, optionIndex: optIdx })}
-                                  userEmail={user?.email}
-                                  messageId={msg.id}
-                                />
-                              )}
-
-                              {msg.archivos_adjuntos?.length > 0 && (
-                                <div className="mt-2">
-                                  <MessageAttachments attachments={msg.archivos_adjuntos} />
-                                </div>
-                              )}
-                              <div className="flex items-center justify-end gap-1 mt-1">
-                                <span className={`text-[10px] ${isCoordinationChat && isFromFamily ? 'text-slate-400' : 'text-blue-100'}`}>
-                                  {format(new Date(msg.created_date), "HH:mm")}
-                                </span>
-                                {msg._isOptimistic && <span className="text-[10px] opacity-70">⏳</span>}
-                                {!msg._isOptimistic && msg.tipo === "admin_a_grupo" && <span className="text-[10px]">✓</span>}
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      );
-                    })
-                )}
-                <div ref={messagesEndRef} />
-              </div>
-
-              <div className="bg-white border-t p-3 flex-shrink-0 safe-area-bottom">
-                <div className="mb-2">
-                  <Select value={priority} onValueChange={setPriority}>
-                    <SelectTrigger className="h-10 text-sm">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="Normal">📝 Normal</SelectItem>
-                      <SelectItem value="Importante">⚠️ Importante</SelectItem>
-                      <SelectItem value="Urgente">🔴 Urgente</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="flex gap-2 items-end">
-                  <FileAttachmentButton
-                    onFileUploaded={(att) => setAttachments(prev => [...prev, att])}
-                    disabled={sendMessageMutation.isPending}
-                  />
-                  {!isStaffChat && (
-                    <Button
-                      onClick={() => setShowPollDialog(true)}
-                      variant="ghost"
-                      size="icon"
-                      className="text-slate-600 hover:text-orange-600 flex-shrink-0"
-                    >
-                      📊
-                    </Button>
-                  )}
-                  <Input
-                    value={messageContent}
-                    onChange={(e) => setMessageContent(e.target.value)}
-                    placeholder={isStaffChat ? "Escribe a los entrenadores..." : isCoordinationChat ? "Responde a las familias..." : "Escribe un anuncio..."}
-                    className="flex-1 rounded-full text-base"
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' && !e.shiftKey) {
-                        e.preventDefault();
-                        handleSendGroupMessage();
-                      }
-                    }}
-                  />
-                  <Button
-                    onClick={handleSendGroupMessage}
-                    disabled={(!messageContent.trim() && attachments.length === 0) || isSending}
-                    className={`rounded-full w-12 h-12 p-0 flex-shrink-0 ${isStaffChat ? 'bg-purple-600 hover:bg-purple-700' : isCoordinationChat ? 'bg-green-600 hover:bg-green-700' : 'bg-blue-600 hover:bg-blue-700'}`}
-                  >
-                    {isSending ? (
-                      <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                    ) : (
-                      <Send className="w-5 h-5" />
-                    )}
-                  </Button>
-                </div>
-              </div>
-            </>
-          ) : (
-            /* Lista de conversaciones privadas móvil */
-            <div className="flex-1 flex flex-col overflow-hidden">
-              <div className="bg-gradient-to-r from-green-600 to-green-700 p-4 text-white flex-shrink-0">
-                <button
-                  onClick={() => setSelectedCategory(null)}
-                  className="mb-3 p-2 hover:bg-white/20 rounded-lg transition-colors -ml-2 inline-flex items-center gap-2"
-                >
-                  <ArrowLeft className="w-5 h-5" />
-                  <span className="text-sm">Volver</span>
-                </button>
-                <h3 className="font-bold text-lg">💬 Conversaciones</h3>
-                <p className="text-xs text-green-100">{categoryPrivateConversations.length} {showArchived ? "archivadas" : "activas"}</p>
-              </div>
-              <div className="flex-1 overflow-y-auto divide-y">
-                {categoryPrivateConversations.length === 0 ? (
-                  <div className="flex items-center justify-center h-full p-6">
-                    <div className="text-center text-slate-500">
-                      <MessageCircle className="w-16 h-16 mx-auto mb-3 opacity-20" />
-                      <p className="font-medium">Sin conversaciones</p>
-                    </div>
-                  </div>
-                ) : (
-                  categoryPrivateConversations.map(conv => {
-                    const hasUnread = (conv.no_leidos_staff || 0) > 0;
+                <div className="divide-y max-h-[60vh] overflow-y-auto">
+                  {myCategories.map(cat => {
+                    const unread = getUnreadCountForCategory(cat);
                     return (
                       <button
-                        key={conv.id}
+                        key={cat}
                         onClick={() => {
-                          setSelectedConversation(conv);
-                          setFullscreenChat(true);
+                          if (selectedCategory !== cat) {
+                            setSelectedCategory(cat);
+                            setSelectedConversation(null);
+                          }
                         }}
-                        className="w-full p-4 flex items-center gap-3 hover:bg-slate-50 active:bg-slate-100 transition-colors text-left"
+                        className={`w-full p-3 flex items-center gap-3 transition-colors text-left ${
+                          selectedCategory === cat ? 'bg-orange-50 border-l-4 border-l-orange-600' : 'hover:bg-slate-50 border-l-4 border-l-transparent'
+                        }`}
                       >
-                        <div className={`w-14 h-14 rounded-full flex items-center justify-center flex-shrink-0 ${
-                          hasUnread ? 'bg-green-600 text-white' : 'bg-slate-200 text-slate-600'
+                        <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                          selectedCategory === cat ? 'bg-orange-600 text-white' : 'bg-orange-100'
                         }`}>
-                          <User className="w-7 h-7" />
+                          <span className="text-lg">{sportEmojis[cat] || "⚽"}</span>
                         </div>
                         <div className="flex-1 min-w-0">
-                          <div className="font-bold text-slate-900 truncate text-base">
-                            {conv.participante_familia_nombre || conv.participante_familia_email?.split('@')[0]}
+                          <div className="font-semibold text-slate-900 truncate text-sm">{cat}</div>
+                          <div className="text-xs text-slate-500">
+                            {allPlayers.filter(p => p.deporte === cat && p.activo).length} jugadores
                           </div>
-                          {conv.ultimo_mensaje && (
-                            <div className={`text-sm truncate ${hasUnread ? 'font-semibold text-slate-900' : 'text-slate-400'}`}>
-                              {conv.ultimo_mensaje_de === 'staff' ? '↩️ ' : ''}{conv.ultimo_mensaje}
-                            </div>
-                          )}
                         </div>
-                        {hasUnread && (
-                          <Badge className="bg-green-600 text-white text-sm h-8 min-w-8 rounded-full animate-pulse font-bold">
-                            {conv.no_leidos_staff}
-                          </Badge>
+                        {unread > 0 && (
+                          <Badge className="bg-red-500 text-white text-xs animate-pulse">{unread}</Badge>
                         )}
                       </button>
                     );
-                  })
+                  })}
+                </div>
+              </div>
+
+              <div className="lg:col-span-3">
+                {!selectedCategory ? (
+                  <div className="bg-white rounded-xl shadow-md border p-12 text-center">
+                    <Users className="w-16 h-16 mx-auto mb-4 text-slate-300" />
+                    <p className="text-slate-600 font-medium">Selecciona una categoría</p>
+                  </div>
+                ) : (
+                  <div className="bg-white rounded-xl shadow-md border p-4 text-center">
+                    <p className="text-slate-600">Chat de {selectedCategory}</p>
+                  </div>
                 )}
               </div>
             </div>
-          )}
-        </div>
-      )}
+          </>
+        )}
 
-      {/* DESKTOP: Header y contenido */}
-      {!isMobile && (
-        <>
-          <div className="flex-shrink-0">
-            <h1 className="text-2xl lg:text-3xl font-bold text-slate-900">
-              {isAdmin ? "Chat del Club" : isCoordinator ? "Chat Coordinación" : "Chat de Equipos"}
-            </h1>
-            <p className="text-slate-600 text-sm">
-              Selecciona una categoría para ver anuncios y mensajes privados
-            </p>
+        {/* Fullscreen chat móvil */}
+        {fullscreenChat && selectedConversation && (
+          <div className="fixed inset-0 z-50 bg-white">
+            <PrivateChatPanel
+              conversation={selectedConversation}
+              messages={privateMessages}
+              user={user}
+              isStaff={true}
+              onClose={() => {
+                setSelectedConversation(null);
+                setFullscreenChat(false);
+              }}
+              onMessageSent={handlePrivateMessageSent}
+              onArchive={(convId, archive) => {
+                archiveConversationMutation.mutate({ convId, archive });
+              }}
+            />
           </div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
-            {/* Lista de categorías Desktop */}
-            <div className="lg:col-span-1 bg-white rounded-xl shadow-md border overflow-hidden">
+        )}
+      </div>
+    </>
+  );
+}
