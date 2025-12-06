@@ -814,10 +814,6 @@ export default function AdminChat() {
             </div>
           )}
 
-          {/* MÓVIL: Chat a pantalla completa */}
-          {isMobile && (selectedGroup || sendToAll) && (
-            <div className="flex-1 flex flex-col overflow-hidden">
-
       {/* DESKTOP: Chat area con sidebar */}
       {!isMobile && (
         <div className="flex-1 flex overflow-hidden">
