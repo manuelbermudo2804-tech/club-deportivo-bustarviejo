@@ -440,7 +440,7 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
           return (
             <div key={msg.id} className={`flex ${isMine ? 'justify-end' : 'justify-start'} group`}>
               <div className={`max-w-[70%] ${isMine ? 'bg-cyan-600 text-white' : 'bg-white text-slate-900'} rounded-2xl p-3 shadow-sm relative`}>
-                <p className="text-xs font-semibold mb-1 opacity-70">{msg.autor_nombre}</p>
+                <p className="text-xs font-semibold mb-1 opacity-70">{msg.autor === "coordinador" ? "Coordinador" : msg.autor_nombre}</p>
                 
                 {msg.audio_url ? (
                   <div className="flex items-center gap-2">
