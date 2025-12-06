@@ -39,6 +39,9 @@ export default function AppNotificationListener({ user }) {
         const notifDate = new Date(n.created_date);
         if (notifDate < fiveMinutesAgo) return false;
 
+        // IGNORAR notificaciones de chat coordinador
+        if (n.tipo === "coordinador_chat") return false;
+
         return true;
       });
 
