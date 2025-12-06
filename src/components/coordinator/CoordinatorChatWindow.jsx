@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Send, Paperclip, X, FileText, Download, Mic, Play, Pause, Search, Star, Tag, Smile, ThumbsUp, Heart, CheckCircle, Image as ImageIcon, MessageCircle } from "lucide-react";
+import { Send, Paperclip, X, FileText, Download, Mic, Play, Pause, Search, Star, Tag, Smile, ThumbsUp, Heart, CheckCircle, Image as ImageIcon, MessageCircle, Camera, BarChart3 } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { toast } from "sonner";
@@ -34,6 +34,9 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
   const [showQuickReplies, setShowQuickReplies] = useState(false);
   const [showReactions, setShowReactions] = useState(null);
   const [showImagePreview, setShowImagePreview] = useState(null);
+  const [showPollDialog, setShowPollDialog] = useState(false);
+  const [pollQuestion, setPollQuestion] = useState("");
+  const [pollOptions, setPollOptions] = useState(["", ""]);
   
   const messagesEndRef = useRef(null);
   const audioRef = useRef(null);
@@ -149,6 +152,41 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
     } finally {
       setUploading(false);
     }
+  };
+
+  const handleCameraCapture = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    
+    setUploading(true);
+    try {
+      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+      setAttachments([...attachments, {
+        url: file_url,
+        nombre: file.name,
+        tipo: file.type,
+        tamano: file.size
+      }]);
+      toast.success("Foto capturada");
+    } catch (error) {
+      toast.error("Error al capturar foto");
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const sendPoll = () => {
+    if (!pollQuestion.trim() || pollOptions.filter(o => o.trim()).length < 2) {
+      toast.error("Necesitas una pregunta y al menos 2 opciones");
+      return;
+    }
+
+    const pollText = `📊 **ENCUESTA**\n\n${pollQuestion}\n\n${pollOptions.filter(o => o.trim()).map((opt, idx) => `${idx + 1}. ${opt}`).join('\n')}\n\n_Responde con el número de tu opción_`;
+    
+    setMessageText(pollText);
+    setShowPollDialog(false);
+    setPollQuestion("");
+    setPollOptions(["", ""]);
   };
 
   // Grabar audio
@@ -513,32 +551,46 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
       </div>
 
       {/* Input */}
-      <div className="p-4 bg-white border-t">
+      <div className="p-3 bg-white border-t">
         {attachments.length > 0 && (
-          <div className="mb-2 flex flex-wrap gap-2">
+          <div className="mb-2 flex flex-wrap gap-1">
             {attachments.map((file, idx) => (
-              <div key={idx} className="bg-slate-100 rounded px-2 py-1 text-xs flex items-center gap-2">
-                <FileText className="w-3 h-3" />
-                <span className="truncate max-w-[150px]">{file.nombre}</span>
-                <button onClick={() => setAttachments(attachments.filter((_, i) => i !== idx))}>
-                  <X className="w-3 h-3" />
-                </button>
+              <div key={idx} className="relative">
+                {file.tipo?.startsWith('image/') ? (
+                  <div className="relative">
+                    <img src={file.url} alt="" className="w-16 h-16 object-cover rounded" />
+                    <button 
+                      onClick={() => setAttachments(attachments.filter((_, i) => i !== idx))}
+                      className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center"
+                    >
+                      <X className="w-3 h-3" />
+                    </button>
+                  </div>
+                ) : (
+                  <div className="bg-slate-100 rounded px-2 py-1 text-xs flex items-center gap-1">
+                    <FileText className="w-3 h-3" />
+                    <span className="truncate max-w-[100px]">{file.nombre}</span>
+                    <button onClick={() => setAttachments(attachments.filter((_, i) => i !== idx))}>
+                      <X className="w-3 h-3" />
+                    </button>
+                  </div>
+                )}
               </div>
             ))}
           </div>
         )}
 
         {audioBlob && (
-          <div className="mb-2 flex items-center gap-2 bg-green-50 rounded p-2">
+          <div className="mb-2 flex items-center gap-2 bg-green-50 rounded-lg p-2">
             <Mic className="w-4 h-4 text-green-600" />
-            <span className="text-sm">Audio grabado ({audioDuration}s)</span>
-            <Button size="sm" onClick={sendAudio}>Enviar</Button>
-            <Button size="sm" variant="outline" onClick={cancelAudio}>Cancelar</Button>
+            <span className="text-sm flex-1">Audio {audioDuration}s</span>
+            <Button size="sm" onClick={sendAudio} className="h-7">Enviar</Button>
+            <Button size="sm" variant="outline" onClick={cancelAudio} className="h-7">✕</Button>
           </div>
         )}
 
         {isCoordinator && showQuickReplies && (
-          <div className="mb-2 space-y-1">
+          <div className="mb-2 bg-white border rounded-lg shadow-lg p-2 space-y-1">
             {QUICK_REPLIES.map((reply, idx) => (
               <button
                 key={idx}
@@ -546,7 +598,7 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
                   setMessageText(reply);
                   setShowQuickReplies(false);
                 }}
-                className="block w-full text-left text-sm p-2 hover:bg-slate-100 rounded"
+                className="block w-full text-left text-xs p-2 hover:bg-slate-50 rounded"
               >
                 {reply}
               </button>
@@ -554,52 +606,25 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
           </div>
         )}
 
-        <div className="flex gap-2">
-          <label className="cursor-pointer">
-            <input type="file" multiple className="hidden" onChange={handleFileUpload} disabled={uploading} />
-            <Button type="button" variant="outline" size="icon" disabled={uploading}>
-              <Paperclip className="w-4 h-4" />
-            </Button>
-          </label>
-          
-          {isCoordinator && (
-            <Button 
-              type="button" 
-              variant="outline" 
-              size="icon"
-              onClick={() => setShowQuickReplies(!showQuickReplies)}
-              title="Respuestas rápidas"
-            >
-              <MessageCircle className="w-4 h-4" />
-            </Button>
-          )}
-
-          {!recording && !audioBlob && (
-            <Button 
-              type="button" 
-              variant="outline" 
-              size="icon"
-              onClick={startRecording}
-              title="Grabar audio"
-            >
-              <Mic className="w-4 h-4" />
-            </Button>
-          )}
-
-          {recording && (
-            <Button 
-              type="button" 
-              variant="destructive" 
-              size="icon"
-              onClick={stopRecording}
-              className="animate-pulse"
-            >
-              <Pause className="w-4 h-4" />
-            </Button>
-          )}
+        <div className="flex items-end gap-2">
+          <div className="flex gap-1">
+            <label className="cursor-pointer">
+              <input type="file" multiple accept="*/*" className="hidden" onChange={handleFileUpload} disabled={uploading} />
+              <Button type="button" variant="ghost" size="icon" disabled={uploading} className="h-10 w-10">
+                <Paperclip className="w-5 h-5 text-slate-500" />
+              </Button>
+            </label>
+            
+            <label className="cursor-pointer">
+              <input type="file" accept="image/*" capture="environment" className="hidden" onChange={handleCameraCapture} disabled={uploading} />
+              <Button type="button" variant="ghost" size="icon" disabled={uploading} className="h-10 w-10">
+                <Camera className="w-5 h-5 text-slate-500" />
+              </Button>
+            </label>
+          </div>
 
           <Textarea
-            placeholder="Escribe un mensaje..."
+            placeholder="Mensaje..."
             value={messageText}
             onChange={(e) => {
               setMessageText(e.target.value);
@@ -611,13 +636,72 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
                 handleSend();
               }
             }}
-            className="flex-1"
-            rows={2}
+            className="flex-1 min-h-[44px] max-h-[120px] resize-none"
+            rows={1}
             disabled={recording || audioBlob}
           />
-          <Button onClick={handleSend} disabled={(!messageText.trim() && attachments.length === 0) || recording || audioBlob}>
-            <Send className="w-4 h-4" />
-          </Button>
+
+          <div className="flex gap-1">
+            {!recording && !audioBlob && !messageText.trim() && (
+              <>
+                <Button 
+                  type="button" 
+                  variant="ghost" 
+                  size="icon"
+                  onClick={startRecording}
+                  className="h-10 w-10"
+                >
+                  <Mic className="w-5 h-5 text-slate-500" />
+                </Button>
+                
+                {isCoordinator && (
+                  <Button 
+                    type="button" 
+                    variant="ghost" 
+                    size="icon"
+                    onClick={() => setShowPollDialog(true)}
+                    className="h-10 w-10"
+                  >
+                    <BarChart3 className="w-5 h-5 text-slate-500" />
+                  </Button>
+                )}
+              </>
+            )}
+
+            {recording && (
+              <Button 
+                type="button" 
+                variant="ghost" 
+                size="icon"
+                onClick={stopRecording}
+                className="h-10 w-10 animate-pulse bg-red-50"
+              >
+                <Pause className="w-5 h-5 text-red-600" />
+              </Button>
+            )}
+
+            {(messageText.trim() || attachments.length > 0) && !recording && !audioBlob && (
+              <Button 
+                onClick={handleSend} 
+                size="icon"
+                className="h-10 w-10 bg-cyan-600 hover:bg-cyan-700"
+              >
+                <Send className="w-5 h-5" />
+              </Button>
+            )}
+
+            {isCoordinator && messageText.trim() && !recording && !audioBlob && (
+              <Button 
+                type="button" 
+                variant="ghost" 
+                size="icon"
+                onClick={() => setShowQuickReplies(!showQuickReplies)}
+                className="h-10 w-10"
+              >
+                <MessageCircle className="w-5 h-5 text-slate-500" />
+              </Button>
+            )}
+          </div>
         </div>
       </div>
 
@@ -630,6 +714,62 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
           {showImagePreview && (
             <img src={showImagePreview} alt="Preview" className="w-full h-auto rounded" />
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Crear encuesta */}
+      <Dialog open={showPollDialog} onOpenChange={setShowPollDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>📊 Crear Encuesta Rápida</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div>
+              <label className="text-sm font-medium">Pregunta</label>
+              <Input
+                placeholder="¿Qué prefieres para el torneo?"
+                value={pollQuestion}
+                onChange={(e) => setPollQuestion(e.target.value)}
+              />
+            </div>
+            <div>
+              <label className="text-sm font-medium">Opciones</label>
+              {pollOptions.map((opt, idx) => (
+                <div key={idx} className="flex gap-2 mt-2">
+                  <Input
+                    placeholder={`Opción ${idx + 1}`}
+                    value={opt}
+                    onChange={(e) => {
+                      const newOpts = [...pollOptions];
+                      newOpts[idx] = e.target.value;
+                      setPollOptions(newOpts);
+                    }}
+                  />
+                  {pollOptions.length > 2 && (
+                    <Button 
+                      size="icon" 
+                      variant="ghost"
+                      onClick={() => setPollOptions(pollOptions.filter((_, i) => i !== idx))}
+                    >
+                      <X className="w-4 h-4" />
+                    </Button>
+                  )}
+                </div>
+              ))}
+              <Button 
+                size="sm" 
+                variant="outline" 
+                onClick={() => setPollOptions([...pollOptions, ""])}
+                className="mt-2"
+              >
+                + Agregar opción
+              </Button>
+            </div>
+            <div className="flex gap-2 justify-end">
+              <Button variant="outline" onClick={() => setShowPollDialog(false)}>Cancelar</Button>
+              <Button onClick={sendPoll}>Enviar Encuesta</Button>
+            </div>
+          </div>
         </DialogContent>
       </Dialog>
     </div>

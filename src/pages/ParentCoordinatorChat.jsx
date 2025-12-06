@@ -172,20 +172,10 @@ export default function ParentCoordinatorChat() {
           </CardTitle>
         </CardHeader>
         <CardContent className="p-0">
-          <Alert className="m-4 bg-gradient-to-r from-cyan-50 to-blue-50 border-2 border-cyan-300">
-            <MessageCircle className="w-5 h-5 text-cyan-600" />
-            <AlertDescription className="text-slate-800 text-sm space-y-2">
-              <p className="font-bold text-cyan-900">👋 ¡Hola! Soy el Coordinador Deportivo del club</p>
-              <p><strong className="text-cyan-700">Estoy aquí para ayudarte con:</strong></p>
-              <ul className="text-xs space-y-1 ml-4">
-                <li>✅ Dudas sobre partidos, entrenamientos y horarios</li>
-                <li>✅ Consultas sobre convocatorias y equipos</li>
-                <li>✅ Información sobre instalaciones y recursos</li>
-                <li>✅ Quejas, sugerencias o cualquier tema deportivo</li>
-              </ul>
-              <p className="text-xs text-slate-600 pt-2 border-t border-cyan-200">
-                <strong>Nota:</strong> Para pagos, cuotas o inscripciones contacta con administración (cdbustarviejo@gmail.com)
-              </p>
+          <Alert className="m-4 bg-cyan-50 border-cyan-200">
+            <MessageCircle className="w-4 h-4 text-cyan-600" />
+            <AlertDescription className="text-cyan-800 text-xs">
+              <strong>💬 Chat con el Coordinador:</strong> Partidos, horarios, equipos, quejas o sugerencias
             </AlertDescription>
           </Alert>
 
