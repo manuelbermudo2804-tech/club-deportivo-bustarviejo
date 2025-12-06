@@ -217,7 +217,26 @@ export default function ParentChat() {
       c.categoria === categoria && 
       !c.archivada
     );
-    return convs.reduce((sum, c) => sum + (c.no_leidos_familia || 0), 0);
+    
+    // CRÍTICO: Solo contar si hay mensajes recientes (últimos 12 meses)
+    const twelveMonthsAgo = new Date();
+    twelveMonthsAgo.setMonth(twelveMonthsAgo.getMonth() - 12);
+    
+    return convs.reduce((sum, c) => {
+      // Si el último mensaje es muy antiguo o no hay fecha, no contar
+      if (!c.ultimo_mensaje_fecha) return sum;
+      
+      const lastMsgDate = new Date(c.ultimo_mensaje_fecha);
+      if (lastMsgDate < twelveMonthsAgo) {
+        // Mensaje antiguo - resetear contador si está activo
+        if (c.no_leidos_familia > 0) {
+          base44.entities.PrivateConversation.update(c.id, { no_leidos_familia: 0 }).catch(() => {});
+        }
+        return sum;
+      }
+      
+      return sum + (c.no_leidos_familia || 0);
+    }, 0);
   };
 
   const markAsReadMutation = useMutation({
