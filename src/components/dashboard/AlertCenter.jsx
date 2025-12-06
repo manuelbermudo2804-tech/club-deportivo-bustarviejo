@@ -45,6 +45,29 @@ export default function AlertCenter({
 }) {
   const alerts = [];
 
+  // MENSAJES DE CHAT - Para todos los roles
+  if (unreadMessages > 0) {
+    alerts.push({
+      icon: MessageCircle,
+      title: isAdmin || isTreasurer ? "💬 Mensajes de Familias" : isCoach ? "💬 Mensajes de Familias" : "💬 Mensajes del Entrenador",
+      description: `${unreadMessages} mensaje${unreadMessages > 1 ? 's' : ''} sin leer en chat de grupo`,
+      url: isAdmin ? createPageUrl("AdminChat") : isCoach ? createPageUrl("CoachChat") : createPageUrl("ParentChat"),
+      color: "bg-blue-600",
+      priority: 2
+    });
+  }
+
+  if (unreadPrivateMessages > 0) {
+    alerts.push({
+      icon: Lock,
+      title: isAdmin || isCoach || isTreasurer ? "🔒 Mensajes Privados de Familias" : "🔒 Respuesta del Entrenador",
+      description: `${unreadPrivateMessages} mensaje${unreadPrivateMessages > 1 ? 's' : ''} privado${unreadPrivateMessages > 1 ? 's' : ''} sin leer`,
+      url: isAdmin ? createPageUrl("AdminChat") : isCoach ? createPageUrl("CoachChat") : createPageUrl("ParentChat"),
+      color: "bg-green-600",
+      priority: 1
+    });
+  }
+
   // Alertas para padres
   if (isParent) {
     if (pendingCallups > 0) {
