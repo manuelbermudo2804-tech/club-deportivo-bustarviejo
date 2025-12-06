@@ -370,40 +370,9 @@ export default function ParentThreadedView({
         <div ref={messagesEndRef} />
       </div>
 
-      {/* BOTÓN GIGANTE solo si NO hay mensajes ni conversación iniciada */}
-      {!myPrivateConversation && !replyingToStaff && groupMessages.length === 0 && myPrivateMessages.length === 0 && (
-        <div className="p-4 bg-gradient-to-r from-green-600 to-green-700 border-t-4 border-green-500">
-          <div className="flex items-center gap-3 mb-3">
-            <div className="bg-white/20 backdrop-blur-sm rounded-xl p-2 flex-shrink-0">
-              <MessageCircle className="w-6 h-6 text-white" />
-            </div>
-            <div className="flex-1">
-              <p className="text-white font-bold text-base">
-                💬 ¿Necesitas hablar con el entrenador?
-              </p>
-              <p className="text-green-100 text-xs mt-1">
-                Chat privado - Solo lo verá el entrenador
-              </p>
-            </div>
-          </div>
-          <Button
-            onClick={() => {
-              if (!myPrivateConversation) {
-                onReplyPrivate?.();
-              }
-              setReplyingToStaff(true);
-              setTimeout(() => inputRef.current?.focus(), 100);
-            }}
-            className="w-full bg-white hover:bg-green-50 text-green-700 font-bold py-4 rounded-xl shadow-lg transition-all hover:scale-105 active:scale-95"
-          >
-            🔒 Iniciar Chat Privado con Entrenador
-          </Button>
-        </div>
-      )}
-
-      {/* Input area - solo si está respondiendo Y hay conversación */}
-      {replyingToStaff && (
-        <div className="bg-white border-t flex-shrink-0">
+      {/* Input area - SIEMPRE mostrar */}
+      <div className="bg-white border-t flex-shrink-0">
+        {replyingToStaff && (
           <QuickReplies 
             visible={showQuickReplies} 
             onSelect={(text) => {
