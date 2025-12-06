@@ -667,12 +667,6 @@ export default function Home() {
             icon: ShoppingBag,
             url: createPageUrl("ClothingOrders"),
             gradient: "from-teal-600 to-teal-700",
-          },
-          {
-            title: "💬 Chat Familia",
-            icon: MessageCircle,
-            url: createPageUrl("ParentChat"),
-            gradient: "from-blue-600 to-blue-700",
           }
         );
         if (stats.pendingSignatures > 0) {
@@ -955,12 +949,6 @@ export default function Home() {
             icon: ShoppingBag,
             url: createPageUrl("ClothingOrders"),
             gradient: "from-teal-600 to-teal-700",
-          },
-          {
-            title: "💬 Chat Familia",
-            icon: MessageCircle,
-            url: createPageUrl("ParentChat"),
-            gradient: "from-blue-600 to-blue-700",
           }
         );
         if (stats.pendingSignatures > 0) {
