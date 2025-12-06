@@ -164,16 +164,15 @@ export default function ParentCoachChat() {
   const categories = [...new Set(myPlayers.map(p => p.deporte))];
 
   return (
-    <div className="p-2 sm:p-4 lg:max-w-5xl lg:mx-auto h-[calc(100vh-110px)]">
-      <Card className="border-blue-200 shadow-lg h-full flex flex-col overflow-hidden">
-        <CardHeader className="bg-gradient-to-r from-blue-600 to-blue-700 text-white flex-shrink-0 p-3 sm:p-6">
+    <div className="p-0 sm:p-4 lg:max-w-5xl lg:mx-auto h-screen sm:h-[calc(100vh-110px)]">
+      <Card className="border-blue-200 shadow-lg h-full flex flex-col overflow-hidden sm:rounded-lg rounded-none">
+        <CardHeader className="bg-gradient-to-r from-blue-600 to-blue-700 text-white flex-shrink-0 p-2 sm:p-6">
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle className="flex items-center gap-2 text-base sm:text-xl">
-                <MessageCircle className="w-5 h-5 sm:w-6 sm:h-6" />
-                Chat con Entrenador
+              <CardTitle className="flex items-center gap-2 text-sm sm:text-xl">
+                <MessageCircle className="w-4 h-4 sm:w-6 sm:h-6" />
+                Chat Entrenador
               </CardTitle>
-              <p className="text-xs sm:text-sm text-blue-100 hidden sm:block">Comunicación con el entrenador y otras familias</p>
             </div>
             <Button
               variant="ghost"
@@ -189,9 +188,9 @@ export default function ParentCoachChat() {
         </CardHeader>
         <CardContent className="p-0 flex-1 flex flex-col min-h-0 overflow-hidden">
           <Tabs value={selectedCategory} onValueChange={setSelectedCategory} className="flex-1 flex flex-col min-h-0">
-            <TabsList className="w-full justify-start overflow-x-auto p-1 sm:p-2 bg-slate-50 flex-shrink-0">
+            <TabsList className="w-full justify-start overflow-x-auto p-0.5 sm:p-2 bg-slate-50 flex-shrink-0">
               {categories.map(cat => (
-                <TabsTrigger key={cat} value={cat} className="whitespace-nowrap text-xs sm:text-sm px-2 sm:px-4">
+                <TabsTrigger key={cat} value={cat} className="whitespace-nowrap text-[11px] sm:text-sm px-2 py-1 sm:px-4 sm:py-2">
                   {cat.replace('Fútbol ', '').replace(' (Mixto)', '')}
                 </TabsTrigger>
               ))}
@@ -199,11 +198,11 @@ export default function ParentCoachChat() {
             
             {categories.map(cat => (
               <TabsContent key={cat} value={cat} className="flex-1 flex flex-col min-h-0">
-                <div className="flex-1 overflow-y-auto p-2 sm:p-4 space-y-2 sm:space-y-3 bg-slate-50 min-h-0">
+                <div className="flex-1 overflow-y-auto p-2 sm:p-4 space-y-2 bg-slate-50 min-h-0">
                   {messages.length === 0 ? (
-                    <div className="text-center py-12">
-                      <MessageCircle className="w-12 h-12 text-slate-300 mx-auto mb-2" />
-                      <p className="text-slate-500 text-sm">Aún no hay mensajes en este grupo</p>
+                    <div className="text-center py-8">
+                      <MessageCircle className="w-10 h-10 text-slate-300 mx-auto mb-2" />
+                      <p className="text-slate-500 text-xs sm:text-sm">Aún no hay mensajes</p>
                     </div>
                   ) : (
                     messages.map((msg) => {
@@ -212,18 +211,18 @@ export default function ParentCoachChat() {
                       
                       return (
                         <div key={msg.id} className={`flex ${isMine ? 'justify-end' : 'justify-start'}`}>
-                          <div className={`max-w-[70%] ${
+                          <div className={`max-w-[75%] sm:max-w-[70%] ${
                             isMine ? 'bg-slate-800 text-white' : 
                             isCoach ? 'bg-blue-600 text-white' : 
                             'bg-white text-slate-900 border'
-                          } rounded-2xl p-3 shadow-sm`}>
-                            <div className="flex items-center gap-2 mb-1">
-                              <p className="text-xs font-semibold opacity-70">
+                          } rounded-2xl p-2 sm:p-3 shadow-sm`}>
+                            <div className="flex items-center gap-1 sm:gap-2 mb-1">
+                              <p className="text-[10px] sm:text-xs font-semibold opacity-70">
                                 {isCoach ? '🏃 ' : ''}{msg.remitente_nombre}
                               </p>
-                              {isCoach && <Badge className="text-xs bg-green-500">Entrenador</Badge>}
+                              {isCoach && <Badge className="text-[10px] sm:text-xs bg-green-500 px-1 py-0">Entrenador</Badge>}
                             </div>
-                            <p className="text-sm whitespace-pre-wrap">{msg.mensaje}</p>
+                            <p className="text-xs sm:text-sm whitespace-pre-wrap">{msg.mensaje}</p>
                             
                             {msg.archivos_adjuntos?.length > 0 && (
                               <div className="mt-2 space-y-1">
@@ -254,7 +253,7 @@ export default function ParentCoachChat() {
                               </div>
                             )}
                             
-                            <p className="text-xs opacity-60 mt-1">
+                            <p className="text-[10px] sm:text-xs opacity-60 mt-1">
                               {format(new Date(msg.created_date), "HH:mm", { locale: es })}
                             </p>
                           </div>
