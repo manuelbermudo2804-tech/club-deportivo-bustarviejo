@@ -411,7 +411,10 @@ export default function ParentChat() {
           <div className="bg-gradient-to-r from-cyan-600 to-cyan-700 text-white flex-shrink-0">
             <div className="flex items-center gap-3 p-4">
               <button
-                onClick={() => setSelectedCategory(null)}
+                onClick={() => {
+                  setSelectedCategory(null);
+                  setActivePrivateChat(null);
+                }}
                 className="p-2 hover:bg-white/20 rounded-lg transition-colors -ml-1"
               >
                 <ArrowLeft className="w-6 h-6" />
