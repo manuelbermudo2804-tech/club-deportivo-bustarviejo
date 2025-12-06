@@ -211,8 +211,6 @@ export default function CoachThreadedView({
         message: tempMsg,
         attachments: tempAttachments
       });
-
-      setTimeout(() => setOptimisticMessages([]), 3000);
     } else {
       // Mensaje optimista para anuncio grupal
       const optimisticMsg = {
@@ -246,33 +244,42 @@ export default function CoachThreadedView({
     }
   };
   
-  // Limpiar mensajes optimistas cuando llegan los reales
+  // Limpiar mensajes optimistas cuando llegan los reales (mejorado)
   useEffect(() => {
-    if (optimisticMessages.length > 0) {
+    if (optimisticMessages.length === 0) return;
+
+    const timer = setTimeout(() => {
+      // Para mensajes grupales
       const hasGroupOptimistic = optimisticMessages.some(m => m.tipo === "admin_a_grupo");
-      const hasPrivateOptimistic = optimisticMessages.some(m => !m.tipo || m.remitente_tipo);
-      
       if (hasGroupOptimistic && groupMessages.length > 0) {
-        const latestReal = groupMessages[groupMessages.length - 1];
         const latestOptimistic = optimisticMessages.find(m => m.tipo === "admin_a_grupo");
+        const recentReal = groupMessages.slice(-3).find(m => 
+          m.remitente_email === user?.email && 
+          Math.abs(new Date(m.created_date) - new Date(latestOptimistic.created_date)) < 5000
+        );
         
-        if (latestReal && latestOptimistic && 
-            new Date(latestReal.created_date) >= new Date(latestOptimistic.created_date)) {
+        if (recentReal) {
           setOptimisticMessages(prev => prev.filter(m => m.tipo !== "admin_a_grupo"));
         }
       }
       
+      // Para mensajes privados
+      const hasPrivateOptimistic = optimisticMessages.some(m => m.remitente_tipo === "staff");
       if (hasPrivateOptimistic && allPrivateMessages.length > 0) {
-        const latestReal = allPrivateMessages[allPrivateMessages.length - 1];
-        const latestOptimistic = optimisticMessages.find(m => !m.tipo || m.remitente_tipo);
+        const latestOptimistic = optimisticMessages.find(m => m.remitente_tipo === "staff");
+        const recentReal = allPrivateMessages.slice(-3).find(m => 
+          m.remitente_email === user?.email && 
+          Math.abs(new Date(m.created_date) - new Date(latestOptimistic.created_date)) < 5000
+        );
         
-        if (latestReal && latestOptimistic && 
-            new Date(latestReal.created_date) >= new Date(latestOptimistic.created_date)) {
-          setOptimisticMessages(prev => prev.filter(m => m.tipo === "admin_a_grupo"));
+        if (recentReal) {
+          setOptimisticMessages(prev => prev.filter(m => m.remitente_tipo !== "staff"));
         }
       }
-    }
-  }, [groupMessages.length, allPrivateMessages.length, optimisticMessages.length]);
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [groupMessages.length, allPrivateMessages.length, optimisticMessages.length, user?.email]);
 
   // Scroll INTELIGENTE solo cuando hay mensajes nuevos REALES
   const prevRealMessagesCountRef = useRef(0);
