@@ -565,10 +565,7 @@ export default function ParentDashboard() {
   const menuItems = baseMenuItems.map(item => {
     const updated = { ...item };
     
-    if (item.title === "💬 Chat Equipo" && unreadMessages > 0) {
-      updated.badge = unreadMessages;
-      updated.badgeLabel = "nuevos";
-    }
+
     if (item.title === "🏆 Convocatorias" && pendingCallups > 0) {
       updated.badge = pendingCallups;
       updated.badgeLabel = "pendientes";
@@ -763,12 +760,7 @@ export default function ParentDashboard() {
               </div>
               <div className="text-slate-400 text-[10px] lg:text-sm">Convocatorias</div>
             </div>
-            <div className="text-center">
-              <div className="text-2xl lg:text-4xl font-bold text-blue-500 mb-1">
-                {unreadMessages}
-              </div>
-              <div className="text-slate-400 text-[10px] lg:text-sm">Mensajes Nuevos</div>
-            </div>
+
           </div>
         </div>
 
