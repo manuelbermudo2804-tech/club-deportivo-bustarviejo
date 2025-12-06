@@ -478,21 +478,23 @@ export default function AdminChat() {
         deporte: selectedGroup,
         grupo_id: selectedGroup,
         leido: false,
-        archivos_adjuntos: attachments,
+        archivos_adjuntos: [...attachments],
         created_date: new Date().toISOString(),
         _isOptimistic: true
       };
       setOptimisticMessages([optimisticMsg]);
-      
-      // Scroll instantáneo al enviar
-      setTimeout(() => {
-        messagesEndRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
-      }, 50);
     }
     
+    // Limpiar input INMEDIATAMENTE (feedback instantáneo como WhatsApp)
+    const tempAttachments = [...attachments];
     setMessageContent("");
     setAttachments([]);
     setIsSending(true);
+
+    // Scroll inmediato al enviar
+    setTimeout(() => {
+      messagesEndRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
+    }, 50);
 
     const messageData = {
       remitente_email: user.email,
@@ -504,7 +506,7 @@ export default function AdminChat() {
       categoria: "",
       grupo_id: sendToAll ? "todos" : selectedGroup,
       leido: false,
-      archivos_adjuntos: attachments,
+      archivos_adjuntos: tempAttachments,
       sendToAll: sendToAll,
       destinatario_email: selectedRecipient !== "all" ? selectedRecipient : undefined,
       destinatario_nombre: selectedRecipient !== "all" ? getParentName(selectedRecipient) : undefined
@@ -589,14 +591,17 @@ export default function AdminChat() {
 
   const prevMessagesCountRef = useRef(0);
   
+  // Scroll INTELIGENTE - solo cuando hay mensajes nuevos y el usuario está abajo
   useEffect(() => {
-    const currentCount = currentGroup?.messages?.length || 0;
+    const currentCount = (currentGroup?.messages?.length || 0) + optimisticMessages.length;
     
-    // Solo scroll si hay mensajes NUEVOS
+    // Solo hacer scroll si aumentó el contador (hay mensajes nuevos)
     if (prevMessagesCountRef.current > 0 && currentCount > prevMessagesCountRef.current) {
       const container = messagesEndRef.current?.parentElement;
       if (container) {
-        const isNearBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 200;
+        const isNearBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 150;
+        
+        // Solo scroll automático si el usuario está cerca del final
         if (isNearBottom) {
           setTimeout(() => {
             messagesEndRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
@@ -606,7 +611,7 @@ export default function AdminChat() {
     }
     
     prevMessagesCountRef.current = currentCount;
-  }, [currentGroup?.messages?.length]);
+  }, [currentGroup?.messages?.length, optimisticMessages.length]);
 
   const getReadStatus = (msg) => {
     if (msg.tipo !== "admin_a_grupo") return null;

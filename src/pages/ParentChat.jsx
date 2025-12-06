@@ -212,18 +212,19 @@ export default function ParentChat() {
     }
   }, [selectedCategory, currentAnnouncements.length, activePrivateChat]);
 
-  // Scroll solo cuando HAY mensajes nuevos (no en cada render)
+  // Scroll INTELIGENTE - solo cuando hay mensajes nuevos y el usuario está abajo
   useEffect(() => {
     const currentCount = currentAnnouncements.length + privateMessages.length;
     
-    // Solo hacer scroll si aumentó el contador
+    // Solo hacer scroll si aumentó el contador (hay mensajes nuevos)
     if (prevMessagesCountRef.current > 0 && currentCount > prevMessagesCountRef.current) {
       playNotificationSound();
       
-      // Scroll SOLO si el usuario está cerca del final
       const container = messagesEndRef.current?.parentElement;
       if (container) {
-        const isNearBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 200;
+        const isNearBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 150;
+        
+        // Solo scroll automático si el usuario está cerca del final
         if (isNearBottom) {
           setTimeout(() => {
             messagesEndRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
