@@ -57,24 +57,24 @@ export default function PushNotifications() {
   });
 
   const activeSeason = seasonConfigs.find(s => s.activa === true);
-  const pushEnabled = activeSeason?.notificaciones_push_activas !== false;
+  const pushManualesEnabled = activeSeason?.notificaciones_push_manuales_activas !== false;
 
   const togglePushMutation = useMutation({
     mutationFn: (enabled) => base44.entities.SeasonConfig.update(activeSeason.id, { 
-      notificaciones_push_activas: enabled 
+      notificaciones_push_manuales_activas: enabled 
     }),
     onSuccess: (_, enabled) => {
       queryClient.invalidateQueries({ queryKey: ['seasonConfig'] });
-      toast.success(enabled ? "✅ Push activadas" : "⏸️ Push desactivadas");
+      toast.success(enabled ? "✅ Push manuales activadas" : "⏸️ Push manuales desactivadas");
     },
   });
 
   // Enviar notificación con PUSH REAL
   const sendNotificationMutation = useMutation({
     mutationFn: async (data) => {
-      // Verificar si las push están activas
-      if (!pushEnabled) {
-        throw new Error("Las notificaciones push están desactivadas. Actívalas con el switch de arriba.");
+      // Verificar si las push manuales están activas
+      if (!pushManualesEnabled) {
+        throw new Error("Las notificaciones push manuales están desactivadas. Actívalas con el switch de arriba.");
       }
 
       // Calcular destinatarios
@@ -188,36 +188,39 @@ export default function PushNotifications() {
         <Button
           onClick={() => setShowForm(!showForm)}
           className="bg-orange-600 hover:bg-orange-700"
-          disabled={!pushEnabled}
+          disabled={!pushManualesEnabled}
         >
           <Plus className="w-4 h-4 mr-2" />
           Nueva Notificación
         </Button>
       </div>
 
-      {/* Control de activación/desactivación de Push */}
-      <Card className={`border-2 ${pushEnabled ? 'border-green-200 bg-green-50' : 'border-red-200 bg-red-50'}`}>
+      {/* Control de activación/desactivación de Push MANUALES */}
+      <Card className={`border-2 ${pushManualesEnabled ? 'border-green-200 bg-green-50' : 'border-red-200 bg-red-50'}`}>
         <CardContent className="p-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className={`w-12 h-12 rounded-full flex items-center justify-center ${
-                pushEnabled ? 'bg-green-100' : 'bg-red-100'
+                pushManualesEnabled ? 'bg-green-100' : 'bg-red-100'
               }`}>
-                <Bell className={`w-6 h-6 ${pushEnabled ? 'text-green-600' : 'text-red-600'}`} />
+                <Bell className={`w-6 h-6 ${pushManualesEnabled ? 'text-green-600' : 'text-red-600'}`} />
               </div>
               <div>
                 <p className="font-bold text-slate-900">
-                  📲 Notificaciones Push {pushEnabled ? 'Activadas' : 'Desactivadas'}
+                  📲 Envío Manual Push {pushManualesEnabled ? 'Activado' : 'Desactivado'}
                 </p>
                 <p className="text-xs text-slate-600">
-                  {pushEnabled 
-                    ? "Se enviarán push automáticas (chats, eventos) y manuales (las de abajo)" 
-                    : "⚠️ BLOQUEADAS: No se enviarán push automáticas NI manuales hasta activar"}
+                  {pushManualesEnabled 
+                    ? "Puedes enviar notificaciones manuales desde esta página" 
+                    : "⚠️ BLOQUEADO: No puedes enviar notificaciones manuales"}
+                </p>
+                <p className="text-xs text-blue-600 mt-1">
+                  💡 Las push automáticas de chat siempre funcionan (independientes de este control)
                 </p>
               </div>
             </div>
             <Switch
-              checked={pushEnabled}
+              checked={pushManualesEnabled}
               onCheckedChange={(checked) => {
                 if (activeSeason) {
                   togglePushMutation.mutate(checked);
@@ -229,11 +232,11 @@ export default function PushNotifications() {
         </CardContent>
       </Card>
 
-      {!pushEnabled && (
+      {!pushManualesEnabled && (
         <Alert className="bg-red-50 border-red-200">
           <AlertTriangle className="w-4 h-4 text-red-600" />
           <AlertDescription className="text-red-800 ml-2">
-            <strong>⚠️ Push BLOQUEADAS:</strong> No se puede enviar ninguna notificación (ni automáticas de chat, ni manuales) hasta que actives el switch de arriba. El botón "Nueva Notificación" está deshabilitado.
+            <strong>⚠️ Push manuales BLOQUEADAS:</strong> No puedes enviar notificaciones desde aquí hasta que actives el switch de arriba. Las push automáticas de chat siguen funcionando normalmente.
           </AlertDescription>
         </Alert>
       )}
@@ -314,9 +317,10 @@ export default function PushNotifications() {
             <li>• Las notificaciones aparecen dentro de la app</li>
             <li>• Puedes segmentar por rol (padres, entrenadores) o por categoría</li>
             <li>• Si incluyes un enlace, al tocar irán a esa sección</li>
+            <li>• El switch de arriba SOLO controla estas notificaciones manuales</li>
           </ul>
-          <p className="text-xs text-slate-500 mt-2">
-            ⚠️ Las notificaciones push con app cerrada no están disponibles en Base44 actualmente.
+          <p className="text-xs text-green-600 mt-2 font-medium">
+            ✅ Las push automáticas de chat funcionan independientemente de este control
           </p>
         </CardContent>
       </Card>
