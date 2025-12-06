@@ -654,11 +654,13 @@ export default function ParentDashboard() {
                 <MessageCircle className="w-6 h-6 text-white" />
               </div>
               <div className="flex-1">
-                <h3 className="font-bold text-cyan-900">¿Dudas sobre partidos o entrenamientos?</h3>
-                <p className="text-sm text-cyan-700">Pregunta al coordinador deportivo</p>
+                <h3 className="font-bold text-cyan-900">💬 Habla con el Coordinador Deportivo</h3>
+                <p className="text-xs text-cyan-700">
+                  <strong>Estamos para ayudarte:</strong> Dudas de partidos, horarios, convocatorias, equipos, quejas o sugerencias
+                </p>
               </div>
               <Link to={createPageUrl("ParentCoordinatorChat")}>
-                <Button className="bg-cyan-600 hover:bg-cyan-700">
+                <Button className="bg-cyan-600 hover:bg-cyan-700 font-bold">
                   Chatear
                 </Button>
               </Link>
@@ -671,8 +673,6 @@ export default function ParentDashboard() {
           pendingCallups={pendingCallups}
           pendingDocuments={pendingDocuments.length}
           pendingPayments={pendingPayments}
-          unreadMessages={unreadMessages}
-          unreadPrivateMessages={unreadPrivateMessages}
           pendingSurveys={activeSurveys.length}
           pendingSignatures={pendingFederationSignatures}
           upcomingEvents={0}

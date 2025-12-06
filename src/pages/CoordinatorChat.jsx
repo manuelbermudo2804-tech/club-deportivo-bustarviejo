@@ -79,10 +79,13 @@ export default function CoordinatorChat() {
       {/* Lista de conversaciones */}
       <div className="w-96 border-r bg-slate-50 flex flex-col overflow-hidden">
         <div className="p-4 bg-gradient-to-r from-cyan-600 to-cyan-700 text-white">
-          <h1 className="text-xl font-bold flex items-center gap-2 mb-3">
+          <h1 className="text-xl font-bold flex items-center gap-2 mb-1">
             <MessageCircle className="w-6 h-6" />
             Chat Coordinador
           </h1>
+          <p className="text-xs text-cyan-100 mb-3">
+            Resuelve dudas deportivas, quejas y consultas de las familias
+          </p>
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
             <Input
