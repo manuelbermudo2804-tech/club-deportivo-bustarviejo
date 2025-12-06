@@ -6,7 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { MessageCircle, Search, Archive, ArchiveRestore, Users } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { MessageCircle, Search, Archive, ArchiveRestore, Users, Filter, Star } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import CoordinatorChatWindow from "../components/coordinator/CoordinatorChatWindow";
@@ -17,6 +18,7 @@ export default function CoordinatorChat() {
   const [selectedConversation, setSelectedConversation] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("all");
+  const [labelFilter, setLabelFilter] = useState("all");
   
   const queryClient = useQueryClient();
 
@@ -65,7 +67,9 @@ export default function CoordinatorChat() {
     const matchesCategory = categoryFilter === "all" || 
       conv.jugadores_asociados?.some(j => j.categoria === categoryFilter);
 
-    return matchesSearch && matchesCategory;
+    const matchesLabel = labelFilter === "all" || conv.etiqueta === labelFilter;
+
+    return matchesSearch && matchesCategory && matchesLabel;
   });
 
   const categories = [...new Set(
@@ -110,7 +114,7 @@ export default function CoordinatorChat() {
             </TabsTrigger>
           </TabsList>
 
-          <div className="px-4 py-2">
+          <div className="px-4 py-2 space-y-2">
             <select
               value={categoryFilter}
               onChange={(e) => setCategoryFilter(e.target.value)}
@@ -121,6 +125,22 @@ export default function CoordinatorChat() {
                 <option key={cat} value={cat}>{cat}</option>
               ))}
             </select>
+            <Select value={labelFilter} onValueChange={setLabelFilter}>
+              <SelectTrigger className="w-full">
+                <Filter className="w-4 h-4 mr-2" />
+                <SelectValue placeholder="Filtrar etiqueta" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todas las etiquetas</SelectItem>
+                <SelectItem value="Horarios">Horarios</SelectItem>
+                <SelectItem value="Quejas">Quejas</SelectItem>
+                <SelectItem value="Consulta Partido">Consulta Partido</SelectItem>
+                <SelectItem value="Equipación">Equipación</SelectItem>
+                <SelectItem value="Transporte">Transporte</SelectItem>
+                <SelectItem value="Lesiones">Lesiones</SelectItem>
+                <SelectItem value="Otro">Otro</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
           <TabsContent value="active" className="flex-1 overflow-y-auto px-2">
@@ -141,7 +161,11 @@ export default function CoordinatorChat() {
                   <CardContent className="p-3">
                     <div className="flex items-start justify-between mb-1">
                       <div className="flex-1">
-                        <p className="font-bold text-sm text-slate-900">{conv.padre_nombre}</p>
+                        <div className="flex items-center gap-2">
+                          <p className="font-bold text-sm text-slate-900">{conv.padre_nombre}</p>
+                          {conv.prioritaria && <Star className="w-3 h-3 text-orange-500 fill-orange-500" />}
+                          {conv.etiqueta && <Badge variant="outline" className="text-xs">{conv.etiqueta}</Badge>}
+                        </div>
                         <p className="text-xs text-slate-500">
                           {conv.jugadores_asociados?.map(j => `${j.jugador_nombre} (${j.categoria})`).join(', ')}
                         </p>
