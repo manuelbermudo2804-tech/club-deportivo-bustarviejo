@@ -12,6 +12,7 @@ import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { toast } from "sonner";
 import ChatInputActions from "../components/chat/ChatInputActions";
+import SocialLinks from "../components/SocialLinks";
 
 export default function ParentCoachChat() {
   const [user, setUser] = useState(null);
@@ -239,7 +240,10 @@ export default function ParentCoachChat() {
   const categories = [...new Set(myPlayers.map(p => p.deporte))];
 
   return (
-    <div className="h-[calc(100vh-100px)] lg:p-4 lg:max-w-5xl lg:mx-auto lg:h-[calc(100vh-110px)]">
+    <div className="h-[calc(100vh-100px)] lg:p-4 lg:max-w-5xl lg:mx-auto lg:h-[calc(100vh-110px)] space-y-2">
+      <div className="hidden lg:block">
+        <SocialLinks />
+      </div>
       <Card className="border-blue-200 shadow-lg h-full flex flex-col overflow-hidden lg:rounded-lg rounded-none">
         <CardHeader className="bg-gradient-to-r from-blue-600 to-blue-700 text-white flex-shrink-0 p-2 sm:p-6">
           <div className="flex items-center justify-between">
@@ -314,6 +318,9 @@ export default function ParentCoachChat() {
                         month: 'long'
                       });
 
+                      const isMine = msg.remitente_email === user.email;
+                      const isCoach = msg.tipo === "entrenador_a_grupo";
+
                       return (
                         <React.Fragment key={msg.id}>
                           {showDateSeparator && (
@@ -323,64 +330,62 @@ export default function ParentCoachChat() {
                               </div>
                             </div>
                           )}
-                      const isMine = msg.remitente_email === user.email;
-                      const isCoach = msg.tipo === "entrenador_a_grupo";
-                      
-                      <div className={`flex ${isMine ? 'justify-end' : 'justify-start'}`}>
-                        <div className={`max-w-[75%] sm:max-w-[70%] ${
-                          isMine ? 'bg-slate-700 text-white' : 
-                          isCoach ? 'bg-green-600 text-white' : 
-                          'bg-white text-slate-900 border'
-                        } rounded-2xl p-2 sm:p-3 shadow-sm`}>
-                            <div className="flex items-center gap-1 sm:gap-2 mb-1">
-                              <p className="text-[10px] sm:text-xs font-semibold opacity-70">
-                                {isCoach ? '🏃 ' : ''}{msg.remitente_nombre}
-                              </p>
-                              {isCoach && <Badge className="text-[10px] sm:text-xs bg-green-500 px-1 py-0">Entrenador</Badge>}
-                            </div>
-                            <p className="text-xs sm:text-sm whitespace-pre-wrap">{msg.mensaje}</p>
-
-                            {msg.archivos_adjuntos?.length > 0 && (
-                              <div className="mt-2 space-y-1">
-                                {msg.archivos_adjuntos.map((file, idx) => (
-                                  file.tipo?.startsWith('audio/') ? (
-                                    <audio key={idx} controls className="max-w-full">
-                                      <source src={file.url} type={file.tipo} />
-                                    </audio>
-                                  ) : file.tipo?.startsWith('image/') ? (
-                                    <img 
-                                      key={idx}
-                                      src={file.url}
-                                      alt={file.nombre}
-                                      className="rounded max-w-full h-auto"
-                                    />
-                                  ) : (
-                                    <a
-                                      key={idx}
-                                      href={file.url}
-                                      target="_blank"
-                                      rel="noopener noreferrer"
-                                      className={`flex items-center gap-2 text-xs p-2 rounded ${
-                                        isMine || isCoach ? 'bg-black/20' : 'bg-slate-100'
-                                      }`}
-                                    >
-                                      <FileText className="w-3 h-3" />
-                                      <span className="flex-1 truncate">{file.nombre}</span>
-                                      <Download className="w-3 h-3" />
-                                    </a>
-                                  )
-                                ))}
+                          
+                          <div className={`flex ${isMine ? 'justify-end' : 'justify-start'}`}>
+                            <div className={`max-w-[75%] sm:max-w-[70%] ${
+                              isMine ? 'bg-slate-700 text-white' : 
+                              isCoach ? 'bg-green-600 text-white' : 
+                              'bg-white text-slate-900 border'
+                            } rounded-2xl p-2 sm:p-3 shadow-sm`}>
+                              <div className="flex items-center gap-1 sm:gap-2 mb-1">
+                                <p className="text-[10px] sm:text-xs font-semibold opacity-70">
+                                  {isCoach ? '🏃 ' : ''}{msg.remitente_nombre}
+                                </p>
+                                {isCoach && <Badge className="text-[10px] sm:text-xs bg-green-500 px-1 py-0">Entrenador</Badge>}
                               </div>
-                            )}
-                            
-                            <p className="text-[10px] sm:text-xs opacity-60 mt-1">
-                              {format(new Date(msg.created_date), "HH:mm", { locale: es })}
-                            </p>
+                              <p className="text-xs sm:text-sm whitespace-pre-wrap">{msg.mensaje}</p>
+
+                              {msg.archivos_adjuntos?.length > 0 && (
+                                <div className="mt-2 space-y-1">
+                                  {msg.archivos_adjuntos.map((file, idx) => (
+                                    file.tipo?.startsWith('audio/') ? (
+                                      <audio key={idx} controls className="max-w-full">
+                                        <source src={file.url} type={file.tipo} />
+                                      </audio>
+                                    ) : file.tipo?.startsWith('image/') ? (
+                                      <img 
+                                        key={idx}
+                                        src={file.url}
+                                        alt={file.nombre}
+                                        className="rounded max-w-full h-auto"
+                                      />
+                                    ) : (
+                                      <a
+                                        key={idx}
+                                        href={file.url}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className={`flex items-center gap-2 text-xs p-2 rounded ${
+                                          isMine || isCoach ? 'bg-black/20' : 'bg-slate-100'
+                                        }`}
+                                      >
+                                        <FileText className="w-3 h-3" />
+                                        <span className="flex-1 truncate">{file.nombre}</span>
+                                        <Download className="w-3 h-3" />
+                                      </a>
+                                    )
+                                  ))}
+                                </div>
+                              )}
+                              
+                              <p className="text-[10px] sm:text-xs opacity-60 mt-1">
+                                {format(new Date(msg.created_date), "HH:mm", { locale: es })}
+                              </p>
                             </div>
-                            </div>
-                            </React.Fragment>
-                            );
-                            })
+                          </div>
+                        </React.Fragment>
+                      );
+                    })
                             )}
                             <div ref={messagesEndRef} />
                             </div>
