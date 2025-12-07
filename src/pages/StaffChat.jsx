@@ -439,8 +439,8 @@ export default function StaffChat() {
                 className="text-white hover:bg-white/20 text-xs sm:text-sm"
               >
                 <Users className="w-3 h-3 sm:w-4 sm:h-4 sm:mr-2" />
-                <span className="hidden sm:inline">{staffUsers.length} miembros</span>
-                <span className="sm:hidden">{staffUsers.length}</span>
+                <span className="hidden sm:inline">{staffUsers?.length || 0} miembros</span>
+                <span className="sm:hidden">{staffUsers?.length || 0}</span>
               </Button>
             </div>
           </div>
@@ -836,7 +836,10 @@ export default function StaffChat() {
             <DialogTitle>👥 Miembros del Staff</DialogTitle>
           </DialogHeader>
           <div className="space-y-2 max-h-[400px] overflow-y-auto">
-            {staffUsers.map((staffUser, idx) => (
+            {staffUsers.length === 0 ? (
+              <p className="text-center text-slate-500 py-4">Cargando participantes...</p>
+            ) : (
+              staffUsers.map((staffUser, idx) => (
               <div key={idx} className="bg-slate-50 rounded-lg p-3 border">
                 <div className="flex items-center gap-2">
                   {staffUser.es_coordinador && <span>🎓</span>}
@@ -853,7 +856,8 @@ export default function StaffChat() {
                   </div>
                 </div>
               </div>
-            ))}
+            ))
+            )}
           </div>
         </DialogContent>
       </Dialog>
