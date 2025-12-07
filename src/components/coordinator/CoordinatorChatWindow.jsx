@@ -375,12 +375,12 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
   }
 
   return (
-    <div className="flex flex-col h-full w-full">
+    <div className="flex flex-col h-full w-full overflow-hidden">
       <audio ref={audioRef} onEnded={() => setPlayingAudio(null)} />
       <audio ref={notificationSoundRef} src="data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSuBzvLZizUIGGS57OihUBILUKXh8raFHwU5jtX0z3k" />
 
       {/* Header */}
-      <div className="p-4 bg-white border-b">
+      <div className="p-2 sm:p-4 bg-white border-b flex-shrink-0">
         <div className="flex items-center justify-between mb-3">
           <div className="flex-1">
             <div className="flex items-center gap-2">
@@ -488,15 +488,15 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
       )}
 
       {/* Mensajes */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-slate-50">
+      <div className="flex-1 overflow-y-auto p-2 sm:p-4 space-y-2 bg-slate-50">
         {filteredMessages.map((msg) => {
           const isMine = (isCoordinator && msg.autor === "coordinador") || (!isCoordinator && msg.autor === "padre");
           const isImage = msg.adjuntos?.some(f => f.tipo?.startsWith('image/'));
           
           return (
             <div key={msg.id} className={`flex ${isMine ? 'justify-end' : 'justify-start'} group`}>
-              <div className={`max-w-[70%] ${isMine ? 'bg-cyan-600 text-white' : 'bg-white text-slate-900'} rounded-2xl p-3 shadow-sm relative`}>
-                <p className="text-xs font-semibold mb-1 opacity-70">{msg.autor === "coordinador" ? "Coordinador" : msg.autor_nombre}</p>
+              <div className={`max-w-[75%] sm:max-w-[70%] ${isMine ? 'bg-cyan-600 text-white' : 'bg-white text-slate-900'} rounded-2xl p-2 sm:p-3 shadow-sm relative`}>
+                <p className="text-[10px] sm:text-xs font-semibold mb-1 opacity-70">{msg.autor === "coordinador" ? "Coordinador" : msg.autor_nombre}</p>
                 
                 {msg.audio_url ? (
                   <div className="flex items-center gap-2">
@@ -510,7 +510,7 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
                     <span className="text-sm">{msg.audio_duracion}s</span>
                   </div>
                 ) : (
-                  <p className="text-sm whitespace-pre-wrap">{msg.mensaje}</p>
+                  <p className="text-xs sm:text-sm whitespace-pre-wrap">{msg.mensaje}</p>
                 )}
 
                 {msg.adjuntos?.length > 0 && (
@@ -553,7 +553,7 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
                 )}
 
                 <div className="flex items-center justify-between mt-1">
-                  <p className="text-xs opacity-60">
+                  <p className="text-[10px] sm:text-xs opacity-60">
                     {format(new Date(msg.created_date), "HH:mm", { locale: es })}
                   </p>
                   
@@ -619,7 +619,7 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
       </div>
 
       {/* Input */}
-      <div className="p-3 bg-white border-t">
+      <div className="p-2 sm:p-3 bg-white border-t flex-shrink-0">
         {attachments.length > 0 && (
           <div className="mb-2 flex flex-wrap gap-1">
             {attachments.map((file, idx) => (
@@ -674,8 +674,8 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
           </div>
         )}
 
-        <div className="flex items-end gap-2">
-          <div className="flex gap-1">
+        <div className="flex items-end gap-1 sm:gap-2">
+          <div className="flex flex-col gap-1">
             <input 
               ref={fileInputRef}
               type="file" 
@@ -690,10 +690,10 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
               variant="ghost" 
               size="icon" 
               disabled={uploading} 
-              className="h-10 w-10"
+              className="h-9 w-9 sm:h-10 sm:w-10"
               onClick={() => fileInputRef.current?.click()}
             >
-              <Paperclip className="w-5 h-5 text-slate-500" />
+              <Paperclip className="w-4 h-4 sm:w-5 sm:h-5 text-slate-500" />
             </Button>
             
             <input 
@@ -710,15 +710,15 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
               variant="ghost" 
               size="icon" 
               disabled={uploading} 
-              className="h-10 w-10"
+              className="h-9 w-9 sm:h-10 sm:w-10"
               onClick={() => cameraInputRef.current?.click()}
             >
-              <Camera className="w-5 h-5 text-slate-500" />
+              <Camera className="w-4 h-4 sm:w-5 sm:h-5 text-slate-500" />
             </Button>
           </div>
 
           <Textarea
-            placeholder="Mensaje..."
+            placeholder="Escribe..."
             value={messageText}
             onChange={(e) => {
               setMessageText(e.target.value);
@@ -730,72 +730,19 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
                 handleSend();
               }
             }}
-            className="flex-1 min-h-[44px] max-h-[120px] resize-none"
+            className="flex-1 min-h-[36px] sm:min-h-[44px] resize-none text-sm"
             rows={1}
             disabled={recording || audioBlob}
           />
 
-          <div className="flex gap-1">
-            {!recording && !audioBlob && !messageText.trim() && (
-              <>
-                <Button 
-                  type="button" 
-                  variant="ghost" 
-                  size="icon"
-                  onClick={startRecording}
-                  className="h-10 w-10"
-                >
-                  <Mic className="w-5 h-5 text-slate-500" />
-                </Button>
-                
-                {isCoordinator && (
-                  <Button 
-                    type="button" 
-                    variant="ghost" 
-                    size="icon"
-                    onClick={() => setShowPollDialog(true)}
-                    className="h-10 w-10"
-                  >
-                    <BarChart3 className="w-5 h-5 text-slate-500" />
-                  </Button>
-                )}
-              </>
-            )}
-
-            {recording && (
-              <Button 
-                type="button" 
-                variant="ghost" 
-                size="icon"
-                onClick={stopRecording}
-                className="h-10 w-10 animate-pulse bg-red-50"
-              >
-                <Pause className="w-5 h-5 text-red-600" />
-              </Button>
-            )}
-
-            {(messageText.trim() || attachments.length > 0) && !recording && !audioBlob && (
-              <Button 
-                onClick={handleSend} 
-                size="icon"
-                className="h-10 w-10 bg-cyan-600 hover:bg-cyan-700"
-              >
-                <Send className="w-5 h-5" />
-              </Button>
-            )}
-
-            {isCoordinator && messageText.trim() && !recording && !audioBlob && (
-              <Button 
-                type="button" 
-                variant="ghost" 
-                size="icon"
-                onClick={() => setShowQuickReplies(!showQuickReplies)}
-                className="h-10 w-10"
-              >
-                <MessageCircle className="w-5 h-5 text-slate-500" />
-              </Button>
-            )}
-          </div>
+          <Button 
+            onClick={handleSend} 
+            disabled={!messageText.trim() && attachments.length === 0 && !audioBlob}
+            size="icon"
+            className="h-9 w-9 sm:h-10 sm:w-10 bg-cyan-600 hover:bg-cyan-700 p-0"
+          >
+            <Send className="w-4 h-4 sm:w-5 sm:h-5" />
+          </Button>
         </div>
       </div>
 
