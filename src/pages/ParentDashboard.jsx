@@ -701,27 +701,27 @@ export default function ParentDashboard() {
               </div>
               
               <div className="grid grid-cols-2 gap-2">
-                <Link to={createPageUrl("ParentCoordinatorChat")} className="relative">
-                  <div className="bg-gradient-to-br from-cyan-600 to-cyan-700 rounded-xl p-3 text-white hover:scale-105 transition-all shadow-lg">
+                <Link to={createPageUrl("ParentCoordinatorChat")} className="relative flex-1">
+                  <div className="bg-gradient-to-br from-cyan-600 to-cyan-700 rounded-xl p-3 text-white hover:scale-105 transition-all shadow-lg h-full flex flex-col justify-center">
                     {unreadCoordinatorMessages > 0 && (
                       <div className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 rounded-full flex items-center justify-center border-2 border-white animate-pulse">
                         <span className="text-white text-xs font-bold">{unreadCoordinatorMessages}</span>
                       </div>
                     )}
                     <p className="text-sm font-bold mb-1">🏟️ Coordinador</p>
-                    <p className="text-xs text-cyan-100">Consultas deportivas, quejas y problemas</p>
+                    <p className="text-xs text-cyan-100 leading-tight">Consultas deportivas, quejas y problemas</p>
                   </div>
                 </Link>
                 
-                <Link to={createPageUrl("ParentCoachChat")} className="relative">
-                  <div className="bg-gradient-to-br from-blue-600 to-blue-700 rounded-xl p-3 text-white hover:scale-105 transition-all shadow-lg">
+                <Link to={createPageUrl("ParentCoachChat")} className="relative flex-1">
+                  <div className="bg-gradient-to-br from-blue-600 to-blue-700 rounded-xl p-3 text-white hover:scale-105 transition-all shadow-lg h-full flex flex-col justify-center">
                     {unreadCoachMessages > 0 && (
                       <div className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 rounded-full flex items-center justify-center border-2 border-white animate-pulse">
                         <span className="text-white text-xs font-bold">{unreadCoachMessages}</span>
                       </div>
                     )}
                     <p className="text-sm font-bold mb-1">⚽ Entrenador</p>
-                    <p className="text-xs text-blue-100">Chat del equipo</p>
+                    <p className="text-xs text-blue-100 leading-tight">Chat del equipo</p>
                   </div>
                 </Link>
               </div>
