@@ -414,21 +414,23 @@ export default function CoachParentChat() {
                       </p>
                     </div>
                   ) : (
-                    filteredMessages.filter(m => !m.anclado).map((msg, idx) => {
-                      const isMine = msg.remitente_email === user.email;
-                      const isCoachMsg = msg.tipo === "entrenador_a_grupo";
-                      
-                      // Separador de fecha
-                      const showDateSeparator = idx === 0 || 
-                        new Date(filteredMessages.filter(m => !m.anclado)[idx - 1]?.created_date || 0).toDateString() !== 
-                        new Date(msg.created_date).toDateString();
-                      const dateLabel = new Date(msg.created_date).toLocaleDateString('es-ES', {
-                        weekday: 'long',
-                        day: 'numeric',
-                        month: 'long'
-                      });
-                      
-                      return (
+                    (() => {
+                      const nonPinnedMessages = filteredMessages.filter(m => !m.anclado);
+                      return nonPinnedMessages.map((msg, idx) => {
+                        const isMine = msg.remitente_email === user?.email;
+                        const isCoachMsg = msg.tipo === "entrenador_a_grupo";
+
+                        // Separador de fecha
+                        const showDateSeparator = idx === 0 || 
+                          new Date(nonPinnedMessages[idx - 1]?.created_date || 0).toDateString() !== 
+                          new Date(msg.created_date).toDateString();
+                        const dateLabel = new Date(msg.created_date).toLocaleDateString('es-ES', {
+                          weekday: 'long',
+                          day: 'numeric',
+                          month: 'long'
+                        });
+
+                        return (
                         <React.Fragment key={msg.id}>
                           {showDateSeparator && (
                             <div className="flex justify-center my-4">
@@ -536,8 +538,9 @@ export default function CoachParentChat() {
                           </div>
                         </div>
                         </React.Fragment>
-                      );
-                    })
+                        );
+                      });
+                    })()
                   )}
                   <div ref={messagesEndRef} />
                 </div>
