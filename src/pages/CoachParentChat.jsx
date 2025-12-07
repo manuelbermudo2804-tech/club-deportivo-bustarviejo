@@ -7,10 +7,20 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Send, Paperclip, X, FileText, Download, MessageCircle, Camera, Users } from "lucide-react";
+import { Send, Paperclip, X, FileText, Download, MessageCircle, Camera, Users, Mic, Square, Search, Pin, Smile, Image as ImageIcon, Folder } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { toast } from "sonner";
+
+const QUICK_REPLIES = [
+  "✅ Perfecto, gracias",
+  "👀 Revisado",
+  "📝 Lo consulto y te confirmo",
+  "👍 Confirmado",
+  "🙏 Gracias por avisar"
+];
+
+const REACTIONS = ["👍", "❤️", "😊", "👏", "⚽"];
 
 export default function CoachParentChat() {
   const [user, setUser] = useState(null);
@@ -20,9 +30,17 @@ export default function CoachParentChat() {
   const [uploading, setUploading] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [showParticipants, setShowParticipants] = useState(false);
+  const [isRecording, setIsRecording] = useState(false);
+  const [audioBlob, setAudioBlob] = useState(null);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [showSearch, setShowSearch] = useState(false);
+  const [showQuickReplies, setShowQuickReplies] = useState(false);
+  const [showGallery, setShowGallery] = useState(false);
   const messagesEndRef = useRef(null);
   const fileInputRef = useRef(null);
   const cameraInputRef = useRef(null);
+  const mediaRecorderRef = useRef(null);
+  const audioChunksRef = useRef([]);
   const queryClient = useQueryClient();
 
   useEffect(() => {
@@ -50,7 +68,7 @@ export default function CoachParentChat() {
     queryFn: async () => {
       if (!selectedCategory) return [];
       
-      if (selectedCategory === "Todas") {
+      if (selectedCategory === "Todas las categorías") {
         return await base44.entities.ChatMessage.list('-created_date');
       }
       
@@ -60,6 +78,49 @@ export default function CoachParentChat() {
     refetchInterval: 3000,
     enabled: !!selectedCategory,
   });
+
+  // Filtrar mensajes
+  const filteredMessages = searchTerm 
+    ? messages.filter(m => m.mensaje?.toLowerCase().includes(searchTerm.toLowerCase()))
+    : messages;
+
+  // Anclar mensaje
+  const togglePinMutation = useMutation({
+    mutationFn: async (messageId) => {
+      const msg = messages.find(m => m.id === messageId);
+      await base44.entities.ChatMessage.update(messageId, {
+        anclado: !msg.anclado,
+        anclado_por: user.email,
+        anclado_fecha: new Date().toISOString()
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['coachGroupMessages'] });
+      toast.success("Mensaje anclado");
+    },
+  });
+
+  // Reacción a mensaje
+  const addReactionMutation = useMutation({
+    mutationFn: async ({ messageId, reaction }) => {
+      const msg = messages.find(m => m.id === messageId);
+      const reactions = msg.reacciones || [];
+      const existingIdx = reactions.findIndex(r => r.usuario_email === user.email);
+      
+      if (existingIdx >= 0) {
+        reactions[existingIdx] = { usuario_email: user.email, usuario_nombre: user.full_name, reaccion: reaction };
+      } else {
+        reactions.push({ usuario_email: user.email, usuario_nombre: user.full_name, reaccion: reaction });
+      }
+      
+      await base44.entities.ChatMessage.update(messageId, { reacciones: reactions });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['coachGroupMessages'] });
+    },
+  });
+
+  const allSharedFiles = messages.flatMap(m => m.archivos_adjuntos || []);
 
   const { data: allPlayers = [] } = useQuery({
     queryKey: ['players'],
@@ -117,6 +178,65 @@ export default function CoachParentChat() {
     }
   };
 
+  // Grabar audio
+  const startRecording = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const mediaRecorder = new MediaRecorder(stream);
+      mediaRecorderRef.current = mediaRecorder;
+      audioChunksRef.current = [];
+
+      mediaRecorder.ondataavailable = (e) => {
+        if (e.data.size > 0) audioChunksRef.current.push(e.data);
+      };
+
+      mediaRecorder.onstop = () => {
+        const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+        setAudioBlob(audioBlob);
+        stream.getTracks().forEach(track => track.stop());
+      };
+
+      mediaRecorder.start();
+      setIsRecording(true);
+      toast.success("🎤 Grabando...");
+    } catch (error) {
+      toast.error("No se pudo acceder al micrófono");
+    }
+  };
+
+  const stopRecording = () => {
+    if (mediaRecorderRef.current && isRecording) {
+      mediaRecorderRef.current.stop();
+      setIsRecording(false);
+    }
+  };
+
+  const sendAudioMessage = async () => {
+    if (!audioBlob) return;
+    
+    setUploading(true);
+    try {
+      const audioFile = new File([audioBlob], `audio_${Date.now()}.webm`, { type: 'audio/webm' });
+      const { file_url } = await base44.integrations.Core.UploadFile({ file: audioFile });
+      
+      sendMessageMutation.mutate({
+        mensaje: "🎤 Nota de voz",
+        adjuntos: [{
+          url: file_url,
+          nombre: `audio_${Date.now()}.webm`,
+          tipo: 'audio/webm',
+          tamano: audioBlob.size
+        }]
+      });
+      
+      setAudioBlob(null);
+    } catch (error) {
+      toast.error("Error al enviar audio");
+    } finally {
+      setUploading(false);
+    }
+  };
+
   const sendMessageMutation = useMutation({
     mutationFn: async (data) => {
       const grupo_id = selectedCategory.toLowerCase().replace(/\s+/g, '_');
@@ -169,33 +289,100 @@ export default function CoachParentChat() {
   return (
     <div className="h-[calc(100vh-100px)] lg:p-4 lg:max-w-6xl lg:mx-auto lg:h-[calc(100vh-110px)]">
       <Card className="border-blue-200 shadow-lg h-full flex flex-col overflow-hidden lg:rounded-lg rounded-none">
-        <CardHeader className="bg-gradient-to-r from-blue-600 to-blue-700 text-white p-2 sm:p-6 flex-shrink-0">
+        <CardHeader className="bg-gradient-to-r from-green-600 to-green-700 text-white p-2 sm:p-6 flex-shrink-0">
           <div className="flex items-center justify-between">
             <div>
               <CardTitle className="flex items-center gap-2 text-sm sm:text-xl">
                 <MessageCircle className="w-4 h-4 sm:w-6 sm:h-6" />
                 Chat con Familias
               </CardTitle>
-              <p className="text-xs sm:text-sm text-blue-100 hidden sm:block">Comunicación con los padres de tu categoría</p>
+              <p className="text-xs sm:text-sm text-green-100 hidden sm:block">Comunicación con los padres de tu categoría</p>
             </div>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setShowParticipants(true)}
-              className="text-white hover:bg-white/20 text-xs sm:text-sm"
-            >
-              <Users className="w-3 h-3 sm:w-4 sm:h-4 sm:mr-2" />
-              <span className="hidden sm:inline">{parentEmails.length} familias</span>
-              <span className="sm:hidden">{parentEmails.length}</span>
-            </Button>
+            <div className="flex gap-1">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowSearch(!showSearch)}
+                className="text-white hover:bg-white/20"
+              >
+                <Search className="w-4 h-4" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowGallery(!showGallery)}
+                className="text-white hover:bg-white/20"
+              >
+                <Folder className="w-4 h-4" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowParticipants(true)}
+                className="text-white hover:bg-white/20 text-xs sm:text-sm"
+              >
+                <Users className="w-3 h-3 sm:w-4 sm:h-4 sm:mr-2" />
+                <span className="hidden sm:inline">{parentEmails.length} familias</span>
+                <span className="sm:hidden">{parentEmails.length}</span>
+              </Button>
+            </div>
           </div>
+          {showSearch && (
+            <div className="mt-2">
+              <input
+                type="text"
+                placeholder="Buscar mensajes..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full px-3 py-2 rounded-lg text-slate-900 text-sm"
+              />
+            </div>
+          )}
         </CardHeader>
         <CardContent className="p-0 flex-1 flex flex-col overflow-hidden min-h-0">
+          {showGallery && (
+            <div className="p-4 bg-white border-b max-h-[200px] overflow-y-auto flex-shrink-0">
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="font-semibold text-slate-900">📁 Archivos Compartidos ({allSharedFiles.length})</h3>
+                <Button size="sm" variant="ghost" onClick={() => setShowGallery(false)}>
+                  <X className="w-4 h-4" />
+                </Button>
+              </div>
+              {allSharedFiles.length === 0 ? (
+                <p className="text-sm text-slate-500 text-center py-4">No hay archivos compartidos</p>
+              ) : (
+                <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
+                  {allSharedFiles.map((file, idx) => (
+                    file.tipo?.startsWith('image/') ? (
+                      <img 
+                        key={idx}
+                        src={file.url}
+                        alt={file.nombre}
+                        className="w-full h-20 object-cover rounded cursor-pointer hover:opacity-80"
+                      />
+                    ) : (
+                      <a
+                        key={idx}
+                        href={file.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex flex-col items-center gap-1 p-2 bg-slate-100 rounded hover:bg-slate-200"
+                      >
+                        <FileText className="w-6 h-6 text-slate-600" />
+                        <span className="text-xs truncate w-full text-center">{file.nombre}</span>
+                      </a>
+                    )
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+          
           <Tabs value={selectedCategory} onValueChange={setSelectedCategory} className="h-full flex flex-col overflow-hidden">
             <TabsList className="w-full justify-start overflow-x-auto p-0.5 sm:p-2 bg-slate-50 flex-shrink-0 border-b">
               {categories.map(cat => (
                 <TabsTrigger key={cat} value={cat} className="whitespace-nowrap text-[11px] sm:text-sm px-2 py-1 sm:px-4 sm:py-2">
-                  {cat}
+                  {cat.replace('Fútbol ', '').replace(' (Mixto)', '')}
                 </TabsTrigger>
               ))}
             </TabsList>
@@ -203,35 +390,86 @@ export default function CoachParentChat() {
             {categories.map(cat => (
               <TabsContent key={cat} value={cat} className="flex-1 p-0 m-0 flex flex-col overflow-hidden min-h-0 data-[state=active]:flex" style={{ display: selectedCategory === cat ? 'flex' : 'none' }}>
                 <div className="flex-1 overflow-y-auto p-2 sm:p-4 space-y-2 bg-slate-50">
-                  {messages.length === 0 ? (
+                  {/* Mensajes anclados */}
+                  {filteredMessages.filter(m => m.anclado).map(msg => (
+                    <div key={`pinned-${msg.id}`} className="bg-yellow-50 border-2 border-yellow-300 rounded-lg p-3 mb-2">
+                      <div className="flex items-start gap-2">
+                        <Pin className="w-4 h-4 text-yellow-600 mt-1 flex-shrink-0" />
+                        <div className="flex-1">
+                          <p className="text-xs font-semibold text-yellow-900 mb-1">{msg.remitente_nombre}</p>
+                          <p className="text-sm text-slate-900">{msg.mensaje}</p>
+                        </div>
+                        <Button size="sm" variant="ghost" onClick={() => togglePinMutation.mutate(msg.id)}>
+                          <X className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                  
+                  {filteredMessages.length === 0 ? (
                     <div className="text-center py-8">
                       <MessageCircle className="w-10 h-10 text-slate-300 mx-auto mb-2" />
-                      <p className="text-slate-500 text-xs sm:text-sm">Aún no hay mensajes</p>
+                      <p className="text-slate-500 text-xs sm:text-sm">
+                        {searchTerm ? "No se encontraron mensajes" : "Aún no hay mensajes"}
+                      </p>
                     </div>
                   ) : (
-                    messages.map((msg) => {
+                    filteredMessages.filter(m => !m.anclado).map((msg, idx) => {
                       const isMine = msg.remitente_email === user.email;
-                      const isCoach = msg.tipo === "entrenador_a_grupo";
+                      const isCoachMsg = msg.tipo === "entrenador_a_grupo";
+                      
+                      // Separador de fecha
+                      const showDateSeparator = idx === 0 || 
+                        new Date(filteredMessages.filter(m => !m.anclado)[idx - 1]?.created_date || 0).toDateString() !== 
+                        new Date(msg.created_date).toDateString();
+                      const dateLabel = new Date(msg.created_date).toLocaleDateString('es-ES', {
+                        weekday: 'long',
+                        day: 'numeric',
+                        month: 'long'
+                      });
                       
                       return (
-                        <div key={msg.id} className={`flex ${isMine ? 'justify-end' : 'justify-start'}`}>
-                          <div className={`max-w-[75%] sm:max-w-[70%] ${
-                            isMine ? 'bg-blue-600 text-white' : 
-                            isCoach ? 'bg-green-600 text-white' : 
-                            'bg-white text-slate-900 border'
-                          } rounded-2xl p-2 sm:p-3 shadow-sm`}>
-                            <div className="flex items-center gap-1 sm:gap-2 mb-1">
-                              <p className="text-[10px] sm:text-xs font-semibold opacity-70">
-                                {isCoach && !isMine ? '🏃 ' : ''}{msg.remitente_nombre}
-                              </p>
-                              {isCoach && <Badge className="text-[10px] sm:text-xs bg-green-500 px-1 py-0">Entrenador</Badge>}
+                        <React.Fragment key={msg.id}>
+                          {showDateSeparator && (
+                            <div className="flex justify-center my-4">
+                              <div className="bg-white px-4 py-1 rounded-full text-xs text-slate-600 shadow-sm">
+                                {dateLabel}
+                              </div>
+                            </div>
+                          )}
+                          
+                          <div className={`flex ${isMine ? 'justify-end' : 'justify-start'} group`}>
+                            <div className={`max-w-[75%] sm:max-w-[70%] ${
+                              isMine ? 'bg-green-600 text-white' : 
+                              isCoachMsg ? 'bg-green-600 text-white' : 
+                              'bg-slate-200 text-slate-900'
+                            } rounded-2xl p-2 sm:p-3 shadow-sm relative`}>
+                            <div className="flex items-center gap-1 sm:gap-2 mb-1 justify-between">
+                              <div className="flex items-center gap-1">
+                                <p className="text-[10px] sm:text-xs font-semibold opacity-70">
+                                  {isCoachMsg && !isMine ? '🏃 ' : ''}{msg.remitente_nombre}
+                                </p>
+                                {isCoachMsg && <Badge className="text-[10px] sm:text-xs bg-green-500 px-1 py-0">Entrenador</Badge>}
+                              </div>
+                              {isMine && (
+                                <button 
+                                  onClick={() => togglePinMutation.mutate(msg.id)}
+                                  className="opacity-0 group-hover:opacity-100 transition-opacity"
+                                >
+                                  <Pin className={`w-3 h-3 ${msg.anclado ? 'text-yellow-400' : 'text-white/60'}`} />
+                                </button>
+                              )}
                             </div>
                             <p className="text-xs sm:text-sm whitespace-pre-wrap">{msg.mensaje}</p>
                             
                             {msg.archivos_adjuntos?.length > 0 && (
                               <div className="mt-2 space-y-1">
                                 {msg.archivos_adjuntos.map((file, idx) => (
-                                  file.tipo?.startsWith('image/') ? (
+                                  file.tipo?.startsWith('audio/') ? (
+                                    <audio key={idx} controls className="max-w-full">
+                                      <source src={file.url} type={file.tipo} />
+                                    </audio>
+                                  ) : file.tipo?.startsWith('image/') ? (
                                     <img 
                                       key={idx}
                                       src={file.url}
@@ -255,11 +493,49 @@ export default function CoachParentChat() {
                               </div>
                             )}
                             
-                            <p className="text-[10px] sm:text-xs opacity-60 mt-1">
-                              {format(new Date(msg.created_date), "HH:mm", { locale: es })}
-                            </p>
+                            {/* Reacciones */}
+                            {msg.reacciones?.length > 0 && (
+                              <div className="flex gap-1 mt-2">
+                                {REACTIONS.map(emoji => {
+                                  const count = msg.reacciones.filter(r => r.reaccion === emoji).length;
+                                  if (count === 0) return null;
+                                  const hasMyReaction = msg.reacciones.some(r => r.reaccion === emoji && r.usuario_email === user.email);
+                                  return (
+                                    <button
+                                      key={emoji}
+                                      onClick={() => addReactionMutation.mutate({ messageId: msg.id, reaction: emoji })}
+                                      className={`text-xs px-2 py-0.5 rounded-full ${
+                                        hasMyReaction ? 'bg-white/30' : 'bg-black/10'
+                                      }`}
+                                    >
+                                      {emoji} {count}
+                                    </button>
+                                  );
+                                })}
+                              </div>
+                            )}
+                            
+                            <div className="flex items-center justify-between mt-1">
+                              <p className="text-[10px] sm:text-xs opacity-60">
+                                {format(new Date(msg.created_date), "HH:mm", { locale: es })}
+                              </p>
+                              {!isMine && (
+                                <div className="flex gap-1">
+                                  {REACTIONS.map(emoji => (
+                                    <button
+                                      key={emoji}
+                                      onClick={() => addReactionMutation.mutate({ messageId: msg.id, reaction: emoji })}
+                                      className="opacity-0 group-hover:opacity-100 text-sm hover:scale-125 transition-all"
+                                    >
+                                      {emoji}
+                                    </button>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
                           </div>
                         </div>
+                        </React.Fragment>
                       );
                     })
                   )}
@@ -267,6 +543,35 @@ export default function CoachParentChat() {
                 </div>
 
                 <div className="p-2 sm:p-4 bg-white border-t flex-shrink-0">
+                  {showQuickReplies && (
+                    <div className="mb-2 flex flex-wrap gap-2 p-2 bg-slate-50 rounded-lg">
+                      {QUICK_REPLIES.map((reply, idx) => (
+                        <button
+                          key={idx}
+                          onClick={() => {
+                            setMessageText(reply);
+                            setShowQuickReplies(false);
+                          }}
+                          className="text-xs px-3 py-1.5 bg-white border rounded-lg hover:bg-slate-100"
+                        >
+                          {reply}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                  
+                  {audioBlob && (
+                    <div className="mb-2 bg-green-50 rounded-lg p-2 flex items-center gap-2">
+                      <audio controls src={URL.createObjectURL(audioBlob)} className="flex-1" />
+                      <Button size="sm" onClick={sendAudioMessage} disabled={uploading} className="bg-green-600">
+                        <Send className="w-4 h-4" />
+                      </Button>
+                      <Button size="sm" variant="outline" onClick={() => setAudioBlob(null)}>
+                        <X className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  )}
+                  
                   {attachments.length > 0 && (
                     <div className="mb-2 flex flex-wrap gap-1 sm:gap-2">
                       {attachments.map((file, idx) => (
@@ -336,6 +641,31 @@ export default function CoachParentChat() {
                       >
                         <Camera className="w-4 h-4 sm:w-5 sm:h-5" />
                       </Button>
+                      
+                      <Button 
+                        type="button" 
+                        variant="outline" 
+                        size="icon" 
+                        disabled={uploading || isRecording} 
+                        className="h-9 w-9 sm:h-10 sm:w-10"
+                        onClick={isRecording ? stopRecording : startRecording}
+                      >
+                        {isRecording ? (
+                          <Square className="w-4 h-4 sm:w-5 sm:h-5 text-red-500 animate-pulse" />
+                        ) : (
+                          <Mic className="w-4 h-4 sm:w-5 sm:h-5" />
+                        )}
+                      </Button>
+                      
+                      <Button 
+                        type="button" 
+                        variant="outline" 
+                        size="icon" 
+                        onClick={() => setShowQuickReplies(!showQuickReplies)}
+                        className="h-9 w-9 sm:h-10 sm:w-10"
+                      >
+                        <Smile className="w-4 h-4 sm:w-5 sm:h-5" />
+                      </Button>
                     </div>
                     
                     <Textarea
@@ -355,7 +685,7 @@ export default function CoachParentChat() {
                     <Button 
                       onClick={handleSend} 
                       disabled={!messageText.trim() && attachments.length === 0} 
-                      className="bg-blue-600 hover:bg-blue-700 h-9 w-9 sm:h-10 sm:w-10 p-0"
+                      className="bg-green-600 hover:bg-green-700 h-9 w-9 sm:h-10 sm:w-10 p-0"
                     >
                       <Send className="w-4 h-4 sm:w-5 sm:h-5" />
                     </Button>
@@ -373,9 +703,9 @@ export default function CoachParentChat() {
             <DialogTitle>👥 Participantes del Grupo - {selectedCategory}</DialogTitle>
           </DialogHeader>
           <div className="space-y-3 max-h-[400px] overflow-y-auto">
-            <div className="bg-blue-50 rounded-lg p-3 border-2 border-blue-200">
-              <p className="text-sm font-bold text-blue-900">🏃 Entrenador</p>
-              <p className="text-xs text-blue-700 mt-1">{user?.full_name}</p>
+            <div className="bg-green-50 rounded-lg p-3 border-2 border-green-200">
+              <p className="text-sm font-bold text-green-900">🏃 Entrenador</p>
+              <p className="text-xs text-green-700 mt-1">{user?.full_name}</p>
             </div>
             
             <div>
