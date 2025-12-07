@@ -11,6 +11,7 @@ import { MessageCircle, Search, Archive, ArchiveRestore, Users, Filter, Star } f
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import CoordinatorChatWindow from "../components/coordinator/CoordinatorChatWindow";
+import SocialLinks from "../components/SocialLinks";
 
 export default function CoordinatorChat() {
   const [user, setUser] = useState(null);

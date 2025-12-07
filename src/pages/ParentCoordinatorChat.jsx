@@ -10,6 +10,7 @@ import { es } from "date-fns/locale";
 import { toast } from "sonner";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import ChatInputActions from "../components/chat/ChatInputActions";
+import SocialLinks from "../components/SocialLinks";
 
 export default function ParentCoordinatorChat() {
   const [user, setUser] = useState(null);
@@ -221,7 +222,10 @@ export default function ParentCoordinatorChat() {
   }
 
   return (
-    <div className="h-[calc(100vh-100px)] lg:p-4 lg:max-w-4xl lg:mx-auto lg:h-[calc(100vh-110px)]">
+    <div className="h-[calc(100vh-100px)] lg:p-4 lg:max-w-4xl lg:mx-auto lg:h-[calc(100vh-110px)] space-y-2">
+      <div className="hidden lg:block">
+        <SocialLinks />
+      </div>
       <Card className="border-cyan-200 shadow-lg h-full flex flex-col overflow-hidden lg:rounded-lg rounded-none">
         <CardHeader className="bg-gradient-to-r from-cyan-600 to-cyan-700 text-white p-2 sm:p-6">
           <div className="flex items-center justify-between">

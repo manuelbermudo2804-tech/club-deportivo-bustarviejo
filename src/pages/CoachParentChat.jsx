@@ -11,6 +11,7 @@ import { Send, Paperclip, X, FileText, Download, MessageCircle, Camera, Users, M
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { toast } from "sonner";
+import SocialLinks from "../components/SocialLinks";
 import ChatInputActions from "../components/chat/ChatInputActions";
 
 const QUICK_REPLIES = [
