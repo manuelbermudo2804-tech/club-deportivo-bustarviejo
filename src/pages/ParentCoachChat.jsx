@@ -7,11 +7,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Send, Paperclip, X, FileText, Download, MessageCircle, Camera, Users, CheckCircle, TrendingUp, HelpCircle, Calendar } from "lucide-react";
+import { Send, Paperclip, X, FileText, Download, MessageCircle, Camera, Users } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { toast } from "sonner";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 
 export default function ParentCoachChat() {
   const [user, setUser] = useState(null);
@@ -188,37 +187,7 @@ export default function ParentCoachChat() {
           </div>
         </CardHeader>
         <CardContent className="p-0 flex-1 flex flex-col overflow-hidden min-h-0">
-          <div className="m-2 sm:m-3 bg-gradient-to-r from-blue-50 to-blue-100 border-2 border-blue-300 rounded-xl p-3 sm:p-4 flex-shrink-0">
-            <div className="flex items-start gap-2 mb-2">
-              <MessageCircle className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
-              <div>
-                <h3 className="font-bold text-blue-900 text-sm sm:text-base">💬 Chat con tu Entrenador</h3>
-                <p className="text-xs text-blue-800 mt-1">El entrenador está para ayudarte con el día a día deportivo:</p>
-              </div>
-            </div>
-            <div className="space-y-1.5 text-xs text-blue-800 ml-7">
-              <div className="flex items-start gap-2">
-                <CheckCircle className="w-3.5 h-3.5 flex-shrink-0 mt-0.5 text-blue-600" />
-                <span>Asistencia a entrenamientos y partidos</span>
-              </div>
-              <div className="flex items-start gap-2">
-                <TrendingUp className="w-3.5 h-3.5 flex-shrink-0 mt-0.5 text-blue-600" />
-                <span>Rendimiento y evolución de tu hijo/a</span>
-              </div>
-              <div className="flex items-start gap-2">
-                <HelpCircle className="w-3.5 h-3.5 flex-shrink-0 mt-0.5 text-blue-600" />
-                <span>Dudas sobre ejercicios o metodología</span>
-              </div>
-              <div className="flex items-start gap-2">
-                <Calendar className="w-3.5 h-3.5 flex-shrink-0 mt-0.5 text-blue-600" />
-                <span>Convocatorias y preparación de partidos</span>
-              </div>
-            </div>
-            <p className="text-[10px] sm:text-xs text-blue-700 mt-3 ml-7 bg-blue-50 rounded-lg p-2 border border-blue-200">
-              <strong>📌 Nota:</strong> Para temas de horarios, quejas o asuntos deportivos generales → usa el Chat Coordinador
-            </p>
-          </div>
-          <Tabs value={selectedCategory} onValueChange={setSelectedCategory} className="flex-1 flex flex-col overflow-hidden">
+          <Tabs value={selectedCategory} onValueChange={setSelectedCategory} className="h-full flex flex-col overflow-hidden">
             <TabsList className="w-full justify-start overflow-x-auto p-0.5 sm:p-2 bg-slate-50 flex-shrink-0 border-b">
               {categories.map(cat => (
                 <TabsTrigger key={cat} value={cat} className="whitespace-nowrap text-[11px] sm:text-sm px-2 py-1 sm:px-4 sm:py-2">
