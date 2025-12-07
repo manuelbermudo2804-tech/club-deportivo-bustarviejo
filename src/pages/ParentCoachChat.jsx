@@ -17,6 +17,7 @@ import SocialLinks from "../components/SocialLinks";
 export default function ParentCoachChat() {
   const [user, setUser] = useState(null);
   const [myPlayers, setMyPlayers] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [messageText, setMessageText] = useState("");
   const [attachments, setAttachments] = useState([]);
   const [uploading, setUploading] = useState(false);
@@ -35,17 +36,24 @@ export default function ParentCoachChat() {
 
   useEffect(() => {
     const fetchUser = async () => {
-      const currentUser = await base44.auth.me();
-      setUser(currentUser);
+      try {
+        const currentUser = await base44.auth.me();
+        setUser(currentUser);
 
-      const allPlayers = await base44.entities.Player.list();
-      const players = allPlayers.filter(p => 
-        (p.email_padre === currentUser.email || p.email_tutor_2 === currentUser.email) && p.activo
-      );
-      setMyPlayers(players);
-      
-      if (players.length > 0 && !selectedCategory) {
-        setSelectedCategory(players[0].deporte);
+        const allPlayers = await base44.entities.Player.list();
+        const players = allPlayers.filter(p => 
+          (p.email_padre === currentUser.email || p.email_tutor_2 === currentUser.email) && p.activo
+        );
+        setMyPlayers(players);
+        
+        if (players.length > 0 && !selectedCategory) {
+          setSelectedCategory(players[0].deporte);
+        }
+      } catch (error) {
+        console.error("Error loading chat:", error);
+        toast.error("Error al cargar el chat");
+      } finally {
+        setLoading(false);
       }
     };
     fetchUser();
@@ -226,12 +234,24 @@ export default function ParentCoachChat() {
     sendMessageMutation.mutate({ mensaje: messageText, adjuntos: attachments });
   };
 
-  if (!user || myPlayers.length === 0) {
+  if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <MessageCircle className="w-12 h-12 text-slate-300 mx-auto mb-2" />
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-2"></div>
           <p className="text-slate-500 text-sm">Cargando chats...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!user || myPlayers.length === 0) {
+    return (
+      <div className="min-h-screen flex items-center justify-center p-4">
+        <div className="text-center max-w-md">
+          <MessageCircle className="w-12 h-12 text-slate-300 mx-auto mb-3" />
+          <p className="text-slate-600 font-semibold mb-2">No hay jugadores registrados</p>
+          <p className="text-slate-500 text-sm">Para acceder al chat del entrenador, primero debes tener jugadores activos registrados.</p>
         </div>
       </div>
     );
