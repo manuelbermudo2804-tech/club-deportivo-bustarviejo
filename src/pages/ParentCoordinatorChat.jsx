@@ -9,6 +9,7 @@ import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { toast } from "sonner";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import ChatInputActions from "../components/chat/ChatInputActions";
 
 export default function ParentCoordinatorChat() {
   const [user, setUser] = useState(null);
@@ -384,28 +385,30 @@ export default function ParentCoordinatorChat() {
               </div>
             )}
             <div className="flex gap-1 sm:gap-2 items-end">
-              <div className="flex flex-col gap-1">
-                <input 
-                  ref={fileInputRef}
-                  type="file" 
-                  multiple 
-                  accept=".pdf,.doc,.docx,.xls,.xlsx,.txt" 
-                  className="hidden" 
-                  onChange={handleFileUpload} 
-                  disabled={uploading} 
-                />
-                <Button 
-                  type="button" 
-                  variant="outline" 
-                  size="icon" 
-                  disabled={uploading} 
-                  className="h-9 w-9 sm:h-10 sm:w-10"
-                  onClick={() => fileInputRef.current?.click()}
-                  title="Solo documentos (NO fotos)"
-                >
-                  <Paperclip className="w-4 h-4 sm:w-5 sm:h-5" />
-                </Button>
-              </div>
+              <input 
+                ref={fileInputRef}
+                type="file" 
+                multiple 
+                accept=".pdf,.doc,.docx,.xls,.xlsx,.txt" 
+                className="hidden" 
+                onChange={handleFileUpload} 
+                disabled={uploading} 
+              />
+
+              <ChatInputActions
+                onFileClick={() => fileInputRef.current?.click()}
+                onCameraClick={() => {}}
+                onAudioClick={() => {}}
+                onLocationClick={() => {}}
+                onPollClick={() => {}}
+                uploading={uploading}
+                isRecording={false}
+                showCamera={false}
+                showAudio={false}
+                showLocation={false}
+                showPoll={false}
+                showQuickReplies={false}
+              />
               <Textarea
                 placeholder="Escribe..."
                 value={messageText}

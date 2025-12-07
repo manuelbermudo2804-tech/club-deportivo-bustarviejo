@@ -7,6 +7,7 @@ import { Send, Paperclip, X, FileText, Download, MessageCircle, Camera, Folder, 
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { toast } from "sonner";
+import ChatInputActions from "../chat/ChatInputActions";
 
 const QUICK_REPLIES = [
   "✅ Gracias por tu mensaje, te respondo pronto",
@@ -399,47 +400,38 @@ export default function CoachChatWindow({ conversation, user, onClose }) {
         )}
 
         <div className="flex gap-2 items-end">
-          <div className="flex flex-col gap-1">
-            <input 
-              ref={fileInputRef}
-              type="file" 
-              multiple 
-              accept="*/*" 
-              className="hidden" 
-              onChange={handleFileUpload} 
-              disabled={uploading} 
-            />
-            <Button 
-              type="button" 
-              variant="outline" 
-              size="icon" 
-              disabled={uploading} 
-              className="h-10 w-10"
-              onClick={() => fileInputRef.current?.click()}
-            >
-              <Paperclip className="w-5 h-5" />
-            </Button>
-            
-            <input 
-              ref={cameraInputRef}
-              type="file" 
-              accept="image/*" 
-              capture="environment" 
-              className="hidden" 
-              onChange={handleCameraCapture} 
-              disabled={uploading} 
-            />
-            <Button 
-              type="button" 
-              variant="outline" 
-              size="icon" 
-              disabled={uploading} 
-              className="h-10 w-10"
-              onClick={() => cameraInputRef.current?.click()}
-            >
-              <Camera className="w-5 h-5" />
-            </Button>
-          </div>
+          <input 
+            ref={fileInputRef}
+            type="file" 
+            multiple 
+            accept="*/*" 
+            className="hidden" 
+            onChange={handleFileUpload} 
+            disabled={uploading} 
+          />
+          <input 
+            ref={cameraInputRef}
+            type="file" 
+            accept="image/*" 
+            capture="environment" 
+            className="hidden" 
+            onChange={handleCameraCapture} 
+            disabled={uploading} 
+          />
+          
+          <ChatInputActions
+            onFileClick={() => fileInputRef.current?.click()}
+            onCameraClick={() => cameraInputRef.current?.click()}
+            onAudioClick={() => {}}
+            onLocationClick={() => {}}
+            onPollClick={() => {}}
+            uploading={uploading}
+            isRecording={false}
+            showAudio={false}
+            showLocation={false}
+            showPoll={false}
+            showQuickReplies={false}
+          />
 
           <Textarea
             placeholder="Escribe tu mensaje..."
@@ -458,27 +450,13 @@ export default function CoachChatWindow({ conversation, user, onClose }) {
             rows={1}
           />
 
-          <div className="flex gap-1">
-            {isCoach && messageText.trim() && (
-              <Button 
-                type="button" 
-                variant="ghost" 
-                size="icon"
-                onClick={() => setShowQuickReplies(!showQuickReplies)}
-                className="h-10 w-10"
-              >
-                <MessageCircle className="w-5 h-5 text-slate-500" />
-              </Button>
-            )}
-            
-            <Button 
-              onClick={handleSend} 
-              disabled={!messageText.trim() && attachments.length === 0} 
-              className="bg-blue-600 hover:bg-blue-700 h-10 w-10 p-0"
-            >
-              <Send className="w-5 h-5" />
-            </Button>
-          </div>
+          <Button 
+            onClick={handleSend} 
+            disabled={!messageText.trim() && attachments.length === 0} 
+            className="bg-blue-600 hover:bg-blue-700 h-10 w-10 p-0"
+          >
+            <Send className="w-5 h-5" />
+          </Button>
         </div>
       </div>
 

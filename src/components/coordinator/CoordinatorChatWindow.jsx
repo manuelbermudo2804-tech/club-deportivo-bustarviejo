@@ -15,6 +15,7 @@ import ChatMessageActions from "../chat/ChatMessageActions";
 import PollMessage from "../chat/PollMessage";
 import LocationMessage from "../chat/LocationMessage";
 import SearchFilters from "../chat/SearchFilters";
+import ChatInputActions from "../chat/ChatInputActions";
 
 const QUICK_REPLIES = [
   "✅ Revisando tu consulta, te respondo pronto",
