@@ -167,46 +167,46 @@ export default function CoachParentChat() {
   ))];
 
   return (
-    <div className="p-4 lg:max-w-6xl lg:mx-auto">
-      <Card className="border-blue-200 shadow-lg">
-        <CardHeader className="bg-gradient-to-r from-blue-600 to-blue-700 text-white">
+    <div className="p-0 sm:p-4 lg:max-w-6xl lg:mx-auto h-screen sm:h-[calc(100vh-110px)]">
+      <Card className="border-blue-200 shadow-lg h-full flex flex-col overflow-hidden sm:rounded-lg rounded-none">
+        <CardHeader className="bg-gradient-to-r from-blue-600 to-blue-700 text-white flex-shrink-0 p-2 sm:p-6">
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle className="flex items-center gap-2">
-                <MessageCircle className="w-6 h-6" />
-                Chat Grupal con Familias
+              <CardTitle className="flex items-center gap-2 text-sm sm:text-xl">
+                <MessageCircle className="w-4 h-4 sm:w-6 sm:h-6" />
+                Chat con Familias
               </CardTitle>
-              <p className="text-sm text-blue-100">Comunicación con los padres de tu categoría</p>
+              <p className="text-xs sm:text-sm text-blue-100 hidden sm:block">Comunicación con los padres de tu categoría</p>
             </div>
             <Button
               variant="ghost"
               size="sm"
               onClick={() => setShowParticipants(true)}
-              className="text-white hover:bg-white/20"
+              className="text-white hover:bg-white/20 text-xs sm:text-sm"
             >
-              <Users className="w-4 h-4 mr-2" />
-              {parentEmails.length} familias
+              <Users className="w-3 h-3 sm:w-4 sm:h-4 sm:mr-2" />
+              <span className="hidden sm:inline">{parentEmails.length} familias</span>
+              <span className="sm:hidden">{parentEmails.length}</span>
             </Button>
           </div>
         </CardHeader>
-        <CardContent className="p-0">
-          <Tabs value={selectedCategory} onValueChange={setSelectedCategory}>
-            <TabsList className="w-full justify-start overflow-x-auto p-2 bg-slate-50">
+        <CardContent className="p-0 flex-1 flex flex-col overflow-hidden">
+          <Tabs value={selectedCategory} onValueChange={setSelectedCategory} className="h-full flex flex-col">
+            <TabsList className="w-full justify-start overflow-x-auto p-0.5 sm:p-2 bg-slate-50 flex-shrink-0">
               {categories.map(cat => (
-                <TabsTrigger key={cat} value={cat} className="whitespace-nowrap">
+                <TabsTrigger key={cat} value={cat} className="whitespace-nowrap text-[11px] sm:text-sm px-2 py-1 sm:px-4 sm:py-2">
                   {cat}
                 </TabsTrigger>
               ))}
             </TabsList>
             
             {categories.map(cat => (
-              <TabsContent key={cat} value={cat} className="h-[calc(100vh-300px)] flex flex-col">
-                <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-slate-50">
+              <TabsContent key={cat} value={cat} className="flex-1 flex flex-col p-0 m-0 data-[state=active]:flex">
+                <div className="flex-1 overflow-y-auto p-2 sm:p-4 space-y-2 bg-slate-50">
                   {messages.length === 0 ? (
-                    <div className="text-center py-12">
-                      <MessageCircle className="w-12 h-12 text-slate-300 mx-auto mb-2" />
-                      <p className="text-slate-500 text-sm">Aún no hay mensajes en este grupo</p>
-                      <p className="text-slate-400 text-xs mt-2">Envía el primer mensaje a las familias</p>
+                    <div className="text-center py-8">
+                      <MessageCircle className="w-10 h-10 text-slate-300 mx-auto mb-2" />
+                      <p className="text-slate-500 text-xs sm:text-sm">Aún no hay mensajes</p>
                     </div>
                   ) : (
                     messages.map((msg) => {
@@ -215,18 +215,18 @@ export default function CoachParentChat() {
                       
                       return (
                         <div key={msg.id} className={`flex ${isMine ? 'justify-end' : 'justify-start'}`}>
-                          <div className={`max-w-[70%] ${
+                          <div className={`max-w-[75%] sm:max-w-[70%] ${
                             isMine ? 'bg-blue-600 text-white' : 
                             isCoach ? 'bg-green-600 text-white' : 
                             'bg-white text-slate-900 border'
-                          } rounded-2xl p-3 shadow-sm`}>
-                            <div className="flex items-center gap-2 mb-1">
-                              <p className="text-xs font-semibold opacity-70">
+                          } rounded-2xl p-2 sm:p-3 shadow-sm`}>
+                            <div className="flex items-center gap-1 sm:gap-2 mb-1">
+                              <p className="text-[10px] sm:text-xs font-semibold opacity-70">
                                 {isCoach && !isMine ? '🏃 ' : ''}{msg.remitente_nombre}
                               </p>
-                              {isCoach && <Badge className="text-xs bg-green-500">Entrenador</Badge>}
+                              {isCoach && <Badge className="text-[10px] sm:text-xs bg-green-500 px-1 py-0">Entrenador</Badge>}
                             </div>
-                            <p className="text-sm whitespace-pre-wrap">{msg.mensaje}</p>
+                            <p className="text-xs sm:text-sm whitespace-pre-wrap">{msg.mensaje}</p>
                             
                             {msg.archivos_adjuntos?.length > 0 && (
                               <div className="mt-2 space-y-1">
@@ -255,7 +255,7 @@ export default function CoachParentChat() {
                               </div>
                             )}
                             
-                            <p className="text-xs opacity-60 mt-1">
+                            <p className="text-[10px] sm:text-xs opacity-60 mt-1">
                               {format(new Date(msg.created_date), "HH:mm", { locale: es })}
                             </p>
                           </div>
@@ -266,9 +266,9 @@ export default function CoachParentChat() {
                   <div ref={messagesEndRef} />
                 </div>
 
-                <div className="p-4 bg-white border-t">
+                <div className="p-2 sm:p-4 bg-white border-t flex-shrink-0">
                   {attachments.length > 0 && (
-                    <div className="mb-2 flex flex-wrap gap-2">
+                    <div className="mb-2 flex flex-wrap gap-1 sm:gap-2">
                       {attachments.map((file, idx) => (
                         <div key={idx} className="relative">
                           {file.tipo?.startsWith('image/') ? (
@@ -295,7 +295,7 @@ export default function CoachParentChat() {
                     </div>
                   )}
                   
-                  <div className="flex gap-2 items-end">
+                  <div className="flex gap-1 sm:gap-2 items-end">
                     <div className="flex flex-col gap-1">
                       <input 
                         ref={fileInputRef}
@@ -311,10 +311,10 @@ export default function CoachParentChat() {
                         variant="outline" 
                         size="icon" 
                         disabled={uploading} 
-                        className="h-10 w-10"
+                        className="h-9 w-9 sm:h-10 sm:w-10"
                         onClick={() => fileInputRef.current?.click()}
                       >
-                        <Paperclip className="w-5 h-5" />
+                        <Paperclip className="w-4 h-4 sm:w-5 sm:h-5" />
                       </Button>
                       
                       <input 
@@ -331,15 +331,15 @@ export default function CoachParentChat() {
                         variant="outline" 
                         size="icon" 
                         disabled={uploading} 
-                        className="h-10 w-10"
+                        className="h-9 w-9 sm:h-10 sm:w-10"
                         onClick={() => cameraInputRef.current?.click()}
                       >
-                        <Camera className="w-5 h-5" />
+                        <Camera className="w-4 h-4 sm:w-5 sm:h-5" />
                       </Button>
                     </div>
                     
                     <Textarea
-                      placeholder={`Mensaje a ${parentEmails.length} familias...`}
+                      placeholder="Escribe..."
                       value={messageText}
                       onChange={(e) => setMessageText(e.target.value)}
                       onKeyDown={(e) => {
@@ -348,16 +348,16 @@ export default function CoachParentChat() {
                           handleSend();
                         }
                       }}
-                      className="flex-1 min-h-[44px] resize-none"
+                      className="flex-1 min-h-[36px] sm:min-h-[44px] resize-none text-sm"
                       rows={1}
                     />
                     
                     <Button 
                       onClick={handleSend} 
                       disabled={!messageText.trim() && attachments.length === 0} 
-                      className="bg-blue-600 hover:bg-blue-700 h-10 w-10 p-0"
+                      className="bg-blue-600 hover:bg-blue-700 h-9 w-9 sm:h-10 sm:w-10 p-0"
                     >
-                      <Send className="w-5 h-5" />
+                      <Send className="w-4 h-4 sm:w-5 sm:h-5" />
                     </Button>
                   </div>
                 </div>
