@@ -11,6 +11,7 @@ import { Send, Paperclip, X, FileText, Download, MessageCircle, Camera, Users, M
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { toast } from "sonner";
+import ChatInputActions from "../components/chat/ChatInputActions";
 
 const QUICK_REPLIES = [
   "✅ Perfecto, gracias",
@@ -606,72 +607,37 @@ export default function CoachParentChat() {
                   )}
                   
                   <div className="flex gap-1 sm:gap-2 items-end">
-                    <div className="flex flex-col gap-1">
-                      <input 
-                        ref={fileInputRef}
-                        type="file" 
-                        multiple 
-                        accept="*/*" 
-                        className="hidden" 
-                        onChange={handleFileUpload} 
-                        disabled={uploading} 
-                      />
-                      <Button 
-                        type="button" 
-                        variant="outline" 
-                        size="icon" 
-                        disabled={uploading} 
-                        className="h-9 w-9 sm:h-10 sm:w-10"
-                        onClick={() => fileInputRef.current?.click()}
-                      >
-                        <Paperclip className="w-4 h-4 sm:w-5 sm:h-5" />
-                      </Button>
-                      
-                      <input 
-                        ref={cameraInputRef}
-                        type="file" 
-                        accept="image/*" 
-                        capture="environment" 
-                        className="hidden" 
-                        onChange={handleCameraCapture} 
-                        disabled={uploading} 
-                      />
-                      <Button 
-                        type="button" 
-                        variant="outline" 
-                        size="icon" 
-                        disabled={uploading} 
-                        className="h-9 w-9 sm:h-10 sm:w-10"
-                        onClick={() => cameraInputRef.current?.click()}
-                      >
-                        <Camera className="w-4 h-4 sm:w-5 sm:h-5" />
-                      </Button>
-                      
-                      <Button 
-                        type="button" 
-                        variant="outline" 
-                        size="icon" 
-                        disabled={uploading || isRecording} 
-                        className="h-9 w-9 sm:h-10 sm:w-10"
-                        onClick={isRecording ? stopRecording : startRecording}
-                      >
-                        {isRecording ? (
-                          <Square className="w-4 h-4 sm:w-5 sm:h-5 text-red-500 animate-pulse" />
-                        ) : (
-                          <Mic className="w-4 h-4 sm:w-5 sm:h-5" />
-                        )}
-                      </Button>
-                      
-                      <Button 
-                        type="button" 
-                        variant="outline" 
-                        size="icon" 
-                        onClick={() => setShowQuickReplies(!showQuickReplies)}
-                        className="h-9 w-9 sm:h-10 sm:w-10"
-                      >
-                        <Smile className="w-4 h-4 sm:w-5 sm:h-5" />
-                      </Button>
-                    </div>
+                    <input 
+                      ref={fileInputRef}
+                      type="file" 
+                      multiple 
+                      accept="*/*" 
+                      className="hidden" 
+                      onChange={handleFileUpload} 
+                      disabled={uploading} 
+                    />
+                    <input 
+                      ref={cameraInputRef}
+                      type="file" 
+                      accept="image/*" 
+                      capture="environment" 
+                      className="hidden" 
+                      onChange={handleCameraCapture} 
+                      disabled={uploading} 
+                    />
+                    
+                    <ChatInputActions
+                      onFileClick={() => fileInputRef.current?.click()}
+                      onCameraClick={() => cameraInputRef.current?.click()}
+                      onAudioClick={isRecording ? stopRecording : startRecording}
+                      onLocationClick={() => {}}
+                      onPollClick={() => {}}
+                      onQuickRepliesClick={() => setShowQuickReplies(!showQuickReplies)}
+                      uploading={uploading}
+                      isRecording={isRecording}
+                      showLocation={false}
+                      showPoll={false}
+                    />
                     
                     <Textarea
                       placeholder="Escribe..."
