@@ -191,8 +191,8 @@ export default function CoachParentChat() {
           </div>
         </CardHeader>
         <CardContent className="p-0 flex-1 flex flex-col overflow-hidden">
-          <Tabs value={selectedCategory} onValueChange={setSelectedCategory} className="h-full flex flex-col">
-            <TabsList className="w-full justify-start overflow-x-auto p-0.5 sm:p-2 bg-slate-50 flex-shrink-0">
+          <Tabs value={selectedCategory} onValueChange={setSelectedCategory} className="h-full flex flex-col overflow-hidden">
+            <TabsList className="w-full justify-start overflow-x-auto p-0.5 sm:p-2 bg-slate-50 flex-shrink-0 border-b">
               {categories.map(cat => (
                 <TabsTrigger key={cat} value={cat} className="whitespace-nowrap text-[11px] sm:text-sm px-2 py-1 sm:px-4 sm:py-2">
                   {cat}
@@ -201,8 +201,8 @@ export default function CoachParentChat() {
             </TabsList>
             
             {categories.map(cat => (
-              <TabsContent key={cat} value={cat} className="flex-1 flex flex-col p-0 m-0 data-[state=active]:flex">
-                <div className="flex-1 overflow-y-auto p-2 sm:p-4 space-y-2 bg-slate-50">
+              <TabsContent key={cat} value={cat} className="flex-1 flex flex-col p-0 m-0 h-full overflow-hidden data-[state=active]:flex">
+                <div className="flex-1 overflow-y-auto p-2 sm:p-4 space-y-2 bg-slate-50 min-h-0">
                   {messages.length === 0 ? (
                     <div className="text-center py-8">
                       <MessageCircle className="w-10 h-10 text-slate-300 mx-auto mb-2" />
