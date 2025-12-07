@@ -1019,6 +1019,38 @@ export default function Home() {
       <div className="px-4 lg:px-8 py-6 space-y-4 lg:space-y-6">
         <SocialLinks />
 
+        {/* Accesos rápidos a chats - Solo para Coordinadores y Entrenadores */}
+        {(isCoordinator || (isCoach && user?.es_entrenador)) && (
+          <div className="bg-slate-800/50 backdrop-blur-sm rounded-2xl p-4 border border-slate-700">
+            <p className="text-white text-sm font-semibold mb-3 flex items-center gap-2">
+              <MessageCircle className="w-4 h-4" />
+              💬 Chats
+            </p>
+            <div className="grid grid-cols-2 gap-2">
+              {isCoordinator && (
+                <Link to={createPageUrl("CoordinatorChat")} className="relative flex-1">
+                  <div className="bg-gradient-to-br from-cyan-600 to-cyan-700 rounded-xl p-3 text-white hover:scale-105 transition-all shadow-lg h-full flex flex-col justify-center">
+                    {stats.unreadCoordinatorMessages > 0 && (
+                      <div className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 rounded-full flex items-center justify-center border-2 border-white animate-pulse">
+                        <span className="text-white text-xs font-bold">{stats.unreadCoordinatorMessages}</span>
+                      </div>
+                    )}
+                    <p className="text-sm font-bold text-center">🏟️ Chat Coordinador</p>
+                  </div>
+                </Link>
+              )}
+              
+              {user?.es_entrenador && (
+                <Link to={createPageUrl("CoachParentChat")} className="relative flex-1">
+                  <div className="bg-gradient-to-br from-blue-600 to-blue-700 rounded-xl p-3 text-white hover:scale-105 transition-all shadow-lg h-full flex flex-col justify-center">
+                    <p className="text-sm font-bold text-center">⚽ Chat Entrenador</p>
+                  </div>
+                </Link>
+              )}
+            </div>
+          </div>
+        )}
+
         {/* ÚNICO BANNER CONSOLIDADO DE ALERTAS - Incluye TODO */}
         {(isAdmin || isCoach || isCoordinator || isTreasurer || hasPlayers) && (
           <AlertCenter 
