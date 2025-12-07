@@ -1026,7 +1026,7 @@ export default function Home() {
               <MessageCircle className="w-4 h-4" />
               💬 Chats
             </p>
-            <div className="grid grid-cols-2 gap-2">
+            <div className="grid grid-cols-3 gap-2">
               {isCoordinator && (
                 <Link to={createPageUrl("CoordinatorChat")} className="relative">
                   <div className="bg-gradient-to-br from-cyan-600 to-cyan-700 rounded-xl p-3 text-white hover:scale-105 transition-all shadow-lg h-full flex flex-col justify-center">
