@@ -233,8 +233,8 @@ export default function ParentCoordinatorChat() {
   }
 
   return (
-    <div className="p-0 sm:p-4 lg:max-w-4xl lg:mx-auto h-screen sm:h-[calc(100vh-110px)]">
-      <Card className="border-cyan-200 shadow-lg h-full flex flex-col overflow-hidden sm:rounded-lg rounded-none">
+    <div className="fixed inset-0 lg:static lg:p-4 lg:max-w-4xl lg:mx-auto lg:h-[calc(100vh-110px)]">
+      <Card className="border-cyan-200 shadow-lg h-full flex flex-col overflow-hidden lg:rounded-lg rounded-none">
         <CardHeader className="bg-gradient-to-r from-cyan-600 to-cyan-700 text-white p-2 sm:p-6">
           <div className="flex items-center justify-between">
             <CardTitle className="flex items-center gap-2 text-sm sm:text-xl">

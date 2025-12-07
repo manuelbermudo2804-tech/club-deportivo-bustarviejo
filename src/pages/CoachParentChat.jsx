@@ -167,8 +167,8 @@ export default function CoachParentChat() {
   ))];
 
   return (
-    <div className="p-0 sm:p-4 lg:max-w-6xl lg:mx-auto h-screen sm:h-[calc(100vh-110px)]">
-      <Card className="border-blue-200 shadow-lg h-full flex flex-col overflow-hidden sm:rounded-lg rounded-none">
+    <div className="fixed inset-0 lg:static lg:p-4 lg:max-w-6xl lg:mx-auto lg:h-[calc(100vh-110px)]">
+      <Card className="border-blue-200 shadow-lg h-full flex flex-col overflow-hidden lg:rounded-lg rounded-none">
         <CardHeader className="bg-gradient-to-r from-blue-600 to-blue-700 text-white flex-shrink-0 p-2 sm:p-6">
           <div className="flex items-center justify-between">
             <div>
