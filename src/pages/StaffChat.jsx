@@ -1,0 +1,879 @@
+import React, { useState, useEffect, useRef } from "react";
+import { base44 } from "@/api/base44Client";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Send, X, FileText, Download, MessageCircle, Users, Search, Folder, Check, CheckCheck } from "lucide-react";
+import { format } from "date-fns";
+import { es } from "date-fns/locale";
+import { toast } from "sonner";
+import ChatInputActions from "../components/chat/ChatInputActions";
+import ChatMessageActions from "../components/chat/ChatMessageActions";
+import PollMessage from "../components/chat/PollMessage";
+import LocationMessage from "../components/chat/LocationMessage";
+import SearchFilters from "../components/chat/SearchFilters";
+
+const QUICK_REPLIES = [
+  "✅ Perfecto, gracias",
+  "👍 Entendido",
+  "📝 Lo reviso y confirmo",
+  "💪 Seguimos así",
+  "🙏 Gracias por avisar"
+];
+
+export default function StaffChat() {
+  const [user, setUser] = useState(null);
+  const [isStaff, setIsStaff] = useState(false);
+  const [messageText, setMessageText] = useState("");
+  const [attachments, setAttachments] = useState([]);
+  const [uploading, setUploading] = useState(false);
+  const [conversation, setConversation] = useState(null);
+  const [showParticipants, setShowParticipants] = useState(false);
+  const [showGallery, setShowGallery] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [showQuickReplies, setShowQuickReplies] = useState(false);
+  const [showPollDialog, setShowPollDialog] = useState(false);
+  const [pollQuestion, setPollQuestion] = useState("");
+  const [pollOptions, setPollOptions] = useState(["", ""]);
+  const [showLocationDialog, setShowLocationDialog] = useState(false);
+  const [locationName, setLocationName] = useState("");
+  const [locationAddress, setLocationAddress] = useState("");
+  const [replyingTo, setReplyingTo] = useState(null);
+  const [editingMessage, setEditingMessage] = useState(null);
+  const [filterType, setFilterType] = useState("all");
+  const [filterPerson, setFilterPerson] = useState("all");
+  const [filterDate, setFilterDate] = useState("all");
+  const [showImagePreview, setShowImagePreview] = useState(null);
+  const messagesEndRef = useRef(null);
+  const fileInputRef = useRef(null);
+  const cameraInputRef = useRef(null);
+  const typingTimeoutRef = useRef(null);
+  const queryClient = useQueryClient();
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      const currentUser = await base44.auth.me();
+      setUser(currentUser);
+      
+      const staff = currentUser.es_coordinador || currentUser.es_entrenador || currentUser.role === "admin";
+      setIsStaff(staff);
+
+      if (!staff) return;
+
+      // Buscar o crear conversación general de staff
+      const conversations = await base44.entities.StaffConversation.filter({ categoria: "General" });
+      
+      if (conversations.length > 0) {
+        setConversation(conversations[0]);
+      } else {
+        // Crear conversación general de staff
+        const newConv = await base44.entities.StaffConversation.create({
+          nombre: "Chat Interno Staff",
+          categoria: "General",
+          participantes: [],
+          activa: true
+        });
+        setConversation(newConv);
+      }
+    };
+    fetchUser();
+  }, []);
+
+  const { data: messages = [] } = useQuery({
+    queryKey: ['staffMessages', conversation?.id],
+    queryFn: async () => {
+      if (!conversation?.id) return [];
+      return await base44.entities.StaffMessage.filter({ conversacion_id: conversation.id }, 'created_date');
+    },
+    refetchInterval: 3000,
+    enabled: !!conversation?.id,
+  });
+
+  const { data: allUsers = [] } = useQuery({
+    queryKey: ['allUsersStaff'],
+    queryFn: () => base44.entities.User.list(),
+  });
+
+  const staffUsers = allUsers.filter(u => 
+    u.es_coordinador || u.es_entrenador || u.role === "admin"
+  );
+
+  const filteredMessages = messages.filter(msg => {
+    if (msg.eliminado) return false;
+    
+    if (searchTerm && !msg.mensaje?.toLowerCase().includes(searchTerm.toLowerCase())) {
+      return false;
+    }
+    
+    if (filterType !== "all") {
+      if (filterType === "text" && (msg.adjuntos?.length > 0 || msg.encuesta || msg.ubicacion)) return false;
+      if (filterType === "files" && !msg.adjuntos?.some(f => !f.tipo?.startsWith('image/'))) return false;
+      if (filterType === "images" && !msg.adjuntos?.some(f => f.tipo?.startsWith('image/'))) return false;
+      if (filterType === "polls" && !msg.encuesta) return false;
+      if (filterType === "locations" && !msg.ubicacion) return false;
+    }
+    
+    if (filterPerson !== "all" && msg.autor_email !== filterPerson) {
+      return false;
+    }
+    
+    if (filterDate !== "all") {
+      const msgDate = new Date(msg.created_date);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      
+      if (filterDate === "today" && msgDate < today) return false;
+      if (filterDate === "week") {
+        const weekAgo = new Date(today);
+        weekAgo.setDate(weekAgo.getDate() - 7);
+        if (msgDate < weekAgo) return false;
+      }
+      if (filterDate === "month") {
+        const monthAgo = new Date(today);
+        monthAgo.setMonth(monthAgo.getMonth() - 1);
+        if (msgDate < monthAgo) return false;
+      }
+    }
+    
+    return true;
+  });
+
+  useEffect(() => {
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: "smooth", block: "end" });
+    }
+  }, [messages]);
+
+  // Marcar como leído
+  useEffect(() => {
+    if (!conversation || !user || messages.length === 0) return;
+
+    const markAsRead = async () => {
+      const unreadMessages = messages.filter(m => 
+        m.autor_email !== user.email && 
+        !m.leido_por?.some(l => l.email === user.email)
+      );
+
+      for (const msg of unreadMessages) {
+        const leido_por = msg.leido_por || [];
+        leido_por.push({
+          email: user.email,
+          nombre: user.full_name,
+          fecha: new Date().toISOString()
+        });
+        
+        await base44.entities.StaffMessage.update(msg.id, { leido_por });
+      }
+    };
+    
+    if (messages.some(m => m.autor_email !== user.email && !m.leido_por?.some(l => l.email === user.email))) {
+      markAsRead();
+    }
+  }, [conversation, messages, user]);
+
+  const allSharedFiles = messages.flatMap(m => m.adjuntos || []);
+
+  const handleFileUpload = async (e) => {
+    const files = Array.from(e.target.files);
+    setUploading(true);
+
+    try {
+      const uploaded = [];
+      for (const file of files) {
+        const { file_url } = await base44.integrations.Core.UploadFile({ file });
+        uploaded.push({
+          url: file_url,
+          nombre: file.name,
+          tipo: file.type,
+          tamano: file.size
+        });
+      }
+      if (uploaded.length > 0) {
+        setAttachments([...attachments, ...uploaded]);
+        toast.success("Archivos adjuntados");
+      }
+    } catch (error) {
+      toast.error("Error al subir archivos");
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleCameraCapture = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    
+    setUploading(true);
+    try {
+      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+      setAttachments([...attachments, {
+        url: file_url,
+        nombre: file.name,
+        tipo: file.type,
+        tamano: file.size
+      }]);
+      toast.success("Foto capturada");
+    } catch (error) {
+      toast.error("Error al capturar foto");
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const sendLocationFromBrowser = () => {
+    if ("geolocation" in navigator) {
+      navigator.geolocation.getCurrentPosition(
+        async (position) => {
+          const { latitude, longitude } = position.coords;
+          
+          sendMessageMutation.mutate({
+            mensaje: "📍 Ubicación compartida",
+            adjuntos: [],
+            ubicacion: {
+              latitud: latitude,
+              longitud: longitude,
+              nombre: locationName,
+              direccion: locationAddress
+            }
+          });
+          
+          setShowLocationDialog(false);
+          setLocationName("");
+          setLocationAddress("");
+          toast.success("Ubicación enviada");
+        },
+        () => {
+          toast.error("No se pudo obtener tu ubicación");
+        }
+      );
+    } else {
+      toast.error("Tu navegador no soporta geolocalización");
+    }
+  };
+
+  const sendPoll = () => {
+    if (!pollQuestion.trim() || pollOptions.filter(o => o.trim()).length < 2) {
+      toast.error("Necesitas una pregunta y al menos 2 opciones");
+      return;
+    }
+
+    sendMessageMutation.mutate({
+      mensaje: "📊 Encuesta",
+      adjuntos: [],
+      encuesta: {
+        pregunta: pollQuestion,
+        opciones: pollOptions.filter(o => o.trim()),
+        votos: [],
+        cerrada: false
+      }
+    });
+    
+    setShowPollDialog(false);
+    setPollQuestion("");
+    setPollOptions(["", ""]);
+    toast.success("Encuesta enviada");
+  };
+
+  const sendMessageMutation = useMutation({
+    mutationFn: async (data) => {
+      const autorRol = user.role === "admin" ? "admin" : user.es_coordinador ? "coordinador" : "entrenador";
+      
+      const newMessage = await base44.entities.StaffMessage.create({
+        conversacion_id: conversation.id,
+        autor_email: user.email,
+        autor_nombre: user.full_name,
+        autor_rol: autorRol,
+        mensaje: data.mensaje,
+        adjuntos: data.adjuntos,
+        encuesta: data.encuesta,
+        ubicacion: data.ubicacion,
+        respuesta_a: data.respuesta_a,
+        mensaje_citado: data.mensaje_citado,
+        leido_por: [{ email: user.email, nombre: user.full_name, fecha: new Date().toISOString() }]
+      });
+
+      await base44.entities.StaffConversation.update(conversation.id, {
+        ultimo_mensaje: data.mensaje,
+        ultimo_mensaje_fecha: new Date().toISOString(),
+        ultimo_mensaje_autor: user.full_name
+      });
+
+      return newMessage;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['staffMessages'] });
+      setMessageText("");
+      setAttachments([]);
+      setReplyingTo(null);
+    },
+  });
+
+  const editMessageMutation = useMutation({
+    mutationFn: async ({ id, mensaje }) => {
+      await base44.entities.StaffMessage.update(id, {
+        mensaje,
+        editado: true,
+        fecha_edicion: new Date().toISOString()
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['staffMessages'] });
+      setEditingMessage(null);
+      setMessageText("");
+      toast.success("Mensaje editado");
+    },
+  });
+
+  const deleteMessageMutation = useMutation({
+    mutationFn: async (messageId) => {
+      await base44.entities.StaffMessage.update(messageId, {
+        eliminado: true,
+        mensaje: "Este mensaje fue eliminado"
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['staffMessages'] });
+      toast.success("Mensaje eliminado");
+    },
+  });
+
+  const votePollMutation = useMutation({
+    mutationFn: async ({ messageId, optionIndex }) => {
+      const msg = messages.find(m => m.id === messageId);
+      const votos = msg.encuesta?.votos || [];
+      
+      votos.push({
+        usuario_email: user.email,
+        usuario_nombre: user.full_name,
+        opcion_index: optionIndex,
+        fecha: new Date().toISOString()
+      });
+
+      await base44.entities.StaffMessage.update(messageId, {
+        encuesta: {
+          ...msg.encuesta,
+          votos
+        }
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['staffMessages'] });
+      toast.success("Voto registrado");
+    },
+  });
+
+  const handleSend = () => {
+    if (editingMessage) {
+      editMessageMutation.mutate({
+        id: editingMessage.id,
+        mensaje: messageText
+      });
+    } else {
+      if (!messageText.trim() && attachments.length === 0) return;
+      
+      const messageData = { 
+        mensaje: messageText, 
+        adjuntos: attachments 
+      };
+      
+      if (replyingTo) {
+        messageData.respuesta_a = replyingTo.id;
+        messageData.mensaje_citado = {
+          autor_nombre: replyingTo.autor_nombre,
+          mensaje: replyingTo.mensaje.substring(0, 100)
+        };
+      }
+      
+      sendMessageMutation.mutate(messageData);
+      setReplyingTo(null);
+    }
+  };
+
+  if (!isStaff) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <p className="text-slate-500">Solo el staff del club puede acceder</p>
+      </div>
+    );
+  }
+
+  if (!conversation || !user) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600 mx-auto mb-2"></div>
+          <p className="text-slate-500 text-sm">Cargando chat...</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="h-[calc(100vh-100px)] lg:p-4 lg:max-w-5xl lg:mx-auto lg:h-[calc(100vh-110px)]">
+      <Card className="border-purple-200 shadow-lg h-full flex flex-col overflow-hidden lg:rounded-lg rounded-none">
+        <CardHeader className="bg-gradient-to-r from-purple-600 to-purple-700 text-white p-2 sm:p-6">
+          <div className="flex items-center justify-between">
+            <CardTitle className="flex items-center gap-2 text-sm sm:text-xl">
+              <MessageCircle className="w-4 h-4 sm:w-6 sm:h-6" />
+              💼 Chat Interno Staff
+            </CardTitle>
+            <div className="flex gap-1">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowGallery(!showGallery)}
+                className="text-white hover:bg-white/20 text-xs sm:text-sm"
+              >
+                <Folder className="w-3 h-3 sm:w-4 sm:h-4 sm:mr-2" />
+                <span className="hidden sm:inline">Archivos ({allSharedFiles.length})</span>
+                <span className="sm:hidden">{allSharedFiles.length}</span>
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowParticipants(true)}
+                className="text-white hover:bg-white/20 text-xs sm:text-sm"
+              >
+                <Users className="w-3 h-3 sm:w-4 sm:h-4 sm:mr-2" />
+                <span className="hidden sm:inline">{staffUsers.length} miembros</span>
+                <span className="sm:hidden">{staffUsers.length}</span>
+              </Button>
+            </div>
+          </div>
+        </CardHeader>
+
+        <CardContent className="p-0 flex-1 flex flex-col overflow-hidden">
+          <SearchFilters
+            searchTerm={searchTerm}
+            onSearchChange={setSearchTerm}
+            filterType={filterType}
+            onFilterTypeChange={setFilterType}
+            filterPerson={filterPerson}
+            onFilterPersonChange={setFilterPerson}
+            filterDate={filterDate}
+            onFilterDateChange={setFilterDate}
+            allParticipants={staffUsers.map(u => ({ email: u.email, nombre: u.full_name }))}
+          />
+
+          {showGallery && (
+            <div className="p-4 bg-white border-b max-h-[200px] overflow-y-auto flex-shrink-0">
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="font-semibold text-slate-900">📁 Archivos Compartidos</h3>
+                <Button size="sm" variant="ghost" onClick={() => setShowGallery(false)}>
+                  <X className="w-4 h-4" />
+                </Button>
+              </div>
+              {allSharedFiles.length === 0 ? (
+                <p className="text-sm text-slate-500 text-center py-4">No hay archivos compartidos</p>
+              ) : (
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                  {allSharedFiles.map((file, idx) => (
+                    file.tipo?.startsWith('image/') ? (
+                      <img 
+                        key={idx}
+                        src={file.url}
+                        alt={file.nombre}
+                        className="w-full h-24 object-cover rounded cursor-pointer hover:opacity-80"
+                        onClick={() => setShowImagePreview(file.url)}
+                      />
+                    ) : (
+                      <a
+                        key={idx}
+                        href={file.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex flex-col items-center gap-1 p-3 bg-slate-100 rounded hover:bg-slate-200"
+                      >
+                        <FileText className="w-8 h-8 text-slate-600" />
+                        <span className="text-xs truncate w-full text-center">{file.nombre}</span>
+                      </a>
+                    )
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          <div className="flex-1 overflow-y-auto p-2 sm:p-4 space-y-2 bg-slate-50">
+            {replyingTo && (
+              <div className="sticky top-0 z-10 bg-purple-50 border-l-4 border-purple-500 p-2 rounded flex items-start justify-between">
+                <div className="flex-1">
+                  <p className="text-xs font-semibold text-purple-900">Respondiendo a {replyingTo.autor_nombre}</p>
+                  <p className="text-xs text-purple-700 truncate">{replyingTo.mensaje}</p>
+                </div>
+                <Button size="sm" variant="ghost" onClick={() => setReplyingTo(null)}>
+                  <X className="w-3 h-3" />
+                </Button>
+              </div>
+            )}
+
+            {filteredMessages.length === 0 ? (
+              <div className="text-center py-8">
+                <MessageCircle className="w-10 h-10 text-slate-300 mx-auto mb-2" />
+                <p className="text-slate-500 text-xs sm:text-sm">
+                  {searchTerm ? "No se encontraron mensajes" : "¡Inicia la conversación!"}
+                </p>
+              </div>
+            ) : (
+              filteredMessages.map((msg, idx) => {
+                const isMine = msg.autor_email === user.email;
+                const showDateSeparator = idx === 0 || 
+                  new Date(filteredMessages[idx - 1].created_date).toDateString() !== 
+                  new Date(msg.created_date).toDateString();
+                const dateLabel = new Date(msg.created_date).toLocaleDateString('es-ES', {
+                  weekday: 'long',
+                  day: 'numeric',
+                  month: 'long'
+                });
+
+                return (
+                  <React.Fragment key={msg.id}>
+                    {showDateSeparator && (
+                      <div className="flex justify-center my-4">
+                        <div className="bg-white px-4 py-1 rounded-full text-xs text-slate-600 shadow-sm">
+                          {dateLabel}
+                        </div>
+                      </div>
+                    )}
+                    
+                    <div className={`flex ${isMine ? 'justify-end' : 'justify-start'} group`}>
+                      <div className={`max-w-[75%] sm:max-w-[70%] ${
+                        isMine ? 'bg-purple-600 text-white' : 'bg-white text-slate-900 border'
+                      } rounded-2xl p-2 sm:p-3 shadow-sm relative`}>
+                        {msg.mensaje_citado && (
+                          <div className={`mb-2 p-2 rounded border-l-2 ${
+                            isMine ? 'bg-purple-700 border-purple-400' : 'bg-slate-100 border-slate-400'
+                          }`}>
+                            <p className="text-xs opacity-70">{msg.mensaje_citado.autor_nombre}</p>
+                            <p className="text-xs italic truncate">{msg.mensaje_citado.mensaje}</p>
+                          </div>
+                        )}
+                        
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="flex items-center gap-1">
+                            <p className="text-[10px] sm:text-xs font-semibold opacity-70">
+                              {msg.autor_rol === "coordinador" ? "🎓 " : msg.autor_rol === "admin" ? "👑 " : "🏃 "}
+                              {msg.autor_nombre}
+                            </p>
+                            {msg.autor_rol === "coordinador" && (
+                              <Badge className="text-[10px] bg-cyan-600 px-1 py-0">Coordinador</Badge>
+                            )}
+                            {msg.autor_rol === "admin" && (
+                              <Badge className="text-[10px] bg-orange-600 px-1 py-0">Admin</Badge>
+                            )}
+                          </div>
+                          <ChatMessageActions
+                            message={msg}
+                            isMine={isMine}
+                            isStaff={true}
+                            onReply={(m) => setReplyingTo(m)}
+                            onEdit={(m) => {
+                              setEditingMessage(m);
+                              setMessageText(m.mensaje);
+                            }}
+                            onDelete={(m) => deleteMessageMutation.mutate(m.id)}
+                            onForward={(m) => {}}
+                          />
+                        </div>
+
+                        <p className="text-xs sm:text-sm whitespace-pre-wrap mt-1">
+                          {msg.mensaje}
+                          {msg.editado && <span className="text-xs opacity-50 ml-2">(editado)</span>}
+                        </p>
+
+                        {msg.ubicacion && <LocationMessage ubicacion={msg.ubicacion} />}
+                        {msg.encuesta && (
+                          <PollMessage 
+                            encuesta={msg.encuesta} 
+                            messageId={msg.id}
+                            userEmail={user.email}
+                            userName={user.full_name}
+                            onVote={(msgId, optionIdx) => votePollMutation.mutate({ messageId: msgId, optionIndex: optionIdx })}
+                          />
+                        )}
+
+                        {msg.adjuntos?.length > 0 && (
+                          <div className="mt-2 space-y-1">
+                            {msg.adjuntos.map((file, idx) => (
+                              file.tipo?.startsWith('audio/') ? (
+                                <audio key={idx} controls className="max-w-full">
+                                  <source src={file.url} type={file.tipo} />
+                                </audio>
+                              ) : file.tipo?.startsWith('image/') ? (
+                                <img 
+                                  key={idx}
+                                  src={file.url}
+                                  alt={file.nombre}
+                                  className="rounded cursor-pointer max-w-full h-auto hover:opacity-80"
+                                  onClick={() => setShowImagePreview(file.url)}
+                                />
+                              ) : (
+                                <a
+                                  key={idx}
+                                  href={file.url}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className={`flex items-center gap-2 text-xs p-2 rounded ${
+                                    isMine ? 'bg-purple-700' : 'bg-slate-100'
+                                  }`}
+                                >
+                                  <FileText className="w-3 h-3" />
+                                  <span className="flex-1 truncate">{file.nombre}</span>
+                                  <Download className="w-3 h-3" />
+                                </a>
+                              )
+                            ))}
+                          </div>
+                        )}
+
+                        <div className="flex items-center justify-between mt-1">
+                          <p className="text-[10px] sm:text-xs opacity-60">
+                            {format(new Date(msg.created_date), "HH:mm", { locale: es })}
+                          </p>
+                          {isMine && (
+                            <div className="flex items-center gap-1">
+                              {msg.leido_por?.length > 1 ? (
+                                <CheckCheck className="w-4 h-4 text-purple-300" />
+                              ) : (
+                                <Check className="w-4 h-4 opacity-50" />
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </React.Fragment>
+                );
+              })
+            )}
+            <div ref={messagesEndRef} />
+          </div>
+
+          <div className="p-2 sm:p-4 bg-white border-t flex-shrink-0">
+            {showQuickReplies && (
+              <div className="mb-2 flex flex-wrap gap-2 p-2 bg-slate-50 rounded-lg">
+                {QUICK_REPLIES.map((reply, idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => {
+                      setMessageText(reply);
+                      setShowQuickReplies(false);
+                    }}
+                    className="text-xs px-3 py-1.5 bg-white border rounded-lg hover:bg-slate-100"
+                  >
+                    {reply}
+                  </button>
+                ))}
+              </div>
+            )}
+
+            {attachments.length > 0 && (
+              <div className="mb-2 flex flex-wrap gap-1 sm:gap-2">
+                {attachments.map((file, idx) => (
+                  <div key={idx} className="relative">
+                    {file.tipo?.startsWith('image/') ? (
+                      <div className="relative">
+                        <img src={file.url} alt="" className="w-16 h-16 object-cover rounded" />
+                        <button 
+                          onClick={() => setAttachments(attachments.filter((_, i) => i !== idx))}
+                          className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center"
+                        >
+                          <X className="w-3 h-3" />
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="bg-slate-100 rounded px-2 py-1 text-xs flex items-center gap-2">
+                        <FileText className="w-3 h-3" />
+                        <span className="truncate max-w-[150px]">{file.nombre}</span>
+                        <button onClick={() => setAttachments(attachments.filter((_, i) => i !== idx))}>
+                          <X className="w-3 h-3" />
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+
+            <div className="flex gap-1 sm:gap-2 items-end">
+              <input 
+                ref={fileInputRef}
+                type="file" 
+                multiple 
+                accept="*/*" 
+                className="hidden" 
+                onChange={handleFileUpload} 
+                disabled={uploading} 
+              />
+              <input 
+                ref={cameraInputRef}
+                type="file" 
+                accept="image/*" 
+                capture="environment" 
+                className="hidden" 
+                onChange={handleCameraCapture} 
+                disabled={uploading} 
+              />
+              
+              <ChatInputActions
+                onFileClick={() => fileInputRef.current?.click()}
+                onCameraClick={() => cameraInputRef.current?.click()}
+                onAudioClick={() => {}}
+                onLocationClick={() => setShowLocationDialog(true)}
+                onPollClick={() => setShowPollDialog(true)}
+                onQuickRepliesClick={() => setShowQuickReplies(!showQuickReplies)}
+                uploading={uploading}
+                isRecording={false}
+                showAudio={false}
+              />
+
+              <Textarea
+                placeholder="Escribe..."
+                value={messageText}
+                onChange={(e) => setMessageText(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    handleSend();
+                  }
+                }}
+                className="flex-1 min-h-[36px] sm:min-h-[44px] resize-none text-sm"
+                rows={1}
+              />
+
+              <Button 
+                onClick={handleSend} 
+                disabled={!messageText.trim() && attachments.length === 0}
+                className="bg-purple-600 hover:bg-purple-700 h-9 w-9 sm:h-10 sm:w-10 p-0"
+              >
+                <Send className="w-4 h-4 sm:w-5 sm:h-5" />
+              </Button>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Diálogo de ubicación */}
+      <Dialog open={showLocationDialog} onOpenChange={setShowLocationDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>📍 Enviar Ubicación</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <Input
+              placeholder="Nombre del lugar (ej: Campo de fútbol)"
+              value={locationName}
+              onChange={(e) => setLocationName(e.target.value)}
+            />
+            <Input
+              placeholder="Dirección (opcional)"
+              value={locationAddress}
+              onChange={(e) => setLocationAddress(e.target.value)}
+            />
+            <div className="flex gap-2">
+              <Button variant="outline" onClick={() => setShowLocationDialog(false)} className="flex-1">
+                Cancelar
+              </Button>
+              <Button onClick={sendLocationFromBrowser} className="flex-1 bg-purple-600">
+                Enviar mi ubicación
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Diálogo de encuesta */}
+      <Dialog open={showPollDialog} onOpenChange={setShowPollDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>📊 Crear Encuesta</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <Input
+              placeholder="Pregunta de la encuesta"
+              value={pollQuestion}
+              onChange={(e) => setPollQuestion(e.target.value)}
+            />
+            {pollOptions.map((opt, idx) => (
+              <Input
+                key={idx}
+                placeholder={`Opción ${idx + 1}`}
+                value={opt}
+                onChange={(e) => {
+                  const newOptions = [...pollOptions];
+                  newOptions[idx] = e.target.value;
+                  setPollOptions(newOptions);
+                }}
+              />
+            ))}
+            <Button
+              variant="outline"
+              onClick={() => setPollOptions([...pollOptions, ""])}
+              className="w-full"
+            >
+              + Añadir opción
+            </Button>
+            <div className="flex gap-2">
+              <Button variant="outline" onClick={() => setShowPollDialog(false)} className="flex-1">
+                Cancelar
+              </Button>
+              <Button onClick={sendPoll} className="flex-1 bg-purple-600">
+                Enviar Encuesta
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Diálogo de participantes */}
+      <Dialog open={showParticipants} onOpenChange={setShowParticipants}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>👥 Miembros del Staff</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-2 max-h-[400px] overflow-y-auto">
+            {staffUsers.map((staffUser, idx) => (
+              <div key={idx} className="bg-slate-50 rounded-lg p-3 border">
+                <div className="flex items-center gap-2">
+                  {staffUser.es_coordinador && <span>🎓</span>}
+                  {staffUser.es_entrenador && <span>🏃</span>}
+                  {staffUser.role === "admin" && <span>👑</span>}
+                  <div className="flex-1">
+                    <p className="text-sm font-medium text-slate-900">{staffUser.full_name}</p>
+                    <p className="text-xs text-slate-600">{staffUser.email}</p>
+                    <div className="flex gap-1 mt-1">
+                      {staffUser.role === "admin" && <Badge className="text-xs bg-orange-600">Admin</Badge>}
+                      {staffUser.es_coordinador && <Badge className="text-xs bg-cyan-600">Coordinador</Badge>}
+                      {staffUser.es_entrenador && <Badge className="text-xs bg-blue-600">Entrenador</Badge>}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Vista previa de imagen */}
+      {showImagePreview && (
+        <div className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4" onClick={() => setShowImagePreview(null)}>
+          <div className="relative max-w-4xl w-full">
+            <Button 
+              variant="ghost" 
+              size="icon"
+              onClick={() => setShowImagePreview(null)}
+              className="absolute top-4 right-4 bg-white/20 hover:bg-white/30 text-white"
+            >
+              <X className="w-6 h-6" />
+            </Button>
+            <img src={showImagePreview} alt="Preview" className="w-full h-auto rounded-lg" />
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}

@@ -1028,25 +1028,31 @@ export default function Home() {
             </p>
             <div className="grid grid-cols-2 gap-2">
               {isCoordinator && (
-                <Link to={createPageUrl("CoordinatorChat")} className="relative flex-1">
+                <Link to={createPageUrl("CoordinatorChat")} className="relative">
                   <div className="bg-gradient-to-br from-cyan-600 to-cyan-700 rounded-xl p-3 text-white hover:scale-105 transition-all shadow-lg h-full flex flex-col justify-center">
                     {stats.unreadCoordinatorMessages > 0 && (
                       <div className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 rounded-full flex items-center justify-center border-2 border-white animate-pulse">
                         <span className="text-white text-xs font-bold">{stats.unreadCoordinatorMessages}</span>
                       </div>
                     )}
-                    <p className="text-sm font-bold text-center">🏟️ Chat Coordinador</p>
+                    <p className="text-sm font-bold text-center">🏟️ Coordinador</p>
                   </div>
                 </Link>
               )}
               
               {user?.es_entrenador && (
-                <Link to={createPageUrl("CoachParentChat")} className="relative flex-1">
+                <Link to={createPageUrl("CoachParentChat")} className="relative">
                   <div className="bg-gradient-to-br from-blue-600 to-blue-700 rounded-xl p-3 text-white hover:scale-105 transition-all shadow-lg h-full flex flex-col justify-center">
-                    <p className="text-sm font-bold text-center">⚽ Chat Entrenador</p>
+                    <p className="text-sm font-bold text-center">⚽ Entrenador</p>
                   </div>
                 </Link>
               )}
+
+              <Link to={createPageUrl("StaffChat")} className="relative">
+                <div className="bg-gradient-to-br from-purple-600 to-purple-700 rounded-xl p-3 text-white hover:scale-105 transition-all shadow-lg h-full flex flex-col justify-center">
+                  <p className="text-sm font-bold text-center">💼 Staff</p>
+                </div>
+              </Link>
             </div>
           </div>
         )}

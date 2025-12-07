@@ -70,6 +70,7 @@ import CoordinatorChat from './pages/CoordinatorChat';
 import ParentCoordinatorChat from './pages/ParentCoordinatorChat';
 import ParentCoachChat from './pages/ParentCoachChat';
 import CoachParentChat from './pages/CoachParentChat';
+import StaffChat from './pages/StaffChat';
 import __Layout from './Layout.jsx';
 
 
@@ -146,6 +147,7 @@ export const PAGES = {
     "ParentCoordinatorChat": ParentCoordinatorChat,
     "ParentCoachChat": ParentCoachChat,
     "CoachParentChat": CoachParentChat,
+    "StaffChat": StaffChat,
 }
 
 export const pagesConfig = {
