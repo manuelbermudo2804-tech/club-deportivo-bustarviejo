@@ -169,7 +169,7 @@ export default function CoachParentChat() {
   return (
     <div className="h-[calc(100vh-100px)] lg:p-4 lg:max-w-6xl lg:mx-auto lg:h-[calc(100vh-110px)]">
       <Card className="border-blue-200 shadow-lg h-full flex flex-col overflow-hidden lg:rounded-lg rounded-none">
-        <CardHeader className="bg-gradient-to-r from-blue-600 to-blue-700 text-white flex-shrink-0 p-2 sm:p-6">
+        <CardHeader className="bg-gradient-to-r from-blue-600 to-blue-700 text-white p-2 sm:p-6 flex-shrink-0">
           <div className="flex items-center justify-between">
             <div>
               <CardTitle className="flex items-center gap-2 text-sm sm:text-xl">
@@ -190,7 +190,7 @@ export default function CoachParentChat() {
             </Button>
           </div>
         </CardHeader>
-        <CardContent className="p-0 flex-1 flex flex-col overflow-hidden">
+        <CardContent className="p-0 flex-1 flex flex-col overflow-hidden min-h-0">
           <Tabs value={selectedCategory} onValueChange={setSelectedCategory} className="h-full flex flex-col overflow-hidden">
             <TabsList className="w-full justify-start overflow-x-auto p-0.5 sm:p-2 bg-slate-50 flex-shrink-0 border-b">
               {categories.map(cat => (
@@ -201,8 +201,8 @@ export default function CoachParentChat() {
             </TabsList>
             
             {categories.map(cat => (
-              <TabsContent key={cat} value={cat} className="flex-1 flex flex-col p-0 m-0 h-full overflow-hidden data-[state=active]:flex">
-                <div className="flex-1 overflow-y-auto p-2 sm:p-4 space-y-2 bg-slate-50 min-h-0">
+              <TabsContent key={cat} value={cat} className="flex-1 p-0 m-0 flex flex-col overflow-hidden min-h-0 data-[state=active]:flex" style={{ display: selectedCategory === cat ? 'flex' : 'none' }}>
+                <div className="flex-1 overflow-y-auto p-2 sm:p-4 space-y-2 bg-slate-50">
                   {messages.length === 0 ? (
                     <div className="text-center py-8">
                       <MessageCircle className="w-10 h-10 text-slate-300 mx-auto mb-2" />
