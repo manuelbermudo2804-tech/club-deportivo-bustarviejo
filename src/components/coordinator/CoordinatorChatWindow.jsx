@@ -675,47 +675,119 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
         )}
 
         <div className="flex items-end gap-1 sm:gap-2">
-          <div className="flex flex-col gap-1">
-            <input 
-              ref={fileInputRef}
-              type="file" 
-              multiple 
-              accept="*/*" 
-              className="hidden" 
-              onChange={handleFileUpload} 
-              disabled={uploading} 
-            />
-            <Button 
-              type="button" 
-              variant="ghost" 
-              size="icon" 
-              disabled={uploading} 
-              className="h-9 w-9 sm:h-10 sm:w-10"
-              onClick={() => fileInputRef.current?.click()}
-            >
-              <Paperclip className="w-4 h-4 sm:w-5 sm:h-5 text-slate-500" />
-            </Button>
-            
-            <input 
-              ref={cameraInputRef}
-              type="file" 
-              accept="image/*" 
-              capture="environment" 
-              className="hidden" 
-              onChange={handleCameraCapture} 
-              disabled={uploading} 
-            />
-            <Button 
-              type="button" 
-              variant="ghost" 
-              size="icon" 
-              disabled={uploading} 
-              className="h-9 w-9 sm:h-10 sm:w-10"
-              onClick={() => cameraInputRef.current?.click()}
-            >
-              <Camera className="w-4 h-4 sm:w-5 sm:h-5 text-slate-500" />
-            </Button>
-          </div>
+          {isCoordinator && (
+            <div className="flex flex-col gap-1">
+              <input 
+                ref={fileInputRef}
+                type="file" 
+                multiple 
+                accept="*/*" 
+                className="hidden" 
+                onChange={handleFileUpload} 
+                disabled={uploading} 
+              />
+              <Button 
+                type="button" 
+                variant="ghost" 
+                size="icon" 
+                disabled={uploading} 
+                className="h-9 w-9 sm:h-10 sm:w-10"
+                onClick={() => fileInputRef.current?.click()}
+                title="Adjuntar archivo"
+              >
+                <Paperclip className="w-4 h-4 sm:w-5 sm:h-5 text-slate-500" />
+              </Button>
+              
+              <input 
+                ref={cameraInputRef}
+                type="file" 
+                accept="image/*" 
+                capture="environment" 
+                className="hidden" 
+                onChange={handleCameraCapture} 
+                disabled={uploading} 
+              />
+              <Button 
+                type="button" 
+                variant="ghost" 
+                size="icon" 
+                disabled={uploading} 
+                className="h-9 w-9 sm:h-10 sm:w-10"
+                onClick={() => cameraInputRef.current?.click()}
+                title="Tomar foto"
+              >
+                <Camera className="w-4 h-4 sm:w-5 sm:h-5 text-slate-500" />
+              </Button>
+
+              <Button 
+                type="button" 
+                variant="ghost" 
+                size="icon" 
+                disabled={uploading || recording} 
+                className="h-9 w-9 sm:h-10 sm:w-10"
+                onClick={recording ? stopRecording : startRecording}
+                title="Grabar audio"
+              >
+                {recording ? (
+                  <Pause className="w-4 h-4 sm:w-5 sm:h-5 text-red-500 animate-pulse" />
+                ) : (
+                  <Mic className="w-4 h-4 sm:w-5 sm:h-5 text-slate-500" />
+                )}
+              </Button>
+
+              <Button 
+                type="button" 
+                variant="ghost" 
+                size="icon" 
+                className="h-9 w-9 sm:h-10 sm:w-10"
+                onClick={() => setShowQuickReplies(!showQuickReplies)}
+                title="Respuestas rápidas"
+              >
+                <Smile className="w-4 h-4 sm:w-5 sm:h-5 text-slate-500" />
+              </Button>
+            </div>
+          )}
+
+          {!isCoordinator && (
+            <div className="flex flex-col gap-1">
+              <input 
+                ref={fileInputRef}
+                type="file" 
+                multiple 
+                accept=".pdf,.doc,.docx,.xls,.xlsx,.txt" 
+                className="hidden" 
+                onChange={handleFileUpload} 
+                disabled={uploading} 
+              />
+              <Button 
+                type="button" 
+                variant="ghost" 
+                size="icon" 
+                disabled={uploading} 
+                className="h-9 w-9 sm:h-10 sm:w-10"
+                onClick={() => fileInputRef.current?.click()}
+                title="Adjuntar documento (NO fotos)"
+              >
+                <Paperclip className="w-4 h-4 sm:w-5 sm:h-5 text-slate-500" />
+              </Button>
+
+              <Button 
+                type="button" 
+                variant="ghost" 
+                size="icon" 
+                disabled={uploading || recording} 
+                className="h-9 w-9 sm:h-10 sm:w-10"
+                onClick={recording ? stopRecording : startRecording}
+                title="Grabar audio"
+              >
+                {recording ? (
+                  <Pause className="w-4 h-4 sm:w-5 sm:h-5 text-red-500 animate-pulse" />
+                ) : (
+                  <Mic className="w-4 h-4 sm:w-5 sm:h-5 text-slate-500" />
+                )}
+              </Button>
+            </div>
+          )}
 
           <Textarea
             placeholder="Escribe..."

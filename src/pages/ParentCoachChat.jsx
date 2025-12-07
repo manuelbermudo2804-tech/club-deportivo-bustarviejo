@@ -94,7 +94,7 @@ export default function ParentCoachChat() {
     try {
       const uploaded = [];
       for (const file of files) {
-        // BLOQUEAR IMÁGENES - solo permitir documentos
+        // PADRES: BLOQUEAR IMÁGENES - solo permitir documentos
         if (file.type.startsWith('image/')) {
           toast.error("❌ No puedes enviar fotos. Solo documentos (PDF, Word, Excel, etc.)");
           continue;

@@ -125,6 +125,12 @@ export default function ParentCoordinatorChat() {
     try {
       const uploaded = [];
       for (const file of files) {
+        // BLOQUEAR IMÁGENES - solo permitir documentos
+        if (file.type.startsWith('image/')) {
+          toast.error("❌ No puedes enviar fotos. Solo documentos (PDF, Word, Excel, etc.)");
+          continue;
+        }
+        
         const { file_url } = await base44.integrations.Core.UploadFile({ file });
         uploaded.push({
           url: file_url,
@@ -133,31 +139,12 @@ export default function ParentCoordinatorChat() {
           tamano: file.size
         });
       }
-      setAttachments([...attachments, ...uploaded]);
-      toast.success("Archivos adjuntados");
+      if (uploaded.length > 0) {
+        setAttachments([...attachments, ...uploaded]);
+        toast.success("Documentos adjuntados");
+      }
     } catch (error) {
       toast.error("Error al subir archivos");
-    } finally {
-      setUploading(false);
-    }
-  };
-
-  const handleCameraCapture = async (e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    
-    setUploading(true);
-    try {
-      const { file_url } = await base44.integrations.Core.UploadFile({ file });
-      setAttachments([...attachments, {
-        url: file_url,
-        nombre: file.name,
-        tipo: file.type,
-        tamano: file.size
-      }]);
-      toast.success("Foto capturada");
-    } catch (error) {
-      toast.error("Error al capturar foto");
     } finally {
       setUploading(false);
     }
@@ -402,7 +389,7 @@ export default function ParentCoordinatorChat() {
                   ref={fileInputRef}
                   type="file" 
                   multiple 
-                  accept="*/*" 
+                  accept=".pdf,.doc,.docx,.xls,.xlsx,.txt" 
                   className="hidden" 
                   onChange={handleFileUpload} 
                   disabled={uploading} 
@@ -414,28 +401,9 @@ export default function ParentCoordinatorChat() {
                   disabled={uploading} 
                   className="h-9 w-9 sm:h-10 sm:w-10"
                   onClick={() => fileInputRef.current?.click()}
+                  title="Solo documentos (NO fotos)"
                 >
                   <Paperclip className="w-4 h-4 sm:w-5 sm:h-5" />
-                </Button>
-                
-                <input 
-                  ref={cameraInputRef}
-                  type="file" 
-                  accept="image/*" 
-                  capture="environment" 
-                  className="hidden" 
-                  onChange={handleCameraCapture} 
-                  disabled={uploading} 
-                />
-                <Button 
-                  type="button" 
-                  variant="outline" 
-                  size="icon" 
-                  disabled={uploading} 
-                  className="h-9 w-9 sm:h-10 sm:w-10"
-                  onClick={() => cameraInputRef.current?.click()}
-                >
-                  <Camera className="w-4 h-4 sm:w-5 sm:h-5" />
                 </Button>
               </div>
               <Textarea

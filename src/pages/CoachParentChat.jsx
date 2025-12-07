@@ -148,8 +148,10 @@ export default function CoachParentChat() {
           tamano: file.size
         });
       }
-      setAttachments([...attachments, ...uploaded]);
-      toast.success("Archivos adjuntados");
+      if (uploaded.length > 0) {
+        setAttachments([...attachments, ...uploaded]);
+        toast.success("Archivos adjuntados");
+      }
     } catch (error) {
       toast.error("Error al subir archivos");
     } finally {
