@@ -11,6 +11,7 @@ import { Send, Paperclip, X, FileText, Download, MessageCircle, Camera, Users, M
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { toast } from "sonner";
+import SocialLinks from "../components/SocialLinks";
 import ChatInputActions from "../components/chat/ChatInputActions";
 
 const QUICK_REPLIES = [
@@ -290,7 +291,10 @@ export default function CoachParentChat() {
   ))];
 
   return (
-    <div className="h-[calc(100vh-100px)] lg:p-4 lg:max-w-6xl lg:mx-auto lg:h-[calc(100vh-110px)]">
+    <div className="h-[calc(100vh-100px)] lg:p-4 lg:max-w-6xl lg:mx-auto lg:h-[calc(100vh-110px)] space-y-2">
+      <div className="hidden lg:block">
+        <SocialLinks />
+      </div>
       <Card className="border-blue-200 shadow-lg h-full flex flex-col overflow-hidden lg:rounded-lg rounded-none">
         <CardHeader className="bg-gradient-to-r from-green-600 to-green-700 text-white p-2 sm:p-6 flex-shrink-0">
           <div className="flex items-center justify-between">
