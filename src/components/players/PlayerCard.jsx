@@ -47,8 +47,9 @@ const DIAS_ORDEN = {
   "Viernes": 5
 };
 
-export default function PlayerCard({ player, onEdit, onViewProfile, isParent = false, readOnly = false, schedules = [], isCoachOrCoordinator = false, payments = [], seasonConfig = null, callups = [] }) {
+export default function PlayerCard({ player, onEdit, onViewProfile, isParent = false, readOnly = false, schedules = [], isCoachOrCoordinator = false, payments = [], seasonConfig = null, callups = [], onRenew = null }) {
   const [showDetail, setShowDetail] = useState(false);
+  const [showRenewalSuggestion, setShowRenewalSuggestion] = useState(false);
   
   // Filtrar horarios del jugador según su categoría/deporte
   const playerSchedules = schedules
@@ -74,6 +75,23 @@ export default function PlayerCard({ player, onEdit, onViewProfile, isParent = f
     return edad;
   };
   const esMayorDeEdad = calcularEdad(player.fecha_nacimiento) >= 18;
+  const edadActual = calcularEdad(player.fecha_nacimiento);
+  
+  // Sugerir categoría según edad
+  const getSuggestedCategory = (edad) => {
+    if (!edad) return null;
+    if (edad <= 5) return "Fútbol Pre-Benjamín (Mixto)";
+    if (edad <= 7) return "Fútbol Benjamín (Mixto)";
+    if (edad <= 9) return "Fútbol Alevín (Mixto)";
+    if (edad <= 11) return "Fútbol Infantil (Mixto)";
+    if (edad <= 13) return "Fútbol Cadete";
+    if (edad <= 15) return "Fútbol Juvenil";
+    if (edad <= 17) return "Fútbol Aficionado";
+    return "Fútbol Aficionado";
+  };
+  
+  const categorySuggested = getSuggestedCategory(edadActual);
+  const needsCategoryChange = categorySuggested && player.deporte !== categorySuggested;
   
   // Estado de firmas: 
   // - "none": No hay enlaces asignados
@@ -215,9 +233,13 @@ export default function PlayerCard({ player, onEdit, onViewProfile, isParent = f
             </div>
           )}
 
-          {/* Badge de estado + ficha completa */}
+          {/* Badge de estado + renovación */}
           <div className="absolute top-3 left-3 flex flex-col gap-1">
-            {player.activo ? (
+            {player.estado_renovacion === "pendiente" ? (
+              <Badge className="bg-red-600 text-white animate-pulse shadow-lg">
+                ⚠️ RENOVAR JUGADOR
+              </Badge>
+            ) : player.activo ? (
               <Badge className="bg-green-500 text-white">Activo</Badge>
             ) : (
               <Badge className="bg-yellow-500 text-white animate-pulse">⚠️ PENDIENTE RENOVAR</Badge>
@@ -262,6 +284,60 @@ export default function PlayerCard({ player, onEdit, onViewProfile, isParent = f
               )}
             </div>
           </div>
+
+          {/* Sugerencia de renovación con cambio de categoría */}
+          {player.estado_renovacion === "pendiente" && needsCategoryChange && isParent && (
+            <div className="bg-gradient-to-r from-purple-50 to-purple-100 border-2 border-purple-400 rounded-lg p-3 space-y-2">
+              <div className="flex items-start gap-2">
+                <AlertCircle className="w-5 h-5 text-purple-700 mt-0.5 flex-shrink-0" />
+                <div className="flex-1">
+                  <p className="text-sm font-bold text-purple-900 mb-1">🎉 Sugerencia de Cambio de Categoría</p>
+                  <p className="text-xs text-purple-800 leading-relaxed mb-2">
+                    {player.nombre} tiene {edadActual} años. Recomendamos cambiar de <strong>{player.deporte}</strong> a <strong>{categorySuggested}</strong>
+                  </p>
+                  {onRenew && (
+                    <Button
+                      size="sm"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onRenew(player, categorySuggested);
+                      }}
+                      className="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold shadow-lg"
+                    >
+                      ✨ Renovar con Nueva Categoría
+                    </Button>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Renovar sin cambio de categoría */}
+          {player.estado_renovacion === "pendiente" && !needsCategoryChange && isParent && (
+            <div className="bg-gradient-to-r from-orange-50 to-orange-100 border-2 border-orange-400 rounded-lg p-3 space-y-2">
+              <div className="flex items-start gap-2">
+                <AlertCircle className="w-5 h-5 text-orange-700 mt-0.5 flex-shrink-0" />
+                <div className="flex-1">
+                  <p className="text-sm font-bold text-orange-900 mb-1">⏰ Renovación Pendiente</p>
+                  <p className="text-xs text-orange-800 leading-relaxed mb-2">
+                    Es momento de renovar la inscripción de {player.nombre} para la próxima temporada en <strong>{player.deporte}</strong>
+                  </p>
+                  {onRenew && (
+                    <Button
+                      size="sm"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onRenew(player, null);
+                      }}
+                      className="w-full bg-orange-600 hover:bg-orange-700 text-white font-bold shadow-lg"
+                    >
+                      🔄 Renovar Jugador
+                    </Button>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Click para ver detalles */}
           {isCoachOrCoordinator && hasMedicalInfo && (
