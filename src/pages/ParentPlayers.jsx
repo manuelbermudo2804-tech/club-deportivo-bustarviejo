@@ -20,6 +20,7 @@ export default function ParentPlayers() {
   const [editingPlayer, setEditingPlayer] = useState(null);
   const [showSuccess, setShowSuccess] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
+  const [suggestedCategory, setSuggestedCategory] = useState(null);
   
   const queryClient = useQueryClient();
   
@@ -653,6 +654,19 @@ Email: cdbustarviejo@gmail.com
 
   const handleEdit = (player) => {
     setEditingPlayer(player);
+    setSuggestedCategory(null);
+    setShowForm(true);
+  };
+
+  const handleRenew = (player, newCategory) => {
+    setEditingPlayer({
+      ...player,
+      deporte: newCategory || player.deporte,
+      tipo_inscripcion: "Renovación",
+      estado_renovacion: "renovado",
+      temporada_renovacion: seasonConfig?.temporada || new Date().getFullYear() + "/" + (new Date().getFullYear() + 1)
+    });
+    setSuggestedCategory(newCategory);
     setShowForm(true);
   };
 
@@ -661,6 +675,9 @@ Email: cdbustarviejo@gmail.com
   );
   const futbolFemeninoPlayers = players.filter(p => p.deporte === "Fútbol Femenino");
   const baloncestoPlayers = players.filter(p => p.deporte?.includes("Baloncesto"));
+  
+  // Detectar jugadores con renovación pendiente
+  const playersToRenew = players.filter(p => p.estado_renovacion === "pendiente");
 
   return (
     <>
@@ -749,23 +766,81 @@ Email: cdbustarviejo@gmail.com
 
       <AnimatePresence>
         {showForm && (
-          <PlayerForm
-            player={editingPlayer}
-            allPlayers={allPlayers}
-            onSubmit={handleSubmit}
-            onCancel={() => {
-              setShowForm(false);
-              setEditingPlayer(null);
-            }}
-            isSubmitting={createPlayerMutation.isPending || updatePlayerMutation.isPending}
-            isParent={true}
-            parentEmail={user?.email}
-          />
+          <div className="mb-6">
+            {suggestedCategory && (
+              <div className="mb-4 bg-gradient-to-r from-purple-50 to-purple-100 border-2 border-purple-400 rounded-xl p-4 animate-pulse">
+                <p className="text-sm font-bold text-purple-900 mb-2">
+                  💡 Sugerencia de Cambio de Categoría
+                </p>
+                <p className="text-xs text-purple-800 mb-3 leading-relaxed">
+                  Hemos actualizado automáticamente la categoría de <strong>{editingPlayer?.nombre}</strong> a <strong>{suggestedCategory}</strong> según su edad. Revisa los datos y confirma la renovación.
+                </p>
+              </div>
+            )}
+            {editingPlayer && editingPlayer.tipo_inscripcion === "Renovación" && !suggestedCategory && (
+              <div className="mb-4 bg-gradient-to-r from-blue-50 to-blue-100 border-2 border-blue-400 rounded-xl p-4">
+                <p className="text-sm font-bold text-blue-900 mb-2">
+                  🔄 Renovación de Jugador
+                </p>
+                <p className="text-xs text-blue-800 mb-3 leading-relaxed">
+                  Estás renovando a <strong>{editingPlayer?.nombre}</strong>. Revisa que todos los datos estén actualizados y completa la renovación.
+                </p>
+              </div>
+            )}
+            <PlayerForm
+              player={editingPlayer}
+              allPlayers={allPlayers}
+              onSubmit={handleSubmit}
+              onCancel={() => {
+                setShowForm(false);
+                setEditingPlayer(null);
+                setSuggestedCategory(null);
+              }}
+              isSubmitting={createPlayerMutation.isPending || updatePlayerMutation.isPending}
+              isParent={true}
+              parentEmail={user?.email}
+            />
+          </div>
         )}
       </AnimatePresence>
 
+      {/* Alerta de Jugadores Pendientes de Renovación */}
+      {playersToRenew.length > 0 && (
+        <div className="bg-gradient-to-r from-red-50 to-orange-50 border-2 border-red-400 rounded-xl p-4 mb-6 shadow-lg">
+          <div className="flex items-start gap-3">
+            <div className="w-6 h-6 bg-red-600 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+              <span className="text-white text-sm font-bold">!</span>
+            </div>
+            <div className="flex-1">
+              <h3 className="font-bold text-red-900 mb-2 text-lg">⚠️ ¡Acción Requerida! Renovación de Jugadores</h3>
+              <p className="text-sm text-red-800 mb-3 leading-relaxed">
+                Tienes <strong>{playersToRenew.length} jugador(es)</strong> pendientes de renovar para la próxima temporada. 
+                <strong> El sistema detectará automáticamente si necesitan cambiar de categoría según su edad.</strong>
+              </p>
+              <div className="space-y-2 mb-4">
+                {playersToRenew.map(player => (
+                  <div key={player.id} className="bg-white rounded-lg p-3 border-2 border-red-200">
+                    <p className="text-sm font-semibold text-slate-900">{player.nombre}</p>
+                    <p className="text-xs text-slate-600">{player.deporte}</p>
+                  </div>
+                ))}
+              </div>
+              <div className="bg-blue-50 border-2 border-blue-300 rounded-lg p-3">
+                <p className="text-xs text-blue-900 font-bold mb-2">📋 ¿Cómo renovar?</p>
+                <ol className="text-xs text-blue-800 space-y-1 list-decimal list-inside leading-relaxed">
+                  <li>Busca la tarjeta del jugador más abajo (con badge rojo "⚠️ RENOVAR JUGADOR")</li>
+                  <li>Haz clic en el botón <strong>naranja "🔄 Renovar Jugador"</strong> o <strong>morado "✨ Renovar con Nueva Categoría"</strong></li>
+                  <li>El sistema te mostrará los datos actualizados (el cambio de categoría ya estará sugerido si corresponde)</li>
+                  <li>Revisa y confirma los datos</li>
+                </ol>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Alerta de renovaciones pendientes */}
-      {seasonConfig?.permitir_renovaciones && players.some(p => !p.activo) && (
+      {seasonConfig?.permitir_renovaciones && players.some(p => !p.activo) && playersToRenew.length === 0 && (
         <Alert className="bg-yellow-50 border-yellow-300">
           <Info className="h-4 w-4 text-yellow-600" />
           <AlertDescription className="text-yellow-800 ml-6 text-xs lg:text-sm">
