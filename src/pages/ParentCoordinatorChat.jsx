@@ -257,7 +257,7 @@ export default function ParentCoordinatorChat() {
           <Alert className="m-2 sm:m-4 bg-cyan-50 border-cyan-200 flex-shrink-0">
             <MessageCircle className="w-4 h-4 text-cyan-600" />
             <AlertDescription className="text-cyan-800 text-xs">
-              <strong>💬 Chat Coordinador:</strong> Partidos, horarios, quejas
+              <strong>💬 Chat Coordinador:</strong> Consultas deportivas, quejas y problemas relacionados con lo deportivo
             </AlertDescription>
           </Alert>
 
