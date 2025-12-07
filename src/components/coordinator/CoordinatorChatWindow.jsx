@@ -7,10 +7,14 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Send, Paperclip, X, FileText, Download, Mic, Play, Pause, Search, Star, Tag, Smile, ThumbsUp, Heart, CheckCircle, Image as ImageIcon, MessageCircle, Camera, BarChart3, Check, CheckCheck, Folder } from "lucide-react";
+import { Send, Paperclip, X, FileText, Download, Mic, Play, Pause, Search, Star, Tag, Smile, ThumbsUp, Heart, CheckCircle, Image as ImageIcon, MessageCircle, Camera, BarChart3, Check, CheckCheck, Folder, MapPin, Reply, Edit, Trash2, Forward } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { toast } from "sonner";
+import ChatMessageActions from "../chat/ChatMessageActions";
+import PollMessage from "../chat/PollMessage";
+import LocationMessage from "../chat/LocationMessage";
+import SearchFilters from "../chat/SearchFilters";
 
 const QUICK_REPLIES = [
   "✅ Revisando tu consulta, te respondo pronto",
@@ -38,6 +42,15 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
   const [showGallery, setShowGallery] = useState(false);
   const [pollQuestion, setPollQuestion] = useState("");
   const [pollOptions, setPollOptions] = useState(["", ""]);
+  const [replyingTo, setReplyingTo] = useState(null);
+  const [editingMessage, setEditingMessage] = useState(null);
+  const [forwardingMessage, setForwardingMessage] = useState(null);
+  const [showLocationDialog, setShowLocationDialog] = useState(false);
+  const [locationName, setLocationName] = useState("");
+  const [locationAddress, setLocationAddress] = useState("");
+  const [filterType, setFilterType] = useState("all");
+  const [filterPerson, setFilterPerson] = useState("all");
+  const [filterDate, setFilterDate] = useState("all");
   
   const messagesEndRef = useRef(null);
   const audioRef = useRef(null);
@@ -185,12 +198,21 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
       return;
     }
 
-    const pollText = `📊 **ENCUESTA**\n\n${pollQuestion}\n\n${pollOptions.filter(o => o.trim()).map((opt, idx) => `${idx + 1}. ${opt}`).join('\n')}\n\n_Responde con el número de tu opción_`;
+    sendMessageMutation.mutate({
+      mensaje: "📊 Encuesta",
+      adjuntos: [],
+      encuesta: {
+        pregunta: pollQuestion,
+        opciones: pollOptions.filter(o => o.trim()),
+        votos: [],
+        cerrada: false
+      }
+    });
     
-    setMessageText(pollText);
     setShowPollDialog(false);
     setPollQuestion("");
     setPollOptions(["", ""]);
+    toast.success("Encuesta enviada");
   };
 
   // Grabar audio
@@ -326,6 +348,10 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
         audio_url: data.audio_url,
         audio_duracion: data.audio_duracion,
         adjuntos: data.adjuntos,
+        encuesta: data.encuesta,
+        ubicacion: data.ubicacion,
+        respuesta_a: data.respuesta_a,
+        mensaje_citado: data.mensaje_citado,
         leido_coordinador: isCoordinator,
         leido_padre: !isCoordinator,
         fecha_leido_coordinador: isCoordinator ? new Date().toISOString() : null,
@@ -355,13 +381,162 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
   });
 
   const handleSend = () => {
-    if (!messageText.trim() && attachments.length === 0) return;
-    sendMessageMutation.mutate({ mensaje: messageText, adjuntos: attachments });
+    if (editingMessage) {
+      // Editar mensaje existente
+      editMessageMutation.mutate({
+        id: editingMessage.id,
+        mensaje: messageText
+      });
+    } else {
+      // Enviar nuevo mensaje
+      if (!messageText.trim() && attachments.length === 0) return;
+      
+      const messageData = { 
+        mensaje: messageText, 
+        adjuntos: attachments 
+      };
+      
+      if (replyingTo) {
+        messageData.respuesta_a = replyingTo.id;
+        messageData.mensaje_citado = {
+          autor_nombre: replyingTo.autor_nombre,
+          mensaje: replyingTo.mensaje.substring(0, 100)
+        };
+      }
+      
+      sendMessageMutation.mutate(messageData);
+      setReplyingTo(null);
+    }
   };
 
-  const filteredMessages = searchTerm
-    ? messages.filter(m => m.mensaje?.toLowerCase().includes(searchTerm.toLowerCase()))
-    : messages;
+  const editMessageMutation = useMutation({
+    mutationFn: async ({ id, mensaje }) => {
+      await base44.entities.CoordinatorMessage.update(id, {
+        mensaje,
+        editado: true,
+        fecha_edicion: new Date().toISOString()
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['coordinatorMessages'] });
+      setEditingMessage(null);
+      setMessageText("");
+      toast.success("Mensaje editado");
+    },
+  });
+
+  const deleteMessageMutation = useMutation({
+    mutationFn: async (messageId) => {
+      await base44.entities.CoordinatorMessage.update(messageId, {
+        eliminado: true,
+        mensaje: "Este mensaje fue eliminado"
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['coordinatorMessages'] });
+      toast.success("Mensaje eliminado");
+    },
+  });
+
+  const votePollMutation = useMutation({
+    mutationFn: async ({ messageId, optionIndex }) => {
+      const msg = messages.find(m => m.id === messageId);
+      const votos = msg.encuesta?.votos || [];
+      
+      votos.push({
+        usuario_email: user.email,
+        usuario_nombre: user.full_name,
+        opcion_index: optionIndex,
+        fecha: new Date().toISOString()
+      });
+
+      await base44.entities.CoordinatorMessage.update(messageId, {
+        encuesta: {
+          ...msg.encuesta,
+          votos
+        }
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['coordinatorMessages'] });
+      toast.success("Voto registrado");
+    },
+  });
+
+  const sendLocationFromBrowser = () => {
+    if ("geolocation" in navigator) {
+      navigator.geolocation.getCurrentPosition(
+        async (position) => {
+          const { latitude, longitude } = position.coords;
+          
+          sendMessageMutation.mutate({
+            mensaje: "📍 Ubicación compartida",
+            adjuntos: [],
+            ubicacion: {
+              latitud: latitude,
+              longitud: longitude,
+              nombre: locationName,
+              direccion: locationAddress
+            }
+          });
+          
+          setShowLocationDialog(false);
+          setLocationName("");
+          setLocationAddress("");
+          toast.success("Ubicación enviada");
+        },
+        () => {
+          toast.error("No se pudo obtener tu ubicación");
+        }
+      );
+    } else {
+      toast.error("Tu navegador no soporta geolocalización");
+    }
+  };
+
+  const filteredMessages = messages.filter(msg => {
+    if (msg.eliminado) return false;
+    
+    // Búsqueda por texto
+    if (searchTerm && !msg.mensaje?.toLowerCase().includes(searchTerm.toLowerCase())) {
+      return false;
+    }
+    
+    // Filtro por tipo
+    if (filterType !== "all") {
+      if (filterType === "text" && (msg.adjuntos?.length > 0 || msg.encuesta || msg.ubicacion)) return false;
+      if (filterType === "files" && !msg.adjuntos?.some(f => !f.tipo?.startsWith('image/'))) return false;
+      if (filterType === "images" && !msg.adjuntos?.some(f => f.tipo?.startsWith('image/'))) return false;
+      if (filterType === "polls" && !msg.encuesta) return false;
+      if (filterType === "locations" && !msg.ubicacion) return false;
+    }
+    
+    // Filtro por persona
+    if (filterPerson !== "all" && msg.autor_email !== filterPerson) {
+      return false;
+    }
+    
+    // Filtro por fecha
+    if (filterDate !== "all") {
+      const msgDate = new Date(msg.created_date);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      
+      if (filterDate === "today" && msgDate < today) return false;
+      if (filterDate === "week") {
+        const weekAgo = new Date(today);
+        weekAgo.setDate(weekAgo.getDate() - 7);
+        if (msgDate < weekAgo) return false;
+      }
+      if (filterDate === "month") {
+        const monthAgo = new Date(today);
+        monthAgo.setMonth(monthAgo.getMonth() - 1);
+        if (msgDate < monthAgo) return false;
+      }
+    }
+    
+    return true;
+  });
 
   if (!conversation || !user) {
     return (
@@ -435,17 +610,23 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
           </div>
         )}
 
-        {/* Búsqueda */}
-        <div className="mt-3 relative">
-          <Search className="w-4 h-4 absolute left-3 top-2.5 text-slate-400" />
-          <Input
-            placeholder="Buscar en mensajes..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-9 h-9 text-sm"
-          />
-        </div>
       </div>
+
+      {/* Búsqueda avanzada */}
+      <SearchFilters
+        searchTerm={searchTerm}
+        onSearchChange={setSearchTerm}
+        filterType={filterType}
+        onFilterTypeChange={setFilterType}
+        filterPerson={filterPerson}
+        onFilterPersonChange={setFilterPerson}
+        filterDate={filterDate}
+        onFilterDateChange={setFilterDate}
+        allParticipants={[
+          { email: conversation.padre_email, nombre: conversation.padre_nombre },
+          { email: user.email, nombre: "Coordinador" }
+        ]}
+      />
 
       {/* Galería de archivos */}
       {showGallery && (
@@ -489,13 +670,50 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
 
       {/* Mensajes */}
       <div className="flex-1 overflow-y-auto p-2 sm:p-4 space-y-2 bg-slate-50">
+        {replyingTo && (
+          <div className="sticky top-0 z-10 bg-blue-50 border-l-4 border-blue-500 p-2 rounded flex items-start justify-between">
+            <div className="flex-1">
+              <p className="text-xs font-semibold text-blue-900">Respondiendo a {replyingTo.autor_nombre}</p>
+              <p className="text-xs text-blue-700 truncate">{replyingTo.mensaje}</p>
+            </div>
+            <Button size="sm" variant="ghost" onClick={() => setReplyingTo(null)}>
+              <X className="w-3 h-3" />
+            </Button>
+          </div>
+        )}
+
         {filteredMessages.map((msg) => {
           const isMine = (isCoordinator && msg.autor === "coordinador") || (!isCoordinator && msg.autor === "padre");
-          const isImage = msg.adjuntos?.some(f => f.tipo?.startsWith('image/'));
+          const repliedMessage = msg.respuesta_a ? messages.find(m => m.id === msg.respuesta_a) : null;
           
           return (
             <div key={msg.id} className={`flex ${isMine ? 'justify-end' : 'justify-start'} group`}>
               <div className={`max-w-[75%] sm:max-w-[70%] ${isMine ? 'bg-cyan-600 text-white' : 'bg-white text-slate-900'} rounded-2xl p-2 sm:p-3 shadow-sm relative`}>
+                {msg.mensaje_citado && (
+                  <div className={`mb-2 p-2 rounded border-l-2 ${isMine ? 'bg-cyan-700 border-cyan-400' : 'bg-slate-100 border-slate-400'}`}>
+                    <p className="text-xs opacity-70">{msg.mensaje_citado.autor_nombre}</p>
+                    <p className="text-xs italic truncate">{msg.mensaje_citado.mensaje}</p>
+                  </div>
+                )}
+                
+                <div className="flex items-start justify-between gap-2">
+                  <p className="text-[10px] sm:text-xs font-semibold opacity-70 flex-1">
+                    {msg.autor === "coordinador" ? "Coordinador" : msg.autor_nombre}
+                  </p>
+                  <ChatMessageActions
+                    message={msg}
+                    isMine={isMine}
+                    isStaff={isCoordinator}
+                    onReply={(m) => setReplyingTo(m)}
+                    onEdit={(m) => {
+                      setEditingMessage(m);
+                      setMessageText(m.mensaje);
+                    }}
+                    onDelete={(m) => deleteMessageMutation.mutate(m.id)}
+                    onForward={(m) => setForwardingMessage(m)}
+                  />
+                </div>
+                
                 <p className="text-[10px] sm:text-xs font-semibold mb-1 opacity-70">{msg.autor === "coordinador" ? "Coordinador" : msg.autor_nombre}</p>
                 
                 {msg.audio_url ? (
@@ -510,7 +728,21 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
                     <span className="text-sm">{msg.audio_duracion}s</span>
                   </div>
                 ) : (
-                  <p className="text-xs sm:text-sm whitespace-pre-wrap">{msg.mensaje}</p>
+                  <p className="text-xs sm:text-sm whitespace-pre-wrap">
+                    {msg.mensaje}
+                    {msg.editado && <span className="text-xs opacity-50 ml-2">(editado)</span>}
+                  </p>
+                )}
+
+                {msg.ubicacion && <LocationMessage ubicacion={msg.ubicacion} />}
+                {msg.encuesta && (
+                  <PollMessage 
+                    encuesta={msg.encuesta} 
+                    messageId={msg.id}
+                    userEmail={user.email}
+                    userName={user.full_name}
+                    onVote={(msgId, optionIdx) => votePollMutation.mutate({ messageId: msgId, optionIndex: optionIdx })}
+                  />
                 )}
 
                 {msg.adjuntos?.length > 0 && (
@@ -745,6 +977,28 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
               >
                 <Smile className="w-4 h-4 sm:w-5 sm:h-5 text-slate-500" />
               </Button>
+
+              <Button 
+                type="button" 
+                variant="ghost" 
+                size="icon" 
+                className="h-9 w-9 sm:h-10 sm:w-10"
+                onClick={() => setShowPollDialog(true)}
+                title="Crear encuesta"
+              >
+                <BarChart3 className="w-4 h-4 sm:w-5 sm:h-5 text-slate-500" />
+              </Button>
+
+              <Button 
+                type="button" 
+                variant="ghost" 
+                size="icon" 
+                className="h-9 w-9 sm:h-10 sm:w-10"
+                onClick={() => setShowLocationDialog(true)}
+                title="Enviar ubicación"
+              >
+                <MapPin className="w-4 h-4 sm:w-5 sm:h-5 text-slate-500" />
+              </Button>
             </div>
           )}
 
@@ -817,6 +1071,36 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
           </Button>
         </div>
       </div>
+
+      {/* Diálogo de ubicación */}
+      <Dialog open={showLocationDialog} onOpenChange={setShowLocationDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>📍 Enviar Ubicación</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <Input
+              placeholder="Nombre del lugar (ej: Campo de fútbol)"
+              value={locationName}
+              onChange={(e) => setLocationName(e.target.value)}
+            />
+            <Input
+              placeholder="Dirección (opcional)"
+              value={locationAddress}
+              onChange={(e) => setLocationAddress(e.target.value)}
+            />
+            <div className="flex gap-2">
+              <Button variant="outline" onClick={() => setShowLocationDialog(false)} className="flex-1">
+                Cancelar
+              </Button>
+              <Button onClick={sendLocationFromBrowser} className="flex-1 bg-blue-600">
+                <MapPin className="w-4 h-4 mr-2" />
+                Enviar mi ubicación
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Preview de imagen */}
       <Dialog open={!!showImagePreview} onOpenChange={() => setShowImagePreview(null)}>
