@@ -695,6 +695,7 @@ Email: cdbustarviejo@gmail.com
         <Button
           onClick={() => {
             setEditingPlayer(null);
+            setSuggestedCategory(null);
             setShowForm(!showForm);
           }}
           className="bg-orange-600 hover:bg-orange-700 shadow-lg w-full md:w-auto"
@@ -881,6 +882,7 @@ Email: cdbustarviejo@gmail.com
                       <PlayerCard 
                         player={player} 
                         onEdit={handleEdit}
+                        onRenew={handleRenew}
                         isParent={true}
                         schedules={schedules}
                         payments={payments}
@@ -912,6 +914,7 @@ Email: cdbustarviejo@gmail.com
                       <PlayerCard 
                         player={player} 
                         onEdit={handleEdit}
+                        onRenew={handleRenew}
                         isParent={true}
                         schedules={schedules}
                         payments={payments}
@@ -943,6 +946,7 @@ Email: cdbustarviejo@gmail.com
                       <PlayerCard 
                         player={player} 
                         onEdit={handleEdit}
+                        onRenew={handleRenew}
                         isParent={true}
                         schedules={schedules}
                         payments={payments}
