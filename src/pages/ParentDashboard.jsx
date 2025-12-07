@@ -709,7 +709,7 @@ export default function ParentDashboard() {
                       </div>
                     )}
                     <p className="text-sm font-bold mb-1">🏟️ Coordinador</p>
-                    <p className="text-xs text-cyan-100">Partidos y horarios</p>
+                    <p className="text-xs text-cyan-100">Consultas deportivas, quejas y problemas</p>
                   </div>
                 </Link>
                 
