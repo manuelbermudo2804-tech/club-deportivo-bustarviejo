@@ -22,6 +22,7 @@ import { TutorialProvider } from "./components/tutorials/TutorialProvider";
 import NotificationManager from "./components/notifications/NotificationManager";
 import AutomaticNotificationEngine from "./components/notifications/AutomaticNotificationEngine";
 import EmailNotificationTrigger from "./components/notifications/EmailNotificationTrigger";
+import AutomaticPaymentReminders from "./components/reminders/AutomaticPaymentReminders";
 // ToastContainer eliminado - causaba spam de notificaciones
 import EventReminderEngine from "./components/events/EventReminderEngine";
 import DocumentReminderEngine from "./components/documents/DocumentReminderEngine";
@@ -1444,6 +1445,7 @@ export default function Layout({ children, currentPageName }) {
               {user && <AppNotificationListener user={user} />}
               {user && <DocumentReminderEngine user={user} />}
       {user && <NotificationManager user={user} />}
+      {user && (user.role === "admin" || user.es_tesorero) && <AutomaticPaymentReminders user={user} />}
         {/* ToastContainer eliminado */}
 
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
