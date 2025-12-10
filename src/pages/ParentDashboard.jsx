@@ -411,10 +411,7 @@ export default function ParentDashboard() {
       updated.badge = myPlayers.length;
       updated.badgeLabel = "registrados";
     }
-    if (item.title === "📄 Documentos" && pendingDocuments.length > 0) {
-      updated.badge = pendingDocuments.length;
-      updated.badgeLabel = "pendientes";
-    }
+
     
     return updated;
   });
@@ -429,17 +426,7 @@ export default function ParentDashboard() {
     });
   }
 
-  // Añadir pagos extras si hay alguno activo para mis jugadores
-  if (myActiveExtraPayments.length > 0) {
-    menuItems.splice(4, 0, {
-      title: "💰 Pagos Extras",
-      icon: Euro,
-      url: createPageUrl("ParentExtraPayments"),
-      gradient: "from-emerald-600 to-teal-600",
-      badge: pendingExtraPayments > 0 ? pendingExtraPayments : undefined,
-      badgeLabel: "pendientes"
-    });
-  }
+
 
   // Mostrar pantalla de nueva temporada si no hay jugadores activos (solo después de cargar usuario y jugadores)
   if (user && !playersLoading && myPlayers.length === 0 && activeSeason) {
