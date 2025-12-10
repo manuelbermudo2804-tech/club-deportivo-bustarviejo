@@ -112,6 +112,31 @@ export default function AlertCenter({
     });
   }
 
+  // Fetch surveys para admin (respuestas nuevas)
+  const { data: surveys = [] } = useQuery({
+    queryKey: ['surveysAlerts'],
+    queryFn: () => base44.entities.Survey.list('-created_date'),
+    enabled: isAdmin,
+    refetchInterval: 30000,
+  });
+
+  // Alertas de respuestas nuevas en encuestas (solo admin)
+  if (isAdmin) {
+    const surveysWithNewResponses = surveys.filter(s => (s.respuestas_nuevas || 0) > 0);
+    if (surveysWithNewResponses.length > 0) {
+      const totalNewResponses = surveysWithNewResponses.reduce((sum, s) => sum + (s.respuestas_nuevas || 0), 0);
+      alerts.push({
+        id: "survey-new-responses",
+        icon: FileText,
+        title: "📊 Respuestas Nuevas en Encuestas",
+        description: `${totalNewResponses} respuesta${totalNewResponses > 1 ? 's' : ''} sin revisar`,
+        url: createPageUrl("Surveys"),
+        color: "bg-purple-600",
+        priority: 8
+      });
+    }
+  }
+
   // Alertas para padres
   if (isParent) {
     if (unreadPrivateMessages > 0) {

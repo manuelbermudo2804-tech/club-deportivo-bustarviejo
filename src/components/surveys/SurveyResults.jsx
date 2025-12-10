@@ -8,6 +8,7 @@ import { ArrowLeft, Download, TrendingUp, Star, FileText, User, Filter } from "l
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
+import { toast } from "sonner";
 
 const COLORS = ['#ef4444', '#f97316', '#eab308', '#84cc16', '#22c55e'];
 
@@ -15,15 +16,35 @@ export default function SurveyResults({ survey, onBack }) {
   const [responses, setResponses] = useState([]);
   const [selectedUser, setSelectedUser] = useState("all");
   const [showUserResponses, setShowUserResponses] = useState(false);
+  const [user, setUser] = useState(null);
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      const currentUser = await base44.auth.me();
+      setUser(currentUser);
+    };
+    fetchUser();
+  }, []);
 
   useEffect(() => {
     const fetchResponses = async () => {
       const allResponses = await base44.entities.SurveyResponse.list();
       const surveyResponses = allResponses.filter(r => r.survey_id === survey.id);
       setResponses(surveyResponses);
+      
+      // Marcar encuesta como revisada por admin
+      if (user?.role === "admin" && survey.respuestas_nuevas > 0) {
+        await base44.entities.Survey.update(survey.id, {
+          respuestas_nuevas: 0,
+          ultima_revision_admin: new Date().toISOString()
+        });
+        toast.success("✅ Respuestas marcadas como revisadas");
+      }
     };
-    fetchResponses();
-  }, [survey.id]);
+    if (user) {
+      fetchResponses();
+    }
+  }, [survey.id, user]);
 
   // Lista de usuarios únicos que respondieron
   const uniqueUsers = useMemo(() => {

@@ -104,7 +104,7 @@ export default function SurveyForm({ survey, onSubmit, onCancel, isSubmitting })
     fecha_fin: "",
     anonima: false,
     respuestas_count: 0,
-    enviar_chat: false
+    respuestas_nuevas: 0
   });
 
   const [newQuestion, setNewQuestion] = useState({
@@ -261,17 +261,16 @@ export default function SurveyForm({ survey, onSubmit, onCancel, isSubmitting })
                 />
                 <Label>Respuestas Anónimas</Label>
               </div>
-              
-              <div className="flex items-center space-x-2">
-                <Switch
-                  checked={currentSurvey.enviar_chat}
-                  onCheckedChange={(checked) => setCurrentSurvey({...currentSurvey, enviar_chat: checked})}
-                />
-                <Label className="flex items-center gap-2">
-                  💬 Enviar al Chat
-                  <span className="text-xs text-slate-500">(Mensaje individual a cada padre)</span>
-                </Label>
-              </div>
+            </div>
+
+            {/* Info sobre notificación automática */}
+            <div className="bg-green-50 border-2 border-green-200 rounded-lg p-4">
+              <p className="text-sm text-green-900 font-medium">
+                🔔 La encuesta aparecerá automáticamente en el <strong>Centro de Alertas</strong> de todos los destinatarios
+              </p>
+              <p className="text-xs text-green-700 mt-1">
+                Los padres la verán como tarea pendiente hasta que respondan
+              </p>
             </div>
 
             {/* Preguntas */}
