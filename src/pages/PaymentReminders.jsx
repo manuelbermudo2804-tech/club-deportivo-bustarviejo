@@ -174,7 +174,7 @@ export default function PaymentReminders() {
         const family = familiesData.find(f => f.email === familyEmail);
         if (!family) continue;
 
-        // Construir mensaje personalizado por familia
+        // Construir mensaje
         let mensaje = `Estimada familia,\n\nLes recordamos que tienen los siguientes pagos pendientes:\n\n`;
         
         family.jugadores.forEach(jugador => {
@@ -188,8 +188,53 @@ export default function PaymentReminders() {
         });
 
         mensaje += `Total pendiente: ${family.totalFamilyDue}€\n\n`;
-        mensaje += `Por favor, accede a la app y registra los pagos lo antes posible.\n\n`;
+        mensaje += `📧 DATOS BANCARIOS:\n`;
+        mensaje += `IBAN: ES82 0049 4447 38 2010604048\n`;
+        mensaje += `Banco: Santander\n`;
+        mensaje += `Beneficiario: CD Bustarviejo\n\n`;
+        mensaje += `Por favor, accede a la app y registra los pagos.\n\n`;
         mensaje += `Atentamente,\nCD Bustarviejo`;
+
+        // Buscar conversación UNA SOLA VEZ
+        const allConvs = await base44.entities.PrivateConversation.list();
+        let conv = allConvs.find(c => 
+          c.participante_familia_email === family.email &&
+          c.participante_staff_email === 'sistema@cdbustarviejo.com'
+        );
+
+        if (!conv) {
+          conv = await base44.entities.PrivateConversation.create({
+            participante_familia_email: family.email,
+            participante_familia_nombre: family.nombre_tutor,
+            participante_staff_email: "sistema@cdbustarviejo.com",
+            participante_staff_nombre: "🤖 Sistema de Recordatorios - Administración",
+            participante_staff_rol: "admin",
+            categoria: "Todos",
+            jugadores_relacionados: family.jugadores.map(j => ({ jugador_id: j.id, jugador_nombre: j.nombre })),
+            ultimo_mensaje: mensaje.substring(0, 100),
+            ultimo_mensaje_fecha: new Date().toISOString(),
+            ultimo_mensaje_de: "staff",
+            no_leidos_familia: 1,
+            archivada: false
+          });
+        }
+
+        // Crear mensaje UNA SOLA VEZ
+        await base44.entities.PrivateMessage.create({
+          conversacion_id: conv.id,
+          remitente_email: "sistema@cdbustarviejo.com",
+          remitente_nombre: "🤖 Sistema de Recordatorios",
+          remitente_tipo: "staff",
+          mensaje: `💬 RECORDATORIO DE PAGOS\n\n${mensaje}`,
+          leido: false
+        });
+
+        await base44.entities.PrivateConversation.update(conv.id, {
+          ultimo_mensaje: mensaje.substring(0, 100),
+          ultimo_mensaje_fecha: new Date().toISOString(),
+          ultimo_mensaje_de: "staff",
+          no_leidos_familia: (conv.no_leidos_familia || 0) + 1
+        });
 
         // Enviar email
         await base44.integrations.Core.SendEmail({
@@ -208,50 +253,9 @@ export default function PaymentReminders() {
           });
         }
 
-        // Enviar a chat privado
-        const chatMessage = `💬 RECORDATORIO DE PAGOS\n\n${mensaje}\n\n🔒 MENSAJE PRIVADO: Solo tu familia ve este mensaje.`;
-        
-        const allConvs = await base44.entities.PrivateConversation.list();
-        let conv = allConvs.find(c => 
-          c.participante_familia_email === family.email &&
-          c.participante_staff_email === 'sistema@cdbustarviejo.com'
-        );
-
-        if (!conv) {
-          conv = await base44.entities.PrivateConversation.create({
-            participante_familia_email: family.email,
-            participante_familia_nombre: family.nombre_tutor,
-            participante_staff_email: "sistema@cdbustarviejo.com",
-            participante_staff_nombre: "🤖 Sistema de Recordatorios - Administración",
-            participante_staff_rol: "admin",
-            categoria: "Todos",
-            jugadores_relacionados: family.jugadores.map(j => ({ jugador_id: j.id, jugador_nombre: j.nombre })),
-            ultimo_mensaje: chatMessage.substring(0, 100),
-            ultimo_mensaje_fecha: new Date().toISOString(),
-            ultimo_mensaje_de: "staff",
-            no_leidos_familia: 0,
-            archivada: false
-          });
-        }
-
-        await base44.entities.PrivateMessage.create({
-          conversacion_id: conv.id,
-          remitente_email: "sistema@cdbustarviejo.com",
-          remitente_nombre: "🤖 Sistema de Recordatorios",
-          remitente_tipo: "staff",
-          mensaje: chatMessage,
-          leido: false
-        });
-
-        await base44.entities.PrivateConversation.update(conv.id, {
-          ultimo_mensaje: chatMessage.substring(0, 100),
-          ultimo_mensaje_fecha: new Date().toISOString(),
-          ultimo_mensaje_de: "staff",
-          no_leidos_familia: (conv.no_leidos_familia || 0) + 1
-        });
-
         sent++;
-        await new Promise(resolve => setTimeout(resolve, 500)); // Evitar spam
+        console.log(`✅ Recordatorio enviado a ${family.email}`);
+        await new Promise(resolve => setTimeout(resolve, 1000));
       }
 
       toast.success(`✅ ${sent} recordatorios enviados por Email + Chat`);
@@ -507,7 +511,6 @@ export default function PaymentReminders() {
                   </div>
                   <Button
                     onClick={async () => {
-                      // Enviar recordatorio individual a esta familia
                       try {
                         // Construir mensaje
                         let mensaje = `Estimada familia,\n\nLes recordamos que tienen los siguientes pagos pendientes:\n\n`;
@@ -516,17 +519,62 @@ export default function PaymentReminders() {
                           if (jugador.hasPendingPayments) {
                             mensaje += `👤 ${jugador.nombre} (${jugador.deporte}):\n`;
                             jugador.pendingMonths.forEach(m => {
-                              mensaje += `   • ${m.mes}: ${m.cantidad}€ (Vence: 30 de ${m.mes})\n`;
+                              mensaje += `   • ${m.mes}: ${m.cantidad}€\n`;
                             });
                             mensaje += `\n`;
                           }
                         });
 
                         mensaje += `Total pendiente: ${family.totalFamilyDue}€\n\n`;
+                        mensaje += `📧 DATOS BANCARIOS:\n`;
+                        mensaje += `IBAN: ES82 0049 4447 38 2010604048\n`;
+                        mensaje += `Banco: Santander\n`;
+                        mensaje += `Beneficiario: CD Bustarviejo\n\n`;
                         mensaje += `Por favor, accede a la app y registra los pagos.\n\n`;
                         mensaje += `Atentamente,\nCD Bustarviejo`;
 
-                        // Email
+                        // Buscar conversación
+                        const allConvs = await base44.entities.PrivateConversation.list();
+                        let conv = allConvs.find(c => 
+                          c.participante_familia_email === family.email &&
+                          c.participante_staff_email === 'sistema@cdbustarviejo.com'
+                        );
+
+                        if (!conv) {
+                          conv = await base44.entities.PrivateConversation.create({
+                            participante_familia_email: family.email,
+                            participante_familia_nombre: family.nombre_tutor,
+                            participante_staff_email: "sistema@cdbustarviejo.com",
+                            participante_staff_nombre: "🤖 Sistema de Recordatorios - Administración",
+                            participante_staff_rol: "admin",
+                            categoria: "Todos",
+                            jugadores_relacionados: family.jugadores.map(j => ({ jugador_id: j.id, jugador_nombre: j.nombre })),
+                            ultimo_mensaje: mensaje.substring(0, 100),
+                            ultimo_mensaje_fecha: new Date().toISOString(),
+                            ultimo_mensaje_de: "staff",
+                            no_leidos_familia: 1,
+                            archivada: false
+                          });
+                        }
+
+                        // Crear mensaje UNA VEZ
+                        await base44.entities.PrivateMessage.create({
+                          conversacion_id: conv.id,
+                          remitente_email: "sistema@cdbustarviejo.com",
+                          remitente_nombre: "🤖 Sistema de Recordatorios",
+                          remitente_tipo: "staff",
+                          mensaje: `💬 RECORDATORIO DE PAGOS\n\n${mensaje}`,
+                          leido: false
+                        });
+
+                        await base44.entities.PrivateConversation.update(conv.id, {
+                          ultimo_mensaje: mensaje.substring(0, 100),
+                          ultimo_mensaje_fecha: new Date().toISOString(),
+                          ultimo_mensaje_de: "staff",
+                          no_leidos_familia: (conv.no_leidos_familia || 0) + 1
+                        });
+
+                        // Enviar email
                         await base44.integrations.Core.SendEmail({
                           from_name: "CD Bustarviejo",
                           to: family.email,
@@ -543,48 +591,7 @@ export default function PaymentReminders() {
                           });
                         }
 
-                        // Chat privado
-                        const chatMessage = `💬 RECORDATORIO DE PAGOS\n\n${mensaje}\n\n🔒 MENSAJE PRIVADO: Solo tu familia ve este mensaje.`;
-                        
-                        const allConvs = await base44.entities.PrivateConversation.list();
-                        let conv = allConvs.find(c => 
-                          c.participante_familia_email === family.email &&
-                          c.participante_staff_email === 'sistema@cdbustarviejo.com'
-                        );
-
-                        if (!conv) {
-                          conv = await base44.entities.PrivateConversation.create({
-                            participante_familia_email: family.email,
-                            participante_familia_nombre: family.nombre_tutor,
-                            participante_staff_email: "sistema@cdbustarviejo.com",
-                            participante_staff_nombre: "🤖 Sistema de Recordatorios - Administración",
-                            participante_staff_rol: "admin",
-                            categoria: "Todos",
-                            jugadores_relacionados: family.jugadores.map(j => ({ jugador_id: j.id, jugador_nombre: j.nombre })),
-                            ultimo_mensaje: chatMessage.substring(0, 100),
-                            ultimo_mensaje_fecha: new Date().toISOString(),
-                            ultimo_mensaje_de: "staff",
-                            no_leidos_familia: 0,
-                            archivada: false
-                          });
-                        }
-
-                        await base44.entities.PrivateMessage.create({
-                          conversacion_id: conv.id,
-                          remitente_email: "sistema@cdbustarviejo.com",
-                          remitente_nombre: "🤖 Sistema de Recordatorios",
-                          remitente_tipo: "staff",
-                          mensaje: chatMessage,
-                          leido: false
-                        });
-
-                        await base44.entities.PrivateConversation.update(conv.id, {
-                          ultimo_mensaje: chatMessage.substring(0, 100),
-                          ultimo_mensaje_fecha: new Date().toISOString(),
-                          ultimo_mensaje_de: "staff",
-                          no_leidos_familia: (conv.no_leidos_familia || 0) + 1
-                        });
-
+                        console.log(`✅ Recordatorio enviado a ${family.email}`);
                         toast.success("✅ Recordatorio enviado por Email + Chat");
                       } catch (error) {
                         console.error("Error:", error);
