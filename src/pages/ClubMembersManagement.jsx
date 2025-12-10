@@ -66,6 +66,34 @@ export default function ClubMembersManagement() {
     },
   });
 
+  // Detectar socios que NO se renovaron (de temporada anterior sin registro en actual)
+  const { data: noRenovados = [] } = useQuery({
+    queryKey: ['noRenovados', seasonConfig?.temporada],
+    queryFn: async () => {
+      if (!seasonConfig?.temporada) return [];
+      
+      // Obtener temporada anterior
+      const [yearStart] = seasonConfig.temporada.split('/').map(Number);
+      const prevSeason = `${yearStart - 1}/${yearStart}`;
+      
+      // Socios de temporada anterior
+      const prevSeasonMembers = members.filter(m => m.temporada === prevSeason);
+      
+      // Verificar cuáles NO aparecen en temporada actual
+      const notRenewed = prevSeasonMembers.filter(prevMember => {
+        const renewed = members.find(m => 
+          m.temporada === seasonConfig.temporada &&
+          (m.email?.toLowerCase() === prevMember.email?.toLowerCase() ||
+           m.dni === prevMember.dni)
+        );
+        return !renewed;
+      });
+      
+      return notRenewed;
+    },
+    enabled: !!seasonConfig?.temporada && members.length > 0,
+  });
+
   // Emails de padres con jugadores
   const parentEmails = new Set();
   players.forEach(p => {
@@ -729,12 +757,15 @@ Por solo *25€/año* seguirás apoyando a nuestros jóvenes deportistas.
 
       {/* Tabs: Lista vs Estadísticas */}
       <Tabs defaultValue="lista" className="space-y-4">
-        <TabsList className="grid w-full grid-cols-2 max-w-md">
+        <TabsList className="grid w-full grid-cols-3 max-w-2xl">
           <TabsTrigger value="lista" className="flex items-center gap-2">
             <Users className="w-4 h-4" /> Lista de Socios
           </TabsTrigger>
           <TabsTrigger value="estadisticas" className="flex items-center gap-2">
             <BarChart3 className="w-4 h-4" /> Estadísticas
+          </TabsTrigger>
+          <TabsTrigger value="no-renovados" className="flex items-center gap-2">
+            <AlertCircle className="w-4 h-4" /> No Renovados {noRenovados.length > 0 && `(${noRenovados.length})`}
           </TabsTrigger>
         </TabsList>
 
@@ -1019,6 +1050,117 @@ Por solo *25€/año* seguirás apoyando a nuestros jóvenes deportistas.
           ))
           )}
         </div>
+        </TabsContent>
+
+        <TabsContent value="no-renovados" className="space-y-6">
+          <Card className="bg-gradient-to-r from-red-50 to-orange-50 border-2 border-red-300">
+            <CardContent className="p-6">
+              <div className="flex items-center gap-3 mb-4">
+                <AlertCircle className="w-8 h-8 text-red-600" />
+                <div>
+                  <h3 className="text-xl font-bold text-red-900">Socios NO Renovados</h3>
+                  <p className="text-sm text-red-700">Socios de temporadas anteriores que no se han renovado en {seasonConfig?.temporada}</p>
+                </div>
+              </div>
+              
+              {noRenovados.length === 0 ? (
+                <div className="text-center py-8">
+                  <CheckCircle2 className="w-12 h-12 text-green-500 mx-auto mb-3" />
+                  <p className="text-slate-600">¡Todos los socios anteriores se han renovado! 🎉</p>
+                </div>
+              ) : (
+                <>
+                  <div className="mb-4 flex gap-2">
+                    <Button
+                      onClick={async () => {
+                        if (!confirm(`¿Enviar recordatorio de renovación a ${noRenovados.length} socios?`)) return;
+                        
+                        let sent = 0;
+                        for (const member of noRenovados) {
+                          if (!member.email) continue;
+                          try {
+                            await base44.integrations.Core.SendEmail({
+                              from_name: "CD Bustarviejo",
+                              to: member.email,
+                              subject: "💚 ¡Te echamos de menos! - Renueva tu carnet de socio",
+                              body: `Estimado/a ${member.nombre_completo},
+
+¡Esperamos que todo vaya bien! 💚
+
+Nos hemos dado cuenta de que aún no has renovado tu carnet de socio para la temporada ${seasonConfig?.temporada}.
+
+🎉 TE INVITAMOS A RENOVAR
+
+Por solo 25€/año seguirás apoyando a nuestros jóvenes deportistas de Bustarviejo.
+
+Tu apoyo es importante para nosotros. ¡Esperamos verte de nuevo!
+
+Un cordial saludo,
+CD Bustarviejo
+cdbustarviejo@gmail.com`
+                            });
+                            sent++;
+                          } catch (e) {
+                            console.error("Error enviando a:", member.email, e);
+                          }
+                          await new Promise(r => setTimeout(r, 200));
+                        }
+                        toast.success(`✅ ${sent} recordatorios enviados`);
+                      }}
+                      className="bg-orange-600 hover:bg-orange-700"
+                    >
+                      <Mail className="w-4 h-4 mr-2" />
+                      Enviar Recordatorio a Todos ({noRenovados.length})
+                    </Button>
+                  </div>
+
+                  <div className="space-y-3">
+                    {noRenovados.map(member => (
+                      <Card key={member.id} className="bg-white">
+                        <CardContent className="p-4">
+                          <div className="flex items-center justify-between gap-4">
+                            <div className="flex-1">
+                              <h4 className="font-semibold text-slate-900">{member.nombre_completo}</h4>
+                              <div className="text-sm text-slate-600 space-y-0.5 mt-1">
+                                <p>📧 {member.email} | 📱 {member.telefono}</p>
+                                <p className="text-xs">
+                                  Última temporada: <Badge variant="outline">{member.temporada}</Badge>
+                                  {member.es_socio_externo && <Badge className="ml-2 bg-cyan-100">Externo</Badge>}
+                                  {member.es_socio_padre && <Badge className="ml-2 bg-purple-100">Padre</Badge>}
+                                </p>
+                              </div>
+                            </div>
+                            
+                            <div className="flex gap-2">
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => sendEmailToMember(member)}
+                                disabled={!member.email || sendingEmailTo === member.id}
+                              >
+                                {sendingEmailTo === member.id ? (
+                                  <RefreshCw className="w-4 h-4 animate-spin" />
+                                ) : (
+                                  <><Mail className="w-4 h-4 mr-1" /> Recordar</>
+                                )}
+                              </Button>
+                              {member.telefono && generateWhatsAppLink(member) && (
+                                <a href={generateWhatsAppLink(member)} target="_blank" rel="noopener noreferrer">
+                                  <Button size="sm" variant="outline">
+                                    <MessageCircle className="w-4 h-4 text-green-600" />
+                                  </Button>
+                                </a>
+                              )}
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                </>
+              )}
+            </CardContent>
+          </Card>
         </TabsContent>
       </Tabs>
     </div>
