@@ -305,8 +305,8 @@ export default function AlertCenter({
         title: "💳 Pagos en Revisión",
         description: `${pendingPayments} pago${pendingPayments > 1 ? 's' : ''} esperando revisión`,
         url: createPageUrl("Payments"),
-        color: "bg-green-600",
-        priority: 3
+        color: "bg-orange-600",
+        priority: 1
       });
     }
 
