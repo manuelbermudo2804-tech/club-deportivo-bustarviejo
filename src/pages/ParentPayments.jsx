@@ -103,27 +103,27 @@ export default function ParentPayments() {
       );
     },
     enabled: !!user?.email,
-    initialData: [],
-    staleTime: 300000, // 5 minutos
-    gcTime: 600000,
-    refetchOnWindowFocus: false,
+    staleTime: 0,
+    gcTime: 300000,
+    refetchOnWindowFocus: true,
+    refetchOnMount: true,
   });
 
   const { data: payments, isLoading: loadingPayments } = useQuery({
     queryKey: ['myPayments', players],
     queryFn: async () => {
-      if (players.length === 0) return [];
+      if (!players || players.length === 0) return [];
       const allPayments = await base44.entities.Payment.list('-created_date');
       const playerIds = players.map(p => p.id);
       return allPayments.filter(payment => 
         playerIds.includes(payment.jugador_id) && payment.is_deleted !== true
       );
     },
-    enabled: !!user && players.length > 0,
-    initialData: [],
-    staleTime: 30000, // 30 segundos
+    enabled: !!user && !!players,
+    staleTime: 0,
     gcTime: 300000,
-    refetchOnWindowFocus: false,
+    refetchOnWindowFocus: true,
+    refetchOnMount: true,
   });
 
   const isLoading = loadingPlayers || loadingPayments || !user;
