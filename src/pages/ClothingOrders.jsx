@@ -147,11 +147,33 @@ export default function ClothingOrders() {
     },
   });
 
-  // Función para actualizar el crédito del usuario cuando se usa
-  const handleCreditUsed = async (creditUsed) => {
+  // Función para actualizar el crédito del usuario cuando se usa Y registrar en histórico
+  const handleCreditUsed = async (creditUsed, orderData) => {
     if (creditUsed > 0 && user) {
-      const newBalance = Math.max(0, (user.clothing_credit_balance || 0) - creditUsed);
+      const saldoAntes = user.clothing_credit_balance || 0;
+      const newBalance = Math.max(0, saldoAntes - creditUsed);
+      
+      // Actualizar saldo del usuario
       await base44.auth.updateMe({ clothing_credit_balance: newBalance });
+      
+      // Registrar el gasto en histórico
+      try {
+        await base44.entities.CreditoRopaHistorico.create({
+          user_email: user.email,
+          user_nombre: user.full_name,
+          tipo: "gastado",
+          cantidad: creditUsed,
+          concepto: `Pedido equipación - ${orderData.jugador_nombre}`,
+          temporada: seasonConfig?.temporada || "",
+          jugador_nombre: orderData.jugador_nombre,
+          saldo_antes: saldoAntes,
+          saldo_despues: newBalance,
+          fecha_movimiento: new Date().toISOString()
+        });
+      } catch (error) {
+        console.error("Error registrando gasto de crédito:", error);
+      }
+      
       // Invalidar y refetch para que se actualice el crédito en toda la UI
       await queryClient.invalidateQueries({ queryKey: ['currentUser'] });
       await refetchUser();
@@ -744,7 +766,11 @@ export default function ClothingOrders() {
             onCancel={() => setShowForm(false)}
             isSubmitting={createOrderMutation.isPending}
             userCredit={user?.clothing_credit_balance || 0}
-            onCreditUsed={handleCreditUsed}
+            onCreditUsed={(creditUsed) => {
+              // Guardar datos del pedido para el histórico
+              const orderData = { jugador_nombre: "Pendiente" }; // Se actualizará al crear el pedido
+              handleCreditUsed(creditUsed, orderData);
+            }}
           />
         )}
       </AnimatePresence>

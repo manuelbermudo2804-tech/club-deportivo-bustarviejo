@@ -570,16 +570,17 @@ export default function SeasonManagement() {
         setProcessingProgress((currentStep / totalSteps) * 100);
       }
 
-      // 19. RESETEAR CONTADORES DE REFERIDOS (manteniendo créditos de ropa)
+      // 19. RESETEAR CONTADORES DE REFERIDOS Y SORTEOS (manteniendo créditos de ropa)
       if (resetConfig.resetUserReferrals) {
-        setProcessingStep("Reseteando contadores de referidos...");
+        setProcessingStep("Reseteando contadores de referidos y sorteos...");
         const allUsers = await base44.entities.User.list();
         for (const user of allUsers) {
-          if (user.referidos_count > 0 || user.referidos_list?.length > 0) {
+          if (user.referrals_count > 0 || user.referidos_list?.length > 0 || user.raffle_entries_total > 0) {
             await base44.entities.User.update(user.id, {
-              referidos_count: 0, // Resetear contador
+              referrals_count: 0, // Resetear contador de referidos
               referidos_list: [], // Vaciar lista de referidos
-              // MANTENER credito_ropa_acumulado (NO se resetea)
+              raffle_entries_total: 0, // RESETEAR participaciones en sorteos
+              // MANTENER clothing_credit_balance (NO se resetea - persiste entre temporadas)
             });
           }
         }
