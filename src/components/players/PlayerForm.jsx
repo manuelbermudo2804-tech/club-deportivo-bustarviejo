@@ -384,6 +384,42 @@ export default function PlayerForm({ player, onSubmit, onCancel, isSubmitting, i
     const errors = {};
     let firstErrorField = null;
 
+    // VALIDACIÓN: Verificar si categoría coincide con edad (±1 año tolerancia)
+    let categoriaRequiereRevision = false;
+    let motivoRevision = "";
+    
+    if (currentPlayer.fecha_nacimiento && currentPlayer.deporte && currentPlayer.deporte !== "Fútbol Femenino") {
+      const suggested = suggestCategoryByAge(currentPlayer.fecha_nacimiento);
+      if (suggested && suggested !== currentPlayer.deporte) {
+        // Verificar si la diferencia es significativa (más de 1 categoría)
+        const categoriesOrder = [
+          "Fútbol Pre-Benjamín (Mixto)",
+          "Fútbol Benjamín (Mixto)",
+          "Fútbol Alevín (Mixto)",
+          "Fútbol Infantil (Mixto)",
+          "Fútbol Cadete",
+          "Fútbol Juvenil",
+          "Fútbol Aficionado"
+        ];
+        
+        const suggestedIndex = categoriesOrder.indexOf(suggested);
+        const selectedIndex = categoriesOrder.indexOf(currentPlayer.deporte);
+        
+        // Si la diferencia es > 1 categoría, marcar para revisión
+        if (Math.abs(suggestedIndex - selectedIndex) > 1) {
+          categoriaRequiereRevision = true;
+          motivoRevision = `Edad: ${playerAge} años → sugerido ${suggested}, seleccionado ${currentPlayer.deporte}`;
+        }
+      }
+    }
+
+    // Agregar campos de revisión al jugador
+    const playerDataWithValidation = {
+      ...currentPlayer,
+      categoria_requiere_revision: categoriaRequiereRevision,
+      motivo_revision_categoria: categoriaRequiereRevision ? motivoRevision : ""
+    };
+
     // Validaciones con mensajes descriptivos
     if (!currentPlayer.nombre?.trim()) {
       errors.nombre = "El nombre del jugador es obligatorio";
@@ -471,11 +507,11 @@ export default function PlayerForm({ player, onSubmit, onCancel, isSubmitting, i
       return;
     }
 
-    if (!player && !currentPlayer.fecha_aceptacion_privacidad) {
-      currentPlayer.fecha_aceptacion_privacidad = new Date().toISOString();
+    if (!player && !playerDataWithValidation.fecha_aceptacion_privacidad) {
+      playerDataWithValidation.fecha_aceptacion_privacidad = new Date().toISOString();
     }
 
-    onSubmit(currentPlayer);
+    onSubmit(playerDataWithValidation);
   };
 
   // JUGADORES DISPONIBLES PARA RENOVAR: Solo los INACTIVOS (de temporada anterior)
@@ -872,31 +908,66 @@ export default function PlayerForm({ player, onSubmit, onCancel, isSubmitting, i
               </div>
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="deporte">Categoría y Deporte *</Label>
-              {/* Sugerencia automática de categoría */}
-              {playerAge !== null && suggestCategoryByAge(currentPlayer.fecha_nacimiento) && 
-               suggestCategoryByAge(currentPlayer.fecha_nacimiento) !== currentPlayer.deporte && (
-                <Alert className="mb-2 bg-blue-50 border-blue-200">
-                  <AlertCircle className="h-4 w-4 text-blue-600" />
-                  <AlertDescription className="text-blue-800 text-sm">
-                    <strong>💡 Sugerencia:</strong> Según la edad ({playerAge} años), la categoría recomendada es{' '}
-                    <button 
-                      type="button"
-                      onClick={() => setCurrentPlayer({...currentPlayer, deporte: suggestCategoryByAge(currentPlayer.fecha_nacimiento)})}
-                      className="font-bold underline text-blue-700 hover:text-blue-900"
-                    >
-                      {suggestCategoryByAge(currentPlayer.fecha_nacimiento)}
-                    </button>
-                  </AlertDescription>
-                </Alert>
-              )}
-              <Select value={currentPlayer.deporte} onValueChange={(value) => setCurrentPlayer({...currentPlayer, deporte: value})} disabled={isParent && player}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  {categories.map(cat => <SelectItem key={cat.value} value={cat.value}>{cat.label}</SelectItem>)}
-                </SelectContent>
-              </Select>
+            {/* Checkbox Fútbol Femenino */}
+            <div className="space-y-4">
+              <div className="flex items-center gap-3 p-4 bg-gradient-to-r from-pink-50 to-purple-50 rounded-lg border-2 border-pink-200">
+                <Checkbox 
+                  id="es_femenino"
+                  checked={currentPlayer.deporte === "Fútbol Femenino"}
+                  onCheckedChange={(checked) => {
+                    if (checked) {
+                      setCurrentPlayer({...currentPlayer, deporte: "Fútbol Femenino"});
+                    } else {
+                      // Si desmarca, volver a la sugerencia o Pre-Benjamín
+                      const suggested = suggestCategoryByAge(currentPlayer.fecha_nacimiento);
+                      setCurrentPlayer({...currentPlayer, deporte: suggested || "Fútbol Pre-Benjamín (Mixto)"});
+                    }
+                  }}
+                  className="w-5 h-5"
+                />
+                <Label htmlFor="es_femenino" className="cursor-pointer flex-1">
+                  <span className="font-bold text-pink-900">⚽👧 ¿Es jugadora de Fútbol Femenino?</span>
+                  <p className="text-xs text-pink-700 mt-1">
+                    Marca esta casilla si la jugadora va a participar en el equipo femenino del club
+                  </p>
+                </Label>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="deporte">Categoría y Deporte *</Label>
+                {/* Sugerencia automática de categoría */}
+                {playerAge !== null && currentPlayer.deporte !== "Fútbol Femenino" && 
+                 suggestCategoryByAge(currentPlayer.fecha_nacimiento) && 
+                 suggestCategoryByAge(currentPlayer.fecha_nacimiento) !== currentPlayer.deporte && (
+                  <Alert className="mb-2 bg-blue-50 border-blue-200">
+                    <AlertCircle className="h-4 w-4 text-blue-600" />
+                    <AlertDescription className="text-blue-800 text-sm">
+                      <strong>💡 Sugerencia Automática:</strong> Según la edad ({playerAge} años), la categoría recomendada es{' '}
+                      <button 
+                        type="button"
+                        onClick={() => setCurrentPlayer({...currentPlayer, deporte: suggestCategoryByAge(currentPlayer.fecha_nacimiento)})}
+                        className="font-bold underline text-blue-700 hover:text-blue-900"
+                      >
+                        {suggestCategoryByAge(currentPlayer.fecha_nacimiento)}
+                      </button>
+                      {' '}• Puedes cambiarla si no es correcta.
+                    </AlertDescription>
+                  </Alert>
+                )}
+                <Select 
+                  value={currentPlayer.deporte} 
+                  onValueChange={(value) => setCurrentPlayer({...currentPlayer, deporte: value})} 
+                  disabled={isParent && player}
+                >
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {categories.map(cat => <SelectItem key={cat.value} value={cat.value}>{cat.label}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-slate-500">
+                  ℹ️ La IA sugiere categoría según edad, pero puedes cambiarla si es necesario
+                </p>
+              </div>
             </div>
 
             {/* DOCUMENTACIÓN DEL JUGADOR */}
