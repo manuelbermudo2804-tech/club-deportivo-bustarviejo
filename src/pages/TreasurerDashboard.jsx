@@ -359,24 +359,60 @@ export default function TreasurerDashboard() {
     { name: 'Socios', value: stats.socios?.pagados || 0, color: '#ec4899' }
   ].filter(d => d.value > 0);
 
-  // Deudas pendientes (jugadores con pagos atrasados)
+  // Deudas pendientes (jugadores con pagos atrasados) - LÓGICA CORREGIDA
   const pendingDebts = useMemo(() => {
     const debtMap = {};
+    const activePlayers = players.filter(p => p.activo === true);
     
-    filteredPayments.filter(p => p.estado === "Pendiente").forEach(p => {
-      if (!debtMap[p.jugador_id]) {
-        const player = players.find(pl => pl.id === p.jugador_id);
-        debtMap[p.jugador_id] = {
-          jugador_id: p.jugador_id,
-          jugador_nombre: p.jugador_nombre,
-          email_padre: player?.email_padre,
-          deporte: player?.deporte,
-          deuda_total: 0,
-          pagos_pendientes: []
+    activePlayers.forEach(player => {
+      const playerPayments = filteredPayments.filter(p => p.jugador_id === player.id);
+      
+      // Verificar si tiene pago único pagado o en revisión
+      const hasPagoUnico = playerPayments.some(p => 
+        (p.tipo_pago === "Único" || p.tipo_pago === "único") && 
+        (p.estado === "Pagado" || p.estado === "En revisión")
+      );
+      
+      if (hasPagoUnico) {
+        // Si tiene pago único, no debe nada
+        return;
+      }
+      
+      // Si no tiene pago único, calcular meses pendientes
+      const allMonths = ["Junio", "Septiembre", "Diciembre"];
+      const pagosPendientes = [];
+      let deudaTotal = 0;
+      
+      allMonths.forEach(mes => {
+        // Buscar si hay un pago PAGADO o EN REVISIÓN para este mes
+        const pagoPagadoORevision = playerPayments.find(p => 
+          p.mes === mes && (p.estado === "Pagado" || p.estado === "En revisión")
+        );
+        
+        // Si ya está pagado o en revisión, NO incluir como pendiente
+        if (pagoPagadoORevision) return;
+        
+        // Calcular cantidad pendiente para este mes
+        const cuotas = getCuotasPorCategoriaSync(player.deporte);
+        const cantidad = mes === "Junio" ? cuotas.inscripcion : 
+                        mes === "Septiembre" ? cuotas.segunda : 
+                        cuotas.tercera;
+        
+        deudaTotal += cantidad;
+        pagosPendientes.push({ mes, cantidad });
+      });
+      
+      // Solo agregar al mapa si tiene deudas pendientes
+      if (pagosPendientes.length > 0) {
+        debtMap[player.id] = {
+          jugador_id: player.id,
+          jugador_nombre: player.nombre,
+          email_padre: player.email_padre,
+          deporte: player.deporte,
+          deuda_total: deudaTotal,
+          pagos_pendientes: pagosPendientes
         };
       }
-      debtMap[p.jugador_id].deuda_total += p.cantidad || 0;
-      debtMap[p.jugador_id].pagos_pendientes.push(p);
     });
 
     return Object.values(debtMap).sort((a, b) => b.deuda_total - a.deuda_total);
