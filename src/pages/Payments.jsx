@@ -257,10 +257,65 @@ export default function Payments() {
     
     await updatePaymentMutation.mutateAsync({ id: payment.id, paymentData: updatedData });
     
-    // Enviar recibo PDF por email cuando se marca como Pagado
+    // AUTO-CREAR SOCIO cuando se marca pago como Pagado
     if (newStatus === "Pagado") {
       try {
         const player = players.find(p => p.id === payment.jugador_id);
+        
+        // AUTO-REGISTRO DE PADRES COMO SOCIOS
+        console.log('👥 [AUTO-SOCIO] Verificando si crear socio para:', player?.email_padre);
+        
+        if (player?.email_padre) {
+          try {
+            // Verificar si ya existe socio con este email en esta temporada
+            const allMembers = await base44.entities.ClubMember.list();
+            const existingMember = allMembers.find(m => 
+              m.email?.toLowerCase() === player.email_padre?.toLowerCase() && 
+              m.temporada === payment.temporada
+            );
+            
+            if (!existingMember) {
+              console.log('✅ [AUTO-SOCIO] Creando socio automáticamente para:', player.email_padre);
+              
+              // Generar número de socio
+              const currentYear = new Date().getFullYear();
+              const memberCount = allMembers.length + 1;
+              const numeroSocio = `CDB-${currentYear}-${String(memberCount).padStart(4, '0')}`;
+              
+              // Verificar si es renovación (existe en temporada anterior)
+              const previousSeasonMember = allMembers.find(m => 
+                m.email?.toLowerCase() === player.email_padre?.toLowerCase()
+              );
+              
+              const newMember = await base44.entities.ClubMember.create({
+                numero_socio: numeroSocio,
+                nombre_completo: player.nombre_tutor_legal || player.email_padre.split('@')[0],
+                dni: player.dni_tutor_legal || '',
+                email: player.email_padre,
+                telefono: player.telefono || '',
+                direccion: player.direccion || '',
+                municipio: player.municipio || 'Bustarviejo',
+                cuota_socio: 0, // Los padres no pagan cuota de socio aparte
+                tipo_inscripcion: previousSeasonMember ? "Renovación" : "Nueva Inscripción",
+                estado_pago: "Pagado",
+                temporada: payment.temporada,
+                fecha_pago: updatedData.fecha_pago,
+                activo: true,
+                es_socio_padre: true, // Marcador para distinguir socios-padres de externos
+                jugadores_hijos: [{ jugador_id: player.id, jugador_nombre: player.nombre }],
+                notas: `Socio creado automáticamente al confirmar pago de ${player.nombre}`
+              });
+              
+              console.log('🎉 [AUTO-SOCIO] Socio creado:', newMember.numero_socio);
+              toast.success(`👥 Padre registrado como socio: ${numeroSocio}`);
+            } else {
+              console.log('ℹ️ [AUTO-SOCIO] Socio ya existe para esta temporada');
+            }
+          } catch (socioError) {
+            console.error("Error auto-creando socio:", socioError);
+            // No fallar todo el proceso si falla crear socio
+          }
+        }
         
         console.log('📧 [Payments] Generando y enviando recibo PDF:', { jugador: payment.jugador_nombre, padre: player?.email_padre, tutor2: player?.email_tutor_2 });
         
