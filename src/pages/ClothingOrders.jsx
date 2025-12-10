@@ -329,29 +329,133 @@ export default function ClothingOrders() {
 
   const toggleStoreMutation = useMutation({
     mutationFn: async () => {
+      const wasOpen = seasonConfig?.tienda_ropa_abierta === true;
+      
       if (seasonConfig) {
         // Si existe, actualizar
-        return base44.entities.SeasonConfig.update(seasonConfig.id, {
-          ...seasonConfig,
-          tienda_ropa_abierta: !seasonConfig.tienda_ropa_abierta
-        });
+        return { 
+          config: await base44.entities.SeasonConfig.update(seasonConfig.id, {
+            ...seasonConfig,
+            tienda_ropa_abierta: !seasonConfig.tienda_ropa_abierta
+          }),
+          wasOpen
+        };
       } else {
         // Si no existe, crear una temporada activa con tienda abierta
         const currentYear = new Date().getFullYear();
-        return base44.entities.SeasonConfig.create({
-          temporada: `${currentYear}/${currentYear + 1}`,
-          activa: true,
-          cuota_unica: 0,
-          cuota_tres_meses: 0,
-          tienda_ropa_abierta: true
-        });
+        return { 
+          config: await base44.entities.SeasonConfig.create({
+            temporada: `${currentYear}/${currentYear + 1}`,
+            activa: true,
+            cuota_unica: 0,
+            cuota_tres_meses: 0,
+            tienda_ropa_abierta: true
+          }),
+          wasOpen
+        };
       }
     },
-    onSuccess: async () => {
+    onSuccess: async (result) => {
       await queryClient.invalidateQueries({ queryKey: ['seasonConfig'] });
       await refetchSeasonConfig();
-      const newState = seasonConfig ? !seasonConfig.tienda_ropa_abierta : true;
-      toast.success(newState ? "✅ Tienda abierta para todas las familias" : "🔒 Tienda cerrada");
+      const newState = !result.wasOpen;
+      
+      // Si se está ABRIENDO la tienda (de cerrado → abierto)
+      if (newState) {
+        try {
+          // 1. Obtener todas las familias con jugadores activos
+          const activePlayers = await base44.entities.Player.filter({ activo: true });
+          const uniqueEmails = new Set();
+          activePlayers.forEach(p => {
+            if (p.email_padre) uniqueEmails.add(p.email_padre);
+            if (p.email_tutor_2) uniqueEmails.add(p.email_tutor_2);
+          });
+          
+          // 2. Enviar email a cada familia
+          const emailPromises = Array.from(uniqueEmails).map(email => 
+            base44.integrations.Core.SendEmail({
+              from_name: "CD Bustarviejo",
+              to: email,
+              subject: "🛍️ ¡Tienda de Equipación ABIERTA! - CD Bustarviejo",
+              body: `
+                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+                  <h1 style="color: #ea580c; text-align: center;">🛍️ ¡La Tienda de Equipación ya está ABIERTA!</h1>
+                  <p>Estimadas familias,</p>
+                  <p>Ya pueden realizar pedidos de equipación para sus jugadores a través de la aplicación.</p>
+                  
+                  <div style="background: #f0fdfa; border-left: 4px solid #14b8a6; padding: 15px; margin: 20px 0;">
+                    <h3 style="color: #0f766e; margin-top: 0;">📦 Productos Disponibles:</h3>
+                    <ul style="color: #115e59;">
+                      <li><strong>Chaqueta de Partidos:</strong> 35€</li>
+                      <li><strong>Pack de Entrenamiento:</strong> 41€ (Camiseta + Pantalón + Sudadera)</li>
+                      <li><strong>Chubasquero:</strong> 20€</li>
+                      <li><strong>Anorak:</strong> 40€</li>
+                      <li><strong>Mochila con botero:</strong> 22€</li>
+                    </ul>
+                  </div>
+                  
+                  <div style="background: #fff7ed; border-left: 4px solid #f97316; padding: 15px; margin: 20px 0;">
+                    <h3 style="color: #c2410c; margin-top: 0;">📅 Fechas Importantes:</h3>
+                    <p style="color: #9a3412; margin: 5px 0;"><strong>Periodo de pedidos:</strong> Junio y Julio</p>
+                    <p style="color: #9a3412; margin: 5px 0;"><strong>Recogida:</strong> Primera semana de Septiembre</p>
+                  </div>
+                  
+                  <div style="text-align: center; margin: 30px 0;">
+                    <p style="font-size: 18px; color: #334155;">👉 Accede a la app para hacer tu pedido</p>
+                  </div>
+                  
+                  <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 20px 0;">
+                  <p style="text-align: center; color: #64748b; font-size: 12px;">
+                    CD Bustarviejo<br>
+                    📧 CDBUSTARVIEJO@GMAIL.COM
+                  </p>
+                </div>
+              `
+            })
+          );
+          
+          await Promise.all(emailPromises);
+          console.log(`✅ Emails enviados a ${uniqueEmails.size} familias`);
+          
+          // 3. Crear anuncio destacado
+          const expiracion = new Date();
+          expiracion.setDate(expiracion.getDate() + 30); // Expira en 30 días
+          
+          await base44.entities.Announcement.create({
+            titulo: "🛍️ ¡Tienda de Equipación ABIERTA!",
+            contenido: `Ya puedes hacer pedidos de equipación para tus jugadores.
+
+**📦 Productos Disponibles:**
+• Chaqueta de Partidos: 35€
+• Pack de Entrenamiento: 41€ (Camiseta + Pantalón + Sudadera)
+• Chubasquero: 20€
+• Anorak: 40€
+• Mochila con botero: 22€
+
+**📅 Fechas Importantes:**
+• Periodo de pedidos: Junio y Julio
+• Recogida: Primera semana de Septiembre en las instalaciones del club
+
+👉 Accede a la sección "Pedidos de Equipación" para realizar tu pedido.`,
+            prioridad: "Urgente",
+            destinatarios_tipo: "Todos",
+            publicado: true,
+            destacado: true,
+            tipo_caducidad: "fecha",
+            fecha_expiracion: expiracion.toISOString().split('T')[0],
+            fecha_publicacion: new Date().toISOString(),
+            enviar_email: false // Ya enviamos manualmente
+          });
+          
+          console.log('✅ Anuncio destacado creado');
+          toast.success(`✅ Tienda abierta • Enviados ${uniqueEmails.size} emails + anuncio creado`);
+        } catch (error) {
+          console.error('Error al notificar apertura:', error);
+          toast.success("✅ Tienda abierta (error al enviar notificaciones)");
+        }
+      } else {
+        toast.success("🔒 Tienda cerrada");
+      }
     },
   });
 
