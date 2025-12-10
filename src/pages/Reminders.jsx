@@ -88,24 +88,15 @@ export default function RemindersPage() {
       
       // EMAIL
       if (email || animation) {
+        const monthsText = data.selectedMonths?.length > 0 
+          ? data.selectedMonths.join(', ')
+          : payment?.mes || 'Temporada';
+          
         const subject = animation 
-          ? `🔔 ¡RECORDATORIO IMPORTANTE! - Pago ${payment.mes} - CD Bustarviejo`
-          : `Recordatorio de Pago - ${payment.mes}`;
+          ? `🔔 ¡RECORDATORIO IMPORTANTE! - Pago ${monthsText} - CD Bustarviejo`
+          : `Recordatorio de Pago - ${monthsText} - CD Bustarviejo`;
         
-        const emailBody = animation
-          ? `
-╔═══════════════════════════════════════════╗
-║  🔔 RECORDATORIO URGENTE DE PAGO 🔔      ║
-╚═══════════════════════════════════════════╝
-
-${data.message}
-
-⚠️ ATENCIÓN: Este es un recordatorio prioritario
-Por favor, complete el pago a la brevedad posible.
-
-Gracias por su atención.
-          `
-          : data.message;
+        const emailBody = data.message;
         
         if (player.email_padre) {
           await base44.integrations.Core.SendEmail({
@@ -114,6 +105,7 @@ Gracias por su atención.
             subject: subject,
             body: emailBody
           });
+          console.log('✅ Email enviado a:', player.email_padre);
         }
         if (player.email_tutor_2) {
           await base44.integrations.Core.SendEmail({
@@ -122,9 +114,10 @@ Gracias por su atención.
             subject: subject,
             body: emailBody
           });
+          console.log('✅ Email enviado a:', player.email_tutor_2);
         }
         sentMethods.push('Email');
-        }
+      }
 
         // CHAT PRIVADO usando PrivateConversation
         if (chat || animation) {
