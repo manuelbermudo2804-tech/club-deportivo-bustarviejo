@@ -466,7 +466,16 @@ Email: cdbustarviejo@gmail.com
               player.nombre.toLowerCase().includes(searchTerm.toLowerCase())
             )
             .map((player) => {
-              const allPlayerPayments = payments.filter(p => p.jugador_id === player.id);
+              // Normalizar temporada (aceptar tanto "/" como "-")
+              const normalizeSeason = (season) => {
+                if (!season) return currentSeason;
+                return season.replace('-', '/');
+              };
+
+              const allPlayerPayments = payments.filter(p => 
+                p.jugador_id === player.id && 
+                normalizeSeason(p.temporada) === currentSeason
+              );
               
               // Si tiene pago único pagado o en revisión, solo mostrar Junio
               const hasPagoUnico = allPlayerPayments.some(p => 

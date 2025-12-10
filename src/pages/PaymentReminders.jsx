@@ -97,9 +97,16 @@ export default function PaymentReminders() {
         };
       }
 
+      // Normalizar temporadas (aceptar "/" y "-")
+      const normalizeSeason = (season) => {
+        if (!season) return currentSeason;
+        return season.replace('-', '/');
+      };
+
       // Calcular estado de pagos del jugador - FILTRAR CORRECTAMENTE
       const playerPayments = payments.filter(p => 
-        p.jugador_id === player.id && p.temporada === currentSeason
+        p.jugador_id === player.id && 
+        normalizeSeason(p.temporada) === currentSeason
       );
 
       const allMonths = ["Junio", "Septiembre", "Diciembre"];
