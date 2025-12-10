@@ -97,6 +97,34 @@ export default function ParentCoachChat() {
     }
   }, [messages]);
 
+  // Marcar mensajes como leídos INMEDIATAMENTE al abrir el chat
+  useEffect(() => {
+    if (!user || !messages || messages.length === 0) return;
+
+    const markAsRead = async () => {
+      const unreadMessages = messages.filter(m => 
+        m.remitente_email !== user.email && !m.leido
+      );
+
+      if (unreadMessages.length === 0) return;
+
+      // Marcar INMEDIATAMENTE
+      for (const msg of unreadMessages) {
+        await base44.entities.ChatMessage.update(msg.id, { leido: true });
+      }
+
+      // Invalidar queries INMEDIATAMENTE
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ['coachGroupMessages'] }),
+        queryClient.invalidateQueries({ queryKey: ['chatMessages'] }),
+        queryClient.refetchQueries({ queryKey: ['coachGroupMessages'] }),
+        queryClient.refetchQueries({ queryKey: ['chatMessages'] })
+      ]);
+    };
+
+    markAsRead();
+  }, [messages.length, user?.email, selectedCategory, queryClient]);
+
   const handleFileUpload = async (e) => {
     const files = Array.from(e.target.files);
     setUploading(true);
