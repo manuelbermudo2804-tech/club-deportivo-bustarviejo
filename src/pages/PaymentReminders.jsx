@@ -333,6 +333,55 @@ export default function PaymentReminders() {
         </Button>
       </div>
 
+      <Card className="border-green-200 bg-gradient-to-r from-green-50 to-emerald-50 shadow-lg">
+        <CardHeader>
+          <CardTitle className="text-lg flex items-center gap-2">
+            <CheckCircle2 className="h-5 w-5 text-green-600" />
+            🤖 Recordatorios Automáticos Activados
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <p className="text-sm text-slate-700">
+            El sistema envía recordatorios <strong>automáticamente</strong> por Email + Chat privado "🔔 Mensajes del Club" en estas fechas:
+          </p>
+          
+          <div className="grid md:grid-cols-3 gap-3">
+            <div className="bg-white rounded-lg p-3 border-2 border-blue-200">
+              <p className="font-bold text-blue-900 text-sm mb-1">📅 Junio (Límite: 30 Jun)</p>
+              <ul className="text-xs text-slate-700 space-y-1">
+                <li>• 15 Jun - 15 días antes</li>
+                <li>• 23 Jun - 7 días antes</li>
+                <li>• 2 Jul - 2 días después</li>
+              </ul>
+            </div>
+            
+            <div className="bg-white rounded-lg p-3 border-2 border-orange-200">
+              <p className="font-bold text-orange-900 text-sm mb-1">📅 Septiembre (Límite: 15 Sep)</p>
+              <ul className="text-xs text-slate-700 space-y-1">
+                <li>• 1 Sep - 14 días antes</li>
+                <li>• 8 Sep - 7 días antes</li>
+                <li>• 17 Sep - 2 días después</li>
+              </ul>
+            </div>
+            
+            <div className="bg-white rounded-lg p-3 border-2 border-red-200">
+              <p className="font-bold text-red-900 text-sm mb-1">📅 Diciembre (Límite: 15 Dic)</p>
+              <ul className="text-xs text-slate-700 space-y-1">
+                <li>• 1 Dic - 14 días antes</li>
+                <li>• 8 Dic - 7 días antes</li>
+                <li>• 17 Dic - 2 días después</li>
+              </ul>
+            </div>
+          </div>
+          
+          <div className="bg-green-100 border-2 border-green-300 rounded-lg p-3">
+            <p className="text-xs text-green-800">
+              ✅ <strong>Solo se envían a familias con pagos pendientes</strong> de ese mes específico
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+
       <div className="grid md:grid-cols-2 gap-4">
         <Alert className="bg-blue-50 border-blue-300">
           <Info className="h-4 w-4 text-blue-600" />
@@ -341,7 +390,7 @@ export default function PaymentReminders() {
             <ul className="text-sm space-y-1 list-disc list-inside">
               <li><strong>Cuotas automáticas:</strong> Se calculan desde "Temporadas y Categorías"</li>
               <li><strong>Los padres registran sus pagos</strong> en "Mis Pagos"</li>
-              <li><strong>Tú envías recordatorios</strong> a las familias con pagos pendientes</li>
+              <li><strong>Recordatorios manuales:</strong> Puedes enviar cuando quieras</li>
             </ul>
           </AlertDescription>
         </Alert>

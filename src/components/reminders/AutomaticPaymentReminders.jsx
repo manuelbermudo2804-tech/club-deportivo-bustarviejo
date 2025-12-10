@@ -23,30 +23,61 @@ export default function AutomaticPaymentReminders({ user }) {
         // Determinar temporada actual
         const currentSeason = currentMonth >= 9 ? `${currentYear}/${currentYear + 1}` : `${currentYear - 1}/${currentYear}`;
         
-        // Determinar si estamos en inicio de mes de pago (días 1-5)
+        // Determinar si estamos en fecha de envío de recordatorio
+        // Fechas límite: Junio 30, Septiembre 15, Diciembre 15
         let mesRecordatorio = null;
-        if (currentMonth === 6 && currentDay <= 5) {
+        let tipoRecordatorio = null;
+        
+        if (currentMonth === 6) {
+          if (currentDay === 15) {
+            mesRecordatorio = "Junio";
+            tipoRecordatorio = "15_dias_antes";
+          } else if (currentDay === 23) {
+            mesRecordatorio = "Junio";
+            tipoRecordatorio = "7_dias_antes";
+          }
+        } else if (currentMonth === 7 && currentDay === 2) {
           mesRecordatorio = "Junio";
-        } else if (currentMonth === 9 && currentDay <= 5) {
+          tipoRecordatorio = "2_dias_despues";
+        } else if (currentMonth === 9) {
+          if (currentDay === 1) {
+            mesRecordatorio = "Septiembre";
+            tipoRecordatorio = "15_dias_antes";
+          } else if (currentDay === 8) {
+            mesRecordatorio = "Septiembre";
+            tipoRecordatorio = "7_dias_antes";
+          }
+        } else if (currentMonth === 9 && currentDay === 17) {
           mesRecordatorio = "Septiembre";
-        } else if (currentMonth === 12 && currentDay <= 5) {
-          mesRecordatorio = "Diciembre";
+          tipoRecordatorio = "2_dias_despues";
+        } else if (currentMonth === 12) {
+          if (currentDay === 1) {
+            mesRecordatorio = "Diciembre";
+            tipoRecordatorio = "15_dias_antes";
+          } else if (currentDay === 8) {
+            mesRecordatorio = "Diciembre";
+            tipoRecordatorio = "7_dias_antes";
+          } else if (currentDay === 17) {
+            mesRecordatorio = "Diciembre";
+            tipoRecordatorio = "2_dias_despues";
+          }
         }
         
-        if (!mesRecordatorio) {
-          console.log("⏰ [AutomaticPaymentReminders] No es inicio de mes de pago");
+        if (!mesRecordatorio || !tipoRecordatorio) {
+          console.log("⏰ [AutomaticPaymentReminders] No es fecha de recordatorio");
           return;
         }
         
-        console.log(`🔔 [AutomaticPaymentReminders] Verificando recordatorios para ${mesRecordatorio} ${currentSeason}`);
+        console.log(`🔔 [AutomaticPaymentReminders] Verificando recordatorios ${tipoRecordatorio} para ${mesRecordatorio} ${currentSeason}`);
         
         setProcessing(true);
         
-        // Verificar si ya se enviaron recordatorios este mes/temporada
+        // Verificar si ya se enviaron recordatorios de este tipo hoy
         const existingReminders = await base44.entities.AutomaticReminder.list();
         const alreadySentToday = existingReminders.filter(r => 
           r.temporada === currentSeason &&
           r.mes === mesRecordatorio &&
+          r.tipo_recordatorio === tipoRecordatorio &&
           r.fecha_envio &&
           new Date(r.fecha_envio).toDateString() === now.toDateString()
         );
@@ -132,21 +163,52 @@ export default function AutomaticPaymentReminders({ user }) {
           try {
             const totalFamilia = family.jugadores.reduce((sum, j) => sum + j.cantidad, 0);
             
+            // Personalizar mensaje según tipo de recordatorio
+            const fechasLimite = {
+              "Junio": "30 de junio",
+              "Septiembre": "15 de septiembre",
+              "Diciembre": "15 de diciembre"
+            };
+            
+            const mensajesTipo = {
+              "15_dias_antes": {
+                titulo: "📅 Recordatorio de Pago - Faltan 15 días",
+                intro: `Les recordamos que la fecha límite de pago para ${mesRecordatorio} es el ${fechasLimite[mesRecordatorio]}. Todavía tienen tiempo suficiente para realizar el pago.`,
+                urgencia: ""
+              },
+              "7_dias_antes": {
+                titulo: "⏰ Recordatorio Importante - Falta 1 semana",
+                intro: `Les recordamos que quedan solo 7 días para la fecha límite de pago de ${mesRecordatorio} (${fechasLimite[mesRecordatorio]}).`,
+                urgencia: "\n⚠️ Por favor, realice el pago lo antes posible para evitar retrasos.\n"
+              },
+              "2_dias_despues": {
+                titulo: "🔴 PAGO ATRASADO - Acción Requerida",
+                intro: `El plazo de pago de ${mesRecordatorio} (${fechasLimite[mesRecordatorio]}) ha vencido. Es importante que regularice esta situación lo antes posible.`,
+                urgencia: "\n⚠️ URGENTE: Contacte con el club si tiene algún problema para realizar el pago.\n"
+              }
+            };
+            
+            const mensajeTipo = mensajesTipo[tipoRecordatorio];
+            
             // Construir mensaje
-            let mensaje = `🔔 RECORDATORIO AUTOMÁTICO DE PAGO - ${mesRecordatorio}\n\n`;
+            let mensaje = `🔔 ${mensajeTipo.titulo}\n\n`;
             mensaje += `Estimada familia,\n\n`;
-            mensaje += `Les recordamos que tienen los siguientes pagos pendientes para ${mesRecordatorio}:\n\n`;
+            mensaje += `${mensajeTipo.intro}\n\n`;
+            mensaje += `Pagos pendientes:\n\n`;
             
             family.jugadores.forEach(jugador => {
               mensaje += `👤 ${jugador.jugador_nombre} (${jugador.deporte}): ${jugador.cantidad}€\n`;
             });
             
-            mensaje += `\nTotal a pagar: ${totalFamilia}€\n\n`;
-            mensaje += `📧 DATOS BANCARIOS:\n`;
+            mensaje += `\nTotal a pagar: ${totalFamilia}€\n`;
+            mensaje += mensajeTipo.urgencia;
+            mensaje += `\n📧 DATOS BANCARIOS:\n`;
             mensaje += `IBAN: ES82 0049 4447 38 2010604048\n`;
             mensaje += `Banco: Santander\n`;
-            mensaje += `Beneficiario: CD Bustarviejo\n\n`;
-            mensaje += `Por favor, accede a la app en la sección "💳 Pagos" para registrar tu pago.\n\n`;
+            mensaje += `Beneficiario: CD Bustarviejo\n`;
+            mensaje += `Concepto: Nombre del jugador + ${mesRecordatorio}\n\n`;
+            mensaje += `📲 Por favor, accede a la app en la sección "💳 Pagos" para registrar tu pago y subir el justificante.\n\n`;
+            mensaje += `Si ya realizaste el pago, ignora este mensaje.\n\n`;
             mensaje += `Atentamente,\nCD Bustarviejo`;
             
             // Buscar o crear conversación privada
@@ -214,6 +276,7 @@ export default function AutomaticPaymentReminders({ user }) {
             await base44.entities.AutomaticReminder.create({
               temporada: currentSeason,
               mes: mesRecordatorio,
+              tipo_recordatorio: tipoRecordatorio,
               familia_email: family.email,
               jugadores_incluidos: family.jugadores,
               total_recordado: totalFamilia,
