@@ -363,13 +363,15 @@ export default function SeasonManagement() {
           await base44.entities.Payment.delete(payment.id);
         }
         
-        // Resetear patrocinadores (marcarlos como "Pendiente" para nueva temporada)
+        // Resetear patrocinadores (marcarlos como "Pendiente" con monto en 0 hasta que paguen)
         const allSponsors = await base44.entities.Sponsor.list();
         for (const sponsor of allSponsors.filter(s => s.estado === "Activo")) {
           await base44.entities.Sponsor.update(sponsor.id, {
             estado: "Pendiente",
+            monto: 0, // CLAVE: resetear monto a 0 hasta que paguen
             temporada_anterior: activeSeason?.temporada || "",
-            notas: `${sponsor.notas || ''}\n[Renovación pendiente para temporada ${resetConfig.newSeasonName}]`.trim()
+            temporada: resetConfig.newSeasonName,
+            notas: `${sponsor.notas || ''}\n[Renovación pendiente para temporada ${resetConfig.newSeasonName} - Monto resetado a 0€]`.trim()
           });
         }
         

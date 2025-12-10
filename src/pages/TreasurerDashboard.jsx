@@ -325,8 +325,8 @@ export default function TreasurerDashboard() {
     const loteriaPagada = lotteryOrders.filter(o => o.pagado).reduce((sum, o) => sum + (o.precio_total || 0), 0);
     const loteriaPendiente = lotteryOrders.filter(o => !o.pagado).reduce((sum, o) => sum + (o.precio_total || 0), 0);
 
-    // Patrocinios
-    const patrociniosActivos = sponsors.filter(s => s.estado === "Activo");
+    // Patrocinios - SOLO contar activos CON pago confirmado (monto > 0)
+    const patrociniosActivos = sponsors.filter(s => s.estado === "Activo" && (s.monto || 0) > 0);
     const patrociniosTotal = patrociniosActivos.reduce((sum, s) => sum + (s.monto || 0), 0);
 
     // Socios
