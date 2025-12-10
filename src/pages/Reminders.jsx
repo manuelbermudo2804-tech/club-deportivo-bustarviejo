@@ -738,20 +738,19 @@ Temporada ${reminder.temporada}
           ? `🚨🔔 RECORDATORIO URGENTE DE PAGO 🔔🚨\n\n${data.message}\n\n⚠️ POR FAVOR, ATENCIÓN INMEDIATA\n\n🔒 MENSAJE PRIVADO: Solo tu familia ve este mensaje. No aparece en chats de grupo.`
           : `💬 RECORDATORIO DE PAGO\n\n${data.message}\n\n🔒 MENSAJE PRIVADO: Solo tu familia ve este mensaje. No aparece en chats de grupo.`;
         
-        // Enviar al padre principal
-        if (player.email_padre) {
+        // Función helper async para enviar a conversación privada
+        const sendToPrivateConv = async (email, nombre) => {
           try {
-            const allConvs = await base44.entities.PrivateConversation.list();
             let conv = allConvs.find(c => 
-              c.participante_familia_email === player.email_padre &&
+              c.participante_familia_email === email &&
               c.participante_staff_email === 'sistema@cdbustarviejo.com' &&
               c.participante_staff_rol === 'admin'
             );
             
             if (!conv) {
               conv = await base44.entities.PrivateConversation.create({
-                participante_familia_email: player.email_padre,
-                participante_familia_nombre: player.nombre_tutor_legal || "Padre/Tutor",
+                participante_familia_email: email,
+                participante_familia_nombre: nombre,
                 participante_staff_email: "sistema@cdbustarviejo.com",
                 participante_staff_nombre: "🤖 Sistema de Recordatorios - Administración",
                 participante_staff_rol: "admin",
@@ -781,55 +780,18 @@ Temporada ${reminder.temporada}
               no_leidos_familia: (conv.no_leidos_familia || 0) + 1
             });
           } catch (error) {
-            console.error("Error enviando a chat privado padre:", error);
+            console.error("Error enviando mensaje privado:", error);
           }
+        };
+        
+        // Enviar al padre principal
+        if (player.email_padre) {
+          await sendToPrivateConv(player.email_padre, player.nombre_tutor_legal || "Padre/Tutor");
         }
         
         // Enviar al tutor 2
         if (player.email_tutor_2) {
-          try {
-            const allConvs = await base44.entities.PrivateConversation.list();
-            let conv = allConvs.find(c => 
-              c.participante_familia_email === player.email_tutor_2 &&
-              c.participante_staff_email === 'sistema@cdbustarviejo.com' &&
-              c.participante_staff_rol === 'admin'
-            );
-            
-            if (!conv) {
-              conv = await base44.entities.PrivateConversation.create({
-                participante_familia_email: player.email_tutor_2,
-                participante_familia_nombre: player.nombre_tutor_2 || "Tutor 2",
-                participante_staff_email: "sistema@cdbustarviejo.com",
-                participante_staff_nombre: "🤖 Sistema de Recordatorios - Administración",
-                participante_staff_rol: "admin",
-                categoria: player.deporte,
-                jugadores_relacionados: [{ jugador_id: player.id, jugador_nombre: player.nombre }],
-                ultimo_mensaje: chatMessage.substring(0, 100),
-                ultimo_mensaje_fecha: new Date().toISOString(),
-                ultimo_mensaje_de: "staff",
-                no_leidos_familia: 0,
-                archivada: false
-              });
-            }
-            
-            await base44.entities.PrivateMessage.create({
-              conversacion_id: conv.id,
-              remitente_email: "sistema@cdbustarviejo.com",
-              remitente_nombre: "🤖 Sistema de Recordatorios",
-              remitente_tipo: "staff",
-              mensaje: chatMessage,
-              leido: false
-            });
-            
-            await base44.entities.PrivateConversation.update(conv.id, {
-              ultimo_mensaje: chatMessage.substring(0, 100),
-              ultimo_mensaje_fecha: new Date().toISOString(),
-              ultimo_mensaje_de: "staff",
-              no_leidos_familia: (conv.no_leidos_familia || 0) + 1
-            });
-          } catch (error) {
-            console.error("Error enviando a chat privado tutor 2:", error);
-          }
+          await sendToPrivateConv(player.email_tutor_2, player.nombre_tutor_2 || "Tutor 2");
         }
         
         sentMethods.push('Chat Privado Administración');
