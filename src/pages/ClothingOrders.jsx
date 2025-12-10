@@ -76,25 +76,49 @@ export default function ClothingOrders() {
 
   const { data: allPlayers, isLoading: loadingAllPlayers } = useQuery({
     queryKey: ['allPlayersForClothing'],
-    queryFn: () => base44.entities.Player.list(),
+    queryFn: async () => {
+      const list = await base44.entities.Player.list();
+      console.log('🔄 [ClothingOrders] Jugadores cargados desde API:', list.length);
+      return list;
+    },
     initialData: [],
-    staleTime: 60000, // 1 minuto
+    staleTime: 0, // Sin caché
+    gcTime: 0,
+    refetchOnMount: true,
+    refetchOnWindowFocus: true,
   });
 
   const players = useMemo(() => {
-    if (!user?.email || !allPlayers) return [];
+    if (!user?.email || !allPlayers) {
+      console.log('🔍 [ClothingOrders] Sin user o allPlayers:', { hasUser: !!user, hasAllPlayers: !!allPlayers });
+      return [];
+    }
     
     const userEmail = user.email.toLowerCase().trim();
+    console.log('🔍 [ClothingOrders] Filtrando jugadores para:', userEmail);
+    console.log('🔍 [ClothingOrders] Total jugadores en BD:', allPlayers.length);
     
-    return allPlayers.filter(p => {
+    const filtered = allPlayers.filter(p => {
       const emailPadre = p.email_padre?.toLowerCase().trim();
       const emailTutor2 = p.email_tutor_2?.toLowerCase().trim();
       
       const isMyPlayer = emailPadre === userEmail || emailTutor2 === userEmail;
       const isActive = p.activo === true;
       
+      console.log(`👤 ${p.nombre}:`, { 
+        emailPadre, 
+        emailTutor2, 
+        activo: p.activo, 
+        isMyPlayer, 
+        isActive,
+        matches: isMyPlayer && isActive 
+      });
+      
       return isMyPlayer && isActive;
     });
+    
+    console.log('✅ [ClothingOrders] Jugadores filtrados:', filtered.length);
+    return filtered;
   }, [user?.email, allPlayers]);
 
   const { data: orders, isLoading } = useQuery({
