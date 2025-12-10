@@ -176,8 +176,8 @@ export default function ChatTermsDialog({ open, onAccept, onDecline, user, tipoC
 
   return (
     <Dialog open={open} onOpenChange={() => {}}>
-      <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col">
-        <DialogHeader>
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
+        <DialogHeader className="flex-shrink-0">
           <DialogTitle className="flex items-center gap-2 text-orange-700">
             <FileText className="w-5 h-5" />
             📜 Condiciones de Uso - Chat {tipoChat === "coordinador" ? "Coordinador" : "Entrenador"}
@@ -187,13 +187,13 @@ export default function ChatTermsDialog({ open, onAccept, onDecline, user, tipoC
           </DialogDescription>
         </DialogHeader>
 
-        <div className="flex-1 border rounded-lg p-4 bg-slate-50 max-h-[400px] overflow-y-auto overscroll-contain">
+        <div className="flex-1 min-h-0 border-2 border-orange-300 rounded-lg p-4 bg-slate-50 overflow-y-scroll" style={{ maxHeight: '300px' }}>
           <div className="text-xs text-slate-800 whitespace-pre-wrap leading-relaxed">
             {CONDICIONES_TEXTO}
           </div>
         </div>
 
-        <div className="space-y-4">
+        <div className="space-y-4 flex-shrink-0">
           <div className="flex items-start gap-2">
             <Checkbox 
               id="accept-terms" 
@@ -230,7 +230,7 @@ export default function ChatTermsDialog({ open, onAccept, onDecline, user, tipoC
           </div>
         </div>
 
-        <DialogFooter>
+        <DialogFooter className="flex-shrink-0">
           <Button variant="outline" onClick={onDecline}>
             No acepto
           </Button>
