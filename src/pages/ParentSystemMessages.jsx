@@ -57,7 +57,7 @@ export default function ParentSystemMessages() {
     enabled: conversations.length > 0,
   });
 
-  // Marcar mensajes como leídos
+  // Marcar mensajes como leídos INMEDIATAMENTE
   useEffect(() => {
     const markAsRead = async () => {
       if (!user || allMessages.length === 0) return;
@@ -66,6 +66,9 @@ export default function ParentSystemMessages() {
         m.remitente_tipo === 'staff' && !m.leido
       );
       
+      if (unreadMessages.length === 0) return;
+      
+      // Marcar como leído INMEDIATAMENTE
       for (const msg of unreadMessages) {
         await base44.entities.PrivateMessage.update(msg.id, { leido: true });
       }
@@ -79,14 +82,18 @@ export default function ParentSystemMessages() {
         }
       }
       
-      if (unreadMessages.length > 0) {
-        queryClient.invalidateQueries({ queryKey: ['parentPrivateMessages'] });
-        queryClient.invalidateQueries({ queryKey: ['parentPrivateConversations'] });
-      }
+      // Invalidar TODAS las queries relacionadas INMEDIATAMENTE
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ['parentPrivateMessages'] }),
+        queryClient.invalidateQueries({ queryKey: ['parentPrivateConversations'] }),
+        queryClient.invalidateQueries({ queryKey: ['unreadPrivateMessages'] }),
+        queryClient.refetchQueries({ queryKey: ['parentPrivateMessages'] }),
+        queryClient.refetchQueries({ queryKey: ['parentPrivateConversations'] })
+      ]);
     };
     
     markAsRead();
-  }, [allMessages, user, conversations]);
+  }, [allMessages.length, user, conversations.length, queryClient]);
 
   useEffect(() => {
     if (messagesEndRef.current) {

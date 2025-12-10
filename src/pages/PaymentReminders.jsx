@@ -278,19 +278,66 @@ export default function PaymentReminders() {
         </Button>
       </div>
 
-      <Alert className="bg-blue-50 border-blue-300">
-        <Info className="h-4 w-4 text-blue-600" />
-        <AlertDescription className="text-blue-900">
-          <p className="font-bold mb-2">💡 ¿Cómo funciona?</p>
-          <ul className="text-sm space-y-1 list-disc list-inside">
-            <li><strong>Cuotas automáticas:</strong> Se calculan desde "Temporadas y Categorías"</li>
-            <li><strong>Los padres registran sus pagos</strong> en "Mis Pagos"</li>
-            <li><strong>Tú envías recordatorios</strong> a las familias con pagos pendientes</li>
-            <li><strong>Recordatorios individuales:</strong> Botón "Enviar" por familia</li>
-            <li><strong>Recordatorios masivos:</strong> Selecciona varias y pulsa "Enviar Masivo"</li>
-          </ul>
-        </AlertDescription>
-      </Alert>
+      <div className="grid md:grid-cols-2 gap-4">
+        <Alert className="bg-blue-50 border-blue-300">
+          <Info className="h-4 w-4 text-blue-600" />
+          <AlertDescription className="text-blue-900">
+            <p className="font-bold mb-2">💡 ¿Cómo funciona?</p>
+            <ul className="text-sm space-y-1 list-disc list-inside">
+              <li><strong>Cuotas automáticas:</strong> Se calculan desde "Temporadas y Categorías"</li>
+              <li><strong>Los padres registran sus pagos</strong> en "Mis Pagos"</li>
+              <li><strong>Tú envías recordatorios</strong> a las familias con pagos pendientes</li>
+            </ul>
+          </AlertDescription>
+        </Alert>
+        
+        <Alert className="bg-orange-50 border-orange-300">
+          <RefreshCw className="h-4 w-4 text-orange-600" />
+          <AlertDescription className="text-orange-900">
+            <p className="font-bold mb-2">⚙️ Actualizar Cantidades</p>
+            <p className="text-sm mb-2">Si cambiaste las cuotas en "Temporadas y Categorías", usa este botón para recalcular TODOS los pagos pendientes con las nuevas cantidades.</p>
+            <Button
+              onClick={async () => {
+                if (!confirm("¿Recalcular TODOS los pagos pendientes con las cuotas actuales de 'Temporadas y Categorías'?\n\nSOLO afecta a pagos con estado 'Pendiente'.")) return;
+                
+                try {
+                  toast.loading("Recalculando cantidades...");
+                  const currentSeason = getCurrentSeason();
+                  const allPayments = await base44.entities.Payment.list();
+                  const activePlayers = await base44.entities.Player.list();
+                  
+                  let updated = 0;
+                  for (const payment of allPayments) {
+                    if (payment.estado !== "Pendiente" || payment.temporada !== currentSeason) continue;
+                    
+                    const player = activePlayers.find(p => p.id === payment.jugador_id);
+                    if (!player) continue;
+                    
+                    const correctAmount = getCorrectAmount(player.deporte, payment.mes);
+                    if (payment.cantidad !== correctAmount) {
+                      await base44.entities.Payment.update(payment.id, { cantidad: correctAmount });
+                      updated++;
+                    }
+                  }
+                  
+                  await refetchPayments();
+                  toast.dismiss();
+                  toast.success(`✅ ${updated} pagos actualizados con las cuotas correctas`);
+                } catch (error) {
+                  toast.dismiss();
+                  toast.error("Error al actualizar cantidades");
+                  console.error(error);
+                }
+              }}
+              size="sm"
+              className="w-full bg-orange-600 hover:bg-orange-700"
+            >
+              <RefreshCw className="w-4 h-4 mr-2" />
+              Actualizar Todas las Cantidades
+            </Button>
+          </AlertDescription>
+        </Alert>
+      </div>
 
       {/* Resumen */}
       <div className="grid grid-cols-3 gap-4">
