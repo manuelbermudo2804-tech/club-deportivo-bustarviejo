@@ -194,17 +194,6 @@ export default function AlertCenter({
         priority: 2
       });
     }
-    if (pendingPayments > 0) {
-      alerts.push({
-        id: "payments",
-        icon: CreditCard,
-        title: "Pagos pendientes",
-        description: `${pendingPayments} pago${pendingPayments > 1 ? 's' : ''} por realizar`,
-        url: createPageUrl("ParentPayments"),
-        color: "bg-yellow-500",
-        priority: 3
-      });
-    }
     if (pendingSurveys > 0) {
       alerts.push({
         id: "surveys",
@@ -438,6 +427,18 @@ export default function AlertCenter({
 
   // Alertas para padres
   if (isParent && !isAdmin && !isCoach) {
+    // Solo mostrar pagos REALMENTE pendientes (estado "Pendiente"), NO los "En revisión"
+    if (pendingPayments > 0) {
+      alerts.push({
+        id: "payments",
+        icon: CreditCard,
+        title: "💳 Pagos por realizar",
+        description: `${pendingPayments} pago${pendingPayments > 1 ? 's' : ''} sin justificante`,
+        url: createPageUrl("ParentPayments"),
+        color: "bg-yellow-500",
+        priority: 3
+      });
+    }
     if (overduePayments > 0) {
       alerts.push({
         id: "overdue",
