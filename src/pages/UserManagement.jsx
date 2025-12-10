@@ -24,7 +24,8 @@ import {
   User,
   Check,
   Smartphone,
-  Send
+  Send,
+  FileSignature
 } from "lucide-react";
 import {
   Dialog,
