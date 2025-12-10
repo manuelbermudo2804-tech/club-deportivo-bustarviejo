@@ -6,13 +6,14 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Send, Paperclip, X, FileText, Download, MessageCircle, Users, Mic, Square, Play, Search, Smile, AlertTriangle, UserCircle, Mail, Phone } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { toast } from "sonner";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Textarea as DialogTextarea } from "@/components/ui/textarea";
+import { DialogFooter } from "@/components/ui/dialog";
 import ChatInputActions from "../components/chat/ChatInputActions";
 import SocialLinks from "../components/SocialLinks";
 import ChatTermsDialog from "../components/chat/ChatTermsDialog";
@@ -104,25 +105,6 @@ export default function ParentCoachChat() {
     enabled: !!selectedCategory && !!user,
   });
 
-  // Obtener todos los entrenadores para mostrar el perfil
-  const { data: allCoaches } = useQuery({
-    queryKey: ['allCoaches'],
-    queryFn: async () => {
-      const allUsers = await base44.entities.User.list();
-      return allUsers.filter(u => u.es_entrenador === true);
-    },
-    enabled: !!selectedCategory
-  });
-
-  // Actualizar datos del entrenador cuando cambia la categoría
-  useEffect(() => {
-    if (!selectedCategory || !allCoaches) return;
-    const coach = allCoaches.find(c => 
-      c.categorias_entrena?.includes(selectedCategory)
-    );
-    setCoachData(coach);
-  }, [selectedCategory, allCoaches]);
-
   // Obtener conversación privada con el entrenador
   const { data: coachConversations = [] } = useQuery({
     queryKey: ['myCoachConversations', user?.email, selectedCategory],
@@ -176,6 +158,24 @@ export default function ParentCoachChat() {
   const parentEmails = [...new Set(categoryPlayers.flatMap(p => 
     [p.email_padre, p.email_tutor_2].filter(Boolean)
   ))];
+
+  // Obtener datos del entrenador actual
+  const { data: allCoaches } = useQuery({
+    queryKey: ['allCoaches'],
+    queryFn: async () => {
+      const allUsers = await base44.entities.User.list();
+      return allUsers.filter(u => u.es_entrenador === true);
+    },
+    enabled: !!selectedCategory
+  });
+
+  useEffect(() => {
+    if (!selectedCategory || !allCoaches) return;
+    const coach = allCoaches.find(c => 
+      c.categorias_entrena?.includes(selectedCategory)
+    );
+    setCoachData(coach);
+  }, [selectedCategory, allCoaches]);
 
   useEffect(() => {
     if (messagesEndRef.current) {
