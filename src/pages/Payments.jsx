@@ -166,7 +166,7 @@ export default function Payments() {
       try {
         const allPayments = await base44.entities.Payment.list('-created_date');
         console.log('[DEBUG PAGOS QUERY] Total pagos en BD:', allPayments?.length);
-        return allPayments || [];
+        return (allPayments || []).filter(p => p.is_deleted !== true);
       } catch (error) {
         console.error("Error loading payments:", error);
         return [];
