@@ -104,8 +104,8 @@ export default function ParentPayments() {
     },
     enabled: !!user?.email,
     initialData: [],
-    staleTime: 60000, // 1 minuto
-    gcTime: 300000,
+    staleTime: 300000, // 5 minutos
+    gcTime: 600000,
     refetchOnWindowFocus: false,
   });
 
@@ -136,24 +136,22 @@ export default function ParentPayments() {
     }
   }, []);
 
-  // Obtener configuración de temporada para verificar si notificaciones están activas
   const { data: seasonConfig } = useQuery({
     queryKey: ['seasonConfig'],
     queryFn: async () => {
       const configs = await base44.entities.SeasonConfig.list();
       return configs.find(c => c.activa === true);
     },
-    staleTime: 300000, // 5 minutos
-    gcTime: 600000,
+    staleTime: 600000, // 10 minutos
+    gcTime: 1200000,
     refetchOnWindowFocus: false,
   });
 
-  // Obtener CategoryConfig para precios actualizados
   const { data: categoryConfigs = [] } = useQuery({
     queryKey: ['categoryConfigs'],
     queryFn: () => base44.entities.CategoryConfig.list(),
-    staleTime: 300000, // 5 minutos
-    gcTime: 600000,
+    staleTime: 600000, // 10 minutos
+    gcTime: 1200000,
     refetchOnWindowFocus: false,
   });
 

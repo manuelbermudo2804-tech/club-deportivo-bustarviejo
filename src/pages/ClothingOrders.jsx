@@ -682,8 +682,14 @@ export default function ClothingOrders() {
                 </div>
               </CardHeader>
               <CardContent>
-                <div className="space-y-6">
-                  {Object.entries(activeOrdersByFamily).map(([email, familyOrders]) => {
+                {Object.keys(activeOrdersByFamily).length === 0 ? (
+                  <div className="text-center py-12">
+                    <Users className="w-16 h-16 text-slate-300 mx-auto mb-4" />
+                    <p className="text-slate-500">No hay pedidos activos por familia</p>
+                  </div>
+                ) : (
+                  <div className="space-y-6">
+                    {Object.entries(activeOrdersByFamily).map(([email, familyOrders]) => {
                         const totalAmount = familyOrders.reduce((sum, o) => sum + (o.precio_total || 0), 0);
                         return (
                           <Card key={email} className="border-2 border-slate-200">
