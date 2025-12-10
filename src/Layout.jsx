@@ -506,6 +506,7 @@ export default function Layout({ children, currentPageName }) {
   const [pendingCallupsCount, setPendingCallupsCount] = useState(0);
   const [pendingSignaturesCount, setPendingSignaturesCount] = useState(0);
   const [pendingCallupResponses, setPendingCallupResponses] = useState(0); // Para entrenadores: respuestas sin confirmar
+  const [unreadAnnouncementsCount, setUnreadAnnouncementsCount] = useState(0);
 
   const [showSpecialScreen, setShowSpecialScreen] = useState(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -848,6 +849,58 @@ export default function Layout({ children, currentPageName }) {
         }, [user, isAdmin, isCoach, isCoordinator, hasPlayers]);
 
     useEffect(() => {
+      if (!user) return;
+
+      const checkUnreadAnnouncements = async () => {
+        try {
+          if (isAdmin) {
+            setUnreadAnnouncementsCount(0);
+            return;
+          }
+
+          const allAnnouncements = await base44.entities.Announcement.list();
+          const allPlayers = await base44.entities.Player.list();
+          const myPlayers = allPlayers.filter(p => 
+            p.email_padre === user.email || p.email === user.email
+          );
+          const sports = [...new Set(myPlayers.map(p => p.deporte).filter(Boolean))];
+
+          let unreadCount = 0;
+          const now = new Date();
+
+          allAnnouncements.forEach(announcement => {
+            if (!announcement.publicado) return;
+
+            // Verificar caducidad
+            if (announcement.tipo_caducidad === "horas" && announcement.fecha_caducidad_calculada) {
+              if (now > new Date(announcement.fecha_caducidad_calculada)) return;
+            } else if (announcement.fecha_expiracion) {
+              if (now > new Date(announcement.fecha_expiracion)) return;
+            }
+
+            // Verificar si es relevante
+            const isRelevant = announcement.destinatarios_tipo === "Todos" || sports.includes(announcement.destinatarios_tipo);
+            if (!isRelevant) return;
+
+            // Verificar si ya está leído
+            const alreadyRead = announcement.leido_por?.some(l => l.email === user.email);
+            if (!alreadyRead) {
+              unreadCount++;
+            }
+          });
+
+          setUnreadAnnouncementsCount(unreadCount);
+        } catch (error) {
+          console.error("Error checking unread announcements:", error);
+        }
+      };
+
+      checkUnreadAnnouncements();
+      const interval = setInterval(checkUnreadAnnouncements, 30000); // Check every 30 seconds
+      return () => clearInterval(interval);
+    }, [user, isAdmin]);
+
+    useEffect(() => {
       if (!user || isAdmin) return;
 
       const checkPendingSignatures = async () => {
@@ -984,7 +1037,7 @@ export default function Layout({ children, currentPageName }) {
       ...(user?.puede_gestionar_firmas ? [{ title: "🖊️ Firmas Federación", url: createPageUrl("FederationSignaturesAdmin"), icon: FileSignature }] : []),
 
       // 📢 INFORMACIÓN
-      { title: "📢 Anuncios", url: createPageUrl("Announcements"), icon: Megaphone },
+      { title: "📢 Anuncios", url: createPageUrl("Announcements"), icon: Megaphone, badge: unreadAnnouncementsCount > 0 ? unreadAnnouncementsCount : null },
       { title: "🎉 Eventos Club", url: createPageUrl("ParentEventRSVP"), icon: Calendar },
       { title: "📋 Encuestas", url: createPageUrl("Surveys"), icon: FileText },
       { title: "🖼️ Galería", url: createPageUrl("Gallery"), icon: Image },
@@ -1078,7 +1131,7 @@ export default function Layout({ children, currentPageName }) {
       { title: "👤 Mi Perfil Entrenador", url: createPageUrl("CoachProfile"), icon: UserCircle },
 
       // 📢 INFORMACIÓN
-      { title: "📢 Anuncios", url: createPageUrl("Announcements"), icon: Megaphone },
+      { title: "📢 Anuncios", url: createPageUrl("Announcements"), icon: Megaphone, badge: unreadAnnouncementsCount > 0 ? unreadAnnouncementsCount : null },
       { title: "🎉 Eventos Club", url: createPageUrl("ParentEventRSVP"), icon: Calendar },
       { title: "📋 Encuestas", url: createPageUrl("Surveys"), icon: FileText },
       { title: "🖼️ Galería", url: createPageUrl("Gallery"), icon: Image },

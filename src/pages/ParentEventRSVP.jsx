@@ -102,7 +102,6 @@ export default function ParentEventRSVP() {
 
   const today = new Date().toISOString().split('T')[0];
   const eventsWithRSVP = events.filter(e => 
-    e.requiere_confirmacion && 
     e.publicado && 
     e.fecha >= today &&
     (e.destinatario_categoria === "Todos" || myPlayersSports.includes(e.destinatario_categoria) || e.deporte === "Todos" || myPlayersSports.includes(e.deporte))
@@ -164,7 +163,7 @@ export default function ParentEventRSVP() {
         <Card>
           <CardContent className="pt-6 text-center py-12">
             <Calendar className="w-12 h-12 text-slate-400 mx-auto mb-3" />
-            <p className="text-slate-500">No hay eventos que requieran confirmación</p>
+            <p className="text-slate-500">No hay eventos próximos</p>
           </CardContent>
         </Card>
       ) : (
@@ -198,12 +197,14 @@ export default function ParentEventRSVP() {
                       </div>
                       <CardTitle className="text-xl">{event.titulo}</CardTitle>
                     </div>
-                    <Button 
-                     onClick={() => handleOpenRSVP(event)}
-                     className={myConfirmation && myConfirmation.confirmacion !== "pendiente" ? "bg-green-600 hover:bg-green-700" : ""}
-                    >
-                     {myConfirmation && myConfirmation.confirmacion !== "pendiente" ? "Ver mi respuesta" : "Confirmar"}
-                    </Button>
+                    {event.requiere_confirmacion && (
+                      <Button 
+                       onClick={() => handleOpenRSVP(event)}
+                       className={myConfirmation && myConfirmation.confirmacion !== "pendiente" ? "bg-green-600 hover:bg-green-700" : ""}
+                      >
+                       {myConfirmation && myConfirmation.confirmacion !== "pendiente" ? "Ver mi respuesta" : "Confirmar"}
+                      </Button>
+                    )}
                   </div>
                 </CardHeader>
                 <CardContent className="space-y-3">

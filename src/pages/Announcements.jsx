@@ -47,6 +47,55 @@ export default function Announcements() {
     };
     checkUser();
     
+    // Marcar todos los anuncios visibles como leídos
+    const markAnnouncementsAsRead = async () => {
+      try {
+        const currentUser = await base44.auth.me();
+        if (currentUser.role === "admin") return; // Admin no marca como leído
+        
+        const allAnnouncements = await base44.entities.Announcement.list();
+        
+        for (const announcement of allAnnouncements) {
+          if (!announcement.publicado) continue;
+          
+          // Verificar si el anuncio es relevante
+          const allPlayers = await base44.entities.Player.list();
+          const myPlayers = allPlayers.filter(p => 
+            p.email_padre === currentUser.email || p.email === currentUser.email
+          );
+          const sports = [...new Set(myPlayers.map(p => p.deporte).filter(Boolean))];
+          
+          const isRelevant = announcement.destinatarios_tipo === "Todos" || sports.includes(announcement.destinatarios_tipo);
+          if (!isRelevant) continue;
+          
+          // Verificar si ya está leído
+          const alreadyRead = announcement.leido_por?.some(l => l.email === currentUser.email);
+          if (alreadyRead) continue;
+          
+          // Marcar como leído
+          const leidoPor = announcement.leido_por || [];
+          leidoPor.push({
+            email: currentUser.email,
+            nombre: currentUser.full_name,
+            fecha: new Date().toISOString()
+          });
+          
+          await base44.entities.Announcement.update(announcement.id, {
+            leido_por: leidoPor
+          });
+        }
+        
+        queryClient.invalidateQueries({ queryKey: ['announcements'] });
+      } catch (error) {
+        console.error("Error marking announcements as read:", error);
+      }
+    };
+    
+    // Ejecutar después de 2 segundos de estar en la página
+    const timeout = setTimeout(markAnnouncementsAsRead, 2000);
+    return () => clearTimeout(timeout);
+  }, [queryClient]);
+    
     // Scroll al anuncio si viene desde AlertCenter
     const urlParams = new URLSearchParams(window.location.search);
     const announcementId = urlParams.get('id');
