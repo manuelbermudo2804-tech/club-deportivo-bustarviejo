@@ -15,7 +15,6 @@ import GlobalSearch from "./components/GlobalSearch";
 import ThemeToggle from "./components/ThemeToggle";
 import NotificationCenter from "./components/NotificationCenter";
 import LanguageSelector from "./components/LanguageSelector";
-import ChatNotificationListener from "./components/push/ChatNotificationListener";
 import AppNotificationListener from "./components/push/AppNotificationListener";
 import WelcomeScreen from "./components/WelcomeScreen.jsx";
 import { TutorialProvider } from "./components/tutorials/TutorialProvider";
@@ -953,7 +952,7 @@ export default function Layout({ children, currentPageName }) {
     // ⚙️ CONFIGURACIÓN
     { title: "⚙️ Temporadas y Categorías", url: createPageUrl("SeasonManagement"), icon: Settings },
     { title: "🔔 Preferencias Notif.", url: createPageUrl("NotificationPreferences"), icon: Settings },
-    { title: "📲 Enviar Push", url: createPageUrl("PushNotifications"), icon: Bell },
+
     { title: "📧 Invitaciones Email", url: createPageUrl("EmailInvitations"), icon: Mail },
     ];
 
@@ -1440,7 +1439,6 @@ export default function Layout({ children, currentPageName }) {
 
               <SessionManager />
               <NotificationBadge />
-              {/* {user && <ChatNotificationListener user={user} />} */}
               {user && <AppNotificationListener user={user} />}
               {user && <DocumentReminderEngine user={user} />}
       {user && <NotificationManager user={user} />}
@@ -1583,7 +1581,7 @@ export default function Layout({ children, currentPageName }) {
               </div>
             )}
             <div className="flex items-center gap-1">
-              {!isAdmin && !isCoach && !isTreasurer && <NotificationCenter />}
+              {!isCoach && !isTreasurer && <NotificationCenter />}
               <ThemeToggle />
               <LanguageSelector currentLang={currentLang} onLanguageChange={handleLanguageChange} />
             </div>

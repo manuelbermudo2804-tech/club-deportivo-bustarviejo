@@ -57,7 +57,6 @@ import ReferralManagement from './pages/ReferralManagement';
 import PublicClubMembership from './pages/PublicClubMembership';
 import TacticsBoard from './pages/TacticsBoard';
 import ExerciseLibrary from './pages/ExerciseLibrary';
-import PushNotifications from './pages/PushNotifications';
 import PlayerDashboard from './pages/PlayerDashboard';
 import EmailInvitations from './pages/EmailInvitations';
 import ExtraPayments from './pages/ExtraPayments';
@@ -136,7 +135,6 @@ export const PAGES = {
     "PublicClubMembership": PublicClubMembership,
     "TacticsBoard": TacticsBoard,
     "ExerciseLibrary": ExerciseLibrary,
-    "PushNotifications": PushNotifications,
     "PlayerDashboard": PlayerDashboard,
     "EmailInvitations": EmailInvitations,
     "ExtraPayments": ExtraPayments,
