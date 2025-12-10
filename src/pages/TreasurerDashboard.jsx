@@ -74,7 +74,10 @@ export default function TreasurerDashboard() {
   // Fetch all financial data
   const { data: payments = [] } = useQuery({
     queryKey: ['payments'],
-    queryFn: () => base44.entities.Payment.list('-created_date'),
+    queryFn: async () => {
+      const allPayments = await base44.entities.Payment.list('-created_date');
+      return allPayments.filter(p => p.is_deleted !== true);
+    },
   });
 
   const { data: players = [] } = useQuery({
@@ -258,9 +261,48 @@ export default function TreasurerDashboard() {
 
   // Calculate financial stats
   const stats = useMemo(() => {
+    const currentSeason = getCurrentSeason();
+    const activePlayers = players.filter(p => p.activo === true);
+    
+    // CALCULAR CUOTAS PENDIENTES CORRECTAMENTE
+    // Para cada jugador activo, calcular cuánto debe pagar en total vs cuánto ya pagó
+    let cuotasPendientesCalculadas = 0;
+    
+    activePlayers.forEach(player => {
+      const playerPayments = filteredPayments.filter(p => p.jugador_id === player.id);
+      
+      // Verificar si tiene pago único pagado o en revisión
+      const hasPagoUnico = playerPayments.some(p => 
+        (p.tipo_pago === "Único" || p.tipo_pago === "único") && 
+        (p.estado === "Pagado" || p.estado === "En revisión")
+      );
+      
+      if (hasPagoUnico) {
+        // Si tiene pago único, no debe nada
+        return;
+      }
+      
+      // Si no tiene pago único, contar cuántos meses le faltan
+      const allMonths = ["Junio", "Septiembre", "Diciembre"];
+      const mesesPagados = playerPayments
+        .filter(p => p.estado === "Pagado" || p.estado === "En revisión")
+        .map(p => p.mes);
+      
+      const mesesPendientes = allMonths.filter(mes => !mesesPagados.includes(mes));
+      
+      // Para cada mes pendiente, sumar la cuota correspondiente
+      mesesPendientes.forEach(mes => {
+        const cuotas = getCuotasPorCategoriaSync(player.deporte);
+        const cantidad = mes === "Junio" ? cuotas.inscripcion : 
+                        mes === "Septiembre" ? cuotas.segunda : 
+                        cuotas.tercera;
+        cuotasPendientesCalculadas += cantidad;
+      });
+    });
+    
     // Cuotas
     const cuotasPagadas = filteredPayments.filter(p => p.estado === "Pagado").reduce((sum, p) => sum + (p.cantidad || 0), 0);
-    const cuotasPendientes = filteredPayments.filter(p => p.estado === "Pendiente").reduce((sum, p) => sum + (p.cantidad || 0), 0);
+    const cuotasPendientes = cuotasPendientesCalculadas;
     const cuotasRevision = filteredPayments.filter(p => p.estado === "En revisión").reduce((sum, p) => sum + (p.cantidad || 0), 0);
 
     // Ropa
@@ -294,7 +336,7 @@ export default function TreasurerDashboard() {
       totalIngresos,
       totalPendiente
     };
-  }, [filteredPayments, filteredClothingOrders, lotteryOrders, sponsors, filteredClubMembers]);
+  }, [filteredPayments, filteredClothingOrders, lotteryOrders, sponsors, filteredClubMembers, players]);
 
   // Income by concept for pie chart
   const incomeByConceptData = [
@@ -644,6 +686,112 @@ export default function TreasurerDashboard() {
           </Select>
         </div>
       </div>
+
+      {/* Porcentaje de Impagados por Categoría */}
+      {useMemo(() => {
+        const categoryStats = {};
+        const activePlayers = players.filter(p => p.activo === true);
+        
+        activePlayers.forEach(player => {
+          const categoria = player.deporte;
+          if (!categoryStats[categoria]) {
+            categoryStats[categoria] = {
+              total: 0,
+              pagados: 0,
+              pendientes: 0
+            };
+          }
+          
+          categoryStats[categoria].total++;
+          
+          const playerPayments = filteredPayments.filter(p => p.jugador_id === player.id);
+          
+          // Verificar si tiene pago único pagado
+          const hasPagoUnico = playerPayments.some(p => 
+            (p.tipo_pago === "Único" || p.tipo_pago === "único") && 
+            p.estado === "Pagado"
+          );
+          
+          if (hasPagoUnico) {
+            categoryStats[categoria].pagados++;
+          } else {
+            // Verificar si tiene todos los pagos mensuales pagados
+            const allMonths = ["Junio", "Septiembre", "Diciembre"];
+            const mesesPagados = playerPayments
+              .filter(p => p.estado === "Pagado")
+              .map(p => p.mes);
+            
+            if (allMonths.every(mes => mesesPagados.includes(mes))) {
+              categoryStats[categoria].pagados++;
+            } else {
+              categoryStats[categoria].pendientes++;
+            }
+          }
+        });
+        
+        const categoriesWithData = Object.entries(categoryStats)
+          .map(([categoria, stats]) => ({
+            categoria,
+            porcentajeImpagados: stats.total > 0 ? ((stats.pendientes / stats.total) * 100).toFixed(0) : 0,
+            jugadoresTotales: stats.total,
+            jugadoresImpagados: stats.pendientes,
+            jugadoresPagados: stats.pagados
+          }))
+          .sort((a, b) => b.porcentajeImpagados - a.porcentajeImpagados);
+        
+        if (categoriesWithData.length === 0) return null;
+        
+        return (
+          <Card className="border-none shadow-xl">
+            <CardHeader>
+              <CardTitle className="text-lg flex items-center gap-2">
+                <PieChartIcon className="w-5 h-5 text-purple-600" />
+                Porcentaje de Impagados por Categoría
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                {categoriesWithData.map(cat => {
+                  const porcentaje = parseInt(cat.porcentajeImpagados);
+                  const color = porcentaje > 50 ? 'red' : porcentaje > 25 ? 'orange' : 'green';
+                  
+                  return (
+                    <div key={cat.categoria} className="space-y-1">
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm font-medium text-slate-900">
+                          {cat.categoria.replace('Fútbol ', '').replace(' (Mixto)', '')}
+                        </span>
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs text-slate-600">
+                            {cat.jugadoresImpagados} de {cat.jugadoresTotales}
+                          </span>
+                          <Badge className={`
+                            ${color === 'red' ? 'bg-red-100 text-red-700' : 
+                              color === 'orange' ? 'bg-orange-100 text-orange-700' : 
+                              'bg-green-100 text-green-700'}
+                          `}>
+                            {porcentaje}%
+                          </Badge>
+                        </div>
+                      </div>
+                      <div className="w-full bg-slate-200 rounded-full h-2">
+                        <div 
+                          className={`h-2 rounded-full ${
+                            color === 'red' ? 'bg-red-500' : 
+                            color === 'orange' ? 'bg-orange-500' : 
+                            'bg-green-500'
+                          }`}
+                          style={{ width: `${porcentaje}%` }}
+                        />
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </CardContent>
+          </Card>
+        );
+      }, [players, filteredPayments])}
 
       {/* Summary Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
