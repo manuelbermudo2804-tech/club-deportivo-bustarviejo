@@ -17,14 +17,7 @@ import PollMessage from "../chat/PollMessage";
 import LocationMessage from "../chat/LocationMessage";
 import SearchFilters from "../chat/SearchFilters";
 import ChatInputActions from "../chat/ChatInputActions";
-
-const QUICK_REPLIES = [
-  "✅ Revisando tu consulta, te respondo pronto",
-  "📅 Te confirmo mañana",
-  "👍 Entendido, gracias por avisar",
-  "📞 Te llamaré para comentarlo",
-  "✨ Perfecto, todo aclarado",
-];
+import CoordinatorQuickReplies from "./CoordinatorQuickReplies";
 
 const REACTIONS = ["👍", "❤️", "✅", "👏", "🎉"];
 
@@ -66,6 +59,16 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
   const cameraInputRef = useRef(null);
 
   const isCoordinator = user.es_coordinador || user.role === "admin";
+
+  const { data: coordinatorSettings } = useQuery({
+    queryKey: ['coordinatorSettings', user?.email],
+    queryFn: async () => {
+      if (!isCoordinator) return null;
+      const all = await base44.entities.CoordinatorSettings.filter({ coordinador_email: user.email });
+      return all[0] || null;
+    },
+    enabled: isCoordinator,
+  });
 
   const { data: messages = [] } = useQuery({
     queryKey: ['coordinatorMessages', conversation?.id],
@@ -156,6 +159,12 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
     try {
       const uploaded = [];
       for (const file of files) {
+        // BLOQUEAR VIDEOS
+        if (file.type.startsWith('video/')) {
+          toast.error("❌ No se pueden enviar videos por este chat");
+          continue;
+        }
+        
         const { file_url } = await base44.integrations.Core.UploadFile({ file });
         uploaded.push({
           url: file_url,
@@ -164,8 +173,10 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
           tamano: file.size
         });
       }
-      setAttachments([...attachments, ...uploaded]);
-      toast.success("Archivos adjuntados");
+      if (uploaded.length > 0) {
+        setAttachments([...attachments, ...uploaded]);
+        toast.success("Archivos adjuntados");
+      }
     } catch (error) {
       toast.error("Error al subir archivos");
     } finally {
@@ -341,6 +352,26 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
 
   const sendMessageMutation = useMutation({
     mutationFn: async (data) => {
+      // ENVIAR RESPUESTA AUTOMÁTICA SI MODO AUSENTE ESTÁ ACTIVO
+      const shouldSendAutoReply = !isCoordinator && 
+        coordinatorSettings?.modo_ausente && 
+        coordinatorSettings?.mensaje_ausente &&
+        !conversation.auto_reply_sent_recently;
+
+      // VERIFICAR HORARIO LABORAL
+      const isOutsideWorkingHours = !isCoordinator && 
+        coordinatorSettings?.horario_laboral_activo && 
+        (() => {
+          const now = new Date();
+          const dayName = DIAS_SEMANA[now.getDay() === 0 ? 6 : now.getDay() - 1];
+          const currentTime = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+          
+          const isWorkingDay = coordinatorSettings.dias_laborales?.includes(dayName);
+          const isWithinHours = currentTime >= coordinatorSettings.horario_inicio && currentTime <= coordinatorSettings.horario_fin;
+          
+          return !isWorkingDay || !isWithinHours;
+        })();
+
       const newMessage = await base44.entities.CoordinatorMessage.create({
         conversacion_id: conversation.id,
         autor: isCoordinator ? "coordinador" : "padre",
@@ -371,6 +402,44 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
         [fieldEscribiendo]: false,
         archivada: false
       });
+
+      // ENVIAR RESPUESTA AUTOMÁTICA (modo ausente o fuera de horario)
+      if (shouldSendAutoReply) {
+        await base44.entities.CoordinatorMessage.create({
+          conversacion_id: conversation.id,
+          autor: "coordinador",
+          autor_email: "sistema@coordinador",
+          autor_nombre: "🤖 Coordinador (automático)",
+          mensaje: coordinatorSettings.mensaje_ausente,
+          leido_coordinador: true,
+          leido_padre: false,
+          fecha_leido_coordinador: new Date().toISOString()
+        });
+
+        await base44.entities.CoordinatorConversation.update(conversation.id, {
+          auto_reply_sent_recently: true,
+          ultimo_mensaje: coordinatorSettings.mensaje_ausente,
+          ultimo_mensaje_fecha: new Date().toISOString(),
+          ultimo_mensaje_autor: "coordinador"
+        });
+
+        setTimeout(async () => {
+          await base44.entities.CoordinatorConversation.update(conversation.id, {
+            auto_reply_sent_recently: false
+          });
+        }, 3600000); // 1 hora
+      } else if (isOutsideWorkingHours) {
+        await base44.entities.CoordinatorMessage.create({
+          conversacion_id: conversation.id,
+          autor: "coordinador",
+          autor_email: "sistema@coordinador",
+          autor_nombre: "🤖 Coordinador (automático)",
+          mensaje: coordinatorSettings.mensaje_fuera_horario,
+          leido_coordinador: true,
+          leido_padre: false,
+          fecha_leido_coordinador: new Date().toISOString()
+        });
+      }
 
       return newMessage;
     },
@@ -711,24 +780,22 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
                 )}
                 
                 <div className="flex items-start justify-between gap-2">
-                  <p className="text-[10px] sm:text-xs font-semibold opacity-70 flex-1">
-                    {msg.autor === "coordinador" ? "Coordinador" : msg.autor_nombre}
-                  </p>
-                  <ChatMessageActions
-                    message={msg}
-                    isMine={isMine}
-                    isStaff={isCoordinator}
-                    onReply={(m) => setReplyingTo(m)}
-                    onEdit={(m) => {
-                      setEditingMessage(m);
-                      setMessageText(m.mensaje);
-                    }}
-                    onDelete={(m) => deleteMessageMutation.mutate(m.id)}
-                    onForward={(m) => setForwardingMessage(m)}
-                  />
+                <p className="text-[10px] sm:text-xs font-semibold opacity-70 flex-1">
+                  {msg.autor === "coordinador" ? "Coordinador" : msg.autor_nombre}
+                </p>
+                <ChatMessageActions
+                  message={msg}
+                  isMine={isMine}
+                  isStaff={isCoordinator}
+                  onReply={(m) => setReplyingTo(m)}
+                  onEdit={(m) => {
+                    setEditingMessage(m);
+                    setMessageText(m.mensaje);
+                  }}
+                  onDelete={(m) => deleteMessageMutation.mutate(m.id)}
+                  onForward={(m) => setForwardingMessage(m)}
+                />
                 </div>
-                
-                <p className="text-[10px] sm:text-xs font-semibold mb-1 opacity-70">{msg.autor === "coordinador" ? "Coordinador" : msg.autor_nombre}</p>
                 
                 {msg.audio_url ? (
                   <div className="flex items-center gap-2">
@@ -904,20 +971,13 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
         )}
 
         {isCoordinator && showQuickReplies && (
-          <div className="mb-2 bg-white border rounded-lg shadow-lg p-2 space-y-1">
-            {QUICK_REPLIES.map((reply, idx) => (
-              <button
-                key={idx}
-                onClick={() => {
-                  setMessageText(reply);
-                  setShowQuickReplies(false);
-                }}
-                className="block w-full text-left text-xs p-2 hover:bg-slate-50 rounded"
-              >
-                {reply}
-              </button>
-            ))}
-          </div>
+          <CoordinatorQuickReplies 
+            onSelect={(text) => {
+              setMessageText(text);
+              setShowQuickReplies(false);
+            }}
+            user={user}
+          />
         )}
 
         <div className="flex items-end gap-1 sm:gap-2">

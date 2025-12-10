@@ -142,9 +142,9 @@ export default function ParentCoordinatorChat() {
     try {
       const uploaded = [];
       for (const file of files) {
-        // BLOQUEAR IMÁGENES - solo permitir documentos
-        if (file.type.startsWith('image/')) {
-          toast.error("❌ No puedes enviar fotos. Solo documentos (PDF, Word, Excel, etc.)");
+        // BLOQUEAR IMÁGENES Y VIDEOS - solo permitir documentos
+        if (file.type.startsWith('image/') || file.type.startsWith('video/')) {
+          toast.error("❌ No puedes enviar fotos ni videos. Solo documentos (PDF, Word, Excel, etc.)");
           continue;
         }
         
@@ -190,6 +190,45 @@ export default function ParentCoordinatorChat() {
 
   const sendMessageMutation = useMutation({
     mutationFn: async (data) => {
+      // FILTRO DE PALABRAS OFENSIVAS/AGRESIVAS
+      const palabrasProhibidas = [
+        "idiota", "estupido", "estúpido", "imbecil", "imbécil", "tonto", 
+        "basura", "mierda", "maldito", "puto", "puta", "joder", "coño",
+        "gilipollas", "capullo", "hijo de", "desgraciado", "inutil", "inútil"
+      ];
+      
+      const mensajeLower = data.mensaje.toLowerCase();
+      const palabraEncontrada = palabrasProhibidas.find(p => mensajeLower.includes(p));
+      
+      if (palabraEncontrada) {
+        toast.error("🚫 Tu mensaje contiene lenguaje inapropiado y no puede ser enviado. Por favor, reformúlalo de forma respetuosa.");
+        
+        // Registrar intento bloqueado
+        const currentSeason = (() => {
+          const now = new Date();
+          const year = now.getFullYear();
+          const month = now.getMonth() + 1;
+          return month >= 9 ? `${year}/${year + 1}` : `${year - 1}/${year}`;
+        })();
+        
+        await base44.entities.CoordinatorChatLog.create({
+          conversacion_id: conversation.id,
+          padre_email: user.email,
+          padre_nombre: user.full_name,
+          accion: "mensaje_bloqueado",
+          autor: "padre",
+          detalles: `Mensaje bloqueado por contener: "${palabraEncontrada}"`,
+          palabra_bloqueada: palabraEncontrada,
+          temporada: currentSeason
+        });
+        
+        throw new Error("Mensaje bloqueado por lenguaje inapropiado");
+      }
+
+      // DETECTAR PALABRAS URGENTES
+      const palabrasUrgentes = ["urgente", "grave", "lesión", "lesion", "accidente", "hospital", "ambulancia", "emergencia"];
+      const palabraUrgente = palabrasUrgentes.find(p => mensajeLower.includes(p));
+      
       const newMessage = await base44.entities.CoordinatorMessage.create({
         conversacion_id: conversation.id,
         autor: "padre",
@@ -202,12 +241,39 @@ export default function ParentCoordinatorChat() {
         fecha_leido_padre: new Date().toISOString()
       });
 
-      await base44.entities.CoordinatorConversation.update(conversation.id, {
+      // Marcar conversación como prioritaria si contiene palabra urgente
+      const updateData = {
         ultimo_mensaje: data.mensaje,
         ultimo_mensaje_fecha: new Date().toISOString(),
         ultimo_mensaje_autor: "padre",
         no_leidos_coordinador: (conversation.no_leidos_coordinador || 0) + 1,
         archivada: false
+      };
+
+      if (palabraUrgente) {
+        updateData.prioritaria = true;
+        toast.warning("⚠️ Tu mensaje contiene una palabra urgente. Se ha marcado como prioritario para el coordinador.");
+      }
+
+      await base44.entities.CoordinatorConversation.update(conversation.id, updateData);
+
+      // Registrar mensaje enviado
+      const currentSeason = (() => {
+        const now = new Date();
+        const year = now.getFullYear();
+        const month = now.getMonth() + 1;
+        return month >= 9 ? `${year}/${year + 1}` : `${year - 1}/${year}`;
+      })();
+      
+      await base44.entities.CoordinatorChatLog.create({
+        conversacion_id: conversation.id,
+        padre_email: user.email,
+        padre_nombre: user.full_name,
+        accion: palabraUrgente ? "palabra_urgente_detectada" : "mensaje_enviado",
+        autor: "padre",
+        detalles: palabraUrgente ? `Palabra urgente: "${palabraUrgente}"` : "Mensaje enviado correctamente",
+        palabra_urgente: palabraUrgente,
+        temporada: currentSeason
       });
 
       return newMessage;
@@ -218,6 +284,9 @@ export default function ParentCoordinatorChat() {
       setAttachments([]);
       toast.success("Mensaje enviado al coordinador");
     },
+    onError: (error) => {
+      // No mostrar toast de error aquí - ya se mostró en el filtro
+    }
   });
 
   const handleSend = () => {

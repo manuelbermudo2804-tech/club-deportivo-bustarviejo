@@ -933,6 +933,8 @@ export default function Layout({ children, currentPageName }) {
     ...(hasPlayers ? [{ title: "👨‍👩‍👧 Confirmar Mis Hijos", url: createPageUrl("ParentCallups"), icon: ClipboardCheck, badge: pendingCallupsCount > 0 ? pendingCallupsCount : null }] : []),
 
     // 💬 COMUNICACIÓN
+    { title: "💬 Chat Coordinador", url: createPageUrl("CoordinatorChat"), icon: MessageCircle },
+    { title: "⚙️ Config Chat Coord.", url: createPageUrl("CoordinatorSettings"), icon: Settings },
     { title: "📢 Anuncios", url: createPageUrl("Announcements"), icon: Megaphone },
     { title: "📄 Documentos", url: createPageUrl("DocumentManagement"), icon: FileText },
     { title: "📋 Encuestas", url: createPageUrl("Surveys"), icon: FileText },
@@ -1053,6 +1055,7 @@ export default function Layout({ children, currentPageName }) {
 
     // 💬 CHATS
     { title: "💬 Chat Coordinador", url: createPageUrl("CoordinatorChat"), icon: MessageCircle },
+    { title: "⚙️ Config Chat Coord.", url: createPageUrl("CoordinatorSettings"), icon: Settings },
     ...(user?.es_entrenador ? [{ title: "⚽ Chat Entrenador", url: createPageUrl("CoachParentChat"), icon: MessageCircle }] : []),
 
       // ⚽ GESTIÓN DEPORTIVA (trabajo principal)
