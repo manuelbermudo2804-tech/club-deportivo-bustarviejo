@@ -1139,15 +1139,25 @@ export default function Layout({ children, currentPageName }) {
   ];
 
   const playerNavigationItems = [
-    { title: "Inicio", url: createPageUrl("PlayerDashboard"), icon: Home },
-    { title: "Mi Perfil", url: createPageUrl("PlayerProfile"), icon: UserIcon },
-    { title: "📅 Calendario y Horarios", url: createPageUrl("CalendarAndSchedules"), icon: Calendar },
-    { title: "🎉 Eventos Club", url: createPageUrl("ParentEventRSVP"), icon: Calendar },
-    { title: "📋 Encuestas", url: createPageUrl("Surveys"), icon: FileText },
-    { title: "Anuncios", url: createPageUrl("Announcements"), icon: Megaphone },
-    { title: "Galería", url: createPageUrl("Gallery"), icon: Image },
-    { title: "🏆 Convocatorias", url: createPageUrl("PlayerCallups"), icon: Bell, badge: pendingCallupsCount > 0 ? pendingCallupsCount : null, urgentBadge: pendingCallupsCount > 0 },
+    // 🏠 INICIO
+    { title: "🏠 Inicio", url: createPageUrl("PlayerDashboard"), icon: Home },
 
+    // 💬 CHATS
+    { title: "💬 Chat Coordinador", url: createPageUrl("ParentCoordinatorChat"), icon: MessageCircle },
+    { title: "⚽ Chat Entrenador", url: createPageUrl("ParentCoachChat"), icon: MessageCircle },
+
+    // ⚽ DEPORTIVO
+    { title: "🏆 Convocatorias", url: createPageUrl("ParentCallups"), icon: Bell, badge: pendingCallupsCount > 0 ? pendingCallupsCount : null, urgentBadge: pendingCallupsCount > 0 },
+    { title: "💳 Mis Pagos", url: createPageUrl("ParentPayments"), icon: CreditCard },
+
+    // 📅 CALENDARIO E INFO
+    { title: "📅 Calendario", url: createPageUrl("CalendarAndSchedules"), icon: Calendar },
+    { title: "🎉 Eventos Club", url: createPageUrl("ParentEventRSVP"), icon: Calendar },
+    { title: "📢 Anuncios", url: createPageUrl("Announcements"), icon: Megaphone },
+    { title: "🖼️ Galería", url: createPageUrl("Gallery"), icon: Image },
+    { title: "📋 Encuestas", url: createPageUrl("Surveys"), icon: FileText },
+
+    // 🎫 EXTRAS
     { title: "🎫 Hacerse Socio", url: createPageUrl("ClubMembership"), icon: Users },
   ];
 
