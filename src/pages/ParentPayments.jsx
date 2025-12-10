@@ -88,45 +88,61 @@ export default function ParentPayments() {
 
   const { data: user } = useQuery({
     queryKey: ['currentUser'],
-    queryFn: () => base44.auth.me(),
-    staleTime: 300000, // 5 minutos
-    gcTime: 600000,
-    refetchOnWindowFocus: false,
+    queryFn: async () => {
+      const u = await base44.auth.me();
+      console.log('👤 [ParentPayments] Usuario cargado:', u.email);
+      return u;
+    },
+    staleTime: 0,
+    gcTime: 300000,
+    refetchOnWindowFocus: true,
+    refetchOnMount: true,
   });
 
-  const { data: players, isLoading: loadingPlayers } = useQuery({
+  const { data: players = [], isLoading: loadingPlayers } = useQuery({
     queryKey: ['myPlayers', user?.email],
     queryFn: async () => {
+      console.log('🔍 [ParentPayments] Buscando jugadores para:', user?.email);
       const allPlayers = await base44.entities.Player.list();
-      return allPlayers.filter(p =>
+      console.log('📊 [ParentPayments] Total jugadores en BD:', allPlayers.length);
+      const filtered = allPlayers.filter(p =>
         (p.email_padre === user?.email || p.email_tutor_2 === user?.email) && p.activo === true
       );
+      console.log('✅ [ParentPayments] Jugadores activos filtrados:', filtered.length, filtered.map(p => p.nombre));
+      return filtered;
     },
     enabled: !!user?.email,
     staleTime: 0,
-    gcTime: 300000,
+    gcTime: 0,
     refetchOnWindowFocus: true,
     refetchOnMount: true,
   });
 
-  const { data: payments, isLoading: loadingPayments } = useQuery({
-    queryKey: ['myPayments', players],
+  const { data: payments = [], isLoading: loadingPayments } = useQuery({
+    queryKey: ['myPayments', user?.email, players.map(p => p.id).join(',')],
     queryFn: async () => {
-      if (!players || players.length === 0) return [];
+      console.log('💳 [ParentPayments] Buscando pagos para jugadores:', players.map(p => p.nombre));
+      if (!players || players.length === 0) {
+        console.log('⚠️ [ParentPayments] Sin jugadores, retornando pagos vacíos');
+        return [];
+      }
       const allPayments = await base44.entities.Payment.list('-created_date');
+      console.log('📊 [ParentPayments] Total pagos en BD:', allPayments.length);
       const playerIds = players.map(p => p.id);
-      return allPayments.filter(payment => 
+      const filtered = allPayments.filter(payment => 
         playerIds.includes(payment.jugador_id) && payment.is_deleted !== true
       );
+      console.log('✅ [ParentPayments] Pagos filtrados:', filtered.length);
+      return filtered;
     },
-    enabled: !!user && !!players,
+    enabled: !!user?.email,
     staleTime: 0,
-    gcTime: 300000,
+    gcTime: 0,
     refetchOnWindowFocus: true,
     refetchOnMount: true,
   });
 
-  const isLoading = loadingPlayers || loadingPayments || !user;
+  const isLoading = !user || loadingPlayers;
 
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
