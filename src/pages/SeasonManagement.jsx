@@ -1054,21 +1054,6 @@ export default function SeasonManagement() {
                 onCheckedChange={(checked) => toggleFeature('notificaciones_admin_email', checked)}
               />
             </div>
-
-            {/* Notificaciones Push Manuales */}
-            <div className="flex items-center justify-between p-4 bg-slate-50 rounded-lg">
-              <div className="flex items-center gap-3">
-                <Bell className="w-5 h-5 text-blue-600" />
-                <div>
-                  <p className="font-medium">📲 Push Manuales (Enviar Push)</p>
-                  <p className="text-xs text-slate-600">Controla solo el envío manual desde "📲 Enviar Push"</p>
-                </div>
-              </div>
-              <Switch
-                checked={activeSeason?.notificaciones_push_manuales_activas !== false}
-                onCheckedChange={(checked) => toggleFeature('notificaciones_push_manuales_activas', checked)}
-              />
-            </div>
           </CardContent>
         )}
       </Card>
