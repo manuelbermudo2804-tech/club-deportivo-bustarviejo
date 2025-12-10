@@ -67,10 +67,18 @@ export default function CategoryManagement() {
     fetchUser();
   }, []);
 
-  // Query para categorías
+  // Query para categorías - FILTRADAS POR TEMPORADA ACTIVA
   const { data: categories = [], isLoading } = useQuery({
-    queryKey: ['categoryConfigs'],
-    queryFn: () => base44.entities.CategoryConfig.list(),
+    queryKey: ['categoryConfigs', activeSeason?.temporada],
+    queryFn: async () => {
+      const allCategories = await base44.entities.CategoryConfig.list();
+      // Si hay temporada activa, filtrar por ella; si no, mostrar todas
+      if (activeSeason?.temporada) {
+        return allCategories.filter(c => c.temporada === activeSeason.temporada);
+      }
+      return allCategories;
+    },
+    enabled: seasons.length > 0,
   });
 
   // Query para jugadores (para contar por categoría)
@@ -89,7 +97,14 @@ export default function CategoryManagement() {
 
   // Mutaciones
   const createCategoryMutation = useMutation({
-    mutationFn: (data) => base44.entities.CategoryConfig.create(data),
+    mutationFn: (data) => {
+      // Asignar temporada activa automáticamente
+      const dataWithSeason = {
+        ...data,
+        temporada: activeSeason?.temporada || ""
+      };
+      return base44.entities.CategoryConfig.create(dataWithSeason);
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['categoryConfigs'] });
       toast.success("Categoría creada correctamente");
@@ -205,20 +220,21 @@ export default function CategoryManagement() {
     ];
 
     for (const cat of defaultCategories) {
-      const exists = categories.find(c => c.nombre === cat.nombre);
-      if (!exists) {
-        await base44.entities.CategoryConfig.create({
-          ...cat,
-          cuota_inscripcion: cat.inscripcion,
-          cuota_segunda: cat.segunda,
-          cuota_tercera: cat.tercera,
-          cuota_total: cat.total,
-          activa: true
-        });
-      }
+    const exists = categories.find(c => c.nombre === cat.nombre);
+    if (!exists) {
+      await base44.entities.CategoryConfig.create({
+        ...cat,
+        cuota_inscripcion: cat.inscripcion,
+        cuota_segunda: cat.segunda,
+        cuota_tercera: cat.tercera,
+        cuota_total: cat.total,
+        temporada: activeSeason?.temporada || "",
+        activa: true
+      });
+    }
     }
     queryClient.invalidateQueries({ queryKey: ['categoryConfigs'] });
-    toast.success("Categorías por defecto creadas");
+    toast.success("Categorías por defecto creadas para temporada " + activeSeason?.temporada);
   };
 
   // Contar jugadores por categoría

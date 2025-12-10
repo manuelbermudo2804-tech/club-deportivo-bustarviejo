@@ -609,10 +609,57 @@ export default function SeasonManagement() {
         bizum_activo: activeSeason?.bizum_activo || false,
         bizum_telefono: activeSeason?.bizum_telefono || "",
         mostrar_patrocinadores: activeSeason?.mostrar_patrocinadores || false,
-        notificaciones_admin_email: activeSeason?.notificaciones_admin_email || true
+        notificaciones_admin_email: activeSeason?.notificaciones_admin_email || true,
+        programa_referidos_activo: activeSeason?.programa_referidos_activo || false
       });
       currentStep++;
       setProcessingProgress((currentStep / totalSteps) * 100);
+
+      // 7.1 IMPORTANTE: Crear CategoryConfig para la nueva temporada copiando las cuotas actuales
+      setProcessingStep("Creando configuración de categorías para nueva temporada...");
+      const currentCategories = await base44.entities.CategoryConfig.list();
+      const activeCategories = currentCategories.filter(c => c.activa);
+      
+      if (activeCategories.length > 0) {
+        // Copiar cada categoría activa para la nueva temporada
+        for (const category of activeCategories) {
+          const { id, created_date, updated_date, ...categoryData } = category;
+          await base44.entities.CategoryConfig.create({
+            ...categoryData,
+            temporada: resetConfig.newSeasonName,
+            activa: true
+          });
+        }
+        console.log(`✅ ${activeCategories.length} categorías copiadas a nueva temporada`);
+      } else {
+        // Si no hay categorías, crear las por defecto
+        const DEFAULT_QUOTAS = {
+          "AFICIONADO": { inscripcion: 165, segunda: 100, tercera: 95 },
+          "JUVENIL": { inscripcion: 135, segunda: 100, tercera: 95 },
+          "CADETE": { inscripcion: 135, segunda: 100, tercera: 95 },
+          "INFANTIL": { inscripcion: 115, segunda: 83, tercera: 83 },
+          "ALEVIN": { inscripcion: 115, segunda: 83, tercera: 83 },
+          "BENJAMIN": { inscripcion: 100, segunda: 75, tercera: 75 },
+          "PRE-BENJAMIN": { inscripcion: 100, segunda: 75, tercera: 75 },
+          "FEMENINO": { inscripcion: 135, segunda: 100, tercera: 95 },
+          "BALONCESTO": { inscripcion: 50, segunda: 50, tercera: 50 }
+        };
+
+        for (const [nombre, cuotas] of Object.entries(DEFAULT_QUOTAS)) {
+          await base44.entities.CategoryConfig.create({
+            nombre,
+            deporte: nombre === "BALONCESTO" ? "Baloncesto" : "Fútbol",
+            cuota_inscripcion: cuotas.inscripcion,
+            cuota_segunda: cuotas.segunda,
+            cuota_tercera: cuotas.tercera,
+            cuota_total: cuotas.inscripcion + cuotas.segunda + cuotas.tercera,
+            temporada: resetConfig.newSeasonName,
+            activa: true,
+            orden: Object.keys(DEFAULT_QUOTAS).indexOf(nombre) + 1
+          });
+        }
+        console.log('✅ Categorías por defecto creadas para nueva temporada');
+      }
 
       // 8. Registrar en historial
       await base44.entities.ResetHistory.create({
