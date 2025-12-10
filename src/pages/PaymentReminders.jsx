@@ -112,7 +112,14 @@ export default function PaymentReminders() {
         normalizeSeason(p.temporada) === currentSeason
       );
 
-      const allMonths = ["Junio", "Septiembre", "Diciembre"];
+      // Detectar si tiene pago único pagado/en revisión
+      const hasPagoUnico = playerPayments.some(p => 
+        (p.tipo_pago === "Único" || p.tipo_pago === "único") && 
+        (p.estado === "Pagado" || p.estado === "En revisión")
+      );
+
+      // Si tiene pago único pagado, solo considerar Junio
+      const allMonths = hasPagoUnico ? ["Junio"] : ["Junio", "Septiembre", "Diciembre"];
       const pendingMonths = [];
       const totalDue = allMonths.reduce((sum, mes) => {
         // Buscar si hay un pago PAGADO para este mes
@@ -138,15 +145,9 @@ export default function PaymentReminders() {
           return sum + existingPendingPayment.cantidad;
         }
 
-        // Si NO existe ningún pago para este mes, crear uno VIRTUAL pendiente
-        const cantidad = getCorrectAmount(player.deporte, mes);
-        pendingMonths.push({ 
-          mes, 
-          cantidad,
-          payment_id: null, 
-          isVirtual: true
-        });
-        return sum + cantidad;
+        // Si NO existe ningún pago para este mes, NO crear virtual
+        // (los pagos se crean cuando el padre los registra)
+        return sum;
       }, 0);
 
       familyMap[familyEmail].jugadores.push({
