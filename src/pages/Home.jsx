@@ -1024,9 +1024,21 @@ export default function Home() {
           <div className="bg-slate-800/50 backdrop-blur-sm rounded-2xl p-4 border border-slate-700">
             <p className="text-white text-sm font-semibold mb-3 flex items-center gap-2">
               <MessageCircle className="w-4 h-4" />
-              💬 Chats
+              💬 Mensajería
             </p>
             <div className="grid grid-cols-3 gap-2">
+              <Link to={createPageUrl("ParentSystemMessages")} className="relative">
+                <div className="bg-gradient-to-br from-purple-600 to-purple-700 rounded-xl p-3 text-white hover:scale-105 transition-all shadow-lg h-full flex flex-col justify-center">
+                  {stats.unreadPrivateMessages > 0 && (
+                    <div className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 rounded-full flex items-center justify-center border-2 border-white animate-pulse">
+                      <span className="text-white text-xs font-bold">{stats.unreadPrivateMessages}</span>
+                    </div>
+                  )}
+                  <p className="text-sm font-bold text-center">🔔 Mensajes</p>
+                  <p className="text-xs text-purple-100 text-center mt-0.5">Del Club</p>
+                </div>
+              </Link>
+
               {isCoordinator && (
                 <Link to={createPageUrl("CoordinatorChat")} className="relative">
                   <div className="bg-gradient-to-br from-cyan-600 to-cyan-700 rounded-xl p-3 text-white hover:scale-105 transition-all shadow-lg h-full flex flex-col justify-center">
@@ -1036,6 +1048,7 @@ export default function Home() {
                       </div>
                     )}
                     <p className="text-sm font-bold text-center">🏟️ Coordinador</p>
+                    <p className="text-xs text-cyan-100 text-center mt-0.5">Consultas deportivas</p>
                   </div>
                 </Link>
               )}
@@ -1044,15 +1057,19 @@ export default function Home() {
                 <Link to={createPageUrl("CoachParentChat")} className="relative">
                   <div className="bg-gradient-to-br from-blue-600 to-blue-700 rounded-xl p-3 text-white hover:scale-105 transition-all shadow-lg h-full flex flex-col justify-center">
                     <p className="text-sm font-bold text-center">⚽ Entrenador</p>
+                    <p className="text-xs text-blue-100 text-center mt-0.5">Chat del equipo</p>
                   </div>
                 </Link>
               )}
 
-              <Link to={createPageUrl("StaffChat")} className="relative">
-                <div className="bg-gradient-to-br from-purple-600 to-purple-700 rounded-xl p-3 text-white hover:scale-105 transition-all shadow-lg h-full flex flex-col justify-center">
-                  <p className="text-sm font-bold text-center">💼 Staff</p>
-                </div>
-              </Link>
+              {!isCoordinator && !user?.es_entrenador && (
+                <Link to={createPageUrl("StaffChat")} className="relative">
+                  <div className="bg-gradient-to-br from-slate-600 to-slate-700 rounded-xl p-3 text-white hover:scale-105 transition-all shadow-lg h-full flex flex-col justify-center">
+                    <p className="text-sm font-bold text-center">💼 Staff</p>
+                    <p className="text-xs text-slate-100 text-center mt-0.5">Chat interno</p>
+                  </div>
+                </Link>
+              )}
             </div>
           </div>
         )}
