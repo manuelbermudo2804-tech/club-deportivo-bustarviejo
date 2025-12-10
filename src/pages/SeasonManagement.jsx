@@ -568,6 +568,23 @@ export default function SeasonManagement() {
         setProcessingProgress((currentStep / totalSteps) * 100);
       }
 
+      // 19. RESETEAR CONTADORES DE REFERIDOS (manteniendo créditos de ropa)
+      if (resetConfig.resetUserReferrals) {
+        setProcessingStep("Reseteando contadores de referidos...");
+        const allUsers = await base44.entities.User.list();
+        for (const user of allUsers) {
+          if (user.referidos_count > 0 || user.referidos_list?.length > 0) {
+            await base44.entities.User.update(user.id, {
+              referidos_count: 0, // Resetear contador
+              referidos_list: [], // Vaciar lista de referidos
+              // MANTENER credito_ropa_acumulado (NO se resetea)
+            });
+          }
+        }
+        currentStep++;
+        setProcessingProgress((currentStep / totalSteps) * 100);
+      }
+
       // 6. Desactivar temporada actual
       setProcessingStep("Configurando nueva temporada...");
       if (activeSeason) {
