@@ -558,6 +558,8 @@ export default function ParentDashboard() {
           isAdmin={false}
           isCoach={false}
           isParent={true}
+          userEmail={user?.email}
+          userSports={myPlayersSports}
         />
         )}
 
