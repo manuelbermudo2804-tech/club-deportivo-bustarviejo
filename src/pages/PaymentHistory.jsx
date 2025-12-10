@@ -7,10 +7,16 @@ import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Search, FileText, Calendar, TrendingUp, Archive } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
+import { X } from "lucide-react";
 
 export default function PaymentHistory() {
   const [searchTerm, setSearchTerm] = useState("");
   const [seasonFilter, setSeasonFilter] = useState("all");
+  const [monthFilter, setMonthFilter] = useState("all");
+  const [stateFilter, setStateFilter] = useState("all");
+  const [paymentTypeFilter, setPaymentTypeFilter] = useState("all");
 
   const { data: paymentHistory, isLoading } = useQuery({
     queryKey: ['paymentHistory'],
@@ -23,11 +29,27 @@ export default function PaymentHistory() {
       payment.jugador_nombre?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       payment.mes?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesSeason = seasonFilter === "all" || payment.temporada === seasonFilter;
-    return matchesSearch && matchesSeason;
+    const matchesMonth = monthFilter === "all" || payment.mes === monthFilter;
+    const matchesState = stateFilter === "all" || payment.estado === stateFilter;
+    const matchesType = paymentTypeFilter === "all" || payment.tipo_pago === paymentTypeFilter;
+    return matchesSearch && matchesSeason && matchesMonth && matchesState && matchesType;
   });
 
-  // Obtener temporadas únicas
+  // Obtener valores únicos para filtros
   const seasons = [...new Set(paymentHistory.map(p => p.temporada))].sort().reverse();
+  const months = [...new Set(paymentHistory.map(p => p.mes))].filter(Boolean);
+  const states = [...new Set(paymentHistory.map(p => p.estado))].filter(Boolean);
+  const paymentTypes = [...new Set(paymentHistory.map(p => p.tipo_pago))].filter(Boolean);
+  
+  const hasActiveFilters = searchTerm || seasonFilter !== "all" || monthFilter !== "all" || stateFilter !== "all" || paymentTypeFilter !== "all";
+  
+  const clearFilters = () => {
+    setSearchTerm("");
+    setSeasonFilter("all");
+    setMonthFilter("all");
+    setStateFilter("all");
+    setPaymentTypeFilter("all");
+  };
 
   // Estadísticas por temporada
   const seasonStats = seasons.map(season => {
@@ -77,26 +99,90 @@ export default function PaymentHistory() {
 
       <Card className="border-none shadow-lg">
         <CardHeader className="border-b border-slate-100">
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-            <CardTitle className="text-xl">Filtros</CardTitle>
-            <div className="flex flex-col md:flex-row gap-3 w-full md:w-auto">
-              <div className="relative flex-1 md:w-64">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400" />
-                <Input
-                  placeholder="Buscar por jugador..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10"
-                />
-              </div>
-              <Tabs value={seasonFilter} onValueChange={setSeasonFilter} className="w-full md:w-auto">
-                <TabsList className="bg-white border">
-                  <TabsTrigger value="all">Todas las temporadas</TabsTrigger>
+          <div className="flex flex-col gap-4">
+            <div className="flex justify-between items-center">
+              <CardTitle className="text-xl">Filtros Avanzados</CardTitle>
+              {hasActiveFilters && (
+                <Button onClick={clearFilters} variant="outline" size="sm" className="gap-2">
+                  <X className="w-4 h-4" />
+                  Limpiar filtros
+                </Button>
+              )}
+            </div>
+            
+            {/* Búsqueda */}
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400" />
+              <Input
+                placeholder="Buscar por jugador o mes..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10"
+              />
+            </div>
+            
+            {/* Filtros en grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
+              {/* Temporada */}
+              <Select value={seasonFilter} onValueChange={setSeasonFilter}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Temporada" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todas las temporadas</SelectItem>
                   {seasons.map(season => (
-                    <TabsTrigger key={season} value={season}>{season}</TabsTrigger>
+                    <SelectItem key={season} value={season}>{season}</SelectItem>
                   ))}
-                </TabsList>
-              </Tabs>
+                </SelectContent>
+              </Select>
+              
+              {/* Mes */}
+              <Select value={monthFilter} onValueChange={setMonthFilter}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Mes" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos los meses</SelectItem>
+                  {months.map(month => (
+                    <SelectItem key={month} value={month}>{month}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              
+              {/* Estado */}
+              <Select value={stateFilter} onValueChange={setStateFilter}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Estado" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos los estados</SelectItem>
+                  {states.map(state => (
+                    <SelectItem key={state} value={state}>{state}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              
+              {/* Tipo de Pago */}
+              <Select value={paymentTypeFilter} onValueChange={setPaymentTypeFilter}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Tipo de pago" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos los tipos</SelectItem>
+                  {paymentTypes.map(type => (
+                    <SelectItem key={type} value={type}>{type}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            
+            {/* Contador de resultados */}
+            <div className="text-sm text-slate-600">
+              {filteredHistory.length === paymentHistory.length ? (
+                <span>Mostrando <strong>{paymentHistory.length}</strong> pagos</span>
+              ) : (
+                <span>Mostrando <strong>{filteredHistory.length}</strong> de <strong>{paymentHistory.length}</strong> pagos</span>
+              )}
             </div>
           </div>
         </CardHeader>
