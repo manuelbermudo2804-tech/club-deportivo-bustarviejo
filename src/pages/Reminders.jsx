@@ -126,47 +126,112 @@ Gracias por su atención.
         sentMethods.push('Email');
       }
       
-      // CHAT INDIVIDUAL (mensajes privados por destinatario_email)
-      // IMPORTANTE: Estos mensajes son INDIVIDUALES para cada padre
-      // Solo el padre/tutor con ese email verá este mensaje en su chat
+      // CHAT PRIVADO INDIVIDUAL (PrivateConversation/PrivateMessage)
+      // IMPORTANTE: Estos mensajes van a conversaciones PRIVADAS separadas
+      // Solo la familia destinataria verá estos mensajes
       if (chat || animation) {
         const chatMessage = animation
-          ? `🚨🔔 RECORDATORIO URGENTE 🔔🚨\n\n${data.message}\n\n⚠️ POR FAVOR, ATENCIÓN INMEDIATA\n\n🔒 Este mensaje es privado, solo tú lo ves`
-          : `${data.message}\n\n🔒 Este mensaje es privado, solo tú lo ves`;
+          ? `🚨🔔 RECORDATORIO URGENTE DE PAGO 🔔🚨\n\n${data.message}\n\n⚠️ POR FAVOR, ATENCIÓN INMEDIATA\n\n🔒 MENSAJE PRIVADO: Solo tu familia ve este mensaje. No es visible en el chat del grupo.`
+          : `💬 RECORDATORIO DE PAGO\n\n${data.message}\n\n🔒 MENSAJE PRIVADO: Solo tu familia ve este mensaje. No es visible en el chat del grupo.`;
         
-        // Enviar mensaje individual al padre principal
+        // Enviar a conversación privada del padre principal
         if (player.email_padre) {
-          await base44.entities.ChatMessage.create({
-            remitente_email: "admin@cdbustarviejo.com",
-            remitente_nombre: "Administración CD Bustarviejo",
-            destinatario_email: player.email_padre,
-            destinatario_nombre: `Padre de ${player.nombre}`,
-            mensaje: chatMessage,
-            prioridad: animation ? "Urgente" : "Importante",
-            tipo: "admin_a_grupo",
-            deporte: player.deporte,
-            grupo_id: player.deporte,
-            leido: false
-          });
+          try {
+            // Buscar o crear conversación privada
+            const allPrivateConvs = await base44.entities.PrivateConversation.list();
+            let privateConv = allPrivateConvs.find(c => 
+              c.tipo === "coordinador_padre" && 
+              c.padre_email === player.email_padre &&
+              c.jugador_id === player.id
+            );
+            
+            if (!privateConv) {
+              privateConv = await base44.entities.PrivateConversation.create({
+                tipo: "coordinador_padre",
+                coordinador_email: "sistema@cdbustarviejo.com",
+                coordinador_nombre: "🤖 Sistema de Recordatorios",
+                padre_email: player.email_padre,
+                padre_nombre: player.nombre_tutor_legal || "Padre/Tutor",
+                jugador_id: player.id,
+                jugador_nombre: player.nombre,
+                jugador_categoria: player.deporte,
+                ultimo_mensaje: chatMessage,
+                ultimo_mensaje_fecha: new Date().toISOString(),
+                ultimo_mensaje_autor: "Sistema",
+                activa: true
+              });
+            }
+            
+            // Enviar mensaje privado
+            await base44.entities.PrivateMessage.create({
+              conversacion_id: privateConv.id,
+              autor: "coordinador",
+              autor_email: "sistema@cdbustarviejo.com",
+              autor_nombre: "🤖 Sistema de Recordatorios",
+              mensaje: chatMessage,
+              leido_padre: false,
+              leido_coordinador: true
+            });
+            
+            // Actualizar última actividad
+            await base44.entities.PrivateConversation.update(privateConv.id, {
+              ultimo_mensaje: chatMessage.substring(0, 100) + "...",
+              ultimo_mensaje_fecha: new Date().toISOString(),
+              ultimo_mensaje_autor: "Sistema"
+            });
+          } catch (error) {
+            console.error("Error enviando a chat privado padre:", error);
+          }
         }
         
-        // Enviar mensaje individual al tutor 2 si existe
+        // Enviar a conversación privada del tutor 2 si existe
         if (player.email_tutor_2) {
-          await base44.entities.ChatMessage.create({
-            remitente_email: "admin@cdbustarviejo.com",
-            remitente_nombre: "Administración CD Bustarviejo",
-            destinatario_email: player.email_tutor_2,
-            destinatario_nombre: `Tutor 2 de ${player.nombre}`,
-            mensaje: chatMessage,
-            prioridad: animation ? "Urgente" : "Importante",
-            tipo: "admin_a_grupo",
-            deporte: player.deporte,
-            grupo_id: player.deporte,
-            leido: false
-          });
+          try {
+            const allPrivateConvs = await base44.entities.PrivateConversation.list();
+            let privateConv = allPrivateConvs.find(c => 
+              c.tipo === "coordinador_padre" && 
+              c.padre_email === player.email_tutor_2 &&
+              c.jugador_id === player.id
+            );
+            
+            if (!privateConv) {
+              privateConv = await base44.entities.PrivateConversation.create({
+                tipo: "coordinador_padre",
+                coordinador_email: "sistema@cdbustarviejo.com",
+                coordinador_nombre: "🤖 Sistema de Recordatorios",
+                padre_email: player.email_tutor_2,
+                padre_nombre: player.nombre_tutor_2 || "Tutor 2",
+                jugador_id: player.id,
+                jugador_nombre: player.nombre,
+                jugador_categoria: player.deporte,
+                ultimo_mensaje: chatMessage,
+                ultimo_mensaje_fecha: new Date().toISOString(),
+                ultimo_mensaje_autor: "Sistema",
+                activa: true
+              });
+            }
+            
+            await base44.entities.PrivateMessage.create({
+              conversacion_id: privateConv.id,
+              autor: "coordinador",
+              autor_email: "sistema@cdbustarviejo.com",
+              autor_nombre: "🤖 Sistema de Recordatorios",
+              mensaje: chatMessage,
+              leido_padre: false,
+              leido_coordinador: true
+            });
+            
+            await base44.entities.PrivateConversation.update(privateConv.id, {
+              ultimo_mensaje: chatMessage.substring(0, 100) + "...",
+              ultimo_mensaje_fecha: new Date().toISOString(),
+              ultimo_mensaje_autor: "Sistema"
+            });
+          } catch (error) {
+            console.error("Error enviando a chat privado tutor 2:", error);
+          }
         }
         
-        sentMethods.push('Chat Individual');
+        sentMethods.push('Chat Privado Individual');
       }
       
       // NOTIFICACIÓN VISUAL EN LA APP
@@ -688,60 +753,106 @@ Temporada ${reminder.temporada}
       };
 
       const mensaje = hasJustificante ? 
-        `${urgencyEmoji[reminder.tipo_recordatorio]} RECORDATORIO DE PAGO - ${reminder.mes_pago}\n\nFamilia de ${reminder.jugador_nombre}: Su justificante está en revisión. Pronto confirmaremos su pago.\n\nFecha límite: 15 de ${reminder.mes_pago}\n\n🔒 Este mensaje es privado, solo tú lo ves` :
-        `${urgencyEmoji[reminder.tipo_recordatorio]} RECORDATORIO DE PAGO - ${reminder.mes_pago}\n\nFamilia de ${reminder.jugador_nombre}: Recuerde realizar el pago de ${reminder.cantidad}€ y subir el justificante en la app.\n\nFecha límite: 15 de ${reminder.mes_pago}\n\nApp → Mis Pagos → ${reminder.mes_pago}\n\n🔒 Este mensaje es privado, solo tú lo ves`;
+        `${urgencyEmoji[reminder.tipo_recordatorio]} RECORDATORIO DE PAGO - ${reminder.mes_pago}\n\nSu justificante está en revisión. Pronto confirmaremos su pago.\n\nJugador: ${reminder.jugador_nombre}\nFecha límite: 15 de ${reminder.mes_pago}\n\n🔒 MENSAJE PRIVADO: Solo tu familia ve este mensaje. No es visible en el chat del grupo.` :
+        `${urgencyEmoji[reminder.tipo_recordatorio]} RECORDATORIO DE PAGO - ${reminder.mes_pago}\n\nRecuerde realizar el pago de ${reminder.cantidad}€ y subir el justificante en la app.\n\nJugador: ${reminder.jugador_nombre}\nFecha límite: 15 de ${reminder.mes_pago}\n\nApp → Mis Pagos → ${reminder.mes_pago}\n\n🔒 MENSAJE PRIVADO: Solo tu familia ve este mensaje. No es visible en el chat del grupo.`;
 
-      // IMPORTANTE: Estos mensajes son INDIVIDUALES para cada padre
-      // Solo el padre/tutor con ese email verá este mensaje en su chat (destinatario_email)
-      // Enviar mensaje individual al padre principal
+      // ENVIAR A CONVERSACIÓN PRIVADA (no al chat grupal)
+      // Enviar a conversación privada del padre principal
       if (player.email_padre) {
-        await base44.entities.ChatMessage.create({
-          remitente_email: "admin@cdbustarviejo.com",
-          remitente_nombre: "Administración CF Bustarviejo",
-          destinatario_email: player.email_padre,
-          destinatario_nombre: `Padre de ${player.nombre}`,
-          mensaje: mensaje,
-          prioridad: reminder.tipo_recordatorio === "3 días antes" || reminder.tipo_recordatorio === "1 día después" ? "Urgente" : "Importante",
-          tipo: "admin_a_grupo",
-          deporte: player.deporte,
-          categoria: "",
-          grupo_id: player.deporte,
-          leido: false,
-          archivos_adjuntos: []
-        });
+        try {
+          const allPrivateConvs = await base44.entities.PrivateConversation.list();
+          let privateConv = allPrivateConvs.find(c => 
+            c.tipo === "coordinador_padre" && 
+            c.padre_email === player.email_padre &&
+            c.jugador_id === player.id
+          );
+          
+          if (!privateConv) {
+            privateConv = await base44.entities.PrivateConversation.create({
+              tipo: "coordinador_padre",
+              coordinador_email: "sistema@cdbustarviejo.com",
+              coordinador_nombre: "🤖 Sistema de Recordatorios",
+              padre_email: player.email_padre,
+              padre_nombre: player.nombre_tutor_legal || "Padre/Tutor",
+              jugador_id: player.id,
+              jugador_nombre: player.nombre,
+              jugador_categoria: player.deporte,
+              ultimo_mensaje: mensaje,
+              ultimo_mensaje_fecha: new Date().toISOString(),
+              ultimo_mensaje_autor: "Sistema",
+              activa: true
+            });
+          }
+          
+          await base44.entities.PrivateMessage.create({
+            conversacion_id: privateConv.id,
+            autor: "coordinador",
+            autor_email: "sistema@cdbustarviejo.com",
+            autor_nombre: "🤖 Sistema de Recordatorios",
+            mensaje: mensaje,
+            leido_padre: false,
+            leido_coordinador: true
+          });
+          
+          await base44.entities.PrivateConversation.update(privateConv.id, {
+            ultimo_mensaje: mensaje.substring(0, 100) + "...",
+            ultimo_mensaje_fecha: new Date().toISOString(),
+            ultimo_mensaje_autor: "Sistema"
+          });
+        } catch (error) {
+          console.error("Error enviando a chat privado padre:", error);
+        }
       }
       
-      // Enviar mensaje individual al tutor 2 si existe
+      // Enviar a conversación privada del tutor 2 si existe
       if (player.email_tutor_2) {
-        await base44.entities.ChatMessage.create({
-          remitente_email: "admin@cdbustarviejo.com",
-          remitente_nombre: "Administración CF Bustarviejo",
-          destinatario_email: player.email_tutor_2,
-          destinatario_nombre: `Tutor 2 de ${player.nombre}`,
-          mensaje: mensaje,
-          prioridad: reminder.tipo_recordatorio === "3 días antes" || reminder.tipo_recordatorio === "1 día después" ? "Urgente" : "Importante",
-          tipo: "admin_a_grupo",
-          deporte: player.deporte,
-          categoria: "",
-          grupo_id: player.deporte,
-          leido: false,
-          archivos_adjuntos: []
-        });
+        try {
+          const allPrivateConvs = await base44.entities.PrivateConversation.list();
+          let privateConv = allPrivateConvs.find(c => 
+            c.tipo === "coordinador_padre" && 
+            c.padre_email === player.email_tutor_2 &&
+            c.jugador_id === player.id
+          );
+          
+          if (!privateConv) {
+            privateConv = await base44.entities.PrivateConversation.create({
+              tipo: "coordinador_padre",
+              coordinador_email: "sistema@cdbustarviejo.com",
+              coordinador_nombre: "🤖 Sistema de Recordatorios",
+              padre_email: player.email_tutor_2,
+              padre_nombre: player.nombre_tutor_2 || "Tutor 2",
+              jugador_id: player.id,
+              jugador_nombre: player.nombre,
+              jugador_categoria: player.deporte,
+              ultimo_mensaje: mensaje,
+              ultimo_mensaje_fecha: new Date().toISOString(),
+              ultimo_mensaje_autor: "Sistema",
+              activa: true
+            });
+          }
+          
+          await base44.entities.PrivateMessage.create({
+            conversacion_id: privateConv.id,
+            autor: "coordinador",
+            autor_email: "sistema@cdbustarviejo.com",
+            autor_nombre: "🤖 Sistema de Recordatorios",
+            mensaje: mensaje,
+            leido_padre: false,
+            leido_coordinador: true
+          });
+          
+          await base44.entities.PrivateConversation.update(privateConv.id, {
+            ultimo_mensaje: mensaje.substring(0, 100) + "...",
+            ultimo_mensaje_fecha: new Date().toISOString(),
+            ultimo_mensaje_autor: "Sistema"
+          });
+        } catch (error) {
+          console.error("Error enviando a chat privado tutor 2:", error);
+        }
       }
-
-      await base44.entities.Reminder.update(reminder.id, {
-        ...reminder,
-        enviado_chat: true,
-        fecha_enviado_chat: new Date().toISOString()
-      });
-
-      queryClient.invalidateQueries({ queryKey: ['reminders'] });
-      toast.success("💬 Mensaje individual enviado por chat");
-    } catch (error) {
-      console.error("Error sending chat reminder:", error);
-      toast.error("Error al enviar mensaje al chat");
-    }
-  };
+      
+      sentMethods.push('Chat Privado Individual (solo visible para la familia)');
+      }
 
   const sendTodayReminders = async () => {
     const today = new Date().toISOString().split('T')[0];
@@ -995,53 +1106,76 @@ Temporada ${reminder.temporada}
           </div>
 
           <div className="bg-white rounded-lg p-4 border-2 border-green-200">
-            <p className="font-bold text-green-900 mb-3">🔔 Recordatorios que se Generan Automáticamente:</p>
-            <div className="space-y-2 text-sm">
-              <div className="flex items-start gap-3 p-2 bg-blue-50 rounded">
-                <span className="text-lg">📅</span>
-                <div>
-                  <p className="font-semibold text-blue-900">15 días antes del vencimiento</p>
-                  <p className="text-blue-700">• Email automático con datos bancarios</p>
-                </div>
-              </div>
-              <div className="flex items-start gap-3 p-2 bg-orange-50 rounded">
-                <span className="text-lg">⚠️</span>
-                <div>
-                  <p className="font-semibold text-orange-900">7 días antes del vencimiento</p>
-                  <p className="text-orange-700">• Email con datos bancarios</p>
-                  <p className="text-orange-700">• Mensaje privado al chat (solo lo ve esa familia)</p>
-                </div>
-              </div>
-              <div className="flex items-start gap-3 p-2 bg-red-50 rounded">
-                <span className="text-lg">🔴</span>
-                <div>
-                  <p className="font-semibold text-red-900">3 días antes del vencimiento</p>
-                  <p className="text-red-700">• Email urgente con datos bancarios</p>
-                  <p className="text-red-700">• Mensaje privado urgente al chat (solo lo ve esa familia)</p>
-                </div>
-              </div>
-              <div className="flex items-start gap-3 p-2 bg-purple-50 rounded">
-                <span className="text-lg">🚨</span>
-                <div>
-                  <p className="font-semibold text-purple-900">1 día después del vencimiento</p>
-                  <p className="text-purple-700">• Email de pago vencido</p>
-                  <p className="text-purple-700">• Mensaje privado al chat (solo lo ve esa familia)</p>
-                </div>
-              </div>
-            </div>
+           <p className="font-bold text-green-900 mb-3">🔔 Sistema de Recordatorios Automáticos con IA:</p>
+           <div className="space-y-2 text-sm">
+             <div className="flex items-start gap-3 p-2 bg-blue-50 rounded">
+               <span className="text-lg">📅</span>
+               <div>
+                 <p className="font-semibold text-blue-900">15 días antes del vencimiento</p>
+                 <p className="text-blue-700">• Email automático con datos bancarios</p>
+               </div>
+             </div>
+             <div className="flex items-start gap-3 p-2 bg-orange-50 rounded">
+               <span className="text-lg">⚠️</span>
+               <div>
+                 <p className="font-semibold text-orange-900">7 días antes del vencimiento</p>
+                 <p className="text-orange-700">• Email con datos bancarios</p>
+                 <p className="text-orange-700">• 💬 Chat Privado Individual (solo visible para esa familia)</p>
+               </div>
+             </div>
+             <div className="flex items-start gap-3 p-2 bg-red-50 rounded">
+               <span className="text-lg">🔴</span>
+               <div>
+                 <p className="font-semibold text-red-900">3 días antes del vencimiento</p>
+                 <p className="text-red-700">• Email urgente con datos bancarios</p>
+                 <p className="text-red-700">• 💬 Chat Privado Individual urgente (solo visible para esa familia)</p>
+               </div>
+             </div>
+             <div className="flex items-start gap-3 p-2 bg-purple-50 rounded">
+               <span className="text-lg">🚨</span>
+               <div>
+                 <p className="font-semibold text-purple-900">1 día después del vencimiento</p>
+                 <p className="text-purple-700">• Email de pago vencido</p>
+                 <p className="text-purple-700">• 💬 Chat Privado Individual (solo visible para esa familia)</p>
+               </div>
+             </div>
+           </div>
+           <div className="mt-4 bg-gradient-to-r from-green-50 to-blue-50 border-2 border-green-300 rounded-lg p-3">
+             <p className="text-xs font-bold text-green-900 mb-2">🔒 PRIVACIDAD DE MENSAJES:</p>
+             <p className="text-xs text-green-800 leading-relaxed">
+               Los recordatorios por chat se envían a <strong>conversaciones privadas individuales</strong>. 
+               Cada familia solo verá sus propios recordatorios. <strong>No son visibles en el chat del grupo.</strong>
+             </p>
+           </div>
           </div>
 
           <div className="bg-gradient-to-r from-orange-50 to-orange-100 rounded-lg p-4 border-2 border-orange-300">
-            <p className="font-bold text-orange-900 mb-2">💡 Guía de Uso Paso a Paso:</p>
+            <p className="font-bold text-orange-900 mb-2">💡 Guía de Uso del Sistema de Recordatorios:</p>
             <ol className="list-decimal list-inside space-y-2 text-sm text-orange-800">
               <li><strong>Al inicio de temporada:</strong> Ir a "Temporadas" y configurar las cuotas de cada categoría</li>
               <li><strong>Generar Pagos:</strong> Crear los pagos (Junio, Sep, Dic) para todos los jugadores activos</li>
               <li><strong>Generar Recordatorios:</strong> Crear los recordatorios escalonados (15, 7, 3 días antes y 1 después)</li>
-              <li><strong>Envío diario:</strong> Cada día pulsar "Hoy (X)" para enviar los recordatorios programados</li>
-              <li><strong>Corregir Cantidades:</strong> Solo si cambias las cuotas en "Temporadas" después de crear pagos</li>
-              <li><strong>Recordatorios individuales:</strong> Usa el botón "Enviar" de cada jugador para casos especiales</li>
+              <li><strong>Envío diario automático:</strong> Pulsar "Hoy (X)" para enviar recordatorios programados por email + chat privado</li>
+              <li><strong>Recordatorios personalizados:</strong> Usa "Enviar" en cada jugador para envíos manuales con opciones (email, chat privado, notificación visual)</li>
+              <li><strong>💬 Chat Privado:</strong> Los recordatorios van a conversaciones privadas individuales - cada familia solo ve los suyos</li>
             </ol>
           </div>
+          
+          <Alert className="bg-purple-50 border-purple-300">
+            <MessageCircle className="h-4 w-4 text-purple-600" />
+            <AlertDescription className="text-purple-900">
+              <p className="font-bold mb-2">🤖 Recordatorios Inteligentes con IA:</p>
+              <p className="text-sm mb-2">
+                El sistema puede generar mensajes personalizados usando IA cuando envías recordatorios individuales:
+              </p>
+              <ul className="text-sm space-y-1 list-disc list-inside">
+                <li>Haz clic en "Enviar" en cualquier jugador</li>
+                <li>Activa "Email" + "Chat Privado" + "Notificación Visual"</li>
+                <li>Los mensajes se envían a <strong>conversaciones privadas</strong> (no al chat del grupo)</li>
+                <li>Cada familia solo ve sus propios recordatorios</li>
+              </ul>
+            </AlertDescription>
+          </Alert>
           
           <Alert className="bg-green-50 border-green-300 border-2">
             <Info className="h-4 w-4 text-green-600" />

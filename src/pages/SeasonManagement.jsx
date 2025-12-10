@@ -349,9 +349,11 @@ export default function SeasonManagement() {
       const totalSteps = 8;
       let currentStep = 0;
 
-      // 1. Archivar pagos
+      // 1. Archivar TODOS los datos financieros y resetear a CERO
       if (resetConfig.archivePayments) {
-        setProcessingStep("Archivando pagos...");
+        setProcessingStep("Archivando pagos y reseteando datos financieros...");
+        
+        // Archivar pagos
         for (const payment of payments) {
           const { id, created_date, updated_date, ...data } = payment;
           await base44.entities.PaymentHistory.create({
@@ -360,6 +362,17 @@ export default function SeasonManagement() {
           });
           await base44.entities.Payment.delete(payment.id);
         }
+        
+        // Resetear patrocinadores (marcarlos como "Pendiente" para nueva temporada)
+        const allSponsors = await base44.entities.Sponsor.list();
+        for (const sponsor of allSponsors.filter(s => s.estado === "Activo")) {
+          await base44.entities.Sponsor.update(sponsor.id, {
+            estado: "Pendiente",
+            temporada_anterior: activeSeason?.temporada || "",
+            notas: `${sponsor.notas || ''}\n[Renovación pendiente para temporada ${resetConfig.newSeasonName}]`.trim()
+          });
+        }
+        
         currentStep++;
         setProcessingProgress((currentStep / totalSteps) * 100);
       }

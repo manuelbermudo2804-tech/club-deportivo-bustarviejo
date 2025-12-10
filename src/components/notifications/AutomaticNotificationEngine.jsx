@@ -124,7 +124,7 @@ export default function AutomaticNotificationEngine({ user }) {
         }
       }
 
-      // 2. Pagos próximos a vencer (2 días antes)
+      // 2. Pagos próximos a vencer (2 días antes) - ENVIAR A CHAT PRIVADO
       for (const payment of payments) {
         if (payment.estado !== "Pendiente") continue;
         if (!myPlayers.some(p => p.id === payment.jugador_id)) continue;
@@ -135,7 +135,7 @@ export default function AutomaticNotificationEngine({ user }) {
         if (!month) continue;
 
         const year = parseInt(payment.temporada.split('/')[0]);
-        const dueDate = new Date(year, month, 30); // Último día del mes
+        const dueDate = new Date(year, month, 30);
         const daysUntil = Math.ceil((dueDate - now) / (1000 * 60 * 60 * 24));
 
         if (daysUntil === 2) {
@@ -143,6 +143,7 @@ export default function AutomaticNotificationEngine({ user }) {
           const exists = notifications.some(n => n.tipo === "pago_proximo" && n.referencia_id === notifKey);
 
           if (!exists) {
+            // Notificación visual en la app
             await base44.entities.AppNotification.create({
               usuario_email: user.email,
               tipo: "pago_proximo",
@@ -153,6 +154,59 @@ export default function AutomaticNotificationEngine({ user }) {
               referencia_id: notifKey,
               vista: false
             });
+            
+            // ENVIAR MENSAJE INDIVIDUAL AL CHAT (SOLO LO VE ESTA FAMILIA)
+            const player = players.find(p => p.id === payment.jugador_id);
+            if (player) {
+              const mensaje = `🔔 RECORDATORIO AUTOMÁTICO DE PAGO\n\n` +
+                `El pago de ${payment.mes} para ${payment.jugador_nombre} vence en 2 días.\n\n` +
+                `💰 Cantidad: ${payment.cantidad}€\n` +
+                `📅 Vencimiento: ${dueDate.toLocaleDateString('es-ES')}\n\n` +
+                `📲 Entra en "Mis Pagos" para subir tu justificante.\n\n` +
+                `🔒 MENSAJE PRIVADO: Solo tú ves este mensaje.`;
+              
+              // Crear conversación privada si no existe
+              const allPrivateConvs = await base44.entities.PrivateConversation.list();
+              let privateConv = allPrivateConvs.find(c => 
+                c.tipo === "coordinador_padre" && 
+                (c.padre_email === user.email || c.padre_email === player.email_padre || c.padre_email === player.email_tutor_2)
+              );
+              
+              if (!privateConv) {
+                privateConv = await base44.entities.PrivateConversation.create({
+                  tipo: "coordinador_padre",
+                  coordinador_email: "sistema@cdbustarviejo.com",
+                  coordinador_nombre: "Sistema Automático CD Bustarviejo",
+                  padre_email: user.email,
+                  padre_nombre: user.full_name,
+                  jugador_id: player.id,
+                  jugador_nombre: player.nombre,
+                  jugador_categoria: player.deporte,
+                  ultimo_mensaje: mensaje,
+                  ultimo_mensaje_fecha: new Date().toISOString(),
+                  ultimo_mensaje_autor: "Sistema Automático",
+                  activa: true
+                });
+              }
+              
+              // Enviar mensaje privado
+              await base44.entities.PrivateMessage.create({
+                conversacion_id: privateConv.id,
+                autor: "coordinador",
+                autor_email: "sistema@cdbustarviejo.com",
+                autor_nombre: "🤖 Sistema Automático",
+                mensaje: mensaje,
+                leido_padre: false,
+                leido_coordinador: true
+              });
+              
+              // Actualizar conversación
+              await base44.entities.PrivateConversation.update(privateConv.id, {
+                ultimo_mensaje: mensaje,
+                ultimo_mensaje_fecha: new Date().toISOString(),
+                ultimo_mensaje_autor: "Sistema Automático"
+              });
+            }
           }
         }
       }
