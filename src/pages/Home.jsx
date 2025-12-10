@@ -585,12 +585,6 @@ export default function Home() {
           gradient: "from-yellow-600 to-yellow-700",
         },
         {
-          title: "📋 Asistencia",
-          icon: CheckCircle2,
-          url: createPageUrl("TeamAttendanceEvaluation"),
-          gradient: "from-green-600 to-green-700",
-        },
-        {
           title: "📊 Reportes",
           icon: Star,
           url: createPageUrl("CoachEvaluationReports"),

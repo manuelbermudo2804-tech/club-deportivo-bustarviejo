@@ -512,19 +512,20 @@ Email: cdbustarviejo@gmail.com
   // Get available categories for the user
   const availableCategories = React.useMemo(() => {
     if (!user) return [];
-    if (user.role === "admin") {
+    if (user.es_coordinador) {
       const allPlayers = players || [];
       return [...new Set(allPlayers.map(p => p.deporte).filter(Boolean))];
     }
     return user.categorias_entrena || [];
   }, [user, players]);
 
-  if (!user || (user.role !== "admin" && (!user.es_entrenador || availableCategories.length === 0))) {
+  if (!user || !user.es_entrenador || availableCategories.length === 0) {
     return (
       <div className="p-4 lg:p-6">
         <div className="text-center py-12">
           <User className="w-16 h-16 text-slate-300 mx-auto mb-4" />
           <p className="text-slate-500">No tienes equipos asignados</p>
+          <p className="text-xs text-slate-400 mt-2">Esta funcionalidad es solo para entrenadores</p>
         </div>
       </div>
     );
