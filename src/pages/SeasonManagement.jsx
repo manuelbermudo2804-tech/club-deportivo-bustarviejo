@@ -78,7 +78,8 @@ export default function SeasonManagement() {
     deleteMedicalRecords: false,
     deleteDocuments: false,
     deletePrivateMessages: true,
-    deletePrivateConversations: true, // Conversaciones privadas
+    deletePrivateConversations: true, // Conversaciones privadas coordinador y entrenador
+    deleteCoordinatorChats: true, // Chat coordinador específicamente
     deleteReferralRewards: true, // Referidos de la temporada
     resetUserReferrals: true, // Resetear contadores de referidos de usuarios
     resetClubMembers: true, // Desactivar socios de temporada anterior
@@ -502,6 +503,29 @@ export default function SeasonManagement() {
         }
         currentStep++;
         setProcessingProgress((currentStep / totalSteps) * 100);
+      }
+
+      // 12.1 Eliminar conversaciones y mensajes de coordinador
+      if (resetConfig.deletePrivateConversations) {
+        setProcessingStep("Eliminando conversaciones de coordinador...");
+        const coordinatorConvs = await base44.entities.CoordinatorConversation.list();
+        for (const conv of coordinatorConvs) {
+          await base44.entities.CoordinatorConversation.delete(conv.id);
+        }
+        const coordinatorMsgs = await base44.entities.CoordinatorMessage.list();
+        for (const msg of coordinatorMsgs) {
+          await base44.entities.CoordinatorMessage.delete(msg.id);
+        }
+        
+        // También eliminar conversaciones y mensajes de entrenador
+        const coachConvs = await base44.entities.CoachConversation.list();
+        for (const conv of coachConvs) {
+          await base44.entities.CoachConversation.delete(conv.id);
+        }
+        const coachMsgs = await base44.entities.CoachMessage.list();
+        for (const msg of coachMsgs) {
+          await base44.entities.CoachMessage.delete(msg.id);
+        }
       }
 
       // 13. Eliminar encuestas y respuestas
@@ -1429,6 +1453,10 @@ export default function SeasonManagement() {
                   <div className="flex items-center gap-2">
                     <Checkbox checked={resetConfig.deletePrivateMessages} onCheckedChange={(c) => setResetConfig(prev => ({ ...prev, deletePrivateMessages: c }))} />
                     <Label className="text-xs">Eliminar chat privados ({currentStats.privateMessages})</Label>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Checkbox checked={resetConfig.deleteCoordinatorChats} onCheckedChange={(c) => setResetConfig(prev => ({ ...prev, deleteCoordinatorChats: c, deletePrivateConversations: c }))} />
+                    <Label className="text-xs">Eliminar chats coordinador/entrenador</Label>
                   </div>
                   <div className="flex items-center gap-2">
                     <Checkbox checked={resetConfig.deleteAnnouncements} onCheckedChange={(c) => setResetConfig(prev => ({ ...prev, deleteAnnouncements: c }))} />
