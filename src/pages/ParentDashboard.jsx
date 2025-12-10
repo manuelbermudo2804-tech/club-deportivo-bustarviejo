@@ -108,153 +108,111 @@ export default function ParentDashboard() {
     fetchUser();
   }, []);
 
-  const { data: players = [], isLoading: playersLoading } = useQuery({
+  // CARGAR SOLO DATOS ESENCIALES - El resto se carga bajo demanda en cada página
+  const { data: allPlayers = [], isLoading: playersLoading } = useQuery({
     queryKey: ['players'],
     queryFn: () => base44.entities.Player.list(),
-    staleTime: 300000,
-    gcTime: 600000,
-    refetchOnWindowFocus: false,
-    refetchOnMount: false,
-    refetchInterval: false,
+    staleTime: 60000,
     enabled: !!user,
   });
 
-  const { data: payments = [] } = useQuery({
+  // Filtrar MIS jugadores en memoria (rápido)
+  const players = allPlayers.filter(p => 
+    (p.email_padre === user?.email || p.email_tutor_2 === user?.email) && p.activo === true
+  );
+
+  const { data: allPayments = [] } = useQuery({
     queryKey: ['payments'],
-    queryFn: () => base44.entities.Payment.list('-created_date'),
-    staleTime: 300000,
-    gcTime: 600000,
-    refetchOnWindowFocus: false,
-    refetchOnMount: false,
-    refetchInterval: false,
-    enabled: !!user,
+    queryFn: () => base44.entities.Payment.list('-created_date', 100),
+    staleTime: 60000,
+    enabled: !!user && players.length > 0,
   });
 
-  const { data: callups = [] } = useQuery({
+  // Filtrar MIS pagos en memoria
+  const payments = allPayments.filter(p => 
+    players.some(player => player.id === p.jugador_id)
+  );
+
+  const { data: allCallups = [] } = useQuery({
     queryKey: ['callups'],
-    queryFn: () => base44.entities.Convocatoria.list('-created_date'),
-    staleTime: 300000,
-    gcTime: 600000,
-    refetchOnWindowFocus: false,
-    refetchOnMount: false,
-    refetchInterval: false,
-    enabled: !!user,
+    queryFn: () => base44.entities.Convocatoria.list('-created_date', 50),
+    staleTime: 60000,
+    enabled: !!user && players.length > 0,
   });
 
-  const { data: messages = [] } = useQuery({
-    queryKey: ['messages'],
-    queryFn: () => base44.entities.ChatMessage.list('-created_date', 50),
-    staleTime: 30000, // 30 segundos
-    gcTime: 300000,
-    refetchOnWindowFocus: false,
-    refetchOnMount: false,
-    refetchInterval: false,
-    enabled: !!user,
-  });
+  const today = new Date().toISOString().split('T')[0];
+  const callups = allCallups.filter(c => c.publicada && c.fecha_partido >= today && !c.cerrada);
 
   const { data: seasonConfigs = [] } = useQuery({
     queryKey: ['seasonConfigs'],
     queryFn: () => base44.entities.SeasonConfig.list(),
-    staleTime: 300000, // 5 minutos
-    gcTime: 600000, // 10 minutos
-    refetchOnWindowFocus: false,
-    refetchOnMount: false,
-    refetchInterval: false,
-    enabled: !!user,
-  });
-
-  const { data: surveys = [] } = useQuery({
-    queryKey: ['surveys'],
-    queryFn: () => base44.entities.Survey.list('-created_date'),
     staleTime: 300000,
-    gcTime: 600000,
-    refetchOnWindowFocus: false,
-    refetchOnMount: false,
-    refetchInterval: false,
-    enabled: !!user,
-  });
-
-  const { data: surveyResponses = [] } = useQuery({
-    queryKey: ['surveyResponses'],
-    queryFn: () => base44.entities.SurveyResponse.list(),
-    staleTime: 300000,
-    gcTime: 600000,
-    refetchOnWindowFocus: false,
-    refetchOnMount: false,
-    refetchInterval: false,
-    enabled: !!user,
-  });
-
-  const { data: announcements = [] } = useQuery({
-    queryKey: ['announcements'],
-    queryFn: () => base44.entities.Announcement.list('-created_date'),
-    staleTime: 300000,
-    gcTime: 600000,
-    refetchOnWindowFocus: false,
-    refetchOnMount: false,
-    refetchInterval: false,
-    enabled: !!user,
-  });
-
-  const { data: clothingOrders = [] } = useQuery({
-    queryKey: ['clothingOrders'],
-    queryFn: () => base44.entities.ClothingOrder.list('-created_date'),
-    staleTime: 300000,
-    gcTime: 600000,
-    refetchOnWindowFocus: false,
-    refetchOnMount: false,
-    refetchInterval: false,
     enabled: !!user,
   });
 
   const { data: privateConversations = [] } = useQuery({
-    queryKey: ['privateConversationsParent'],
-    queryFn: () => base44.entities.PrivateConversation.list('-ultimo_mensaje_fecha', 30),
-    staleTime: 30000, // 30 segundos
-    gcTime: 300000,
-    refetchOnWindowFocus: false,
-    refetchOnMount: false,
-    refetchInterval: false,
-    enabled: !!user,
-  });
-
-  const { data: allDocuments = [] } = useQuery({
-    queryKey: ['documents'],
-    queryFn: () => base44.entities.Document.list('-created_date'),
-    staleTime: 300000, // 5 minutos
-    gcTime: 600000,
-    refetchOnWindowFocus: false,
-    refetchOnMount: false,
-    refetchInterval: false,
-    enabled: !!user,
-  });
-
-  const { data: extraPayments = [] } = useQuery({
-    queryKey: ['extraPayments'],
-    queryFn: () => base44.entities.ExtraPayment.list('-created_date'),
-    staleTime: 300000,
-    gcTime: 600000,
-    refetchOnWindowFocus: false,
-    refetchOnMount: false,
-    refetchInterval: false,
+    queryKey: ['privateConversationsParent', user?.email],
+    queryFn: async () => {
+      const allConvs = await base44.entities.PrivateConversation.list('-ultimo_mensaje_fecha', 30);
+      return allConvs.filter(c => c.participante_familia_email === user?.email);
+    },
+    staleTime: 10000,
+    refetchInterval: 10000,
     enabled: !!user,
   });
 
   const { data: coordinatorConversations = [] } = useQuery({
-    queryKey: ['coordinatorConversations'],
-    queryFn: () => base44.entities.CoordinatorConversation.list(),
-    staleTime: 30000,
-    gcTime: 300000,
-    refetchOnWindowFocus: false,
-    refetchOnMount: false,
-    refetchInterval: false,
+    queryKey: ['coordinatorConversations', user?.email],
+    queryFn: async () => {
+      const allConvs = await base44.entities.CoordinatorConversation.list();
+      return allConvs.filter(c => c.padre_email === user?.email);
+    },
+    staleTime: 10000,
+    refetchInterval: 10000,
     enabled: !!user,
   });
 
-  // SOLO jugadores ACTIVOS de la temporada actual
-  const myPlayers = (user && players) ? players.filter(p => 
-    (p.email_padre === user.email || p.email_tutor_2 === user.email) && p.activo === true
-  ) : [];
+  const { data: messages = [] } = useQuery({
+    queryKey: ['chatMessages', user?.email],
+    queryFn: async () => {
+      if (!players || players.length === 0) return [];
+      const sports = [...new Set(players.map(p => p.deporte))];
+      const allMsgs = await base44.entities.ChatMessage.list('-created_date', 50);
+      return allMsgs.filter(m => sports.includes(m.deporte) || m.grupo_id === "Coordinación Deportiva");
+    },
+    staleTime: 10000,
+    refetchInterval: 10000,
+    enabled: !!user && players.length > 0,
+  });
+
+  // Surveys - solo si hay jugadores
+  const { data: allSurveys = [] } = useQuery({
+    queryKey: ['surveys'],
+    queryFn: () => base44.entities.Survey.list('-created_date', 10),
+    staleTime: 300000,
+    enabled: !!user && players.length > 0,
+  });
+
+  const { data: surveyResponses = [] } = useQuery({
+    queryKey: ['surveyResponses', user?.email],
+    queryFn: async () => {
+      const allResp = await base44.entities.SurveyResponse.list();
+      return allResp.filter(r => r.respondente_email === user?.email);
+    },
+    staleTime: 300000,
+    enabled: !!user && allSurveys.length > 0,
+  });
+
+  // Documents - solo si hay jugadores
+  const { data: allDocuments = [] } = useQuery({
+    queryKey: ['documents'],
+    queryFn: () => base44.entities.Document.list('-created_date', 20),
+    staleTime: 300000,
+    enabled: !!user && players.length > 0,
+  });
+
+  // Los jugadores ya están filtrados arriba
+  const myPlayers = players;
 
   useEffect(() => {
     if (user && myPlayers.length > 0) {
@@ -263,84 +221,34 @@ export default function ParentDashboard() {
     }
   }, [user?.email, myPlayers.length]);
 
-  const activeSurveys = (surveys && user) ? surveys.filter(s => {
+  const activeSurveys = (allSurveys && user && myPlayersSports.length > 0) ? allSurveys.filter(s => {
     if (!s.activa || new Date(s.fecha_fin) < new Date()) return false;
-    
-    // Verificar si ya respondió esta encuesta
-    const alreadyResponded = surveyResponses.some(r => 
-      r.survey_id === s.id && r.respondente_email === user.email
-    );
+    const alreadyResponded = surveyResponses.some(r => r.survey_id === s.id);
     if (alreadyResponded) return false;
-    
     if (s.destinatarios === "Todos") return true;
     return myPlayersSports.includes(s.destinatarios);
   }) : [];
 
-  const myPayments = payments.filter(p => 
-    myPlayers.some(player => player.id === p.jugador_id)
+  // Calcular mensajes privados no leídos
+  const unreadPrivateMessages = privateConversations.reduce((count, conv) => 
+    count + (conv.no_leidos_familia || 0), 0
   );
 
-  const unreadMessages = messages.filter(m => {
-    if (!m.leido && m.tipo === "admin_a_grupo") {
-      const myGroupSports = [...new Set(myPlayers.map(p => p.deporte))];
-      // Incluir mensajes de Coordinación Deportiva para todos los padres
-      return myGroupSports.includes(m.grupo_id || m.deporte) || 
-             (m.grupo_id === "Coordinación Deportiva" || m.deporte === "Coordinación Deportiva");
-    }
-    return false;
-  }).length;
-
-  const urgentUnreadMessages = messages.filter(m => {
-    if (!m.leido && m.tipo === "admin_a_grupo" && m.prioridad === "Urgente") {
-      const myGroupSports = [...new Set(myPlayers.map(p => p.deporte))];
-      // Incluir mensajes urgentes de Coordinación Deportiva para todos los padres
-      return myGroupSports.includes(m.grupo_id || m.deporte) || 
-             (m.grupo_id === "Coordinación Deportiva" || m.deporte === "Coordinación Deportiva");
-    }
-    return false;
-  }).length;
-
-  // Calcular mensajes privados no leídos
-  const unreadPrivateMessages = privateConversations.reduce((count, conv) => {
-    if (conv.participante_familia_email === user?.email) {
-      return count + (conv.no_leidos_familia || 0);
-    }
-    return count;
-  }, 0);
-
   // Calcular mensajes coordinador no leídos
-  const unreadCoordinatorMessages = coordinatorConversations.reduce((count, conv) => {
-    if (conv.padre_email === user?.email) {
-      return count + (conv.no_leidos_padre || 0);
-    }
-    return count;
-  }, 0);
+  const unreadCoordinatorMessages = coordinatorConversations.reduce((count, conv) => 
+    count + (conv.no_leidos_padre || 0), 0
+  );
 
   // Calcular mensajes del chat entrenador-padres no leídos
   const unreadCoachMessages = messages.filter(m => {
-    // Solo mensajes del grupo de mis categorías
-    const myGroupSports = [...new Set(myPlayers.map(p => p.deporte))];
-    const isMyGroup = myGroupSports.includes(m.deporte);
-    
-    if (!isMyGroup) return false;
-    
-    // Mensajes del entrenador sin leer
     if (m.tipo === "entrenador_a_grupo" && !m.leido) return true;
-    
-    // Mensajes privados del entrenador para mí sin leer
     if (m.destinatario_email === user?.email && !m.leido) return true;
-    
     return false;
   }).length;
 
-  const today = new Date().toISOString().split('T')[0];
-  const upcomingCallups = callups.filter(c => 
-    c.publicada && c.fecha_partido >= today && !c.cerrada
-  );
-
   let pendingCallups = 0;
-  if (myPlayers.length > 0) {
-    upcomingCallups.forEach(callup => {
+  if (myPlayers.length > 0 && callups.length > 0) {
+    callups.forEach(callup => {
       callup.jugadores_convocados?.forEach(jugador => {
         const isMyPlayer = myPlayers.some(p => p.id === jugador.jugador_id);
         if (isMyPlayer && jugador.confirmacion === "pendiente") {
@@ -350,76 +258,8 @@ export default function ParentDashboard() {
     });
   }
 
-  const urgentAnnouncements = announcements.filter(a => {
-    if (!a.publicado || a.prioridad !== "Urgente") return false;
-    if (a.created_by === user?.email) return false;
-    const now = new Date();
-    const publishedDate = new Date(a.fecha_publicacion);
-    const diffHours = (now - publishedDate) / (1000 * 60 * 60);
-    if (diffHours >= 24) return false;
-    if (a.destinatarios_tipo === "Todos") return true;
-    return myPlayersSports.includes(a.destinatarios_tipo);
-  });
-
-  const importantAnnouncements = announcements.filter(a => {
-    if (!a.publicado || a.prioridad !== "Importante") return false;
-    if (a.created_by === user?.email) return false;
-    const now = new Date();
-    const publishedDate = new Date(a.fecha_publicacion);
-    const diffHours = (now - publishedDate) / (1000 * 60 * 60);
-    if (diffHours >= 48) return false;
-    if (a.destinatarios_tipo === "Todos") return true;
-    return myPlayersSports.includes(a.destinatarios_tipo);
-  });
-
-  const myClothingOrders = clothingOrders.filter(o => o.email_padre === user?.email);
-  const pendingClothingOrders = myClothingOrders.filter(o => o.estado === "Pendiente" || o.estado === "En revisión");
-
   const activeSeason = seasonConfigs.find(s => s.activa) || null;
   const loteriaVisible = activeSeason?.loteria_navidad_abierta === true;
-
-  // Pagos extras activos que aplican a mis jugadores
-  const myActiveExtraPayments = extraPayments.filter(ep => {
-    if (!ep.activo) return false;
-    // Si no tiene categorías específicas, aplica a todos
-    if (!ep.categorias_destino || ep.categorias_destino.length === 0) {
-      return myPlayers.length > 0;
-    }
-    // Verificar si alguno de mis jugadores está en las categorías destino
-    return myPlayers.some(p => ep.categorias_destino.includes(p.deporte));
-  });
-
-  // Contar pagos extras pendientes para mis jugadores
-  const pendingExtraPayments = myActiveExtraPayments.reduce((count, ep) => {
-    const myPlayerIds = myPlayers.map(p => p.id);
-    const misPagos = (ep.pagos_recibidos || []).filter(pago => 
-      myPlayerIds.includes(pago.jugador_id) && pago.estado !== "Pagado"
-    );
-    return count + misPagos.length;
-  }, 0);
-
-  const pendingDocuments = (myPlayers.length > 0) ? allDocuments.filter(doc => {
-    if (!doc.publicado || !doc.requiere_firma) return false;
-    
-    const isRelevant = doc.tipo_destinatario === "individual" 
-      ? myPlayers.some(p => doc.jugadores_destino?.includes(p.id))
-      : (doc.categoria_destino === "Todos" || myPlayers.some(p => p.deporte === doc.categoria_destino));
-    
-    if (!isRelevant) return false;
-    
-    // Verificar si hay algún jugador con firma pendiente (ni firmado ni confirmado externa)
-    return myPlayers.some(player => {
-      const isRelevantForPlayer = doc.tipo_destinatario === "individual" 
-        ? doc.jugadores_destino?.includes(player.id)
-        : (doc.categoria_destino === "Todos" || player.deporte === doc.categoria_destino);
-      
-      if (!isRelevantForPlayer) return false;
-      
-      const firma = doc.firmas?.find(f => f.jugador_id === player.id);
-      // Pendiente solo si existe firma Y no está firmado Y no está confirmada externa
-      return firma && !firma.firmado && !firma.confirmado_firma_externa;
-    });
-  }) : [];
 
   // Calcular firmas de federación pendientes
   const calcularEdad = (fechaNac) => {
@@ -444,62 +284,13 @@ export default function ParentDashboard() {
     return count;
   }, 0);
 
-  const calculatePendingPayments = () => {
-    const activeSeason = seasonConfigs.find(s => s.activa);
-    if (!activeSeason || myPlayers.length === 0) return 0;
-
-    const currentMonth = new Date().getMonth() + 1;
-    let pendingCount = 0;
-
-    myPlayers.forEach(player => {
-      const playerPayments = myPayments.filter(p => 
-        p.jugador_id === player.id && p.temporada === activeSeason.temporada
-      );
-
-      // Si no hay pagos registrados, no contamos nada (es responsabilidad del padre registrar)
-      if (playerPayments.length === 0) return;
-
-      // Verificar si hay un pago único
-      const pagoUnico = playerPayments.find(p => p.tipo_pago === "Único");
-      
-      if (pagoUnico) {
-        // Si tiene pago único y NO está pagado, contar
-        if (pagoUnico.estado === "Pendiente" || pagoUnico.estado === "En revisión") {
-          pendingCount++;
-        }
-      } else {
-        // Sistema fraccionado - verificar cada mes requerido
-        const mesesRequeridos = [
-          { nombre: "Junio", num: 6 },
-          { nombre: "Septiembre", num: 9 },
-          { nombre: "Diciembre", num: 12 }
-        ];
-        
-        mesesRequeridos.forEach(mes => {
-          // Solo contar los meses que ya han pasado o es el mes actual
-          if (currentMonth >= mes.num) {
-            const pagoMes = playerPayments.find(p => p.mes === mes.nombre);
-            // Si existe el pago del mes y NO está pagado, contarlo
-            if (pagoMes && (pagoMes.estado === "Pendiente" || pagoMes.estado === "En revisión")) {
-              pendingCount++;
-            }
-          }
-        });
-      }
-    });
-
-    return pendingCount;
-  };
-
-  const pendingPayments = myPayments.filter(p => 
-    myPlayers.some(player => player.id === p.jugador_id) &&
-    (p.estado === "Pendiente" || p.estado === "En revisión")
+  const pendingPayments = payments.filter(p => 
+    p.estado === "Pendiente" || p.estado === "En revisión"
   ).length;
 
-  // Calcular pagos vencidos (pendientes con fecha pasada)
-  const overduePayments = myPayments.filter(p => {
+  // Calcular pagos vencidos
+  const overduePayments = payments.filter(p => {
     if (p.estado !== "Pendiente") return false;
-    // Si el pago es de un mes que ya pasó, está vencido
     const currentMonth = new Date().getMonth() + 1;
     const monthMapping = { "Junio": 6, "Septiembre": 9, "Diciembre": 12 };
     const paymentMonth = monthMapping[p.mes];
@@ -744,7 +535,21 @@ export default function ParentDashboard() {
         {/* ÚNICO CENTRO DE ALERTAS CONSOLIDADO - Todo en un solo banner */}
         <AlertCenter 
           pendingCallups={pendingCallups}
-          pendingDocuments={pendingDocuments.length}
+          pendingDocuments={allDocuments.length > 0 ? allDocuments.filter(d => {
+            if (!d.publicado || !d.requiere_firma) return false;
+            const isRelevant = d.tipo_destinatario === "individual" 
+              ? myPlayers.some(p => d.jugadores_destino?.includes(p.id))
+              : (d.categoria_destino === "Todos" || myPlayers.some(p => p.deporte === d.categoria_destino));
+            if (!isRelevant) return false;
+            return myPlayers.some(player => {
+              const isRelevantForPlayer = d.tipo_destinatario === "individual" 
+                ? d.jugadores_destino?.includes(player.id)
+                : (d.categoria_destino === "Todos" || player.deporte === d.categoria_destino);
+              if (!isRelevantForPlayer) return false;
+              const firma = d.firmas?.find(f => f.jugador_id === player.id);
+              return firma && !firma.firmado && !firma.confirmado_firma_externa;
+            });
+          }).length : 0}
           pendingPayments={pendingPayments}
           pendingSurveys={activeSurveys.length}
           pendingSignatures={pendingFederationSignatures}
