@@ -9,7 +9,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Send, Paperclip, X, FileText, Download, MessageCircle, Camera, Users, Mic, Square, Search, Pin, Smile, Image as ImageIcon, Folder, BarChart3, Settings } from "lucide-react";
 import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
+import { DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { toast } from "sonner";
@@ -53,30 +53,15 @@ export default function CoachParentChat() {
   const audioChunksRef = useRef([]);
   const queryClient = useQueryClient();
 
-  const { data: allPlayers = [] } = useQuery({
-    queryKey: ['players'],
-    queryFn: () => base44.entities.Player.list(),
-  });
-
   useEffect(() => {
     const fetchUser = async () => {
       const currentUser = await base44.auth.me();
       setUser(currentUser);
       const coach = currentUser.es_entrenador === true || currentUser.role === "admin";
       setIsCoach(coach);
-      
-      if (coach && allPlayers.length > 0) {
-        const categories = currentUser.role === "admin" 
-          ? ["Todas las categorías", ...new Set(allPlayers.map(p => p.deporte).filter(Boolean))]
-          : (currentUser.categorias_entrena || []);
-        
-        if (categories.length > 0 && !selectedCategory) {
-          setSelectedCategory(categories[0]);
-        }
-      }
     };
     fetchUser();
-  }, [allPlayers.length]);
+  }, []);
 
   const { data: messages = [] } = useQuery({
     queryKey: ['coachGroupMessages', selectedCategory],
@@ -136,6 +121,24 @@ export default function CoachParentChat() {
   });
 
   const allSharedFiles = messages.flatMap(m => m.archivos_adjuntos || []);
+
+  const { data: allPlayers = [] } = useQuery({
+    queryKey: ['players'],
+    queryFn: () => base44.entities.Player.list(),
+  });
+
+  // Inicializar categoría cuando tengamos user y players
+  useEffect(() => {
+    if (!user || !isCoach || selectedCategory || allPlayers.length === 0) return;
+    
+    const categories = user.role === "admin" 
+      ? ["Todas las categorías", ...new Set(allPlayers.map(p => p.deporte).filter(Boolean))]
+      : (user.categorias_entrena || []);
+    
+    if (categories.length > 0) {
+      setSelectedCategory(categories[0]);
+    }
+  }, [user, isCoach, allPlayers, selectedCategory]);
 
   useEffect(() => {
     if (messagesEndRef.current) {
@@ -342,7 +345,7 @@ export default function CoachParentChat() {
     );
   }
 
-  if (!user) {
+  if (!user || !selectedCategory) {
     return (
       <div className="h-[calc(100vh-100px)] flex items-center justify-center">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600"></div>
