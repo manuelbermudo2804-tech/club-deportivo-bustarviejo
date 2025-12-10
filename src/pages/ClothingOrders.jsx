@@ -81,16 +81,21 @@ export default function ClothingOrders() {
     staleTime: 60000, // 1 minuto
   });
 
-  const players = allPlayers.filter(p => {
-    const userEmail = user?.email?.toLowerCase().trim();
-    const emailPadre = p.email_padre?.toLowerCase().trim();
-    const emailTutor2 = p.email_tutor_2?.toLowerCase().trim();
+  const players = useMemo(() => {
+    if (!user?.email || !allPlayers) return [];
     
-    const isMyPlayer = emailPadre === userEmail || emailTutor2 === userEmail;
-    const isActive = p.activo === true || p.activo === undefined;
+    const userEmail = user.email.toLowerCase().trim();
     
-    return isMyPlayer && isActive;
-  });
+    return allPlayers.filter(p => {
+      const emailPadre = p.email_padre?.toLowerCase().trim();
+      const emailTutor2 = p.email_tutor_2?.toLowerCase().trim();
+      
+      const isMyPlayer = emailPadre === userEmail || emailTutor2 === userEmail;
+      const isActive = p.activo === true;
+      
+      return isMyPlayer && isActive;
+    });
+  }, [user?.email, allPlayers]);
 
   const { data: orders, isLoading } = useQuery({
     queryKey: ['myClothingOrders', user?.email, isAdmin],
@@ -572,15 +577,32 @@ export default function ClothingOrders() {
         </>
       )}
 
-      {players.length === 0 && orderPeriodActive && !isAdmin && (
-        <Card className="border-none shadow-lg bg-orange-50 border-orange-200">
-          <CardContent className="pt-6">
-            <p className="text-orange-800">
-              ⚠️ <strong>No tienes jugadores activos registrados.</strong> Debes registrar al menos un jugador antes de hacer un pedido de equipación.
-            </p>
-            <p className="text-sm text-orange-700 mt-2">
-              Verifica en "Mis Jugadores" que tus jugadores estén marcados como activos y que el email coincida.
-            </p>
+      {!isAdmin && !loadingAllPlayers && players.length === 0 && (
+        <Card className="border-none shadow-lg bg-orange-50 border-2 border-orange-300">
+          <CardContent className="pt-6 pb-6">
+            <div className="text-center space-y-3">
+              <div className="text-5xl">⚠️</div>
+              <p className="text-orange-900 font-bold text-lg">
+                No tienes jugadores activos registrados
+              </p>
+              <p className="text-sm text-orange-700">
+                Para hacer pedidos de equipación necesitas tener al menos un jugador activo registrado en tu cuenta.
+              </p>
+              <div className="bg-white rounded-lg p-4 border border-orange-200 text-left">
+                <p className="text-sm text-slate-700 font-semibold mb-2">🔍 Verifica que:</p>
+                <ul className="text-xs text-slate-600 space-y-1 ml-4">
+                  <li>• Tu email <strong>({user?.email})</strong> coincide con el email registrado del jugador</li>
+                  <li>• El jugador está marcado como <strong>"Activo"</strong></li>
+                  <li>• Has completado correctamente el registro del jugador</li>
+                </ul>
+              </div>
+              <Button
+                onClick={() => window.location.href = createPageUrl("ParentPlayers")}
+                className="bg-orange-600 hover:bg-orange-700 w-full mt-4"
+              >
+                👥 Ir a Mis Jugadores
+              </Button>
+            </div>
           </CardContent>
         </Card>
       )}
