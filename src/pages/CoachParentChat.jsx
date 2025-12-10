@@ -9,7 +9,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Send, Paperclip, X, FileText, Download, MessageCircle, Camera, Users, Mic, Square, Search, Pin, Smile, Image as ImageIcon, Folder, BarChart3, Settings } from "lucide-react";
 import { Label } from "@/components/ui/label";
-import { DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { toast } from "sonner";
@@ -53,6 +53,11 @@ export default function CoachParentChat() {
   const audioChunksRef = useRef([]);
   const queryClient = useQueryClient();
 
+  const { data: allPlayers = [] } = useQuery({
+    queryKey: ['players'],
+    queryFn: () => base44.entities.Player.list(),
+  });
+
   useEffect(() => {
     const fetchUser = async () => {
       const currentUser = await base44.auth.me();
@@ -60,9 +65,9 @@ export default function CoachParentChat() {
       const coach = currentUser.es_entrenador === true || currentUser.role === "admin";
       setIsCoach(coach);
       
-      if (coach) {
+      if (coach && allPlayers.length > 0) {
         const categories = currentUser.role === "admin" 
-          ? ["Todas"] 
+          ? ["Todas las categorías", ...new Set(allPlayers.map(p => p.deporte).filter(Boolean))]
           : (currentUser.categorias_entrena || []);
         
         if (categories.length > 0 && !selectedCategory) {
@@ -71,7 +76,7 @@ export default function CoachParentChat() {
       }
     };
     fetchUser();
-  }, []);
+  }, [allPlayers.length]);
 
   const { data: messages = [] } = useQuery({
     queryKey: ['coachGroupMessages', selectedCategory],
@@ -131,11 +136,6 @@ export default function CoachParentChat() {
   });
 
   const allSharedFiles = messages.flatMap(m => m.archivos_adjuntos || []);
-
-  const { data: allPlayers = [] } = useQuery({
-    queryKey: ['players'],
-    queryFn: () => base44.entities.Player.list(),
-  });
 
   useEffect(() => {
     if (messagesEndRef.current) {
