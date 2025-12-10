@@ -6,14 +6,13 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Send, Paperclip, X, FileText, Download, MessageCircle, Users, Mic, Square, Play, Search, Smile, AlertTriangle, UserCircle, Mail, Phone } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { toast } from "sonner";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Textarea as DialogTextarea } from "@/components/ui/textarea";
-import { DialogFooter } from "@/components/ui/dialog";
 import ChatInputActions from "../components/chat/ChatInputActions";
 import SocialLinks from "../components/SocialLinks";
 import ChatTermsDialog from "../components/chat/ChatTermsDialog";
@@ -105,6 +104,25 @@ export default function ParentCoachChat() {
     enabled: !!selectedCategory && !!user,
   });
 
+  // Obtener todos los entrenadores para mostrar el perfil
+  const { data: allCoaches } = useQuery({
+    queryKey: ['allCoaches'],
+    queryFn: async () => {
+      const allUsers = await base44.entities.User.list();
+      return allUsers.filter(u => u.es_entrenador === true);
+    },
+    enabled: !!selectedCategory
+  });
+
+  // Actualizar datos del entrenador cuando cambia la categoría
+  useEffect(() => {
+    if (!selectedCategory || !allCoaches) return;
+    const coach = allCoaches.find(c => 
+      c.categorias_entrena?.includes(selectedCategory)
+    );
+    setCoachData(coach);
+  }, [selectedCategory, allCoaches]);
+
   // Obtener conversación privada con el entrenador
   const { data: coachConversations = [] } = useQuery({
     queryKey: ['myCoachConversations', user?.email, selectedCategory],
@@ -158,24 +176,6 @@ export default function ParentCoachChat() {
   const parentEmails = [...new Set(categoryPlayers.flatMap(p => 
     [p.email_padre, p.email_tutor_2].filter(Boolean)
   ))];
-
-  // Obtener datos del entrenador actual
-  const { data: allCoaches } = useQuery({
-    queryKey: ['allCoaches'],
-    queryFn: async () => {
-      const allUsers = await base44.entities.User.list();
-      return allUsers.filter(u => u.es_entrenador === true);
-    },
-    enabled: !!selectedCategory
-  });
-
-  useEffect(() => {
-    if (!selectedCategory || !allCoaches) return;
-    const coach = allCoaches.find(c => 
-      c.categorias_entrena?.includes(selectedCategory)
-    );
-    setCoachData(coach);
-  }, [selectedCategory, allCoaches]);
 
   useEffect(() => {
     if (messagesEndRef.current) {
@@ -302,6 +302,74 @@ export default function ParentCoachChat() {
         const month = now.getMonth() + 1;
         return month >= 9 ? `${year}/${year + 1}` : `${year - 1}/${year}`;
       })();
+
+      // LLAMAR AL CHATBOT PRIMERO
+      try {
+        const myPlayer = myPlayers.find(p => p.deporte === selectedCategory);
+        const botResponse = await base44.functions.invoke('chatbotResponse', {
+          mensajePadre: data.mensaje,
+          categoria: selectedCategory,
+          padreEmail: user.email,
+          padreNombre: user.full_name,
+          jugadorId: myPlayer?.id
+        });
+
+        if (botResponse.data.usarBot || botResponse.data.escalar) {
+          // El bot respondió - enviar mensaje del padre primero
+          const grupo_id = selectedCategory.toLowerCase().replace(/\s+/g, '_');
+          await base44.entities.ChatMessage.create({
+            grupo_id,
+            deporte: selectedCategory,
+            tipo: "padre_a_grupo",
+            remitente_email: user.email,
+            remitente_nombre: user.full_name,
+            mensaje: data.mensaje,
+            archivos_adjuntos: data.adjuntos || [],
+            prioridad: "Normal",
+            leido: false
+          });
+
+          // Luego enviar respuesta del bot
+          setTimeout(async () => {
+            await base44.entities.ChatMessage.create({
+              grupo_id,
+              deporte: selectedCategory,
+              tipo: "entrenador_a_grupo",
+              remitente_email: "bot@cdbustarviejo",
+              remitente_nombre: botResponse.data.modoTransparente ? "🤖 Asistente Entrenador" : coachData?.full_name || "Entrenador",
+              mensaje: botResponse.data.respuesta,
+              prioridad: "Normal",
+              leido: false,
+              es_respuesta_bot: true
+            });
+
+            // Si se escaló, notificar al entrenador
+            if (botResponse.data.escalar && coachData) {
+              await base44.integrations.Core.SendEmail({
+                from_name: "CD Bustarviejo - Chatbot",
+                to: coachData.email,
+                subject: `🚨 Mensaje Urgente de ${user.full_name}`,
+                body: `
+                  <h2>🚨 Mensaje Escalado por el Chatbot</h2>
+                  <p><strong>De:</strong> ${user.full_name} (${user.email})</p>
+                  <p><strong>Categoría:</strong> ${selectedCategory}</p>
+                  <p><strong>Razón:</strong> ${botResponse.data.razon}</p>
+                  <hr>
+                  <p><strong>Mensaje:</strong></p>
+                  <p>${data.mensaje}</p>
+                  <hr>
+                  <p style="font-size: 12px;">Fecha: ${new Date().toLocaleString('es-ES')}</p>
+                `
+              });
+            }
+          }, 1500);
+
+          setDailyMessageCount(prev => prev + 1);
+          return; // No continuar con el flujo normal
+        }
+      } catch (botError) {
+        console.log("Bot no disponible, continuar con flujo normal:", botError);
+      }
 
       // LÍMITE DE MENSAJES POR DÍA (10 mensajes)
       if (dailyMessageCount >= 10) {
@@ -608,6 +676,7 @@ Este chat es solo para avisos rápidos. Gracias por tu comprensión.`,
 
                       const isMine = msg.remitente_email === user.email;
                       const isCoach = msg.tipo === "entrenador_a_grupo";
+                      const isBot = msg.es_respuesta_bot === true;
 
                       return (
                         <React.Fragment key={msg.id}>
@@ -622,14 +691,16 @@ Este chat es solo para avisos rápidos. Gracias por tu comprensión.`,
                           <div className={`flex ${isMine ? 'justify-end' : 'justify-start'}`}>
                             <div className={`max-w-[75%] sm:max-w-[70%] ${
                               isMine ? 'bg-slate-700 text-white' : 
+                              isBot ? 'bg-blue-500 text-white' :
                               isCoach ? 'bg-green-600 text-white' : 
                               'bg-white text-slate-900 border'
                             } rounded-2xl p-2 sm:p-3 shadow-sm`}>
                               <div className="flex items-center gap-1 sm:gap-2 mb-1">
                                 <p className="text-[10px] sm:text-xs font-semibold opacity-70">
-                                  {isCoach ? '🏃 ' : ''}{msg.remitente_nombre}
+                                  {isBot ? '🤖 ' : isCoach ? '🏃 ' : ''}{msg.remitente_nombre}
                                 </p>
-                                {isCoach && <Badge className="text-[10px] sm:text-xs bg-green-500 px-1 py-0">Entrenador</Badge>}
+                                {isBot && <Badge className="text-[10px] sm:text-xs bg-blue-400 px-1 py-0">Bot</Badge>}
+                                {isCoach && !isBot && <Badge className="text-[10px] sm:text-xs bg-green-500 px-1 py-0">Entrenador</Badge>}
                               </div>
                               <p className="text-xs sm:text-sm whitespace-pre-wrap">{msg.mensaje}</p>
 
