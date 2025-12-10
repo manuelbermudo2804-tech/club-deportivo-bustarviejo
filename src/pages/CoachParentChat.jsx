@@ -30,7 +30,6 @@ const REACTIONS = ["👍", "❤️", "😊", "👏", "⚽"];
 
 export default function CoachParentChat() {
   const [user, setUser] = useState(null);
-  const [isCoach, setIsCoach] = useState(false);
   const [messageText, setMessageText] = useState("");
   const [attachments, setAttachments] = useState([]);
   const [uploading, setUploading] = useState(false);
@@ -57,8 +56,6 @@ export default function CoachParentChat() {
     const fetchUser = async () => {
       const currentUser = await base44.auth.me();
       setUser(currentUser);
-      const coach = currentUser.es_entrenador === true || currentUser.role === "admin";
-      setIsCoach(coach);
     };
     fetchUser();
   }, []);
@@ -129,7 +126,7 @@ export default function CoachParentChat() {
 
   // Inicializar categoría cuando tengamos user y players
   useEffect(() => {
-    if (!user || !isCoach || selectedCategory || allPlayers.length === 0) return;
+    if (!user || selectedCategory || allPlayers.length === 0) return;
     
     const categories = user.role === "admin" 
       ? ["Todas las categorías", ...new Set(allPlayers.map(p => p.deporte).filter(Boolean))]
@@ -138,7 +135,7 @@ export default function CoachParentChat() {
     if (categories.length > 0) {
       setSelectedCategory(categories[0]);
     }
-  }, [user, isCoach, allPlayers, selectedCategory]);
+  }, [user, allPlayers, selectedCategory]);
 
   useEffect(() => {
     if (messagesEndRef.current) {
@@ -337,18 +334,20 @@ export default function CoachParentChat() {
     sendMessageMutation.mutate({ mensaje: messageText, adjuntos: attachments });
   };
 
-  if (!isCoach) {
-    return (
-      <div className="p-6 text-center">
-        <p className="text-slate-500">Solo entrenadores pueden acceder a esta sección</p>
-      </div>
-    );
-  }
-
   if (!user || playersLoading || !selectedCategory) {
     return (
       <div className="h-[calc(100vh-100px)] flex items-center justify-center">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600"></div>
+      </div>
+    );
+  }
+
+  const isCoach = user.es_entrenador === true || user.role === "admin";
+
+  if (!isCoach) {
+    return (
+      <div className="p-6 text-center">
+        <p className="text-slate-500">Solo entrenadores pueden acceder a esta sección</p>
       </div>
     );
   }
