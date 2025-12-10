@@ -244,6 +244,11 @@ export default function PlayerCard({ player, onEdit, onViewProfile, isParent = f
             ) : (
               <Badge className="bg-yellow-500 text-white animate-pulse">⚠️ PENDIENTE RENOVAR</Badge>
             )}
+            {player.categoria_requiere_revision && (
+              <Badge className="bg-orange-500 text-white text-[10px] animate-pulse">
+                🔍 Revisar categoría
+              </Badge>
+            )}
             {fichaCompleta ? (
               <Badge className="bg-emerald-600 text-white text-[10px]">
                 <FileCheck className="w-3 h-3 mr-1" />
@@ -284,6 +289,51 @@ export default function PlayerCard({ player, onEdit, onViewProfile, isParent = f
               )}
             </div>
           </div>
+
+          {/* Advertencia de categoría a revisar (solo admin) */}
+          {player.categoria_requiere_revision && onEdit && (
+            <div className="bg-gradient-to-r from-orange-50 to-red-50 border-2 border-orange-400 rounded-lg p-3 space-y-2">
+              <div className="flex items-start gap-2">
+                <AlertCircle className="w-5 h-5 text-orange-700 mt-0.5 flex-shrink-0" />
+                <div className="flex-1">
+                  <p className="text-sm font-bold text-orange-900 mb-1">🔍 Categoría a Revisar</p>
+                  <p className="text-xs text-orange-800 leading-relaxed mb-2">
+                    {player.motivo_revision_categoria || "La categoría no coincide con la edad del jugador"}
+                  </p>
+                  <div className="flex gap-2">
+                    <Button
+                      size="sm"
+                      onClick={async (e) => {
+                        e.stopPropagation();
+                        await base44.entities.Player.update(player.id, {
+                          categoria_requiere_revision: false,
+                          categoria_revisada_por: user?.email,
+                          fecha_revision_categoria: new Date().toISOString(),
+                          motivo_revision_categoria: ""
+                        });
+                        window.location.reload();
+                      }}
+                      variant="outline"
+                      className="flex-1 border-green-600 text-green-600 hover:bg-green-50"
+                    >
+                      ✅ Es correcta
+                    </Button>
+                    <Button
+                      size="sm"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onEdit(player);
+                      }}
+                      className="flex-1 bg-orange-600 hover:bg-orange-700"
+                    >
+                      <Pencil className="w-3 h-3 mr-1" />
+                      Corregir
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Sugerencia de renovación con cambio de categoría */}
           {player.estado_renovacion === "pendiente" && needsCategoryChange && isParent && (
