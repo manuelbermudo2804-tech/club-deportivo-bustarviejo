@@ -24,6 +24,8 @@ import {
   User
 } from "lucide-react";
 
+import { useState, useEffect } from "react";
+
 export default function AlertCenter({ 
   pendingCallups = 0,
   pendingDocuments = 0,
@@ -52,6 +54,41 @@ export default function AlertCenter({
   isTreasurer = false,
   isCoordinator = false
 }) {
+  const [dismissedAlerts, setDismissedAlerts] = useState(() => {
+    const saved = localStorage.getItem('dismissedAlerts');
+    return saved ? JSON.parse(saved) : {};
+  });
+
+  useEffect(() => {
+    localStorage.setItem('dismissedAlerts', JSON.stringify(dismissedAlerts));
+  }, [dismissedAlerts]);
+
+  const handleAlertClick = (alertId) => {
+    const now = Date.now();
+    setDismissedAlerts(prev => ({
+      ...prev,
+      [alertId]: now
+    }));
+  };
+
+  // Limpiar alertas descartadas después de 1 hora
+  useEffect(() => {
+    const cleanupInterval = setInterval(() => {
+      const oneHourAgo = Date.now() - (60 * 60 * 1000);
+      setDismissedAlerts(prev => {
+        const filtered = {};
+        Object.entries(prev).forEach(([key, timestamp]) => {
+          if (timestamp > oneHourAgo) {
+            filtered[key] = timestamp;
+          }
+        });
+        return filtered;
+      });
+    }, 60000); // Revisar cada minuto
+
+    return () => clearInterval(cleanupInterval);
+  }, []);
+
   const alerts = [];
 
   // Alertas para padres
@@ -340,10 +377,17 @@ export default function AlertCenter({
     // Galería eliminada del centro de alertas - no es urgente
   }
 
-  // Ordenar por prioridad
-  alerts.sort((a, b) => a.priority - b.priority);
+  // Filtrar alertas descartadas recientemente (última hora)
+  const oneHourAgo = Date.now() - (60 * 60 * 1000);
+  const visibleAlerts = alerts.filter(alert => {
+    const dismissedTime = dismissedAlerts[alert.id];
+    return !dismissedTime || dismissedTime < oneHourAgo;
+  });
 
-  if (alerts.length === 0) {
+  // Ordenar por prioridad
+  visibleAlerts.sort((a, b) => a.priority - b.priority);
+
+  if (visibleAlerts.length === 0) {
     return (
       <Card className="bg-gradient-to-r from-green-50 to-emerald-50 border-green-200">
         <CardContent className="p-4 flex items-center gap-3">
@@ -366,15 +410,16 @@ export default function AlertCenter({
           <Bell className="w-5 h-5" />
           Centro de Alertas
           <Badge className="bg-white text-orange-600 ml-auto">
-            {alerts.length} pendiente{alerts.length > 1 ? 's' : ''}
+            {visibleAlerts.length} pendiente{visibleAlerts.length > 1 ? 's' : ''}
           </Badge>
         </CardTitle>
       </CardHeader>
       <CardContent className="p-0 divide-y">
-        {alerts.map((alert) => (
+        {visibleAlerts.map((alert) => (
           <Link
             key={alert.id}
             to={alert.url}
+            onClick={() => handleAlertClick(alert.id)}
             className="flex items-center gap-3 p-3 hover:bg-slate-50 transition-colors group"
           >
             <div className={`w-10 h-10 rounded-full ${alert.color} flex items-center justify-center flex-shrink-0`}>
