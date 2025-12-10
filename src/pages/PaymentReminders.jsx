@@ -97,7 +97,7 @@ export default function PaymentReminders() {
         };
       }
 
-      // Calcular estado de pagos del jugador
+      // Calcular estado de pagos del jugador - FILTRAR CORRECTAMENTE
       const playerPayments = payments.filter(p => 
         p.jugador_id === player.id && p.temporada === currentSeason
       );
@@ -105,12 +105,31 @@ export default function PaymentReminders() {
       const allMonths = ["Junio", "Septiembre", "Diciembre"];
       const pendingMonths = [];
       const totalDue = allMonths.reduce((sum, mes) => {
-        const existingPayment = playerPayments.find(p => p.mes === mes);
-        if (!existingPayment || existingPayment.estado === "Pendiente") {
-          const correctAmount = getCorrectAmount(player.deporte, mes);
-          pendingMonths.push({ mes, cantidad: correctAmount });
-          return sum + correctAmount;
+        // Buscar si hay un pago PAGADO para este mes
+        const pagoPagado = playerPayments.find(p => 
+          p.mes === mes && p.estado === "Pagado"
+        );
+        
+        // Si ya está pagado, NO incluir como pendiente
+        if (pagoPagado) return sum;
+
+        // Buscar si hay un pago pendiente o en revisión
+        const existingPendingPayment = playerPayments.find(p => 
+          p.mes === mes && (p.estado === "Pendiente" || p.estado === "En revisión")
+        );
+        
+        // Si existe y está pendiente/revisión, usar su cantidad
+        if (existingPendingPayment) {
+          pendingMonths.push({ 
+            mes, 
+            cantidad: existingPendingPayment.cantidad,
+            payment_id: existingPendingPayment.id 
+          });
+          return sum + existingPendingPayment.cantidad;
         }
+
+        // Si no existe ningún pago para este mes, calcularlo (pero NO agregarlo aquí)
+        // Los pagos se crean cuando el padre los registra
         return sum;
       }, 0);
 
