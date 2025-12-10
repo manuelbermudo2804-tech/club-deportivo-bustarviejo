@@ -122,13 +122,14 @@ export default function TeamAttendanceEvaluation() {
         .map(d => format(new Date(d.fecha), "dd/MM/yy"))
         .join('\n  ');
 
-      const reportText = `
-Estimados padres/tutores,
+      const reportText = `🔒 MENSAJE PRIVADO - Solo para la familia de ${player.nombre}
 
-A continuacion el reporte de entrenamiento de ${player.nombre}.
+Estimados padres/tutores de ${player.nombre},
+
+Este es un reporte PRIVADO E INDIVIDUAL sobre el rendimiento de su hijo/a en los entrenamientos.
 
 ====================================
-REPORTE DE ENTRENAMIENTO
+📊 REPORTE DE ENTRENAMIENTO
 ====================================
 
 Jugador: ${player.nombre}
@@ -136,34 +137,37 @@ Categoria: ${selectedCategory}
 Periodo: ${format(new Date(dateRange.start), "dd/MM/yyyy")} - ${format(new Date(dateRange.end), "dd/MM/yyyy")}
 
 ====================================
-RESUMEN
+📈 RESUMEN
 ====================================
 
-Sesiones: ${playerData.length}
+Sesiones evaluadas: ${playerData.length}
 Actitud promedio: ${actitudPromedio}/5
 
 Ultimas evaluaciones:
-${ultimasEvaluaciones || 'Sin evaluaciones'}
+  ${ultimasEvaluaciones || 'Sin evaluaciones'}
 
 ====================================
-DETALLE POR SESION
+📋 DETALLE POR SESION
 ====================================
 
 ${playerData.map(data => `
-Fecha: ${format(new Date(data.fecha), "dd 'de' MMMM 'de' yyyy", { locale: es })}
-Estado: ${data.estado === 'presente' ? 'Presente' : 
-  data.estado === 'ausente' ? 'Ausente' : 
-  data.estado === 'justificado' ? 'Ausencia Justificada' : 
-  'Tardanza'}
-${(data.estado === 'presente' || data.estado === 'tardanza') && data.actitud != null ? `Actitud: ${data.actitud}/5` : ''}
-${data.observaciones ? `Observaciones: ${data.observaciones}` : ''}
+📅 Fecha: ${format(new Date(data.fecha), "dd 'de' MMMM 'de' yyyy", { locale: es })}
+   Estado: ${data.estado === 'presente' ? '✅ Presente' : 
+  data.estado === 'ausente' ? '❌ Ausente' : 
+  data.estado === 'justificado' ? '📝 Ausencia Justificada' : 
+  '⏰ Tardanza'}
+${(data.estado === 'presente' || data.estado === 'tardanza') && data.actitud != null ? `   Actitud: ${'⭐'.repeat(data.actitud)} (${data.actitud}/5)` : ''}
+${data.observaciones ? `   Observaciones: ${data.observaciones}` : ''}
 `).join('\n-----------------------------------\n')}
 
 ====================================
 
-Entrenador: ${user.full_name}
+👨‍🏫 Entrenador: ${user.full_name}
 
-Para cualquier consulta, contacta con tu entrenador.
+🔒 IMPORTANTE: Este reporte es PRIVADO y PERSONAL para su familia. 
+Solo ustedes pueden ver esta información. No se comparte con otras familias.
+
+Para cualquier consulta, pueden responder en el chat del entrenador.
 
 Atentamente,
 
@@ -297,13 +301,14 @@ Email: cdbustarviejo@gmail.com
           .map(d => format(new Date(d.fecha), "dd/MM/yy"))
           .join('\n  ');
 
-        const reportText = `
-Estimados padres/tutores,
+        const reportText = `🔒 MENSAJE PRIVADO - Solo para la familia de ${player.nombre}
 
-A continuacion el reporte de entrenamiento de ${player.nombre}.
+Estimados padres/tutores de ${player.nombre},
+
+Este es un reporte PRIVADO E INDIVIDUAL sobre el rendimiento de su hijo/a en los entrenamientos.
 
 ====================================
-REPORTE DE ENTRENAMIENTO
+📊 REPORTE DE ENTRENAMIENTO
 ====================================
 
 Jugador: ${player.nombre}
@@ -311,31 +316,34 @@ Categoria: ${selectedCategory}
 Periodo: ${format(new Date(dateRange.start), "dd/MM/yyyy")} - ${format(new Date(dateRange.end), "dd/MM/yyyy")}
 
 ====================================
-RESUMEN
+📈 RESUMEN
 ====================================
 
-Sesiones: ${playerAttendances.length}
+Sesiones evaluadas: ${playerAttendances.length}
 Actitud promedio: ${actitudPromedio}/5
 
 Ultimas evaluaciones:
-${ultimasEvaluaciones || 'Sin evaluaciones'}
+  ${ultimasEvaluaciones || 'Sin evaluaciones'}
 
 ====================================
-DETALLE POR SESION
+📋 DETALLE POR SESION
 ====================================
 
 ${playerAttendances.map(data => `
-Fecha: ${format(new Date(data.fecha), "dd 'de' MMMM 'de' yyyy", { locale: es })}
-Estado: Presente
-${data.actitud != null ? `Actitud: ${data.actitud}/5` : ''}
-${data.observaciones ? `Observaciones: ${data.observaciones}` : ''}
+📅 Fecha: ${format(new Date(data.fecha), "dd 'de' MMMM 'de' yyyy", { locale: es })}
+   Estado: ✅ Presente
+${data.actitud != null ? `   Actitud: ${'⭐'.repeat(data.actitud)} (${data.actitud}/5)` : ''}
+${data.observaciones ? `   Observaciones: ${data.observaciones}` : ''}
 `).join('\n-----------------------------------\n')}
 
 ====================================
 
-Entrenador: ${user.full_name}
+👨‍🏫 Entrenador: ${user.full_name}
 
-Para cualquier consulta, contacta con tu entrenador.
+🔒 IMPORTANTE: Este reporte es PRIVADO y PERSONAL para su familia. 
+Solo ustedes pueden ver esta información. No se comparte con otras familias.
+
+Para cualquier consulta, pueden responder en el chat del entrenador.
 
 Atentamente,
 
