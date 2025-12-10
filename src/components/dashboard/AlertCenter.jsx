@@ -45,6 +45,7 @@ export default function AlertCenter({
   pendingPlayerAccess = 0,
   unreadCoordinatorMessages = 0,
   unreadCoachMessages = 0,
+  unreadPrivateMessages = 0,
   isAdmin = false,
   isCoach = false,
   isParent = true,
@@ -55,6 +56,17 @@ export default function AlertCenter({
 
   // Alertas para padres
   if (isParent) {
+    if (unreadPrivateMessages > 0) {
+      alerts.push({
+        id: "private-messages",
+        icon: Bell,
+        title: "🔔 Mensajes del Club",
+        description: `${unreadPrivateMessages} mensaje${unreadPrivateMessages > 1 ? 's' : ''} sin leer`,
+        url: createPageUrl("ParentSystemMessages"),
+        color: "bg-purple-500",
+        priority: 1
+      });
+    }
     if (unreadCoordinatorMessages > 0) {
       alerts.push({
         id: "coordinator-chat",

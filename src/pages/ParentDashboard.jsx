@@ -751,6 +751,7 @@ export default function ParentDashboard() {
           upcomingEvents={0}
           overduePayments={overduePayments}
           newGalleryPhotos={0}
+          unreadPrivateMessages={unreadPrivateMessages}
           unreadCoordinatorMessages={0}
           unreadCoachMessages={unreadCoachMessages}
           isAdmin={false}
