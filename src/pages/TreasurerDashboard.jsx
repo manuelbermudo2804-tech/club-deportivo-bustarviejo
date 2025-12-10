@@ -260,24 +260,11 @@ export default function TreasurerDashboard() {
     return activeMembers.filter(m => m.temporada === selectedSeason);
   }, [clubMembers, selectedSeason]);
 
-  // Normalizar temporada
-  const normalizeTemporada = (temporada) => {
-    if (!temporada) return "";
-    return temporada.replace(/-/g, "/");
-  };
-
-  const matchTemporada = (paymentTemp, filterTemp) => {
-    if (filterTemp === "all") return true;
-    return normalizeTemporada(paymentTemp) === normalizeTemporada(filterTemp);
-  };
-
   // Calculate financial stats
   const stats = useMemo(() => {
-    const currentSeason = getCurrentSeason();
     const activePlayers = players.filter(p => p.activo === true);
     
-    // CALCULAR CUOTAS PENDIENTES CORRECTAMENTE
-    // Para cada jugador activo, calcular cuánto debe pagar en total vs cuánto ya pagó
+    // CALCULAR CUOTAS PENDIENTES - método simplificado
     let cuotasPendientesCalculadas = 0;
     
     activePlayers.forEach(player => {
@@ -290,8 +277,7 @@ export default function TreasurerDashboard() {
       );
       
       if (hasPagoUnico) {
-        // Si tiene pago único, no debe nada
-        return;
+        return; // Si tiene pago único, no debe nada
       }
       
       // Si no tiene pago único, contar cuántos meses le faltan
