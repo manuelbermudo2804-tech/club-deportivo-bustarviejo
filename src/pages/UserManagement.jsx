@@ -812,6 +812,44 @@ export default function UserManagement() {
                         </div>
                       </div>
                     )}
+
+                    {/* Fila 3: SWITCHES ADICIONALES (Tiene hijos + Puede gestionar firmas) */}
+                    {!isDeleted && (isCoach || isCoordinator || isTreasurer || user.es_entrenador) && (
+                      <div className="bg-amber-50 rounded-xl p-3 border border-amber-200 mt-3">
+                        <p className="text-xs font-bold text-amber-700 uppercase tracking-wide mb-2">🎯 Permisos Adicionales</p>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                          <div className="flex items-center justify-between bg-white rounded-lg p-3 border-2 border-amber-300">
+                            <div className="flex items-center gap-2">
+                              <Users className="w-5 h-5 text-orange-600" />
+                              <div>
+                                <p className="text-sm font-bold text-slate-900">👨‍👩‍👧 Tiene Hijos Jugando</p>
+                                <p className="text-xs text-slate-600">Le da acceso a sección familiar</p>
+                              </div>
+                            </div>
+                            <Switch
+                              checked={user.tiene_hijos_jugando === true}
+                              onCheckedChange={() => handleToggleHijos(user)}
+                              className="data-[state=checked]:bg-orange-600"
+                            />
+                          </div>
+
+                          <div className="flex items-center justify-between bg-white rounded-lg p-3 border-2 border-yellow-300">
+                            <div className="flex items-center gap-2">
+                              <FileSignature className="w-5 h-5 text-yellow-600" />
+                              <div>
+                                <p className="text-sm font-bold text-slate-900">🖊️ Puede Gestionar Firmas</p>
+                                <p className="text-xs text-slate-600">Acceso a firmas de federación</p>
+                              </div>
+                            </div>
+                            <Switch
+                              checked={user.puede_gestionar_firmas === true}
+                              onCheckedChange={() => handleToggleFirmas(user)}
+                              className="data-[state=checked]:bg-yellow-600"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 );
               })}
