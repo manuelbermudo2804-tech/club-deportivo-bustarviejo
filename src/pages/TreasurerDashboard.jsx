@@ -73,7 +73,7 @@ export default function TreasurerDashboard() {
   const currentSeason = getCurrentSeason();
 
   // Fetch all financial data
-  const { data: payments = [] } = useQuery({
+  const { data: payments = [], isLoading: loadingPayments } = useQuery({
     queryKey: ['payments'],
     queryFn: async () => {
       const allPayments = await base44.entities.Payment.list('-created_date');
@@ -81,7 +81,7 @@ export default function TreasurerDashboard() {
     },
   });
 
-  const { data: players = [] } = useQuery({
+  const { data: players = [], isLoading: loadingPlayers } = useQuery({
     queryKey: ['players'],
     queryFn: () => base44.entities.Player.list(),
   });
@@ -254,7 +254,6 @@ export default function TreasurerDashboard() {
   }, [clothingOrders, selectedSeason]);
 
   const filteredClubMembers = useMemo(() => {
-    // Socios: filtrar por temporada y solo activos (después del reset los socios quedan activo=false)
     const activeMembers = clubMembers.filter(m => m.activo !== false);
     if (selectedSeason === "all") return activeMembers;
     return activeMembers.filter(m => m.temporada === selectedSeason);
@@ -262,25 +261,29 @@ export default function TreasurerDashboard() {
 
   // Calculate financial stats
   const stats = useMemo(() => {
+    if (!players || !filteredPayments) return {
+      cuotas: { pagadas: 0, pendientes: 0, revision: 0 },
+      ropa: { pagada: 0, pendiente: 0 },
+      loteria: { pagada: 0, pendiente: 0 },
+      patrocinios: 0,
+      socios: { pagados: 0, pendientes: 0, revision: 0, total: 0 },
+      totalIngresos: 0,
+      totalPendiente: 0
+    };
+
     const activePlayers = players.filter(p => p.activo === true);
-    
-    // CALCULAR CUOTAS PENDIENTES - método simplificado
     let cuotasPendientesCalculadas = 0;
     
     activePlayers.forEach(player => {
       const playerPayments = filteredPayments.filter(p => p.jugador_id === player.id);
       
-      // Verificar si tiene pago único pagado o en revisión
       const hasPagoUnico = playerPayments.some(p => 
         (p.tipo_pago === "Único" || p.tipo_pago === "único") && 
         (p.estado === "Pagado" || p.estado === "En revisión")
       );
       
-      if (hasPagoUnico) {
-        return; // Si tiene pago único, no debe nada
-      }
+      if (hasPagoUnico) return;
       
-      // Si no tiene pago único, contar cuántos meses le faltan
       const allMonths = ["Junio", "Septiembre", "Diciembre"];
       const mesesPagados = playerPayments
         .filter(p => p.estado === "Pagado" || p.estado === "En revisión")
@@ -288,7 +291,6 @@ export default function TreasurerDashboard() {
       
       const mesesPendientes = allMonths.filter(mes => !mesesPagados.includes(mes));
       
-      // Para cada mes pendiente, sumar la cuota correspondiente
       mesesPendientes.forEach(mes => {
         const cuotas = getCuotasPorCategoriaSync(player.deporte);
         const cantidad = mes === "Junio" ? cuotas.inscripcion : 
@@ -298,30 +300,24 @@ export default function TreasurerDashboard() {
       });
     });
     
-    // Cuotas
     const cuotasPagadas = filteredPayments.filter(p => p.estado === "Pagado").reduce((sum, p) => sum + (p.cantidad || 0), 0);
     const cuotasPendientes = cuotasPendientesCalculadas;
     const cuotasRevision = filteredPayments.filter(p => p.estado === "En revisión").reduce((sum, p) => sum + (p.cantidad || 0), 0);
 
-    // Ropa
     const ropaPagada = filteredClothingOrders.filter(o => o.pagado).reduce((sum, o) => sum + (o.precio_total || 0), 0);
     const ropaPendiente = filteredClothingOrders.filter(o => !o.pagado).reduce((sum, o) => sum + (o.precio_total || 0), 0);
 
-    // Lotería
     const loteriaPagada = lotteryOrders.filter(o => o.pagado).reduce((sum, o) => sum + (o.precio_total || 0), 0);
     const loteriaPendiente = lotteryOrders.filter(o => !o.pagado).reduce((sum, o) => sum + (o.precio_total || 0), 0);
 
-    // Patrocinios
     const patrociniosActivos = sponsors.filter(s => s.estado === "Activo");
     const patrociniosTotal = patrociniosActivos.reduce((sum, s) => sum + (s.monto || 0), 0);
 
-    // Socios
     const sociosPagados = filteredClubMembers.filter(m => m.estado_pago === "Pagado").reduce((sum, m) => sum + (m.cuota_socio || 25), 0);
     const sociosPendientes = filteredClubMembers.filter(m => m.estado_pago === "Pendiente" || m.estado_pago === "En revisión").reduce((sum, m) => sum + (m.cuota_socio || 25), 0);
     const sociosRevision = filteredClubMembers.filter(m => m.estado_pago === "En revisión").length;
     const sociosCount = filteredClubMembers.length;
 
-    // Totales
     const totalIngresos = cuotasPagadas + ropaPagada + loteriaPagada + patrociniosTotal + sociosPagados;
     const totalPendiente = cuotasPendientes + cuotasRevision + ropaPendiente + loteriaPendiente + sociosPendientes;
 
@@ -336,16 +332,16 @@ export default function TreasurerDashboard() {
     };
   }, [filteredPayments, filteredClothingOrders, lotteryOrders, sponsors, filteredClubMembers, players]);
 
-  // Income by concept for pie chart
-  const incomeByConceptData = [
-    { name: 'Cuotas', value: stats.cuotas.pagadas, color: COLORS.cuotas },
-    { name: 'Ropa', value: stats.ropa.pagada, color: COLORS.ropa },
-    { name: 'Lotería', value: stats.loteria.pagada, color: COLORS.loteria },
-    { name: 'Patrocinios', value: stats.patrocinios, color: COLORS.patrocinios },
-    { name: 'Socios', value: stats.socios?.pagados || 0, color: '#ec4899' }
-  ].filter(d => d.value > 0);
+  const incomeByConceptData = useMemo(() => {
+    return [
+      { name: 'Cuotas', value: stats.cuotas.pagadas, color: COLORS.cuotas },
+      { name: 'Ropa', value: stats.ropa.pagada, color: COLORS.ropa },
+      { name: 'Lotería', value: stats.loteria.pagada, color: COLORS.loteria },
+      { name: 'Patrocinios', value: stats.patrocinios, color: COLORS.patrocinios },
+      { name: 'Socios', value: stats.socios?.pagados || 0, color: '#ec4899' }
+    ].filter(d => d.value > 0);
+  }, [stats]);
 
-  // Deudas pendientes (jugadores con pagos atrasados)
   const pendingDebts = useMemo(() => {
     const debtMap = {};
     
@@ -368,11 +364,9 @@ export default function TreasurerDashboard() {
     return Object.values(debtMap).sort((a, b) => b.deuda_total - a.deuda_total);
   }, [filteredPayments, players]);
 
-  // Recent transactions
   const recentTransactions = useMemo(() => {
     const transactions = [];
 
-    // Pagos recientes
     filteredPayments.filter(p => p.estado === "Pagado" && p.fecha_pago).slice(0, 10).forEach(p => {
       transactions.push({
         id: p.id,
@@ -384,7 +378,6 @@ export default function TreasurerDashboard() {
       });
     });
 
-    // Pedidos ropa pagados
     filteredClothingOrders.filter(o => o.pagado && o.fecha_pago).slice(0, 5).forEach(o => {
       transactions.push({
         id: o.id,
@@ -396,7 +389,6 @@ export default function TreasurerDashboard() {
       });
     });
 
-    // Lotería pagada
     lotteryOrders.filter(o => o.pagado).slice(0, 5).forEach(o => {
       transactions.push({
         id: o.id,
@@ -408,7 +400,6 @@ export default function TreasurerDashboard() {
       });
     });
 
-    // Socios pagados
     filteredClubMembers.filter(m => m.estado_pago === "Pagado" && m.fecha_pago).slice(0, 5).forEach(m => {
       transactions.push({
         id: m.id,
@@ -426,12 +417,11 @@ export default function TreasurerDashboard() {
       .slice(0, 15);
   }, [filteredPayments, filteredClothingOrders, lotteryOrders, filteredClubMembers]);
 
-  // Monthly income data for chart
   const monthlyIncomeData = useMemo(() => {
     const data = [
-      { mes: 'Junio', cuotas: 0, ropa: 0, loteria: 0 },
-      { mes: 'Septiembre', cuotas: 0, ropa: 0, loteria: 0 },
-      { mes: 'Diciembre', cuotas: 0, ropa: 0, loteria: 0 }
+      { mes: 'Junio', cuotas: 0 },
+      { mes: 'Septiembre', cuotas: 0 },
+      { mes: 'Diciembre', cuotas: 0 }
     ];
 
     filteredPayments.filter(p => p.estado === "Pagado").forEach(p => {
@@ -444,7 +434,6 @@ export default function TreasurerDashboard() {
     return data;
   }, [filteredPayments]);
 
-  // Export functions
   const exportToCSV = (type) => {
     let csvContent = "";
     let filename = "";
@@ -486,9 +475,8 @@ export default function TreasurerDashboard() {
     const pageWidth = doc.internal.pageSize.getWidth();
     let y = 20;
 
-    // Header
     doc.setFontSize(18);
-    doc.setTextColor(234, 88, 12); // Orange
+    doc.setTextColor(234, 88, 12);
     doc.text("CD Bustarviejo", pageWidth / 2, y, { align: "center" });
     y += 10;
 
@@ -510,7 +498,6 @@ export default function TreasurerDashboard() {
       doc.setFontSize(10);
       doc.setTextColor(50);
       
-      // Table header
       doc.setFillColor(240, 240, 240);
       doc.rect(20, y, pageWidth - 40, 8, 'F');
       doc.text("Concepto", 25, y + 5);
@@ -519,7 +506,6 @@ export default function TreasurerDashboard() {
       doc.text("Total", 160, y + 5);
       y += 12;
 
-      // Data rows
       const rows = [
         { concepto: "Cuotas", cobrado: stats.cuotas.pagadas, pendiente: stats.cuotas.pendientes + stats.cuotas.revision },
         { concepto: "Ropa", cobrado: stats.ropa.pagada, pendiente: stats.ropa.pendiente },
@@ -530,16 +516,15 @@ export default function TreasurerDashboard() {
 
       rows.forEach(row => {
         doc.text(row.concepto, 25, y);
-        doc.setTextColor(22, 163, 74); // Green
+        doc.setTextColor(22, 163, 74);
         doc.text(`${row.cobrado.toLocaleString()} EUR`, 80, y);
-        doc.setTextColor(220, 38, 38); // Red
+        doc.setTextColor(220, 38, 38);
         doc.text(`${row.pendiente.toLocaleString()} EUR`, 120, y);
         doc.setTextColor(50);
         doc.text(`${(row.cobrado + row.pendiente).toLocaleString()} EUR`, 160, y);
         y += 8;
       });
 
-      // Total
       y += 5;
       doc.setDrawColor(200);
       doc.line(20, y, pageWidth - 20, y);
@@ -568,7 +553,6 @@ export default function TreasurerDashboard() {
       if (pendingDebts.length === 0) {
         doc.text("No hay deudas pendientes", 20, y);
       } else {
-        // Table header
         doc.setFillColor(254, 226, 226);
         doc.rect(20, y, pageWidth - 40, 8, 'F');
         doc.text("Jugador", 25, y + 5);
@@ -576,7 +560,7 @@ export default function TreasurerDashboard() {
         doc.text("Deuda", 150, y + 5);
         y += 12;
 
-        pendingDebts.forEach((debt, idx) => {
+        pendingDebts.forEach((debt) => {
           if (y > 270) {
             doc.addPage();
             y = 20;
@@ -589,7 +573,6 @@ export default function TreasurerDashboard() {
           y += 7;
         });
 
-        // Total
         y += 5;
         doc.setDrawColor(200);
         doc.line(20, y, pageWidth - 20, y);
@@ -614,7 +597,6 @@ export default function TreasurerDashboard() {
       if (recentTransactions.length === 0) {
         doc.text("No hay transacciones recientes", 20, y);
       } else {
-        // Table header
         doc.setFillColor(220, 252, 231);
         doc.rect(20, y, pageWidth - 40, 8, 'F');
         doc.text("Fecha", 25, y + 5);
@@ -622,7 +604,7 @@ export default function TreasurerDashboard() {
         doc.text("Cantidad", 160, y + 5);
         y += 12;
 
-        recentTransactions.forEach((t, idx) => {
+        recentTransactions.forEach((t) => {
           if (y > 270) {
             doc.addPage();
             y = 20;
@@ -635,7 +617,6 @@ export default function TreasurerDashboard() {
           y += 7;
         });
 
-        // Total
         y += 5;
         doc.setDrawColor(200);
         doc.line(20, y, pageWidth - 20, y);
@@ -652,146 +633,36 @@ export default function TreasurerDashboard() {
     doc.save(filename);
   };
 
-  const tipoIcons = {
-    cuota: <CreditCard className="w-4 h-4 text-blue-600" />,
-    ropa: <ShoppingBag className="w-4 h-4 text-orange-600" />,
-    loteria: <Clover className="w-4 h-4 text-green-600" />,
-    patrocinio: <Building2 className="w-4 h-4 text-purple-600" />,
-    socio: <Users className="w-4 h-4 text-pink-600" />
-  };
+  if (loadingPayments || loadingPlayers) {
+    return (
+      <div className="p-4 lg:p-6 flex items-center justify-center min-h-screen">
+        <Loader2 className="w-8 h-8 animate-spin text-orange-600" />
+      </div>
+    );
+  }
 
   return (
     <div className="p-4 lg:p-6 space-y-6">
-      {/* Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <h1 className="text-2xl lg:text-3xl font-bold text-slate-900">💰 Panel Financiero</h1>
           <p className="text-slate-600 text-sm">Control completo de ingresos y gastos del club</p>
         </div>
-        <div className="flex items-center gap-3">
-          <Select value={selectedSeason} onValueChange={setSelectedSeason}>
-            <SelectTrigger className="w-40">
-              <Calendar className="w-4 h-4 mr-2" />
-              <SelectValue placeholder="Temporada" />
-            </SelectTrigger>
-            <SelectContent>
-              {availableSeasons.map(s => (
-                <SelectItem key={s} value={s}>
-                  {s === "all" ? "Todas" : s}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
+        <Select value={selectedSeason} onValueChange={setSelectedSeason}>
+          <SelectTrigger className="w-40">
+            <Calendar className="w-4 h-4 mr-2" />
+            <SelectValue placeholder="Temporada" />
+          </SelectTrigger>
+          <SelectContent>
+            {availableSeasons.map(s => (
+              <SelectItem key={s} value={s}>
+                {s === "all" ? "Todas" : s}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
-      {/* Porcentaje de Impagados por Categoría */}
-      {useMemo(() => {
-        const categoryStats = {};
-        const activePlayers = players.filter(p => p.activo === true);
-        
-        activePlayers.forEach(player => {
-          const categoria = player.deporte;
-          if (!categoryStats[categoria]) {
-            categoryStats[categoria] = {
-              total: 0,
-              pagados: 0,
-              pendientes: 0
-            };
-          }
-          
-          categoryStats[categoria].total++;
-          
-          const playerPayments = filteredPayments.filter(p => p.jugador_id === player.id);
-          
-          // Verificar si tiene pago único pagado
-          const hasPagoUnico = playerPayments.some(p => 
-            (p.tipo_pago === "Único" || p.tipo_pago === "único") && 
-            p.estado === "Pagado"
-          );
-          
-          if (hasPagoUnico) {
-            categoryStats[categoria].pagados++;
-          } else {
-            // Verificar si tiene todos los pagos mensuales pagados
-            const allMonths = ["Junio", "Septiembre", "Diciembre"];
-            const mesesPagados = playerPayments
-              .filter(p => p.estado === "Pagado")
-              .map(p => p.mes);
-            
-            if (allMonths.every(mes => mesesPagados.includes(mes))) {
-              categoryStats[categoria].pagados++;
-            } else {
-              categoryStats[categoria].pendientes++;
-            }
-          }
-        });
-        
-        const categoriesWithData = Object.entries(categoryStats)
-          .map(([categoria, stats]) => ({
-            categoria,
-            porcentajeImpagados: stats.total > 0 ? ((stats.pendientes / stats.total) * 100).toFixed(0) : 0,
-            jugadoresTotales: stats.total,
-            jugadoresImpagados: stats.pendientes,
-            jugadoresPagados: stats.pagados
-          }))
-          .sort((a, b) => b.porcentajeImpagados - a.porcentajeImpagados);
-        
-        if (categoriesWithData.length === 0) return null;
-        
-        return (
-          <Card className="border-none shadow-xl">
-            <CardHeader>
-              <CardTitle className="text-lg flex items-center gap-2">
-                <PieChartIcon className="w-5 h-5 text-purple-600" />
-                Porcentaje de Impagados por Categoría
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                {categoriesWithData.map(cat => {
-                  const porcentaje = parseInt(cat.porcentajeImpagados);
-                  const color = porcentaje > 50 ? 'red' : porcentaje > 25 ? 'orange' : 'green';
-                  
-                  return (
-                    <div key={cat.categoria} className="space-y-1">
-                      <div className="flex justify-between items-center">
-                        <span className="text-sm font-medium text-slate-900">
-                          {cat.categoria.replace('Fútbol ', '').replace(' (Mixto)', '')}
-                        </span>
-                        <div className="flex items-center gap-2">
-                          <span className="text-xs text-slate-600">
-                            {cat.jugadoresImpagados} de {cat.jugadoresTotales}
-                          </span>
-                          <Badge className={`
-                            ${color === 'red' ? 'bg-red-100 text-red-700' : 
-                              color === 'orange' ? 'bg-orange-100 text-orange-700' : 
-                              'bg-green-100 text-green-700'}
-                          `}>
-                            {porcentaje}%
-                          </Badge>
-                        </div>
-                      </div>
-                      <div className="w-full bg-slate-200 rounded-full h-2">
-                        <div 
-                          className={`h-2 rounded-full ${
-                            color === 'red' ? 'bg-red-500' : 
-                            color === 'orange' ? 'bg-orange-500' : 
-                            'bg-green-500'
-                          }`}
-                          style={{ width: `${porcentaje}%` }}
-                        />
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </CardContent>
-          </Card>
-        );
-      }, [players, filteredPayments])}
-
-      {/* Summary Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <Card className="border-none shadow-lg bg-gradient-to-br from-green-50 to-green-100">
           <CardContent className="pt-4">
@@ -842,7 +713,6 @@ export default function TreasurerDashboard() {
         </Card>
       </div>
 
-      {/* AI Forecasting Button */}
       <Card className="border-purple-200 bg-gradient-to-r from-purple-50 to-indigo-50">
         <CardContent className="p-4">
           <div className="flex items-center justify-between">
@@ -866,21 +736,18 @@ export default function TreasurerDashboard() {
         </CardContent>
       </Card>
 
-          {/* Main Content Tabs */}
       <Tabs defaultValue="ingresos" className="w-full">
         <TabsList className="w-full flex-wrap h-auto">
-                        <TabsTrigger value="ingresos" className="flex-1">📊 Ingresos</TabsTrigger>
-                        <TabsTrigger value="presupuesto" className="flex-1">💰 Presupuesto</TabsTrigger>
-                        <TabsTrigger value="movimientos" className="flex-1">📝 Movimientos</TabsTrigger>
-                        <TabsTrigger value="conciliacion" className="flex-1">🤖 Conciliación IA</TabsTrigger>
-                        <TabsTrigger value="deudas" className="flex-1">⚠️ Deudas</TabsTrigger>
-                        <TabsTrigger value="exportar" className="flex-1">📥 Exportar</TabsTrigger>
-                      </TabsList>
+          <TabsTrigger value="ingresos" className="flex-1">📊 Ingresos</TabsTrigger>
+          <TabsTrigger value="presupuesto" className="flex-1">💰 Presupuesto</TabsTrigger>
+          <TabsTrigger value="movimientos" className="flex-1">📝 Movimientos</TabsTrigger>
+          <TabsTrigger value="conciliacion" className="flex-1">🤖 Conciliación IA</TabsTrigger>
+          <TabsTrigger value="deudas" className="flex-1">⚠️ Deudas</TabsTrigger>
+          <TabsTrigger value="exportar" className="flex-1">📥 Exportar</TabsTrigger>
+        </TabsList>
 
-        {/* Ingresos Tab */}
         <TabsContent value="ingresos" className="space-y-6">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Pie Chart - Income by Concept */}
             <Card className="border-none shadow-xl">
               <CardHeader>
                 <CardTitle className="text-lg">Ingresos por Concepto</CardTitle>
@@ -913,7 +780,6 @@ export default function TreasurerDashboard() {
               </CardContent>
             </Card>
 
-            {/* Bar Chart - Monthly Income */}
             <Card className="border-none shadow-xl">
               <CardHeader>
                 <CardTitle className="text-lg">Cuotas por Mes</CardTitle>
@@ -932,7 +798,6 @@ export default function TreasurerDashboard() {
             </Card>
           </div>
 
-          {/* Concept Breakdown */}
           <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
             <Card className="border-l-4 border-l-blue-500">
               <CardContent className="pt-4">
@@ -1025,31 +890,18 @@ export default function TreasurerDashboard() {
                     <span className="text-slate-600">Pendiente:</span>
                     <span className="font-medium text-red-600">{(stats.socios?.pendientes || 0).toLocaleString()}€</span>
                   </div>
-                  {stats.socios?.revision > 0 && (
-                    <div className="flex justify-between">
-                      <span className="text-slate-600">En revisión:</span>
-                      <span className="font-medium text-yellow-600">{stats.socios.revision}</span>
-                    </div>
-                  )}
-                  <div className="flex justify-between">
-                    <span className="text-slate-600">Total socios:</span>
-                    <span className="font-medium">{stats.socios?.total || 0}</span>
-                  </div>
                 </div>
               </CardContent>
             </Card>
           </div>
         </TabsContent>
 
-        {/* Presupuesto Tab */}
         <TabsContent value="presupuesto" className="space-y-4">
           <div className="flex justify-between items-center">
-            <div>
-              <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
-                <Wallet className="h-5 w-5 text-orange-600" />
-                Gestión de Presupuestos - Temporada {currentSeason}
-              </h2>
-            </div>
+            <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+              <Wallet className="h-5 w-5 text-orange-600" />
+              Gestión de Presupuestos - Temporada {currentSeason}
+            </h2>
             {!activeBudget && (
               <Button 
                 onClick={() => {
@@ -1096,7 +948,6 @@ export default function TreasurerDashboard() {
           )}
         </TabsContent>
 
-        {/* Movimientos Financieros Tab */}
         <TabsContent value="movimientos" className="space-y-4">
           <div className="flex justify-between items-center">
             <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
@@ -1128,7 +979,6 @@ export default function TreasurerDashboard() {
             />
           )}
 
-          {/* Documentos adjuntos */}
           {financialTransactions.filter(t => t.documento_url && t.temporada === currentSeason).length > 0 && (
             <Card>
               <CardHeader>
@@ -1162,21 +1012,19 @@ export default function TreasurerDashboard() {
           )}
         </TabsContent>
 
-        {/* Conciliación IA Tab */}
-          <TabsContent value="conciliacion" className="space-y-4">
-            <AIReconciliation
-              payments={payments}
-              players={players}
-              financialTransactions={financialTransactions}
-              onReconcile={() => {
-                queryClient.invalidateQueries({ queryKey: ['payments'] });
-                queryClient.invalidateQueries({ queryKey: ['financialTransactions'] });
-              }}
-            />
-          </TabsContent>
+        <TabsContent value="conciliacion" className="space-y-4">
+          <AIReconciliation
+            payments={payments}
+            players={players}
+            financialTransactions={financialTransactions}
+            onReconcile={() => {
+              queryClient.invalidateQueries({ queryKey: ['payments'] });
+              queryClient.invalidateQueries({ queryKey: ['financialTransactions'] });
+            }}
+          />
+        </TabsContent>
 
-          {/* Deudas Tab */}
-          <TabsContent value="deudas" className="space-y-4">
+        <TabsContent value="deudas" className="space-y-4">
           <Card className="border-none shadow-xl">
             <CardHeader className="flex flex-row items-center justify-between">
               <CardTitle className="text-lg flex items-center gap-2">
@@ -1239,9 +1087,6 @@ export default function TreasurerDashboard() {
           </Card>
         </TabsContent>
 
-
-
-        {/* Exportar Tab */}
         <TabsContent value="exportar" className="space-y-4">
           <Card className="border-none shadow-xl">
             <CardHeader>
@@ -1322,7 +1167,6 @@ export default function TreasurerDashboard() {
         </TabsContent>
       </Tabs>
 
-      {/* Dialog nuevo presupuesto */}
       <Dialog open={showNewBudget} onOpenChange={setShowNewBudget}>
         <DialogContent>
           <DialogHeader>
@@ -1368,13 +1212,11 @@ export default function TreasurerDashboard() {
         </DialogContent>
       </Dialog>
 
-      {/* Asistente de Comunicación IA */}
       <AICommunicationAssistant
         open={showCommunicationAssistant}
         onClose={() => setShowCommunicationAssistant(false)}
       />
 
-      {/* Análisis Financiero IA */}
       <AIFinancialForecasting
         open={showAIForecasting}
         onClose={() => setShowAIForecasting(false)}
