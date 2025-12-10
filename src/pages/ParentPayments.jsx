@@ -483,13 +483,17 @@ Email: cdbustarviejo@gmail.com
                 ? ["Junio"]
                 : ["Junio", "Septiembre", "Diciembre"];
 
-              // Crear pagos virtuales para los meses que faltan
+              // Crear pagos virtuales SOLO para meses que NO tienen ningún pago (ni pagado, ni pendiente, ni revisión)
               const displayPayments = allMonths.map(mes => {
-                const existingPayment = playerPayments.find(p => p.mes === mes);
+                // Buscar cualquier pago de este mes (pagado, pendiente o en revisión)
+                const existingPayment = allPlayerPayments.find(p => p.mes === mes);
+                
                 if (existingPayment) {
+                  // Si existe el pago (en cualquier estado), mostrarlo
                   return existingPayment;
                 }
-                // Crear un pago virtual pendiente con cantidad correcta desde CategoryConfig
+                
+                // Solo crear virtual si NO existe ningún pago para este mes
                 const cuotas = getCuotasFromConfig(player.deporte, categoryConfigs);
                 const cantidad = hasPagoUnico 
                   ? cuotas.total 
