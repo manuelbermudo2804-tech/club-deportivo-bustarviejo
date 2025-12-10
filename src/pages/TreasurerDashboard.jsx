@@ -1,53 +1,13 @@
 import React, { useState, useMemo } from "react";
 import { base44 } from "@/api/base44Client";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from "@/components/ui/dialog";
 import { 
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, 
-  Legend, PieChart, Pie, Cell, LineChart, Line, AreaChart, Area 
-} from "recharts";
-import { 
-  TrendingUp, DollarSign, Users, AlertCircle, CheckCircle2, Clock, 
-  Download, FileText, CreditCard, ShoppingBag, Clover, Building2,
-  ArrowUpRight, ArrowDownRight, Receipt, Calendar, Wallet, Plus, Loader2, PieChart as PieChartIcon,
-  Sparkles
+  TrendingUp, DollarSign, Users, Building2,
+  ArrowUpRight, ArrowDownRight, CreditCard, ShoppingBag, Clover, Calendar, Loader2
 } from "lucide-react";
-import { format } from "date-fns";
-import { es } from "date-fns/locale";
-import { jsPDF } from "jspdf";
-import { toast } from "sonner";
 import { getCuotasPorCategoriaSync } from "../components/payments/paymentAmounts";
-
-import BudgetManager from "../components/financial/BudgetManager";
-import TransactionForm from "../components/financial/TransactionForm";
-import TransactionList from "../components/financial/TransactionList";
-import AICommunicationAssistant from "../components/communication/AICommunicationAssistant";
-import AIFinancialForecasting from "../components/financial/AIFinancialForecasting";
-import AIReconciliation from "../components/financial/AIReconciliation";
-import { usePageTutorial } from "../components/tutorials/useTutorial";
-
-const COLORS = {
-  pagado: '#16a34a',
-  pendiente: '#dc2626',
-  revision: '#f59e0b',
-  cuotas: '#3b82f6',
-  ropa: '#f97316',
-  loteria: '#10b981',
-  patrocinios: '#8b5cf6'
-};
 
 const getCurrentSeason = () => {
   const now = new Date();
@@ -57,22 +17,9 @@ const getCurrentSeason = () => {
 };
 
 export default function TreasurerDashboard() {
-  usePageTutorial("treasurer_dashboard");
-  
   const [selectedSeason, setSelectedSeason] = useState("all");
-  const [showNewBudget, setShowNewBudget] = useState(false);
-  const [showTransactionForm, setShowTransactionForm] = useState(false);
-  const [showCommunicationAssistant, setShowCommunicationAssistant] = useState(false);
-  const [showAIForecasting, setShowAIForecasting] = useState(false);
-  const [newBudgetData, setNewBudgetData] = useState({
-    temporada: "",
-    nombre: "Presupuesto Principal"
-  });
-  const queryClient = useQueryClient();
-
   const currentSeason = getCurrentSeason();
 
-  // Fetch all financial data
   const { data: payments = [], isLoading: loadingPayments } = useQuery({
     queryKey: ['payments'],
     queryFn: async () => {
@@ -106,143 +53,11 @@ export default function TreasurerDashboard() {
     queryFn: () => base44.entities.ClubMember.list(),
   });
 
-  const { data: seasons = [] } = useQuery({
-    queryKey: ['seasons'],
-    queryFn: () => base44.entities.SeasonConfig.list('-created_date'),
-  });
-
-  // Presupuestos y transacciones financieras
-  const { data: budgets = [], isLoading: loadingBudgets } = useQuery({
-    queryKey: ['budgets'],
-    queryFn: () => base44.entities.Budget.list('-created_date'),
-  });
-
-  const { data: financialTransactions = [], isLoading: loadingFinancialTransactions } = useQuery({
-    queryKey: ['financialTransactions'],
-    queryFn: () => base44.entities.FinancialTransaction.list('-fecha'),
-  });
-
-  const activeBudget = budgets.find(b => b.activo && b.temporada === currentSeason) || budgets[0];
-
-  // Mutations para presupuestos
-  const createBudgetMutation = useMutation({
-    mutationFn: (data) => base44.entities.Budget.create(data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['budgets'] });
-      setShowNewBudget(false);
-      toast.success("Presupuesto creado");
-    },
-  });
-
-  const updateBudgetMutation = useMutation({
-    mutationFn: ({ id, data }) => base44.entities.Budget.update(id, data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['budgets'] });
-    },
-  });
-
-  const createTransactionMutation = useMutation({
-    mutationFn: async (data) => {
-      const transaction = await base44.entities.FinancialTransaction.create(data);
-      
-      if (data.partida_id && activeBudget) {
-        const updatedPartidas = activeBudget.partidas.map(p => {
-          if (p.id === data.partida_id) {
-            return {
-              ...p,
-              ejecutado: (p.ejecutado || 0) + data.cantidad
-            };
-          }
-          return p;
-        });
-        await base44.entities.Budget.update(activeBudget.id, { partidas: updatedPartidas });
-      }
-      
-      return transaction;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['financialTransactions'] });
-      queryClient.invalidateQueries({ queryKey: ['budgets'] });
-      setShowTransactionForm(false);
-      toast.success("Movimiento registrado");
-    },
-  });
-
-  const deleteTransactionMutation = useMutation({
-    mutationFn: async (id) => {
-      const transaction = financialTransactions.find(t => t.id === id);
-      await base44.entities.FinancialTransaction.delete(id);
-      
-      if (transaction?.partida_id && activeBudget) {
-        const updatedPartidas = activeBudget.partidas.map(p => {
-          if (p.id === transaction.partida_id) {
-            return {
-              ...p,
-              ejecutado: Math.max(0, (p.ejecutado || 0) - transaction.cantidad)
-            };
-          }
-          return p;
-        });
-        await base44.entities.Budget.update(activeBudget.id, { partidas: updatedPartidas });
-      }
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['financialTransactions'] });
-      queryClient.invalidateQueries({ queryKey: ['budgets'] });
-      toast.success("Movimiento eliminado");
-    },
-  });
-
-  const handleCreateBudget = () => {
-    createBudgetMutation.mutate({
-      ...newBudgetData,
-      temporada: newBudgetData.temporada || currentSeason,
-      partidas: [],
-      activo: true
-    });
-  };
-
-  const handleUpdateBudget = (updates) => {
-    if (activeBudget) {
-      updateBudgetMutation.mutate({
-        id: activeBudget.id,
-        data: { ...activeBudget, ...updates }
-      });
-    }
-  };
-
-  const handleExportFinancialTransactions = () => {
-    const csvContent = [
-      ["Fecha", "Tipo", "Concepto", "Categoría", "Proveedor/Cliente", "Importe", "Estado", "Nº Factura"].join(","),
-      ...financialTransactions.map(t => [
-        t.fecha,
-        t.tipo,
-        `"${t.concepto}"`,
-        t.categoria,
-        `"${t.proveedor_cliente || ''}"`,
-        t.cantidad,
-        t.estado,
-        t.numero_factura || ''
-      ].join(","))
-    ].join("\n");
-
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `movimientos_financieros_${currentSeason.replace("/", "-")}.csv`;
-    a.click();
-    window.URL.revokeObjectURL(url);
-    toast.success("Exportación completada");
-  };
-
-  // Get unique seasons from payments
   const availableSeasons = useMemo(() => {
     const seasonSet = new Set(payments.map(p => p.temporada).filter(Boolean));
     return ["all", ...Array.from(seasonSet)];
   }, [payments]);
 
-  // Filter data by season
   const filteredPayments = useMemo(() => {
     if (selectedSeason === "all") return payments;
     return payments.filter(p => p.temporada === selectedSeason);
@@ -259,379 +74,56 @@ export default function TreasurerDashboard() {
     return activeMembers.filter(m => m.temporada === selectedSeason);
   }, [clubMembers, selectedSeason]);
 
-  // Calculate financial stats
   const stats = useMemo(() => {
-    if (!players || !filteredPayments) return {
-      cuotas: { pagadas: 0, pendientes: 0, revision: 0 },
-      ropa: { pagada: 0, pendiente: 0 },
-      loteria: { pagada: 0, pendiente: 0 },
-      patrocinios: 0,
-      socios: { pagados: 0, pendientes: 0, revision: 0, total: 0 },
-      totalIngresos: 0,
-      totalPendiente: 0
-    };
-
     const activePlayers = players.filter(p => p.activo === true);
     let cuotasPendientesCalculadas = 0;
     
     activePlayers.forEach(player => {
       const playerPayments = filteredPayments.filter(p => p.jugador_id === player.id);
-      
       const hasPagoUnico = playerPayments.some(p => 
         (p.tipo_pago === "Único" || p.tipo_pago === "único") && 
         (p.estado === "Pagado" || p.estado === "En revisión")
       );
       
-      if (hasPagoUnico) return;
-      
-      const allMonths = ["Junio", "Septiembre", "Diciembre"];
-      const mesesPagados = playerPayments
-        .filter(p => p.estado === "Pagado" || p.estado === "En revisión")
-        .map(p => p.mes);
-      
-      const mesesPendientes = allMonths.filter(mes => !mesesPagados.includes(mes));
-      
-      mesesPendientes.forEach(mes => {
-        const cuotas = getCuotasPorCategoriaSync(player.deporte);
-        const cantidad = mes === "Junio" ? cuotas.inscripcion : 
-                        mes === "Septiembre" ? cuotas.segunda : 
-                        cuotas.tercera;
-        cuotasPendientesCalculadas += cantidad;
-      });
+      if (!hasPagoUnico) {
+        const allMonths = ["Junio", "Septiembre", "Diciembre"];
+        const mesesPagados = playerPayments
+          .filter(p => p.estado === "Pagado" || p.estado === "En revisión")
+          .map(p => p.mes);
+        const mesesPendientes = allMonths.filter(mes => !mesesPagados.includes(mes));
+        
+        mesesPendientes.forEach(mes => {
+          const cuotas = getCuotasPorCategoriaSync(player.deporte);
+          const cantidad = mes === "Junio" ? cuotas.inscripcion : 
+                          mes === "Septiembre" ? cuotas.segunda : cuotas.tercera;
+          cuotasPendientesCalculadas += cantidad;
+        });
+      }
     });
     
     const cuotasPagadas = filteredPayments.filter(p => p.estado === "Pagado").reduce((sum, p) => sum + (p.cantidad || 0), 0);
-    const cuotasPendientes = cuotasPendientesCalculadas;
     const cuotasRevision = filteredPayments.filter(p => p.estado === "En revisión").reduce((sum, p) => sum + (p.cantidad || 0), 0);
-
     const ropaPagada = filteredClothingOrders.filter(o => o.pagado).reduce((sum, o) => sum + (o.precio_total || 0), 0);
     const ropaPendiente = filteredClothingOrders.filter(o => !o.pagado).reduce((sum, o) => sum + (o.precio_total || 0), 0);
-
     const loteriaPagada = lotteryOrders.filter(o => o.pagado).reduce((sum, o) => sum + (o.precio_total || 0), 0);
     const loteriaPendiente = lotteryOrders.filter(o => !o.pagado).reduce((sum, o) => sum + (o.precio_total || 0), 0);
-
-    const patrociniosActivos = sponsors.filter(s => s.estado === "Activo");
-    const patrociniosTotal = patrociniosActivos.reduce((sum, s) => sum + (s.monto || 0), 0);
-
+    const patrociniosTotal = sponsors.filter(s => s.estado === "Activo").reduce((sum, s) => sum + (s.monto || 0), 0);
     const sociosPagados = filteredClubMembers.filter(m => m.estado_pago === "Pagado").reduce((sum, m) => sum + (m.cuota_socio || 25), 0);
     const sociosPendientes = filteredClubMembers.filter(m => m.estado_pago === "Pendiente" || m.estado_pago === "En revisión").reduce((sum, m) => sum + (m.cuota_socio || 25), 0);
-    const sociosRevision = filteredClubMembers.filter(m => m.estado_pago === "En revisión").length;
-    const sociosCount = filteredClubMembers.length;
 
     const totalIngresos = cuotasPagadas + ropaPagada + loteriaPagada + patrociniosTotal + sociosPagados;
-    const totalPendiente = cuotasPendientes + cuotasRevision + ropaPendiente + loteriaPendiente + sociosPendientes;
+    const totalPendiente = cuotasPendientesCalculadas + cuotasRevision + ropaPendiente + loteriaPendiente + sociosPendientes;
 
     return {
-      cuotas: { pagadas: cuotasPagadas, pendientes: cuotasPendientes, revision: cuotasRevision },
+      cuotas: { pagadas: cuotasPagadas, pendientes: cuotasPendientesCalculadas, revision: cuotasRevision },
       ropa: { pagada: ropaPagada, pendiente: ropaPendiente },
       loteria: { pagada: loteriaPagada, pendiente: loteriaPendiente },
       patrocinios: patrociniosTotal,
-      socios: { pagados: sociosPagados, pendientes: sociosPendientes, revision: sociosRevision, total: sociosCount },
+      socios: { pagados: sociosPagados, pendientes: sociosPendientes },
       totalIngresos,
       totalPendiente
     };
   }, [filteredPayments, filteredClothingOrders, lotteryOrders, sponsors, filteredClubMembers, players]);
-
-  const incomeByConceptData = useMemo(() => {
-    return [
-      { name: 'Cuotas', value: stats.cuotas.pagadas, color: COLORS.cuotas },
-      { name: 'Ropa', value: stats.ropa.pagada, color: COLORS.ropa },
-      { name: 'Lotería', value: stats.loteria.pagada, color: COLORS.loteria },
-      { name: 'Patrocinios', value: stats.patrocinios, color: COLORS.patrocinios },
-      { name: 'Socios', value: stats.socios?.pagados || 0, color: '#ec4899' }
-    ].filter(d => d.value > 0);
-  }, [stats]);
-
-  const pendingDebts = useMemo(() => {
-    const debtMap = {};
-    
-    filteredPayments.filter(p => p.estado === "Pendiente").forEach(p => {
-      if (!debtMap[p.jugador_id]) {
-        const player = players.find(pl => pl.id === p.jugador_id);
-        debtMap[p.jugador_id] = {
-          jugador_id: p.jugador_id,
-          jugador_nombre: p.jugador_nombre,
-          email_padre: player?.email_padre,
-          deporte: player?.deporte,
-          deuda_total: 0,
-          pagos_pendientes: []
-        };
-      }
-      debtMap[p.jugador_id].deuda_total += p.cantidad || 0;
-      debtMap[p.jugador_id].pagos_pendientes.push(p);
-    });
-
-    return Object.values(debtMap).sort((a, b) => b.deuda_total - a.deuda_total);
-  }, [filteredPayments, players]);
-
-  const recentTransactions = useMemo(() => {
-    const transactions = [];
-
-    filteredPayments.filter(p => p.estado === "Pagado" && p.fecha_pago).slice(0, 10).forEach(p => {
-      transactions.push({
-        id: p.id,
-        tipo: 'cuota',
-        concepto: `Cuota ${p.mes} - ${p.jugador_nombre}`,
-        cantidad: p.cantidad,
-        fecha: p.fecha_pago,
-        estado: 'completado'
-      });
-    });
-
-    filteredClothingOrders.filter(o => o.pagado && o.fecha_pago).slice(0, 5).forEach(o => {
-      transactions.push({
-        id: o.id,
-        tipo: 'ropa',
-        concepto: `Equipación - ${o.jugador_nombre}`,
-        cantidad: o.precio_total,
-        fecha: o.fecha_pago,
-        estado: 'completado'
-      });
-    });
-
-    lotteryOrders.filter(o => o.pagado).slice(0, 5).forEach(o => {
-      transactions.push({
-        id: o.id,
-        tipo: 'loteria',
-        concepto: `Lotería - ${o.jugador_nombre}`,
-        cantidad: o.precio_total,
-        fecha: o.created_date,
-        estado: 'completado'
-      });
-    });
-
-    filteredClubMembers.filter(m => m.estado_pago === "Pagado" && m.fecha_pago).slice(0, 5).forEach(m => {
-      transactions.push({
-        id: m.id,
-        tipo: 'socio',
-        concepto: `Cuota Socio - ${m.nombre_completo}`,
-        cantidad: m.cuota_socio || 25,
-        fecha: m.fecha_pago,
-        estado: 'completado'
-      });
-    });
-
-    return transactions
-      .filter(t => t.fecha)
-      .sort((a, b) => new Date(b.fecha) - new Date(a.fecha))
-      .slice(0, 15);
-  }, [filteredPayments, filteredClothingOrders, lotteryOrders, filteredClubMembers]);
-
-  const monthlyIncomeData = useMemo(() => {
-    const data = [
-      { mes: 'Junio', cuotas: 0 },
-      { mes: 'Septiembre', cuotas: 0 },
-      { mes: 'Diciembre', cuotas: 0 }
-    ];
-
-    filteredPayments.filter(p => p.estado === "Pagado").forEach(p => {
-      const monthIndex = data.findIndex(d => d.mes === p.mes);
-      if (monthIndex >= 0) {
-        data[monthIndex].cuotas += p.cantidad || 0;
-      }
-    });
-
-    return data;
-  }, [filteredPayments]);
-
-  const exportToCSV = (type) => {
-    let csvContent = "";
-    let filename = "";
-
-    if (type === "resumen") {
-      csvContent = "Concepto,Cobrado,Pendiente,Total\n";
-      csvContent += `Cuotas,${stats.cuotas.pagadas},${stats.cuotas.pendientes + stats.cuotas.revision},${stats.cuotas.pagadas + stats.cuotas.pendientes + stats.cuotas.revision}\n`;
-      csvContent += `Ropa,${stats.ropa.pagada},${stats.ropa.pendiente},${stats.ropa.pagada + stats.ropa.pendiente}\n`;
-      csvContent += `Lotería,${stats.loteria.pagada},${stats.loteria.pendiente},${stats.loteria.pagada + stats.loteria.pendiente}\n`;
-      csvContent += `Patrocinios,${stats.patrocinios},0,${stats.patrocinios}\n`;
-      csvContent += `Socios,${stats.socios?.pagados || 0},${stats.socios?.pendientes || 0},${(stats.socios?.pagados || 0) + (stats.socios?.pendientes || 0)}\n`;
-      csvContent += `TOTAL,${stats.totalIngresos},${stats.totalPendiente},${stats.totalIngresos + stats.totalPendiente}\n`;
-      filename = `resumen_financiero_${selectedSeason === "all" ? "todas" : selectedSeason}.csv`;
-    } else if (type === "deudas") {
-      csvContent = "Jugador,Deporte,Email Padre,Deuda Total,Pagos Pendientes\n";
-      pendingDebts.forEach(d => {
-        csvContent += `"${d.jugador_nombre}","${d.deporte || ''}","${d.email_padre || ''}",${d.deuda_total},${d.pagos_pendientes.length}\n`;
-      });
-      filename = `deudas_pendientes_${selectedSeason === "all" ? "todas" : selectedSeason}.csv`;
-    } else if (type === "transacciones") {
-      csvContent = "Fecha,Tipo,Concepto,Cantidad\n";
-      recentTransactions.forEach(t => {
-        csvContent += `${t.fecha},"${t.tipo}","${t.concepto}",${t.cantidad}\n`;
-      });
-      filename = `transacciones_${selectedSeason === "all" ? "todas" : selectedSeason}.csv`;
-    }
-
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement('a');
-    link.href = URL.createObjectURL(blob);
-    link.download = filename;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  };
-
-  const exportToPDF = (type) => {
-    const doc = new jsPDF();
-    const pageWidth = doc.internal.pageSize.getWidth();
-    let y = 20;
-
-    doc.setFontSize(18);
-    doc.setTextColor(234, 88, 12);
-    doc.text("CD Bustarviejo", pageWidth / 2, y, { align: "center" });
-    y += 10;
-
-    doc.setFontSize(10);
-    doc.setTextColor(100);
-    doc.text(`Temporada: ${selectedSeason === "all" ? "Todas" : selectedSeason}`, pageWidth / 2, y, { align: "center" });
-    y += 5;
-    doc.text(`Generado: ${format(new Date(), "d MMM yyyy HH:mm", { locale: es })}`, pageWidth / 2, y, { align: "center" });
-    y += 15;
-
-    let filename = "";
-
-    if (type === "resumen") {
-      doc.setFontSize(14);
-      doc.setTextColor(0);
-      doc.text("Resumen Financiero", 20, y);
-      y += 10;
-
-      doc.setFontSize(10);
-      doc.setTextColor(50);
-      
-      doc.setFillColor(240, 240, 240);
-      doc.rect(20, y, pageWidth - 40, 8, 'F');
-      doc.text("Concepto", 25, y + 5);
-      doc.text("Cobrado", 80, y + 5);
-      doc.text("Pendiente", 120, y + 5);
-      doc.text("Total", 160, y + 5);
-      y += 12;
-
-      const rows = [
-        { concepto: "Cuotas", cobrado: stats.cuotas.pagadas, pendiente: stats.cuotas.pendientes + stats.cuotas.revision },
-        { concepto: "Ropa", cobrado: stats.ropa.pagada, pendiente: stats.ropa.pendiente },
-        { concepto: "Loteria", cobrado: stats.loteria.pagada, pendiente: stats.loteria.pendiente },
-        { concepto: "Patrocinios", cobrado: stats.patrocinios, pendiente: 0 },
-        { concepto: "Socios", cobrado: stats.socios?.pagados || 0, pendiente: stats.socios?.pendientes || 0 }
-      ];
-
-      rows.forEach(row => {
-        doc.text(row.concepto, 25, y);
-        doc.setTextColor(22, 163, 74);
-        doc.text(`${row.cobrado.toLocaleString()} EUR`, 80, y);
-        doc.setTextColor(220, 38, 38);
-        doc.text(`${row.pendiente.toLocaleString()} EUR`, 120, y);
-        doc.setTextColor(50);
-        doc.text(`${(row.cobrado + row.pendiente).toLocaleString()} EUR`, 160, y);
-        y += 8;
-      });
-
-      y += 5;
-      doc.setDrawColor(200);
-      doc.line(20, y, pageWidth - 20, y);
-      y += 8;
-      doc.setFontSize(11);
-      doc.setTextColor(0);
-      doc.text("TOTAL", 25, y);
-      doc.setTextColor(22, 163, 74);
-      doc.text(`${stats.totalIngresos.toLocaleString()} EUR`, 80, y);
-      doc.setTextColor(220, 38, 38);
-      doc.text(`${stats.totalPendiente.toLocaleString()} EUR`, 120, y);
-      doc.setTextColor(0);
-      doc.text(`${(stats.totalIngresos + stats.totalPendiente).toLocaleString()} EUR`, 160, y);
-
-      filename = `resumen_financiero_${selectedSeason === "all" ? "todas" : selectedSeason}.pdf`;
-
-    } else if (type === "deudas") {
-      doc.setFontSize(14);
-      doc.setTextColor(0);
-      doc.text("Listado de Deudas", 20, y);
-      y += 10;
-
-      doc.setFontSize(10);
-      doc.setTextColor(50);
-
-      if (pendingDebts.length === 0) {
-        doc.text("No hay deudas pendientes", 20, y);
-      } else {
-        doc.setFillColor(254, 226, 226);
-        doc.rect(20, y, pageWidth - 40, 8, 'F');
-        doc.text("Jugador", 25, y + 5);
-        doc.text("Deporte", 90, y + 5);
-        doc.text("Deuda", 150, y + 5);
-        y += 12;
-
-        pendingDebts.forEach((debt) => {
-          if (y > 270) {
-            doc.addPage();
-            y = 20;
-          }
-          doc.text(debt.jugador_nombre?.substring(0, 30) || "", 25, y);
-          doc.text(debt.deporte?.substring(0, 25) || "", 90, y);
-          doc.setTextColor(220, 38, 38);
-          doc.text(`${debt.deuda_total.toLocaleString()} EUR`, 150, y);
-          doc.setTextColor(50);
-          y += 7;
-        });
-
-        y += 5;
-        doc.setDrawColor(200);
-        doc.line(20, y, pageWidth - 20, y);
-        y += 8;
-        doc.setFontSize(11);
-        doc.setTextColor(220, 38, 38);
-        const totalDeuda = pendingDebts.reduce((sum, d) => sum + d.deuda_total, 0);
-        doc.text(`Total deuda: ${totalDeuda.toLocaleString()} EUR (${pendingDebts.length} jugadores)`, 25, y);
-      }
-
-      filename = `deudas_pendientes_${selectedSeason === "all" ? "todas" : selectedSeason}.pdf`;
-
-    } else if (type === "transacciones") {
-      doc.setFontSize(14);
-      doc.setTextColor(0);
-      doc.text("Historial de Transacciones", 20, y);
-      y += 10;
-
-      doc.setFontSize(10);
-      doc.setTextColor(50);
-
-      if (recentTransactions.length === 0) {
-        doc.text("No hay transacciones recientes", 20, y);
-      } else {
-        doc.setFillColor(220, 252, 231);
-        doc.rect(20, y, pageWidth - 40, 8, 'F');
-        doc.text("Fecha", 25, y + 5);
-        doc.text("Concepto", 60, y + 5);
-        doc.text("Cantidad", 160, y + 5);
-        y += 12;
-
-        recentTransactions.forEach((t) => {
-          if (y > 270) {
-            doc.addPage();
-            y = 20;
-          }
-          doc.text(t.fecha ? format(new Date(t.fecha), "dd/MM/yy") : "-", 25, y);
-          doc.text(t.concepto?.substring(0, 45) || "", 60, y);
-          doc.setTextColor(22, 163, 74);
-          doc.text(`+${t.cantidad?.toLocaleString()} EUR`, 160, y);
-          doc.setTextColor(50);
-          y += 7;
-        });
-
-        y += 5;
-        doc.setDrawColor(200);
-        doc.line(20, y, pageWidth - 20, y);
-        y += 8;
-        doc.setFontSize(11);
-        doc.setTextColor(22, 163, 74);
-        const totalTrans = recentTransactions.reduce((sum, t) => sum + (t.cantidad || 0), 0);
-        doc.text(`Total: ${totalTrans.toLocaleString()} EUR`, 25, y);
-      }
-
-      filename = `transacciones_${selectedSeason === "all" ? "todas" : selectedSeason}.pdf`;
-    }
-
-    doc.save(filename);
-  };
 
   if (loadingPayments || loadingPlayers) {
     return (
@@ -682,7 +174,7 @@ export default function TreasurerDashboard() {
               <ArrowDownRight className="w-4 h-4 text-red-600" />
             </div>
             <div className="text-2xl lg:text-3xl font-bold text-red-700">{stats.totalPendiente.toLocaleString()}€</div>
-            <p className="text-[10px] text-red-600 mt-1">{pendingDebts.length} jugadores con deuda</p>
+            <p className="text-[10px] text-red-600 mt-1">Por cobrar</p>
           </CardContent>
         </Card>
 
@@ -713,514 +205,108 @@ export default function TreasurerDashboard() {
         </Card>
       </div>
 
-      <Card className="border-purple-200 bg-gradient-to-r from-purple-50 to-indigo-50">
-        <CardContent className="p-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center">
-                <Sparkles className="h-5 w-5 text-purple-600" />
+      <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
+        <Card className="border-l-4 border-l-blue-500">
+          <CardContent className="pt-4">
+            <div className="flex items-center gap-2 mb-2">
+              <CreditCard className="w-5 h-5 text-blue-600" />
+              <span className="font-semibold text-slate-900">Cuotas</span>
+            </div>
+            <div className="space-y-1 text-sm">
+              <div className="flex justify-between">
+                <span className="text-slate-600">Cobrado:</span>
+                <span className="font-medium text-green-600">{stats.cuotas.pagadas.toLocaleString()}€</span>
               </div>
-              <div>
-                <h3 className="font-semibold text-purple-900">Análisis Financiero con IA</h3>
-                <p className="text-sm text-purple-700">Previsiones, flujo de caja, escenarios e insights inteligentes</p>
+              <div className="flex justify-between">
+                <span className="text-slate-600">Pendiente:</span>
+                <span className="font-medium text-red-600">{(stats.cuotas.pendientes + stats.cuotas.revision).toLocaleString()}€</span>
               </div>
             </div>
-            <Button 
-              onClick={() => setShowAIForecasting(true)}
-              className="bg-purple-600 hover:bg-purple-700"
-            >
-              <Sparkles className="h-4 w-4 mr-2" />
-              Abrir Análisis IA
-            </Button>
-          </div>
+          </CardContent>
+        </Card>
+
+        <Card className="border-l-4 border-l-orange-500">
+          <CardContent className="pt-4">
+            <div className="flex items-center gap-2 mb-2">
+              <ShoppingBag className="w-5 h-5 text-orange-600" />
+              <span className="font-semibold text-slate-900">Ropa</span>
+            </div>
+            <div className="space-y-1 text-sm">
+              <div className="flex justify-between">
+                <span className="text-slate-600">Cobrado:</span>
+                <span className="font-medium text-green-600">{stats.ropa.pagada.toLocaleString()}€</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-slate-600">Pendiente:</span>
+                <span className="font-medium text-red-600">{stats.ropa.pendiente.toLocaleString()}€</span>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="border-l-4 border-l-green-500">
+          <CardContent className="pt-4">
+            <div className="flex items-center gap-2 mb-2">
+              <Clover className="w-5 h-5 text-green-600" />
+              <span className="font-semibold text-slate-900">Lotería</span>
+            </div>
+            <div className="space-y-1 text-sm">
+              <div className="flex justify-between">
+                <span className="text-slate-600">Cobrado:</span>
+                <span className="font-medium text-green-600">{stats.loteria.pagada.toLocaleString()}€</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-slate-600">Pendiente:</span>
+                <span className="font-medium text-red-600">{stats.loteria.pendiente.toLocaleString()}€</span>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="border-l-4 border-l-purple-500">
+          <CardContent className="pt-4">
+            <div className="flex items-center gap-2 mb-2">
+              <Building2 className="w-5 h-5 text-purple-600" />
+              <span className="font-semibold text-slate-900">Patrocinios</span>
+            </div>
+            <div className="space-y-1 text-sm">
+              <div className="flex justify-between">
+                <span className="text-slate-600">Total:</span>
+                <span className="font-medium text-purple-600">{stats.patrocinios.toLocaleString()}€</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-slate-600">Activos:</span>
+                <span className="font-medium">{sponsors.filter(s => s.estado === "Activo").length}</span>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="border-l-4 border-l-pink-500">
+          <CardContent className="pt-4">
+            <div className="flex items-center gap-2 mb-2">
+              <Users className="w-5 h-5 text-pink-600" />
+              <span className="font-semibold text-slate-900">Socios</span>
+            </div>
+            <div className="space-y-1 text-sm">
+              <div className="flex justify-between">
+                <span className="text-slate-600">Cobrado:</span>
+                <span className="font-medium text-green-600">{stats.socios.pagados.toLocaleString()}€</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-slate-600">Pendiente:</span>
+                <span className="font-medium text-red-600">{stats.socios.pendientes.toLocaleString()}€</span>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      <Card className="border-none shadow-lg">
+        <CardContent className="p-8 text-center">
+          <p className="text-slate-600">Panel simplificado - Muestra resumen de cuotas, ropa, lotería, patrocinios y socios</p>
         </CardContent>
       </Card>
-
-      <Tabs defaultValue="ingresos" className="w-full">
-        <TabsList className="w-full flex-wrap h-auto">
-          <TabsTrigger value="ingresos" className="flex-1">📊 Ingresos</TabsTrigger>
-          <TabsTrigger value="presupuesto" className="flex-1">💰 Presupuesto</TabsTrigger>
-          <TabsTrigger value="movimientos" className="flex-1">📝 Movimientos</TabsTrigger>
-          <TabsTrigger value="conciliacion" className="flex-1">🤖 Conciliación IA</TabsTrigger>
-          <TabsTrigger value="deudas" className="flex-1">⚠️ Deudas</TabsTrigger>
-          <TabsTrigger value="exportar" className="flex-1">📥 Exportar</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="ingresos" className="space-y-6">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <Card className="border-none shadow-xl">
-              <CardHeader>
-                <CardTitle className="text-lg">Ingresos por Concepto</CardTitle>
-              </CardHeader>
-              <CardContent>
-                {incomeByConceptData.length > 0 ? (
-                  <ResponsiveContainer width="100%" height={280}>
-                    <PieChart>
-                      <Pie
-                        data={incomeByConceptData}
-                        cx="50%"
-                        cy="50%"
-                        labelLine={false}
-                        label={({ name, value }) => `${name}: ${value.toLocaleString()}€`}
-                        outerRadius={90}
-                        dataKey="value"
-                      >
-                        {incomeByConceptData.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={entry.color} />
-                        ))}
-                      </Pie>
-                      <Tooltip formatter={(value) => `${value.toLocaleString()}€`} />
-                    </PieChart>
-                  </ResponsiveContainer>
-                ) : (
-                  <div className="h-64 flex items-center justify-center text-slate-500">
-                    No hay datos de ingresos
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-
-            <Card className="border-none shadow-xl">
-              <CardHeader>
-                <CardTitle className="text-lg">Cuotas por Mes</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ResponsiveContainer width="100%" height={280}>
-                  <BarChart data={monthlyIncomeData}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="mes" />
-                    <YAxis />
-                    <Tooltip formatter={(value) => `${value.toLocaleString()}€`} />
-                    <Bar dataKey="cuotas" fill={COLORS.cuotas} name="Cuotas" radius={[4, 4, 0, 0]} />
-                  </BarChart>
-                </ResponsiveContainer>
-              </CardContent>
-            </Card>
-          </div>
-
-          <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
-            <Card className="border-l-4 border-l-blue-500">
-              <CardContent className="pt-4">
-                <div className="flex items-center gap-2 mb-2">
-                  <CreditCard className="w-5 h-5 text-blue-600" />
-                  <span className="font-semibold text-slate-900">Cuotas</span>
-                </div>
-                <div className="space-y-1 text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-slate-600">Cobrado:</span>
-                    <span className="font-medium text-green-600">{stats.cuotas.pagadas.toLocaleString()}€</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-slate-600">Pendiente:</span>
-                    <span className="font-medium text-red-600">{(stats.cuotas.pendientes + stats.cuotas.revision).toLocaleString()}€</span>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="border-l-4 border-l-orange-500">
-              <CardContent className="pt-4">
-                <div className="flex items-center gap-2 mb-2">
-                  <ShoppingBag className="w-5 h-5 text-orange-600" />
-                  <span className="font-semibold text-slate-900">Ropa</span>
-                </div>
-                <div className="space-y-1 text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-slate-600">Cobrado:</span>
-                    <span className="font-medium text-green-600">{stats.ropa.pagada.toLocaleString()}€</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-slate-600">Pendiente:</span>
-                    <span className="font-medium text-red-600">{stats.ropa.pendiente.toLocaleString()}€</span>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="border-l-4 border-l-green-500">
-              <CardContent className="pt-4">
-                <div className="flex items-center gap-2 mb-2">
-                  <Clover className="w-5 h-5 text-green-600" />
-                  <span className="font-semibold text-slate-900">Lotería</span>
-                </div>
-                <div className="space-y-1 text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-slate-600">Cobrado:</span>
-                    <span className="font-medium text-green-600">{stats.loteria.pagada.toLocaleString()}€</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-slate-600">Pendiente:</span>
-                    <span className="font-medium text-red-600">{stats.loteria.pendiente.toLocaleString()}€</span>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="border-l-4 border-l-purple-500">
-              <CardContent className="pt-4">
-                <div className="flex items-center gap-2 mb-2">
-                  <Building2 className="w-5 h-5 text-purple-600" />
-                  <span className="font-semibold text-slate-900">Patrocinios</span>
-                </div>
-                <div className="space-y-1 text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-slate-600">Total:</span>
-                    <span className="font-medium text-purple-600">{stats.patrocinios.toLocaleString()}€</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-slate-600">Activos:</span>
-                    <span className="font-medium">{sponsors.filter(s => s.estado === "Activo").length}</span>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="border-l-4 border-l-pink-500">
-              <CardContent className="pt-4">
-                <div className="flex items-center gap-2 mb-2">
-                  <Users className="w-5 h-5 text-pink-600" />
-                  <span className="font-semibold text-slate-900">Socios</span>
-                </div>
-                <div className="space-y-1 text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-slate-600">Cobrado:</span>
-                    <span className="font-medium text-green-600">{(stats.socios?.pagados || 0).toLocaleString()}€</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-slate-600">Pendiente:</span>
-                    <span className="font-medium text-red-600">{(stats.socios?.pendientes || 0).toLocaleString()}€</span>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </TabsContent>
-
-        <TabsContent value="presupuesto" className="space-y-4">
-          <div className="flex justify-between items-center">
-            <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
-              <Wallet className="h-5 w-5 text-orange-600" />
-              Gestión de Presupuestos - Temporada {currentSeason}
-            </h2>
-            {!activeBudget && (
-              <Button 
-                onClick={() => {
-                  setNewBudgetData({ temporada: currentSeason, nombre: "Presupuesto Principal" });
-                  setShowNewBudget(true);
-                }}
-                className="bg-orange-600 hover:bg-orange-700"
-              >
-                <Plus className="h-4 w-4 mr-2" />
-                Crear Presupuesto
-              </Button>
-            )}
-          </div>
-
-          {activeBudget ? (
-            <BudgetManager
-              budget={activeBudget}
-              onUpdate={handleUpdateBudget}
-              historicalTransactions={financialTransactions}
-              historicalBudgets={budgets}
-            />
-          ) : (
-            <Card className="border-dashed border-2">
-              <CardContent className="p-12 text-center">
-                <Wallet className="h-16 w-16 text-slate-300 mx-auto mb-4" />
-                <h3 className="text-xl font-bold text-slate-900 mb-2">
-                  No hay presupuesto para esta temporada
-                </h3>
-                <p className="text-slate-600 mb-4">
-                  Crea un presupuesto para gestionar ingresos y gastos del club
-                </p>
-                <Button 
-                  onClick={() => {
-                    setNewBudgetData({ temporada: currentSeason, nombre: "Presupuesto Principal" });
-                    setShowNewBudget(true);
-                  }}
-                  className="bg-orange-600 hover:bg-orange-700"
-                >
-                  <Plus className="h-4 w-4 mr-2" />
-                  Crear Presupuesto
-                </Button>
-              </CardContent>
-            </Card>
-          )}
-        </TabsContent>
-
-        <TabsContent value="movimientos" className="space-y-4">
-          <div className="flex justify-between items-center">
-            <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
-              <Receipt className="h-5 w-5 text-green-600" />
-              Movimientos Financieros - {currentSeason}
-            </h2>
-            <Button 
-              onClick={() => setShowTransactionForm(!showTransactionForm)}
-              className="bg-green-600 hover:bg-green-700"
-            >
-              <Plus className="h-4 w-4 mr-2" />
-              Nuevo Movimiento
-            </Button>
-          </div>
-
-          {showTransactionForm ? (
-            <TransactionForm
-              partidas={activeBudget?.partidas || []}
-              temporada={currentSeason}
-              onSubmit={(data) => createTransactionMutation.mutate(data)}
-              onCancel={() => setShowTransactionForm(false)}
-              isSubmitting={createTransactionMutation.isPending}
-            />
-          ) : (
-            <TransactionList
-              transactions={financialTransactions.filter(t => t.temporada === currentSeason)}
-              onDelete={(id) => deleteTransactionMutation.mutate(id)}
-              onExport={handleExportFinancialTransactions}
-            />
-          )}
-
-          {financialTransactions.filter(t => t.documento_url && t.temporada === currentSeason).length > 0 && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-base flex items-center gap-2">
-                  <FileText className="h-4 w-4 text-orange-600" />
-                  Documentos y Facturas
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                  {financialTransactions
-                    .filter(t => t.documento_url && t.temporada === currentSeason)
-                    .slice(0, 8)
-                    .map(t => (
-                      <Card key={t.id} className="hover:shadow-md transition-shadow cursor-pointer"
-                        onClick={() => window.open(t.documento_url, '_blank')}>
-                        <CardContent className="p-3">
-                          <div className="flex items-center gap-2">
-                            <FileText className="h-5 w-5 text-orange-600 flex-shrink-0" />
-                            <div className="min-w-0">
-                              <p className="font-medium text-xs truncate">{t.documento_nombre || "Documento"}</p>
-                              <p className="text-[10px] text-slate-500 truncate">{t.concepto}</p>
-                            </div>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    ))}
-                </div>
-              </CardContent>
-            </Card>
-          )}
-        </TabsContent>
-
-        <TabsContent value="conciliacion" className="space-y-4">
-          <AIReconciliation
-            payments={payments}
-            players={players}
-            financialTransactions={financialTransactions}
-            onReconcile={() => {
-              queryClient.invalidateQueries({ queryKey: ['payments'] });
-              queryClient.invalidateQueries({ queryKey: ['financialTransactions'] });
-            }}
-          />
-        </TabsContent>
-
-        <TabsContent value="deudas" className="space-y-4">
-          <Card className="border-none shadow-xl">
-            <CardHeader className="flex flex-row items-center justify-between">
-              <CardTitle className="text-lg flex items-center gap-2">
-                <AlertCircle className="w-5 h-5 text-red-600" />
-                Jugadores con Pagos Pendientes ({pendingDebts.length})
-              </CardTitle>
-              <div className="flex gap-2">
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  onClick={() => setShowCommunicationAssistant(true)}
-                  className="border-purple-300 text-purple-700 hover:bg-purple-50"
-                >
-                  <Sparkles className="w-4 h-4 mr-2" />
-                  Enviar Recordatorios IA
-                </Button>
-                <Button variant="outline" size="sm" onClick={() => exportToCSV("deudas")}>
-                  <Download className="w-4 h-4 mr-2" />
-                  Exportar
-                </Button>
-              </div>
-            </CardHeader>
-            <CardContent>
-              {pendingDebts.length === 0 ? (
-                <div className="text-center py-8 text-slate-500">
-                  <CheckCircle2 className="w-12 h-12 mx-auto mb-2 text-green-500" />
-                  <p>¡No hay deudas pendientes!</p>
-                </div>
-              ) : (
-                <div className="space-y-3 max-h-[500px] overflow-y-auto">
-                  {pendingDebts.map((debt) => (
-                    <div key={debt.jugador_id} className="p-4 bg-red-50 rounded-lg border border-red-200">
-                      <div className="flex items-start justify-between">
-                        <div>
-                          <p className="font-semibold text-slate-900">{debt.jugador_nombre}</p>
-                          <p className="text-xs text-slate-600">{debt.deporte}</p>
-                          {debt.email_padre && (
-                            <p className="text-xs text-slate-500 mt-1">📧 {debt.email_padre}</p>
-                          )}
-                        </div>
-                        <div className="text-right">
-                          <p className="text-xl font-bold text-red-600">{debt.deuda_total.toLocaleString()}€</p>
-                          <Badge variant="outline" className="text-red-600 border-red-300">
-                            {debt.pagos_pendientes.length} pago(s)
-                          </Badge>
-                        </div>
-                      </div>
-                      <div className="mt-3 flex flex-wrap gap-2">
-                        {debt.pagos_pendientes.map((p, idx) => (
-                          <Badge key={idx} className="bg-red-100 text-red-700 text-xs">
-                            {p.mes}: {p.cantidad}€
-                          </Badge>
-                        ))}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="exportar" className="space-y-4">
-          <Card className="border-none shadow-xl">
-            <CardHeader>
-              <CardTitle className="text-lg flex items-center gap-2">
-                <FileText className="w-5 h-5 text-blue-600" />
-                Generar Informes
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <Card className="border-2 border-dashed border-blue-300 hover:border-blue-500 transition-colors">
-                  <CardContent className="pt-6 text-center">
-                    <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                      <DollarSign className="w-6 h-6 text-blue-600" />
-                    </div>
-                    <h3 className="font-semibold text-slate-900 mb-1">Resumen Financiero</h3>
-                    <p className="text-xs text-slate-600 mb-3">Ingresos y pendientes por concepto</p>
-                    <div className="flex gap-2">
-                      <Button className="flex-1 bg-blue-600 hover:bg-blue-700" size="sm" onClick={() => exportToCSV("resumen")}>
-                        <Download className="w-3 h-3 mr-1" />
-                        CSV
-                      </Button>
-                      <Button className="flex-1 bg-blue-800 hover:bg-blue-900" size="sm" onClick={() => exportToPDF("resumen")}>
-                        <FileText className="w-3 h-3 mr-1" />
-                        PDF
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                <Card className="border-2 border-dashed border-red-300 hover:border-red-500 transition-colors">
-                  <CardContent className="pt-6 text-center">
-                    <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                      <AlertCircle className="w-6 h-6 text-red-600" />
-                    </div>
-                    <h3 className="font-semibold text-slate-900 mb-1">Listado de Deudas</h3>
-                    <p className="text-xs text-slate-600 mb-3">Jugadores con pagos pendientes</p>
-                    <div className="flex gap-2">
-                      <Button className="flex-1 bg-red-600 hover:bg-red-700" size="sm" onClick={() => exportToCSV("deudas")}>
-                        <Download className="w-3 h-3 mr-1" />
-                        CSV
-                      </Button>
-                      <Button className="flex-1 bg-red-800 hover:bg-red-900" size="sm" onClick={() => exportToPDF("deudas")}>
-                        <FileText className="w-3 h-3 mr-1" />
-                        PDF
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                <Card className="border-2 border-dashed border-green-300 hover:border-green-500 transition-colors">
-                  <CardContent className="pt-6 text-center">
-                    <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                      <Receipt className="w-6 h-6 text-green-600" />
-                    </div>
-                    <h3 className="font-semibold text-slate-900 mb-1">Transacciones</h3>
-                    <p className="text-xs text-slate-600 mb-3">Historial de cobros recientes</p>
-                    <div className="flex gap-2">
-                      <Button className="flex-1 bg-green-600 hover:bg-green-700" size="sm" onClick={() => exportToCSV("transacciones")}>
-                        <Download className="w-3 h-3 mr-1" />
-                        CSV
-                      </Button>
-                      <Button className="flex-1 bg-green-800 hover:bg-green-900" size="sm" onClick={() => exportToPDF("transacciones")}>
-                        <FileText className="w-3 h-3 mr-1" />
-                        PDF
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-
-              <div className="bg-slate-50 rounded-lg p-4 text-sm text-slate-600">
-                <p className="font-semibold text-slate-900 mb-2">💡 Consejo:</p>
-                <p>Los informes se generan con los datos de la temporada seleccionada ({selectedSeason === "all" ? "todas las temporadas" : selectedSeason}). Puedes cambiar el filtro en la parte superior de la página.</p>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
-
-      <Dialog open={showNewBudget} onOpenChange={setShowNewBudget}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Crear Nuevo Presupuesto</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4 py-4">
-            <div>
-              <Label>Temporada</Label>
-              <Input
-                value={newBudgetData.temporada}
-                onChange={(e) => setNewBudgetData({...newBudgetData, temporada: e.target.value})}
-                placeholder={currentSeason}
-              />
-            </div>
-            <div>
-              <Label>Nombre del Presupuesto</Label>
-              <Input
-                value={newBudgetData.nombre}
-                onChange={(e) => setNewBudgetData({...newBudgetData, nombre: e.target.value})}
-                placeholder="Presupuesto Principal"
-              />
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowNewBudget(false)}>
-              Cancelar
-            </Button>
-            <Button 
-              onClick={handleCreateBudget}
-              disabled={createBudgetMutation.isPending}
-              className="bg-orange-600 hover:bg-orange-700"
-            >
-              {createBudgetMutation.isPending ? (
-                <>
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  Creando...
-                </>
-              ) : (
-                "Crear Presupuesto"
-              )}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      <AICommunicationAssistant
-        open={showCommunicationAssistant}
-        onClose={() => setShowCommunicationAssistant(false)}
-      />
-
-      <AIFinancialForecasting
-        open={showAIForecasting}
-        onClose={() => setShowAIForecasting(false)}
-      />
     </div>
   );
 }
