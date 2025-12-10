@@ -964,6 +964,7 @@ export default function Layout({ children, currentPageName }) {
 
       // 💬 COMUNICACIÓN (uso diario)
       { title: "💬 Chat con Familias", url: createPageUrl("CoachParentChat"), icon: MessageCircle },
+      { title: "📊 Stats Chat", url: createPageUrl("CoachChatSettings"), icon: BarChart3 },
 
       // ⚽ GESTIÓN DEPORTIVA (trabajo principal)
       { title: "🎓 Convocatorias", url: createPageUrl("CoachCallups"), icon: Bell, badge: pendingCallupResponses > 0 ? pendingCallupResponses : null, urgentBadge: pendingCallupResponses > 0 },
@@ -1057,6 +1058,7 @@ export default function Layout({ children, currentPageName }) {
     { title: "💬 Chat Coordinador", url: createPageUrl("CoordinatorChat"), icon: MessageCircle },
     { title: "⚙️ Config Chat Coord.", url: createPageUrl("CoordinatorSettings"), icon: Settings },
     ...(user?.es_entrenador ? [{ title: "⚽ Chat Entrenador", url: createPageUrl("CoachParentChat"), icon: MessageCircle }] : []),
+    ...(user?.es_entrenador ? [{ title: "📊 Stats Chat Entrena.", url: createPageUrl("CoachChatSettings"), icon: BarChart3 }] : []),
 
       // ⚽ GESTIÓN DEPORTIVA (trabajo principal)
       { title: user?.es_entrenador ? "🎓 Convocatorias" : "🎓 Ver Convocatorias", url: createPageUrl("CoachCallups"), icon: Bell, badge: pendingCallupResponses > 0 ? pendingCallupResponses : null, urgentBadge: pendingCallupResponses > 0 },

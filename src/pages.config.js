@@ -73,6 +73,7 @@ import StaffChat from './pages/StaffChat';
 import ParentSystemMessages from './pages/ParentSystemMessages';
 import PaymentReminders from './pages/PaymentReminders';
 import CoordinatorSettings from './pages/CoordinatorSettings';
+import CoachChatSettings from './pages/CoachChatSettings';
 import __Layout from './Layout.jsx';
 
 
@@ -152,6 +153,7 @@ export const PAGES = {
     "ParentSystemMessages": ParentSystemMessages,
     "PaymentReminders": PaymentReminders,
     "CoordinatorSettings": CoordinatorSettings,
+    "CoachChatSettings": CoachChatSettings,
 }
 
 export const pagesConfig = {

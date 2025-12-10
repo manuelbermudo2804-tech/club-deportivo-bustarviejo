@@ -7,12 +7,13 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Send, Paperclip, X, FileText, Download, MessageCircle, Camera, Users, Mic, Square, Search, Pin, Smile, Image as ImageIcon, Folder } from "lucide-react";
+import { Send, Paperclip, X, FileText, Download, MessageCircle, Camera, Users, Mic, Square, Search, Pin, Smile, Image as ImageIcon, Folder, BarChart3 } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { toast } from "sonner";
 import SocialLinks from "../components/SocialLinks";
 import ChatInputActions from "../components/chat/ChatInputActions";
+import PollMessage from "../components/chat/PollMessage";
 
 const QUICK_REPLIES = [
   "✅ Perfecto, gracias",
@@ -38,6 +39,9 @@ export default function CoachParentChat() {
   const [showSearch, setShowSearch] = useState(false);
   const [showQuickReplies, setShowQuickReplies] = useState(false);
   const [showGallery, setShowGallery] = useState(false);
+  const [showPollDialog, setShowPollDialog] = useState(false);
+  const [pollQuestion, setPollQuestion] = useState("");
+  const [pollOptions, setPollOptions] = useState(["", ""]);
   const messagesEndRef = useRef(null);
   const fileInputRef = useRef(null);
   const cameraInputRef = useRef(null);
@@ -241,6 +245,61 @@ export default function CoachParentChat() {
     }
   };
 
+  const sendPoll = () => {
+    if (!pollQuestion.trim() || pollOptions.filter(o => o.trim()).length < 2) {
+      toast.error("Necesitas una pregunta y al menos 2 opciones");
+      return;
+    }
+
+    sendMessageMutation.mutate({
+      mensaje: "📊 Encuesta Rápida",
+      adjuntos: [],
+      encuesta: {
+        pregunta: pollQuestion,
+        opciones: pollOptions.filter(o => o.trim()),
+        votos: [],
+        cerrada: false
+      }
+    });
+    
+    setShowPollDialog(false);
+    setPollQuestion("");
+    setPollOptions(["", ""]);
+    toast.success("Encuesta enviada");
+  };
+
+  const votePollMutation = useMutation({
+    mutationFn: async ({ messageId, optionIndex }) => {
+      const msg = messages.find(m => m.id === messageId);
+      const votos = msg.encuesta?.votos || [];
+      
+      // Verificar si ya votó
+      const existingVote = votos.find(v => v.usuario_email === user.email);
+      if (existingVote) {
+        toast.error("Ya has votado en esta encuesta");
+        return;
+      }
+      
+      votos.push({
+        usuario_email: user.email,
+        usuario_nombre: user.full_name,
+        opcion_index: optionIndex,
+        fecha: new Date().toISOString()
+      });
+
+      await base44.entities.ChatMessage.update(messageId, {
+        encuesta: {
+          ...msg.encuesta,
+          votos
+        }
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['coachGroupMessages'] });
+      toast.success("✅ Voto registrado");
+    },
+  });
+
   const sendMessageMutation = useMutation({
     mutationFn: async (data) => {
       const grupo_id = selectedCategory.toLowerCase().replace(/\s+/g, '_');
@@ -253,6 +312,7 @@ export default function CoachParentChat() {
         remitente_nombre: user.full_name,
         mensaje: data.mensaje,
         archivos_adjuntos: data.adjuntos,
+        encuesta: data.encuesta,
         prioridad: "Normal",
         leido: false
       });
@@ -470,7 +530,19 @@ export default function CoachParentChat() {
                               )}
                             </div>
                             <p className="text-xs sm:text-sm whitespace-pre-wrap">{msg.mensaje}</p>
-                            
+
+                            {msg.encuesta && (
+                             <div className="mt-2">
+                               <PollMessage 
+                                 encuesta={msg.encuesta} 
+                                 messageId={msg.id}
+                                 userEmail={user?.email}
+                                 userName={user?.full_name}
+                                 onVote={(msgId, optionIdx) => votePollMutation.mutate({ messageId: msgId, optionIndex: optionIdx })}
+                               />
+                             </div>
+                            )}
+
                             {msg.archivos_adjuntos?.length > 0 && (
                               <div className="mt-2 space-y-1">
                                 {msg.archivos_adjuntos.map((file, idx) => (
@@ -635,12 +707,12 @@ export default function CoachParentChat() {
                       onCameraClick={() => cameraInputRef.current?.click()}
                       onAudioClick={isRecording ? stopRecording : startRecording}
                       onLocationClick={() => {}}
-                      onPollClick={() => {}}
+                      onPollClick={() => setShowPollDialog(true)}
                       onQuickRepliesClick={() => setShowQuickReplies(!showQuickReplies)}
                       uploading={uploading}
                       isRecording={isRecording}
                       showLocation={false}
-                      showPoll={false}
+                      showPoll={true}
                     />
                     
                     <Textarea
@@ -698,6 +770,69 @@ export default function CoachParentChat() {
               </div>
             </div>
           </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog: Crear Encuesta Rápida */}
+      <Dialog open={showPollDialog} onOpenChange={setShowPollDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>📊 Crear Encuesta Rápida</DialogTitle>
+            <DialogDescription>
+              Pregunta rápida para las familias del grupo
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div>
+              <Label className="text-sm font-medium">Pregunta</Label>
+              <Input
+                placeholder="¿Quién puede llevar botellas de agua?"
+                value={pollQuestion}
+                onChange={(e) => setPollQuestion(e.target.value)}
+                className="mt-1"
+              />
+            </div>
+            <div>
+              <Label className="text-sm font-medium">Opciones</Label>
+              {pollOptions.map((opt, idx) => (
+                <div key={idx} className="flex gap-2 mt-2">
+                  <Input
+                    placeholder={`Opción ${idx + 1}`}
+                    value={opt}
+                    onChange={(e) => {
+                      const newOpts = [...pollOptions];
+                      newOpts[idx] = e.target.value;
+                      setPollOptions(newOpts);
+                    }}
+                  />
+                  {pollOptions.length > 2 && (
+                    <Button 
+                      size="icon" 
+                      variant="ghost"
+                      onClick={() => setPollOptions(pollOptions.filter((_, i) => i !== idx))}
+                    >
+                      <X className="w-4 h-4" />
+                    </Button>
+                  )}
+                </div>
+              ))}
+              <Button 
+                size="sm" 
+                variant="outline" 
+                onClick={() => setPollOptions([...pollOptions, ""])}
+                className="mt-2"
+              >
+                + Agregar opción
+              </Button>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowPollDialog(false)}>Cancelar</Button>
+            <Button onClick={sendPoll} className="bg-green-600 hover:bg-green-700">
+              <BarChart3 className="w-4 h-4 mr-2" />
+              Enviar Encuesta
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>

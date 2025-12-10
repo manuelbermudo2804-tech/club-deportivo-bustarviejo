@@ -15,6 +15,8 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Textarea as DialogTextarea } from "@/components/ui/textarea";
 import ChatInputActions from "../components/chat/ChatInputActions";
 import SocialLinks from "../components/SocialLinks";
+import ChatTermsDialog from "../components/chat/ChatTermsDialog";
+import CoachChatBanner from "../components/chat/CoachChatBanner";
 
 export default function ParentCoachChat() {
   const [user, setUser] = useState(null);
@@ -32,6 +34,9 @@ export default function ParentCoachChat() {
   const [showReportDialog, setShowReportDialog] = useState(false);
   const [reportReason, setReportReason] = useState("");
   const [currentConversation, setCurrentConversation] = useState(null);
+  const [showTermsDialog, setShowTermsDialog] = useState(false);
+  const [termsAccepted, setTermsAccepted] = useState(false);
+  const [dailyMessageCount, setDailyMessageCount] = useState(0);
   const messagesEndRef = useRef(null);
   const fileInputRef = useRef(null);
   const mediaRecorderRef = useRef(null);
@@ -54,6 +59,22 @@ export default function ParentCoachChat() {
         if (players.length > 0 && !selectedCategory) {
           setSelectedCategory(players[0].deporte);
         }
+
+        // Verificar si ya aceptó las condiciones
+        if (!currentUser.condiciones_chat_aceptadas) {
+          setShowTermsDialog(true);
+        } else {
+          setTermsAccepted(true);
+        }
+
+        // Contar mensajes del día
+        const today = new Date().toISOString().split('T')[0];
+        const todayMessages = await base44.entities.ChatMessage.filter({});
+        const myTodayMessages = todayMessages.filter(m => 
+          m.remitente_email === currentUser.email && 
+          m.created_date?.startsWith(today)
+        );
+        setDailyMessageCount(myTodayMessages.length);
       } catch (error) {
         console.error("Error loading chat:", error);
         toast.error("Error al cargar el chat");
@@ -170,35 +191,10 @@ export default function ParentCoachChat() {
   }, [messages.length, user?.email, selectedCategory, queryClient]);
 
   const handleFileUpload = async (e) => {
-    const files = Array.from(e.target.files);
-    setUploading(true);
-
-    try {
-      const uploaded = [];
-      for (const file of files) {
-        // PADRES: BLOQUEAR IMÁGENES - solo permitir documentos
-        if (file.type.startsWith('image/')) {
-          toast.error("❌ No puedes enviar fotos. Solo documentos (PDF, Word, Excel, etc.)");
-          continue;
-        }
-        
-        const { file_url } = await base44.integrations.Core.UploadFile({ file });
-        uploaded.push({
-          url: file_url,
-          nombre: file.name,
-          tipo: file.type,
-          tamano: file.size
-        });
-      }
-      if (uploaded.length > 0) {
-        setAttachments([...attachments, ...uploaded]);
-        toast.success("Documentos adjuntados");
-      }
-    } catch (error) {
-      toast.error("Error al subir archivos");
-    } finally {
-      setUploading(false);
-    }
+    // FAMILIAS: COMPLETAMENTE BLOQUEADO
+    toast.error("❌ Las familias no pueden enviar archivos por este chat. Solo mensajes de texto.");
+    e.target.value = null;
+    return;
   };
 
   // Indicador "escribiendo..."
@@ -279,8 +275,86 @@ export default function ParentCoachChat() {
 
   const sendMessageMutation = useMutation({
     mutationFn: async (data) => {
+      const currentSeason = (() => {
+        const now = new Date();
+        const year = now.getFullYear();
+        const month = now.getMonth() + 1;
+        return month >= 9 ? `${year}/${year + 1}` : `${year - 1}/${year}`;
+      })();
+
+      // LÍMITE DE MENSAJES POR DÍA (5 mensajes)
+      if (dailyMessageCount >= 5) {
+        toast.error("📏 Has alcanzado el límite de 5 mensajes por día. Si necesitas comunicarte más, usa el Chat Coordinador.");
+        throw new Error("Límite diario alcanzado");
+      }
+
+      // LÍMITE DE CARACTERES (500)
+      if (data.mensaje.length > 500) {
+        toast.error("📏 Mensaje demasiado largo (máx 500 caracteres). Usa el Chat Coordinador para mensajes extensos.");
+        throw new Error("Mensaje muy largo");
+      }
+
+      // FILTRO DE PALABRAS OFENSIVAS
+      const palabrasProhibidas = [
+        "idiota", "estupido", "estúpido", "imbecil", "imbécil", "tonto", 
+        "basura", "mierda", "maldito", "puto", "puta", "joder", "coño",
+        "gilipollas", "capullo", "hijo de", "desgraciado", "inutil", "inútil"
+      ];
+      
+      const mensajeLower = data.mensaje.toLowerCase();
+      const palabraEncontrada = palabrasProhibidas.find(p => mensajeLower.includes(p));
+      
+      if (palabraEncontrada) {
+        toast.error("🚫 Mensaje bloqueado por lenguaje inapropiado. Si tienes un problema, usa el Chat Coordinador.");
+        
+        // Notificar a coordinador y admin
+        try {
+          await base44.integrations.Core.SendEmail({
+            from_name: "CD Bustarviejo - Sistema de Chats",
+            to: "cdbustarviejo@gmail.com",
+            subject: `🚫 Mensaje Bloqueado - ${user.full_name}`,
+            body: `
+              <h2>⚠️ Mensaje Bloqueado por Lenguaje Inapropiado</h2>
+              <p><strong>Usuario:</strong> ${user.full_name} (${user.email})</p>
+              <p><strong>Chat:</strong> Entrenador - ${selectedCategory}</p>
+              <p><strong>Palabra detectada:</strong> "${palabraEncontrada}"</p>
+              <p><strong>Mensaje completo:</strong> "${data.mensaje}"</p>
+              <hr>
+              <p style="color: red; font-size: 12px;">El mensaje NO fue enviado al chat.</p>
+              <p style="font-size: 12px;">Fecha: ${new Date().toLocaleString('es-ES')}</p>
+            `
+          });
+        } catch (e) {
+          console.error("Error notificando:", e);
+        }
+
+        // Registrar en log
+        await base44.entities.CoachChatLog.create({
+          categoria: selectedCategory,
+          padre_email: user.email,
+          padre_nombre: user.full_name,
+          accion: "mensaje_bloqueado",
+          detalles: `Palabra bloqueada: "${palabraEncontrada}"`,
+          palabra_bloqueada: palabraEncontrada,
+          temporada: currentSeason,
+          notificado_admin: true
+        });
+        
+        throw new Error("Mensaje bloqueado");
+      }
+
+      // DETECTAR FRASES DE DISCUSIÓN
+      const frasesDiscusion = [
+        "no estoy de acuerdo", "esto es injusto", "siempre el mismo",
+        "mi hijo no juega", "por qué", "otra vez", "no entiendo",
+        "mal entrenador", "favoritos", "parcial", "discrimina"
+      ];
+      
+      const fraseEncontrada = frasesDiscusion.find(f => mensajeLower.includes(f));
+      
       const grupo_id = selectedCategory.toLowerCase().replace(/\s+/g, '_');
       
+      // Enviar mensaje de la familia
       await base44.entities.ChatMessage.create({
         grupo_id,
         deporte: selectedCategory,
@@ -292,6 +366,42 @@ export default function ParentCoachChat() {
         prioridad: "Normal",
         leido: false
       });
+
+      // Si detectó frase de discusión, enviar mensaje automático del sistema
+      if (fraseEncontrada) {
+        setTimeout(async () => {
+          await base44.entities.ChatMessage.create({
+            grupo_id,
+            deporte: selectedCategory,
+            tipo: "sistema",
+            remitente_email: "sistema@cdbustarviejo",
+            remitente_nombre: "🤖 Sistema del Club",
+            mensaje: `⚠️ AVISO AUTOMÁTICO PARA ${user.full_name}:
+
+Hemos detectado que tu mensaje puede requerir una conversación más profunda.
+
+Si tienes dudas sobre decisiones deportivas o necesitas resolver algún problema, por favor usa el 💬 Chat Coordinador (menú lateral) donde podremos atenderte mejor de forma privada.
+
+Este chat es solo para avisos rápidos. Gracias por tu comprensión.`,
+            prioridad: "Normal",
+            leido: false
+          });
+        }, 1000);
+
+        // Registrar en log
+        await base44.entities.CoachChatLog.create({
+          categoria: selectedCategory,
+          padre_email: user.email,
+          padre_nombre: user.full_name,
+          accion: "discusion_detectada",
+          detalles: `Frase detectada: "${fraseEncontrada}"`,
+          frase_discusion: fraseEncontrada,
+          temporada: currentSeason
+        });
+      }
+
+      // Incrementar contador diario
+      setDailyMessageCount(prev => prev + 1);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['coachGroupMessages', selectedCategory] });
@@ -299,9 +409,17 @@ export default function ParentCoachChat() {
       setAttachments([]);
       toast.success("Mensaje enviado");
     },
+    onError: (error) => {
+      // No mostrar toast si ya se mostró en el filtro
+    }
   });
 
   const handleSend = () => {
+    if (!termsAccepted) {
+      toast.error("Debes aceptar las condiciones de uso antes de enviar mensajes");
+      setShowTermsDialog(true);
+      return;
+    }
     if (!messageText.trim() && attachments.length === 0) return;
     sendMessageMutation.mutate({ mensaje: messageText, adjuntos: attachments });
   };
@@ -332,11 +450,27 @@ export default function ParentCoachChat() {
   const categories = [...new Set(myPlayers.map(p => p.deporte))];
 
   return (
-    <div className="h-[calc(100vh-100px)] lg:p-4 lg:max-w-5xl lg:mx-auto lg:h-[calc(100vh-110px)] space-y-2">
-      <div className="hidden lg:block">
-        <SocialLinks />
-      </div>
-      <Card className="border-blue-200 shadow-lg h-full flex flex-col overflow-hidden lg:rounded-lg rounded-none">
+    <>
+      {user && (
+        <ChatTermsDialog
+          open={showTermsDialog}
+          onAccept={() => {
+            setShowTermsDialog(false);
+            setTermsAccepted(true);
+          }}
+          onDecline={() => {
+            toast.error("Debes aceptar las condiciones para usar el chat");
+            window.history.back();
+          }}
+          user={user}
+          tipoChat="entrenador"
+        />
+      )}
+      <div className="h-[calc(100vh-100px)] lg:p-4 lg:max-w-5xl lg:mx-auto lg:h-[calc(100vh-110px)] space-y-2">
+        <div className="hidden lg:block">
+          <SocialLinks />
+        </div>
+        <Card className="border-blue-200 shadow-lg h-full flex flex-col overflow-hidden lg:rounded-lg rounded-none">
         <CardHeader className="bg-gradient-to-r from-blue-600 to-blue-700 text-white flex-shrink-0 p-2 sm:p-6">
           <div className="flex items-center justify-between">
             <div>
@@ -406,6 +540,11 @@ export default function ParentCoachChat() {
             
             {categories.map(cat => (
               <TabsContent key={cat} value={cat} className="flex-1 p-0 m-0 flex flex-col overflow-hidden min-h-0 data-[state=active]:flex" style={{ display: selectedCategory === cat ? 'flex' : 'none' }}>
+                {/* Banner informativo */}
+                <div className="p-2 sm:p-4 flex-shrink-0">
+                  <CoachChatBanner isOutsideHours={false} horario={null} />
+                </div>
+
                 {currentConversation?.reportada_admin && selectedCategory === cat && (
                   <Alert className="m-2 bg-red-50 border-red-300 flex-shrink-0">
                     <AlertTriangle className="w-4 h-4 text-red-600" />
@@ -549,19 +688,7 @@ export default function ParentCoachChat() {
                       disabled={uploading} 
                     />
                     
-                    <ChatInputActions
-                      onFileClick={() => fileInputRef.current?.click()}
-                      onCameraClick={() => {}}
-                      onAudioClick={isRecording ? stopRecording : startRecording}
-                      onLocationClick={() => {}}
-                      onPollClick={() => {}}
-                      uploading={uploading}
-                      isRecording={isRecording}
-                      showCamera={false}
-                      showLocation={false}
-                      showPoll={false}
-                      showQuickReplies={false}
-                    />
+                    {/* FAMILIAS: SIN BOTONES DE ARCHIVOS/MEDIA */}
 
                     <Textarea
                       placeholder="Escribe..."
@@ -681,6 +808,7 @@ export default function ParentCoachChat() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
+      </div>
+    </>
   );
 }

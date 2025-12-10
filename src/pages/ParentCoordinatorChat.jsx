@@ -13,6 +13,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { Textarea as DialogTextarea } from "@/components/ui/textarea";
 import ChatInputActions from "../components/chat/ChatInputActions";
 import SocialLinks from "../components/SocialLinks";
+import ChatTermsDialog from "../components/chat/ChatTermsDialog";
 
 export default function ParentCoordinatorChat() {
   const [user, setUser] = useState(null);
@@ -25,6 +26,8 @@ export default function ParentCoordinatorChat() {
   const [showImagePreview, setShowImagePreview] = useState(null);
   const [showReportDialog, setShowReportDialog] = useState(false);
   const [reportReason, setReportReason] = useState("");
+  const [showTermsDialog, setShowTermsDialog] = useState(false);
+  const [termsAccepted, setTermsAccepted] = useState(false);
   const messagesEndRef = useRef(null);
   const fileInputRef = useRef(null);
   const cameraInputRef = useRef(null);
@@ -64,6 +67,13 @@ export default function ParentCoordinatorChat() {
           archivada: false
         });
         setConversation(newConv);
+      }
+
+      // Verificar si ya aceptó las condiciones
+      if (!currentUser.condiciones_chat_aceptadas) {
+        setShowTermsDialog(true);
+      } else {
+        setTermsAccepted(true);
       }
     };
     fetchUser();
@@ -290,6 +300,11 @@ export default function ParentCoordinatorChat() {
   });
 
   const handleSend = () => {
+    if (!termsAccepted) {
+      toast.error("Debes aceptar las condiciones de uso antes de enviar mensajes");
+      setShowTermsDialog(true);
+      return;
+    }
     if (!messageText.trim() && attachments.length === 0) return;
     sendMessageMutation.mutate({ mensaje: messageText, adjuntos: attachments });
   };
@@ -324,11 +339,27 @@ export default function ParentCoordinatorChat() {
   }
 
   return (
-    <div className="h-[calc(100vh-100px)] lg:p-4 lg:max-w-4xl lg:mx-auto lg:h-[calc(100vh-110px)] space-y-2">
-      <div className="hidden lg:block">
-        <SocialLinks />
-      </div>
-      <Card className="border-cyan-200 shadow-lg h-full flex flex-col overflow-hidden lg:rounded-lg rounded-none">
+    <>
+      {user && (
+        <ChatTermsDialog
+          open={showTermsDialog}
+          onAccept={() => {
+            setShowTermsDialog(false);
+            setTermsAccepted(true);
+          }}
+          onDecline={() => {
+            toast.error("Debes aceptar las condiciones para usar el chat");
+            window.history.back();
+          }}
+          user={user}
+          tipoChat="coordinador"
+        />
+      )}
+      <div className="h-[calc(100vh-100px)] lg:p-4 lg:max-w-4xl lg:mx-auto lg:h-[calc(100vh-110px)] space-y-2">
+        <div className="hidden lg:block">
+          <SocialLinks />
+        </div>
+        <Card className="border-cyan-200 shadow-lg h-full flex flex-col overflow-hidden lg:rounded-lg rounded-none">
         <CardHeader className="bg-gradient-to-r from-cyan-600 to-cyan-700 text-white p-2 sm:p-6">
           <div className="flex items-center justify-between">
             <CardTitle className="flex items-center gap-2 text-sm sm:text-xl">
@@ -631,6 +662,7 @@ export default function ParentCoordinatorChat() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
+      </div>
+    </>
   );
 }
