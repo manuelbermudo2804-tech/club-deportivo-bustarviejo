@@ -38,8 +38,9 @@ export default function SurveyResponseForm({ survey, onClose }) {
       });
 
       await base44.entities.Survey.update(survey.id, {
-        ...survey,
-        respuestas_count: (survey.respuestas_count || 0) + 1
+        respuestas_count: (survey.respuestas_count || 0) + 1,
+        respuestas_nuevas: (survey.respuestas_nuevas || 0) + 1,
+        ultima_respuesta_fecha: new Date().toISOString()
       });
 
       queryClient.invalidateQueries({ queryKey: ['surveys'] });
