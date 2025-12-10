@@ -60,6 +60,9 @@ export default function CoachParentChat() {
     fetchUser();
   }, []);
 
+  // Verificar si es coach/admin
+  const isCoach = user?.es_entrenador === true || user?.role === "admin";
+
   const { data: messages = [] } = useQuery({
     queryKey: ['coachGroupMessages', selectedCategory],
     queryFn: async () => {
@@ -126,7 +129,7 @@ export default function CoachParentChat() {
 
   // Inicializar categoría cuando tengamos user y players
   useEffect(() => {
-    if (!user || selectedCategory || allPlayers.length === 0) return;
+    if (!user || !isCoach || selectedCategory || allPlayers.length === 0) return;
     
     const categories = user.role === "admin" 
       ? ["Todas las categorías", ...new Set(allPlayers.map(p => p.deporte).filter(Boolean))]
@@ -135,7 +138,7 @@ export default function CoachParentChat() {
     if (categories.length > 0) {
       setSelectedCategory(categories[0]);
     }
-  }, [user, allPlayers, selectedCategory]);
+  }, [user, isCoach, allPlayers, selectedCategory]);
 
   useEffect(() => {
     if (messagesEndRef.current) {
@@ -334,7 +337,8 @@ export default function CoachParentChat() {
     sendMessageMutation.mutate({ mensaje: messageText, adjuntos: attachments });
   };
 
-  if (!user || playersLoading || !selectedCategory) {
+  // Verificar acceso primero
+  if (!user || playersLoading) {
     return (
       <div className="h-[calc(100vh-100px)] flex items-center justify-center">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600"></div>
@@ -342,12 +346,19 @@ export default function CoachParentChat() {
     );
   }
 
-  const isCoach = user.es_entrenador === true || user.role === "admin";
-
   if (!isCoach) {
     return (
       <div className="p-6 text-center">
         <p className="text-slate-500">Solo entrenadores pueden acceder a esta sección</p>
+      </div>
+    );
+  }
+
+  // Si aún no se ha inicializado la categoría, mostrar loading
+  if (!selectedCategory) {
+    return (
+      <div className="h-[calc(100vh-100px)] flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600"></div>
       </div>
     );
   }
