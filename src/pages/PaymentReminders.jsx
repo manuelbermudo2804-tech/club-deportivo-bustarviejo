@@ -11,6 +11,7 @@ import { toast } from "sonner";
 import { getCuotasPorCategoriaSync } from "../components/payments/paymentAmounts";
 
 import SocialLinks from "../components/SocialLinks";
+import { CheckmarkAnimation } from "../components/animations/SuccessAnimation";
 
 const getCurrentSeason = () => {
   const now = new Date();
@@ -23,6 +24,8 @@ export default function PaymentReminders() {
   const [searchQuery, setSearchQuery] = useState("");
   const [sendingMassive, setSendingMassive] = useState(false);
   const [selectedFamilies, setSelectedFamilies] = useState([]);
+  const [showSuccess, setShowSuccess] = useState(false);
+  const [successMessage, setSuccessMessage] = useState("");
 
   const { data: payments = [], refetch: refetchPayments } = useQuery({
     queryKey: ['payments'],
@@ -290,7 +293,9 @@ export default function PaymentReminders() {
         await new Promise(resolve => setTimeout(resolve, 1000));
       }
 
-      toast.success(`✅ ${sent} recordatorios enviados por Email + Chat`);
+      setSuccessMessage(`✅ ${sent} recordatorio${sent > 1 ? 's' : ''} enviado${sent > 1 ? 's' : ''}`);
+      setShowSuccess(true);
+      setTimeout(() => toast.success(`${sent} recordatorios enviados por Email + Chat`), 2000);
       setSelectedFamilies([]);
     } catch (error) {
       console.error("Error sending massive reminders:", error);
@@ -319,8 +324,14 @@ export default function PaymentReminders() {
   const totalPendingPayments = familiesData.reduce((sum, f) => sum + f.totalPendingPayments, 0);
 
   return (
-    <div className="p-3 lg:p-8 space-y-4 lg:space-y-6">
-      <SocialLinks />
+    <>
+      <CheckmarkAnimation 
+        show={showSuccess} 
+        onComplete={() => setShowSuccess(false)}
+        message={successMessage}
+      />
+      <div className="p-3 lg:p-8 space-y-4 lg:space-y-6">
+        <SocialLinks />
 
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3">
         <div>
@@ -678,7 +689,10 @@ export default function PaymentReminders() {
                         }
 
                         console.log(`✅ Recordatorio enviado a ${family.email}`);
-                        toast.success(`✅ Recordatorio enviado a ${family.nombre_tutor}`, { id: `reminder-${family.email}` });
+                        toast.dismiss(`reminder-${family.email}`);
+                        setSuccessMessage(`✅ Recordatorio enviado a ${family.nombre_tutor}`);
+                        setShowSuccess(true);
+                        setTimeout(() => toast.success(`Recordatorio enviado`), 2000);
                       } catch (error) {
                         console.error("Error:", error);
                         toast.error("Error al enviar recordatorio", { id: `reminder-${family.email}` });
@@ -698,6 +712,7 @@ export default function PaymentReminders() {
           ))
         )}
       </div>
-    </div>
+      </div>
+    </>
   );
 }
