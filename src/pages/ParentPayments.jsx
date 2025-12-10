@@ -471,12 +471,12 @@ Email: cdbustarviejo@gmail.com
               // Normalizar temporada (aceptar tanto "/" como "-")
               const normalizeSeason = (season) => {
                 if (!season) return currentSeason;
-                return season.replace('-', '/');
+                return season.replace(/-/g, '/');
               };
 
               const allPlayerPayments = payments.filter(p => 
                 p.jugador_id === player.id && 
-                normalizeSeason(p.temporada) === currentSeason
+                normalizeSeason(p.temporada) === normalizeSeason(currentSeason)
               );
               
               // Si tiene pago único pagado o en revisión, solo mostrar Junio

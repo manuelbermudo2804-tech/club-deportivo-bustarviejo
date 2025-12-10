@@ -103,7 +103,7 @@ export default function PaymentReminders() {
       // Normalizar temporadas (aceptar "/" y "-")
       const normalizeSeason = (season) => {
         if (!season) return currentSeason;
-        return season.replace('-', '/');
+        return season.replace(/-/g, '/');
       };
 
       // Calcular estado de pagos del jugador - FILTRAR CORRECTAMENTE
