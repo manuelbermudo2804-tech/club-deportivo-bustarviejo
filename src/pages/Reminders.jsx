@@ -644,6 +644,85 @@ Gracias por su atención.
     setIsGenerating(false);
   };
 
+  const sendChatReminder = async (reminder) => {
+    try {
+      const player = players.find(p => p.id === reminder.jugador_id);
+      if (!player?.deporte) {
+        toast.error("No se pudo identificar el grupo del jugador");
+        return;
+      }
+
+      const payment = payments.find(p => p.id === reminder.pago_id);
+      const hasJustificante = payment?.justificante_url;
+
+      const urgencyEmoji = {
+        "15 días antes": "📅",
+        "7 días antes": "⚠️",
+        "3 días antes": "🔴",
+        "1 día después": "🚨"
+      };
+
+      const mensaje = hasJustificante ? 
+        `${urgencyEmoji[reminder.tipo_recordatorio]} RECORDATORIO DE PAGO - ${reminder.mes_pago}\n\nSu justificante está en revisión. Pronto confirmaremos su pago.\n\nJugador: ${reminder.jugador_nombre}\nFecha límite: 15 de ${reminder.mes_pago}\n\n🔒 MENSAJE PRIVADO: Solo tu familia ve este mensaje.` :
+        `${urgencyEmoji[reminder.tipo_recordatorio]} RECORDATORIO DE PAGO - ${reminder.mes_pago}\n\nRecuerde realizar el pago de ${reminder.cantidad}€ y subir el justificante en la app.\n\nJugador: ${reminder.jugador_nombre}\nFecha límite: 15 de ${reminder.mes_pago}\n\nApp → Mis Pagos → ${reminder.mes_pago}\n\n🔒 MENSAJE PRIVADO: Solo tu familia ve este mensaje.`;
+
+      // Enviar a conversación privada
+      if (player.email_padre) {
+        try {
+          const allConvs = await base44.entities.PrivateConversation.list();
+          let conv = allConvs.find(c => 
+            c.participante_familia_email === player.email_padre &&
+            c.participante_staff_email === 'sistema@cdbustarviejo.com' &&
+            c.participante_staff_rol === 'admin'
+          );
+          
+          if (!conv) {
+            conv = await base44.entities.PrivateConversation.create({
+              participante_familia_email: player.email_padre,
+              participante_familia_nombre: player.nombre_tutor_legal || "Padre/Tutor",
+              participante_staff_email: "sistema@cdbustarviejo.com",
+              participante_staff_nombre: "🤖 Sistema de Recordatorios - Administración",
+              participante_staff_rol: "admin",
+              categoria: player.deporte,
+              jugadores_relacionados: [{ jugador_id: player.id, jugador_nombre: player.nombre }],
+              ultimo_mensaje: mensaje.substring(0, 100),
+              ultimo_mensaje_fecha: new Date().toISOString(),
+              ultimo_mensaje_de: "staff",
+              no_leidos_familia: 0,
+              archivada: false
+            });
+          }
+          
+          await base44.entities.PrivateMessage.create({
+            conversacion_id: conv.id,
+            remitente_email: "sistema@cdbustarviejo.com",
+            remitente_nombre: "🤖 Sistema de Recordatorios",
+            remitente_tipo: "staff",
+            mensaje: mensaje,
+            leido: false
+          });
+          
+          await base44.entities.PrivateConversation.update(conv.id, {
+            ultimo_mensaje: mensaje.substring(0, 100),
+            ultimo_mensaje_fecha: new Date().toISOString(),
+            ultimo_mensaje_de: "staff",
+            no_leidos_familia: (conv.no_leidos_familia || 0) + 1
+          });
+        } catch (error) {
+          console.error("Error enviando a chat privado:", error);
+        }
+      }
+      
+      await base44.entities.Reminder.update(reminder.id, {
+        ...reminder,
+        enviado_chat: true,
+        fecha_enviado_chat: new Date().toISOString()
+      });
+    } catch (error) {
+      console.error("Error sending chat reminder:", error);
+    }
+  };
+
   const sendReminderEmail = async (reminder) => {
     if (!reminder.email_padre) {
       toast.error("No hay email configurado para este jugador");
@@ -798,71 +877,7 @@ Temporada ${reminder.temporada}
     setSendingReminder(null);
   };
 
-      // NOTIFICACIÓN VISUAL EN LA APP
-      if (animation) {
-      // Obtener todos los pagos pendientes del jugador para mostrar en el banner
-      const pendingPayments = allPlayerPayments.filter(p => p.estado === "Pendiente" || p.estado === "En revisión");
-
-      const cuotasPendientes = pendingPayments.map(p => ({
-        mes: p.mes,
-        cantidad: p.cantidad
-      }));
-
-      const totalPendiente = pendingPayments.reduce((sum, p) => sum + (p.cantidad || 0), 0);
-
-      const notificationMessage = data.reminderType === "all_unpaid"
-        ? `No has registrado ningún pago para la temporada ${payment.temporada}. Por favor, registra los pagos lo antes posible.`
-        : pendingPayments.length === 1
-          ? `Debes realizar el pago lo antes posible.`
-          : `Debes realizar los pagos lo antes posible.`;
-
-      // Crear notificación para padre
-      if (player.email_padre) {
-        await base44.entities.AppNotification.create({
-          usuario_email: player.email_padre,
-          titulo: `🔔 PAGO URGENTE - ${player.nombre}`,
-          mensaje: notificationMessage,
-          tipo: "urgente",
-          icono: "🔔",
-          vista: false,
-          metadata: {
-            cuotas_pendientes: cuotasPendientes,
-            total_pendiente: totalPendiente,
-            jugador_nombre: player.nombre,
-            temporada: payment.temporada
-          }
-        });
-      }
-
-      // Crear notificación para tutor 2
-      if (player.email_tutor_2) {
-        await base44.entities.AppNotification.create({
-          usuario_email: player.email_tutor_2,
-          titulo: `🔔 PAGO URGENTE - ${player.nombre}`,
-          mensaje: notificationMessage,
-          tipo: "urgente",
-          icono: "🔔",
-          vista: false,
-          metadata: {
-            cuotas_pendientes: cuotasPendientes,
-            total_pendiente: totalPendiente,
-            jugador_nombre: player.nombre,
-            temporada: payment.temporada
-          }
-        });
-      }
-
-      sentMethods.push('Notificación Visual en App');
-      }
-
-      toast.success(`✅ Recordatorio enviado por: ${sentMethods.join(', ')}`);
-      } catch (error) {
-      console.error("Error sending individual reminder:", error);
-      throw error;
-      }
-      };
-
-      const sendTodayReminders = async () => {
+  const sendTodayReminders = async () => {
     const today = new Date().toISOString().split('T')[0];
     const todayReminders = reminders.filter(r => 
       r.fecha_envio === today && 
