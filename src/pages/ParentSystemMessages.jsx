@@ -36,7 +36,7 @@ export default function ParentSystemMessages() {
       const allConvs = await base44.entities.PrivateConversation.list('-ultimo_mensaje_fecha');
       return allConvs.filter(c => 
         c.participante_familia_email === user.email &&
-        (c.participante_staff_rol === 'admin' || c.participante_staff_email === 'sistema@cdbustarviejo.com')
+        (c.participante_staff_rol === 'admin' || c.participante_staff_rol === 'entrenador' || c.participante_staff_email === 'sistema@cdbustarviejo.com')
       );
     },
     refetchInterval: 5000,

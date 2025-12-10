@@ -7,10 +7,12 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { MessageCircle, Search, Archive, ArchiveRestore, Users, Filter, Star } from "lucide-react";
+import { MessageCircle, Search, Archive, ArchiveRestore, Users, Filter, Star, Settings } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import CoordinatorChatWindow from "../components/coordinator/CoordinatorChatWindow";
+import SocialLinks from "../components/SocialLinks";
+import CoordinatorAwayMode from "../components/coordinator/CoordinatorAwayMode";
 
 export default function CoordinatorChat() {
   const [user, setUser] = useState(null);
@@ -19,6 +21,7 @@ export default function CoordinatorChat() {
   const [searchQuery, setSearchQuery] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [labelFilter, setLabelFilter] = useState("all");
+  const [showSettings, setShowSettings] = useState(false);
   
   const queryClient = useQueryClient();
 
@@ -83,17 +86,43 @@ export default function CoordinatorChat() {
   const totalUnread = activeConversations.reduce((sum, c) => sum + (c.no_leidos_coordinador || 0), 0);
 
   return (
-    <div className="h-[calc(100vh-100px)] lg:h-[calc(100vh-110px)] flex">
+    <div className="h-[calc(100vh-100px)] lg:h-[calc(100vh-110px)] flex flex-col lg:flex-row">
+      {/* Modal de configuración */}
+      {showSettings && (
+        <div className="absolute inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-bold">⚙️ Configuración Chat Coordinador</h2>
+              <Button variant="ghost" onClick={() => setShowSettings(false)}>✕</Button>
+            </div>
+            {user && <CoordinatorAwayMode user={user} />}
+          </div>
+        </div>
+      )}
+      
       {/* Lista de conversaciones */}
       <div className={`${selectedConversation ? 'hidden lg:flex' : 'flex'} w-full lg:w-96 border-r bg-slate-50 flex-col h-full overflow-hidden`}>
         <div className="p-4 bg-gradient-to-r from-cyan-600 to-cyan-700 text-white">
-          <h1 className="text-xl font-bold flex items-center gap-2 mb-1">
-            <MessageCircle className="w-6 h-6" />
-            Chat Coordinador
-          </h1>
-          <p className="text-xs text-cyan-100 mb-3">
-            Resuelve dudas deportivas, quejas y consultas de las familias
-          </p>
+          <div className="flex items-center justify-between mb-3">
+            <div>
+              <h1 className="text-xl font-bold flex items-center gap-2">
+                <MessageCircle className="w-6 h-6" />
+                Chat Coordinador
+              </h1>
+              <p className="text-xs text-cyan-100">
+                Resuelve dudas deportivas, quejas y consultas de las familias
+              </p>
+            </div>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setShowSettings(!showSettings)}
+              className="text-white hover:bg-white/20"
+              title="Configuración"
+            >
+              <Settings className="w-5 h-5" />
+            </Button>
+          </div>
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
             <Input
