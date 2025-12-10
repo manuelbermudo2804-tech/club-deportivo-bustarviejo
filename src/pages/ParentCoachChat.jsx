@@ -6,8 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Send, Paperclip, X, FileText, Download, MessageCircle, Users, Mic, Square, Play, Search, Smile, AlertTriangle } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import { Send, Paperclip, X, FileText, Download, MessageCircle, Users, Mic, Square, Play, Search, Smile, AlertTriangle, UserCircle, Mail, Phone } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { toast } from "sonner";
@@ -103,6 +103,25 @@ export default function ParentCoachChat() {
     refetchInterval: 3000,
     enabled: !!selectedCategory && !!user,
   });
+
+  // Obtener todos los entrenadores para mostrar el perfil
+  const { data: allCoaches } = useQuery({
+    queryKey: ['allCoaches'],
+    queryFn: async () => {
+      const allUsers = await base44.entities.User.list();
+      return allUsers.filter(u => u.es_entrenador === true);
+    },
+    enabled: !!selectedCategory
+  });
+
+  // Actualizar datos del entrenador cuando cambia la categoría
+  useEffect(() => {
+    if (!selectedCategory || !allCoaches) return;
+    const coach = allCoaches.find(c => 
+      c.categorias_entrena?.includes(selectedCategory)
+    );
+    setCoachData(coach);
+  }, [selectedCategory, allCoaches]);
 
   // Obtener conversación privada con el entrenador
   const { data: coachConversations = [] } = useQuery({
@@ -487,6 +506,15 @@ Este chat es solo para avisos rápidos. Gracias por tu comprensión.`,
               </CardTitle>
             </div>
             <div className="flex gap-1">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowCoachProfile(true)}
+                className="text-white hover:bg-white/20"
+                title="Ver perfil del entrenador"
+              >
+                <UserCircle className="w-4 h-4" />
+              </Button>
               <Button
                 variant="ghost"
                 size="sm"
