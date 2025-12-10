@@ -22,6 +22,7 @@ export default function Players() {
   const [statusFilter, setStatusFilter] = useState("all");
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
+  const [filterRevisionCategoria, setFilterRevisionCategoria] = useState(false);
   const [selectedPlayer, setSelectedPlayer] = useState(null);
   const [showProfileDialog, setShowProfileDialog] = useState(false);
   const [user, setUser] = useState(null);
@@ -50,6 +51,9 @@ export default function Players() {
     queryFn: () => base44.entities.Player.list('-created_date'),
     initialData: [],
   });
+
+  // Contar jugadores que requieren revisión de categoría
+  const playersNeedingReview = allPlayers.filter(p => p.categoria_requiere_revision && p.activo).length;
 
   const { data: schedules } = useQuery({
     queryKey: ['trainingSchedules'],
@@ -304,7 +308,9 @@ export default function Players() {
     // Filtro de categoría: comparación exacta con la categoría completa
     const matchesCategory = categoryFilter === "all" || player.deporte === categoryFilter;
     
-    return matchesSearch && matchesSport && matchesStatus && matchesCategory;
+    const matchesRevision = !filterRevisionCategoria || player.categoria_requiere_revision === true;
+    
+    return matchesSearch && matchesSport && matchesStatus && matchesCategory && matchesRevision;
   });
 
   // Paginación
@@ -331,6 +337,38 @@ export default function Players() {
 
   return (
     <div className="p-6 lg:p-8 space-y-6">
+      {/* Banner de jugadores con categoría a revisar */}
+      {playersNeedingReview > 0 && isAdmin && (
+        <Card className="border-2 border-orange-400 bg-gradient-to-r from-orange-50 to-yellow-50">
+          <CardContent className="pt-6">
+            <div className="flex items-start gap-4">
+              <div className="w-12 h-12 rounded-full bg-orange-100 flex items-center justify-center flex-shrink-0">
+                <AlertTriangle className="w-6 h-6 text-orange-600" />
+              </div>
+              <div className="flex-1">
+                <h3 className="font-bold text-orange-900 text-lg mb-1">
+                  ⚠️ {playersNeedingReview} Jugador{playersNeedingReview > 1 ? 'es' : ''} con Categoría a Revisar
+                </h3>
+                <p className="text-sm text-orange-800 mb-3">
+                  La categoría seleccionada no coincide con la edad del jugador. Revisa si es correcto o si el padre se equivocó.
+                </p>
+                <Button
+                  size="sm"
+                  onClick={() => {
+                    setFilterRevisionCategoria(true);
+                    setShowAdvancedFilters(true);
+                    window.scrollTo({ top: 400, behavior: 'smooth' });
+                  }}
+                  className="bg-orange-600 hover:bg-orange-700"
+                >
+                  🔍 Filtrar Jugadores a Revisar
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <h1 className="text-3xl font-bold text-slate-900">
@@ -467,6 +505,19 @@ export default function Players() {
                   </Select>
                 </div>
               </div>
+
+              {isAdmin && (
+                <div className="flex items-center gap-2 p-3 bg-orange-50 rounded-lg border border-orange-200">
+                  <Checkbox
+                    id="filter-revision"
+                    checked={filterRevisionCategoria}
+                    onCheckedChange={setFilterRevisionCategoria}
+                  />
+                  <Label htmlFor="filter-revision" className="cursor-pointer font-medium text-orange-900">
+                    🔍 Solo categorías a revisar ({playersNeedingReview})
+                  </Label>
+                </div>
+              )}
             </div>
           )}
         </CardContent>
