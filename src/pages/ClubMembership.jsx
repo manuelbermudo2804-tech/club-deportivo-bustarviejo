@@ -303,10 +303,30 @@ export default function ClubMembership() {
       // NOTA: El carnet virtual se enviará cuando el admin apruebe el pago (estado_pago = "Pagado")
       // NO enviamos carnet automáticamente aquí - solo cuando el pago sea confirmado
 
+      // REGISTRAR EN HISTÓRICO DE REFERIDOS
+      if (data.referido_por || referrer) {
+      try {
+      await base44.entities.ReferralHistory.create({
+      temporada: seasonConfig?.temporada || "",
+      referidor_email: referrer?.email || "",
+      referidor_nombre: data.referido_por || referrer?.full_name || "",
+      referido_email: data.email,
+      referido_nombre: data.nombre_completo,
+      referido_id: membership.id,
+      estado: "activo",
+      credito_otorgado: 0, // Se actualizará cuando se procese el programa
+      sorteos_otorgados: 0,
+      fecha_referido: new Date().toISOString()
+      });
+      } catch (error) {
+      console.error("Error guardando histórico de referido:", error);
+      }
+      }
+
       // Procesar programa de referidos
       if (seasonConfig?.programa_referidos_activo) {
-        try {
-          const allPlayersForRef = await base44.entities.Player.list();
+      try {
+      const allPlayersForRef = await base44.entities.Player.list();
           
           // Obtener emails de padres con jugadores activos
           const parentEmails = new Set();
@@ -358,14 +378,34 @@ export default function ClubMembership() {
               });
             } else {
               // Registrar la referencia con premio
+              const creditEarned = seasonConfig.referidos_premio_1 || 5;
               await base44.entities.ReferralReward.create({
                 referrer_email: referrer.email,
                 referrer_name: referrer.full_name,
                 referred_member_id: membership.id,
                 referred_member_name: data.nombre_completo,
                 temporada: seasonConfig?.temporada,
-                clothing_credit_earned: seasonConfig.referidos_premio_1 || 5
+                clothing_credit_earned: creditEarned
               });
+
+              // REGISTRAR GANANCIA DE CRÉDITO EN HISTÓRICO
+              try {
+                const saldoAntes = referrer.clothing_credit_balance || 0;
+                await base44.entities.CreditoRopaHistorico.create({
+                  user_email: referrer.email,
+                  user_nombre: referrer.full_name,
+                  tipo: "ganado",
+                  cantidad: creditEarned,
+                  concepto: `Socio referido: ${data.nombre_completo}`,
+                  temporada: seasonConfig?.temporada || "",
+                  referido_nombre: data.nombre_completo,
+                  saldo_antes: saldoAntes,
+                  saldo_despues: saldoAntes + creditEarned,
+                  fecha_movimiento: new Date().toISOString()
+                });
+              } catch (error) {
+                console.error("Error registrando crédito ganado:", error);
+              }
 
               // Actualizar contador del usuario (máximo 15)
               const newCount = Math.min(currentCount + 1, 15);
