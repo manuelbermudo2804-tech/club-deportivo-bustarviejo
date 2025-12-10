@@ -756,7 +756,6 @@ export default function ClothingOrders() {
                       })}
                     </div>
                   )}
-                </div>
               </CardContent>
             </Card>
           </TabsContent>
