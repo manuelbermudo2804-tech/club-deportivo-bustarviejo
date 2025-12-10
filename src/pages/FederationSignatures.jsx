@@ -245,42 +245,67 @@ export default function FederationSignatures() {
               
               {!firmaJugadorOk && showActions && (
                 <div className="space-y-3">
-                  <a 
-                    href={player.enlace_firma_jugador} 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    onClick={() => {
-                      const key = `firma_jugador_visited_${player.id}`;
-                      localStorage.setItem(key, 'true');
-                      setVisitedLinks(prev => ({ ...prev, [key]: true }));
-                    }}
-                    className="flex items-center justify-center gap-2 w-full p-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
-                  >
-                    <ExternalLink className="w-4 h-4" />
-                    Abrir enlace para firmar
-                  </a>
-                  <Button
-                    onClick={() => handleMarkSignatureComplete(player, "jugador")}
-                    disabled={processingSignature[`${player.id}_jugador`] || !visitedLinks[`firma_jugador_visited_${player.id}`]}
-                    className={`w-full ${visitedLinks[`firma_jugador_visited_${player.id}`] ? 'bg-green-600 hover:bg-green-700' : 'bg-gray-400 cursor-not-allowed'}`}
-                    title={!visitedLinks[`firma_jugador_visited_${player.id}`] ? 'Primero debes abrir el enlace azul para firmar' : ''}
-                  >
-                    {processingSignature[`${player.id}_jugador`] ? (
-                      <>
-                        <div className="w-4 h-4 mr-2 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                        Guardando...
-                      </>
-                    ) : (
-                      <>
-                        <CheckCircle2 className="w-4 h-4 mr-2" />
-                        Ya he firmado - Marcar como completada
-                      </>
+                  {/* PASO 1: Botón azul - siempre visible */}
+                  <div className="relative">
+                    {!visitedLinks[`firma_jugador_visited_${player.id}`] && (
+                      <div className="absolute -top-3 -right-3 z-10 animate-bounce">
+                        <span className="bg-red-500 text-white text-xs px-2 py-1 rounded-full font-bold shadow-lg">
+                          PASO 1
+                        </span>
+                      </div>
                     )}
-                  </Button>
-                  {!visitedLinks[`firma_jugador_visited_${player.id}`] && (
-                    <p className="text-xs text-center text-slate-500">
-                      ⬆️ Primero pulsa el botón azul para abrir el enlace de firma
-                    </p>
+                    <a 
+                      href={player.enlace_firma_jugador} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      onClick={() => {
+                        const key = `firma_jugador_visited_${player.id}`;
+                        localStorage.setItem(key, 'true');
+                        setVisitedLinks(prev => ({ ...prev, [key]: true }));
+                        toast.success("✅ Enlace abierto. Una vez firmes, vuelve aquí y pulsa el botón verde.");
+                      }}
+                      className="flex items-center justify-center gap-2 w-full p-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium shadow-lg"
+                    >
+                      <ExternalLink className="w-4 h-4" />
+                      1️⃣ Abrir enlace de firma de la Federación
+                    </a>
+                  </div>
+
+                  {/* PASO 2: Botón verde - solo se activa después de visitar enlace */}
+                  {visitedLinks[`firma_jugador_visited_${player.id}`] ? (
+                    <div className="relative">
+                      <div className="absolute -top-3 -right-3 z-10 animate-pulse">
+                        <span className="bg-green-500 text-white text-xs px-2 py-1 rounded-full font-bold shadow-lg">
+                          PASO 2
+                        </span>
+                      </div>
+                      <Button
+                        onClick={() => handleMarkSignatureComplete(player, "jugador")}
+                        disabled={processingSignature[`${player.id}_jugador`]}
+                        className="w-full bg-green-600 hover:bg-green-700 shadow-lg"
+                      >
+                        {processingSignature[`${player.id}_jugador`] ? (
+                          <>
+                            <div className="w-4 h-4 mr-2 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                            Guardando...
+                          </>
+                        ) : (
+                          <>
+                            <CheckCircle2 className="w-4 h-4 mr-2" />
+                            2️⃣ Ya he firmado - Confirmar
+                          </>
+                        )}
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="bg-slate-100 border-2 border-slate-300 rounded-lg p-4 text-center opacity-50">
+                      <p className="text-sm text-slate-600 mb-2">
+                        🔒 <strong>Primero debes completar el PASO 1</strong>
+                      </p>
+                      <p className="text-xs text-slate-500">
+                        Pulsa el botón azul de arriba para abrir el enlace de firma
+                      </p>
+                    </div>
                   )}
                 </div>
               )}
@@ -308,42 +333,67 @@ export default function FederationSignatures() {
               
               {!firmaTutorOk && showActions && (
                 <div className="space-y-3">
-                  <a 
-                    href={player.enlace_firma_tutor} 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    onClick={() => {
-                      const key = `firma_tutor_visited_${player.id}`;
-                      localStorage.setItem(key, 'true');
-                      setVisitedLinks(prev => ({ ...prev, [key]: true }));
-                    }}
-                    className="flex items-center justify-center gap-2 w-full p-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
-                  >
-                    <ExternalLink className="w-4 h-4" />
-                    Abrir enlace para firmar
-                  </a>
-                  <Button
-                    onClick={() => handleMarkSignatureComplete(player, "tutor")}
-                    disabled={processingSignature[`${player.id}_tutor`] || !visitedLinks[`firma_tutor_visited_${player.id}`]}
-                    className={`w-full ${visitedLinks[`firma_tutor_visited_${player.id}`] ? 'bg-green-600 hover:bg-green-700' : 'bg-gray-400 cursor-not-allowed'}`}
-                    title={!visitedLinks[`firma_tutor_visited_${player.id}`] ? 'Primero debes abrir el enlace azul para firmar' : ''}
-                  >
-                    {processingSignature[`${player.id}_tutor`] ? (
-                      <>
-                        <div className="w-4 h-4 mr-2 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                        Guardando...
-                      </>
-                    ) : (
-                      <>
-                        <CheckCircle2 className="w-4 h-4 mr-2" />
-                        Ya he firmado - Marcar como completada
-                      </>
+                  {/* PASO 1: Botón azul - siempre visible */}
+                  <div className="relative">
+                    {!visitedLinks[`firma_tutor_visited_${player.id}`] && (
+                      <div className="absolute -top-3 -right-3 z-10 animate-bounce">
+                        <span className="bg-red-500 text-white text-xs px-2 py-1 rounded-full font-bold shadow-lg">
+                          PASO 1
+                        </span>
+                      </div>
                     )}
-                  </Button>
-                  {!visitedLinks[`firma_tutor_visited_${player.id}`] && (
-                    <p className="text-xs text-center text-slate-500">
-                      ⬆️ Primero pulsa el botón azul para abrir el enlace de firma
-                    </p>
+                    <a 
+                      href={player.enlace_firma_tutor} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      onClick={() => {
+                        const key = `firma_tutor_visited_${player.id}`;
+                        localStorage.setItem(key, 'true');
+                        setVisitedLinks(prev => ({ ...prev, [key]: true }));
+                        toast.success("✅ Enlace abierto. Una vez firmes, vuelve aquí y pulsa el botón verde.");
+                      }}
+                      className="flex items-center justify-center gap-2 w-full p-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium shadow-lg"
+                    >
+                      <ExternalLink className="w-4 h-4" />
+                      1️⃣ Abrir enlace de firma de la Federación
+                    </a>
+                  </div>
+
+                  {/* PASO 2: Botón verde - solo se muestra después de visitar enlace */}
+                  {visitedLinks[`firma_tutor_visited_${player.id}`] ? (
+                    <div className="relative">
+                      <div className="absolute -top-3 -right-3 z-10 animate-pulse">
+                        <span className="bg-green-500 text-white text-xs px-2 py-1 rounded-full font-bold shadow-lg">
+                          PASO 2
+                        </span>
+                      </div>
+                      <Button
+                        onClick={() => handleMarkSignatureComplete(player, "tutor")}
+                        disabled={processingSignature[`${player.id}_tutor`]}
+                        className="w-full bg-green-600 hover:bg-green-700 shadow-lg"
+                      >
+                        {processingSignature[`${player.id}_tutor`] ? (
+                          <>
+                            <div className="w-4 h-4 mr-2 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                            Guardando...
+                          </>
+                        ) : (
+                          <>
+                            <CheckCircle2 className="w-4 h-4 mr-2" />
+                            2️⃣ Ya he firmado - Confirmar
+                          </>
+                        )}
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="bg-slate-100 border-2 border-slate-300 rounded-lg p-4 text-center opacity-50">
+                      <p className="text-sm text-slate-600 mb-2">
+                        🔒 <strong>Primero debes completar el PASO 1</strong>
+                      </p>
+                      <p className="text-xs text-slate-500">
+                        Pulsa el botón azul de arriba para abrir el enlace de firma
+                      </p>
+                    </div>
                   )}
                 </div>
               )}
@@ -403,18 +453,12 @@ export default function FederationSignatures() {
 
   return (
     <div className="p-6 lg:p-8 space-y-6">
-      <div className="flex items-start justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-slate-900 flex items-center gap-2">
-            <FileSignature className="w-8 h-8 text-orange-600" />
-            Firmas de Federación
-          </h1>
-          <p className="text-slate-600 mt-1">Gestiona las firmas digitales de tus jugadores</p>
-        </div>
-        <Button variant="outline" onClick={() => setShowTutorial(true)} className="gap-2">
-          <HelpCircle className="w-4 h-4" />
-          ¿Cómo firmar?
-        </Button>
+      <div>
+        <h1 className="text-3xl font-bold text-slate-900 flex items-center gap-2">
+          <FileSignature className="w-8 h-8 text-orange-600" />
+          Firmas de Federación
+        </h1>
+        <p className="text-slate-600 mt-1">Gestiona las firmas digitales de tus jugadores</p>
       </div>
 
       {/* Barra de progreso global */}
@@ -451,14 +495,23 @@ export default function FederationSignatures() {
               <h3 className="text-xl font-bold text-yellow-900 mb-2">
                 ⚠️ Firmas Pendientes
               </h3>
-              <p className="text-yellow-800">
+              <p className="text-yellow-800 mb-3">
                 Tienes <strong>{playersWithPendingSignatures.length}</strong> jugador{playersWithPendingSignatures.length !== 1 ? 'es' : ''} con firmas de federación pendientes.
               </p>
-              <p className="text-yellow-700 text-sm mt-2">
-                1. Pulsa en "Abrir enlace para firmar" para ir a la web de la federación<br/>
-                2. Completa la firma siguiendo las instrucciones<br/>
-                3. Vuelve aquí y pulsa "Ya he firmado" para confirmar
-              </p>
+              <div className="bg-white rounded-lg p-4 space-y-2 text-sm">
+                <p className="font-bold text-slate-900 flex items-center gap-2">
+                  <ChevronRight className="w-4 h-4 text-blue-600" />
+                  Instrucciones:
+                </p>
+                <ol className="text-yellow-800 space-y-1 ml-4 list-decimal">
+                  <li>Pulsa el <strong>botón azul "PASO 1"</strong> para abrir la web de la Federación</li>
+                  <li>Completa la firma en la web que se abre (sigue sus instrucciones)</li>
+                  <li>Vuelve aquí y pulsa el <strong>botón verde "PASO 2"</strong> para confirmar</li>
+                </ol>
+                <p className="text-xs text-slate-600 mt-3 bg-blue-50 p-2 rounded border border-blue-200">
+                  💡 <strong>Importante:</strong> El botón verde solo se activará DESPUÉS de que abras el enlace azul.
+                </p>
+              </div>
             </div>
           </div>
         </div>
@@ -513,90 +566,7 @@ export default function FederationSignatures() {
         </div>
       )}
 
-      {/* Tutorial Visual Dialog */}
-      <Dialog open={showTutorial} onOpenChange={setShowTutorial}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-xl">
-              <HelpCircle className="w-6 h-6 text-orange-600" />
-              Cómo Firmar en la Federación
-            </DialogTitle>
-          </DialogHeader>
-          <div className="space-y-6 py-4">
-            {/* Paso 1 */}
-            <div className="flex gap-4 items-start">
-              <div className="w-10 h-10 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-lg flex-shrink-0">
-                1
-              </div>
-              <div className="flex-1">
-                <h4 className="font-bold text-slate-900 mb-1">Pulsa el botón azul "Abrir enlace para firmar"</h4>
-                <p className="text-sm text-slate-600 mb-2">Se abrirá la web de la Federación de Fútbol de Madrid en una nueva pestaña.</p>
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 flex items-center gap-2">
-                  <MousePointer className="w-5 h-5 text-blue-600" />
-                  <span className="text-sm text-blue-800">Haz clic en el botón azul</span>
-                  <ArrowRight className="w-4 h-4 text-blue-600" />
-                  <div className="bg-blue-600 text-white px-3 py-1 rounded text-xs">Abrir enlace</div>
-                </div>
-              </div>
-            </div>
 
-            {/* Paso 2 */}
-            <div className="flex gap-4 items-start">
-              <div className="w-10 h-10 rounded-full bg-orange-600 text-white flex items-center justify-center font-bold text-lg flex-shrink-0">
-                2
-              </div>
-              <div className="flex-1">
-                <h4 className="font-bold text-slate-900 mb-1">Completa la firma en la web de la Federación</h4>
-                <p className="text-sm text-slate-600 mb-2">Sigue las instrucciones de la web. Normalmente tendrás que:</p>
-                <ul className="text-sm text-slate-600 space-y-1 ml-4 list-disc">
-                  <li>Introducir tu DNI o datos personales</li>
-                  <li>Dibujar tu firma con el dedo o ratón</li>
-                  <li>Confirmar y enviar</li>
-                </ul>
-                <div className="bg-orange-50 border border-orange-200 rounded-lg p-3 mt-2 flex items-center gap-2">
-                  <Edit3 className="w-5 h-5 text-orange-600" />
-                  <span className="text-sm text-orange-800">Dibuja tu firma en el recuadro que aparece</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Paso 3 */}
-            <div className="flex gap-4 items-start">
-              <div className="w-10 h-10 rounded-full bg-green-600 text-white flex items-center justify-center font-bold text-lg flex-shrink-0">
-                3
-              </div>
-              <div className="flex-1">
-                <h4 className="font-bold text-slate-900 mb-1">Vuelve aquí y marca como completada</h4>
-                <p className="text-sm text-slate-600 mb-2">Una vez hayas firmado en la Federación, vuelve a esta página y pulsa el botón verde.</p>
-                <div className="bg-green-50 border border-green-200 rounded-lg p-3 flex items-center gap-2">
-                  <CheckCircle2 className="w-5 h-5 text-green-600" />
-                  <span className="text-sm text-green-800">Pulsa "Ya he firmado - Marcar como completada"</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Nota importante */}
-            <div className="bg-yellow-50 border-2 border-yellow-300 rounded-xl p-4">
-              <div className="flex items-start gap-3">
-                <AlertCircle className="w-6 h-6 text-yellow-600 flex-shrink-0 mt-0.5" />
-                <div>
-                  <h4 className="font-bold text-yellow-900">⚠️ Importante</h4>
-                  <ul className="text-sm text-yellow-800 mt-1 space-y-1">
-                    <li>• <strong>Firma del Jugador:</strong> La hace el propio jugador (o el padre si es muy pequeño)</li>
-                    <li>• <strong>Firma del Tutor:</strong> La hace el padre/madre/tutor legal (solo si es menor de 18)</li>
-                    <li>• Si tienes problemas, contacta con el club: <strong>cdbustarviejo@gmail.com</strong></li>
-                  </ul>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div className="flex justify-end">
-            <Button onClick={() => setShowTutorial(false)} className="bg-orange-600 hover:bg-orange-700">
-              Entendido
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }
