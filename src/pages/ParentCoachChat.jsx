@@ -282,15 +282,15 @@ export default function ParentCoachChat() {
         return month >= 9 ? `${year}/${year + 1}` : `${year - 1}/${year}`;
       })();
 
-      // LÍMITE DE MENSAJES POR DÍA (5 mensajes)
-      if (dailyMessageCount >= 5) {
-        toast.error("📏 Has alcanzado el límite de 5 mensajes por día. Si necesitas comunicarte más, usa el Chat Coordinador.");
+      // LÍMITE DE MENSAJES POR DÍA (10 mensajes)
+      if (dailyMessageCount >= 10) {
+        toast.error("📏 Has alcanzado el límite de 10 mensajes por día. Si necesitas comunicarte más, usa el Chat Coordinador.");
         throw new Error("Límite diario alcanzado");
       }
 
-      // LÍMITE DE CARACTERES (500)
-      if (data.mensaje.length > 500) {
-        toast.error("📏 Mensaje demasiado largo (máx 500 caracteres). Usa el Chat Coordinador para mensajes extensos.");
+      // LÍMITE DE CARACTERES (1000)
+      if (data.mensaje.length > 1000) {
+        toast.error("📏 Mensaje demasiado largo (máx 1000 caracteres). Usa el Chat Coordinador para mensajes extensos.");
         throw new Error("Mensaje muy largo");
       }
 
