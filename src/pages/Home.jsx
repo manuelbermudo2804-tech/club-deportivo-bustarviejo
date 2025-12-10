@@ -1085,6 +1085,8 @@ export default function Home() {
             isParent={hasPlayers}
             isTreasurer={isTreasurer}
             isCoordinator={isCoordinator}
+            userEmail={user?.email}
+            userSports={myPlayersSports}
           />
         )}
 
