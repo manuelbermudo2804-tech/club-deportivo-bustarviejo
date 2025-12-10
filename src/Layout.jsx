@@ -1102,6 +1102,7 @@ export default function Layout({ children, currentPageName }) {
     { title: "🏠 Inicio", url: createPageUrl("ParentDashboard"), icon: Home },
 
     // 💬 CHATS
+    { title: "🔔 Mensajes del Club", url: createPageUrl("ParentSystemMessages"), icon: Bell },
     { title: "💬 Chat Coordinador", url: createPageUrl("ParentCoordinatorChat"), icon: MessageCircle },
     { title: "⚽ Chat Entrenador", url: createPageUrl("ParentCoachChat"), icon: MessageCircle },
 

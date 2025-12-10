@@ -155,57 +155,59 @@ export default function AutomaticNotificationEngine({ user }) {
               vista: false
             });
             
-            // ENVIAR MENSAJE INDIVIDUAL AL CHAT (SOLO LO VE ESTA FAMILIA)
+            // ENVIAR A CONVERSACIÓN PRIVADA usando estructura correcta
             const player = players.find(p => p.id === payment.jugador_id);
-            if (player) {
+            if (player && player.email_padre) {
               const mensaje = `🔔 RECORDATORIO AUTOMÁTICO DE PAGO\n\n` +
                 `El pago de ${payment.mes} para ${payment.jugador_nombre} vence en 2 días.\n\n` +
                 `💰 Cantidad: ${payment.cantidad}€\n` +
                 `📅 Vencimiento: ${dueDate.toLocaleDateString('es-ES')}\n\n` +
                 `📲 Entra en "Mis Pagos" para subir tu justificante.\n\n` +
-                `🔒 MENSAJE PRIVADO: Solo tú ves este mensaje.`;
+                `🔒 MENSAJE PRIVADO: Solo tu familia ve este mensaje.`;
               
-              // Crear conversación privada si no existe
-              const allPrivateConvs = await base44.entities.PrivateConversation.list();
-              let privateConv = allPrivateConvs.find(c => 
-                c.tipo === "coordinador_padre" && 
-                (c.padre_email === user.email || c.padre_email === player.email_padre || c.padre_email === player.email_tutor_2)
-              );
-              
-              if (!privateConv) {
-                privateConv = await base44.entities.PrivateConversation.create({
-                  tipo: "coordinador_padre",
-                  coordinador_email: "sistema@cdbustarviejo.com",
-                  coordinador_nombre: "Sistema Automático CD Bustarviejo",
-                  padre_email: user.email,
-                  padre_nombre: user.full_name,
-                  jugador_id: player.id,
-                  jugador_nombre: player.nombre,
-                  jugador_categoria: player.deporte,
-                  ultimo_mensaje: mensaje,
-                  ultimo_mensaje_fecha: new Date().toISOString(),
-                  ultimo_mensaje_autor: "Sistema Automático",
-                  activa: true
+              try {
+                const allConvs = await base44.entities.PrivateConversation.list();
+                let conv = allConvs.find(c => 
+                  c.participante_familia_email === player.email_padre &&
+                  c.participante_staff_email === 'sistema@cdbustarviejo.com' &&
+                  c.participante_staff_rol === 'admin'
+                );
+                
+                if (!conv) {
+                  conv = await base44.entities.PrivateConversation.create({
+                    participante_familia_email: player.email_padre,
+                    participante_familia_nombre: player.nombre_tutor_legal || "Padre/Tutor",
+                    participante_staff_email: "sistema@cdbustarviejo.com",
+                    participante_staff_nombre: "🤖 Sistema de Recordatorios - Administración",
+                    participante_staff_rol: "admin",
+                    categoria: player.deporte,
+                    jugadores_relacionados: [{ jugador_id: player.id, jugador_nombre: player.nombre }],
+                    ultimo_mensaje: mensaje.substring(0, 100),
+                    ultimo_mensaje_fecha: new Date().toISOString(),
+                    ultimo_mensaje_de: "staff",
+                    no_leidos_familia: 0,
+                    archivada: false
+                  });
+                }
+                
+                await base44.entities.PrivateMessage.create({
+                  conversacion_id: conv.id,
+                  remitente_email: "sistema@cdbustarviejo.com",
+                  remitente_nombre: "🤖 Sistema de Recordatorios",
+                  remitente_tipo: "staff",
+                  mensaje: mensaje,
+                  leido: false
                 });
+                
+                await base44.entities.PrivateConversation.update(conv.id, {
+                  ultimo_mensaje: mensaje.substring(0, 100),
+                  ultimo_mensaje_fecha: new Date().toISOString(),
+                  ultimo_mensaje_de: "staff",
+                  no_leidos_familia: (conv.no_leidos_familia || 0) + 1
+                });
+              } catch (error) {
+                console.error("Error enviando mensaje privado:", error);
               }
-              
-              // Enviar mensaje privado
-              await base44.entities.PrivateMessage.create({
-                conversacion_id: privateConv.id,
-                autor: "coordinador",
-                autor_email: "sistema@cdbustarviejo.com",
-                autor_nombre: "🤖 Sistema Automático",
-                mensaje: mensaje,
-                leido_padre: false,
-                leido_coordinador: true
-              });
-              
-              // Actualizar conversación
-              await base44.entities.PrivateConversation.update(privateConv.id, {
-                ultimo_mensaje: mensaje,
-                ultimo_mensaje_fecha: new Date().toISOString(),
-                ultimo_mensaje_autor: "Sistema Automático"
-              });
             }
           }
         }
