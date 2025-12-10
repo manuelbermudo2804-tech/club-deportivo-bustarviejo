@@ -71,27 +71,40 @@ export default function ChatTermsDialog({ open, onAccept, onDecline, user, tipoC
     }
   }, [open]);
 
+  const getCoordinates = (e) => {
+    const rect = canvasRef.current.getBoundingClientRect();
+    if (e.touches) {
+      return {
+        x: e.touches[0].clientX - rect.left,
+        y: e.touches[0].clientY - rect.top
+      };
+    }
+    return {
+      x: e.clientX - rect.left,
+      y: e.clientY - rect.top
+    };
+  };
+
   const startDrawing = (e) => {
     if (!ctx) return;
+    e.preventDefault();
     setIsDrawing(true);
-    const rect = canvasRef.current.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
+    const { x, y } = getCoordinates(e);
     ctx.beginPath();
     ctx.moveTo(x, y);
   };
 
   const draw = (e) => {
     if (!isDrawing || !ctx) return;
-    const rect = canvasRef.current.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
+    e.preventDefault();
+    const { x, y } = getCoordinates(e);
     ctx.lineTo(x, y);
     ctx.stroke();
   };
 
-  const stopDrawing = () => {
+  const stopDrawing = (e) => {
     if (isDrawing && canvasRef.current) {
+      e.preventDefault();
       setIsDrawing(false);
       setSignature(canvasRef.current.toDataURL());
     }
@@ -204,13 +217,16 @@ export default function ChatTermsDialog({ open, onAccept, onDecline, user, tipoC
               ref={canvasRef}
               width={400}
               height={120}
-              className="border-2 border-dashed border-slate-300 rounded w-full cursor-crosshair bg-white"
+              className="border-2 border-dashed border-slate-300 rounded w-full cursor-crosshair bg-white touch-none"
               onMouseDown={startDrawing}
               onMouseMove={draw}
               onMouseUp={stopDrawing}
               onMouseLeave={stopDrawing}
+              onTouchStart={startDrawing}
+              onTouchMove={draw}
+              onTouchEnd={stopDrawing}
             />
-            <p className="text-xs text-slate-500 mt-1">Dibuja tu firma con el ratón o el dedo</p>
+            <p className="text-xs text-slate-500 mt-1">✍️ Dibuja tu firma con el ratón o el dedo</p>
           </div>
         </div>
 
