@@ -754,6 +754,8 @@ export default function ClothingOrders() {
                           </Card>
                         );
                       })}
+                    </div>
+                  )}
                 </div>
               </CardContent>
             </Card>

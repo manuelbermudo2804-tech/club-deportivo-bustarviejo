@@ -1079,7 +1079,6 @@ export default function Home() {
             pendingEventConfirmations={stats.pendingEventConfirmations}
             pendingPlayerAccess={stats.pendingPlayerAccess}
             unreadCoordinatorMessages={stats.unreadCoordinatorMessages}
-            unreadPrivateMessages={stats.unreadPrivateMessages}
             isAdmin={isAdmin}
             isCoach={isCoach || isCoordinator}
             isParent={hasPlayers}
