@@ -316,14 +316,12 @@ export default function AutomaticPaymentReminders({ user }) {
         console.log(`✅ [AutomaticPaymentReminders] Proceso completado: ${sent} recordatorios enviados`);
         
         // Liberar lock
-        const lockKey = `payment_reminder_lock_${currentSeason}_${mesRecordatorio}_${tipoRecordatorio}`;
         sessionStorage.removeItem(lockKey);
         setProcessing(false);
         
       } catch (error) {
         console.error("❌ [AutomaticPaymentReminders] Error general:", error);
         // Liberar lock en caso de error
-        const lockKey = `payment_reminder_lock_${currentSeason}_${mesRecordatorio}_${tipoRecordatorio}`;
         sessionStorage.removeItem(lockKey);
         setProcessing(false);
       }
