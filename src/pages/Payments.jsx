@@ -855,66 +855,46 @@ export default function Payments() {
 
                       console.log(`[DEBUG PAGOS] Jugador: ${player.nombre}, Pagos reales encontrados:`, allRealPayments.length, allRealPayments.map(p => ({mes: p.mes, estado: p.estado})));
 
-                      // Si temporadaFilter es "all", mostrar los pagos reales sin crear virtuales
-                      // Si hay filtro de temporada, crear pagos virtuales para los meses que faltan
-                      let displayPayments;
-                      if (temporadaFilter === "all") {
-                        // Solo mostrar pagos reales cuando el filtro es "all"
-                        displayPayments = allRealPayments;
-                      } else {
-                        // Crear pagos virtuales para los meses que faltan
-                        displayPayments = allMonths.map(mes => {
-                          // Buscar en TODOS los pagos reales, no solo los filtrados
-                          const existingPayment = allRealPayments.find(p => p.mes === mes);
-                          if (existingPayment) {
-                            console.log(`[DEBUG PAGOS] ${player.nombre} - Mes ${mes}: Pago REAL encontrado con estado ${existingPayment.estado}`);
-                            return existingPayment;
-                          }
-                          // Crear un pago virtual pendiente con cantidad correcta
-                          const cuotas = getCuotasPorCategoriaSync(player.deporte);
-                          const cantidad = hasPagoUnico 
-                            ? cuotas.total 
-                            : getImportePorMes(player.deporte, mes);
-                          
-                          console.log(`[DEBUG PAGOS] ${player.nombre} - Mes ${mes}: Creando pago VIRTUAL`);
-                          return {
-                            id: `virtual-${player.id}-${mes}`,
-                            jugador_id: player.id,
-                            jugador_nombre: player.nombre,
-                            mes: mes,
-                            temporada: temporadaFilter,
-                            estado: "Pendiente",
-                            cantidad: cantidad,
-                            tipo_pago: hasPagoUnico ? "Único" : "Tres meses",
-                            isVirtual: true
-                          };
-                        });
-                      }
+                      // SIEMPRE crear pagos virtuales para meses que faltan (incluso con temporadaFilter="all")
+                      const displayPayments = allMonths.map(mes => {
+                        // Buscar si existe un pago real para este mes
+                        const existingPayment = allRealPayments.find(p => p.mes === mes);
+                        if (existingPayment) {
+                          console.log(`[DEBUG PAGOS] ${player.nombre} - Mes ${mes}: Pago REAL encontrado con estado ${existingPayment.estado}`);
+                          return existingPayment;
+                        }
+                        // Crear un pago virtual pendiente con cantidad correcta
+                        const cuotas = getCuotasPorCategoriaSync(player.deporte);
+                        const cantidad = hasPagoUnico 
+                          ? cuotas.total 
+                          : getImportePorMes(player.deporte, mes);
+                        
+                        console.log(`[DEBUG PAGOS] ${player.nombre} - Mes ${mes}: Creando pago VIRTUAL`);
+                        return {
+                          id: `virtual-${player.id}-${mes}`,
+                          jugador_id: player.id,
+                          jugador_nombre: player.nombre,
+                          mes: mes,
+                          temporada: temporadaFilter === "all" ? getCurrentSeason() : temporadaFilter,
+                          estado: "Pendiente",
+                          cantidad: cantidad,
+                          tipo_pago: hasPagoUnico ? "Único" : "Tres meses",
+                          isVirtual: true
+                        };
+                      });
 
                       // Si hay filtro de estado activo, filtrar displayPayments también
                       if (estadoFilter !== "all") {
                         displayPayments = displayPayments.filter(p => p.estado === estadoFilter);
                       }
                       
-                      // Contar pagos por estado (reales + virtuales para mostrar correctamente)
+                      // Contar pagos por estado
                       const reviewPayments = displayPayments.filter(p => p.estado === "En revisión");
                       const paidPayments = displayPayments.filter(p => p.estado === "Pagado");
+                      const pendingPayments = displayPayments.filter(p => p.estado === "Pendiente");
                       
                       // Calcular cuántos pagos REALMENTE faltan
-                      // Si tiene pago único pagado/revisión = 0 pendientes
-                      // Si no, contar meses sin pago o con pago pendiente
-                      let totalPaymentsDue = 0;
-                      if (!hasPagoUnico) {
-                        // Filtrar pagos de la temporada actual del jugador (no de filteredPayments que puede estar filtrado)
-                        const playerPaymentsTemporada = (payments || []).filter(p => 
-                          p.jugador_id === player.id && 
-                          matchTemporada(p.temporada, temporadaFilter)
-                        );
-                        const mesesConPagoOK = playerPaymentsTemporada
-                          .filter(p => p.estado === "Pagado" || p.estado === "En revisión")
-                          .map(p => p.mes);
-                        totalPaymentsDue = allMonths.filter(mes => !mesesConPagoOK.includes(mes)).length;
-                      }
+                      const totalPaymentsDue = pendingPayments.length;
                       
                       // Total pendiente en euros - calcular basado en meses que faltan
                       let totalPending = 0;
