@@ -7,7 +7,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Send, Paperclip, X, FileText, Download, MessageCircle, Camera, Users, Mic, Square, Search, Pin, Smile, Image as ImageIcon, Folder, BarChart3 } from "lucide-react";
+import { Send, Paperclip, X, FileText, Download, MessageCircle, Camera, Users, Mic, Square, Search, Pin, Smile, Image as ImageIcon, Folder, BarChart3, Settings } from "lucide-react";
+import { Label } from "@/components/ui/label";
+import { DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { toast } from "sonner";
@@ -43,7 +45,7 @@ export default function CoachParentChat() {
   const [showPollDialog, setShowPollDialog] = useState(false);
   const [pollQuestion, setPollQuestion] = useState("");
   const [pollOptions, setPollOptions] = useState(["", ""]);
-  const [showSettings, setShowSettings] = useState(false);
+  const [showSettingsDialog, setShowSettingsDialog] = useState(false);
   const messagesEndRef = useRef(null);
   const fileInputRef = useRef(null);
   const cameraInputRef = useRef(null);
@@ -390,9 +392,17 @@ export default function CoachParentChat() {
         <SocialLinks />
       </div>
 
-      {/* Configuración de Horarios */}
-      {showSettings && (
-        <CoachChatHorarioConfig user={user} />
+      {/* Modal de configuración */}
+      {showSettingsDialog && (
+        <div className="absolute inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-bold">⚙️ Configuración Chat Entrenador</h2>
+              <Button variant="ghost" onClick={() => setShowSettingsDialog(false)}>✕</Button>
+            </div>
+            {user && <CoachChatHorarioConfig user={user} />}
+          </div>
+        </div>
       )}
 
       <Card className="border-blue-200 shadow-lg h-full flex flex-col overflow-hidden lg:rounded-lg rounded-none">
@@ -409,11 +419,11 @@ export default function CoachParentChat() {
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => setShowSettings(!showSettings)}
+                onClick={() => setShowSettingsDialog(!showSettingsDialog)}
                 className="text-white hover:bg-white/20"
                 title="Configurar horarios"
               >
-                <BarChart3 className="w-4 h-4" />
+                <Settings className="w-4 h-4" />
               </Button>
               <Button
                 variant="ghost"
@@ -839,9 +849,6 @@ export default function CoachParentChat() {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>📊 Crear Encuesta Rápida</DialogTitle>
-            <DialogDescription>
-              Pregunta rápida para las familias del grupo
-            </DialogDescription>
           </DialogHeader>
           <div className="space-y-3">
             <div>
@@ -886,14 +893,14 @@ export default function CoachParentChat() {
                 + Agregar opción
               </Button>
             </div>
+            <div className="flex gap-2 justify-end mt-4">
+              <Button variant="outline" onClick={() => setShowPollDialog(false)}>Cancelar</Button>
+              <Button onClick={sendPoll} className="bg-green-600 hover:bg-green-700">
+                <BarChart3 className="w-4 h-4 mr-2" />
+                Enviar Encuesta
+              </Button>
+            </div>
           </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowPollDialog(false)}>Cancelar</Button>
-            <Button onClick={sendPoll} className="bg-green-600 hover:bg-green-700">
-              <BarChart3 className="w-4 h-4 mr-2" />
-              Enviar Encuesta
-            </Button>
-          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
