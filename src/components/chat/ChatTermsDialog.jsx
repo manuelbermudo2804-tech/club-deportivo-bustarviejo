@@ -1,13 +1,13 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useMutation } from "@tanstack/react-query";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
-import { ScrollArea } from "@/components/ui/scroll-area";
+import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import { FileText, Pen } from "lucide-react";
+import { FileText } from "lucide-react";
 
 const CONDICIONES_TEXTO = `📜 CONDICIONES DE USO DE LA APP DEL CLUB (FÚTBOL BASE)
 
@@ -55,66 +55,7 @@ De acuerdo con el Reglamento (UE) 2016/679:
 
 export default function ChatTermsDialog({ open, onAccept, onDecline, user, tipoChat }) {
   const [accepted, setAccepted] = useState(false);
-  const [signature, setSignature] = useState(null);
-  const [isDrawing, setIsDrawing] = useState(false);
-  const canvasRef = useRef(null);
-  const [ctx, setCtx] = useState(null);
-
-  useEffect(() => {
-    if (canvasRef.current) {
-      const canvas = canvasRef.current;
-      const context = canvas.getContext('2d');
-      context.strokeStyle = '#1e293b';
-      context.lineWidth = 2;
-      context.lineCap = 'round';
-      setCtx(context);
-    }
-  }, [open]);
-
-  const getCoordinates = (e) => {
-    const rect = canvasRef.current.getBoundingClientRect();
-    if (e.touches) {
-      return {
-        x: e.touches[0].clientX - rect.left,
-        y: e.touches[0].clientY - rect.top
-      };
-    }
-    return {
-      x: e.clientX - rect.left,
-      y: e.clientY - rect.top
-    };
-  };
-
-  const startDrawing = (e) => {
-    if (!ctx) return;
-    e.preventDefault();
-    setIsDrawing(true);
-    const { x, y } = getCoordinates(e);
-    ctx.beginPath();
-    ctx.moveTo(x, y);
-  };
-
-  const draw = (e) => {
-    if (!isDrawing || !ctx) return;
-    e.preventDefault();
-    const { x, y } = getCoordinates(e);
-    ctx.lineTo(x, y);
-    ctx.stroke();
-  };
-
-  const stopDrawing = (e) => {
-    if (isDrawing && canvasRef.current) {
-      e.preventDefault();
-      setIsDrawing(false);
-      setSignature(canvasRef.current.toDataURL());
-    }
-  };
-
-  const clearSignature = () => {
-    if (!ctx || !canvasRef.current) return;
-    ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
-    setSignature(null);
-  };
+  const [signatureName, setSignatureName] = useState("");
 
   const saveAcceptanceMutation = useMutation({
     mutationFn: async () => {
@@ -122,7 +63,7 @@ export default function ChatTermsDialog({ open, onAccept, onDecline, user, tipoC
         user_email: user.email,
         user_nombre: user.full_name,
         tipo_chat: tipoChat,
-        firma_base64: signature,
+        firma_base64: signatureName,
         fecha_aceptacion: new Date().toISOString(),
         condiciones_version: "1.0"
       });
@@ -131,30 +72,6 @@ export default function ChatTermsDialog({ open, onAccept, onDecline, user, tipoC
         condiciones_chat_aceptadas: true,
         fecha_aceptacion_chat: new Date().toISOString()
       });
-
-      // Enviar email de confirmación
-      try {
-        await base44.integrations.Core.SendEmail({
-          from_name: "CD Bustarviejo",
-          to: user.email,
-          subject: "✅ Condiciones de Uso de Chats - Aceptadas",
-          body: `
-            <h2>Condiciones de Uso Aceptadas</h2>
-            <p>Estimado/a ${user.full_name},</p>
-            <p>Confirmamos que has aceptado las condiciones de uso de los chats del club el ${new Date().toLocaleString('es-ES')}.</p>
-            <hr>
-            <h3>📜 Condiciones Aceptadas:</h3>
-            <pre style="white-space: pre-wrap; font-size: 12px;">${CONDICIONES_TEXTO}</pre>
-            <hr>
-            <p style="font-size: 12px; color: #666;">
-              Estas condiciones están disponibles en cualquier momento en la aplicación.
-              Para cualquier duda, contacta con cdbustarviejo@gmail.com
-            </p>
-          `
-        });
-      } catch (e) {
-        console.error("Error sending email:", e);
-      }
     },
     onSuccess: () => {
       toast.success("✅ Condiciones aceptadas. Ya puedes usar el chat.");
@@ -167,8 +84,8 @@ export default function ChatTermsDialog({ open, onAccept, onDecline, user, tipoC
       toast.error("Debes aceptar las condiciones");
       return;
     }
-    if (!signature) {
-      toast.error("Debes firmar para aceptar");
+    if (!signatureName.trim()) {
+      toast.error("Debes escribir tu nombre completo");
       return;
     }
     saveAcceptanceMutation.mutate();
@@ -206,27 +123,15 @@ export default function ChatTermsDialog({ open, onAccept, onDecline, user, tipoC
           </div>
 
           <div className="bg-white border-2 border-slate-300 rounded-lg p-4">
-            <div className="flex items-center justify-between mb-2">
-              <Label className="text-sm font-bold">✍️ Firma Digital (obligatoria)</Label>
-              <Button size="sm" variant="outline" onClick={clearSignature}>
-                <Pen className="w-3 h-3 mr-1" />
-                Borrar
-              </Button>
-            </div>
-            <canvas
-              ref={canvasRef}
-              width={400}
-              height={120}
-              className="border-2 border-dashed border-slate-300 rounded w-full cursor-crosshair bg-white touch-none"
-              onMouseDown={startDrawing}
-              onMouseMove={draw}
-              onMouseUp={stopDrawing}
-              onMouseLeave={stopDrawing}
-              onTouchStart={startDrawing}
-              onTouchMove={draw}
-              onTouchEnd={stopDrawing}
+            <Label className="text-sm font-bold mb-2 block">✍️ Confirma tu identidad escribiendo tu nombre completo</Label>
+            <Input
+              type="text"
+              placeholder="Escribe tu nombre y apellidos completos"
+              value={signatureName}
+              onChange={(e) => setSignatureName(e.target.value)}
+              className="w-full"
             />
-            <p className="text-xs text-slate-500 mt-1">✍️ Dibuja tu firma con el ratón o el dedo</p>
+            <p className="text-xs text-slate-500 mt-2">✍️ Escribe tu nombre completo como confirmación</p>
           </div>
         </div>
 
@@ -236,10 +141,10 @@ export default function ChatTermsDialog({ open, onAccept, onDecline, user, tipoC
           </Button>
           <Button 
             onClick={handleAccept}
-            disabled={!accepted || !signature || saveAcceptanceMutation.isPending}
+            disabled={!accepted || !signatureName.trim() || saveAcceptanceMutation.isPending}
             className="bg-green-600 hover:bg-green-700"
           >
-            {saveAcceptanceMutation.isPending ? "Guardando..." : "✅ Acepto y Firmo"}
+            {saveAcceptanceMutation.isPending ? "Guardando..." : "✅ Acepto y Confirmo"}
           </Button>
         </DialogFooter>
       </DialogContent>
