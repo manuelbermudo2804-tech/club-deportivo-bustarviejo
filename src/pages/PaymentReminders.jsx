@@ -138,9 +138,15 @@ export default function PaymentReminders() {
           return sum + existingPendingPayment.cantidad;
         }
 
-        // Si no existe ningún pago para este mes, calcularlo (pero NO agregarlo aquí)
-        // Los pagos se crean cuando el padre los registra
-        return sum;
+        // Si NO existe ningún pago para este mes, crear uno VIRTUAL pendiente
+        const cantidad = getCorrectAmount(player.deporte, mes);
+        pendingMonths.push({ 
+          mes, 
+          cantidad,
+          payment_id: null, 
+          isVirtual: true
+        });
+        return sum + cantidad;
       }, 0);
 
       familyMap[familyEmail].jugadores.push({
