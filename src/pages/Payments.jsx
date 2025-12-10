@@ -856,7 +856,7 @@ export default function Payments() {
                       console.log(`[DEBUG PAGOS] Jugador: ${player.nombre}, Pagos reales encontrados:`, allRealPayments.length, allRealPayments.map(p => ({mes: p.mes, estado: p.estado})));
 
                       // SIEMPRE crear pagos virtuales para meses que faltan (incluso con temporadaFilter="all")
-                      const displayPayments = allMonths.map(mes => {
+                      let displayPayments = allMonths.map(mes => {
                         // Buscar si existe un pago real para este mes
                         const existingPayment = allRealPayments.find(p => p.mes === mes);
                         if (existingPayment) {
