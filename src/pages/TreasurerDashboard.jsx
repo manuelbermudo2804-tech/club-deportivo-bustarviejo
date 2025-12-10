@@ -49,6 +49,13 @@ const COLORS = {
   patrocinios: '#8b5cf6'
 };
 
+const getCurrentSeason = () => {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = now.getMonth() + 1;
+  return month >= 9 ? `${year}/${year + 1}` : `${year - 1}/${year}`;
+};
+
 export default function TreasurerDashboard() {
   usePageTutorial("treasurer_dashboard");
   
@@ -62,13 +69,6 @@ export default function TreasurerDashboard() {
     nombre: "Presupuesto Principal"
   });
   const queryClient = useQueryClient();
-
-  const getCurrentSeason = () => {
-    const now = new Date();
-    const year = now.getFullYear();
-    const month = now.getMonth() + 1;
-    return month >= 9 ? `${year}/${year + 1}` : `${year - 1}/${year}`;
-  };
 
   const currentSeason = getCurrentSeason();
 
