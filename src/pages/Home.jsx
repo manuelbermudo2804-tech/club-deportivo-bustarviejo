@@ -83,11 +83,11 @@ export default function Home() {
     queryKey: ['players'],
     queryFn: () => base44.entities.Player.list(),
     initialData: [],
-    staleTime: 300000, // 5 minutos
-    gcTime: 600000, // 10 minutos
-    refetchOnWindowFocus: false,
-    refetchOnMount: false,
-    refetchInterval: false,
+    staleTime: 30000,
+    gcTime: 600000,
+    refetchOnWindowFocus: true,
+    refetchOnMount: true,
+    refetchInterval: 30000,
     enabled: !!user,
   });
 
@@ -119,11 +119,11 @@ export default function Home() {
     queryKey: ['privateConversationsHome'],
     queryFn: () => base44.entities.PrivateConversation.list('-ultimo_mensaje_fecha', 30),
     initialData: [],
-    staleTime: 30000, // 30 segundos
+    staleTime: 5000,
     gcTime: 300000,
-    refetchOnWindowFocus: false,
-    refetchOnMount: false,
-    refetchInterval: false,
+    refetchOnWindowFocus: true,
+    refetchOnMount: true,
+    refetchInterval: 5000,
     enabled: !!user,
   });
 
@@ -131,11 +131,11 @@ export default function Home() {
     queryKey: ['callups'],
     queryFn: () => base44.entities.Convocatoria.list(),
     initialData: [],
-    staleTime: 300000,
+    staleTime: 30000,
     gcTime: 600000,
-    refetchOnWindowFocus: false,
-    refetchOnMount: false,
-    refetchInterval: false,
+    refetchOnWindowFocus: true,
+    refetchOnMount: true,
+    refetchInterval: 30000,
     enabled: !!user,
   });
 
@@ -262,9 +262,11 @@ export default function Home() {
   const { data: coordinatorConversations = [] } = useQuery({
     queryKey: ['coordinatorConversations'],
     queryFn: () => base44.entities.CoordinatorConversation.list(),
-    staleTime: 30000,
+    staleTime: 5000,
     gcTime: 300000,
-    refetchOnWindowFocus: false,
+    refetchOnWindowFocus: true,
+    refetchOnMount: true,
+    refetchInterval: 5000,
     enabled: !!user,
   });
 

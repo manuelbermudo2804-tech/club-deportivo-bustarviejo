@@ -14,6 +14,7 @@ import ParentOnboarding from "@/components/onboarding/ParentOnboarding";
 import AlertCenter from "../components/dashboard/AlertCenter";
 import ContactCard from "../components/ContactCard";
 import { usePageTutorial } from "../components/tutorials/useTutorial";
+import DashboardCardSkeleton from "../components/skeletons/DashboardCardSkeleton";
 
 
 // Componente para compartir Fútbol Femenino (sin referidos)
@@ -156,8 +157,9 @@ export default function ParentDashboard() {
       const allConvs = await base44.entities.PrivateConversation.list('-ultimo_mensaje_fecha', 30);
       return allConvs.filter(c => c.participante_familia_email === user?.email);
     },
-    staleTime: 10000,
-    refetchInterval: 10000,
+    staleTime: 5000,
+    refetchInterval: 5000,
+    refetchOnWindowFocus: true,
     enabled: !!user,
   });
 
@@ -167,8 +169,9 @@ export default function ParentDashboard() {
       const allConvs = await base44.entities.CoordinatorConversation.list();
       return allConvs.filter(c => c.padre_email === user?.email);
     },
-    staleTime: 10000,
-    refetchInterval: 10000,
+    staleTime: 5000,
+    refetchInterval: 5000,
+    refetchOnWindowFocus: true,
     enabled: !!user,
   });
 
@@ -180,8 +183,9 @@ export default function ParentDashboard() {
       const allMsgs = await base44.entities.ChatMessage.list('-created_date', 50);
       return allMsgs.filter(m => sports.includes(m.deporte) || m.grupo_id === "Coordinación Deportiva");
     },
-    staleTime: 10000,
-    refetchInterval: 10000,
+    staleTime: 5000,
+    refetchInterval: 5000,
+    refetchOnWindowFocus: true,
     enabled: !!user && players.length > 0,
   });
 
@@ -461,7 +465,9 @@ export default function ParentDashboard() {
         <SocialLinks />
 
         {/* Banner Unificado de Chats */}
-        {myPlayers.length > 0 && (
+        {playersLoading ? (
+          <DashboardCardSkeleton />
+        ) : myPlayers.length > 0 && (
           <Card className="border-2 border-purple-300 bg-gradient-to-r from-purple-50 to-pink-50 shadow-lg overflow-hidden">
             <CardContent className="p-4">
               <div className="flex items-center gap-3 mb-3">
@@ -520,6 +526,9 @@ export default function ParentDashboard() {
         )}
 
         {/* ÚNICO CENTRO DE ALERTAS CONSOLIDADO - Todo en un solo banner */}
+        {playersLoading ? (
+          <DashboardCardSkeleton />
+        ) : (
         <AlertCenter 
           pendingCallups={pendingCallups}
           pendingDocuments={allDocuments.length > 0 ? allDocuments.filter(d => {
@@ -550,6 +559,7 @@ export default function ParentDashboard() {
           isCoach={false}
           isParent={true}
         />
+        )}
 
 
 
@@ -627,6 +637,9 @@ export default function ParentDashboard() {
           ))}
         </div>
 
+        {playersLoading ? (
+          <DashboardCardSkeleton />
+        ) : (
         <div className="bg-slate-800 rounded-3xl p-4 lg:p-6 shadow-2xl border-2 border-slate-700">
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
             <div className="text-center">
@@ -653,6 +666,7 @@ export default function ParentDashboard() {
 
           </div>
         </div>
+        )}
 
         <ContactCard />
       </div>
