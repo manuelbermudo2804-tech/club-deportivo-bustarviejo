@@ -442,7 +442,7 @@ export default function PaymentReminders() {
           <Button
             onClick={sendMassiveReminders}
             disabled={selectedFamilies.length === 0 || sendingMassive}
-            className="bg-orange-600 hover:bg-orange-700"
+            className="bg-orange-600 hover:bg-orange-700 active:scale-95 transition-transform"
           >
             {sendingMassive ? (
               <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Enviando...</>
@@ -542,8 +542,13 @@ export default function PaymentReminders() {
                     <p className="text-2xl font-bold text-red-600">{family.totalFamilyDue.toFixed(0)}€</p>
                   </div>
                   <Button
-                    onClick={async () => {
+                    onClick={async (e) => {
+                      const button = e.currentTarget;
+                      button.disabled = true;
+                      
                       try {
+                        toast.loading("Enviando recordatorio...", { id: `reminder-${family.email}` });
+                        
                         // Construir mensaje
                         let mensaje = `Estimada familia,\n\nLes recordamos que tienen los siguientes pagos pendientes:\n\n`;
                         
@@ -624,14 +629,16 @@ export default function PaymentReminders() {
                         }
 
                         console.log(`✅ Recordatorio enviado a ${family.email}`);
-                        toast.success("✅ Recordatorio enviado por Email + Chat");
+                        toast.success(`✅ Recordatorio enviado a ${family.nombre_tutor}`, { id: `reminder-${family.email}` });
                       } catch (error) {
                         console.error("Error:", error);
-                        toast.error("Error al enviar recordatorio");
+                        toast.error("Error al enviar recordatorio", { id: `reminder-${family.email}` });
+                      } finally {
+                        button.disabled = false;
                       }
                     }}
                     size="sm"
-                    className="bg-purple-600 hover:bg-purple-700"
+                    className="bg-purple-600 hover:bg-purple-700 active:scale-95 transition-transform"
                   >
                     <Send className="w-4 h-4 mr-2" />
                     Enviar Recordatorio
