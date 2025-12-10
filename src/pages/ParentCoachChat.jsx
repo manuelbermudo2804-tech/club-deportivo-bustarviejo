@@ -33,6 +33,8 @@ export default function ParentCoachChat() {
   const [showSearch, setShowSearch] = useState(false);
   const [showReportDialog, setShowReportDialog] = useState(false);
   const [reportReason, setReportReason] = useState("");
+  const [showCoachProfile, setShowCoachProfile] = useState(false);
+  const [coachData, setCoachData] = useState(null);
   const [currentConversation, setCurrentConversation] = useState(null);
   const [showTermsDialog, setShowTermsDialog] = useState(false);
   const [termsAccepted, setTermsAccepted] = useState(false);
@@ -747,6 +749,83 @@ Este chat es solo para avisos rápidos. Gracias por tu comprensión.`,
               </div>
             </div>
           </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog: Perfil del Entrenador */}
+      <Dialog open={showCoachProfile} onOpenChange={setShowCoachProfile}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <UserCircle className="w-5 h-5 text-blue-600" />
+              Perfil del Entrenador
+            </DialogTitle>
+          </DialogHeader>
+          {coachData ? (
+            <div className="space-y-4">
+              <div className="flex items-center gap-4">
+                {coachData.foto_perfil_url ? (
+                  <img
+                    src={coachData.foto_perfil_url}
+                    alt={coachData.full_name}
+                    className="w-20 h-20 rounded-full object-cover border-4 border-blue-100 shadow-lg"
+                  />
+                ) : (
+                  <div className="w-20 h-20 rounded-full bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center text-white text-2xl font-bold border-4 border-blue-100 shadow-lg">
+                    {coachData.full_name?.charAt(0).toUpperCase()}
+                  </div>
+                )}
+                <div className="flex-1">
+                  <h3 className="font-bold text-lg text-slate-900">{coachData.full_name}</h3>
+                  <p className="text-sm text-slate-600">🏃 Entrenador</p>
+                  <div className="flex flex-wrap gap-1 mt-2">
+                    {coachData.categorias_entrena?.map(cat => (
+                      <Badge key={cat} className="bg-blue-100 text-blue-700 text-xs">
+                        {cat}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {coachData.bio_entrenador && (
+                <div className="bg-slate-50 rounded-lg p-3">
+                  <p className="text-sm text-slate-700 italic">"{coachData.bio_entrenador}"</p>
+                </div>
+              )}
+
+              <div className="space-y-2">
+                <h4 className="font-semibold text-slate-900 text-sm">Información de Contacto</h4>
+                {coachData.mostrar_email_publico && (
+                  <div className="flex items-center gap-2 text-sm text-slate-600 bg-slate-50 rounded-lg p-2">
+                    <Mail className="w-4 h-4 text-blue-600" />
+                    <a href={`mailto:${coachData.email}`} className="hover:text-blue-600 underline">
+                      {coachData.email}
+                    </a>
+                  </div>
+                )}
+                {coachData.mostrar_telefono_publico && coachData.telefono_contacto && (
+                  <div className="flex items-center gap-2 text-sm text-slate-600 bg-slate-50 rounded-lg p-2">
+                    <Phone className="w-4 h-4 text-blue-600" />
+                    <a href={`tel:${coachData.telefono_contacto}`} className="hover:text-blue-600 underline">
+                      {coachData.telefono_contacto}
+                    </a>
+                  </div>
+                )}
+                {!coachData.mostrar_email_publico && !coachData.mostrar_telefono_publico && (
+                  <div className="bg-blue-50 rounded-lg p-3 border border-blue-200">
+                    <p className="text-xs text-blue-800">
+                      💬 Usa el chat de la app para contactar con el entrenador
+                    </p>
+                  </div>
+                )}
+              </div>
+            </div>
+          ) : (
+            <div className="text-center py-8">
+              <p className="text-slate-500">No hay información del entrenador disponible</p>
+            </div>
+          )}
         </DialogContent>
       </Dialog>
 
