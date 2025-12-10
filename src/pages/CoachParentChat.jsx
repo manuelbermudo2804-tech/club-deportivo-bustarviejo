@@ -342,9 +342,25 @@ export default function CoachParentChat() {
     );
   }
 
+  if (!user) {
+    return (
+      <div className="h-[calc(100vh-100px)] flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600"></div>
+      </div>
+    );
+  }
+
   const categories = user?.role === "admin" 
     ? ["Todas las categorías", ...new Set(allPlayers.map(p => p.deporte))]
     : (user?.categorias_entrena || []);
+
+  if (categories.length === 0) {
+    return (
+      <div className="p-6 text-center">
+        <p className="text-slate-500">No tienes categorías asignadas. Contacta con el administrador.</p>
+      </div>
+    );
+  }
 
   const categoryPlayers = selectedCategory === "Todas las categorías" 
     ? allPlayers 
