@@ -53,15 +53,6 @@ import { toast } from "sonner";
 
 // Plantillas predefinidas
 const MESSAGE_TEMPLATES = {
-  payment_reminder: {
-    id: "payment_reminder",
-    name: "Recordatorio de Pago",
-    icon: CreditCard,
-    color: "text-red-600",
-    bgColor: "bg-red-50",
-    description: "Recordar pagos pendientes a familias",
-    variables: ["nombre_jugador", "cantidad", "mes", "fecha_limite"]
-  },
   event_invitation: {
     id: "event_invitation",
     name: "Invitación a Evento",
@@ -267,14 +258,6 @@ export default function AICommunicationAssistant({ open, onClose }) {
 
       // Obtener datos relevantes según la plantilla
       let contextData = {};
-      if (selectedTemplate === "pending_payments") {
-        const pendingPayments = payments.filter(p => p.estado === "Pendiente");
-        contextData.pagos_pendientes = pendingPayments.slice(0, 5).map(p => ({
-          jugador: p.jugador_nombre,
-          cantidad: p.cantidad,
-          mes: p.mes
-        }));
-      }
 
       const prompt = `Eres un asistente de comunicación para un club deportivo (CD Bustarviejo). 
 Genera un mensaje ${sendMethod === "email" ? "de correo electrónico" : "para chat/WhatsApp"} profesional pero cercano.
