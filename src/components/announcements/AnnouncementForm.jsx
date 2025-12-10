@@ -8,7 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Loader2, Mail, Pin, Clock, AlertCircle, Sparkles, MessageCircle, Zap } from "lucide-react";
+import { Loader2, Mail, Pin, Clock, AlertCircle, Sparkles } from "lucide-react";
 
 export default function AnnouncementForm({ announcement, onSubmit, onCancel, isSubmitting }) {
   const [currentAnnouncement, setCurrentAnnouncement] = useState(announcement || {
@@ -18,12 +18,13 @@ export default function AnnouncementForm({ announcement, onSubmit, onCancel, isS
     destinatarios_tipo: "Todos",
     publicado: true,
     destacado: false,
+    tipo_caducidad: "horas",
+    duracion_horas: 72,
     fecha_expiracion: "",
     enviar_email: false,
     email_enviado: false,
-    enviar_chat: false,
-    chat_enviado: false,
-    fecha_publicacion: new Date().toISOString()
+    fecha_publicacion: new Date().toISOString(),
+    leido_por: []
   });
 
   const handleSubmit = (e) => {
@@ -117,21 +118,69 @@ export default function AnnouncementForm({ announcement, onSubmit, onCancel, isS
                 </Select>
               </div>
 
-              {/* Fecha de expiración */}
-              <div className="space-y-2">
+              {/* Tipo de caducidad */}
+              <div className="space-y-2 md:col-span-2">
                 <Label className="flex items-center gap-2">
                   <Clock className="w-4 h-4 text-orange-600" />
-                  Fecha de Expiración (opcional)
+                  Caducidad del Anuncio
                 </Label>
-                <Input
-                  type="date"
-                  value={currentAnnouncement.fecha_expiracion || ""}
-                  onChange={(e) => setCurrentAnnouncement({ ...currentAnnouncement, fecha_expiracion: e.target.value })}
-                />
-                <p className="text-xs text-slate-500">
-                  El anuncio se ocultará automáticamente después de esta fecha
-                </p>
+                <div className="flex gap-2">
+                  <Button
+                    type="button"
+                    variant={currentAnnouncement.tipo_caducidad === "horas" ? "default" : "outline"}
+                    onClick={() => setCurrentAnnouncement({ ...currentAnnouncement, tipo_caducidad: "horas" })}
+                    className={currentAnnouncement.tipo_caducidad === "horas" ? "bg-orange-600" : ""}
+                  >
+                    ⏱️ Por Horas
+                  </Button>
+                  <Button
+                    type="button"
+                    variant={currentAnnouncement.tipo_caducidad === "fecha" ? "default" : "outline"}
+                    onClick={() => setCurrentAnnouncement({ ...currentAnnouncement, tipo_caducidad: "fecha" })}
+                    className={currentAnnouncement.tipo_caducidad === "fecha" ? "bg-orange-600" : ""}
+                  >
+                    📅 Fecha Específica
+                  </Button>
+                </div>
               </div>
+
+              {/* Configuración de caducidad */}
+              {currentAnnouncement.tipo_caducidad === "horas" ? (
+                <div className="space-y-2 md:col-span-2">
+                  <Label>Duración del Anuncio</Label>
+                  <Select
+                    value={currentAnnouncement.duracion_horas?.toString() || "72"}
+                    onValueChange={(value) => setCurrentAnnouncement({ ...currentAnnouncement, duracion_horas: parseInt(value) })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="6">⏱️ 6 horas</SelectItem>
+                      <SelectItem value="12">⏱️ 12 horas</SelectItem>
+                      <SelectItem value="24">📅 24 horas (1 día)</SelectItem>
+                      <SelectItem value="48">📅 48 horas (2 días)</SelectItem>
+                      <SelectItem value="72">📅 72 horas (3 días)</SelectItem>
+                      <SelectItem value="168">📅 1 semana</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-slate-500">
+                    El anuncio se ocultará automáticamente después de este tiempo
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-2 md:col-span-2">
+                  <Label>Fecha de Expiración (opcional)</Label>
+                  <Input
+                    type="date"
+                    value={currentAnnouncement.fecha_expiracion || ""}
+                    onChange={(e) => setCurrentAnnouncement({ ...currentAnnouncement, fecha_expiracion: e.target.value })}
+                  />
+                  <p className="text-xs text-slate-500">
+                    El anuncio se ocultará automáticamente después de esta fecha
+                  </p>
+                </div>
+              )}
             </div>
 
             {/* Contenido */}
@@ -203,27 +252,6 @@ export default function AnnouncementForm({ announcement, onSubmit, onCancel, isS
                   className="data-[state=checked]:bg-blue-600"
                 />
               </div>
-
-              {/* Enviar a Chat */}
-              <div className="flex items-center justify-between p-4 rounded-lg bg-gradient-to-r from-purple-50 to-pink-50 border-2 border-purple-300">
-                <div className="flex items-center gap-3">
-                  <MessageCircle className="w-5 h-5 text-purple-700" />
-                  <div>
-                    <Label className="text-base font-medium text-purple-900 flex items-center gap-2">
-                      Enviar a chats de grupos
-                      <Zap className="w-4 h-4 text-yellow-600" />
-                    </Label>
-                    <p className="text-sm text-purple-700">
-                      Notificación inmediata en los chats correspondientes
-                    </p>
-                  </div>
-                </div>
-                <Switch
-                  checked={currentAnnouncement.enviar_chat}
-                  onCheckedChange={(checked) => setCurrentAnnouncement({ ...currentAnnouncement, enviar_chat: checked })}
-                  className="data-[state=checked]:bg-purple-600"
-                />
-              </div>
             </div>
 
             {/* Alertas informativas */}
@@ -236,24 +264,13 @@ export default function AnnouncementForm({ announcement, onSubmit, onCancel, isS
               </Alert>
             )}
 
-            {currentAnnouncement.enviar_chat && (
-              <Alert className="bg-purple-50 border-purple-300">
-                <MessageCircle className="h-4 w-4 text-purple-600" />
-                <AlertDescription className="text-purple-900 text-sm">
-                  <strong>💬 Envío al chat:</strong> El anuncio se publicará automáticamente en el chat del grupo seleccionado para notificación inmediata.
-                  {currentAnnouncement.destinatarios_tipo === "Todos" && (
-                    <span className="block mt-1 font-semibold">
-                      ⚡ Se enviará a TODOS los grupos del club
-                    </span>
-                  )}
-                  {currentAnnouncement.destinatarios_tipo !== "Todos" && (
-                    <span className="block mt-1 font-semibold">
-                      📍 Chat: {currentAnnouncement.destinatarios_tipo}
-                    </span>
-                  )}
-                </AlertDescription>
-              </Alert>
-            )}
+            {/* Info sobre alertas */}
+            <Alert className="bg-green-50 border-green-200">
+              <Bell className="h-4 w-4 text-green-600" />
+              <AlertDescription className="text-green-800 text-sm">
+                <strong>🔔 Aparecerá automáticamente en el Centro de Alertas</strong> de todos los destinatarios hasta que lo lean o expire.
+              </AlertDescription>
+            </Alert>
 
             {/* Botones */}
             <div className="flex justify-end gap-3 pt-4 border-t border-slate-100">

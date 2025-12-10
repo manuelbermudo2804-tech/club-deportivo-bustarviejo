@@ -21,10 +21,13 @@ import {
   Clover,
   Lock,
   Mail,
-  User
+  User,
+  Megaphone
 } from "lucide-react";
 
 import { useState, useEffect } from "react";
+import { base44 } from "@/api/base44Client";
+import { useQuery } from "@tanstack/react-query";
 
 export default function AlertCenter({ 
   pendingCallups = 0,
@@ -52,9 +55,62 @@ export default function AlertCenter({
   isCoach = false,
   isParent = true,
   isTreasurer = false,
-  isCoordinator = false
+  isCoordinator = false,
+  userEmail = null,
+  userSports = []
 }) {
   const alerts = [];
+
+  // Fetch announcements
+  const { data: announcements = [] } = useQuery({
+    queryKey: ['announcements'],
+    queryFn: () => base44.entities.Announcement.list('-fecha_publicacion'),
+    enabled: !!userEmail,
+    refetchInterval: 30000, // Refresh every 30s
+  });
+
+  // Verificar anuncios no leídos
+  const now = new Date();
+  const unreadAnnouncements = announcements.filter(announcement => {
+    if (!announcement.publicado) return false;
+    
+    // Verificar caducidad
+    if (announcement.tipo_caducidad === "horas" && announcement.fecha_caducidad_calculada) {
+      if (now > new Date(announcement.fecha_caducidad_calculada)) return false;
+    } else if (announcement.fecha_expiracion) {
+      if (now > new Date(announcement.fecha_expiracion)) return false;
+    }
+    
+    // Verificar si ya lo leyó
+    const alreadyRead = announcement.leido_por?.some(l => l.email === userEmail);
+    if (alreadyRead) return false;
+    
+    // Verificar destinatarios
+    if (announcement.destinatarios_tipo === "Todos") return true;
+    return userSports.includes(announcement.destinatarios_tipo);
+  });
+
+  // Anuncios no leídos (para todos excepto admin)
+  if (!isAdmin && unreadAnnouncements.length > 0) {
+    unreadAnnouncements.forEach(announcement => {
+      const priorityMap = {
+        "Urgente": { color: "bg-red-500", priority: 1 },
+        "Importante": { color: "bg-orange-500", priority: 2 },
+        "Normal": { color: "bg-blue-500", priority: 3 }
+      };
+      const config = priorityMap[announcement.prioridad] || priorityMap.Normal;
+      
+      alerts.push({
+        id: `announcement-${announcement.id}`,
+        icon: Megaphone,
+        title: `📢 ${announcement.titulo}`,
+        description: announcement.contenido.substring(0, 60) + (announcement.contenido.length > 60 ? '...' : ''),
+        url: createPageUrl("Announcements") + `?id=${announcement.id}`,
+        color: config.color,
+        priority: config.priority
+      });
+    });
+  }
 
   // Alertas para padres
   if (isParent) {

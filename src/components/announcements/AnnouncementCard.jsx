@@ -3,11 +3,11 @@ import { motion } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Edit, Pin, Clock, Trash2 } from "lucide-react";
+import { Edit, Pin, Clock, Trash2, Eye } from "lucide-react";
 import { format, differenceInHours } from "date-fns";
 import { es } from "date-fns/locale";
 
-export default function AnnouncementCard({ announcement, onEdit, onDelete, isAdmin }) {
+export default function AnnouncementCard({ announcement, onEdit, onDelete, isAdmin, onMarkAsRead, userEmail }) {
   const priorityConfig = {
     Urgente: {
       gradient: "from-red-600 to-red-700",
@@ -40,6 +40,15 @@ export default function AnnouncementCard({ announcement, onEdit, onDelete, isAdm
       differenceInHours(new Date(announcement.fecha_expiracion), new Date()) > 0
     : false;
 
+  const isRead = announcement.leido_por?.some(l => l.email === userEmail);
+
+  // Marcar como leído automáticamente cuando se renderiza (si no es admin)
+  React.useEffect(() => {
+    if (!isAdmin && !isRead && userEmail && onMarkAsRead) {
+      onMarkAsRead(announcement);
+    }
+  }, []);
+
   return (
     <motion.div
       layout
@@ -58,9 +67,10 @@ export default function AnnouncementCard({ announcement, onEdit, onDelete, isAdm
           </div>
         )}
 
-        {isNew && (
+        {!isRead && !isAdmin && (
           <div className="absolute top-2 left-2 z-10">
-            <Badge className="bg-green-600 text-white text-xs">
+            <Badge className="bg-green-600 text-white text-xs animate-pulse">
+              <Eye className="w-3 h-3 mr-1" />
               NUEVO
             </Badge>
           </div>

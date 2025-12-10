@@ -16,6 +16,7 @@ export default function Announcements() {
   const [priorityFilter, setPriorityFilter] = useState("all");
   const [isAdmin, setIsAdmin] = useState(false);
   const [isCoach, setIsCoach] = useState(false);
+  const [user, setUser] = useState(null);
   const [userSports, setUserSports] = useState([]);
   
   const queryClient = useQueryClient();
@@ -23,14 +24,15 @@ export default function Announcements() {
   useEffect(() => {
     const checkUser = async () => {
       try {
-        const user = await base44.auth.me();
-        setIsAdmin(user.role === "admin");
-        setIsCoach(user.es_entrenador === true);
+        const currentUser = await base44.auth.me();
+        setUser(currentUser);
+        setIsAdmin(currentUser.role === "admin");
+        setIsCoach(currentUser.es_entrenador === true);
         
-        if (user.role !== "admin") {
+        if (currentUser.role !== "admin") {
           const allPlayers = await base44.entities.Player.list();
           const myPlayers = allPlayers.filter(p => 
-            p.email_padre === user.email || p.email === user.email
+            p.email_padre === currentUser.email || p.email === currentUser.email
           );
           
           if (myPlayers.length > 0) {
@@ -44,6 +46,22 @@ export default function Announcements() {
       }
     };
     checkUser();
+    
+    // Scroll al anuncio si viene desde AlertCenter
+    const urlParams = new URLSearchParams(window.location.search);
+    const announcementId = urlParams.get('id');
+    if (announcementId) {
+      setTimeout(() => {
+        const element = document.getElementById(`announcement-${announcementId}`);
+        if (element) {
+          element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          element.classList.add('ring-4', 'ring-orange-500', 'ring-opacity-50');
+          setTimeout(() => {
+            element.classList.remove('ring-4', 'ring-orange-500', 'ring-opacity-50');
+          }, 3000);
+        }
+      }, 500);
+    }
   }, []);
 
   const { data: announcements, isLoading } = useQuery({
@@ -61,24 +79,27 @@ export default function Announcements() {
 
   const createAnnouncementMutation = useMutation({
     mutationFn: async (announcementData) => {
-      const announcement = await base44.entities.Announcement.create(announcementData);
+      // Calcular fecha de caducidad si es por horas
+      let dataToSave = { ...announcementData };
+      if (announcementData.tipo_caducidad === "horas" && announcementData.duracion_horas) {
+        const publicacionDate = new Date(announcementData.fecha_publicacion);
+        const caducidadDate = new Date(publicacionDate.getTime() + (announcementData.duracion_horas * 60 * 60 * 1000));
+        dataToSave.fecha_caducidad_calculada = caducidadDate.toISOString();
+      }
+      
+      const announcement = await base44.entities.Announcement.create(dataToSave);
       
       if (announcementData.enviar_email && !announcementData.email_enviado) {
         await sendAnnouncementEmails(announcement, announcementData);
-      }
-      
-      if (announcementData.enviar_chat && !announcementData.chat_enviado) {
-        await sendAnnouncementToChats(announcement, announcementData);
       }
       
       return announcement;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['announcements'] });
-      queryClient.invalidateQueries({ queryKey: ['chatMessages'] });
       setShowForm(false);
       setEditingAnnouncement(null);
-      toast.success("Anuncio publicado");
+      toast.success("📢 Anuncio publicado y aparecerá en el Centro de Alertas");
     },
     onError: (error) => {
       console.error("Error creating announcement:", error);
@@ -217,68 +238,28 @@ Ubicación: Bustarviejo, Madrid
     }
   };
 
-  const sendAnnouncementToChats = async (announcement, data) => {
-    try {
-      let targetGroups = [];
+  const markAsReadMutation = useMutation({
+    mutationFn: async (announcement) => {
+      if (!user || isAdmin) return;
       
-      if (data.destinatarios_tipo === "Todos") {
-        const allSports = [...new Set(players.map(p => p.deporte).filter(Boolean))];
-        targetGroups = allSports;
-      } else {
-        targetGroups = [data.destinatarios_tipo];
-      }
-
-      if (targetGroups.length === 0) {
-        toast.warning("No hay grupos disponibles para enviar el mensaje");
-        return;
-      }
-
-      const chatEmoji = {
-        "Urgente": "🚨",
-        "Importante": "⚠️",
-        "Normal": "📢"
-      };
-
-      const mensaje = `${chatEmoji[announcement.prioridad]} ANUNCIO ${announcement.prioridad.toUpperCase()}\n\n📌 ${announcement.titulo}\n\n${announcement.contenido}\n\n${announcement.fecha_expiracion ? `⏰ Válido hasta: ${new Date(announcement.fecha_expiracion).toLocaleDateString('es-ES', { day: 'numeric', month: 'long' })}` : ''}`;
-
-      let sentCount = 0;
-
-      for (const grupo of targetGroups) {
-        try {
-          await base44.entities.ChatMessage.create({
-            remitente_email: "admin@cdbustarviejo.com",
-            remitente_nombre: "Administración CF Bustarviejo",
-            mensaje: mensaje,
-            prioridad: announcement.prioridad,
-            tipo: "admin_a_grupo",
-            deporte: grupo,
-            categoria: "",
-            grupo_id: grupo,
-            leido: false,
-            archivos_adjuntos: []
-          });
-          sentCount++;
-          await new Promise(resolve => setTimeout(resolve, 200));
-        } catch (error) {
-          console.error(`Error sending to chat ${grupo}:`, error);
-        }
-      }
-
-      await base44.entities.Announcement.update(announcement.id, {
-        ...announcement,
-        chat_enviado: true
+      const alreadyRead = announcement.leido_por?.some(l => l.email === user.email);
+      if (alreadyRead) return;
+      
+      const leidoPor = announcement.leido_por || [];
+      leidoPor.push({
+        email: user.email,
+        nombre: user.full_name,
+        fecha: new Date().toISOString()
       });
-
-      if (sentCount > 0) {
-        toast.success(`💬 Anuncio enviado a ${sentCount} chat${sentCount !== 1 ? 's' : ''} de grupo`);
-      } else {
-        toast.error("Error al enviar a los chats");
-      }
-    } catch (error) {
-      console.error("Error sending to chats:", error);
-      toast.error("Error al enviar a los chats");
+      
+      await base44.entities.Announcement.update(announcement.id, {
+        leido_por: leidoPor
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['announcements'] });
     }
-  };
+  });
 
   const handleSubmit = async (announcementData) => {
     if (editingAnnouncement) {
@@ -307,31 +288,12 @@ Ubicación: Bustarviejo, Madrid
         if (!announcement.publicado) return false;
         
         const now = new Date();
-        const publishedDate = new Date(announcement.fecha_publicacion);
         
-        // Calculate milliseconds difference
-        const diffMs = now - publishedDate;
-        const diffHours = diffMs / (1000 * 60 * 60);
-        
-        // Filter by fecha_expiracion if exists
-        if (announcement.fecha_expiracion) {
-          const expirationDate = new Date(announcement.fecha_expiracion);
-          if (now > expirationDate) return false;
-        }
-        
-        // Urgente: solo el mismo día (desaparece después de 24h)
-        if (announcement.prioridad === "Urgente") {
-          if (diffHours >= 24) return false;
-        }
-        
-        // Importante: hasta 48 horas (2 días)
-        if (announcement.prioridad === "Importante") {
-          if (diffHours >= 48) return false;
-        }
-        
-        // Normal: hasta 72 horas (3 días)
-        if (announcement.prioridad === "Normal") {
-          if (diffHours >= 72) return false;
+        // Verificar caducidad según tipo
+        if (announcement.tipo_caducidad === "horas" && announcement.fecha_caducidad_calculada) {
+          if (now > new Date(announcement.fecha_caducidad_calculada)) return false;
+        } else if (announcement.fecha_expiracion) {
+          if (now > new Date(announcement.fecha_expiracion)) return false;
         }
         
         // Check if announcement is relevant to user
@@ -422,13 +384,16 @@ Ubicación: Bustarviejo, Madrid
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
             <AnimatePresence mode="popLayout">
               {sortedAnnouncements.map((announcement) => (
-                <AnnouncementCard
-                  key={announcement.id}
-                  announcement={announcement}
-                  onEdit={handleEdit}
-                  onDelete={(isAdmin || isCoach) ? handleDelete : null}
-                  isAdmin={isAdmin || isCoach}
-                />
+                <div key={announcement.id} id={`announcement-${announcement.id}`}>
+                  <AnnouncementCard
+                    announcement={announcement}
+                    onEdit={handleEdit}
+                    onDelete={(isAdmin || isCoach) ? handleDelete : null}
+                    isAdmin={isAdmin || isCoach}
+                    userEmail={user?.email}
+                    onMarkAsRead={markAsReadMutation.mutate}
+                  />
+                </div>
               ))}
             </AnimatePresence>
           </div>
