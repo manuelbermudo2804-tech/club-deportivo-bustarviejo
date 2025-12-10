@@ -82,11 +82,39 @@ export default function Sponsorships() {
   };
 
   const handleActivate = (sponsor) => {
-    updateMutation.mutate({ 
-      id: sponsor.id, 
-      data: { ...sponsor, estado: "Activo" } 
-    });
-    toast.success(`✅ ${sponsor.nombre} activado - ahora aparecerá en el banner`);
+    // Si el monto es 0, pedir confirmación del monto primero
+    if (!sponsor.monto || sponsor.monto === 0) {
+      const montoInput = prompt(`Introduce el monto pagado por ${sponsor.nombre} (en euros):`);
+      if (!montoInput) return;
+      
+      const monto = parseFloat(montoInput);
+      if (isNaN(monto) || monto <= 0) {
+        toast.error("Monto inválido");
+        return;
+      }
+      
+      updateMutation.mutate({ 
+        id: sponsor.id, 
+        data: { 
+          ...sponsor, 
+          estado: "Activo",
+          monto: monto,
+          fecha_pago: new Date().toISOString().split('T')[0]
+        } 
+      });
+      toast.success(`✅ ${sponsor.nombre} activado con ${monto}€ - aparecerá en banner`);
+    } else {
+      // Si ya tiene monto, solo activar
+      updateMutation.mutate({ 
+        id: sponsor.id, 
+        data: { 
+          ...sponsor, 
+          estado: "Activo",
+          fecha_pago: sponsor.fecha_pago || new Date().toISOString().split('T')[0]
+        } 
+      });
+      toast.success(`✅ ${sponsor.nombre} activado - ahora aparecerá en el banner`);
+    }
   };
 
   const filteredSponsors = sponsors.filter(s => {

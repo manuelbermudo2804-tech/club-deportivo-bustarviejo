@@ -11,10 +11,13 @@ export default function SponsorBanner() {
     queryFn: async () => {
       try {
         const all = await base44.entities.Sponsor.list();
-        return all.filter(s => s.estado === "Activo").sort((a, b) => {
-          const order = { "Principal": 0, "Oro": 1, "Plata": 2, "Bronce": 3, "Colaborador": 4 };
-          return (order[a.nivel_patrocinio] || 5) - (order[b.nivel_patrocinio] || 5);
-        });
+        // SOLO mostrar patrocinadores ACTIVOS con monto > 0 (pagados)
+        return all
+          .filter(s => s.estado === "Activo" && (s.monto || 0) > 0)
+          .sort((a, b) => {
+            const order = { "Principal": 0, "Oro": 1, "Plata": 2, "Bronce": 3, "Colaborador": 4 };
+            return (order[a.nivel_patrocinio] || 5) - (order[b.nivel_patrocinio] || 5);
+          });
       } catch (error) {
         console.error("Error cargando patrocinadores:", error);
         return [];

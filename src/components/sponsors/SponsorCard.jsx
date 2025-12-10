@@ -73,8 +73,15 @@ export default function SponsorCard({ sponsor, onEdit, onDelete, onActivate }) {
           </div>
           <div className="flex gap-1">
             {sponsor.estado === "Pendiente" && onActivate && (
-              <Button size="icon" variant="ghost" onClick={() => onActivate(sponsor)} title="Activar patrocinador">
-                <CheckCircle2 className="w-4 h-4 text-green-600" />
+              <Button 
+                size="sm" 
+                variant="default" 
+                onClick={() => onActivate(sponsor)} 
+                className="bg-green-600 hover:bg-green-700 text-white text-xs"
+                title="Marcar como pagado y activar en banner"
+              >
+                <CheckCircle2 className="w-3 h-3 mr-1" />
+                Confirmar Pago
               </Button>
             )}
             <Button size="icon" variant="ghost" onClick={() => onEdit(sponsor)}>
@@ -89,8 +96,13 @@ export default function SponsorCard({ sponsor, onEdit, onDelete, onActivate }) {
         <div className="grid grid-cols-2 gap-3 text-sm">
           <div className="flex items-center gap-2 text-slate-600">
             <Euro className="w-4 h-4" />
-            <span className="font-bold text-lg text-green-600">{sponsor.monto?.toLocaleString('es-ES')}€</span>
+            <span className={`font-bold text-lg ${sponsor.monto > 0 ? 'text-green-600' : 'text-slate-400'}`}>
+              {sponsor.monto?.toLocaleString('es-ES') || 0}€
+            </span>
             <span className="text-xs text-slate-400">/{sponsor.frecuencia_pago?.toLowerCase()}</span>
+            {sponsor.estado === "Pendiente" && sponsor.monto === 0 && (
+              <Badge className="bg-orange-100 text-orange-700 text-[10px]">Sin pagar</Badge>
+            )}
           </div>
           <div className="flex items-center gap-2 text-slate-600">
             <Calendar className="w-4 h-4" />
