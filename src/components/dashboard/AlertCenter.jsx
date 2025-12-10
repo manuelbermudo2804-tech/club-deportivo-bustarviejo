@@ -284,6 +284,35 @@ export default function AlertCenter({
   // ALERTAS DE MENSAJES ELIMINADAS - Ahora se usan en ChatAlertBanner
   // NO mostrar mensajes de chat aquí para evitar duplicación
 
+  // Fetch eventos para alertas de eventos nuevos
+  const { data: events = [] } = useQuery({
+    queryKey: ['eventsAlerts'],
+    queryFn: () => base44.entities.Event.list('-created_date'),
+    enabled: !!userEmail,
+    refetchInterval: 60000, // Refresh every minute
+  });
+
+  // Eventos nuevos publicados en últimas 48h
+  const twoDaysAgo = new Date();
+  twoDaysAgo.setDate(twoDaysAgo.now - 2);
+  const newEvents = events.filter(e => {
+    if (!e.publicado) return false;
+    const createdDate = new Date(e.created_date);
+    return createdDate > twoDaysAgo;
+  });
+
+  if (newEvents.length > 0) {
+    alerts.push({
+      id: "new-events",
+      icon: Calendar,
+      title: "🎉 Eventos Nuevos Publicados",
+      description: `${newEvents.length} evento${newEvents.length > 1 ? 's' : ''} nuevo${newEvents.length > 1 ? 's' : ''}`,
+      url: createPageUrl("ParentEventRSVP"),
+      color: "bg-indigo-500",
+      priority: 5
+    });
+  }
+
   if (upcomingEvents > 0) {
     alerts.push({
       id: "events",

@@ -64,6 +64,54 @@ export default function EventManagement() {
     initialData: [],
   });
 
+  // Crear plantillas fijas anuales si no existen
+  useEffect(() => {
+    const createDefaultTemplates = async () => {
+      if (!isAdmin || templates.length > 0) return;
+      
+      const defaultTemplates = [
+        { nombre: "INSCRIPCIONES Y PEDIDOS ROPA", titulo: "Apertura Inscripciones y Pedidos Ropa", tipo: "Inscripción", mes: 6, dia: 1, importante: true, color: "green" },
+        { nombre: "FIESTA CLUB", titulo: "Fiesta del Club", tipo: "Fiesta Club", mes: 6, dia: 15, importante: true, color: "purple" },
+        { nombre: "INSCRIPCION EQUIPOS FEDERACION", titulo: "Inscripción Equipos en Federación", tipo: "Gestión Club", mes: 6, dia: 20, importante: true, color: "blue" },
+        { nombre: "PAGO INSCRIPCION", titulo: "Fecha Límite Pago Inscripción", tipo: "Pago", mes: 6, dia: 30, importante: true, color: "red" },
+        { nombre: "PEDIDO DE ROPA", titulo: "Cierre Pedidos de Ropa", tipo: "Pedido Ropa", mes: 7, dia: 7, importante: true, color: "orange" },
+        { nombre: "TRAMITACION FICHAS FEDERATIVAS", titulo: "Tramitación Fichas Federativas", tipo: "Gestión Club", mes: 7, dia: 15, importante: true, color: "blue" },
+        { nombre: "INICIO ENTRENAMIENTOS AFICIONADO Y JUVENIL", titulo: "Inicio Entrenamientos Aficionado y Juvenil", tipo: "Inicio Temporada", mes: 8, dia: 1, importante: true, color: "green" },
+        { nombre: "CHEQUEO INSCRIPCIONES AGOSTO", titulo: "Chequeo Inscripciones y Pedidos Ropa", tipo: "Gestión Club", mes: 8, dia: 7, importante: false, color: "yellow" },
+        { nombre: "INICIO COMPETICION", titulo: "Inicio Competición Aficionados y Entrenamientos Resto", tipo: "Inicio Temporada", mes: 9, dia: 1, importante: true, color: "green" },
+        { nombre: "SEGUNDO PAGO", titulo: "Fecha Límite Segundo Pago", tipo: "Pago", mes: 9, dia: 15, importante: true, color: "red" },
+        { nombre: "CHEQUEO INSCRIPCIONES OCTUBRE", titulo: "Chequeo Inscripciones y Pedidos Ropa", tipo: "Gestión Club", mes: 10, dia: 7, importante: false, color: "yellow" },
+        { nombre: "TERCER PAGO", titulo: "Fecha Límite Tercer Pago", tipo: "Pago", mes: 12, dia: 15, importante: true, color: "red" },
+        { nombre: "FIN COMPETICION", titulo: "Fin de Competición", tipo: "Fin Temporada", mes: 5, dia: 30, importante: true, color: "purple" }
+      ];
+
+      for (const tmpl of defaultTemplates) {
+        await base44.entities.EventTemplate.create({
+          nombre_plantilla: tmpl.nombre,
+          titulo: tmpl.titulo,
+          descripcion: "",
+          tipo: tmpl.tipo,
+          deporte: "Todos",
+          categoria: "Todas",
+          mes_tipico: tmpl.mes,
+          hora: "",
+          ubicacion: "",
+          importante: tmpl.importante,
+          color: tmpl.color,
+          requiere_confirmacion: false,
+          activa: true,
+          es_plantilla_anual: true
+        });
+      }
+      
+      queryClient.invalidateQueries({ queryKey: ['eventTemplates'] });
+    };
+
+    if (isAdmin) {
+      createDefaultTemplates();
+    }
+  }, [isAdmin, templates.length]);
+
   const createEventMutation = useMutation({
     mutationFn: async (eventData) => {
       return await base44.entities.Event.create(eventData);
@@ -399,6 +447,27 @@ export default function EventManagement() {
   const pastEvents = events.filter(e => e.fecha < today && (isAdmin || e.publicado)).sort((a, b) => b.fecha.localeCompare(a.fecha));
   const eventosConRSVP = upcomingEvents.filter(e => e.requiere_confirmacion);
 
+  // Verificar qué plantillas anuales necesitan actualización
+  const currentYear = new Date().getFullYear();
+  const currentMonth = new Date().getMonth() + 1;
+  
+  const templatesNeedingUpdate = templates.filter(tmpl => {
+    if (!tmpl.es_plantilla_anual) return false;
+    
+    // Verificar si ya existe un evento creado este año para esta plantilla
+    const eventThisYear = events.find(e => {
+      const eventYear = new Date(e.fecha).getFullYear();
+      return e.titulo === tmpl.titulo && eventYear === currentYear;
+    });
+    
+    // Si no existe evento para este año Y el mes ya pasó o es el mes actual, necesita actualización
+    if (!eventThisYear && tmpl.mes_tipico <= currentMonth + 1) {
+      return true;
+    }
+    
+    return false;
+  });
+
   const getConfirmationStats = (event) => {
     const confirmaciones = event.confirmaciones || [];
     const asistire = confirmaciones.filter(c => c.confirmacion === "asistire").length;
@@ -446,6 +515,43 @@ export default function EventManagement() {
           Crear Evento
         </Button>
       </div>
+
+      {/* Banner de recordatorio de plantillas anuales */}
+      {templatesNeedingUpdate.length > 0 && (
+        <Card className="border-2 border-orange-400 bg-gradient-to-r from-orange-50 to-red-50 animate-pulse">
+          <CardContent className="pt-6">
+            <div className="flex items-start gap-4">
+              <div className="w-12 h-12 rounded-full bg-orange-100 flex items-center justify-center flex-shrink-0">
+                <AlertTriangle className="w-6 h-6 text-orange-600" />
+              </div>
+              <div className="flex-1">
+                <h3 className="font-bold text-orange-900 text-lg mb-2">
+                  ⚠️ Eventos Anuales Pendientes de Actualizar
+                </h3>
+                <p className="text-sm text-orange-800 mb-3">
+                  Las siguientes plantillas anuales necesitan fechas actualizadas para este año:
+                </p>
+                <div className="grid md:grid-cols-2 gap-2">
+                  {templatesNeedingUpdate.map(tmpl => (
+                    <div key={tmpl.id} className="bg-white rounded-lg p-3 border border-orange-200">
+                      <p className="font-semibold text-slate-900 text-sm">{tmpl.titulo}</p>
+                      <p className="text-xs text-slate-600">Mes típico: {tmpl.mes_tipico}</p>
+                      <Button
+                        size="sm"
+                        onClick={() => handleCreateFromTemplate(tmpl)}
+                        className="mt-2 w-full bg-orange-600 hover:bg-orange-700"
+                      >
+                        <Calendar className="w-3 h-3 mr-1" />
+                        Crear para {currentYear}
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {showForm && (
         <EventForm
