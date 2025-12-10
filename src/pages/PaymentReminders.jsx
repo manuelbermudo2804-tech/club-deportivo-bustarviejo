@@ -1,0 +1,542 @@
+import React, { useState, useMemo } from "react";
+import { base44 } from "@/api/base44Client";
+import { useQuery } from "@tanstack/react-query";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Bell, Send, CheckCircle2, RefreshCw, Mail, MessageCircle, Loader2, Users, Info } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { toast } from "sonner";
+import { getCuotasPorCategoriaSync } from "../components/payments/paymentAmounts";
+
+import SocialLinks from "../components/SocialLinks";
+
+const getCurrentSeason = () => {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = now.getMonth() + 1;
+  return month >= 9 ? `${year}/${year + 1}` : `${year - 1}/${year}`;
+};
+
+export default function PaymentReminders() {
+  const [searchQuery, setSearchQuery] = useState("");
+  const [sendingMassive, setSendingMassive] = useState(false);
+  const [selectedFamilies, setSelectedFamilies] = useState([]);
+
+  const { data: payments = [], refetch: refetchPayments } = useQuery({
+    queryKey: ['payments'],
+    queryFn: () => base44.entities.Payment.list(),
+  });
+
+  const { data: players = [], refetch: refetchPlayers } = useQuery({
+    queryKey: ['players'],
+    queryFn: () => base44.entities.Player.list(),
+  });
+
+  const { data: categoryConfigs = [] } = useQuery({
+    queryKey: ['categoryConfigs'],
+    queryFn: () => base44.entities.CategoryConfig.list(),
+  });
+
+  const handleRefresh = async () => {
+    await refetchPayments();
+    await refetchPlayers();
+    toast.success("Datos actualizados");
+  };
+
+  // Calcular cuotas correctas desde CategoryConfig
+  const getCorrectAmount = (deporte, mes) => {
+    const CATEGORY_NAME_MAPPING = {
+      "Fútbol Aficionado": "AFICIONADO",
+      "Fútbol Juvenil": "JUVENIL",
+      "Fútbol Cadete": "CADETE",
+      "Fútbol Infantil (Mixto)": "INFANTIL",
+      "Fútbol Alevín (Mixto)": "ALEVIN",
+      "Fútbol Benjamín (Mixto)": "BENJAMIN",
+      "Fútbol Pre-Benjamín (Mixto)": "PRE-BENJAMIN",
+      "Fútbol Femenino": "FEMENINO",
+      "Baloncesto (Mixto)": "BALONCESTO"
+    };
+
+    const mappedName = CATEGORY_NAME_MAPPING[deporte] || deporte;
+    const categoryConfig = categoryConfigs.find(c => 
+      (c.nombre === deporte || c.nombre === mappedName) && c.activa
+    );
+
+    if (categoryConfig) {
+      switch(mes) {
+        case "Junio": return categoryConfig.cuota_inscripcion;
+        case "Septiembre": return categoryConfig.cuota_segunda;
+        case "Diciembre": return categoryConfig.cuota_tercera;
+      }
+    }
+    
+    // Fallback
+    const cuotas = getCuotasPorCategoriaSync(deporte);
+    return cuotas.junio || cuotas.septiembre || cuotas.diciembre || 0;
+  };
+
+  // Agrupar por familia (email_padre)
+  const familiesData = useMemo(() => {
+    const currentSeason = getCurrentSeason();
+    const activePlayers = players.filter(p => p.activo === true);
+    const familyMap = {};
+
+    activePlayers.forEach(player => {
+      const familyEmail = player.email_padre;
+      if (!familyEmail) return;
+
+      if (!familyMap[familyEmail]) {
+        familyMap[familyEmail] = {
+          email: familyEmail,
+          nombre_tutor: player.nombre_tutor_legal || "Familia",
+          telefono: player.telefono,
+          email_tutor_2: player.email_tutor_2,
+          jugadores: []
+        };
+      }
+
+      // Calcular estado de pagos del jugador
+      const playerPayments = payments.filter(p => 
+        p.jugador_id === player.id && p.temporada === currentSeason
+      );
+
+      const allMonths = ["Junio", "Septiembre", "Diciembre"];
+      const pendingMonths = [];
+      const totalDue = allMonths.reduce((sum, mes) => {
+        const existingPayment = playerPayments.find(p => p.mes === mes);
+        if (!existingPayment || existingPayment.estado === "Pendiente") {
+          const correctAmount = getCorrectAmount(player.deporte, mes);
+          pendingMonths.push({ mes, cantidad: correctAmount });
+          return sum + correctAmount;
+        }
+        return sum;
+      }, 0);
+
+      familyMap[familyEmail].jugadores.push({
+        id: player.id,
+        nombre: player.nombre,
+        deporte: player.deporte,
+        foto_url: player.foto_url,
+        pendingMonths,
+        totalDue,
+        hasPendingPayments: pendingMonths.length > 0
+      });
+    });
+
+    return Object.values(familyMap)
+      .filter(f => f.jugadores.some(j => j.hasPendingPayments))
+      .map(family => ({
+        ...family,
+        totalFamilyDue: family.jugadores.reduce((sum, j) => sum + j.totalDue, 0),
+        totalPendingPayments: family.jugadores.reduce((sum, j) => sum + j.pendingMonths.length, 0)
+      }))
+      .sort((a, b) => b.totalFamilyDue - a.totalFamilyDue);
+  }, [players, payments, categoryConfigs]);
+
+  const filteredFamilies = familiesData.filter(family =>
+    family.nombre_tutor.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    family.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    family.jugadores.some(j => j.nombre.toLowerCase().includes(searchQuery.toLowerCase()))
+  );
+
+  const sendMassiveReminders = async () => {
+    if (selectedFamilies.length === 0) {
+      toast.error("Selecciona al menos una familia");
+      return;
+    }
+
+    setSendingMassive(true);
+
+    try {
+      let sent = 0;
+      for (const familyEmail of selectedFamilies) {
+        const family = familiesData.find(f => f.email === familyEmail);
+        if (!family) continue;
+
+        // Construir mensaje personalizado por familia
+        let mensaje = `Estimada familia,\n\nLes recordamos que tienen los siguientes pagos pendientes:\n\n`;
+        
+        family.jugadores.forEach(jugador => {
+          if (jugador.hasPendingPayments) {
+            mensaje += `👤 ${jugador.nombre} (${jugador.deporte}):\n`;
+            jugador.pendingMonths.forEach(m => {
+              mensaje += `   • ${m.mes}: ${m.cantidad}€\n`;
+            });
+            mensaje += `\n`;
+          }
+        });
+
+        mensaje += `Total pendiente: ${family.totalFamilyDue}€\n\n`;
+        mensaje += `Por favor, accede a la app y registra los pagos lo antes posible.\n\n`;
+        mensaje += `Atentamente,\nCD Bustarviejo`;
+
+        // Enviar email
+        await base44.integrations.Core.SendEmail({
+          from_name: "CD Bustarviejo",
+          to: family.email,
+          subject: "Recordatorio de Pagos Pendientes - CD Bustarviejo",
+          body: mensaje
+        });
+
+        if (family.email_tutor_2) {
+          await base44.integrations.Core.SendEmail({
+            from_name: "CD Bustarviejo",
+            to: family.email_tutor_2,
+            subject: "Recordatorio de Pagos Pendientes - CD Bustarviejo",
+            body: mensaje
+          });
+        }
+
+        // Enviar a chat privado
+        const chatMessage = `💬 RECORDATORIO DE PAGOS\n\n${mensaje}\n\n🔒 MENSAJE PRIVADO: Solo tu familia ve este mensaje.`;
+        
+        const allConvs = await base44.entities.PrivateConversation.list();
+        let conv = allConvs.find(c => 
+          c.participante_familia_email === family.email &&
+          c.participante_staff_email === 'sistema@cdbustarviejo.com'
+        );
+
+        if (!conv) {
+          conv = await base44.entities.PrivateConversation.create({
+            participante_familia_email: family.email,
+            participante_familia_nombre: family.nombre_tutor,
+            participante_staff_email: "sistema@cdbustarviejo.com",
+            participante_staff_nombre: "🤖 Sistema de Recordatorios - Administración",
+            participante_staff_rol: "admin",
+            categoria: "Todos",
+            jugadores_relacionados: family.jugadores.map(j => ({ jugador_id: j.id, jugador_nombre: j.nombre })),
+            ultimo_mensaje: chatMessage.substring(0, 100),
+            ultimo_mensaje_fecha: new Date().toISOString(),
+            ultimo_mensaje_de: "staff",
+            no_leidos_familia: 0,
+            archivada: false
+          });
+        }
+
+        await base44.entities.PrivateMessage.create({
+          conversacion_id: conv.id,
+          remitente_email: "sistema@cdbustarviejo.com",
+          remitente_nombre: "🤖 Sistema de Recordatorios",
+          remitente_tipo: "staff",
+          mensaje: chatMessage,
+          leido: false
+        });
+
+        await base44.entities.PrivateConversation.update(conv.id, {
+          ultimo_mensaje: chatMessage.substring(0, 100),
+          ultimo_mensaje_fecha: new Date().toISOString(),
+          ultimo_mensaje_de: "staff",
+          no_leidos_familia: (conv.no_leidos_familia || 0) + 1
+        });
+
+        sent++;
+        await new Promise(resolve => setTimeout(resolve, 500)); // Evitar spam
+      }
+
+      toast.success(`✅ ${sent} recordatorios enviados por Email + Chat`);
+      setSelectedFamilies([]);
+    } catch (error) {
+      console.error("Error sending massive reminders:", error);
+      toast.error("Error al enviar recordatorios masivos");
+    }
+
+    setSendingMassive(false);
+  };
+
+  const toggleFamily = (email) => {
+    setSelectedFamilies(prev =>
+      prev.includes(email) ? prev.filter(e => e !== email) : [...prev, email]
+    );
+  };
+
+  const selectAll = () => {
+    if (selectedFamilies.length === filteredFamilies.length) {
+      setSelectedFamilies([]);
+    } else {
+      setSelectedFamilies(filteredFamilies.map(f => f.email));
+    }
+  };
+
+  const totalFamilies = familiesData.length;
+  const totalPendingAmount = familiesData.reduce((sum, f) => sum + f.totalFamilyDue, 0);
+  const totalPendingPayments = familiesData.reduce((sum, f) => sum + f.totalPendingPayments, 0);
+
+  return (
+    <div className="p-3 lg:p-8 space-y-4 lg:space-y-6">
+      <SocialLinks />
+
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3">
+        <div>
+          <h1 className="text-xl lg:text-3xl font-bold text-slate-900">💳 Recordatorios de Pago</h1>
+          <p className="text-xs lg:text-sm text-slate-600 mt-1">Sistema simplificado - Vista por familias</p>
+        </div>
+        <Button onClick={handleRefresh} variant="outline" size="sm">
+          <RefreshCw className="w-4 h-4 mr-2" />
+          Actualizar
+        </Button>
+      </div>
+
+      <Alert className="bg-blue-50 border-blue-300">
+        <Info className="h-4 w-4 text-blue-600" />
+        <AlertDescription className="text-blue-900">
+          <p className="font-bold mb-2">💡 ¿Cómo funciona?</p>
+          <ul className="text-sm space-y-1 list-disc list-inside">
+            <li><strong>Cuotas automáticas:</strong> Se calculan desde "Temporadas y Categorías"</li>
+            <li><strong>Los padres registran sus pagos</strong> en "Mis Pagos"</li>
+            <li><strong>Tú envías recordatorios</strong> a las familias con pagos pendientes</li>
+            <li><strong>Recordatorios individuales:</strong> Botón "Enviar" por familia</li>
+            <li><strong>Recordatorios masivos:</strong> Selecciona varias y pulsa "Enviar Masivo"</li>
+          </ul>
+        </AlertDescription>
+      </Alert>
+
+      {/* Resumen */}
+      <div className="grid grid-cols-3 gap-4">
+        <Card>
+          <CardContent className="p-4">
+            <div className="text-center">
+              <div className="text-3xl font-bold text-red-600">{totalFamilies}</div>
+              <p className="text-xs text-slate-600 mt-1">Familias con pagos pendientes</p>
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4">
+            <div className="text-center">
+              <div className="text-3xl font-bold text-orange-600">{totalPendingPayments}</div>
+              <p className="text-xs text-slate-600 mt-1">Pagos pendientes</p>
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4">
+            <div className="text-center">
+              <div className="text-3xl font-bold text-green-600">{totalPendingAmount.toFixed(0)}€</div>
+              <p className="text-xs text-slate-600 mt-1">Total pendiente</p>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Búsqueda y acciones masivas */}
+      <div className="flex flex-col md:flex-row gap-3">
+        <Input
+          placeholder="Buscar familia o jugador..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="flex-1"
+        />
+        <div className="flex gap-2">
+          <Button
+            onClick={selectAll}
+            variant="outline"
+            size="sm"
+          >
+            <CheckCircle2 className="w-4 h-4 mr-2" />
+            {selectedFamilies.length === filteredFamilies.length ? "Deseleccionar" : "Seleccionar"} todas
+          </Button>
+          <Button
+            onClick={sendMassiveReminders}
+            disabled={selectedFamilies.length === 0 || sendingMassive}
+            className="bg-orange-600 hover:bg-orange-700"
+          >
+            {sendingMassive ? (
+              <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Enviando...</>
+            ) : (
+              <><Send className="w-4 h-4 mr-2" />Enviar Masivo ({selectedFamilies.length})</>
+            )}
+          </Button>
+        </div>
+      </div>
+
+      {selectedFamilies.length > 0 && (
+        <Alert className="bg-orange-50 border-orange-300">
+          <Send className="h-4 w-4 text-orange-600" />
+          <AlertDescription className="text-orange-900">
+            <p className="font-bold">
+              {selectedFamilies.length} familia{selectedFamilies.length > 1 ? 's' : ''} seleccionada{selectedFamilies.length > 1 ? 's' : ''}
+            </p>
+            <p className="text-sm mt-1">
+              Se enviará recordatorio por Email + Chat privado "🔔 Mensajes del Club"
+            </p>
+          </AlertDescription>
+        </Alert>
+      )}
+
+      {/* Lista de familias */}
+      <div className="space-y-3">
+        {filteredFamilies.length === 0 ? (
+          <Card>
+            <CardContent className="p-12 text-center">
+              <CheckCircle2 className="w-16 h-16 text-green-500 mx-auto mb-3" />
+              <p className="text-lg font-semibold text-green-700">¡Todas las familias al día!</p>
+              <p className="text-sm text-slate-600 mt-1">No hay pagos pendientes</p>
+            </CardContent>
+          </Card>
+        ) : (
+          filteredFamilies.map(family => (
+            <Card key={family.email} className="hover:shadow-lg transition-shadow">
+              <CardHeader className="bg-slate-50 border-b">
+                <div className="flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-3 flex-1">
+                    <input
+                      type="checkbox"
+                      checked={selectedFamilies.includes(family.email)}
+                      onChange={() => toggleFamily(family.email)}
+                      className="w-5 h-5 rounded border-slate-300"
+                    />
+                    <div className="flex-1">
+                      <CardTitle className="text-base">{family.nombre_tutor}</CardTitle>
+                      <p className="text-xs text-slate-600">{family.email}</p>
+                      {family.telefono && <p className="text-xs text-slate-500">📱 {family.telefono}</p>}
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <Badge className="bg-red-500 text-white mb-1">
+                      {family.totalPendingPayments} pendientes
+                    </Badge>
+                    <p className="text-lg font-bold text-red-600">{family.totalFamilyDue.toFixed(0)}€</p>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent className="p-4">
+                <div className="space-y-3">
+                  {family.jugadores.map(jugador => (
+                    <div key={jugador.id} className="flex items-start gap-3 p-3 bg-slate-50 rounded-lg">
+                      {jugador.foto_url ? (
+                        <img src={jugador.foto_url} className="w-12 h-12 rounded-full object-cover" alt="" />
+                      ) : (
+                        <div className="w-12 h-12 rounded-full bg-orange-500 flex items-center justify-center text-white font-bold">
+                          {jugador.nombre.charAt(0)}
+                        </div>
+                      )}
+                      <div className="flex-1">
+                        <p className="font-semibold text-slate-900">{jugador.nombre}</p>
+                        <p className="text-xs text-slate-600">{jugador.deporte}</p>
+                        {jugador.hasPendingPayments && (
+                          <div className="mt-2 space-y-1">
+                            {jugador.pendingMonths.map(m => (
+                              <div key={m.mes} className="flex justify-between text-xs">
+                                <span className="text-red-600">• {m.mes}</span>
+                                <span className="font-semibold text-red-700">{m.cantidad}€</span>
+                              </div>
+                            ))}
+                            <div className="pt-1 border-t border-slate-200 flex justify-between text-xs font-bold">
+                              <span className="text-slate-700">Total jugador:</span>
+                              <span className="text-red-700">{jugador.totalDue}€</span>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="mt-4 pt-4 border-t flex justify-between items-center">
+                  <div>
+                    <p className="text-sm font-semibold text-slate-700">Total familia:</p>
+                    <p className="text-2xl font-bold text-red-600">{family.totalFamilyDue.toFixed(0)}€</p>
+                  </div>
+                  <Button
+                    onClick={async () => {
+                      // Enviar recordatorio individual a esta familia
+                      try {
+                        // Construir mensaje
+                        let mensaje = `Estimada familia,\n\nLes recordamos que tienen los siguientes pagos pendientes:\n\n`;
+                        
+                        family.jugadores.forEach(jugador => {
+                          if (jugador.hasPendingPayments) {
+                            mensaje += `👤 ${jugador.nombre} (${jugador.deporte}):\n`;
+                            jugador.pendingMonths.forEach(m => {
+                              mensaje += `   • ${m.mes}: ${m.cantidad}€ (Vence: 30 de ${m.mes})\n`;
+                            });
+                            mensaje += `\n`;
+                          }
+                        });
+
+                        mensaje += `Total pendiente: ${family.totalFamilyDue}€\n\n`;
+                        mensaje += `Por favor, accede a la app y registra los pagos.\n\n`;
+                        mensaje += `Atentamente,\nCD Bustarviejo`;
+
+                        // Email
+                        await base44.integrations.Core.SendEmail({
+                          from_name: "CD Bustarviejo",
+                          to: family.email,
+                          subject: "Recordatorio de Pagos Pendientes - CD Bustarviejo",
+                          body: mensaje
+                        });
+
+                        if (family.email_tutor_2) {
+                          await base44.integrations.Core.SendEmail({
+                            from_name: "CD Bustarviejo",
+                            to: family.email_tutor_2,
+                            subject: "Recordatorio de Pagos Pendientes - CD Bustarviejo",
+                            body: mensaje
+                          });
+                        }
+
+                        // Chat privado
+                        const chatMessage = `💬 RECORDATORIO DE PAGOS\n\n${mensaje}\n\n🔒 MENSAJE PRIVADO: Solo tu familia ve este mensaje.`;
+                        
+                        const allConvs = await base44.entities.PrivateConversation.list();
+                        let conv = allConvs.find(c => 
+                          c.participante_familia_email === family.email &&
+                          c.participante_staff_email === 'sistema@cdbustarviejo.com'
+                        );
+
+                        if (!conv) {
+                          conv = await base44.entities.PrivateConversation.create({
+                            participante_familia_email: family.email,
+                            participante_familia_nombre: family.nombre_tutor,
+                            participante_staff_email: "sistema@cdbustarviejo.com",
+                            participante_staff_nombre: "🤖 Sistema de Recordatorios - Administración",
+                            participante_staff_rol: "admin",
+                            categoria: "Todos",
+                            jugadores_relacionados: family.jugadores.map(j => ({ jugador_id: j.id, jugador_nombre: j.nombre })),
+                            ultimo_mensaje: chatMessage.substring(0, 100),
+                            ultimo_mensaje_fecha: new Date().toISOString(),
+                            ultimo_mensaje_de: "staff",
+                            no_leidos_familia: 0,
+                            archivada: false
+                          });
+                        }
+
+                        await base44.entities.PrivateMessage.create({
+                          conversacion_id: conv.id,
+                          remitente_email: "sistema@cdbustarviejo.com",
+                          remitente_nombre: "🤖 Sistema de Recordatorios",
+                          remitente_tipo: "staff",
+                          mensaje: chatMessage,
+                          leido: false
+                        });
+
+                        await base44.entities.PrivateConversation.update(conv.id, {
+                          ultimo_mensaje: chatMessage.substring(0, 100),
+                          ultimo_mensaje_fecha: new Date().toISOString(),
+                          ultimo_mensaje_de: "staff",
+                          no_leidos_familia: (conv.no_leidos_familia || 0) + 1
+                        });
+
+                        toast.success("✅ Recordatorio enviado por Email + Chat");
+                      } catch (error) {
+                        console.error("Error:", error);
+                        toast.error("Error al enviar recordatorio");
+                      }
+                    }}
+                    size="sm"
+                    className="bg-purple-600 hover:bg-purple-700"
+                  >
+                    <Send className="w-4 h-4 mr-2" />
+                    Enviar Recordatorio
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          ))
+        )}
+      </div>
+    </div>
+  );
+}
