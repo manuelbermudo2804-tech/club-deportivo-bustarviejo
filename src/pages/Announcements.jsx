@@ -93,8 +93,6 @@ export default function Announcements() {
     
     // Ejecutar después de 2 segundos de estar en la página
     const timeout = setTimeout(markAnnouncementsAsRead, 2000);
-    return () => clearTimeout(timeout);
-  }, [queryClient]);
     
     // Scroll al anuncio si viene desde AlertCenter
     const urlParams = new URLSearchParams(window.location.search);
@@ -111,7 +109,9 @@ export default function Announcements() {
         }
       }, 500);
     }
-  }, []);
+    
+    return () => clearTimeout(timeout);
+  }, [queryClient]);
 
   const { data: announcements, isLoading } = useQuery({
     queryKey: ['announcements'],
