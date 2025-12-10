@@ -151,6 +151,10 @@ export default function CallupMap({ ubicacion, enlaceUbicacion, localVisitante }
           style={{ height: "100%", width: "100%", zIndex: 0 }}
           zoomControl={false}
           attributionControl={false}
+          dragging={false}
+          scrollWheelZoom={false}
+          doubleClickZoom={false}
+          touchZoom={false}
         >
           <TileLayer
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
