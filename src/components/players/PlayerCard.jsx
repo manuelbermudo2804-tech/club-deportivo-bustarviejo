@@ -516,12 +516,11 @@ export default function PlayerCard({ player, onEdit, onViewProfile, isParent = f
                       className={`flex-1 flex items-center justify-center text-[10px] font-bold transition-all ${
                         isPaid ? 'bg-green-500 text-white' : 
                         isReview ? 'bg-orange-400 text-white animate-pulse' : 
-                        isPending ? 'bg-yellow-400 text-yellow-900' :
-                        noPayment ? 'bg-slate-300 text-slate-600' :
+                        isPending || noPayment ? 'bg-red-400 text-white' :
                         'bg-red-400 text-white'
                       }`}
                     >
-                      {mes} {isPaid ? '✓' : isReview ? '⏳' : isPending ? '○' : noPayment ? '-' : '✗'}
+                      {mes} {isPaid ? '✓' : isReview ? '⏳' : (isPending || noPayment) ? '✗' : '✗'}
                     </div>
                   );
                 })}
