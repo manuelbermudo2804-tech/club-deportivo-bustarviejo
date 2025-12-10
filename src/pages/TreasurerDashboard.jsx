@@ -29,6 +29,7 @@ import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { jsPDF } from "jspdf";
 import { toast } from "sonner";
+import { getCuotasPorCategoriaSync } from "../components/payments/paymentAmounts";
 
 import BudgetManager from "../components/financial/BudgetManager";
 import TransactionForm from "../components/financial/TransactionForm";
@@ -258,6 +259,17 @@ export default function TreasurerDashboard() {
     if (selectedSeason === "all") return activeMembers;
     return activeMembers.filter(m => m.temporada === selectedSeason);
   }, [clubMembers, selectedSeason]);
+
+  // Normalizar temporada
+  const normalizeTemporada = (temporada) => {
+    if (!temporada) return "";
+    return temporada.replace(/-/g, "/");
+  };
+
+  const matchTemporada = (paymentTemp, filterTemp) => {
+    if (filterTemp === "all") return true;
+    return normalizeTemporada(paymentTemp) === normalizeTemporada(filterTemp);
+  };
 
   // Calculate financial stats
   const stats = useMemo(() => {
