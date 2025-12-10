@@ -854,7 +854,71 @@ Temporada ${reminder.temporada}
       sentMethods.push('Chat Privado Individual (solo visible para la familia)');
       }
 
-  const sendTodayReminders = async () => {
+      // NOTIFICACIÓN VISUAL EN LA APP
+      if (animation) {
+      // Obtener todos los pagos pendientes del jugador para mostrar en el banner
+      const pendingPayments = allPlayerPayments.filter(p => p.estado === "Pendiente" || p.estado === "En revisión");
+
+      const cuotasPendientes = pendingPayments.map(p => ({
+        mes: p.mes,
+        cantidad: p.cantidad
+      }));
+
+      const totalPendiente = pendingPayments.reduce((sum, p) => sum + (p.cantidad || 0), 0);
+
+      const notificationMessage = data.reminderType === "all_unpaid"
+        ? `No has registrado ningún pago para la temporada ${payment.temporada}. Por favor, registra los pagos lo antes posible.`
+        : pendingPayments.length === 1
+          ? `Debes realizar el pago lo antes posible.`
+          : `Debes realizar los pagos lo antes posible.`;
+
+      // Crear notificación para padre
+      if (player.email_padre) {
+        await base44.entities.AppNotification.create({
+          usuario_email: player.email_padre,
+          titulo: `🔔 PAGO URGENTE - ${player.nombre}`,
+          mensaje: notificationMessage,
+          tipo: "urgente",
+          icono: "🔔",
+          vista: false,
+          metadata: {
+            cuotas_pendientes: cuotasPendientes,
+            total_pendiente: totalPendiente,
+            jugador_nombre: player.nombre,
+            temporada: payment.temporada
+          }
+        });
+      }
+
+      // Crear notificación para tutor 2
+      if (player.email_tutor_2) {
+        await base44.entities.AppNotification.create({
+          usuario_email: player.email_tutor_2,
+          titulo: `🔔 PAGO URGENTE - ${player.nombre}`,
+          mensaje: notificationMessage,
+          tipo: "urgente",
+          icono: "🔔",
+          vista: false,
+          metadata: {
+            cuotas_pendientes: cuotasPendientes,
+            total_pendiente: totalPendiente,
+            jugador_nombre: player.nombre,
+            temporada: payment.temporada
+          }
+        });
+      }
+
+      sentMethods.push('Notificación Visual en App');
+      }
+
+      toast.success(`✅ Recordatorio enviado por: ${sentMethods.join(', ')}`);
+      } catch (error) {
+      console.error("Error sending individual reminder:", error);
+      throw error;
+      }
+      };
+
+      const sendTodayReminders = async () => {
     const today = new Date().toISOString().split('T')[0];
     const todayReminders = reminders.filter(r => 
       r.fecha_envio === today && 
