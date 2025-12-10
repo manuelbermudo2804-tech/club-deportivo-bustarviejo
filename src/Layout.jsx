@@ -504,7 +504,6 @@ export default function Layout({ children, currentPageName }) {
   const [hasPlayers, setHasPlayers] = useState(false);
 
   const [pendingCallupsCount, setPendingCallupsCount] = useState(0);
-  const [pendingDocumentsCount, setPendingDocumentsCount] = useState(0);
   const [pendingSignaturesCount, setPendingSignaturesCount] = useState(0);
   const [pendingCallupResponses, setPendingCallupResponses] = useState(0); // Para entrenadores: respuestas sin confirmar
 
