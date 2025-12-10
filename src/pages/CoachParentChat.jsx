@@ -14,6 +14,7 @@ import { toast } from "sonner";
 import SocialLinks from "../components/SocialLinks";
 import ChatInputActions from "../components/chat/ChatInputActions";
 import PollMessage from "../components/chat/PollMessage";
+import CoachChatHorarioConfig from "../components/coach/CoachChatHorarioConfig";
 
 const QUICK_REPLIES = [
   "✅ Perfecto, gracias",
@@ -42,6 +43,7 @@ export default function CoachParentChat() {
   const [showPollDialog, setShowPollDialog] = useState(false);
   const [pollQuestion, setPollQuestion] = useState("");
   const [pollOptions, setPollOptions] = useState(["", ""]);
+  const [showSettings, setShowSettings] = useState(false);
   const messagesEndRef = useRef(null);
   const fileInputRef = useRef(null);
   const cameraInputRef = useRef(null);
@@ -350,11 +352,49 @@ export default function CoachParentChat() {
     [p.email_padre, p.email_tutor_2].filter(Boolean)
   ))];
 
+  // Cargar configuración de horarios del entrenador
+  const { data: coachSettings } = useQuery({
+    queryKey: ['coachSettings', user?.email],
+    queryFn: async () => {
+      const allSettings = await base44.entities.CoachSettings.list();
+      return allSettings.find(s => s.entrenador_email === user?.email);
+    },
+    enabled: !!user?.email
+  });
+
+  // Verificar si estamos dentro del horario laboral
+  const isDentroHorario = () => {
+    if (!coachSettings?.horario_laboral_activo) return true;
+
+    const now = new Date();
+    const currentDay = now.toLocaleDateString('es-ES', { weekday: 'long' });
+    const dayCapitalized = currentDay.charAt(0).toUpperCase() + currentDay.slice(1);
+    
+    const isDayAllowed = coachSettings.dias_laborales?.includes(dayCapitalized);
+    if (!isDayAllowed) return false;
+
+    const currentTime = now.getHours() * 60 + now.getMinutes();
+    const [startHour, startMin] = (coachSettings.horario_inicio || "09:00").split(':').map(Number);
+    const [endHour, endMin] = (coachSettings.horario_fin || "20:00").split(':').map(Number);
+    const startTime = startHour * 60 + startMin;
+    const endTime = endHour * 60 + endMin;
+
+    return currentTime >= startTime && currentTime <= endTime;
+  };
+
+  const fueraDeHorario = !isDentroHorario();
+
   return (
     <div className="h-[calc(100vh-100px)] lg:p-4 lg:max-w-6xl lg:mx-auto lg:h-[calc(100vh-110px)] space-y-2">
       <div className="hidden lg:block">
         <SocialLinks />
       </div>
+
+      {/* Configuración de Horarios */}
+      {showSettings && (
+        <CoachChatHorarioConfig user={user} />
+      )}
+
       <Card className="border-blue-200 shadow-lg h-full flex flex-col overflow-hidden lg:rounded-lg rounded-none">
         <CardHeader className="bg-gradient-to-r from-green-600 to-green-700 text-white p-2 sm:p-6 flex-shrink-0">
           <div className="flex items-center justify-between">
@@ -366,6 +406,15 @@ export default function CoachParentChat() {
               <p className="text-xs sm:text-sm text-green-100 hidden sm:block">Comunicación con los padres de tu categoría</p>
             </div>
             <div className="flex gap-1">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowSettings(!showSettings)}
+                className="text-white hover:bg-white/20"
+                title="Configurar horarios"
+              >
+                <BarChart3 className="w-4 h-4" />
+              </Button>
               <Button
                 variant="ghost"
                 size="sm"
@@ -457,6 +506,18 @@ export default function CoachParentChat() {
             {categories.map(cat => (
               <TabsContent key={cat} value={cat} className="flex-1 p-0 m-0 flex flex-col overflow-hidden min-h-0 data-[state=active]:flex" style={{ display: selectedCategory === cat ? 'flex' : 'none' }}>
                 <div className="flex-1 overflow-y-auto p-2 sm:p-4 space-y-2 bg-slate-50">
+                  {/* Banner de Horario Laboral */}
+                  {fueraDeHorario && (
+                    <div className="bg-yellow-50 border-2 border-yellow-300 rounded-lg p-3 mb-3">
+                      <p className="text-sm font-bold text-yellow-900 mb-1">⏰ Fuera de Horario</p>
+                      <p className="text-xs text-yellow-800">
+                        {coachSettings?.mensaje_fuera_horario || "Estoy fuera de mi horario de atención. Te responderé lo antes posible."}
+                      </p>
+                      <p className="text-xs text-yellow-700 mt-1">
+                        📅 Horario: {coachSettings?.horario_inicio} - {coachSettings?.horario_fin} ({coachSettings?.dias_laborales?.join(", ")})
+                      </p>
+                    </div>
+                  )}
                   {/* Mensajes anclados */}
                   {filteredMessages.filter(m => m.anclado).map(msg => (
                     <div key={`pinned-${msg.id}`} className="bg-yellow-50 border-2 border-yellow-300 rounded-lg p-3 mb-2">
