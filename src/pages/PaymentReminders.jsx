@@ -26,7 +26,10 @@ export default function PaymentReminders() {
 
   const { data: payments = [], refetch: refetchPayments } = useQuery({
     queryKey: ['payments'],
-    queryFn: () => base44.entities.Payment.list(),
+    queryFn: async () => {
+      const allPayments = await base44.entities.Payment.list();
+      return allPayments.filter(p => p.is_deleted !== true);
+    },
   });
 
   const { data: players = [], refetch: refetchPlayers } = useQuery({
