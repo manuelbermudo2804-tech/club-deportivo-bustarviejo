@@ -187,11 +187,11 @@ export default function ChatTermsDialog({ open, onAccept, onDecline, user, tipoC
           </DialogDescription>
         </DialogHeader>
 
-        <ScrollArea className="flex-1 border rounded-lg p-4 bg-slate-50 max-h-[400px]">
+        <div className="flex-1 border rounded-lg p-4 bg-slate-50 max-h-[400px] overflow-y-auto overscroll-contain">
           <div className="text-xs text-slate-800 whitespace-pre-wrap leading-relaxed">
             {CONDICIONES_TEXTO}
           </div>
-        </ScrollArea>
+        </div>
 
         <div className="space-y-4">
           <div className="flex items-start gap-2">
