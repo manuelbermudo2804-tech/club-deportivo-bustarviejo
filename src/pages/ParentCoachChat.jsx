@@ -7,10 +7,12 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Send, Paperclip, X, FileText, Download, MessageCircle, Users, Mic, Square, Play, Search, Smile } from "lucide-react";
+import { Send, Paperclip, X, FileText, Download, MessageCircle, Users, Mic, Square, Play, Search, Smile, AlertTriangle } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { toast } from "sonner";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Textarea as DialogTextarea } from "@/components/ui/textarea";
 import ChatInputActions from "../components/chat/ChatInputActions";
 import SocialLinks from "../components/SocialLinks";
 
@@ -27,6 +29,9 @@ export default function ParentCoachChat() {
   const [audioBlob, setAudioBlob] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [showSearch, setShowSearch] = useState(false);
+  const [showReportDialog, setShowReportDialog] = useState(false);
+  const [reportReason, setReportReason] = useState("");
+  const [currentConversation, setCurrentConversation] = useState(null);
   const messagesEndRef = useRef(null);
   const fileInputRef = useRef(null);
   const mediaRecorderRef = useRef(null);
@@ -74,6 +79,45 @@ export default function ParentCoachChat() {
     },
     refetchInterval: 3000,
     enabled: !!selectedCategory && !!user,
+  });
+
+  // Obtener conversación privada con el entrenador
+  const { data: coachConversations = [] } = useQuery({
+    queryKey: ['myCoachConversations', user?.email, selectedCategory],
+    queryFn: async () => {
+      if (!user?.email || !selectedCategory) return [];
+      const convs = await base44.entities.CoachConversation.filter({ 
+        padre_email: user.email,
+        categoria: selectedCategory
+      });
+      return convs;
+    },
+    enabled: !!user?.email && !!selectedCategory,
+  });
+
+  useEffect(() => {
+    if (coachConversations.length > 0) {
+      setCurrentConversation(coachConversations[0]);
+    }
+  }, [coachConversations]);
+
+  const reportConversationMutation = useMutation({
+    mutationFn: async () => {
+      if (!currentConversation) return;
+      await base44.entities.CoachConversation.update(currentConversation.id, {
+        reportada_admin: true,
+        reportada_por: user.email,
+        reportada_nombre: user.full_name,
+        fecha_reporte: new Date().toISOString(),
+        motivo_reporte: reportReason
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['myCoachConversations'] });
+      setShowReportDialog(false);
+      setReportReason("");
+      toast.success("✅ Conversación reportada. El administrador la revisará pronto.");
+    },
   });
 
   // Filtrar mensajes por búsqueda
@@ -299,6 +343,11 @@ export default function ParentCoachChat() {
               <CardTitle className="flex items-center gap-2 text-sm sm:text-xl">
                 <MessageCircle className="w-4 h-4 sm:w-6 sm:h-6" />
                 Chat Entrenador
+                {currentConversation?.reportada_admin && (
+                  <Badge className="bg-red-500 text-white text-xs ml-2">
+                    🔴 Bajo revisión
+                  </Badge>
+                )}
               </CardTitle>
             </div>
             <div className="flex gap-1">
@@ -320,6 +369,17 @@ export default function ParentCoachChat() {
                 <span className="hidden sm:inline">{parentEmails.length} familias</span>
                 <span className="sm:hidden">{parentEmails.length}</span>
               </Button>
+              {currentConversation && !currentConversation.reportada_admin && (
+                <Button 
+                  variant="ghost" 
+                  size="sm"
+                  onClick={() => setShowReportDialog(true)}
+                  className="text-white hover:bg-white/20"
+                  title="Reportar conversación al administrador"
+                >
+                  <AlertTriangle className="w-4 h-4" />
+                </Button>
+              )}
             </div>
           </div>
           {showSearch && (
@@ -346,6 +406,17 @@ export default function ParentCoachChat() {
             
             {categories.map(cat => (
               <TabsContent key={cat} value={cat} className="flex-1 p-0 m-0 flex flex-col overflow-hidden min-h-0 data-[state=active]:flex" style={{ display: selectedCategory === cat ? 'flex' : 'none' }}>
+                {currentConversation?.reportada_admin && selectedCategory === cat && (
+                  <Alert className="m-2 bg-red-50 border-red-300 flex-shrink-0">
+                    <AlertTriangle className="w-4 h-4 text-red-600" />
+                    <AlertDescription className="text-red-800 text-xs">
+                      <strong>🔴 Esta conversación está bajo revisión administrativa</strong>
+                      <br />
+                      Reportado el {format(new Date(currentConversation.fecha_reporte), "d 'de' MMM", { locale: es })}
+                      {currentConversation.motivo_reporte && <><br />Motivo: {currentConversation.motivo_reporte}</>}
+                    </AlertDescription>
+                  </Alert>
+                )}
                 <div className="flex-1 overflow-y-auto p-2 sm:p-4 space-y-2 bg-slate-50">
                   {filteredMessages.length === 0 ? (
                     <div className="text-center py-8">
@@ -549,6 +620,65 @@ export default function ParentCoachChat() {
               </div>
             </div>
           </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog: Reportar Conversación */}
+      <Dialog open={showReportDialog} onOpenChange={setShowReportDialog}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-orange-700">
+              <AlertTriangle className="w-5 h-5" />
+              ⚠️ Reportar Conversación con Entrenador
+            </DialogTitle>
+            <DialogDescription className="text-slate-600">
+              Solo usa esto si hay un problema serio que requiera supervisión del administrador
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 py-4">
+            <Alert className="bg-red-50 border-red-300">
+              <AlertTriangle className="w-4 h-4 text-red-600" />
+              <AlertDescription className="text-red-800 ml-2 text-sm">
+                <strong>Al reportar:</strong> El administrador podrá ver esta conversación completa con el entrenador de <strong>{selectedCategory}</strong> para resolver el problema.
+              </AlertDescription>
+            </Alert>
+
+            <div className="bg-slate-50 rounded-lg p-3 space-y-2">
+              <p className="text-sm font-medium text-slate-700">✋ Solo reporta si hay:</p>
+              <ul className="text-xs text-slate-600 space-y-1 ml-4">
+                <li>• Conflicto serio con el entrenador</li>
+                <li>• Falta de comunicación importante</li>
+                <li>• Cualquier problema que requiera intervención administrativa</li>
+              </ul>
+            </div>
+
+            <div>
+              <label className="text-sm font-medium text-slate-700 mb-2 block">
+                Describe brevemente el problema (opcional):
+              </label>
+              <DialogTextarea
+                placeholder="Ej: No responde a mis mensajes sobre la lesión de mi hijo..."
+                value={reportReason}
+                onChange={(e) => setReportReason(e.target.value)}
+                rows={3}
+                className="text-sm"
+              />
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowReportDialog(false)}>
+              Cancelar
+            </Button>
+            <Button 
+              onClick={() => reportConversationMutation.mutate()}
+              className="bg-orange-600 hover:bg-orange-700"
+              disabled={!currentConversation}
+            >
+              ⚠️ Sí, reportar conversación
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>

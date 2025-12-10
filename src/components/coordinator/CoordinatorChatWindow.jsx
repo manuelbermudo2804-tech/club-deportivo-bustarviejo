@@ -7,7 +7,8 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Send, Paperclip, X, FileText, Download, Mic, Play, Pause, Search, Star, Tag, Smile, ThumbsUp, Heart, CheckCircle, Image as ImageIcon, MessageCircle, Camera, BarChart3, Check, CheckCheck, Folder, MapPin, Reply, Edit, Trash2, Forward } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Send, Paperclip, X, FileText, Download, Mic, Play, Pause, Search, Star, Tag, Smile, ThumbsUp, Heart, CheckCircle, Image as ImageIcon, MessageCircle, Camera, BarChart3, Check, CheckCheck, Folder, MapPin, Reply, Edit, Trash2, Forward, AlertTriangle } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { toast } from "sonner";
@@ -557,10 +558,22 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
 
       {/* Header */}
       <div className="p-2 sm:p-4 bg-white border-b flex-shrink-0">
+        {conversation.reportada_admin && (
+          <Alert className="mb-3 bg-red-50 border-red-300">
+            <AlertTriangle className="w-4 h-4 text-red-600" />
+            <AlertDescription className="text-red-800 text-xs ml-2">
+              <strong>🔴 Conversación bajo revisión administrativa</strong>
+              <br />
+              Reportada por {conversation.reportada_nombre} el {format(new Date(conversation.fecha_reporte), "d 'de' MMM", { locale: es })}
+              {conversation.motivo_reporte && <><br />💬 Motivo: {conversation.motivo_reporte}</>}
+            </AlertDescription>
+          </Alert>
+        )}
         <div className="flex items-center justify-between mb-3">
           <div className="flex-1">
             <div className="flex items-center gap-2">
               <h2 className="font-bold text-slate-900">{conversation.padre_nombre}</h2>
+              {conversation.reportada_admin && <Badge className="bg-red-500 text-white text-xs">🔴 Reportada</Badge>}
               {conversation.prioritaria && <Star className="w-4 h-4 text-orange-500 fill-orange-500" />}
               {conversation.etiqueta && (
                 <Badge variant="outline" className="text-xs">{conversation.etiqueta}</Badge>
