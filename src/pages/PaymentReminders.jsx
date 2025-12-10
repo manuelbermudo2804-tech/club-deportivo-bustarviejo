@@ -118,37 +118,52 @@ export default function PaymentReminders() {
         (p.estado === "Pagado" || p.estado === "En revisión")
       );
 
-      // Si tiene pago único pagado, solo considerar Junio
-      const allMonths = hasPagoUnico ? ["Junio"] : ["Junio", "Septiembre", "Diciembre"];
+      // Si tiene pago único pagado, NO hay cuotas pendientes
+      if (hasPagoUnico) {
+        // Pago único ya cubierto, 0 pendientes
+        familyMap[familyEmail].jugadores.push({
+          id: player.id,
+          nombre: player.nombre,
+          deporte: player.deporte,
+          foto_url: player.foto_url,
+          pendingMonths: [],
+          totalDue: 0,
+          hasPendingPayments: false
+        });
+        return; // Continuar con siguiente jugador
+      }
+
+      // Si NO tiene pago único, verificar los 3 meses
+      const allMonths = ["Junio", "Septiembre", "Diciembre"];
       const pendingMonths = [];
-      const totalDue = allMonths.reduce((sum, mes) => {
-        // Buscar si hay un pago PAGADO para este mes
-        const pagoPagado = playerPayments.find(p => 
-          p.mes === mes && p.estado === "Pagado"
+      
+      allMonths.forEach(mes => {
+        // Buscar si hay un pago PAGADO o EN REVISIÓN para este mes
+        const pagoPagadoORevision = playerPayments.find(p => 
+          p.mes === mes && (p.estado === "Pagado" || p.estado === "En revisión")
         );
         
-        // Si ya está pagado, NO incluir como pendiente
-        if (pagoPagado) return sum;
+        // Si ya está pagado o en revisión, NO incluir como pendiente
+        if (pagoPagadoORevision) return;
 
-        // Buscar si hay un pago pendiente o en revisión
+        // Si NO está pagado ni en revisión, incluir como pendiente
         const existingPendingPayment = playerPayments.find(p => 
-          p.mes === mes && (p.estado === "Pendiente" || p.estado === "En revisión")
+          p.mes === mes && p.estado === "Pendiente"
         );
         
-        // Si existe y está pendiente/revisión, usar su cantidad
-        if (existingPendingPayment) {
-          pendingMonths.push({ 
-            mes, 
-            cantidad: existingPendingPayment.cantidad,
-            payment_id: existingPendingPayment.id 
-          });
-          return sum + existingPendingPayment.cantidad;
-        }
+        const cantidad = existingPendingPayment 
+          ? existingPendingPayment.cantidad 
+          : getCorrectAmount(player.deporte, mes);
+        
+        pendingMonths.push({ 
+          mes, 
+          cantidad,
+          payment_id: existingPendingPayment?.id || null,
+          isVirtual: !existingPendingPayment
+        });
+      });
 
-        // Si NO existe ningún pago para este mes, NO crear virtual
-        // (los pagos se crean cuando el padre los registra)
-        return sum;
-      }, 0);
+      const totalDue = pendingMonths.reduce((sum, m) => sum + m.cantidad, 0);
 
       familyMap[familyEmail].jugadores.push({
         id: player.id,
