@@ -10,6 +10,7 @@ import { es } from "date-fns/locale";
 import { toast } from "sonner";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import ChatInputActions from "../components/chat/ChatInputActions";
+import SocialLinks from "../components/SocialLinks";
 
 export default function ParentCoordinatorChat() {
   const [user, setUser] = useState(null);
@@ -95,29 +96,40 @@ export default function ParentCoordinatorChat() {
     }
   }, [messages, coordinatorTyping]);
 
-  // Marcar como leído cuando abre el chat
+  // Marcar como leído INMEDIATAMENTE cuando abre el chat
   useEffect(() => {
-    if (!conversation) return;
+    if (!conversation || !messages || messages.length === 0) return;
 
     const markAsRead = async () => {
+      const unreadMessages = messages.filter(m => m.autor === "coordinador" && !m.leido_padre);
+      
+      if (unreadMessages.length === 0 && conversation.no_leidos_padre === 0) return;
+
+      // Marcar mensajes INMEDIATAMENTE
+      for (const msg of unreadMessages) {
+        await base44.entities.CoordinatorMessage.update(msg.id, {
+          leido_padre: true,
+          fecha_leido_padre: new Date().toISOString()
+        });
+      }
+
+      // Actualizar conversación INMEDIATAMENTE
       if (conversation.no_leidos_padre > 0) {
         await base44.entities.CoordinatorConversation.update(conversation.id, {
           no_leidos_padre: 0
         });
-
-        const unreadMessages = messages.filter(m => m.autor === "coordinador" && !m.leido_padre);
-        for (const msg of unreadMessages) {
-          await base44.entities.CoordinatorMessage.update(msg.id, {
-            leido_padre: true,
-            fecha_leido_padre: new Date().toISOString()
-          });
-        }
-
-        queryClient.invalidateQueries({ queryKey: ['parentCoordinatorMessages', conversation.id] });
       }
+
+      // Refetch INMEDIATO de todas las queries relacionadas
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ['parentCoordinatorMessages'] }),
+        queryClient.invalidateQueries({ queryKey: ['coordinatorConversations'] }),
+        queryClient.refetchQueries({ queryKey: ['parentCoordinatorMessages'] }),
+        queryClient.refetchQueries({ queryKey: ['coordinatorConversations'] })
+      ]);
     };
     markAsRead();
-  }, [conversation, messages]);
+  }, [conversation?.id, messages.length, queryClient]);
 
   const handleFileUpload = async (e) => {
     const files = Array.from(e.target.files);
@@ -221,7 +233,10 @@ export default function ParentCoordinatorChat() {
   }
 
   return (
-    <div className="h-[calc(100vh-100px)] lg:p-4 lg:max-w-4xl lg:mx-auto lg:h-[calc(100vh-110px)]">
+    <div className="h-[calc(100vh-100px)] lg:p-4 lg:max-w-4xl lg:mx-auto lg:h-[calc(100vh-110px)] space-y-2">
+      <div className="hidden lg:block">
+        <SocialLinks />
+      </div>
       <Card className="border-cyan-200 shadow-lg h-full flex flex-col overflow-hidden lg:rounded-lg rounded-none">
         <CardHeader className="bg-gradient-to-r from-cyan-600 to-cyan-700 text-white p-2 sm:p-6">
           <div className="flex items-center justify-between">
