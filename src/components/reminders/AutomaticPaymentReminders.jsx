@@ -7,11 +7,17 @@ export default function AutomaticPaymentReminders({ user }) {
   const [processing, setProcessing] = useState(false);
 
   useEffect(() => {
-    if (!user || processing) return;
+    if (!user) return;
     
     // Solo ejecutar para admins o tesoreros
     const isAuthorized = user.role === "admin" || user.es_tesorero === true;
     if (!isAuthorized) return;
+
+    // SOLO permitir ejecución si no está procesando (evitar múltiples ejecuciones)
+    if (processing) {
+      console.log("⏸️ [AutomaticPaymentReminders] Ya se está procesando, ignorando...");
+      return;
+    }
 
     const checkAndSendReminders = async () => {
       try {
@@ -72,7 +78,7 @@ export default function AutomaticPaymentReminders({ user }) {
         
         setProcessing(true);
         
-        // Verificar si ya se enviaron recordatorios de este tipo hoy
+        // VERIFICAR SI YA SE ENVIARON RECORDATORIOS HOY (más estricto)
         const existingReminders = await base44.entities.AutomaticReminder.list();
         const alreadySentToday = existingReminders.filter(r => 
           r.temporada === currentSeason &&
@@ -83,10 +89,22 @@ export default function AutomaticPaymentReminders({ user }) {
         );
         
         if (alreadySentToday.length > 0) {
-          console.log(`✅ [AutomaticPaymentReminders] Ya se enviaron ${alreadySentToday.length} recordatorios hoy`);
+          console.log(`✅ [AutomaticPaymentReminders] Ya se enviaron ${alreadySentToday.length} recordatorios hoy - ABORTANDO`);
           setProcessing(false);
           return;
         }
+        
+        // LOCK global para evitar ejecuciones simultáneas
+        const lockKey = `payment_reminder_lock_${currentSeason}_${mesRecordatorio}_${tipoRecordatorio}`;
+        const existingLock = sessionStorage.getItem(lockKey);
+        if (existingLock) {
+          console.log(`🔒 [AutomaticPaymentReminders] Ya hay un proceso en ejecución - ABORTANDO`);
+          setProcessing(false);
+          return;
+        }
+        
+        // Establecer lock
+        sessionStorage.setItem(lockKey, 'true');
         
         // Obtener datos
         const [allPlayers, allPayments, categoryConfigs] = await Promise.all([
@@ -296,20 +314,25 @@ export default function AutomaticPaymentReminders({ user }) {
         }
         
         console.log(`✅ [AutomaticPaymentReminders] Proceso completado: ${sent} recordatorios enviados`);
+        
+        // Liberar lock
+        const lockKey = `payment_reminder_lock_${currentSeason}_${mesRecordatorio}_${tipoRecordatorio}`;
+        sessionStorage.removeItem(lockKey);
         setProcessing(false);
         
       } catch (error) {
         console.error("❌ [AutomaticPaymentReminders] Error general:", error);
+        // Liberar lock en caso de error
+        const lockKey = `payment_reminder_lock_${currentSeason}_${mesRecordatorio}_${tipoRecordatorio}`;
+        sessionStorage.removeItem(lockKey);
         setProcessing(false);
       }
     };
     
-    // Ejecutar al montar y luego cada hora
+    // EJECUTAR SOLO UNA VEZ al montar (sin interval para evitar duplicados)
     checkAndSendReminders();
-    const interval = setInterval(checkAndSendReminders, 60 * 60 * 1000); // 1 hora
     
-    return () => clearInterval(interval);
-  }, [user, processing]);
+  }, [user]);
 
   return null; // Componente invisible
 }
