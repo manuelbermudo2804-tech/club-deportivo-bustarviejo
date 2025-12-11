@@ -6,7 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Send, X, FileText, Download, CheckCircle, AlertTriangle, Shield, Paperclip, Edit } from "lucide-react";
+import { Send, X, FileText, Download, CheckCircle, AlertTriangle, Shield, Paperclip, Edit, MessageCircle } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { toast } from "sonner";
@@ -20,6 +20,7 @@ export default function AdminChatWindow({ conversation, user, onClose, onMarkRes
   const [showResolveDialog, setShowResolveDialog] = useState(false);
   const [resolutionNotes, setResolutionNotes] = useState("");
   const [showImagePreview, setShowImagePreview] = useState(null);
+  const [showContextDialog, setShowContextDialog] = useState(false);
   const messagesEndRef = useRef(null);
   const fileInputRef = useRef(null);
   const queryClient = useQueryClient();
@@ -215,6 +216,32 @@ export default function AdminChatWindow({ conversation, user, onClose, onMarkRes
         </DialogContent>
       </Dialog>
 
+      {/* Diálogo de contexto */}
+      <Dialog open={showContextDialog} onOpenChange={setShowContextDialog}>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <MessageCircle className="w-5 h-5" />
+              Contexto de la Conversación con Coordinador
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <Alert className="bg-orange-50 border-orange-300">
+              <AlertDescription className="text-orange-800 text-sm">
+                <strong>📋 Historial de mensajes previos</strong>
+                <br />
+                Estos son los últimos mensajes entre {conversation.padre_nombre} y el coordinador antes de la escalación
+              </AlertDescription>
+            </Alert>
+            <div className="bg-slate-50 rounded-lg p-4">
+              <pre className="text-sm text-slate-700 whitespace-pre-wrap font-sans">
+                {conversation.contexto_escalacion || 'No hay contexto disponible'}
+              </pre>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
       {/* Header */}
       <div className="p-4 bg-white border-b flex-shrink-0">
         <Alert className={`mb-3 border-2 ${criticityColors[conversation.criticidad]}`}>
@@ -231,6 +258,16 @@ export default function AdminChatWindow({ conversation, user, onClose, onMarkRes
                 <strong>Detalles:</strong> {conversation.motivo_detalle}
               </>
             )}
+            <br />
+            <Button 
+              size="sm" 
+              variant="outline" 
+              onClick={() => setShowContextDialog(true)}
+              className="mt-2"
+            >
+              <MessageCircle className="w-3 h-3 mr-2" />
+              Ver conversación previa con coordinador
+            </Button>
           </AlertDescription>
         </Alert>
 
