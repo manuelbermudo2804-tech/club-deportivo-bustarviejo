@@ -583,6 +583,9 @@ export default function CoachChatWindow({ selectedCategory, user, allPlayers }) 
                     </Button>
                     <span className="text-sm">{msg.audio_duracion}s</span>
                   </div>
+                ) : msg.encuesta ? (
+                  // NO mostrar el texto cuando hay encuesta
+                  null
                 ) : (
                   <p className="text-sm whitespace-pre-wrap">
                     {msg.mensaje}

@@ -371,6 +371,9 @@ export default function ParentCoachChat() {
                             </Button>
                             <span className="text-sm">🎤 {msg.audio_duracion}s</span>
                           </div>
+                        ) : (msg.encuesta || msg.poll) ? (
+                          // NO mostrar texto cuando hay encuesta
+                          null
                         ) : (
                           <p className="text-sm whitespace-pre-wrap">{msg.mensaje}</p>
                         )}
