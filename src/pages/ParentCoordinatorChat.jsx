@@ -75,6 +75,24 @@ export default function ParentCoordinatorChat() {
       } else {
         setTermsAccepted(true);
       }
+
+      // Marcar notificaciones como vistas inmediatamente
+      const notifications = await base44.entities.AppNotification.filter({ 
+        usuario_email: currentUser.email,
+        enlace: "ParentCoordinatorChat",
+        vista: false
+      });
+      
+      for (const notif of notifications) {
+        await base44.entities.AppNotification.update(notif.id, {
+          vista: true,
+          fecha_vista: new Date().toISOString()
+        });
+      }
+      
+      if (notifications.length > 0) {
+        queryClient.invalidateQueries({ queryKey: ['appNotifications'] });
+      }
     };
     fetchUser();
   }, []);
