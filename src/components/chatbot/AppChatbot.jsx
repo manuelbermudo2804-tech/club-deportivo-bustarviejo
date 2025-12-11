@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { base44 } from "@/api/base44Client";
+import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,6 +15,46 @@ export default function AppChatbot() {
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef(null);
+
+  // Obtener datos del club en tiempo real
+  const { data: trainingSchedules = [] } = useQuery({
+    queryKey: ['trainingSchedules'],
+    queryFn: () => base44.entities.TrainingSchedule.list(),
+    enabled: !!user,
+  });
+
+  const { data: events = [] } = useQuery({
+    queryKey: ['eventsForChatbot'],
+    queryFn: () => base44.entities.Event.list('-fecha'),
+    enabled: !!user,
+  });
+
+  const { data: callups = [] } = useQuery({
+    queryKey: ['callupsForChatbot'],
+    queryFn: () => base44.entities.Convocatoria.list('-fecha_partido'),
+    enabled: !!user,
+  });
+
+  const { data: announcements = [] } = useQuery({
+    queryKey: ['announcementsForChatbot'],
+    queryFn: () => base44.entities.Announcement.list('-created_date'),
+    enabled: !!user,
+  });
+
+  const { data: seasonConfig } = useQuery({
+    queryKey: ['seasonConfigChatbot'],
+    queryFn: async () => {
+      const configs = await base44.entities.SeasonConfig.list();
+      return configs.find(c => c.activa === true);
+    },
+    enabled: !!user,
+  });
+
+  const { data: players = [] } = useQuery({
+    queryKey: ['playersForChatbot'],
+    queryFn: () => base44.entities.Player.list(),
+    enabled: !!user,
+  });
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -97,6 +138,99 @@ ${getRoleSuggestions(role)}
                  user.es_tesorero ? "tesorero" :
                  user.es_entrenador ? "entrenador" :
                  user.es_jugador ? "jugador" : "padre/madre";
+    
+    // Obtener jugadores del usuario si es padre
+    const myPlayers = players.filter(p => 
+      p.email_padre === user.email || p.email_tutor_2 === user.email
+    );
+
+    // Filtrar horarios relevantes para el usuario
+    const relevantSchedules = myPlayers.length > 0
+      ? trainingSchedules.filter(s => myPlayers.some(p => p.deporte === s.categoria))
+      : trainingSchedules;
+
+    // Filtrar eventos próximos (siguientes 30 días)
+    const today = new Date();
+    const next30Days = new Date(today.getTime() + 30 * 24 * 60 * 60 * 1000);
+    const upcomingEvents = events.filter(e => {
+      const eventDate = new Date(e.fecha);
+      return eventDate >= today && eventDate <= next30Days && e.publicado;
+    }).slice(0, 10);
+
+    // Filtrar convocatorias próximas
+    const upcomingCallups = callups.filter(c => {
+      const callupDate = new Date(c.fecha_partido);
+      return callupDate >= today && c.publicada && !c.cerrada;
+    }).slice(0, 10);
+
+    // Anuncios importantes activos
+    const activeAnnouncements = announcements.filter(a => {
+      if (!a.publicado) return false;
+      if (a.fecha_expiracion && new Date(a.fecha_expiracion) < today) return false;
+      return a.prioridad === "Urgente" || a.prioridad === "Importante";
+    }).slice(0, 5);
+
+    // Construir información de horarios
+    let schedulesInfo = "";
+    if (relevantSchedules.length > 0) {
+      schedulesInfo = "\nHORARIOS DE ENTRENAMIENTOS:\n";
+      relevantSchedules.forEach(s => {
+        schedulesInfo += `- ${s.categoria}: ${s.dia_semana} de ${s.hora_inicio} a ${s.hora_fin}${s.ubicacion ? ` en ${s.ubicacion}` : ''}\n`;
+      });
+    }
+
+    // Construir información de eventos
+    let eventsInfo = "";
+    if (upcomingEvents.length > 0) {
+      eventsInfo = "\nPRÓXIMOS EVENTOS DEL CLUB:\n";
+      upcomingEvents.forEach(e => {
+        eventsInfo += `- ${e.titulo} (${e.tipo}): ${e.fecha}${e.hora ? ` a las ${e.hora}` : ''}${e.ubicacion ? ` en ${e.ubicacion}` : ''}\n`;
+      });
+    }
+
+    // Construir información de convocatorias
+    let callupsInfo = "";
+    if (upcomingCallups.length > 0) {
+      callupsInfo = "\nPRÓXIMAS CONVOCATORIAS/PARTIDOS:\n";
+      upcomingCallups.forEach(c => {
+        callupsInfo += `- ${c.titulo} (${c.categoria}): ${c.fecha_partido} a las ${c.hora_partido} vs ${c.rival || 'rival'} - ${c.local_visitante}${c.ubicacion ? ` en ${c.ubicacion}` : ''}\n`;
+      });
+    }
+
+    // Información de anuncios importantes
+    let announcementsInfo = "";
+    if (activeAnnouncements.length > 0) {
+      announcementsInfo = "\nANUNCIOS IMPORTANTES ACTIVOS:\n";
+      activeAnnouncements.forEach(a => {
+        announcementsInfo += `- [${a.prioridad}] ${a.titulo}: ${a.contenido.substring(0, 150)}...\n`;
+      });
+    }
+
+    // Información de configuración del club
+    let clubPolicies = "";
+    if (seasonConfig) {
+      clubPolicies = `
+POLÍTICAS Y CONFIGURACIÓN ACTUAL DEL CLUB:
+- Temporada activa: ${seasonConfig.temporada}
+- Cuota pago único: ${seasonConfig.cuota_unica}€
+- Cuota fraccionada (cada pago): ${seasonConfig.cuota_tres_meses}€
+- Renovaciones abiertas: ${seasonConfig.permitir_renovaciones ? 'Sí' : 'No'}
+- Tienda de ropa: ${seasonConfig.tienda_ropa_abierta ? 'ABIERTA ✅' : 'CERRADA ❌'}
+- Lotería navidad: ${seasonConfig.loteria_navidad_abierta ? 'ABIERTA ✅' : 'CERRADA ❌'}
+- Precio décimo lotería: ${seasonConfig.precio_decimo_loteria}€
+- Bizum activo: ${seasonConfig.bizum_activo ? 'SÍ' : 'NO'}${seasonConfig.bizum_activo ? ` (${seasonConfig.bizum_telefono})` : ''}
+- Programa referidos: ${seasonConfig.programa_referidos_activo ? 'ACTIVO ✅' : 'INACTIVO ❌'}
+`;
+    }
+
+    // Información de jugadores del usuario
+    let playersInfo = "";
+    if (myPlayers.length > 0) {
+      playersInfo = `\nJUGADORES DEL USUARIO:\n`;
+      myPlayers.forEach(p => {
+        playersInfo += `- ${p.nombre} (${p.deporte}) - ${p.posicion || 'sin posición'}${p.lesionado ? ' - LESIONADO' : ''}${p.sancionado ? ' - SANCIONADO' : ''}\n`;
+      });
+    }
     
     return `
 INFORMACIÓN DEL USUARIO:
@@ -184,11 +318,16 @@ INSTRUCCIONES PARA EL ASISTENTE:
 - Usa emojis para hacer las respuestas más cercanas
 - Si preguntan cómo hacer algo, da pasos específicos y detallados
 - Menciona SIEMPRE la ubicación exacta en el menú (ej: "Ve a 💳 Pagos")
-- Si te preguntan algo que no sabes con certeza, explica lo que sí sabes sobre temas relacionados
+- Usa la información de HORARIOS, EVENTOS, CONVOCATORIAS y POLÍTICAS proporcionada arriba para dar respuestas precisas
+- Si te preguntan por horarios de entrenamientos, usa la información de HORARIOS DE ENTRENAMIENTOS
+- Si te preguntan por partidos o eventos, usa la información de PRÓXIMOS EVENTOS y CONVOCATORIAS
+- Si te preguntan sobre pagos, inscripciones o normas, usa la información de POLÍTICAS Y CONFIGURACIÓN
 - Sé útil, empático y proactivo
-- NUNCA digas "contacta con el administrador" - intenta ayudar con la información disponible
+- NUNCA digas "contacta con el administrador" - siempre intenta ayudar con la información disponible
 - Si no conoces algo exacto, ofrece alternativas o información relacionada que pueda ser útil
-- Mantén un tono positivo y de apoyo`;
+- Mantén un tono positivo y de apoyo
+- Cuando menciones eventos o convocatorias, incluye FECHA, HORA y UBICACIÓN si están disponibles
+${clubPolicies}${playersInfo}${schedulesInfo}${eventsInfo}${callupsInfo}${announcementsInfo}`;
   };
 
   const handleSend = async () => {
@@ -268,12 +407,19 @@ Responde de forma clara, útil y amigable. Si mencionas una funcionalidad, indic
     }
   };
 
-  const quickQuestions = [
-    "¿Cómo realizo un pago?",
-    "¿Dónde veo las convocatorias?",
-    "¿Cómo subo documentos?",
-    "¿Cuándo se abre la tienda de ropa?"
-  ];
+  const quickQuestions = user?.es_entrenador || user?.role === "admin" || user?.es_coordinador
+    ? [
+        "¿Cómo crear una convocatoria?",
+        "¿Dónde veo los horarios de entrenamientos?",
+        "¿Cómo registro asistencia?",
+        "¿Qué eventos hay próximamente?"
+      ]
+    : [
+        "¿Cuándo entrena mi hijo?",
+        "¿Cómo realizo un pago?",
+        "¿Cuándo es el próximo partido?",
+        "¿Está abierta la tienda de ropa?"
+      ];
 
   return (
     <div className="flex flex-col h-[calc(100vh-8rem)] max-w-4xl mx-auto">
