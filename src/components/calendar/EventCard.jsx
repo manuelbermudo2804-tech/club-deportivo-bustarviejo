@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Pencil, MapPin, Clock, Calendar, Star, Users, CheckCircle2, XCircle, HelpCircle, Clock as ClockIcon } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
+import ShareButtons from "../social/ShareButtons";
 
 export default function EventCard({ event, onEdit, isAdmin, onConfirm, myPlayers = [], user }) {
   const typeIcons = {
@@ -186,6 +187,14 @@ export default function EventCard({ event, onEdit, isAdmin, onConfirm, myPlayers
               )}
             </div>
           )}
+
+          {/* Botones de compartir */}
+          <div className="border-t border-slate-100 pt-2 mt-2">
+            <ShareButtons 
+              title={event.titulo}
+              description={`${event.tipo} - ${format(new Date(event.fecha + 'T00:00:00'), "dd MMM yyyy", { locale: es })} ${event.hora ? `a las ${event.hora}` : ''}`}
+            />
+          </div>
         </CardContent>
       </Card>
     </motion.div>

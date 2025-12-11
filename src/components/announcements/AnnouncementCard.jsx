@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Edit, Pin, Clock, Trash2, Eye } from "lucide-react";
 import { format, differenceInHours } from "date-fns";
 import { es } from "date-fns/locale";
+import ShareButtons from "../social/ShareButtons";
 
 export default function AnnouncementCard({ announcement, onEdit, onDelete, isAdmin, onMarkAsRead, userEmail }) {
   const priorityConfig = {
@@ -111,6 +112,13 @@ export default function AnnouncementCard({ announcement, onEdit, onDelete, isAdm
                 Expira pronto
               </Badge>
             )}
+          </div>
+
+          <div className="mt-3 pt-2 border-t border-slate-200">
+            <ShareButtons 
+              title={announcement.titulo}
+              description={announcement.contenido.substring(0, 100)}
+            />
           </div>
 
           {isAdmin && (onEdit || onDelete) && (
