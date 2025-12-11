@@ -509,6 +509,13 @@ Este chat es solo para avisos rápidos. Gracias por tu comprensión.`,
       setShowTermsDialog(true);
       return;
     }
+    
+    // VERIFICAR SI EL USUARIO ESTÁ BLOQUEADO
+    if (user?.chat_bloqueado === true) {
+      toast.error("🚫 Tu acceso al chat ha sido restringido por el administrador.");
+      return;
+    }
+    
     if (!messageText.trim() && attachments.length === 0) return;
     sendMessageMutation.mutate({ mensaje: messageText, adjuntos: attachments });
   };
@@ -750,6 +757,16 @@ Este chat es solo para avisos rápidos. Gracias por tu comprensión.`,
                             </div>
 
                 <div className="p-2 sm:p-4 bg-white border-t flex-shrink-0">
+                  {user?.chat_bloqueado && (
+                    <Alert className="mb-2 bg-red-50 border-red-300">
+                      <AlertDescription className="text-red-800 text-sm">
+                        🚫 <strong>Tu acceso al chat ha sido restringido</strong>
+                        {user?.motivo_bloqueo_chat && <><br />Motivo: {user.motivo_bloqueo_chat}</>}
+                        <br />
+                        <span className="text-xs">Contacta con el administrador del club para más información.</span>
+                      </AlertDescription>
+                    </Alert>
+                  )}
                   {audioBlob && (
                     <div className="mb-2 bg-blue-50 rounded-lg p-2 flex items-center gap-2">
                       <audio controls src={URL.createObjectURL(audioBlob)} className="flex-1" />
@@ -792,7 +809,7 @@ Este chat es solo para avisos rápidos. Gracias por tu comprensión.`,
                     {/* FAMILIAS: SIN BOTONES DE ARCHIVOS/MEDIA */}
 
                     <Textarea
-                      placeholder="Escribe..."
+                      placeholder={user?.chat_bloqueado ? "Chat bloqueado" : "Escribe..."}
                       value={messageText}
                       onChange={(e) => {
                         setMessageText(e.target.value);
@@ -806,11 +823,12 @@ Este chat es solo para avisos rápidos. Gracias por tu comprensión.`,
                       }}
                       className="flex-1 min-h-[36px] sm:min-h-[44px] resize-none text-sm"
                       rows={1}
+                      disabled={user?.chat_bloqueado}
                     />
 
                     <Button 
                       onClick={handleSend} 
-                      disabled={!messageText.trim() && attachments.length === 0} 
+                      disabled={!messageText.trim() && attachments.length === 0 || user?.chat_bloqueado} 
                       className="bg-blue-600 hover:bg-blue-700 h-9 w-9 sm:h-10 sm:w-10 p-0"
                     >
                       <Send className="w-4 h-4 sm:w-5 sm:h-5" />
