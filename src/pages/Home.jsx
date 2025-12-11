@@ -1110,8 +1110,6 @@ export default function Home() {
             </div>
           </div>
         )}
-      </div>
-        )}
 
         {/* ÚNICO BANNER CONSOLIDADO DE ALERTAS - Incluye TODO */}
         {(isAdmin || isCoach || isCoordinator || isTreasurer || hasPlayers) && (
