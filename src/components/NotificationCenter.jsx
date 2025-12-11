@@ -298,6 +298,29 @@ export default function NotificationCenter() {
 
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
+  // Marcar notificaciones como vistas inmediatamente al abrir el centro
+  useEffect(() => {
+    if (!isOpen || !user) return;
+
+    const markAsViewed = async () => {
+      const unviewed = allNotifications.filter(n => !n.vista && n.usuario_email === user.email);
+      
+      if (unviewed.length > 0) {
+        for (const notif of unviewed) {
+          await base44.entities.AppNotification.update(notif.id, {
+            vista: true,
+            fecha_vista: new Date().toISOString()
+          });
+        }
+        
+        // Invalidar inmediatamente
+        queryClient.invalidateQueries({ queryKey: ['appNotifications'] });
+      }
+    };
+
+    markAsViewed();
+  }, [isOpen, user]);
+
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>

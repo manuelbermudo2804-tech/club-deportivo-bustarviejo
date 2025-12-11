@@ -9,6 +9,8 @@ import { Send, MessageCircle, Users, Search, X, FileText, Download, Image as Ima
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { toast } from "sonner";
+import PollMessage from "../components/chat/PollMessage";
+import LocationMessage from "../components/chat/LocationMessage";
 
 export default function ParentCoachChat() {
   const [user, setUser] = useState(null);
@@ -143,6 +145,31 @@ export default function ParentCoachChat() {
       queryClient.invalidateQueries({ queryKey: ['coachGroupMessages'] });
       setMessageText("");
       toast.success("Mensaje enviado");
+    },
+  });
+
+  const votePollMutation = useMutation({
+    mutationFn: async ({ messageId, optionIndex }) => {
+      const msg = messages.find(m => m.id === messageId);
+      const votos = msg.encuesta?.votos || [];
+      
+      votos.push({
+        usuario_email: user.email,
+        usuario_nombre: user.full_name,
+        opcion_index: optionIndex,
+        fecha: new Date().toISOString()
+      });
+
+      await base44.entities.ChatMessage.update(messageId, {
+        encuesta: {
+          ...msg.encuesta,
+          votos
+        }
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['coachGroupMessages'] });
+      toast.success("Voto registrado");
     },
   });
 
@@ -369,6 +396,18 @@ export default function ParentCoachChat() {
                               )
                             ))}
                           </div>
+                        )}
+
+                        {msg.ubicacion && <LocationMessage ubicacion={msg.ubicacion} />}
+
+                        {msg.encuesta && (
+                          <PollMessage 
+                            encuesta={msg.encuesta} 
+                            messageId={msg.id}
+                            userEmail={user.email}
+                            userName={user.full_name}
+                            onVote={(msgId, optionIdx) => votePollMutation.mutate({ messageId: msgId, optionIndex: optionIdx })}
+                          />
                         )}
 
                         <p className="text-xs opacity-60 mt-1">
