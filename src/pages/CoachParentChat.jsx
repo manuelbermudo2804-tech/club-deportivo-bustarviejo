@@ -135,19 +135,15 @@ export default function CoachParentChat() {
   ))];
 
   return (
-    <div className="h-[calc(100vh-100px)] lg:h-[calc(100vh-110px)] flex flex-col lg:flex-row">
-      {/* Lista de categorías */}
-      <div className={`${selectedCategory ? 'hidden lg:flex' : 'flex'} w-full lg:w-96 border-r bg-slate-50 flex-col h-full overflow-hidden`}>
-        <div className="p-4 bg-gradient-to-r from-green-600 to-green-700 text-white">
-          <div className="flex items-center justify-between mb-3">
+    <div className="h-[calc(100vh-100px)] lg:p-4 lg:max-w-6xl lg:mx-auto lg:h-[calc(100vh-110px)]">
+      <Card className="border-blue-200 shadow-lg h-full flex flex-col overflow-hidden lg:rounded-lg rounded-none">
+        <CardHeader className="bg-gradient-to-r from-green-600 to-green-700 text-white p-4 flex-shrink-0">
+          <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-xl font-bold flex items-center gap-2">
-                <MessageCircle className="w-6 h-6" />
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <MessageCircle className="w-5 h-5" />
                 Chat con Familias
-              </h1>
-              <p className="text-xs text-green-100">
-                Comunicación grupal con los padres de tu categoría
-              </p>
+              </CardTitle>
             </div>
             <div className="flex gap-1">
               <Button
@@ -158,88 +154,46 @@ export default function CoachParentChat() {
               >
                 <Search className="w-4 h-4" />
               </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowParticipants(!showParticipants)}
+                className="text-white hover:bg-white/20"
+              >
+                <Users className="w-4 h-4" />
+                <span className="ml-1 text-xs">{parentEmails.length}</span>
+              </Button>
             </div>
           </div>
           {showSearch && (
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+            <div className="mt-2">
               <input
                 type="text"
                 placeholder="Buscar mensajes..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-9 px-3 py-2 rounded-lg text-slate-900 text-sm"
+                className="w-full px-3 py-2 rounded-lg text-slate-900 text-sm"
               />
             </div>
           )}
-        </div>
-
-        <div className="flex-1 overflow-y-auto px-2 py-3">
-          {categories.map(cat => {
-            const catPlayers = allPlayers.filter(p => p.deporte === cat);
-            const parentCount = [...new Set(catPlayers.flatMap(p => 
-              [p.email_padre, p.email_tutor_2].filter(Boolean)
-            ))].length;
-
-            return (
-              <Card
-                key={cat}
-                className={`mb-2 cursor-pointer hover:shadow-md transition-all ${
-                  selectedCategory === cat ? 'ring-2 ring-green-500' : ''
-                }`}
-                onClick={() => setSelectedCategory(cat)}
-              >
-                <CardContent className="p-3">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="font-bold text-sm text-slate-900">
-                        {cat.replace('Fútbol ', '').replace(' (Mixto)', '')}
-                      </p>
-                      <p className="text-xs text-slate-500 flex items-center gap-1 mt-1">
-                        <Users className="w-3 h-3" />
-                        {parentCount} familias · {catPlayers.length} jugadores
-                      </p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* Ventana de chat */}
-      <div className={`${selectedCategory ? 'flex' : 'hidden lg:flex'} flex-1 h-full`}>
-        {selectedCategory ? (
-          <Card className="border-blue-200 shadow-lg h-full flex flex-col overflow-hidden w-full rounded-none lg:rounded-lg">
-        <CardHeader className="bg-gradient-to-r from-green-600 to-green-700 text-white p-4 flex-shrink-0">
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle className="flex items-center gap-2 text-lg">
-                <button 
-                  onClick={() => setSelectedCategory(null)}
-                  className="lg:hidden mr-2 hover:bg-white/20 rounded p-1"
-                >
-                  ←
-                </button>
-                {selectedCategory?.replace('Fútbol ', '').replace(' (Mixto)', '')}
-              </CardTitle>
-              <p className="text-xs text-green-100 mt-1">
-                {parentEmails.length} familias
-              </p>
-            </div>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setShowParticipants(!showParticipants)}
-              className="text-white hover:bg-white/20"
-            >
-              <Users className="w-4 h-4" />
-            </Button>
-          </div>
         </CardHeader>
 
         <CardContent className="p-0 flex-1 flex flex-col overflow-hidden min-h-0">
+          <Tabs value={selectedCategory} onValueChange={setSelectedCategory} className="h-full flex flex-col overflow-hidden">
+            <TabsList className="w-full justify-start overflow-x-auto p-2 bg-slate-50 flex-shrink-0 border-b">
+              {categories.map(cat => (
+                <TabsTrigger key={cat} value={cat} className="whitespace-nowrap text-sm">
+                  {cat.replace('Fútbol ', '').replace(' (Mixto)', '')}
+                </TabsTrigger>
+              ))}
+            </TabsList>
+            
+            {categories.map(cat => (
+              <TabsContent 
+                key={cat} 
+                value={cat} 
+                className="flex-1 p-0 m-0 flex flex-col overflow-hidden min-h-0 data-[state=active]:flex"
+              >
                 <div className="flex-1 overflow-y-auto p-4 space-y-2 bg-slate-50">
                   {filteredMessages.length === 0 ? (
                     <div className="text-center py-8">
@@ -321,17 +275,11 @@ export default function CoachParentChat() {
                     </Button>
                   </div>
                 </div>
+              </TabsContent>
+            ))}
+          </Tabs>
         </CardContent>
-        ) : (
-          <div className="h-full flex items-center justify-center bg-slate-50">
-            <div className="text-center">
-              <MessageCircle className="w-16 h-16 text-slate-300 mx-auto mb-3" />
-              <p className="text-slate-500">Selecciona una categoría para empezar</p>
-            </div>
-          </div>
-        )}
-      </div>
-    </div>
+      </Card>
 
       {showParticipants && (
         <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4" onClick={() => setShowParticipants(false)}>
