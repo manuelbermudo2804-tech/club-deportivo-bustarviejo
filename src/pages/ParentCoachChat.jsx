@@ -373,34 +373,6 @@ export default function ParentCoachChat() {
                           <p className="text-sm whitespace-pre-wrap">{msg.mensaje}</p>
                         )}
 
-                        {msg.adjuntos?.length > 0 && (
-                          <div className="mt-2 space-y-1">
-                            {msg.adjuntos.map((file, idx) => (
-                              file.tipo?.startsWith('image/') ? (
-                                <img 
-                                  key={idx}
-                                  src={file.url} 
-                                  alt={file.nombre}
-                                  className="rounded cursor-pointer max-w-full h-auto max-h-64 object-contain"
-                                  onClick={() => setShowImagePreview(file.url)}
-                                />
-                              ) : (
-                                <a
-                                  key={idx}
-                                  href={file.url}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className={`flex items-center gap-2 text-xs p-2 rounded ${isMine ? 'bg-slate-600' : isCoach ? 'bg-green-700' : 'bg-slate-100'}`}
-                                >
-                                  <FileText className="w-3 h-3" />
-                                  <span className="flex-1 truncate">{file.nombre}</span>
-                                  <Download className="w-3 h-3" />
-                                </a>
-                              )
-                            ))}
-                          </div>
-                        )}
-
                         {msg.archivos_adjuntos?.length > 0 && (
                           <div className="mt-2 space-y-1">
                             {msg.archivos_adjuntos.map((file, idx) => (
@@ -456,7 +428,7 @@ export default function ParentCoachChat() {
           <div className="p-4 bg-white border-t flex-shrink-0">
             <div className="flex gap-2 items-end">
               <Textarea
-                placeholder="Escribe..."
+                placeholder="Escribe tu mensaje..."
                 value={messageText}
                 onChange={(e) => setMessageText(e.target.value)}
                 onKeyDown={(e) => {

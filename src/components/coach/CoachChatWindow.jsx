@@ -601,9 +601,9 @@ export default function CoachChatWindow({ selectedCategory, user, allPlayers }) 
                   />
                 )}
 
-                {msg.adjuntos?.length > 0 && (
+                {msg.archivos_adjuntos?.length > 0 && (
                   <div className="mt-2 space-y-1">
-                    {msg.adjuntos.map((file, idx) => (
+                    {msg.archivos_adjuntos.map((file, idx) => (
                       file.tipo?.startsWith('image/') ? (
                         <img 
                           key={idx}
