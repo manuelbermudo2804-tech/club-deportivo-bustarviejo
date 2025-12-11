@@ -52,7 +52,6 @@ import Schedules from './pages/Schedules';
 import Gallery from './pages/Gallery';
 import ClubMembersManagement from './pages/ClubMembersManagement';
 import CalendarAndSchedules from './pages/CalendarAndSchedules';
-import PlayerDocumentsAndCards from './pages/PlayerDocumentsAndCards';
 import ReferralManagement from './pages/ReferralManagement';
 import PublicClubMembership from './pages/PublicClubMembership';
 import TacticsBoard from './pages/TacticsBoard';
@@ -133,7 +132,6 @@ export const PAGES = {
     "Gallery": Gallery,
     "ClubMembersManagement": ClubMembersManagement,
     "CalendarAndSchedules": CalendarAndSchedules,
-    "PlayerDocumentsAndCards": PlayerDocumentsAndCards,
     "ReferralManagement": ReferralManagement,
     "PublicClubMembership": PublicClubMembership,
     "TacticsBoard": TacticsBoard,
