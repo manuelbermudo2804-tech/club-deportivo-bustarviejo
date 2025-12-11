@@ -42,8 +42,8 @@ export default function EscalateToCoordinatorButton({
         return existingConv;
       }
 
-      // Preparar contexto (TODOS los mensajes)
-      const contexto = recentMessages.map(m => 
+      // Preparar contexto (últimos 25 mensajes)
+      const contexto = recentMessages.slice(-25).map(m => 
         `[${m.tipo === "entrenador_a_grupo" ? "Entrenador" : "Padre"}] ${m.remitente_nombre}: ${m.mensaje}`
       ).join('\n\n');
 
@@ -85,8 +85,9 @@ export default function EscalateToCoordinatorButton({
       });
 
       // Mensaje inicial con contexto
+      const totalMensajes = recentMessages.length;
       const mensajeInicial = isCoach 
-        ? `🚨 CONVERSACIÓN ESCALADA POR ENTRENADOR\n\nEntrenador: ${user.full_name}\nCategoría: ${categoria}\nFecha: ${new Date().toLocaleString('es-ES')}\n\n📋 HISTORIAL COMPLETO DE LA CONVERSACIÓN:\n\n${contexto || 'No hay mensajes previos disponibles'}\n\n---\n\nEl coordinador atenderá tu consulta a la mayor brevedad posible.`
+        ? `🚨 CONVERSACIÓN ESCALADA POR ENTRENADOR\n\nEntrenador: ${user.full_name}\nCategoría: ${categoria}\nFecha: ${new Date().toLocaleString('es-ES')}\n\n📋 CONTEXTO (últimos ${Math.min(25, totalMensajes)} de ${totalMensajes} mensajes):\n\n${contexto || 'No hay mensajes previos disponibles'}\n\n---\n\nEl coordinador atenderá tu consulta a la mayor brevedad posible.`
         : `Hola, necesito ayuda del coordinador deportivo con una consulta sobre mi hijo/a en ${categoria}.\n\n${contexto ? `📋 Contexto:\n${contexto}` : ''}`;
 
       await base44.entities.CoordinatorMessage.create({
@@ -197,7 +198,7 @@ export default function EscalateToCoordinatorButton({
                     </li>
                     <li className="flex items-start gap-2">
                       <span className="text-green-600 font-bold">✓</span>
-                      <span>Se copiará el <strong>historial COMPLETO de mensajes</strong> para que el coordinador esté informado</span>
+                      <span>Se copiarán los <strong>últimos 25 mensajes</strong> para que el coordinador tenga contexto</span>
                     </li>
                     <li className="flex items-start gap-2">
                       <span className="text-green-600 font-bold">✓</span>
