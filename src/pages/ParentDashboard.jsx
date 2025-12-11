@@ -175,6 +175,18 @@ export default function ParentDashboard() {
     enabled: !!user,
   });
 
+  const { data: adminConversations = [] } = useQuery({
+    queryKey: ['adminConversationsParent', user?.email],
+    queryFn: async () => {
+      const allConvs = await base44.entities.AdminConversation.list();
+      return allConvs.filter(c => c.padre_email === user?.email && !c.resuelta);
+    },
+    staleTime: 5000,
+    refetchInterval: 5000,
+    refetchOnWindowFocus: true,
+    enabled: !!user,
+  });
+
   const { data: messages = [] } = useQuery({
     queryKey: ['chatMessages', user?.email],
     queryFn: async () => {
@@ -242,6 +254,12 @@ export default function ParentDashboard() {
   const unreadCoordinatorMessages = coordinatorConversations.reduce((count, conv) => 
     count + (conv.no_leidos_padre || 0), 0
   );
+
+  // Calcular mensajes admin no leídos
+  const unreadAdminMessages = adminConversations.reduce((count, conv) => 
+    count + (conv.no_leidos_padre || 0), 0
+  );
+  const hasActiveAdminChat = adminConversations.length > 0;
 
   // Calcular mensajes del chat entrenador-padres no leídos
   const unreadCoachMessages = messages.filter(m => {
@@ -549,6 +567,8 @@ export default function ParentDashboard() {
           unreadPrivateMessages={unreadPrivateMessages}
           unreadCoordinatorMessages={0}
           unreadCoachMessages={unreadCoachMessages}
+          unreadAdminMessages={unreadAdminMessages}
+          hasActiveAdminChat={hasActiveAdminChat}
           isAdmin={false}
           isCoach={false}
           isParent={true}
