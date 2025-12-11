@@ -290,6 +290,29 @@ export default function PaymentReminders() {
           });
         }
 
+        // 🆕 CREAR NOTIFICACIÓN PARA QUE APAREZCA EN CENTRO DE ALERTAS
+        await base44.entities.AppNotification.create({
+          usuario_email: family.email,
+          titulo: "💳 Recordatorio de Pagos",
+          mensaje: `Tienes pagos pendientes por ${family.totalFamilyDue}€. Revisa los detalles en Mensajes del Club.`,
+          tipo: "importante",
+          icono: "💳",
+          enlace: "ParentSystemMessages",
+          vista: false
+        });
+
+        if (family.email_tutor_2) {
+          await base44.entities.AppNotification.create({
+            usuario_email: family.email_tutor_2,
+            titulo: "💳 Recordatorio de Pagos",
+            mensaje: `Tienes pagos pendientes por ${family.totalFamilyDue}€. Revisa los detalles en Mensajes del Club.`,
+            tipo: "importante",
+            icono: "💳",
+            enlace: "ParentSystemMessages",
+            vista: false
+          });
+        }
+
         sent++;
         console.log(`✅ Recordatorio enviado a ${family.email}`);
         await new Promise(resolve => setTimeout(resolve, 1000));
@@ -410,6 +433,29 @@ export default function PaymentReminders() {
           to: family.email_tutor_2,
           subject: "Recordatorio de Pagos Pendientes - CD Bustarviejo",
           body: mensaje
+        });
+      }
+
+      // 🆕 CREAR NOTIFICACIÓN PARA QUE APAREZCA EN CENTRO DE ALERTAS
+      await base44.entities.AppNotification.create({
+        usuario_email: family.email,
+        titulo: "💳 Recordatorio de Pagos",
+        mensaje: `Tienes pagos pendientes por ${totalRecordatorio}€. Revisa los detalles en Mensajes del Club.`,
+        tipo: "importante",
+        icono: "💳",
+        enlace: "ParentSystemMessages",
+        vista: false
+      });
+
+      if (family.email_tutor_2) {
+        await base44.entities.AppNotification.create({
+          usuario_email: family.email_tutor_2,
+          titulo: "💳 Recordatorio de Pagos",
+          mensaje: `Tienes pagos pendientes por ${totalRecordatorio}€. Revisa los detalles en Mensajes del Club.`,
+          tipo: "importante",
+          icono: "💳",
+          enlace: "ParentSystemMessages",
+          vista: false
         });
       }
 
@@ -795,6 +841,29 @@ export default function PaymentReminders() {
                             to: family.email_tutor_2,
                             subject: "Recordatorio de Pagos Pendientes - CD Bustarviejo",
                             body: mensaje
+                          });
+                        }
+
+                        // 🆕 CREAR NOTIFICACIÓN PARA QUE APAREZCA EN CENTRO DE ALERTAS
+                        await base44.entities.AppNotification.create({
+                          usuario_email: family.email,
+                          titulo: "💳 Recordatorio de Pagos",
+                          mensaje: `Tienes pagos pendientes por ${family.totalFamilyDue}€. Revisa los detalles en Mensajes del Club.`,
+                          tipo: "importante",
+                          icono: "💳",
+                          enlace: "ParentSystemMessages",
+                          vista: false
+                        });
+
+                        if (family.email_tutor_2) {
+                          await base44.entities.AppNotification.create({
+                            usuario_email: family.email_tutor_2,
+                            titulo: "💳 Recordatorio de Pagos",
+                            mensaje: `Tienes pagos pendientes por ${family.totalFamilyDue}€. Revisa los detalles en Mensajes del Club.`,
+                            tipo: "importante",
+                            icono: "💳",
+                            enlace: "ParentSystemMessages",
+                            vista: false
                           });
                         }
 
