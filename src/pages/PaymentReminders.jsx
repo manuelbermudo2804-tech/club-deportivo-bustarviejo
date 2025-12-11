@@ -5,13 +5,14 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Bell, Send, CheckCircle2, RefreshCw, Mail, MessageCircle, Loader2, Users, Info } from "lucide-react";
+import { Bell, Send, CheckCircle2, RefreshCw, Mail, MessageCircle, Loader2, Users, Info, Zap } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { getCuotasPorCategoriaSync } from "../components/payments/paymentAmounts";
 
 import SocialLinks from "../components/SocialLinks";
 import { CheckmarkAnimation } from "../components/animations/SuccessAnimation";
+import SelectiveReminderDialog from "../components/reminders/SelectiveReminderDialog";
 
 const getCurrentSeason = () => {
   const now = new Date();
@@ -26,6 +27,7 @@ export default function PaymentReminders() {
   const [selectedFamilies, setSelectedFamilies] = useState([]);
   const [showSuccess, setShowSuccess] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
+  const [selectiveDialogFamily, setSelectiveDialogFamily] = useState(null);
 
   const { data: payments = [], refetch: refetchPayments } = useQuery({
     queryKey: ['payments'],
@@ -323,6 +325,104 @@ export default function PaymentReminders() {
   const totalPendingAmount = familiesData.reduce((sum, f) => sum + f.totalFamilyDue, 0);
   const totalPendingPayments = familiesData.reduce((sum, f) => sum + f.totalPendingPayments, 0);
 
+  const sendSelectiveReminder = async (family, selectedPayments) => {
+    try {
+      toast.loading("Enviando recordatorio personalizado...", { id: `selective-${family.email}` });
+      
+      // Construir mensaje solo con los pagos seleccionados
+      let mensaje = `Estimada familia,\n\nLes recordamos que tienen los siguientes pagos pendientes:\n\n`;
+      
+      let totalRecordatorio = 0;
+      family.jugadores.forEach(jugador => {
+        const selectedMonths = selectedPayments[jugador.id] || [];
+        if (selectedMonths.length > 0) {
+          mensaje += `👤 ${jugador.nombre} (${jugador.deporte}):\n`;
+          jugador.pendingMonths
+            .filter(m => selectedMonths.includes(m.mes))
+            .forEach(m => {
+              mensaje += `   • ${m.mes}: ${m.cantidad}€\n`;
+              totalRecordatorio += m.cantidad;
+            });
+          mensaje += `\n`;
+        }
+      });
+
+      mensaje += `Total pendiente: ${totalRecordatorio}€\n\n`;
+      mensaje += `📧 DATOS BANCARIOS:\n`;
+      mensaje += `IBAN: ES82 0049 4447 38 2010604048\n`;
+      mensaje += `Banco: Santander\n`;
+      mensaje += `Beneficiario: CD Bustarviejo\n\n`;
+      mensaje += `Por favor, accede a la app y registra los pagos.\n\n`;
+      mensaje += `Atentamente,\nCD Bustarviejo`;
+
+      // Buscar o crear conversación
+      const allConvs = await base44.entities.PrivateConversation.list();
+      let conv = allConvs.find(c => 
+        c.participante_familia_email === family.email &&
+        c.participante_staff_email === 'sistema@cdbustarviejo.com'
+      );
+
+      if (!conv) {
+        conv = await base44.entities.PrivateConversation.create({
+          participante_familia_email: family.email,
+          participante_familia_nombre: family.nombre_tutor,
+          participante_staff_email: "sistema@cdbustarviejo.com",
+          participante_staff_nombre: "🤖 Sistema de Recordatorios - Administración",
+          participante_staff_rol: "admin",
+          categoria: "Todos",
+          jugadores_relacionados: family.jugadores.map(j => ({ jugador_id: j.id, jugador_nombre: j.nombre })),
+          ultimo_mensaje: mensaje.substring(0, 100),
+          ultimo_mensaje_fecha: new Date().toISOString(),
+          ultimo_mensaje_de: "staff",
+          no_leidos_familia: 1,
+          archivada: false
+        });
+      }
+
+      // Crear mensaje
+      await base44.entities.PrivateMessage.create({
+        conversacion_id: conv.id,
+        remitente_email: "sistema@cdbustarviejo.com",
+        remitente_nombre: "🤖 Sistema de Recordatorios",
+        remitente_tipo: "staff",
+        mensaje: `💬 RECORDATORIO DE PAGOS\n\n${mensaje}`,
+        leido: false
+      });
+
+      await base44.entities.PrivateConversation.update(conv.id, {
+        ultimo_mensaje: mensaje.substring(0, 100),
+        ultimo_mensaje_fecha: new Date().toISOString(),
+        ultimo_mensaje_de: "staff",
+        no_leidos_familia: (conv.no_leidos_familia || 0) + 1
+      });
+
+      // Enviar emails
+      await base44.integrations.Core.SendEmail({
+        from_name: "CD Bustarviejo",
+        to: family.email,
+        subject: "Recordatorio de Pagos Pendientes - CD Bustarviejo",
+        body: mensaje
+      });
+
+      if (family.email_tutor_2) {
+        await base44.integrations.Core.SendEmail({
+          from_name: "CD Bustarviejo",
+          to: family.email_tutor_2,
+          subject: "Recordatorio de Pagos Pendientes - CD Bustarviejo",
+          body: mensaje
+        });
+      }
+
+      toast.dismiss(`selective-${family.email}`);
+      setSuccessMessage(`✅ Recordatorio enviado a ${family.nombre_tutor}`);
+      setShowSuccess(true);
+      setTimeout(() => toast.success(`Recordatorio personalizado enviado`), 2000);
+    } catch (error) {
+      console.error("Error:", error);
+      toast.error("Error al enviar recordatorio", { id: `selective-${family.email}` });
+    }
+  };
+
   return (
     <>
       <CheckmarkAnimation 
@@ -601,7 +701,17 @@ export default function PaymentReminders() {
                     <p className="text-sm font-semibold text-slate-700">Total familia:</p>
                     <p className="text-2xl font-bold text-red-600">{family.totalFamilyDue.toFixed(0)}€</p>
                   </div>
-                  <Button
+                  <div className="flex gap-2">
+                    <Button
+                      onClick={() => setSelectiveDialogFamily(family)}
+                      size="sm"
+                      variant="outline"
+                      className="border-orange-300 text-orange-700 hover:bg-orange-50"
+                    >
+                      <Zap className="w-4 h-4 mr-2" />
+                      Seleccionar Pagos
+                    </Button>
+                    <Button
                     onClick={async (e) => {
                       const button = e.currentTarget;
                       button.disabled = true;
@@ -704,8 +814,9 @@ export default function PaymentReminders() {
                     className="bg-purple-600 hover:bg-purple-700 active:scale-95 transition-transform"
                   >
                     <Send className="w-4 h-4 mr-2" />
-                    Enviar Recordatorio
+                    Enviar Todo
                   </Button>
+                  </div>
                 </div>
               </CardContent>
             </Card>
@@ -713,6 +824,16 @@ export default function PaymentReminders() {
         )}
       </div>
       </div>
-    </>
-  );
-}
+
+      {/* Diálogo de selección granular */}
+      {selectiveDialogFamily && (
+        <SelectiveReminderDialog
+          open={!!selectiveDialogFamily}
+          onClose={() => setSelectiveDialogFamily(null)}
+          family={selectiveDialogFamily}
+          onSend={(selectedPayments) => sendSelectiveReminder(selectiveDialogFamily, selectedPayments)}
+        />
+      )}
+      </>
+      );
+      }
