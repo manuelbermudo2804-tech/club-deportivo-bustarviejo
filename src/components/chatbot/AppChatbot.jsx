@@ -56,6 +56,12 @@ export default function AppChatbot() {
     enabled: !!user,
   });
 
+  const { data: categoryConfigs = [] } = useQuery({
+    queryKey: ['categoryConfigsChatbot'],
+    queryFn: () => base44.entities.CategoryConfig.list(),
+    enabled: !!user,
+  });
+
   useEffect(() => {
     const fetchUser = async () => {
       const currentUser = await base44.auth.me();
@@ -231,6 +237,69 @@ POLÍTICAS Y CONFIGURACIÓN ACTUAL DEL CLUB:
         playersInfo += `- ${p.nombre} (${p.deporte}) - ${p.posicion || 'sin posición'}${p.lesionado ? ' - LESIONADO' : ''}${p.sancionado ? ' - SANCIONADO' : ''}\n`;
       });
     }
+
+    // Información de plazas disponibles por categoría
+    let categoryInfo = "";
+    if (categoryConfigs.length > 0) {
+      categoryInfo = `\nDISPONIBILIDAD DE PLAZAS POR CATEGORÍA:\n`;
+      categoryConfigs
+        .filter(c => c.activa)
+        .forEach(c => {
+          const totalPlayers = players.filter(p => p.deporte === c.nombre && p.activo).length;
+          const plazasDisponibles = c.plazas_maximas ? c.plazas_maximas - totalPlayers : "Sin límite";
+          const estado = c.plazas_maximas && totalPlayers >= c.plazas_maximas ? "COMPLETO ❌" : "DISPONIBLE ✅";
+          categoryInfo += `- ${c.nombre}: ${totalPlayers} inscritos${c.plazas_maximas ? ` / ${c.plazas_maximas} plazas` : ''} - ${estado}\n`;
+        });
+    }
+
+    // Información sobre proceso de inscripción y renovación
+    const inscriptionInfo = `
+PROCESO DE INSCRIPCIÓN Y RENOVACIÓN:
+
+📝 NUEVA INSCRIPCIÓN:
+1. Ve a "👥 Mis Jugadores" → Botón "Añadir Jugador"
+2. Completa el formulario con datos del jugador y tutor
+3. Sube la foto tipo carnet (OBLIGATORIA)
+4. Sube documentos: DNI/Libro familia + DNI tutor
+5. Acepta política de privacidad y autorización de fotos
+6. El jugador aparecerá como "Nuevo" hasta revisión del admin
+7. Recibirás enlaces de firma federativa por email
+8. Completa las firmas federativas (jugador + tutor)
+9. Realiza el pago de inscripción desde "💳 Pagos"
+
+🔄 RENOVACIÓN (jugadores de temporadas anteriores):
+1. Ve a "👥 Mis Jugadores"
+2. Busca el jugador a renovar
+3. Pulsa botón "Renovar para [Temporada]"
+4. Actualiza datos si es necesario
+5. Confirma la renovación
+6. Realiza el pago desde "💳 Pagos"
+7. Completa nuevas firmas federativas si es necesario
+
+💰 OPCIONES DE PAGO:
+- Pago único (junio): ${seasonConfig?.cuota_unica || 0}€ - Descuento aplicado
+- Pago fraccionado (3 meses): ${seasonConfig?.cuota_tres_meses || 0}€ cada pago (junio, septiembre, diciembre)
+- Descuento hermanos: 25€ de descuento para hermanos menores
+
+⏰ PERIODO DE INSCRIPCIONES:
+- Junio-Julio: Inscripciones y renovaciones abiertas
+- Agosto: Vacaciones (app cerrada)
+- Septiembre: Inicio de temporada
+- Mayo: Cierre de temporada (app cerrada)
+
+📋 DOCUMENTOS OBLIGATORIOS:
+- Foto tipo carnet del jugador
+- DNI del jugador (si >14 años) o Libro de familia
+- DNI del tutor legal (si jugador <18 años)
+- Firmas federativas (enlaces por email)
+- Certificado médico (recomendado)
+
+🔍 VERIFICAR ESTADO:
+- En "👥 Mis Jugadores" verás el estado de cada jugador
+- Estados: Nuevo, Activo, Pendiente documentos, etc.
+- En "💳 Pagos" verás el estado de los pagos
+`;
+
     
     return `
 INFORMACIÓN DEL USUARIO:
@@ -327,7 +396,9 @@ INSTRUCCIONES PARA EL ASISTENTE:
 - Si no conoces algo exacto, ofrece alternativas o información relacionada que pueda ser útil
 - Mantén un tono positivo y de apoyo
 - Cuando menciones eventos o convocatorias, incluye FECHA, HORA y UBICACIÓN si están disponibles
-${clubPolicies}${playersInfo}${schedulesInfo}${eventsInfo}${callupsInfo}${announcementsInfo}`;
+- Si preguntan sobre inscripciones o renovaciones, usa la información de PROCESO DE INSCRIPCIÓN Y RENOVACIÓN
+- Si preguntan sobre plazas disponibles, usa la información de DISPONIBILIDAD DE PLAZAS
+${clubPolicies}${playersInfo}${schedulesInfo}${eventsInfo}${callupsInfo}${announcementsInfo}${categoryInfo}${inscriptionInfo}`;
   };
 
   const handleSend = async () => {

@@ -22,6 +22,7 @@ import NotificationManager from "./components/notifications/NotificationManager"
 import AutomaticNotificationEngine from "./components/notifications/AutomaticNotificationEngine";
 import EmailNotificationTrigger from "./components/notifications/EmailNotificationTrigger";
 import AutomaticPaymentReminders from "./components/reminders/AutomaticPaymentReminders";
+import FloatingChatbotButton from "./components/chatbot/FloatingChatbotButton";
 // ToastContainer eliminado - causaba spam de notificaciones
 import EventReminderEngine from "./components/events/EventReminderEngine";
 import DocumentReminderEngine from "./components/documents/DocumentReminderEngine";
@@ -1579,7 +1580,10 @@ export default function Layout({ children, currentPageName }) {
         <main className={`lg:ml-72 min-h-screen pt-[100px] lg:pt-0 ${sponsorBannerVisible ? 'pb-24 lg:pb-20' : 'pb-4'}`}>
           {/* Ya no usamos bloqueo de pantalla - usamos recordatorios amigables cada 24h */}
           {children}
-        </main>
+
+          {/* Botón flotante del chatbot - disponible en todas las páginas */}
+          <FloatingChatbotButton />
+          </main>
 
         {/* Banner de Patrocinadores - Footer fijo */}
         {sponsorBannerVisible && (
