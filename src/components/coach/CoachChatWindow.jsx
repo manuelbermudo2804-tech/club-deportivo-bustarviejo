@@ -593,17 +593,7 @@ export default function CoachChatWindow({ selectedCategory, user, allPlayers }) 
                   </p>
                 )}
 
-                {msg.ubicacion && <LocationMessage ubicacion={msg.ubicacion} />}
-                {msg.encuesta && (
-                  <PollMessage 
-                    encuesta={msg.encuesta} 
-                    messageId={msg.id}
-                    userEmail={user.email}
-                    userName={user.full_name}
-                    onVote={(msgId, optionIdx) => votePollMutation.mutate({ messageId: msgId, optionIndex: optionIdx })}
-                  />
-                )}
-
+                {/* Archivos ANTES de la encuesta */}
                 {msg.archivos_adjuntos?.length > 0 && (
                   <div className="mt-2 space-y-1">
                     {msg.archivos_adjuntos.map((file, idx) => (
@@ -630,6 +620,18 @@ export default function CoachChatWindow({ selectedCategory, user, allPlayers }) 
                       )
                     ))}
                   </div>
+                )}
+
+                {msg.ubicacion && <LocationMessage ubicacion={msg.ubicacion} />}
+                
+                {msg.encuesta && (
+                  <PollMessage 
+                    encuesta={msg.encuesta} 
+                    messageId={msg.id}
+                    userEmail={user.email}
+                    userName={user.full_name}
+                    onVote={(msgId, optionIdx) => votePollMutation.mutate({ messageId: msgId, optionIndex: optionIdx })}
+                  />
                 )}
 
                 {msg.reacciones?.length > 0 && (

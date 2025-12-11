@@ -20,13 +20,13 @@ export default function PollMessage({ encuesta, messageId, userEmail, userName, 
   const myVote = encuesta.votos?.find(v => v.usuario_email === userEmail);
 
   return (
-    <div className="mt-3 bg-gradient-to-br from-blue-50 to-white rounded-2xl p-4 border-2 border-blue-200 shadow-sm">
+    <div className="mt-2 bg-white rounded-2xl p-4 border-2 border-slate-200 shadow-sm">
       <div className="mb-3">
-        <p className="text-sm font-bold text-blue-900 mb-1 flex items-center gap-2">
+        <p className="text-sm font-bold text-slate-900 mb-2 flex items-center gap-2">
           📊 Encuesta
           {isClosed && <span className="text-xs text-red-600 bg-red-100 px-2 py-0.5 rounded-full">Cerrada</span>}
         </p>
-        <p className="text-base font-semibold text-slate-800">{encuesta.pregunta}</p>
+        <p className="text-base font-semibold text-slate-800 leading-snug">{encuesta.pregunta}</p>
       </div>
       
       <div className="space-y-2.5">
@@ -40,12 +40,12 @@ export default function PollMessage({ encuesta, messageId, userEmail, userName, 
               key={index}
               onClick={() => !hasVoted && !isClosed && onVote(messageId, index)}
               disabled={hasVoted || isClosed}
-              className={`w-full text-left p-4 rounded-xl border-2 transition-all relative overflow-hidden group ${
+              className={`w-full text-left p-4 rounded-xl border-2 transition-all relative overflow-hidden ${
                 isMyVote 
                   ? 'bg-green-50 border-green-500 shadow-md' 
                   : hasVoted || isClosed 
-                    ? 'bg-white border-slate-200 cursor-not-allowed' 
-                    : 'bg-white border-blue-300 hover:bg-blue-50 hover:border-blue-400 cursor-pointer active:scale-[0.98] hover:shadow-md'
+                    ? 'bg-slate-50 border-slate-200 cursor-not-allowed' 
+                    : 'bg-white border-slate-300 hover:bg-slate-50 hover:border-slate-400 cursor-pointer active:scale-[0.98] hover:shadow-md'
               }`}
             >
               {/* Barra de progreso - solo visible si hay votos */}
