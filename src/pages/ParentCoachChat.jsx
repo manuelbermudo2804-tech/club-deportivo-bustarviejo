@@ -49,6 +49,36 @@ export default function ParentCoachChat() {
     fetchUser();
   }, []);
 
+  // Marcar notificaciones como vistas inmediatamente al abrir el chat
+  useEffect(() => {
+    if (!user || !selectedCategory) return;
+
+    const markNotificationsAsRead = async () => {
+      try {
+        const notifications = await base44.entities.AppNotification.filter({ 
+          usuario_email: user.email,
+          enlace: "ParentCoachChat",
+          vista: false
+        });
+        
+        for (const notif of notifications) {
+          await base44.entities.AppNotification.update(notif.id, {
+            vista: true,
+            fecha_vista: new Date().toISOString()
+          });
+        }
+        
+        if (notifications.length > 0) {
+          queryClient.invalidateQueries({ queryKey: ['appNotifications'] });
+        }
+      } catch (error) {
+        console.error("Error marking notifications as read:", error);
+      }
+    };
+
+    markNotificationsAsRead();
+  }, [user, selectedCategory]);
+
   const { data: messages = [] } = useQuery({
     queryKey: ['coachGroupMessages', selectedCategory, user?.email],
     queryFn: async () => {
