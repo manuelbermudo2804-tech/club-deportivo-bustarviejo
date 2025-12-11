@@ -312,41 +312,41 @@ export default function NotificationCenter() {
       </DialogTrigger>
       <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <Bell className="w-5 h-5 text-orange-600" />
-            Centro de Notificaciones
-            {totalNotifications > 0 && (
-              <Badge className="bg-orange-500 text-white">{totalNotifications}</Badge>
-            )}
-            {criticalNotifications > 0 && (
-              <Badge className="bg-red-500 text-white animate-pulse">🔴 {criticalNotifications} urgentes</Badge>
+          <DialogTitle className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Bell className="w-5 h-5 text-orange-600" />
+              Centro de Notificaciones
+              {totalNotifications > 0 && (
+                <Badge className="bg-orange-500 text-white">{totalNotifications}</Badge>
+              )}
+              {criticalNotifications > 0 && (
+                <Badge className="bg-red-500 text-white animate-pulse">🔴 {criticalNotifications} urgentes</Badge>
+              )}
+            </div>
+            {allNotifications.length > 0 && (
+              <div className="flex gap-2">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => clearAllNotificationsMutation.mutate()}
+                  disabled={clearAllNotificationsMutation.isPending}
+                  title="Marcar todas como vistas"
+                >
+                  <Check className="w-4 h-4" />
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => setShowDeleteConfirm(true)}
+                  className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                  title="Limpiar todas"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </Button>
+              </div>
             )}
           </DialogTitle>
         </DialogHeader>
-
-        {unviewedAppNotifications.length > 0 && (
-          <div className="flex gap-2 pb-2 border-b">
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={() => clearAllNotificationsMutation.mutate()}
-              disabled={clearAllNotificationsMutation.isPending}
-              className="flex-1"
-            >
-              <Check className="w-4 h-4 mr-1" />
-              Marcar todas como vistas
-            </Button>
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={() => setShowDeleteConfirm(true)}
-              className="text-red-600 hover:text-red-700 hover:bg-red-50"
-            >
-              <Trash2 className="w-4 h-4 mr-1" />
-              Limpiar
-            </Button>
-          </div>
-        )}
 
         {showDeleteConfirm && (
           <Alert className="bg-red-50 border-red-300">
