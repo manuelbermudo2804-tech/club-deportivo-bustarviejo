@@ -759,10 +759,14 @@ export default function Layout({ children, currentPageName }) {
       try {
         const allCallups = await base44.entities.Convocatoria.list();
         const today = new Date().toISOString().split('T')[0];
+        const currentIsAdmin = user.role === "admin";
+        const currentIsCoach = user.es_entrenador === true && !user.es_coordinador;
+        const currentIsCoordinator = user.es_coordinador === true;
+        const currentHasPlayers = user.tiene_hijos_jugando === true;
 
         let pending = 0;
 
-        if (!isAdmin && !isCoach) {
+        if (!currentIsAdmin && !currentIsCoach) {
           const allPlayers = await base44.entities.Player.list();
           const myPlayers = allPlayers.filter(p => 
             p.email_padre === user.email || 
@@ -781,7 +785,7 @@ export default function Layout({ children, currentPageName }) {
               });
             }
           });
-        } else if ((isAdmin || isCoach) && hasPlayers) {
+        } else if ((currentIsAdmin || currentIsCoach) && currentHasPlayers) {
           const allPlayers = await base44.entities.Player.list();
           const myPlayers = allPlayers.filter(p => 
             p.email_padre === user.email || 
@@ -805,14 +809,14 @@ export default function Layout({ children, currentPageName }) {
         setPendingCallupsCount(pending);
         
         // Contar respuestas pendientes para entrenadores/coordinadores
-        if (isAdmin || isCoach || isCoordinator) {
+        if (currentIsAdmin || currentIsCoach || currentIsCoordinator) {
           let coachPending = 0;
           const coachCategories = user.categorias_entrena || [];
           
           allCallups.forEach(callup => {
             if (callup.publicada && callup.fecha_partido >= today && !callup.cerrada) {
               // Solo contar convocatorias de las categorías del entrenador
-              const isMyCategory = isAdmin || coachCategories.includes(callup.categoria);
+              const isMyCategory = currentIsAdmin || coachCategories.includes(callup.categoria);
               if (isMyCategory) {
                 callup.jugadores_convocados?.forEach(jugador => {
                   if (jugador.confirmacion === "pendiente") {
@@ -830,14 +834,15 @@ export default function Layout({ children, currentPageName }) {
         };
 
         checkPendingCallups();
-        }, [user, isAdmin, isCoach, isCoordinator, hasPlayers]);
+        }, [user?.email]);
 
     useEffect(() => {
       if (!user) return;
 
       const checkUnreadAnnouncements = async () => {
         try {
-          if (isAdmin) {
+          const currentIsAdmin = user.role === "admin";
+          if (currentIsAdmin) {
             setUnreadAnnouncementsCount(0);
             return;
           }
@@ -882,10 +887,12 @@ export default function Layout({ children, currentPageName }) {
       checkUnreadAnnouncements();
       const interval = setInterval(checkUnreadAnnouncements, 30000); // Check every 30 seconds
       return () => clearInterval(interval);
-    }, [user, isAdmin]);
+    }, [user?.email]);
 
     useEffect(() => {
-      if (!user || isAdmin) return;
+      if (!user) return;
+      const currentIsAdmin = user.role === "admin";
+      if (currentIsAdmin) return;
 
       const checkPendingSignatures = async () => {
         try {
@@ -933,7 +940,7 @@ export default function Layout({ children, currentPageName }) {
       // Refrescar cada 5 segundos para detectar cambios en firmas
       const interval = setInterval(checkPendingSignatures, 5000);
       return () => clearInterval(interval);
-    }, [user, isAdmin]);
+    }, [user?.email]);
 
 
 
