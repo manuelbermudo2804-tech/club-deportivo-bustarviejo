@@ -22,6 +22,9 @@ export default function ExerciseLibrary() {
   const [sportFilter, setSportFilter] = useState("all");
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [intensityFilter, setIntensityFilter] = useState("all");
+  const [durationFilter, setDurationFilter] = useState("all");
+  const [playersFilter, setPlayersFilter] = useState("all");
+  const [equipmentFilter, setEquipmentFilter] = useState("all");
   const [showForm, setShowForm] = useState(false);
   const [editingExercise, setEditingExercise] = useState(null);
   const [showAIPlanner, setShowAIPlanner] = useState(false);
@@ -83,7 +86,39 @@ export default function ExerciseLibrary() {
     const matchesSport = sportFilter === "all" || ex.deporte === sportFilter;
     const matchesCategory = categoryFilter === "all" || ex.categoria_ejercicio === categoryFilter;
     const matchesIntensity = intensityFilter === "all" || ex.intensidad === intensityFilter;
-    return matchesSearch && matchesSport && matchesCategory && matchesIntensity;
+    
+    // Filtro de duración
+    let matchesDuration = true;
+    if (durationFilter !== "all") {
+      const duration = ex.duracion_minutos || 0;
+      if (durationFilter === "short") matchesDuration = duration < 10;
+      else if (durationFilter === "medium") matchesDuration = duration >= 10 && duration <= 20;
+      else if (durationFilter === "long") matchesDuration = duration > 20;
+    }
+    
+    // Filtro de jugadores
+    let matchesPlayers = true;
+    if (playersFilter !== "all") {
+      const jugadores = ex.jugadores_necesarios?.toLowerCase() || "";
+      if (playersFilter === "1x1") matchesPlayers = jugadores.includes("1x1") || jugadores.includes("parejas");
+      else if (playersFilter === "small") matchesPlayers = jugadores.includes("3x3") || jugadores.includes("4x4") || jugadores.includes("5x5") || jugadores.includes("6 jugadores");
+      else if (playersFilter === "medium") matchesPlayers = jugadores.includes("7x7") || jugadores.includes("8x8") || jugadores.includes("10x10") || jugadores.includes("12") || jugadores.includes("14");
+      else if (playersFilter === "full") matchesPlayers = jugadores.includes("11x11") || jugadores.includes("22");
+    }
+    
+    // Filtro de equipamiento
+    let matchesEquipment = true;
+    if (equipmentFilter !== "all") {
+      const material = ex.material_necesario?.toLowerCase() || "";
+      if (equipmentFilter === "conos") matchesEquipment = material.includes("cono");
+      else if (equipmentFilter === "vallas") matchesEquipment = material.includes("valla") || material.includes("vaya");
+      else if (equipmentFilter === "porterias") matchesEquipment = material.includes("porter");
+      else if (equipmentFilter === "aros") matchesEquipment = material.includes("aro");
+      else if (equipmentFilter === "picas") matchesEquipment = material.includes("pica");
+      else if (equipmentFilter === "minimal") matchesEquipment = material.includes("balones") || material.includes("bal\u00f3n");
+    }
+    
+    return matchesSearch && matchesSport && matchesCategory && matchesIntensity && matchesDuration && matchesPlayers && matchesEquipment;
   });
 
   const favoriteExercises = filteredExercises.filter(ex => ex.favorito);
@@ -204,42 +239,86 @@ export default function ExerciseLibrary() {
           </div>
 
           {showFilters && (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-2 border-t">
-              <Select value={sportFilter} onValueChange={setSportFilter}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Deporte" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todos los deportes</SelectItem>
-                  <SelectItem value="Fútbol">⚽ Fútbol</SelectItem>
-                  <SelectItem value="Baloncesto">🏀 Baloncesto</SelectItem>
-                </SelectContent>
-              </Select>
+            <div className="space-y-3 pt-2 border-t">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                <Select value={sportFilter} onValueChange={setSportFilter}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Deporte" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todos los deportes</SelectItem>
+                    <SelectItem value="Fútbol">⚽ Fútbol</SelectItem>
+                    <SelectItem value="Baloncesto">🏀 Baloncesto</SelectItem>
+                  </SelectContent>
+                </Select>
 
-              <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Categoría" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todas las categorías</SelectItem>
-                  {categories.map(cat => (
-                    <SelectItem key={cat} value={cat}>{cat}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+                <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Categoría" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todas las categorías</SelectItem>
+                    {categories.map(cat => (
+                      <SelectItem key={cat} value={cat}>{cat}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
 
-              <Select value={intensityFilter} onValueChange={setIntensityFilter}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Intensidad" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todas las intensidades</SelectItem>
-                  <SelectItem value="Baja">🟢 Baja</SelectItem>
-                  <SelectItem value="Media">🟡 Media</SelectItem>
-                  <SelectItem value="Alta">🟠 Alta</SelectItem>
-                  <SelectItem value="Muy Alta">🔴 Muy Alta</SelectItem>
-                </SelectContent>
-              </Select>
+                <Select value={intensityFilter} onValueChange={setIntensityFilter}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Intensidad" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todas las intensidades</SelectItem>
+                    <SelectItem value="Baja">🟢 Baja</SelectItem>
+                    <SelectItem value="Media">🟡 Media</SelectItem>
+                    <SelectItem value="Alta">🟠 Alta</SelectItem>
+                    <SelectItem value="Muy Alta">🔴 Muy Alta</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                <Select value={durationFilter} onValueChange={setDurationFilter}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Duración" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todas las duraciones</SelectItem>
+                    <SelectItem value="short">⏱️ Corta (&lt;10 min)</SelectItem>
+                    <SelectItem value="medium">⏱️ Media (10-20 min)</SelectItem>
+                    <SelectItem value="long">⏱️ Larga (&gt;20 min)</SelectItem>
+                  </SelectContent>
+                </Select>
+
+                <Select value={playersFilter} onValueChange={setPlayersFilter}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Nº Jugadores" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todos los formatos</SelectItem>
+                    <SelectItem value="1x1">👤 1x1 / Parejas</SelectItem>
+                    <SelectItem value="small">👥 Reducido (3x3 a 6x6)</SelectItem>
+                    <SelectItem value="medium">👥👥 Medio (7x7 a 10x10)</SelectItem>
+                    <SelectItem value="full">👥👥👥 Partido (11x11)</SelectItem>
+                  </SelectContent>
+                </Select>
+
+                <Select value={equipmentFilter} onValueChange={setEquipmentFilter}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Equipamiento" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todo equipamiento</SelectItem>
+                    <SelectItem value="minimal">⚽ Mínimo (solo balones)</SelectItem>
+                    <SelectItem value="conos">🔶 Conos</SelectItem>
+                    <SelectItem value="vallas">🚧 Vallas/Obstáculos</SelectItem>
+                    <SelectItem value="porterias">🥅 Porterías</SelectItem>
+                    <SelectItem value="aros">⭕ Aros</SelectItem>
+                    <SelectItem value="picas">📏 Picas</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
           )}
         </CardContent>
