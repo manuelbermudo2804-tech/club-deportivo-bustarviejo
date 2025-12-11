@@ -1295,9 +1295,7 @@ export default function Layout({ children, currentPageName }) {
 
     return (
             <>
-              <TutorialProvider>
               {renderOnboarding()}
-                    <PWAInstallPrompt />
 
               {/* Modal de instrucciones de instalación */}
               {showInstallInstructions && (
@@ -1495,11 +1493,7 @@ export default function Layout({ children, currentPageName }) {
 
               <SessionManager />
               <NotificationBadge />
-              {user && <AppNotificationListener user={user} />}
-              {user && <DocumentReminderEngine user={user} />}
-      {user && <NotificationManager user={user} />}
-      {user && (user.role === "admin" || user.es_tesorero) && <AutomaticPaymentReminders user={user} />}
-        {/* ToastContainer eliminado */}
+        {/* Componentes temporalmente desactivados para debug */}
 
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
         
@@ -1735,7 +1729,6 @@ export default function Layout({ children, currentPageName }) {
           </div>
         )}
         </div>
-        </TutorialProvider>
         </>
         );
 }
