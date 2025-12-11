@@ -217,6 +217,20 @@ export default function ClubMembership() {
     enabled: !isCheckingAuth,
   });
 
+  const { data: seasonConfig } = useQuery({
+    queryKey: ['seasonConfig'],
+    queryFn: async () => {
+      try {
+        const configs = await base44.entities.SeasonConfig.list();
+        return configs.find(c => c.activa === true);
+      } catch (error) {
+        console.error("Error loading season config:", error);
+        return null;
+      }
+    },
+    enabled: !isCheckingAuth,
+  });
+
   // Detectar si el email ya fue socio en temporadas anteriores (para auto-marcar como renovación)
   const previousMemberships = useMemo(() => {
     if (!seasonConfig?.temporada || !formData.email) return [];
@@ -253,20 +267,6 @@ export default function ClubMembership() {
 
   // Determinar si es un usuario externo (sin autenticación o sin hijos en el club)
   const isExternalUser = !user || myPlayers.length === 0;
-
-  const { data: seasonConfig } = useQuery({
-    queryKey: ['seasonConfig'],
-    queryFn: async () => {
-      try {
-        const configs = await base44.entities.SeasonConfig.list();
-        return configs.find(c => c.activa === true);
-      } catch (error) {
-        console.error("Error loading season config:", error);
-        return null;
-      }
-    },
-    enabled: !isCheckingAuth,
-  });
 
   // Refetch user data para mantener crédito actualizado
   const { data: freshUser, refetch: refetchUser } = useQuery({
