@@ -62,12 +62,12 @@ export default function ParentCoachChat() {
           setSelectedCategory(players[0].deporte);
         }
 
-        // Verificar si ya aceptó las condiciones
-        if (!currentUser.condiciones_chat_aceptadas) {
-          setShowTermsDialog(true);
-        } else {
+        // Verificar si ya aceptó las condiciones - TEMPORALMENTE DESACTIVADO
+        // if (!currentUser.condiciones_chat_aceptadas) {
+        //   setShowTermsDialog(true);
+        // } else {
           setTermsAccepted(true);
-        }
+        // }
 
         // Contar mensajes del día
         const today = new Date().toISOString().split('T')[0];
@@ -523,11 +523,12 @@ Este chat es solo para avisos rápidos. Gracias por tu comprensión.`,
   });
 
   const handleSend = () => {
-    if (!termsAccepted) {
-      toast.error("Debes aceptar las condiciones de uso antes de enviar mensajes");
-      setShowTermsDialog(true);
-      return;
-    }
+    // Validación de términos desactivada temporalmente
+    // if (!termsAccepted) {
+    //   toast.error("Debes aceptar las condiciones de uso antes de enviar mensajes");
+    //   setShowTermsDialog(true);
+    //   return;
+    // }
     
     // VERIFICAR SI EL USUARIO ESTÁ BLOQUEADO
     if (user?.chat_bloqueado === true) {
