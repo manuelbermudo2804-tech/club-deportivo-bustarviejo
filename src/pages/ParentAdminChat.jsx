@@ -153,9 +153,21 @@ export default function ParentAdminChat() {
     }
   };
 
-  const handleSend = () => {
+  const handleSend = async () => {
     if (!messageText.trim() && attachments.length === 0) return;
-    sendMessageMutation.mutate({ mensaje: messageText, adjuntos: attachments });
+    
+    // Guardar los datos antes de limpiar
+    const dataToSend = { 
+      mensaje: messageText, 
+      adjuntos: attachments 
+    };
+    
+    // Limpiar inmediatamente para mejor UX
+    setMessageText("");
+    setAttachments([]);
+    
+    // Enviar
+    sendMessageMutation.mutate(dataToSend);
   };
 
   if (!user) {
