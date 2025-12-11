@@ -51,6 +51,8 @@ export default function AlertCenter({
   unreadCoordinatorMessages = 0,
   unreadCoachMessages = 0,
   unreadPrivateMessages = 0,
+  unreadAdminMessages = 0,
+  hasActiveAdminChat = false,
   isAdmin = false,
   isCoach = false,
   isParent = true,
@@ -139,6 +141,19 @@ export default function AlertCenter({
 
   // Alertas para padres
   if (isParent) {
+    // ALERTA CRÍTICA DE ADMIN (prioridad máxima)
+    if (hasActiveAdminChat && unreadAdminMessages > 0) {
+      alerts.push({
+        id: "admin-chat",
+        icon: AlertTriangle,
+        title: "🛡️ El Administrador te ha contactado",
+        description: `${unreadAdminMessages} mensaje${unreadAdminMessages > 1 ? 's' : ''} sin leer - Situación crítica`,
+        url: createPageUrl("ParentAdminChat"),
+        color: "bg-red-600",
+        priority: 0
+      });
+    }
+    
     if (unreadPrivateMessages > 0) {
       alerts.push({
         id: "private-messages",
