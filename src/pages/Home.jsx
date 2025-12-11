@@ -272,6 +272,17 @@ export default function Home() {
     enabled: !!user,
   });
 
+  const { data: adminConversations = [] } = useQuery({
+    queryKey: ['adminConversationsHome'],
+    queryFn: () => base44.entities.AdminConversation.list(),
+    staleTime: 30000,
+    gcTime: 300000,
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
+    refetchInterval: false,
+    enabled: !!user && !isAdmin,
+  });
+
   const myPlayers = useMemo(() => {
     if (!user || !isCoach || !hasPlayers || !players) return [];
     return players.filter(p => p.email_padre === user.email || p.email_tutor_2 === user.email);
@@ -476,13 +487,27 @@ export default function Home() {
       });
     }
 
+    // Calcular mensajes admin no leídos
+    let unreadAdminMessages = 0;
+    let hasActiveAdminChat = false;
+    if (user && adminConversations && !isAdmin) {
+      const myAdminConv = adminConversations.find(c => 
+        c.padre_email === user.email && !c.resuelta
+      );
+      if (myAdminConv) {
+        hasActiveAdminChat = true;
+        unreadAdminMessages = myAdminConv.no_leidos_padre || 0;
+      }
+    }
+
     return { 
       activePlayers, pendingPayments, reviewPayments, paidPayments, unreadMessages, unreadPrivateMessages,
       pendingCallups, pendingSignatures, adminPendingSignatures, pendingPlayerAccess,
       pendingClothingOrders, pendingLotteryOrders, pendingMemberRequests, 
-      recentSurveyResponses, pendingEventConfirmations, pendingCallupResponses, unreadCoordinatorMessages
+      recentSurveyResponses, pendingEventConfirmations, pendingCallupResponses, unreadCoordinatorMessages,
+      unreadAdminMessages, hasActiveAdminChat
     };
-  }, [players, payments, messages, callups, user, hasPlayers, isAdmin, allUsers, clothingOrders, lotteryOrders, clubMembers, surveyResponses, events, privateConversations]);
+  }, [players, payments, messages, callups, user, hasPlayers, isAdmin, allUsers, clothingOrders, lotteryOrders, clubMembers, surveyResponses, events, privateConversations, adminConversations, isCoordinator, isTreasurer, isCoach]);
 
   const handleMatchAppClick = useMemo(() => () => {
     const userAgent = navigator.userAgent || navigator.vendor || window.opera;
@@ -1086,6 +1111,8 @@ export default function Home() {
             pendingEventConfirmations={stats.pendingEventConfirmations}
             pendingPlayerAccess={stats.pendingPlayerAccess}
             unreadCoordinatorMessages={stats.unreadCoordinatorMessages}
+            unreadAdminMessages={stats.unreadAdminMessages}
+            hasActiveAdminChat={stats.hasActiveAdminChat}
             isAdmin={isAdmin}
             isCoach={isCoach || isCoordinator}
             isParent={hasPlayers}
