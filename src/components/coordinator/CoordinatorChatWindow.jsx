@@ -18,6 +18,7 @@ import LocationMessage from "../chat/LocationMessage";
 import SearchFilters from "../chat/SearchFilters";
 import ChatInputActions from "../chat/ChatInputActions";
 import CoordinatorQuickReplies from "./CoordinatorQuickReplies";
+import EscalateToAdminButton from "./EscalateToAdminButton";
 
 const REACTIONS = ["👍", "❤️", "✅", "👏", "🎉"];
 
@@ -679,6 +680,13 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
             </p>
           </div>
           <div className="flex items-center gap-2">
+            {isCoordinator && (
+              <EscalateToAdminButton 
+                conversation={conversation}
+                recentMessages={messages}
+                coordinatorUser={user}
+              />
+            )}
             <Button 
               variant="ghost" 
               size="sm"
