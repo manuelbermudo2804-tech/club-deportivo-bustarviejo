@@ -83,11 +83,11 @@ export default function Home() {
     queryKey: ['players'],
     queryFn: () => base44.entities.Player.list(),
     initialData: [],
-    staleTime: 30000,
+    staleTime: 60000,
     gcTime: 600000,
-    refetchOnWindowFocus: true,
-    refetchOnMount: true,
-    refetchInterval: 30000,
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
+    refetchInterval: false,
     enabled: !!user,
   });
 
@@ -119,11 +119,11 @@ export default function Home() {
     queryKey: ['privateConversationsHome'],
     queryFn: () => base44.entities.PrivateConversation.list('-ultimo_mensaje_fecha', 30),
     initialData: [],
-    staleTime: 5000,
+    staleTime: 30000,
     gcTime: 300000,
-    refetchOnWindowFocus: true,
-    refetchOnMount: true,
-    refetchInterval: 5000,
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
+    refetchInterval: false,
     enabled: !!user,
   });
 
@@ -131,11 +131,11 @@ export default function Home() {
     queryKey: ['callups'],
     queryFn: () => base44.entities.Convocatoria.list(),
     initialData: [],
-    staleTime: 30000,
+    staleTime: 60000,
     gcTime: 600000,
-    refetchOnWindowFocus: true,
-    refetchOnMount: true,
-    refetchInterval: 30000,
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
+    refetchInterval: false,
     enabled: !!user,
   });
 
@@ -262,11 +262,11 @@ export default function Home() {
   const { data: coordinatorConversations = [] } = useQuery({
     queryKey: ['coordinatorConversations'],
     queryFn: () => base44.entities.CoordinatorConversation.list(),
-    staleTime: 5000,
+    staleTime: 30000,
     gcTime: 300000,
-    refetchOnWindowFocus: true,
-    refetchOnMount: true,
-    refetchInterval: 5000,
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
+    refetchInterval: false,
     enabled: !!user,
   });
 
@@ -1152,16 +1152,7 @@ export default function Home() {
         </button>
 
         <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3 lg:gap-6 stagger-animation">
-          {!user || !menuItems.length ? (
-            <>
-              {[1, 2, 3, 4, 5, 6].map((i) => (
-                <Suspense key={i} fallback={null}>
-                  <DashboardCardSkeleton />
-                </Suspense>
-              ))}
-            </>
-          ) : (
-            menuItems.map((item, index) => (
+          {menuItems.map((item, index) => (
             <Link key={index} to={item.url} className="group">
               <div className="relative bg-slate-800 rounded-3xl overflow-hidden shadow-elegant-xl card-hover-glow transition-all duration-300 active:scale-95 border-2 border-slate-700 hover:border-orange-500 btn-hover-shine">
                 <div className="absolute inset-0 bg-gradient-to-br from-slate-700/50 to-black/80 opacity-60"></div>
@@ -1187,8 +1178,7 @@ export default function Home() {
                 </div>
               </div>
             </Link>
-          ))
-          )}
+          ))}
         </div>
 
         {/* Botón de prueba de notificación - Solo Admin */}
