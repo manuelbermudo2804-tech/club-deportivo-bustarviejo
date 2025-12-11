@@ -432,8 +432,8 @@ export default function AlertCenter({
       alerts.push({
         id: "payments",
         icon: CreditCard,
-        title: "💳 Pagos por realizar",
-        description: `${pendingPayments} pago${pendingPayments > 1 ? 's' : ''} sin justificante`,
+        title: "💳 Justificantes por enviar",
+        description: `${pendingPayments} justificante${pendingPayments > 1 ? 's' : ''} de pago pendiente${pendingPayments > 1 ? 's' : ''}`,
         url: createPageUrl("ParentPayments"),
         color: "bg-yellow-500",
         priority: 3

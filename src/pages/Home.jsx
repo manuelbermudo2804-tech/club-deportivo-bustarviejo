@@ -13,6 +13,7 @@ import ClubStats from "../components/dashboard/ClubStats";
 import DashboardCardSkeleton from "../components/skeletons/DashboardCardSkeleton";
 import AlertCenter from "../components/dashboard/AlertCenter";
 import DuplicatePlayersAlert from "../components/admin/DuplicatePlayersAlert";
+import PaymentApprovalNotifier from "../components/payments/PaymentApprovalNotifier";
 
 
 const CLUB_LOGO_URL = "https://www.cdbustarviejo.com/uploads/2/4/0/4/2404974/logo-cd-bustarviejo-cuadrado-xpeq_orig.png";
@@ -304,7 +305,9 @@ export default function Home() {
 
   const stats = useMemo(() => {
     const activePlayers = players?.filter(p => p.activo).length || 0;
+    // Para padres: SOLO pagos "Pendiente" (sin justificante)
     const pendingPayments = payments?.filter(p => p.estado === "Pendiente").length || 0;
+    // Para admin: pagos "En revisión" (esperando aprobación)
     const reviewPayments = payments?.filter(p => p.estado === "En revisión").length || 0;
     const paidPayments = payments?.filter(p => p.estado === "Pagado").length || 0;
     const unreadMessages = messages?.filter(m => !m.leido && m.tipo === "padre_a_grupo").length || 0;
@@ -1015,6 +1018,7 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-black pt-4 lg:pt-0">
+      <PaymentApprovalNotifier isAdmin={isAdmin} />
       <div className="px-4 lg:px-8 py-6 space-y-4 lg:space-y-6">
         <SocialLinks />
 
@@ -1067,7 +1071,7 @@ export default function Home() {
           <AlertCenter 
             pendingCallups={stats.pendingCallups}
             pendingDocuments={0}
-            pendingPayments={isAdmin || isTreasurer ? stats.reviewPayments : 0}
+            pendingPayments={isAdmin || isTreasurer ? stats.reviewPayments : stats.pendingPayments}
             unreadMessages={stats.unreadMessages}
             unreadPrivateMessages={stats.unreadPrivateMessages}
             pendingSurveys={0}
