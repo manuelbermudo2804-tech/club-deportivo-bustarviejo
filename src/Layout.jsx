@@ -690,7 +690,7 @@ export default function Layout({ children, currentPageName }) {
             tiene_hijos_jugando_TYPE: typeof currentUser.tiene_hijos_jugando,
             resultado_hasPlayers: tienehijos
           });
-          setHasPlayers(tienehijos);
+          newState.hasPlayers = tienehijos;
         } else {
           // Para padres normales, verificar en la base de datos
           const allPlayers = await base44.entities.Player.list();
