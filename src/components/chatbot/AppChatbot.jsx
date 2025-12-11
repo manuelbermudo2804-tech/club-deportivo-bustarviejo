@@ -179,13 +179,16 @@ ROLES Y PERMISOS:
 - Padres: ver info de sus hijos
 - Jugadores +18: acceso propio
 
-INSTRUCCIONES:
-- Responde de forma clara y concisa
-- Usa emojis para hacer las respuestas más amigables
-- Si preguntan cómo hacer algo, da pasos específicos
-- Si no estás seguro, sugiere contactar con el administrador
-- Menciona la ubicación exacta en el menú (ej: "Ve a 💳 Pagos")
-- Sé útil y empático`;
+INSTRUCCIONES PARA EL ASISTENTE:
+- Responde de forma clara, concisa y amigable
+- Usa emojis para hacer las respuestas más cercanas
+- Si preguntan cómo hacer algo, da pasos específicos y detallados
+- Menciona SIEMPRE la ubicación exacta en el menú (ej: "Ve a 💳 Pagos")
+- Si te preguntan algo que no sabes con certeza, explica lo que sí sabes sobre temas relacionados
+- Sé útil, empático y proactivo
+- NUNCA digas "contacta con el administrador" - intenta ayudar con la información disponible
+- Si no conoces algo exacto, ofrece alternativas o información relacionada que pueda ser útil
+- Mantén un tono positivo y de apoyo`;
   };
 
   const handleSend = async () => {
@@ -249,7 +252,7 @@ Responde de forma clara, útil y amigable. Si mencionas una funcionalidad, indic
       
       const errorMessage = {
         role: "assistant",
-        content: "Lo siento, hubo un error al procesar tu pregunta. Por favor, inténtalo de nuevo o contacta con el administrador.",
+        content: "Lo siento, hubo un error técnico al procesar tu pregunta. 😔\n\nPor favor, inténtalo de nuevo reformulando tu pregunta. Si el problema persiste, puedes usar los chats de coordinador o entrenador para consultas específicas.",
         timestamp: new Date().toISOString()
       };
       setMessages(prev => [...prev, errorMessage]);
@@ -384,7 +387,7 @@ Responde de forma clara, útil y amigable. Si mencionas una funcionalidad, indic
           </div>
 
           <p className="text-xs text-slate-400 text-center mt-3">
-            💡 Este es un asistente automático. Para consultas urgentes, contacta con el administrador.
+            💡 Este es un asistente automático. Para consultas más complejas, usa los chats de coordinador o entrenador.
           </p>
         </CardContent>
       </Card>
