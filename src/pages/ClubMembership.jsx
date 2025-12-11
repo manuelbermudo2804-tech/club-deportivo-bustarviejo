@@ -11,7 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { Loader2, Upload, AlertCircle, CheckCircle2, Users, CreditCard, Download, Heart, Star, PartyPopper, Sparkles, UserPlus, Trophy, Gift, Share2, MessageCircle } from "lucide-react";
 import { sendMemberCard } from "../components/members/MemberCardEmail";
 import ReferralProgramCard from "../components/referrals/ReferralProgramCard";
-import { CombinedSuccessAnimation } from "../components/animations/SuccessAnimation";
+// Animación removida temporalmente por problemas de importación
 import { toast } from "sonner";
 
 const CUOTA_SOCIO = 25;
@@ -573,12 +573,17 @@ export default function ClubMembership() {
 
   return (
     <div className="p-4 lg:p-6 max-w-4xl mx-auto space-y-6">
-      <CombinedSuccessAnimation 
-        show={showSuccess} 
-        onComplete={() => setShowSuccess(false)}
-        message={`✅ ¡${lastRegisteredName} registrado correctamente!\n\nSi quieres, puedes registrar otra persona`}
-        withConfetti={true}
-      />
+      {showSuccess && (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 backdrop-blur-sm" onClick={() => setShowSuccess(false)}>
+          <div className="bg-white rounded-3xl p-8 shadow-2xl max-w-md mx-4 text-center">
+            <CheckCircle2 className="w-24 h-24 text-green-500 mx-auto mb-4" />
+            <p className="text-2xl font-bold text-slate-900 whitespace-pre-line">
+              ✅ ¡{lastRegisteredName} registrado correctamente!
+            </p>
+            <p className="text-slate-600 mt-2">Si quieres, puedes registrar otra persona</p>
+          </div>
+        </div>
+      )}
       {/* Header festivo */}
       <div className="text-center space-y-2">
         <div className="flex justify-center gap-2 text-4xl animate-bounce">
