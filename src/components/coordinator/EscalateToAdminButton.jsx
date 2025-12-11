@@ -16,6 +16,7 @@ export default function EscalateToAdminButton({
   coordinatorUser
 }) {
   const [showDialog, setShowDialog] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
   const [motivo, setMotivo] = useState("Conflicto familiar");
   const [detalles, setDetalles] = useState("");
   const queryClient = useQueryClient();
@@ -129,9 +130,12 @@ Esta situación requiere intervención administrativa urgente.`;
       queryClient.invalidateQueries({ queryKey: ['adminConversations'] });
       queryClient.invalidateQueries({ queryKey: ['coordinatorConversations'] });
       setShowDialog(false);
+      setShowSuccess(true);
       setMotivo("Conflicto familiar");
       setDetalles("");
-      toast.success("✅ Situación escalada al administrador. Recibirás actualizaciones.");
+      
+      // Ocultar confirmación después de 3 segundos
+      setTimeout(() => setShowSuccess(false), 3000);
     },
     onError: (error) => {
       console.error("Error escalating to admin:", error);
@@ -158,6 +162,18 @@ Esta situación requiere intervención administrativa urgente.`;
         <ShieldAlert className="w-4 h-4" />
         🚨 Escalar al Administrador
       </Button>
+
+      {/* Confirmación de éxito */}
+      {showSuccess && (
+        <div className="fixed top-4 left-1/2 -translate-x-1/2 z-[100] animate-fade-in-scale">
+          <div className="bg-green-600 text-white px-6 py-3 rounded-xl shadow-2xl flex items-center gap-3">
+            <div className="w-8 h-8 bg-white rounded-full flex items-center justify-center">
+              <span className="text-2xl">✅</span>
+            </div>
+            <p className="font-bold">Escalada al administrador correctamente</p>
+          </div>
+        </div>
+      )}
 
       <Dialog open={showDialog} onOpenChange={setShowDialog}>
         <DialogContent className="max-w-lg">

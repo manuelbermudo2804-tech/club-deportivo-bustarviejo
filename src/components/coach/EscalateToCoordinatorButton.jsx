@@ -14,6 +14,7 @@ export default function EscalateToCoordinatorButton({
   recentMessages = [] 
 }) {
   const [showDialog, setShowDialog] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
   const queryClient = useQueryClient();
 
   const escalateMutation = useMutation({
@@ -137,11 +138,12 @@ export default function EscalateToCoordinatorButton({
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['coordinatorConversations'] });
       setShowDialog(false);
-      
-      if (isCoach) {
-        toast.success("✅ Conversación escalada al coordinador. Recibirás actualizaciones.");
-      } else {
-        toast.success("✅ Conversación iniciada con el coordinador deportivo");
+      setShowSuccess(true);
+
+      // Ocultar confirmación después de 3 segundos
+      setTimeout(() => setShowSuccess(false), 3000);
+
+      if (!isCoach) {
         setTimeout(() => {
           window.location.href = "/ParentCoordinatorChat";
         }, 1500);
@@ -168,6 +170,20 @@ export default function EscalateToCoordinatorButton({
         <Shield className="w-4 h-4" />
         {isCoach ? "🚨 Referir al Coordinador" : "¿Necesitas ayuda del Coordinador?"}
       </Button>
+
+      {/* Confirmación de éxito */}
+      {showSuccess && (
+        <div className="fixed top-4 left-1/2 -translate-x-1/2 z-[100] animate-fade-in-scale">
+          <div className="bg-green-600 text-white px-6 py-3 rounded-xl shadow-2xl flex items-center gap-3">
+            <div className="w-8 h-8 bg-white rounded-full flex items-center justify-center">
+              <span className="text-2xl">✅</span>
+            </div>
+            <p className="font-bold">
+              {isCoach ? "Escalada al coordinador correctamente" : "Conversación iniciada con el coordinador"}
+            </p>
+          </div>
+        </div>
+      )}
 
       <Dialog open={showDialog} onOpenChange={setShowDialog}>
         <DialogContent className="max-w-lg">
