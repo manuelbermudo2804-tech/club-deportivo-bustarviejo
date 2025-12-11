@@ -344,54 +344,83 @@ ${clubPolicies}${playersInfo}${schedulesInfo}${eventsInfo}${callupsInfo}${announ
     setIsLoading(true);
 
     try {
-      // Log de la conversación
-      await base44.entities.ChatbotLog.create({
-        user_email: user.email,
-        user_role: user.role || "parent",
-        question: input,
-        timestamp: new Date().toISOString()
-      });
-
-      const conversationHistory = messages.slice(-6).map(m => ({
+      console.log('🤖 [Chatbot] Iniciando consulta...');
+      
+      // Historial reducido de conversación (solo últimos 3 mensajes)
+      const conversationHistory = messages.slice(-3).map(m => ({
         role: m.role,
-        content: m.content
+        content: m.content.substring(0, 500) // Limitar tamaño
       }));
 
-      const prompt = `${getContextForRole(user)}
+      // Construir contexto compacto
+      const contextData = getContextForRole(user);
+      
+      console.log('🤖 [Chatbot] Tamaño del contexto:', contextData.length, 'caracteres');
+      console.log('🤖 [Chatbot] Pregunta:', input);
 
-HISTORIAL DE CONVERSACIÓN:
-${JSON.stringify(conversationHistory, null, 2)}
+      const prompt = `Eres el Asistente Virtual del CD Bustarviejo. Responde de forma clara y concisa en español.
 
-PREGUNTA ACTUAL DEL USUARIO:
-${input}
+${contextData}
 
-Responde de forma clara, útil y amigable. Si mencionas una funcionalidad, indica EXACTAMENTE dónde encontrarla en el menú de la app.`;
+HISTORIAL RECIENTE:
+${conversationHistory.map(m => `${m.role}: ${m.content}`).join('\n')}
+
+PREGUNTA: ${input}
+
+IMPORTANTE: 
+- Responde en 2-3 párrafos máximo
+- Usa emojis
+- Si mencionas una funcionalidad, indica la ubicación en el menú (ej: "Ve a 💳 Pagos")
+- Sé útil y directo`;
+
+      console.log('🤖 [Chatbot] Llamando a InvokeLLM...');
 
       const response = await base44.integrations.Core.InvokeLLM({
-        prompt,
+        prompt: prompt,
       });
+
+      console.log('✅ [Chatbot] Respuesta recibida:', response.substring(0, 100));
 
       const assistantMessage = {
         role: "assistant",
-        content: response,
+        content: response || "Lo siento, no pude generar una respuesta. Por favor, intenta reformular tu pregunta.",
         timestamp: new Date().toISOString()
       };
 
       setMessages(prev => [...prev, assistantMessage]);
 
-      // Log de la respuesta
-      await base44.entities.ChatbotLog.update(
-        (await base44.entities.ChatbotLog.filter({ user_email: user.email }))[0]?.id,
-        { response: response }
-      );
+      // Log (en segundo plano, sin bloquear)
+      try {
+        await base44.entities.ChatbotLog.create({
+          user_email: user.email,
+          user_role: user.role || "parent",
+          question: input,
+          response: response,
+          timestamp: new Date().toISOString()
+        });
+      } catch (logError) {
+        console.warn('⚠️ [Chatbot] Error al guardar log:', logError);
+      }
 
     } catch (error) {
-      console.error("Error getting response:", error);
-      toast.error("Error al obtener respuesta");
+      console.error("❌ [Chatbot] Error completo:", error);
+      console.error("❌ [Chatbot] Stack:", error.stack);
       
       const errorMessage = {
         role: "assistant",
-        content: "Lo siento, hubo un error técnico al procesar tu pregunta. 😔\n\nPor favor, inténtalo de nuevo reformulando tu pregunta. Si el problema persiste, puedes usar los chats de coordinador o entrenador para consultas específicas.",
+        content: `¡Ups! Hubo un problema técnico. 😔
+
+Mientras tanto, aquí tienes algunas opciones:
+
+📋 **Preguntas frecuentes:**
+- Pagos: Ve a 💳 Pagos → Registrar Pago → Sube justificante
+- Convocatorias: Ve a 🏆 Convocatorias → Confirmar asistencia
+- Horarios: Ve a 📅 Calendario y Horarios
+- Documentos: Ve a 📄 Documentos → Subir archivo
+
+💬 Para consultas complejas, usa:
+- Chat Coordinador: Para consultas generales
+- Chat Entrenador: Para temas del equipo`,
         timestamp: new Date().toISOString()
       };
       setMessages(prev => [...prev, errorMessage]);
