@@ -552,6 +552,16 @@ export default function ClubMembership() {
 
   const currentSeasonMembership = myMemberships.find(m => m.temporada === seasonConfig?.temporada);
   const totalSocios = allMemberships.filter(m => m.temporada === seasonConfig?.temporada && m.activo).length;
+  const formRef = React.useRef(null);
+
+  // Scroll automático al formulario cuando se abre
+  useEffect(() => {
+    if (showForm && formRef.current) {
+      setTimeout(() => {
+        formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 100);
+    }
+  }, [showForm]);
 
   if (isCheckingAuth || loadingRenewal) {
     return (
@@ -804,7 +814,7 @@ export default function ClubMembership() {
 
       {/* Formulario de inscripción */}
       {(showForm || isRenewal) ? (
-        <Card className="border-none shadow-xl">
+        <Card ref={formRef} className="border-none shadow-xl">
             <CardHeader className={`${isRenewal ? 'bg-gradient-to-r from-green-600 to-green-700' : 'bg-gradient-to-r from-orange-600 to-green-600'} text-white rounded-t-xl`}>
               <CardTitle className="flex items-center gap-2">
                 <Users className="w-5 h-5" />
