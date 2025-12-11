@@ -365,11 +365,13 @@ export default function CoachChatWindow({ selectedCategory, user, allPlayers }) 
         [p.email_padre, p.email_tutor_2].filter(Boolean)
       ))];
       
+      const categoryShort = selectedCategory.replace('Fútbol ', '').replace(' (Mixto)', '');
+      
       for (const email of parentEmails) {
         await base44.entities.AppNotification.create({
           usuario_email: email,
-          titulo: `⚽ Nuevo mensaje del entrenador`,
-          mensaje: `${selectedCategory}: ${data.mensaje.substring(0, 100)}${data.mensaje.length > 100 ? '...' : ''}`,
+          titulo: `⚽ ${categoryShort}: Nuevo mensaje`,
+          mensaje: `${data.mensaje.substring(0, 100)}${data.mensaje.length > 100 ? '...' : ''}`,
           tipo: "importante",
           icono: "⚽",
           enlace: "ParentCoachChat",

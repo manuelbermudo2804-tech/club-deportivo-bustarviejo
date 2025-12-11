@@ -51,12 +51,38 @@ export default function ParentCoachChat() {
     fetchUser();
   }, []);
 
-  // Marcar notificaciones como vistas inmediatamente al abrir el chat
+  // Marcar notificaciones Y MENSAJES como leídos inmediatamente al abrir el chat
   useEffect(() => {
-    if (!user || !selectedCategory) return;
+    if (!user || !selectedCategory || messages.length === 0) return;
 
-    const markNotificationsAsRead = async () => {
+    const markAsRead = async () => {
       try {
+        const grupo_id = selectedCategory.toLowerCase().replace(/\s+/g, '_');
+        
+        // 1. Marcar MENSAJES del entrenador como leídos
+        const unreadCoachMessages = messages.filter(m => 
+          m.tipo === "entrenador_a_grupo" && 
+          !m.leido &&
+          m.grupo_id === grupo_id
+        );
+        
+        for (const msg of unreadCoachMessages) {
+          const leidoPor = msg.leido_por || [];
+          if (!leidoPor.some(l => l.email === user.email)) {
+            leidoPor.push({
+              email: user.email,
+              nombre: user.full_name,
+              fecha: new Date().toISOString()
+            });
+          }
+          
+          await base44.entities.ChatMessage.update(msg.id, {
+            leido: true,
+            leido_por: leidoPor
+          });
+        }
+        
+        // 2. Marcar AppNotifications como vistas
         const notifications = await base44.entities.AppNotification.filter({ 
           usuario_email: user.email,
           enlace: "ParentCoachChat",
@@ -70,16 +96,21 @@ export default function ParentCoachChat() {
           });
         }
         
-        if (notifications.length > 0) {
-          queryClient.invalidateQueries({ queryKey: ['appNotifications'] });
+        // 3. Invalidar queries INMEDIATAMENTE
+        if (unreadCoachMessages.length > 0 || notifications.length > 0) {
+          await Promise.all([
+            queryClient.invalidateQueries({ queryKey: ['appNotifications'] }),
+            queryClient.invalidateQueries({ queryKey: ['coachGroupMessages'] }),
+            queryClient.refetchQueries({ queryKey: ['appNotifications'] })
+          ]);
         }
       } catch (error) {
-        console.error("Error marking notifications as read:", error);
+        console.error("Error marking as read:", error);
       }
     };
 
-    markNotificationsAsRead();
-  }, [user, selectedCategory]);
+    markAsRead();
+  }, [user, selectedCategory, messages.length]);
 
   const { data: messages = [] } = useQuery({
     queryKey: ['coachGroupMessages', selectedCategory, user?.email],
