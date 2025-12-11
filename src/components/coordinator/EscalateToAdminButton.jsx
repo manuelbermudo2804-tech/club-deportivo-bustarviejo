@@ -37,8 +37,8 @@ export default function EscalateToAdminButton({
         return existingConv;
       }
 
-      // Preparar contexto (últimos 10 mensajes)
-      const contexto = recentMessages.slice(-10).map(m => 
+      // Preparar contexto (TODOS los mensajes)
+      const contexto = recentMessages.map(m => 
         `[${m.autor === "coordinador" ? "Coordinador" : "Padre"}] ${m.autor_nombre}: ${m.mensaje}`
       ).join('\n\n');
 
@@ -77,7 +77,7 @@ Fecha: ${new Date().toLocaleString('es-ES')}
 📝 DETALLES:
 ${detalles}
 
-📋 CONTEXTO DE LA CONVERSACIÓN (últimos mensajes):
+📋 CONTEXTO COMPLETO DE LA CONVERSACIÓN:
 
 ${contexto || 'No hay mensajes previos disponibles'}
 
