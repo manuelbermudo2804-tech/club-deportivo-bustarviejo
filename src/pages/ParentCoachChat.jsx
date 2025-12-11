@@ -11,6 +11,7 @@ import { es } from "date-fns/locale";
 import { toast } from "sonner";
 import PollMessage from "../components/chat/PollMessage";
 import LocationMessage from "../components/chat/LocationMessage";
+import EscalateToCoordinatorButton from "../components/coach/EscalateToCoordinatorButton";
 
 export default function ParentCoachChat() {
   const [user, setUser] = useState(null);
@@ -276,14 +277,21 @@ export default function ParentCoachChat() {
               <MessageCircle className="w-6 h-6" />
               Chat Entrenador
             </CardTitle>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setShowSearch(!showSearch)}
-              className="text-white hover:bg-white/20"
-            >
-              <Search className="w-4 h-4" />
-            </Button>
+            <div className="flex items-center gap-2">
+              <EscalateToCoordinatorButton 
+                user={user} 
+                categoria={selectedCategory}
+                recentMessages={messages}
+              />
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowSearch(!showSearch)}
+                className="text-white hover:bg-white/20"
+              >
+                <Search className="w-4 h-4" />
+              </Button>
+            </div>
           </div>
           {showSearch && (
             <div className="mt-2">

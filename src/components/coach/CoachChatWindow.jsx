@@ -12,6 +12,7 @@ import { es } from "date-fns/locale";
 import { toast } from "sonner";
 import PollMessage from "../chat/PollMessage";
 import LocationMessage from "../chat/LocationMessage";
+import EscalateToCoordinatorButton from "./EscalateToCoordinatorButton";
 
 const REACTIONS = ["👍", "❤️", "✅", "👏", "🎉"];
 const DIAS_SEMANA = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"];
@@ -490,14 +491,22 @@ export default function CoachChatWindow({ selectedCategory, user, allPlayers }) 
               {parentEmails.length} familias • {categoryPlayers.length} jugadores
             </p>
           </div>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setShowParticipants(true)}
-            className="text-white hover:bg-white/20"
-          >
-            <Users className="w-4 h-4" />
-          </Button>
+          <div className="flex items-center gap-2">
+            <EscalateToCoordinatorButton 
+              user={user} 
+              categoria={selectedCategory}
+              isCoach={true}
+              recentMessages={messages}
+            />
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setShowParticipants(true)}
+              className="text-white hover:bg-white/20"
+            >
+              <Users className="w-4 h-4" />
+            </Button>
+          </div>
         </div>
       </div>
 

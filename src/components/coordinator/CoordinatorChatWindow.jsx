@@ -641,6 +641,18 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
 
       {/* Header */}
       <div className="p-2 sm:p-4 bg-white border-b flex-shrink-0">
+        {conversation.escalada_desde_entrenador && (
+          <Alert className="mb-3 bg-orange-50 border-orange-300">
+            <AlertTriangle className="w-4 h-4 text-orange-600" />
+            <AlertDescription className="text-orange-800 text-xs ml-2">
+              <strong>⚽ Conversación escalada desde entrenador</strong>
+              <br />
+              Escalada por {conversation.entrenador_nombre_que_escalo} el {format(new Date(conversation.fecha_escalacion), "d 'de' MMM, HH:mm", { locale: es })}
+              <br />
+              💬 El entrenador necesita tu intervención para resolver esta situación
+            </AlertDescription>
+          </Alert>
+        )}
         {conversation.reportada_admin && (
           <Alert className="mb-3 bg-red-50 border-red-300">
             <AlertTriangle className="w-4 h-4 text-red-600" />
