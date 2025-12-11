@@ -57,7 +57,7 @@ export default function ParentSystemMessages() {
     enabled: conversations.length > 0,
   });
 
-  // Marcar mensajes como leídos INMEDIATAMENTE
+  // Marcar mensajes como leídos INMEDIATAMENTE + LIMPIAR NOTIFICACIONES
   useEffect(() => {
     const markAsRead = async () => {
       if (!user || allMessages.length === 0) return;
@@ -81,14 +81,34 @@ export default function ParentSystemMessages() {
           });
         }
       }
+
+      // 🆕 MARCAR NOTIFICACIONES COMO VISTAS
+      try {
+        const notifications = await base44.entities.AppNotification.filter({
+          usuario_email: user.email,
+          enlace: "ParentSystemMessages",
+          vista: false
+        });
+
+        for (const notif of notifications) {
+          await base44.entities.AppNotification.update(notif.id, {
+            vista: true,
+            fecha_vista: new Date().toISOString()
+          });
+        }
+      } catch (error) {
+        console.error("Error marking notifications as read:", error);
+      }
       
       // Invalidar TODAS las queries relacionadas INMEDIATAMENTE
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ['parentPrivateMessages'] }),
         queryClient.invalidateQueries({ queryKey: ['parentPrivateConversations'] }),
         queryClient.invalidateQueries({ queryKey: ['unreadPrivateMessages'] }),
+        queryClient.invalidateQueries({ queryKey: ['appNotifications'] }),
         queryClient.refetchQueries({ queryKey: ['parentPrivateMessages'] }),
-        queryClient.refetchQueries({ queryKey: ['parentPrivateConversations'] })
+        queryClient.refetchQueries({ queryKey: ['parentPrivateConversations'] }),
+        queryClient.refetchQueries({ queryKey: ['appNotifications'] })
       ]);
     };
     
