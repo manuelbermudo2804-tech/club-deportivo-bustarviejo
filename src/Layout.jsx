@@ -1082,9 +1082,10 @@ export default function Layout({ children, currentPageName }) {
       }
 
       // Mostrar pantalla de bienvenida DESPUÉS del loading (cuando ya hay usuario)
-      if (showWelcomeScreen && !isPublicPage && user) {
-        return <WelcomeScreen onComplete={() => setShowWelcomeScreen(false)} />;
-      }
+      // TEMPORALMENTE DESACTIVADO
+      // if (showWelcomeScreen && !isPublicPage && user) {
+      //   return <WelcomeScreen onComplete={() => setShowWelcomeScreen(false)} />;
+      // }
 
   // Render onboarding based on role
   const renderOnboarding = () => {
