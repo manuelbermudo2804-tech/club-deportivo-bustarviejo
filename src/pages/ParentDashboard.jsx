@@ -375,12 +375,6 @@ export default function ParentDashboard() {
     },
     // 📋 EXTRAS
     {
-      title: "📜 Certificados y Carnets",
-      icon: Award,
-      url: createPageUrl("PlayerDocumentsAndCards"),
-      gradient: "from-indigo-600 to-indigo-700",
-    },
-    {
       title: "📋 Encuestas",
       icon: FileText,
       url: createPageUrl("Surveys"),
