@@ -86,6 +86,25 @@ export default function ParentCoachChat() {
         prioridad: "Normal",
         leido: false
       });
+
+      // Notificar al entrenador de esta categoría
+      const allUsers = await base44.entities.User.list();
+      const coaches = allUsers.filter(u => 
+        (u.es_entrenador === true || u.role === "admin") &&
+        (u.role === "admin" || u.categorias_entrena?.includes(selectedCategory))
+      );
+      
+      for (const coach of coaches) {
+        await base44.entities.AppNotification.create({
+          usuario_email: coach.email,
+          titulo: `⚽ Nuevo mensaje en ${selectedCategory}`,
+          mensaje: `${user.full_name}: ${mensaje.substring(0, 100)}${mensaje.length > 100 ? '...' : ''}`,
+          tipo: "importante",
+          icono: "⚽",
+          enlace: "CoachParentChat",
+          vista: false
+        });
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['coachGroupMessages'] });
