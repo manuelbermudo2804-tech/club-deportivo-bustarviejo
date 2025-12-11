@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -218,7 +218,7 @@ export default function ClubMembership() {
   });
 
   // Detectar si el email ya fue socio en temporadas anteriores (para auto-marcar como renovación)
-  const previousMemberships = React.useMemo(() => {
+  const previousMemberships = useMemo(() => {
     if (!seasonConfig?.temporada || !formData.email) return [];
     return allMemberships.filter(m => 
       m.email?.toLowerCase() === formData.email?.toLowerCase() && 
@@ -552,7 +552,7 @@ export default function ClubMembership() {
 
   const currentSeasonMembership = myMemberships.find(m => m.temporada === seasonConfig?.temporada);
   const totalSocios = allMemberships.filter(m => m.temporada === seasonConfig?.temporada && m.activo).length;
-  const formRef = React.useRef(null);
+  const formRef = useRef(null);
 
   // Scroll automático al formulario cuando se abre
   useEffect(() => {
