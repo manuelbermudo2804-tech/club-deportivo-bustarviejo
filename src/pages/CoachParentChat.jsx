@@ -6,7 +6,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { MessageCircle, Settings, Bot, Moon, Clock } from "lucide-react";
 import CoachChatWindow from "../components/coach/CoachChatWindow";
-import CoachAwayMode from "../components/coach/CoachAwayMode";
+import CoachAwayModeSection from "../components/coach/CoachAwayModeSection";
+import CoachWorkingHoursSection from "../components/coach/CoachWorkingHoursSection";
 import CoachChatbotConfig from "../components/coach/CoachChatbotConfig";
 
 export default function CoachParentChat() {
@@ -98,11 +99,11 @@ export default function CoachParentChat() {
             </TabsList>
 
             <TabsContent value="ausente" className="mt-4">
-              <CoachAwayMode user={user} />
+              <CoachAwayModeSection user={user} />
             </TabsContent>
 
             <TabsContent value="horario" className="mt-4">
-              <CoachAwayMode user={user} />
+              <CoachWorkingHoursSection user={user} />
             </TabsContent>
 
             <TabsContent value="chatbot" className="space-y-4">
