@@ -762,7 +762,7 @@ export default function Layout({ children, currentPageName }) {
             } else {
               navigate(createPageUrl('ParentDashboard'), { replace: true });
             }
-          }, [user, isLoading, isAdmin, isCoach, isCoordinator, isTreasurer, isPlayer, location.pathname, navigate]);
+          }, [user, isLoading, isAdmin, isCoach, isCoordinator, isTreasurer, isPlayer, location.pathname]);
 
 
 
