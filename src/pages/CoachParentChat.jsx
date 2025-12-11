@@ -5,57 +5,61 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Send, MessageCircle, Search, Users } from "lucide-react";
+import { Send, MessageCircle, Users, Search, X } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { toast } from "sonner";
 
-export default function CoachParentChat() {
+export default function ParentCoachChat() {
   const [user, setUser] = useState(null);
+  const [myPlayers, setMyPlayers] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [messageText, setMessageText] = useState("");
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [showSearch, setShowSearch] = useState(false);
-  const [showParticipants, setShowParticipants] = useState(false);
   const messagesEndRef = useRef(null);
   const queryClient = useQueryClient();
 
   useEffect(() => {
     const fetchUser = async () => {
-      const currentUser = await base44.auth.me();
-      setUser(currentUser);
-      
-      const categories = currentUser.role === "admin" 
-        ? ["Todas las categorías"]
-        : (currentUser.categorias_entrena || []);
-      
-      if (categories.length > 0 && !selectedCategory) {
-        setSelectedCategory(categories[0]);
+      try {
+        const currentUser = await base44.auth.me();
+        setUser(currentUser);
+
+        const allPlayers = await base44.entities.Player.list();
+        const players = allPlayers.filter(p => 
+          (p.email_padre === currentUser.email || p.email_tutor_2 === currentUser.email) && p.activo
+        );
+        setMyPlayers(players);
+        
+        if (players.length > 0 && !selectedCategory) {
+          setSelectedCategory(players[0].deporte);
+        }
+      } catch (error) {
+        console.error("Error loading chat:", error);
+        toast.error("Error al cargar el chat");
+      } finally {
+        setLoading(false);
       }
     };
     fetchUser();
   }, []);
 
   const { data: messages = [] } = useQuery({
-    queryKey: ['coachGroupMessages', selectedCategory],
+    queryKey: ['coachGroupMessages', selectedCategory, user?.email],
     queryFn: async () => {
-      if (!selectedCategory) return [];
-      
-      if (selectedCategory === "Todas las categorías") {
-        return await base44.entities.ChatMessage.list('-created_date');
-      }
-      
+      if (!selectedCategory || !user) return [];
       const grupo_id = selectedCategory.toLowerCase().replace(/\s+/g, '_');
-      return await base44.entities.ChatMessage.filter({ grupo_id }, 'created_date');
+      const allMessages = await base44.entities.ChatMessage.filter({ grupo_id }, 'created_date');
+      
+      return allMessages.filter(msg => 
+        !msg.destinatario_email || 
+        msg.destinatario_email === user.email
+      );
     },
     refetchInterval: 3000,
-    enabled: !!selectedCategory,
-  });
-
-  const { data: allPlayers = [] } = useQuery({
-    queryKey: ['players'],
-    queryFn: () => base44.entities.Player.list(),
+    enabled: !!selectedCategory && !!user,
   });
 
   const filteredMessages = searchTerm 
@@ -69,298 +73,188 @@ export default function CoachParentChat() {
   }, [messages]);
 
   const sendMessageMutation = useMutation({
-    mutationFn: async (data) => {
+    mutationFn: async (mensaje) => {
       const grupo_id = selectedCategory.toLowerCase().replace(/\s+/g, '_');
-      
       await base44.entities.ChatMessage.create({
         grupo_id,
         deporte: selectedCategory,
-        tipo: "entrenador_a_grupo",
+        tipo: "padre_a_grupo",
         remitente_email: user.email,
         remitente_nombre: user.full_name,
-        mensaje: data.mensaje,
+        mensaje: mensaje,
         archivos_adjuntos: [],
         prioridad: "Normal",
         leido: false
       });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['coachGroupMessages', selectedCategory] });
+      queryClient.invalidateQueries({ queryKey: ['coachGroupMessages'] });
       setMessageText("");
-      toast.success("Mensaje enviado a toda la categoría");
+      toast.success("Mensaje enviado");
     },
   });
 
   const handleSend = () => {
     if (!messageText.trim()) return;
-    sendMessageMutation.mutate({ mensaje: messageText });
+    sendMessageMutation.mutate(messageText);
   };
 
-  if (!user) {
+  if (loading) {
     return (
-      <div className="h-[calc(100vh-100px)] flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600"></div>
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-2"></div>
+          <p className="text-slate-500 text-sm">Cargando chat...</p>
+        </div>
       </div>
     );
   }
 
-  const isCoach = user?.es_entrenador === true || user?.role === "admin";
-
-  if (!isCoach) {
+  if (!user || myPlayers.length === 0) {
     return (
-      <div className="p-6 text-center">
-        <p className="text-slate-500">Solo entrenadores pueden acceder a esta sección</p>
+      <div className="min-h-screen flex items-center justify-center p-4">
+        <div className="text-center max-w-md">
+          <MessageCircle className="w-12 h-12 text-slate-300 mx-auto mb-3" />
+          <p className="text-slate-600 font-semibold mb-2">No hay jugadores registrados</p>
+          <p className="text-slate-500 text-sm">Para acceder al chat del entrenador, primero debes tener jugadores activos registrados.</p>
+        </div>
       </div>
     );
   }
 
-  const categories = user?.role === "admin" 
-    ? ["Todas las categorías", ...new Set(allPlayers.map(p => p.deporte).filter(Boolean))]
-    : (user?.categorias_entrena || []);
-
-  if (categories.length === 0) {
-    return (
-      <div className="p-6 text-center">
-        <p className="text-slate-500">No tienes categorías asignadas. Contacta con el administrador.</p>
-      </div>
-    );
-  }
-
-  const categoryPlayers = selectedCategory === "Todas las categorías" 
-    ? allPlayers 
-    : allPlayers.filter(p => p.deporte === selectedCategory);
-
-  const parentEmails = [...new Set(categoryPlayers.flatMap(p => 
-    [p.email_padre, p.email_tutor_2].filter(Boolean)
-  ))];
+  const categories = [...new Set(myPlayers.map(p => p.deporte))];
 
   return (
-    <div className="h-[calc(100vh-100px)] lg:h-[calc(100vh-110px)] flex flex-col lg:flex-row">
-      {/* Lista de categorías */}
-      <div className={`${selectedCategory ? 'hidden lg:flex' : 'flex'} w-full lg:w-96 border-r bg-slate-50 flex-col h-full overflow-hidden`}>
-        <div className="p-4 bg-gradient-to-r from-green-600 to-green-700 text-white">
-          <div className="flex items-center justify-between mb-3">
-            <div>
-              <h1 className="text-xl font-bold flex items-center gap-2">
-                <MessageCircle className="w-6 h-6" />
-                Chat con Familias
-              </h1>
-              <p className="text-xs text-green-100">
-                Comunicación grupal con los padres de tu categoría
-              </p>
-            </div>
-            <div className="flex gap-1">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setShowSearch(!showSearch)}
-                className="text-white hover:bg-white/20"
-              >
-                <Search className="w-4 h-4" />
-              </Button>
-            </div>
+    <div className="h-[calc(100vh-100px)] lg:h-[calc(100vh-110px)] lg:p-4 lg:max-w-5xl lg:mx-auto">
+      <Card className="border-blue-200 shadow-lg h-full flex flex-col overflow-hidden lg:rounded-lg rounded-none">
+        <CardHeader className="bg-gradient-to-r from-blue-600 to-blue-700 text-white p-4 flex-shrink-0">
+          <div className="flex items-center justify-between">
+            <CardTitle className="flex items-center gap-2">
+              <MessageCircle className="w-6 h-6" />
+              Chat Entrenador
+            </CardTitle>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setShowSearch(!showSearch)}
+              className="text-white hover:bg-white/20"
+            >
+              <Search className="w-4 h-4" />
+            </Button>
           </div>
           {showSearch && (
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+            <div className="mt-2">
               <input
                 type="text"
                 placeholder="Buscar mensajes..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-9 px-3 py-2 rounded-lg text-slate-900 text-sm"
+                className="w-full px-3 py-2 rounded-lg text-slate-900 text-sm"
               />
             </div>
           )}
-        </div>
-
-        <div className="flex-1 overflow-y-auto px-2 py-3">
-          {categories.map(cat => {
-            const catPlayers = allPlayers.filter(p => p.deporte === cat);
-            const parentCount = [...new Set(catPlayers.flatMap(p => 
-              [p.email_padre, p.email_tutor_2].filter(Boolean)
-            ))].length;
-
-            return (
-              <Card
-                key={cat}
-                className={`mb-2 cursor-pointer hover:shadow-md transition-all ${
-                  selectedCategory === cat ? 'ring-2 ring-green-500' : ''
-                }`}
-                onClick={() => setSelectedCategory(cat)}
-              >
-                <CardContent className="p-3">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="font-bold text-sm text-slate-900">
-                        {cat.replace('Fútbol ', '').replace(' (Mixto)', '')}
-                      </p>
-                      <p className="text-xs text-slate-500 flex items-center gap-1 mt-1">
-                        <Users className="w-3 h-3" />
-                        {parentCount} familias · {catPlayers.length} jugadores
-                      </p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* Ventana de chat */}
-      <div className={`${selectedCategory ? 'flex' : 'hidden lg:flex'} flex-1 h-full`}>
-        {selectedCategory ? (
-          <Card className="border-blue-200 shadow-lg h-full flex flex-col overflow-hidden w-full rounded-none lg:rounded-lg">
-        <CardHeader className="bg-gradient-to-r from-green-600 to-green-700 text-white p-4 flex-shrink-0">
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle className="flex items-center gap-2 text-lg">
-                <button 
-                  onClick={() => setSelectedCategory(null)}
-                  className="lg:hidden mr-2 hover:bg-white/20 rounded p-1"
-                >
-                  ←
-                </button>
-                {selectedCategory?.replace('Fútbol ', '').replace(' (Mixto)', '')}
-              </CardTitle>
-              <p className="text-xs text-green-100 mt-1">
-                {parentEmails.length} familias
-              </p>
-            </div>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setShowParticipants(!showParticipants)}
-              className="text-white hover:bg-white/20"
-            >
-              <Users className="w-4 h-4" />
-            </Button>
-          </div>
         </CardHeader>
 
         <CardContent className="p-0 flex-1 flex flex-col overflow-hidden min-h-0">
-                <div className="flex-1 overflow-y-auto p-4 space-y-2 bg-slate-50">
-                  {filteredMessages.length === 0 ? (
-                    <div className="text-center py-8">
-                      <MessageCircle className="w-10 h-10 text-slate-300 mx-auto mb-2" />
-                      <p className="text-slate-500 text-sm">
-                        {searchTerm ? "No se encontraron mensajes" : "Aún no hay mensajes"}
-                      </p>
-                    </div>
-                  ) : (
-                    filteredMessages.map((msg, idx) => {
-                      const showDateSeparator = idx === 0 || 
-                        new Date(filteredMessages[idx - 1]?.created_date || 0).toDateString() !== 
-                        new Date(msg.created_date).toDateString();
-                      const dateLabel = new Date(msg.created_date).toLocaleDateString('es-ES', {
-                        weekday: 'long',
-                        day: 'numeric',
-                        month: 'long'
-                      });
-
-                      const isMine = msg.remitente_email === user?.email;
-                      const isCoachMsg = msg.tipo === "entrenador_a_grupo";
-
-                      return (
-                        <React.Fragment key={msg.id}>
-                          {showDateSeparator && (
-                            <div className="flex justify-center my-4">
-                              <div className="bg-white px-4 py-1 rounded-full text-xs text-slate-600 shadow-sm">
-                                {dateLabel}
-                              </div>
-                            </div>
-                          )}
-                          
-                          <div className={`flex ${isMine ? 'justify-end' : 'justify-start'}`}>
-                            <div className={`max-w-[75%] ${
-                              isMine ? 'bg-green-600 text-white' : 
-                              isCoachMsg ? 'bg-green-600 text-white' : 
-                              'bg-slate-200 text-slate-900'
-                            } rounded-2xl p-3 shadow-sm`}>
-                              <div className="flex items-center gap-2 mb-1">
-                                <p className="text-xs font-semibold opacity-70">
-                                  {isCoachMsg && !isMine ? '🏃 ' : ''}{msg.remitente_nombre}
-                                </p>
-                                {isCoachMsg && <Badge className="text-xs bg-green-500 px-1 py-0">Entrenador</Badge>}
-                              </div>
-                              <p className="text-sm whitespace-pre-wrap">{msg.mensaje}</p>
-                              <p className="text-xs opacity-60 mt-1">
-                                {format(new Date(msg.created_date), "HH:mm", { locale: es })}
-                              </p>
-                            </div>
-                          </div>
-                        </React.Fragment>
-                      );
-                    })
-                  )}
-                  <div ref={messagesEndRef} />
-                </div>
-
-                <div className="p-4 bg-white border-t flex-shrink-0">
-                  <div className="flex gap-2 items-end">
-                    <Textarea
-                      placeholder="Escribe..."
-                      value={messageText}
-                      onChange={(e) => setMessageText(e.target.value)}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter' && !e.shiftKey) {
-                          e.preventDefault();
-                          handleSend();
-                        }
-                      }}
-                      className="flex-1 min-h-[44px] resize-none text-sm"
-                      rows={1}
-                    />
-                    <Button 
-                      onClick={handleSend} 
-                      disabled={!messageText.trim()} 
-                      className="bg-green-600 hover:bg-green-700 h-10 w-10 p-0"
-                    >
-                      <Send className="w-5 h-5" />
-                    </Button>
-                  </div>
-                </div>
-        </CardContent>
-        </Card>
-        ) : (
-          <div className="h-full flex items-center justify-center bg-slate-50">
-            <div className="text-center">
-              <MessageCircle className="w-16 h-16 text-slate-300 mx-auto mb-3" />
-              <p className="text-slate-500">Selecciona una categoría para empezar</p>
+          {categories.length > 1 && (
+            <div className="flex gap-2 p-2 bg-slate-50 border-b overflow-x-auto">
+              {categories.map(cat => (
+                <Button
+                  key={cat}
+                  variant={selectedCategory === cat ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setSelectedCategory(cat)}
+                  className="whitespace-nowrap"
+                >
+                  {cat.replace('Fútbol ', '').replace(' (Mixto)', '')}
+                </Button>
+              ))}
             </div>
-          </div>
-        )}
-      </div>
+          )}
 
-      {showParticipants && (
-        <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4" onClick={() => setShowParticipants(false)}>
-          <div className="bg-white rounded-xl p-6 max-w-md w-full max-h-[80vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
-            <h3 className="font-bold text-lg mb-4">👥 Participantes - {selectedCategory}</h3>
-            <div className="space-y-3">
-              <div className="bg-green-50 rounded-lg p-3 border-2 border-green-200">
-                <p className="text-sm font-bold text-green-900">🏃 Entrenador</p>
-                <p className="text-xs text-green-700 mt-1">{user?.full_name}</p>
+          <div className="flex-1 overflow-y-auto p-2 sm:p-4 space-y-2 bg-slate-50">
+            {filteredMessages.length === 0 ? (
+              <div className="text-center py-8">
+                <MessageCircle className="w-10 h-10 text-slate-300 mx-auto mb-2" />
+                <p className="text-slate-500 text-sm">
+                  {searchTerm ? "No se encontraron mensajes" : "Aún no hay mensajes"}
+                </p>
               </div>
-              
-              <div>
-                <p className="text-sm font-bold text-slate-900 mb-2">👨‍👩‍👧 Familias ({parentEmails.length})</p>
-                <div className="space-y-2">
-                  {categoryPlayers.map((player, idx) => (
-                    <div key={idx} className="bg-slate-50 rounded-lg p-3 border">
-                      <p className="text-sm font-medium text-slate-900">{player.nombre}</p>
-                      <div className="text-xs text-slate-600 mt-1 space-y-0.5">
-                        {player.email_padre && <p>📧 {player.email_padre}</p>}
-                        {player.email_tutor_2 && <p>📧 {player.email_tutor_2}</p>}
+            ) : (
+              filteredMessages.map((msg, idx) => {
+                const showDateSeparator = idx === 0 || 
+                  new Date(filteredMessages[idx - 1].created_date).toDateString() !== 
+                  new Date(msg.created_date).toDateString();
+                const dateLabel = new Date(msg.created_date).toLocaleDateString('es-ES', {
+                  weekday: 'long',
+                  day: 'numeric',
+                  month: 'long'
+                });
+
+                const isMine = msg.remitente_email === user.email;
+                const isCoach = msg.tipo === "entrenador_a_grupo";
+
+                return (
+                  <React.Fragment key={msg.id}>
+                    {showDateSeparator && (
+                      <div className="flex justify-center my-4">
+                        <div className="bg-white px-4 py-1 rounded-full text-xs text-slate-600 shadow-sm">
+                          {dateLabel}
+                        </div>
+                      </div>
+                    )}
+                    
+                    <div className={`flex ${isMine ? 'justify-end' : 'justify-start'}`}>
+                      <div className={`max-w-[75%] ${
+                        isMine ? 'bg-slate-700 text-white' : 
+                        isCoach ? 'bg-green-600 text-white' : 
+                        'bg-white text-slate-900 border'
+                      } rounded-2xl p-2 sm:p-3 shadow-sm`}>
+                        <div className="flex items-center gap-2 mb-1">
+                          <p className="text-[10px] sm:text-xs font-semibold opacity-70">
+                            {isCoach ? '🏃 ' : ''}{msg.remitente_nombre}
+                          </p>
+                          {isCoach && <Badge className="text-xs bg-green-500 px-1 py-0">Entrenador</Badge>}
+                        </div>
+                        <p className="text-xs sm:text-sm whitespace-pre-wrap">{msg.mensaje}</p>
+                        <p className="text-[10px] sm:text-xs opacity-60 mt-1">
+                          {format(new Date(msg.created_date), "HH:mm", { locale: es })}
+                        </p>
                       </div>
                     </div>
-                  ))}
-                </div>
-              </div>
+                  </React.Fragment>
+                );
+              })
+            )}
+            <div ref={messagesEndRef} />
+          </div>
+
+          <div className="p-2 sm:p-3 bg-white border-t flex-shrink-0">
+            <div className="flex gap-1 sm:gap-2 items-end">
+              <Textarea
+                placeholder="Escribe..."
+                value={messageText}
+                onChange={(e) => setMessageText(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    handleSend();
+                  }
+                }}
+                className="flex-1 min-h-[36px] sm:min-h-[44px] resize-none text-sm"
+                rows={1}
+              />
+              <Button 
+                onClick={handleSend} 
+                disabled={!messageText.trim()} 
+                className="bg-blue-600 hover:bg-blue-700 h-9 w-9 sm:h-10 sm:w-10 p-0"
+              >
+                <Send className="w-4 h-4 sm:w-5 sm:h-5" />
+              </Button>
             </div>
           </div>
-        </div>
-      )}
+        </CardContent>
+      </Card>
     </div>
   );
 }
