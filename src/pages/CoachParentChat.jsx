@@ -2,15 +2,18 @@ import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { MessageCircle, Settings } from "lucide-react";
-import { Link } from "react-router-dom";
-import { createPageUrl } from "@/utils";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { MessageCircle, Settings, Bot, Moon, Clock } from "lucide-react";
 import CoachChatWindow from "../components/coach/CoachChatWindow";
+import CoachAwayMode from "../components/coach/CoachAwayMode";
+import CoachChatbotConfig from "../components/coach/CoachChatbotConfig";
 
 export default function CoachParentChat() {
   const [user, setUser] = useState(null);
   const [allPlayers, setAllPlayers] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState(null);
+  const [showSettings, setShowSettings] = useState(false);
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -67,31 +70,80 @@ export default function CoachParentChat() {
   }
 
   return (
-    <div className="h-[calc(100vh-100px)] lg:h-[calc(100vh-110px)]">
-      <Card className="h-full flex flex-col overflow-hidden lg:rounded-lg rounded-none border-green-200 shadow-lg">
-        {/* Header con pestañas de categorías */}
-        <div className="bg-gradient-to-r from-green-600 to-green-700 text-white flex-shrink-0">
-          <div className="p-4 flex items-center justify-between border-b border-green-500/30">
-            <div>
-              <h1 className="text-xl font-bold flex items-center gap-2">
-                <MessageCircle className="w-6 h-6" />
-                Chat con Familias
-              </h1>
-              <p className="text-xs text-green-100">
-                Comunícate con los padres de tus jugadores
-              </p>
-            </div>
-            <Link to={createPageUrl("CoachChatSettings")}>
+    <>
+      {/* Modal de configuración */}
+      <Dialog open={showSettings} onOpenChange={setShowSettings}>
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Settings className="w-5 h-5" />
+              ⚙️ Configuración Chat Entrenador
+            </DialogTitle>
+          </DialogHeader>
+          
+          <Tabs defaultValue="ausente" className="w-full">
+            <TabsList className="grid w-full grid-cols-3">
+              <TabsTrigger value="ausente" className="flex items-center gap-2">
+                <Moon className="w-4 h-4" />
+                Modo Ausente
+              </TabsTrigger>
+              <TabsTrigger value="horario" className="flex items-center gap-2">
+                <Clock className="w-4 h-4" />
+                Horario
+              </TabsTrigger>
+              <TabsTrigger value="chatbot" className="flex items-center gap-2">
+                <Bot className="w-4 h-4" />
+                Chatbot IA
+              </TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="ausente" className="mt-4">
+              <CoachAwayMode user={user} />
+            </TabsContent>
+
+            <TabsContent value="horario" className="mt-4">
+              <CoachAwayMode user={user} />
+            </TabsContent>
+
+            <TabsContent value="chatbot" className="space-y-4">
+              {categories.map(cat => {
+                if (cat === "Todas las categorías") return null;
+                return (
+                  <div key={cat} className="space-y-2">
+                    <h3 className="text-lg font-semibold text-slate-900">{cat}</h3>
+                    <CoachChatbotConfig categoria={cat} entrenadorEmail={user?.email} />
+                  </div>
+                );
+              })}
+            </TabsContent>
+          </Tabs>
+        </DialogContent>
+      </Dialog>
+
+      <div className="h-[calc(100vh-100px)] lg:h-[calc(100vh-110px)]">
+        <Card className="h-full flex flex-col overflow-hidden lg:rounded-lg rounded-none border-green-200 shadow-lg">
+          {/* Header con pestañas de categorías */}
+          <div className="bg-gradient-to-r from-green-600 to-green-700 text-white flex-shrink-0">
+            <div className="p-4 flex items-center justify-between border-b border-green-500/30">
+              <div>
+                <h1 className="text-xl font-bold flex items-center gap-2">
+                  <MessageCircle className="w-6 h-6" />
+                  Chat con Familias
+                </h1>
+                <p className="text-xs text-green-100">
+                  Comunícate con los padres de tus jugadores
+                </p>
+              </div>
               <Button
                 variant="ghost"
                 size="sm"
+                onClick={() => setShowSettings(true)}
                 className="text-white hover:bg-white/20"
                 title="Configuración"
               >
                 <Settings className="w-5 h-5" />
               </Button>
-            </Link>
-          </div>
+            </div>
           
           {/* Pestañas de categorías */}
           <div className="flex gap-2 px-4 pb-3 overflow-x-auto">
@@ -143,5 +195,6 @@ export default function CoachParentChat() {
         </div>
       </Card>
     </div>
+    </>
   );
 }
