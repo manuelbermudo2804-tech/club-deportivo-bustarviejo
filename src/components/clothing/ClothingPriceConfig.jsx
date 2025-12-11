@@ -42,12 +42,19 @@ export default function ClothingPriceConfig({ seasonConfig, onUpdate }) {
   // Usar productos locales si existen (para actualización inmediata), sino del seasonConfig
   const products = localProducts || seasonConfig?.productos_ropa || DEFAULT_PRODUCTS;
   
-  // Sincronizar localProducts cuando cambia seasonConfig
+  // Sincronizar localProducts cuando cambia seasonConfig E INICIALIZAR si no existen
   useEffect(() => {
-    if (seasonConfig?.productos_ropa) {
+    if (seasonConfig?.productos_ropa && seasonConfig.productos_ropa.length > 0) {
       setLocalProducts(seasonConfig.productos_ropa);
+    } else if (seasonConfig && (!seasonConfig.productos_ropa || seasonConfig.productos_ropa.length === 0)) {
+      // Inicializar productos por defecto automáticamente
+      console.log("🔧 Inicializando productos por defecto en SeasonConfig");
+      updateConfigMutation.mutate({
+        id: seasonConfig.id,
+        data: { productos_ropa: DEFAULT_PRODUCTS }
+      });
     }
-  }, [seasonConfig?.productos_ropa]);
+  }, [seasonConfig]);
 
   const updateConfigMutation = useMutation({
     mutationFn: async ({ id, data }) => {
@@ -174,9 +181,21 @@ export default function ClothingPriceConfig({ seasonConfig, onUpdate }) {
       <Alert className="bg-red-50 border-red-200">
         <AlertTriangle className="w-4 h-4 text-red-600" />
         <AlertDescription className="text-red-800 ml-2">
-          No hay temporada activa configurada.
+          <strong>⚠️ No hay temporada activa configurada.</strong>
+          <p className="text-sm mt-2">Ve a "⚙️ Temporadas y Categorías" para crear o activar una temporada.</p>
         </AlertDescription>
       </Alert>
+    );
+  }
+
+  if (updateConfigMutation.isPending && !editingProduct && !showAddDialog) {
+    return (
+      <Card>
+        <CardContent className="py-12 text-center">
+          <Loader2 className="w-8 h-8 animate-spin text-orange-600 mx-auto mb-3" />
+          <p className="text-slate-600">Inicializando catálogo de productos...</p>
+        </CardContent>
+      </Card>
     );
   }
 
