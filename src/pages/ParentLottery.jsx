@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Gift, Sparkles, Star, PartyPopper, AlertCircle, Upload, X, Loader2 } from "lucide-react";
+import { Gift, Sparkles, Star, PartyPopper, AlertCircle, Upload, X, Loader2, ChevronUp, ChevronDown } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { toast } from "sonner";
 
@@ -389,14 +389,32 @@ export default function ParentLottery() {
 
                 <div className="space-y-2">
                   <Label className="text-lg font-bold text-slate-900">🎟️ Número de Décimos</Label>
-                  <Input
-                    type="number"
-                    min="1"
-                    max="10"
-                    value={numDecimos}
-                    onChange={(e) => setNumDecimos(parseInt(e.target.value) || 1)}
-                    className="border-2 border-green-300 h-12 text-lg text-center font-bold"
-                  />
+                  <div className="flex items-center gap-2">
+                    <Button
+                      type="button"
+                      onClick={() => setNumDecimos(Math.max(1, numDecimos - 1))}
+                      disabled={numDecimos <= 1}
+                      className="h-16 w-16 bg-red-600 hover:bg-red-700 text-white font-bold text-2xl p-0 rounded-xl border-2 border-yellow-400 shadow-lg disabled:opacity-30"
+                    >
+                      <ChevronDown className="w-8 h-8" />
+                    </Button>
+                    <Input
+                      type="number"
+                      min="1"
+                      max="10"
+                      value={numDecimos}
+                      onChange={(e) => setNumDecimos(Math.max(1, Math.min(10, parseInt(e.target.value) || 1)))}
+                      className="border-2 border-green-300 h-16 text-3xl text-center font-black flex-1"
+                    />
+                    <Button
+                      type="button"
+                      onClick={() => setNumDecimos(Math.min(10, numDecimos + 1))}
+                      disabled={numDecimos >= 10}
+                      className="h-16 w-16 bg-green-600 hover:bg-green-700 text-white font-bold text-2xl p-0 rounded-xl border-2 border-yellow-400 shadow-lg disabled:opacity-30"
+                    >
+                      <ChevronUp className="w-8 h-8" />
+                    </Button>
+                  </div>
                   <div className="bg-gradient-to-r from-yellow-400 to-yellow-300 p-4 rounded-xl border-2 border-yellow-500 text-center">
                     <p className="text-2xl font-black text-red-900">
                       Total: {numDecimos * precioDecimo}€
