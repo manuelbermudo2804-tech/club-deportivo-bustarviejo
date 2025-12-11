@@ -808,6 +808,7 @@ export default function Layout({ children, currentPageName }) {
     // 📊 INICIO Y FINANZAS
     { title: "🏠 Inicio", url: createPageUrl("Home"), icon: Home },
     { title: "📱 Redes Sociales", url: createPageUrl("SocialFeed"), icon: MessageCircle },
+    { title: "🤖 Asistente Virtual", url: createPageUrl("Chatbot"), icon: MessageCircle },
     { title: "🛡️ Conversaciones Críticas", url: createPageUrl("AdminChat"), icon: ShieldAlert },
     { title: "📊 Panel Financiero", url: createPageUrl("TreasurerDashboard"), icon: CreditCard },
     { title: "💳 Pagos", url: createPageUrl("Payments"), icon: CreditCard },
@@ -855,6 +856,7 @@ export default function Layout({ children, currentPageName }) {
       { title: "🏠 Inicio", url: createPageUrl("Home"), icon: Home },
 
       // 💬 COMUNICACIÓN (uso diario)
+      { title: "🤖 Asistente Virtual", url: createPageUrl("Chatbot"), icon: MessageCircle },
       { title: "💬 Chat con Familias", url: createPageUrl("CoachParentChat"), icon: MessageCircle },
 
       // ⚽ GESTIÓN DEPORTIVA (trabajo principal)
@@ -901,6 +903,9 @@ export default function Layout({ children, currentPageName }) {
     // 🏠 INICIO
     { title: "🏠 Inicio", url: createPageUrl("Home"), icon: Home },
 
+    // 🤖 ASISTENTE
+    { title: "🤖 Asistente Virtual", url: createPageUrl("Chatbot"), icon: MessageCircle },
+
     // 💰 FINANZAS (trabajo principal)
     { title: "📊 Panel Financiero", url: createPageUrl("TreasurerDashboard"), icon: CreditCard },
     { title: "💳 Pagos", url: createPageUrl("Payments"), icon: CreditCard },
@@ -946,6 +951,7 @@ export default function Layout({ children, currentPageName }) {
     { title: "🏠 Inicio", url: createPageUrl("Home"), icon: Home },
 
     // 💬 CHATS
+    { title: "🤖 Asistente Virtual", url: createPageUrl("Chatbot"), icon: MessageCircle },
     { title: "💬 Chat Coordinador", url: createPageUrl("CoordinatorChat"), icon: MessageCircle },
     ...(user?.es_entrenador ? [{ title: "⚽ Chat Entrenador", url: createPageUrl("CoachParentChat"), icon: MessageCircle }] : []),
 
@@ -995,6 +1001,7 @@ export default function Layout({ children, currentPageName }) {
     { title: "📱 Redes Sociales", url: createPageUrl("SocialFeed"), icon: MessageCircle },
 
     // 💬 CHATS
+    { title: "🤖 Asistente Virtual", url: createPageUrl("Chatbot"), icon: MessageCircle },
     { title: "🔔 Mensajes del Club", url: createPageUrl("ParentSystemMessages"), icon: Bell },
     { title: "💬 Chat Coordinador", url: createPageUrl("ParentCoordinatorChat"), icon: MessageCircle },
     { title: "⚽ Chat Entrenador", url: createPageUrl("ParentCoachChat"), icon: MessageCircle },
@@ -1033,6 +1040,7 @@ export default function Layout({ children, currentPageName }) {
     { title: "🏠 Inicio", url: createPageUrl("PlayerDashboard"), icon: Home },
 
     // 💬 CHATS
+    { title: "🤖 Asistente Virtual", url: createPageUrl("Chatbot"), icon: MessageCircle },
     { title: "💬 Chat Coordinador", url: createPageUrl("ParentCoordinatorChat"), icon: MessageCircle },
     { title: "⚽ Chat Entrenador", url: createPageUrl("ParentCoachChat"), icon: MessageCircle },
     ...(hasActiveAdminConversation ? [{ title: "🛡️ Chat Administrador", url: createPageUrl("ParentAdminChat"), icon: ShieldAlert }] : []),

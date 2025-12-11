@@ -76,6 +76,7 @@ import CoachChatSettings from './pages/CoachChatSettings';
 import SocialFeed from './pages/SocialFeed';
 import AdminChat from './pages/AdminChat';
 import ParentAdminChat from './pages/ParentAdminChat';
+import Chatbot from './pages/Chatbot';
 import __Layout from './Layout.jsx';
 
 
@@ -158,6 +159,7 @@ export const PAGES = {
     "SocialFeed": SocialFeed,
     "AdminChat": AdminChat,
     "ParentAdminChat": ParentAdminChat,
+    "Chatbot": Chatbot,
 }
 
 export const pagesConfig = {
