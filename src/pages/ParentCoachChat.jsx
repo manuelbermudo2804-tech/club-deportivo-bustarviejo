@@ -59,12 +59,21 @@ export default function ParentCoachChat() {
     const fetchCategoryCoach = async () => {
       if (!selectedCategory) return;
       try {
+        console.log('🔍 Buscando entrenador para categoría:', selectedCategory);
         const users = await base44.entities.User.list();
+        console.log('👥 Total usuarios:', users.length);
+        console.log('🏃 Entrenadores:', users.filter(u => u.es_entrenador).map(u => ({ 
+          nombre: u.full_name, 
+          categorias: u.categorias_entrena 
+        })));
+        
         const coach = users.find(u => 
           u.es_entrenador === true && 
           u.categorias_entrena?.includes(selectedCategory)
         );
-        setCategoryCoach(coach);
+        
+        console.log('✅ Entrenador encontrado:', coach ? coach.full_name : 'NINGUNO');
+        setCategoryCoach(coach || null);
       } catch (error) {
         console.error("Error fetching coach:", error);
       }

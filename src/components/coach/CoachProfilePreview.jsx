@@ -1,47 +1,52 @@
 import React from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { User, Mail, Phone, ChevronDown, ChevronUp, Clock } from "lucide-react";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 
 export default function CoachProfilePreview({ coach }) {
   const [isOpen, setIsOpen] = React.useState(false);
 
-  if (!coach) return null;
+  if (!coach) {
+    console.log('⚠️ CoachProfilePreview: No coach data');
+    return null;
+  }
+
+  console.log('✅ CoachProfilePreview: Mostrando perfil de', coach.full_name);
 
   return (
-    <Collapsible open={isOpen} onOpenChange={setIsOpen}>
-      <Card className="border-blue-200 bg-blue-50">
-        <CollapsibleTrigger className="w-full">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between gap-3">
-              <div className="flex items-center gap-3">
-                {coach.foto_perfil_url ? (
-                  <img
-                    src={coach.foto_perfil_url}
-                    alt={coach.full_name}
-                    className="w-12 h-12 rounded-full object-cover border-2 border-blue-300"
-                  />
-                ) : (
-                  <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center text-white font-bold text-lg border-2 border-blue-300">
-                    {coach.full_name?.charAt(0).toUpperCase()}
-                  </div>
-                )}
-                <div className="text-left">
-                  <p className="font-bold text-slate-900">{coach.full_name}</p>
-                  <p className="text-xs text-blue-700 flex items-center gap-1">
-                    🏃 Entrenador
-                  </p>
+    <Card className="border-blue-200 bg-blue-50">
+      <button 
+        onClick={() => setIsOpen(!isOpen)}
+        className="w-full"
+      >
+        <CardContent className="p-4">
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-3">
+              {coach.foto_perfil_url ? (
+                <img
+                  src={coach.foto_perfil_url}
+                  alt={coach.full_name}
+                  className="w-12 h-12 rounded-full object-cover border-2 border-blue-300"
+                />
+              ) : (
+                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center text-white font-bold text-lg border-2 border-blue-300">
+                  {coach.full_name?.charAt(0).toUpperCase()}
                 </div>
+              )}
+              <div className="text-left">
+                <p className="font-bold text-slate-900">{coach.full_name}</p>
+                <p className="text-xs text-blue-700 flex items-center gap-1">
+                  🏃 Entrenador {isOpen ? '▼' : '▶'}
+                </p>
               </div>
-              {isOpen ? <ChevronUp className="w-5 h-5 text-blue-600" /> : <ChevronDown className="w-5 h-5 text-blue-600" />}
             </div>
-          </CardContent>
-        </CollapsibleTrigger>
-        
-        <CollapsibleContent>
-          <CardContent className="px-4 pb-4 space-y-4 border-t border-blue-200 bg-white">
+            {isOpen ? <ChevronUp className="w-5 h-5 text-blue-600" /> : <ChevronDown className="w-5 h-5 text-blue-600" />}
+          </div>
+        </CardContent>
+      </button>
+      
+      {isOpen && (
+        <CardContent className="px-4 pb-4 space-y-4 border-t border-blue-200 bg-white">
             {/* Categorías */}
             {coach.categorias_entrena && coach.categorias_entrena.length > 0 && (
               <div>
@@ -98,8 +103,7 @@ export default function CoachProfilePreview({ coach }) {
               </div>
             </div>
           </CardContent>
-        </CollapsibleContent>
-      </Card>
-    </Collapsible>
+        )}
+    </Card>
   );
 }
