@@ -51,6 +51,22 @@ export default function ParentCoachChat() {
     fetchUser();
   }, []);
 
+  const { data: messages = [] } = useQuery({
+    queryKey: ['coachGroupMessages', selectedCategory, user?.email],
+    queryFn: async () => {
+      if (!selectedCategory || !user) return [];
+      const grupo_id = selectedCategory.toLowerCase().replace(/\s+/g, '_');
+      const allMessages = await base44.entities.ChatMessage.filter({ grupo_id }, 'created_date');
+      
+      return allMessages.filter(msg => 
+        !msg.destinatario_email || 
+        msg.destinatario_email === user.email
+      );
+    },
+    refetchInterval: 3000,
+    enabled: !!selectedCategory && !!user,
+  });
+
   // Marcar notificaciones Y MENSAJES como leídos inmediatamente al abrir el chat
   useEffect(() => {
     if (!user || !selectedCategory || messages.length === 0) return;
@@ -111,22 +127,6 @@ export default function ParentCoachChat() {
 
     markAsRead();
   }, [user, selectedCategory, messages.length]);
-
-  const { data: messages = [] } = useQuery({
-    queryKey: ['coachGroupMessages', selectedCategory, user?.email],
-    queryFn: async () => {
-      if (!selectedCategory || !user) return [];
-      const grupo_id = selectedCategory.toLowerCase().replace(/\s+/g, '_');
-      const allMessages = await base44.entities.ChatMessage.filter({ grupo_id }, 'created_date');
-      
-      return allMessages.filter(msg => 
-        !msg.destinatario_email || 
-        msg.destinatario_email === user.email
-      );
-    },
-    refetchInterval: 3000,
-    enabled: !!selectedCategory && !!user,
-  });
 
   const filteredMessages = searchTerm 
     ? messages.filter(m => m.mensaje?.toLowerCase().includes(searchTerm.toLowerCase()))
