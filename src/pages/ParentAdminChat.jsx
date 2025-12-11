@@ -84,29 +84,6 @@ export default function ParentAdminChat() {
     markAsRead();
   }, [conversation?.id, messages]);
 
-  const handleFileUpload = async (e) => {
-    const files = Array.from(e.target.files);
-    setUploading(true);
-
-    try {
-      const uploaded = [];
-      for (const file of files) {
-        const { file_url } = await base44.integrations.Core.UploadFile({ file });
-        uploaded.push({
-          url: file_url,
-          nombre: file.name,
-          tipo: file.type
-        });
-      }
-      setAttachments([...attachments, ...uploaded]);
-      toast.success("Archivos adjuntados");
-    } catch (error) {
-      toast.error("Error al subir archivos");
-    } finally {
-      setUploading(false);
-    }
-  };
-
   const sendMessageMutation = useMutation({
     mutationFn: async (data) => {
       await base44.entities.AdminMessage.create({
@@ -152,6 +129,29 @@ export default function ParentAdminChat() {
       toast.success("Mensaje enviado al administrador");
     },
   });
+
+  const handleFileUpload = async (e) => {
+    const files = Array.from(e.target.files);
+    setUploading(true);
+
+    try {
+      const uploaded = [];
+      for (const file of files) {
+        const { file_url } = await base44.integrations.Core.UploadFile({ file });
+        uploaded.push({
+          url: file_url,
+          nombre: file.name,
+          tipo: file.type
+        });
+      }
+      setAttachments([...attachments, ...uploaded]);
+      toast.success("Archivos adjuntados");
+    } catch (error) {
+      toast.error("Error al subir archivos");
+    } finally {
+      setUploading(false);
+    }
+  };
 
   const handleSend = () => {
     if (!messageText.trim() && attachments.length === 0) return;
@@ -400,35 +400,4 @@ export default function ParentAdminChat() {
       )}
     </div>
   );
-
-  function handleFileUpload(e) {
-    const files = Array.from(e.target.files);
-    setUploading(true);
-
-    const uploadFiles = async () => {
-      try {
-        const uploaded = [];
-        for (const file of files) {
-          const { file_url } = await base44.integrations.Core.UploadFile({ file });
-          uploaded.push({
-            url: file_url,
-            nombre: file.name,
-            tipo: file.type
-          });
-        }
-        setAttachments([...attachments, ...uploaded]);
-        toast.success("Archivos adjuntados");
-      } catch (error) {
-        toast.error("Error al subir archivos");
-      } finally {
-        setUploading(false);
-      }
-    };
-    uploadFiles();
-  }
-
-  function handleSend() {
-    if (!messageText.trim() && attachments.length === 0) return;
-    sendMessageMutation.mutate({ mensaje: messageText, adjuntos: attachments });
-  }
 }
