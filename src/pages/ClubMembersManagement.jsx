@@ -167,17 +167,124 @@ CD Bustarviejo`
     }
   });
 
-  const handleStatusChange = (member, newStatus) => {
+  const handleStatusChange = async (member, newStatus) => {
+    // Procesar programa de referidos cuando se marca como PAGADO
+    if (newStatus === "Pagado" && member.referido_por_email && !member.referido_procesado) {
+      try {
+        console.log('[Referidos] Procesando referido:', member.nombre_completo);
+        
+        // Buscar jugadores relacionados al socio para detectar fútbol femenino
+        const allPlayers = await base44.entities.Player.list();
+        const relatedPlayers = allPlayers.filter(p => 
+          p.email_padre === member.email || p.email_tutor_2 === member.email
+        );
+        const hasFemeninoPlayer = relatedPlayers.some(p => p.deporte === "Fútbol Femenino");
+        
+        // Calcular premios según tier actual del referidor
+        const allMembers = await base44.entities.ClubMember.list();
+        const referrerValidatedCount = allMembers.filter(m => 
+          m.referido_por_email === member.referido_por_email &&
+          m.estado_pago === "Pagado" &&
+          m.referido_procesado === true
+        ).length;
+        
+        const nextCount = referrerValidatedCount + 1;
+        let creditToAdd = 0;
+        let rafflesToAdd = 0;
+        let rewardTier = '';
+        
+        // Aplicar premios según tier
+        if (nextCount === 1 && seasonConfig?.tier_1_activo !== false) {
+          creditToAdd = seasonConfig?.referidos_premio_1 || 5;
+          rewardTier = 'tier_1';
+        } else if (nextCount === 3 && seasonConfig?.tier_3_activo !== false) {
+          creditToAdd = seasonConfig?.referidos_premio_3 || 15;
+          rafflesToAdd = seasonConfig?.referidos_sorteo_3 || 1;
+          rewardTier = 'tier_3';
+        } else if (nextCount === 5 && seasonConfig?.tier_5_activo !== false) {
+          creditToAdd = seasonConfig?.referidos_premio_5 || 25;
+          rafflesToAdd = seasonConfig?.referidos_sorteo_5 || 3;
+          rewardTier = 'tier_5';
+        } else if (nextCount === 10 && seasonConfig?.tier_10_activo !== false) {
+          creditToAdd = seasonConfig?.referidos_premio_10 || 50;
+          rafflesToAdd = seasonConfig?.referidos_sorteo_10 || 5;
+          rewardTier = 'tier_10';
+        } else if (nextCount === 15 && seasonConfig?.tier_15_activo !== false) {
+          creditToAdd = seasonConfig?.referidos_premio_15 || 50;
+          rafflesToAdd = seasonConfig?.referidos_sorteo_15 || 10;
+          rewardTier = 'tier_15';
+        }
+        
+        // Bonus femenino
+        if (hasFemeninoPlayer && seasonConfig?.bonus_femenino_activo) {
+          creditToAdd += seasonConfig?.bonus_femenino_credito || 10;
+          rafflesToAdd += seasonConfig?.bonus_femenino_sorteos || 2;
+        }
+        
+        // Actualizar crédito y sorteos del referidor en User
+        if (creditToAdd > 0 || rafflesToAdd > 0) {
+          const allUsers = await base44.entities.User.list();
+          const referrer = allUsers.find(u => u.email === member.referido_por_email);
+          
+          if (referrer) {
+            const currentCredit = referrer.referral_clothing_credit || 0;
+            const currentRaffles = referrer.referral_raffle_entries || 0;
+            const currentCount = referrer.referral_validated_count || 0;
+            const currentFemeninoCount = referrer.referral_femenino_count || 0;
+            
+            await base44.entities.User.update(referrer.id, {
+              referral_clothing_credit: currentCredit + creditToAdd,
+              referral_raffle_entries: currentRaffles + rafflesToAdd,
+              referral_validated_count: currentCount + 1,
+              ...(hasFemeninoPlayer ? { referral_femenino_count: currentFemeninoCount + 1 } : {})
+            });
+            
+            console.log(`[Referidos] ✅ Premios otorgados a ${member.referido_por_email}: +${creditToAdd}€, +${rafflesToAdd} sorteos`);
+          }
+        }
+        
+        // Crear registro histórico
+        const rewardData = {
+          referrer_email: member.referido_por_email,
+          referrer_name: member.referido_por,
+          referred_member_id: member.id,
+          referred_member_name: member.nombre_completo,
+          temporada: member.temporada,
+          clothing_credit_earned: creditToAdd,
+          raffle_entries_earned: rafflesToAdd,
+          is_femenino_bonus: hasFemeninoPlayer,
+          reward_tier: rewardTier || 'none'
+        };
+        
+        if (relatedPlayers.length > 0) {
+          rewardData.referred_player_id = relatedPlayers[0].id;
+          rewardData.referred_player_name = relatedPlayers[0].nombre;
+          rewardData.referred_player_category = relatedPlayers[0].deporte;
+        }
+        
+        await base44.entities.ReferralReward.create(rewardData);
+        
+        toast.success(`🎁 Premios de referido procesados correctamente`);
+      } catch (error) {
+        console.error('[Referidos] Error procesando:', error);
+        toast.error('Error procesando programa de referidos');
+      }
+    }
+    
+    // Actualizar estado del socio
     updateMemberMutation.mutate({
       id: member.id,
       data: {
         estado_pago: newStatus,
-        ...(newStatus === "Pagado" ? { fecha_pago: new Date().toISOString().split('T')[0] } : {})
+        ...(newStatus === "Pagado" ? { 
+          fecha_pago: new Date().toISOString().split('T')[0],
+          referido_procesado: true // Marcar como procesado
+        } : {})
       },
       memberEmail: member.email,
       memberName: member.nombre_completo,
       sendEmail: newStatus === "Pagado",
-      member: member // Pasar datos del socio para el carnet
+      member: member
     });
   };
 
