@@ -395,7 +395,7 @@ export default function CallupForm({ callup, players, coachName, coachEmail, cat
                   <Label className="text-base font-medium text-green-900">Publicar y Enviar Notificaciones</Label>
                   <p className="text-sm text-green-700">
                     {currentCallup.publicada 
-                      ? "✅ Se enviarán emails a los jugadores" 
+                      ? "✅ Se enviará por email y aparecerá en Convocatorias" 
                       : "⏸️ Borrador (no se enviará nada)"}
                   </p>
                 </div>
@@ -411,7 +411,7 @@ export default function CallupForm({ callup, players, coachName, coachEmail, cat
               <Alert className="bg-blue-50 border-blue-200">
                 <Send className="h-4 w-4 text-blue-600" />
                 <AlertDescription className="text-blue-800 text-sm">
-                  <strong>📧 Se enviará:</strong> Email a cada jugador convocado con los detalles del partido
+                  <strong>📧 Se enviará:</strong> Email a cada jugador + Aparecerá en la sección "Convocatorias" de la app
                 </AlertDescription>
               </Alert>
             )}
