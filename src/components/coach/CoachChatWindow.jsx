@@ -359,6 +359,23 @@ export default function CoachChatWindow({ selectedCategory, user, allPlayers }) 
           entrenador_escribiendo: false
         });
       }
+
+      // Crear notificación para cada padre del grupo
+      const parentEmails = [...new Set(categoryPlayers.flatMap(p => 
+        [p.email_padre, p.email_tutor_2].filter(Boolean)
+      ))];
+      
+      for (const email of parentEmails) {
+        await base44.entities.AppNotification.create({
+          usuario_email: email,
+          titulo: `⚽ Nuevo mensaje del entrenador`,
+          mensaje: `${selectedCategory}: ${data.mensaje.substring(0, 100)}${data.mensaje.length > 100 ? '...' : ''}`,
+          tipo: "importante",
+          icono: "⚽",
+          enlace: "ParentCoachChat",
+          vista: false
+        });
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['coachGroupMessages'] });
@@ -449,8 +466,8 @@ export default function CoachChatWindow({ selectedCategory, user, allPlayers }) 
   });
 
   const categoryPlayers = selectedCategory === "Todas las categorías" 
-    ? allPlayers 
-    : allPlayers.filter(p => p.deporte === selectedCategory);
+    ? allPlayers.filter(p => p.activo === true)
+    : allPlayers.filter(p => p.deporte === selectedCategory && p.activo === true);
 
   const parentEmails = [...new Set(categoryPlayers.flatMap(p => 
     [p.email_padre, p.email_tutor_2].filter(Boolean)

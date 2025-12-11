@@ -4,7 +4,8 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Bell, Check, AlertCircle, Calendar, CreditCard, MessageCircle, Megaphone, DollarSign, Clock } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Bell, Check, AlertCircle, Calendar, CreditCard, MessageCircle, Megaphone, DollarSign, Clock, Trash2, AlertTriangle } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
@@ -262,6 +263,41 @@ export default function NotificationCenter() {
     markMessageAsReadMutation.mutate({ id: message.id, message });
   };
 
+  const clearAllNotificationsMutation = useMutation({
+    mutationFn: async () => {
+      // Marcar todas las AppNotifications como vistas
+      const myNotifications = allNotifications.filter(n => n.usuario_email === user?.email && !n.vista);
+      for (const notif of myNotifications) {
+        await base44.entities.AppNotification.update(notif.id, {
+          vista: true,
+          fecha_vista: new Date().toISOString()
+        });
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['appNotifications'] });
+      toast.success("Todas las notificaciones marcadas como vistas");
+      setIsOpen(false);
+    },
+  });
+
+  const deleteAllNotificationsMutation = useMutation({
+    mutationFn: async () => {
+      // Eliminar todas las AppNotifications del usuario
+      const myNotifications = allNotifications.filter(n => n.usuario_email === user?.email);
+      for (const notif of myNotifications) {
+        await base44.entities.AppNotification.delete(notif.id);
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['appNotifications'] });
+      toast.success("Todas las notificaciones eliminadas");
+      setIsOpen(false);
+    },
+  });
+
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
@@ -287,6 +323,60 @@ export default function NotificationCenter() {
             )}
           </DialogTitle>
         </DialogHeader>
+
+        {unviewedAppNotifications.length > 0 && (
+          <div className="flex gap-2 pb-2 border-b">
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => clearAllNotificationsMutation.mutate()}
+              disabled={clearAllNotificationsMutation.isPending}
+              className="flex-1"
+            >
+              <Check className="w-4 h-4 mr-1" />
+              Marcar todas como vistas
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => setShowDeleteConfirm(true)}
+              className="text-red-600 hover:text-red-700 hover:bg-red-50"
+            >
+              <Trash2 className="w-4 h-4 mr-1" />
+              Limpiar
+            </Button>
+          </div>
+        )}
+
+        {showDeleteConfirm && (
+          <Alert className="bg-red-50 border-red-300">
+            <AlertTriangle className="w-4 h-4 text-red-600" />
+            <AlertDescription className="text-red-800">
+              <p className="font-semibold mb-2">⚠️ ¿Eliminar todas las notificaciones?</p>
+              <p className="text-sm mb-3">Esta acción no se puede deshacer. Solo usar en caso de error del sistema.</p>
+              <div className="flex gap-2">
+                <Button
+                  size="sm"
+                  variant="destructive"
+                  onClick={() => {
+                    deleteAllNotificationsMutation.mutate();
+                    setShowDeleteConfirm(false);
+                  }}
+                  disabled={deleteAllNotificationsMutation.isPending}
+                >
+                  Sí, eliminar todo
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => setShowDeleteConfirm(false)}
+                >
+                  Cancelar
+                </Button>
+              </div>
+            </AlertDescription>
+          </Alert>
+        )}
 
         <Tabs defaultValue="all" className="w-full">
           <TabsList className="w-full grid grid-cols-5 gap-1">
