@@ -218,10 +218,14 @@ export default function ClubMembership() {
   });
 
   // Detectar si el email ya fue socio en temporadas anteriores (para auto-marcar como renovación)
-  const previousMemberships = allMemberships.filter(m => 
-    m.email?.toLowerCase() === formData.email?.toLowerCase() && 
-    m.temporada !== seasonConfig?.temporada
-  );
+  const previousMemberships = React.useMemo(() => {
+    if (!seasonConfig?.temporada || !formData.email) return [];
+    return allMemberships.filter(m => 
+      m.email?.toLowerCase() === formData.email?.toLowerCase() && 
+      m.temporada !== seasonConfig.temporada
+    );
+  }, [allMemberships, formData.email, seasonConfig?.temporada]);
+  
   const wasPreviousMember = previousMemberships.length > 0;
 
   // Auto-detectar renovación cuando cambia el email
