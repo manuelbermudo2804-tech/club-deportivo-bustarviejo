@@ -303,6 +303,25 @@ export default function ParentCoachChat() {
         return month >= 9 ? `${year}/${year + 1}` : `${year - 1}/${year}`;
       })();
 
+      // SI EL USUARIO ES COORDINADOR O ENTRENADOR, SALTAR TODAS LAS VALIDACIONES
+      if (user.es_coordinador === true || user.es_entrenador === true || user.role === "admin") {
+        const grupo_id = selectedCategory.toLowerCase().replace(/\s+/g, '_');
+        await base44.entities.ChatMessage.create({
+          grupo_id,
+          deporte: selectedCategory,
+          tipo: "padre_a_grupo",
+          remitente_email: user.email,
+          remitente_nombre: user.full_name,
+          mensaje: data.mensaje,
+          archivos_adjuntos: data.adjuntos || [],
+          prioridad: "Normal",
+          leido: false
+        });
+        return;
+      }
+
+      // VALIDACIONES SOLO PARA PADRES NORMALES:
+
       // LLAMAR AL CHATBOT PRIMERO
       try {
         const myPlayer = myPlayers.find(p => p.deporte === selectedCategory);
