@@ -495,36 +495,27 @@ export default function Layout({ children, currentPageName }) {
   const location = useLocation();
   const navigate = useNavigate();
   const currentSeason = getCurrentSeason();
-  const [appState, setAppState] = useState({
-    user: null,
-    isAdmin: false,
-    isCoach: false,
-    isCoordinator: false,
-    isTreasurer: false,
-    isPlayer: false,
-    hasPlayers: false,
-    isLoading: true,
-    showSpecialScreen: null,
-    showOnboarding: false
-  });
-  
-  // Destructure para compatibilidad
-  const { user, isAdmin, isCoach, isCoordinator, isTreasurer, isPlayer, hasPlayers } = appState;
+  const [user, setUser] = useState(null);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [isCoach, setIsCoach] = useState(false);
+  const [isCoordinator, setIsCoordinator] = useState(false);
+  const [isTreasurer, setIsTreasurer] = useState(false);
+  const [isPlayer, setIsPlayer] = useState(false);
+  const [hasPlayers, setHasPlayers] = useState(false);
 
   const [pendingCallupsCount, setPendingCallupsCount] = useState(0);
   const [pendingSignaturesCount, setPendingSignaturesCount] = useState(0);
   const [pendingCallupResponses, setPendingCallupResponses] = useState(0); // Para entrenadores: respuestas sin confirmar
   const [unreadAnnouncementsCount, setUnreadAnnouncementsCount] = useState(0);
 
-  const showSpecialScreen = appState.showSpecialScreen;
-  const showOnboarding = appState.showOnboarding;
-  const isLoading = appState.isLoading;
-  
+  const [showSpecialScreen, setShowSpecialScreen] = useState(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [currentLang, setCurrentLang] = useState('es');
   const [loteriaVisible, setLoteriaVisible] = useState(false);
+  const [showOnboarding, setShowOnboarding] = useState(false);
   const [isRedirecting, setIsRedirecting] = useState(false);
   const [sponsorBannerVisible, setSponsorBannerVisible] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [showWelcomeScreen, setShowWelcomeScreen] = useState(true);
   const [showInstallInstructions, setShowInstallInstructions] = useState(false);
       const [isAppInstalled, setIsAppInstalled] = useState(false);
@@ -609,19 +600,13 @@ export default function Layout({ children, currentPageName }) {
           return;
         }
 
-        const newState = {
-          user: currentUser,
-          isLoading: false,
-          isAdmin: currentUser.role === "admin",
-          isCoach: currentUser.es_entrenador === true && !currentUser.es_coordinador,
-          isCoordinator: currentUser.es_coordinador === true,
-          isTreasurer: currentUser.es_tesorero === true,
-          isPlayer: currentUser.es_jugador === true,
-          hasPlayers: false,
-          showSpecialScreen: null,
-          showOnboarding: !currentUser.onboarding_completado
-        };
+        setUser(currentUser);
+        setIsLoading(false);
         console.log('✅ [LAYOUT DEBUG] isLoading = false, debería mostrar contenido');
+        setIsAdmin(currentUser.role === "admin");
+        setIsCoach(currentUser.es_entrenador === true && !currentUser.es_coordinador);
+        setIsCoordinator(currentUser.es_coordinador === true);
+        setIsTreasurer(currentUser.es_tesorero === true);
 
         // DETECCIÓN AUTOMÁTICA DE JUGADOR +18 AUTORIZADO
         // Si el usuario no tiene es_jugador=true, verificar si hay un jugador +18 vinculado a su email
@@ -666,17 +651,22 @@ export default function Layout({ children, currentPageName }) {
           }
         }
 
-        newState.isPlayer = playerDetected;
+        setIsPlayer(playerDetected);
 
         console.log('🔍 ROLES DETECTADOS:', {
           email: currentUser.email,
-          isAdmin: newState.isAdmin,
-          isCoach: newState.isCoach,
-          isCoordinator: newState.isCoordinator,
-          isTreasurer: newState.isTreasurer,
+          isAdmin: currentUser.role === "admin",
+          isCoach: currentUser.es_entrenador === true && !currentUser.es_coordinador,
+          isCoordinator: currentUser.es_coordinador === true,
+          isTreasurer: currentUser.es_tesorero === true,
           es_tesorero_RAW: currentUser.es_tesorero,
           role_RAW: currentUser.role
         });
+
+        // Check if user needs onboarding
+        if (!currentUser.onboarding_completado) {
+          setShowOnboarding(true);
+        }
 
         // Para admin/entrenadores/coordinadores/tesoreros, SOLO usar el campo manual (no verificar BD)
         if (currentUser.role === "admin" || currentUser.es_entrenador || currentUser.es_coordinador || currentUser.es_tesorero) {
@@ -690,7 +680,7 @@ export default function Layout({ children, currentPageName }) {
             tiene_hijos_jugando_TYPE: typeof currentUser.tiene_hijos_jugando,
             resultado_hasPlayers: tienehijos
           });
-          newState.hasPlayers = tienehijos;
+          setHasPlayers(tienehijos);
         } else {
           // Para padres normales, verificar en la base de datos
           const allPlayers = await base44.entities.Player.list();
@@ -699,35 +689,31 @@ export default function Layout({ children, currentPageName }) {
             p.email_tutor_2 === currentUser.email
           );
           console.log('Padre normal - jugadores encontrados:', myPlayers.length);
-            newState.hasPlayers = myPlayers.length > 0;
+          setHasPlayers(myPlayers.length > 0);
           }
 
           if (currentUser.acceso_activo === false && currentUser.role !== "admin") {
-            newState.showSpecialScreen = "restricted";
-            setAppState(newState);
-            return;
+          setShowSpecialScreen("restricted");
+          return;
           }
 
-        // Solo aplicar pantallas especiales a padres sin roles
+        // Solo aplicar pantallas especiales a padres sin roles (NO a entrenadores, coordinadores o tesoreros)
         if (currentUser.role !== "admin" && 
             !currentUser.es_entrenador && 
             !currentUser.es_coordinador && 
             !currentUser.es_tesorero) {
           const period = getPeriodType();
           if (period === "closed") {
-            newState.showSpecialScreen = "closed";
+            setShowSpecialScreen("closed");
           } else if (period === "inscriptions") {
-            newState.showSpecialScreen = "inscriptions";
+            setShowSpecialScreen("inscriptions");
           } else if (period === "vacation") {
-            newState.showSpecialScreen = "vacation";
+            setShowSpecialScreen("vacation");
           }
-        }
-
-        // Aplicar todos los cambios de estado en una sola operación
-        setAppState(newState);
-        } catch (error) {
-        console.error("❌ [LAYOUT DEBUG] Error fetching user:", error);
-        setAppState(prev => ({ ...prev, isLoading: false }));
+          }
+          } catch (error) {
+                      console.error("❌ [LAYOUT DEBUG] Error fetching user:", error);
+                      setIsLoading(false);
                       // Si es página pública y hay error, permitir acceso anónimo
                       if (isPublicPage) {
                         setUser(null);
