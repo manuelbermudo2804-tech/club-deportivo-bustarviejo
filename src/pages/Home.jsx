@@ -1064,6 +1064,16 @@ export default function Home() {
                   <p className="text-xs text-indigo-100 text-center mt-0.5">Consulta IA</p>
                 </div>
               </Link>
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
+              <Link to={createPageUrl("Chatbot")} className="relative">
+                <div className="bg-gradient-to-br from-indigo-600 to-purple-700 rounded-xl p-3 text-white hover:scale-105 transition-all shadow-lg h-full flex flex-col justify-center">
+                  <div className="absolute -top-1 -right-1 w-5 h-5 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full flex items-center justify-center animate-pulse">
+                    <Sparkles className="w-3 h-3 text-white" />
+                  </div>
+                  <p className="text-sm font-bold text-center">🤖 Asistente</p>
+                  <p className="text-xs text-indigo-100 text-center mt-0.5">Consulta IA</p>
+                </div>
+              </Link>
 
               <Link to={createPageUrl("ParentSystemMessages")} className="relative">
                 <div className="bg-gradient-to-br from-purple-600 to-purple-700 rounded-xl p-3 text-white hover:scale-105 transition-all shadow-lg h-full flex flex-col justify-center">
@@ -1099,6 +1109,8 @@ export default function Home() {
               )}
             </div>
           </div>
+        )}
+      </div>
         )}
 
         {/* ÚNICO BANNER CONSOLIDADO DE ALERTAS - Incluye TODO */}
