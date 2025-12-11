@@ -9,7 +9,7 @@ import { createPageUrl } from "@/utils";
 import { 
   Trophy, CreditCard, Star, Award, MessageCircle, Calendar, 
   User, CheckCircle2, Clock, AlertCircle, ChevronRight,
-  MapPin, Users, Megaphone, Image, FileText, Heart, Bell
+  MapPin, Users, Megaphone, Image, FileText, Heart, Bell, Sparkles
 } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
@@ -464,6 +464,18 @@ export default function PlayerDashboard() {
 
       {/* Menu completo reflejado en botones grandes */}
       <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
+        <Link to={createPageUrl("Chatbot")} className="group">
+          <div className="relative bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 active:scale-95">
+            <div className="p-6 flex flex-col items-center justify-center min-h-[140px]">
+              <div className="absolute -top-1 -right-1 w-6 h-6 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full flex items-center justify-center animate-pulse">
+                <Sparkles className="w-3 h-3 text-white" />
+              </div>
+              <MessageCircle className="w-12 h-12 text-white mb-3" />
+              <h3 className="text-white font-bold text-center text-base">🤖 Asistente Virtual</h3>
+            </div>
+          </div>
+        </Link>
+
         <Link to={createPageUrl("ParentCallups")} className="group">
           <div className="relative bg-gradient-to-br from-yellow-500 to-yellow-600 rounded-2xl overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 active:scale-95">
             <div className="p-6 flex flex-col items-center justify-center min-h-[140px]">
