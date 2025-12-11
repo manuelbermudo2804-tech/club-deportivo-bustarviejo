@@ -558,14 +558,13 @@ export default function ClubMembership() {
   }
 
   return (
-    <>
+    <div className="p-4 lg:p-6 max-w-4xl mx-auto space-y-6">
       <CombinedSuccessAnimation 
         show={showSuccess} 
         onComplete={() => setShowSuccess(false)}
         message={`✅ ¡${lastRegisteredName} registrado correctamente!\n\nSi quieres, puedes registrar otra persona`}
         withConfetti={true}
       />
-      <div className="p-4 lg:p-6 max-w-4xl mx-auto space-y-6">
       {/* Header festivo */}
       <div className="text-center space-y-2">
         <div className="flex justify-center gap-2 text-4xl animate-bounce">
@@ -1170,6 +1169,5 @@ export default function ClubMembership() {
         </Card>
       )}
     </div>
-    </>
   );
 }
