@@ -82,15 +82,18 @@ export default function ParentSystemMessages() {
         }
       }
 
-      // 🆕 MARCAR NOTIFICACIONES COMO VISTAS
+      // 🆕 MARCAR NOTIFICACIONES COMO VISTAS - BUSCAR TODAS SIN FILTRO DE ENLACE
       try {
-        const notifications = await base44.entities.AppNotification.filter({
-          usuario_email: user.email,
-          enlace: "ParentSystemMessages",
-          vista: false
-        });
+        const allNotifications = await base44.entities.AppNotification.list();
+        const notificationsToMark = allNotifications.filter(n => 
+          n.usuario_email === user.email &&
+          n.enlace === "ParentSystemMessages" &&
+          n.vista === false
+        );
 
-        for (const notif of notifications) {
+        console.log(`🔔 Marcando ${notificationsToMark.length} notificaciones como vistas`);
+
+        for (const notif of notificationsToMark) {
           await base44.entities.AppNotification.update(notif.id, {
             vista: true,
             fecha_vista: new Date().toISOString()
