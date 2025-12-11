@@ -216,10 +216,11 @@ export default function Home() {
     queryKey: ['clothingOrdersHome'],
     queryFn: () => base44.entities.ClothingOrder.list('-created_date'),
     initialData: [],
-    staleTime: 300000, // 5 minutos
+    staleTime: 30000, // 30 segundos
     gcTime: 600000,
-    refetchOnWindowFocus: false,
-    refetchOnMount: false,
+    refetchOnWindowFocus: true,
+    refetchOnMount: true,
+    refetchInterval: 30000, // Actualizar cada 30 segundos
     enabled: !!user && isAdmin,
   });
 
