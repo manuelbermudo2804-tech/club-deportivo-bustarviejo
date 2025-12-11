@@ -303,27 +303,8 @@ export default function ClubMembership() {
       // NOTA: El carnet virtual se enviará cuando el admin apruebe el pago (estado_pago = "Pagado")
       // NO enviamos carnet automáticamente aquí - solo cuando el pago sea confirmado
 
-      // REGISTRAR EN HISTÓRICO DE REFERIDOS
-      if (data.referido_por || referrer) {
-      try {
-      await base44.entities.ReferralHistory.create({
-      temporada: seasonConfig?.temporada || "",
-      referidor_email: referrer?.email || "",
-      referidor_nombre: data.referido_por || referrer?.full_name || "",
-      referido_email: data.email,
-      referido_nombre: data.nombre_completo,
-      referido_id: membership.id,
-      estado: "activo",
-      credito_otorgado: 0, // Se actualizará cuando se procese el programa
-      sorteos_otorgados: 0,
-      fecha_referido: new Date().toISOString()
-      });
-      } catch (error) {
-      console.error("Error guardando histórico de referido:", error);
-      }
-      }
-
       // Procesar programa de referidos
+      let referrer = null;
       if (seasonConfig?.programa_referidos_activo) {
       try {
       const allPlayersForRef = await base44.entities.Player.list();
@@ -335,7 +316,6 @@ export default function ClubMembership() {
             if (p.email_tutor_2) parentEmails.add(p.email_tutor_2.toLowerCase().trim());
           });
 
-          let referrer = null;
           const currentUserEmail = user?.email?.toLowerCase().trim();
 
           console.log("🔍 DEBUG Referidos:", {
@@ -439,6 +419,27 @@ export default function ClubMembership() {
           }
         } catch (error) {
           console.error("Error processing referral:", error);
+        }
+      }
+
+      // REGISTRAR EN HISTÓRICO DE REFERIDOS (después de procesar el programa)
+      if ((data.referido_por || referrer) && seasonConfig?.programa_referidos_activo) {
+        try {
+          await base44.entities.ReferralHistory.create({
+            temporada: seasonConfig?.temporada || "",
+            referidor_email: referrer?.email || "",
+            referidor_nombre: referrer?.full_name || data.referido_por || "",
+            referido_email: data.email,
+            referido_nombre: data.nombre_completo,
+            referido_id: membership.id,
+            estado: "activo",
+            credito_otorgado: referrer ? (seasonConfig.referidos_premio_1 || 5) : 0,
+            sorteos_otorgados: 0,
+            fecha_referido: new Date().toISOString()
+          });
+          console.log("✅ ReferralHistory creado correctamente");
+        } catch (error) {
+          console.error("Error guardando histórico de referido:", error);
         }
       }
 
