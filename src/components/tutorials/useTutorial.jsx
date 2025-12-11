@@ -14,7 +14,7 @@ export function usePageTutorial(tutorialId) {
     }, 800);
 
     return () => clearTimeout(timer);
-  }, [tutorial?.isReady, tutorialId, tutorial?.checkAndStartTutorial]);
+  }, [tutorial?.isReady, tutorialId]);
 
   return tutorial;
 }

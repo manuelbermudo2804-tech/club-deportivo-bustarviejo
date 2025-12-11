@@ -571,7 +571,7 @@ export function TutorialProvider({ children }) {
     setActiveTutorial(TUTORIALS[tutorialId]);
   };
 
-  const checkAndStartTutorial = (tutorialId) => {
+  const checkAndStartTutorial = React.useCallback((tutorialId) => {
     if (!user || !TUTORIALS[tutorialId]) return false;
     
     const completed = user.tutorials_completados || {};
@@ -579,7 +579,7 @@ export function TutorialProvider({ children }) {
     
     setActiveTutorial(TUTORIALS[tutorialId]);
     return true;
-  };
+  }, [user]);
 
   const closeTutorial = () => {
     setActiveTutorial(null);
