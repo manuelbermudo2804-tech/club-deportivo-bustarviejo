@@ -415,6 +415,7 @@ export default function ClubMembership() {
               });
 
               console.log(`✅ Referido procesado: ${referrer.full_name} ahora tiene ${newCount} referidos`);
+              console.log(`💰 Nuevos valores: ${newCount} referidos, ${newCredit}€ crédito, ${newRaffles} participaciones`);
             }
           }
         } catch (error) {
@@ -454,10 +455,16 @@ export default function ClubMembership() {
 
       return membership;
     },
-    onSuccess: () => {
+    onSuccess: async () => {
       queryClient.invalidateQueries({ queryKey: ['myMemberships'] });
       queryClient.invalidateQueries({ queryKey: ['allMemberships'] });
-      queryClient.invalidateQueries({ queryKey: ['allUsers'] }); // Para actualizar referidos
+      queryClient.invalidateQueries({ queryKey: ['allUsers'] });
+      queryClient.invalidateQueries({ queryKey: ['freshUser'] }); // IMPORTANTE: refrescar datos del usuario actual
+      
+      // Forzar recarga inmediata de los datos del usuario
+      if (refetchUser) {
+        await refetchUser();
+      }
       
       // Guardar nombre y mostrar mensaje de éxito
       setLastRegisteredName(formData.nombre_completo);
