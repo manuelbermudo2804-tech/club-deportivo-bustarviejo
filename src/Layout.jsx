@@ -657,7 +657,7 @@ export default function Layout({ children, currentPageName }) {
               const edad = calcularEdad(linkedPlayer.fecha_nacimiento);
               const esMayorDe18 = edad >= 18 || linkedPlayer.es_mayor_edad === true;
 
-              if (esMayorDe18) {
+              if (esMayorDe18 && !currentUser.es_jugador) {
                 console.log('🎯 [LAYOUT] Detectado jugador +18 autorizado:', linkedPlayer.nombre);
                 // Actualizar automáticamente el usuario como jugador
                 await base44.auth.updateMe({
