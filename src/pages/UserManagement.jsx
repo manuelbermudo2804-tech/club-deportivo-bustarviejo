@@ -56,6 +56,8 @@ export default function UserManagement() {
   const [showCoordinatorDialog, setShowCoordinatorDialog] = useState(false);
   const [showTreasurerDialog, setShowTreasurerDialog] = useState(false);
   const [showPlayerDialog, setShowPlayerDialog] = useState(false);
+  const [showChatBlockDialog, setShowChatBlockDialog] = useState(false);
+  const [chatBlockData, setChatBlockData] = useState({ motivo_bloqueo_chat: "" });
   const [showDeleted, setShowDeleted] = useState(false);
   const [roleFilter, setRoleFilter] = useState("all");
   const [restrictionData, setRestrictionData] = useState({
@@ -106,6 +108,7 @@ export default function UserManagement() {
       setShowCoordinatorDialog(false);
       setShowTreasurerDialog(false);
       setShowPlayerDialog(false);
+      setShowChatBlockDialog(false);
       setSelectedUser(null);
       setSelectedPlayerId("");
       setRestrictionData({ motivo_restriccion: "", notas_admin: "" });
@@ -305,6 +308,27 @@ export default function UserManagement() {
       userId: user.id,
       userData: {
         puede_gestionar_firmas: newValue
+      }
+    });
+  };
+
+  const handleChatBlock = (user) => {
+    setSelectedUser(user);
+    setChatBlockData({ motivo_bloqueo_chat: user.motivo_bloqueo_chat || "" });
+    setShowChatBlockDialog(true);
+  };
+
+  const handleConfirmChatBlock = async () => {
+    if (!selectedUser) return;
+
+    const isBlocking = !selectedUser.chat_bloqueado;
+
+    updateUserMutation.mutate({
+      userId: selectedUser.id,
+      userData: {
+        chat_bloqueado: isBlocking,
+        motivo_bloqueo_chat: isBlocking ? chatBlockData.motivo_bloqueo_chat : null,
+        fecha_bloqueo_chat: isBlocking ? new Date().toISOString() : null
       }
     });
   };
@@ -708,6 +732,7 @@ export default function UserManagement() {
                             {isCoach && <Badge className="bg-blue-600 text-xs px-2 py-0.5">🏃 Entrenador</Badge>}
                             {isDeleted && <Badge className="bg-slate-600 text-xs px-2 py-0.5">🗑️ Eliminado</Badge>}
                             {!isDeleted && hasRestriction && <Badge className="bg-red-600 text-xs px-2 py-0.5">🚫 Restringido</Badge>}
+                            {user.chat_bloqueado && <Badge className="bg-orange-600 text-xs px-2 py-0.5 animate-pulse">💬🚫 Chat Bloq.</Badge>}
                           </div>
                         </div>
                         <p className="text-sm text-slate-600">{user.email}</p>
@@ -802,6 +827,17 @@ export default function UserManagement() {
                             }`}
                           >
                             {hasRestriction ? "✅ Activar" : "🚫 Restringir"}
+                          </button>
+                          
+                          <button 
+                            onClick={() => handleChatBlock(user)} 
+                            className={`px-4 py-3 rounded-xl text-sm font-bold shadow-md transition-all hover:scale-105 ${
+                              user.chat_bloqueado 
+                                ? 'bg-green-600 text-white ring-2 ring-green-300' 
+                                : 'bg-white text-orange-700 hover:bg-orange-50 border-2 border-orange-300'
+                            }`}
+                          >
+                            {user.chat_bloqueado ? "✅ Desbloquear Chat" : "💬🚫 Bloquear Chat"}
                           </button>
                           
                           <button 
@@ -1364,6 +1400,134 @@ export default function UserManagement() {
                 <>
                   <CheckCircle2 className="w-4 h-4 mr-2" />
                   Confirmar Restauración
+                </>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Diálogo de Bloqueo de Chat */}
+      <Dialog open={showChatBlockDialog} onOpenChange={setShowChatBlockDialog}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="text-2xl flex items-center gap-2">
+              {selectedUser?.chat_bloqueado ? (
+                <>
+                  <CheckCircle2 className="w-6 h-6 text-green-600" />
+                  Desbloquear Acceso al Chat
+                </>
+              ) : (
+                <>
+                  <Ban className="w-6 h-6 text-orange-600" />
+                  Bloquear Acceso al Chat
+                </>
+              )}
+            </DialogTitle>
+            <DialogDescription>
+              {selectedUser?.chat_bloqueado ? (
+                <>Restaurar acceso al chat de <strong>{selectedUser?.full_name}</strong></>
+              ) : (
+                <>Bloquear acceso al chat de <strong>{selectedUser?.full_name}</strong> por malas prácticas</>
+              )}
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 py-4">
+            {!selectedUser?.chat_bloqueado && (
+              <div className="space-y-2">
+                <Label htmlFor="chat-block-reason">Motivo del Bloqueo de Chat *</Label>
+                <Select
+                  value={chatBlockData.motivo_bloqueo_chat}
+                  onValueChange={(value) => setChatBlockData({ motivo_bloqueo_chat: value })}
+                >
+                  <SelectTrigger id="chat-block-reason">
+                    <SelectValue placeholder="Selecciona un motivo" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Lenguaje ofensivo reiterado">
+                      Lenguaje ofensivo reiterado
+                    </SelectItem>
+                    <SelectItem value="Acoso o amenazas">
+                      Acoso o amenazas
+                    </SelectItem>
+                    <SelectItem value="Spam o mensajes excesivos">
+                      Spam o mensajes excesivos
+                    </SelectItem>
+                    <SelectItem value="Conflictos repetidos con staff">
+                      Conflictos repetidos con staff
+                    </SelectItem>
+                    <SelectItem value="Incumplimiento reiterado de normas">
+                      Incumplimiento reiterado de normas
+                    </SelectItem>
+                    <SelectItem value="Otro">
+                      Otro motivo
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+
+            <div className="bg-orange-50 border-2 border-orange-300 rounded-lg p-4">
+              <p className="text-sm text-orange-900 font-bold mb-2">
+                {selectedUser?.chat_bloqueado ? "✅ Desbloquear Chat" : "⚠️ Bloquear Chat"}
+              </p>
+              {selectedUser?.chat_bloqueado ? (
+                <ul className="text-sm text-orange-800 space-y-1">
+                  <li>✅ El usuario podrá volver a enviar mensajes en los chats</li>
+                  <li>✅ Tendrá acceso al Chat Coordinador y Chat Entrenador</li>
+                </ul>
+              ) : (
+                <ul className="text-sm text-orange-800 space-y-1">
+                  <li>🚫 El usuario NO podrá enviar mensajes en los chats</li>
+                  <li>🚫 Afecta a: Chat Coordinador y Chat Entrenador</li>
+                  <li>✅ Podrá seguir usando el resto de la app</li>
+                  <li>✅ Es reversible en cualquier momento</li>
+                </ul>
+              )}
+            </div>
+
+            <div className="bg-blue-50 border-2 border-blue-300 rounded-lg p-4">
+              <p className="text-sm text-blue-900 font-bold mb-2">
+                📊 Registros relacionados:
+              </p>
+              <p className="text-sm text-blue-800">
+                Puedes revisar el historial de mensajes bloqueados y discusiones en la sección 
+                <strong> "Stats Chat Entrena."</strong> para ver el comportamiento del usuario.
+              </p>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setShowChatBlockDialog(false);
+                setSelectedUser(null);
+                setChatBlockData({ motivo_bloqueo_chat: "" });
+              }}
+            >
+              Cancelar
+            </Button>
+            <Button
+              onClick={handleConfirmChatBlock}
+              disabled={updateUserMutation.isPending || (!selectedUser?.chat_bloqueado && !chatBlockData.motivo_bloqueo_chat)}
+              className={selectedUser?.chat_bloqueado ? "bg-green-600 hover:bg-green-700" : "bg-orange-600 hover:bg-orange-700"}
+            >
+              {updateUserMutation.isPending ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Procesando...
+                </>
+              ) : selectedUser?.chat_bloqueado ? (
+                <>
+                  <CheckCircle2 className="w-4 h-4 mr-2" />
+                  Desbloquear Chat
+                </>
+              ) : (
+                <>
+                  <Ban className="w-4 h-4 mr-2" />
+                  Confirmar Bloqueo
                 </>
               )}
             </Button>
