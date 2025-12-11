@@ -182,7 +182,8 @@ export default function ParentCoachChat() {
   const votePollMutation = useMutation({
     mutationFn: async ({ messageId, optionIndex }) => {
       const msg = messages.find(m => m.id === messageId);
-      const votos = msg.encuesta?.votos || [];
+      const poll = msg.encuesta || msg.poll;
+      const votos = poll?.votos || [];
       
       votos.push({
         usuario_email: user.email,
@@ -191,12 +192,11 @@ export default function ParentCoachChat() {
         fecha: new Date().toISOString()
       });
 
-      await base44.entities.ChatMessage.update(messageId, {
-        encuesta: {
-          ...msg.encuesta,
-          votos
-        }
-      });
+      const updateData = msg.encuesta 
+        ? { encuesta: { ...poll, votos } }
+        : { poll: { ...poll, votos } };
+
+      await base44.entities.ChatMessage.update(messageId, updateData);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['coachGroupMessages'] });
@@ -403,9 +403,9 @@ export default function ParentCoachChat() {
 
                         {msg.ubicacion && <LocationMessage ubicacion={msg.ubicacion} />}
 
-                        {msg.encuesta && (
+                        {(msg.encuesta || msg.poll) && (
                           <PollMessage 
-                            encuesta={msg.encuesta} 
+                            encuesta={msg.encuesta || msg.poll} 
                             messageId={msg.id}
                             userEmail={user.email}
                             userName={user.full_name}
