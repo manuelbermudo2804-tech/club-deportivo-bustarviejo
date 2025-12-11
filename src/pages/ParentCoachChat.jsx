@@ -12,6 +12,7 @@ import { toast } from "sonner";
 import PollMessage from "../components/chat/PollMessage";
 import LocationMessage from "../components/chat/LocationMessage";
 import EscalateToCoordinatorButton from "../components/coach/EscalateToCoordinatorButton";
+import CoachProfilePreview from "../components/coach/CoachProfilePreview";
 
 export default function ParentCoachChat() {
   const [user, setUser] = useState(null);
@@ -23,6 +24,7 @@ export default function ParentCoachChat() {
   const [showSearch, setShowSearch] = useState(false);
   const [showImagePreview, setShowImagePreview] = useState(null);
   const [playingAudio, setPlayingAudio] = useState(null);
+  const [categoryCoach, setCategoryCoach] = useState(null);
   const messagesEndRef = useRef(null);
   const audioRef = useRef(null);
   const queryClient = useQueryClient();
@@ -51,6 +53,24 @@ export default function ParentCoachChat() {
     };
     fetchUser();
   }, []);
+
+  // Obtener entrenador de la categoría seleccionada
+  useEffect(() => {
+    const fetchCategoryCoach = async () => {
+      if (!selectedCategory) return;
+      try {
+        const users = await base44.entities.User.list();
+        const coach = users.find(u => 
+          u.es_entrenador === true && 
+          u.categorias_entrena?.includes(selectedCategory)
+        );
+        setCategoryCoach(coach);
+      } catch (error) {
+        console.error("Error fetching coach:", error);
+      }
+    };
+    fetchCategoryCoach();
+  }, [selectedCategory]);
 
   const { data: messages = [] } = useQuery({
     queryKey: ['coachGroupMessages', selectedCategory, user?.email],
@@ -320,6 +340,13 @@ export default function ParentCoachChat() {
                   {cat.replace('Fútbol ', '').replace(' (Mixto)', '')}
                 </Button>
               ))}
+            </div>
+          )}
+
+          {/* Perfil del Entrenador */}
+          {categoryCoach && (
+            <div className="p-3 border-b bg-white">
+              <CoachProfilePreview coach={categoryCoach} />
             </div>
           )}
 

@@ -818,6 +818,7 @@ export default function Layout({ children, currentPageName }) {
 
     // 👥 GESTIÓN DE PERSONAS
     { title: "👥 Jugadores", url: createPageUrl("Players"), icon: Users },
+    { title: "🏃 Entrenadores", url: createPageUrl("CoachProfiles"), icon: Users },
     { title: "🖊️ Firmas Federación", url: createPageUrl("FederationSignaturesAdmin"), icon: FileSignature },
     { title: "👤 Usuarios", url: createPageUrl("UserManagement"), icon: Users },
 
