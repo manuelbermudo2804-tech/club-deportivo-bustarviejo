@@ -462,9 +462,8 @@ export default function ClubMembership() {
       setLastRegisteredName(formData.nombre_completo);
       setShowSuccess(true);
       
-      // Cerrar el formulario y volver arriba
+      // Cerrar el formulario y volver arriba INMEDIATAMENTE
       setShowForm(false);
-      window.scrollTo({ top: 0, behavior: 'smooth' });
       
       // Limpiar formulario para nuevo registro
       setFormData({
@@ -487,10 +486,15 @@ export default function ClubMembership() {
         setRenewalMember(null);
       }
       
-      // Ocultar mensaje de éxito después de 4 segundos
+      // Scroll al principio después de un pequeño delay para asegurar que el contenido se ha renderizado
+      setTimeout(() => {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }, 100);
+      
+      // Ocultar mensaje de éxito después de 5 segundos
       setTimeout(() => {
         setShowSuccess(false);
-      }, 4000);
+      }, 5000);
     },
     onError: (error) => {
       toast.error("Error al enviar solicitud: " + error.message);
@@ -542,7 +546,7 @@ export default function ClubMembership() {
       <CombinedSuccessAnimation 
         show={showSuccess} 
         onComplete={() => setShowSuccess(false)}
-        message={isRenewal ? `¡Renovación completada, ${lastRegisteredName}!` : `¡Bienvenido/a al club, ${lastRegisteredName}!`}
+        message={`✅ ¡${lastRegisteredName} registrado correctamente!\n\nSi quieres, puedes registrar otra persona`}
         withConfetti={true}
       />
       <div className="p-4 lg:p-6 max-w-4xl mx-auto space-y-6">
