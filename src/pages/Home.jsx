@@ -401,8 +401,10 @@ export default function Home() {
       // Pedidos de lotería pendientes
       pendingLotteryOrders = lotteryOrders?.filter(o => o.estado === "Pendiente" || o.estado === "En revisión").length || 0;
       
-      // Solicitudes de socios pendientes
-      pendingMemberRequests = clubMembers?.filter(m => m.estado_pago === "En revisión").length || 0;
+      // Solicitudes de socios pendientes (incluir "En revisión" Y "Pendiente")
+      pendingMemberRequests = clubMembers?.filter(m => 
+        m.estado_pago === "En revisión" || m.estado_pago === "Pendiente"
+      ).length || 0;
       
       // Respuestas de encuestas en las últimas 24 horas
       const yesterday = new Date();
