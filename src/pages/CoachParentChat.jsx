@@ -67,11 +67,11 @@ export default function CoachParentChat() {
   }
 
   return (
-    <div className="h-[calc(100vh-100px)] lg:h-[calc(100vh-110px)] flex flex-col lg:flex-row">
-      {/* Lista de categorías */}
-      <div className={`${selectedCategory ? 'hidden lg:flex' : 'flex'} w-full lg:w-96 border-r bg-slate-50 flex-col h-full overflow-hidden`}>
-        <div className="p-4 bg-gradient-to-r from-green-600 to-green-700 text-white">
-          <div className="flex items-center justify-between mb-3">
+    <div className="h-[calc(100vh-100px)] lg:h-[calc(100vh-110px)]">
+      <Card className="h-full flex flex-col overflow-hidden lg:rounded-lg rounded-none border-green-200 shadow-lg">
+        {/* Header con pestañas de categorías */}
+        <div className="bg-gradient-to-r from-green-600 to-green-700 text-white flex-shrink-0">
+          <div className="p-4 flex items-center justify-between border-b border-green-500/30">
             <div>
               <h1 className="text-xl font-bold flex items-center gap-2">
                 <MessageCircle className="w-6 h-6" />
@@ -92,60 +92,56 @@ export default function CoachParentChat() {
               </Button>
             </Link>
           </div>
-        </div>
+          
+          {/* Pestañas de categorías */}
+          <div className="flex gap-2 px-4 pb-3 overflow-x-auto">
+            {categories.map(cat => {
+              const categoryPlayers = cat === "Todas las categorías" 
+                ? allPlayers 
+                : allPlayers.filter(p => p.deporte === cat);
+              
+              const parentCount = new Set(categoryPlayers.flatMap(p => 
+                [p.email_padre, p.email_tutor_2].filter(Boolean)
+              )).size;
 
-        <div className="flex-1 overflow-y-auto p-4 space-y-2">
-          {categories.map(cat => {
-            const categoryPlayers = cat === "Todas las categorías" 
-              ? allPlayers 
-              : allPlayers.filter(p => p.deporte === cat);
-            
-            const parentCount = new Set(categoryPlayers.flatMap(p => 
-              [p.email_padre, p.email_tutor_2].filter(Boolean)
-            )).size;
-
-            return (
-              <Card
-                key={cat}
-                className={`p-4 cursor-pointer hover:shadow-md transition-all ${
-                  selectedCategory === cat ? 'ring-2 ring-green-500 bg-green-50' : ''
-                }`}
-                onClick={() => setSelectedCategory(cat)}
-              >
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="font-bold text-slate-900">{cat === "Todas las categorías" ? "Todas" : cat.replace('Fútbol ', '').replace(' (Mixto)', '')}</p>
-                    <p className="text-xs text-slate-500">
-                      {categoryPlayers.length} jugadores • {parentCount} familias
-                    </p>
-                  </div>
-                  {selectedCategory === cat && (
-                    <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                  )}
-                </div>
-              </Card>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* Ventana de chat */}
-      <div className={`${selectedCategory ? 'flex' : 'hidden lg:flex'} flex-1 h-full`}>
-        {selectedCategory ? (
-          <CoachChatWindow
-            selectedCategory={selectedCategory}
-            user={user}
-            allPlayers={allPlayers}
-          />
-        ) : (
-          <div className="h-full flex items-center justify-center bg-slate-50">
-            <div className="text-center">
-              <MessageCircle className="w-16 h-16 text-slate-300 mx-auto mb-3" />
-              <p className="text-slate-500">Selecciona una categoría para empezar</p>
-            </div>
+              return (
+                <Button
+                  key={cat}
+                  variant={selectedCategory === cat ? "secondary" : "ghost"}
+                  size="sm"
+                  onClick={() => setSelectedCategory(cat)}
+                  className={`whitespace-nowrap ${
+                    selectedCategory === cat 
+                      ? 'bg-white text-green-700 hover:bg-white/90' 
+                      : 'text-white hover:bg-white/20'
+                  }`}
+                >
+                  {cat === "Todas las categorías" ? "📋 Todas" : cat.replace('Fútbol ', '').replace(' (Mixto)', '')}
+                  <span className="ml-2 text-xs opacity-70">({parentCount})</span>
+                </Button>
+              );
+            })}
           </div>
-        )}
-      </div>
+        </div>
+
+        {/* Ventana de chat */}
+        <div className="flex-1 overflow-hidden">
+          {selectedCategory ? (
+            <CoachChatWindow
+              selectedCategory={selectedCategory}
+              user={user}
+              allPlayers={allPlayers}
+            />
+          ) : (
+            <div className="h-full flex items-center justify-center bg-slate-50">
+              <div className="text-center">
+                <MessageCircle className="w-16 h-16 text-slate-300 mx-auto mb-3" />
+                <p className="text-slate-500">Selecciona una categoría para empezar</p>
+              </div>
+            </div>
+          )}
+        </div>
+      </Card>
     </div>
   );
 }
