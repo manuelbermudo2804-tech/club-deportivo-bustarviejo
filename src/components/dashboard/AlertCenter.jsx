@@ -141,13 +141,17 @@ export default function AlertCenter({
 
   // Alertas para padres
   if (isParent) {
-    // ALERTA CRÍTICA DE ADMIN (prioridad máxima)
-    if (hasActiveAdminChat && unreadAdminMessages > 0) {
+    // ALERTA CRÍTICA DE ADMIN (prioridad máxima) - MOSTRAR SIEMPRE si hay chat activo
+    if (hasActiveAdminChat) {
       alerts.push({
         id: "admin-chat",
         icon: AlertTriangle,
-        title: "🛡️ El Administrador te ha contactado",
-        description: `${unreadAdminMessages} mensaje${unreadAdminMessages > 1 ? 's' : ''} sin leer - Situación crítica`,
+        title: unreadAdminMessages > 0 
+          ? "🛡️ El Administrador te ha contactado - Tienes mensajes sin leer en el Chat Administrador"
+          : "🛡️ Chat Administrador Activo - El administrador gestiona tu caso",
+        description: unreadAdminMessages > 0 
+          ? `${unreadAdminMessages} mensaje${unreadAdminMessages > 1 ? 's' : ''} nuevo${unreadAdminMessages > 1 ? 's' : ''} del administrador`
+          : "Conversación supervisada por la dirección del club",
         url: createPageUrl("ParentAdminChat"),
         color: "bg-red-600",
         priority: 0
