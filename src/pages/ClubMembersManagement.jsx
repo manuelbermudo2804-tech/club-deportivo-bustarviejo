@@ -9,7 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   Users, CheckCircle2, Clock, AlertCircle, Mail, 
   TrendingUp, UserPlus, Heart, Eye, Loader2, Edit, Trash2,
-  MessageCircle, RefreshCw, UserCheck, Send, Bell, Upload, FileSpreadsheet, BarChart3
+  MessageCircle, RefreshCw, UserCheck, Send, Bell, Upload, FileSpreadsheet, BarChart3, Gift
 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -919,6 +919,11 @@ Por solo *25€/año* seguirás apoyando a nuestros jóvenes deportistas.
                     <div className="flex items-center gap-2 mb-1 flex-wrap">
                       <h3 className="font-semibold text-slate-900">{member.nombre_completo}</h3>
                       <Badge variant="outline" className="text-xs">{member.numero_socio || "Sin nº"}</Badge>
+                      {member.referido_por && (
+                        <Badge className="bg-gradient-to-r from-purple-500 to-pink-500 text-white text-xs">
+                          <Gift className="w-3 h-3 mr-1" /> Referido
+                        </Badge>
+                      )}
                       {member.es_segundo_progenitor && (
                         <Badge variant="outline" className="text-xs bg-purple-50">2º Prog.</Badge>
                       )}
@@ -928,11 +933,6 @@ Por solo *25€/año* seguirás apoyando a nuestros jóvenes deportistas.
                       <Badge variant="outline" className="text-xs">
                         {member.tipo_inscripcion === "Nueva Inscripción" ? "🆕" : "🔄"} {member.temporada}
                       </Badge>
-                      {member.referido_por && (
-                        <Badge className="bg-orange-100 text-orange-800 text-xs">
-                          Ref: {member.referido_por}
-                        </Badge>
-                      )}
                     </div>
                     <div className="text-sm text-slate-600 space-y-0.5">
                       <p>📧 {member.email} | 📱 {member.telefono}</p>
