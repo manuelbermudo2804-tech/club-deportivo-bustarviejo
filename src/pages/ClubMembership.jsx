@@ -18,7 +18,7 @@ const CUOTA_SOCIO = 25;
 
 export default function ClubMembership() {
   const [user, setUser] = useState(null);
-  const [showForm, setShowForm] = useState(true); // Mostrar formulario por defecto
+  const [showForm, setShowForm] = useState(false);
   const [uploadingJustificante, setUploadingJustificante] = useState(false);
   const [invitadoPor, setInvitadoPor] = useState(null); // Datos del socio que invita
   const [formData, setFormData] = useState({
@@ -552,13 +552,6 @@ export default function ClubMembership() {
 
   const currentSeasonMembership = myMemberships.find(m => m.temporada === seasonConfig?.temporada);
   const totalSocios = allMemberships.filter(m => m.temporada === seasonConfig?.temporada && m.activo).length;
-
-  // Ocultar formulario si ya es socio de esta temporada
-  useEffect(() => {
-    if (currentSeasonMembership) {
-      setShowForm(false);
-    }
-  }, [currentSeasonMembership]);
 
   if (isCheckingAuth || loadingRenewal) {
     return (
