@@ -456,53 +456,61 @@ export default function ClubMembership() {
       return membership;
     },
     onSuccess: async () => {
-      queryClient.invalidateQueries({ queryKey: ['myMemberships'] });
-      queryClient.invalidateQueries({ queryKey: ['allMemberships'] });
-      queryClient.invalidateQueries({ queryKey: ['allUsers'] });
-      queryClient.invalidateQueries({ queryKey: ['freshUser'] }); // IMPORTANTE: refrescar datos del usuario actual
-      
-      // Forzar recarga inmediata de los datos del usuario
-      if (refetchUser) {
-        await refetchUser();
-      }
-      
-      // Guardar nombre y mostrar mensaje de éxito
-      setLastRegisteredName(formData.nombre_completo);
-      setShowSuccess(true);
-      
-      // Cerrar el formulario y volver arriba INMEDIATAMENTE
-      setShowForm(false);
-      
-      // Limpiar formulario para nuevo registro
-      setFormData({
-        tipo_inscripcion: "Nueva Inscripción",
-        nombre_completo: "",
-        dni: "",
-        telefono: "",
-        email: "",
-        direccion: "",
-        municipio: "",
-        metodo_pago: "Transferencia",
-        justificante_url: "",
-        es_segundo_progenitor: false,
-        referido_por: ""
-      });
+      try {
+        queryClient.invalidateQueries({ queryKey: ['myMemberships'] });
+        queryClient.invalidateQueries({ queryKey: ['allMemberships'] });
+        queryClient.invalidateQueries({ queryKey: ['allUsers'] });
+        queryClient.invalidateQueries({ queryKey: ['freshUser'] });
+        
+        // Forzar recarga inmediata de los datos del usuario
+        if (refetchUser) {
+          await refetchUser();
+        }
+        
+        // Guardar nombre y mostrar mensaje de éxito
+        setLastRegisteredName(formData.nombre_completo);
+        
+        // Cerrar el formulario y volver arriba INMEDIATAMENTE
+        setShowForm(false);
+        
+        // Limpiar formulario para nuevo registro
+        setFormData({
+          tipo_inscripcion: "Nueva Inscripción",
+          nombre_completo: "",
+          dni: "",
+          telefono: "",
+          email: "",
+          direccion: "",
+          municipio: "",
+          metodo_pago: "Transferencia",
+          justificante_url: "",
+          es_segundo_progenitor: false,
+          referido_por: ""
+        });
 
-      // Si era renovación, limpiar estado
-      if (isRenewal) {
-        setIsRenewal(false);
-        setRenewalMember(null);
-      }
-      
-      // Scroll al principio después de un pequeño delay para asegurar que el contenido se ha renderizado
-      setTimeout(() => {
+        // Si era renovación, limpiar estado
+        if (isRenewal) {
+          setIsRenewal(false);
+          setRenewalMember(null);
+        }
+        
+        // Scroll al principio
         window.scrollTo({ top: 0, behavior: 'smooth' });
-      }, 100);
-      
-      // Ocultar mensaje de éxito después de 5 segundos
-      setTimeout(() => {
-        setShowSuccess(false);
-      }, 5000);
+        
+        // Mostrar éxito DESPUÉS de limpiar todo
+        setTimeout(() => {
+          setShowSuccess(true);
+          
+          // Ocultar mensaje de éxito después de 5 segundos
+          setTimeout(() => {
+            setShowSuccess(false);
+          }, 5000);
+        }, 200);
+        
+      } catch (error) {
+        console.error("Error en onSuccess:", error);
+        toast.error("Registro exitoso pero hubo un error al actualizar la vista");
+      }
     },
     onError: (error) => {
       toast.error("Error al enviar solicitud: " + error.message);
