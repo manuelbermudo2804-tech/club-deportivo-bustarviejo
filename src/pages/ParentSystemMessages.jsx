@@ -60,29 +60,29 @@ export default function ParentSystemMessages() {
   // Marcar mensajes como leídos INMEDIATAMENTE + LIMPIAR NOTIFICACIONES
   useEffect(() => {
     const markAsRead = async () => {
-      if (!user || allMessages.length === 0) return;
+      if (!user) return;
       
-      const unreadMessages = allMessages.filter(m => 
-        m.remitente_tipo === 'staff' && !m.leido
-      );
-      
-      if (unreadMessages.length === 0) return;
-      
-      // Marcar como leído INMEDIATAMENTE
-      for (const msg of unreadMessages) {
-        await base44.entities.PrivateMessage.update(msg.id, { leido: true });
-      }
-      
-      // Actualizar contador de no leídos en conversaciones
-      for (const conv of conversations) {
-        if (conv.no_leidos_familia > 0) {
-          await base44.entities.PrivateConversation.update(conv.id, {
-            no_leidos_familia: 0
-          });
+      // 1. Marcar MENSAJES como leídos
+      if (allMessages.length > 0) {
+        const unreadMessages = allMessages.filter(m => 
+          m.remitente_tipo === 'staff' && !m.leido
+        );
+        
+        for (const msg of unreadMessages) {
+          await base44.entities.PrivateMessage.update(msg.id, { leido: true });
+        }
+        
+        // Actualizar contador de no leídos en conversaciones
+        for (const conv of conversations) {
+          if (conv.no_leidos_familia > 0) {
+            await base44.entities.PrivateConversation.update(conv.id, {
+              no_leidos_familia: 0
+            });
+          }
         }
       }
 
-      // 🆕 MARCAR NOTIFICACIONES COMO VISTAS - BUSCAR TODAS SIN FILTRO DE ENLACE
+      // 2. MARCAR NOTIFICACIONES COMO VISTAS - SE EJECUTA SIEMPRE (incluso si no hay mensajes)
       try {
         const allNotifications = await base44.entities.AppNotification.list();
         const notificationsToMark = allNotifications.filter(n => 
@@ -91,32 +91,66 @@ export default function ParentSystemMessages() {
           n.vista === false
         );
 
-        console.log(`🔔 Marcando ${notificationsToMark.length} notificaciones como vistas`);
+        console.log(`🔔 [ParentSystemMessages] Encontradas ${notificationsToMark.length} notificaciones sin ver`);
 
         for (const notif of notificationsToMark) {
           await base44.entities.AppNotification.update(notif.id, {
             vista: true,
             fecha_vista: new Date().toISOString()
           });
+          console.log(`✅ Notificación marcada como vista: ${notif.titulo}`);
+        }
+
+        // 3. INVALIDAR queries
+        if (notificationsToMark.length > 0 || allMessages.some(m => !m.leido)) {
+          await Promise.all([
+            queryClient.invalidateQueries({ queryKey: ['parentPrivateMessages'] }),
+            queryClient.invalidateQueries({ queryKey: ['parentPrivateConversations'] }),
+            queryClient.invalidateQueries({ queryKey: ['appNotifications'] }),
+            queryClient.refetchQueries({ queryKey: ['appNotifications'] })
+          ]);
         }
       } catch (error) {
         console.error("Error marking notifications as read:", error);
       }
-      
-      // Invalidar TODAS las queries relacionadas INMEDIATAMENTE
-      await Promise.all([
-        queryClient.invalidateQueries({ queryKey: ['parentPrivateMessages'] }),
-        queryClient.invalidateQueries({ queryKey: ['parentPrivateConversations'] }),
-        queryClient.invalidateQueries({ queryKey: ['unreadPrivateMessages'] }),
-        queryClient.invalidateQueries({ queryKey: ['appNotifications'] }),
-        queryClient.refetchQueries({ queryKey: ['parentPrivateMessages'] }),
-        queryClient.refetchQueries({ queryKey: ['parentPrivateConversations'] }),
-        queryClient.refetchQueries({ queryKey: ['appNotifications'] })
-      ]);
     };
     
     markAsRead();
   }, [allMessages.length, user, conversations.length, queryClient]);
+
+  // 🆕 POLLING ADICIONAL: Verificar notificaciones cada 3 segundos mientras la página está abierta
+  useEffect(() => {
+    if (!user) return;
+
+    const interval = setInterval(async () => {
+      try {
+        const allNotifications = await base44.entities.AppNotification.list();
+        const notificationsToMark = allNotifications.filter(n => 
+          n.usuario_email === user.email &&
+          n.enlace === "ParentSystemMessages" &&
+          n.vista === false
+        );
+
+        if (notificationsToMark.length > 0) {
+          console.log(`🔔 [POLLING] Encontradas ${notificationsToMark.length} notificaciones nuevas, marcando...`);
+          
+          for (const notif of notificationsToMark) {
+            await base44.entities.AppNotification.update(notif.id, {
+              vista: true,
+              fecha_vista: new Date().toISOString()
+            });
+          }
+
+          await queryClient.invalidateQueries({ queryKey: ['appNotifications'] });
+          await queryClient.refetchQueries({ queryKey: ['appNotifications'] });
+        }
+      } catch (error) {
+        console.error("Error in notification polling:", error);
+      }
+    }, 3000);
+
+    return () => clearInterval(interval);
+  }, [user, queryClient]);
 
   useEffect(() => {
     if (messagesEndRef.current) {
