@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { Send, MessageCircle, Users, Search, X } from "lucide-react";
+import { Send, MessageCircle, Users, Search, X, FileText, Download, Image as ImageIcon, Play, Pause } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { toast } from "sonner";
@@ -18,7 +18,10 @@ export default function ParentCoachChat() {
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [showSearch, setShowSearch] = useState(false);
+  const [showImagePreview, setShowImagePreview] = useState(null);
+  const [playingAudio, setPlayingAudio] = useState(null);
   const messagesEndRef = useRef(null);
+  const audioRef = useRef(null);
   const queryClient = useQueryClient();
 
   useEffect(() => {
@@ -118,6 +121,19 @@ export default function ParentCoachChat() {
     sendMessageMutation.mutate(messageText);
   };
 
+  const togglePlayAudio = (audioUrl) => {
+    if (playingAudio === audioUrl) {
+      audioRef.current?.pause();
+      setPlayingAudio(null);
+    } else {
+      if (audioRef.current) {
+        audioRef.current.src = audioUrl;
+        audioRef.current.play();
+        setPlayingAudio(audioUrl);
+      }
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -139,11 +155,29 @@ export default function ParentCoachChat() {
         </div>
       </div>
     );
-  }
+    }
 
-  const categories = [...new Set(myPlayers.map(p => p.deporte))];
+    const categories = [...new Set(myPlayers.map(p => p.deporte))];
 
-  return (
+    return (
+    <>
+      <audio ref={audioRef} onEnded={() => setPlayingAudio(null)} />
+
+      {/* Preview de imagen */}
+      {showImagePreview && (
+        <div className="fixed inset-0 z-[200] bg-black/90 flex items-center justify-center p-4" onClick={() => setShowImagePreview(null)}>
+          <img src={showImagePreview} alt="Preview" className="max-w-full max-h-full rounded" onClick={e => e.stopPropagation()} />
+          <Button 
+            variant="ghost" 
+            size="icon"
+            onClick={() => setShowImagePreview(null)}
+            className="absolute top-4 right-4 text-white hover:bg-white/20"
+          >
+            <X className="w-6 h-6" />
+          </Button>
+        </div>
+      )}
+
     <div className="h-[calc(100vh-100px)] lg:p-4 lg:max-w-5xl lg:mx-auto lg:h-[calc(100vh-110px)]">
       <Card className="border-blue-200 shadow-lg h-full flex flex-col overflow-hidden lg:rounded-lg rounded-none">
         <CardHeader className="bg-gradient-to-r from-blue-600 to-blue-700 text-white p-4 flex-shrink-0">
@@ -235,7 +269,78 @@ export default function ParentCoachChat() {
                           </p>
                           {isCoach && <Badge className="text-xs bg-green-500 px-1 py-0">Entrenador</Badge>}
                         </div>
-                        <p className="text-sm whitespace-pre-wrap">{msg.mensaje}</p>
+
+                        {msg.audio_url ? (
+                          <div className="flex items-center gap-2">
+                            <Button 
+                              size="sm" 
+                              variant={isMine ? "secondary" : "outline"}
+                              onClick={() => togglePlayAudio(msg.audio_url)}
+                            >
+                              {playingAudio === msg.audio_url ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
+                            </Button>
+                            <span className="text-sm">🎤 {msg.audio_duracion}s</span>
+                          </div>
+                        ) : (
+                          <p className="text-sm whitespace-pre-wrap">{msg.mensaje}</p>
+                        )}
+
+                        {msg.adjuntos?.length > 0 && (
+                          <div className="mt-2 space-y-1">
+                            {msg.adjuntos.map((file, idx) => (
+                              file.tipo?.startsWith('image/') ? (
+                                <img 
+                                  key={idx}
+                                  src={file.url} 
+                                  alt={file.nombre}
+                                  className="rounded cursor-pointer max-w-full h-auto max-h-64 object-contain"
+                                  onClick={() => setShowImagePreview(file.url)}
+                                />
+                              ) : (
+                                <a
+                                  key={idx}
+                                  href={file.url}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className={`flex items-center gap-2 text-xs p-2 rounded ${isMine ? 'bg-slate-600' : isCoach ? 'bg-green-700' : 'bg-slate-100'}`}
+                                >
+                                  <FileText className="w-3 h-3" />
+                                  <span className="flex-1 truncate">{file.nombre}</span>
+                                  <Download className="w-3 h-3" />
+                                </a>
+                              )
+                            ))}
+                          </div>
+                        )}
+
+                        {msg.archivos_adjuntos?.length > 0 && (
+                          <div className="mt-2 space-y-1">
+                            {msg.archivos_adjuntos.map((file, idx) => (
+                              file.tipo?.startsWith('image/') ? (
+                                <img 
+                                  key={idx}
+                                  src={file.url} 
+                                  alt={file.nombre}
+                                  className="rounded cursor-pointer max-w-full h-auto max-h-64 object-contain"
+                                  onClick={() => setShowImagePreview(file.url)}
+                                />
+                              ) : (
+                                <a
+                                  key={idx}
+                                  href={file.url}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className={`flex items-center gap-2 text-xs p-2 rounded ${isMine ? 'bg-slate-600' : isCoach ? 'bg-green-700' : 'bg-slate-100'}`}
+                                >
+                                  <FileText className="w-3 h-3" />
+                                  <span className="flex-1 truncate">{file.nombre}</span>
+                                  <Download className="w-3 h-3" />
+                                </a>
+                              )
+                            ))}
+                          </div>
+                        )}
+
                         <p className="text-xs opacity-60 mt-1">
                           {format(new Date(msg.created_date), "HH:mm", { locale: es })}
                         </p>
@@ -274,6 +379,7 @@ export default function ParentCoachChat() {
           </div>
         </CardContent>
       </Card>
-    </div>
-  );
-}
+      </div>
+      </>
+      );
+      }
