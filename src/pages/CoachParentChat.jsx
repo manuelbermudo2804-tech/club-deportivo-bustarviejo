@@ -10,56 +10,55 @@ import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { toast } from "sonner";
 
-export default function ParentCoachChat() {
+export default function CoachParentChat() {
   const [user, setUser] = useState(null);
-  const [myPlayers, setMyPlayers] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [allPlayers, setAllPlayers] = useState([]);
   const [messageText, setMessageText] = useState("");
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [showSearch, setShowSearch] = useState(false);
+  const [showParticipants, setShowParticipants] = useState(false);
   const messagesEndRef = useRef(null);
   const queryClient = useQueryClient();
 
   useEffect(() => {
     const fetchUser = async () => {
-      try {
-        const currentUser = await base44.auth.me();
-        setUser(currentUser);
-
-        const allPlayers = await base44.entities.Player.list();
-        const players = allPlayers.filter(p => 
-          (p.email_padre === currentUser.email || p.email_tutor_2 === currentUser.email) && p.activo
-        );
-        setMyPlayers(players);
-        
-        if (players.length > 0 && !selectedCategory) {
-          setSelectedCategory(players[0].deporte);
-        }
-      } catch (error) {
-        console.error("Error loading chat:", error);
-        toast.error("Error al cargar el chat");
-      } finally {
-        setLoading(false);
+      const currentUser = await base44.auth.me();
+      setUser(currentUser);
+      
+      const categories = currentUser.role === "admin" 
+        ? ["Todas las categorías"]
+        : (currentUser.categorias_entrena || []);
+      
+      if (categories.length > 0 && !selectedCategory) {
+        setSelectedCategory(categories[0]);
       }
     };
     fetchUser();
   }, []);
 
+  useEffect(() => {
+    const fetchPlayers = async () => {
+      const players = await base44.entities.Player.list();
+      setAllPlayers(players);
+    };
+    fetchPlayers();
+  }, []);
+
   const { data: messages = [] } = useQuery({
-    queryKey: ['coachGroupMessages', selectedCategory, user?.email],
+    queryKey: ['coachGroupMessages', selectedCategory],
     queryFn: async () => {
-      if (!selectedCategory || !user) return [];
-      const grupo_id = selectedCategory.toLowerCase().replace(/\s+/g, '_');
-      const allMessages = await base44.entities.ChatMessage.filter({ grupo_id }, 'created_date');
+      if (!selectedCategory) return [];
       
-      return allMessages.filter(msg => 
-        !msg.destinatario_email || 
-        msg.destinatario_email === user.email
-      );
+      if (selectedCategory === "Todas las categorías") {
+        return await base44.entities.ChatMessage.list('-created_date');
+      }
+      
+      const grupo_id = selectedCategory.toLowerCase().replace(/\s+/g, '_');
+      return await base44.entities.ChatMessage.filter({ grupo_id }, 'created_date');
     },
     refetchInterval: 3000,
-    enabled: !!selectedCategory && !!user,
+    enabled: !!selectedCategory,
   });
 
   const filteredMessages = searchTerm 
@@ -73,74 +72,101 @@ export default function ParentCoachChat() {
   }, [messages]);
 
   const sendMessageMutation = useMutation({
-    mutationFn: async (mensaje) => {
+    mutationFn: async (data) => {
       const grupo_id = selectedCategory.toLowerCase().replace(/\s+/g, '_');
+      
       await base44.entities.ChatMessage.create({
         grupo_id,
         deporte: selectedCategory,
-        tipo: "padre_a_grupo",
+        tipo: "entrenador_a_grupo",
         remitente_email: user.email,
         remitente_nombre: user.full_name,
-        mensaje: mensaje,
+        mensaje: data.mensaje,
         archivos_adjuntos: [],
         prioridad: "Normal",
         leido: false
       });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['coachGroupMessages'] });
+      queryClient.invalidateQueries({ queryKey: ['coachGroupMessages', selectedCategory] });
       setMessageText("");
-      toast.success("Mensaje enviado");
+      toast.success("Mensaje enviado a toda la categoría");
     },
   });
 
   const handleSend = () => {
     if (!messageText.trim()) return;
-    sendMessageMutation.mutate(messageText);
+    sendMessageMutation.mutate({ mensaje: messageText });
   };
 
-  if (loading) {
+  if (!user) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-2"></div>
-          <p className="text-slate-500 text-sm">Cargando chat...</p>
-        </div>
+      <div className="h-[calc(100vh-100px)] flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600"></div>
       </div>
     );
   }
 
-  if (!user || myPlayers.length === 0) {
+  const isCoach = user?.es_entrenador === true || user?.role === "admin";
+
+  if (!isCoach) {
     return (
-      <div className="min-h-screen flex items-center justify-center p-4">
-        <div className="text-center max-w-md">
-          <MessageCircle className="w-12 h-12 text-slate-300 mx-auto mb-3" />
-          <p className="text-slate-600 font-semibold mb-2">No hay jugadores registrados</p>
-          <p className="text-slate-500 text-sm">Para acceder al chat del entrenador, primero debes tener jugadores activos registrados.</p>
-        </div>
+      <div className="p-6 text-center">
+        <p className="text-slate-500">Solo entrenadores pueden acceder a esta sección</p>
       </div>
     );
   }
 
-  const categories = [...new Set(myPlayers.map(p => p.deporte))];
+  const categories = user?.role === "admin" 
+    ? ["Todas las categorías", ...new Set(allPlayers.map(p => p.deporte).filter(Boolean))]
+    : (user?.categorias_entrena || []);
+
+  if (categories.length === 0) {
+    return (
+      <div className="p-6 text-center">
+        <p className="text-slate-500">No tienes categorías asignadas. Contacta con el administrador.</p>
+      </div>
+    );
+  }
+
+  const categoryPlayers = selectedCategory === "Todas las categorías" 
+    ? allPlayers 
+    : allPlayers.filter(p => p.deporte === selectedCategory);
+
+  const parentEmails = [...new Set(categoryPlayers.flatMap(p => 
+    [p.email_padre, p.email_tutor_2].filter(Boolean)
+  ))];
 
   return (
     <div className="h-[calc(100vh-100px)] lg:h-[calc(100vh-110px)] lg:p-4 lg:max-w-5xl lg:mx-auto">
-      <Card className="border-blue-200 shadow-lg h-full flex flex-col overflow-hidden lg:rounded-lg rounded-none">
-        <CardHeader className="bg-gradient-to-r from-blue-600 to-blue-700 text-white p-4 flex-shrink-0">
+      <Card className="border-green-200 shadow-lg h-full flex flex-col overflow-hidden lg:rounded-lg rounded-none">
+        <CardHeader className="bg-gradient-to-r from-green-600 to-green-700 text-white p-4 flex-shrink-0">
           <div className="flex items-center justify-between">
-            <CardTitle className="flex items-center gap-2">
-              <MessageCircle className="w-6 h-6" />
-              Chat Entrenador
-            </CardTitle>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setShowSearch(!showSearch)}
-              className="text-white hover:bg-white/20"
-            >
-              <Search className="w-4 h-4" />
-            </Button>
+            <div>
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <MessageCircle className="w-5 h-5" />
+                Chat con Familias
+              </CardTitle>
+            </div>
+            <div className="flex gap-1">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowSearch(!showSearch)}
+                className="text-white hover:bg-white/20"
+              >
+                <Search className="w-4 h-4" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowParticipants(!showParticipants)}
+                className="text-white hover:bg-white/20"
+              >
+                <Users className="w-4 h-4" />
+                <span className="ml-1 text-xs">{parentEmails.length}</span>
+              </Button>
+            </div>
           </div>
           {showSearch && (
             <div className="mt-2">
@@ -166,7 +192,7 @@ export default function ParentCoachChat() {
                   onClick={() => setSelectedCategory(cat)}
                   className="whitespace-nowrap"
                 >
-                  {cat.replace('Fútbol ', '').replace(' (Mixto)', '')}
+                  {cat === "Todas las categorías" ? "Todas" : cat.replace('Fútbol ', '').replace(' (Mixto)', '')}
                 </Button>
               ))}
             </div>
@@ -191,8 +217,8 @@ export default function ParentCoachChat() {
                   month: 'long'
                 });
 
-                const isMine = msg.remitente_email === user.email;
-                const isCoach = msg.tipo === "entrenador_a_grupo";
+                const isMine = msg.remitente_email === user?.email;
+                const isCoachMsg = msg.tipo === "entrenador_a_grupo";
 
                 return (
                   <React.Fragment key={msg.id}>
@@ -206,15 +232,15 @@ export default function ParentCoachChat() {
                     
                     <div className={`flex ${isMine ? 'justify-end' : 'justify-start'}`}>
                       <div className={`max-w-[75%] ${
-                        isMine ? 'bg-slate-700 text-white' : 
-                        isCoach ? 'bg-green-600 text-white' : 
-                        'bg-white text-slate-900 border'
+                        isMine ? 'bg-green-600 text-white' : 
+                        isCoachMsg ? 'bg-green-600 text-white' : 
+                        'bg-slate-200 text-slate-900'
                       } rounded-2xl p-2 sm:p-3 shadow-sm`}>
                         <div className="flex items-center gap-2 mb-1">
                           <p className="text-[10px] sm:text-xs font-semibold opacity-70">
-                            {isCoach ? '🏃 ' : ''}{msg.remitente_nombre}
+                            {isCoachMsg && !isMine ? '🏃 ' : ''}{msg.remitente_nombre}
                           </p>
-                          {isCoach && <Badge className="text-xs bg-green-500 px-1 py-0">Entrenador</Badge>}
+                          {isCoachMsg && <Badge className="text-xs bg-green-500 px-1 py-0">Entrenador</Badge>}
                         </div>
                         <p className="text-xs sm:text-sm whitespace-pre-wrap">{msg.mensaje}</p>
                         <p className="text-[10px] sm:text-xs opacity-60 mt-1">
@@ -228,6 +254,35 @@ export default function ParentCoachChat() {
             )}
             <div ref={messagesEndRef} />
           </div>
+
+          {showParticipants && (
+            <div className="absolute inset-0 z-50 bg-black/50 flex items-center justify-center p-4" onClick={() => setShowParticipants(false)}>
+              <div className="bg-white rounded-xl p-6 max-w-md w-full max-h-[80vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+                <h3 className="font-bold text-lg mb-4">👥 Participantes - {selectedCategory}</h3>
+                <div className="space-y-3">
+                  <div className="bg-green-50 rounded-lg p-3 border-2 border-green-200">
+                    <p className="text-sm font-bold text-green-900">🏃 Entrenador</p>
+                    <p className="text-xs text-green-700 mt-1">{user?.full_name}</p>
+                  </div>
+                  
+                  <div>
+                    <p className="text-sm font-bold text-slate-900 mb-2">👨‍👩‍👧 Familias ({parentEmails.length})</p>
+                    <div className="space-y-2">
+                      {categoryPlayers.map((player, idx) => (
+                        <div key={idx} className="bg-slate-50 rounded-lg p-3 border">
+                          <p className="text-sm font-medium text-slate-900">{player.nombre}</p>
+                          <div className="text-xs text-slate-600 mt-1 space-y-0.5">
+                            {player.email_padre && <p>📧 {player.email_padre}</p>}
+                            {player.email_tutor_2 && <p>📧 {player.email_tutor_2}</p>}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
 
           <div className="p-2 sm:p-3 bg-white border-t flex-shrink-0">
             <div className="flex gap-1 sm:gap-2 items-end">
@@ -247,7 +302,7 @@ export default function ParentCoachChat() {
               <Button 
                 onClick={handleSend} 
                 disabled={!messageText.trim()} 
-                className="bg-blue-600 hover:bg-blue-700 h-9 w-9 sm:h-10 sm:w-10 p-0"
+                className="bg-green-600 hover:bg-green-700 h-9 w-9 sm:h-10 sm:w-10 p-0"
               >
                 <Send className="w-4 h-4 sm:w-5 sm:h-5" />
               </Button>
