@@ -24,7 +24,7 @@ import CallupCard from "../components/callups/CallupCard";
 import { usePageTutorial } from "../components/tutorials/useTutorial";
 import { CombinedSuccessAnimation } from "../components/animations/SuccessAnimation";
 
-function CoachCallups() {
+export default function CoachCallups() {
   usePageTutorial("coach_callups");
   
   const [showForm, setShowForm] = useState(false);
@@ -39,6 +39,15 @@ function CoachCallups() {
   const formRef = React.useRef(null);
 
   const queryClient = useQueryClient();
+  
+  // Scroll al formulario cuando se muestra
+  useEffect(() => {
+    if (showForm && formRef.current) {
+      setTimeout(() => {
+        formRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 100);
+    }
+  }, [showForm]);
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -127,10 +136,8 @@ function CoachCallups() {
       queryClient.invalidateQueries({ queryKey: ['chatMessages'] });
       setShowForm(false);
       setEditingCallup(null);
-      // Mostrar animación de éxito
       setSuccessMessage("¡Convocatoria creada!");
       setShowSuccess(true);
-      window.scrollTo({ top: 0, behavior: 'smooth' });
     },
   });
 
@@ -150,10 +157,8 @@ function CoachCallups() {
       queryClient.invalidateQueries({ queryKey: ['convocatorias'] });
       setShowForm(false);
       setEditingCallup(null);
-      // Mostrar animación de éxito
       setSuccessMessage("¡Convocatoria actualizada!");
       setShowSuccess(true);
-      window.scrollTo({ top: 0, behavior: 'smooth' });
     },
   });
 
@@ -239,22 +244,6 @@ Email: cdbustarviejo@gmail.com
       
       await Promise.all(emailPromises);
       
-      // Send to chat
-      const mensaje = `🏆 NUEVA CONVOCATORIA\n\n📌 ${callup.titulo}\n${callup.rival ? `🆚 ${callup.rival}\n` : ''}\n📅 ${format(new Date(callup.fecha_partido), "EEEE d 'de' MMMM", { locale: es })}\n⏰ ${callup.hora_partido}\n📍 ${callup.ubicacion}${callup.enlace_ubicacion ? `\n🗺️ ${callup.enlace_ubicacion}` : ''}\n\n⚠️ CONFIRMA TU ASISTENCIA en la app\n\n👨‍🏫 ${callup.entrenador_nombre}`;
-      
-      await base44.entities.ChatMessage.create({
-        remitente_email: user.email,
-        remitente_nombre: callup.entrenador_nombre,
-        mensaje: mensaje,
-        prioridad: "Importante",
-        tipo: "admin_a_grupo",
-        deporte: callup.categoria,
-        categoria: "",
-        grupo_id: callup.categoria,
-        leido: false,
-        archivos_adjuntos: []
-      });
-      
       // Mark as sent
       await base44.entities.Convocatoria.update(callup.id, {
         ...callup,
@@ -296,10 +285,6 @@ Email: cdbustarviejo@gmail.com
   const handleNewCallup = () => {
     setEditingCallup(null);
     setShowForm(true);
-    // Scroll al formulario después de abrirlo
-    setTimeout(() => {
-      formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }, 100);
   };
 
   const handleToggleSuggestions = async (enabled) => {
@@ -357,18 +342,6 @@ Email: cdbustarviejo@gmail.com
   
   const totalPending = upcomingCallups.reduce((acc, c) => {
     return acc + c.jugadores_convocados.filter(j => j.confirmacion === "pendiente").length;
-  }, 0);
-
-  // Calcular nuevas respuestas (confirmaciones recientes en las últimas 24 horas)
-  const recentResponses = upcomingCallups.reduce((acc, c) => {
-    const recent = c.jugadores_convocados.filter(j => {
-      if (!j.fecha_confirmacion || j.confirmacion === "pendiente") return false;
-      const confirmDate = new Date(j.fecha_confirmacion);
-      const now = new Date();
-      const diffHours = (now - confirmDate) / (1000 * 60 * 60);
-      return diffHours <= 24;
-    });
-    return acc + recent.length;
   }, 0);
 
   if (!user || (!user.es_entrenador && !user.es_coordinador && user.role !== "admin")) {
@@ -500,27 +473,6 @@ Email: cdbustarviejo@gmail.com
         </Card>
       </div>
 
-      {/* Alerta de nuevas respuestas */}
-      {recentResponses > 0 && (
-        <Card className="border-2 border-green-400 bg-green-50">
-          <CardContent className="pt-6">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-full bg-green-500 flex items-center justify-center">
-                <Check className="w-6 h-6 text-white" />
-              </div>
-              <div>
-                <h3 className="font-bold text-green-900">
-                  🔔 {recentResponses} nueva{recentResponses > 1 ? 's' : ''} respuesta{recentResponses > 1 ? 's' : ''} en las últimas 24h
-                </h3>
-                <p className="text-sm text-green-700">
-                  Los padres están confirmando asistencia. Revisa las convocatorias para ver los detalles.
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
       <Tabs value={statusFilter} onValueChange={setStatusFilter} className="mt-4">
         <TabsList>
           <TabsTrigger value="all">Todas</TabsTrigger>
@@ -529,9 +481,9 @@ Email: cdbustarviejo@gmail.com
         </TabsList>
       </Tabs>
 
-      <div ref={formRef}>
       <AnimatePresence mode="wait">
         {showForm && canCreateCallup && (
+          <div ref={formRef}>
           <CallupForm
             key={editingCallup?.id || 'new'}
             callup={editingCallup}
@@ -545,9 +497,9 @@ Email: cdbustarviejo@gmail.com
             userSuggestionsEnabled={suggestionsEnabled}
             onToggleSuggestions={handleToggleSuggestions}
           />
+          </div>
         )}
       </AnimatePresence>
-      </div>
 
       {/* Upcoming Callups */}
       {filteredByStatus.length > 0 ? (
@@ -586,5 +538,3 @@ Email: cdbustarviejo@gmail.com
     </>
   );
 }
-
-export default CoachCallups;

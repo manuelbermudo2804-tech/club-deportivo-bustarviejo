@@ -259,18 +259,19 @@ export default function CallupForm({ callup, players, coachName, coachEmail, cat
                     type="button"
                     variant="outline"
                     onClick={() => {
-                      // Abrir Google Maps con la ubicación para que el usuario pueda copiar el enlace
-                      const query = encodeURIComponent(currentCallup.ubicacion || "Campo de fútbol");
-                      window.open(`https://www.google.com/maps/search/${query}`, '_blank');
+                      const ubicacion = currentCallup.ubicacion || "";
+                      const searchQuery = encodeURIComponent(ubicacion);
+                      window.open(`https://www.google.com/maps/search/?api=1&query=${searchQuery}`, '_blank');
                     }}
-                    className="flex-shrink-0 gap-2"
+                    className="shrink-0 bg-green-50 border-green-300 hover:bg-green-100 text-green-700"
+                    disabled={!currentCallup.ubicacion}
                   >
-                    <MapPin className="w-4 h-4" />
+                    <MapPin className="w-4 h-4 mr-1" />
                     Buscar en Maps
                   </Button>
                 </div>
                 <p className="text-xs text-slate-500">
-                  💡 Pulsa "Buscar en Maps", encuentra la ubicación, copia el enlace y pégalo aquí
+                  💡 Busca la ubicación en Google Maps, copia el enlace y pégalo aquí para que los padres puedan ver la ubicación exacta
                 </p>
               </div>
 
@@ -394,7 +395,7 @@ export default function CallupForm({ callup, players, coachName, coachEmail, cat
                   <Label className="text-base font-medium text-green-900">Publicar y Enviar Notificaciones</Label>
                   <p className="text-sm text-green-700">
                     {currentCallup.publicada 
-                      ? "✅ Se enviarán emails y mensajes al chat" 
+                      ? "✅ Se enviarán emails a los jugadores" 
                       : "⏸️ Borrador (no se enviará nada)"}
                   </p>
                 </div>
@@ -410,7 +411,7 @@ export default function CallupForm({ callup, players, coachName, coachEmail, cat
               <Alert className="bg-blue-50 border-blue-200">
                 <Send className="h-4 w-4 text-blue-600" />
                 <AlertDescription className="text-blue-800 text-sm">
-                  <strong>📧 Se enviará:</strong> Email a cada jugador + mensaje al chat del grupo con la convocatoria completa
+                  <strong>📧 Se enviará:</strong> Email a cada jugador convocado con los detalles del partido
                 </AlertDescription>
               </Alert>
             )}
