@@ -19,8 +19,6 @@ import MemberEditForm from "../components/members/MemberEditForm";
 import MemberDetailDialog from "../components/members/MemberDetailDialog";
 import MemberAdvancedFilters from "../components/members/MemberAdvancedFilters";
 import MembershipStatsPanel from "../components/members/MembershipStatsPanel";
-import { sendMemberCard } from "../components/members/MemberCardEmail";
-import { sendPaymentReceipt, createMemberPaymentReceiptData } from "../components/receipts/PaymentReceiptPDF";
 
 export default function ClubMembersManagement() {
   const [user, setUser] = useState(null);
@@ -117,52 +115,16 @@ export default function ClubMembersManagement() {
       
       const result = await base44.entities.ClubMember.update(id, data);
       
-      // Cuando el admin marca como PAGADO, enviar carnet virtual + email de confirmación
+      // Cuando el admin marca como PAGADO, enviar email de confirmación
       if (sendEmail && data.estado_pago === "Pagado" && memberEmail && member) {
-        console.log('[ClubMembersManagement] Intentando enviar carnet a:', memberEmail);
+        console.log('[ClubMembersManagement] Enviando confirmación de pago a:', memberEmail);
         
         try {
-          // Enviar carnet virtual
-          const memberData = { ...member, ...data };
-          console.log('[ClubMembersManagement] Datos del socio para carnet:', { 
-            nombre: memberData.nombre_completo, 
-            email: memberData.email,
-            numero_socio: memberData.numero_socio 
-          });
-          
-          await sendMemberCard(memberData, seasonConfig, base44);
-          
-          // Marcar carnet como enviado
-          await base44.entities.ClubMember.update(id, {
-            carnet_enviado: true,
-            fecha_carnet_enviado: new Date().toISOString()
-          });
-          
-          console.log('[ClubMembersManagement] ✅ Carnet enviado y marcado en BD');
-          toast.success("📧 Carnet virtual enviado al socio");
-          
-          // También enviar recibo de pago en PDF
-          try {
-            console.log('[ClubMembersManagement] Enviando recibo PDF...');
-            const receiptData = createMemberPaymentReceiptData(memberData, seasonConfig);
-            await sendPaymentReceipt(receiptData, memberData.email, base44);
-            console.log('[ClubMembersManagement] ✅ Recibo PDF enviado');
-            toast.success("📄 Recibo de pago enviado");
-          } catch (receiptError) {
-            console.error('[ClubMembersManagement] Error enviando recibo:', receiptError);
-          }
-        } catch (error) {
-          console.error("[ClubMembersManagement] ❌ Error enviando carnet:", error);
-          toast.error("Error al enviar carnet: " + (error.message || "Error desconocido"));
-          
-          // Si falla el carnet, al menos enviar email simple
-          try {
-            console.log('[ClubMembersManagement] Intentando email simple de fallback...');
-            await base44.integrations.Core.SendEmail({
-              from_name: "CD Bustarviejo",
-              to: memberEmail,
-              subject: "🎉 ¡Confirmación de Pago - Ya eres Socio del CD Bustarviejo!",
-              body: `Estimado/a ${memberName},
+          await base44.integrations.Core.SendEmail({
+            from_name: "CD Bustarviejo",
+            to: memberEmail,
+            subject: "🎉 ¡Confirmación de Pago - Ya eres Socio del CD Bustarviejo!",
+            body: `Estimado/a ${memberName},
 
 ¡Gracias por tu apoyo al CD Bustarviejo! 
 
@@ -174,13 +136,12 @@ Tu contribución es fundamental para el desarrollo de nuestros jóvenes deportis
 
 Un cordial saludo,
 CD Bustarviejo`
-            });
-            console.log('[ClubMembersManagement] ✅ Email simple de fallback enviado');
-            toast.success("📧 Email de confirmación enviado");
-          } catch (e) {
-            console.error("[ClubMembersManagement] ❌ Error enviando email simple:", e);
-            toast.error("No se pudo enviar el email de confirmación");
-          }
+          });
+          console.log('[ClubMembersManagement] ✅ Email de confirmación enviado');
+          toast.success("📧 Email de confirmación enviado al socio");
+        } catch (error) {
+          console.error("[ClubMembersManagement] ❌ Error enviando email:", error);
+          toast.error("No se pudo enviar el email de confirmación");
         }
       } else {
         console.log('[ClubMembersManagement] No se envía email:', { sendEmail, estadoPago: data.estado_pago, tieneEmail: !!memberEmail, tieneMember: !!member });
