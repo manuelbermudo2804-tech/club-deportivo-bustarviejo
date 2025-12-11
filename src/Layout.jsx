@@ -746,23 +746,7 @@ export default function Layout({ children, currentPageName }) {
                   fetchUser();
                 }, [isPublicPage]);
 
-          useEffect(() => {
-            if (!user || isLoading) return;
-
-            const isRootPath = location.pathname === '/' || location.pathname === '';
-            if (!isRootPath) return;
-
-            // Redirección inmediata sin async
-            console.log('🎯 Redirigiendo:', { isAdmin, isCoach, isCoordinator, isTreasurer, isPlayer });
-
-            const targetPage = (isAdmin || isCoach || isCoordinator || isTreasurer) 
-              ? 'Home' 
-              : isPlayer 
-              ? 'PlayerDashboard' 
-              : 'ParentDashboard';
-
-            window.location.href = createPageUrl(targetPage);
-          }, [user, isLoading, isAdmin, isCoach, isCoordinator, isTreasurer, isPlayer, location.pathname]);
+  // useEffect de redirección ELIMINADO - causaba loops infinitos de React #310
 
 
 
