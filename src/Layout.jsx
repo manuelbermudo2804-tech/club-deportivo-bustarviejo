@@ -746,25 +746,22 @@ export default function Layout({ children, currentPageName }) {
                   fetchUser();
                 }, [isPublicPage]);
 
-          const redirectedRef = React.useRef(false);
-
           useEffect(() => {
-            if (!user || isLoading || redirectedRef.current) return;
+            if (!user || isLoading) return;
 
             const isRootPath = location.pathname === '/' || location.pathname === '';
             if (!isRootPath) return;
 
             // Redirección inmediata sin async
             console.log('🎯 Redirigiendo:', { isAdmin, isCoach, isCoordinator, isTreasurer, isPlayer });
-            redirectedRef.current = true;
 
-            if (isAdmin || isCoach || isCoordinator || isTreasurer) {
-              navigate(createPageUrl('Home'), { replace: true });
-            } else if (isPlayer) {
-              navigate(createPageUrl('PlayerDashboard'), { replace: true });
-            } else {
-              navigate(createPageUrl('ParentDashboard'), { replace: true });
-            }
+            const targetPage = (isAdmin || isCoach || isCoordinator || isTreasurer) 
+              ? 'Home' 
+              : isPlayer 
+              ? 'PlayerDashboard' 
+              : 'ParentDashboard';
+
+            window.location.href = createPageUrl(targetPage);
           }, [user, isLoading, isAdmin, isCoach, isCoordinator, isTreasurer, isPlayer, location.pathname]);
 
 
