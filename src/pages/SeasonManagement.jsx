@@ -505,9 +505,9 @@ export default function SeasonManagement() {
         setProcessingProgress((currentStep / totalSteps) * 100);
       }
 
-      // 12.1 Eliminar conversaciones y mensajes de coordinador
+      // 12.1 Eliminar conversaciones y mensajes de coordinador y entrenador
       if (resetConfig.deletePrivateConversations) {
-        setProcessingStep("Eliminando conversaciones de coordinador...");
+        setProcessingStep("Eliminando conversaciones de coordinador y entrenador...");
         const coordinatorConvs = await base44.entities.CoordinatorConversation.list();
         for (const conv of coordinatorConvs) {
           await base44.entities.CoordinatorConversation.delete(conv.id);
@@ -525,6 +525,30 @@ export default function SeasonManagement() {
         const coachMsgs = await base44.entities.CoachMessage.list();
         for (const msg of coachMsgs) {
           await base44.entities.CoachMessage.delete(msg.id);
+        }
+
+        // Eliminar PrivateConversation y PrivateMessage
+        for (const conv of privateConversations) {
+          await base44.entities.PrivateConversation.delete(conv.id);
+        }
+        for (const msg of privateMessages) {
+          await base44.entities.PrivateMessage.delete(msg.id);
+        }
+      }
+
+      // 12.2 Eliminar AppNotifications
+      if (resetConfig.deletePrivateConversations) {
+        setProcessingStep("Eliminando notificaciones de la app...");
+        for (const notif of appNotifications) {
+          await base44.entities.AppNotification.delete(notif.id);
+        }
+      }
+
+      // 12.3 Eliminar Certificados
+      if (resetConfig.deletePrivateConversations) {
+        setProcessingStep("Eliminando certificados y carnets...");
+        for (const cert of certificates) {
+          await base44.entities.Certificate.delete(cert.id);
         }
       }
 
@@ -807,6 +831,21 @@ export default function SeasonManagement() {
     queryFn: () => base44.entities.ClubMember.list(),
   });
 
+  const { data: appNotifications = [] } = useQuery({
+    queryKey: ['appNotifications'],
+    queryFn: () => base44.entities.AppNotification.list(),
+  });
+
+  const { data: certificates = [] } = useQuery({
+    queryKey: ['certificates'],
+    queryFn: () => base44.entities.Certificate.list(),
+  });
+
+  const { data: privateConversations = [] } = useQuery({
+    queryKey: ['privateConversations'],
+    queryFn: () => base44.entities.PrivateConversation.list(),
+  });
+
   // Estadísticas actuales
   const currentStats = {
     payments: payments.length,
@@ -828,7 +867,10 @@ export default function SeasonManagement() {
     documents: documents.length,
     privateMessages: privateMessages.length,
     convocatorias: convocatorias.length,
-    clubMembers: clubMembers.filter(m => m.activo !== false).length
+    clubMembers: clubMembers.filter(m => m.activo !== false).length,
+    appNotifications: appNotifications.length,
+    certificates: certificates.length,
+    privateConversations: privateConversations.length
   };
 
   if (!isAdmin) {
