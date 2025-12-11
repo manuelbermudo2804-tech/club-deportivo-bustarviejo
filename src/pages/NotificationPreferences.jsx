@@ -52,6 +52,9 @@ export default function NotificationPreferences() {
         tipo_usuario: user.role === "admin" ? "admin" : user.es_coordinador ? "coordinador" : user.es_tesorero ? "tesorero" : "entrenador",
         notif_convocatorias: true,
         notif_pagos: true,
+        notif_recordatorios_pago: true,
+        notif_chats_grupo: true,
+        notif_mensajes_sistema: true,
         notif_chats_urgentes: true,
         notif_evaluaciones: true,
         notif_anuncios: true,
@@ -111,6 +114,9 @@ export default function NotificationPreferences() {
                 <ul className="text-sm text-slate-700 space-y-1">
                   <li>🏆 Nuevas convocatorias de partidos</li>
                   <li>💰 Recordatorios de pagos pendientes</li>
+                  <li>⏰ Recordatorios de pagos próximos</li>
+                  <li>💬 Mensajes del chat de grupo</li>
+                  <li>📬 Mensajes del Club (sistema)</li>
                   <li>💬 Mensajes urgentes del club</li>
                   <li>📢 Anuncios importantes</li>
                   <li>⭐ Nuevas evaluaciones de tus hijos</li>
@@ -180,6 +186,39 @@ export default function NotificationPreferences() {
             <Switch
               checked={localPrefs.notif_pagos}
               onCheckedChange={(checked) => setLocalPrefs({...localPrefs, notif_pagos: checked})}
+            />
+          </div>
+
+          <div className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
+            <div>
+              <Label className="font-semibold">Recordatorios de Pago</Label>
+              <p className="text-sm text-slate-600">Recordatorios de pagos próximos a vencer</p>
+            </div>
+            <Switch
+              checked={localPrefs.notif_recordatorios_pago}
+              onCheckedChange={(checked) => setLocalPrefs({...localPrefs, notif_recordatorios_pago: checked})}
+            />
+          </div>
+
+          <div className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
+            <div>
+              <Label className="font-semibold">Mensajes Chat de Grupo</Label>
+              <p className="text-sm text-slate-600">Mensajes nuevos en chats de categoría</p>
+            </div>
+            <Switch
+              checked={localPrefs.notif_chats_grupo}
+              onCheckedChange={(checked) => setLocalPrefs({...localPrefs, notif_chats_grupo: checked})}
+            />
+          </div>
+
+          <div className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
+            <div>
+              <Label className="font-semibold">Mensajes del Club</Label>
+              <p className="text-sm text-slate-600">Mensajes privados del sistema/administración</p>
+            </div>
+            <Switch
+              checked={localPrefs.notif_mensajes_sistema}
+              onCheckedChange={(checked) => setLocalPrefs({...localPrefs, notif_mensajes_sistema: checked})}
             />
           </div>
 
