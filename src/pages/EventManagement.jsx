@@ -19,6 +19,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 import EventForm from "../components/calendar/EventForm";
+import CalendarSyncButton from "../components/calendar/CalendarSyncButton";
 
 export default function EventManagement() {
   const [user, setUser] = useState(null);
@@ -782,6 +783,13 @@ export default function EventManagement() {
                       {event.descripcion && (
                         <p className="text-sm text-slate-600 line-clamp-2">{event.descripcion}</p>
                       )}
+
+                      <div className="border-t pt-3">
+                        <CalendarSyncButton 
+                          event={event} 
+                          onSyncComplete={() => queryClient.invalidateQueries({ queryKey: ['events'] })}
+                        />
+                      </div>
 
                       {event.requiere_confirmacion && (
                         <div className="border-t pt-3">
