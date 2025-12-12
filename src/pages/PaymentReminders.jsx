@@ -722,11 +722,18 @@ export default function PaymentReminders() {
                       className="w-5 h-5 rounded border-slate-300"
                     />
                     <div className="flex-1">
-                      <CardTitle className="text-base">{family.nombre_tutor}</CardTitle>
-                      <p className="text-xs text-slate-600">{family.email}</p>
-                      {family.telefono && <p className="text-xs text-slate-500">📱 {family.telefono}</p>}
+                     <div className="flex items-center gap-2 mb-1">
+                       <CardTitle className="text-base">{family.nombre_tutor}</CardTitle>
+                       {family.isStaff && (
+                         <Badge className="bg-purple-500 text-white text-xs">
+                           👤 {family.staffRole}
+                         </Badge>
+                       )}
+                     </div>
+                     <p className="text-xs text-slate-600">{family.email}</p>
+                     {family.telefono && <p className="text-xs text-slate-500">📱 {family.telefono}</p>}
                     </div>
-                  </div>
+                    </div>
                   <div className="text-right">
                     <Badge className="bg-red-500 text-white mb-1">
                       {family.totalPendingPayments} pendientes
