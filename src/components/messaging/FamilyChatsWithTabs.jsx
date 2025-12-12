@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export default function FamilyChatsWithTabs({ isCoordinator, isCoach, CoordinatorChatPage, CoachParentChatPage }) {
@@ -11,27 +11,27 @@ export default function FamilyChatsWithTabs({ isCoordinator, isCoach, Coordinato
     return <CoachParentChatPage />;
   }
   
-  // Si es ambos, mostrar con tabs
+  // Si es ambos, mostrar con tabs - usar estructura de 2 divs como StaffChat
   return (
-    <Tabs defaultValue="coordinador" className="h-[calc(100vh-100px)] lg:h-[calc(100vh-110px)] flex flex-col">
-      <div className="bg-white border-b px-4 py-2 flex-shrink-0">
-        <TabsList className="grid w-full grid-cols-2 max-w-md mx-auto">
-          <TabsTrigger value="coordinador" className="text-sm">
-            🏟️ Como Coordinador
+    <div className="h-[calc(100vh-100px)] lg:h-[calc(100vh-110px)]">
+      <Tabs defaultValue="coordinador" className="h-full flex flex-col">
+        <TabsList className="mx-4 mt-3 flex-shrink-0">
+          <TabsTrigger value="coordinador" className="flex-1">
+            🏟️ Coordinador
           </TabsTrigger>
-          <TabsTrigger value="entrenador" className="text-sm">
-            ⚽ Como Entrenador
+          <TabsTrigger value="entrenador" className="flex-1">
+            ⚽ Entrenador
           </TabsTrigger>
         </TabsList>
-      </div>
-      
-      <TabsContent value="coordinador" className="flex-1 m-0 overflow-hidden">
-        <CoordinatorChatPage />
-      </TabsContent>
-      
-      <TabsContent value="entrenador" className="flex-1 m-0 overflow-hidden">
-        <CoachParentChatPage />
-      </TabsContent>
-    </Tabs>
+        
+        <TabsContent value="coordinador" className="flex-1 mt-0 h-full">
+          <CoordinatorChatPage />
+        </TabsContent>
+        
+        <TabsContent value="entrenador" className="flex-1 mt-0 h-full">
+          <CoachParentChatPage />
+        </TabsContent>
+      </Tabs>
+    </div>
   );
 }
