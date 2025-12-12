@@ -62,11 +62,16 @@ export default function ParentSystemMessages() {
     const markAsRead = async () => {
       if (!user) return;
       
+      console.log(`🔍 [DEBUG ${user.email}] Conversaciones encontradas:`, conversations.length);
+      console.log(`🔍 [DEBUG ${user.email}] Mensajes totales:`, allMessages.length);
+      
       // 1. Marcar MENSAJES como leídos
       if (allMessages.length > 0) {
         const unreadMessages = allMessages.filter(m => 
           m.remitente_tipo === 'staff' && !m.leido
         );
+        
+        console.log(`🔍 [DEBUG ${user.email}] Mensajes sin leer:`, unreadMessages.length);
         
         for (const msg of unreadMessages) {
           await base44.entities.PrivateMessage.update(msg.id, { leido: true });
@@ -74,6 +79,7 @@ export default function ParentSystemMessages() {
         
         // Actualizar contador de no leídos en conversaciones
         for (const conv of conversations) {
+          console.log(`🔍 [DEBUG ${user.email}] Conv ${conv.id} - no_leidos_familia:`, conv.no_leidos_familia);
           if (conv.no_leidos_familia > 0) {
             await base44.entities.PrivateConversation.update(conv.id, {
               no_leidos_familia: 0
