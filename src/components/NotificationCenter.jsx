@@ -232,7 +232,7 @@ export default function NotificationCenter() {
   }, 0);
 
   const criticalNotifications = urgentAnnouncements.length + pendingPayments.length;
-  const totalNotifications = pendingCallups.length + pendingPayments.length + recentAnnouncements.length + unviewedAppNotifications.length;
+  const totalNotifications = pendingCallups.length + pendingPayments.length + recentAnnouncements.length + unviewedAppNotifications.length + totalUnreadPrivate;
 
   const getNotificationIcon = (type) => {
     switch(type) {
@@ -433,6 +433,23 @@ export default function NotificationCenter() {
             )}
 
 
+
+            {/* Conversaciones Privadas No Leídas */}
+            {unreadPrivateConversations.map(conv => (
+              <Link key={conv.id} to={createPageUrl("ParentSystemMessages")} onClick={() => setIsOpen(false)}>
+                <div className="flex items-start gap-3 p-3 rounded-lg bg-orange-50 hover:opacity-80 transition-all border-2 border-orange-300">
+                  <MessageCircle className="w-5 h-5 text-orange-600 mt-1" />
+                  <div className="flex-1">
+                    <p className="text-sm font-semibold text-slate-900">💬 Mensajes del Sistema</p>
+                    <p className="text-sm text-slate-700">{conv.ultimo_mensaje?.substring(0, 80)}...</p>
+                    <p className="text-xs text-slate-500 mt-1">
+                      {format(new Date(conv.ultimo_mensaje_fecha), "dd MMM, HH:mm", { locale: es })}
+                    </p>
+                  </div>
+                  <Badge className="bg-orange-500 text-white">{conv.no_leidos_familia}</Badge>
+                </div>
+              </Link>
+            ))}
 
             {/* App Notifications */}
             {unviewedAppNotifications.map(notif => {
