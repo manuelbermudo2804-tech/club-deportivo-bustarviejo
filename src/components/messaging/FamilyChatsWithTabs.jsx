@@ -24,11 +24,11 @@ export default function FamilyChatsWithTabs({ isCoordinator, isCoach, Coordinato
           </TabsTrigger>
         </TabsList>
         
-        <TabsContent value="coordinador" className="flex-1 mt-0 overflow-hidden">
+        <TabsContent value="coordinador" className="flex-1 mt-0 overflow-hidden h-full">
           <CoordinatorChatPage />
         </TabsContent>
         
-        <TabsContent value="entrenador" className="flex-1 mt-0 overflow-hidden">
+        <TabsContent value="entrenador" className="flex-1 mt-0 overflow-hidden h-full">
           <CoachParentChatPage />
         </TabsContent>
       </Tabs>
