@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { Send, MessageCircle, Users, Search, X, FileText, Download, Image as ImageIcon, Play, Pause, Paperclip } from "lucide-react";
+import { Send, MessageCircle, Users, Search, X, FileText, Download, Image as ImageIcon, Play, Pause } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { toast } from "sonner";
@@ -25,11 +25,8 @@ export default function ParentCoachChat() {
   const [showImagePreview, setShowImagePreview] = useState(null);
   const [playingAudio, setPlayingAudio] = useState(null);
   const [categoryCoach, setCategoryCoach] = useState(null);
-  const [attachments, setAttachments] = useState([]);
-  const [uploading, setUploading] = useState(false);
   const messagesEndRef = useRef(null);
   const audioRef = useRef(null);
-  const fileInputRef = useRef(null);
   const queryClient = useQueryClient();
 
   useEffect(() => {
@@ -171,34 +168,8 @@ export default function ParentCoachChat() {
     }
   }, [messages]);
 
-  const handleFileUpload = async (e) => {
-    const files = Array.from(e.target.files);
-    setUploading(true);
-
-    try {
-      const uploaded = [];
-      for (const file of files) {
-        const { file_url } = await base44.integrations.Core.UploadFile({ file });
-        uploaded.push({
-          url: file_url,
-          nombre: file.name,
-          tipo: file.type,
-          tamano: file.size
-        });
-      }
-      if (uploaded.length > 0) {
-        setAttachments([...attachments, ...uploaded]);
-        toast.success("Archivos adjuntados");
-      }
-    } catch (error) {
-      toast.error("Error al subir archivos");
-    } finally {
-      setUploading(false);
-    }
-  };
-
   const sendMessageMutation = useMutation({
-    mutationFn: async (data) => {
+    mutationFn: async (mensaje) => {
       const grupo_id = selectedCategory.toLowerCase().replace(/\s+/g, '_');
       await base44.entities.ChatMessage.create({
         grupo_id,
@@ -206,8 +177,8 @@ export default function ParentCoachChat() {
         tipo: "padre_a_grupo",
         remitente_email: user.email,
         remitente_nombre: user.full_name,
-        mensaje: data.mensaje,
-        archivos_adjuntos: data.archivos_adjuntos || [],
+        mensaje: mensaje,
+        archivos_adjuntos: [],
         prioridad: "Normal",
         leido: false
       });
@@ -233,6 +204,7 @@ export default function ParentCoachChat() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['coachGroupMessages'] });
+      setMessageText("");
       toast.success("Mensaje enviado");
     },
   });
@@ -263,16 +235,10 @@ export default function ParentCoachChat() {
   });
 
   const handleSend = () => {
-    if (!messageText.trim() && attachments.length === 0) return;
-    
-    const dataToSend = {
-      mensaje: messageText,
-      archivos_adjuntos: attachments
-    };
-    
+    if (!messageText.trim()) return;
+    const msgToSend = messageText;
     setMessageText("");
-    setAttachments([]);
-    sendMessageMutation.mutate(dataToSend);
+    sendMessageMutation.mutate(msgToSend);
   };
 
   const togglePlayAudio = (audioUrl) => {
@@ -523,57 +489,6 @@ export default function ParentCoachChat() {
           </div>
 
           <div className="p-2 bg-white border-t flex-shrink-0">
-            <input 
-              ref={fileInputRef}
-              type="file" 
-              multiple 
-              accept="image/*,.pdf,.doc,.docx"
-              className="hidden" 
-              onChange={handleFileUpload} 
-              disabled={uploading} 
-            />
-
-            {attachments.length > 0 && (
-              <div className="mb-2 flex flex-wrap gap-1">
-                {attachments.map((file, idx) => (
-                  <div key={idx} className="relative">
-                    {file.tipo?.startsWith('image/') ? (
-                      <div className="relative">
-                        <img src={file.url} alt="" className="w-16 h-16 object-cover rounded" />
-                        <button 
-                          onClick={() => setAttachments(attachments.filter((_, i) => i !== idx))}
-                          className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center"
-                        >
-                          <X className="w-3 h-3" />
-                        </button>
-                      </div>
-                    ) : (
-                      <div className="bg-slate-100 rounded px-2 py-1 text-xs flex items-center gap-1">
-                        <FileText className="w-3 h-3" />
-                        <span className="truncate max-w-[100px]">{file.nombre}</span>
-                        <button onClick={() => setAttachments(attachments.filter((_, i) => i !== idx))}>
-                          <X className="w-3 h-3" />
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
-            )}
-
-            <div className="flex justify-center mb-2">
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => fileInputRef.current?.click()}
-                disabled={uploading}
-                className="h-8 px-3 text-xs"
-              >
-                <Paperclip className="w-3 h-3 mr-1" />
-                {uploading ? "Subiendo..." : "📎 Adjuntar fotos o documentos"}
-              </Button>
-            </div>
-
             <div className="flex gap-2 items-end">
               <Textarea
                 placeholder="Escribe tu mensaje..."
@@ -590,7 +505,7 @@ export default function ParentCoachChat() {
               />
               <Button 
                 onClick={handleSend} 
-                disabled={!messageText.trim() && attachments.length === 0} 
+                disabled={!messageText.trim()} 
                 className="bg-blue-600 hover:bg-blue-700 h-12 w-12 lg:h-10 lg:w-10 p-0 flex-shrink-0"
               >
                 <Send className="w-5 h-5" />
