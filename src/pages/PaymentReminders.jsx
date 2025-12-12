@@ -101,12 +101,29 @@ export default function PaymentReminders() {
       if (!familyEmail) return;
 
       if (!familyMap[familyEmail]) {
+        // Verificar si el email pertenece a algún miembro del staff
+        const userAccount = allUsers.find(u => u.email === familyEmail);
+        const isStaff = userAccount && (
+          userAccount.role === "admin" || 
+          userAccount.es_entrenador === true || 
+          userAccount.es_coordinador === true || 
+          userAccount.es_tesorero === true
+        );
+        const staffRole = isStaff ? (
+          userAccount.role === "admin" ? "Admin" :
+          userAccount.es_coordinador ? "Coordinador" :
+          userAccount.es_tesorero ? "Tesorero" :
+          userAccount.es_entrenador ? "Entrenador" : "Staff"
+        ) : null;
+
         familyMap[familyEmail] = {
           email: familyEmail,
           nombre_tutor: player.nombre_tutor_legal || "Familia",
           telefono: player.telefono,
           email_tutor_2: player.email_tutor_2,
-          jugadores: []
+          jugadores: [],
+          isStaff: isStaff,
+          staffRole: staffRole
         };
       }
 
