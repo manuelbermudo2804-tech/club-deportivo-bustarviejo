@@ -157,10 +157,58 @@ Deno.serve(async (req) => {
       recibo_url: reciboUrl
     });
     
+    // Enviar el recibo por email a los padres
+    const emailBody = `
+      <h2>Recibo de Pago - CD Bustarviejo</h2>
+      <p>Estimados padres/tutores,</p>
+      <p>Adjunto encontrará el recibo correspondiente al pago de <strong>${player.nombre}</strong>.</p>
+      <hr>
+      <p><strong>Temporada:</strong> ${payment.temporada}</p>
+      <p><strong>Mes:</strong> ${payment.mes}</p>
+      <p><strong>Tipo de Pago:</strong> ${payment.tipo_pago}</p>
+      <p><strong>Importe:</strong> ${payment.cantidad}€</p>
+      <p><strong>Estado:</strong> ✅ Pagado</p>
+      <hr>
+      <p><a href="${reciboUrl}" target="_blank" style="background: #16a34a; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block;">📄 Descargar Recibo</a></p>
+      <br>
+      <p style="font-size: 12px; color: #666;">Este es un correo automático del sistema de gestión de CD Bustarviejo</p>
+      <p style="font-size: 12px; color: #666;">Email: cdbustarviejo@gmail.com</p>
+    `;
+    
+    // Enviar a padre principal
+    if (player.email_padre) {
+      try {
+        await base44.asServiceRole.integrations.Core.SendEmail({
+          from_name: "CD Bustarviejo",
+          to: player.email_padre,
+          subject: `Recibo de Pago - ${player.nombre} - ${payment.mes}`,
+          body: emailBody
+        });
+        console.log('✅ Recibo enviado a padre:', player.email_padre);
+      } catch (emailError) {
+        console.error('Error enviando email a padre:', emailError);
+      }
+    }
+    
+    // Enviar a segundo tutor si existe
+    if (player.email_tutor_2) {
+      try {
+        await base44.asServiceRole.integrations.Core.SendEmail({
+          from_name: "CD Bustarviejo",
+          to: player.email_tutor_2,
+          subject: `Recibo de Pago - ${player.nombre} - ${payment.mes}`,
+          body: emailBody
+        });
+        console.log('✅ Recibo enviado a tutor 2:', player.email_tutor_2);
+      } catch (emailError) {
+        console.error('Error enviando email a tutor 2:', emailError);
+      }
+    }
+    
     return Response.json({
       success: true,
       recibo_url: reciboUrl,
-      message: 'Recibo generado correctamente'
+      message: 'Recibo generado y enviado por email correctamente'
     });
     
   } catch (error) {
