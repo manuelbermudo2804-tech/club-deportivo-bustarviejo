@@ -664,9 +664,36 @@ export default function UserManagement() {
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium text-red-900">🔴 {usersWithoutActivePlayers.length} sin hijos activos</p>
               </div>
-              <Button size="sm" className="bg-red-600 hover:bg-red-700 text-xs h-7" onClick={() => setRoleFilter("inactive_parents")}>
-                Ver
-              </Button>
+              <div className="flex gap-1">
+                <Button size="sm" className="bg-red-600 hover:bg-red-700 text-xs h-7" onClick={() => setRoleFilter("inactive_parents")}>
+                  Ver
+                </Button>
+                <Button 
+                  size="sm" 
+                  variant="outline"
+                  className="bg-blue-600 hover:bg-blue-700 text-white text-xs h-7"
+                  onClick={async () => {
+                    toast.info(`Enviando ${usersWithoutActivePlayers.length} recordatorios...`);
+                    let sent = 0;
+                    for (const u of usersWithoutActivePlayers) {
+                      try {
+                        await base44.integrations.Core.SendEmail({
+                          from_name: "CD Bustarviejo",
+                          to: u.email,
+                          subject: "¿Vas a renovar? - CD Bustarviejo",
+                          body: `Hola ${u.full_name},\n\nVemos que aún no has renovado a tus jugadores para la nueva temporada.\n\n¿Tienes pensado inscribirlos de nuevo este año?\n\nSi necesitas ayuda o tienes alguna duda, estamos aquí para ayudarte.\n\nAtentamente,\nCD Bustarviejo`
+                        });
+                        sent++;
+                        await new Promise(r => setTimeout(r, 300));
+                      } catch (e) { console.error(e); }
+                    }
+                    toast.success(`✅ ${sent} recordatorios enviados`);
+                  }}
+                >
+                  <Send className="w-3 h-3 mr-1" />
+                  Recordar Todos
+                </Button>
+              </div>
             </div>
           )}
         </div>
