@@ -981,8 +981,9 @@ body.theme-dark .skeleton-shimmer {
   position: absolute;
   top: -50px;
   font-size: 1.5rem;
-  opacity: 0.3;
+  opacity: 0.5;
   animation: float-down 15s linear infinite;
+  filter: drop-shadow(0 0 2px rgba(255,255,255,0.8));
 }
 
 @keyframes float-down {

@@ -48,15 +48,19 @@ const SeasonalDecorations = ({ season }) => {
 
   const items = decorations[season] || [];
   
+  // Generar múltiples instancias de decoraciones para efecto más visible
+  const repeatedItems = [...items, ...items, ...items];
+  
   return (
     <div className="seasonal-decorations">
-      {items.map((emoji, idx) => (
+      {repeatedItems.map((emoji, idx) => (
         <span
           key={idx}
-          className={`decoration decoration-${idx + 1}`}
+          className={`decoration decoration-${(idx % 4) + 1}`}
           style={{
-            left: `${(idx + 1) * 20}%`,
-            animationDelay: `${idx * 0.5}s`
+            left: `${5 + (idx * 8)}%`,
+            animationDelay: `${idx * 1.5}s`,
+            fontSize: idx % 2 === 0 ? '2rem' : '1.5rem'
           }}
         >
           {emoji}
@@ -89,7 +93,29 @@ export default function SeasonalTheme() {
       "season-invierno"
     );
     document.body.classList.add(`season-${season}`);
+    
+    // Log para debug
+    console.log('🎨 Temporada activa:', season);
   }, [season]);
 
-  return <SeasonalDecorations season={season} />;
+  return (
+    <>
+      <SeasonalDecorations season={season} />
+      {/* Badge indicador de temporada (solo visible para debug) */}
+      <div style={{
+        position: 'fixed',
+        bottom: '10px',
+        right: '10px',
+        background: 'rgba(0,0,0,0.7)',
+        color: 'white',
+        padding: '8px 12px',
+        borderRadius: '8px',
+        fontSize: '12px',
+        zIndex: 10000,
+        pointerEvents: 'none'
+      }}>
+        Temporada: {season}
+      </div>
+    </>
+  );
 }
