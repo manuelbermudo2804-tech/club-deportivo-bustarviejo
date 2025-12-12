@@ -298,7 +298,7 @@ export default function ParentCoachChat() {
         </div>
       )}
 
-    <div className="h-[calc(100vh-100px)] lg:p-4 lg:max-w-5xl lg:mx-auto lg:h-[calc(100vh-110px)]">
+    <div className="h-full lg:p-4 lg:max-w-5xl lg:mx-auto">
       <Card className="border-blue-200 shadow-lg h-full flex flex-col overflow-hidden lg:rounded-lg rounded-none">
         <CardHeader className="bg-gradient-to-r from-blue-600 to-blue-700 text-white p-2 flex-shrink-0">
           <div className="flex items-center justify-between">
