@@ -33,6 +33,7 @@ import CoordinatorOnboarding from "@/components/onboarding/CoordinatorOnboarding
 import TreasurerOnboarding from "@/components/onboarding/TreasurerOnboarding";
 import SponsorBanner from "./components/sponsors/SponsorBanner";
 import PWAInstallPrompt from "./components/pwa/PWAInstallPrompt";
+import SeasonalTheme from "./components/theme/SeasonalTheme";
 
 const CLUB_LOGO_URL = `https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6911b8e453ca3ac01fb134d6/e3f0a8e26_logo_cd_bustarviejo_mediano.jpg?t=${Date.now()}`;
 
@@ -1157,6 +1158,7 @@ export default function Layout({ children, currentPageName }) {
     return (
             <>
               {renderOnboarding()}
+              <SeasonalTheme />
 
               {/* Modal de instrucciones de instalación */}
               {showInstallInstructions && (
