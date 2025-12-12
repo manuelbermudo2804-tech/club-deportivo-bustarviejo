@@ -300,39 +300,18 @@ export default function ParentCoachChat() {
 
     <div className="h-[calc(100vh-100px)] lg:p-4 lg:max-w-5xl lg:mx-auto lg:h-[calc(100vh-110px)]">
       <Card className="border-blue-200 shadow-lg h-full flex flex-col overflow-hidden lg:rounded-lg rounded-none">
-        <CardHeader className="bg-gradient-to-r from-blue-600 to-blue-700 text-white p-4 flex-shrink-0">
+        <CardHeader className="bg-gradient-to-r from-blue-600 to-blue-700 text-white p-3 flex-shrink-0">
           <div className="flex items-center justify-between">
-            <CardTitle className="flex items-center gap-2">
-              <MessageCircle className="w-6 h-6" />
+            <CardTitle className="flex items-center gap-2 text-base">
+              <MessageCircle className="w-5 h-5" />
               Chat Entrenador
             </CardTitle>
-            <div className="flex items-center gap-2">
-              <EscalateToCoordinatorButton 
-                user={user} 
-                categoria={selectedCategory}
-                recentMessages={messages}
-              />
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setShowSearch(!showSearch)}
-                className="text-white hover:bg-white/20"
-              >
-                <Search className="w-4 h-4" />
-              </Button>
-            </div>
+            <EscalateToCoordinatorButton 
+              user={user} 
+              categoria={selectedCategory}
+              recentMessages={messages}
+            />
           </div>
-          {showSearch && (
-            <div className="mt-2">
-              <input
-                type="text"
-                placeholder="Buscar mensajes..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full px-3 py-2 rounded-lg text-slate-900 text-sm"
-              />
-            </div>
-          )}
         </CardHeader>
 
         <CardContent className="p-0 flex-1 flex flex-col overflow-hidden min-h-0">
@@ -391,71 +370,78 @@ export default function ParentCoachChat() {
                       </div>
                     )}
                     
-                    <div className={`flex ${isMine ? 'justify-end' : 'justify-start'}`}>
-                      <div className={`max-w-[75%] ${
-                        isMine ? 'bg-slate-700 text-white' : 
-                        isCoach ? 'bg-green-600 text-white' : 
-                        'bg-white text-slate-900 border'
-                      } rounded-2xl p-3 shadow-sm`}>
-                        <div className="flex items-center gap-2 mb-1">
-                          <p className="text-xs font-semibold opacity-70">
-                            {isCoach ? '🏃 ' : ''}{msg.remitente_nombre}
+                    <div className={`flex flex-col ${isMine ? 'items-end' : 'items-start'}`}>
+                      {/* Mensaje de texto, audio o archivos */}
+                      {(msg.mensaje || msg.audio_url || msg.archivos_adjuntos?.length > 0) && !msg.encuesta && !msg.poll && !msg.ubicacion && (
+                        <div className={`max-w-[75%] ${
+                          isMine ? 'bg-slate-700 text-white' : 
+                          isCoach ? 'bg-green-600 text-white' : 
+                          'bg-white text-slate-900 border'
+                        } rounded-2xl p-3 shadow-sm`}>
+                          <div className="flex items-center gap-2 mb-1">
+                            <p className="text-xs font-semibold opacity-70">
+                              {isCoach ? '🏃 ' : ''}{msg.remitente_nombre}
+                            </p>
+                            {isCoach && <Badge className="text-xs bg-green-500 px-1 py-0">Entrenador</Badge>}
+                          </div>
+
+                          {msg.mensaje && <p className="text-sm whitespace-pre-wrap">{msg.mensaje}</p>}
+
+                          {msg.audio_url && (
+                            <div className="flex items-center gap-2 mt-2">
+                              <Button 
+                                size="sm" 
+                                variant={isMine ? "secondary" : "outline"}
+                                onClick={() => togglePlayAudio(msg.audio_url)}
+                              >
+                                {playingAudio === msg.audio_url ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
+                              </Button>
+                              <span className="text-sm">🎤 {msg.audio_duracion}s</span>
+                            </div>
+                          )}
+
+                          {msg.archivos_adjuntos?.length > 0 && (
+                            <div className="mt-2 space-y-1">
+                              {msg.archivos_adjuntos.map((file, idx) => (
+                                file.tipo?.startsWith('image/') ? (
+                                  <img 
+                                    key={idx}
+                                    src={file.url} 
+                                    alt={file.nombre}
+                                    className="rounded cursor-pointer max-w-full h-auto max-h-64 object-contain"
+                                    onClick={() => setShowImagePreview(file.url)}
+                                  />
+                                ) : (
+                                  <a
+                                    key={idx}
+                                    href={file.url}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className={`flex items-center gap-2 text-xs p-2 rounded ${isMine ? 'bg-slate-600' : isCoach ? 'bg-green-700' : 'bg-slate-100'}`}
+                                  >
+                                    <FileText className="w-3 h-3" />
+                                    <span className="flex-1 truncate">{file.nombre}</span>
+                                    <Download className="w-3 h-3" />
+                                  </a>
+                                )
+                              ))}
+                            </div>
+                          )}
+
+                          <p className="text-xs opacity-60 mt-1">
+                            {format(new Date(msg.created_date), "HH:mm", { locale: es })}
                           </p>
-                          {isCoach && <Badge className="text-xs bg-green-500 px-1 py-0">Entrenador</Badge>}
                         </div>
+                      )}
 
-                        {/* Mensaje de texto normal */}
-                        {msg.mensaje && !msg.audio_url && !msg.encuesta && !msg.poll && !msg.ubicacion && (
-                          <p className="text-sm whitespace-pre-wrap">{msg.mensaje}</p>
-                        )}
-
-                        {/* Audio */}
-                        {msg.audio_url && (
-                          <div className="flex items-center gap-2 mt-2">
-                            <Button 
-                              size="sm" 
-                              variant={isMine ? "secondary" : "outline"}
-                              onClick={() => togglePlayAudio(msg.audio_url)}
-                            >
-                              {playingAudio === msg.audio_url ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
-                            </Button>
-                            <span className="text-sm">🎤 {msg.audio_duracion}s</span>
-                          </div>
-                        )}
-
-                        {/* Archivos Adjuntos */}
-                        {msg.archivos_adjuntos?.length > 0 && (
-                          <div className="mt-2 space-y-1">
-                            {msg.archivos_adjuntos.map((file, idx) => (
-                              file.tipo?.startsWith('image/') ? (
-                                <img 
-                                  key={idx}
-                                  src={file.url} 
-                                  alt={file.nombre}
-                                  className="rounded cursor-pointer max-w-full h-auto max-h-64 object-contain"
-                                  onClick={() => setShowImagePreview(file.url)}
-                                />
-                              ) : (
-                                <a
-                                  key={idx}
-                                  href={file.url}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className={`flex items-center gap-2 text-xs p-2 rounded ${isMine ? 'bg-slate-600' : isCoach ? 'bg-green-700' : 'bg-slate-100'}`}
-                                >
-                                  <FileText className="w-3 h-3" />
-                                  <span className="flex-1 truncate">{file.nombre}</span>
-                                  <Download className="w-3 h-3" />
-                                </a>
-                              )
-                            ))}
-                          </div>
-                        )}
-                      </div>
-
-                      {/* Encuesta - FUERA de la burbuja principal */}
+                      {/* Encuesta */}
                       {(msg.encuesta || msg.poll) && (
-                        <div className={`mt-2 ${isMine ? 'ml-auto' : 'mr-auto'} max-w-[75%]`}>
+                        <div className="w-full max-w-[85%]">
+                          <div className="mb-1 px-2">
+                            <p className="text-xs font-semibold text-slate-600">
+                              {isCoach ? '🏃 ' : ''}{msg.remitente_nombre}
+                            </p>
+                          </div>
                           <PollMessage 
                             encuesta={msg.encuesta || msg.poll} 
                             messageId={msg.id}
@@ -463,23 +449,26 @@ export default function ParentCoachChat() {
                             userName={user.full_name}
                             onVote={(msgId, optionIdx) => votePollMutation.mutate({ messageId: msgId, optionIndex: optionIdx })}
                           />
+                          <p className="text-xs text-slate-500 mt-1 px-2">
+                            {format(new Date(msg.created_date), "HH:mm", { locale: es })}
+                          </p>
                         </div>
                       )}
 
-                      {/* Ubicación - FUERA de la burbuja principal */}
+                      {/* Ubicación */}
                       {msg.ubicacion && (
-                        <div className={`mt-2 ${isMine ? 'ml-auto' : 'mr-auto'} max-w-[75%]`}>
+                        <div className="w-full max-w-[85%]">
+                          <div className="mb-1 px-2">
+                            <p className="text-xs font-semibold text-slate-600">
+                              {isCoach ? '🏃 ' : ''}{msg.remitente_nombre}
+                            </p>
+                          </div>
                           <LocationMessage ubicacion={msg.ubicacion} />
+                          <p className="text-xs text-slate-500 mt-1 px-2">
+                            {format(new Date(msg.created_date), "HH:mm", { locale: es })}
+                          </p>
                         </div>
                       )}
-
-                      <div className="hidden">
-                        {/* Cierre del div de la burbuja principal que se abrió arriba */}
-
-                        <p className="text-xs opacity-60 mt-1">
-                          {format(new Date(msg.created_date), "HH:mm", { locale: es })}
-                        </p>
-                      </div>
                     </div>
                   </React.Fragment>
                 );
@@ -488,7 +477,7 @@ export default function ParentCoachChat() {
             <div ref={messagesEndRef} />
           </div>
 
-          <div className="p-4 bg-white border-t flex-shrink-0">
+          <div className="p-3 bg-white border-t flex-shrink-0">
             <div className="flex gap-2 items-end">
               <Textarea
                 placeholder="Escribe tu mensaje..."
@@ -500,13 +489,13 @@ export default function ParentCoachChat() {
                     handleSend();
                   }
                 }}
-                className="flex-1 min-h-[44px] resize-none text-sm"
-                rows={1}
+                className="flex-1 min-h-[60px] lg:min-h-[44px] resize-none text-base"
+                rows={2}
               />
               <Button 
                 onClick={handleSend} 
                 disabled={!messageText.trim()} 
-                className="bg-blue-600 hover:bg-blue-700 h-10 w-10 p-0"
+                className="bg-blue-600 hover:bg-blue-700 h-12 w-12 lg:h-10 lg:w-10 p-0 flex-shrink-0"
               >
                 <Send className="w-5 h-5" />
               </Button>
