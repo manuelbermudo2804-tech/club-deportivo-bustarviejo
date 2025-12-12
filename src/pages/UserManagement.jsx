@@ -25,7 +25,8 @@ import {
   Check,
   Smartphone,
   Send,
-  FileSignature
+  FileSignature,
+  AlertTriangle
 } from "lucide-react";
 import {
   Dialog,
@@ -375,6 +376,19 @@ export default function UserManagement() {
     return !!matchingPlayer;
   });
 
+  // Detectar padres sin hijos activos
+  const usersWithoutActivePlayers = users.filter(user => {
+    if (user.role === "admin" || user.es_entrenador || user.es_coordinador || user.es_tesorero || user.es_jugador) return false;
+    if (user.eliminado === true) return false;
+    
+    const activePlayers = players.filter(p => 
+      (p.email_padre === user.email || p.email_tutor_2 === user.email) && 
+      p.activo === true
+    );
+    
+    return activePlayers.length === 0;
+  });
+
   // Filtrar usuarios (ocultar eliminados por defecto)
   const filteredUsers = users.filter(user => {
     // Filtrar eliminados
@@ -397,6 +411,7 @@ export default function UserManagement() {
       if (roleFilter === "with_app" && user.app_instalada !== true) return false;
       if (roleFilter === "without_app" && (user.app_instalada === true || user.role === "admin")) return false;
       if (roleFilter === "staff" && !(user.role === "admin" || user.es_entrenador || user.es_coordinador || user.es_tesorero)) return false;
+      if (roleFilter === "inactive_parents" && !usersWithoutActivePlayers.some(u => u.id === user.id)) return false;
     }
 
     const matchesSearch =
@@ -587,8 +602,8 @@ export default function UserManagement() {
       </div>
 
       {/* Alertas compactas */}
-      {(usersWithoutApp.length > 5 || pendingPlayerAccessUsers.length > 0) && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+      {(usersWithoutApp.length > 5 || pendingPlayerAccessUsers.length > 0 || usersWithoutActivePlayers.length > 0) && (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
           {usersWithoutApp.length > 5 && (
             <div className="bg-amber-50 border border-amber-300 rounded-lg p-3 flex items-center gap-3">
               <Smartphone className="w-5 h-5 text-amber-600 flex-shrink-0" />
@@ -608,6 +623,17 @@ export default function UserManagement() {
                 <p className="text-sm font-medium text-purple-900">⚽ {pendingPlayerAccessUsers.length} jugadores +18 pendientes</p>
               </div>
               <Button size="sm" className="bg-purple-600 hover:bg-purple-700 text-xs h-7" onClick={() => setRoleFilter("pending_player")}>
+                Ver
+              </Button>
+            </div>
+          )}
+          {usersWithoutActivePlayers.length > 0 && (
+            <div className="bg-red-50 border border-red-300 rounded-lg p-3 flex items-center gap-3">
+              <AlertTriangle className="w-5 h-5 text-red-600 flex-shrink-0" />
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium text-red-900">🔴 {usersWithoutActivePlayers.length} sin hijos activos</p>
+              </div>
+              <Button size="sm" className="bg-red-600 hover:bg-red-700 text-xs h-7" onClick={() => setRoleFilter("inactive_parents")}>
                 Ver
               </Button>
             </div>
@@ -638,6 +664,7 @@ export default function UserManagement() {
           {[
             { key: "all", label: "Todos", count: users.filter(u => !u.eliminado).length },
             { key: "parent", label: "👨‍👩‍👧 Padres", count: activeUsers.length },
+            { key: "inactive_parents", label: "🔴 Sin Hijos", count: usersWithoutActivePlayers.length },
             { key: "staff", label: "👔 Staff", count: staffUsers.length },
             { key: "admin", label: "🎓 Admin", count: admins.length },
             { key: "player", label: "⚽ Jugador", count: jugadores.length },
@@ -747,6 +774,9 @@ export default function UserManagement() {
                           )}
                           {userPlayers.length > 0 && !isPlayerUser && (
                             <span className="text-xs text-slate-600">👶 {userPlayers.map(p => p.nombre).join(", ")}</span>
+                          )}
+                          {activePlayers.length === 0 && userPlayers.length > 0 && !user.es_entrenador && !user.es_coordinador && !user.es_tesorero && (
+                            <span className="text-xs bg-red-100 text-red-700 px-2 py-0.5 rounded-full font-medium animate-pulse">🔴 Sin hijos activos</span>
                           )}
                           {user.categorias_entrena?.length > 0 && (
                             <span className="text-xs text-blue-700 font-medium">🏃 {user.categorias_entrena.length} categorías</span>
