@@ -16,6 +16,7 @@ import PlayerCard from "../components/players/PlayerCard";
 import PlayerForm from "../components/players/PlayerForm";
 import PlayerProfileDialog from "../components/players/PlayerProfileDialog";
 import PlayerCardSkeleton from "../components/skeletons/PlayerCardSkeleton";
+import RenewalStatsPanel from "../components/players/RenewalStatsPanel";
 
 export default function Players() {
   const [showForm, setShowForm] = useState(false);
@@ -23,6 +24,7 @@ export default function Players() {
   const [searchTerm, setSearchTerm] = useState("");
   const [sportFilter, setSportFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [statusRenewalFilter, setStatusRenewalFilter] = useState("all");
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
   const [filterRevisionCategoria, setFilterRevisionCategoria] = useState(false);
@@ -308,12 +310,17 @@ export default function Players() {
       (statusFilter === "active" && player.activo) ||
       (statusFilter === "inactive" && !player.activo);
     
+    const matchesRenewalStatus = statusRenewalFilter === "all" ||
+      (statusRenewalFilter === "renovado" && player.tipo_inscripcion === "Renovación" && player.activo) ||
+      (statusRenewalFilter === "nuevo" && player.tipo_inscripcion === "Nueva Inscripción" && player.activo) ||
+      (statusRenewalFilter === "pendiente" && !player.activo);
+    
     // Filtro de categoría: comparación exacta con la categoría completa
     const matchesCategory = categoryFilter === "all" || player.deporte === categoryFilter;
     
     const matchesRevision = !filterRevisionCategoria || player.categoria_requiere_revision === true;
     
-    return matchesSearch && matchesSport && matchesStatus && matchesCategory && matchesRevision;
+    return matchesSearch && matchesSport && matchesStatus && matchesRenewalStatus && matchesCategory && matchesRevision;
   });
 
   // Paginación
@@ -338,8 +345,18 @@ export default function Players() {
   const futbolFemeninoCount = players.filter(p => p.deporte === "Fútbol Femenino").length;
   const baloncestoCount = players.filter(p => p.deporte?.includes("Baloncesto")).length;
 
+  // Contadores para filtro de renovación
+  const renovadosCount = allPlayers.filter(p => p.tipo_inscripcion === "Renovación" && p.activo).length;
+  const nuevosCount = allPlayers.filter(p => p.tipo_inscripcion === "Nueva Inscripción" && p.activo).length;
+  const pendientesCount = allPlayers.filter(p => !p.activo).length;
+
   return (
     <div className="p-6 lg:p-8 space-y-6">
+      {/* Panel de estadísticas de renovación - SOLO SI HAY RENOVACIONES PERMITIDAS */}
+      {isAdmin && activeSeason?.permitir_renovaciones && (
+        <RenewalStatsPanel allPlayers={allPlayers} seasonConfig={activeSeason} />
+      )}
+
       {/* Banner de jugadores con categoría a revisar */}
       {playersNeedingReview > 0 && isAdmin && (
         <Card className="border-2 border-orange-400 bg-gradient-to-r from-orange-50 to-yellow-50">
@@ -461,7 +478,7 @@ export default function Players() {
 
           {showAdvancedFilters && (
             <div className="pt-4 border-t space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <div className="space-y-2">
                   <label className="text-sm font-semibold text-slate-700">Estado</label>
                   <Select value={statusFilter} onValueChange={setStatusFilter}>
@@ -475,6 +492,23 @@ export default function Players() {
                     </SelectContent>
                   </Select>
                 </div>
+
+                {isAdmin && activeSeason?.permitir_renovaciones && (
+                  <div className="space-y-2">
+                    <label className="text-sm font-semibold text-slate-700">Tipo Inscripción</label>
+                    <Select value={statusRenewalFilter} onValueChange={setStatusRenewalFilter}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">Todos</SelectItem>
+                        <SelectItem value="renovado">🔄 Renovados ({renovadosCount})</SelectItem>
+                        <SelectItem value="nuevo">✨ Nuevos ({nuevosCount})</SelectItem>
+                        <SelectItem value="pendiente">⏳ Pendientes ({pendientesCount})</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
 
                 <div className="space-y-2">
                   <label className="text-sm font-semibold text-slate-700">Deporte</label>

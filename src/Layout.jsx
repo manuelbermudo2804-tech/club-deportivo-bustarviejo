@@ -22,6 +22,7 @@ import NotificationManager from "./components/notifications/NotificationManager"
 import AutomaticNotificationEngine from "./components/notifications/AutomaticNotificationEngine";
 import EmailNotificationTrigger from "./components/notifications/EmailNotificationTrigger";
 import AutomaticPaymentReminders from "./components/reminders/AutomaticPaymentReminders";
+import AutomaticRenewalReminders from "./components/reminders/AutomaticRenewalReminders";
 
 // ToastContainer eliminado - causaba spam de notificaciones
 import EventReminderEngine from "./components/events/EventReminderEngine";
@@ -1355,7 +1356,8 @@ export default function Layout({ children, currentPageName }) {
 
               <SessionManager />
               <NotificationBadge />
-        {/* Componentes temporalmente desactivados para debug */}
+              <AutomaticRenewalReminders />
+              {/* Componentes temporalmente desactivados para debug */}
 
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
         
