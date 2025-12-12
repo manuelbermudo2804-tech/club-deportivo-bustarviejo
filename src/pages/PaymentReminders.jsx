@@ -47,6 +47,11 @@ export default function PaymentReminders() {
     queryFn: () => base44.entities.CategoryConfig.list(),
   });
 
+  const { data: allUsers = [] } = useQuery({
+    queryKey: ['allUsers'],
+    queryFn: () => base44.entities.User.list(),
+  });
+
   const handleRefresh = async () => {
     await refetchPayments();
     await refetchPlayers();
