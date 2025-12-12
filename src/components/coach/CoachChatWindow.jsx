@@ -480,18 +480,18 @@ export default function CoachChatWindow({ selectedCategory, user, allPlayers }) 
     <div className="flex flex-col h-full w-full overflow-hidden bg-white">
       <audio ref={audioRef} onEnded={() => setPlayingAudio(null)} />
 
-      {/* Header */}
-      <div className="p-4 bg-gradient-to-r from-green-600 to-green-700 text-white flex-shrink-0">
+      {/* Header compacto */}
+      <div className="p-2 bg-gradient-to-r from-green-600 to-green-700 text-white flex-shrink-0">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="font-bold text-lg flex items-center gap-2">
-              Chat - {selectedCategory}
+            <h2 className="font-bold text-sm flex items-center gap-1.5">
+              {selectedCategory.replace('Fútbol ', '').replace(' (Mixto)', '')}
             </h2>
             <p className="text-xs text-green-100">
-              {parentEmails.length} familias • {categoryPlayers.length} jugadores
+              {parentEmails.length} familias
             </p>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1">
             <EscalateToCoordinatorButton 
               user={user} 
               categoria={selectedCategory}
@@ -502,7 +502,7 @@ export default function CoachChatWindow({ selectedCategory, user, allPlayers }) 
               variant="ghost"
               size="sm"
               onClick={() => setShowParticipants(true)}
-              className="text-white hover:bg-white/20"
+              className="text-white hover:bg-white/20 h-8 w-8 p-0"
             >
               <Users className="w-4 h-4" />
             </Button>
