@@ -360,6 +360,17 @@ export default function ParentCoachChat() {
                 const isMine = msg.remitente_email === user.email;
                 const isCoach = msg.tipo === "entrenador_a_grupo";
 
+                // Debug logs
+                if (msg.encuesta || msg.poll || msg.ubicacion) {
+                  console.log('🔍 Mensaje especial encontrado:', {
+                    id: msg.id,
+                    tiene_encuesta: !!msg.encuesta,
+                    tiene_poll: !!msg.poll,
+                    tiene_ubicacion: !!msg.ubicacion,
+                    remitente: msg.remitente_nombre
+                  });
+                }
+
                 return (
                   <React.Fragment key={msg.id}>
                     {showDateSeparator && (
