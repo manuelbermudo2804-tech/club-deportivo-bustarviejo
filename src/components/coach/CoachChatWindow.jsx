@@ -247,12 +247,22 @@ export default function CoachChatWindow({ selectedCategory, user, allPlayers }) 
 
   const startRecording = async () => {
     try {
+      console.log('🎤 Solicitando permiso de micrófono...');
+      
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        toast.error("Tu navegador no soporta grabación de audio");
+        return;
+      }
+
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      console.log('✅ Permiso concedido');
+      
       const mediaRecorder = new MediaRecorder(stream);
       mediaRecorderRef.current = mediaRecorder;
       audioChunksRef.current = [];
 
       const startTime = Date.now();
+      toast.success("🎤 Grabando audio...", { duration: 1000 });
 
       mediaRecorder.ondataavailable = (e) => {
         audioChunksRef.current.push(e.data);
@@ -264,12 +274,20 @@ export default function CoachChatWindow({ selectedCategory, user, allPlayers }) 
         setAudioBlob(blob);
         setAudioDuration(duration);
         stream.getTracks().forEach(track => track.stop());
+        console.log('✅ Audio grabado:', duration, 's');
       };
 
       mediaRecorder.start();
       setRecording(true);
     } catch (error) {
-      toast.error("No se pudo acceder al micrófono");
+      console.error('❌ Error al grabar audio:', error);
+      if (error.name === 'NotAllowedError') {
+        toast.error("Debes permitir el acceso al micrófono en tu navegador");
+      } else if (error.name === 'NotFoundError') {
+        toast.error("No se encontró ningún micrófono");
+      } else {
+        toast.error("Error al acceder al micrófono: " + error.message);
+      }
     }
   };
 
@@ -827,6 +845,16 @@ export default function CoachChatWindow({ selectedCategory, user, allPlayers }) 
                 )}
               </div>
             ))}
+          </div>
+        )}
+
+        {recording && (
+          <div className="mb-2 flex items-center gap-2 bg-red-50 rounded-lg p-2 border-2 border-red-300 animate-pulse">
+            <Mic className="w-4 h-4 text-red-600 animate-pulse" />
+            <span className="text-sm flex-1 text-red-700 font-semibold">🔴 Grabando...</span>
+            <Button size="sm" onClick={stopRecording} className="h-7 bg-red-600 hover:bg-red-700">
+              Detener
+            </Button>
           </div>
         )}
 
