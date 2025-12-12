@@ -1095,12 +1095,23 @@ export default function SeasonManagement() {
                   <Label className="text-sm">Décimos disponibles para vender:</Label>
                   <Input
                     type="number"
-                    value={activeSeason?.loteria_max_decimos || ""}
+                    min="0"
+                    value={activeSeason?.loteria_max_decimos ?? ""}
                     onChange={(e) => {
                       if (activeSeason) {
+                        const value = e.target.value;
                         updateSeasonMutation.mutate({
                           id: activeSeason.id,
-                          data: { loteria_max_decimos: e.target.value ? Number(e.target.value) : null }
+                          data: { loteria_max_decimos: value === "" ? null : parseInt(value, 10) }
+                        });
+                      }
+                    }}
+                    onBlur={(e) => {
+                      // Si está vacío al perder foco, establecer null
+                      if (activeSeason && e.target.value === "") {
+                        updateSeasonMutation.mutate({
+                          id: activeSeason.id,
+                          data: { loteria_max_decimos: null }
                         });
                       }
                     }}
