@@ -1072,22 +1072,46 @@ export default function SeasonManagement() {
 
             {/* Precio décimo lotería - Solo visible si lotería está activa */}
             {activeSeason?.loteria_navidad_abierta && (
-              <div className="ml-8 flex items-center gap-2">
-                <Label className="text-sm">Precio del décimo (€):</Label>
-                <Input
-                  type="number"
-                  value={activeSeason?.precio_decimo_loteria || 22}
-                  onChange={(e) => {
-                    if (activeSeason) {
-                      updateSeasonMutation.mutate({
-                        id: activeSeason.id,
-                        data: { precio_decimo_loteria: Number(e.target.value) }
-                      });
-                    }
-                  }}
-                  placeholder="22"
-                  className="w-24"
-                />
+              <div className="ml-8 space-y-3">
+                <div className="flex items-center gap-2">
+                  <Label className="text-sm">Precio del décimo (€):</Label>
+                  <Input
+                    type="number"
+                    value={activeSeason?.precio_decimo_loteria || 22}
+                    onChange={(e) => {
+                      if (activeSeason) {
+                        updateSeasonMutation.mutate({
+                          id: activeSeason.id,
+                          data: { precio_decimo_loteria: Number(e.target.value) }
+                        });
+                      }
+                    }}
+                    placeholder="22"
+                    className="w-24"
+                  />
+                </div>
+                
+                <div className="flex items-center gap-2">
+                  <Label className="text-sm">Décimos disponibles para vender:</Label>
+                  <Input
+                    type="number"
+                    value={activeSeason?.loteria_max_decimos || ""}
+                    onChange={(e) => {
+                      if (activeSeason) {
+                        updateSeasonMutation.mutate({
+                          id: activeSeason.id,
+                          data: { loteria_max_decimos: e.target.value ? Number(e.target.value) : null }
+                        });
+                      }
+                    }}
+                    placeholder="Sin límite"
+                    className="w-32"
+                  />
+                  <Info className="w-4 h-4 text-slate-400" title="La tienda se cerrará automáticamente al vender todos" />
+                </div>
+                <p className="text-xs text-slate-500 ml-2">
+                  💡 La lotería se cerrará automáticamente cuando se alcance este límite. Deja vacío para sin límite.
+                </p>
               </div>
             )}
 
