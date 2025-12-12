@@ -1077,26 +1077,26 @@ export default function Home() {
                 </div>
               </Link>
 
-              <Link to={createPageUrl("CoordinatorChat")} className="relative">
-                <div className="bg-gradient-to-br from-cyan-600 to-cyan-700 rounded-xl p-3 text-white hover:scale-105 transition-all shadow-lg h-full flex flex-col justify-center">
+              <Link to={createPageUrl(isCoordinator && user?.es_entrenador ? "FamilyChats" : isCoordinator ? "CoordinatorChat" : "CoachParentChat")} className="relative">
+                <div className="bg-gradient-to-br from-blue-600 to-blue-700 rounded-xl p-3 text-white hover:scale-105 transition-all shadow-lg h-full flex flex-col justify-center">
                   {stats.unreadCoordinatorMessages > 0 && (
                     <div className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 rounded-full flex items-center justify-center border-2 border-white animate-pulse">
                       <span className="text-white text-xs font-bold">{stats.unreadCoordinatorMessages}</span>
                     </div>
                   )}
-                  <p className="text-sm font-bold text-center">🏟️ Coordinador</p>
-                  <p className="text-xs text-cyan-100 text-center mt-0.5">Consultas deportivas</p>
+                  <p className="text-sm font-bold text-center">💬 Familias</p>
+                  <p className="text-xs text-blue-100 text-center mt-0.5">
+                    {isCoordinator && user?.es_entrenador ? "Coordinador + Entrenador" : isCoordinator ? "Como Coordinador" : "Como Entrenador"}
+                  </p>
                 </div>
               </Link>
-              
-              {user?.es_entrenador && (
-                <Link to={createPageUrl("CoachParentChat")} className="relative">
-                  <div className="bg-gradient-to-br from-blue-600 to-blue-700 rounded-xl p-3 text-white hover:scale-105 transition-all shadow-lg h-full flex flex-col justify-center">
-                    <p className="text-sm font-bold text-center">⚽ Entrenador</p>
-                    <p className="text-xs text-blue-100 text-center mt-0.5">Chat del equipo</p>
-                  </div>
-                </Link>
-              )}
+
+              <Link to={createPageUrl("StaffChat")} className="relative">
+                <div className="bg-gradient-to-br from-slate-600 to-slate-700 rounded-xl p-3 text-white hover:scale-105 transition-all shadow-lg h-full flex flex-col justify-center">
+                  <p className="text-sm font-bold text-center">💼 Staff</p>
+                  <p className="text-xs text-slate-100 text-center mt-0.5">Comunicación interna</p>
+                </div>
+              </Link>
             </div>
           </div>
         )}
