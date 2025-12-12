@@ -822,7 +822,6 @@ export default function Layout({ children, currentPageName }) {
     { title: "🏃 Entrenadores", url: createPageUrl("CoachProfiles"), icon: Users },
     { title: "🖊️ Firmas Federación", url: createPageUrl("FederationSignaturesAdmin"), icon: FileSignature },
     { title: "👤 Usuarios", url: createPageUrl("UserManagement"), icon: Users },
-    { title: "🔴 Usuarios Inactivos", url: createPageUrl("InactiveUsers"), icon: UserX },
 
     // ⚽ DEPORTIVO
     { title: "🎓 Convocatorias", url: createPageUrl("CoachCallups"), icon: Bell, badge: pendingCallupResponses > 0 ? pendingCallupResponses : null, urgentBadge: pendingCallupResponses > 0 },

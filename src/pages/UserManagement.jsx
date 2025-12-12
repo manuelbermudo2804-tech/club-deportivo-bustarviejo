@@ -71,6 +71,8 @@ export default function UserManagement() {
     categorias_entrena: [],
     telefono_entrenador: ""
   });
+  const [showReminderDialog, setShowReminderDialog] = useState(null);
+  const [reminderMessage, setReminderMessage] = useState("");
 
   const queryClient = useQueryClient();
 
@@ -549,6 +551,35 @@ export default function UserManagement() {
     toast.success(`✅ ${sent} recordatorios enviados`);
   };
 
+  const enviarRecordatorioRenovacionMutation = useMutation({
+    mutationFn: async ({ user, message }) => {
+      await base44.integrations.Core.SendEmail({
+        from_name: "CD Bustarviejo",
+        to: user.email,
+        subject: "¿Vas a renovar? - CD Bustarviejo",
+        body: message
+      });
+    },
+    onSuccess: () => {
+      setShowReminderDialog(null);
+      setReminderMessage("");
+      toast.success("Recordatorio enviado");
+    },
+  });
+
+  const activarAccesoMutation = useMutation({
+    mutationFn: async (userId) => {
+      await base44.entities.User.update(userId, { 
+        acceso_activo: true,
+        motivo_restriccion: ""
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['allUsers'] });
+      toast.success("Acceso reactivado");
+    },
+  });
+
 
   return (
     <div className="p-6 lg:p-8 space-y-6">
@@ -664,7 +695,7 @@ export default function UserManagement() {
           {[
             { key: "all", label: "Todos", count: users.filter(u => !u.eliminado).length },
             { key: "parent", label: "👨‍👩‍👧 Padres", count: activeUsers.length },
-            { key: "inactive_parents", label: "🔴 Sin Hijos", count: usersWithoutActivePlayers.length },
+            { key: "inactive_parents", label: "🔴 Sin Hijos", count: usersWithoutActivePlayers.length, highlight: true },
             { key: "staff", label: "👔 Staff", count: staffUsers.length },
             { key: "admin", label: "🎓 Admin", count: admins.length },
             { key: "player", label: "⚽ Jugador", count: jugadores.length },
@@ -681,6 +712,8 @@ export default function UserManagement() {
               className={`px-2 py-1 rounded text-xs font-medium transition-colors ${
                 roleFilter === f.key 
                   ? 'bg-orange-600 text-white' 
+                  : f.highlight && f.count > 0
+                  ? 'bg-red-100 text-red-700 hover:bg-red-200 animate-pulse'
                   : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
               }`}
             >
@@ -724,6 +757,10 @@ export default function UserManagement() {
                 const isCoordinator = user.es_coordinador === true;
                 const isTreasurer = user.es_tesorero === true;
                 const isPlayerUser = user.es_jugador === true;
+                const isInactiveParent = roleFilter === "inactive_parents" && activePlayers.length === 0 && userPlayers.length > 0;
+                const lastActiveDate = userPlayers.length > 0 
+                  ? userPlayers.sort((a, b) => new Date(b.updated_date) - new Date(a.updated_date))[0].updated_date
+                  : null;
 
                 return (
                   <div
@@ -792,8 +829,96 @@ export default function UserManagement() {
                             ⚠️ Jugador +18 pendiente de activar
                           </p>
                         )}
+
+                        {/* Info usuario inactivo */}
+                        {isInactiveParent && (
+                          <div className="mt-2 space-y-1">
+                            <div className="flex flex-wrap gap-2 text-xs">
+                              <span className="text-slate-500">👥 Total: {userPlayers.length}</span>
+                              <span className="text-red-600 font-medium">❌ Inactivos: {userPlayers.length - activePlayers.length}</span>
+                              {lastActiveDate && (
+                                <span className="text-slate-500">📅 Última actividad: {new Date(lastActiveDate).toLocaleDateString('es-ES')}</span>
+                              )}
+                            </div>
+                            {userPlayers.length > 0 && (
+                              <div className="flex flex-wrap gap-1">
+                                {userPlayers.map(p => (
+                                  <Badge key={p.id} variant="outline" className="text-xs bg-red-50 text-red-700">
+                                    {p.nombre}
+                                  </Badge>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        )}
                       </div>
                     </div>
+
+                    {/* BOTONES ESPECIALES PARA USUARIOS INACTIVOS */}
+                    {isInactiveParent && !isDeleted && (
+                      <div className="bg-red-50 rounded-xl p-3 border-2 border-red-300 mt-3">
+                        <p className="text-xs font-bold text-red-700 uppercase tracking-wide mb-2">🔴 Acciones para Usuario sin Hijos Activos</p>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => {
+                              setShowReminderDialog(user);
+                              setReminderMessage(`Hola ${user.full_name},
+
+Vemos que aún no has renovado a tus jugadores para la nueva temporada.
+
+¿Tienes pensado inscribirlos de nuevo este año?
+
+Si necesitas ayuda o tienes alguna duda, estamos aquí para ayudarte.
+
+Atentamente,
+CD Bustarviejo`);
+                            }}
+                            className="text-blue-600 border-blue-300 hover:bg-blue-50"
+                          >
+                            <Mail className="w-4 h-4 mr-2" />
+                            📧 Recordatorio Renovación
+                          </Button>
+                          {user.acceso_activo !== false ? (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => updateUserMutation.mutate({
+                                userId: user.id,
+                                userData: { 
+                                  acceso_activo: false,
+                                  motivo_restriccion: "Sin jugadores activos - Temporada finalizada"
+                                }
+                              })}
+                              className="text-orange-600 border-orange-300 hover:bg-orange-50"
+                            >
+                              <Ban className="w-4 h-4 mr-2" />
+                              🚫 Desactivar Acceso
+                            </Button>
+                          ) : (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => activarAccesoMutation.mutate(user.id)}
+                              className="text-green-600 border-green-300 hover:bg-green-50"
+                            >
+                              <CheckCircle2 className="w-4 h-4 mr-2" />
+                              ✅ Reactivar Acceso
+                            </Button>
+                          )}
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleDeleteUser(user)}
+                            className="text-red-600 border-red-300 hover:bg-red-50"
+                          >
+                            <Trash2 className="w-4 h-4 mr-2" />
+                            🗑️ Eliminar
+                          </Button>
+                        </div>
+                      </div>
+                    )}
 
                     {/* Fila 2: BOTONES DE GESTIÓN DE ROLES - BIEN GRANDES Y VISIBLES */}
                     {!isDeleted && user.role !== "admin" && (
@@ -1762,6 +1887,45 @@ export default function UserManagement() {
                   Confirmar Cambio de Rol
                 </>
               )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Diálogo de recordatorio de renovación */}
+      <Dialog open={!!showReminderDialog} onOpenChange={() => setShowReminderDialog(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>📧 Enviar Recordatorio de Renovación</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="bg-slate-50 rounded-lg p-4">
+              <p className="font-bold text-slate-900">{showReminderDialog?.full_name}</p>
+              <p className="text-sm text-slate-600">{showReminderDialog?.email}</p>
+            </div>
+            <div className="space-y-2">
+              <Label>Mensaje del email:</Label>
+              <Textarea
+                value={reminderMessage}
+                onChange={(e) => setReminderMessage(e.target.value)}
+                rows={8}
+                className="font-mono text-sm"
+              />
+            </div>
+          </div>
+          <DialogFooter className="gap-2">
+            <Button variant="outline" onClick={() => setShowReminderDialog(null)}>
+              Cancelar
+            </Button>
+            <Button
+              onClick={() => enviarRecordatorioRenovacionMutation.mutate({ 
+                user: showReminderDialog, 
+                message: reminderMessage 
+              })}
+              className="bg-blue-600 hover:bg-blue-700"
+            >
+              <Mail className="w-4 h-4 mr-2" />
+              Enviar Recordatorio
             </Button>
           </DialogFooter>
         </DialogContent>
