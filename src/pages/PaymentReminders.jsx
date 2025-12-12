@@ -28,6 +28,9 @@ export default function PaymentReminders() {
   const [showSuccess, setShowSuccess] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
   const [selectiveDialogFamily, setSelectiveDialogFamily] = useState(null);
+  const [filterStaff, setFilterStaff] = useState("all"); // all, staff, noStaff
+  const [filterCategory, setFilterCategory] = useState("all");
+  const [filterDebtRange, setFilterDebtRange] = useState("all"); // all, low, medium, high
 
   const { data: payments = [], refetch: refetchPayments } = useQuery({
     queryKey: ['payments'],
