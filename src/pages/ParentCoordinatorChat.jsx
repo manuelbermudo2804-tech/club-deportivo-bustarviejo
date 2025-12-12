@@ -263,7 +263,7 @@ export default function ParentCoordinatorChat() {
         autor_email: user.email,
         autor_nombre: user.full_name,
         mensaje: data.mensaje,
-        adjuntos: data.adjuntos,
+        archivos_adjuntos: data.archivos_adjuntos || [],
         leido_padre: true,
         leido_coordinador: false,
         fecha_leido_padre: new Date().toISOString()
@@ -331,7 +331,7 @@ export default function ParentCoordinatorChat() {
     }
     
     if (!messageText.trim() && attachments.length === 0) return;
-    sendMessageMutation.mutate({ mensaje: messageText, adjuntos: attachments });
+    sendMessageMutation.mutate({ mensaje: messageText, archivos_adjuntos: attachments });
   };
 
   const reportConversationMutation = useMutation({

@@ -214,7 +214,7 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
 
     sendMessageMutation.mutate({
       mensaje: "📊 Encuesta",
-      adjuntos: [],
+      archivos_adjuntos: [],
       encuesta: {
         pregunta: pollQuestion,
         opciones: pollOptions.filter(o => o.trim()),
@@ -281,7 +281,7 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
         mensaje: "🎤 Audio", 
         audio_url: file_url,
         audio_duracion: audioDuration,
-        adjuntos: []
+        archivos_adjuntos: []
       });
       
       cancelAudio();
@@ -381,7 +381,8 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
         mensaje: data.mensaje,
         audio_url: data.audio_url,
         audio_duracion: data.audio_duracion,
-        adjuntos: data.adjuntos,
+        archivos_adjuntos: data.archivos_adjuntos || [],
+        adjuntos: data.archivos_adjuntos || [],
         encuesta: data.encuesta,
         ubicacion: data.ubicacion,
         respuesta_a: data.respuesta_a,
@@ -479,7 +480,7 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
       
       const messageData = { 
         mensaje: messageText, 
-        adjuntos: attachments 
+        archivos_adjuntos: attachments 
       };
       
       if (replyingTo) {
@@ -557,7 +558,7 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
           
           sendMessageMutation.mutate({
             mensaje: "📍 Ubicación compartida",
-            adjuntos: [],
+            archivos_adjuntos: [],
             ubicacion: {
               latitud: latitude,
               longitud: longitude,
