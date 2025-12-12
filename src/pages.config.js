@@ -78,6 +78,7 @@ import AdminChat from './pages/AdminChat';
 import ParentAdminChat from './pages/ParentAdminChat';
 import Chatbot from './pages/Chatbot';
 import CoachProfiles from './pages/CoachProfiles';
+import InactiveUsers from './pages/InactiveUsers';
 import __Layout from './Layout.jsx';
 
 
@@ -162,6 +163,7 @@ export const PAGES = {
     "ParentAdminChat": ParentAdminChat,
     "Chatbot": Chatbot,
     "CoachProfiles": CoachProfiles,
+    "InactiveUsers": InactiveUsers,
 }
 
 export const pagesConfig = {
