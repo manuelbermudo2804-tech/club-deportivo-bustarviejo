@@ -216,11 +216,34 @@ export default function PaymentReminders() {
       .sort((a, b) => b.totalFamilyDue - a.totalFamilyDue);
   }, [players, payments, categoryConfigs]);
 
-  const filteredFamilies = familiesData.filter(family =>
-    family.nombre_tutor.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    family.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    family.jugadores.some(j => j.nombre.toLowerCase().includes(searchQuery.toLowerCase()))
-  );
+  const filteredFamilies = familiesData.filter(family => {
+    // Filtro de búsqueda de texto
+    const matchesSearch = family.nombre_tutor.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      family.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      family.jugadores.some(j => j.nombre.toLowerCase().includes(searchQuery.toLowerCase()));
+    
+    // Filtro de staff
+    const matchesStaff = filterStaff === "all" || 
+      (filterStaff === "staff" && family.isStaff) ||
+      (filterStaff === "noStaff" && !family.isStaff);
+    
+    // Filtro de categoría
+    const matchesCategory = filterCategory === "all" || 
+      family.jugadores.some(j => j.deporte === filterCategory);
+    
+    // Filtro de rango de deuda
+    const matchesDebt = filterDebtRange === "all" ||
+      (filterDebtRange === "low" && family.totalFamilyDue < 100) ||
+      (filterDebtRange === "medium" && family.totalFamilyDue >= 100 && family.totalFamilyDue < 300) ||
+      (filterDebtRange === "high" && family.totalFamilyDue >= 300);
+    
+    return matchesSearch && matchesStaff && matchesCategory && matchesDebt;
+  });
+
+  // Obtener categorías únicas para el filtro
+  const availableCategories = [...new Set(
+    familiesData.flatMap(f => f.jugadores.map(j => j.deporte))
+  )].sort();
 
   const sendMassiveReminders = async () => {
     if (selectedFamilies.length === 0) {
