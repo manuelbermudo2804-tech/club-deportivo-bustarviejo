@@ -274,7 +274,8 @@ export default function ParentAdminChat() {
                             key={idx}
                             src={file.url} 
                             alt={file.nombre}
-                            className="rounded cursor-pointer max-w-full h-auto"
+                            loading="lazy"
+                            className="rounded cursor-pointer max-w-full h-auto bg-slate-200"
                             onClick={() => setShowImagePreview(file.url)}
                           />
                         ) : (

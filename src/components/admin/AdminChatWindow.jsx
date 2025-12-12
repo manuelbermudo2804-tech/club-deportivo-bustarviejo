@@ -330,7 +330,8 @@ export default function AdminChatWindow({ conversation, user, onClose, onMarkRes
                           key={idx}
                           src={file.url} 
                           alt={file.nombre}
-                          className="rounded cursor-pointer max-w-full h-auto max-h-64 object-contain"
+                          loading="lazy"
+                          className="rounded cursor-pointer max-w-full h-auto max-h-64 object-contain bg-slate-200"
                           onClick={() => setShowImagePreview(file.url)}
                         />
                       ) : (
