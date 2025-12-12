@@ -640,46 +640,17 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
       <audio ref={audioRef} onEnded={() => setPlayingAudio(null)} />
       <audio ref={notificationSoundRef} src="data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSuBzvLZizUIGGS57OihUBILUKXh8raFHwU5jtX0z3k" />
 
-      {/* Header compacto */}
-      <div className="p-2 bg-white border-b flex-shrink-0">
-        {conversation.escalada_desde_entrenador && (
-          <Alert className="mb-3 bg-orange-50 border-orange-300">
-            <AlertTriangle className="w-4 h-4 text-orange-600" />
-            <AlertDescription className="text-orange-800 text-xs ml-2">
-              <strong>⚽ Conversación escalada desde entrenador</strong>
-              <br />
-              Escalada por {conversation.entrenador_nombre_que_escalo} el {format(new Date(conversation.fecha_escalacion), "d 'de' MMM, HH:mm", { locale: es })}
-              <br />
-              💬 El entrenador necesita tu intervención para resolver esta situación
-            </AlertDescription>
-          </Alert>
-        )}
-        {conversation.reportada_admin && (
-          <Alert className="mb-3 bg-red-50 border-red-300">
-            <AlertTriangle className="w-4 h-4 text-red-600" />
-            <AlertDescription className="text-red-800 text-xs ml-2">
-              <strong>🔴 Conversación bajo revisión administrativa</strong>
-              <br />
-              Reportada por {conversation.reportada_nombre} el {format(new Date(conversation.fecha_reporte), "d 'de' MMM", { locale: es })}
-              {conversation.motivo_reporte && <><br />💬 Motivo: {conversation.motivo_reporte}</>}
-            </AlertDescription>
-          </Alert>
-        )}
-        <div className="flex items-center justify-between mb-3">
-          <div className="flex-1">
-            <div className="flex items-center gap-2">
-              <h2 className="font-bold text-slate-900">{conversation.padre_nombre}</h2>
-              {conversation.reportada_admin && <Badge className="bg-red-500 text-white text-xs">🔴 Reportada</Badge>}
-              {conversation.prioritaria && <Star className="w-4 h-4 text-orange-500 fill-orange-500" />}
-              {conversation.etiqueta && (
-                <Badge variant="outline" className="text-xs">{conversation.etiqueta}</Badge>
-              )}
-            </div>
-            <p className="text-sm text-slate-500">
-              {conversation.jugadores_asociados?.map(j => `${j.jugador_nombre} (${j.categoria})`).join(', ')}
+      {/* Header mínimo */}
+      <div className="p-1.5 bg-white border-b flex-shrink-0">
+        <div className="flex items-center justify-between">
+          <div className="flex-1 min-w-0">
+            <h2 className="font-bold text-xs text-slate-900 truncate">{conversation.padre_nombre}</h2>
+            <p className="text-xs text-slate-500 truncate">
+              {conversation.jugadores_asociados?.map(j => j.jugador_nombre).join(', ')}
             </p>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1 flex-shrink-0">
+            {conversation.prioritaria && <Star className="w-3 h-3 text-orange-500 fill-orange-500" />}
             {isCoordinator && (
               <EscalateToAdminButton 
                 conversation={conversation}
@@ -687,103 +658,14 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
                 coordinatorUser={user}
               />
             )}
-            <Button 
-              variant="ghost" 
-              size="sm"
-              onClick={() => setShowGallery(!showGallery)}
-            >
-              <Folder className="w-4 h-4 mr-1" />
-              {allSharedFiles.length}
-            </Button>
-            <Button variant="ghost" size="sm" onClick={onClose}>
-              <X className="w-4 h-4" />
+            <Button variant="ghost" size="sm" onClick={onClose} className="h-7 w-7 p-0 lg:hidden">
+              <X className="w-3 h-3" />
             </Button>
           </div>
         </div>
-
-        {/* Barra de herramientas (solo para coordinador) */}
-        {isCoordinator && (
-          <div className="flex items-center gap-2 flex-wrap">
-            <Button size="sm" variant="outline" onClick={togglePriority}>
-              <Star className={`w-4 h-4 mr-1 ${conversation.prioritaria ? 'fill-orange-500 text-orange-500' : ''}`} />
-              {conversation.prioritaria ? 'Quitar prioridad' : 'Marcar urgente'}
-            </Button>
-            <Select value={conversation.etiqueta || ""} onValueChange={changeLabel}>
-              <SelectTrigger className="w-40 h-8 text-xs">
-                <Tag className="w-3 h-3 mr-1" />
-                <SelectValue placeholder="Etiquetar" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value={null}>Sin etiqueta</SelectItem>
-                <SelectItem value="Horarios">Horarios</SelectItem>
-                <SelectItem value="Quejas">Quejas</SelectItem>
-                <SelectItem value="Consulta Partido">Consulta Partido</SelectItem>
-                <SelectItem value="Equipación">Equipación</SelectItem>
-                <SelectItem value="Transporte">Transporte</SelectItem>
-                <SelectItem value="Lesiones">Lesiones</SelectItem>
-                <SelectItem value="Otro">Otro</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        )}
-
       </div>
 
-      {/* Búsqueda avanzada */}
-      <SearchFilters
-        searchTerm={searchTerm}
-        onSearchChange={setSearchTerm}
-        filterType={filterType}
-        onFilterTypeChange={setFilterType}
-        filterPerson={filterPerson}
-        onFilterPersonChange={setFilterPerson}
-        filterDate={filterDate}
-        onFilterDateChange={setFilterDate}
-        allParticipants={[
-          { email: conversation.padre_email, nombre: conversation.padre_nombre },
-          { email: user.email, nombre: "Coordinador" }
-        ]}
-      />
 
-      {/* Galería de archivos */}
-      {showGallery && (
-        <div className="p-4 bg-white border-b max-h-[300px] overflow-y-auto">
-          <div className="flex items-center justify-between mb-3">
-            <h3 className="font-semibold text-slate-900">📁 Archivos Compartidos</h3>
-            <Button size="sm" variant="ghost" onClick={() => setShowGallery(false)}>
-              <X className="w-4 h-4" />
-            </Button>
-          </div>
-          {allSharedFiles.length === 0 ? (
-            <p className="text-sm text-slate-500 text-center py-4">No hay archivos compartidos</p>
-          ) : (
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-              {allSharedFiles.map((file, idx) => (
-                file.tipo?.startsWith('image/') ? (
-                  <img 
-                    key={idx}
-                    src={file.url}
-                    alt={file.nombre}
-                    className="w-full h-24 object-cover rounded cursor-pointer hover:opacity-80"
-                    onClick={() => setShowImagePreview(file.url)}
-                  />
-                ) : (
-                  <a
-                    key={idx}
-                    href={file.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex flex-col items-center gap-1 p-3 bg-slate-100 rounded hover:bg-slate-200"
-                  >
-                    <FileText className="w-8 h-8 text-slate-600" />
-                    <span className="text-xs truncate w-full text-center">{file.nombre}</span>
-                  </a>
-                )
-              ))}
-            </div>
-          )}
-        </div>
-      )}
 
       {/* Mensajes */}
       <div className="flex-1 overflow-y-auto p-2 sm:p-4 space-y-2 bg-slate-50">
@@ -966,7 +848,7 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
       </div>
 
       {/* Input */}
-      <div className="p-2 sm:p-3 bg-white border-t flex-shrink-0">
+      <div className="p-2 bg-white border-t flex-shrink-0">
         {attachments.length > 0 && (
           <div className="mb-2 flex flex-wrap gap-1">
             {attachments.map((file, idx) => (
@@ -1014,7 +896,7 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
           />
         )}
 
-        <div className="space-y-2">
+        <div className="flex gap-2 items-end">
           <input 
             ref={fileInputRef}
             type="file" 
@@ -1034,106 +916,50 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
             disabled={uploading} 
           />
           
-          {isCoordinator ? (
-            <div className="flex gap-1 justify-center flex-wrap">
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => fileInputRef.current?.click()}
-                disabled={uploading}
-                className="h-8 px-3 text-xs"
-              >
-                <Paperclip className="w-3 h-3 mr-1" />
-                Archivo
-              </Button>
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => cameraInputRef.current?.click()}
-                disabled={uploading}
-                className="h-8 px-3 text-xs"
-              >
-                <Camera className="w-3 h-3 mr-1" />
-                Foto
-              </Button>
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={recording ? stopRecording : startRecording}
-                className={`h-8 px-3 text-xs ${recording ? 'text-red-500' : ''}`}
-              >
-                <Mic className="w-3 h-3 mr-1" />
-                Audio
-              </Button>
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => setShowLocationDialog(true)}
-                className="h-8 px-3 text-xs"
-              >
-                <MapPin className="w-3 h-3 mr-1" />
-                Ubicación
-              </Button>
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => setShowPollDialog(true)}
-                className="h-8 px-3 text-xs"
-              >
-                📊 Encuesta
-              </Button>
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => setShowQuickReplies(!showQuickReplies)}
-                className="h-8 px-3 text-xs"
-              >
-                ⚡ Respuestas
-              </Button>
-            </div>
-          ) : (
-            <div className="flex justify-center">
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => fileInputRef.current?.click()}
-                disabled={uploading}
-                className="h-8 px-3 text-xs"
-              >
-                <Paperclip className="w-3 h-3 mr-1" />
-                Adjuntar documento
-              </Button>
-            </div>
+          {isCoordinator && (
+            <ChatInputActions
+              onFileClick={() => fileInputRef.current?.click()}
+              onCameraClick={() => cameraInputRef.current?.click()}
+              onAudioClick={recording ? stopRecording : startRecording}
+              onLocationClick={() => setShowLocationDialog(true)}
+              onPollClick={() => setShowPollDialog(true)}
+              onQuickRepliesClick={() => setShowQuickReplies(!showQuickReplies)}
+              uploading={uploading}
+              isRecording={recording}
+              showCamera={true}
+              showAudio={true}
+              showLocation={true}
+              showPoll={true}
+              showQuickReplies={true}
+            />
           )}
 
-          <div className="flex gap-2 items-end">
-            <Textarea
-              placeholder="Escribe tu mensaje..."
-              value={messageText}
-              onChange={(e) => {
-                setMessageText(e.target.value);
-                handleTyping();
-              }}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' && !e.shiftKey) {
-                  e.preventDefault();
-                  handleSend();
-                }
-              }}
-              className="flex-1 min-h-[100px] lg:min-h-[60px] resize-none text-base"
-              rows={4}
-              disabled={recording || audioBlob}
-            />
+          <Textarea
+            placeholder="Escribe tu mensaje..."
+            value={messageText}
+            onChange={(e) => {
+              setMessageText(e.target.value);
+              handleTyping();
+            }}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                handleSend();
+              }
+            }}
+            className="flex-1 min-h-[120px] lg:min-h-[80px] resize-none text-base"
+            rows={5}
+            disabled={recording || audioBlob}
+          />
 
-            <Button 
-              onClick={handleSend} 
-              disabled={!messageText.trim() && attachments.length === 0 && !audioBlob}
-              size="icon"
-              className="h-12 w-12 lg:h-10 lg:w-10 bg-cyan-600 hover:bg-cyan-700 p-0 flex-shrink-0"
-            >
-              <Send className="w-5 h-5" />
-            </Button>
-          </div>
+          <Button 
+            onClick={handleSend} 
+            disabled={!messageText.trim() && attachments.length === 0 && !audioBlob}
+            size="icon"
+            className="h-12 w-12 lg:h-10 lg:w-10 bg-cyan-600 hover:bg-cyan-700 p-0 flex-shrink-0"
+          >
+            <Send className="w-5 h-5" />
+          </Button>
         </div>
       </div>
 

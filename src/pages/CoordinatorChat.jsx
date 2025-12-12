@@ -117,34 +117,31 @@ export default function CoordinatorChat() {
       
       {/* Lista de conversaciones */}
       <div className={`${selectedConversation ? 'hidden lg:flex' : 'flex'} w-full lg:w-96 border-r bg-slate-50 flex-col h-full overflow-hidden`}>
-        <div className="p-4 bg-gradient-to-r from-cyan-600 to-cyan-700 text-white">
-          <div className="flex items-center justify-between mb-3">
+        <div className="p-2 bg-gradient-to-r from-cyan-600 to-cyan-700 text-white">
+          <div className="flex items-center justify-between mb-2">
             <div>
-              <h1 className="text-xl font-bold flex items-center gap-2">
-                <MessageCircle className="w-6 h-6" />
+              <h1 className="text-sm font-bold flex items-center gap-1.5">
+                <MessageCircle className="w-4 h-4" />
                 Chat Coordinador
               </h1>
-              <p className="text-xs text-cyan-100">
-                Resuelve dudas deportivas, quejas y consultas de las familias
-              </p>
             </div>
             <Button
               variant="ghost"
               size="sm"
               onClick={() => setShowSettings(!showSettings)}
-              className="text-white hover:bg-white/20"
+              className="text-white hover:bg-white/20 h-7 w-7 p-0"
               title="Configuración"
             >
-              <Settings className="w-5 h-5" />
+              <Settings className="w-4 h-4" />
             </Button>
           </div>
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+            <Search className="absolute left-2 top-1/2 -translate-y-1/2 w-3 h-3 text-slate-400" />
             <Input
-              placeholder="Buscar padre o jugador..."
+              placeholder="Buscar..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-9 bg-white"
+              className="pl-7 bg-white h-8 text-xs"
             />
           </div>
         </div>

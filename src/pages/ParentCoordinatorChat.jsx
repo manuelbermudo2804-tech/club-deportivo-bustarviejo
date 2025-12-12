@@ -422,52 +422,7 @@ export default function ParentCoordinatorChat() {
           </div>
         </CardHeader>
         <CardContent className="p-0 flex-1 flex flex-col overflow-hidden">
-          <Alert className="m-2 sm:m-4 bg-cyan-50 border-cyan-200 flex-shrink-0">
-            <MessageCircle className="w-4 h-4 text-cyan-600" />
-            <AlertDescription className="text-cyan-800 text-xs">
-              <strong>💬 Chat Coordinador:</strong> Consultas deportivas, quejas y problemas relacionados con lo deportivo
-            </AlertDescription>
-          </Alert>
 
-          {/* Galería de archivos */}
-          {showGallery && (
-            <div className="p-4 bg-white border-b max-h-[200px] overflow-y-auto flex-shrink-0">
-              <div className="flex items-center justify-between mb-3">
-                <h3 className="font-semibold text-slate-900">📁 Archivos Compartidos</h3>
-                <Button size="sm" variant="ghost" onClick={() => setShowGallery(false)}>
-                  <X className="w-4 h-4" />
-                </Button>
-              </div>
-              {allSharedFiles.length === 0 ? (
-                <p className="text-sm text-slate-500 text-center py-4">No hay archivos compartidos</p>
-              ) : (
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                  {allSharedFiles.map((file, idx) => (
-                    file.tipo?.startsWith('image/') ? (
-                      <img 
-                        key={idx}
-                        src={file.url}
-                        alt={file.nombre}
-                        className="w-full h-24 object-cover rounded cursor-pointer hover:opacity-80"
-                        onClick={() => setShowImagePreview(file.url)}
-                      />
-                    ) : (
-                      <a
-                        key={idx}
-                        href={file.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex flex-col items-center gap-1 p-3 bg-slate-100 rounded hover:bg-slate-200"
-                      >
-                        <FileText className="w-8 h-8 text-slate-600" />
-                        <span className="text-xs truncate w-full text-center">{file.nombre}</span>
-                      </a>
-                    )
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
 
           {/* Mensajes */}
           <div className="flex-1 overflow-y-auto p-2 sm:p-4 space-y-2 bg-slate-50">
