@@ -257,6 +257,25 @@ export default function Payments() {
     
     await updatePaymentMutation.mutateAsync({ id: payment.id, paymentData: updatedData });
     
+    // Generar recibo PDF cuando se marca como Pagado
+    if (newStatus === "Pagado") {
+      try {
+        console.log('📄 [Payments] Generando recibo PDF para pago:', payment.id);
+        const receiptResponse = await base44.functions.invoke('generatePaymentReceipt', {
+          paymentId: payment.id
+        });
+        
+        if (receiptResponse.data?.success) {
+          console.log('✅ [Payments] Recibo PDF generado:', receiptResponse.data.recibo_url);
+          await queryClient.invalidateQueries({ queryKey: ['myPayments'] });
+          toast.success("💾 Recibo generado y disponible");
+        }
+      } catch (receiptError) {
+        console.error("Error generating receipt:", receiptError);
+        toast.error("Error al generar recibo (el pago se confirmó correctamente)");
+      }
+    }
+    
     // AUTO-CREAR SOCIO cuando se marca pago como Pagado
     if (newStatus === "Pagado") {
       try {
@@ -1060,6 +1079,17 @@ export default function Payments() {
                                          </Button>
                                        ) : payment.estado === "Pendiente" && (
                                          <span className="text-red-600 text-xs lg:text-sm">❌</span>
+                                       )}
+                                       {payment.recibo_url && payment.estado === "Pagado" && (
+                                         <Button
+                                           variant="ghost"
+                                           size="sm"
+                                           onClick={() => window.open(payment.recibo_url, '_blank')}
+                                           className="text-green-600 hover:text-green-700 p-1 h-6"
+                                           title="Descargar recibo"
+                                         >
+                                           📄
+                                         </Button>
                                        )}
                                        {isAdmin && payment.estado !== "Pagado" && payment.justificante_url && !payment.isVirtual && (
                                          <Button
