@@ -153,6 +153,45 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
     }, 3000);
   };
 
+  const compressImage = (file) => {
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          const MAX_WIDTH = 800;
+          const MAX_HEIGHT = 800;
+          let width = img.width;
+          let height = img.height;
+
+          if (width > height) {
+            if (width > MAX_WIDTH) {
+              height *= MAX_WIDTH / width;
+              width = MAX_WIDTH;
+            }
+          } else {
+            if (height > MAX_HEIGHT) {
+              width *= MAX_HEIGHT / height;
+              height = MAX_HEIGHT;
+            }
+          }
+
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, width, height);
+
+          canvas.toBlob((blob) => {
+            resolve(new File([blob], file.name, { type: 'image/jpeg' }));
+          }, 'image/jpeg', 0.7);
+        };
+        img.src = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    });
+  };
+
   const handleFileUpload = async (e) => {
     const files = Array.from(e.target.files);
     setUploading(true);
@@ -160,13 +199,17 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
     try {
       const uploaded = [];
       for (const file of files) {
-        // BLOQUEAR VIDEOS
         if (file.type.startsWith('video/')) {
           toast.error("❌ No se pueden enviar videos por este chat");
           continue;
         }
         
-        const { file_url } = await base44.integrations.Core.UploadFile({ file });
+        let fileToUpload = file;
+        if (file.type.startsWith('image/')) {
+          fileToUpload = await compressImage(file);
+        }
+        
+        const { file_url } = await base44.integrations.Core.UploadFile({ file: fileToUpload });
         uploaded.push({
           url: file_url,
           nombre: file.name,
@@ -191,7 +234,8 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
     
     setUploading(true);
     try {
-      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+      const compressedFile = await compressImage(file);
+      const { file_url } = await base44.integrations.Core.UploadFile({ file: compressedFile });
       setAttachments([...attachments, {
         url: file_url,
         nombre: file.name,
@@ -290,16 +334,22 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
     }
   };
 
-  const togglePlayAudio = (audioUrl) => {
-    if (playingAudio === audioUrl) {
-      audioRef.current?.pause();
-      setPlayingAudio(null);
-    } else {
-      if (audioRef.current) {
-        audioRef.current.src = audioUrl;
-        audioRef.current.play();
-        setPlayingAudio(audioUrl);
+  const togglePlayAudio = async (audioUrl) => {
+    try {
+      if (playingAudio === audioUrl) {
+        audioRef.current?.pause();
+        setPlayingAudio(null);
+      } else {
+        if (audioRef.current) {
+          audioRef.current.src = audioUrl;
+          await audioRef.current.play();
+          setPlayingAudio(audioUrl);
+        }
       }
+    } catch (error) {
+      console.error("Error playing audio:", error);
+      setPlayingAudio(null);
+      toast.error("Error al reproducir el audio");
     }
   };
 
@@ -638,7 +688,14 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
 
   return (
     <div className="flex flex-col h-full w-full overflow-hidden">
-      <audio ref={audioRef} onEnded={() => setPlayingAudio(null)} />
+      <audio 
+        ref={audioRef} 
+        onEnded={() => setPlayingAudio(null)}
+        onError={() => {
+          setPlayingAudio(null);
+          toast.error("Error al cargar el audio");
+        }}
+      />
       <audio ref={notificationSoundRef} src="data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSuBzvLZizUIGGS57OihUBILUKXh8raFHwU5jtX0z3k" />
 
       {/* Header mínimo */}
@@ -751,7 +808,8 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
                           key={idx}
                           src={file.url} 
                           alt={file.nombre}
-                          className="rounded cursor-pointer max-w-full h-auto"
+                          loading="lazy"
+                          className="rounded cursor-pointer max-w-full h-auto bg-slate-200"
                           onClick={() => setShowImagePreview(file.url)}
                         />
                       ) : (
@@ -950,14 +1008,13 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
             }}
             className="flex-1 min-h-[44px] max-h-32 resize-none text-base py-3 px-3"
             rows={1}
-            disabled={recording || audioBlob}
           />
 
           <Button 
             onClick={handleSend} 
-            disabled={!messageText.trim() && attachments.length === 0 && !audioBlob}
+            disabled={!messageText.trim() && attachments.length === 0}
             size="icon"
-            className="h-12 w-12 lg:h-10 lg:w-10 bg-cyan-600 hover:bg-cyan-700 p-0 flex-shrink-0"
+            className="h-11 w-11 bg-cyan-600 hover:bg-cyan-700 p-0 flex-shrink-0 rounded-full"
           >
             <Send className="w-5 h-5" />
           </Button>
