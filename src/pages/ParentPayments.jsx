@@ -654,15 +654,26 @@ Email: cdbustarviejo@gmail.com
                                     </Button>
                                   )}
                                   {payment.justificante_url && (
-                                    <Button
-                                      size="sm"
-                                      variant="ghost"
-                                      onClick={() => window.open(payment.justificante_url, '_blank')}
-                                      className={payment.estado === "Pagado" ? "text-green-600 hover:text-green-700" : "text-orange-600 hover:text-orange-700"}
-                                    >
-                                      <FileText className="w-4 h-4 mr-1" />
-                                      Ver
-                                    </Button>
+                                   <Button
+                                     size="sm"
+                                     variant="ghost"
+                                     onClick={() => window.open(payment.justificante_url, '_blank')}
+                                     className={payment.estado === "Pagado" ? "text-green-600 hover:text-green-700" : "text-orange-600 hover:text-orange-700"}
+                                   >
+                                     <FileText className="w-4 h-4 mr-1" />
+                                     Ver
+                                   </Button>
+                                  )}
+                                  {payment.recibo_url && payment.estado === "Pagado" && (
+                                   <Button
+                                     size="sm"
+                                     variant="ghost"
+                                     onClick={() => window.open(payment.recibo_url, '_blank')}
+                                     className="text-blue-600 hover:text-blue-700"
+                                     title="Descargar recibo"
+                                   >
+                                     📄 Recibo
+                                   </Button>
                                   )}
                                 </div>
                               </div>
