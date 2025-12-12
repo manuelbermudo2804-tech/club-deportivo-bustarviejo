@@ -680,35 +680,103 @@ export default function PaymentReminders() {
         </Card>
       </div>
 
-      {/* Búsqueda y acciones masivas */}
-      <div className="flex flex-col md:flex-row gap-3">
-        <Input
-          placeholder="Buscar familia o jugador..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          className="flex-1"
-        />
-        <div className="flex gap-2">
-          <Button
-            onClick={selectAll}
-            variant="outline"
-            size="sm"
-          >
-            <CheckCircle2 className="w-4 h-4 mr-2" />
-            {selectedFamilies.length === filteredFamilies.length ? "Deseleccionar" : "Seleccionar"} todas
-          </Button>
-          <Button
-            onClick={sendMassiveReminders}
-            disabled={selectedFamilies.length === 0 || sendingMassive}
-            className="bg-orange-600 hover:bg-orange-700 active:scale-95 transition-transform"
-          >
-            {sendingMassive ? (
-              <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Enviando...</>
-            ) : (
-              <><Send className="w-4 h-4 mr-2" />Enviar Masivo ({selectedFamilies.length})</>
-            )}
-          </Button>
-        </div>
+      {/* Búsqueda y filtros */}
+      <Card className="bg-slate-50">
+        <CardContent className="p-4 space-y-3">
+          <Input
+            placeholder="🔍 Buscar familia o jugador..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full"
+          />
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+            <div>
+              <label className="text-xs text-slate-600 mb-1 block">Tipo de familia</label>
+              <select
+                value={filterStaff}
+                onChange={(e) => setFilterStaff(e.target.value)}
+                className="w-full text-sm border rounded-lg px-3 py-2 bg-white"
+              >
+                <option value="all">Todas las familias</option>
+                <option value="noStaff">Solo familias (sin staff)</option>
+                <option value="staff">Solo miembros del staff</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="text-xs text-slate-600 mb-1 block">Categoría/Deporte</label>
+              <select
+                value={filterCategory}
+                onChange={(e) => setFilterCategory(e.target.value)}
+                className="w-full text-sm border rounded-lg px-3 py-2 bg-white"
+              >
+                <option value="all">Todas las categorías</option>
+                {availableCategories.map(cat => (
+                  <option key={cat} value={cat}>{cat}</option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="text-xs text-slate-600 mb-1 block">Rango de deuda</label>
+              <select
+                value={filterDebtRange}
+                onChange={(e) => setFilterDebtRange(e.target.value)}
+                className="w-full text-sm border rounded-lg px-3 py-2 bg-white"
+              >
+                <option value="all">Cualquier importe</option>
+                <option value="low">Menos de 100€</option>
+                <option value="medium">100€ - 300€</option>
+                <option value="high">Más de 300€</option>
+              </select>
+            </div>
+          </div>
+
+          {(filterStaff !== "all" || filterCategory !== "all" || filterDebtRange !== "all" || searchQuery) && (
+            <div className="flex items-center gap-2">
+              <Badge variant="outline" className="text-xs">
+                {filteredFamilies.length} de {familiesData.length} familias
+              </Badge>
+              <Button
+                onClick={() => {
+                  setSearchQuery("");
+                  setFilterStaff("all");
+                  setFilterCategory("all");
+                  setFilterDebtRange("all");
+                }}
+                variant="ghost"
+                size="sm"
+                className="text-xs"
+              >
+                Limpiar filtros
+              </Button>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Acciones masivas */}
+      <div className="flex gap-2">
+        <Button
+          onClick={selectAll}
+          variant="outline"
+          size="sm"
+        >
+          <CheckCircle2 className="w-4 h-4 mr-2" />
+          {selectedFamilies.length === filteredFamilies.length ? "Deseleccionar" : "Seleccionar"} todas ({filteredFamilies.length})
+        </Button>
+        <Button
+          onClick={sendMassiveReminders}
+          disabled={selectedFamilies.length === 0 || sendingMassive}
+          className="bg-orange-600 hover:bg-orange-700 active:scale-95 transition-transform"
+        >
+          {sendingMassive ? (
+            <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Enviando...</>
+          ) : (
+            <><Send className="w-4 h-4 mr-2" />Enviar Masivo ({selectedFamilies.length})</>
+          )}
+        </Button>
       </div>
 
       {selectedFamilies.length > 0 && (
