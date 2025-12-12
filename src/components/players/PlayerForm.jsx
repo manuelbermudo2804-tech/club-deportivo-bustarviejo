@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import ValidatedInput from "@/components/ui/ValidatedInput";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import AdultPlayerInvitationRequest from "./AdultPlayerInvitationRequest";
@@ -983,19 +984,15 @@ export default function PlayerForm({ player, onSubmit, onCancel, isSubmitting, i
                   <Label htmlFor="dni_jugador" className={fieldErrors.dni_jugador ? "text-red-600 font-bold" : ""}>
                     DNI del Jugador {requiresDNI ? "*" : "(opcional si menor de 14)"} {fieldErrors.dni_jugador && <span className="text-red-500 text-xs ml-1">⚠️</span>}
                   </Label>
-                  <Input 
+                  <ValidatedInput 
                         id="dni_jugador" 
+                        validationType="dni"
                         name="dni"
                         autoComplete="off"
                         value={currentPlayer.dni_jugador || ""} 
                         onChange={(e) => {
                           setCurrentPlayer({...currentPlayer, dni_jugador: e.target.value});
                           if (fieldErrors.dni_jugador) setFieldErrors(prev => ({...prev, dni_jugador: null}));
-                        }}
-                        onBlur={(e) => {
-                          if (e.target.value !== (currentPlayer.dni_jugador || "")) {
-                            setCurrentPlayer({...currentPlayer, dni_jugador: e.target.value});
-                          }
                         }}
                         placeholder="12345678A" 
                         required={requiresDNI} 
@@ -1123,19 +1120,15 @@ export default function PlayerForm({ player, onSubmit, onCancel, isSubmitting, i
                         <Label htmlFor="dni_tutor_legal" className={fieldErrors.dni_tutor_legal ? "text-red-600 font-bold" : ""}>
                           DNI del Tutor Legal * {fieldErrors.dni_tutor_legal && <span className="text-red-500 text-xs ml-1">⚠️ Obligatorio</span>}
                         </Label>
-                        <Input 
+                        <ValidatedInput 
                           id="dni_tutor_legal" 
+                          validationType="dni"
                           name="parent-dni"
                           autoComplete="off"
                           value={currentPlayer.dni_tutor_legal || ""} 
                           onChange={(e) => {
                             setCurrentPlayer({...currentPlayer, dni_tutor_legal: e.target.value});
                             if (fieldErrors.dni_tutor_legal) setFieldErrors(prev => ({...prev, dni_tutor_legal: null}));
-                          }}
-                          onBlur={(e) => {
-                            if (e.target.value !== (currentPlayer.dni_tutor_legal || "")) {
-                              setCurrentPlayer({...currentPlayer, dni_tutor_legal: e.target.value});
-                            }
                           }}
                           placeholder="12345678A" 
                           required 
@@ -1164,8 +1157,9 @@ export default function PlayerForm({ player, onSubmit, onCancel, isSubmitting, i
                         <Label htmlFor="email_padre" className={fieldErrors.email_padre ? "text-red-600 font-bold" : ""}>
                           Correo Electrónico Tutor * {fieldErrors.email_padre && <span className="text-red-500 text-xs ml-1">⚠️ Obligatorio</span>}
                         </Label>
-                        <Input 
+                        <ValidatedInput 
                           id="email_padre" 
+                          validationType="email"
                           name="email"
                           type="email" 
                           autoComplete="email"
@@ -1173,11 +1167,6 @@ export default function PlayerForm({ player, onSubmit, onCancel, isSubmitting, i
                           onChange={(e) => {
                             setCurrentPlayer({...currentPlayer, email_padre: e.target.value});
                             if (fieldErrors.email_padre) setFieldErrors(prev => ({...prev, email_padre: null}));
-                          }}
-                          onBlur={(e) => {
-                            if (e.target.value !== currentPlayer.email_padre) {
-                              setCurrentPlayer({...currentPlayer, email_padre: e.target.value});
-                            }
                           }}
                           required 
                           disabled={isParent} 
@@ -1190,8 +1179,9 @@ export default function PlayerForm({ player, onSubmit, onCancel, isSubmitting, i
                         <Label htmlFor="telefono" className={fieldErrors.telefono ? "text-red-600 font-bold" : ""}>
                           Teléfono Tutor * {fieldErrors.telefono && <span className="text-red-500 text-xs ml-1">⚠️ Obligatorio</span>}
                         </Label>
-                        <Input 
+                        <ValidatedInput 
                           id="telefono" 
+                          validationType="telefono"
                           name="tel"
                           type="tel" 
                           autoComplete="tel"
@@ -1199,11 +1189,6 @@ export default function PlayerForm({ player, onSubmit, onCancel, isSubmitting, i
                           onChange={(e) => {
                             setCurrentPlayer({...currentPlayer, telefono: e.target.value});
                             if (fieldErrors.telefono) setFieldErrors(prev => ({...prev, telefono: null}));
-                          }}
-                          onBlur={(e) => {
-                            if (e.target.value !== currentPlayer.telefono) {
-                              setCurrentPlayer({...currentPlayer, telefono: e.target.value});
-                            }
                           }}
                           required 
                           placeholder="600123456" 
@@ -1226,35 +1211,27 @@ export default function PlayerForm({ player, onSubmit, onCancel, isSubmitting, i
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2">
                     <Label htmlFor="email_padre">Correo Electrónico *</Label>
-                    <Input 
+                    <ValidatedInput 
                       id="email_padre" 
+                      validationType="email"
                       name="email"
                       type="email" 
                       autoComplete="email"
                       value={currentPlayer.email_padre} 
                       onChange={(e) => setCurrentPlayer({...currentPlayer, email_padre: e.target.value})}
-                      onBlur={(e) => {
-                        if (e.target.value !== currentPlayer.email_padre) {
-                          setCurrentPlayer({...currentPlayer, email_padre: e.target.value});
-                        }
-                      }}
                       required 
                     />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="telefono">Teléfono *</Label>
-                    <Input 
+                    <ValidatedInput 
                       id="telefono" 
+                      validationType="telefono"
                       name="tel"
                       type="tel" 
                       autoComplete="tel"
                       value={currentPlayer.telefono} 
                       onChange={(e) => setCurrentPlayer({...currentPlayer, telefono: e.target.value})}
-                      onBlur={(e) => {
-                        if (e.target.value !== currentPlayer.telefono) {
-                          setCurrentPlayer({...currentPlayer, telefono: e.target.value});
-                        }
-                      }}
                       required 
                       placeholder="600123456"
                     />
@@ -1439,17 +1416,13 @@ export default function PlayerForm({ player, onSubmit, onCancel, isSubmitting, i
                           </div>
                           <div className="space-y-2">
                             <Label>Teléfono</Label>
-                            <Input 
+                            <ValidatedInput 
+                              validationType="telefono"
                               name="emergency1-tel"
                               type="tel" 
                               autoComplete="tel"
                               value={currentPlayer.ficha_medica?.contacto_emergencia_telefono || ""} 
                               onChange={(e) => setCurrentPlayer({...currentPlayer, ficha_medica: {...(currentPlayer.ficha_medica || {}), contacto_emergencia_telefono: e.target.value}})}
-                              onBlur={(e) => {
-                                if (e.target.value !== (currentPlayer.ficha_medica?.contacto_emergencia_telefono || "")) {
-                                  setCurrentPlayer({...currentPlayer, ficha_medica: {...(currentPlayer.ficha_medica || {}), contacto_emergencia_telefono: e.target.value}});
-                                }
-                              }}
                               placeholder="600 123 456" 
                             />
                           </div>
@@ -1477,17 +1450,13 @@ export default function PlayerForm({ player, onSubmit, onCancel, isSubmitting, i
                           </div>
                           <div className="space-y-2">
                             <Label>Teléfono</Label>
-                            <Input 
+                            <ValidatedInput 
+                              validationType="telefono"
                               name="emergency2-tel"
                               type="tel" 
                               autoComplete="tel"
                               value={currentPlayer.ficha_medica?.contacto_emergencia_2_telefono || ""} 
                               onChange={(e) => setCurrentPlayer({...currentPlayer, ficha_medica: {...(currentPlayer.ficha_medica || {}), contacto_emergencia_2_telefono: e.target.value}})}
-                              onBlur={(e) => {
-                                if (e.target.value !== (currentPlayer.ficha_medica?.contacto_emergencia_2_telefono || "")) {
-                                  setCurrentPlayer({...currentPlayer, ficha_medica: {...(currentPlayer.ficha_medica || {}), contacto_emergencia_2_telefono: e.target.value}});
-                                }
-                              }}
                               placeholder="600 654 321" 
                             />
                           </div>

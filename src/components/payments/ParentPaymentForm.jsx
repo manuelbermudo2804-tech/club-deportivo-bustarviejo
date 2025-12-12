@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import ValidatedInput from "@/components/ui/ValidatedInput";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
@@ -450,7 +451,8 @@ export default function ParentPaymentForm({ players, payments = [], onSubmit, on
 
                   <div className="space-y-2">
                     <Label htmlFor="cantidad">Cantidad Pagada (€) *</Label>
-                    <Input
+                    <ValidatedInput
+                      validationType="dinero"
                       type="number"
                       step="0.01"
                       value={currentPayment.cantidad}

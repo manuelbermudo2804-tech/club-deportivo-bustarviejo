@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import ValidatedInput from "@/components/ui/ValidatedInput";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -79,8 +80,9 @@ export default function MemberEditForm({ member, open, onClose, onSave, isLoadin
             {/* DNI */}
             <div>
               <Label htmlFor="dni">DNI *</Label>
-              <Input
+              <ValidatedInput
                 id="dni"
+                validationType="dni"
                 value={formData.dni}
                 onChange={(e) => handleChange("dni", e.target.value)}
                 required
@@ -90,8 +92,9 @@ export default function MemberEditForm({ member, open, onClose, onSave, isLoadin
             {/* Teléfono */}
             <div>
               <Label htmlFor="telefono">Teléfono *</Label>
-              <Input
+              <ValidatedInput
                 id="telefono"
+                validationType="telefono"
                 value={formData.telefono}
                 onChange={(e) => handleChange("telefono", e.target.value)}
                 required
@@ -101,8 +104,9 @@ export default function MemberEditForm({ member, open, onClose, onSave, isLoadin
             {/* Email */}
             <div className="md:col-span-2">
               <Label htmlFor="email">Email *</Label>
-              <Input
+              <ValidatedInput
                 id="email"
+                validationType="email"
                 type="email"
                 value={formData.email}
                 onChange={(e) => handleChange("email", e.target.value)}
