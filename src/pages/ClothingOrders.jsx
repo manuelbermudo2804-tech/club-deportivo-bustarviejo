@@ -74,6 +74,13 @@ export default function ClothingOrders() {
   });
 
   const orderPeriodActive = seasonConfig?.tienda_ropa_abierta === true;
+  
+  // Verificar si el usuario tiene pedidos pendientes realizados anteriormente
+  const hasPendingOrders = useMemo(() => {
+    if (!user || !orders) return false;
+    const myOrders = orders.filter(o => o.email_padre === user.email);
+    return myOrders.some(o => o.estado !== "Entregado" && o.estado !== "Cancelado");
+  }, [user, orders]);
 
   const { data: allPlayers, isLoading: loadingAllPlayers } = useQuery({
     queryKey: ['allPlayersForClothing'],
@@ -718,7 +725,12 @@ export default function ClothingOrders() {
               <p className="mt-2">
                 Los pedidos de equipación normalmente están disponibles durante los meses de <strong>Junio y Julio</strong>.
               </p>
-              {!orderPeriodActive && (
+              {!orderPeriodActive && hasPendingOrders && (
+                <p className="mt-2 text-green-700 font-semibold">
+                  ✅ <strong>Tienes pedidos pendientes realizados anteriormente.</strong> Puedes consultarlos aquí abajo.
+                </p>
+              )}
+              {!orderPeriodActive && !hasPendingOrders && (
                 <p className="mt-2 text-orange-700">
                   <strong>Actualmente la tienda está cerrada.</strong> Los pedidos ya realizados se pueden consultar aquí.
                 </p>
