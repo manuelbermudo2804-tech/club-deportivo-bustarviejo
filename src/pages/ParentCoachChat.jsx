@@ -500,13 +500,13 @@ export default function ParentCoachChat() {
                     handleSend();
                   }
                 }}
-                className="flex-1 min-h-[44px] max-h-32 resize-none text-base"
+                className="flex-1 min-h-[44px] max-h-32 resize-none text-base py-3 px-3"
                 rows={1}
               />
               <Button 
                 onClick={handleSend} 
                 disabled={!messageText.trim()} 
-                className="bg-blue-600 hover:bg-blue-700 h-12 w-12 lg:h-10 lg:w-10 p-0 flex-shrink-0"
+                className="bg-blue-600 hover:bg-blue-700 h-11 w-11 p-0 flex-shrink-0 rounded-full"
               >
                 <Send className="w-5 h-5" />
               </Button>

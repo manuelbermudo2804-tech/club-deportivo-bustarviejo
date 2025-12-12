@@ -132,8 +132,8 @@ export default function CoachChatWindow({ selectedCategory, user, allPlayers }) 
         const img = new Image();
         img.onload = () => {
           const canvas = document.createElement('canvas');
-          const MAX_WIDTH = 1200;
-          const MAX_HEIGHT = 1200;
+          const MAX_WIDTH = 800;
+          const MAX_HEIGHT = 800;
           let width = img.width;
           let height = img.height;
 
@@ -156,7 +156,7 @@ export default function CoachChatWindow({ selectedCategory, user, allPlayers }) 
 
           canvas.toBlob((blob) => {
             resolve(new File([blob], file.name, { type: 'image/jpeg' }));
-          }, 'image/jpeg', 0.85);
+          }, 'image/jpeg', 0.7);
         };
         img.src = e.target.result;
       };
@@ -665,15 +665,16 @@ export default function CoachChatWindow({ selectedCategory, user, allPlayers }) 
                 {msg.archivos_adjuntos?.length > 0 && (
                   <div className="mt-2 space-y-1">
                     {msg.archivos_adjuntos.map((file, idx) => (
-                      file.tipo?.startsWith('image/') ? (
-                        <img 
-                          key={idx}
-                          src={file.url} 
-                          alt={file.nombre}
-                          className="rounded cursor-pointer max-w-full h-auto"
-                          onClick={() => setShowImagePreview(file.url)}
-                        />
-                      ) : (
+                     file.tipo?.startsWith('image/') ? (
+                       <img 
+                         key={idx}
+                         src={file.url} 
+                         alt={file.nombre}
+                         loading="lazy"
+                         className="rounded cursor-pointer max-w-full h-auto bg-slate-200"
+                         onClick={() => setShowImagePreview(file.url)}
+                       />
+                     ) : (
                         <a
                           key={idx}
                           href={file.url}
@@ -850,16 +851,15 @@ export default function CoachChatWindow({ selectedCategory, user, allPlayers }) 
                 handleSend();
               }
             }}
-            className="flex-1 min-h-[44px] max-h-32 resize-none text-base"
+            className="flex-1 min-h-[44px] max-h-32 resize-none text-base py-3 px-3"
             rows={1}
-            disabled={recording || audioBlob}
           />
 
           <Button 
             onClick={handleSend} 
-            disabled={!messageText.trim() && attachments.length === 0 && !audioBlob}
+            disabled={!messageText.trim() && attachments.length === 0}
             size="icon"
-            className="h-12 w-12 lg:h-10 lg:w-10 bg-green-600 hover:bg-green-700 p-0 flex-shrink-0"
+            className="h-11 w-11 bg-green-600 hover:bg-green-700 p-0 flex-shrink-0 rounded-full"
           >
             <Send className="w-5 h-5" />
           </Button>
