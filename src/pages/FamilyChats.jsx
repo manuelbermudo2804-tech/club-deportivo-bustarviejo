@@ -30,17 +30,19 @@ export default function FamilyChats() {
   }
 
   return (
-    <Suspense fallback={
-      <div className="h-[calc(100vh-100px)] flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-      </div>
-    }>
-      <FamilyChatsWithTabs 
-        isCoordinator={isCoordinator}
-        isCoach={isCoach}
-        CoordinatorChatPage={CoordinatorChat}
-        CoachParentChatPage={CoachParentChat}
-      />
-    </Suspense>
+    <div className="h-[calc(100vh-100px)] lg:h-[calc(100vh-110px)] overflow-hidden">
+      <Suspense fallback={
+        <div className="flex items-center justify-center h-full">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+        </div>
+      }>
+        <FamilyChatsWithTabs 
+          isCoordinator={isCoordinator}
+          isCoach={isCoach}
+          CoordinatorChatPage={CoordinatorChat}
+          CoachParentChatPage={CoachParentChat}
+        />
+      </Suspense>
+    </div>
   );
 }
