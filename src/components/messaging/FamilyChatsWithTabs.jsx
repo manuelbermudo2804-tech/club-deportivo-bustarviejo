@@ -31,6 +31,5 @@ export default function FamilyChatsWithTabs({ isCoordinator, isCoach, Coordinato
           <CoachParentChatPage />
         </TabsContent>
       </Tabs>
-    </div>
   );
 }
