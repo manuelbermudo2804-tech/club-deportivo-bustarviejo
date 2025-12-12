@@ -19,28 +19,28 @@ export default function CoachProfilePreview({ coach }) {
         onClick={() => setIsOpen(!isOpen)}
         className="w-full"
       >
-        <CardContent className="p-4">
-          <div className="flex items-center justify-between gap-3">
-            <div className="flex items-center gap-3">
+        <CardContent className="p-2.5">
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2">
               {coach.foto_perfil_url ? (
                 <img
                   src={coach.foto_perfil_url}
                   alt={coach.full_name}
-                  className="w-12 h-12 rounded-full object-cover border-2 border-blue-300"
+                  className="w-9 h-9 rounded-full object-cover border-2 border-blue-300"
                 />
               ) : (
-                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center text-white font-bold text-lg border-2 border-blue-300">
+                <div className="w-9 h-9 rounded-full bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center text-white font-bold text-sm border-2 border-blue-300">
                   {coach.full_name?.charAt(0).toUpperCase()}
                 </div>
               )}
               <div className="text-left">
-                <p className="font-bold text-slate-900">{coach.full_name}</p>
+                <p className="font-bold text-slate-900 text-sm">{coach.full_name}</p>
                 <p className="text-xs text-blue-700 flex items-center gap-1">
-                  🏃 Entrenador {isOpen ? '▼' : '▶'}
+                  🏃 Entrenador
                 </p>
               </div>
             </div>
-            {isOpen ? <ChevronUp className="w-5 h-5 text-blue-600" /> : <ChevronDown className="w-5 h-5 text-blue-600" />}
+            {isOpen ? <ChevronUp className="w-4 h-4 text-blue-600" /> : <ChevronDown className="w-4 h-4 text-blue-600" />}
           </div>
         </CardContent>
       </button>

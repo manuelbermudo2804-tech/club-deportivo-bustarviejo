@@ -316,14 +316,14 @@ export default function ParentCoachChat() {
 
         <CardContent className="p-0 flex-1 flex flex-col overflow-hidden min-h-0">
           {categories.length > 1 && (
-            <div className="flex gap-2 p-2 bg-slate-50 border-b overflow-x-auto">
+            <div className="flex gap-1.5 p-1.5 bg-slate-50 border-b overflow-x-auto">
               {categories.map(cat => (
                 <Button
                   key={cat}
                   variant={selectedCategory === cat ? "default" : "outline"}
                   size="sm"
                   onClick={() => setSelectedCategory(cat)}
-                  className="whitespace-nowrap"
+                  className="whitespace-nowrap text-xs px-2 py-1 h-7"
                 >
                   {cat.replace('Fútbol ', '').replace(' (Mixto)', '')}
                 </Button>
@@ -333,7 +333,7 @@ export default function ParentCoachChat() {
 
           {/* Perfil del Entrenador */}
           {categoryCoach && (
-            <div className="p-3 border-b bg-white">
+            <div className="p-2 border-b bg-white">
               <CoachProfilePreview coach={categoryCoach} />
             </div>
           )}
@@ -477,7 +477,7 @@ export default function ParentCoachChat() {
             <div ref={messagesEndRef} />
           </div>
 
-          <div className="p-3 bg-white border-t flex-shrink-0">
+          <div className="p-2 bg-white border-t flex-shrink-0">
             <div className="flex gap-2 items-end">
               <Textarea
                 placeholder="Escribe tu mensaje..."
@@ -489,8 +489,8 @@ export default function ParentCoachChat() {
                     handleSend();
                   }
                 }}
-                className="flex-1 min-h-[60px] lg:min-h-[44px] resize-none text-base"
-                rows={2}
+                className="flex-1 min-h-[80px] lg:min-h-[44px] resize-none text-base"
+                rows={3}
               />
               <Button 
                 onClick={handleSend} 
