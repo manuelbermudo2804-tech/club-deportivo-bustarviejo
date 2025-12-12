@@ -14,7 +14,7 @@ export default function FloatingChatbotButton() {
       <motion.div
         initial={{ scale: 0 }}
         animate={{ scale: 1 }}
-        className="fixed bottom-20 right-4 z-50 lg:hidden"
+        className="fixed bottom-24 right-4 z-40 lg:hidden"
       >
         <Button
           onClick={() => setOpen(true)}
