@@ -16,6 +16,7 @@ import ChatMessageActions from "../components/chat/ChatMessageActions";
 import PollMessage from "../components/chat/PollMessage";
 import LocationMessage from "../components/chat/LocationMessage";
 import SearchFilters from "../components/chat/SearchFilters";
+import SocialLinks from "../components/SocialLinks";
 
 const QUICK_REPLIES = [
   "✅ Perfecto, gracias",
@@ -413,7 +414,7 @@ export default function StaffChat() {
   }
 
   return (
-    <div className="h-[calc(100vh-100px)] lg:p-4 lg:max-w-5xl lg:mx-auto lg:h-[calc(100vh-110px)]">
+    <div className="h-full flex flex-col overflow-hidden">
       <Card className="border-purple-200 shadow-lg h-full flex flex-col overflow-hidden lg:rounded-lg rounded-none">
         <CardHeader className="bg-gradient-to-r from-purple-600 to-purple-700 text-white p-2 sm:p-6">
           <div className="flex items-center justify-between">

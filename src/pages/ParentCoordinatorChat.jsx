@@ -380,10 +380,7 @@ export default function ParentCoordinatorChat() {
           tipoChat="coordinador"
         />
       )}
-      <div className="h-[calc(100vh-100px)] lg:p-4 lg:max-w-4xl lg:mx-auto lg:h-[calc(100vh-110px)] space-y-2">
-        <div className="hidden lg:block">
-          <SocialLinks />
-        </div>
+      <div className="h-full flex flex-col overflow-hidden">
         <Card className="border-cyan-200 shadow-lg h-full flex flex-col overflow-hidden lg:rounded-lg rounded-none">
         <CardHeader className="bg-gradient-to-r from-cyan-600 to-cyan-700 text-white p-2">
           <div className="flex items-center justify-between">
