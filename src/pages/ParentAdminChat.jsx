@@ -220,8 +220,8 @@ export default function ParentAdminChat() {
   return (
     <div className="h-[calc(100vh-100px)] lg:h-[calc(100vh-110px)]">
       <Card className="h-full flex flex-col overflow-hidden">
-        {/* Header */}
-        <div className="p-4 bg-gradient-to-r from-red-600 to-red-700 text-white flex-shrink-0">
+        {/* Header compacto */}
+        <div className="p-2 bg-gradient-to-r from-red-600 to-red-700 text-white flex-shrink-0">
           <Alert className={`mb-3 border-2 ${criticityColors[conversation.criticidad]}`}>
             <AlertTriangle className="w-4 h-4" />
             <AlertDescription className="text-sm ml-2">
@@ -237,13 +237,10 @@ export default function ParentAdminChat() {
 
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-xl font-bold flex items-center gap-2">
-                <ShieldAlert className="w-6 h-6" />
-                Chat con Administrador
+              <h1 className="text-sm font-bold flex items-center gap-2">
+                <ShieldAlert className="w-4 h-4" />
+                Chat Administrador
               </h1>
-              <p className="text-xs text-red-100">
-                Conversación supervisada por la dirección del club
-              </p>
             </div>
             {conversation.resuelta && (
               <Badge className="bg-green-500 text-white">
@@ -311,10 +308,10 @@ export default function ParentAdminChat() {
 
         {/* Input */}
         {!conversation.resuelta ? (
-          <div className="p-4 bg-white border-t flex-shrink-0 space-y-2">
+          <div className="p-2 bg-white border-t flex-shrink-0 space-y-2">
             <Alert className="bg-blue-50 border-blue-200">
-              <AlertDescription className="text-blue-800 text-sm">
-                💡 Estás en contacto directo con la dirección del club. Mantén un tono respetuoso.
+              <AlertDescription className="text-blue-800 text-xs">
+                💡 Contacto directo con dirección del club. Mantén un tono respetuoso.
               </AlertDescription>
             </Alert>
 
@@ -332,7 +329,7 @@ export default function ParentAdminChat() {
               </div>
             )}
 
-            <div className="flex gap-2 items-end">
+            <div className="space-y-2">
               <input 
                 ref={fileInputRef}
                 type="file" 
@@ -343,37 +340,42 @@ export default function ParentAdminChat() {
                 disabled={uploading} 
               />
               
-              <Button
-                variant="outline"
-                size="icon"
-                onClick={() => fileInputRef.current?.click()}
-                disabled={uploading}
-                className="h-10 w-10"
-              >
-                <Paperclip className="w-4 h-4" />
-              </Button>
+              <div className="flex justify-center">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={uploading}
+                  className="h-8 px-3 text-xs"
+                >
+                  <Paperclip className="w-3 h-3 mr-1" />
+                  Adjuntar archivo
+                </Button>
+              </div>
 
-              <Textarea
-                placeholder="Escribe tu mensaje al administrador..."
-                value={messageText}
-                onChange={(e) => setMessageText(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' && !e.shiftKey) {
-                    e.preventDefault();
-                    handleSend();
-                  }
-                }}
-                className="flex-1 min-h-[44px] resize-none text-sm"
-                rows={1}
-              />
+              <div className="flex gap-2 items-end">
+                <Textarea
+                  placeholder="Escribe tu mensaje..."
+                  value={messageText}
+                  onChange={(e) => setMessageText(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                      e.preventDefault();
+                      handleSend();
+                    }
+                  }}
+                  className="flex-1 min-h-[100px] lg:min-h-[60px] resize-none text-base"
+                  rows={4}
+                />
 
-              <Button 
-                onClick={handleSend} 
-                disabled={!messageText.trim() && attachments.length === 0}
-                className="bg-red-600 hover:bg-red-700 h-10 w-10 p-0"
-              >
-                <Send className="w-5 h-5" />
-              </Button>
+                <Button 
+                  onClick={handleSend} 
+                  disabled={!messageText.trim() && attachments.length === 0}
+                  className="bg-red-600 hover:bg-red-700 h-12 w-12 lg:h-10 lg:w-10 p-0 flex-shrink-0"
+                >
+                  <Send className="w-5 h-5" />
+                </Button>
+              </div>
             </div>
           </div>
         ) : (

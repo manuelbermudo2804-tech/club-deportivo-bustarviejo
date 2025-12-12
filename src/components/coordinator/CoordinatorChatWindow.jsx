@@ -640,8 +640,8 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
       <audio ref={audioRef} onEnded={() => setPlayingAudio(null)} />
       <audio ref={notificationSoundRef} src="data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSuBzvLZizUIGGS57OihUBILUKXh8raFHwU5jtX0z3k" />
 
-      {/* Header */}
-      <div className="p-2 sm:p-4 bg-white border-b flex-shrink-0">
+      {/* Header compacto */}
+      <div className="p-2 bg-white border-b flex-shrink-0">
         {conversation.escalada_desde_entrenador && (
           <Alert className="mb-3 bg-orange-50 border-orange-300">
             <AlertTriangle className="w-4 h-4 text-orange-600" />
@@ -1014,7 +1014,7 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
           />
         )}
 
-        <div className="flex items-end gap-1 sm:gap-2">
+        <div className="space-y-2">
           <input 
             ref={fileInputRef}
             type="file" 
@@ -1034,47 +1034,106 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
             disabled={uploading} 
           />
           
-          <ChatInputActions
-            onFileClick={() => fileInputRef.current?.click()}
-            onCameraClick={() => cameraInputRef.current?.click()}
-            onAudioClick={recording ? stopRecording : startRecording}
-            onLocationClick={() => setShowLocationDialog(true)}
-            onPollClick={() => setShowPollDialog(true)}
-            onQuickRepliesClick={() => setShowQuickReplies(!showQuickReplies)}
-            uploading={uploading}
-            isRecording={recording}
-            showCamera={isCoordinator}
-            showLocation={isCoordinator}
-            showPoll={isCoordinator}
-            showQuickReplies={isCoordinator}
-          />
+          {isCoordinator ? (
+            <div className="flex gap-1 justify-center flex-wrap">
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={uploading}
+                className="h-8 px-3 text-xs"
+              >
+                <Paperclip className="w-3 h-3 mr-1" />
+                Archivo
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => cameraInputRef.current?.click()}
+                disabled={uploading}
+                className="h-8 px-3 text-xs"
+              >
+                <Camera className="w-3 h-3 mr-1" />
+                Foto
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={recording ? stopRecording : startRecording}
+                className={`h-8 px-3 text-xs ${recording ? 'text-red-500' : ''}`}
+              >
+                <Mic className="w-3 h-3 mr-1" />
+                Audio
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => setShowLocationDialog(true)}
+                className="h-8 px-3 text-xs"
+              >
+                <MapPin className="w-3 h-3 mr-1" />
+                Ubicación
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => setShowPollDialog(true)}
+                className="h-8 px-3 text-xs"
+              >
+                📊 Encuesta
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => setShowQuickReplies(!showQuickReplies)}
+                className="h-8 px-3 text-xs"
+              >
+                ⚡ Respuestas
+              </Button>
+            </div>
+          ) : (
+            <div className="flex justify-center">
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={uploading}
+                className="h-8 px-3 text-xs"
+              >
+                <Paperclip className="w-3 h-3 mr-1" />
+                Adjuntar documento
+              </Button>
+            </div>
+          )}
 
-          <Textarea
-            placeholder="Escribe..."
-            value={messageText}
-            onChange={(e) => {
-              setMessageText(e.target.value);
-              handleTyping();
-            }}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                handleSend();
-              }
-            }}
-            className="flex-1 min-h-[36px] sm:min-h-[44px] resize-none text-sm"
-            rows={1}
-            disabled={recording || audioBlob}
-          />
+          <div className="flex gap-2 items-end">
+            <Textarea
+              placeholder="Escribe tu mensaje..."
+              value={messageText}
+              onChange={(e) => {
+                setMessageText(e.target.value);
+                handleTyping();
+              }}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                  e.preventDefault();
+                  handleSend();
+                }
+              }}
+              className="flex-1 min-h-[100px] lg:min-h-[60px] resize-none text-base"
+              rows={4}
+              disabled={recording || audioBlob}
+            />
 
-          <Button 
-            onClick={handleSend} 
-            disabled={!messageText.trim() && attachments.length === 0 && !audioBlob}
-            size="icon"
-            className="h-9 w-9 sm:h-10 sm:w-10 bg-cyan-600 hover:bg-cyan-700 p-0"
-          >
-            <Send className="w-4 h-4 sm:w-5 sm:h-5" />
-          </Button>
+            <Button 
+              onClick={handleSend} 
+              disabled={!messageText.trim() && attachments.length === 0 && !audioBlob}
+              size="icon"
+              className="h-12 w-12 lg:h-10 lg:w-10 bg-cyan-600 hover:bg-cyan-700 p-0 flex-shrink-0"
+            >
+              <Send className="w-5 h-5" />
+            </Button>
+          </div>
         </div>
       </div>
 

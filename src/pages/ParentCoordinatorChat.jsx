@@ -385,10 +385,10 @@ export default function ParentCoordinatorChat() {
           <SocialLinks />
         </div>
         <Card className="border-cyan-200 shadow-lg h-full flex flex-col overflow-hidden lg:rounded-lg rounded-none">
-        <CardHeader className="bg-gradient-to-r from-cyan-600 to-cyan-700 text-white p-2 sm:p-6">
+        <CardHeader className="bg-gradient-to-r from-cyan-600 to-cyan-700 text-white p-2">
           <div className="flex items-center justify-between">
-            <CardTitle className="flex items-center gap-2 text-sm sm:text-xl">
-              <MessageCircle className="w-4 h-4 sm:w-6 sm:h-6" />
+            <CardTitle className="flex items-center gap-2 text-sm">
+              <MessageCircle className="w-4 h-4" />
               Chat Coordinador
               {conversation?.reportada_admin && (
                 <Badge className="bg-red-500 text-white text-xs ml-2">
@@ -574,7 +574,7 @@ export default function ParentCoordinatorChat() {
                 ))}
               </div>
             )}
-            <div className="flex gap-1 sm:gap-2 items-end">
+            <div className="space-y-2">
               <input 
                 ref={fileInputRef}
                 type="file" 
@@ -585,40 +585,41 @@ export default function ParentCoordinatorChat() {
                 disabled={uploading} 
               />
 
-              <ChatInputActions
-                onFileClick={() => fileInputRef.current?.click()}
-                onCameraClick={() => {}}
-                onAudioClick={() => {}}
-                onLocationClick={() => {}}
-                onPollClick={() => {}}
-                uploading={uploading}
-                isRecording={false}
-                showCamera={false}
-                showAudio={false}
-                showLocation={false}
-                showPoll={false}
-                showQuickReplies={false}
-              />
-              <Textarea
-                placeholder={user?.chat_bloqueado ? "Chat bloqueado" : "Escribe..."}
-                value={messageText}
-                onChange={(e) => {
-                  setMessageText(e.target.value);
-                  handleTyping();
-                }}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' && !e.shiftKey) {
-                    e.preventDefault();
-                    handleSend();
-                  }
-                }}
-                className="flex-1 min-h-[36px] sm:min-h-[44px] resize-none text-sm"
-                rows={1}
-                disabled={user?.chat_bloqueado}
-              />
-              <Button onClick={handleSend} disabled={!messageText.trim() && attachments.length === 0 || user?.chat_bloqueado} className="bg-cyan-600 hover:bg-cyan-700 h-9 w-9 sm:h-10 sm:w-10 p-0">
-                <Send className="w-4 h-4 sm:w-5 sm:h-5" />
-              </Button>
+              <div className="flex justify-center">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={uploading}
+                  className="h-8 px-3 text-xs"
+                >
+                  <Paperclip className="w-3 h-3 mr-1" />
+                  Adjuntar documento
+                </Button>
+              </div>
+
+              <div className="flex gap-2 items-end">
+                <Textarea
+                  placeholder={user?.chat_bloqueado ? "Chat bloqueado" : "Escribe tu mensaje..."}
+                  value={messageText}
+                  onChange={(e) => {
+                    setMessageText(e.target.value);
+                    handleTyping();
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                      e.preventDefault();
+                      handleSend();
+                    }
+                  }}
+                  className="flex-1 min-h-[100px] lg:min-h-[60px] resize-none text-base"
+                  rows={4}
+                  disabled={user?.chat_bloqueado}
+                />
+                <Button onClick={handleSend} disabled={!messageText.trim() && attachments.length === 0 || user?.chat_bloqueado} className="bg-cyan-600 hover:bg-cyan-700 h-12 w-12 lg:h-10 lg:w-10 p-0 flex-shrink-0">
+                  <Send className="w-5 h-5" />
+                </Button>
+              </div>
             </div>
           </div>
         </CardContent>

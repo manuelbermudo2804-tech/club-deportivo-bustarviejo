@@ -300,10 +300,10 @@ export default function ParentCoachChat() {
 
     <div className="h-[calc(100vh-100px)] lg:p-4 lg:max-w-5xl lg:mx-auto lg:h-[calc(100vh-110px)]">
       <Card className="border-blue-200 shadow-lg h-full flex flex-col overflow-hidden lg:rounded-lg rounded-none">
-        <CardHeader className="bg-gradient-to-r from-blue-600 to-blue-700 text-white p-3 flex-shrink-0">
+        <CardHeader className="bg-gradient-to-r from-blue-600 to-blue-700 text-white p-2 flex-shrink-0">
           <div className="flex items-center justify-between">
-            <CardTitle className="flex items-center gap-2 text-base">
-              <MessageCircle className="w-5 h-5" />
+            <CardTitle className="flex items-center gap-2 text-sm">
+              <MessageCircle className="w-4 h-4" />
               Chat Entrenador
             </CardTitle>
             <EscalateToCoordinatorButton 
@@ -500,8 +500,8 @@ export default function ParentCoachChat() {
                     handleSend();
                   }
                 }}
-                className="flex-1 min-h-[80px] lg:min-h-[44px] resize-none text-base"
-                rows={3}
+                className="flex-1 min-h-[100px] lg:min-h-[60px] resize-none text-base"
+                rows={4}
               />
               <Button 
                 onClick={handleSend} 

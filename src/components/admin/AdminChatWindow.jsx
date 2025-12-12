@@ -242,8 +242,8 @@ export default function AdminChatWindow({ conversation, user, onClose, onMarkRes
         </DialogContent>
       </Dialog>
 
-      {/* Header */}
-      <div className="p-4 bg-white border-b flex-shrink-0">
+      {/* Header compacto */}
+      <div className="p-2 bg-white border-b flex-shrink-0">
         <Alert className={`mb-3 border-2 ${criticityColors[conversation.criticidad]}`}>
           <AlertTriangle className="w-4 h-4" />
           <AlertDescription className="text-sm ml-2">
@@ -379,7 +379,7 @@ export default function AdminChatWindow({ conversation, user, onClose, onMarkRes
             </div>
           )}
 
-          <div className="flex gap-2 items-end">
+          <div className="space-y-2">
             <input 
               ref={fileInputRef}
               type="file" 
@@ -389,47 +389,53 @@ export default function AdminChatWindow({ conversation, user, onClose, onMarkRes
               disabled={uploading} 
             />
             
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={() => fileInputRef.current?.click()}
-              disabled={uploading}
-              className="h-10 w-10"
-            >
-              <Paperclip className="w-4 h-4" />
-            </Button>
+            <div className="flex gap-1 justify-center">
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={uploading}
+                className="h-8 px-3 text-xs"
+              >
+                <Paperclip className="w-3 h-3 mr-1" />
+                Archivo
+              </Button>
+              <Button 
+                onClick={handleSendInternalNote}
+                disabled={!messageText.trim()}
+                size="sm"
+                variant="outline"
+                className="border-yellow-300 text-yellow-700 hover:bg-yellow-50 h-8 px-3 text-xs"
+                title="Nota interna (solo admins)"
+              >
+                <Edit className="w-3 h-3 mr-1" />
+                Nota interna
+              </Button>
+            </div>
 
-            <Textarea
-              placeholder="Escribe tu mensaje al padre..."
-              value={messageText}
-              onChange={(e) => setMessageText(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' && !e.shiftKey) {
-                  e.preventDefault();
-                  handleSend();
-                }
-              }}
-              className="flex-1 min-h-[44px] resize-none text-sm"
-              rows={1}
-            />
+            <div className="flex gap-2 items-end">
+              <Textarea
+                placeholder="Escribe tu mensaje..."
+                value={messageText}
+                onChange={(e) => setMessageText(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    handleSend();
+                  }
+                }}
+                className="flex-1 min-h-[100px] lg:min-h-[60px] resize-none text-base"
+                rows={4}
+              />
 
-            <Button 
-              onClick={handleSend} 
-              disabled={!messageText.trim() && attachments.length === 0}
-              className="bg-red-600 hover:bg-red-700 h-10 w-10 p-0"
-            >
-              <Send className="w-5 h-5" />
-            </Button>
-
-            <Button 
-              onClick={handleSendInternalNote}
-              disabled={!messageText.trim()}
-              variant="outline"
-              className="border-yellow-300 text-yellow-700 hover:bg-yellow-50"
-              title="Nota interna (solo visible para admins)"
-            >
-              <Edit className="w-4 h-4" />
-            </Button>
+              <Button 
+                onClick={handleSend} 
+                disabled={!messageText.trim() && attachments.length === 0}
+                className="bg-red-600 hover:bg-red-700 h-12 w-12 lg:h-10 lg:w-10 p-0 flex-shrink-0"
+              >
+                <Send className="w-5 h-5" />
+              </Button>
+            </div>
           </div>
 
           <p className="text-xs text-slate-500 text-center">
