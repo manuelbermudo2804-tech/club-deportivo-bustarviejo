@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Send, Paperclip, X, FileText, Download, Mic, Play, Pause, Smile, Check, CheckCheck, MapPin, Reply, Edit, Trash2, Users, Image as ImageIcon, Camera } from "lucide-react";
+import ChatInputActions from "../chat/ChatInputActions";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { toast } from "sonner";
@@ -480,18 +481,18 @@ export default function CoachChatWindow({ selectedCategory, user, allPlayers }) 
     <div className="flex flex-col h-full w-full overflow-hidden bg-white">
       <audio ref={audioRef} onEnded={() => setPlayingAudio(null)} />
 
-      {/* Header compacto */}
-      <div className="p-2 bg-gradient-to-r from-green-600 to-green-700 text-white flex-shrink-0">
+      {/* Header mínimo */}
+      <div className="p-1.5 bg-gradient-to-r from-green-600 to-green-700 text-white flex-shrink-0">
         <div className="flex items-center justify-between">
-          <div>
-            <h2 className="font-bold text-sm flex items-center gap-1.5">
+          <div className="flex-1 min-w-0">
+            <h2 className="font-bold text-xs truncate">
               {selectedCategory.replace('Fútbol ', '').replace(' (Mixto)', '')}
             </h2>
             <p className="text-xs text-green-100">
               {parentEmails.length} familias
             </p>
           </div>
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-1 flex-shrink-0">
             <EscalateToCoordinatorButton 
               user={user} 
               categoria={selectedCategory}
@@ -502,9 +503,9 @@ export default function CoachChatWindow({ selectedCategory, user, allPlayers }) 
               variant="ghost"
               size="sm"
               onClick={() => setShowParticipants(true)}
-              className="text-white hover:bg-white/20 h-8 w-8 p-0"
+              className="text-white hover:bg-white/20 h-7 w-7 p-0"
             >
-              <Users className="w-4 h-4" />
+              <Users className="w-3 h-3" />
             </Button>
           </div>
         </div>
@@ -705,7 +706,7 @@ export default function CoachChatWindow({ selectedCategory, user, allPlayers }) 
       </div>
 
       {/* Input */}
-      <div className="p-3 bg-white border-t flex-shrink-0">
+      <div className="p-2 bg-white border-t flex-shrink-0">
         {attachments.length > 0 && (
           <div className="mb-2 flex flex-wrap gap-1">
             {attachments.map((file, idx) => (
@@ -743,7 +744,7 @@ export default function CoachChatWindow({ selectedCategory, user, allPlayers }) 
           </div>
         )}
 
-        <div className="flex items-end gap-2">
+        <div className="flex gap-2 items-end">
           <input 
             ref={fileInputRef}
             type="file" 
@@ -763,50 +764,20 @@ export default function CoachChatWindow({ selectedCategory, user, allPlayers }) 
             disabled={uploading} 
           />
           
-          <div className="flex gap-1">
-            <Button
-              size="icon"
-              variant="ghost"
-              onClick={() => fileInputRef.current?.click()}
-              disabled={uploading}
-              className="h-9 w-9"
-            >
-              <Paperclip className="w-4 h-4" />
-            </Button>
-            <Button
-              size="icon"
-              variant="ghost"
-              onClick={() => cameraInputRef.current?.click()}
-              disabled={uploading}
-              className="h-9 w-9"
-            >
-              <Camera className="w-4 h-4" />
-            </Button>
-            <Button
-              size="icon"
-              variant="ghost"
-              onClick={recording ? stopRecording : startRecording}
-              className={`h-9 w-9 ${recording ? 'text-red-500' : ''}`}
-            >
-              <Mic className="w-4 h-4" />
-            </Button>
-            <Button
-              size="icon"
-              variant="ghost"
-              onClick={() => setShowLocationDialog(true)}
-              className="h-9 w-9"
-            >
-              <MapPin className="w-4 h-4" />
-            </Button>
-            <Button
-              size="icon"
-              variant="ghost"
-              onClick={() => setShowPollDialog(true)}
-              className="h-9 w-9"
-            >
-              📊
-            </Button>
-          </div>
+          <ChatInputActions
+            onFileClick={() => fileInputRef.current?.click()}
+            onCameraClick={() => cameraInputRef.current?.click()}
+            onAudioClick={recording ? stopRecording : startRecording}
+            onLocationClick={() => setShowLocationDialog(true)}
+            onPollClick={() => setShowPollDialog(true)}
+            uploading={uploading}
+            isRecording={recording}
+            showCamera={true}
+            showAudio={true}
+            showLocation={true}
+            showPoll={true}
+            showQuickReplies={false}
+          />
 
           <Textarea
             placeholder="Escribe..."
@@ -821,8 +792,8 @@ export default function CoachChatWindow({ selectedCategory, user, allPlayers }) 
                 handleSend();
               }
             }}
-            className="flex-1 min-h-[44px] resize-none text-sm"
-            rows={1}
+            className="flex-1 min-h-[80px] lg:min-h-[60px] resize-none text-base"
+            rows={3}
             disabled={recording || audioBlob}
           />
 
@@ -830,7 +801,7 @@ export default function CoachChatWindow({ selectedCategory, user, allPlayers }) 
             onClick={handleSend} 
             disabled={!messageText.trim() && attachments.length === 0 && !audioBlob}
             size="icon"
-            className="h-10 w-10 bg-green-600 hover:bg-green-700 p-0"
+            className="h-12 w-12 lg:h-10 lg:w-10 bg-green-600 hover:bg-green-700 p-0 flex-shrink-0"
           >
             <Send className="w-5 h-5" />
           </Button>
