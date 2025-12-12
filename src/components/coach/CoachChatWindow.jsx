@@ -125,6 +125,45 @@ export default function CoachChatWindow({ selectedCategory, user, allPlayers }) 
     }, 3000);
   };
 
+  const compressImage = (file) => {
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          const MAX_WIDTH = 1200;
+          const MAX_HEIGHT = 1200;
+          let width = img.width;
+          let height = img.height;
+
+          if (width > height) {
+            if (width > MAX_WIDTH) {
+              height *= MAX_WIDTH / width;
+              width = MAX_WIDTH;
+            }
+          } else {
+            if (height > MAX_HEIGHT) {
+              width *= MAX_HEIGHT / height;
+              height = MAX_HEIGHT;
+            }
+          }
+
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, width, height);
+
+          canvas.toBlob((blob) => {
+            resolve(new File([blob], file.name, { type: 'image/jpeg' }));
+          }, 'image/jpeg', 0.85);
+        };
+        img.src = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    });
+  };
+
   const handleFileUpload = async (e) => {
     const files = Array.from(e.target.files);
     setUploading(true);
@@ -137,7 +176,12 @@ export default function CoachChatWindow({ selectedCategory, user, allPlayers }) 
           continue;
         }
         
-        const { file_url } = await base44.integrations.Core.UploadFile({ file });
+        let fileToUpload = file;
+        if (file.type.startsWith('image/')) {
+          fileToUpload = await compressImage(file);
+        }
+        
+        const { file_url } = await base44.integrations.Core.UploadFile({ file: fileToUpload });
         uploaded.push({
           url: file_url,
           nombre: file.name,
@@ -162,7 +206,8 @@ export default function CoachChatWindow({ selectedCategory, user, allPlayers }) 
     
     setUploading(true);
     try {
-      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+      const compressedFile = await compressImage(file);
+      const { file_url } = await base44.integrations.Core.UploadFile({ file: compressedFile });
       setAttachments([...attachments, {
         url: file_url,
         nombre: file.name,
@@ -260,16 +305,22 @@ export default function CoachChatWindow({ selectedCategory, user, allPlayers }) 
     }
   };
 
-  const togglePlayAudio = (audioUrl) => {
-    if (playingAudio === audioUrl) {
-      audioRef.current?.pause();
-      setPlayingAudio(null);
-    } else {
-      if (audioRef.current) {
-        audioRef.current.src = audioUrl;
-        audioRef.current.play();
-        setPlayingAudio(audioUrl);
+  const togglePlayAudio = async (audioUrl) => {
+    try {
+      if (playingAudio === audioUrl) {
+        audioRef.current?.pause();
+        setPlayingAudio(null);
+      } else {
+        if (audioRef.current) {
+          audioRef.current.src = audioUrl;
+          await audioRef.current.play();
+          setPlayingAudio(audioUrl);
+        }
       }
+    } catch (error) {
+      console.error("Error playing audio:", error);
+      setPlayingAudio(null);
+      toast.error("Error al reproducir el audio");
     }
   };
 
@@ -478,7 +529,14 @@ export default function CoachChatWindow({ selectedCategory, user, allPlayers }) 
 
   return (
     <div className="flex flex-col h-full w-full overflow-hidden bg-white">
-      <audio ref={audioRef} onEnded={() => setPlayingAudio(null)} />
+      <audio 
+        ref={audioRef} 
+        onEnded={() => setPlayingAudio(null)}
+        onError={() => {
+          setPlayingAudio(null);
+          toast.error("Error al cargar el audio");
+        }}
+      />
 
       {/* Header mínimo */}
       <div className="p-1.5 bg-gradient-to-r from-green-600 to-green-700 text-white flex-shrink-0">
@@ -587,10 +645,11 @@ export default function CoachChatWindow({ selectedCategory, user, allPlayers }) 
                       size="sm" 
                       variant={isMine ? "secondary" : "outline"}
                       onClick={() => togglePlayAudio(msg.audio_url)}
+                      disabled={!msg.audio_url}
                     >
                       {playingAudio === msg.audio_url ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
                     </Button>
-                    <span className="text-sm">{msg.audio_duracion}s</span>
+                    <span className="text-sm">🎤 {msg.audio_duracion}s</span>
                   </div>
                 ) : msg.encuesta ? (
                   // NO mostrar el texto cuando hay encuesta
