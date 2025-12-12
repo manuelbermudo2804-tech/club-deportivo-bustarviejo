@@ -92,7 +92,7 @@ export default function ParentAdminChat() {
         autor_email: user.email,
         autor_nombre: user.full_name,
         mensaje: data.mensaje,
-        archivos_adjuntos: data.adjuntos,
+        archivos_adjuntos: data.archivos_adjuntos || [],
         leido_padre: true,
         leido_admin: false,
         fecha_leido_padre: new Date().toISOString()
@@ -159,7 +159,7 @@ export default function ParentAdminChat() {
     // Guardar los datos antes de limpiar
     const dataToSend = { 
       mensaje: messageText, 
-      adjuntos: attachments 
+      archivos_adjuntos: attachments 
     };
     
     // Limpiar inmediatamente para mejor UX
