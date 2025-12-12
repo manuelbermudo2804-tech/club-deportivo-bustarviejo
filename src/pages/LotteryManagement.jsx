@@ -52,6 +52,11 @@ export default function LotteryManagement() {
     initialData: [],
   });
 
+  const totalDecimosVendidos = allOrders.reduce((sum, o) => sum + (o.numero_decimos || 0), 0);
+  const maxDecimos = seasonConfig?.loteria_max_decimos;
+  const decimosDisponibles = maxDecimos ? maxDecimos - totalDecimosVendidos : null;
+  const agotado = maxDecimos && totalDecimosVendidos >= maxDecimos;
+
   // Filtrar pedidos según el rol del usuario
   const orders = React.useMemo(() => {
     if (!user) return [];
@@ -398,6 +403,37 @@ export default function LotteryManagement() {
           )}
         </div>
         </div>
+
+        {maxDecimos && (
+          <Card className="border-4 border-yellow-400 shadow-2xl bg-gradient-to-r from-green-50 to-green-100">
+            <CardContent className="pt-6">
+              <div className="space-y-3">
+                <div className="flex justify-between items-center">
+                  <div>
+                    <p className="text-sm text-slate-600 mb-1">📊 Disponibilidad</p>
+                    <p className="text-5xl font-bold text-green-600">{decimosDisponibles}</p>
+                    <p className="text-sm text-slate-600 mt-1">de {maxDecimos} décimos</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-3xl font-bold text-orange-600">{totalDecimosVendidos}</p>
+                    <p className="text-sm text-slate-600">vendidos</p>
+                  </div>
+                </div>
+                <div className="bg-white rounded-full h-6 overflow-hidden">
+                  <div 
+                    className={`h-full transition-all duration-500 ${agotado ? 'bg-red-500' : 'bg-green-500'}`}
+                    style={{ width: `${(totalDecimosVendidos / maxDecimos) * 100}%` }}
+                  />
+                </div>
+                {agotado && (
+                  <div className="bg-red-100 border-2 border-red-300 rounded-lg p-3 text-center">
+                    <p className="text-red-800 font-bold">🚫 ¡AGOTADO! La lotería se cerró automáticamente</p>
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         <div className="grid md:grid-cols-2 gap-4">
           <Card className="border-none shadow-lg bg-gradient-to-br from-orange-50 to-orange-100">

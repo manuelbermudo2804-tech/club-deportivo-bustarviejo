@@ -56,7 +56,18 @@ export default function ParentLottery() {
     refetchOnWindowFocus: true,
   });
 
-  const loteriaAbierta = seasonConfig?.loteria_navidad_abierta === true;
+  const { data: allLotteryOrders = [] } = useQuery({
+    queryKey: ['allLotteryOrders'],
+    queryFn: () => base44.entities.LotteryOrder.list(),
+    enabled: !!seasonConfig,
+  });
+
+  const totalDecimosVendidos = allLotteryOrders.reduce((sum, o) => sum + (o.numero_decimos || 0), 0);
+  const maxDecimos = seasonConfig?.loteria_max_decimos;
+  const decimosDisponibles = maxDecimos ? maxDecimos - totalDecimosVendidos : null;
+  const agotado = maxDecimos && totalDecimosVendidos >= maxDecimos;
+
+  const loteriaAbierta = seasonConfig?.loteria_navidad_abierta === true && !agotado;
   const requierePagoAdelantado = seasonConfig?.loteria_requiere_pago_adelantado === true;
   const precioDecimo = seasonConfig?.precio_decimo_loteria || 22;
 
@@ -248,13 +259,49 @@ export default function ParentLottery() {
           </div>
         </div>
 
-        {!loteriaAbierta && (
+        {agotado && (
+          <Alert className="bg-red-800 border-red-600 border-4 shadow-2xl">
+            <AlertCircle className="h-6 w-6 text-yellow-400 animate-pulse" />
+            <AlertDescription className="text-white text-lg">
+              <strong>🚫 ¡DÉCIMOS AGOTADOS!</strong>
+              <br />
+              Ya se han vendido los {maxDecimos} décimos disponibles. No se pueden hacer más pedidos.
+            </AlertDescription>
+          </Alert>
+        )}
+
+        {!loteriaAbierta && !agotado && (
           <Alert className="bg-red-800 border-red-600 border-4 shadow-2xl">
             <AlertCircle className="h-6 w-6 text-yellow-400" />
             <AlertDescription className="text-white text-lg">
               <strong>❄️ Los pedidos de lotería están cerrados actualmente.</strong>
               <br />
               Podrás consultar tus pedidos anteriores aquí.
+            </AlertDescription>
+          </Alert>
+        )}
+
+        {loteriaAbierta && maxDecimos && (
+          <Alert className="bg-gradient-to-r from-green-700 to-green-800 border-green-500 border-4 shadow-2xl">
+            <Clover className="h-6 w-6 text-yellow-300 animate-bounce" />
+            <AlertDescription className="text-white text-lg">
+              <div className="flex items-center justify-between">
+                <div>
+                  <strong>📊 Disponibilidad:</strong>
+                  <br />
+                  <span className="text-2xl font-bold text-yellow-300">{decimosDisponibles}</span> décimos disponibles de {maxDecimos}
+                </div>
+                <div className="text-right">
+                  <div className="text-3xl font-black text-yellow-300">{totalDecimosVendidos}</div>
+                  <div className="text-xs text-green-200">vendidos</div>
+                </div>
+              </div>
+              <div className="mt-2 bg-white/20 rounded-full h-3 overflow-hidden">
+                <div 
+                  className="bg-yellow-300 h-full transition-all duration-500"
+                  style={{ width: `${(totalDecimosVendidos / maxDecimos) * 100}%` }}
+                />
+              </div>
             </AlertDescription>
           </Alert>
         )}
