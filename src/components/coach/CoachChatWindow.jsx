@@ -404,6 +404,41 @@ export default function CoachChatWindow({ selectedCategory, user, allPlayers }) 
         reacciones: []
       });
 
+      // Si hay imágenes, guardarlas automáticamente en la galería
+      const imageFiles = (data.archivos_adjuntos || []).filter(f => f.tipo?.startsWith('image/'));
+      if (imageFiles.length > 0) {
+        try {
+          const allGalleries = await base44.entities.PhotoGallery.filter({ categoria: selectedCategory });
+          const chatGallery = allGalleries.find(g => g.titulo.includes("Chat Entrenador"));
+          
+          const galleryPhotos = imageFiles.map(img => ({
+            url: img.url,
+            descripcion: data.mensaje || "Compartida desde el chat",
+            jugadores_etiquetados: []
+          }));
+
+          if (chatGallery) {
+            const updatedPhotos = [...(chatGallery.fotos || []), ...galleryPhotos];
+            await base44.entities.PhotoGallery.update(chatGallery.id, {
+              fotos: updatedPhotos
+            });
+          } else {
+            await base44.entities.PhotoGallery.create({
+              titulo: `📸 Chat Entrenador - ${selectedCategory}`,
+              descripcion: "Fotos compartidas desde el chat del entrenador",
+              fecha_evento: new Date().toISOString().split('T')[0],
+              categoria: selectedCategory,
+              tipo_evento: "Entrenamiento",
+              fotos: galleryPhotos,
+              visible_para_padres: true,
+              destacado: false
+            });
+          }
+        } catch (error) {
+          console.error("Error guardando en galería:", error);
+        }
+      }
+
       // Marcar como no escribiendo
       const log = await base44.entities.CoachChatLog.filter({ grupo_id });
       if (log.length > 0) {
@@ -433,6 +468,7 @@ export default function CoachChatWindow({ selectedCategory, user, allPlayers }) 
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['coachGroupMessages'] });
+      queryClient.invalidateQueries({ queryKey: ['photoGalleries'] });
       setMessageText("");
       setAttachments([]);
       setReplyingTo(null);
