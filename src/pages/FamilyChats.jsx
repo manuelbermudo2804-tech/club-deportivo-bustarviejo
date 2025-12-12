@@ -6,6 +6,7 @@ const CoordinatorChat = lazy(() => import("./CoordinatorChat"));
 const CoachParentChat = lazy(() => import("./CoachParentChat"));
 
 export default function FamilyChats() {
+  // Este componente debe proporcionar el contenedor de altura fija
   const [user, setUser] = useState(null);
   const [isCoordinator, setIsCoordinator] = useState(false);
   const [isCoach, setIsCoach] = useState(false);
