@@ -116,29 +116,26 @@ export default function CoachParentChat() {
         <Card className="h-full flex flex-col overflow-hidden lg:rounded-lg rounded-none border-green-200 shadow-lg">
           {/* Header con pestañas de categorías */}
           <div className="bg-gradient-to-r from-green-600 to-green-700 text-white flex-shrink-0">
-            <div className="p-4 flex items-center justify-between border-b border-green-500/30">
+            <div className="p-2 flex items-center justify-between border-b border-green-500/30">
               <div>
-                <h1 className="text-xl font-bold flex items-center gap-2">
-                  <MessageCircle className="w-6 h-6" />
+                <h1 className="text-base font-bold flex items-center gap-2">
+                  <MessageCircle className="w-5 h-5" />
                   Chat con Familias
                 </h1>
-                <p className="text-xs text-green-100">
-                  Comunícate con los padres de tus jugadores
-                </p>
               </div>
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => setShowSettings(true)}
-                className="text-white hover:bg-white/20"
+                className="text-white hover:bg-white/20 h-8 w-8 p-0"
                 title="Configuración"
               >
-                <Settings className="w-5 h-5" />
+                <Settings className="w-4 h-4" />
               </Button>
             </div>
           
-          {/* Pestañas de categorías */}
-          <div className="flex gap-2 px-4 pb-3 overflow-x-auto">
+          {/* Pestañas de categorías - más compactas */}
+          <div className="flex gap-1 px-2 pb-2 overflow-x-auto">
             {categories.map(cat => {
               const categoryPlayers = cat === "Todas las categorías" 
                 ? allPlayers 
@@ -154,14 +151,14 @@ export default function CoachParentChat() {
                   variant={selectedCategory === cat ? "secondary" : "ghost"}
                   size="sm"
                   onClick={() => setSelectedCategory(cat)}
-                  className={`whitespace-nowrap ${
+                  className={`whitespace-nowrap text-xs px-2 py-1 h-7 ${
                     selectedCategory === cat 
                       ? 'bg-white text-green-700 hover:bg-white/90' 
                       : 'text-white hover:bg-white/20'
                   }`}
                 >
                   {cat === "Todas las categorías" ? "📋 Todas" : cat.replace('Fútbol ', '').replace(' (Mixto)', '')}
-                  <span className="ml-2 text-xs opacity-70">({parentCount})</span>
+                  <span className="ml-1.5 text-xs opacity-70">({parentCount})</span>
                 </Button>
               );
             })}
