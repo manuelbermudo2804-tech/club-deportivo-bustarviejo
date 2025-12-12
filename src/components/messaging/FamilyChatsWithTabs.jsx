@@ -13,8 +13,8 @@ export default function FamilyChatsWithTabs({ isCoordinator, isCoach, Coordinato
   
   // Si es ambos, mostrar con tabs - usar estructura de 2 divs como StaffChat
   return (
-    <div className="h-[calc(100vh-100px)] lg:h-[calc(100vh-110px)]">
-      <Tabs defaultValue="coordinador" className="h-full flex flex-col">
+    <div className="h-[calc(100vh-100px)] lg:h-[calc(100vh-110px)] overflow-hidden">
+      <Tabs defaultValue="coordinador" className="h-full flex flex-col overflow-hidden">
         <TabsList className="mx-4 mt-3 flex-shrink-0">
           <TabsTrigger value="coordinador" className="flex-1">
             🏟️ Coordinador
@@ -24,11 +24,11 @@ export default function FamilyChatsWithTabs({ isCoordinator, isCoach, Coordinato
           </TabsTrigger>
         </TabsList>
         
-        <TabsContent value="coordinador" className="flex-1 mt-0 h-full">
+        <TabsContent value="coordinador" className="flex-1 mt-0 overflow-hidden">
           <CoordinatorChatPage />
         </TabsContent>
         
-        <TabsContent value="entrenador" className="flex-1 mt-0 h-full">
+        <TabsContent value="entrenador" className="flex-1 mt-0 overflow-hidden">
           <CoachParentChatPage />
         </TabsContent>
       </Tabs>
