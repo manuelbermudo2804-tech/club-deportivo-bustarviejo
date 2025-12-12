@@ -349,7 +349,7 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
   };
 
   // Filtrar todos los archivos compartidos
-  const allSharedFiles = messages.flatMap(m => m.adjuntos || []);
+  const allSharedFiles = messages.flatMap(m => m.archivos_adjuntos || []);
 
   const sendMessageMutation = useMutation({
     mutationFn: async (data) => {
@@ -591,9 +591,9 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
     
     // Filtro por tipo
     if (filterType !== "all") {
-      if (filterType === "text" && (msg.adjuntos?.length > 0 || msg.encuesta || msg.ubicacion)) return false;
-      if (filterType === "files" && !msg.adjuntos?.some(f => !f.tipo?.startsWith('image/'))) return false;
-      if (filterType === "images" && !msg.adjuntos?.some(f => f.tipo?.startsWith('image/'))) return false;
+      if (filterType === "text" && (msg.archivos_adjuntos?.length > 0 || msg.encuesta || msg.ubicacion)) return false;
+      if (filterType === "files" && !msg.archivos_adjuntos?.some(f => !f.tipo?.startsWith('image/'))) return false;
+      if (filterType === "images" && !msg.archivos_adjuntos?.some(f => f.tipo?.startsWith('image/'))) return false;
       if (filterType === "polls" && !msg.encuesta) return false;
       if (filterType === "locations" && !msg.ubicacion) return false;
     }
@@ -743,9 +743,9 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
                   />
                 )}
 
-                {msg.adjuntos?.length > 0 && (
+                {msg.archivos_adjuntos?.length > 0 && (
                   <div className="mt-2 space-y-1">
-                    {msg.adjuntos.map((file, idx) => (
+                    {msg.archivos_adjuntos.map((file, idx) => (
                       file.tipo?.startsWith('image/') ? (
                         <img 
                           key={idx}
