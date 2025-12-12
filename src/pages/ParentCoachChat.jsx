@@ -404,7 +404,24 @@ export default function ParentCoachChat() {
                           {isCoach && <Badge className="text-xs bg-green-500 px-1 py-0">Entrenador</Badge>}
                         </div>
 
-                        {msg.audio_url ? (
+                        {/* Encuesta */}
+                        {(msg.encuesta || msg.poll) && (
+                          <PollMessage 
+                            encuesta={msg.encuesta || msg.poll} 
+                            messageId={msg.id}
+                            userEmail={user.email}
+                            userName={user.full_name}
+                            onVote={(msgId, optionIdx) => votePollMutation.mutate({ messageId: msgId, optionIndex: optionIdx })}
+                          />
+                        )}
+
+                        {/* Ubicación */}
+                        {msg.ubicacion && (
+                          <LocationMessage ubicacion={msg.ubicacion} />
+                        )}
+
+                        {/* Audio */}
+                        {msg.audio_url && (
                           <div className="flex items-center gap-2">
                             <Button 
                               size="sm" 
@@ -415,13 +432,9 @@ export default function ParentCoachChat() {
                             </Button>
                             <span className="text-sm">🎤 {msg.audio_duracion}s</span>
                           </div>
-                        ) : (msg.encuesta || msg.poll) ? (
-                          // NO mostrar texto cuando hay encuesta
-                          null
-                        ) : (
-                          <p className="text-sm whitespace-pre-wrap">{msg.mensaje}</p>
                         )}
 
+                        {/* Archivos Adjuntos */}
                         {msg.archivos_adjuntos?.length > 0 && (
                           <div className="mt-2 space-y-1">
                             {msg.archivos_adjuntos.map((file, idx) => (
@@ -450,16 +463,9 @@ export default function ParentCoachChat() {
                           </div>
                         )}
 
-                        {msg.ubicacion && <LocationMessage ubicacion={msg.ubicacion} />}
-
-                        {(msg.encuesta || msg.poll) && (
-                          <PollMessage 
-                            encuesta={msg.encuesta || msg.poll} 
-                            messageId={msg.id}
-                            userEmail={user.email}
-                            userName={user.full_name}
-                            onVote={(msgId, optionIdx) => votePollMutation.mutate({ messageId: msgId, optionIndex: optionIdx })}
-                          />
+                        {/* Mensaje de texto (solo si no hay encuesta/ubicación/audio) */}
+                        {!msg.audio_url && !msg.encuesta && !msg.poll && !msg.ubicacion && msg.mensaje && (
+                          <p className="text-sm whitespace-pre-wrap">{msg.mensaje}</p>
                         )}
 
                         <p className="text-xs opacity-60 mt-1">
