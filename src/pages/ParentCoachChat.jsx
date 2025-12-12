@@ -500,8 +500,8 @@ export default function ParentCoachChat() {
                     handleSend();
                   }
                 }}
-                className="flex-1 min-h-[100px] lg:min-h-[60px] resize-none text-base"
-                rows={4}
+                className="flex-1 min-h-[80px] lg:min-h-[60px] resize-none text-base"
+                rows={3}
               />
               <Button 
                 onClick={handleSend} 
