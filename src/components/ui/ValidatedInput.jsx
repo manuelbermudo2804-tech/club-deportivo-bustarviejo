@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Input } from "./input";
 import { AlertCircle, CheckCircle2 } from "lucide-react";
-import { validators, formatters } from "@/utils/validators";
+import { validators, formatters } from "../utils/validators";
 
 export default function ValidatedInput({ 
   type = "text", 
