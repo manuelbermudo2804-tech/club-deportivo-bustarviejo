@@ -404,25 +404,14 @@ export default function ParentCoachChat() {
                           {isCoach && <Badge className="text-xs bg-green-500 px-1 py-0">Entrenador</Badge>}
                         </div>
 
-                        {/* Encuesta */}
-                        {(msg.encuesta || msg.poll) && (
-                          <PollMessage 
-                            encuesta={msg.encuesta || msg.poll} 
-                            messageId={msg.id}
-                            userEmail={user.email}
-                            userName={user.full_name}
-                            onVote={(msgId, optionIdx) => votePollMutation.mutate({ messageId: msgId, optionIndex: optionIdx })}
-                          />
-                        )}
-
-                        {/* Ubicación */}
-                        {msg.ubicacion && (
-                          <LocationMessage ubicacion={msg.ubicacion} />
+                        {/* Mensaje de texto normal */}
+                        {msg.mensaje && !msg.audio_url && !msg.encuesta && !msg.poll && !msg.ubicacion && (
+                          <p className="text-sm whitespace-pre-wrap">{msg.mensaje}</p>
                         )}
 
                         {/* Audio */}
                         {msg.audio_url && (
-                          <div className="flex items-center gap-2">
+                          <div className="flex items-center gap-2 mt-2">
                             <Button 
                               size="sm" 
                               variant={isMine ? "secondary" : "outline"}
@@ -462,11 +451,30 @@ export default function ParentCoachChat() {
                             ))}
                           </div>
                         )}
+                      </div>
 
-                        {/* Mensaje de texto (solo si no hay encuesta/ubicación/audio) */}
-                        {!msg.audio_url && !msg.encuesta && !msg.poll && !msg.ubicacion && msg.mensaje && (
-                          <p className="text-sm whitespace-pre-wrap">{msg.mensaje}</p>
-                        )}
+                      {/* Encuesta - FUERA de la burbuja principal */}
+                      {(msg.encuesta || msg.poll) && (
+                        <div className={`mt-2 ${isMine ? 'ml-auto' : 'mr-auto'} max-w-[75%]`}>
+                          <PollMessage 
+                            encuesta={msg.encuesta || msg.poll} 
+                            messageId={msg.id}
+                            userEmail={user.email}
+                            userName={user.full_name}
+                            onVote={(msgId, optionIdx) => votePollMutation.mutate({ messageId: msgId, optionIndex: optionIdx })}
+                          />
+                        </div>
+                      )}
+
+                      {/* Ubicación - FUERA de la burbuja principal */}
+                      {msg.ubicacion && (
+                        <div className={`mt-2 ${isMine ? 'ml-auto' : 'mr-auto'} max-w-[75%]`}>
+                          <LocationMessage ubicacion={msg.ubicacion} />
+                        </div>
+                      )}
+
+                      <div className="hidden">
+                        {/* Cierre del div de la burbuja principal que se abrió arriba */}
 
                         <p className="text-xs opacity-60 mt-1">
                           {format(new Date(msg.created_date), "HH:mm", { locale: es })}
