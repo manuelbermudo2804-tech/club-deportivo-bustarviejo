@@ -948,8 +948,8 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
                 handleSend();
               }
             }}
-            className="flex-1 min-h-[80px] lg:min-h-[60px] resize-none text-base"
-            rows={3}
+            className="flex-1 min-h-[44px] max-h-32 resize-none text-base"
+            rows={1}
             disabled={recording || audioBlob}
           />
 
