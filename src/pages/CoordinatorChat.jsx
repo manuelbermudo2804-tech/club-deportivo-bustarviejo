@@ -101,7 +101,7 @@ export default function CoordinatorChat() {
   const totalUnread = activeConversations.reduce((sum, c) => sum + (c.no_leidos_coordinador || 0), 0);
 
   return (
-    <div className="fixed inset-0 lg:inset-auto lg:absolute lg:top-0 lg:left-0 lg:right-0 lg:bottom-0 flex flex-col lg:flex-row overflow-hidden pt-[100px] lg:pt-0 pb-0">
+    <div className="h-full flex flex-col lg:flex-row overflow-hidden">
       {/* Modal de configuración */}
       {showSettings && (
         <div className="absolute inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
