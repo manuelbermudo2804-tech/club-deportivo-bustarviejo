@@ -23,7 +23,7 @@ import {
   TrendingUp, TrendingDown, DollarSign, Users, AlertCircle, CheckCircle2, Clock, 
   Download, FileText, CreditCard, ShoppingBag, Clover, Building2,
   ArrowUpRight, ArrowDownRight, Receipt, Calendar, Wallet, Plus, Loader2, PieChart as PieChartIcon,
-  Sparkles, RefreshCw, Activity, Award, FileSpreadsheet, Target
+  Sparkles, RefreshCw, Activity, Award, FileSpreadsheet, Target, Upload
 } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
