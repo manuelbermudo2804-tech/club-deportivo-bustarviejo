@@ -1033,6 +1033,7 @@ Email: cdbustarviejo@gmail.com
                         player={player} 
                         onEdit={handleEdit}
                         onRenew={handleRenew}
+                        onMarkNotRenewing={handleMarkNotRenewing}
                         isParent={true}
                         schedules={schedules}
                         payments={payments}
@@ -1065,6 +1066,7 @@ Email: cdbustarviejo@gmail.com
                         player={player} 
                         onEdit={handleEdit}
                         onRenew={handleRenew}
+                        onMarkNotRenewing={handleMarkNotRenewing}
                         isParent={true}
                         schedules={schedules}
                         payments={payments}
@@ -1097,6 +1099,7 @@ Email: cdbustarviejo@gmail.com
                         player={player} 
                         onEdit={handleEdit}
                         onRenew={handleRenew}
+                        onMarkNotRenewing={handleMarkNotRenewing}
                         isParent={true}
                         schedules={schedules}
                         payments={payments}
