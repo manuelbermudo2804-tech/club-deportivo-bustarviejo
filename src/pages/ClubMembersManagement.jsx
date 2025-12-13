@@ -1267,11 +1267,12 @@ cdbustarviejo@gmail.com`
                         </Card>
                       ))}
                   </div>
-                </>
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
+                  </>
+                  );
+                  })()}
+                  </CardContent>
+                  </Card>
+                  </TabsContent>
 
         <TabsContent value="no-renovados" className="space-y-6">
           <Card className="bg-gradient-to-r from-red-50 to-orange-50 border-2 border-red-300">
@@ -1377,13 +1378,13 @@ cdbustarviejo@gmail.com`
                         </CardContent>
                       </Card>
                     ))}
-                  </div>
-                </>
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
+                    </div>
+                    </>
+                    )}
+                    </CardContent>
+                    </Card>
+                    </TabsContent>
+                    </Tabs>
     </div>
   );
 }
