@@ -1672,7 +1672,9 @@ export default function TreasurerDashboard() {
                 Gestión de Presupuestos - Temporada {currentSeason}
               </h2>
             </div>
-            {!activeBudget && (
+            {(() => {
+            const currentActiveBudget = budgets.find(b => b.activo && b.temporada === currentSeason) || budgets[0];
+            return !currentActiveBudget && (
               <Button 
                 onClick={() => {
                   setNewBudgetData({ temporada: currentSeason, nombre: "Presupuesto Principal" });
@@ -1683,39 +1685,43 @@ export default function TreasurerDashboard() {
                 <Plus className="h-4 w-4 mr-2" />
                 Crear Presupuesto
               </Button>
-            )}
+            );
+          })()}
           </div>
 
-          {activeBudget ? (
-            <BudgetManager
-              budget={activeBudget}
-              onUpdate={handleUpdateBudget}
-              historicalTransactions={financialTransactions}
-              historicalBudgets={budgets}
-            />
-          ) : (
-            <Card className="border-dashed border-2">
-              <CardContent className="p-12 text-center">
-                <Wallet className="h-16 w-16 text-slate-300 mx-auto mb-4" />
-                <h3 className="text-xl font-bold text-slate-900 mb-2">
-                  No hay presupuesto para esta temporada
-                </h3>
-                <p className="text-slate-600 mb-4">
-                  Crea un presupuesto para gestionar ingresos y gastos del club
-                </p>
-                <Button 
-                  onClick={() => {
-                    setNewBudgetData({ temporada: currentSeason, nombre: "Presupuesto Principal" });
-                    setShowNewBudget(true);
-                  }}
-                  className="bg-orange-600 hover:bg-orange-700"
-                >
-                  <Plus className="h-4 w-4 mr-2" />
-                  Crear Presupuesto
-                </Button>
-              </CardContent>
-            </Card>
-          )}
+          {(() => {
+            const currentActiveBudget = budgets.find(b => b.activo && b.temporada === currentSeason) || budgets[0];
+            return currentActiveBudget ? (
+              <BudgetManager
+                budget={currentActiveBudget}
+                onUpdate={handleUpdateBudget}
+                historicalTransactions={financialTransactions}
+                historicalBudgets={budgets}
+              />
+            ) : (
+              <Card className="border-dashed border-2">
+                <CardContent className="p-12 text-center">
+                  <Wallet className="h-16 w-16 text-slate-300 mx-auto mb-4" />
+                  <h3 className="text-xl font-bold text-slate-900 mb-2">
+                    No hay presupuesto para esta temporada
+                  </h3>
+                  <p className="text-slate-600 mb-4">
+                    Crea un presupuesto para gestionar ingresos y gastos del club
+                  </p>
+                  <Button 
+                    onClick={() => {
+                      setNewBudgetData({ temporada: currentSeason, nombre: "Presupuesto Principal" });
+                      setShowNewBudget(true);
+                    }}
+                    className="bg-orange-600 hover:bg-orange-700"
+                  >
+                    <Plus className="h-4 w-4 mr-2" />
+                    Crear Presupuesto
+                  </Button>
+                </CardContent>
+              </Card>
+            );
+          })()}
         </TabsContent>
 
         {/* Movimientos Financieros Tab */}
