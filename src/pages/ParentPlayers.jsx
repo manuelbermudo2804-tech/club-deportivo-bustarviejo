@@ -775,6 +775,24 @@ Email: cdbustarviejo@gmail.com
     setShowForm(true);
   };
 
+  const handleMarkNotRenewing = async (player) => {
+    try {
+      await base44.entities.Player.update(player.id, {
+        estado_renovacion: "no_renueva",
+        fecha_renovacion: new Date().toISOString(),
+        temporada_renovacion: seasonConfig?.temporada || new Date().getFullYear() + "/" + (new Date().getFullYear() + 1)
+      });
+      
+      queryClient.invalidateQueries({ queryKey: ['myPlayers'] });
+      queryClient.invalidateQueries({ queryKey: ['players'] });
+      
+      toast.success(`${player.nombre} marcado como NO RENUEVA para la próxima temporada`);
+    } catch (error) {
+      console.error("Error marking player as not renewing:", error);
+      toast.error("Error al actualizar el jugador");
+    }
+  };
+
   const futbolPlayers = players.filter(p => 
     p.deporte?.includes("Fútbol") && !p.deporte?.includes("Femenino")
   );

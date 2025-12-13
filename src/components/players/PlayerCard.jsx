@@ -47,9 +47,10 @@ const DIAS_ORDEN = {
   "Viernes": 5
 };
 
-export default function PlayerCard({ player, onEdit, onViewProfile, isParent = false, readOnly = false, schedules = [], isCoachOrCoordinator = false, payments = [], seasonConfig = null, callups = [], onRenew = null }) {
+export default function PlayerCard({ player, onEdit, onViewProfile, isParent = false, readOnly = false, schedules = [], isCoachOrCoordinator = false, payments = [], seasonConfig = null, callups = [], onRenew = null, onMarkNotRenewing = null }) {
   const [showDetail, setShowDetail] = useState(false);
   const [showRenewalSuggestion, setShowRenewalSuggestion] = useState(false);
+  const [confirmingNotRenew, setConfirmingNotRenew] = useState(false);
   
   // Filtrar horarios del jugador según su categoría/deporte
   const playerSchedules = schedules
@@ -345,18 +346,62 @@ export default function PlayerCard({ player, onEdit, onViewProfile, isParent = f
                   <p className="text-xs text-purple-800 leading-relaxed mb-2">
                     {player.nombre} tiene {edadActual} años. Recomendamos cambiar de <strong>{player.deporte}</strong> a <strong>{categorySuggested}</strong>
                   </p>
-                  {onRenew && (
-                    <Button
-                      size="sm"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onRenew(player, categorySuggested);
-                      }}
-                      className="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold shadow-lg"
-                    >
-                      ✨ Renovar con Nueva Categoría
-                    </Button>
-                  )}
+                  <div className="space-y-2">
+                    {onRenew && (
+                      <Button
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onRenew(player, categorySuggested);
+                        }}
+                        className="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold shadow-lg"
+                      >
+                        ✨ Renovar con Nueva Categoría
+                      </Button>
+                    )}
+                    {onMarkNotRenewing && !confirmingNotRenew && (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setConfirmingNotRenew(true);
+                        }}
+                        className="w-full border-slate-400 text-slate-700 hover:bg-slate-100"
+                      >
+                        ❌ No voy a renovar
+                      </Button>
+                    )}
+                    {confirmingNotRenew && (
+                      <div className="bg-red-50 border-2 border-red-300 rounded-lg p-2">
+                        <p className="text-xs text-red-800 mb-2 font-bold">⚠️ ¿Seguro que NO quieres renovar?</p>
+                        <div className="flex gap-2">
+                          <Button
+                            size="sm"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onMarkNotRenewing(player);
+                              setConfirmingNotRenew(false);
+                            }}
+                            className="flex-1 bg-red-600 hover:bg-red-700 text-white"
+                          >
+                            Confirmar NO renovar
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setConfirmingNotRenew(false);
+                            }}
+                            className="flex-1"
+                          >
+                            Cancelar
+                          </Button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
@@ -372,18 +417,62 @@ export default function PlayerCard({ player, onEdit, onViewProfile, isParent = f
                   <p className="text-xs text-orange-800 leading-relaxed mb-2">
                     Es momento de renovar la inscripción de {player.nombre} para la próxima temporada en <strong>{player.deporte}</strong>
                   </p>
-                  {onRenew && (
-                    <Button
-                      size="sm"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onRenew(player, null);
-                      }}
-                      className="w-full bg-orange-600 hover:bg-orange-700 text-white font-bold shadow-lg"
-                    >
-                      🔄 Renovar Jugador
-                    </Button>
-                  )}
+                  <div className="space-y-2">
+                    {onRenew && (
+                      <Button
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onRenew(player, null);
+                        }}
+                        className="w-full bg-orange-600 hover:bg-orange-700 text-white font-bold shadow-lg"
+                      >
+                        🔄 Renovar Jugador
+                      </Button>
+                    )}
+                    {onMarkNotRenewing && !confirmingNotRenew && (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setConfirmingNotRenew(true);
+                        }}
+                        className="w-full border-slate-400 text-slate-700 hover:bg-slate-100"
+                      >
+                        ❌ No voy a renovar
+                      </Button>
+                    )}
+                    {confirmingNotRenew && (
+                      <div className="bg-red-50 border-2 border-red-300 rounded-lg p-2">
+                        <p className="text-xs text-red-800 mb-2 font-bold">⚠️ ¿Seguro que NO quieres renovar?</p>
+                        <div className="flex gap-2">
+                          <Button
+                            size="sm"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onMarkNotRenewing(player);
+                              setConfirmingNotRenew(false);
+                            }}
+                            className="flex-1 bg-red-600 hover:bg-red-700 text-white"
+                          >
+                            Confirmar NO renovar
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setConfirmingNotRenew(false);
+                            }}
+                            className="flex-1"
+                          >
+                            Cancelar
+                          </Button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
