@@ -606,24 +606,26 @@ Email: cdbustarviejo@gmail.com
                     {allPlayerPayments.length === 0 ? (
                       <div className="text-center py-8 text-slate-500">
                         <p>No hay pagos registrados para este jugador</p>
-                        <Button
-                          onClick={() => {
-                            setSelectedPlayerId(player.id);
-                            setShowForm(true);
-                            setTimeout(() => {
-                              const formElement = document.querySelector('[data-payment-form]');
-                              if (formElement) {
-                                formElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                              }
-                            }, 100);
-                          }}
-                          type="button"
-                          variant="outline"
-                          className="mt-4"
-                        >
-                          <Plus className="w-4 h-4 mr-2" />
-                          Registrar Primer Pago
-                        </Button>
+                        {!showForm && (
+                          <Button
+                            onClick={() => {
+                              setSelectedPlayerId(player.id);
+                              setShowForm(true);
+                              setTimeout(() => {
+                                const formElement = document.querySelector('[data-payment-form]');
+                                if (formElement) {
+                                  formElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                                }
+                              }, 100);
+                            }}
+                            type="button"
+                            variant="outline"
+                            className="mt-4"
+                          >
+                            <Plus className="w-4 h-4 mr-2" />
+                            Registrar Primer Pago
+                          </Button>
+                        )}
                       </div>
                     ) : (
                       <div className="space-y-3">
