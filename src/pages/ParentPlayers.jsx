@@ -729,10 +729,16 @@ Email: cdbustarviejo@gmail.com
   const handlePaymentFlowContinue = (paymentsData) => {
     const descuentoCalculado = pendingPlayerData._descuentoCalculado || 0;
 
+    console.log('✅ [handlePaymentFlowContinue] Continuando con pago:', {
+      jugador: pendingPlayerData.nombre,
+      descuento: descuentoCalculado,
+      tipoPago: paymentsData.tipoPago
+    });
+
     createPlayerMutation.mutate({
       playerData: {
         ...pendingPlayerData,
-        tiene_descuento_hermano: !esMayor,
+        tiene_descuento_hermano: descuentoCalculado > 0,
         descuento_aplicado: descuentoCalculado
       },
       paymentsData: {
