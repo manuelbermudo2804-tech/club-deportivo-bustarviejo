@@ -2,18 +2,10 @@ import React from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export default function FamilyChatsWithTabs({ isCoordinator, isCoach, CoordinatorChatPage, CoachParentChatPage }) {
-  // Si solo es coordinador O solo es entrenador, mostrar directamente sin tabs
-  if (isCoordinator && !isCoach) {
-    return <CoordinatorChatPage />;
-  }
-  
-  if (isCoach && !isCoordinator) {
-    return <CoachParentChatPage />;
-  }
-  
-  // Si es ambos, mostrar con tabs - usar estructura de 2 divs como StaffChat
-  return (
-    <Tabs defaultValue="coordinador" className="h-full flex flex-col overflow-hidden">
+  // Si es coordinador, SIEMPRE mostrar ambas pestañas (coordinador puede ver ambos chats)
+  if (isCoordinator) {
+    return (
+      <Tabs defaultValue="coordinador" className="h-full flex flex-col overflow-hidden">
         <TabsList className="mx-4 mt-3 flex-shrink-0">
           <TabsTrigger value="coordinador" className="flex-1">
             🏟️ Coordinador
@@ -31,5 +23,14 @@ export default function FamilyChatsWithTabs({ isCoordinator, isCoach, Coordinato
           <CoachParentChatPage />
         </TabsContent>
       </Tabs>
-  );
+    );
+  }
+  
+  // Si solo es entrenador (no coordinador), mostrar solo chat entrenador sin tabs
+  if (isCoach && !isCoordinator) {
+    return <CoachParentChatPage />;
+  }
+  
+  // Fallback
+  return <CoordinatorChatPage />;
 }
