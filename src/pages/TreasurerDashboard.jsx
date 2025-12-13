@@ -210,10 +210,11 @@ export default function TreasurerDashboard() {
   };
 
   const handleUpdateBudget = (updates) => {
-    if (activeBudget) {
+    const currentActiveBudget = budgets.find(b => b.activo && b.temporada === currentSeason) || budgets[0];
+    if (currentActiveBudget) {
       updateBudgetMutation.mutate({
-        id: activeBudget.id,
-        data: { ...activeBudget, ...updates }
+        id: currentActiveBudget.id,
+        data: { ...currentActiveBudget, ...updates }
       });
     }
   };
