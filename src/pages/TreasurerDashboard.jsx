@@ -1742,7 +1742,10 @@ export default function TreasurerDashboard() {
 
           {showTransactionForm ? (
             <TransactionForm
-              partidas={activeBudget?.partidas || []}
+              partidas={(() => {
+                const currentActiveBudget = budgets.find(b => b.activo && b.temporada === currentSeason) || budgets[0];
+                return currentActiveBudget?.partidas || [];
+              })()}
               temporada={currentSeason}
               onSubmit={(data) => createTransactionMutation.mutate(data)}
               onCancel={() => setShowTransactionForm(false)}
