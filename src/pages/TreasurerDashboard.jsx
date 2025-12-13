@@ -129,7 +129,6 @@ export default function TreasurerDashboard() {
     queryFn: () => base44.entities.PaymentHistory.list('-created_date'),
   });
 
-  const activeSeason = seasons.find(s => s.activa) || seasons[0];
   const activeBudget = budgets.find(b => b.activo && b.temporada === currentSeason) || budgets[0];
 
   // Mutations para presupuestos
