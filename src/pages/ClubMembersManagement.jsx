@@ -825,12 +825,15 @@ Por solo *25€/año* seguirás apoyando a nuestros jóvenes deportistas.
 
       {/* Tabs: Lista vs Estadísticas */}
       <Tabs defaultValue="lista" className="space-y-4">
-        <TabsList className="grid w-full grid-cols-3 max-w-2xl">
+        <TabsList className="grid w-full grid-cols-4 max-w-3xl">
           <TabsTrigger value="lista" className="flex items-center gap-2">
             <Users className="w-4 h-4" /> Lista de Socios
           </TabsTrigger>
           <TabsTrigger value="estadisticas" className="flex items-center gap-2">
             <BarChart3 className="w-4 h-4" /> Estadísticas
+          </TabsTrigger>
+          <TabsTrigger value="historico" className="flex items-center gap-2">
+            <Clock className="w-4 h-4" /> Histórico
           </TabsTrigger>
           <TabsTrigger value="no-renovados" className="flex items-center gap-2">
             <AlertCircle className="w-4 h-4" /> No Renovados {noRenovados.length > 0 && `(${noRenovados.length})`}
@@ -1118,6 +1121,107 @@ Por solo *25€/año* seguirás apoyando a nuestros jóvenes deportistas.
           ))
           )}
         </div>
+        </TabsContent>
+
+        <TabsContent value="historico" className="space-y-6">
+          <Card className="bg-gradient-to-r from-slate-50 to-slate-100 border-2 border-slate-300">
+            <CardContent className="p-6">
+              <div className="flex items-center gap-3 mb-4">
+                <Clock className="w-8 h-8 text-slate-600" />
+                <div>
+                  <h3 className="text-xl font-bold text-slate-900">📚 Histórico de Socios</h3>
+                  <p className="text-sm text-slate-700">Todos los socios de temporadas anteriores</p>
+                </div>
+              </div>
+              
+              {members.filter(m => m.temporada !== seasonConfig?.temporada).length === 0 ? (
+                <div className="text-center py-8">
+                  <Clock className="w-12 h-12 text-slate-400 mx-auto mb-3" />
+                  <p className="text-slate-600">No hay socios de temporadas anteriores</p>
+                </div>
+              ) : (
+                <>
+                  <div className="mb-4">
+                    <p className="text-sm text-slate-600 mb-2">
+                      Total: {members.filter(m => m.temporada !== seasonConfig?.temporada).length} socios históricos
+                    </p>
+                    <Select value={seasonFilter === "all" ? "all" : seasonFilter} onValueChange={setSeasonFilter}>
+                      <SelectTrigger className="w-64">
+                        <SelectValue placeholder="Filtrar por temporada" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">📅 Todas las temporadas</SelectItem>
+                        {availableSeasons.filter(s => s !== seasonConfig?.temporada).map(season => (
+                          <SelectItem key={season} value={season}>
+                            {season} ({members.filter(m => m.temporada === season).length})
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-3">
+                    {members
+                      .filter(m => m.temporada !== seasonConfig?.temporada)
+                      .filter(m => seasonFilter === "all" || m.temporada === seasonFilter)
+                      .map(member => (
+                        <Card key={member.id} className="bg-white hover:shadow-md transition-shadow">
+                          <CardContent className="p-4">
+                            <div className="flex items-center justify-between gap-4">
+                              <div className="flex-1 cursor-pointer" onClick={() => setViewingMember(member)}>
+                                <div className="flex items-center gap-2 mb-1 flex-wrap">
+                                  <h4 className="font-semibold text-slate-900">{member.nombre_completo}</h4>
+                                  <Badge variant="outline" className="text-xs">{member.numero_socio || "Sin nº"}</Badge>
+                                  <Badge className="bg-slate-100 text-slate-700 text-xs">
+                                    {member.temporada}
+                                  </Badge>
+                                  {member.estado_pago === "Pagado" && (
+                                    <Badge className="bg-green-100 text-green-700 text-xs">✅ Pagado</Badge>
+                                  )}
+                                  {isExternalMember(member) && (
+                                    <Badge className="bg-cyan-100 text-cyan-700 text-xs">Externo</Badge>
+                                  )}
+                                </div>
+                                <div className="text-sm text-slate-600">
+                                  <p>📧 {member.email} | 📱 {member.telefono}</p>
+                                  <p className="text-xs">📍 {member.municipio}</p>
+                                </div>
+                              </div>
+                              
+                              <div className="flex gap-2">
+                                <Button variant="ghost" size="icon" onClick={() => setViewingMember(member)} title="Ver detalle">
+                                  <Eye className="w-4 h-4 text-slate-500" />
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => sendEmailToMember(member)}
+                                  disabled={!member.email || sendingEmailTo === member.id}
+                                  title="Enviar recordatorio de renovación"
+                                >
+                                  {sendingEmailTo === member.id ? (
+                                    <RefreshCw className="w-4 h-4 animate-spin" />
+                                  ) : (
+                                    <><Mail className="w-4 h-4 mr-1" /> Recordar</>
+                                  )}
+                                </Button>
+                                {member.telefono && generateWhatsAppLink(member) && (
+                                  <a href={generateWhatsAppLink(member)} target="_blank" rel="noopener noreferrer">
+                                    <Button size="sm" variant="outline">
+                                      <MessageCircle className="w-4 h-4 text-green-600" />
+                                    </Button>
+                                  </a>
+                                )}
+                              </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      ))}
+                  </div>
+                </>
+              )}
+            </CardContent>
+          </Card>
         </TabsContent>
 
         <TabsContent value="no-renovados" className="space-y-6">
