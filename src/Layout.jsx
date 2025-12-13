@@ -813,7 +813,6 @@ export default function Layout({ children, currentPageName }) {
   const adminNavigationItems = [
     // 📊 INICIO Y FINANZAS
     { title: "🏠 Inicio", url: createPageUrl("Home"), icon: Home },
-    { title: "📱 Redes Sociales", url: createPageUrl("SocialFeed"), icon: MessageCircle },
     { title: "🤖 Asistente Virtual", url: createPageUrl("Chatbot"), icon: MessageCircle },
     { title: "🛡️ Conversaciones Críticas", url: createPageUrl("AdminChat"), icon: ShieldAlert },
     { title: "📊 Panel Financiero", url: createPageUrl("TreasurerDashboard"), icon: CreditCard },
@@ -1007,7 +1006,6 @@ export default function Layout({ children, currentPageName }) {
   const parentNavigationItems = [
     // 🏠 INICIO
     { title: "🏠 Inicio", url: createPageUrl("ParentDashboard"), icon: Home },
-    { title: "📱 Redes Sociales", url: createPageUrl("SocialFeed"), icon: MessageCircle },
 
     // 💬 CHATS
     { title: "🤖 Asistente Virtual", url: createPageUrl("Chatbot"), icon: MessageCircle },

@@ -73,7 +73,6 @@ import ParentSystemMessages from './pages/ParentSystemMessages';
 import PaymentReminders from './pages/PaymentReminders';
 import CoordinatorSettings from './pages/CoordinatorSettings';
 import CoachChatSettings from './pages/CoachChatSettings';
-import SocialFeed from './pages/SocialFeed';
 import AdminChat from './pages/AdminChat';
 import ParentAdminChat from './pages/ParentAdminChat';
 import Chatbot from './pages/Chatbot';
@@ -159,7 +158,6 @@ export const PAGES = {
     "PaymentReminders": PaymentReminders,
     "CoordinatorSettings": CoordinatorSettings,
     "CoachChatSettings": CoachChatSettings,
-    "SocialFeed": SocialFeed,
     "AdminChat": AdminChat,
     "ParentAdminChat": ParentAdminChat,
     "Chatbot": Chatbot,
