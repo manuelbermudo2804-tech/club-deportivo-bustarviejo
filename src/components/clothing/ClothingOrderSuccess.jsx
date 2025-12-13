@@ -1,7 +1,7 @@
 import React from "react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { CheckCircle2, ShoppingBag } from "lucide-react";
+import { ShoppingBag, CheckCircle2 } from "lucide-react";
 
 export default function ClothingOrderSuccess({ isOpen, onClose, orderDetails }) {
   return (

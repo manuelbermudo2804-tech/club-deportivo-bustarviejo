@@ -9,7 +9,6 @@ import {
   CreditCard, 
   ClipboardCheck, 
   MessageCircle, 
-  CheckCircle2,
   Star,
   Calendar,
   AlertTriangle,
@@ -22,7 +21,8 @@ import {
   Lock,
   Mail,
   User,
-  Megaphone
+  Megaphone,
+  CheckCircle2
 } from "lucide-react";
 
 import { useState, useEffect } from "react";
