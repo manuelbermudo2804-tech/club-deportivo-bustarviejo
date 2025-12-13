@@ -96,6 +96,9 @@ export default function AIBudgetAssistant({
   const [ingresosEsperados, setIngresosEsperados] = useState("");
   const [sugerencia, setSugerencia] = useState(null);
   const [ajustes, setAjustes] = useState(null);
+  const [inflacion, setInflacion] = useState("3");
+  const [crecimientoMiembros, setCrecimientoMiembros] = useState("0");
+  const [copiarPresupuestoAnterior, setCopiarPresupuestoAnterior] = useState(null);
 
   // Obtener temporadas disponibles de datos históricos
   const temporadasDisponibles = [...new Set([
@@ -152,6 +155,15 @@ export default function AIBudgetAssistant({
       const historicalAnalysis = analyzeHistoricalData();
       const objetivoSeleccionado = OBJETIVOS_PREDEFINIDOS.find(o => o.id === objetivo);
       
+      // Si hay presupuesto anterior seleccionado para copiar, aplicar ajustes
+      let baseBudget = null;
+      if (copiarPresupuestoAnterior) {
+        const presupuestoAnterior = historicalBudgets.find(b => b.id === copiarPresupuestoAnterior);
+        if (presupuestoAnterior?.partidas) {
+          baseBudget = presupuestoAnterior.partidas;
+        }
+      }
+      
       const prompt = `Eres un experto en gestión financiera de clubes deportivos. Necesito que generes una propuesta de presupuesto para un club de fútbol/baloncesto.
 
 DATOS HISTÓRICOS DEL CLUB:
@@ -162,6 +174,12 @@ DATOS HISTÓRICOS DEL CLUB:
 - Tendencia financiera: ${historicalAnalysis.tendencia}
 - Presupuestos anteriores: ${JSON.stringify(historicalAnalysis.presupuestosAnteriores.slice(0, 2))}
 
+${baseBudget ? `PRESUPUESTO BASE A COPIAR Y AJUSTAR: ${JSON.stringify(baseBudget)}` : ''}
+
+PARÁMETROS DE AJUSTE AUTOMÁTICO:
+- Inflación estimada: ${inflacion}%
+- Crecimiento esperado de miembros: ${crecimientoMiembros}%
+
 OBJETIVO PRINCIPAL: ${objetivoSeleccionado?.label || objetivo} - ${objetivoSeleccionado?.description || objetivoPersonalizado}
 
 ${objetivoPersonalizado ? `INSTRUCCIONES ADICIONALES: ${objetivoPersonalizado}` : ''}
@@ -171,12 +189,19 @@ INGRESOS ESPERADOS PARA LA NUEVA TEMPORADA: ${ingresosEsperados || 'Estimar bas�
 CATEGORÍAS DE PARTIDAS DISPONIBLES:
 ${JSON.stringify(CATEGORIAS_PARTIDAS, null, 2)}
 
-Por favor, genera una propuesta de presupuesto detallada con:
-1. Partidas de ingresos con importes estimados
-2. Partidas de gastos fijos, variables e inversiones
-3. Recomendaciones específicas basadas en el objetivo
-4. Alertas o riesgos a considerar
-5. Comparativa con temporadas anteriores si hay datos`;
+INSTRUCCIONES:
+${baseBudget ? `1. Usa las partidas del presupuesto base como punto de partida
+2. Ajusta CADA partida aplicando:
+   - Inflación del ${inflacion}% a gastos fijos y variables
+   - Crecimiento de miembros del ${crecimientoMiembros}% a ingresos por cuotas
+   - Adaptaciones según el objetivo seleccionado
+3. Añade nuevas partidas si son necesarias según el objetivo` : 
+`1. Genera partidas de ingresos con importes estimados (considerando crecimiento de ${crecimientoMiembros}%)
+2. Genera partidas de gastos aplicando inflación del ${inflacion}% sobre datos históricos
+3. Ajusta según el objetivo principal`}
+4. Proporciona recomendaciones específicas
+5. Identifica alertas o riesgos
+6. Incluye comparativa con temporadas anteriores`;
 
       const response = await base44.integrations.Core.InvokeLLM({
         prompt,
@@ -525,6 +550,64 @@ Analiza cada partida y sugiere ajustes específicos para optimizar el presupuest
                   value={ingresosEsperados}
                   onChange={(e) => setIngresosEsperados(e.target.value)}
                 />
+              </div>
+            </div>
+
+            {/* Copiar presupuesto anterior */}
+            <div className="bg-blue-50 border-2 border-blue-300 rounded-lg p-4">
+              <Label className="flex items-center gap-2 mb-3">
+                <BarChart3 className="h-4 w-4 text-blue-600" />
+                Copiar y Ajustar Presupuesto Anterior
+              </Label>
+              <Select value={copiarPresupuestoAnterior || ""} onValueChange={setCopiarPresupuestoAnterior}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Ninguno - crear desde cero" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={null}>Ninguno - crear desde cero</SelectItem>
+                  {historicalBudgets.map(b => (
+                    <SelectItem key={b.id} value={b.id}>
+                      {b.temporada} - {b.nombre || "Presupuesto"} ({b.partidas?.length || 0} partidas)
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {copiarPresupuestoAnterior && (
+                <p className="text-xs text-blue-700 mt-2">
+                  ✨ Se copiarán las partidas y se ajustarán automáticamente
+                </p>
+              )}
+            </div>
+
+            {/* Parámetros de ajuste automático */}
+            <div className="bg-purple-50 border-2 border-purple-300 rounded-lg p-4 space-y-3">
+              <h4 className="font-semibold text-purple-900 flex items-center gap-2">
+                <Target className="h-4 w-4" />
+                Ajustes Automáticos
+              </h4>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label className="text-sm">Inflación estimada (%)</Label>
+                  <Input
+                    type="number"
+                    value={inflacion}
+                    onChange={(e) => setInflacion(e.target.value)}
+                    placeholder="3"
+                    step="0.1"
+                  />
+                  <p className="text-xs text-purple-700 mt-1">Se aplicará a gastos fijos y variables</p>
+                </div>
+                <div>
+                  <Label className="text-sm">Crecimiento esperado miembros (%)</Label>
+                  <Input
+                    type="number"
+                    value={crecimientoMiembros}
+                    onChange={(e) => setCrecimientoMiembros(e.target.value)}
+                    placeholder="0"
+                    step="1"
+                  />
+                  <p className="text-xs text-purple-700 mt-1">Ajustará ingresos por cuotas proporcionalmente</p>
+                </div>
               </div>
             </div>
 
