@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -69,6 +69,22 @@ export default function CategoryManagement() {
     fetchUser();
   }, []);
 
+  // Query para temporada activa - PRIMERO
+  const { data: seasons = [] } = useQuery({
+    queryKey: ['seasons'],
+    queryFn: () => base44.entities.SeasonConfig.list(),
+  });
+
+  const activeSeason = useMemo(() => {
+    return seasons.find(s => s.activa === true);
+  }, [seasons]);
+
+  // Query para jugadores (para contar por categoría)
+  const { data: players = [] } = useQuery({
+    queryKey: ['players'],
+    queryFn: () => base44.entities.Player.list(),
+  });
+
   // Query para categorías - FILTRADAS POR TEMPORADA ACTIVA
   const { data: categories = [], isLoading } = useQuery({
     queryKey: ['categoryConfigs', activeSeason?.temporada],
@@ -82,20 +98,6 @@ export default function CategoryManagement() {
     },
     enabled: seasons.length > 0,
   });
-
-  // Query para jugadores (para contar por categoría)
-  const { data: players = [] } = useQuery({
-    queryKey: ['players'],
-    queryFn: () => base44.entities.Player.list(),
-  });
-
-  // Query para temporada activa
-  const { data: seasons = [] } = useQuery({
-    queryKey: ['seasons'],
-    queryFn: () => base44.entities.SeasonConfig.list(),
-  });
-
-  const activeSeason = seasons.find(s => s.activa === true);
 
   // Mutaciones
   const createCategoryMutation = useMutation({
