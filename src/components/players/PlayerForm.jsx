@@ -1053,40 +1053,50 @@ export default function PlayerForm({ player, onSubmit, onCancel, isSubmitting, i
 
                 {/* Opción para cargar datos de otro jugador de la familia */}
                 {!player && existingFamilyPlayers.length > 0 && (
-                  <div className="bg-white rounded-lg p-4 border-2 border-blue-200">
-                    <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
-                      <div className="flex-1">
-                        <p className="text-sm font-semibold text-blue-900">
-                          👨‍👩‍👧‍👦 ¿Tienes otro hijo/a inscrito?
-                        </p>
-                        <p className="text-xs text-blue-700">
-                          Carga los datos de los tutores de un jugador ya registrado para no repetir
-                        </p>
+                  <div className="bg-gradient-to-r from-blue-50 to-cyan-50 rounded-lg p-4 border-2 border-blue-300 shadow-sm">
+                    <div className="flex flex-col gap-3">
+                      <div className="flex items-center gap-2">
+                        <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center flex-shrink-0">
+                          <Users className="w-5 h-5 text-white" />
+                        </div>
+                        <div className="flex-1">
+                          <p className="text-base font-bold text-blue-900">
+                            👨‍👩‍👧‍👦 ¡Ya tienes hijos inscritos!
+                          </p>
+                          <p className="text-xs text-blue-700">
+                            Copia los datos de tutores para ahorrar tiempo
+                          </p>
+                        </div>
                       </div>
+                      
                       {!usePreviousTutorData ? (
                         <Select onValueChange={handleLoadPreviousTutorData}>
-                          <SelectTrigger className="w-full sm:w-64">
-                            <SelectValue placeholder="Cargar datos de..." />
+                          <SelectTrigger className="w-full h-12 bg-white border-2 border-blue-300">
+                            <SelectValue placeholder="📋 Selecciona un hijo para copiar datos..." />
                           </SelectTrigger>
                           <SelectContent>
                             {existingFamilyPlayers.map(p => (
                               <SelectItem key={p.id} value={p.id}>
-                                {p.nombre}
+                                👤 {p.nombre} - {p.deporte}
                               </SelectItem>
                             ))}
                           </SelectContent>
                         </Select>
                       ) : (
-                        <Button type="button" variant="outline" size="sm" onClick={handleClearTutorData} className="text-red-600 border-red-300 hover:bg-red-50">
-                          <X className="w-4 h-4 mr-1" /> Limpiar y rellenar de nuevo
-                        </Button>
+                        <div className="space-y-2">
+                          <Alert className="bg-green-100 border-green-300">
+                            <CheckCircle2 className="h-4 w-4 text-green-600" />
+                            <AlertDescription className="text-green-800 text-sm">
+                              ✅ <strong>Datos copiados correctamente:</strong> Tutor principal, segundo progenitor, dirección y teléfonos.
+                              Puedes modificar cualquier campo si es necesario.
+                            </AlertDescription>
+                          </Alert>
+                          <Button type="button" variant="outline" onClick={handleClearTutorData} className="w-full text-red-600 border-red-300 hover:bg-red-50">
+                            <X className="w-4 h-4 mr-1" /> Limpiar y rellenar manualmente
+                          </Button>
+                        </div>
                       )}
                     </div>
-                    {usePreviousTutorData && (
-                      <p className="text-xs text-green-700 mt-2">
-                        ✅ Datos cargados (tutor principal y segundo progenitor). Puedes modificar cualquier campo si es necesario.
-                      </p>
-                    )}
                   </div>
                 )}
 
