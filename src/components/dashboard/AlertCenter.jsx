@@ -302,7 +302,7 @@ export default function AlertCenter({
 
   // Eventos nuevos publicados en últimas 48h
   const twoDaysAgo = new Date();
-  twoDaysAgo.setDate(twoDaysAgo.now - 2);
+  twoDaysAgo.setDate(twoDaysAgo.getDate() - 2);
   const newEvents = events.filter(e => {
     if (!e.publicado) return false;
     const createdDate = new Date(e.created_date);
