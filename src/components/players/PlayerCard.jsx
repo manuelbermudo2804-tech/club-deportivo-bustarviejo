@@ -257,6 +257,10 @@ export default function PlayerCard({ player, onEdit, onViewProfile, isParent = f
               <Badge className="bg-red-600 text-white animate-pulse shadow-lg">
                 ⚠️ RENOVAR JUGADOR
               </Badge>
+            ) : player.estado_renovacion === "no_renueva" ? (
+              <Badge className="bg-slate-600 text-white shadow-lg">
+                ❌ NO RENUEVA
+              </Badge>
             ) : player.activo ? (
               <Badge className="bg-green-500 text-white">Activo</Badge>
             ) : (
@@ -364,19 +368,7 @@ export default function PlayerCard({ player, onEdit, onViewProfile, isParent = f
                     {player.nombre} tiene {edadActual} años. Recomendamos cambiar de <strong>{player.deporte}</strong> a <strong>{categorySuggested}</strong>
                   </p>
                   <div className="space-y-2">
-                    {onRenew && !confirmingRenew && (
-                      <Button
-                        size="sm"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setConfirmingRenew(true);
-                        }}
-                        className="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold shadow-lg"
-                      >
-                        ✨ Renovar con Nueva Categoría
-                      </Button>
-                    )}
-                    {confirmingRenew && (
+                    {confirmingRenew ? (
                       <div className="bg-purple-100 border-2 border-purple-400 rounded-lg p-2">
                         <p className="text-xs text-purple-900 mb-2 font-bold">✅ ¿Confirmar renovación con cambio?</p>
                         <p className="text-xs text-purple-800 mb-2">{player.deporte} → {categorySuggested}</p>
@@ -390,7 +382,7 @@ export default function PlayerCard({ player, onEdit, onViewProfile, isParent = f
                             }}
                             className="flex-1 bg-purple-600 hover:bg-purple-700 text-white"
                           >
-                            Confirmar Renovación
+                            Confirmar
                           </Button>
                           <Button
                             size="sm"
@@ -405,6 +397,17 @@ export default function PlayerCard({ player, onEdit, onViewProfile, isParent = f
                           </Button>
                         </div>
                       </div>
+                    ) : onRenew && (
+                      <Button
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setConfirmingRenew(true);
+                        }}
+                        className="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold shadow-lg"
+                      >
+                        ✨ Renovar con Nueva Categoría
+                      </Button>
                     )}
                     {onMarkNotRenewing && !confirmingNotRenew && (
                       <Button
@@ -465,19 +468,7 @@ export default function PlayerCard({ player, onEdit, onViewProfile, isParent = f
                     Es momento de renovar la inscripción de {player.nombre} para la próxima temporada en <strong>{player.deporte}</strong>
                   </p>
                   <div className="space-y-2">
-                    {onRenew && !confirmingRenew && (
-                      <Button
-                        size="sm"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setConfirmingRenew(true);
-                        }}
-                        className="w-full bg-orange-600 hover:bg-orange-700 text-white font-bold shadow-lg"
-                      >
-                        🔄 Renovar Jugador
-                      </Button>
-                    )}
-                    {confirmingRenew && (
+                    {confirmingRenew ? (
                       <div className="bg-orange-100 border-2 border-orange-400 rounded-lg p-2">
                         <p className="text-xs text-orange-900 mb-2 font-bold">✅ ¿Confirmar renovación?</p>
                         <p className="text-xs text-orange-800 mb-2">Mantiene {player.deporte}</p>
@@ -491,7 +482,7 @@ export default function PlayerCard({ player, onEdit, onViewProfile, isParent = f
                             }}
                             className="flex-1 bg-orange-600 hover:bg-orange-700 text-white"
                           >
-                            Confirmar Renovación
+                            Confirmar
                           </Button>
                           <Button
                             size="sm"
@@ -506,6 +497,17 @@ export default function PlayerCard({ player, onEdit, onViewProfile, isParent = f
                           </Button>
                         </div>
                       </div>
+                    ) : onRenew && (
+                      <Button
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setConfirmingRenew(true);
+                        }}
+                        className="w-full bg-orange-600 hover:bg-orange-700 text-white font-bold shadow-lg"
+                      >
+                        🔄 Renovar Jugador
+                      </Button>
                     )}
                     {onMarkNotRenewing && !confirmingNotRenew && (
                       <Button

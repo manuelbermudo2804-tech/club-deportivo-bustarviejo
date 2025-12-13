@@ -77,10 +77,14 @@ export default function ParentPlayers() {
       
       console.log('🔍 [ParentPlayers] Mis jugadores encontrados:', myPlayers.length, myPlayers.map(p => p.nombre));
       
-      // Si permitir_renovaciones está activo, mostrar TODOS (activos e inactivos para renovar)
+      // Si permitir_renovaciones está activo, mostrar activos + pendientes (NO los que dijeron no_renueva)
       // Si no, solo mostrar los ACTIVOS
       if (seasonConfig?.permitir_renovaciones) {
-        return myPlayers;
+        // Mostrar: activos + pendientes de renovar (pero NO los que dijeron "no_renueva")
+        return myPlayers.filter(p => 
+          p.activo === true || 
+          (p.estado_renovacion === "pendiente" && p.temporada_renovacion === seasonConfig?.temporada)
+        );
       }
       return myPlayers.filter(p => p.activo === true);
     },

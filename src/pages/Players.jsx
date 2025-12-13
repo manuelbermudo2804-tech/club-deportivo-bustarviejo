@@ -93,10 +93,10 @@ export default function Players() {
     },
   });
 
-  // Filter players based on role - solo mostrar activos de la temporada actual
-  // Admin y Tesorero ven todos los jugadores activos
+  // Filter players based on role
+  // Admin y Tesorero ven: activos + pendientes renovación + no_renueva (para gestión completa)
   const players = (isAdmin || isTreasurer)
-    ? allPlayers.filter(p => p.activo === true)
+    ? allPlayers
     : allPlayers.filter(p => 
         (p.email_padre === user?.email || p.email_tutor_2 === user?.email) && p.activo === true
       );
@@ -313,7 +313,8 @@ export default function Players() {
     const matchesRenewalStatus = statusRenewalFilter === "all" ||
       (statusRenewalFilter === "renovado" && player.tipo_inscripcion === "Renovación" && player.activo) ||
       (statusRenewalFilter === "nuevo" && player.tipo_inscripcion === "Nueva Inscripción" && player.activo) ||
-      (statusRenewalFilter === "pendiente" && !player.activo);
+      (statusRenewalFilter === "pendiente" && player.estado_renovacion === "pendiente" && player.temporada_renovacion === activeSeason?.temporada) ||
+      (statusRenewalFilter === "no_renueva" && player.estado_renovacion === "no_renueva" && player.temporada_renovacion === activeSeason?.temporada);
     
     // Filtro de categoría: comparación exacta con la categoría completa
     const matchesCategory = categoryFilter === "all" || player.deporte === categoryFilter;
@@ -348,7 +349,8 @@ export default function Players() {
   // Contadores para filtro de renovación
   const renovadosCount = allPlayers.filter(p => p.tipo_inscripcion === "Renovación" && p.activo).length;
   const nuevosCount = allPlayers.filter(p => p.tipo_inscripcion === "Nueva Inscripción" && p.activo).length;
-  const pendientesCount = allPlayers.filter(p => !p.activo).length;
+  const pendientesCount = allPlayers.filter(p => p.estado_renovacion === "pendiente" && p.temporada_renovacion === activeSeason?.temporada).length;
+  const noRenuevanCount = allPlayers.filter(p => p.estado_renovacion === "no_renueva" && p.temporada_renovacion === activeSeason?.temporada).length;
 
   return (
     <div className="p-6 lg:p-8 space-y-6">
@@ -504,7 +506,8 @@ export default function Players() {
                         <SelectItem value="all">Todos</SelectItem>
                         <SelectItem value="renovado">🔄 Renovados ({renovadosCount})</SelectItem>
                         <SelectItem value="nuevo">✨ Nuevos ({nuevosCount})</SelectItem>
-                        <SelectItem value="pendiente">⏳ Pendientes ({pendientesCount})</SelectItem>
+                        <SelectItem value="pendiente">⏳ Pendientes Renovar ({pendientesCount})</SelectItem>
+                        <SelectItem value="no_renueva">❌ No Renuevan ({noRenuevanCount})</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
