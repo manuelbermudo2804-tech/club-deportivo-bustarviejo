@@ -82,10 +82,10 @@ export default function PlayerCard({ player, onEdit, onViewProfile, isParent = f
   // Sugerir categoría según edad y género (si aplica)
   const getSuggestedCategory = (edad, deporteActual) => {
     if (!edad) return null;
-    
+
     // Detectar si es jugadora (categoría actual femenina o equipos mixtos pequeños con niña)
     const esJugadoraFemenina = deporteActual === "Fútbol Femenino";
-    
+
     // Para jugadoras de fútbol femenino o categorías mixtas de chicas
     if (esJugadoraFemenina || deporteActual?.includes("Femenino")) {
       // Chicas pequeñas van a equipos mixtos
@@ -96,15 +96,15 @@ export default function PlayerCard({ player, onEdit, onViewProfile, isParent = f
       // A partir de 12 años → Fútbol Femenino
       return "Fútbol Femenino";
     }
-    
-    // Para jugadores masculinos o baloncesto (lógica original)
+
+    // Para jugadores masculinos o baloncesto
+    // RANGOS AMPLIADOS: permitir 2 años de margen para evitar cambios forzados
     if (edad <= 5) return "Fútbol Pre-Benjamín (Mixto)";
     if (edad <= 7) return "Fútbol Benjamín (Mixto)";
     if (edad <= 9) return "Fútbol Alevín (Mixto)";
     if (edad <= 11) return "Fútbol Infantil (Mixto)";
-    if (edad <= 13) return "Fútbol Cadete";
-    if (edad <= 15) return "Fútbol Juvenil";
-    if (edad <= 17) return "Fútbol Aficionado";
+    if (edad <= 15) return "Fútbol Cadete"; // 12-15 años pueden estar en Cadete
+    if (edad <= 17) return "Fútbol Juvenil"; // 16-17 en Juvenil
     return "Fútbol Aficionado";
   };
   

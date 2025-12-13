@@ -686,9 +686,9 @@ export default function SeasonManagement() {
           "BENJAMIN": { inscripcion: 100, segunda: 75, tercera: 75, edad_min: 6, edad_max: 7 },
           "ALEVIN": { inscripcion: 115, segunda: 83, tercera: 83, edad_min: 8, edad_max: 9 },
           "INFANTIL": { inscripcion: 115, segunda: 83, tercera: 83, edad_min: 10, edad_max: 11 },
-          "CADETE": { inscripcion: 135, segunda: 100, tercera: 95, edad_min: 12, edad_max: 13 },
-          "JUVENIL": { inscripcion: 135, segunda: 100, tercera: 95, edad_min: 14, edad_max: 15 },
-          "AFICIONADO": { inscripcion: 165, segunda: 100, tercera: 95, edad_min: 16, edad_max: 99 },
+          "CADETE": { inscripcion: 135, segunda: 100, tercera: 95, edad_min: 12, edad_max: 15 },
+          "JUVENIL": { inscripcion: 135, segunda: 100, tercera: 95, edad_min: 16, edad_max: 17 },
+          "AFICIONADO": { inscripcion: 165, segunda: 100, tercera: 95, edad_min: 18, edad_max: 99 },
           "FEMENINO": { inscripcion: 135, segunda: 100, tercera: 95, edad_min: 12, edad_max: 99 },
           "BALONCESTO": { inscripcion: 50, segunda: 50, tercera: 50, edad_min: 4, edad_max: 18 }
         };

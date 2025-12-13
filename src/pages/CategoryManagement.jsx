@@ -218,9 +218,9 @@ export default function CategoryManagement() {
       { nombre: "BENJAMIN", deporte: "Fútbol", edad_minima: 6, edad_maxima: 7, ...DEFAULT_QUOTAS["BENJAMIN"], orden: 2 },
       { nombre: "ALEVIN", deporte: "Fútbol", edad_minima: 8, edad_maxima: 9, ...DEFAULT_QUOTAS["ALEVIN"], orden: 3 },
       { nombre: "INFANTIL", deporte: "Fútbol", edad_minima: 10, edad_maxima: 11, ...DEFAULT_QUOTAS["INFANTIL"], orden: 4 },
-      { nombre: "CADETE", deporte: "Fútbol", edad_minima: 12, edad_maxima: 13, ...DEFAULT_QUOTAS["CADETE"], orden: 5 },
-      { nombre: "JUVENIL", deporte: "Fútbol", edad_minima: 14, edad_maxima: 15, ...DEFAULT_QUOTAS["JUVENIL"], orden: 6 },
-      { nombre: "AFICIONADO", deporte: "Fútbol", edad_minima: 16, edad_maxima: 99, ...DEFAULT_QUOTAS["AFICIONADO"], orden: 7 },
+      { nombre: "CADETE", deporte: "Fútbol", edad_minima: 12, edad_maxima: 15, ...DEFAULT_QUOTAS["CADETE"], orden: 5 },
+      { nombre: "JUVENIL", deporte: "Fútbol", edad_minima: 16, edad_maxima: 17, ...DEFAULT_QUOTAS["JUVENIL"], orden: 6 },
+      { nombre: "AFICIONADO", deporte: "Fútbol", edad_minima: 18, edad_maxima: 99, ...DEFAULT_QUOTAS["AFICIONADO"], orden: 7 },
       { nombre: "FEMENINO", deporte: "Fútbol", edad_minima: 12, edad_maxima: 99, ...DEFAULT_QUOTAS["FEMENINO"], orden: 8 },
       { nombre: "BALONCESTO", deporte: "Baloncesto", edad_minima: 4, edad_maxima: 18, ...DEFAULT_QUOTAS["BALONCESTO"], orden: 9, notas: "(*) Cuota reducida" }
     ];
