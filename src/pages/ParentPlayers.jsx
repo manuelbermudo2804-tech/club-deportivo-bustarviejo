@@ -688,16 +688,21 @@ Email: cdbustarviejo@gmail.com
     if (editingPlayer) {
       updatePlayerMutation.mutate({ id: editingPlayer.id, playerData });
     } else {
+      // REFETCH FORZADO para obtener jugadores más actuales (evitar cache)
+      console.log('🔄 [ParentPlayers] Refrescando lista de jugadores antes de calcular descuentos...');
+      const todosJugadoresBD = await base44.entities.Player.list();
+      
       // Calcular descuento por hermano ANTES de mostrar el flujo
       // INCLUIR TODOS LOS JUGADORES DE LA FAMILIA (activos o no, porque pueden estar en proceso de renovación)
-      const hermanos = allPlayers.filter(p => 
+      const hermanos = todosJugadoresBD.filter(p => 
         (p.email_padre?.toLowerCase() === user?.email?.toLowerCase() || 
          p.email_tutor_2?.toLowerCase() === user?.email?.toLowerCase()) &&
         p.fecha_nacimiento &&
         p.id !== playerData.id // Excluir al jugador actual si es edición
       );
 
-      console.log('👨‍👩‍👧 [ParentPlayers] Hermanos encontrados:', hermanos.length, hermanos.map(h => h.nombre));
+      console.log('👨‍👩‍👧 [ParentPlayers] Hermanos encontrados en BD:', hermanos.length);
+      hermanos.forEach(h => console.log('  -', h.nombre, '| Fecha:', h.fecha_nacimiento, '| Email padre:', h.email_padre));
 
       const todosHermanos = [
         { id: 'nuevo', fecha_nacimiento: playerData.fecha_nacimiento, nombre: playerData.nombre },
@@ -707,7 +712,8 @@ Email: cdbustarviejo@gmail.com
       // Ordenar por fecha de nacimiento (el MAYOR es el de fecha MÁS ANTIGUA)
       todosHermanos.sort((a, b) => new Date(a.fecha_nacimiento) - new Date(b.fecha_nacimiento));
       
-      console.log('📊 [ParentPlayers] Orden de hermanos por edad (mayor a menor):', todosHermanos.map(h => ({ nombre: h.nombre, fecha: h.fecha_nacimiento })));
+      console.log('📊 [ParentPlayers] Orden de hermanos por edad (mayor a menor):');
+      todosHermanos.forEach((h, i) => console.log(`  ${i + 1}. ${h.nombre} (${h.fecha_nacimiento})`));
       
       const esMayor = todosHermanos[0]?.id === 'nuevo';
       const descuentoCalculado = esMayor ? 0 : 25;
