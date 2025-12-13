@@ -47,32 +47,29 @@ export default function Announcements() {
     };
     checkUser();
     
-    // Marcar todos los anuncios visibles como leídos
+    // Marcar todos los anuncios visibles como leídos INMEDIATAMENTE
     const markAnnouncementsAsRead = async () => {
       try {
         const currentUser = await base44.auth.me();
-        if (currentUser.role === "admin") return; // Admin no marca como leído
+        if (currentUser.role === "admin") return;
         
         const allAnnouncements = await base44.entities.Announcement.list();
+        const allPlayers = await base44.entities.Player.list();
+        const myPlayers = allPlayers.filter(p => 
+          p.email_padre === currentUser.email || p.email === currentUser.email
+        );
+        const sports = [...new Set(myPlayers.map(p => p.deporte).filter(Boolean))];
         
+        let marked = 0;
         for (const announcement of allAnnouncements) {
           if (!announcement.publicado) continue;
-          
-          // Verificar si el anuncio es relevante
-          const allPlayers = await base44.entities.Player.list();
-          const myPlayers = allPlayers.filter(p => 
-            p.email_padre === currentUser.email || p.email === currentUser.email
-          );
-          const sports = [...new Set(myPlayers.map(p => p.deporte).filter(Boolean))];
           
           const isRelevant = announcement.destinatarios_tipo === "Todos" || sports.includes(announcement.destinatarios_tipo);
           if (!isRelevant) continue;
           
-          // Verificar si ya está leído
           const alreadyRead = announcement.leido_por?.some(l => l.email === currentUser.email);
           if (alreadyRead) continue;
           
-          // Marcar como leído
           const leidoPor = announcement.leido_por || [];
           leidoPor.push({
             email: currentUser.email,
@@ -83,16 +80,21 @@ export default function Announcements() {
           await base44.entities.Announcement.update(announcement.id, {
             leido_por: leidoPor
           });
+          marked++;
         }
         
-        queryClient.invalidateQueries({ queryKey: ['announcements'] });
+        if (marked > 0) {
+          console.log(`✅ Marcados ${marked} anuncios como leídos`);
+          queryClient.invalidateQueries({ queryKey: ['announcements'] });
+          queryClient.invalidateQueries({ queryKey: ['announcementsAlerts'] });
+        }
       } catch (error) {
         console.error("Error marking announcements as read:", error);
       }
     };
     
-    // Ejecutar después de 2 segundos de estar en la página
-    const timeout = setTimeout(markAnnouncementsAsRead, 2000);
+    // Ejecutar INMEDIATAMENTE
+    const timeout = setTimeout(markAnnouncementsAsRead, 500);
     
     // Scroll al anuncio si viene desde AlertCenter
     const urlParams = new URLSearchParams(window.location.search);
