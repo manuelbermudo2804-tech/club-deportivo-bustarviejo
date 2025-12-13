@@ -326,14 +326,74 @@ export default function SeasonManagementContent() {
     setShowSecurityDialog(false);
 
     try {
-      const totalSteps = 8;
+      const totalSteps = 11;
       let currentStep = 0;
 
-      // 1. Archivar pagos
+      // VALIDACIÓN PRE-RESET (MEJORA #4)
+      const playersNoDecision = players.filter(p => 
+        p.activo === true && 
+        (!p.estado_renovacion || p.estado_renovacion === "pendiente")
+      );
+      const paymentsNotPaid = payments.filter(p => p.estado !== "Pagado" && p.estado !== "Anulado");
+      const membersNotPaid = await base44.entities.ClubMember.filter({ 
+        temporada: activeSeason?.temporada, 
+        estado_pago: "Pendiente" 
+      });
+      
+      if (playersNoDecision.length > 0 || paymentsNotPaid.length > 0 || membersNotPaid.length > 0) {
+        const warnings = [];
+        if (playersNoDecision.length > 0) warnings.push(`${playersNoDecision.length} jugadores sin decisión de renovación`);
+        if (paymentsNotPaid.length > 0) warnings.push(`${paymentsNotPaid.length} pagos pendientes`);
+        if (membersNotPaid.length > 0) warnings.push(`${membersNotPaid.length} socios con cuota pendiente`);
+        
+        const confirmForce = confirm(`⚠️ ADVERTENCIA:\n\n${warnings.join('\n')}\n\n¿Continuar con el reset de todas formas?`);
+        if (!confirmForce) {
+          setIsProcessing(false);
+          return;
+        }
+      }
+
+      // 1. ARCHIVAR JUGADORES "no_renueva" → PlayerHistory (MEJORA #1)
+      setProcessingStep("Archivando jugadores no renovados...");
+      const playersNotRenewing = players.filter(p => p.estado_renovacion === "no_renueva");
+      for (const player of playersNotRenewing) {
+        const { id, created_date, updated_date, created_by, ...playerData } = player;
+        
+        // Calcular estadísticas del jugador
+        const playerPayments = payments.filter(p => p.jugador_id === player.id);
+        const totalPagado = playerPayments
+          .filter(p => p.estado === "Pagado")
+          .reduce((sum, p) => sum + (p.cantidad || 0), 0);
+        
+        await base44.entities.PlayerHistory.create({
+          jugador_original_id: player.id,
+          nombre: player.nombre,
+          deporte: player.deporte,
+          temporadas_activo: [activeSeason?.temporada],
+          ultima_temporada: activeSeason?.temporada,
+          motivo_salida: "no_renueva",
+          fecha_salida: new Date().toISOString(),
+          email_padre: player.email_padre,
+          telefono: player.telefono,
+          datos_completos: playerData,
+          total_pagado_historico: totalPagado,
+          num_temporadas: 1,
+          puede_reactivarse: true
+        });
+        
+        // Eliminar jugador de Player
+        await base44.entities.Player.delete(player.id);
+      }
+      currentStep++;
+      setProcessingProgress((currentStep / totalSteps) * 100);
+
+      // 2. Archivar pagos (MEJORA #5 - solo archiva, no elimina pagos marcados como eliminados)
       if (resetConfig.archivePayments) {
         setProcessingStep("Archivando pagos...");
         for (const payment of payments) {
-          const { id, created_date, updated_date, ...data } = payment;
+          if (payment.is_deleted === true) continue; // No archivar pagos ya eliminados
+          
+          const { id, created_date, updated_date, created_by, ...data } = payment;
           await base44.entities.PaymentHistory.create({
             ...data,
             archivado_fecha: new Date().toISOString()
@@ -344,7 +404,7 @@ export default function SeasonManagementContent() {
         setProcessingProgress((currentStep / totalSteps) * 100);
       }
 
-      // 2. Eliminar recordatorios
+      // 3. Eliminar recordatorios
       if (resetConfig.deleteReminders) {
         setProcessingStep("Eliminando recordatorios...");
         for (const reminder of reminders) {
@@ -354,10 +414,10 @@ export default function SeasonManagementContent() {
         setProcessingProgress((currentStep / totalSteps) * 100);
       }
 
-      // 3. Resetear estado de jugadores
+      // 4. Resetear estado de jugadores activos (los que SÍ renovaron)
       if (resetConfig.resetPlayerStatus) {
-        setProcessingStep("Actualizando jugadores...");
-        for (const player of players.filter(p => p.activo)) {
+        setProcessingStep("Actualizando jugadores activos...");
+        for (const player of players.filter(p => p.activo && p.estado_renovacion !== "no_renueva")) {
           await base44.entities.Player.update(player.id, {
             estado_renovacion: "pendiente",
             temporada_renovacion: resetConfig.newSeasonName
@@ -367,7 +427,30 @@ export default function SeasonManagementContent() {
         setProcessingProgress((currentStep / totalSteps) * 100);
       }
 
-      // 4. Eliminar convocatorias
+      // 5. ARCHIVAR pedidos de ropa de temporada anterior (MEJORA #2)
+      setProcessingStep("Archivando pedidos de ropa antiguos...");
+      const oldClothingOrders = clothingOrders.filter(order => 
+        order.temporada && order.temporada !== resetConfig.newSeasonName
+      );
+      for (const order of oldClothingOrders) {
+        await base44.entities.ClothingOrder.delete(order.id);
+      }
+      currentStep++;
+      setProcessingProgress((currentStep / totalSteps) * 100);
+
+      // 6. RESETEAR SOCIOS temporada anterior → activo: false (MEJORA #3 - OPCIÓN A)
+      setProcessingStep("Desactivando socios de temporada anterior...");
+      const allMembers = await base44.entities.ClubMember.list();
+      const oldSeasonMembers = allMembers.filter(m => 
+        m.temporada !== resetConfig.newSeasonName && m.activo === true
+      );
+      for (const member of oldSeasonMembers) {
+        await base44.entities.ClubMember.update(member.id, { activo: false });
+      }
+      currentStep++;
+      setProcessingProgress((currentStep / totalSteps) * 100);
+
+      // 7. Eliminar convocatorias
       if (resetConfig.deleteCallups) {
         setProcessingStep("Eliminando convocatorias...");
         const callups = await base44.entities.Convocatoria.list();
@@ -378,7 +461,7 @@ export default function SeasonManagementContent() {
         setProcessingProgress((currentStep / totalSteps) * 100);
       }
 
-      // 5. Eliminar lotería
+      // 8. Eliminar lotería
       if (resetConfig.deleteLotteryOrders) {
         setProcessingStep("Eliminando pedidos de lotería...");
         for (const order of lotteryOrders) {
@@ -388,7 +471,7 @@ export default function SeasonManagementContent() {
         setProcessingProgress((currentStep / totalSteps) * 100);
       }
 
-      // 6. Desactivar temporada actual
+      // 9. Desactivar temporada actual
       setProcessingStep("Configurando nueva temporada...");
       if (activeSeason) {
         await base44.entities.SeasonConfig.update(activeSeason.id, { activa: false });
@@ -396,7 +479,7 @@ export default function SeasonManagementContent() {
       currentStep++;
       setProcessingProgress((currentStep / totalSteps) * 100);
 
-      // 7. Crear nueva temporada
+      // 10. Crear nueva temporada
       await base44.entities.SeasonConfig.create({
         temporada: resetConfig.newSeasonName,
         activa: true,
@@ -414,7 +497,7 @@ export default function SeasonManagementContent() {
       currentStep++;
       setProcessingProgress((currentStep / totalSteps) * 100);
 
-      // 8. Registrar en historial
+      // 11. Registrar en historial
       await base44.entities.ResetHistory.create({
         fecha_reset: new Date().toISOString(),
         temporada_anterior: activeSeason?.temporada || "Desconocida",
@@ -423,7 +506,10 @@ export default function SeasonManagementContent() {
         acciones: JSON.stringify(resetConfig),
         pagos_archivados: payments.length,
         recordatorios_eliminados: reminders.length,
-        jugadores_actualizados: players.filter(p => p.activo).length
+        jugadores_actualizados: players.filter(p => p.activo).length,
+        jugadores_archivados: playersNotRenewing.length,
+        socios_desactivados: oldSeasonMembers.length,
+        pedidos_ropa_archivados: oldClothingOrders.length
       });
       currentStep++;
       setProcessingProgress(100);
@@ -465,11 +551,20 @@ export default function SeasonManagementContent() {
     }
   };
 
-  // Estadísticas actuales
+  // Estadísticas actuales + validación pre-reset
+  const playersNoDecision = players.filter(p => 
+    p.activo === true && 
+    (!p.estado_renovacion || p.estado_renovacion === "pendiente")
+  );
+  const playersNotRenewing = players.filter(p => p.estado_renovacion === "no_renueva");
+  const paymentsNotPaid = payments.filter(p => p.estado !== "Pagado" && p.estado !== "Anulado");
+  
   const currentStats = {
     payments: payments.length,
     pendingPayments: payments.filter(p => p.estado === "Pendiente").length,
     players: players.filter(p => p.activo).length,
+    playersNoDecision: playersNoDecision.length,
+    playersNotRenewing: playersNotRenewing.length,
     reminders: reminders.length,
     clothingOrders: clothingOrders.length,
     lotteryOrders: lotteryOrders.length
@@ -778,7 +873,7 @@ export default function SeasonManagementContent() {
                   </div>
                   <div className="flex items-center gap-2">
                     <Users className="w-4 h-4 text-green-600" />
-                    <span>{currentStats.players} jugadores</span>
+                    <span>{currentStats.players} jugadores activos</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <ShoppingBag className="w-4 h-4 text-orange-600" />
@@ -790,6 +885,33 @@ export default function SeasonManagementContent() {
                   </div>
                 </div>
               </div>
+
+              {/* VALIDACIÓN PRE-RESET - Advertencias */}
+              {(currentStats.playersNoDecision > 0 || paymentsNotPaid.length > 0) && (
+                <Alert className="bg-yellow-50 border-yellow-300">
+                  <AlertTriangle className="w-4 h-4 text-yellow-600" />
+                  <AlertDescription className="text-yellow-800 ml-2 space-y-1">
+                    <p className="font-bold">⚠️ Tienes datos pendientes:</p>
+                    {currentStats.playersNoDecision > 0 && (
+                      <p className="text-sm">• {currentStats.playersNoDecision} jugadores sin decisión de renovación</p>
+                    )}
+                    {paymentsNotPaid.length > 0 && (
+                      <p className="text-sm">• {paymentsNotPaid.length} pagos pendientes de confirmar</p>
+                    )}
+                    <p className="text-sm mt-2 italic">Recomendamos resolver estos pendientes antes del reset</p>
+                  </AlertDescription>
+                </Alert>
+              )}
+
+              {currentStats.playersNotRenewing > 0 && (
+                <Alert className="bg-orange-50 border-orange-300">
+                  <Archive className="w-4 h-4 text-orange-600" />
+                  <AlertDescription className="text-orange-800 ml-2">
+                    <p className="font-bold">📦 {currentStats.playersNotRenewing} jugadores se archivarán a PlayerHistory</p>
+                    <p className="text-sm mt-1">Estos jugadores marcados como "No Renueva" se moverán al histórico automáticamente</p>
+                  </AlertDescription>
+                </Alert>
+              )}
 
               <Button
                 onClick={initiateSeasonReset}
