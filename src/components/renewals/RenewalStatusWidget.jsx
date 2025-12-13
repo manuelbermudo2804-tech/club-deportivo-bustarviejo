@@ -2,7 +2,7 @@ import React from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { RefreshCw, AlertTriangle, CheckCircle2, CreditCard, ArrowRight } from "lucide-react";
+import { AlertTriangle, CheckCircle2, CreditCard, ArrowRight } from "lucide-react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { Progress } from "@/components/ui/progress";
@@ -65,7 +65,7 @@ export default function RenewalStatusWidget({ players, payments, seasonConfig })
         
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <RefreshCw className="w-6 h-6 text-orange-600" />
+            <CheckCircle2 className="w-6 h-6 text-orange-600" />
             <h3 className="font-bold text-orange-900 text-lg">Estado de Renovaciones</h3>
           </div>
           <Badge className="bg-orange-600 text-white">
