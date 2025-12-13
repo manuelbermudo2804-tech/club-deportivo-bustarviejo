@@ -456,13 +456,13 @@ export default function AlertCenter({
 
   // Alertas para padres
   if (isParent && !isAdmin && !isCoach) {
-    // Solo mostrar pagos REALMENTE pendientes (estado "Pendiente"), NO los "En revisión"
+    // Separar pagos "Pendiente" (sin justificante) de pagos "En revisión" (pendientes de revisión admin)
     if (pendingPayments > 0) {
       alerts.push({
         id: "payments",
         icon: CreditCard,
-        title: "💳 Justificantes por enviar",
-        description: `${pendingPayments} justificante${pendingPayments > 1 ? 's' : ''} de pago pendiente${pendingPayments > 1 ? 's' : ''}`,
+        title: "💳 Justificantes por enviar o en revisión",
+        description: `${pendingPayments} pago${pendingPayments > 1 ? 's' : ''} pendiente${pendingPayments > 1 ? 's' : ''}`,
         url: createPageUrl("ParentPayments"),
         color: "bg-yellow-500",
         priority: 3

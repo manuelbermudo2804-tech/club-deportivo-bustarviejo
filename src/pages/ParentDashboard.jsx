@@ -307,9 +307,10 @@ export default function ParentDashboard() {
     return count;
   }, 0);
 
-  const pendingPayments = payments.filter(p => 
-    p.estado === "Pendiente" || p.estado === "En revisión"
-  ).length;
+  // Separar pagos sin justificante vs en revisión
+  const pagosSinJustificante = payments.filter(p => p.estado === "Pendiente").length;
+  const pagosEnRevision = payments.filter(p => p.estado === "En revisión").length;
+  const pendingPayments = pagosSinJustificante + pagosEnRevision;
 
   // Calcular pagos vencidos
   const overduePayments = payments.filter(p => {
@@ -690,7 +691,9 @@ export default function ParentDashboard() {
               </div>
               <div className="text-slate-400 text-[10px] lg:text-sm">Pagos Pendientes</div>
               <div className="text-slate-500 text-[8px] lg:text-[10px] mt-1">
-                (solo registrados)
+                {pagosSinJustificante > 0 && `${pagosSinJustificante} sin justif.`}
+                {pagosSinJustificante > 0 && pagosEnRevision > 0 && ' • '}
+                {pagosEnRevision > 0 && `${pagosEnRevision} en revisión`}
               </div>
             </div>
             <div className="text-center">
