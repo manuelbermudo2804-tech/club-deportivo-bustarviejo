@@ -384,7 +384,7 @@ export default function PlayerCard({ player, onEdit, onViewProfile, isParent = f
                             }}
                             className="flex-1 bg-purple-600 hover:bg-purple-700 text-white"
                           >
-                            Confirmar
+                            ✅ Confirmar y ACTIVAR
                           </Button>
                           <Button
                             size="sm"
@@ -408,7 +408,7 @@ export default function PlayerCard({ player, onEdit, onViewProfile, isParent = f
                         }}
                         className="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold shadow-lg"
                       >
-                        ✨ Renovar con Nueva Categoría
+                        ✨ Renovar y ACTIVAR
                       </Button>
                     )}
                     {onMarkNotRenewing && !confirmingNotRenew && (
@@ -484,7 +484,7 @@ export default function PlayerCard({ player, onEdit, onViewProfile, isParent = f
                             }}
                             className="flex-1 bg-orange-600 hover:bg-orange-700 text-white"
                           >
-                            Confirmar
+                            ✅ Confirmar y ACTIVAR
                           </Button>
                           <Button
                             size="sm"
@@ -508,7 +508,7 @@ export default function PlayerCard({ player, onEdit, onViewProfile, isParent = f
                         }}
                         className="w-full bg-orange-600 hover:bg-orange-700 text-white font-bold shadow-lg"
                       >
-                        🔄 Renovar Jugador
+                        🔄 Renovar y ACTIVAR
                       </Button>
                     )}
                     {onMarkNotRenewing && !confirmingNotRenew && (

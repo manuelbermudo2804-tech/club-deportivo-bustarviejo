@@ -773,6 +773,7 @@ Email: cdbustarviejo@gmail.com
       deporte: newCategory || player.deporte,
       tipo_inscripcion: "Renovación",
       estado_renovacion: "renovado",
+      activo: true,
       temporada_renovacion: seasonConfig?.temporada || new Date().getFullYear() + "/" + (new Date().getFullYear() + 1)
     });
     setSuggestedCategory(newCategory);
@@ -985,8 +986,9 @@ Email: cdbustarviejo@gmail.com
                 <ol className="text-xs text-blue-800 space-y-1 list-decimal list-inside leading-relaxed">
                   <li>Busca la tarjeta del jugador más abajo (con badge rojo "⚠️ RENOVAR JUGADOR")</li>
                   <li>Haz clic en el botón <strong>naranja "🔄 Renovar Jugador"</strong> o <strong>morado "✨ Renovar con Nueva Categoría"</strong></li>
+                  <li><strong className="text-green-700">Al renovar, el jugador se marca automáticamente como ACTIVO ✅</strong></li>
                   <li>El sistema te mostrará los datos actualizados (el cambio de categoría ya estará sugerido si corresponde)</li>
-                  <li>Revisa y confirma los datos</li>
+                  <li>Revisa y confirma los datos para completar la renovación</li>
                 </ol>
               </div>
             </div>
