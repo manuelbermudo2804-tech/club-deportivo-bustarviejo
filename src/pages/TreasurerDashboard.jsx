@@ -58,6 +58,7 @@ export default function TreasurerDashboard() {
   const [showCommunicationAssistant, setShowCommunicationAssistant] = useState(false);
   const [showAIForecasting, setShowAIForecasting] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [uploadedBankStatement, setUploadedBankStatement] = useState(null);
   const [newBudgetData, setNewBudgetData] = useState({
     temporada: "",
     nombre: "Presupuesto Principal"
@@ -121,6 +122,11 @@ export default function TreasurerDashboard() {
   const { data: financialTransactions = [], isLoading: loadingFinancialTransactions } = useQuery({
     queryKey: ['financialTransactions'],
     queryFn: () => base44.entities.FinancialTransaction.list('-fecha'),
+  });
+
+  const { data: paymentHistory = [] } = useQuery({
+    queryKey: ['paymentHistory'],
+    queryFn: () => base44.entities.PaymentHistory.list('-created_date'),
   });
 
   const activeBudget = budgets.find(b => b.activo && b.temporada === currentSeason) || budgets[0];
@@ -444,6 +450,175 @@ export default function TreasurerDashboard() {
 
     return Object.values(debtMap).sort((a, b) => b.deuda_total - a.deuda_total);
   }, [filteredPayments, players]);
+
+  // Comparativa interanual
+  const interannualComparison = useMemo(() => {
+    const seasonsList = [...new Set([...payments.map(p => p.temporada), ...paymentHistory.map(p => p.temporada)])].filter(Boolean).sort().reverse();
+    
+    return seasonsList.slice(0, 3).map(season => {
+      const seasonPayments = [...payments, ...paymentHistory].filter(p => normalizeTemporada(p.temporada) === normalizeTemporada(season));
+      const totalCobrado = seasonPayments.filter(p => p.estado === "Pagado").reduce((sum, p) => sum + (p.cantidad || 0), 0);
+      const totalPendiente = seasonPayments.filter(p => p.estado === "Pendiente").reduce((sum, p) => sum + (p.cantidad || 0), 0);
+      
+      return {
+        temporada: season,
+        cobrado: totalCobrado,
+        pendiente: totalPendiente,
+        total: totalCobrado + totalPendiente
+      };
+    });
+  }, [payments, paymentHistory]);
+
+  // Alertas inteligentes
+  const smartAlerts = useMemo(() => {
+    const alerts = [];
+    const now = new Date();
+    
+    // Jugadores sin pagar +30 días
+    const playersDelayed30 = pendingDebts.filter(debt => {
+      const playerPayments = filteredPayments.filter(p => p.jugador_id === debt.jugador_id);
+      const oldestPending = playerPayments.find(p => p.estado === "Pendiente");
+      if (oldestPending?.created_date) {
+        const daysSince = Math.floor((now - new Date(oldestPending.created_date)) / (1000 * 60 * 60 * 24));
+        return daysSince > 30;
+      }
+      return false;
+    });
+    
+    if (playersDelayed30.length > 0) {
+      alerts.push({
+        tipo: 'critico',
+        icono: '🔴',
+        mensaje: `${playersDelayed30.length} jugadores sin pagar desde hace +30 días`,
+        accion: 'Ver deudas'
+      });
+    }
+    
+    // Mejor mes del año
+    const bestMonth = monthlyIncomeData.reduce((max, m) => m.cuotas > max.cuotas ? m : max, monthlyIncomeData[0]);
+    if (bestMonth?.cuotas > 0) {
+      alerts.push({
+        tipo: 'info',
+        icono: '🟢',
+        mensaje: `Mejor mes: ${bestMonth.mes} (${bestMonth.cuotas.toLocaleString()}€)`,
+        accion: null
+      });
+    }
+    
+    // Patrocinadores
+    const sponsorsActivos = sponsors.filter(s => s.estado === "Activo").length;
+    if (sponsorsActivos > 0) {
+      alerts.push({
+        tipo: 'exito',
+        icono: '💼',
+        mensaje: `${sponsorsActivos} patrocinadores activos`,
+        accion: null
+      });
+    }
+    
+    return alerts;
+  }, [pendingDebts, monthlyIncomeData, sponsors, filteredPayments]);
+
+  // Top deudores y mejores pagadores
+  const topPayersStats = useMemo(() => {
+    const familyStats = {};
+    
+    players.forEach(player => {
+      const email = player.email_padre;
+      if (!familyStats[email]) {
+        familyStats[email] = {
+          email,
+          nombre: player.nombre_tutor_legal || email,
+          totalPagado: 0,
+          totalPendiente: 0,
+          pagosPuntuales: 0,
+          pagosRetrasados: 0,
+          jugadores: []
+        };
+      }
+      
+      familyStats[email].jugadores.push(player.nombre);
+      
+      const playerPayments = filteredPayments.filter(p => p.jugador_id === player.id);
+      familyStats[email].totalPagado += playerPayments.filter(p => p.estado === "Pagado").reduce((s, p) => s + (p.cantidad || 0), 0);
+      familyStats[email].totalPendiente += playerPayments.filter(p => p.estado === "Pendiente").reduce((s, p) => s + (p.cantidad || 0), 0);
+    });
+    
+    const families = Object.values(familyStats);
+    const topPayers = families.filter(f => f.totalPagado > 0).sort((a, b) => b.totalPagado - a.totalPagado).slice(0, 5);
+    const topDebtors = families.filter(f => f.totalPendiente > 0).sort((a, b) => b.totalPendiente - a.totalPendiente).slice(0, 5);
+    
+    return { topPayers, topDebtors };
+  }, [players, filteredPayments]);
+
+  // Liquidez
+  const liquidityStats = useMemo(() => {
+    const totalCobrado = stats.totalIngresos;
+    const totalGastado = financialTransactions.filter(t => t.tipo === "Gasto" && t.estado === "Completado").reduce((s, t) => s + (t.cantidad || 0), 0);
+    const efectivoDisponible = totalCobrado - totalGastado;
+    
+    // Próximos cobros esperados
+    const proximos7dias = filteredPayments.filter(p => p.estado === "En revisión").reduce((s, p) => s + (p.cantidad || 0), 0);
+    const proximos30dias = stats.totalPendiente;
+    
+    return {
+      efectivoDisponible,
+      totalGastado,
+      proximos7dias,
+      proximos30dias
+    };
+  }, [stats, financialTransactions, filteredPayments]);
+
+  // Datos por trimestre
+  const quarterlyData = useMemo(() => {
+    const quarters = {
+      'Q1 (Jun-Ago)': { ingresos: 0, gastos: 0, meses: ['Junio', 'Julio', 'Agosto'] },
+      'Q2 (Sep-Nov)': { ingresos: 0, gastos: 0, meses: ['Septiembre', 'Octubre', 'Noviembre'] },
+      'Q3 (Dic-Feb)': { ingresos: 0, gastos: 0, meses: ['Diciembre', 'Enero', 'Febrero'] },
+      'Q4 (Mar-May)': { ingresos: 0, gastos: 0, meses: ['Marzo', 'Abril', 'Mayo'] }
+    };
+    
+    filteredPayments.filter(p => p.estado === "Pagado").forEach(p => {
+      Object.entries(quarters).forEach(([qName, qData]) => {
+        if (qData.meses.includes(p.mes)) {
+          quarters[qName].ingresos += p.cantidad || 0;
+        }
+      });
+    });
+    
+    financialTransactions.filter(t => t.tipo === "Gasto" && t.estado === "Completado").forEach(t => {
+      const mes = format(new Date(t.fecha), 'MMMM', { locale: es });
+      Object.entries(quarters).forEach(([qName, qData]) => {
+        if (qData.meses.map(m => m.toLowerCase()).includes(mes.toLowerCase())) {
+          quarters[qName].gastos += t.cantidad || 0;
+        }
+      });
+    });
+    
+    return Object.entries(quarters).map(([name, data]) => ({
+      trimestre: name,
+      ingresos: data.ingresos,
+      gastos: data.gastos,
+      balance: data.ingresos - data.gastos
+    }));
+  }, [filteredPayments, financialTransactions]);
+
+  // Gastos por categoría
+  const expensesByCategory = useMemo(() => {
+    const categories = {};
+    
+    financialTransactions.filter(t => t.tipo === "Gasto" && t.estado === "Completado").forEach(t => {
+      const cat = t.categoria || "Sin categoría";
+      if (!categories[cat]) {
+        categories[cat] = 0;
+      }
+      categories[cat] += t.cantidad || 0;
+    });
+    
+    return Object.entries(categories)
+      .map(([name, value]) => ({ name, value }))
+      .sort((a, b) => b.value - a.value);
+  }, [financialTransactions]);
 
   // Recent transactions
   const recentTransactions = useMemo(() => {
@@ -953,16 +1128,373 @@ export default function TreasurerDashboard() {
         </CardContent>
       </Card>
 
+      {/* Alertas Inteligentes */}
+      {smartAlerts.length > 0 && (
+        <div className="space-y-2">
+          {smartAlerts.map((alert, idx) => (
+            <Card key={idx} className={`border-2 ${
+              alert.tipo === 'critico' ? 'border-red-300 bg-red-50' :
+              alert.tipo === 'info' ? 'border-blue-300 bg-blue-50' :
+              'border-green-300 bg-green-50'
+            }`}>
+              <CardContent className="p-4 flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <span className="text-2xl">{alert.icono}</span>
+                  <p className="font-semibold">{alert.mensaje}</p>
+                </div>
+                {alert.accion && (
+                  <Button size="sm" variant="outline">
+                    {alert.accion}
+                  </Button>
+                )}
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
+
       {/* Main Content Tabs */}
-      <Tabs defaultValue="ingresos" className="w-full">
+      <Tabs defaultValue="ejecutivo" className="w-full">
         <TabsList className="w-full flex-wrap h-auto">
+          <TabsTrigger value="ejecutivo" className="flex-1">🎯 Ejecutivo</TabsTrigger>
           <TabsTrigger value="ingresos" className="flex-1">📊 Ingresos</TabsTrigger>
+          <TabsTrigger value="liquidez" className="flex-1">💧 Liquidez</TabsTrigger>
+          <TabsTrigger value="comparativa" className="flex-1">📈 Comparativa</TabsTrigger>
+          <TabsTrigger value="ranking" className="flex-1">🏆 Ranking</TabsTrigger>
           <TabsTrigger value="presupuesto" className="flex-1">💰 Presupuesto</TabsTrigger>
           <TabsTrigger value="movimientos" className="flex-1">📝 Movimientos</TabsTrigger>
-          <TabsTrigger value="conciliacion" className="flex-1">🤖 Conciliación IA</TabsTrigger>
+          <TabsTrigger value="conciliacion" className="flex-1">🤖 Conciliación</TabsTrigger>
           <TabsTrigger value="deudas" className="flex-1">⚠️ Deudas</TabsTrigger>
           <TabsTrigger value="exportar" className="flex-1">📥 Exportar</TabsTrigger>
         </TabsList>
+
+        {/* TAB: DASHBOARD EJECUTIVO */}
+        <TabsContent value="ejecutivo" className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {/* KPI: Tasa de Cobro */}
+            <Card className="border-none shadow-2xl bg-gradient-to-br from-green-500 to-green-700">
+              <CardContent className="pt-8 pb-8 text-center text-white">
+                <Target className="w-12 h-12 mx-auto mb-3 opacity-90" />
+                <p className="text-sm font-medium opacity-90 mb-2">Tasa de Cobro</p>
+                <p className="text-5xl font-bold mb-1">
+                  {stats.totalIngresos + stats.totalPendiente > 0 
+                    ? ((stats.totalIngresos / (stats.totalIngresos + stats.totalPendiente)) * 100).toFixed(0) 
+                    : 0}%
+                </p>
+                <p className="text-xs opacity-75">del total esperado</p>
+              </CardContent>
+            </Card>
+
+            {/* KPI: Liquidez */}
+            <Card className="border-none shadow-2xl bg-gradient-to-br from-blue-500 to-blue-700">
+              <CardContent className="pt-8 pb-8 text-center text-white">
+                <Activity className="w-12 h-12 mx-auto mb-3 opacity-90" />
+                <p className="text-sm font-medium opacity-90 mb-2">Liquidez Actual</p>
+                <p className="text-5xl font-bold mb-1">{liquidityStats.efectivoDisponible.toLocaleString()}€</p>
+                <p className="text-xs opacity-75">efectivo disponible</p>
+              </CardContent>
+            </Card>
+
+            {/* KPI: Crecimiento */}
+            <Card className="border-none shadow-2xl bg-gradient-to-br from-purple-500 to-purple-700">
+              <CardContent className="pt-8 pb-8 text-center text-white">
+                <TrendingUp className="w-12 h-12 mx-auto mb-3 opacity-90" />
+                <p className="text-sm font-medium opacity-90 mb-2">Crecimiento</p>
+                <p className="text-5xl font-bold mb-1">
+                  {interannualComparison.length >= 2 
+                    ? (((interannualComparison[0].cobrado - interannualComparison[1].cobrado) / interannualComparison[1].cobrado) * 100).toFixed(0)
+                    : 0}%
+                </p>
+                <p className="text-xs opacity-75">vs temporada anterior</p>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Resumen Visual */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            <Card className="border-none shadow-lg">
+              <CardContent className="pt-4 text-center">
+                <ArrowUpRight className="w-8 h-8 text-green-600 mx-auto mb-2" />
+                <p className="text-sm text-slate-600">Total Cobrado</p>
+                <p className="text-2xl font-bold text-green-600">{stats.totalIngresos.toLocaleString()}€</p>
+              </CardContent>
+            </Card>
+            
+            <Card className="border-none shadow-lg">
+              <CardContent className="pt-4 text-center">
+                <ArrowDownRight className="w-8 h-8 text-red-600 mx-auto mb-2" />
+                <p className="text-sm text-slate-600">Pendiente</p>
+                <p className="text-2xl font-bold text-red-600">{stats.totalPendiente.toLocaleString()}€</p>
+              </CardContent>
+            </Card>
+            
+            <Card className="border-none shadow-lg">
+              <CardContent className="pt-4 text-center">
+                <Wallet className="w-8 h-8 text-blue-600 mx-auto mb-2" />
+                <p className="text-sm text-slate-600">Gastado</p>
+                <p className="text-2xl font-bold text-blue-600">{liquidityStats.totalGastado.toLocaleString()}€</p>
+              </CardContent>
+            </Card>
+            
+            <Card className="border-none shadow-lg">
+              <CardContent className="pt-4 text-center">
+                <Building2 className="w-8 h-8 text-purple-600 mx-auto mb-2" />
+                <p className="text-sm text-slate-600">Patrocinios</p>
+                <p className="text-2xl font-bold text-purple-600">{stats.patrocinios.toLocaleString()}€</p>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Gráfico Ingresos vs Gastos */}
+          <Card className="border-none shadow-xl">
+            <CardHeader>
+              <CardTitle>💰 Ingresos vs Gastos por Trimestre</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ResponsiveContainer width="100%" height={300}>
+                <BarChart data={quarterlyData}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="trimestre" />
+                  <YAxis />
+                  <Tooltip formatter={(value) => `${value.toLocaleString()}€`} />
+                  <Legend />
+                  <Bar dataKey="ingresos" fill="#16a34a" name="Ingresos" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="gastos" fill="#dc2626" name="Gastos" radius={[4, 4, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* TAB: LIQUIDEZ */}
+        <TabsContent value="liquidez" className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <Card className="border-none shadow-lg bg-gradient-to-br from-blue-50 to-blue-100">
+              <CardContent className="pt-6">
+                <div className="text-center">
+                  <Wallet className="w-10 h-10 text-blue-600 mx-auto mb-3" />
+                  <p className="text-sm text-blue-800 font-medium mb-1">Efectivo Disponible</p>
+                  <p className="text-3xl font-bold text-blue-700">{liquidityStats.efectivoDisponible.toLocaleString()}€</p>
+                  <p className="text-xs text-blue-600 mt-1">Cobrado - Gastado</p>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="border-none shadow-lg bg-gradient-to-br from-green-50 to-green-100">
+              <CardContent className="pt-6">
+                <div className="text-center">
+                  <Clock className="w-10 h-10 text-green-600 mx-auto mb-3" />
+                  <p className="text-sm text-green-800 font-medium mb-1">Esperado 7 días</p>
+                  <p className="text-3xl font-bold text-green-700">{liquidityStats.proximos7dias.toLocaleString()}€</p>
+                  <p className="text-xs text-green-600 mt-1">En revisión</p>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="border-none shadow-lg bg-gradient-to-br from-orange-50 to-orange-100">
+              <CardContent className="pt-6">
+                <div className="text-center">
+                  <Calendar className="w-10 h-10 text-orange-600 mx-auto mb-3" />
+                  <p className="text-sm text-orange-800 font-medium mb-1">Esperado 30 días</p>
+                  <p className="text-3xl font-bold text-orange-700">{liquidityStats.proximos30dias.toLocaleString()}€</p>
+                  <p className="text-xs text-orange-600 mt-1">Pendientes totales</p>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="border-none shadow-lg bg-gradient-to-br from-red-50 to-red-100">
+              <CardContent className="pt-6">
+                <div className="text-center">
+                  <TrendingDown className="w-10 h-10 text-red-600 mx-auto mb-3" />
+                  <p className="text-sm text-red-800 font-medium mb-1">Total Gastado</p>
+                  <p className="text-3xl font-bold text-red-700">{liquidityStats.totalGastado.toLocaleString()}€</p>
+                  <p className="text-xs text-red-600 mt-1">Gastos confirmados</p>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Flujo de Caja */}
+          <Card className="border-none shadow-xl">
+            <CardHeader>
+              <CardTitle>💧 Análisis de Flujo de Caja</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div className="flex items-center justify-between p-4 bg-blue-50 rounded-lg">
+                  <span className="font-semibold">Efectivo Actual:</span>
+                  <span className="text-2xl font-bold text-blue-700">{liquidityStats.efectivoDisponible.toLocaleString()}€</span>
+                </div>
+                <div className="flex items-center justify-between p-4 bg-green-50 rounded-lg">
+                  <span className="font-semibold">+ Cobros Esperados (30 días):</span>
+                  <span className="text-2xl font-bold text-green-700">+{liquidityStats.proximos30dias.toLocaleString()}€</span>
+                </div>
+                <div className="h-px bg-slate-300"></div>
+                <div className="flex items-center justify-between p-4 bg-purple-50 rounded-lg">
+                  <span className="font-semibold text-lg">Proyección Liquidez:</span>
+                  <span className="text-3xl font-bold text-purple-700">{(liquidityStats.efectivoDisponible + liquidityStats.proximos30dias).toLocaleString()}€</span>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Gastos por Categoría */}
+          <Card className="border-none shadow-xl">
+            <CardHeader>
+              <CardTitle>📊 Desglose de Gastos</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {expensesByCategory.length > 0 ? (
+                <div className="space-y-3">
+                  {expensesByCategory.map((cat, idx) => (
+                    <div key={idx} className="flex items-center justify-between">
+                      <span className="text-sm font-medium">{cat.name}</span>
+                      <span className="text-lg font-bold text-red-600">{cat.value.toLocaleString()}€</span>
+                    </div>
+                  ))}
+                  <div className="pt-3 border-t">
+                    <div className="flex items-center justify-between">
+                      <span className="font-bold">TOTAL GASTADO:</span>
+                      <span className="text-2xl font-bold text-red-700">{liquidityStats.totalGastado.toLocaleString()}€</span>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <p className="text-center text-slate-500 py-8">No hay gastos registrados</p>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* TAB: COMPARATIVA INTERANUAL */}
+        <TabsContent value="comparativa" className="space-y-6">
+          <Card className="border-none shadow-xl">
+            <CardHeader>
+              <CardTitle>📈 Comparativa de Temporadas</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ResponsiveContainer width="100%" height={350}>
+                <BarChart data={interannualComparison}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="temporada" />
+                  <YAxis />
+                  <Tooltip formatter={(value) => `${value.toLocaleString()}€`} />
+                  <Legend />
+                  <Bar dataKey="cobrado" fill="#16a34a" name="Cobrado" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="pendiente" fill="#dc2626" name="Pendiente" radius={[4, 4, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {interannualComparison.map((season, idx) => {
+              const isCurrentSeason = season.temporada === currentSeason;
+              const prevSeason = interannualComparison[idx + 1];
+              const crecimiento = prevSeason ? (((season.cobrado - prevSeason.cobrado) / prevSeason.cobrado) * 100).toFixed(1) : null;
+              
+              return (
+                <Card key={season.temporada} className={`border-2 ${isCurrentSeason ? 'border-green-300 bg-green-50' : 'border-slate-200'}`}>
+                  <CardContent className="pt-4">
+                    <div className="flex items-center justify-between mb-3">
+                      <p className="font-bold text-slate-900">{season.temporada}</p>
+                      {isCurrentSeason && <Badge className="bg-green-600">Actual</Badge>}
+                    </div>
+                    <div className="space-y-2">
+                      <div className="flex justify-between text-sm">
+                        <span className="text-slate-600">Cobrado:</span>
+                        <span className="font-bold text-green-600">{season.cobrado.toLocaleString()}€</span>
+                      </div>
+                      <div className="flex justify-between text-sm">
+                        <span className="text-slate-600">Pendiente:</span>
+                        <span className="font-bold text-red-600">{season.pendiente.toLocaleString()}€</span>
+                      </div>
+                      <div className="flex justify-between text-sm pt-2 border-t">
+                        <span className="font-bold">Total:</span>
+                        <span className="font-bold">{season.total.toLocaleString()}€</span>
+                      </div>
+                      {crecimiento !== null && (
+                        <div className={`text-center text-sm font-bold ${parseFloat(crecimiento) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                          {parseFloat(crecimiento) >= 0 ? '↑' : '↓'} {Math.abs(crecimiento)}% vs anterior
+                        </div>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
+        </TabsContent>
+
+        {/* TAB: RANKING */}
+        <TabsContent value="ranking" className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Top Pagadores */}
+            <Card className="border-2 border-green-300">
+              <CardHeader className="bg-green-50">
+                <CardTitle className="flex items-center gap-2 text-green-900">
+                  <Award className="w-6 h-6" />
+                  🏆 Mejores Pagadores
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="pt-6">
+                {topPayersStats.topPayers.length > 0 ? (
+                  <div className="space-y-3">
+                    {topPayersStats.topPayers.map((family, idx) => (
+                      <div key={family.email} className="flex items-center gap-3 p-3 bg-green-50 rounded-lg border border-green-200">
+                        <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-white ${
+                          idx === 0 ? 'bg-yellow-500' : idx === 1 ? 'bg-slate-400' : idx === 2 ? 'bg-orange-600' : 'bg-green-600'
+                        }`}>
+                          {idx + 1}
+                        </div>
+                        <div className="flex-1">
+                          <p className="font-bold text-slate-900">{family.nombre}</p>
+                          <p className="text-xs text-slate-600">{family.jugadores.length} jugador(es)</p>
+                        </div>
+                        <p className="text-lg font-bold text-green-700">{family.totalPagado.toLocaleString()}€</p>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-center text-slate-500 py-8">No hay datos</p>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Top Deudores */}
+            <Card className="border-2 border-red-300">
+              <CardHeader className="bg-red-50">
+                <CardTitle className="flex items-center gap-2 text-red-900">
+                  <AlertCircle className="w-6 h-6" />
+                  ⚠️ Mayores Deudas
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="pt-6">
+                {topPayersStats.topDebtors.length > 0 ? (
+                  <div className="space-y-3">
+                    {topPayersStats.topDebtors.map((family, idx) => (
+                      <div key={family.email} className="flex items-center gap-3 p-3 bg-red-50 rounded-lg border border-red-200">
+                        <div className="w-8 h-8 rounded-full bg-red-600 flex items-center justify-center font-bold text-white">
+                          {idx + 1}
+                        </div>
+                        <div className="flex-1">
+                          <p className="font-bold text-slate-900">{family.nombre}</p>
+                          <p className="text-xs text-slate-600">{family.jugadores.length} jugador(es)</p>
+                        </div>
+                        <p className="text-lg font-bold text-red-700">{family.totalPendiente.toLocaleString()}€</p>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-8">
+                    <CheckCircle2 className="w-12 h-12 text-green-500 mx-auto mb-2" />
+                    <p className="text-green-700 font-semibold">¡No hay deudas!</p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
 
         {/* Ingresos Tab */}
         <TabsContent value="ingresos" className="space-y-6">
@@ -1251,6 +1783,45 @@ export default function TreasurerDashboard() {
 
         {/* Conciliación IA Tab */}
         <TabsContent value="conciliacion" className="space-y-4">
+          <Card className="border-2 border-purple-300 bg-purple-50 mb-4">
+            <CardContent className="pt-6">
+              <div className="flex items-center gap-4 mb-4">
+                <Upload className="w-8 h-8 text-purple-600" />
+                <div className="flex-1">
+                  <h3 className="font-bold text-purple-900">Importar Extracto Bancario</h3>
+                  <p className="text-sm text-purple-700">Sube tu extracto en formato CSV para conciliar automáticamente</p>
+                </div>
+                <Button
+                  onClick={() => {
+                    const input = document.createElement('input');
+                    input.type = 'file';
+                    input.accept = '.csv';
+                    input.onchange = (e) => {
+                      const file = e.target.files[0];
+                      if (file) {
+                        setUploadedBankStatement(file);
+                        toast.success("Archivo cargado - funcionalidad próximamente");
+                      }
+                    };
+                    input.click();
+                  }}
+                  className="bg-purple-600 hover:bg-purple-700"
+                >
+                  <Upload className="w-4 h-4 mr-2" />
+                  Subir CSV
+                </Button>
+              </div>
+              {uploadedBankStatement && (
+                <div className="bg-white rounded-lg p-3 border-2 border-purple-300">
+                  <div className="flex items-center gap-2">
+                    <FileSpreadsheet className="w-5 h-5 text-purple-600" />
+                    <span className="text-sm font-medium">{uploadedBankStatement.name}</span>
+                  </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
           <AIReconciliation
             payments={payments}
             players={players}
