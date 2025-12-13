@@ -23,7 +23,7 @@ import {
   TrendingUp, DollarSign, Users, AlertCircle, CheckCircle2, Clock, 
   Download, FileText, CreditCard, ShoppingBag, Clover, Building2,
   ArrowUpRight, ArrowDownRight, Receipt, Calendar, Wallet, Plus, Loader2, PieChart as PieChartIcon,
-  Sparkles
+  Sparkles, RefreshCw
 } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
@@ -57,6 +57,7 @@ export default function TreasurerDashboard() {
   const [showTransactionForm, setShowTransactionForm] = useState(false);
   const [showCommunicationAssistant, setShowCommunicationAssistant] = useState(false);
   const [showAIForecasting, setShowAIForecasting] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [newBudgetData, setNewBudgetData] = useState({
     temporada: "",
     nombre: "Presupuesto Principal"
@@ -209,6 +210,25 @@ export default function TreasurerDashboard() {
         data: { ...activeBudget, ...updates }
       });
     }
+  };
+
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
+    await Promise.all([
+      queryClient.invalidateQueries({ queryKey: ['payments'] }),
+      queryClient.invalidateQueries({ queryKey: ['players'] }),
+      queryClient.invalidateQueries({ queryKey: ['clothingOrders'] }),
+      queryClient.invalidateQueries({ queryKey: ['lotteryOrders'] }),
+      queryClient.invalidateQueries({ queryKey: ['sponsors'] }),
+      queryClient.invalidateQueries({ queryKey: ['clubMembers'] }),
+      queryClient.invalidateQueries({ queryKey: ['seasons'] }),
+      queryClient.invalidateQueries({ queryKey: ['budgets'] }),
+      queryClient.invalidateQueries({ queryKey: ['financialTransactions'] })
+    ]);
+    setTimeout(() => {
+      setIsRefreshing(false);
+      toast.success("Datos actualizados");
+    }, 500);
   };
 
   const handleExportFinancialTransactions = () => {
@@ -719,6 +739,16 @@ export default function TreasurerDashboard() {
           <p className="text-slate-600 text-sm">Control completo de ingresos y gastos del club</p>
         </div>
         <div className="flex items-center gap-3">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleRefresh}
+            disabled={isRefreshing}
+            className="gap-2"
+          >
+            <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+            {isRefreshing ? 'Actualizando...' : 'Refrescar'}
+          </Button>
           <Select value={selectedSeason} onValueChange={setSelectedSeason}>
             <SelectTrigger className="w-40">
               <Calendar className="w-4 h-4 mr-2" />
