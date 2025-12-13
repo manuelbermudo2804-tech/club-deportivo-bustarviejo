@@ -179,8 +179,9 @@ export default function TreasurerDashboard() {
       const transaction = financialTransactions.find(t => t.id === id);
       await base44.entities.FinancialTransaction.delete(id);
       
-      if (transaction?.partida_id && activeBudget) {
-        const updatedPartidas = activeBudget.partidas.map(p => {
+      const currentActiveBudget = budgets.find(b => b.activo && b.temporada === currentSeason) || budgets[0];
+      if (transaction?.partida_id && currentActiveBudget) {
+        const updatedPartidas = currentActiveBudget.partidas.map(p => {
           if (p.id === transaction.partida_id) {
             return {
               ...p,
@@ -189,7 +190,7 @@ export default function TreasurerDashboard() {
           }
           return p;
         });
-        await base44.entities.Budget.update(activeBudget.id, { partidas: updatedPartidas });
+        await base44.entities.Budget.update(currentActiveBudget.id, { partidas: updatedPartidas });
       }
     },
     onSuccess: () => {
