@@ -23,6 +23,8 @@ import AutomaticNotificationEngine from "./components/notifications/AutomaticNot
 import EmailNotificationTrigger from "./components/notifications/EmailNotificationTrigger";
 import AutomaticPaymentReminders from "./components/reminders/AutomaticPaymentReminders";
 import AutomaticRenewalReminders from "./components/reminders/AutomaticRenewalReminders";
+import AutomaticRenewalClosure from "./components/renewals/AutomaticRenewalClosure";
+import RenewalNotificationEngine from "./components/renewals/RenewalNotificationEngine";
 
 // ToastContainer eliminado - causaba spam de notificaciones
 import EventReminderEngine from "./components/events/EventReminderEngine";
@@ -820,6 +822,7 @@ export default function Layout({ children, currentPageName }) {
 
     // 👥 GESTIÓN DE PERSONAS
     { title: "👥 Jugadores", url: createPageUrl("Players"), icon: Users },
+    { title: "🔄 Dashboard Renovaciones", url: createPageUrl("RenewalDashboard"), icon: RefreshCw },
     { title: "🏃 Entrenadores", url: createPageUrl("CoachProfiles"), icon: Users },
     { title: "🖊️ Firmas Federación", url: createPageUrl("FederationSignaturesAdmin"), icon: FileSignature },
     { title: "👤 Usuarios", url: createPageUrl("UserManagement"), icon: Users },
@@ -1358,6 +1361,8 @@ export default function Layout({ children, currentPageName }) {
               <SessionManager />
               <NotificationBadge />
               <AutomaticRenewalReminders />
+              <AutomaticRenewalClosure />
+              <RenewalNotificationEngine />
               {/* Componentes temporalmente desactivados para debug */}
 
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">

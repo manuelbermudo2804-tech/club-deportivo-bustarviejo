@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { CheckCircle2, XCircle, AlertTriangle, Users, UserPlus } from "lucide-react";
+import { CheckCircle2, XCircle, AlertTriangle, Users, UserPlus, CreditCard } from "lucide-react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { toast } from "sonner";
@@ -19,6 +19,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import RenewalPaymentFlow from "../components/renewals/RenewalPaymentFlow";
 
 const CATEGORIAS = [
   "Fútbol Pre-Benjamín (Mixto)",
@@ -59,6 +60,9 @@ export default function PlayerRenewal() {
   const [user, setUser] = useState(null);
   const [selectedCategories, setSelectedCategories] = useState({});
   const [confirmDialog, setConfirmDialog] = useState({ open: false, playerId: null, action: null });
+  const [showPaymentFlow, setShowPaymentFlow] = useState(false);
+  const [selectedPlayerForPayment, setSelectedPlayerForPayment] = useState(null);
+  const [categoryConfigs, setCategoryConfigs] = useState([]);
   const queryClient = useQueryClient();
 
   useEffect(() => {
@@ -77,6 +81,15 @@ export default function PlayerRenewal() {
     },
   });
 
+  // Cargar configuración de categorías para precios
+  useEffect(() => {
+    const fetchCategoryConfigs = async () => {
+      const configs = await base44.entities.CategoryConfig.list();
+      setCategoryConfigs(configs);
+    };
+    fetchCategoryConfigs();
+  }, []);
+
   const { data: players = [] } = useQuery({
     queryKey: ['myPlayers', user?.email],
     queryFn: async () => {
@@ -91,20 +104,81 @@ export default function PlayerRenewal() {
   });
 
   const renewPlayerMutation = useMutation({
-    mutationFn: ({ playerId, newCategory }) => {
+    mutationFn: async ({ playerId, newCategory, paymentsData }) => {
       const player = players.find(p => p.id === playerId);
-      return base44.entities.Player.update(playerId, {
-        ...player,
+      
+      // 1. Calcular descuento por hermano
+      const hermanos = players.filter(p => 
+        p.id !== playerId &&
+        p.email_padre === player.email_padre &&
+        (p.activo === true || p.estado_renovacion === "renovado")
+      );
+
+      const todosHermanos = [player, ...hermanos].map(p => ({
+        id: p.id,
+        fecha_nacimiento: p.fecha_nacimiento
+      })).filter(p => p.fecha_nacimiento);
+
+      todosHermanos.sort((a, b) => new Date(a.fecha_nacimiento) - new Date(b.fecha_nacimiento));
+      const esMayor = todosHermanos[0]?.id === playerId;
+      const descuentoAplicado = esMayor ? 0 : 25;
+
+      // 2. Actualizar jugador
+      await base44.entities.Player.update(playerId, {
         deporte: newCategory,
         estado_renovacion: "renovado",
         fecha_renovacion: new Date().toISOString(),
-        activo: true
+        activo: true,
+        tiene_descuento_hermano: !esMayor,
+        descuento_aplicado: descuentoAplicado,
+        temporada_renovacion: seasonConfig?.temporada
       });
+
+      // 3. Crear pagos automáticamente
+      for (const payment of paymentsData.payments) {
+        await base44.entities.Payment.create(payment);
+      }
+
+      // 4. Enviar email de confirmación
+      await base44.integrations.Core.SendEmail({
+        from_name: "CD Bustarviejo",
+        to: player.email_padre,
+        subject: `✅ Renovación Confirmada - ${player.nombre} - Temporada ${seasonConfig?.temporada}`,
+        body: `¡Hola!
+
+Tu renovación de ${player.nombre} ha sido procesada correctamente.
+
+📋 DETALLES:
+• Categoría: ${newCategory}
+• Temporada: ${seasonConfig?.temporada}
+• Modalidad de pago: ${paymentsData.tipoPago}
+${descuentoAplicado > 0 ? `• Descuento hermano: -${descuentoAplicado}€\n` : ''}
+
+💳 CUOTAS GENERADAS:
+${paymentsData.payments.map(p => 
+  `• ${p.mes}: ${p.cantidad}€ (vence ${p.mes === 'Junio' ? '30 junio' : p.mes === 'Septiembre' ? '15 sept' : '15 dic'})`
+).join('\n')}
+
+📲 Próximos pasos:
+1. Accede a "Pagos" en la app
+2. Registra cada pago cuando lo realices
+3. Sube el justificante de transferencia
+
+¡Gracias por confiar en el CD Bustarviejo!
+
+Un saludo,
+CD Bustarviejo`
+      });
+
+      return player;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['myPlayers'] });
-      toast.success("✅ Jugador renovado correctamente");
+      queryClient.invalidateQueries({ queryKey: ['payments'] });
+      toast.success("✅ Jugador renovado y cuotas generadas correctamente");
       setConfirmDialog({ open: false, playerId: null, action: null });
+      setShowPaymentFlow(false);
+      setSelectedPlayerForPayment(null);
     },
   });
 
@@ -136,14 +210,24 @@ export default function PlayerRenewal() {
 
   const handleConfirmAction = () => {
     if (confirmDialog.action === 'renew') {
+      const player = players.find(p => p.id === confirmDialog.playerId);
       const newCategory = selectedCategories[confirmDialog.playerId];
-      renewPlayerMutation.mutate({ 
-        playerId: confirmDialog.playerId, 
-        newCategory 
-      });
+      
+      // Abrir flujo de pago
+      setSelectedPlayerForPayment({ ...player, newCategory });
+      setShowPaymentFlow(true);
+      setConfirmDialog({ open: false, playerId: null, action: null });
     } else if (confirmDialog.action === 'not_renew') {
       notRenewMutation.mutate(confirmDialog.playerId);
     }
+  };
+
+  const handlePaymentFlowComplete = (data) => {
+    renewPlayerMutation.mutate({
+      playerId: selectedPlayerForPayment.id,
+      newCategory: data.newCategory,
+      paymentsData: data
+    });
   };
 
   if (!seasonConfig) {
@@ -188,7 +272,7 @@ export default function PlayerRenewal() {
             </AlertDialogTitle>
             <AlertDialogDescription>
               {confirmDialog.action === 'renew' 
-                ? '¿Confirmas que este jugador continúa en el club para la temporada ' + seasonConfig.temporada + '?'
+                ? '¿Confirmas que este jugador continúa en el club para la temporada ' + seasonConfig.temporada + '? A continuación seleccionarás la modalidad de pago.'
                 : '¿Confirmas que este jugador NO continuará en el club? Esta acción se puede revertir desde el panel de administración.'}
             </AlertDialogDescription>
           </AlertDialogHeader>
@@ -198,11 +282,31 @@ export default function PlayerRenewal() {
               onClick={handleConfirmAction}
               className={confirmDialog.action === 'renew' ? 'bg-green-600 hover:bg-green-700' : 'bg-red-600 hover:bg-red-700'}
             >
-              {confirmDialog.action === 'renew' ? '✅ Renovar' : '❌ No Renueva'}
+              {confirmDialog.action === 'renew' ? '✅ Continuar' : '❌ No Renueva'}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Flujo de pago integrado */}
+      {showPaymentFlow && selectedPlayerForPayment && (
+        <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4 overflow-y-auto">
+          <div className="max-w-2xl w-full my-8">
+            <RenewalPaymentFlow
+              player={selectedPlayerForPayment}
+              newCategory={selectedPlayerForPayment.newCategory}
+              seasonConfig={seasonConfig}
+              categoryConfigs={categoryConfigs}
+              allPlayers={players}
+              onComplete={handlePaymentFlowComplete}
+              onCancel={() => {
+                setShowPaymentFlow(false);
+                setSelectedPlayerForPayment(null);
+              }}
+            />
+          </div>
+        </div>
+      )}
 
       <div className="p-4 lg:p-8 space-y-6">
         <div className="bg-gradient-to-r from-orange-600 to-orange-700 rounded-2xl p-6 shadow-xl text-white">

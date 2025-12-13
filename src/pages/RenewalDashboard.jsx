@@ -1,0 +1,473 @@
+import React, { useState, useMemo } from "react";
+import { base44 } from "@/api/base44Client";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Progress } from "@/components/ui/progress";
+import { 
+  Users, RefreshCw, AlertTriangle, CheckCircle2, Clock, 
+  Mail, Search, Filter, Send, XCircle, RotateCcw 
+} from "lucide-react";
+import { toast } from "sonner";
+import { format } from "date-fns";
+import { es } from "date-fns/locale";
+
+export default function RenewalDashboard() {
+  const [searchTerm, setSearchTerm] = useState("");
+  const [categoryFilter, setCategoryFilter] = useState("all");
+  const [selectedFamilies, setSelectedFamilies] = useState([]);
+  const queryClient = useQueryClient();
+
+  const { data: seasonConfig } = useQuery({
+    queryKey: ['seasonConfig'],
+    queryFn: async () => {
+      const configs = await base44.entities.SeasonConfig.list();
+      return configs.find(c => c.activa === true);
+    },
+  });
+
+  const { data: allPlayers = [] } = useQuery({
+    queryKey: ['allPlayers'],
+    queryFn: () => base44.entities.Player.list(),
+  });
+
+  const { data: allUsers = [] } = useQuery({
+    queryKey: ['allUsers'],
+    queryFn: () => base44.entities.User.list(),
+  });
+
+  // Estadísticas
+  const stats = useMemo(() => {
+    const total = allPlayers.length;
+    const renovados = allPlayers.filter(p => 
+      p.estado_renovacion === "renovado" && 
+      p.temporada_renovacion === seasonConfig?.temporada
+    ).length;
+    const noRenuevan = allPlayers.filter(p => 
+      p.estado_renovacion === "no_renueva" && 
+      p.temporada_renovacion === seasonConfig?.temporada
+    ).length;
+    const pendientes = allPlayers.filter(p => 
+      p.estado_renovacion === "pendiente" && 
+      p.temporada_renovacion === seasonConfig?.temporada
+    ).length;
+
+    const tasaRenovacion = total > 0 ? Math.round((renovados / total) * 100) : 0;
+
+    // Por categoría
+    const porCategoria = {};
+    allPlayers.forEach(p => {
+      if (!porCategoria[p.deporte]) {
+        porCategoria[p.deporte] = { total: 0, renovados: 0, pendientes: 0, noRenuevan: 0 };
+      }
+      porCategoria[p.deporte].total++;
+      if (p.estado_renovacion === "renovado" && p.temporada_renovacion === seasonConfig?.temporada) {
+        porCategoria[p.deporte].renovados++;
+      } else if (p.estado_renovacion === "pendiente" && p.temporada_renovacion === seasonConfig?.temporada) {
+        porCategoria[p.deporte].pendientes++;
+      } else if (p.estado_renovacion === "no_renueva" && p.temporada_renovacion === seasonConfig?.temporada) {
+        porCategoria[p.deporte].noRenuevan++;
+      }
+    });
+
+    return { total, renovados, pendientes, noRenuevan, tasaRenovacion, porCategoria };
+  }, [allPlayers, seasonConfig]);
+
+  // Familias que NO han renovado
+  const familiasNoRenovadas = useMemo(() => {
+    const jugadoresPendientes = allPlayers.filter(p => 
+      p.estado_renovacion === "pendiente" && 
+      p.temporada_renovacion === seasonConfig?.temporada
+    );
+
+    // Agrupar por email de padre
+    const familias = {};
+    jugadoresPendientes.forEach(player => {
+      const email = player.email_padre;
+      if (!familias[email]) {
+        const usuario = allUsers.find(u => u.email === email);
+        familias[email] = {
+          email,
+          nombre: usuario?.full_name || email,
+          jugadores: []
+        };
+      }
+      familias[email].jugadores.push(player);
+    });
+
+    return Object.values(familias);
+  }, [allPlayers, allUsers, seasonConfig]);
+
+  const sendReminderMutation = useMutation({
+    mutationFn: async (familias) => {
+      for (const familia of familias) {
+        const jugadoresNombres = familia.jugadores.map(j => j.nombre).join(", ");
+        
+        await base44.integrations.Core.SendEmail({
+          from_name: "CD Bustarviejo - Renovaciones",
+          to: familia.email,
+          subject: `⏰ Recordatorio: Renovación pendiente - Temporada ${seasonConfig?.temporada}`,
+          body: `Estimada familia ${familia.nombre},
+
+Les recordamos que tienen jugadores pendientes de renovar para la temporada ${seasonConfig?.temporada}:
+
+${familia.jugadores.map(j => `• ${j.nombre} (${j.deporte})`).join('\n')}
+
+${seasonConfig?.fecha_limite_renovaciones ? `📅 Fecha límite: ${format(new Date(seasonConfig.fecha_limite_renovaciones), "d 'de' MMMM 'de' yyyy", { locale: es })}` : ''}
+
+Para renovar:
+1. Accede a la aplicación del club
+2. Ve a "Mis Jugadores"
+3. Haz clic en "Renovar Jugador"
+
+Si tienen dudas o problemas, no duden en contactarnos.
+
+Un saludo,
+CD Bustarviejo`
+        });
+
+        // Crear notificación en la app
+        await base44.entities.AppNotification.create({
+          usuario_email: familia.email,
+          titulo: "⏰ Renovación Pendiente",
+          mensaje: `Tienes ${familia.jugadores.length} jugador(es) pendientes de renovar: ${jugadoresNombres}`,
+          tipo: "importante",
+          icono: "⏰",
+          enlace: "ParentPlayers",
+          vista: false
+        });
+      }
+    },
+    onSuccess: (_, familias) => {
+      toast.success(`✅ Recordatorios enviados a ${familias.length} familia(s)`);
+      setSelectedFamilies([]);
+    },
+  });
+
+  const reactivatePlayerMutation = useMutation({
+    mutationFn: async (playerId) => {
+      const player = allPlayers.find(p => p.id === playerId);
+      await base44.entities.Player.update(playerId, {
+        estado_renovacion: "pendiente",
+        activo: false,
+        fecha_renovacion: null
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['allPlayers'] });
+      toast.success("Jugador reactivado para renovación");
+    },
+  });
+
+  const filteredFamilias = familiasNoRenovadas.filter(familia => {
+    const matchesSearch = searchTerm === "" ||
+      familia.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      familia.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      familia.jugadores.some(j => j.nombre.toLowerCase().includes(searchTerm.toLowerCase()));
+
+    const matchesCategory = categoryFilter === "all" ||
+      familia.jugadores.some(j => j.deporte === categoryFilter);
+
+    return matchesSearch && matchesCategory;
+  });
+
+  const handleSelectAll = (checked) => {
+    setSelectedFamilies(checked ? filteredFamilias.map(f => f.email) : []);
+  };
+
+  const handleSelectFamily = (email, checked) => {
+    setSelectedFamilies(prev => 
+      checked ? [...prev, email] : prev.filter(e => e !== email)
+    );
+  };
+
+  const handleSendReminders = () => {
+    const familiasToNotify = familiasNoRenovadas.filter(f => selectedFamilies.includes(f.email));
+    sendReminderMutation.mutate(familiasToNotify);
+  };
+
+  const diasRestantes = seasonConfig?.fecha_limite_renovaciones 
+    ? Math.ceil((new Date(seasonConfig.fecha_limite_renovaciones) - new Date()) / (1000 * 60 * 60 * 24))
+    : null;
+
+  const categorias = [...new Set(allPlayers.map(p => p.deporte).filter(Boolean))].sort();
+
+  return (
+    <div className="p-6 lg:p-8 space-y-6">
+      <div>
+        <h1 className="text-3xl font-bold text-slate-900 mb-2">🔄 Dashboard de Renovaciones</h1>
+        <p className="text-slate-600">Control y seguimiento del proceso de renovación - Temporada {seasonConfig?.temporada}</p>
+      </div>
+
+      {/* Fecha límite y días restantes */}
+      {seasonConfig?.fecha_limite_renovaciones && (
+        <Card className={`border-2 ${diasRestantes > 7 ? 'border-blue-300 bg-blue-50' : diasRestantes > 0 ? 'border-orange-300 bg-orange-50' : 'border-red-300 bg-red-50'}`}>
+          <CardContent className="pt-6">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <Clock className={`w-8 h-8 ${diasRestantes > 7 ? 'text-blue-600' : diasRestantes > 0 ? 'text-orange-600' : 'text-red-600'}`} />
+                <div>
+                  <p className="font-bold text-lg">
+                    {diasRestantes > 0 ? `${diasRestantes} días restantes` : '¡Fecha límite alcanzada!'}
+                  </p>
+                  <p className="text-sm text-slate-600">
+                    Fecha límite: {format(new Date(seasonConfig.fecha_limite_renovaciones), "d 'de' MMMM 'de' yyyy", { locale: es })}
+                  </p>
+                </div>
+              </div>
+              {diasRestantes <= 0 && stats.pendientes > 0 && (
+                <Badge className="bg-red-600 text-white animate-pulse">
+                  ⚠️ {stats.pendientes} sin renovar
+                </Badge>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Estadísticas globales */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <Card className="border-none shadow-lg">
+          <CardContent className="pt-6">
+            <div className="text-center">
+              <p className="text-sm text-slate-600 mb-1">Total Jugadores</p>
+              <p className="text-4xl font-bold text-slate-900">{stats.total}</p>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="border-green-200 bg-green-50">
+          <CardContent className="pt-6">
+            <div className="text-center">
+              <CheckCircle2 className="w-8 h-8 text-green-600 mx-auto mb-2" />
+              <p className="text-sm text-green-700 mb-1">Renovados</p>
+              <p className="text-4xl font-bold text-green-700">{stats.renovados}</p>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="border-orange-200 bg-orange-50">
+          <CardContent className="pt-6">
+            <div className="text-center">
+              <AlertTriangle className="w-8 h-8 text-orange-600 mx-auto mb-2 animate-pulse" />
+              <p className="text-sm text-orange-700 mb-1">Pendientes</p>
+              <p className="text-4xl font-bold text-orange-700">{stats.pendientes}</p>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="border-red-200 bg-red-50">
+          <CardContent className="pt-6">
+            <div className="text-center">
+              <XCircle className="w-8 h-8 text-red-600 mx-auto mb-2" />
+              <p className="text-sm text-red-700 mb-1">No Renuevan</p>
+              <p className="text-4xl font-bold text-red-700">{stats.noRenuevan}</p>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Tasa de renovación */}
+      <Card className="border-none shadow-lg">
+        <CardContent className="pt-6">
+          <div className="flex items-center justify-between mb-4">
+            <p className="font-bold text-slate-900">Progreso de Renovaciones</p>
+            <p className="text-3xl font-bold text-green-600">{stats.tasaRenovacion}%</p>
+          </div>
+          <Progress value={stats.tasaRenovacion} className="h-4" />
+          <div className="flex justify-between text-sm mt-2">
+            <span className="text-green-600">✅ {stats.renovados} renovados</span>
+            <span className="text-orange-600">⏳ {stats.pendientes} pendientes</span>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Por categoría */}
+      <Card className="border-none shadow-lg">
+        <CardHeader>
+          <CardTitle>📊 Renovaciones por Categoría</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {Object.entries(stats.porCategoria).map(([categoria, data]) => {
+              const tasa = Math.round((data.renovados / data.total) * 100);
+              return (
+                <Card key={categoria} className="border-2 border-slate-200">
+                  <CardContent className="pt-4">
+                    <p className="font-bold text-slate-900 mb-2 truncate">{categoria}</p>
+                    <div className="space-y-2">
+                      <Progress value={tasa} className="h-2" />
+                      <div className="flex justify-between text-xs">
+                        <span className="text-green-600">✅ {data.renovados}</span>
+                        <span className="text-orange-600">⏳ {data.pendientes}</span>
+                        <span className="text-red-600">❌ {data.noRenuevan}</span>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Familias pendientes de renovar */}
+      <Card className="border-2 border-orange-300">
+        <CardHeader className="bg-orange-50">
+          <div className="flex items-center justify-between">
+            <CardTitle className="flex items-center gap-2">
+              <AlertTriangle className="w-6 h-6 text-orange-600" />
+              Familias Pendientes de Renovar ({familiasNoRenovadas.length})
+            </CardTitle>
+            {selectedFamilies.length > 0 && (
+              <Button
+                onClick={handleSendReminders}
+                disabled={sendReminderMutation.isPending}
+                className="bg-orange-600 hover:bg-orange-700"
+              >
+                <Send className="w-4 h-4 mr-2" />
+                Enviar Recordatorio ({selectedFamilies.length})
+              </Button>
+            )}
+          </div>
+        </CardHeader>
+        <CardContent className="pt-6 space-y-4">
+          
+          <div className="flex gap-3">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+              <Input
+                placeholder="Buscar familia o jugador..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10"
+              />
+            </div>
+            <select
+              value={categoryFilter}
+              onChange={(e) => setCategoryFilter(e.target.value)}
+              className="px-4 py-2 border rounded-lg"
+            >
+              <option value="all">Todas las categorías</option>
+              {categorias.map(cat => (
+                <option key={cat} value={cat}>{cat}</option>
+              ))}
+            </select>
+          </div>
+
+          {filteredFamilias.length > 0 && (
+            <div className="flex items-center gap-2 p-3 bg-slate-50 rounded-lg">
+              <Checkbox
+                checked={selectedFamilies.length === filteredFamilias.length}
+                onCheckedChange={handleSelectAll}
+              />
+              <label className="text-sm font-medium cursor-pointer">
+                Seleccionar todas ({filteredFamilias.length})
+              </label>
+            </div>
+          )}
+
+          {filteredFamilias.length === 0 ? (
+            <div className="text-center py-12">
+              <CheckCircle2 className="w-16 h-16 text-green-600 mx-auto mb-3" />
+              <p className="text-lg font-bold text-green-900">¡Todas las familias han renovado!</p>
+              <p className="text-slate-600 text-sm">No hay familias pendientes de renovación</p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {filteredFamilias.map(familia => (
+                <Card key={familia.email} className="border-2 border-orange-200 hover:shadow-lg transition-shadow">
+                  <CardContent className="pt-4">
+                    <div className="flex items-start gap-3">
+                      <Checkbox
+                        checked={selectedFamilies.includes(familia.email)}
+                        onCheckedChange={(checked) => handleSelectFamily(familia.email, checked)}
+                      />
+                      <div className="flex-1">
+                        <div className="flex items-center justify-between mb-2">
+                          <div>
+                            <p className="font-bold text-slate-900">{familia.nombre}</p>
+                            <p className="text-xs text-slate-500">{familia.email}</p>
+                          </div>
+                          <Badge className="bg-orange-500">
+                            {familia.jugadores.length} jugador(es)
+                          </Badge>
+                        </div>
+                        
+                        <div className="space-y-1">
+                          {familia.jugadores.map(jugador => (
+                            <div key={jugador.id} className="flex items-center justify-between bg-orange-50 rounded px-3 py-2 text-sm">
+                              <span className="font-medium">{jugador.nombre}</span>
+                              <span className="text-slate-600 text-xs">{jugador.deporte}</span>
+                            </div>
+                          ))}
+                        </div>
+
+                        <div className="flex gap-2 mt-3">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => sendReminderMutation.mutate([familia])}
+                            disabled={sendReminderMutation.isPending}
+                            className="flex-1"
+                          >
+                            <Mail className="w-3 h-3 mr-1" />
+                            Enviar Recordatorio
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Jugadores que NO renuevan */}
+      {stats.noRenuevan > 0 && (
+        <Card className="border-2 border-red-300">
+          <CardHeader className="bg-red-50">
+            <CardTitle className="flex items-center gap-2 text-red-900">
+              <XCircle className="w-6 h-6" />
+              Jugadores que NO Renuevan ({stats.noRenuevan})
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="pt-6">
+            <div className="space-y-2">
+              {allPlayers
+                .filter(p => p.estado_renovacion === "no_renueva" && p.temporada_renovacion === seasonConfig?.temporada)
+                .map(player => (
+                  <div key={player.id} className="flex items-center justify-between bg-red-50 rounded-lg p-3 border border-red-200">
+                    <div>
+                      <p className="font-bold text-slate-900">{player.nombre}</p>
+                      <p className="text-xs text-slate-600">{player.deporte}</p>
+                      {player.fecha_renovacion && (
+                        <p className="text-xs text-slate-500">
+                          Marcado el: {format(new Date(player.fecha_renovacion), "d 'de' MMM", { locale: es })}
+                        </p>
+                      )}
+                    </div>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => reactivatePlayerMutation.mutate(player.id)}
+                      disabled={reactivatePlayerMutation.isPending}
+                      className="border-green-600 text-green-600 hover:bg-green-50"
+                    >
+                      <RotateCcw className="w-3 h-3 mr-1" />
+                      Reactivar
+                    </Button>
+                  </div>
+                ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+    </div>
+  );
+}
