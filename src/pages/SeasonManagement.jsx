@@ -46,6 +46,7 @@ export default function SeasonManagement() {
   const [expectedCode, setExpectedCode] = useState("");
   const [backupData, setBackupData] = useState(null);
   const [restoreSelections, setRestoreSelections] = useState({
+    players: true,
     payments: true,
     reminders: true,
     attendances: true,
@@ -278,6 +279,27 @@ export default function SeasonManagement() {
     try {
       const totalSteps = Object.keys(restoreSelections).filter(k => restoreSelections[k]).length;
       let currentStep = 0;
+
+      if (restoreSelections.players && backupData.data.players?.length > 0) {
+        setProcessingStep(`Restaurando jugadores (${backupData.data.players.length})...`);
+        let success = 0;
+        let failed = 0;
+        for (const player of backupData.data.players) {
+          try {
+            const { id, created_date, updated_date, created_by, ...data } = player;
+            await base44.entities.Player.create(data);
+            success++;
+          } catch (err) {
+            console.error("Error restaurando jugador:", err);
+            failed++;
+          }
+        }
+        console.log(`✅ Jugadores: ${success} restaurados, ${failed} fallidos`);
+        totalSuccess += success;
+        totalFailed += failed;
+        currentStep++;
+        setProcessingProgress((currentStep / totalSteps) * 100);
+      }
 
       if (restoreSelections.payments && backupData.data.payments?.length > 0) {
         setProcessingStep(`Restaurando pagos (${backupData.data.payments.length})...`);
@@ -1845,6 +1867,7 @@ export default function SeasonManagement() {
 
               <div className="space-y-2">
                 {Object.entries({
+                  players: `Jugadores (${backupData.data.players?.length || 0})`,
                   payments: `Pagos (${backupData.data.payments?.length || 0})`,
                   reminders: `Recordatorios (${backupData.data.reminders?.length || 0})`,
                   attendances: `Asistencias (${backupData.data.attendances?.length || 0})`,
