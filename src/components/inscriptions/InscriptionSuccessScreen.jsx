@@ -107,15 +107,33 @@ export default function InscriptionSuccessScreen({
                 </div>
               </div>
 
-              <div className="flex items-start gap-3 bg-white rounded-lg p-4 border-2 border-slate-300">
-                <div className="w-8 h-8 bg-slate-600 rounded-full flex items-center justify-center flex-shrink-0">
-                  <span className="text-white font-bold">3</span>
+              {/* Solo mostrar paso 3 si faltan documentos */}
+              {(!player.foto_url || !player.dni_jugador_url || !player.dni_tutor_legal_url) ? (
+                <div className="flex items-start gap-3 bg-white rounded-lg p-4 border-2 border-yellow-300">
+                  <div className="w-8 h-8 bg-yellow-600 rounded-full flex items-center justify-center flex-shrink-0">
+                    <span className="text-white font-bold">3</span>
+                  </div>
+                  <div className="flex-1">
+                    <p className="font-bold text-yellow-900 mb-1">📄 Completar documentación pendiente</p>
+                    <p className="text-sm text-yellow-800">
+                      {!player.foto_url && "• Foto tipo carnet\n"}
+                      {!player.dni_jugador_url && "• DNI del jugador\n"}
+                      {!player.dni_tutor_legal_url && "• DNI del tutor legal\n"}
+                      Puedes completarlo desde la sección "Mis Jugadores"
+                    </p>
+                  </div>
                 </div>
-                <div className="flex-1">
-                  <p className="font-bold text-slate-900 mb-1">📄 Completar documentación</p>
-                  <p className="text-sm text-slate-700">DNI, firmas de federación, etc. (puedes hacerlo después)</p>
+              ) : (
+                <div className="flex items-start gap-3 bg-white rounded-lg p-4 border-2 border-green-300">
+                  <div className="w-8 h-8 bg-green-600 rounded-full flex items-center justify-center flex-shrink-0">
+                    <span className="text-white font-bold">✓</span>
+                  </div>
+                  <div className="flex-1">
+                    <p className="font-bold text-green-900 mb-1">✅ Documentación completa</p>
+                    <p className="text-sm text-green-700">Toda la documentación necesaria ha sido subida correctamente</p>
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
           </div>
 
