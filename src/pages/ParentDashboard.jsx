@@ -15,6 +15,7 @@ import AlertCenter from "../components/dashboard/AlertCenter";
 import ContactCard from "../components/ContactCard";
 import { usePageTutorial } from "../components/tutorials/useTutorial";
 import DashboardCardSkeleton from "../components/skeletons/DashboardCardSkeleton";
+import RenewalStatusWidget from "../components/renewals/RenewalStatusWidget";
 
 
 // Componente para compartir Fútbol Femenino (sin referidos)
@@ -545,6 +546,15 @@ export default function ParentDashboard() {
               </div>
             </CardContent>
           </Card>
+        )}
+
+        {/* Widget de estado de renovaciones - si permitir_renovaciones está activo */}
+        {!playersLoading && activeSeason?.permitir_renovaciones && myPlayers.length > 0 && (
+          <RenewalStatusWidget 
+            players={myPlayers} 
+            payments={payments}
+            seasonConfig={activeSeason}
+          />
         )}
 
         {/* ÚNICO CENTRO DE ALERTAS CONSOLIDADO - Todo en un solo banner */}
