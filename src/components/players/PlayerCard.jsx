@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Pencil, Mail, Phone, User, Eye, Clock, Heart, FileText, AlertCircle, Loader2, FileSignature, Download, Calendar, MapPin, Camera, CreditCard, FileCheck, CheckCircle2 } from "lucide-react";
+import { Pencil, Mail, Phone, User, Eye, Clock, Heart, FileText, AlertCircle, Loader2, FileSignature, Download, Calendar, MapPin, Camera, CreditCard, FileCheck, CheckCircle2, UserX } from "lucide-react";
 import PlayerDetailDialog from "./PlayerDetailDialog";
 import PlayerDocumentDownload from "./PlayerDocumentDownload";
 import { format } from "date-fns";
