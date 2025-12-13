@@ -248,6 +248,23 @@ export default function PlayerForm({ player, onSubmit, onCancel, isSubmitting, i
     }));
   }, [isMayorDeEdad, siblingDiscount]);
 
+  // Auto-seleccionar categoría sugerida cuando cambia la fecha de nacimiento
+  useEffect(() => {
+    // Solo auto-seleccionar si:
+    // 1. No es edición (nuevo jugador)
+    // 2. Hay fecha de nacimiento válida
+    // 3. No es Fútbol Femenino (que es selección manual)
+    if (!player && currentPlayer.fecha_nacimiento && currentPlayer.deporte !== "Fútbol Femenino") {
+      const suggested = suggestCategoryByAge(currentPlayer.fecha_nacimiento);
+      if (suggested) {
+        setCurrentPlayer(prev => ({
+          ...prev,
+          deporte: suggested
+        }));
+      }
+    }
+  }, [currentPlayer.fecha_nacimiento, player]);
+
   // Obtener configuración de la temporada
   useEffect(() => {
     const fetchSeasonConfig = async () => {
@@ -837,22 +854,12 @@ export default function PlayerForm({ player, onSubmit, onCancel, isSubmitting, i
 
               <div className="space-y-2">
                 <Label htmlFor="deporte">Categoría y Deporte *</Label>
-                {/* Sugerencia automática de categoría */}
-                {playerAge !== null && currentPlayer.deporte !== "Fútbol Femenino" && 
-                 suggestCategoryByAge(currentPlayer.fecha_nacimiento) && 
-                 suggestCategoryByAge(currentPlayer.fecha_nacimiento) !== currentPlayer.deporte && (
-                  <Alert className="mb-2 bg-blue-50 border-blue-200">
-                    <AlertCircle className="h-4 w-4 text-blue-600" />
-                    <AlertDescription className="text-blue-800 text-sm">
-                      <strong>💡 Sugerencia Automática:</strong> Según la edad ({playerAge} años), la categoría recomendada es{' '}
-                      <button 
-                        type="button"
-                        onClick={() => setCurrentPlayer({...currentPlayer, deporte: suggestCategoryByAge(currentPlayer.fecha_nacimiento)})}
-                        className="font-bold underline text-blue-700 hover:text-blue-900"
-                      >
-                        {suggestCategoryByAge(currentPlayer.fecha_nacimiento)}
-                      </button>
-                      {' '}• Puedes cambiarla si no es correcta.
+                {playerAge !== null && currentPlayer.deporte !== "Fútbol Femenino" && (
+                  <Alert className="mb-2 bg-green-50 border-green-200">
+                    <CheckCircle2 className="h-4 w-4 text-green-600" />
+                    <AlertDescription className="text-green-800 text-sm">
+                      <strong>✅ Categoría seleccionada automáticamente:</strong> Según la edad ({playerAge} años) → <strong>{currentPlayer.deporte}</strong>
+                      <br/><span className="text-xs">Puedes cambiarla manualmente si no es correcta</span>
                     </AlertDescription>
                   </Alert>
                 )}
@@ -867,7 +874,7 @@ export default function PlayerForm({ player, onSubmit, onCancel, isSubmitting, i
                   </SelectContent>
                 </Select>
                 <p className="text-xs text-slate-500">
-                  ℹ️ La IA sugiere categoría según edad, pero siempre puedes cambiarla manualmente
+                  ℹ️ Categoría auto-seleccionada por edad - puedes cambiarla manualmente
                 </p>
               </div>
             </div>
