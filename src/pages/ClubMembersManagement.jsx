@@ -1129,40 +1129,91 @@ Por solo *25€/año* seguirás apoyando a nuestros jóvenes deportistas.
               <div className="flex items-center gap-3 mb-4">
                 <Clock className="w-8 h-8 text-slate-600" />
                 <div>
-                  <h3 className="text-xl font-bold text-slate-900">📚 Histórico de Socios</h3>
-                  <p className="text-sm text-slate-700">Todos los socios de temporadas anteriores</p>
+                  <h3 className="text-xl font-bold text-slate-900">📚 Socios Anteriores que NO Renovaron</h3>
+                  <p className="text-sm text-slate-700">Socios de temporadas pasadas sin registro en {seasonConfig?.temporada}</p>
                 </div>
               </div>
               
-              {members.filter(m => m.temporada !== seasonConfig?.temporada).length === 0 ? (
-                <div className="text-center py-8">
-                  <Clock className="w-12 h-12 text-slate-400 mx-auto mb-3" />
-                  <p className="text-slate-600">No hay socios de temporadas anteriores</p>
-                </div>
-              ) : (
+              {(() => {
+                const historicMembers = members.filter(m => {
+                  if (m.temporada === seasonConfig?.temporada) return false;
+                  const hasRenewed = members.some(current => 
+                    current.temporada === seasonConfig?.temporada &&
+                    (current.email?.toLowerCase() === m.email?.toLowerCase() ||
+                     current.dni === m.dni)
+                  );
+                  return !hasRenewed;
+                });
+                
+                return historicMembers.length === 0 ? (
+                  <div className="text-center py-8">
+                    <CheckCircle2 className="w-12 h-12 text-green-500 mx-auto mb-3" />
+                    <p className="text-slate-600">¡Todos los socios anteriores ya renovaron! 🎉</p>
+                  </div>
+                ) : (
                 <>
                   <div className="mb-4">
                     <p className="text-sm text-slate-600 mb-2">
-                      Total: {members.filter(m => m.temporada !== seasonConfig?.temporada).length} socios históricos
+                      Total: {historicMembers.length} socios históricos sin renovar
                     </p>
-                    <Select value={seasonFilter === "all" ? "all" : seasonFilter} onValueChange={setSeasonFilter}>
-                      <SelectTrigger className="w-64">
-                        <SelectValue placeholder="Filtrar por temporada" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">📅 Todas las temporadas</SelectItem>
-                        {availableSeasons.filter(s => s !== seasonConfig?.temporada).map(season => (
-                          <SelectItem key={season} value={season}>
-                            {season} ({members.filter(m => m.temporada === season).length})
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <div className="flex gap-2">
+                      <Select value={seasonFilter === "all" ? "all" : seasonFilter} onValueChange={setSeasonFilter}>
+                        <SelectTrigger className="w-64">
+                          <SelectValue placeholder="Filtrar por temporada" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">📅 Todas las temporadas</SelectItem>
+                          {availableSeasons.filter(s => s !== seasonConfig?.temporada).map(season => (
+                            <SelectItem key={season} value={season}>
+                              {season} ({historicMembers.filter(m => m.temporada === season).length})
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <Button
+                        onClick={async () => {
+                          if (!confirm(`¿Enviar recordatorio a ${historicMembers.filter(m => m.email).length} socios no renovados?`)) return;
+                          
+                          let sent = 0;
+                          for (const member of historicMembers) {
+                            if (!member.email) continue;
+                            try {
+                              await base44.integrations.Core.SendEmail({
+                                from_name: "CD Bustarviejo",
+                                to: member.email,
+                                subject: "💚 ¡Te echamos de menos! - Renueva tu carnet de socio",
+                                body: `Estimado/a ${member.nombre_completo},
+
+¡Esperamos que todo vaya bien! 💚
+
+Fuiste socio del CD Bustarviejo en la temporada ${member.temporada}.
+
+🎉 TE INVITAMOS A RENOVAR para la temporada ${seasonConfig?.temporada}
+
+Por solo 25€/año seguirás apoyando a nuestros jóvenes deportistas.
+
+¡Esperamos verte de nuevo!
+
+CD Bustarviejo
+cdbustarviejo@gmail.com`
+                              });
+                              sent++;
+                            } catch (e) {
+                              console.error("Error enviando:", e);
+                            }
+                            await new Promise(r => setTimeout(r, 200));
+                          }
+                          toast.success(`✅ ${sent} recordatorios enviados`);
+                        }}
+                        className="bg-orange-600 hover:bg-orange-700"
+                      >
+                        <Mail className="w-4 h-4 mr-2" /> Enviar a Todos ({historicMembers.filter(m => m.email).length})
+                      </Button>
+                    </div>
                   </div>
 
                   <div className="space-y-3">
-                    {members
-                      .filter(m => m.temporada !== seasonConfig?.temporada)
+                    {historicMembers
                       .filter(m => seasonFilter === "all" || m.temporada === seasonFilter)
                       .map(member => (
                         <Card key={member.id} className="bg-white hover:shadow-md transition-shadow">
@@ -1175,9 +1226,7 @@ Por solo *25€/año* seguirás apoyando a nuestros jóvenes deportistas.
                                   <Badge className="bg-slate-100 text-slate-700 text-xs">
                                     {member.temporada}
                                   </Badge>
-                                  {member.estado_pago === "Pagado" && (
-                                    <Badge className="bg-green-100 text-green-700 text-xs">✅ Pagado</Badge>
-                                  )}
+                                  <Badge className="bg-red-100 text-red-700 text-xs">❌ No renovó {seasonConfig?.temporada}</Badge>
                                   {isExternalMember(member) && (
                                     <Badge className="bg-cyan-100 text-cyan-700 text-xs">Externo</Badge>
                                   )}
