@@ -692,8 +692,8 @@ export default function PlayerForm({ player, onSubmit, onCancel, isSubmitting, i
               </div>
             </Collapsible>
 
-            {/* Tipo de Inscripción */}
-            {!player && seasonConfig?.permitir_renovaciones && (
+            {/* Tipo de Inscripción - SOLO SI HAY JUGADORES DISPONIBLES PARA RENOVAR */}
+            {!player && seasonConfig?.permitir_renovaciones && availablePlayersForRenewal.length > 0 && (
               <>
                 <div className="space-y-4 border-2 border-blue-200 rounded-lg p-6 bg-blue-50">
                   <div className="flex items-center gap-2 mb-4">

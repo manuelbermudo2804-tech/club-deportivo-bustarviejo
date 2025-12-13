@@ -629,6 +629,7 @@ export default function Players() {
                   onDelete={isAdmin ? handleDeletePlayer : null}
                   schedules={schedules}
                   payments={payments}
+                  seasonConfig={activeSeason}
                   isCoachOrCoordinator={isCoach || user?.es_coordinador}
                 />
               ))}
