@@ -141,18 +141,18 @@ export default function InscriptionPaymentFlow({
         <div className="space-y-3">
           <label className="text-sm font-bold text-slate-700">💳 ¿Cómo prefieres pagar? *</label>
           <Select value={tipoPago} onValueChange={setTipoPago}>
-            <SelectTrigger className="h-14 text-base">
+            <SelectTrigger className="h-14 text-base border-2 border-slate-300 hover:border-blue-500">
               <SelectValue />
             </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="Único">
-                <div className="flex flex-col items-start py-1">
+            <SelectContent className="z-[9999]">
+              <SelectItem value="Único" className="cursor-pointer py-3">
+                <div className="flex flex-col items-start">
                   <span className="font-bold text-base">💰 Pago Único ({importeTotal}€)</span>
                   <span className="text-xs text-slate-500">Todo en junio - Más económico</span>
                 </div>
               </SelectItem>
-              <SelectItem value="Tres meses">
-                <div className="flex flex-col items-start py-1">
+              <SelectItem value="Tres meses" className="cursor-pointer py-3">
+                <div className="flex flex-col items-start">
                   <span className="font-bold text-base">📅 Tres Pagos (Jun/Sep/Dic)</span>
                   <span className="text-xs text-slate-500">{importeInscripcion}€ + {cuotas.segunda}€ + {cuotas.tercera}€ = {importeTotal}€</span>
                 </div>
