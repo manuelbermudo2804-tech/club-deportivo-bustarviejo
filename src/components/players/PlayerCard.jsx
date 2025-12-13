@@ -51,6 +51,7 @@ export default function PlayerCard({ player, onEdit, onViewProfile, isParent = f
   const [showDetail, setShowDetail] = useState(false);
   const [showRenewalSuggestion, setShowRenewalSuggestion] = useState(false);
   const [confirmingNotRenew, setConfirmingNotRenew] = useState(false);
+  const [confirmingRenew, setConfirmingRenew] = useState(false);
   
   // Filtrar horarios del jugador según su categoría/deporte
   const playerSchedules = schedules
@@ -78,9 +79,25 @@ export default function PlayerCard({ player, onEdit, onViewProfile, isParent = f
   const esMayorDeEdad = calcularEdad(player.fecha_nacimiento) >= 18;
   const edadActual = calcularEdad(player.fecha_nacimiento);
   
-  // Sugerir categoría según edad
-  const getSuggestedCategory = (edad) => {
+  // Sugerir categoría según edad y género (si aplica)
+  const getSuggestedCategory = (edad, deporteActual) => {
     if (!edad) return null;
+    
+    // Detectar si es jugadora (categoría actual femenina o equipos mixtos pequeños con niña)
+    const esJugadoraFemenina = deporteActual === "Fútbol Femenino";
+    
+    // Para jugadoras de fútbol femenino o categorías mixtas de chicas
+    if (esJugadoraFemenina || deporteActual?.includes("Femenino")) {
+      // Chicas pequeñas van a equipos mixtos
+      if (edad <= 5) return "Fútbol Pre-Benjamín (Mixto)";
+      if (edad <= 7) return "Fútbol Benjamín (Mixto)";
+      if (edad <= 9) return "Fútbol Alevín (Mixto)";
+      if (edad <= 11) return "Fútbol Infantil (Mixto)";
+      // A partir de 12 años → Fútbol Femenino
+      return "Fútbol Femenino";
+    }
+    
+    // Para jugadores masculinos o baloncesto (lógica original)
     if (edad <= 5) return "Fútbol Pre-Benjamín (Mixto)";
     if (edad <= 7) return "Fútbol Benjamín (Mixto)";
     if (edad <= 9) return "Fútbol Alevín (Mixto)";
@@ -91,7 +108,7 @@ export default function PlayerCard({ player, onEdit, onViewProfile, isParent = f
     return "Fútbol Aficionado";
   };
   
-  const categorySuggested = getSuggestedCategory(edadActual);
+  const categorySuggested = getSuggestedCategory(edadActual, player.deporte);
   const needsCategoryChange = categorySuggested && player.deporte !== categorySuggested;
   
   // Estado de firmas: 
@@ -347,17 +364,47 @@ export default function PlayerCard({ player, onEdit, onViewProfile, isParent = f
                     {player.nombre} tiene {edadActual} años. Recomendamos cambiar de <strong>{player.deporte}</strong> a <strong>{categorySuggested}</strong>
                   </p>
                   <div className="space-y-2">
-                    {onRenew && (
+                    {onRenew && !confirmingRenew && (
                       <Button
                         size="sm"
                         onClick={(e) => {
                           e.stopPropagation();
-                          onRenew(player, categorySuggested);
+                          setConfirmingRenew(true);
                         }}
                         className="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold shadow-lg"
                       >
                         ✨ Renovar con Nueva Categoría
                       </Button>
+                    )}
+                    {confirmingRenew && (
+                      <div className="bg-purple-100 border-2 border-purple-400 rounded-lg p-2">
+                        <p className="text-xs text-purple-900 mb-2 font-bold">✅ ¿Confirmar renovación con cambio?</p>
+                        <p className="text-xs text-purple-800 mb-2">{player.deporte} → {categorySuggested}</p>
+                        <div className="flex gap-2">
+                          <Button
+                            size="sm"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onRenew(player, categorySuggested);
+                              setConfirmingRenew(false);
+                            }}
+                            className="flex-1 bg-purple-600 hover:bg-purple-700 text-white"
+                          >
+                            Confirmar Renovación
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setConfirmingRenew(false);
+                            }}
+                            className="flex-1"
+                          >
+                            Cancelar
+                          </Button>
+                        </div>
+                      </div>
                     )}
                     {onMarkNotRenewing && !confirmingNotRenew && (
                       <Button
@@ -418,17 +465,47 @@ export default function PlayerCard({ player, onEdit, onViewProfile, isParent = f
                     Es momento de renovar la inscripción de {player.nombre} para la próxima temporada en <strong>{player.deporte}</strong>
                   </p>
                   <div className="space-y-2">
-                    {onRenew && (
+                    {onRenew && !confirmingRenew && (
                       <Button
                         size="sm"
                         onClick={(e) => {
                           e.stopPropagation();
-                          onRenew(player, null);
+                          setConfirmingRenew(true);
                         }}
                         className="w-full bg-orange-600 hover:bg-orange-700 text-white font-bold shadow-lg"
                       >
                         🔄 Renovar Jugador
                       </Button>
+                    )}
+                    {confirmingRenew && (
+                      <div className="bg-orange-100 border-2 border-orange-400 rounded-lg p-2">
+                        <p className="text-xs text-orange-900 mb-2 font-bold">✅ ¿Confirmar renovación?</p>
+                        <p className="text-xs text-orange-800 mb-2">Mantiene {player.deporte}</p>
+                        <div className="flex gap-2">
+                          <Button
+                            size="sm"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onRenew(player, null);
+                              setConfirmingRenew(false);
+                            }}
+                            className="flex-1 bg-orange-600 hover:bg-orange-700 text-white"
+                          >
+                            Confirmar Renovación
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setConfirmingRenew(false);
+                            }}
+                            className="flex-1"
+                          >
+                            Cancelar
+                          </Button>
+                        </div>
+                      </div>
                     )}
                     {onMarkNotRenewing && !confirmingNotRenew && (
                       <Button
