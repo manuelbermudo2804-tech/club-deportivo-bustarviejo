@@ -270,88 +270,174 @@ export default function SeasonManagement() {
     
     setIsProcessing(true);
     setProcessingProgress(0);
+    setShowRestoreDialog(false);
+    
+    let totalSuccess = 0;
+    let totalFailed = 0;
     
     try {
       const totalSteps = Object.keys(restoreSelections).filter(k => restoreSelections[k]).length;
       let currentStep = 0;
 
-      if (restoreSelections.payments && backupData.data.payments) {
-        setProcessingStep("Restaurando pagos...");
+      if (restoreSelections.payments && backupData.data.payments?.length > 0) {
+        setProcessingStep(`Restaurando pagos (${backupData.data.payments.length})...`);
+        let success = 0;
+        let failed = 0;
         for (const payment of backupData.data.payments) {
-          const { id, created_date, updated_date, ...data } = payment;
-          await base44.entities.Payment.create(data);
+          try {
+            const { id, created_date, updated_date, created_by, ...data } = payment;
+            await base44.entities.Payment.create(data);
+            success++;
+          } catch (err) {
+            console.error("Error restaurando pago:", err);
+            failed++;
+          }
         }
+        console.log(`✅ Pagos: ${success} restaurados, ${failed} fallidos`);
+        totalSuccess += success;
+        totalFailed += failed;
         currentStep++;
         setProcessingProgress((currentStep / totalSteps) * 100);
       }
 
-      if (restoreSelections.reminders && backupData.data.reminders) {
-        setProcessingStep("Restaurando recordatorios...");
+      if (restoreSelections.reminders && backupData.data.reminders?.length > 0) {
+        setProcessingStep(`Restaurando recordatorios (${backupData.data.reminders.length})...`);
+        let success = 0;
+        let failed = 0;
         for (const reminder of backupData.data.reminders) {
-          const { id, created_date, updated_date, ...data } = reminder;
-          await base44.entities.Reminder.create(data);
+          try {
+            const { id, created_date, updated_date, created_by, ...data } = reminder;
+            await base44.entities.Reminder.create(data);
+            success++;
+          } catch (err) {
+            console.error("Error restaurando recordatorio:", err);
+            failed++;
+          }
         }
+        console.log(`✅ Recordatorios: ${success} restaurados, ${failed} fallidos`);
+        totalSuccess += success;
+        totalFailed += failed;
         currentStep++;
         setProcessingProgress((currentStep / totalSteps) * 100);
       }
 
-      if (restoreSelections.attendances && backupData.data.attendances) {
-        setProcessingStep("Restaurando asistencias...");
+      if (restoreSelections.attendances && backupData.data.attendances?.length > 0) {
+        setProcessingStep(`Restaurando asistencias (${backupData.data.attendances.length})...`);
+        let success = 0;
+        let failed = 0;
         for (const attendance of backupData.data.attendances) {
-          const { id, created_date, updated_date, ...data } = attendance;
-          await base44.entities.Attendance.create(data);
+          try {
+            const { id, created_date, updated_date, created_by, ...data } = attendance;
+            await base44.entities.Attendance.create(data);
+            success++;
+          } catch (err) {
+            console.error("Error restaurando asistencia:", err);
+            failed++;
+          }
         }
+        console.log(`✅ Asistencias: ${success} restauradas, ${failed} fallidas`);
+        totalSuccess += success;
+        totalFailed += failed;
         currentStep++;
         setProcessingProgress((currentStep / totalSteps) * 100);
       }
 
-      if (restoreSelections.evaluations && backupData.data.evaluations) {
-        setProcessingStep("Restaurando evaluaciones...");
+      if (restoreSelections.evaluations && backupData.data.evaluations?.length > 0) {
+        setProcessingStep(`Restaurando evaluaciones (${backupData.data.evaluations.length})...`);
+        let success = 0;
+        let failed = 0;
         for (const evaluation of backupData.data.evaluations) {
-          const { id, created_date, updated_date, ...data } = evaluation;
-          await base44.entities.PlayerEvaluation.create(data);
+          try {
+            const { id, created_date, updated_date, created_by, ...data } = evaluation;
+            await base44.entities.PlayerEvaluation.create(data);
+            success++;
+          } catch (err) {
+            console.error("Error restaurando evaluación:", err);
+            failed++;
+          }
         }
+        console.log(`✅ Evaluaciones: ${success} restauradas, ${failed} fallidas`);
+        totalSuccess += success;
+        totalFailed += failed;
         currentStep++;
         setProcessingProgress((currentStep / totalSteps) * 100);
       }
 
-      if (restoreSelections.callups && backupData.data.callups) {
-        setProcessingStep("Restaurando convocatorias...");
+      if (restoreSelections.callups && backupData.data.callups?.length > 0) {
+        setProcessingStep(`Restaurando convocatorias (${backupData.data.callups.length})...`);
+        let success = 0;
+        let failed = 0;
         for (const callup of backupData.data.callups) {
-          const { id, created_date, updated_date, ...data } = callup;
-          await base44.entities.Convocatoria.create(data);
+          try {
+            const { id, created_date, updated_date, created_by, ...data } = callup;
+            await base44.entities.Convocatoria.create(data);
+            success++;
+          } catch (err) {
+            console.error("Error restaurando convocatoria:", err);
+            failed++;
+          }
         }
+        console.log(`✅ Convocatorias: ${success} restauradas, ${failed} fallidas`);
+        totalSuccess += success;
+        totalFailed += failed;
         currentStep++;
         setProcessingProgress((currentStep / totalSteps) * 100);
       }
 
-      if (restoreSelections.clothingOrders && backupData.data.clothingOrders) {
-        setProcessingStep("Restaurando pedidos de ropa...");
+      if (restoreSelections.clothingOrders && backupData.data.clothingOrders?.length > 0) {
+        setProcessingStep(`Restaurando pedidos de ropa (${backupData.data.clothingOrders.length})...`);
+        let success = 0;
+        let failed = 0;
         for (const order of backupData.data.clothingOrders) {
-          const { id, created_date, updated_date, ...data } = order;
-          await base44.entities.ClothingOrder.create(data);
+          try {
+            const { id, created_date, updated_date, created_by, ...data } = order;
+            await base44.entities.ClothingOrder.create(data);
+            success++;
+          } catch (err) {
+            console.error("Error restaurando pedido ropa:", err);
+            failed++;
+          }
         }
+        console.log(`✅ Pedidos ropa: ${success} restaurados, ${failed} fallidos`);
+        totalSuccess += success;
+        totalFailed += failed;
         currentStep++;
         setProcessingProgress((currentStep / totalSteps) * 100);
       }
 
-      if (restoreSelections.lotteryOrders && backupData.data.lotteryOrders) {
-        setProcessingStep("Restaurando pedidos de lotería...");
+      if (restoreSelections.lotteryOrders && backupData.data.lotteryOrders?.length > 0) {
+        setProcessingStep(`Restaurando pedidos de lotería (${backupData.data.lotteryOrders.length})...`);
+        let success = 0;
+        let failed = 0;
         for (const order of backupData.data.lotteryOrders) {
-          const { id, created_date, updated_date, ...data } = order;
-          await base44.entities.LotteryOrder.create(data);
+          try {
+            const { id, created_date, updated_date, created_by, ...data } = order;
+            await base44.entities.LotteryOrder.create(data);
+            success++;
+          } catch (err) {
+            console.error("Error restaurando pedido lotería:", err);
+            failed++;
+          }
         }
+        console.log(`✅ Pedidos lotería: ${success} restaurados, ${failed} fallidos`);
+        totalSuccess += success;
+        totalFailed += failed;
         currentStep++;
         setProcessingProgress((currentStep / totalSteps) * 100);
       }
 
       queryClient.invalidateQueries();
-      toast.success("Backup restaurado correctamente");
-      setShowRestoreDialog(false);
+      
+      if (totalFailed > 0) {
+        toast.warning(`Restauración completada: ${totalSuccess} registros restaurados, ${totalFailed} fallidos. Revisa la consola para detalles.`, { duration: 8000 });
+      } else {
+        toast.success(`✅ Backup restaurado: ${totalSuccess} registros recuperados correctamente`);
+      }
+      
       setBackupData(null);
     } catch (error) {
-      console.error("Error restoring backup:", error);
-      toast.error("Error al restaurar el backup");
+      console.error("Error crítico restaurando backup:", error);
+      toast.error(`Error al restaurar el backup: ${error.message}`);
     } finally {
       setIsProcessing(false);
       setProcessingStep("");
