@@ -893,7 +893,7 @@ Email: cdbustarviejo@gmail.com
             )}
             <PlayerForm
               player={editingPlayer}
-              allPlayers={allPlayers}
+              allPlayers={players}
               onSubmit={handleSubmit}
               onCancel={() => {
                 setShowForm(false);
