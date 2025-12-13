@@ -1004,7 +1004,7 @@ export default function PlayerForm({ player, onSubmit, onCancel, isSubmitting, i
                 <Select 
                   value={currentPlayer.deporte} 
                   onValueChange={(value) => setCurrentPlayer({...currentPlayer, deporte: value})} 
-                  disabled={isParent && player}
+                  disabled={false}
                 >
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
@@ -1012,7 +1012,7 @@ export default function PlayerForm({ player, onSubmit, onCancel, isSubmitting, i
                   </SelectContent>
                 </Select>
                 <p className="text-xs text-slate-500">
-                  ℹ️ La IA sugiere categoría según edad, pero puedes cambiarla si es necesario
+                  ℹ️ La IA sugiere categoría según edad, pero siempre puedes cambiarla manualmente
                 </p>
               </div>
             </div>
