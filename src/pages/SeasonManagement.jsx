@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -148,8 +148,6 @@ export default function SeasonManagement() {
     queryKey: ['resetHistory'],
     queryFn: () => base44.entities.ResetHistory.list('-created_date'),
   });
-
-  const activeSeason = seasons.find(s => s.activa === true);
 
   // Mutación para actualizar configuración de temporada
   const updateSeasonMutation = useMutation({
@@ -1007,6 +1005,10 @@ export default function SeasonManagement() {
     queryKey: ['privateConversations'],
     queryFn: () => base44.entities.PrivateConversation.list(),
   });
+
+  const activeSeason = useMemo(() => {
+    return seasons.find(s => s.activa === true);
+  }, [seasons]);
 
   // Estadísticas actuales
   const currentStats = {
