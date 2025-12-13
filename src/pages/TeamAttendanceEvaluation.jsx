@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { Calendar, Save, Send, User, AlertCircle, CheckCircle2, XCircle, Clock, Star, Mail } from "lucide-react";
+import { Calendar, Save, Send, User, AlertCircle, XCircle, Clock, Star, Mail, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
