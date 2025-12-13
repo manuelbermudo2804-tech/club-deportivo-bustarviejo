@@ -414,12 +414,12 @@ export default function StaffChat() {
   }
 
   return (
-    <div className="h-full flex flex-col overflow-hidden">
+    <div className="fixed inset-0 lg:inset-auto lg:absolute lg:top-0 lg:left-0 lg:right-0 lg:bottom-0 flex flex-col overflow-hidden pt-[100px] lg:pt-0 pb-0">
       <Card className="border-purple-200 shadow-lg h-full flex flex-col overflow-hidden lg:rounded-lg rounded-none">
-        <CardHeader className="bg-gradient-to-r from-purple-600 to-purple-700 text-white p-2 sm:p-6">
+        <CardHeader className="bg-gradient-to-r from-purple-600 to-purple-700 text-white p-2 flex-shrink-0">
           <div className="flex items-center justify-between">
-            <CardTitle className="flex items-center gap-2 text-sm sm:text-xl">
-              <MessageCircle className="w-4 h-4 sm:w-6 sm:h-6" />
+            <CardTitle className="flex items-center gap-2 text-sm">
+              <MessageCircle className="w-4 h-4" />
               💼 Chat Interno Staff
             </CardTitle>
             <div className="flex gap-1">
@@ -427,27 +427,25 @@ export default function StaffChat() {
                 variant="ghost"
                 size="sm"
                 onClick={() => setShowGallery(!showGallery)}
-                className="text-white hover:bg-white/20 text-xs sm:text-sm"
+                className="text-white hover:bg-white/20 text-xs"
               >
-                <Folder className="w-3 h-3 sm:w-4 sm:h-4 sm:mr-2" />
-                <span className="hidden sm:inline">Archivos ({allSharedFiles.length})</span>
-                <span className="sm:hidden">{allSharedFiles.length}</span>
+                <Folder className="w-3 h-3 sm:mr-1" />
+                <span className="hidden sm:inline text-xs">Archivos</span>
               </Button>
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => setShowParticipants(true)}
-                className="text-white hover:bg-white/20 text-xs sm:text-sm"
+                className="text-white hover:bg-white/20 text-xs"
               >
-                <Users className="w-3 h-3 sm:w-4 sm:h-4 sm:mr-2" />
-                <span className="hidden sm:inline">{staffUsers?.length || 0} miembros</span>
-                <span className="sm:hidden">{staffUsers?.length || 0}</span>
+                <Users className="w-3 h-3 sm:mr-1" />
+                <span className="hidden sm:inline text-xs">{staffUsers?.length || 0}</span>
               </Button>
             </div>
           </div>
         </CardHeader>
 
-        <CardContent className="p-0 flex-1 flex flex-col overflow-hidden">
+        <CardContent className="p-0 flex-1 flex flex-col overflow-hidden min-h-0">
           <SearchFilters
             searchTerm={searchTerm}
             onSearchChange={setSearchTerm}
@@ -499,7 +497,7 @@ export default function StaffChat() {
             </div>
           )}
 
-          <div className="flex-1 overflow-y-auto p-2 sm:p-4 space-y-2 bg-slate-50">
+          <div className="flex-1 overflow-y-auto p-2 sm:p-4 space-y-2 bg-slate-50 min-h-0">
             {replyingTo && (
               <div className="sticky top-0 z-10 bg-purple-50 border-l-4 border-purple-500 p-2 rounded flex items-start justify-between">
                 <div className="flex-1">
@@ -654,7 +652,7 @@ export default function StaffChat() {
             <div ref={messagesEndRef} />
           </div>
 
-          <div className="p-2 sm:p-4 bg-white border-t flex-shrink-0">
+          <div className="p-2 bg-white border-t flex-shrink-0">
             {showQuickReplies && (
               <div className="mb-2 flex flex-wrap gap-2 p-2 bg-slate-50 rounded-lg">
                 {QUICK_REPLIES.map((reply, idx) => (
@@ -742,16 +740,16 @@ export default function StaffChat() {
                     handleSend();
                   }
                 }}
-                className="flex-1 min-h-[36px] sm:min-h-[44px] resize-none text-sm"
+                className="flex-1 min-h-[44px] max-h-32 resize-none text-base"
                 rows={1}
               />
 
               <Button 
                 onClick={handleSend} 
                 disabled={!messageText.trim() && attachments.length === 0}
-                className="bg-purple-600 hover:bg-purple-700 h-9 w-9 sm:h-10 sm:w-10 p-0"
+                className="bg-purple-600 hover:bg-purple-700 h-11 w-11 p-0 flex-shrink-0 rounded-full"
               >
-                <Send className="w-4 h-4 sm:w-5 sm:h-5" />
+                <Send className="w-5 h-5" />
               </Button>
             </div>
           </div>

@@ -70,7 +70,7 @@ export default function CoachParentChat() {
   }
 
   return (
-    <>
+    <div className="fixed inset-0 lg:inset-auto lg:absolute lg:top-0 lg:left-0 lg:right-0 lg:bottom-0 flex flex-col overflow-hidden pt-[100px] lg:pt-0 pb-0">
       {/* Modal de configuración */}
       <Dialog open={showSettings} onOpenChange={setShowSettings}>
         <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
@@ -112,7 +112,6 @@ export default function CoachParentChat() {
         </DialogContent>
       </Dialog>
 
-      <div className="h-[calc(100vh-100px)] lg:h-[calc(100vh-110px)]">
         <Card className="h-full flex flex-col overflow-hidden lg:rounded-lg rounded-none border-green-200 shadow-lg">
           {/* Header con pestañas de categorías */}
           <div className="bg-gradient-to-r from-green-600 to-green-700 text-white flex-shrink-0">
@@ -166,7 +165,7 @@ export default function CoachParentChat() {
         </div>
 
         {/* Ventana de chat */}
-        <div className="flex-1 overflow-hidden">
+        <div className="flex-1 overflow-hidden min-h-0">
           {selectedCategory ? (
             <CoachChatWindow
               selectedCategory={selectedCategory}
@@ -184,6 +183,5 @@ export default function CoachParentChat() {
         </div>
       </Card>
     </div>
-    </>
   );
 }

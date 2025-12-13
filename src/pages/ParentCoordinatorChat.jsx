@@ -380,9 +380,9 @@ export default function ParentCoordinatorChat() {
           tipoChat="coordinador"
         />
       )}
-      <div className="h-full flex flex-col overflow-hidden">
+      <div className="fixed inset-0 lg:inset-auto lg:absolute lg:top-0 lg:left-0 lg:right-0 lg:bottom-0 flex flex-col overflow-hidden pt-[100px] lg:pt-0 pb-0">
         <Card className="border-cyan-200 shadow-lg h-full flex flex-col overflow-hidden lg:rounded-lg rounded-none">
-        <CardHeader className="bg-gradient-to-r from-cyan-600 to-cyan-700 text-white p-2">
+        <CardHeader className="bg-gradient-to-r from-cyan-600 to-cyan-700 text-white p-2 flex-shrink-0">
           <div className="flex items-center justify-between">
             <CardTitle className="flex items-center gap-2 text-sm">
               <MessageCircle className="w-4 h-4" />
@@ -418,11 +418,11 @@ export default function ParentCoordinatorChat() {
             </div>
           </div>
         </CardHeader>
-        <CardContent className="p-0 flex-1 flex flex-col overflow-hidden">
+        <CardContent className="p-0 flex-1 flex flex-col overflow-hidden min-h-0">
 
 
           {/* Mensajes */}
-          <div className="flex-1 overflow-y-auto p-2 sm:p-4 space-y-2 bg-slate-50">
+          <div className="flex-1 overflow-y-auto p-2 sm:p-4 space-y-2 bg-slate-50 min-h-0">
                     {!messages || messages.length === 0 ? (
                       <div className="text-center py-8">
                         <MessageCircle className="w-10 h-10 text-slate-300 mx-auto mb-2" />

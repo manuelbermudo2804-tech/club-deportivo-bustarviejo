@@ -705,7 +705,7 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
   }
 
   return (
-    <div className="flex flex-col h-full w-full overflow-hidden">
+    <div className="flex flex-col h-full w-full overflow-hidden min-h-0">
       <audio 
         ref={audioRef} 
         onEnded={() => setPlayingAudio(null)}
@@ -744,7 +744,7 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
 
 
       {/* Mensajes */}
-      <div className="flex-1 overflow-y-auto p-2 sm:p-4 space-y-2 bg-slate-50">
+      <div className="flex-1 overflow-y-auto p-2 sm:p-4 space-y-2 bg-slate-50 min-h-0">
         {replyingTo && (
           <div className="sticky top-0 z-10 bg-blue-50 border-l-4 border-blue-500 p-2 rounded flex items-start justify-between">
             <div className="flex-1">

@@ -298,7 +298,7 @@ export default function ParentCoachChat() {
         </div>
       )}
 
-    <div className="h-full flex flex-col overflow-hidden">
+    <div className="fixed inset-0 lg:inset-auto lg:absolute lg:top-0 lg:left-0 lg:right-0 lg:bottom-0 flex flex-col overflow-hidden pt-[100px] lg:pt-0 pb-0">
       <Card className="border-blue-200 shadow-lg h-full flex flex-col overflow-hidden lg:rounded-lg rounded-none">
         <CardHeader className="bg-gradient-to-r from-blue-600 to-blue-700 text-white p-2 flex-shrink-0">
           <div className="flex items-center justify-between">
@@ -316,7 +316,7 @@ export default function ParentCoachChat() {
 
         <CardContent className="p-0 flex-1 flex flex-col overflow-hidden min-h-0">
           {categories.length > 1 && (
-            <div className="flex gap-1.5 p-1.5 bg-slate-50 border-b overflow-x-auto">
+            <div className="flex gap-1.5 p-1.5 bg-slate-50 border-b overflow-x-auto flex-shrink-0">
               {categories.map(cat => (
                 <Button
                   key={cat}
@@ -333,12 +333,12 @@ export default function ParentCoachChat() {
 
           {/* Perfil del Entrenador */}
           {categoryCoach && (
-            <div className="p-2 border-b bg-white">
+            <div className="p-2 border-b bg-white flex-shrink-0">
               <CoachProfilePreview coach={categoryCoach} />
             </div>
           )}
 
-          <div className="flex-1 overflow-y-auto p-4 space-y-2 bg-slate-50">
+          <div className="flex-1 overflow-y-auto p-4 space-y-2 bg-slate-50 min-h-0">
             {filteredMessages.length === 0 ? (
               <div className="text-center py-8">
                 <MessageCircle className="w-10 h-10 text-slate-300 mx-auto mb-2" />
