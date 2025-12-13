@@ -30,7 +30,7 @@ export default function FamilyChats() {
   }
 
   return (
-    <div className="h-[calc(100vh-100px)] lg:h-[calc(100vh-110px)] overflow-hidden">
+    <div className="fixed inset-0 lg:inset-auto lg:absolute lg:top-0 lg:left-0 lg:right-0 lg:bottom-0 flex flex-col overflow-hidden pt-[100px] lg:pt-0 pb-0">
       <Suspense fallback={
         <div className="flex items-center justify-center h-full">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
