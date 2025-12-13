@@ -19,31 +19,16 @@ import { base44 } from "@/api/base44Client";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 
-// Función para obtener las categorías con años dinámicos
-// La temporada empieza en septiembre, así que calculamos el año base de la temporada actual
+// Función para obtener las categorías con edades
 const getCategoriesWithYears = () => {
-  const currentYear = new Date().getFullYear();
-  const currentMonth = new Date().getMonth() + 1;
-  // Si estamos entre enero-agosto, la temporada es del año anterior
-  // Si estamos entre septiembre-diciembre, la temporada es del año actual
-  const seasonStartYear = currentMonth >= 9 ? currentYear : currentYear - 1;
-  
-  // Pre-Benjamín: 5-6 años → nacidos hace 5-6 años respecto al inicio de temporada
-  // Benjamín: 7-8 años → nacidos hace 7-8 años
-  // Alevín: 9-10 años → nacidos hace 9-10 años
-  // Infantil: 11-12 años → nacidos hace 11-12 años
-  // Cadete: 13-14 años → nacidos hace 13-14 años
-  // Juvenil: 15-16-17 años → nacidos hace 15-16-17 años
-  // Aficionado: 18+ años
-  
   return [
-    { value: "Fútbol Pre-Benjamín (Mixto)", label: `⚽ Fútbol Pre-Benjamín (Mixto) - Nacidos ${seasonStartYear - 5}/${seasonStartYear - 6}` },
-    { value: "Fútbol Benjamín (Mixto)", label: `⚽ Fútbol Benjamín (Mixto) - Nacidos ${seasonStartYear - 7}/${seasonStartYear - 8}` },
-    { value: "Fútbol Alevín (Mixto)", label: `⚽ Fútbol Alevín (Mixto) - Nacidos ${seasonStartYear - 9}/${seasonStartYear - 10}` },
-    { value: "Fútbol Infantil (Mixto)", label: `⚽ Fútbol Infantil (Mixto) - Nacidos ${seasonStartYear - 11}/${seasonStartYear - 12}` },
-    { value: "Fútbol Cadete", label: `⚽ Fútbol Cadete - Nacidos ${seasonStartYear - 13}/${seasonStartYear - 14}` },
-    { value: "Fútbol Juvenil", label: `⚽ Fútbol Juvenil - Nacidos ${seasonStartYear - 15}/${seasonStartYear - 16}/${seasonStartYear - 17}` },
-    { value: "Fútbol Aficionado", label: `⚽ Fútbol Aficionado - Nacidos ${seasonStartYear - 18} y anteriores` },
+    { value: "Fútbol Pre-Benjamín (Mixto)", label: `⚽ Fútbol Pre-Benjamín (Mixto) - 4-5 años` },
+    { value: "Fútbol Benjamín (Mixto)", label: `⚽ Fútbol Benjamín (Mixto) - 6-7 años` },
+    { value: "Fútbol Alevín (Mixto)", label: `⚽ Fútbol Alevín (Mixto) - 8-9 años` },
+    { value: "Fútbol Infantil (Mixto)", label: `⚽ Fútbol Infantil (Mixto) - 10-11 años` },
+    { value: "Fútbol Cadete", label: `⚽ Fútbol Cadete - 12-15 años` },
+    { value: "Fútbol Juvenil", label: `⚽ Fútbol Juvenil - 16-18 años` },
+    { value: "Fútbol Aficionado", label: `⚽ Fútbol Aficionado - 19+ años` },
     { value: "Fútbol Femenino", label: "⚽ Fútbol Femenino" },
     { value: "Baloncesto (Mixto)", label: "🏀 Baloncesto (Mixto)" }
   ];
