@@ -152,7 +152,7 @@ export default function TreasurerDashboard() {
       
       const currentActiveBudget = budgets.find(b => b.activo && b.temporada === currentSeason) || budgets[0];
       if (data.partida_id && currentActiveBudget) {
-        const updatedPartidas = activeBudget.partidas.map(p => {
+        const updatedPartidas = currentActiveBudget.partidas.map(p => {
           if (p.id === data.partida_id) {
             return {
               ...p,
