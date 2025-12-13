@@ -33,6 +33,7 @@ export default function AlertCenter({
   pendingCallups = 0,
   pendingDocuments = 0,
   pendingPayments = 0,
+  paymentsInReview = 0,
   pendingAttendance = 0,
   pendingEvaluations = 0,
   pendingSurveys = 0,
@@ -456,16 +457,27 @@ export default function AlertCenter({
 
   // Alertas para padres
   if (isParent && !isAdmin && !isCoach) {
-    // Separar pagos "Pendiente" (sin justificante) de pagos "En revisión" (pendientes de revisión admin)
+    // Separar alertas: pagos sin justificante vs pagos en revisión
     if (pendingPayments > 0) {
       alerts.push({
-        id: "payments",
+        id: "payments-pending",
         icon: CreditCard,
-        title: "💳 Justificantes por enviar o en revisión",
-        description: `${pendingPayments} pago${pendingPayments > 1 ? 's' : ''} pendiente${pendingPayments > 1 ? 's' : ''}`,
+        title: "💳 Justificantes por enviar",
+        description: `${pendingPayments} pago${pendingPayments > 1 ? 's' : ''} sin justificante`,
         url: createPageUrl("ParentPayments"),
         color: "bg-yellow-500",
         priority: 3
+      });
+    }
+    if (paymentsInReview > 0) {
+      alerts.push({
+        id: "payments-review",
+        icon: CreditCard,
+        title: "📋 Justificantes pendientes de revisión",
+        description: `${paymentsInReview} pago${paymentsInReview > 1 ? 's' : ''} en revisión por el administrador`,
+        url: createPageUrl("ParentPayments"),
+        color: "bg-blue-500",
+        priority: 5
       });
     }
     if (overduePayments > 0) {

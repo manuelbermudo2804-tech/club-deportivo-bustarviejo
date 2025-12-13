@@ -579,7 +579,8 @@ export default function ParentDashboard() {
               return firma && !firma.firmado && !firma.confirmado_firma_externa;
             });
           }).length : 0}
-          pendingPayments={pendingPayments}
+          pendingPayments={pagosSinJustificante}
+          paymentsInReview={pagosEnRevision}
           pendingSurveys={activeSurveys.length}
           pendingSignatures={pendingFederationSignatures}
           upcomingEvents={0}
