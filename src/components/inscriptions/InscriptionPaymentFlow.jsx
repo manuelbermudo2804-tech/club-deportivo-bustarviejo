@@ -152,14 +152,26 @@ export default function InscriptionPaymentFlow({
             <SelectContent className="z-[9999]">
               <SelectItem value="Único" className="cursor-pointer py-3">
                 <div className="flex flex-col items-start">
-                  <span className="font-bold text-base">💰 Pago Único ({importeTotal}€)</span>
-                  <span className="text-xs text-slate-500">Todo en junio - Más económico</span>
+                  <span className="font-bold text-base">
+                    💰 Pago Único ({importeTotal}€)
+                    {descuentoHermano > 0 && <span className="ml-2 text-purple-600">💜 -{descuentoHermano}€</span>}
+                  </span>
+                  <span className="text-xs text-slate-500">
+                    Todo en junio - Más económico
+                    {descuentoHermano > 0 && <span className="ml-1 text-purple-600">(Precio original: {cuotas.total}€)</span>}
+                  </span>
                 </div>
               </SelectItem>
               <SelectItem value="Tres meses" className="cursor-pointer py-3">
                 <div className="flex flex-col items-start">
-                  <span className="font-bold text-base">📅 Tres Pagos (Jun/Sep/Dic)</span>
-                  <span className="text-xs text-slate-500">{importeInscripcion}€ + {cuotas.segunda}€ + {cuotas.tercera}€ = {importeTotal}€</span>
+                  <span className="font-bold text-base">
+                    📅 Tres Pagos (Jun/Sep/Dic)
+                    {descuentoHermano > 0 && <span className="ml-2 text-purple-600">💜 -{descuentoHermano}€</span>}
+                  </span>
+                  <span className="text-xs text-slate-500">
+                    {importeInscripcion}€ + {cuotas.segunda}€ + {cuotas.tercera}€ = {importeTotal}€
+                    {descuentoHermano > 0 && <span className="ml-1 text-purple-600">(Total original: {cuotas.total}€)</span>}
+                  </span>
                 </div>
               </SelectItem>
             </SelectContent>
