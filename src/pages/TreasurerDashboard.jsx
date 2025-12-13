@@ -150,7 +150,8 @@ export default function TreasurerDashboard() {
     mutationFn: async (data) => {
       const transaction = await base44.entities.FinancialTransaction.create(data);
       
-      if (data.partida_id && activeBudget) {
+      const currentActiveBudget = budgets.find(b => b.activo && b.temporada === currentSeason) || budgets[0];
+      if (data.partida_id && currentActiveBudget) {
         const updatedPartidas = activeBudget.partidas.map(p => {
           if (p.id === data.partida_id) {
             return {
