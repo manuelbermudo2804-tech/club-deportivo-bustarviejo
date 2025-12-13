@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { Users, AlertCircle, ChevronDown, ChevronUp, Mail, CheckCircle2, Clock, Send, Loader2 } from "lucide-react";
+import { Users, AlertCircle, ChevronDown, ChevronUp, Mail, CheckCircle2, Clock, Send, Loader2, Sparkles, Info } from "lucide-react";
 import { toast } from "sonner";
 
 const CLUB_LOGO_URL = "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6911b8e453ca3ac01fb134d6/e3f0a8e26_logo_cd_bustarviejo_mediano.jpg";
@@ -32,6 +32,15 @@ export default function SecondParentSection({
   const [existingSecondParent, setExistingSecondParent] = useState(null);
   const [pendingInvitation, setPendingInvitation] = useState(null);
   const [isSendingInvitation, setIsSendingInvitation] = useState(false);
+  
+  // Detectar si ya hay segundo progenitor en otros hermanos
+  const segundoProgenitorEnOtrosHermanos = existingFamilyPlayers?.some(p => 
+    p.email_tutor_2 && p.email_tutor_2.trim() !== ""
+  );
+  
+  const datosSegundoProgenitorHermano = existingFamilyPlayers?.find(p => 
+    p.email_tutor_2 && p.email_tutor_2.trim() !== ""
+  );
 
   useEffect(() => {
     base44.auth.me().then(setCurrentUser).catch(console.error);
@@ -269,10 +278,40 @@ Para completar tu registro, haz clic en el botón:
 
         <CollapsibleContent>
           <div className="pt-4 space-y-4">
+            
+            {/* ALERTA SI YA HAY SEGUNDO PROGENITOR EN HERMANOS */}
+            {segundoProgenitorEnOtrosHermanos && !currentPlayer.email_tutor_2 && datosSegundoProgenitorHermano && (
+              <Alert className="bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-400">
+                <Sparkles className="h-5 w-5 text-green-600" />
+                <AlertDescription className="text-green-800">
+                  <p className="font-bold text-base mb-2">
+                    ✅ Ya tienes segundo progenitor en otro hijo
+                  </p>
+                  <div className="bg-white rounded-lg p-3 border border-green-300 text-sm space-y-1 mb-3">
+                    <p><strong>Nombre:</strong> {datosSegundoProgenitorHermano.nombre_tutor_2}</p>
+                    <p><strong>Email:</strong> {datosSegundoProgenitorHermano.email_tutor_2}</p>
+                    {datosSegundoProgenitorHermano.telefono_tutor_2 && (
+                      <p><strong>Teléfono:</strong> {datosSegundoProgenitorHermano.telefono_tutor_2}</p>
+                    )}
+                  </div>
+                  <div className="bg-green-100 rounded-lg p-3 border border-green-300">
+                    <p className="text-sm font-semibold mb-1">💡 ¿Son los mismos progenitores?</p>
+                    <p className="text-sm">
+                      <strong>No hace falta</strong> que rellenes esta sección de nuevo. Ambos padres ya recibirán 
+                      notificaciones de este nuevo hijo automáticamente.
+                    </p>
+                    <p className="text-xs mt-2 text-green-700">
+                      ℹ️ Solo rellena si el segundo progenitor de <strong>este hijo</strong> es diferente al de tus otros hijos.
+                    </p>
+                  </div>
+                </AlertDescription>
+              </Alert>
+            )}
+
             {/* Alerta informativa */}
-            <Alert className="bg-green-50 border-green-200">
-              <AlertCircle className="h-4 w-4 text-green-600" />
-              <AlertDescription className="text-green-800 text-sm">
+            <Alert className="bg-blue-50 border-blue-200">
+              <Info className="h-4 w-4 text-blue-600" />
+              <AlertDescription className="text-blue-800 text-sm">
                 <strong>👥 Acceso compartido:</strong> Si añades el email del segundo progenitor, recibirá una invitación para completar su registro y acceder a la app con su propia cuenta.
               </AlertDescription>
             </Alert>
