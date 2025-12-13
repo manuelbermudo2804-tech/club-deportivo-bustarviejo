@@ -129,6 +129,10 @@ export default function TreasurerDashboard() {
     queryFn: () => base44.entities.PaymentHistory.list('-created_date'),
   });
 
+  const activeSeason = useMemo(() => {
+    return seasons.find(s => s.activa === true);
+  }, [seasons]);
+
   // Mutations para presupuestos
   const createBudgetMutation = useMutation({
     mutationFn: (data) => base44.entities.Budget.create(data),
