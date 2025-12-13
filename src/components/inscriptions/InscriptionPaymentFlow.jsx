@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { CheckCircle2, CreditCard, Gift, Info, Loader2 } from "lucide-react";
+import { CreditCard, Gift, Info, Loader2, CheckCircle2 } from "lucide-react";
 
 const CATEGORY_NAME_MAPPING = {
   "Fútbol Aficionado": "AFICIONADO",

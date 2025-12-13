@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { Users, AlertCircle, ChevronDown, ChevronUp, Mail, CheckCircle2, Clock, Send, Loader2, Sparkles, Info } from "lucide-react";
+import { Users, AlertCircle, ChevronDown, ChevronUp, Mail, Clock, Send, Loader2, Sparkles, Info, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
 
 const CLUB_LOGO_URL = "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6911b8e453ca3ac01fb134d6/e3f0a8e26_logo_cd_bustarviejo_mediano.jpg";
