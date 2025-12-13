@@ -312,13 +312,30 @@ export default function ParentDashboard() {
   const pagosEnRevision = payments.filter(p => p.estado === "En revisión").length;
   const pendingPayments = pagosSinJustificante + pagosEnRevision;
 
-  // Calcular pagos vencidos
+  // Calcular pagos vencidos usando fechas exactas
   const overduePayments = payments.filter(p => {
     if (p.estado !== "Pendiente") return false;
-    const currentMonth = new Date().getMonth() + 1;
-    const monthMapping = { "Junio": 6, "Septiembre": 9, "Diciembre": 12 };
-    const paymentMonth = monthMapping[p.mes];
-    return paymentMonth && currentMonth > paymentMonth;
+    
+    const now = new Date();
+    now.setHours(0, 0, 0, 0); // Normalizar a medianoche
+    
+    // Obtener el año de la temporada (ej: "2024-2025" -> usar 2024 para Junio, 2025 para Sep/Dic)
+    const [year1, year2] = p.temporada ? p.temporada.split('/').map(y => parseInt(y)) : [now.getFullYear(), now.getFullYear() + 1];
+    
+    // Determinar fecha límite según el mes
+    let deadlineDate;
+    if (p.mes === "Junio") {
+      deadlineDate = new Date(year1, 5, 30); // 30 de Junio del primer año
+    } else if (p.mes === "Septiembre") {
+      deadlineDate = new Date(year1, 8, 15); // 15 de Septiembre del primer año
+    } else if (p.mes === "Diciembre") {
+      deadlineDate = new Date(year1, 11, 15); // 15 de Diciembre del primer año
+    } else {
+      return false;
+    }
+    
+    deadlineDate.setHours(23, 59, 59, 999); // Fin del día
+    return now > deadlineDate;
   }).length;
 
 
