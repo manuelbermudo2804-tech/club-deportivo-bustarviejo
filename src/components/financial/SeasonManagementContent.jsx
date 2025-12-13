@@ -123,7 +123,10 @@ export default function SeasonManagementContent() {
     queryFn: () => base44.entities.ResetHistory.list('-created_date'),
   });
 
-  const activeSeason = seasons.find(s => s.activa === true);
+  // Calcular activeSeason usando useMemo para evitar errores de inicialización
+  const activeSeason = useMemo(() => {
+    return seasons.find(s => s.activa === true);
+  }, [seasons]);
 
   // Mutación para actualizar configuración de temporada
   const updateSeasonMutation = useMutation({
