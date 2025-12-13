@@ -127,13 +127,18 @@ export default function InscriptionPaymentFlow({
         </div>
 
         {descuentoHermano > 0 && (
-          <Alert className="bg-gradient-to-r from-purple-50 to-pink-50 border-2 border-purple-300">
+          <Alert className="bg-gradient-to-r from-purple-50 to-pink-50 border-2 border-purple-300 animate-pulse">
             <Gift className="h-5 w-5 text-purple-600" />
             <AlertDescription className="text-purple-900">
-              <p className="font-bold mb-1">🎉 ¡Descuento Familiar!</p>
-              <p className="text-sm">
-                {playerData.nombre} tiene un descuento de <strong>{descuentoHermano}€</strong> por tener hermanos mayores inscritos.
+              <p className="font-bold text-lg mb-2">🎉 ¡Descuento Familiar Aplicado!</p>
+              <p className="text-sm mb-2">
+                <strong>{playerData.nombre}</strong> tiene un descuento de <strong className="text-purple-700 text-xl">{descuentoHermano}€</strong> por tener hermanos mayores inscritos en el club.
               </p>
+              <div className="bg-white rounded-lg p-3 mt-3 border-2 border-purple-200">
+                <p className="text-xs text-purple-800">
+                  📌 <strong>Los importes que ves abajo YA incluyen este descuento</strong> aplicado en la cuota de inscripción (Junio).
+                </p>
+              </div>
             </AlertDescription>
           </Alert>
         )}
@@ -171,12 +176,19 @@ export default function InscriptionPaymentFlow({
                   <p className="font-bold text-slate-900">Pago Único (Junio)</p>
                   <p className="text-xs text-slate-600">Vence: 30 de junio</p>
                 </div>
-                <p className="text-2xl font-bold text-orange-700">{importeTotal}€</p>
+                <div className="text-right">
+                  {descuentoHermano > 0 && (
+                    <p className="text-sm text-slate-500 line-through">{cuotas.total}€</p>
+                  )}
+                  <p className="text-2xl font-bold text-orange-700">{importeTotal}€</p>
+                </div>
               </div>
               {descuentoHermano > 0 && (
-                <p className="text-xs text-purple-700 text-center">
-                  (Precio original: {cuotas.total}€ - Descuento: {descuentoHermano}€)
-                </p>
+                <div className="bg-purple-100 border-2 border-purple-300 rounded-lg p-2">
+                  <p className="text-xs text-purple-900 text-center font-bold">
+                    💜 Descuento hermano aplicado: -{descuentoHermano}€
+                  </p>
+                </div>
               )}
             </div>
           ) : (
@@ -186,7 +198,12 @@ export default function InscriptionPaymentFlow({
                   <p className="font-bold text-slate-900">1ª Cuota - Inscripción (Junio)</p>
                   <p className="text-xs text-slate-600">Vence: 30 de junio</p>
                 </div>
-                <p className="text-lg font-bold text-orange-700">{importeInscripcion}€</p>
+                <div className="text-right">
+                  {descuentoHermano > 0 && (
+                    <p className="text-sm text-slate-500 line-through">{cuotas.inscripcion}€</p>
+                  )}
+                  <p className="text-lg font-bold text-orange-700">{importeInscripcion}€</p>
+                </div>
               </div>
               <div className="flex justify-between items-center bg-white rounded-lg p-3 border border-slate-200">
                 <div>
@@ -203,14 +220,21 @@ export default function InscriptionPaymentFlow({
                 <p className="text-lg font-bold text-slate-700">{cuotas.tercera}€</p>
               </div>
               {descuentoHermano > 0 && (
-                <p className="text-xs text-purple-700 text-center">
-                  (Descuento de {descuentoHermano}€ aplicado en la 1ª cuota)
-                </p>
+                <div className="bg-purple-100 border-2 border-purple-300 rounded-lg p-2">
+                  <p className="text-xs text-purple-900 text-center font-bold">
+                    💜 Descuento de {descuentoHermano}€ aplicado en la 1ª cuota
+                  </p>
+                </div>
               )}
               <div className="pt-2 border-t border-orange-200">
                 <div className="flex justify-between items-center">
                   <p className="font-bold text-slate-600">Total temporada:</p>
-                  <p className="text-2xl font-bold text-orange-700">{importeTotal}€</p>
+                  <div className="text-right">
+                    {descuentoHermano > 0 && (
+                      <p className="text-sm text-slate-500 line-through">{cuotas.total}€</p>
+                    )}
+                    <p className="text-2xl font-bold text-orange-700">{importeTotal}€</p>
+                  </div>
                 </div>
               </div>
             </div>
