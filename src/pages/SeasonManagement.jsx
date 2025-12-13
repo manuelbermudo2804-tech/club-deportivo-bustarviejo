@@ -1380,6 +1380,60 @@ export default function SeasonManagement() {
                 </Button>
               </div>
             </div>
+
+            <div className="border-t pt-4 mt-4">
+              <Alert className="bg-red-50 border-red-200 mb-3">
+                <AlertTriangle className="w-4 h-4 text-red-600" />
+                <AlertDescription className="text-red-800 ml-2 text-sm">
+                  <strong>⚠️ Limpieza de Históricos:</strong> Elimina datos archivados de temporadas antiguas para liberar espacio.
+                </AlertDescription>
+              </Alert>
+              <Button
+                onClick={async () => {
+                  if (!confirm("⚠️ ¿ELIMINAR TODOS LOS HISTÓRICOS?\n\nEsto eliminará:\n• PaymentHistory (pagos archivados)\n• PlayerHistory (jugadores archivados)\n• ResetHistory (historial de resets)\n\nEsta acción es IRREVERSIBLE. ¿Continuar?")) return;
+                  
+                  try {
+                    setIsProcessing(true);
+                    setProcessingStep("Eliminando históricos...");
+                    
+                    const [paymentHistory, playerHistory, resetHist] = await Promise.all([
+                      base44.entities.PaymentHistory.list(),
+                      base44.entities.PlayerHistory.list(),
+                      base44.entities.ResetHistory.list()
+                    ]);
+                    
+                    let deleted = 0;
+                    for (const record of paymentHistory) {
+                      await base44.entities.PaymentHistory.delete(record.id);
+                      deleted++;
+                    }
+                    for (const record of playerHistory) {
+                      await base44.entities.PlayerHistory.delete(record.id);
+                      deleted++;
+                    }
+                    for (const record of resetHist) {
+                      await base44.entities.ResetHistory.delete(record.id);
+                      deleted++;
+                    }
+                    
+                    queryClient.invalidateQueries();
+                    toast.success(`✅ ${deleted} registros históricos eliminados`);
+                  } catch (error) {
+                    console.error("Error eliminando históricos:", error);
+                    toast.error("Error al eliminar históricos");
+                  } finally {
+                    setIsProcessing(false);
+                    setProcessingStep("");
+                  }
+                }}
+                disabled={isProcessing}
+                variant="outline"
+                className="w-full border-red-300 text-red-700 hover:bg-red-50"
+              >
+                <Trash2 className="w-4 h-4 mr-2" />
+                Eliminar Todos los Históricos
+              </Button>
+            </div>
           </CardContent>
         )}
       </Card>
@@ -1864,6 +1918,13 @@ export default function SeasonManagement() {
                 <p><strong>Archivo:</strong> Backup del {backupData.exportDate ? format(new Date(backupData.exportDate), "d MMM yyyy HH:mm", { locale: es }) : "fecha desconocida"}</p>
                 <p><strong>Exportado por:</strong> {backupData.exportedBy || "Desconocido"}</p>
               </div>
+
+              <Alert className="bg-yellow-50 border-yellow-200 mb-3">
+                <AlertTriangle className="w-4 h-4 text-yellow-600" />
+                <AlertDescription className="text-yellow-800 ml-2 text-xs">
+                  <strong>Atención:</strong> La restauración creará registros duplicados. Asegúrate de haber limpiado los datos actuales si es necesario.
+                </AlertDescription>
+              </Alert>
 
               <div className="space-y-2">
                 {Object.entries({
