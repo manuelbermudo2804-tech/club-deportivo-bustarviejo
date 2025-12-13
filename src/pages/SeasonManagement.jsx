@@ -84,6 +84,8 @@ export default function SeasonManagement() {
     deleteReferralRewards: true, // Referidos de la temporada
     resetUserReferrals: true, // Resetear contadores de referidos de usuarios
     resetClubMembers: true, // Desactivar socios de temporada anterior
+    deleteCertificates: false, // Carnets/certificados - OPCIONAL (por si quieres mantener histórico)
+    deleteAppNotifications: true, // Notificaciones app - eliminar
     newSeasonName: "",
     cuotaUnica: 200,
     cuotaTresMeses: 75,
@@ -695,15 +697,15 @@ export default function SeasonManagement() {
       }
 
       // 12.2 Eliminar AppNotifications
-      if (resetConfig.deletePrivateConversations) {
+      if (resetConfig.deleteAppNotifications) {
         setProcessingStep("Eliminando notificaciones de la app...");
         for (const notif of appNotifications) {
           await base44.entities.AppNotification.delete(notif.id);
         }
       }
 
-      // 12.3 Eliminar Certificados
-      if (resetConfig.deletePrivateConversations) {
+      // 12.3 Eliminar Certificados (OPCIONAL - solo si el admin quiere)
+      if (resetConfig.deleteCertificates) {
         setProcessingStep("Eliminando certificados y carnets...");
         for (const cert of certificates) {
           await base44.entities.Certificate.delete(cert.id);
@@ -1827,10 +1829,20 @@ export default function SeasonManagement() {
                     <Label className="text-xs">Eliminar galería fotos ({currentStats.photoGallery})</Label>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Checkbox checked={resetConfig.deleteDocuments} onCheckedChange={(c) => setResetConfig(prev => ({ ...prev, deleteDocuments: c }))} />
-                    <Label className="text-xs text-slate-500">Eliminar documentos ({currentStats.documents})</Label>
+                    <Checkbox checked={resetConfig.deleteAppNotifications} onCheckedChange={(c) => setResetConfig(prev => ({ ...prev, deleteAppNotifications: c }))} />
+                    <Label className="text-xs">Eliminar notificaciones app ({currentStats.appNotifications})</Label>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Checkbox checked={resetConfig.deleteCertificates} onCheckedChange={(c) => setResetConfig(prev => ({ ...prev, deleteCertificates: c }))} />
+                    <Label className="text-xs text-slate-500">Eliminar carnets/certificados ({currentStats.certificates})</Label>
                   </div>
                 </div>
+                <Alert className="bg-red-50 border-red-200 mt-2">
+                  <AlertTriangle className="w-3 h-3 text-red-600" />
+                  <AlertDescription className="text-red-700 ml-2 text-xs">
+                    <strong>⚠️ NO SE TOCAN:</strong> Documentos del club, fichas médicas, históricos archivados (estos datos son críticos)
+                  </AlertDescription>
+                </Alert>
               </div>
 
               {/* Notificación */}
@@ -1891,9 +1903,16 @@ export default function SeasonManagement() {
                 {resetConfig.deletePrivateMessages && <li>✓ Eliminar {currentStats.privateMessages} mensajes privados</li>}
                 {resetConfig.deleteSurveys && <li>✓ Eliminar {currentStats.surveys} encuestas</li>}
                 {resetConfig.deleteMatchResults && <li>✓ Eliminar {currentStats.matchResults} resultados</li>}
-                {resetConfig.deleteDocuments && <li>✓ Eliminar {currentStats.documents} documentos</li>}
+                {resetConfig.deleteAppNotifications && <li>✓ Eliminar {currentStats.appNotifications} notificaciones app</li>}
+                {resetConfig.deleteCertificates && <li>✓ Eliminar {currentStats.certificates} carnets/certificados</li>}
               </ul>
             </div>
+            <Alert className="bg-green-50 border-green-200 mt-3">
+              <CheckCircle2 className="w-4 h-4 text-green-600" />
+              <AlertDescription className="text-green-800 ml-2 text-xs">
+                <strong>✅ DATOS PROTEGIDOS:</strong> No se tocarán documentos del club, fichas médicas ni históricos archivados
+              </AlertDescription>
+            </Alert>
           </div>
 
           <DialogFooter>
