@@ -74,13 +74,6 @@ export default function ClothingOrders() {
   });
 
   const orderPeriodActive = seasonConfig?.tienda_ropa_abierta === true;
-  
-  // Verificar si el usuario tiene pedidos pendientes realizados anteriormente
-  const hasPendingOrders = useMemo(() => {
-    if (!user || !orders) return false;
-    const myOrders = orders.filter(o => o.email_padre === user.email);
-    return myOrders.some(o => o.estado !== "Entregado" && o.estado !== "Cancelado");
-  }, [user, orders]);
 
   const { data: allPlayers, isLoading: loadingAllPlayers } = useQuery({
     queryKey: ['allPlayersForClothing'],
@@ -140,6 +133,13 @@ export default function ClothingOrders() {
     initialData: [],
     staleTime: 30000, // 30 segundos
   });
+
+  // Verificar si el usuario tiene pedidos pendientes realizados anteriormente
+  const hasPendingOrders = useMemo(() => {
+    if (!user || !orders) return false;
+    const myOrders = orders.filter(o => o.email_padre === user.email);
+    return myOrders.some(o => o.estado !== "Entregado" && o.estado !== "Cancelado");
+  }, [user, orders]);
 
   const createOrderMutation = useMutation({
     mutationFn: (orderData) => base44.entities.ClothingOrder.create(orderData),
