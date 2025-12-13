@@ -269,15 +269,16 @@ export default function TreasurerDashboard() {
   }, [payments, selectedSeason]);
 
   const filteredClothingOrders = useMemo(() => {
+    // Solo mostrar pedidos de la temporada seleccionada (se eliminan en reset)
     if (selectedSeason === "all") return clothingOrders;
-    return clothingOrders.filter(o => o.temporada === selectedSeason);
+    return clothingOrders.filter(o => normalizeTemporada(o.temporada) === normalizeTemporada(selectedSeason));
   }, [clothingOrders, selectedSeason]);
 
   const filteredClubMembers = useMemo(() => {
-    // Socios: filtrar por temporada y solo activos (después del reset los socios quedan activo=false)
-    const activeMembers = clubMembers.filter(m => m.activo !== false);
+    // Solo socios activos de la temporada seleccionada (los antiguos quedan activo=false en reset)
+    const activeMembers = clubMembers.filter(m => m.activo === true);
     if (selectedSeason === "all") return activeMembers;
-    return activeMembers.filter(m => m.temporada === selectedSeason);
+    return activeMembers.filter(m => normalizeTemporada(m.temporada) === normalizeTemporada(selectedSeason));
   }, [clubMembers, selectedSeason]);
 
   // Normalizar temporada
@@ -337,13 +338,19 @@ export default function TreasurerDashboard() {
     const cuotasPendientes = cuotasPendientesCalculadas;
     const cuotasRevision = filteredPayments.filter(p => p.estado === "En revisión").reduce((sum, p) => sum + (p.cantidad || 0), 0);
 
-    // Ropa
-    const ropaPagada = filteredClothingOrders.filter(o => o.pagado).reduce((sum, o) => sum + (o.precio_total || 0), 0);
-    const ropaPendiente = filteredClothingOrders.filter(o => !o.pagado).reduce((sum, o) => sum + (o.precio_total || 0), 0);
+    // Ropa (solo temporada actual)
+    const ropaTemporadaActual = filteredClothingOrders.filter(o => 
+      selectedSeason === "all" || normalizeTemporada(o.temporada) === normalizeTemporada(selectedSeason)
+    );
+    const ropaPagada = ropaTemporadaActual.filter(o => o.pagado).reduce((sum, o) => sum + (o.precio_total || 0), 0);
+    const ropaPendiente = ropaTemporadaActual.filter(o => !o.pagado).reduce((sum, o) => sum + (o.precio_total || 0), 0);
 
-    // Lotería
-    const loteriaPagada = lotteryOrders.filter(o => o.pagado).reduce((sum, o) => sum + (o.precio_total || 0), 0);
-    const loteriaPendiente = lotteryOrders.filter(o => !o.pagado).reduce((sum, o) => sum + (o.precio_total || 0), 0);
+    // Lotería (solo temporada actual)
+    const loteriaTemporadaActual = lotteryOrders.filter(o =>
+      selectedSeason === "all" || normalizeTemporada(o.temporada) === normalizeTemporada(selectedSeason)
+    );
+    const loteriaPagada = loteriaTemporadaActual.filter(o => o.pagado).reduce((sum, o) => sum + (o.precio_total || 0), 0);
+    const loteriaPendiente = loteriaTemporadaActual.filter(o => !o.pagado).reduce((sum, o) => sum + (o.precio_total || 0), 0);
 
     // Patrocinios - SOLO contar activos CON pago confirmado (monto > 0)
     const patrociniosActivos = sponsors.filter(s => s.estado === "Activo" && (s.monto || 0) > 0);
