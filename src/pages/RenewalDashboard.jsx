@@ -7,15 +7,18 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Progress } from "@/components/ui/progress";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   Users, RefreshCw, AlertTriangle, CheckCircle2, Clock, 
-  Mail, Search, Filter, Send, XCircle, RotateCcw 
+  Mail, Search, Filter, Send, XCircle, RotateCcw, Download,
+  Settings, BarChart3, MessageSquare, Zap
 } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 
 export default function RenewalDashboard() {
+  const [activeTab, setActiveTab] = useState("overview");
   const [searchTerm, setSearchTerm] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [selectedFamilies, setSelectedFamilies] = useState([]);
@@ -195,15 +198,72 @@ CD Bustarviejo`
 
   const categorias = [...new Set(allPlayers.map(p => p.deporte).filter(Boolean))].sort();
 
+  // Exportar a Excel
+  const handleExportExcel = () => {
+    const data = familiasNoRenovadas.flatMap(familia => 
+      familia.jugadores.map(j => ({
+        Familia: familia.nombre,
+        Email: familia.email,
+        Jugador: j.nombre,
+        Categoría: j.deporte,
+        Estado: j.estado_renovacion
+      }))
+    );
+    
+    const csv = [
+      Object.keys(data[0]).join(','),
+      ...data.map(row => Object.values(row).join(','))
+    ].join('\n');
+    
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `renovaciones_pendientes_${seasonConfig?.temporada}.csv`;
+    a.click();
+    toast.success("✅ Excel descargado");
+  };
+
   return (
     <div className="p-6 lg:p-8 space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold text-slate-900 mb-2">🔄 Dashboard de Renovaciones</h1>
-        <p className="text-slate-600">Control y seguimiento del proceso de renovación - Temporada {seasonConfig?.temporada}</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold text-slate-900 mb-2">🔄 Centro de Renovaciones</h1>
+          <p className="text-slate-600">Control total del proceso de renovación - Temporada {seasonConfig?.temporada}</p>
+        </div>
+        <Badge className="bg-blue-600 text-white text-lg px-4 py-2">
+          {stats.tasaRenovacion}% Completado
+        </Badge>
       </div>
 
-      {/* Fecha límite y días restantes */}
-      {seasonConfig?.fecha_limite_renovaciones && (
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+        <TabsList className="grid w-full grid-cols-5 lg:w-auto">
+          <TabsTrigger value="overview" className="gap-2">
+            <BarChart3 className="w-4 h-4" />
+            Resumen
+          </TabsTrigger>
+          <TabsTrigger value="actions" className="gap-2">
+            <Zap className="w-4 h-4" />
+            Acciones
+          </TabsTrigger>
+          <TabsTrigger value="families" className="gap-2">
+            <Users className="w-4 h-4" />
+            Familias
+          </TabsTrigger>
+          <TabsTrigger value="individual" className="gap-2">
+            <Search className="w-4 h-4" />
+            Individual
+          </TabsTrigger>
+          <TabsTrigger value="stats" className="gap-2">
+            <BarChart3 className="w-4 h-4" />
+            Estadísticas
+          </TabsTrigger>
+        </TabsList>
+
+        {/* TAB: RESUMEN */}
+        <TabsContent value="overview" className="space-y-6">
+          {/* Fecha límite y días restantes */}
+          {seasonConfig?.fecha_limite_renovaciones && (
         <Card className={`border-2 ${diasRestantes > 7 ? 'border-blue-300 bg-blue-50' : diasRestantes > 0 ? 'border-orange-300 bg-orange-50' : 'border-red-300 bg-red-50'}`}>
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
@@ -225,10 +285,10 @@ CD Bustarviejo`
               )}
             </div>
           </CardContent>
-        </Card>
-      )}
+          </Card>
+          )}
 
-      {/* Estadísticas globales */}
+          {/* Estadísticas globales */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card className="border-none shadow-lg">
           <CardContent className="pt-6">
@@ -267,10 +327,10 @@ CD Bustarviejo`
               <p className="text-4xl font-bold text-red-700">{stats.noRenuevan}</p>
             </div>
           </CardContent>
-        </Card>
-      </div>
+          </Card>
+          </div>
 
-      {/* Tasa de renovación */}
+          {/* Tasa de renovación */}
       <Card className="border-none shadow-lg">
         <CardContent className="pt-6">
           <div className="flex items-center justify-between mb-4">
@@ -282,10 +342,10 @@ CD Bustarviejo`
             <span className="text-green-600">✅ {stats.renovados} renovados</span>
             <span className="text-orange-600">⏳ {stats.pendientes} pendientes</span>
           </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+          </Card>
 
-      {/* Por categoría */}
+          {/* Por categoría */}
       <Card className="border-none shadow-lg">
         <CardHeader>
           <CardTitle>📊 Renovaciones por Categoría</CardTitle>
@@ -310,11 +370,133 @@ CD Bustarviejo`
                 </Card>
               );
             })}
-          </div>
-        </CardContent>
-      </Card>
+            </div>
+          </CardContent>
+          </Card>
+        </TabsContent>
 
-      {/* Familias pendientes de renovar */}
+        {/* TAB: ACCIONES RÁPIDAS */}
+        <TabsContent value="actions" className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Card className="border-2 border-blue-300 hover:shadow-lg transition-shadow cursor-pointer">
+              <CardContent className="pt-6">
+                <div className="text-center space-y-3">
+                  <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto">
+                    <Send className="w-8 h-8 text-blue-600" />
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-lg">Recordatorio Masivo</h3>
+                    <p className="text-sm text-slate-600">Enviar a todas las familias pendientes</p>
+                  </div>
+                  <Button
+                    onClick={() => {
+                      setSelectedFamilies(familiasNoRenovadas.map(f => f.email));
+                      handleSendReminders();
+                    }}
+                    disabled={familiasNoRenovadas.length === 0 || sendReminderMutation.isPending}
+                    className="w-full bg-blue-600 hover:bg-blue-700"
+                  >
+                    Enviar a {familiasNoRenovadas.length} familias
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="border-2 border-green-300 hover:shadow-lg transition-shadow cursor-pointer">
+              <CardContent className="pt-6">
+                <div className="text-center space-y-3">
+                  <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto">
+                    <Download className="w-8 h-8 text-green-600" />
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-lg">Exportar Excel</h3>
+                    <p className="text-sm text-slate-600">Descargar listado completo</p>
+                  </div>
+                  <Button
+                    onClick={handleExportExcel}
+                    disabled={familiasNoRenovadas.length === 0}
+                    variant="outline"
+                    className="w-full border-green-600 text-green-600 hover:bg-green-50"
+                  >
+                    Descargar CSV
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="border-2 border-purple-300 hover:shadow-lg transition-shadow">
+              <CardContent className="pt-6">
+                <div className="text-center space-y-3">
+                  <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto">
+                    <Users className="w-8 h-8 text-purple-600" />
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-lg">Renovar Familias Completas</h3>
+                    <p className="text-sm text-slate-600">Acción administrativa directa</p>
+                  </div>
+                  <Button
+                    variant="outline"
+                    disabled
+                    className="w-full border-purple-600 text-purple-600"
+                  >
+                    Próximamente
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="border-2 border-orange-300 hover:shadow-lg transition-shadow">
+              <CardContent className="pt-6">
+                <div className="text-center space-y-3">
+                  <div className="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mx-auto">
+                    <Settings className="w-8 h-8 text-orange-600" />
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-lg">Configuración</h3>
+                    <p className="text-sm text-slate-600">Ajustar fechas y opciones</p>
+                  </div>
+                  <Button
+                    onClick={() => window.location.href = '/SeasonManagement'}
+                    variant="outline"
+                    className="w-full border-orange-600 text-orange-600 hover:bg-orange-50"
+                  >
+                    Ir a Configuración
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          <Card className="border-2 border-blue-300">
+            <CardHeader className="bg-blue-50">
+              <CardTitle>📊 Resumen Rápido</CardTitle>
+            </CardHeader>
+            <CardContent className="pt-6">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="text-center">
+                  <p className="text-3xl font-bold text-green-600">{stats.renovados}</p>
+                  <p className="text-sm text-slate-600">Renovados</p>
+                </div>
+                <div className="text-center">
+                  <p className="text-3xl font-bold text-orange-600">{stats.pendientes}</p>
+                  <p className="text-sm text-slate-600">Pendientes</p>
+                </div>
+                <div className="text-center">
+                  <p className="text-3xl font-bold text-red-600">{stats.noRenuevan}</p>
+                  <p className="text-sm text-slate-600">No Renuevan</p>
+                </div>
+                <div className="text-center">
+                  <p className="text-3xl font-bold text-blue-600">{familiasNoRenovadas.length}</p>
+                  <p className="text-sm text-slate-600">Familias Pendientes</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* TAB: VISTA POR FAMILIA */}
+        <TabsContent value="families" className="space-y-6">
+          {/* Familias pendientes de renovar */}
       <Card className="border-2 border-orange-300">
         <CardHeader className="bg-orange-50">
           <div className="flex items-center justify-between">
@@ -424,11 +606,85 @@ CD Bustarviejo`
                 </Card>
               ))}
             </div>
-          )}
-        </CardContent>
-      </Card>
+            )}
+          </CardContent>
+          </Card>
+        </TabsContent>
 
-      {/* Jugadores que NO renuevan */}
+        {/* TAB: VISTA INDIVIDUAL */}
+        <TabsContent value="individual" className="space-y-6">
+          <Card className="border-2 border-slate-300">
+            <CardHeader>
+              <CardTitle>🔍 Búsqueda Individual de Jugadores</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <Input
+                placeholder="Buscar jugador por nombre..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+              
+              <div className="space-y-2">
+                {allPlayers
+                  .filter(p => 
+                    p.nombre.toLowerCase().includes(searchTerm.toLowerCase()) &&
+                    p.temporada_renovacion === seasonConfig?.temporada
+                  )
+                  .slice(0, 20)
+                  .map(player => (
+                    <div key={player.id} className="flex items-center justify-between bg-slate-50 rounded-lg p-3 border">
+                      <div>
+                        <p className="font-bold">{player.nombre}</p>
+                        <p className="text-xs text-slate-600">{player.deporte}</p>
+                      </div>
+                      <Badge className={
+                        player.estado_renovacion === "renovado" ? "bg-green-500" :
+                        player.estado_renovacion === "no_renueva" ? "bg-red-500" :
+                        "bg-orange-500"
+                      }>
+                        {player.estado_renovacion === "renovado" ? "✅ Renovado" :
+                         player.estado_renovacion === "no_renueva" ? "❌ No renueva" :
+                         "⏳ Pendiente"}
+                      </Badge>
+                    </div>
+                  ))}
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* TAB: ESTADÍSTICAS DETALLADAS */}
+        <TabsContent value="stats" className="space-y-6">
+          <Card className="border-none shadow-lg">
+            <CardHeader>
+              <CardTitle>📊 Renovaciones por Categoría</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {Object.entries(stats.porCategoria).map(([categoria, data]) => {
+                  const tasa = Math.round((data.renovados / data.total) * 100);
+                  return (
+                    <Card key={categoria} className="border-2 border-slate-200">
+                      <CardContent className="pt-4">
+                        <p className="font-bold text-slate-900 mb-2 truncate">{categoria}</p>
+                        <div className="space-y-2">
+                          <Progress value={tasa} className="h-2" />
+                          <div className="flex justify-between text-xs">
+                            <span className="text-green-600">✅ {data.renovados}</span>
+                            <span className="text-orange-600">⏳ {data.pendientes}</span>
+                            <span className="text-red-600">❌ {data.noRenuevan}</span>
+                          </div>
+                          <p className="text-center text-sm font-bold text-slate-900">{tasa}%</p>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  );
+                })}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Jugadores que NO renuevan */}
       {stats.noRenuevan > 0 && (
         <Card className="border-2 border-red-300">
           <CardHeader className="bg-red-50">
@@ -465,9 +721,11 @@ CD Bustarviejo`
                   </div>
                 ))}
             </div>
-          </CardContent>
-        </Card>
-      )}
+            </CardContent>
+          </Card>
+          )}
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
