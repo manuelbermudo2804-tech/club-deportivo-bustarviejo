@@ -97,15 +97,17 @@ export default function PlayerCard({ player, onEdit, onViewProfile, isParent = f
       return "Fútbol Femenino";
     }
 
-    // Para jugadores masculinos o baloncesto
-    // RANGOS AMPLIADOS: permitir 2 años de margen para evitar cambios forzados
-    if (edad <= 5) return "Fútbol Pre-Benjamín (Mixto)";
-    if (edad <= 7) return "Fútbol Benjamín (Mixto)";
-    if (edad <= 9) return "Fútbol Alevín (Mixto)";
-    if (edad <= 11) return "Fútbol Infantil (Mixto)";
-    if (edad <= 15) return "Fútbol Cadete"; // 12-15 años pueden estar en Cadete
-    if (edad <= 17) return "Fútbol Juvenil"; // 16-17 en Juvenil
-    return "Fútbol Aficionado";
+    // Para jugadores masculinos o baloncesto - RANGOS OFICIALES EXACTOS
+    if (edad >= 4 && edad <= 5) return "Fútbol Pre-Benjamín (Mixto)";
+    if (edad >= 6 && edad <= 7) return "Fútbol Benjamín (Mixto)";
+    if (edad >= 8 && edad <= 9) return "Fútbol Alevín (Mixto)";
+    if (edad >= 10 && edad <= 11) return "Fútbol Infantil (Mixto)";
+    if (edad >= 12 && edad <= 15) return "Fútbol Cadete"; // Cadete: 12-15 años (incluye 14)
+    if (edad >= 16 && edad <= 18) return "Fútbol Juvenil"; // Juvenil: 16-18 años
+    if (edad >= 19) return "Fútbol Aficionado"; // Aficionado: 19+ años
+    
+    // Fallback para baloncesto o casos especiales
+    return deporteActual;
   };
   
   const categorySuggested = getSuggestedCategory(edadActual, player.deporte);
