@@ -23,10 +23,10 @@ export default function RenewalStatusWidget({ players, payments, seasonConfig })
     p.temporada_renovacion === seasonConfig?.temporada
   );
 
-  // Cuotas pendientes de pago de jugadores RENOVADOS (Pendiente O En revisión)
+  // Solo cuotas SIN justificante (Pendiente) - "En revisión" ya no es tu responsabilidad
   const cuotasPendientes = payments.filter(p => 
     p.temporada === seasonConfig?.temporada &&
-    (p.estado === "Pendiente" || p.estado === "En revisión") &&
+    p.estado === "Pendiente" &&
     renovados.some(player => player.id === p.jugador_id)
   );
 
@@ -50,7 +50,7 @@ export default function RenewalStatusWidget({ players, payments, seasonConfig })
             <div>
               <p className="font-bold text-green-900">✅ Renovaciones Completas</p>
               <p className="text-sm text-green-700">
-                Todos tus jugadores están renovados. Pagos confirmados: {payments.filter(p => p.estado === "Pagado").length}/{payments.length}
+                Jugadores renovados y justificantes subidos. En espera de aprobación del club.
               </p>
             </div>
           </div>
