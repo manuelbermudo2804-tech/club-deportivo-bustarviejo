@@ -689,20 +689,30 @@ Email: cdbustarviejo@gmail.com
       updatePlayerMutation.mutate({ id: editingPlayer.id, playerData });
     } else {
       // Calcular descuento por hermano ANTES de mostrar el flujo
+      // INCLUIR TODOS LOS JUGADORES DE LA FAMILIA (activos o no, porque pueden estar en proceso de renovación)
       const hermanos = allPlayers.filter(p => 
-        p.email_padre === user?.email &&
-        (p.activo === true || p.estado_renovacion === "renovado") &&
-        p.fecha_nacimiento
+        (p.email_padre?.toLowerCase() === user?.email?.toLowerCase() || 
+         p.email_tutor_2?.toLowerCase() === user?.email?.toLowerCase()) &&
+        p.fecha_nacimiento &&
+        p.id !== playerData.id // Excluir al jugador actual si es edición
       );
 
+      console.log('👨‍👩‍👧 [ParentPlayers] Hermanos encontrados:', hermanos.length, hermanos.map(h => h.nombre));
+
       const todosHermanos = [
-        { id: 'nuevo', fecha_nacimiento: playerData.fecha_nacimiento },
-        ...hermanos.map(p => ({ id: p.id, fecha_nacimiento: p.fecha_nacimiento }))
+        { id: 'nuevo', fecha_nacimiento: playerData.fecha_nacimiento, nombre: playerData.nombre },
+        ...hermanos.map(p => ({ id: p.id, fecha_nacimiento: p.fecha_nacimiento, nombre: p.nombre }))
       ].filter(p => p.fecha_nacimiento);
 
+      // Ordenar por fecha de nacimiento (el MAYOR es el de fecha MÁS ANTIGUA)
       todosHermanos.sort((a, b) => new Date(a.fecha_nacimiento) - new Date(b.fecha_nacimiento));
+      
+      console.log('📊 [ParentPlayers] Orden de hermanos por edad (mayor a menor):', todosHermanos.map(h => ({ nombre: h.nombre, fecha: h.fecha_nacimiento })));
+      
       const esMayor = todosHermanos[0]?.id === 'nuevo';
       const descuentoCalculado = esMayor ? 0 : 25;
+
+      console.log('💰 [ParentPlayers] Descuento calculado para', playerData.nombre, ':', descuentoCalculado, '€', esMayor ? '(ES EL MAYOR)' : '(NO ES EL MAYOR)');
 
       // Guardar datos con descuento ya calculado
       setPendingPlayerData({
