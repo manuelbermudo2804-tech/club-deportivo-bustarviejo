@@ -483,6 +483,27 @@ export default function PlayerForm({ player, onSubmit, onCancel, isSubmitting, i
       if (!firstErrorField) firstErrorField = 'si';
     }
 
+    // VALIDACIONES CRÍTICAS DE DOCUMENTACIÓN ESCANEADA (OBLIGATORIAS)
+    if (!currentPlayer.foto_url) {
+      errors.foto_url = "La foto tipo carnet es OBLIGATORIA";
+      if (!firstErrorField) firstErrorField = 'photo-upload-gallery';
+    }
+
+    if (requiresDNI && !currentPlayer.dni_jugador_url) {
+      errors.dni_jugador_url = "El DNI del jugador escaneado es OBLIGATORIO (mayor de 14 años)";
+      if (!firstErrorField) firstErrorField = 'dni-upload';
+    }
+
+    if (!requiresDNI && !currentPlayer.dni_jugador_url && !currentPlayer.libro_familia_url) {
+      errors.libro_familia_url = "El Libro de Familia escaneado es OBLIGATORIO (menor de 14 sin DNI)";
+      if (!firstErrorField) firstErrorField = 'libro-upload';
+    }
+
+    if (!isMayorDeEdad && !currentPlayer.dni_tutor_legal_url) {
+      errors.dni_tutor_legal_url = "El DNI del tutor legal escaneado es OBLIGATORIO";
+      if (!firstErrorField) firstErrorField = 'dni-tutor-upload';
+    }
+
     // Si hay errores, mostrarlos y hacer scroll al primer campo
     if (Object.keys(errors).length > 0) {
       setFieldErrors(errors);
@@ -506,6 +527,31 @@ export default function PlayerForm({ player, onSubmit, onCancel, isSubmitting, i
         setTimeout(() => scrollToField(firstErrorField), 100);
       }
       return;
+    }
+
+    // ADVERTENCIA DE DATOS MÉDICOS (no bloquea, pero avisa)
+    const medicalWarnings = [];
+    if (!currentPlayer.ficha_medica?.contacto_emergencia_nombre?.trim()) {
+      medicalWarnings.push("• Contacto de emergencia (nombre y teléfono)");
+    }
+    if (!currentPlayer.ficha_medica?.alergias?.trim()) {
+      medicalWarnings.push("• Alergias conocidas");
+    }
+    if (!currentPlayer.ficha_medica?.grupo_sanguineo) {
+      medicalWarnings.push("• Grupo sanguíneo");
+    }
+    if (!currentPlayer.ficha_medica?.medicacion_habitual?.trim()) {
+      medicalWarnings.push("• Medicación habitual");
+    }
+
+    if (medicalWarnings.length > 0 && !player) {
+      const confirmed = window.confirm(
+        `⚠️ ADVERTENCIA - Datos médicos incompletos:\n\n` +
+        medicalWarnings.join('\n') +
+        `\n\n¿Deseas continuar sin completar estos datos?\n\n` +
+        `(Puedes añadirlos después desde "Mis Jugadores")`
+      );
+      if (!confirmed) return;
     }
 
     if (!player && !playerDataWithValidation.fecha_aceptacion_privacidad) {
@@ -1001,13 +1047,21 @@ export default function PlayerForm({ player, onSubmit, onCancel, isSubmitting, i
                   {fieldErrors.dni_jugador && <p className="text-xs text-red-600 font-medium">{fieldErrors.dni_jugador}</p>}
                 </div>
 
-                <div className="space-y-2">
-                  <Label>Subir DNI Jugador (escaneado)</Label>
+                <div className={`space-y-2 ${fieldErrors.dni_jugador_url ? 'animate-pulse' : ''}`}>
+                  <Label className={fieldErrors.dni_jugador_url ? "text-red-600 font-bold" : ""}>
+                    Subir DNI Jugador (escaneado) {requiresDNI ? "*" : ""} {fieldErrors.dni_jugador_url && <span className="text-red-500 text-xs ml-1">⚠️ OBLIGATORIO</span>}
+                  </Label>
                   <div className="flex items-center gap-2">
                     <input type="file" accept="image/*,application/pdf" onChange={handleDNIUpload} className="hidden" id="dni-upload" />
-                    <Button type="button" variant="outline" onClick={() => document.getElementById('dni-upload').click()} disabled={uploadingDNI} className="flex-1">
+                    <Button 
+                      type="button" 
+                      variant={fieldErrors.dni_jugador_url ? "destructive" : "outline"}
+                      onClick={() => document.getElementById('dni-upload').click()} 
+                      disabled={uploadingDNI} 
+                      className={`flex-1 ${fieldErrors.dni_jugador_url ? 'border-2 border-red-500' : ''}`}
+                    >
                       {uploadingDNI ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Upload className="w-4 h-4 mr-2" />}
-                      {currentPlayer.dni_jugador_url ? "Cambiar DNI" : "Subir DNI"}
+                      {currentPlayer.dni_jugador_url ? "✓ Cambiar DNI" : "Subir DNI"}
                     </Button>
                     {currentPlayer.dni_jugador_url && (
                       <a href={currentPlayer.dni_jugador_url} target="_blank" rel="noopener noreferrer">
@@ -1015,18 +1069,27 @@ export default function PlayerForm({ player, onSubmit, onCancel, isSubmitting, i
                       </a>
                     )}
                   </div>
+                  {fieldErrors.dni_jugador_url && <p className="text-xs text-red-600 font-medium bg-red-100 p-2 rounded">⚠️ {fieldErrors.dni_jugador_url}</p>}
                 </div>
 
                 {/* Libro de Familia (para menores sin DNI) */}
                 {!requiresDNI && (
                   <>
-                    <div className="space-y-2 md:col-span-2">
-                      <Label>Libro de Familia (si no tiene DNI) *</Label>
+                    <div className={`space-y-2 md:col-span-2 ${fieldErrors.libro_familia_url ? 'animate-pulse' : ''}`}>
+                      <Label className={fieldErrors.libro_familia_url ? "text-red-600 font-bold" : ""}>
+                        Libro de Familia (si no tiene DNI) * {fieldErrors.libro_familia_url && <span className="text-red-500 text-xs ml-1">⚠️ OBLIGATORIO</span>}
+                      </Label>
                       <div className="flex items-center gap-2">
                         <input type="file" accept="image/*,application/pdf" onChange={handleLibroFamiliaUpload} className="hidden" id="libro-upload" />
-                        <Button type="button" variant="outline" onClick={() => document.getElementById('libro-upload').click()} disabled={uploadingLibroFamilia} className="flex-1">
+                        <Button 
+                          type="button" 
+                          variant={fieldErrors.libro_familia_url ? "destructive" : "outline"}
+                          onClick={() => document.getElementById('libro-upload').click()} 
+                          disabled={uploadingLibroFamilia} 
+                          className={`flex-1 ${fieldErrors.libro_familia_url ? 'border-2 border-red-500' : ''}`}
+                        >
                           {uploadingLibroFamilia ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Upload className="w-4 h-4 mr-2" />}
-                          {currentPlayer.libro_familia_url ? "Cambiar Libro" : "Subir Libro de Familia"}
+                          {currentPlayer.libro_familia_url ? "✓ Cambiar Libro" : "Subir Libro de Familia"}
                         </Button>
                         {currentPlayer.libro_familia_url && (
                           <a href={currentPlayer.libro_familia_url} target="_blank" rel="noopener noreferrer">
@@ -1035,6 +1098,7 @@ export default function PlayerForm({ player, onSubmit, onCancel, isSubmitting, i
                         )}
                       </div>
                       <p className="text-xs text-blue-700">Si el jugador es menor de 14 años y no tiene DNI, sube el libro de familia</p>
+                      {fieldErrors.libro_familia_url && <p className="text-xs text-red-600 font-medium bg-red-100 p-2 rounded">⚠️ {fieldErrors.libro_familia_url}</p>}
                     </div>
                   </>
                 )}
@@ -1147,13 +1211,21 @@ export default function PlayerForm({ player, onSubmit, onCancel, isSubmitting, i
                         {fieldErrors.dni_tutor_legal && <p className="text-xs text-red-600 font-medium">{fieldErrors.dni_tutor_legal}</p>}
                       </div>
 
-                      <div className="space-y-2">
-                        <Label>Subir DNI Tutor (escaneado)</Label>
+                      <div className={`space-y-2 ${fieldErrors.dni_tutor_legal_url ? 'animate-pulse' : ''}`}>
+                        <Label className={fieldErrors.dni_tutor_legal_url ? "text-red-600 font-bold" : ""}>
+                          Subir DNI Tutor (escaneado) * {fieldErrors.dni_tutor_legal_url && <span className="text-red-500 text-xs ml-1">⚠️ OBLIGATORIO</span>}
+                        </Label>
                         <div className="flex items-center gap-2">
                           <input type="file" accept="image/*,application/pdf" onChange={handleDNITutorUpload} className="hidden" id="dni-tutor-upload" />
-                          <Button type="button" variant="outline" onClick={() => document.getElementById('dni-tutor-upload').click()} disabled={uploadingDNITutor} className="flex-1">
+                          <Button 
+                            type="button" 
+                            variant={fieldErrors.dni_tutor_legal_url ? "destructive" : "outline"}
+                            onClick={() => document.getElementById('dni-tutor-upload').click()} 
+                            disabled={uploadingDNITutor} 
+                            className={`flex-1 ${fieldErrors.dni_tutor_legal_url ? 'border-2 border-red-500' : ''}`}
+                          >
                             {uploadingDNITutor ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Upload className="w-4 h-4 mr-2" />}
-                            {currentPlayer.dni_tutor_legal_url ? "Cambiar DNI" : "Subir DNI Tutor"}
+                            {currentPlayer.dni_tutor_legal_url ? "✓ Cambiar DNI" : "Subir DNI Tutor"}
                           </Button>
                           {currentPlayer.dni_tutor_legal_url && (
                             <a href={currentPlayer.dni_tutor_legal_url} target="_blank" rel="noopener noreferrer">
@@ -1161,6 +1233,7 @@ export default function PlayerForm({ player, onSubmit, onCancel, isSubmitting, i
                             </a>
                           )}
                         </div>
+                        {fieldErrors.dni_tutor_legal_url && <p className="text-xs text-red-600 font-medium bg-red-100 p-2 rounded">⚠️ {fieldErrors.dni_tutor_legal_url}</p>}
                       </div>
 
                       <div className="space-y-2">
@@ -1354,7 +1427,8 @@ export default function PlayerForm({ player, onSubmit, onCancel, isSubmitting, i
                   <button type="button" className="w-full p-4 bg-red-50 hover:bg-red-100 transition-colors flex items-center justify-between text-left">
                     <div className="flex items-center gap-2">
                       <Heart className="w-6 h-6 text-red-600" />
-                      <span className="font-bold text-red-900">Ficha Médica y Contactos de Emergencia (Opcional)</span>
+                      <span className="font-bold text-red-900">Ficha Médica y Contactos de Emergencia</span>
+                      <Badge variant="outline" className="bg-yellow-100 text-yellow-800 border-yellow-300">Recomendado</Badge>
                     </div>
                     <ChevronDown className="w-5 h-5 text-red-500" />
                   </button>
