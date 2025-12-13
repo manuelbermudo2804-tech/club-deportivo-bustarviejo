@@ -682,21 +682,23 @@ export default function SeasonManagement() {
       } else {
         // Si no hay categorías, crear las por defecto
         const DEFAULT_QUOTAS = {
-          "AFICIONADO": { inscripcion: 165, segunda: 100, tercera: 95 },
-          "JUVENIL": { inscripcion: 135, segunda: 100, tercera: 95 },
-          "CADETE": { inscripcion: 135, segunda: 100, tercera: 95 },
-          "INFANTIL": { inscripcion: 115, segunda: 83, tercera: 83 },
-          "ALEVIN": { inscripcion: 115, segunda: 83, tercera: 83 },
-          "BENJAMIN": { inscripcion: 100, segunda: 75, tercera: 75 },
-          "PRE-BENJAMIN": { inscripcion: 100, segunda: 75, tercera: 75 },
-          "FEMENINO": { inscripcion: 135, segunda: 100, tercera: 95 },
-          "BALONCESTO": { inscripcion: 50, segunda: 50, tercera: 50 }
+          "PRE-BENJAMIN": { inscripcion: 100, segunda: 75, tercera: 75, edad_min: 4, edad_max: 5 },
+          "BENJAMIN": { inscripcion: 100, segunda: 75, tercera: 75, edad_min: 6, edad_max: 7 },
+          "ALEVIN": { inscripcion: 115, segunda: 83, tercera: 83, edad_min: 8, edad_max: 9 },
+          "INFANTIL": { inscripcion: 115, segunda: 83, tercera: 83, edad_min: 10, edad_max: 11 },
+          "CADETE": { inscripcion: 135, segunda: 100, tercera: 95, edad_min: 12, edad_max: 13 },
+          "JUVENIL": { inscripcion: 135, segunda: 100, tercera: 95, edad_min: 14, edad_max: 15 },
+          "AFICIONADO": { inscripcion: 165, segunda: 100, tercera: 95, edad_min: 16, edad_max: 99 },
+          "FEMENINO": { inscripcion: 135, segunda: 100, tercera: 95, edad_min: 12, edad_max: 99 },
+          "BALONCESTO": { inscripcion: 50, segunda: 50, tercera: 50, edad_min: 4, edad_max: 18 }
         };
 
         for (const [nombre, cuotas] of Object.entries(DEFAULT_QUOTAS)) {
           await base44.entities.CategoryConfig.create({
             nombre,
             deporte: nombre === "BALONCESTO" ? "Baloncesto" : "Fútbol",
+            edad_minima: cuotas.edad_min,
+            edad_maxima: cuotas.edad_max,
             cuota_inscripcion: cuotas.inscripcion,
             cuota_segunda: cuotas.segunda,
             cuota_tercera: cuotas.tercera,

@@ -44,6 +44,8 @@ export default function CategoryManagement() {
   const [formData, setFormData] = useState({
     nombre: "",
     deporte: "Fútbol",
+    edad_minima: 4,
+    edad_maxima: 5,
     cuota_inscripcion: 100,
     cuota_segunda: 75,
     cuota_tercera: 75,
@@ -147,6 +149,8 @@ export default function CategoryManagement() {
     setFormData({
       nombre: "",
       deporte: "Fútbol",
+      edad_minima: 4,
+      edad_maxima: 5,
       cuota_inscripcion: 100,
       cuota_segunda: 75,
       cuota_tercera: 75,
@@ -164,6 +168,8 @@ export default function CategoryManagement() {
     setFormData({
       nombre: category.nombre || "",
       deporte: category.deporte || "Fútbol",
+      edad_minima: category.edad_minima || 4,
+      edad_maxima: category.edad_maxima || 5,
       cuota_inscripcion: category.cuota_inscripcion || 100,
       cuota_segunda: category.cuota_segunda || 75,
       cuota_tercera: category.cuota_tercera || 75,
@@ -208,15 +214,15 @@ export default function CategoryManagement() {
   // Crear categorías por defecto
   const createDefaultCategories = async () => {
     const defaultCategories = [
-      { nombre: "AFICIONADO", deporte: "Fútbol", ...DEFAULT_QUOTAS["AFICIONADO"], orden: 1 },
-      { nombre: "JUVENIL", deporte: "Fútbol", ...DEFAULT_QUOTAS["JUVENIL"], orden: 2 },
-      { nombre: "CADETE", deporte: "Fútbol", ...DEFAULT_QUOTAS["CADETE"], orden: 3 },
-      { nombre: "INFANTIL", deporte: "Fútbol", ...DEFAULT_QUOTAS["INFANTIL"], orden: 4 },
-      { nombre: "ALEVIN", deporte: "Fútbol", ...DEFAULT_QUOTAS["ALEVIN"], orden: 5 },
-      { nombre: "BENJAMIN", deporte: "Fútbol", ...DEFAULT_QUOTAS["BENJAMIN"], orden: 6 },
-      { nombre: "PRE-BENJAMIN", deporte: "Fútbol", ...DEFAULT_QUOTAS["PRE-BENJAMIN"], orden: 7 },
-      { nombre: "FEMENINO", deporte: "Fútbol", ...DEFAULT_QUOTAS["FEMENINO"], orden: 8 },
-      { nombre: "BALONCESTO", deporte: "Baloncesto", ...DEFAULT_QUOTAS["BALONCESTO"], orden: 9, notas: "(*) Cuota reducida" }
+      { nombre: "PRE-BENJAMIN", deporte: "Fútbol", edad_minima: 4, edad_maxima: 5, ...DEFAULT_QUOTAS["PRE-BENJAMIN"], orden: 1 },
+      { nombre: "BENJAMIN", deporte: "Fútbol", edad_minima: 6, edad_maxima: 7, ...DEFAULT_QUOTAS["BENJAMIN"], orden: 2 },
+      { nombre: "ALEVIN", deporte: "Fútbol", edad_minima: 8, edad_maxima: 9, ...DEFAULT_QUOTAS["ALEVIN"], orden: 3 },
+      { nombre: "INFANTIL", deporte: "Fútbol", edad_minima: 10, edad_maxima: 11, ...DEFAULT_QUOTAS["INFANTIL"], orden: 4 },
+      { nombre: "CADETE", deporte: "Fútbol", edad_minima: 12, edad_maxima: 13, ...DEFAULT_QUOTAS["CADETE"], orden: 5 },
+      { nombre: "JUVENIL", deporte: "Fútbol", edad_minima: 14, edad_maxima: 15, ...DEFAULT_QUOTAS["JUVENIL"], orden: 6 },
+      { nombre: "AFICIONADO", deporte: "Fútbol", edad_minima: 16, edad_maxima: 99, ...DEFAULT_QUOTAS["AFICIONADO"], orden: 7 },
+      { nombre: "FEMENINO", deporte: "Fútbol", edad_minima: 12, edad_maxima: 99, ...DEFAULT_QUOTAS["FEMENINO"], orden: 8 },
+      { nombre: "BALONCESTO", deporte: "Baloncesto", edad_minima: 4, edad_maxima: 18, ...DEFAULT_QUOTAS["BALONCESTO"], orden: 9, notas: "(*) Cuota reducida" }
     ];
 
     for (const cat of defaultCategories) {
@@ -340,7 +346,7 @@ export default function CategoryManagement() {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <Label>Nombre de la categoría *</Label>
                 <Input
@@ -364,6 +370,31 @@ export default function CategoryManagement() {
                     <SelectItem value="Otro">Otro</SelectItem>
                   </SelectContent>
                 </Select>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <Label>Edad Mínima (años) *</Label>
+                <Input
+                  type="number"
+                  min="3"
+                  max="99"
+                  value={formData.edad_minima}
+                  onChange={(e) => setFormData(prev => ({ ...prev, edad_minima: Number(e.target.value) }))}
+                  placeholder="Ej: 4"
+                />
+              </div>
+              <div>
+                <Label>Edad Máxima (años) *</Label>
+                <Input
+                  type="number"
+                  min="3"
+                  max="99"
+                  value={formData.edad_maxima}
+                  onChange={(e) => setFormData(prev => ({ ...prev, edad_maxima: Number(e.target.value) }))}
+                  placeholder="Ej: 5"
+                />
               </div>
               <div>
                 <Label>Orden de visualización</Label>
@@ -491,6 +522,9 @@ export default function CategoryManagement() {
                 <thead>
                   <tr className="bg-slate-100">
                     <th className="border p-3 text-left font-bold text-slate-700">CATEGORÍA</th>
+                    <th className="border p-3 text-center font-bold text-purple-700">
+                      EDADES
+                    </th>
                     <th className="border p-3 text-center font-bold text-green-700">
                       INSCRIPCIÓN<br/>
                       <span className="text-xs font-normal">(hasta 30 junio)</span>
@@ -521,6 +555,9 @@ export default function CategoryManagement() {
                             <Badge className="bg-red-100 text-red-700 text-xs">Inactiva</Badge>
                           )}
                         </div>
+                      </td>
+                      <td className="border p-3 text-center font-medium text-purple-700">
+                        {category.edad_minima || '?'} - {category.edad_maxima || '?'} años
                       </td>
                       <td className="border p-3 text-center font-medium text-green-700">
                         {category.cuota_inscripcion?.toFixed(2)} €
