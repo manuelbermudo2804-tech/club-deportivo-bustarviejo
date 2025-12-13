@@ -3,7 +3,7 @@ import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Plus, Search, Filter, X, Download, AlertTriangle, CheckCircle2 } from "lucide-react";
+import { Plus, Search, Filter, X, Download, AlertTriangle, CheckCircle2, UserX } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AnimatePresence } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
@@ -226,6 +226,39 @@ export default function Players() {
     },
   });
 
+  const deletePlayerMutation = useMutation({
+    mutationFn: async (playerId) => {
+      const player = allPlayers.find(p => p.id === playerId);
+      if (!player) throw new Error("Jugador no encontrado");
+
+      // Archivar a PlayerHistory antes de eliminar
+      await base44.entities.PlayerHistory.create({
+        jugador_original_id: player.id,
+        nombre: player.nombre,
+        deporte: player.deporte,
+        temporadas_activo: [activeSeason?.temporada].filter(Boolean),
+        ultima_temporada: activeSeason?.temporada || "Desconocida",
+        motivo_salida: player.estado_renovacion === "no_renueva" ? "no_renueva" : "baja_voluntaria",
+        fecha_salida: new Date().toISOString(),
+        email_padre: player.email_padre,
+        telefono: player.telefono,
+        datos_completos: player,
+        puede_reactivarse: true,
+        notas_admin: `Eliminado por admin el ${new Date().toLocaleDateString('es-ES')}`
+      });
+
+      // Eliminar jugador
+      await base44.entities.Player.delete(playerId);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['players'] });
+      toast.success("Jugador archivado y eliminado correctamente");
+    },
+    onError: (error) => {
+      toast.error("Error al eliminar jugador: " + error.message);
+    }
+  });
+
   const handleSubmit = async (playerData) => {
     if (editingPlayer) {
       updatePlayerMutation.mutate({ id: editingPlayer.id, playerData, originalPlayer: editingPlayer });
@@ -252,6 +285,16 @@ export default function Players() {
     // Implement logic to open profile with payments tab active
     // For now, it opens the standard profile
     setShowProfileDialog(true); 
+  };
+
+  const handleDeletePlayer = async (player) => {
+    const confirmMessage = player.estado_renovacion === "no_renueva" 
+      ? `¿Eliminar a ${player.nombre}?\n\nEste jugador ha sido marcado como "NO RENUEVA" y será archivado en el histórico.`
+      : `¿Eliminar a ${player.nombre}?\n\nEl jugador será archivado en el histórico y podrá ser restaurado si es necesario.`;
+    
+    if (!confirm(confirmMessage)) return;
+    
+    deletePlayerMutation.mutate(player.id);
   };
 
   const handleExportPlayers = () => {
@@ -583,6 +626,7 @@ export default function Players() {
                   player={player} 
                   onEdit={isAdmin ? handleEdit : null}
                   onViewProfile={handleViewProfile}
+                  onDelete={isAdmin ? handleDeletePlayer : null}
                   schedules={schedules}
                   payments={payments}
                   isCoachOrCoordinator={isCoach || user?.es_coordinador}
