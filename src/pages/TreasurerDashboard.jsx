@@ -154,7 +154,7 @@ export default function TreasurerDashboard() {
     mutationFn: async (data) => {
       const transaction = await base44.entities.FinancialTransaction.create(data);
       
-      const currentActiveBudget = budgets.find(b => b.activo && b.temporada === currentSeason) || budgets[0];
+      const currentActiveBudget = budgets?.find(b => b.activo && b.temporada === currentSeason) || budgets?.[0];
       if (data.partida_id && currentActiveBudget) {
         const updatedPartidas = currentActiveBudget.partidas.map(p => {
           if (p.id === data.partida_id) {
@@ -183,7 +183,7 @@ export default function TreasurerDashboard() {
       const transaction = financialTransactions.find(t => t.id === id);
       await base44.entities.FinancialTransaction.delete(id);
       
-      const currentActiveBudget = budgets.find(b => b.activo && b.temporada === currentSeason) || budgets[0];
+      const currentActiveBudget = budgets?.find(b => b.activo && b.temporada === currentSeason) || budgets?.[0];
       if (transaction?.partida_id && currentActiveBudget) {
         const updatedPartidas = currentActiveBudget.partidas.map(p => {
           if (p.id === transaction.partida_id) {
@@ -214,7 +214,7 @@ export default function TreasurerDashboard() {
   };
 
   const handleUpdateBudget = (updates) => {
-    const currentActiveBudget = budgets.find(b => b.activo && b.temporada === currentSeason) || budgets[0];
+    const currentActiveBudget = budgets?.find(b => b.activo && b.temporada === currentSeason) || budgets?.[0];
     if (currentActiveBudget) {
       updateBudgetMutation.mutate({
         id: currentActiveBudget.id,
@@ -1677,7 +1677,7 @@ export default function TreasurerDashboard() {
               </h2>
             </div>
             {(() => {
-            const currentActiveBudget = budgets.find(b => b.activo && b.temporada === currentSeason) || budgets[0];
+            const currentActiveBudget = budgets?.find(b => b.activo && b.temporada === currentSeason) || budgets?.[0];
             return !currentActiveBudget && (
               <Button 
                 onClick={() => {
@@ -1694,7 +1694,7 @@ export default function TreasurerDashboard() {
           </div>
 
           {(() => {
-            const currentActiveBudget = budgets.find(b => b.activo && b.temporada === currentSeason) || budgets[0];
+            const currentActiveBudget = budgets?.find(b => b.activo && b.temporada === currentSeason) || budgets?.[0];
             return currentActiveBudget ? (
               <BudgetManager
                 budget={currentActiveBudget}
@@ -1747,7 +1747,7 @@ export default function TreasurerDashboard() {
           {showTransactionForm ? (
             <TransactionForm
               partidas={(() => {
-                const currentActiveBudget = budgets.find(b => b.activo && b.temporada === currentSeason) || budgets[0];
+                const currentActiveBudget = budgets?.find(b => b.activo && b.temporada === currentSeason) || budgets?.[0];
                 return currentActiveBudget?.partidas || [];
               })()}
               temporada={currentSeason}
