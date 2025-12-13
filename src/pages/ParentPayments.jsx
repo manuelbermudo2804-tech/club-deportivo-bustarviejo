@@ -7,9 +7,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Upload, FileText, Loader2, Search, Plus, X, Gift } from "lucide-react";
+import { Upload, FileText, Loader2, Search, Plus, X, Gift, Info } from "lucide-react";
 import { toast } from "sonner";
 import { AnimatePresence } from "framer-motion";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 import ContactCard from "../components/ContactCard";
 import ParentPaymentForm from "../components/payments/ParentPaymentForm";
@@ -461,6 +462,23 @@ Email: cdbustarviejo@gmail.com
         </AnimatePresence>
       </div>
 
+      {/* Info sobre fechas límite */}
+      <Card className="border-blue-200 bg-blue-50">
+        <CardContent className="p-4">
+          <div className="flex items-start gap-2">
+            <Info className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+            <div className="space-y-1">
+              <p className="text-sm font-bold text-blue-900">📅 Fechas límite de pago:</p>
+              <div className="text-xs text-blue-800 space-y-0.5">
+                <p>• <strong>Junio:</strong> vence el 30 de Junio</p>
+                <p>• <strong>Septiembre:</strong> vence el 15 de Septiembre</p>
+                <p>• <strong>Diciembre:</strong> vence el 15 de Diciembre</p>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Payments by Player */}
       <div className="space-y-6">
         {isLoading ? (
@@ -630,6 +648,21 @@ Email: cdbustarviejo@gmail.com
                                     <span className="font-bold text-slate-900">{payment.mes}</span>
                                     <span className="text-2xl">{statusEmojis[payment.estado]}</span>
                                     <span className="text-lg font-bold">{payment.cantidad}€</span>
+                                    <TooltipProvider>
+                                      <Tooltip>
+                                        <TooltipTrigger asChild>
+                                          <Info className="w-4 h-4 text-slate-400 hover:text-slate-600 cursor-help" />
+                                        </TooltipTrigger>
+                                        <TooltipContent className="max-w-xs">
+                                          <p className="text-xs">
+                                            {payment.estado === "Pagado" && "✅ Pago verificado y confirmado por el administrador"}
+                                            {payment.estado === "En revisión" && "🔍 El administrador está verificando tu justificante. Suele tardar 1-2 días hábiles"}
+                                            {payment.estado === "Pendiente" && payment.isVirtual && "⏳ Aún no has registrado este pago. Haz click en 'Pagar' cuando lo realices"}
+                                            {payment.estado === "Pendiente" && !payment.isVirtual && "📤 Falta subir el justificante de pago para que el administrador lo verifique"}
+                                          </p>
+                                        </TooltipContent>
+                                      </Tooltip>
+                                    </TooltipProvider>
                                   </div>
                                   <p className="text-xs text-slate-600">{payment.estado}{payment.isVirtual ? " (sin registrar)" : ""}</p>
                                 </div>
