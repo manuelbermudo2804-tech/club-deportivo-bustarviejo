@@ -295,6 +295,56 @@ export default function SeasonManagement() {
         setProcessingProgress((currentStep / totalSteps) * 100);
       }
 
+      if (restoreSelections.attendances && backupData.data.attendances) {
+        setProcessingStep("Restaurando asistencias...");
+        for (const attendance of backupData.data.attendances) {
+          const { id, created_date, updated_date, ...data } = attendance;
+          await base44.entities.Attendance.create(data);
+        }
+        currentStep++;
+        setProcessingProgress((currentStep / totalSteps) * 100);
+      }
+
+      if (restoreSelections.evaluations && backupData.data.evaluations) {
+        setProcessingStep("Restaurando evaluaciones...");
+        for (const evaluation of backupData.data.evaluations) {
+          const { id, created_date, updated_date, ...data } = evaluation;
+          await base44.entities.PlayerEvaluation.create(data);
+        }
+        currentStep++;
+        setProcessingProgress((currentStep / totalSteps) * 100);
+      }
+
+      if (restoreSelections.callups && backupData.data.callups) {
+        setProcessingStep("Restaurando convocatorias...");
+        for (const callup of backupData.data.callups) {
+          const { id, created_date, updated_date, ...data } = callup;
+          await base44.entities.Convocatoria.create(data);
+        }
+        currentStep++;
+        setProcessingProgress((currentStep / totalSteps) * 100);
+      }
+
+      if (restoreSelections.clothingOrders && backupData.data.clothingOrders) {
+        setProcessingStep("Restaurando pedidos de ropa...");
+        for (const order of backupData.data.clothingOrders) {
+          const { id, created_date, updated_date, ...data } = order;
+          await base44.entities.ClothingOrder.create(data);
+        }
+        currentStep++;
+        setProcessingProgress((currentStep / totalSteps) * 100);
+      }
+
+      if (restoreSelections.lotteryOrders && backupData.data.lotteryOrders) {
+        setProcessingStep("Restaurando pedidos de lotería...");
+        for (const order of backupData.data.lotteryOrders) {
+          const { id, created_date, updated_date, ...data } = order;
+          await base44.entities.LotteryOrder.create(data);
+        }
+        currentStep++;
+        setProcessingProgress((currentStep / totalSteps) * 100);
+      }
+
       queryClient.invalidateQueries();
       toast.success("Backup restaurado correctamente");
       setShowRestoreDialog(false);
