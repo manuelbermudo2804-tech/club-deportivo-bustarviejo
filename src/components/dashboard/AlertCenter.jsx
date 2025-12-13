@@ -92,25 +92,35 @@ export default function AlertCenter({
     return userSports.includes(announcement.destinatarios_tipo);
   });
 
-  // Anuncios no leídos (para todos excepto admin)
+  // Anuncios no leídos (para todos excepto admin) - MÁXIMO 1 alerta consolidada
   if (!isAdmin && unreadAnnouncements.length > 0) {
-    unreadAnnouncements.forEach(announcement => {
-      const priorityMap = {
-        "Urgente": { color: "bg-red-500", priority: 1 },
-        "Importante": { color: "bg-orange-500", priority: 2 },
-        "Normal": { color: "bg-blue-500", priority: 3 }
-      };
-      const config = priorityMap[announcement.prioridad] || priorityMap.Normal;
-      
-      alerts.push({
-        id: `announcement-${announcement.id}`,
-        icon: Megaphone,
-        title: `📢 ${announcement.titulo}`,
-        description: announcement.contenido.substring(0, 60) + (announcement.contenido.length > 60 ? '...' : ''),
-        url: createPageUrl("Announcements") + `?id=${announcement.id}`,
-        color: config.color,
-        priority: config.priority
-      });
+    const urgentCount = unreadAnnouncements.filter(a => a.prioridad === "Urgente").length;
+    const importantCount = unreadAnnouncements.filter(a => a.prioridad === "Importante").length;
+    const normalCount = unreadAnnouncements.filter(a => a.prioridad === "Normal").length;
+    
+    let title = "📢 Anuncios sin leer";
+    let description = `${unreadAnnouncements.length} anuncio${unreadAnnouncements.length > 1 ? 's' : ''} nuevo${unreadAnnouncements.length > 1 ? 's' : ''}`;
+    let color = "bg-blue-500";
+    let priority = 3;
+    
+    if (urgentCount > 0) {
+      title = `📢 ${urgentCount} Anuncio${urgentCount > 1 ? 's' : ''} URGENTE${urgentCount > 1 ? 'S' : ''}`;
+      color = "bg-red-500";
+      priority = 1;
+    } else if (importantCount > 0) {
+      title = `📢 ${importantCount} Anuncio${importantCount > 1 ? 's' : ''} Importante${importantCount > 1 ? 's' : ''}`;
+      color = "bg-orange-500";
+      priority = 2;
+    }
+    
+    alerts.push({
+      id: "announcements-unread",
+      icon: Megaphone,
+      title: title,
+      description: description,
+      url: createPageUrl("Announcements"),
+      color: color,
+      priority: priority
     });
   }
 
