@@ -736,26 +736,88 @@ Email: cdbustarviejo@gmail.com
     }
   };
 
+  const renewPlayerMutation = useMutation({
+    mutationFn: async ({ playerData, paymentsData }) => {
+      // Actualizar jugador existente con nueva temporada y estado renovado
+      const updatedPlayer = await base44.entities.Player.update(playerData.id, {
+        deporte: playerData.deporte,
+        tipo_inscripcion: "Renovación",
+        estado_renovacion: "renovado",
+        activo: true,
+        temporada_renovacion: seasonConfig?.temporada,
+        fecha_renovacion: new Date().toISOString()
+      });
+
+      // Crear pagos para la nueva temporada
+      if (paymentsData?.payments) {
+        for (const payment of paymentsData.payments) {
+          await base44.entities.Payment.create({
+            ...payment,
+            jugador_id: updatedPlayer.id,
+            jugador_nombre: updatedPlayer.nombre
+          });
+        }
+      }
+
+      return { player: updatedPlayer, paymentsData };
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['myPlayers'] });
+      queryClient.invalidateQueries({ queryKey: ['players'] });
+      queryClient.invalidateQueries({ queryKey: ['payments'] });
+      
+      // Mostrar pantalla de éxito con instrucciones de pago
+      if (data.paymentsData?.payments) {
+        setInscriptionSuccessData({
+          player: data.player,
+          tipoPago: data.paymentsData.tipoPago,
+          cuotasGeneradas: data.paymentsData.payments,
+          descuentoHermano: data.paymentsData.descuentoHermano || 0
+        });
+        setShowInscriptionSuccess(true);
+      } else {
+        toast.success("¡Jugador renovado correctamente!");
+      }
+    },
+    onError: (error) => {
+      console.error("Error renewing player:", error);
+      toast.error("Error al renovar el jugador");
+    }
+  });
+
   const handlePaymentFlowContinue = (paymentsData) => {
     const descuentoCalculado = pendingPlayerData._descuentoCalculado || 0;
 
     console.log('✅ [handlePaymentFlowContinue] Continuando con pago:', {
       jugador: pendingPlayerData.nombre,
       descuento: descuentoCalculado,
-      tipoPago: paymentsData.tipoPago
+      tipoPago: paymentsData.tipoPago,
+      esRenovacion: pendingPlayerData._isRenewal
     });
 
-    createPlayerMutation.mutate({
-      playerData: {
-        ...pendingPlayerData,
-        tiene_descuento_hermano: descuentoCalculado > 0,
-        descuento_aplicado: descuentoCalculado
-      },
-      paymentsData: {
-        ...paymentsData,
-        descuentoHermano: descuentoCalculado
-      }
-    });
+    // Si es renovación, usar la mutación de renovación
+    if (pendingPlayerData._isRenewal) {
+      renewPlayerMutation.mutate({
+        playerData: pendingPlayerData,
+        paymentsData: {
+          ...paymentsData,
+          descuentoHermano: descuentoCalculado
+        }
+      });
+    } else {
+      // Inscripción nueva
+      createPlayerMutation.mutate({
+        playerData: {
+          ...pendingPlayerData,
+          tiene_descuento_hermano: descuentoCalculado > 0,
+          descuento_aplicado: descuentoCalculado
+        },
+        paymentsData: {
+          ...paymentsData,
+          descuentoHermano: descuentoCalculado
+        }
+      });
+    }
 
     setShowPaymentFlow(false);
     setPendingPlayerData(null);
@@ -768,16 +830,21 @@ Email: cdbustarviejo@gmail.com
   };
 
   const handleRenew = (player, newCategory) => {
-    setEditingPlayer({
+    // Preparar datos del jugador para renovación con flujo de pago
+    const playerDataForRenewal = {
       ...player,
       deporte: newCategory || player.deporte,
       tipo_inscripcion: "Renovación",
       estado_renovacion: "renovado",
       activo: true,
-      temporada_renovacion: seasonConfig?.temporada || new Date().getFullYear() + "/" + (new Date().getFullYear() + 1)
-    });
-    setSuggestedCategory(newCategory);
-    setShowForm(true);
+      temporada_renovacion: seasonConfig?.temporada || new Date().getFullYear() + "/" + (new Date().getFullYear() + 1),
+      _isRenewal: true, // Flag para identificar que es renovación
+      _descuentoCalculado: player.descuento_aplicado || 0
+    };
+    
+    // Abrir flujo de pago para renovación
+    setPendingPlayerData(playerDataForRenewal);
+    setShowPaymentFlow(true);
   };
 
   const handleMarkNotRenewing = async (player) => {
