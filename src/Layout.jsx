@@ -25,6 +25,7 @@ import AutomaticPaymentReminders from "./components/reminders/AutomaticPaymentRe
 import AutomaticRenewalReminders from "./components/reminders/AutomaticRenewalReminders";
 import AutomaticRenewalClosure from "./components/renewals/AutomaticRenewalClosure";
 import RenewalNotificationEngine from "./components/renewals/RenewalNotificationEngine";
+import PostRenewalPaymentReminder from "./components/renewals/PostRenewalPaymentReminder";
 
 // ToastContainer eliminado - causaba spam de notificaciones
 import EventReminderEngine from "./components/events/EventReminderEngine";
@@ -1363,6 +1364,7 @@ export default function Layout({ children, currentPageName }) {
               <AutomaticRenewalReminders />
               <AutomaticRenewalClosure />
               <RenewalNotificationEngine />
+              <PostRenewalPaymentReminder />
               {/* Componentes temporalmente desactivados para debug */}
 
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">

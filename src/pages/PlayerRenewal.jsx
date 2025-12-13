@@ -20,6 +20,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import RenewalPaymentFlow from "../components/renewals/RenewalPaymentFlow";
+import RenewalSuccessScreen from "../components/renewals/RenewalSuccessScreen";
 
 const CATEGORIAS = [
   "Fútbol Pre-Benjamín (Mixto)",
@@ -63,6 +64,8 @@ export default function PlayerRenewal() {
   const [showPaymentFlow, setShowPaymentFlow] = useState(false);
   const [selectedPlayerForPayment, setSelectedPlayerForPayment] = useState(null);
   const [categoryConfigs, setCategoryConfigs] = useState([]);
+  const [showSuccessScreen, setShowSuccessScreen] = useState(false);
+  const [successData, setSuccessData] = useState(null);
   const queryClient = useQueryClient();
 
   useEffect(() => {
@@ -172,10 +175,20 @@ CD Bustarviejo`
 
       return player;
     },
-    onSuccess: () => {
+    onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['myPlayers'] });
       queryClient.invalidateQueries({ queryKey: ['payments'] });
-      toast.success("✅ Jugador renovado y cuotas generadas correctamente");
+      
+      // Mostrar pantalla de éxito
+      setSuccessData({
+        player: players.find(p => p.id === variables.playerId),
+        newCategory: variables.newCategory,
+        tipoPago: variables.paymentsData.tipoPago,
+        cuotasGeneradas: variables.paymentsData.payments,
+        descuentoHermano: variables.paymentsData.descuentoHermano
+      });
+      setShowSuccessScreen(true);
+      
       setConfirmDialog({ open: false, playerId: null, action: null });
       setShowPaymentFlow(false);
       setSelectedPlayerForPayment(null);
@@ -264,6 +277,19 @@ CD Bustarviejo`
 
   return (
     <>
+      {/* Pantalla de éxito */}
+      {showSuccessScreen && successData && (
+        <RenewalSuccessScreen
+          player={successData.player}
+          newCategory={successData.newCategory}
+          tipoPago={successData.tipoPago}
+          cuotasGeneradas={successData.cuotasGeneradas}
+          descuentoHermano={successData.descuentoHermano}
+          seasonConfig={seasonConfig}
+          onClose={() => setShowSuccessScreen(false)}
+        />
+      )}
+
       <AlertDialog open={confirmDialog.open} onOpenChange={(open) => !open && setConfirmDialog({ open: false, playerId: null, action: null })}>
         <AlertDialogContent>
           <AlertDialogHeader>

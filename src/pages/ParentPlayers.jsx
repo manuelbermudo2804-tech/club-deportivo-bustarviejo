@@ -14,6 +14,8 @@ import AchievementsBadges from "../components/dashboard/AchievementsBadges";
 import PlayerCardSkeleton from "../components/skeletons/PlayerCardSkeleton";
 import { CheckmarkAnimation } from "../components/animations/SuccessAnimation";
 import { usePageTutorial } from "../components/tutorials/useTutorial";
+import InscriptionPaymentFlow from "../components/inscriptions/InscriptionPaymentFlow";
+import InscriptionSuccessScreen from "../components/inscriptions/InscriptionSuccessScreen";
 
 export default function ParentPlayers() {
   const [showForm, setShowForm] = useState(false);
@@ -21,6 +23,10 @@ export default function ParentPlayers() {
   const [showSuccess, setShowSuccess] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
   const [suggestedCategory, setSuggestedCategory] = useState(null);
+  const [showPaymentFlow, setShowPaymentFlow] = useState(false);
+  const [pendingPlayerData, setPendingPlayerData] = useState(null);
+  const [showInscriptionSuccess, setShowInscriptionSuccess] = useState(false);
+  const [inscriptionSuccessData, setInscriptionSuccessData] = useState(null);
   
   const queryClient = useQueryClient();
   
@@ -42,6 +48,14 @@ export default function ParentPlayers() {
       return configs.find(c => c.activa === true);
     },
     staleTime: 300000, // 5 minutos
+    gcTime: 600000,
+    refetchOnWindowFocus: false,
+  });
+
+  const { data: categoryConfigs = [] } = useQuery({
+    queryKey: ['categoryConfigs'],
+    queryFn: () => base44.entities.CategoryConfig.list(),
+    staleTime: 300000,
     gcTime: 600000,
     refetchOnWindowFocus: false,
   });
@@ -133,12 +147,23 @@ export default function ParentPlayers() {
   });
 
   const createPlayerMutation = useMutation({
-    mutationFn: async (playerData) => {
+    mutationFn: async ({ playerData, paymentsData }) => {
       const dataWithParentEmail = {
         ...playerData,
         email_padre: user?.email || playerData.email_padre
       };
       const newPlayer = await base44.entities.Player.create(dataWithParentEmail);
+
+      // Crear pagos automáticamente si se seleccionó modalidad
+      if (paymentsData?.payments) {
+        for (const payment of paymentsData.payments) {
+          await base44.entities.Payment.create({
+            ...payment,
+            jugador_id: newPlayer.id,
+            jugador_nombre: newPlayer.nombre
+          });
+        }
+      }
 
       // DETECCIÓN AUTOMÁTICA DE JUGADOR +18
       // Si el jugador es mayor de 18 años y el email coincide con el usuario actual
@@ -603,17 +628,32 @@ Email: cdbustarviejo@gmail.com
         console.error("Error sending email notification:", error);
       }
       
-      return newPlayer;
+      return { player: newPlayer, paymentsData };
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['myPlayers'] });
       queryClient.invalidateQueries({ queryKey: ['players'] });
       queryClient.invalidateQueries({ queryKey: ['allPlayersForRenewal'] });
+      queryClient.invalidateQueries({ queryKey: ['payments'] });
+      
       setShowForm(false);
       setEditingPlayer(null);
-      setSuccessMessage("¡Jugador registrado!");
-      setShowSuccess(true);
-      setTimeout(() => toast.success("Jugador registrado correctamente"), 2000);
+      
+      // Si se generaron pagos, mostrar pantalla de éxito con instrucciones
+      if (data.paymentsData?.payments) {
+        setInscriptionSuccessData({
+          player: data.player,
+          tipoPago: data.paymentsData.tipoPago,
+          cuotasGeneradas: data.paymentsData.payments,
+          descuentoHermano: data.paymentsData.descuentoHermano || 0
+        });
+        setShowInscriptionSuccess(true);
+      } else {
+        // Inscripción sin pagos (caso legacy)
+        setSuccessMessage("¡Jugador registrado!");
+        setShowSuccess(true);
+        setTimeout(() => toast.success("Jugador registrado correctamente"), 2000);
+      }
     },
     onError: (error) => {
       console.error("Error creating player:", error);
@@ -648,8 +688,44 @@ Email: cdbustarviejo@gmail.com
     if (editingPlayer) {
       updatePlayerMutation.mutate({ id: editingPlayer.id, playerData });
     } else {
-      createPlayerMutation.mutate(playerData);
+      // Para nueva inscripción, primero pedir modalidad de pago
+      setPendingPlayerData(playerData);
+      setShowForm(false);
+      setShowPaymentFlow(true);
     }
+  };
+
+  const handlePaymentFlowContinue = (paymentsData) => {
+    // Calcular descuento por hermano
+    const hermanos = allPlayers.filter(p => 
+      p.email_padre === user?.email &&
+      (p.activo === true || p.estado_renovacion === "renovado") &&
+      p.fecha_nacimiento
+    );
+
+    const todosHermanos = [
+      { id: 'nuevo', fecha_nacimiento: pendingPlayerData.fecha_nacimiento },
+      ...hermanos.map(p => ({ id: p.id, fecha_nacimiento: p.fecha_nacimiento }))
+    ].filter(p => p.fecha_nacimiento);
+
+    todosHermanos.sort((a, b) => new Date(a.fecha_nacimiento) - new Date(b.fecha_nacimiento));
+    const esMayor = todosHermanos[0]?.id === 'nuevo';
+    const descuentoCalculado = esMayor ? 0 : 25;
+
+    createPlayerMutation.mutate({
+      playerData: {
+        ...pendingPlayerData,
+        tiene_descuento_hermano: !esMayor,
+        descuento_aplicado: descuentoCalculado
+      },
+      paymentsData: {
+        ...paymentsData,
+        descuentoHermano: descuentoCalculado
+      }
+    });
+
+    setShowPaymentFlow(false);
+    setPendingPlayerData(null);
   };
 
   const handleEdit = (player) => {
@@ -686,6 +762,33 @@ Email: cdbustarviejo@gmail.com
         onComplete={() => setShowSuccess(false)}
         message={successMessage}
       />
+
+      {/* Flujo de pago para nueva inscripción */}
+      {showPaymentFlow && pendingPlayerData && (
+        <div className="fixed inset-0 z-[100] bg-black/60 flex items-center justify-center p-4 overflow-y-auto">
+          <div className="max-w-2xl w-full my-8">
+            <InscriptionPaymentFlow
+              playerData={pendingPlayerData}
+              seasonConfig={seasonConfig}
+              categoryConfigs={categoryConfigs}
+              descuentoHermano={0}
+              onContinue={handlePaymentFlowContinue}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* Pantalla de éxito inscripción */}
+      {showInscriptionSuccess && inscriptionSuccessData && (
+        <InscriptionSuccessScreen
+          player={inscriptionSuccessData.player}
+          tipoPago={inscriptionSuccessData.tipoPago}
+          cuotasGeneradas={inscriptionSuccessData.cuotasGeneradas}
+          descuentoHermano={inscriptionSuccessData.descuentoHermano}
+          onClose={() => setShowInscriptionSuccess(false)}
+        />
+      )}
+
       <div className="p-4 lg:p-8 space-y-4 lg:space-y-6">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 lg:gap-4">
         <div>
