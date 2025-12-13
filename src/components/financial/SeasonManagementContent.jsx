@@ -74,6 +74,11 @@ export default function SeasonManagementContent() {
     history: false
   });
 
+  // Calcular activeSeason ANTES de usarlo en cualquier función
+  const activeSeason = useMemo(() => {
+    return seasons.find(s => s.activa === true);
+  }, [seasons]);
+
   useEffect(() => {
     const fetchUser = async () => {
       try {
@@ -122,11 +127,6 @@ export default function SeasonManagementContent() {
     queryKey: ['resetHistory'],
     queryFn: () => base44.entities.ResetHistory.list('-created_date'),
   });
-
-  // Calcular activeSeason usando useMemo para evitar errores de inicialización
-  const activeSeason = useMemo(() => {
-    return seasons.find(s => s.activa === true);
-  }, [seasons]);
 
   // Mutación para actualizar configuración de temporada
   const updateSeasonMutation = useMutation({
