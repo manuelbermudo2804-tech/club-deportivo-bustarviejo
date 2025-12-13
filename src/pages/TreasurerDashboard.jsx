@@ -23,7 +23,7 @@ import {
   TrendingUp, DollarSign, Users, AlertCircle, CheckCircle2, Clock, 
   Download, FileText, CreditCard, ShoppingBag, Clover, Building2,
   ArrowUpRight, ArrowDownRight, Receipt, Calendar, Wallet, Plus, Loader2, PieChart as PieChartIcon,
-  Sparkles, RefreshCw
+  Sparkles, RefreshCw, Activity, Award, FileSpreadsheet
 } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
@@ -451,6 +451,24 @@ export default function TreasurerDashboard() {
     return Object.values(debtMap).sort((a, b) => b.deuda_total - a.deuda_total);
   }, [filteredPayments, players]);
 
+  // Monthly income data for chart - DECLARAR ANTES DE SMART ALERTS
+  const monthlyIncomeData = useMemo(() => {
+    const data = [
+      { mes: 'Junio', cuotas: 0, ropa: 0, loteria: 0 },
+      { mes: 'Septiembre', cuotas: 0, ropa: 0, loteria: 0 },
+      { mes: 'Diciembre', cuotas: 0, ropa: 0, loteria: 0 }
+    ];
+
+    filteredPayments.filter(p => p.estado === "Pagado").forEach(p => {
+      const monthIndex = data.findIndex(d => d.mes === p.mes);
+      if (monthIndex >= 0) {
+        data[monthIndex].cuotas += p.cantidad || 0;
+      }
+    });
+
+    return data;
+  }, [filteredPayments]);
+
   // Comparativa interanual
   const interannualComparison = useMemo(() => {
     const seasonsList = [...new Set([...payments.map(p => p.temporada), ...paymentHistory.map(p => p.temporada)])].filter(Boolean).sort().reverse();
@@ -495,14 +513,16 @@ export default function TreasurerDashboard() {
     }
     
     // Mejor mes del año
-    const bestMonth = monthlyIncomeData.reduce((max, m) => m.cuotas > max.cuotas ? m : max, monthlyIncomeData[0]);
-    if (bestMonth?.cuotas > 0) {
-      alerts.push({
-        tipo: 'info',
-        icono: '🟢',
-        mensaje: `Mejor mes: ${bestMonth.mes} (${bestMonth.cuotas.toLocaleString()}€)`,
-        accion: null
-      });
+    if (monthlyIncomeData?.length > 0) {
+      const bestMonth = monthlyIncomeData.reduce((max, m) => m.cuotas > max.cuotas ? m : max, monthlyIncomeData[0]);
+      if (bestMonth?.cuotas > 0) {
+        alerts.push({
+          tipo: 'info',
+          icono: '🟢',
+          mensaje: `Mejor mes: ${bestMonth.mes} (${bestMonth.cuotas.toLocaleString()}€)`,
+          accion: null
+        });
+      }
     }
     
     // Patrocinadores
@@ -677,24 +697,6 @@ export default function TreasurerDashboard() {
       .sort((a, b) => new Date(b.fecha) - new Date(a.fecha))
       .slice(0, 15);
   }, [filteredPayments, filteredClothingOrders, lotteryOrders, filteredClubMembers]);
-
-  // Monthly income data for chart
-  const monthlyIncomeData = useMemo(() => {
-    const data = [
-      { mes: 'Junio', cuotas: 0, ropa: 0, loteria: 0 },
-      { mes: 'Septiembre', cuotas: 0, ropa: 0, loteria: 0 },
-      { mes: 'Diciembre', cuotas: 0, ropa: 0, loteria: 0 }
-    ];
-
-    filteredPayments.filter(p => p.estado === "Pagado").forEach(p => {
-      const monthIndex = data.findIndex(d => d.mes === p.mes);
-      if (monthIndex >= 0) {
-        data[monthIndex].cuotas += p.cantidad || 0;
-      }
-    });
-
-    return data;
-  }, [filteredPayments]);
 
   // Export functions
   const exportToCSV = (type) => {
