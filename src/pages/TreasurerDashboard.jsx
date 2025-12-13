@@ -161,7 +161,7 @@ export default function TreasurerDashboard() {
           }
           return p;
         });
-        await base44.entities.Budget.update(activeBudget.id, { partidas: updatedPartidas });
+        await base44.entities.Budget.update(currentActiveBudget.id, { partidas: updatedPartidas });
       }
       
       return transaction;
