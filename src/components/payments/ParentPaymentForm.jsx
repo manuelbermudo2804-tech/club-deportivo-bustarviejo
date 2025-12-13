@@ -191,8 +191,8 @@ export default function ParentPaymentForm({ players, payments = [], onSubmit, on
         return;
       }
       
-      // Verificar el tipo de pago ya usado (aunque no esté pagado)
-      const primerPago = jugadorPayments.find(p => p.estado === "Pagado" || p.estado === "En revisión");
+      // Verificar el tipo de pago ya usado (incluyendo Pendientes)
+      const primerPago = jugadorPayments.find(p => p.estado === "Pagado" || p.estado === "En revisión" || p.estado === "Pendiente");
       if (primerPago) {
         setTipoPagoFijado(primerPago.tipo_pago);
       } else {

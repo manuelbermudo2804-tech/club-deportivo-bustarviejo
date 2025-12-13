@@ -688,29 +688,36 @@ Email: cdbustarviejo@gmail.com
     if (editingPlayer) {
       updatePlayerMutation.mutate({ id: editingPlayer.id, playerData });
     } else {
-      // Para nueva inscripción, primero pedir modalidad de pago
-      setPendingPlayerData(playerData);
+      // Calcular descuento por hermano ANTES de mostrar el flujo
+      const hermanos = allPlayers.filter(p => 
+        p.email_padre === user?.email &&
+        (p.activo === true || p.estado_renovacion === "renovado") &&
+        p.fecha_nacimiento
+      );
+
+      const todosHermanos = [
+        { id: 'nuevo', fecha_nacimiento: playerData.fecha_nacimiento },
+        ...hermanos.map(p => ({ id: p.id, fecha_nacimiento: p.fecha_nacimiento }))
+      ].filter(p => p.fecha_nacimiento);
+
+      todosHermanos.sort((a, b) => new Date(a.fecha_nacimiento) - new Date(b.fecha_nacimiento));
+      const esMayor = todosHermanos[0]?.id === 'nuevo';
+      const descuentoCalculado = esMayor ? 0 : 25;
+
+      // Guardar datos con descuento ya calculado
+      setPendingPlayerData({
+        ...playerData,
+        tiene_descuento_hermano: !esMayor,
+        descuento_aplicado: descuentoCalculado,
+        _descuentoCalculado: descuentoCalculado
+      });
       setShowForm(false);
       setShowPaymentFlow(true);
     }
   };
 
   const handlePaymentFlowContinue = (paymentsData) => {
-    // Calcular descuento por hermano
-    const hermanos = allPlayers.filter(p => 
-      p.email_padre === user?.email &&
-      (p.activo === true || p.estado_renovacion === "renovado") &&
-      p.fecha_nacimiento
-    );
-
-    const todosHermanos = [
-      { id: 'nuevo', fecha_nacimiento: pendingPlayerData.fecha_nacimiento },
-      ...hermanos.map(p => ({ id: p.id, fecha_nacimiento: p.fecha_nacimiento }))
-    ].filter(p => p.fecha_nacimiento);
-
-    todosHermanos.sort((a, b) => new Date(a.fecha_nacimiento) - new Date(b.fecha_nacimiento));
-    const esMayor = todosHermanos[0]?.id === 'nuevo';
-    const descuentoCalculado = esMayor ? 0 : 25;
+    const descuentoCalculado = pendingPlayerData._descuentoCalculado || 0;
 
     createPlayerMutation.mutate({
       playerData: {
@@ -771,7 +778,7 @@ Email: cdbustarviejo@gmail.com
               playerData={pendingPlayerData}
               seasonConfig={seasonConfig}
               categoryConfigs={categoryConfigs}
-              descuentoHermano={0}
+              descuentoHermano={pendingPlayerData._descuentoCalculado || 0}
               onContinue={handlePaymentFlowContinue}
             />
           </div>
