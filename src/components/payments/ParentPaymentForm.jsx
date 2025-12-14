@@ -216,40 +216,42 @@ export default function ParentPaymentForm({ players, payments = [], onSubmit, on
         return;
       }
       
-      // CRÍTICO: Detectar tipo de pago desde CUALQUIER cuota existente (Pendiente, En revisión, o Pagado)
-      // Si hay AL MENOS UNA cuota con cualquier estado, fijar el tipo de pago
-      const primerPago = jugadorPayments.length > 0 ? jugadorPayments[0] : null;
-      const tipoPagoExistente = primerPago ? primerPago.tipo_pago : null;
-      
+      // DETECTAR tipo de pago desde las cuotas existentes (Pendiente, En revisión, o Pagado)
+      const tipoPagoExistente = jugadorPayments.length > 0 ? jugadorPayments[0].tipo_pago : null;
       setTipoPagoFijado(tipoPagoExistente);
       
       const cuotas = getCuotasFromConfig(player.deporte, categoryConfigs);
       const descuento = player.tiene_descuento_hermano ? (player.descuento_aplicado || 0) : 0;
       
-      // Si viene un mes forzado (desde botón "Pagar"), usarlo
-      let mesSeleccionado = forcedMonth || currentPayment.mes;
-      
-      // Si el mes seleccionado ya está pagado, seleccionar otro disponible
-      if (mesesPagados.includes(mesSeleccionado)) {
+      // USAR el mes forzado si viene (desde botón "Pagar"), sino buscar el primer mes disponible
+      let mesSeleccionado;
+      if (forcedMonth) {
+        // Si viene un mes forzado desde el botón "Pagar", usarlo SIEMPRE
+        mesSeleccionado = forcedMonth;
+      } else if (mesesPagados.length > 0) {
+        // Si hay meses ya pagados, seleccionar el primer mes disponible
         const mesesDisponibles = ["Junio", "Septiembre", "Diciembre"].filter(m => !mesesPagados.includes(m));
         mesSeleccionado = mesesDisponibles[0] || "Junio";
+      } else {
+        // Por defecto, Junio
+        mesSeleccionado = "Junio";
       }
       
-      // USAR el tipo de pago de las cuotas existentes (SIEMPRE tiene prioridad sobre todo)
-      const tipoPago = tipoPagoExistente || currentPayment.tipo_pago;
+      // USAR el tipo de pago existente si lo hay, sino mantener el actual
+      const tipoPago = tipoPagoExistente || "Único";
       
       const cantidad = tipoPago === "Único" 
         ? getTotalConDescuentoFromConfig(player.deporte, categoryConfigs, descuento)
         : getImportePorMesFromConfig(player.deporte, mesSeleccionado, categoryConfigs, descuento);
       
-      setCurrentPayment(prev => ({
-        ...prev,
+      setCurrentPayment({
+        ...currentPayment,
         jugador_id: player.id,
         jugador_nombre: player.nombre,
         tipo_pago: tipoPago,
         mes: mesSeleccionado,
         cantidad: cantidad
-      }));
+      });
     }
   };
 
