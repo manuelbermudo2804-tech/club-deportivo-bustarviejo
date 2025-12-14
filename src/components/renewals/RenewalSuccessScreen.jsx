@@ -25,7 +25,8 @@ export default function RenewalSuccessScreen({
 
   return (
     <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4 overflow-y-auto">
-      <Card className="max-w-2xl w-full border-4 border-green-500 shadow-2xl my-8">
+      <div className="min-h-full flex items-center justify-center py-8">
+        <Card className="max-w-2xl w-full border-4 border-green-500 shadow-2xl">
         <CardContent className="pt-8 space-y-6">
           
           <div className="text-center">
