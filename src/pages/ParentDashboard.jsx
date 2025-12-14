@@ -308,7 +308,11 @@ export default function ParentDashboard() {
   }, 0);
 
   // Filtrar pagos relevantes - si un jugador tiene pago único, ignorar Sept/Dic
+  // NO contar pagos ya reconciliados (macheados en banco)
   const relevantPayments = payments.filter(payment => {
+    // Excluir pagos reconciliados
+    if (payment.reconciliado_banco === true) return false;
+    
     const player = myPlayers.find(p => p.id === payment.jugador_id);
     if (!player) return false;
     
