@@ -1027,8 +1027,8 @@ Email: cdbustarviejo@gmail.com
         )}
       </AnimatePresence>
 
-      {/* Alerta de Jugadores Pendientes de Renovación */}
-      {playersToRenew.length > 0 && (
+      {/* Alerta de Jugadores Pendientes de Renovación - Solo si permitir_renovaciones está activo */}
+      {seasonConfig?.permitir_renovaciones && playersToRenew.length > 0 && (
         <div className="bg-gradient-to-r from-red-50 to-orange-50 border-2 border-red-400 rounded-xl p-4 mb-6 shadow-lg">
           <div className="flex items-start gap-3">
             <div className="w-6 h-6 bg-red-600 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
