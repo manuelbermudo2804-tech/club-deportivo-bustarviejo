@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Upload, FileText, Loader2, Search, Plus, X, Gift, Info, DollarSign } from "lucide-react";
+import { Upload, FileText, Loader2, Search, Plus, X, Gift, Info } from "lucide-react";
 import { toast } from "sonner";
 import { AnimatePresence } from "framer-motion";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -170,6 +170,13 @@ export default function ParentPayments() {
     staleTime: 600000, // 10 minutos
     gcTime: 1200000,
     refetchOnWindowFocus: false,
+  });
+
+  const { data: customPaymentPlans = [] } = useQuery({
+    queryKey: ['customPaymentPlans'],
+    queryFn: () => base44.entities.CustomPaymentPlan.list(),
+    initialData: [],
+    enabled: !!user,
   });
 
   const createPaymentMutation = useMutation({
@@ -448,7 +455,6 @@ Email: cdbustarviejo@gmail.com
             <ParentPaymentForm
                 players={players}
                 payments={payments}
-                customPlans={customPlans}
                 onSubmit={handleSubmitPayment}
                 onCancel={() => {
                   setShowForm(false);
@@ -507,67 +513,68 @@ Email: cdbustarviejo@gmail.com
                 return season.replace(/-/g, '/');
               };
 
+              // Verificar si tiene plan personalizado activo
+              const customPlan = customPaymentPlans.find(p => 
+                p.jugador_id === player.id && 
+                p.activo === true &&
+                normalizeSeason(p.temporada) === normalizeSeason(currentSeason)
+              );
+
               const allPlayerPayments = payments.filter(p => 
                 p.jugador_id === player.id && 
                 normalizeSeason(p.temporada) === normalizeSeason(currentSeason)
               );
 
-              // Verificar si tiene plan personalizado
-              const playerCustomPlan = customPlans.find(p => 
-                p.jugador_id === player.id && p.activo === true
-              );
-
-              // Determinar los meses que debería tener este jugador
-              let allMonths;
-              if (playerCustomPlan) {
-                // Si tiene plan personalizado, usar esos meses
-                allMonths = playerCustomPlan.cuotas_personalizadas.map(c => c.mes);
-              } else {
-                // Lógica estándar (pago único vs tres meses)
+              // Si tiene plan personalizado, usar sus cuotas
+              const displayPayments = customPlan ? 
+                customPlan.cuotas_personalizadas.map(cuota => {
+                  const existingPayment = allPlayerPayments.find(p => p.mes === cuota.mes);
+                  if (existingPayment) return existingPayment;
+                  return {
+                    id: `virtual-${player.id}-${cuota.mes}`,
+                    jugador_id: player.id,
+                    jugador_nombre: player.nombre,
+                    mes: cuota.mes,
+                    temporada: currentSeason,
+                    estado: "Pendiente",
+                    cantidad: cuota.cantidad,
+                    tipo_pago: "Plan Personalizado",
+                    fecha_vencimiento: cuota.fecha_vencimiento,
+                    isVirtual: true
+                  };
+                })
+              : (() => {
+                // Lógica estándar para calcular pagos
                 const hasPagoUnico = allPlayerPayments.some(p => 
                   p.tipo_pago === "Único" || p.tipo_pago === "único"
                 );
-                allMonths = hasPagoUnico
+
+                const allMonths = hasPagoUnico
                   ? ["Junio"]
                   : ["Junio", "Septiembre", "Diciembre"];
-              }
 
-              // Crear pagos virtuales SOLO para meses que NO tienen ningún pago (ni pagado, ni pendiente, ni revisión)
-              const displayPayments = allMonths.map(mes => {
-                // Buscar cualquier pago de este mes (pagado, pendiente o en revisión)
-                const existingPayment = allPlayerPayments.find(p => p.mes === mes);
-                
-                if (existingPayment) {
-                  // Si existe el pago (en cualquier estado), mostrarlo
-                  return existingPayment;
-                }
-                
-                // Solo crear virtual si NO existe ningún pago para este mes
-                let cantidad;
-                if (playerCustomPlan) {
-                  // Usar cantidad del plan personalizado
-                  const cuotaPlan = playerCustomPlan.cuotas_personalizadas.find(c => c.mes === mes);
-                  cantidad = cuotaPlan?.cantidad || 0;
-                } else {
+                return allMonths.map(mes => {
+                  const existingPayment = allPlayerPayments.find(p => p.mes === mes);
+                  if (existingPayment) return existingPayment;
+
                   const cuotas = getCuotasFromConfig(player.deporte, categoryConfigs);
-                  cantidad = hasPagoUnico 
+                  const cantidad = hasPagoUnico 
                     ? cuotas.total 
                     : getImportePorMesFromConfig(player.deporte, mes, categoryConfigs);
-                }
-                
-                return {
-                  id: `virtual-${player.id}-${mes}`,
-                  jugador_id: player.id,
-                  jugador_nombre: player.nombre,
-                  mes: mes,
-                  temporada: currentSeason,
-                  estado: "Pendiente",
-                  cantidad: cantidad,
-                  tipo_pago: hasPagoUnico ? "Único" : "Tres meses",
-                  isVirtual: true,
-                  customPlan: playerCustomPlan ? true : false
+
+                  return {
+                    id: `virtual-${player.id}-${mes}`,
+                    jugador_id: player.id,
+                    jugador_nombre: player.nombre,
+                    mes: mes,
+                    temporada: currentSeason,
+                    estado: "Pendiente",
+                    cantidad: cantidad,
+                    tipo_pago: hasPagoUnico ? "Único" : "Tres meses",
+                    isVirtual: true
                   };
-                  });
+                });
+              })();
               
               // Contar solo pagos REALES (no virtuales)
               const realPayments = displayPayments.filter(p => !p.isVirtual);
@@ -593,6 +600,11 @@ Email: cdbustarviejo@gmail.com
                         <div>
                           <CardTitle className="text-xl text-slate-900">{player.nombre}</CardTitle>
                           <p className="text-sm text-slate-600">{player.deporte}</p>
+                          {customPlan && (
+                            <Badge className="bg-purple-100 text-purple-700 text-xs mt-1">
+                              💰 Plan Personalizado
+                            </Badge>
+                          )}
                         </div>
                       </div>
                       {totalPaymentsDue > 0 && (
@@ -604,28 +616,28 @@ Email: cdbustarviejo@gmail.com
                   </CardHeader>
                   <CardContent className="p-6">
                     {/* Alerta de plan personalizado */}
-                    {playerCustomPlan && (
-                      <div className="mb-4 p-3 bg-gradient-to-r from-purple-50 to-purple-100 border-2 border-purple-400 rounded-lg">
+                    {customPlan && (
+                      <div className="mb-4 p-3 bg-gradient-to-r from-purple-50 to-purple-100 border-2 border-purple-300 rounded-lg">
                         <div className="flex items-center gap-2">
-                          <DollarSign className="w-5 h-5 text-purple-600" />
+                          <Gift className="w-5 h-5 text-purple-600" />
                           <p className="text-sm font-bold text-purple-900">💰 Plan de Pago Personalizado</p>
                         </div>
                         <p className="text-xs text-purple-700 mt-1">
-                          {playerCustomPlan.mensaje_para_familia || playerCustomPlan.motivo}
+                          <strong>Motivo:</strong> {customPlan.motivo}
                         </p>
-                        <div className="flex items-center justify-between mt-2 pt-2 border-t border-purple-300">
-                          <p className="text-xs text-purple-600">
-                            <strong>{playerCustomPlan.cuotas_personalizadas?.length} cuotas personalizadas</strong>
+                        {customPlan.mensaje_para_familia && (
+                          <p className="text-xs text-purple-700 mt-2 bg-white/50 p-2 rounded">
+                            💬 {customPlan.mensaje_para_familia}
                           </p>
-                          <p className="text-sm font-bold text-purple-900">
-                            Total: {playerCustomPlan.total_plan}€
-                          </p>
-                        </div>
+                        )}
+                        <p className="text-xs text-purple-600 mt-2">
+                          📅 {customPlan.cuotas_personalizadas?.length || 0} cuotas programadas • Total: {customPlan.total_plan}€
+                        </p>
                       </div>
                     )}
 
                     {/* Alerta de descuento por hermano */}
-                    {player.tiene_descuento_hermano && player.descuento_aplicado > 0 && !playerCustomPlan && (
+                    {player.tiene_descuento_hermano && player.descuento_aplicado > 0 && (
                       <div className="mb-4 p-3 bg-gradient-to-r from-purple-50 to-pink-50 border-2 border-purple-300 rounded-lg">
                         <div className="flex items-center gap-2">
                           <Gift className="w-5 h-5 text-purple-600" />
