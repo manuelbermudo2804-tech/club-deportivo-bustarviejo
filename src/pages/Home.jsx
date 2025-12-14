@@ -316,10 +316,69 @@ export default function Home() {
 
   const stats = useMemo(() => {
     const activePlayers = players?.filter(p => p.activo).length || 0;
-    // Para padres: SOLO pagos "Pendiente" (sin justificante)
-    const pendingPayments = payments?.filter(p => p.estado === "Pendiente").length || 0;
-    // Para admin: pagos "En revisión" (esperando aprobación)
-    const reviewPayments = payments?.filter(p => p.estado === "En revisión").length || 0;
+    
+    // FILTRAR PAGOS SEGÚN ROL
+    let pendingPayments = 0;
+    let reviewPayments = 0;
+    let overduePayments = 0;
+    
+    if (isAdmin || isTreasurer) {
+      // Admin y Tesorero ven TODOS los pagos del club
+      pendingPayments = payments?.filter(p => p.estado === "Pendiente" && p.is_deleted !== true).length || 0;
+      reviewPayments = payments?.filter(p => p.estado === "En revisión" && p.is_deleted !== true).length || 0;
+    } else if (user && !isAdmin && !isCoach && !isCoordinator && !isTreasurer) {
+      // Padres ven SOLO pagos de sus jugadores
+      const myPlayerIds = players?.filter(p => 
+        (p.email_padre === user.email || p.email_tutor_2 === user.email) && p.activo === true
+      ).map(p => p.id) || [];
+      
+      const myPayments = payments?.filter(p => 
+        myPlayerIds.includes(p.jugador_id) && p.is_deleted !== true
+      ) || [];
+      
+      const currentSeason = (() => {
+        const now = new Date();
+        const year = now.getFullYear();
+        const month = now.getMonth() + 1;
+        return month >= 6 ? `${year}/${year + 1}` : `${year - 1}/${year}`;
+      })();
+      
+      // Normalizar temporadas
+      const normalizeSeason = (season) => {
+        if (!season) return currentSeason;
+        return season.replace(/-/g, '/');
+      };
+      
+      const myCurrentSeasonPayments = myPayments.filter(p => 
+        normalizeSeason(p.temporada) === normalizeSeason(currentSeason)
+      );
+      
+      pendingPayments = myCurrentSeasonPayments.filter(p => p.estado === "Pendiente").length;
+      reviewPayments = myCurrentSeasonPayments.filter(p => p.estado === "En revisión").length;
+      
+      // Calcular pagos vencidos (solo para padres)
+      const now = new Date();
+      myCurrentSeasonPayments.forEach(payment => {
+        if (payment.estado !== "Pagado") {
+          const mes = payment.mes;
+          const year = parseInt(currentSeason.split('/')[0]);
+          let vencimiento;
+          
+          if (mes === "Junio") {
+            vencimiento = new Date(year, 5, 30); // 30 de junio
+          } else if (mes === "Septiembre") {
+            vencimiento = new Date(year, 8, 15); // 15 de septiembre
+          } else if (mes === "Diciembre") {
+            vencimiento = new Date(year, 11, 15); // 15 de diciembre
+          }
+          
+          if (vencimiento && now > vencimiento) {
+            overduePayments++;
+          }
+        }
+      });
+    }
+    
     const paidPayments = payments?.filter(p => p.estado === "Pagado").length || 0;
     const unreadMessages = messages?.filter(m => !m.leido && m.tipo === "padre_a_grupo").length || 0;
 
