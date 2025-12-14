@@ -1166,6 +1166,7 @@ export default function Home() {
             pendingCallups={stats.pendingCallups}
             pendingDocuments={0}
             pendingPayments={isAdmin || isTreasurer ? stats.reviewPayments : stats.pendingPayments}
+            overduePayments={stats.overduePayments}
             unreadMessages={stats.unreadMessages}
             unreadPrivateMessages={stats.unreadPrivateMessages}
             pendingSurveys={0}
