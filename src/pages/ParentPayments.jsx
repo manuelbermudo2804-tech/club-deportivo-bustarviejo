@@ -548,49 +548,38 @@ Email: cdbustarviejo@gmail.com
                   };
                 });
 
-                // Lógica estándar para calcular pagos
-                // Si tiene pago único (en cualquier estado), solo mostrar Junio
-                const hasPagoUnico = allPlayerPayments.some(p => 
-                  p.tipo_pago === "Único" || p.tipo_pago === "único"
-                );
+                // Si tiene plan personalizado, usar sus cuotas
+                const displayPayments = customPlan ? 
+                  customPlan.cuotas_personalizadas.map(cuota => {
+                    const existingPayment = allPlayerPayments.find(p => p.mes === cuota.mes);
+                    if (existingPayment) return existingPayment;
+                    return {
+                      id: `virtual-${player.id}-${cuota.mes}`,
+                      jugador_id: player.id,
+                      jugador_nombre: player.nombre,
+                      mes: cuota.mes,
+                      temporada: currentSeason,
+                      estado: "Pendiente",
+                      cantidad: cuota.cantidad,
+                      tipo_pago: "Plan Personalizado",
+                      fecha_vencimiento: cuota.fecha_vencimiento,
+                      isVirtual: true
+                    };
+                  })
+                : (() => {
+                  // Lógica estándar para calcular pagos
+                  const hasPagoUnico = allPlayerPayments.some(p => 
+                    p.tipo_pago === "Único" || p.tipo_pago === "único"
+                  );
 
-                const playerPayments = hasPagoUnico 
-                  ? allPlayerPayments.filter(p => p.mes === "Junio")
-                  : allPlayerPayments;
+                  const allMonths = hasPagoUnico
+                    ? ["Junio"]
+                    : ["Junio", "Septiembre", "Diciembre"];
 
-                // Determinar los meses que debería tener este jugador
-                const allMonths = hasPagoUnico
-                  ? ["Junio"]
-                  : ["Junio", "Septiembre", "Diciembre"];
-
-              // Crear pagos virtuales SOLO para meses que NO tienen ningún pago (ni pagado, ni pendiente, ni revisión)
-              const displayPayments = customPlan ? 
-                customPlan.cuotas_personalizadas.map(cuota => {
-                  const existingPayment = allPlayerPayments.find(p => p.mes === cuota.mes);
-                  if (existingPayment) return existingPayment;
-                  return {
-                    id: `virtual-${player.id}-${cuota.mes}`,
-                    jugador_id: player.id,
-                    jugador_nombre: player.nombre,
-                    mes: cuota.mes,
-                    temporada: currentSeason,
-                    estado: "Pendiente",
-                    cantidad: cuota.cantidad,
-                    tipo_pago: "Plan Personalizado",
-                    fecha_vencimiento: cuota.fecha_vencimiento,
-                    isVirtual: true
-                  };
-                })
-                : allMonths.map(mes => {
-                // Buscar cualquier pago de este mes (pagado, pendiente o en revisión)
+                  return allMonths.map(mes => {
                 const existingPayment = allPlayerPayments.find(p => p.mes === mes);
+                if (existingPayment) return existingPayment;
 
-                if (existingPayment) {
-                  // Si existe el pago (en cualquier estado), mostrarlo
-                  return existingPayment;
-                }
-
-                // Solo crear virtual si NO existe ningún pago para este mes
                 const cuotas = getCuotasFromConfig(player.deporte, categoryConfigs);
                 const cantidad = hasPagoUnico 
                   ? cuotas.total 
@@ -607,7 +596,8 @@ Email: cdbustarviejo@gmail.com
                   tipo_pago: hasPagoUnico ? "Único" : "Tres meses",
                   isVirtual: true
                 };
-              });
+                });
+                })();
               
               // Contar solo pagos REALES (no virtuales)
               const realPayments = displayPayments.filter(p => !p.isVirtual);
@@ -633,6 +623,11 @@ Email: cdbustarviejo@gmail.com
                         <div>
                           <CardTitle className="text-xl text-slate-900">{player.nombre}</CardTitle>
                           <p className="text-sm text-slate-600">{player.deporte}</p>
+                          {customPlan && (
+                            <Badge className="bg-purple-100 text-purple-700 text-xs mt-1">
+                              💰 Plan Personalizado
+                            </Badge>
+                          )}
                         </div>
                       </div>
                       {totalPaymentsDue > 0 && (
