@@ -307,13 +307,30 @@ export default function ParentDashboard() {
     return count;
   }, 0);
 
-  // Separar pagos sin justificante vs en revisión
-  const pagosSinJustificante = payments.filter(p => p.estado === "Pendiente").length;
-  const pagosEnRevision = payments.filter(p => p.estado === "En revisión").length;
+  // Filtrar pagos relevantes - si un jugador tiene pago único, ignorar Sept/Dic
+  const relevantPayments = payments.filter(payment => {
+    const player = myPlayers.find(p => p.id === payment.jugador_id);
+    if (!player) return false;
+    
+    // Buscar si este jugador tiene un pago único
+    const playerPayments = payments.filter(p => p.jugador_id === player.id);
+    const hasPagoUnico = playerPayments.some(p => p.tipo_pago === "Único" || p.tipo_pago === "único");
+    
+    // Si tiene pago único, solo contar el pago de Junio
+    if (hasPagoUnico && payment.mes !== "Junio") {
+      return false;
+    }
+    
+    return true;
+  });
+
+  // Separar pagos sin justificante vs en revisión (solo pagos relevantes)
+  const pagosSinJustificante = relevantPayments.filter(p => p.estado === "Pendiente").length;
+  const pagosEnRevision = relevantPayments.filter(p => p.estado === "En revisión").length;
   const pendingPayments = pagosSinJustificante + pagosEnRevision;
 
-  // Calcular pagos vencidos usando fechas exactas
-  const overduePayments = payments.filter(p => {
+  // Calcular pagos vencidos usando fechas exactas (solo pagos relevantes)
+  const overduePayments = relevantPayments.filter(p => {
     if (p.estado !== "Pendiente") return false;
     
     const now = new Date();
