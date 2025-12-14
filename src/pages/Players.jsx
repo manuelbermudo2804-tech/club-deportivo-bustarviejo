@@ -338,6 +338,11 @@ export default function Players() {
   };
 
   const filteredPlayers = players.filter(player => {
+    // FILTRO AUTOMÁTICO: Si permitir_renovaciones = false, ocultar jugadores pendientes de renovar (temporada anterior)
+    if (!activeSeason?.permitir_renovaciones && player.estado_renovacion === "pendiente") {
+      return false;
+    }
+
     const matchesSearch = searchTerm === "" || 
       player.nombre?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       player.email_padre?.toLowerCase().includes(searchTerm.toLowerCase()) ||
