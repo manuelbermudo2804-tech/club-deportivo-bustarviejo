@@ -111,6 +111,7 @@ export default function RenewalSuccessScreen({
           </div>
         </CardContent>
       </Card>
+      </div>
     </div>
   );
 }
