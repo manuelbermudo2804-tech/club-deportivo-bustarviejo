@@ -564,7 +564,7 @@ export default function Home() {
       pendingCallups, pendingSignatures, adminPendingSignatures, pendingPlayerAccess,
       pendingClothingOrders, pendingLotteryOrders, pendingMemberRequests, 
       recentSurveyResponses, pendingEventConfirmations, pendingCallupResponses, unreadCoordinatorMessages,
-      unreadAdminMessages, hasActiveAdminChat
+      unreadAdminMessages, hasActiveAdminChat, overduePayments
     };
   }, [players, payments, messages, callups, user, hasPlayers, isAdmin, allUsers, clothingOrders, lotteryOrders, clubMembers, surveyResponses, events, privateConversations, adminConversations, isCoordinator, isTreasurer, isCoach]);
 
