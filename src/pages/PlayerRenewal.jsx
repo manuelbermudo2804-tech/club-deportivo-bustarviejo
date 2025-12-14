@@ -52,8 +52,8 @@ const suggestCategory = (birthDate) => {
   if (age <= 7) return "Fútbol Benjamín (Mixto)";
   if (age <= 9) return "Fútbol Alevín (Mixto)";
   if (age <= 11) return "Fútbol Infantil (Mixto)";
-  if (age <= 13) return "Fútbol Cadete";
-  if (age <= 15) return "Fútbol Juvenil";
+  if (age <= 15) return "Fútbol Cadete";
+  if (age <= 17) return "Fútbol Juvenil";
   return "Fútbol Aficionado";
 };
 
