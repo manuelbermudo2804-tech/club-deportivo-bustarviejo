@@ -82,11 +82,24 @@ const getCuotasFromConfig = (categoria, categoryConfigs) => {
 
 const getImportePorMesFromConfig = (categoria, mes, categoryConfigs, descuento = 0) => {
   const cuotas = getCuotasFromConfig(categoria, categoryConfigs);
-  // El descuento solo se aplica en la cuota de inscripción (Junio)
-  if (mes === "Junio") return cuotas.inscripcion - descuento;
-  if (mes === "Septiembre") return cuotas.segunda;
-  if (mes === "Diciembre") return cuotas.tercera;
-  return 0;
+  let importe = 0;
+  
+  if (mes === "Junio") {
+    importe = cuotas.inscripcion;
+  } else if (mes === "Septiembre") {
+    importe = cuotas.segunda;
+  } else if (mes === "Diciembre") {
+    importe = cuotas.tercera;
+  }
+  
+  // Aplicar descuento SOLO en Junio
+  if (mes === "Junio" && descuento > 0) {
+    importe = Math.max(0, importe - descuento);
+  }
+  
+  console.log('💰 [getImportePorMesFromConfig]', { categoria, mes, cuotas, descuento, importe });
+  
+  return importe;
 };
 
 const getTotalConDescuentoFromConfig = (categoria, categoryConfigs, descuento = 0) => {
