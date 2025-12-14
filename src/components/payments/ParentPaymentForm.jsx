@@ -135,8 +135,8 @@ export default function ParentPaymentForm({ players, payments = [], onSubmit, on
   }, []);
 
   useEffect(() => {
-    if (players && players.length > 0 && !currentPayment.jugador_id) {
-      // Primero prioridad a preselectedPlayerId (desde botón "Registrar Primer Pago" o "Pagar")
+    // EJECUTAR SIEMPRE si hay preselectedPlayerId, incluso si ya hay jugador_id
+    if (players && players.length > 0) {
       if (preselectedPlayerId) {
         const player = players.find(p => p.id === preselectedPlayerId);
         if (player) {
@@ -145,18 +145,20 @@ export default function ParentPaymentForm({ players, payments = [], onSubmit, on
         }
       }
       
-      // Segundo prioridad a URL param
-      const urlParams = new URLSearchParams(window.location.search);
-      const jugadorId = urlParams.get('jugador_id');
-      
-      if (jugadorId) {
-        const player = players.find(p => p.id === jugadorId);
-        if (player) {
-          handlePlayerChange(player.id);
+      // Si no hay preselected y tampoco hay jugador seleccionado, intentar URL param
+      if (!currentPayment.jugador_id) {
+        const urlParams = new URLSearchParams(window.location.search);
+        const jugadorId = urlParams.get('jugador_id');
+        
+        if (jugadorId) {
+          const player = players.find(p => p.id === jugadorId);
+          if (player) {
+            handlePlayerChange(player.id);
+          }
         }
       }
     }
-  }, [players, payments, preselectedPlayerId, preselectedMonth]);
+  }, [players, payments, preselectedPlayerId, preselectedMonth, categoryConfigs]);
 
   // CRÍTICO: Re-evaluar tipo de pago cuando cambian los payments (para detectar cuotas recién generadas)
   useEffect(() => {
