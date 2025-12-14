@@ -158,6 +158,31 @@ export default function ParentPaymentForm({ players, payments = [], onSubmit, on
     }
   }, [players, payments, preselectedPlayerId, preselectedMonth]);
 
+  // CRÍTICO: Re-evaluar tipo de pago cuando cambian los payments (para detectar cuotas recién generadas)
+  useEffect(() => {
+    if (currentPayment.jugador_id && payments.length > 0) {
+      const temporadaActiva = seasonConfig?.temporada || currentPayment.temporada;
+      const jugadorPayments = payments.filter(p => 
+        p.jugador_id === currentPayment.jugador_id && 
+        p.temporada === temporadaActiva
+      );
+      
+      if (jugadorPayments.length > 0) {
+        const primerPago = jugadorPayments[0];
+        if (primerPago.tipo_pago && primerPago.tipo_pago !== tipoPagoFijado) {
+          setTipoPagoFijado(primerPago.tipo_pago);
+          // Actualizar también el tipo de pago actual si es diferente
+          if (currentPayment.tipo_pago !== primerPago.tipo_pago) {
+            setCurrentPayment(prev => ({
+              ...prev,
+              tipo_pago: primerPago.tipo_pago
+            }));
+          }
+        }
+      }
+    }
+  }, [payments, currentPayment.jugador_id, seasonConfig?.temporada]);
+
   const handlePlayerChange = (playerId, forcedMonth = null) => {
     const player = players.find(p => p.id === playerId);
     if (player) {
