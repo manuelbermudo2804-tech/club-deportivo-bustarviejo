@@ -397,8 +397,8 @@ export default function Players() {
 
   return (
     <div className="p-6 lg:p-8 space-y-6">
-      {/* Panel de estadísticas de renovación - SOLO SI HAY RENOVACIONES PERMITIDAS */}
-      {isAdmin && activeSeason?.permitir_renovaciones && (
+      {/* Panel de estadísticas de renovación - SOLO SI HAY RENOVACIONES PERMITIDAS Y HAY JUGADORES PENDIENTES */}
+      {isAdmin && activeSeason?.permitir_renovaciones && allPlayers.some(p => p.estado_renovacion === "pendiente" && p.temporada_renovacion === activeSeason?.temporada) && (
         <RenewalStatsPanel allPlayers={allPlayers} seasonConfig={activeSeason} />
       )}
 
@@ -538,7 +538,7 @@ export default function Players() {
                   </Select>
                 </div>
 
-                {isAdmin && activeSeason?.permitir_renovaciones && (
+                {isAdmin && (
                   <div className="space-y-2">
                     <label className="text-sm font-semibold text-slate-700">Tipo Inscripción</label>
                     <Select value={statusRenewalFilter} onValueChange={setStatusRenewalFilter}>
@@ -549,8 +549,12 @@ export default function Players() {
                         <SelectItem value="all">Todos</SelectItem>
                         <SelectItem value="renovado">🔄 Renovados ({renovadosCount})</SelectItem>
                         <SelectItem value="nuevo">✨ Nuevos ({nuevosCount})</SelectItem>
-                        <SelectItem value="pendiente">⏳ Pendientes Renovar ({pendientesCount})</SelectItem>
-                        <SelectItem value="no_renueva">❌ No Renuevan ({noRenuevanCount})</SelectItem>
+                        {activeSeason?.permitir_renovaciones && (
+                          <>
+                            <SelectItem value="pendiente">⏳ Pendientes Renovar ({pendientesCount})</SelectItem>
+                            <SelectItem value="no_renueva">❌ No Renuevan ({noRenuevanCount})</SelectItem>
+                          </>
+                        )}
                       </SelectContent>
                     </Select>
                   </div>

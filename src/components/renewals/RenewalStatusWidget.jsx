@@ -8,6 +8,11 @@ import { createPageUrl } from "@/utils";
 import { Progress } from "@/components/ui/progress";
 
 export default function RenewalStatusWidget({ players, payments, seasonConfig }) {
+  // NO MOSTRAR NADA si permitir_renovaciones está desactivado
+  if (!seasonConfig?.permitir_renovaciones) {
+    return null;
+  }
+
   const pendientesRenovar = players.filter(p => 
     p.estado_renovacion === "pendiente" && 
     p.temporada_renovacion === seasonConfig?.temporada
@@ -34,11 +39,6 @@ export default function RenewalStatusWidget({ players, payments, seasonConfig })
   const progresoRenovacion = totalJugadores > 0 
     ? Math.round((renovados.length / totalJugadores) * 100) 
     : 0;
-
-  // Si no hay proceso de renovación activo, no mostrar widget
-  if (!seasonConfig?.permitir_renovaciones) {
-    return null;
-  }
 
   // Si todo está completo, mostrar versión compacta
   if (pendientesRenovar.length === 0 && cuotasPendientes.length === 0) {

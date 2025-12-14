@@ -566,8 +566,8 @@ export default function ParentDashboard() {
           </Card>
         )}
 
-        {/* Widget de estado de renovaciones - si permitir_renovaciones está activo */}
-        {!playersLoading && activeSeason?.permitir_renovaciones && myPlayers.length > 0 && (
+        {/* Widget de estado de renovaciones REMOVIDO - solo mostrar si hay jugadores pendientes */}
+        {!playersLoading && activeSeason?.permitir_renovaciones && myPlayers.length > 0 && myPlayers.some(p => p.estado_renovacion === "pendiente" && p.temporada_renovacion === activeSeason?.temporada) && (
           <RenewalStatusWidget 
             players={myPlayers} 
             payments={payments}
