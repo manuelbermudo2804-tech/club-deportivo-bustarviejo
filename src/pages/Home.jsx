@@ -324,8 +324,17 @@ export default function Home() {
     
     if (isAdmin || isTreasurer) {
       // Admin y Tesorero ven TODOS los pagos del club
-      pendingPayments = payments?.filter(p => p.estado === "Pendiente" && p.is_deleted !== true).length || 0;
-      reviewPayments = payments?.filter(p => p.estado === "En revisión" && p.is_deleted !== true).length || 0;
+      // NO contar pagos ya reconciliados como pendientes
+      pendingPayments = payments?.filter(p => 
+        p.estado === "Pendiente" && 
+        p.is_deleted !== true && 
+        p.reconciliado_banco !== true
+      ).length || 0;
+      reviewPayments = payments?.filter(p => 
+        p.estado === "En revisión" && 
+        p.is_deleted !== true && 
+        p.reconciliado_banco !== true
+      ).length || 0;
     } else if (user && !isAdmin && !isCoach && !isCoordinator && !isTreasurer) {
       // Padres ven SOLO pagos de sus jugadores
       const myPlayerIds = players?.filter(p => 
