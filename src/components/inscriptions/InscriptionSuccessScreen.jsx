@@ -22,9 +22,9 @@ export default function InscriptionSuccessScreen({
   }, []);
 
   return (
-    <div className="fixed inset-0 z-[100] bg-black/70 flex items-center justify-center p-4 overflow-y-auto">
-      <div className="min-h-full flex items-center justify-center py-8">
-        <Card className="max-w-2xl w-full border-4 border-green-500 shadow-2xl animate-fade-in-scale">
+    <div className="fixed inset-0 z-[100] bg-black/70 overflow-y-auto">
+      <div className="min-h-screen flex items-start justify-center p-4 py-8">
+        <Card className="max-w-2xl w-full border-4 border-green-500 shadow-2xl animate-fade-in-scale my-auto">
           <CardContent className="pt-8 space-y-6 relative">
           
           <Button
