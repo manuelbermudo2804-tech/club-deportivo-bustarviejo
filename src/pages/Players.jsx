@@ -17,6 +17,7 @@ import PlayerForm from "../components/players/PlayerForm";
 import PlayerProfileDialog from "../components/players/PlayerProfileDialog";
 import PlayerCardSkeleton from "../components/skeletons/PlayerCardSkeleton";
 import RenewalStatsPanel from "../components/players/RenewalStatsPanel";
+import CustomPaymentPlanForm from "../components/payments/CustomPaymentPlanForm";
 
 export default function Players() {
   const [showForm, setShowForm] = useState(false);
@@ -35,6 +36,8 @@ export default function Players() {
   const [isCoach, setIsCoach] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const ITEMS_PER_PAGE = 20;
+  const [showCustomPlanForm, setShowCustomPlanForm] = useState(false);
+  const [selectedPlayerForPlan, setSelectedPlayerForPlan] = useState(null);
   
   const queryClient = useQueryClient();
 
@@ -90,6 +93,24 @@ export default function Players() {
     queryFn: async () => {
       const configs = await base44.entities.SeasonConfig.list();
       return configs.find(c => c.activa === true);
+    },
+  });
+
+  const createCustomPlanMutation = useMutation({
+    mutationFn: async (planData) => {
+      const currentUser = await base44.auth.me();
+      return base44.entities.CustomPaymentPlan.create({
+        ...planData,
+        aprobado_por: currentUser.email,
+        aprobado_por_nombre: currentUser.full_name,
+        fecha_aprobacion: new Date().toISOString()
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['customPaymentPlans'] });
+      setShowCustomPlanForm(false);
+      setSelectedPlayerForPlan(null);
+      toast.success("Plan personalizado creado correctamente");
     },
   });
 
@@ -640,6 +661,10 @@ export default function Players() {
                   payments={payments}
                   seasonConfig={activeSeason}
                   isCoachOrCoordinator={isCoach || user?.es_coordinador}
+                  onCreateCustomPlan={isAdmin ? (p) => {
+                    setSelectedPlayerForPlan(p);
+                    setShowCustomPlanForm(true);
+                  } : null}
                 />
               ))}
             </AnimatePresence>
@@ -717,6 +742,18 @@ export default function Players() {
           initialTab={initialTab}
         />
       )}
+
+      <CustomPaymentPlanForm
+        open={showCustomPlanForm}
+        onClose={() => {
+          setShowCustomPlanForm(false);
+          setSelectedPlayerForPlan(null);
+        }}
+        player={selectedPlayerForPlan}
+        existingPlan={null}
+        onSubmit={(planData) => createCustomPlanMutation.mutate(planData)}
+        isSubmitting={createCustomPlanMutation.isPending}
+      />
     </div>
   );
 }
