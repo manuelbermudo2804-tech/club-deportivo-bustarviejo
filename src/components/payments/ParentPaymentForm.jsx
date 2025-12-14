@@ -192,6 +192,7 @@ export default function ParentPaymentForm({ players, payments = [], onSubmit, on
       }
       
       // Verificar el tipo de pago ya usado (incluyendo Pendientes)
+      // Priorizar cualquier pago existente (Pendiente, En revisión, o Pagado)
       const primerPago = jugadorPayments.find(p => p.estado === "Pagado" || p.estado === "En revisión" || p.estado === "Pendiente");
       if (primerPago) {
         setTipoPagoFijado(primerPago.tipo_pago);
@@ -211,14 +212,16 @@ export default function ParentPaymentForm({ players, payments = [], onSubmit, on
         mesSeleccionado = mesesDisponibles[0] || "Junio";
       }
       
-      // Si hay tipo fijado, usarlo. Si viene un mes forzado distinto de Junio, asumir "Tres meses"
+      // Determinar el tipo de pago correcto
       let tipoPago;
       if (primerPago) {
+        // Si ya hay un pago registrado, usar su tipo (Pendiente, En revisión, o Pagado)
         tipoPago = primerPago.tipo_pago;
       } else if (forcedMonth && forcedMonth !== "Junio") {
         // Si viene un mes forzado como Septiembre o Diciembre, es porque ya decidió pagar en tres cuotas
         tipoPago = "Tres meses";
       } else {
+        // Por defecto, mantener el tipo actual del formulario
         tipoPago = currentPayment.tipo_pago;
       }
       
