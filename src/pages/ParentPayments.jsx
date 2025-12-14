@@ -603,7 +603,7 @@ Email: cdbustarviejo@gmail.com
                       </div>
                     )}
 
-                    {allPlayerPayments.length === 0 ? (
+                    {displayPayments.filter(p => !p.isVirtual).length === 0 ? (
                       <div className="text-center py-8 text-slate-500">
                         <p>No hay pagos registrados para este jugador</p>
                         {!showForm && (
