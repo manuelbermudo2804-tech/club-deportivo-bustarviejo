@@ -905,10 +905,9 @@ export default function Payments() {
                      const allPlayerPayments = filteredPayments.filter(p => p.jugador_id === player.id);
 
                       // Determinar meses según tipo de pago REAL (no del player.tipo_pago)
-                      // Si tiene un pago "Único" pagado o en revisión, solo mostrar Junio
+                      // Si tiene un pago "Único" (en cualquier estado), solo mostrar Junio
                       const hasPagoUnico = allPlayerPayments.some(p => 
-                        (p.tipo_pago === "Único" || p.tipo_pago === "único") && 
-                        (p.estado === "Pagado" || p.estado === "En revisión")
+                        p.tipo_pago === "Único" || p.tipo_pago === "único"
                       );
 
                       // Si tiene pago único, solo mostrar ese pago (Junio), ignorar los demás
