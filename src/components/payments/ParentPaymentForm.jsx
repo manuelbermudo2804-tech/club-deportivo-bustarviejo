@@ -163,7 +163,7 @@ export default function ParentPaymentForm({ players, payments = [], onSubmit, on
     if (player) {
       setSelectedPlayer(player);
       
-      // Verificar pagos existentes del jugador en la temporada ACTIVA
+      // Verificar pagos existentes del jugador en la temporada ACTIVA (incluyendo TODOS los estados)
       const temporadaActiva = seasonConfig?.temporada || currentPayment.temporada;
       const jugadorPayments = payments.filter(p => 
         p.jugador_id === playerId && 
@@ -191,9 +191,10 @@ export default function ParentPaymentForm({ players, payments = [], onSubmit, on
         return;
       }
       
-      // Verificar el tipo de pago ya usado (incluyendo Pendientes)
-      // Priorizar cualquier pago existente (Pendiente, En revisión, o Pagado)
-      const primerPago = jugadorPayments.find(p => p.estado === "Pagado" || p.estado === "En revisión" || p.estado === "Pendiente");
+      // CRÍTICO: Detectar tipo de pago desde CUALQUIER cuota existente (Pendiente, En revisión, o Pagado)
+      // Si hay AL MENOS UNA cuota con cualquier estado, fijar el tipo de pago
+      const primerPago = jugadorPayments.length > 0 ? jugadorPayments[0] : null;
+      
       if (primerPago) {
         setTipoPagoFijado(primerPago.tipo_pago);
       } else {
