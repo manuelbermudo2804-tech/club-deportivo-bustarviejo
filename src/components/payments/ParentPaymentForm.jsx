@@ -194,12 +194,9 @@ export default function ParentPaymentForm({ players, payments = [], onSubmit, on
       // CRÍTICO: Detectar tipo de pago desde CUALQUIER cuota existente (Pendiente, En revisión, o Pagado)
       // Si hay AL MENOS UNA cuota con cualquier estado, fijar el tipo de pago
       const primerPago = jugadorPayments.length > 0 ? jugadorPayments[0] : null;
+      const tipoPagoExistente = primerPago ? primerPago.tipo_pago : null;
       
-      if (primerPago) {
-        setTipoPagoFijado(primerPago.tipo_pago);
-      } else {
-        setTipoPagoFijado(null);
-      }
+      setTipoPagoFijado(tipoPagoExistente);
       
       const cuotas = getCuotasFromConfig(player.deporte, categoryConfigs);
       const descuento = player.tiene_descuento_hermano ? (player.descuento_aplicado || 0) : 0;
@@ -213,18 +210,8 @@ export default function ParentPaymentForm({ players, payments = [], onSubmit, on
         mesSeleccionado = mesesDisponibles[0] || "Junio";
       }
       
-      // Determinar el tipo de pago correcto
-      let tipoPago;
-      if (primerPago) {
-        // Si ya hay un pago registrado, usar su tipo (Pendiente, En revisión, o Pagado)
-        tipoPago = primerPago.tipo_pago;
-      } else if (forcedMonth && forcedMonth !== "Junio") {
-        // Si viene un mes forzado como Septiembre o Diciembre, es porque ya decidió pagar en tres cuotas
-        tipoPago = "Tres meses";
-      } else {
-        // Por defecto, mantener el tipo actual del formulario
-        tipoPago = currentPayment.tipo_pago;
-      }
+      // USAR el tipo de pago de las cuotas existentes (SIEMPRE tiene prioridad sobre todo)
+      const tipoPago = tipoPagoExistente || currentPayment.tipo_pago;
       
       const cantidad = tipoPago === "Único" 
         ? getTotalConDescuentoFromConfig(player.deporte, categoryConfigs, descuento)
