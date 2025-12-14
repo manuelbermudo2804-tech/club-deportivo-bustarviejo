@@ -651,11 +651,18 @@ Por solo *25€/año* seguirás apoyando a nuestros jóvenes deportistas.
     memberTypeFilter !== "all"
   ].filter(Boolean).length;
 
-  // Stats de externos
-  const currentSeasonExternos = members.filter(m => m.temporada === seasonConfig?.temporada && isExternalMember(m)).length;
+  // Stats de externos - SOLO ACTIVOS
+  const currentSeasonExternos = members.filter(m => 
+    m.temporada === seasonConfig?.temporada && 
+    m.activo !== false && 
+    isExternalMember(m)
+  ).length;
 
-  // Estadísticas de la temporada actual
-  const currentSeasonMembers = members.filter(m => m.temporada === seasonConfig?.temporada);
+  // Estadísticas de la temporada actual - SOLO SOCIOS ACTIVOS
+  const currentSeasonMembers = members.filter(m => 
+    m.temporada === seasonConfig?.temporada && 
+    m.activo !== false
+  );
   const stats = {
     total: currentSeasonMembers.length,
     pagados: currentSeasonMembers.filter(m => m.estado_pago === "Pagado").length,
@@ -665,7 +672,7 @@ Por solo *25€/año* seguirás apoyando a nuestros jóvenes deportistas.
     renovaciones: currentSeasonMembers.filter(m => m.tipo_inscripcion === "Renovación").length,
   };
 
-  // Detectar nuevos socios recientes (últimos 7 días) para alertas
+  // Detectar nuevos socios recientes (últimos 7 días) para alertas - SOLO ACTIVOS
   const sevenDaysAgo = new Date();
   sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
   const recentMembers = currentSeasonMembers.filter(m => {
@@ -673,7 +680,7 @@ Por solo *25€/año* seguirás apoyando a nuestros jóvenes deportistas.
     return createdDate >= sevenDaysAgo;
   });
   
-  // Socios pendientes de revisar justificante (En revisión)
+  // Socios pendientes de revisar justificante (En revisión) - SOLO ACTIVOS
   const pendingReviewMembers = currentSeasonMembers.filter(m => 
     m.estado_pago === "En revisión" && (m.justificante_url || m.justificante_base64)
   );
