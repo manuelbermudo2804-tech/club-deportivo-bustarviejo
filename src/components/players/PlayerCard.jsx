@@ -253,18 +253,20 @@ export default function PlayerCard({ player, onEdit, onViewProfile, isParent = f
             </div>
           )}
 
-          {/* Badge de estado + renovación */}
+          {/* Badge de estado + renovación - SOLO mostrar badges de renovación si permitir_renovaciones está activo */}
           <div className="absolute top-3 left-3 flex flex-col gap-1">
-            {player.estado_renovacion === "pendiente" ? (
+            {player.estado_renovacion === "pendiente" && seasonConfig?.permitir_renovaciones ? (
               <Badge className="bg-red-600 text-white animate-pulse shadow-lg">
                 ⚠️ RENOVAR JUGADOR
               </Badge>
-            ) : player.estado_renovacion === "no_renueva" ? (
+            ) : player.estado_renovacion === "no_renueva" && seasonConfig?.permitir_renovaciones ? (
               <Badge className="bg-slate-600 text-white shadow-lg">
                 ❌ NO RENUEVA
               </Badge>
             ) : player.activo ? (
               <Badge className="bg-green-500 text-white">Activo</Badge>
+            ) : !seasonConfig?.permitir_renovaciones && !player.activo ? (
+              <Badge className="bg-slate-500 text-white">Inactivo</Badge>
             ) : (
               <Badge className="bg-yellow-500 text-white animate-pulse">⚠️ PENDIENTE RENOVAR</Badge>
             )}
@@ -359,8 +361,8 @@ export default function PlayerCard({ player, onEdit, onViewProfile, isParent = f
             </div>
           )}
 
-          {/* Sugerencia de renovación con cambio de categoría */}
-          {player.estado_renovacion === "pendiente" && needsCategoryChange && isParent && (
+          {/* Sugerencia de renovación con cambio de categoría - SOLO si permitir_renovaciones está activo */}
+          {player.estado_renovacion === "pendiente" && needsCategoryChange && isParent && seasonConfig?.permitir_renovaciones && (
             <div className="bg-gradient-to-r from-purple-50 to-purple-100 border-2 border-purple-400 rounded-lg p-3 space-y-2">
               <div className="flex items-start gap-2">
                 <AlertCircle className="w-5 h-5 text-purple-700 mt-0.5 flex-shrink-0" />
@@ -459,8 +461,8 @@ export default function PlayerCard({ player, onEdit, onViewProfile, isParent = f
             </div>
           )}
 
-          {/* Renovar sin cambio de categoría */}
-          {player.estado_renovacion === "pendiente" && !needsCategoryChange && isParent && (
+          {/* Renovar sin cambio de categoría - SOLO si permitir_renovaciones está activo */}
+          {player.estado_renovacion === "pendiente" && !needsCategoryChange && isParent && seasonConfig?.permitir_renovaciones && (
             <div className="bg-gradient-to-r from-orange-50 to-orange-100 border-2 border-orange-400 rounded-lg p-3 space-y-2">
               <div className="flex items-start gap-2">
                 <AlertCircle className="w-5 h-5 text-orange-700 mt-0.5 flex-shrink-0" />
