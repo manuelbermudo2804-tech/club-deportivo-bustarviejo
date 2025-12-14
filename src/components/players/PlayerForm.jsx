@@ -22,11 +22,11 @@ import { Badge } from "@/components/ui/badge";
 // Función para obtener las categorías con edades
 const getCategoriesWithYears = () => {
   return [
-    { value: "Fútbol Pre-Benjamín (Mixto)", label: `⚽ Fútbol Pre-Benjamín (Mixto) - 4-5 años` },
-    { value: "Fútbol Benjamín (Mixto)", label: `⚽ Fútbol Benjamín (Mixto) - 6-7 años` },
-    { value: "Fútbol Alevín (Mixto)", label: `⚽ Fútbol Alevín (Mixto) - 8-9 años` },
-    { value: "Fútbol Infantil (Mixto)", label: `⚽ Fútbol Infantil (Mixto) - 10-11 años` },
-    { value: "Fútbol Cadete", label: `⚽ Fútbol Cadete - 12-15 años` },
+    { value: "Fútbol Pre-Benjamín (Mixto)", label: `⚽ Fútbol Pre-Benjamín (Mixto) - 6-7 años` },
+    { value: "Fútbol Benjamín (Mixto)", label: `⚽ Fútbol Benjamín (Mixto) - 8-9 años` },
+    { value: "Fútbol Alevín (Mixto)", label: `⚽ Fútbol Alevín (Mixto) - 10-11 años` },
+    { value: "Fútbol Infantil (Mixto)", label: `⚽ Fútbol Infantil (Mixto) - 12-13 años` },
+    { value: "Fútbol Cadete", label: `⚽ Fútbol Cadete - 14-15 años` },
     { value: "Fútbol Juvenil", label: `⚽ Fútbol Juvenil - 16-18 años` },
     { value: "Fútbol Aficionado", label: `⚽ Fútbol Aficionado - 19+ años` },
     { value: "Fútbol Femenino", label: "⚽ Fútbol Femenino" },
@@ -59,31 +59,25 @@ const calculateAge = (birthDate) => {
   return age;
 };
 
-// Función para sugerir categoría según el AÑO DE NACIMIENTO del jugador
+// Función para sugerir categoría según edad
 const suggestCategoryByAge = (birthDate) => {
-  if (!birthDate || birthDate.length !== 10) return null;
+  const age = calculateAge(birthDate);
+  if (age === null) return null;
   
-  const birthYear = parseInt(birthDate.substring(0, 4));
-  if (isNaN(birthYear)) return null;
-  
-  const currentYear = new Date().getFullYear();
-  const currentMonth = new Date().getMonth() + 1;
-  const seasonStartYear = currentMonth >= 9 ? currentYear : currentYear - 1;
-  
-  // Categorías por año de nacimiento respecto a la temporada actual
-  // Pre-Benjamín: nacidos en seasonStartYear-5 o seasonStartYear-6
-  // Benjamín: nacidos en seasonStartYear-7 o seasonStartYear-8
-  // etc.
-  
-  if (birthYear >= seasonStartYear - 6 && birthYear <= seasonStartYear - 5) return "Fútbol Pre-Benjamín (Mixto)";
-  if (birthYear >= seasonStartYear - 8 && birthYear <= seasonStartYear - 7) return "Fútbol Benjamín (Mixto)";
-  if (birthYear >= seasonStartYear - 10 && birthYear <= seasonStartYear - 9) return "Fútbol Alevín (Mixto)";
-  if (birthYear >= seasonStartYear - 12 && birthYear <= seasonStartYear - 11) return "Fútbol Infantil (Mixto)";
-  if (birthYear >= seasonStartYear - 14 && birthYear <= seasonStartYear - 13) return "Fútbol Cadete";
-  if (birthYear >= seasonStartYear - 17 && birthYear <= seasonStartYear - 15) return "Fútbol Juvenil";
-  if (birthYear <= seasonStartYear - 18) return "Fútbol Aficionado";
-  
-  return null;
+  // Pre-Benjamín (6-7 años) - También incluye 4-5 años al no existir categoría Chupetín
+  if (age <= 7) return "Fútbol Pre-Benjamín (Mixto)";
+  // Benjamín (8-9 años)
+  if (age <= 9) return "Fútbol Benjamín (Mixto)";
+  // Alevín (10-11 años)
+  if (age <= 11) return "Fútbol Alevín (Mixto)";
+  // Infantil (12-13 años)
+  if (age <= 13) return "Fútbol Infantil (Mixto)";
+  // Cadete (14-15 años)
+  if (age <= 15) return "Fútbol Cadete";
+  // Juvenil (16-18 años)
+  if (age <= 18) return "Fútbol Juvenil";
+  // Aficionado (19+ años)
+  return "Fútbol Aficionado";
 };
 
 export default function PlayerForm({ player, onSubmit, onCancel, isSubmitting, isParent = false, allPlayers = [] }) {

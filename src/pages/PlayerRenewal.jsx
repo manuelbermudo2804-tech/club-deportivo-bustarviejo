@@ -48,21 +48,19 @@ const calculateAge = (birthDate) => {
 const suggestCategory = (birthDate) => {
   const age = calculateAge(birthDate);
   
-  // Chupetín/Querubín (4-5) -> Pre-Benjamín (no hay categoría separada)
-  if (age <= 5) return "Fútbol Pre-Benjamín (Mixto)";
-  // Prebenjamín (6-7)
+  // Pre-Benjamín (6-7 años) - También incluye 4-5 años al no existir Chupetín
   if (age <= 7) return "Fútbol Pre-Benjamín (Mixto)";
-  // Benjamín (8-9)
+  // Benjamín (8-9 años)
   if (age <= 9) return "Fútbol Benjamín (Mixto)";
-  // Alevín (10-11)
+  // Alevín (10-11 años)
   if (age <= 11) return "Fútbol Alevín (Mixto)";
-  // Infantil (12-13)
+  // Infantil (12-13 años)
   if (age <= 13) return "Fútbol Infantil (Mixto)";
-  // Cadete (14-15)
+  // Cadete (14-15 años)
   if (age <= 15) return "Fútbol Cadete";
-  // Juvenil (16-18)
+  // Juvenil (16-18 años)
   if (age <= 18) return "Fútbol Juvenil";
-  // Absoluta/Sénior (19+)
+  // Aficionado (19+ años)
   return "Fútbol Aficionado";
 };
 
