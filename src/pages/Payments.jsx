@@ -21,6 +21,8 @@ import BankReconciliation from "../components/payments/BankReconciliation";
 import ExportButton from "../components/ExportButton";
 import { getCuotasPorCategoriaSync, getImportePorCategoriaYMesSync as getImportePorMes } from "../components/payments/paymentAmounts";
 import { sendPaymentReceipt, createPlayerPaymentReceiptData } from "../components/receipts/PaymentReceiptPDF";
+import CustomPaymentPlanForm from "../components/payments/CustomPaymentPlanForm";
+import CustomPaymentPlansList from "../components/payments/CustomPaymentPlansList";
 
 const getCurrentSeason = () => {
   const now = new Date();
@@ -78,6 +80,9 @@ export default function Payments() {
   const [activeTab, setActiveTab] = useState("pagos");
   const [playerFilter, setPlayerFilter] = useState(jugadorIdFromUrl || "all");
   const [previewImage, setPreviewImage] = useState(null);
+  const [showPlanDialog, setShowPlanDialog] = useState(false);
+  const [editingPlan, setEditingPlan] = useState(null);
+  const [selectedPlayerForPlan, setSelectedPlayerForPlan] = useState(null);
   
   // Fetch active season config
   const { data: activeSeasonConfig } = useQuery({
@@ -178,6 +183,13 @@ export default function Payments() {
     refetchOnMount: 'always',
   });
 
+  const { data: customPaymentPlans = [] } = useQuery({
+    queryKey: ['customPaymentPlans'],
+    queryFn: () => base44.entities.CustomPaymentPlan.list('-created_date'),
+    initialData: [],
+    enabled: !!user,
+  });
+
   const createPaymentMutation = useMutation({
     mutationFn: (paymentData) => base44.entities.Payment.create(paymentData),
     onSuccess: () => {
@@ -195,6 +207,44 @@ export default function Payments() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['myPayments'] });
       toast.success("Pago actualizado correctamente");
+    },
+  });
+
+  const createCustomPlanMutation = useMutation({
+    mutationFn: async (planData) => {
+      const currentUser = await base44.auth.me();
+      return base44.entities.CustomPaymentPlan.create({
+        ...planData,
+        aprobado_por: currentUser.email,
+        aprobado_por_nombre: currentUser.full_name,
+        fecha_aprobacion: new Date().toISOString()
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['customPaymentPlans'] });
+      setShowPlanDialog(false);
+      setEditingPlan(null);
+      setSelectedPlayerForPlan(null);
+      toast.success("Plan personalizado creado correctamente");
+    },
+  });
+
+  const updateCustomPlanMutation = useMutation({
+    mutationFn: ({ id, planData }) => base44.entities.CustomPaymentPlan.update(id, planData),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['customPaymentPlans'] });
+      setShowPlanDialog(false);
+      setEditingPlan(null);
+      setSelectedPlayerForPlan(null);
+      toast.success("Plan actualizado correctamente");
+    },
+  });
+
+  const deleteCustomPlanMutation = useMutation({
+    mutationFn: (planId) => base44.entities.CustomPaymentPlan.update(planId, { activo: false }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['customPaymentPlans'] });
+      toast.success("Plan desactivado");
     },
   });
 
@@ -536,6 +586,14 @@ export default function Payments() {
     }));
   };
 
+  const handleSubmitCustomPlan = (planData) => {
+    if (editingPlan) {
+      updateCustomPlanMutation.mutate({ id: editingPlan.id, planData });
+    } else {
+      createCustomPlanMutation.mutate(planData);
+    }
+  };
+
   return (
     <div className="p-6 lg:p-8 space-y-6">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
@@ -707,10 +765,15 @@ export default function Payments() {
         <TabsList className="w-full">
           <TabsTrigger value="pagos" className="flex-1">Gestión de Pagos</TabsTrigger>
           {isAdmin && (
-            <TabsTrigger value="reconciliacion" className="flex-1">
-              <FileSpreadsheet className="w-4 h-4 mr-2" />
-              Reconciliación Bancaria
-            </TabsTrigger>
+            <>
+              <TabsTrigger value="planes" className="flex-1">
+                💰 Planes Personalizados
+              </TabsTrigger>
+              <TabsTrigger value="reconciliacion" className="flex-1">
+                <FileSpreadsheet className="w-4 h-4 mr-2" />
+                Reconciliación Bancaria
+              </TabsTrigger>
+            </>
           )}
         </TabsList>
 
@@ -989,33 +1052,48 @@ export default function Payments() {
                       return (
                         <Card key={player.id} className="border hover:shadow-lg transition-shadow">
                           <CardHeader className="bg-gradient-to-r from-slate-50 to-slate-100 border-b p-3 lg:p-4">
-                            <div className="flex items-center justify-between gap-2">
-                              <div className="flex items-center gap-2 min-w-0">
-                                {player.foto_url ? (
-                                  <img src={player.foto_url} className="w-8 h-8 lg:w-10 lg:h-10 rounded-full object-cover flex-shrink-0" alt="" />
-                                ) : (
-                                  <div className="w-8 h-8 lg:w-10 lg:h-10 rounded-full bg-orange-500 flex items-center justify-center text-white font-bold text-xs lg:text-sm flex-shrink-0">
-                                    {player.nombre.charAt(0)}
-                                  </div>
-                                )}
-                                <div className="min-w-0">
-                                  <h3 className="font-bold text-sm lg:text-base text-slate-900 truncate">{player.nombre}</h3>
-                                  <p className="text-xs text-slate-600 truncate">{player.deporte || "Sin categoría"}</p>
-                                </div>
-                              </div>
-                              <div className="flex gap-2">
-                                {totalPaymentsDue > 0 && (
-                                  <Badge className="bg-red-500 text-white text-xs">
-                                    {totalPaymentsDue} Pendiente{totalPaymentsDue > 1 ? 's' : ''}
-                                  </Badge>
-                                )}
-                                {reviewPayments.length > 0 && (
-                                  <Badge className="bg-orange-500 text-white text-xs">
-                                    {reviewPayments.length} Revisión
-                                  </Badge>
-                                )}
-                              </div>
-                            </div>
+                          <div className="flex items-center justify-between gap-2">
+                          <div className="flex items-center gap-2 min-w-0 flex-1">
+                          {player.foto_url ? (
+                          <img src={player.foto_url} className="w-8 h-8 lg:w-10 lg:h-10 rounded-full object-cover flex-shrink-0" alt="" />
+                          ) : (
+                          <div className="w-8 h-8 lg:w-10 lg:h-10 rounded-full bg-orange-500 flex items-center justify-center text-white font-bold text-xs lg:text-sm flex-shrink-0">
+                          {player.nombre.charAt(0)}
+                          </div>
+                          )}
+                          <div className="min-w-0 flex-1">
+                          <h3 className="font-bold text-sm lg:text-base text-slate-900 truncate">{player.nombre}</h3>
+                          <p className="text-xs text-slate-600 truncate">{player.deporte || "Sin categoría"}</p>
+                          </div>
+                          </div>
+                          <div className="flex gap-2 items-center">
+                          {isAdmin && (
+                          <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => {
+                          setSelectedPlayerForPlan(player);
+                          setEditingPlan(customPaymentPlans.find(p => p.jugador_id === player.id && p.activo));
+                          setShowPlanDialog(true);
+                          }}
+                          className="text-xs h-7 px-2"
+                          title="Crear plan de pago personalizado"
+                          >
+                          💰
+                          </Button>
+                          )}
+                          {totalPaymentsDue > 0 && (
+                          <Badge className="bg-red-500 text-white text-xs">
+                          {totalPaymentsDue} Pendiente{totalPaymentsDue > 1 ? 's' : ''}
+                          </Badge>
+                          )}
+                          {reviewPayments.length > 0 && (
+                          <Badge className="bg-orange-500 text-white text-xs">
+                          {reviewPayments.length} Revisión
+                          </Badge>
+                          )}
+                          </div>
+                          </div>
                           </CardHeader>
                           <CardContent className="p-3 lg:p-4">
                             <div className="grid grid-cols-3 gap-2 mb-3">
@@ -1116,15 +1194,46 @@ export default function Payments() {
         </TabsContent>
 
         {isAdmin && (
-          <TabsContent value="reconciliacion">
-            <BankReconciliation
-              payments={payments}
-              players={players}
-              onReconcile={handleReconcile}
-            />
-          </TabsContent>
+          <>
+            <TabsContent value="planes" className="space-y-4">
+              <CustomPaymentPlansList
+                plans={customPaymentPlans}
+                players={players}
+                onEdit={(plan) => {
+                  setEditingPlan(plan);
+                  setSelectedPlayerForPlan(players.find(p => p.id === plan.jugador_id));
+                  setShowPlanDialog(true);
+                }}
+                onDelete={(planId) => deleteCustomPlanMutation.mutate(planId)}
+              />
+            </TabsContent>
+
+            <TabsContent value="reconciliacion">
+              <BankReconciliation
+                payments={payments}
+                players={players}
+                onReconcile={handleReconcile}
+              />
+            </TabsContent>
+          </>
         )}
       </Tabs>
+
+      {/* Dialog de crear/editar plan */}
+      {showPlanDialog && selectedPlayerForPlan && (
+        <CustomPaymentPlanForm
+          open={showPlanDialog}
+          onClose={() => {
+            setShowPlanDialog(false);
+            setEditingPlan(null);
+            setSelectedPlayerForPlan(null);
+          }}
+          player={selectedPlayerForPlan}
+          existingPlan={editingPlan}
+          onSubmit={handleSubmitCustomPlan}
+          isSubmitting={createCustomPlanMutation.isPending || updateCustomPlanMutation.isPending}
+        />
+      )}
 
       {/* Modal de vista previa */}
       <Dialog open={!!previewImage} onOpenChange={() => setPreviewImage(null)}>
