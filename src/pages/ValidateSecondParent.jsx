@@ -318,7 +318,10 @@ Ahora puedes acceder a la aplicación del club con tu cuenta y ver toda la infor
             <Alert className="bg-green-50 border-green-200">
               <Shield className="h-4 w-4 text-green-600" />
               <AlertDescription className="text-green-800 text-sm">
-                Al completar este registro podrás ver la misma información que el primer progenitor: convocatorias, pagos, chat del equipo, etc.
+                <strong>✅ Acceso completo:</strong> Al completar este registro tendrás acceso total a la app con tu propia cuenta.
+                <p className="mt-2 text-xs">
+                  Verás exactamente lo mismo que el primer progenitor y podrás: hacer pagos, confirmar convocatorias, chatear con entrenadores, ver calendario, documentos, galería, etc.
+                </p>
               </AlertDescription>
             </Alert>
 

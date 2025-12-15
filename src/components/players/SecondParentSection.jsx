@@ -192,11 +192,11 @@ Hola <strong>${nombreDestino}</strong>,
 <td bgcolor="#f0fdf4" style="padding:15px;border-left:4px solid #22c55e;border-radius:0 8px 8px 0;">
 <p style="color:#166534;font-size:14px;margin:0;"><strong>✅ ¿Qué podrás hacer?</strong></p>
 <ul style="color:#166534;font-size:13px;margin:10px 0 0 0;padding-left:20px;">
-<li>Ver las convocatorias de partidos y confirmar asistencia</li>
-<li>Consultar pagos pendientes y realizados</li>
-<li>Chatear con los entrenadores del equipo</li>
-<li>Ver calendario de entrenamientos y eventos</li>
-<li>Acceder a la galería de fotos y documentos</li>
+<li><strong>Acceso completo:</strong> verás exactamente lo mismo que el primer progenitor</li>
+<li>Ver convocatorias de partidos y confirmar asistencia</li>
+<li>Hacer pagos de cuotas y ropa</li>
+<li>Chatear con entrenadores y coordinador</li>
+<li>Ver calendario, documentos, galería y eventos</li>
 </ul>
 </td>
 </tr>
@@ -312,7 +312,10 @@ Para completar tu registro, haz clic en el botón:
             <Alert className="bg-blue-50 border-blue-200">
               <Info className="h-4 w-4 text-blue-600" />
               <AlertDescription className="text-blue-800 text-sm">
-                <strong>👥 Acceso compartido:</strong> Si añades el email del segundo progenitor, recibirá una invitación para completar su registro y acceder a la app con su propia cuenta.
+                <strong>👥 Acceso compartido:</strong> El segundo progenitor recibirá una invitación para completar su registro y tendrá <strong>acceso completo</strong> a la app con su propia cuenta.
+                <p className="mt-2 text-xs">
+                  ✅ Verá exactamente lo mismo que el primer progenitor: puede hacer pagos, confirmar convocatorias, chatear con entrenadores, ver calendario, documentos, etc.
+                </p>
               </AlertDescription>
             </Alert>
 
