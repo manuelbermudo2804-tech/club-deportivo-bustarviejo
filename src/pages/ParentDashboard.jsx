@@ -344,8 +344,7 @@ export default function ParentDashboard() {
   myPlayers.forEach(player => {
     const playerPayments = payments.filter(p => 
       p.jugador_id === player.id && 
-      normalizeSeason(p.temporada) === normalizeSeason(currentSeason) &&
-      p.reconciliado_banco !== true
+      normalizeSeason(p.temporada) === normalizeSeason(currentSeason)
     );
     
     // Verificar si tiene plan personalizado
@@ -359,7 +358,7 @@ export default function ParentDashboard() {
       // Con plan personalizado
       customPlan.cuotas_personalizadas.forEach(cuota => {
         const payment = playerPayments.find(p => p.mes === cuota.mes);
-        
+
         if (!payment) {
           pagosSinJustificante++;
           // Verificar vencimiento
@@ -380,6 +379,7 @@ export default function ParentDashboard() {
         } else if (payment.estado === "En revisión") {
           pagosEnRevision++;
         }
+        // Si está "Pagado" o reconciliado → NO contar como pendiente
       });
     } else {
       // Sistema estándar
@@ -390,10 +390,12 @@ export default function ParentDashboard() {
       if (!hasPagoUnico) {
         ["Junio", "Septiembre", "Diciembre"].forEach(mes => {
           const payment = playerPayments.find(p => p.mes === mes);
-          
+
           // SOLO contar como pendiente si:
           // 1. No existe el pago, O
           // 2. Existe pero está en estado "Pendiente" Y NO tiene justificante
+          // 3. Existe y está en estado "En revisión"
+          // NO contar si está "Pagado" (aunque no esté reconciliado)
           if (!payment) {
             pagosSinJustificante++;
             // Verificar vencimiento
@@ -403,7 +405,7 @@ export default function ParentDashboard() {
             if (mes === "Junio") deadlineDate = new Date(year1, 5, 30);
             else if (mes === "Septiembre") deadlineDate = new Date(year1, 8, 15);
             else if (mes === "Diciembre") deadlineDate = new Date(year1, 11, 15);
-            
+
             if (deadlineDate && now >= deadlineDate) {
               overduePaymentsCount++;
             }
@@ -417,13 +419,14 @@ export default function ParentDashboard() {
             if (mes === "Junio") deadlineDate = new Date(year1, 5, 30);
             else if (mes === "Septiembre") deadlineDate = new Date(year1, 8, 15);
             else if (mes === "Diciembre") deadlineDate = new Date(year1, 11, 15);
-            
+
             if (deadlineDate && now >= deadlineDate) {
               overduePaymentsCount++;
             }
           } else if (payment.estado === "En revisión") {
             pagosEnRevision++;
           }
+          // Si payment.estado === "Pagado" → NO contar (aunque no esté reconciliado)
         });
       }
     }
