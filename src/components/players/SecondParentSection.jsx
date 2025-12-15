@@ -132,14 +132,13 @@ export default function SecondParentSection({
         fecha_expiracion: expirationDate.toISOString()
       });
 
-      // Enviar email con el diseño del club
+      // Enviar email con el diseño del club usando Resend
       const validationUrl = `${APP_URL}/ValidateSecondParent?token=${token}`;
       
-      await base44.integrations.Core.SendEmail({
-        from_name: "CD Bustarviejo",
+      await base44.functions.invoke('sendEmail', {
         to: currentPlayer.email_tutor_2,
         subject: `👋 ${currentUser?.full_name || "Un familiar"} te invita a unirte al CD Bustarviejo`,
-        body: generateInvitationEmail(
+        html: generateInvitationEmail(
           currentPlayer.nombre_tutor_2 || "Estimado/a",
           currentUser?.full_name || "Un familiar",
           currentPlayer.nombre,
