@@ -492,8 +492,8 @@ export default function Home() {
       // Pedidos de ropa en revisión
       pendingClothingOrders = clothingOrders?.filter(o => o.estado === "En revisión" || o.estado === "Pendiente").length || 0;
       
-      // Pedidos de lotería pendientes
-      pendingLotteryOrders = lotteryOrders?.filter(o => o.estado === "Pendiente" || o.estado === "En revisión").length || 0;
+      // Pedidos de lotería pendientes (sin pagar)
+      pendingLotteryOrders = lotteryOrders?.filter(o => !o.pagado).length || 0;
       
       // Solicitudes de socios pendientes (incluir "En revisión" Y "Pendiente")
       pendingMemberRequests = clubMembers?.filter(m => 
