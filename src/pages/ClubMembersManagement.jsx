@@ -92,18 +92,26 @@ export default function ClubMembersManagement() {
     enabled: !!seasonConfig?.temporada && members.length > 0,
   });
 
-  // Emails de padres con jugadores (desde Player entity Y desde ClubMember)
-  const parentEmails = new Set();
-  players.forEach(p => {
-    if (p.email_padre) parentEmails.add(p.email_padre.toLowerCase());
-    if (p.email_tutor_2) parentEmails.add(p.email_tutor_2.toLowerCase());
-  });
-  // También incluir socios que tienen jugadores_hijos o jugadores_relacionados
-  members.forEach(m => {
-    if ((m.jugadores_hijos?.length > 0 || m.jugadores_relacionados?.length > 0) && m.email) {
-      parentEmails.add(m.email.toLowerCase());
-    }
-  });
+  // Emails de padres con jugadores
+  const parentEmails = React.useMemo(() => {
+    const emails = new Set();
+    
+    // Desde jugadores registrados
+    players.forEach(p => {
+      if (p.email_padre) emails.add(p.email_padre.toLowerCase().trim());
+      if (p.email_tutor_2) emails.add(p.email_tutor_2.toLowerCase().trim());
+    });
+    
+    // Desde ClubMember con jugadores asociados
+    members.forEach(m => {
+      if ((m.jugadores_hijos?.length > 0 || m.jugadores_relacionados?.length > 0) && m.email) {
+        emails.add(m.email.toLowerCase().trim());
+      }
+    });
+    
+    console.log('[ClubMembersManagement] parentEmails construido:', Array.from(emails));
+    return emails;
+  }, [players, members]);
 
   // Obtener temporadas únicas para el filtro
   const availableSeasons = [...new Set(members.map(m => m.temporada).filter(Boolean))].sort().reverse();
