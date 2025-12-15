@@ -543,6 +543,11 @@ Email: cdbustarviejo@gmail.com
                 p.jugador_id === player.id && p.activo === true
               );
 
+              // Determinar tipo de pago (necesario para calcular cantidades después)
+              const hasPagoUnico = allPlayerPayments.some(p => 
+                p.tipo_pago === "Único" || p.tipo_pago === "único"
+              );
+
               // Determinar los meses que debería tener este jugador
               let allMonths;
               if (playerCustomPlan) {
@@ -550,9 +555,6 @@ Email: cdbustarviejo@gmail.com
                 allMonths = playerCustomPlan.cuotas_personalizadas.map(c => c.mes);
               } else {
                 // Lógica estándar (pago único vs tres meses)
-                const hasPagoUnico = allPlayerPayments.some(p => 
-                  p.tipo_pago === "Único" || p.tipo_pago === "único"
-                );
                 allMonths = hasPagoUnico
                   ? ["Junio"]
                   : ["Junio", "Septiembre", "Diciembre"];
