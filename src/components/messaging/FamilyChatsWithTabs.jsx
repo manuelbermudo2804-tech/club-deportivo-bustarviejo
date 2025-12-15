@@ -18,11 +18,11 @@ export default function FamilyChatsWithTabs({ isCoordinator, isCoach, Coordinato
         </div>
         
         <TabsContent value="coordinador" className="flex-1 mt-0 overflow-hidden">
-          <CoordinatorChatPage />
+          <CoordinatorChatPage embedded={true} />
         </TabsContent>
         
         <TabsContent value="entrenador" className="flex-1 mt-0 overflow-hidden">
-          <CoachParentChatPage />
+          <CoachParentChatPage embedded={true} />
         </TabsContent>
       </Tabs>
     );

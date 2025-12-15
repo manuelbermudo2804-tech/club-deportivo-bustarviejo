@@ -9,7 +9,7 @@ import CoachChatWindow from "../components/coach/CoachChatWindow";
 import CoachAwayMode from "../components/coach/CoachAwayMode";
 import CoachChatbotConfig from "../components/coach/CoachChatbotConfig";
 
-export default function CoachParentChat() {
+export default function CoachParentChat({ embedded = false }) {
   const [user, setUser] = useState(null);
   const [allPlayers, setAllPlayers] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState(null);
@@ -41,7 +41,7 @@ export default function CoachParentChat() {
 
   if (!user) {
     return (
-      <div className="h-[calc(100vh-100px)] flex items-center justify-center">
+      <div className="h-full flex items-center justify-center">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600"></div>
       </div>
     );
@@ -69,8 +69,8 @@ export default function CoachParentChat() {
     );
   }
 
-  return (
-    <div className="fixed inset-0 lg:inset-auto lg:absolute lg:top-0 lg:left-0 lg:right-0 lg:bottom-0 flex flex-col overflow-hidden pt-[100px] lg:pt-0 pb-0">
+  const chatContent = (
+    <>
       {/* Modal de configuración */}
       <Dialog open={showSettings} onOpenChange={setShowSettings}>
         <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
@@ -182,6 +182,16 @@ export default function CoachParentChat() {
           )}
         </div>
       </Card>
+    </>
+  );
+
+  if (embedded) {
+    return chatContent;
+  }
+
+  return (
+    <div className="fixed inset-0 lg:inset-auto lg:absolute lg:top-0 lg:left-0 lg:right-0 lg:bottom-0 flex flex-col overflow-hidden pt-[100px] lg:pt-0 pb-0">
+      {chatContent}
     </div>
   );
 }
