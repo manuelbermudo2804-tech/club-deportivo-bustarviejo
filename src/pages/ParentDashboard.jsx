@@ -356,8 +356,15 @@ export default function ParentDashboard() {
             const vencimiento = new Date(cuota.fecha_vencimiento);
             if (now > vencimiento) overduePaymentsCount++;
           }
-        } else if (payment.estado === "Pendiente") {
+        } else if (payment.estado === "Pendiente" && !payment.justificante_url) {
+          // Solo contar como "sin justificante" si NO tiene justificante subido
           pagosSinJustificante++;
+          // Verificar vencimiento solo si NO tiene justificante
+          if (cuota.fecha_vencimiento) {
+            const now = new Date();
+            const vencimiento = new Date(cuota.fecha_vencimiento);
+            if (now > vencimiento) overduePaymentsCount++;
+          }
         } else if (payment.estado === "En revisión") {
           pagosEnRevision++;
         }
@@ -373,10 +380,26 @@ export default function ParentDashboard() {
         ["Junio", "Septiembre", "Diciembre"].forEach(mes => {
           const payment = playerPayments.find(p => p.mes === mes);
           
-          if (!payment || payment.estado === "Pendiente") {
+          // SOLO contar como pendiente si:
+          // 1. No existe el pago, O
+          // 2. Existe pero está en estado "Pendiente" Y NO tiene justificante
+          if (!payment) {
             pagosSinJustificante++;
-            
             // Verificar vencimiento
+            const now = new Date();
+            const [year1] = currentSeason.split('/').map(y => parseInt(y));
+            let deadlineDate;
+            if (mes === "Junio") deadlineDate = new Date(year1, 5, 30);
+            else if (mes === "Septiembre") deadlineDate = new Date(year1, 8, 15);
+            else if (mes === "Diciembre") deadlineDate = new Date(year1, 11, 15);
+            
+            if (deadlineDate && now > deadlineDate) {
+              overduePaymentsCount++;
+            }
+          } else if (payment.estado === "Pendiente" && !payment.justificante_url) {
+            // Solo si NO tiene justificante subido
+            pagosSinJustificante++;
+            // Verificar vencimiento solo si NO tiene justificante
             const now = new Date();
             const [year1] = currentSeason.split('/').map(y => parseInt(y));
             let deadlineDate;
