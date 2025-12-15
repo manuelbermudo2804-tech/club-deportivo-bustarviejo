@@ -151,15 +151,19 @@ export default function SeasonManagement() {
 
   // Mutación para actualizar configuración de temporada
   const updateSeasonMutation = useMutation({
-    mutationFn: ({ id, data }) => base44.entities.SeasonConfig.update(id, data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['seasons'] });
-      queryClient.invalidateQueries({ queryKey: ['seasonConfig'] });
-      toast.success("Configuración actualizada");
+    mutationFn: ({ id, data }) => {
+      console.log('🔄 Actualizando temporada:', id, data);
+      return base44.entities.SeasonConfig.update(id, data);
+    },
+    onSuccess: async (result, variables) => {
+      console.log('✅ Actualización exitosa:', result);
+      await queryClient.invalidateQueries({ queryKey: ['seasons'] });
+      await queryClient.invalidateQueries({ queryKey: ['seasonConfig'] });
+      toast.success("✅ Actualizado correctamente");
     },
     onError: (error) => {
-      console.error("Error:", error);
-      toast.error("Error al actualizar");
+      console.error("❌ Error actualizando:", error);
+      toast.error("Error: " + error.message);
     }
   });
 
