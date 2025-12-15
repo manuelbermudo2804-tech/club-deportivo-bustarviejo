@@ -148,12 +148,18 @@ export default function EmailInvitations() {
           clicada: false
         });
 
-        // Enviar email usando integración Core de Base44
-        const emailContent = generateEmailBody(email, token);
-        await base44.integrations.Core.SendEmail({
-          to: email,
-          subject: asunto,
-          body: emailContent
+        const validationUrl = `${VALIDATION_URL}?token=${token}`;
+
+        // Crear usuario y enviar invitación
+        await base44.functions.invoke('createUserAndSendInvitation', {
+          email: email.trim().toLowerCase(),
+          full_name: request.nombre_jugador || email.split('@')[0],
+          invitationType: 'admin_invitation',
+          invitationData: {
+            token,
+            validationUrl,
+            message: `Invitación solicitada por ${request.solicitado_por_nombre}`
+          }
         });
 
         // Crear registro en EmailInvitation para historial
@@ -443,12 +449,18 @@ ${mensajePersonalizado ? `
           clicada: false
         });
 
-        // Enviar email usando integración Core de Base44
-        const emailContent = generateEmailBody(email, token);
-        await base44.integrations.Core.SendEmail({
-          to: email,
-          subject: asunto,
-          body: emailContent
+        const validationUrl = `${VALIDATION_URL}?token=${token}`;
+
+        // Crear usuario y enviar invitación
+        await base44.functions.invoke('createUserAndSendInvitation', {
+          email: email.trim().toLowerCase(),
+          full_name: email.split('@')[0],
+          invitationType: 'admin_invitation',
+          invitationData: {
+            token,
+            validationUrl,
+            message: mensajePersonalizado || null
+          }
         });
 
         // Crear registro en EmailInvitation para historial
