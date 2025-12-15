@@ -19,6 +19,8 @@ import PaymentApprovalNotifier from "../components/payments/PaymentApprovalNotif
 const CLUB_LOGO_URL = "https://www.cdbustarviejo.com/uploads/2/4/0/4/2404974/logo-cd-bustarviejo-cuadrado-xpeq_orig.png";
 
 export default function Home() {
+  console.log('🏠 [Home] Componente montado');
+  
   const [user, setUser] = useState(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [isCoach, setIsCoach] = useState(false);
@@ -27,6 +29,7 @@ export default function Home() {
   const [hasPlayers, setHasPlayers] = useState(false);
   const [userRole, setUserRole] = useState("parent");
   const [loteriaVisible, setLoteriaVisible] = useState(false);
+  const [shouldRedirect, setShouldRedirect] = useState(false);
 
   const { data: seasonConfig } = useQuery({
     queryKey: ['seasonConfig'],
@@ -51,7 +54,9 @@ export default function Home() {
   useEffect(() => {
     const fetchUser = async () => {
       try {
+        console.log('👤 [Home] Cargando usuario...');
         const currentUser = await base44.auth.me();
+        console.log('✅ [Home] Usuario cargado:', currentUser.email, 'role:', currentUser.role);
         setUser(currentUser);
         const adminCheck = currentUser.role === "admin";
         const coordinatorCheck = currentUser.es_coordinador === true;
@@ -66,7 +71,11 @@ export default function Home() {
         else if (coordinatorCheck) setUserRole("coordinator");
         else if (treasurerCheck) setUserRole("treasurer");
         else if (coachCheck) setUserRole("coach");
-        else setUserRole("parent");
+        else {
+          console.log('👨‍👩‍👧 [Home] Usuario padre detectado - debería redirigir a ParentDashboard');
+          setUserRole("parent");
+          setShouldRedirect(true);
+        }
 
         if (adminCheck || currentUser.es_entrenador || currentUser.es_coordinador || currentUser.es_tesorero) {
           // Para admin/entrenadores/coordinadores, SOLO usar el campo manual
@@ -1093,8 +1102,17 @@ export default function Home() {
     return items;
   }, [isAdmin, isCoach, isCoordinator, isTreasurer, hasPlayers, loteriaVisible, stats]);
 
+  // Redirigir padres normales a ParentDashboard
+  useEffect(() => {
+    if (shouldRedirect && user && userRole === "parent") {
+      console.log('🔄 [Home] Redirigiendo a ParentDashboard...');
+      window.location.href = createPageUrl("ParentDashboard");
+    }
+  }, [shouldRedirect, user, userRole]);
+
   // Mostrar loading mientras carga el usuario
   if (!user) {
+    console.log('⏳ [Home] Mostrando loading (sin usuario)');
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-black pt-4 lg:pt-0">
         <div className="px-4 lg:px-8 py-6">
@@ -1108,6 +1126,25 @@ export default function Home() {
       </div>
     );
   }
+
+  // Si es padre normal y está redirigiendo, mostrar loading
+  if (shouldRedirect && userRole === "parent") {
+    console.log('⏳ [Home] Mostrando loading (redirigiendo a ParentDashboard)');
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-black pt-4 lg:pt-0">
+        <div className="px-4 lg:px-8 py-6">
+          <div className="flex items-center justify-center min-h-[200px]">
+            <div className="text-center">
+              <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-orange-600 border-r-transparent mb-3"></div>
+              <p className="text-white text-sm">Redirigiendo...</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  console.log('🎨 [Home] Renderizando dashboard para rol:', userRole);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-black pt-4 lg:pt-0">
