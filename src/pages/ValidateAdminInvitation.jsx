@@ -3,6 +3,7 @@ import { base44 } from "@/api/base44Client";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { CheckCircle2, AlertCircle, Loader2 } from "lucide-react";
+import PWAInstallPrompt from "../components/pwa/PWAInstallPrompt";
 
 const CLUB_LOGO_URL = "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6911b8e453ca3ac01fb134d6/e3f0a8e26_logo_cd_bustarviejo_mediano.jpg";
 const APP_URL = "https://club-gestion-bustarviejo-1fb134d6.base44.app";
@@ -120,8 +121,10 @@ export default function ValidateAdminInvitation() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-600 via-green-700 to-orange-600 flex items-center justify-center p-4">
-      <Card className="w-full max-w-md">
+    <>
+      <PWAInstallPrompt />
+      <div className="min-h-screen bg-gradient-to-br from-green-600 via-green-700 to-orange-600 flex items-center justify-center p-4">
+        <Card className="w-full max-w-md">
         <CardContent className="py-12 text-center">
           <img src={CLUB_LOGO_URL} alt="CD Bustarviejo" className="w-24 h-24 mx-auto mb-4 rounded-xl shadow-lg border-4 border-white" />
           <CheckCircle2 className="w-16 h-16 text-green-500 mx-auto mb-4" />
@@ -143,6 +146,7 @@ export default function ValidateAdminInvitation() {
           </p>
         </CardContent>
       </Card>
-    </div>
+      </div>
+    </>
   );
 }

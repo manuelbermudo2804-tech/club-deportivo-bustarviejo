@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { CheckCircle2, AlertCircle, Loader2, Users, Shield, Mail } from "lucide-react";
 import { toast } from "sonner";
+import PWAInstallPrompt from "../components/pwa/PWAInstallPrompt";
 
 const CLUB_LOGO_URL = "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6911b8e453ca3ac01fb134d6/e3f0a8e26_logo_cd_bustarviejo_mediano.jpg";
 
@@ -221,8 +222,10 @@ Ahora puedes acceder a la aplicación del club con tu cuenta y ver toda la infor
 
   if (isComplete) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-green-600 via-green-700 to-orange-600 flex items-center justify-center p-4">
-        <Card className="w-full max-w-md">
+      <>
+        <PWAInstallPrompt />
+        <div className="min-h-screen bg-gradient-to-br from-green-600 via-green-700 to-orange-600 flex items-center justify-center p-4">
+          <Card className="w-full max-w-md">
           <CardContent className="py-12 text-center">
             <CheckCircle2 className="w-20 h-20 text-green-500 mx-auto mb-4" />
             <h2 className="text-2xl font-bold text-slate-900 mb-2">¡Registro Completado!</h2>
@@ -240,12 +243,15 @@ Ahora puedes acceder a la aplicación del club con tu cuenta y ver toda la infor
             </Button>
           </CardContent>
         </Card>
-      </div>
+        </div>
+      </>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-orange-600 via-orange-700 to-green-700 flex items-center justify-center p-4">
+    <>
+      <PWAInstallPrompt />
+      <div className="min-h-screen bg-gradient-to-br from-orange-600 via-orange-700 to-green-700 flex items-center justify-center p-4">
       <Card className="w-full max-w-lg">
         <CardHeader className="text-center border-b bg-gradient-to-r from-orange-50 to-green-50">
           <img src={CLUB_LOGO_URL} alt="CD Bustarviejo" className="w-20 h-20 mx-auto mb-3 rounded-xl shadow-lg" />
@@ -334,6 +340,7 @@ Ahora puedes acceder a la aplicación del club con tu cuenta y ver toda la infor
           </p>
         </CardContent>
       </Card>
-    </div>
+      </div>
+    </>
   );
 }
