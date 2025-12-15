@@ -20,13 +20,11 @@ export default function InvitationPWAGuide() {
     setIsIOS(iosDevice);
     setIsAndroid(androidDevice);
 
-    // Verificar si ya está instalada
-    const isStandalone = window.matchMedia?.('(display-mode: standalone')?.matches || 
-                         window.navigator?.standalone === true;
+    // Verificar si el usuario ya marcó como instalada
     const userMarkedInstalled = localStorage.getItem('pwaInstalled') === 'true';
 
-    // Solo mostrar en móvil y si NO está instalada
-    if ((iosDevice || androidDevice) && !isStandalone && !userMarkedInstalled) {
+    // Mostrar SIEMPRE en móvil (iOS o Android) si no está marcada como instalada
+    if ((iosDevice || androidDevice) && !userMarkedInstalled) {
       // Mostrar después de 2 segundos
       const timer = setTimeout(() => setShow(true), 2000);
       return () => clearTimeout(timer);
