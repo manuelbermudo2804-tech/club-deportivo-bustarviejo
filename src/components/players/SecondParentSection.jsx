@@ -132,22 +132,23 @@ export default function SecondParentSection({
         fecha_expiracion: expirationDate.toISOString()
       });
 
-      // Enviar email con el diseño del club usando Resend
       const validationUrl = `${APP_URL}/ValidateSecondParent?token=${token}`;
-      
-      await base44.functions.invoke('sendEmail', {
-        to: currentPlayer.email_tutor_2,
-        subject: `👋 ${currentUser?.full_name || "Un familiar"} te invita a unirte al CD Bustarviejo`,
-        html: generateInvitationEmail(
-          currentPlayer.nombre_tutor_2 || "Estimado/a",
-          currentUser?.full_name || "Un familiar",
-          currentPlayer.nombre,
-          validationUrl
-        )
+
+      // Crear usuario y enviar invitación usando la nueva función backend
+      await base44.functions.invoke('createUserAndSendInvitation', {
+        email: currentPlayer.email_tutor_2.trim().toLowerCase(),
+        full_name: currentPlayer.nombre_tutor_2 || "Segundo Progenitor",
+        invitationType: 'second_parent',
+        invitationData: {
+          token,
+          validationUrl,
+          invitedByName: currentUser?.full_name || "Un familiar",
+          playerName: currentPlayer.nombre
+        }
       });
 
       setPendingInvitation(invitation);
-      toast.success("✅ Invitación enviada correctamente");
+      toast.success("✅ Usuario creado e invitación enviada correctamente");
     } catch (err) {
       console.error("Error sending invitation:", err);
       toast.error("Error al enviar la invitación");
