@@ -168,16 +168,23 @@ export default function SeasonManagement() {
   });
 
   // Funciones de toggle para características
-  const toggleFeature = (feature, value) => {
+  const toggleFeature = async (feature, value) => {
     if (!activeSeason || !activeSeason.id) {
-      console.error('No hay temporada activa', activeSeason);
+      console.error('❌ No hay temporada activa', activeSeason);
       toast.error('No hay temporada activa');
       return;
     }
-    updateSeasonMutation.mutate({ 
-      id: activeSeason.id, 
-      data: { [feature]: value } 
-    });
+    console.log(`🔄 Toggle ${feature}:`, value, 'ID:', activeSeason.id);
+    
+    try {
+      await updateSeasonMutation.mutateAsync({ 
+        id: activeSeason.id, 
+        data: { [feature]: value } 
+      });
+    } catch (error) {
+      console.error('❌ Error en toggleFeature:', error);
+      toast.error('Error al actualizar: ' + error.message);
+    }
   };
 
   const toggleSection = (section) => {
