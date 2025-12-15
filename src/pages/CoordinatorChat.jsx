@@ -14,7 +14,7 @@ import CoordinatorChatWindow from "../components/coordinator/CoordinatorChatWind
 import SocialLinks from "../components/SocialLinks";
 import CoordinatorAwayMode from "../components/coordinator/CoordinatorAwayMode";
 
-export default function CoordinatorChat() {
+export default function CoordinatorChat({ embedded = false }) {
   const [user, setUser] = useState(null);
   const [isCoordinator, setIsCoordinator] = useState(false);
   const [selectedConversation, setSelectedConversation] = useState(null);
