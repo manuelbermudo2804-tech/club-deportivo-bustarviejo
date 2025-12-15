@@ -138,16 +138,16 @@ ${getRoleSuggestions(role)}
     return suggestions[role] || suggestions.familia;
   };
 
-  const getContextForRole = (user) => {
-    const role = user.role === "admin" ? "administrador" :
-                 user.es_coordinador ? "coordinador" :
-                 user.es_tesorero ? "tesorero" :
-                 user.es_entrenador ? "entrenador" :
-                 user.es_jugador ? "jugador" : "padre/madre";
+  const getContextForRole = (currentUser) => {
+    const role = currentUser.role === "admin" ? "administrador" :
+                 currentUser.es_coordinador ? "coordinador" :
+                 currentUser.es_tesorero ? "tesorero" :
+                 currentUser.es_entrenador ? "entrenador" :
+                 currentUser.es_jugador ? "jugador" : "padre/madre";
     
     // Obtener jugadores del usuario si es padre
     const myPlayers = players.filter(p => 
-      p.email_padre === user.email || p.email_tutor_2 === user.email
+      p.email_padre === currentUser.email || p.email_tutor_2 === currentUser.email
     );
 
     // Filtrar horarios relevantes para el usuario
@@ -304,8 +304,8 @@ PROCESO DE INSCRIPCIÓN Y RENOVACIÓN:
     return `
 INFORMACIÓN DEL USUARIO:
 - Rol: ${role}
-- Nombre: ${user.full_name}
-- Email: ${user.email}
+- Nombre: ${currentUser.full_name}
+- Email: ${currentUser.email}
 
 CONTEXTO DE LA APLICACIÓN CD BUSTARVIEJO:
 
