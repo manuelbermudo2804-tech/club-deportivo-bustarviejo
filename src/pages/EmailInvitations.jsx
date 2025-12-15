@@ -443,12 +443,12 @@ ${mensajePersonalizado ? `
           clicada: false
         });
 
-        // Enviar email usando Resend
+        // Enviar email usando integración Core de Base44
         const emailContent = generateEmailBody(email, token);
-        await base44.functions.invoke('sendEmail', {
+        await base44.integrations.Core.SendEmail({
           to: email,
           subject: asunto,
-          html: emailContent
+          body: emailContent
         });
 
         // Crear registro en EmailInvitation para historial
