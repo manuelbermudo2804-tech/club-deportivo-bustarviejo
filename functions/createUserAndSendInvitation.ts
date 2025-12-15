@@ -51,14 +51,38 @@ Deno.serve(async (req) => {
 
       console.log('📨 Sending email to:', email);
       
-      // Usar la función sendEmail que usa Resend
-      await base44.asServiceRole.functions.invoke('sendEmail', {
-        to: email,
-        subject: emailSubject,
-        html: emailBody
+      const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY');
+      if (!RESEND_API_KEY) {
+        console.error('❌ RESEND_API_KEY not configured');
+        return Response.json({ error: 'RESEND_API_KEY not configured' }, { status: 500 });
+      }
+
+      // Enviar email usando Resend directamente
+      const resendResponse = await fetch('https://api.resend.com/emails', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${RESEND_API_KEY}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          from: 'onboarding@resend.dev',
+          to: [email],
+          subject: emailSubject,
+          html: emailBody
+        })
       });
 
-      console.log('✅ Email sent successfully');
+      const resendData = await resendResponse.json();
+
+      if (!resendResponse.ok) {
+        console.error('❌ Resend error:', resendData);
+        return Response.json({ 
+          error: 'Failed to send email', 
+          details: resendData 
+        }, { status: resendResponse.status });
+      }
+
+      console.log('✅ Email sent successfully via Resend:', resendData.id);
       return Response.json({ success: true, message: 'Invitation sent successfully' });
     } catch (error) {
       console.error('❌ Error sending email:', error);
