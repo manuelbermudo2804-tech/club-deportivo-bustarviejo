@@ -705,28 +705,41 @@ export default function Layout({ children, currentPageName }) {
         }
 
         // Para admin/entrenadores/coordinadores/tesoreros, SOLO usar el campo manual (no verificar BD)
-        if (currentUser.role === "admin" || currentUser.es_entrenador || currentUser.es_coordinador || currentUser.es_tesorero) {
-          const tienehijos = currentUser.tiene_hijos_jugando === true;
-          console.log('🔍 DEPURACIÓN:', {
-            email: currentUser.email,
-            role: currentUser.role,
-            es_entrenador: currentUser.es_entrenador,
-            es_coordinador: currentUser.es_coordinador,
-            tiene_hijos_jugando_RAW: currentUser.tiene_hijos_jugando,
-            tiene_hijos_jugando_TYPE: typeof currentUser.tiene_hijos_jugando,
-            resultado_hasPlayers: tienehijos
-          });
-          setHasPlayers(tienehijos);
-        } else {
-          // Para padres normales, verificar en la base de datos
-          const allPlayers = await base44.entities.Player.list();
-          const myPlayers = allPlayers.filter(p => 
-            p.email_padre === currentUser.email || 
-            p.email_tutor_2 === currentUser.email
-          );
-          console.log('Padre normal - jugadores encontrados:', myPlayers.length);
-          setHasPlayers(myPlayers.length > 0);
-        }
+                if (currentUser.role === "admin" || currentUser.es_entrenador || currentUser.es_coordinador || currentUser.es_tesorero) {
+                  const tienehijos = currentUser.tiene_hijos_jugando === true;
+                  console.log('🔍 DEPURACIÓN:', {
+                    email: currentUser.email,
+                    role: currentUser.role,
+                    es_entrenador: currentUser.es_entrenador,
+                    es_coordinador: currentUser.es_coordinador,
+                    tiene_hijos_jugando_RAW: currentUser.tiene_hijos_jugando,
+                    tiene_hijos_jugando_TYPE: typeof currentUser.tiene_hijos_jugando,
+                    resultado_hasPlayers: tienehijos
+                  });
+                  setHasPlayers(tienehijos);
+                } else {
+                  // Para padres normales, verificar en la base de datos
+                  const allPlayers = await base44.entities.Player.list();
+                  const myPlayers = allPlayers.filter(p => 
+                    p.email_padre === currentUser.email || 
+                    p.email_tutor_2 === currentUser.email
+                  );
+                  console.log('Padre normal - jugadores encontrados:', myPlayers.length);
+                  setHasPlayers(myPlayers.length > 0);
+
+                  // REDIRECCIÓN AUTOMÁTICA AL DASHBOARD PRINCIPAL (primera carga)
+                  const hasInitialRedirect = sessionStorage.getItem('initialRedirectDone');
+                  if (!hasInitialRedirect) {
+                    console.log('🔄 [LAYOUT] Primera carga detectada - redirigiendo a dashboard principal');
+                    sessionStorage.setItem('initialRedirectDone', 'true');
+                    // Redirigir a ParentDashboard si no está ya ahí
+                    if (window.location.pathname !== '/ParentDashboard') {
+                      console.log('🔄 [LAYOUT] Redirigiendo padre a ParentDashboard');
+                      window.location.href = createPageUrl('ParentDashboard');
+                      return;
+                    }
+                  }
+                }
 
         // Verificar si tiene conversación activa con admin (para TODOS los usuarios excepto admins)
         if (currentUser.role !== "admin") {

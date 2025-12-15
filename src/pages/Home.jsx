@@ -72,9 +72,11 @@ export default function Home() {
         else if (treasurerCheck) setUserRole("treasurer");
         else if (coachCheck) setUserRole("coach");
         else {
-          console.log('👨‍👩‍👧 [Home] Usuario padre detectado - debería redirigir a ParentDashboard');
+          console.log('👨‍👩‍👧 [Home] Usuario padre en Home - redirigiendo a ParentDashboard');
           setUserRole("parent");
-          setShouldRedirect(true);
+          // Redirigir inmediatamente
+          window.location.href = createPageUrl('ParentDashboard');
+          return;
         }
 
         if (adminCheck || currentUser.es_entrenador || currentUser.es_coordinador || currentUser.es_tesorero) {
