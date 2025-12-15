@@ -374,6 +374,7 @@ Email: cdbustarviejo@gmail.com
       queryClient.invalidateQueries({ queryKey: ['myPayments'] });
       queryClient.invalidateQueries({ queryKey: ['myPlayers'] });
       queryClient.invalidateQueries({ queryKey: ['allPayments'] });
+      queryClient.invalidateQueries({ queryKey: ['payments'] }); // Dashboard
       setUploadingPaymentId(null);
       setSuccessMessage("🔍 Justificante enviado - Pago en revisión por el administrador");
       setShowSuccess(true);

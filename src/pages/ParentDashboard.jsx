@@ -126,7 +126,10 @@ export default function ParentDashboard() {
   const { data: allPayments = [] } = useQuery({
     queryKey: ['payments'],
     queryFn: () => base44.entities.Payment.list('-created_date', 100),
-    staleTime: 60000,
+    staleTime: 0, // Sin cache
+    gcTime: 0,
+    refetchOnWindowFocus: true,
+    refetchOnMount: true,
     enabled: !!user && players.length > 0,
   });
 
@@ -206,6 +209,9 @@ export default function ParentDashboard() {
     queryKey: ['customPaymentPlans'],
     queryFn: () => base44.entities.CustomPaymentPlan.list(),
     initialData: [],
+    staleTime: 0,
+    refetchOnWindowFocus: true,
+    refetchOnMount: true,
     enabled: !!user && players.length > 0,
   });
 
