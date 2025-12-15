@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { Loader2, Upload, AlertCircle, CheckCircle2, Users, CreditCard, Download, Heart, Star, PartyPopper, Sparkles, UserPlus, Trophy, Gift, Share2, MessageCircle } from "lucide-react";
 import ReferralProgramCard from "../components/referrals/ReferralProgramCard";
 import { toast } from "sonner";
+import PWAInstallPrompt from "../components/pwa/PWAInstallPrompt";
 
 const CUOTA_SOCIO = 25;
 
@@ -202,6 +203,27 @@ export default function ClubMembership() {
     enabled: !!user?.email,
   });
 
+  // Detectar referidos históricos (que no renovaron)
+  const { data: myHistoricReferrals = [] } = useQuery({
+    queryKey: ['myHistoricReferrals', user?.email, seasonConfig?.temporada],
+    queryFn: async () => {
+      if (!user || !seasonConfig?.temporada || myPlayers.length === 0) return [];
+      
+      const historicRefs = allMemberships.filter(m => {
+        if (m.temporada === seasonConfig.temporada) return false;
+        if (m.referido_por_email !== user.email) return false;
+        const hasRenewed = allMemberships.some(current => 
+          current.temporada === seasonConfig.temporada &&
+          (current.email?.toLowerCase() === m.email?.toLowerCase() || current.dni === m.dni)
+        );
+        return !hasRenewed;
+      });
+      
+      return historicRefs;
+    },
+    enabled: !!user?.email && !!seasonConfig?.temporada && myPlayers.length > 0,
+  });
+
   const { data: allMemberships = [] } = useQuery({
     queryKey: ['allMemberships'],
     queryFn: async () => {
@@ -285,6 +307,36 @@ export default function ClubMembership() {
     const membersThisYear = allMembers.filter(m => m.numero_socio?.includes(`CDB-${currentYear}`));
     const nextNumber = membersThisYear.length + 1;
     return `CDB-${currentYear}-${String(nextNumber).padStart(4, '0')}`;
+  };
+
+  // Renovar un referido histórico
+  const handleRenovarReferido = async (referido) => {
+    if (!confirm(`¿Renovar a ${referido.nombre_completo} como socio para ${seasonConfig?.temporada}?`)) return;
+    
+    try {
+      const numeroSocio = await generateNumeroSocio();
+      await base44.entities.ClubMember.create({
+        numero_socio: numeroSocio,
+        nombre_completo: referido.nombre_completo,
+        dni: referido.dni,
+        email: referido.email,
+        telefono: referido.telefono,
+        direccion: referido.direccion,
+        municipio: referido.municipio,
+        cuota_socio: 25,
+        tipo_inscripcion: "Renovación",
+        estado_pago: "Pendiente",
+        temporada: seasonConfig?.temporada,
+        activo: true,
+        referido_por: user.full_name,
+        referido_por_email: user.email,
+        referencia_anterior: referido.id
+      });
+      queryClient.invalidateQueries();
+      toast.success(`✅ ${referido.nombre_completo} renovado. Ahora debe pagar su cuota de 25€.`);
+    } catch (error) {
+      toast.error("Error: " + error.message);
+    }
   };
 
   const createMembershipMutation = useMutation({
@@ -570,8 +622,10 @@ export default function ClubMembership() {
   }
 
   return (
-    <div className="p-4 lg:p-6 max-w-4xl mx-auto space-y-6">
-      {showSuccess && (
+    <>
+      <PWAInstallPrompt />
+      <div className="p-4 lg:p-6 max-w-4xl mx-auto space-y-6">
+        {showSuccess && (
         <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 backdrop-blur-sm" onClick={() => setShowSuccess(false)}>
           <div className="bg-white rounded-3xl p-8 shadow-2xl max-w-md mx-4 text-center">
             <CheckCircle2 className="w-24 h-24 text-green-500 mx-auto mb-4" />
@@ -753,87 +807,47 @@ export default function ClubMembership() {
       ) : null}
 
       {/* SECCIÓN: Renovar tus referidos de años anteriores */}
-      {user && myPlayers.length > 0 && (() => {
-        const myHistoricReferrals = allMemberships.filter(m => {
-          if (m.temporada === seasonConfig?.temporada) return false;
-          if (m.referido_por_email !== user.email) return false;
-          const hasRenewed = allMemberships.some(current => 
-            current.temporada === seasonConfig?.temporada &&
-            (current.email?.toLowerCase() === m.email?.toLowerCase() || current.dni === m.dni)
-          );
-          return !hasRenewed;
-        });
-
-        if (myHistoricReferrals.length === 0) return null;
-
-        return (
-          <Card className="border-2 border-purple-400 bg-gradient-to-r from-purple-50 to-pink-50 shadow-xl">
-            <CardContent className="pt-6 space-y-4">
-              <div className="flex items-center gap-3 mb-4">
-                <Gift className="w-8 h-8 text-purple-600" />
-                <div>
-                  <h3 className="font-bold text-purple-900 text-xl">
-                    🎁 Tus Referidos de Años Anteriores
-                  </h3>
-                  <p className="text-sm text-purple-700">
-                    Detectamos que referiste a estas personas. ¿Quieres renovarlas?
-                  </p>
-                </div>
+      {user && myPlayers.length > 0 && myHistoricReferrals.length > 0 && (
+        <Card className="border-2 border-purple-400 bg-gradient-to-r from-purple-50 to-pink-50 shadow-xl">
+          <CardContent className="pt-6 space-y-4">
+            <div className="flex items-center gap-3 mb-4">
+              <Gift className="w-8 h-8 text-purple-600" />
+              <div>
+                <h3 className="font-bold text-purple-900 text-xl">
+                  🎁 Tus Referidos de Años Anteriores
+                </h3>
+                <p className="text-sm text-purple-700">
+                  Detectamos que referiste a estas personas. ¿Quieres renovarlas?
+                </p>
               </div>
+            </div>
 
-              <div className="space-y-2">
-                {myHistoricReferrals.map(ref => (
-                  <div key={ref.id} className="flex items-center justify-between p-3 bg-white rounded-xl border-2 border-purple-200">
-                    <div className="flex-1">
-                      <p className="font-semibold text-slate-900">{ref.nombre_completo}</p>
-                      <p className="text-xs text-slate-600">Última temporada: {ref.temporada}</p>
-                    </div>
-                    <Button
-                      size="sm"
-                      onClick={async () => {
-                        if (!confirm(`¿Renovar a ${ref.nombre_completo} como socio para ${seasonConfig?.temporada}?`)) return;
-                        try {
-                          const numeroSocio = await generateNumeroSocio();
-                          await base44.entities.ClubMember.create({
-                            numero_socio: numeroSocio,
-                            nombre_completo: ref.nombre_completo,
-                            dni: ref.dni,
-                            email: ref.email,
-                            telefono: ref.telefono,
-                            direccion: ref.direccion,
-                            municipio: ref.municipio,
-                            cuota_socio: 25,
-                            tipo_inscripcion: "Renovación",
-                            estado_pago: "Pendiente",
-                            temporada: seasonConfig?.temporada,
-                            activo: true,
-                            referido_por: user.full_name,
-                            referido_por_email: user.email,
-                            referencia_anterior: ref.id
-                          });
-                          queryClient.invalidateQueries();
-                          toast.success(`✅ ${ref.nombre_completo} renovado. Ahora debe pagar su cuota.`);
-                        } catch (error) {
-                          toast.error("Error: " + error.message);
-                        }
-                      }}
-                      className="bg-purple-600 hover:bg-purple-700"
-                    >
-                      ✅ Renovar por él/ella
-                    </Button>
+            <div className="space-y-2">
+              {myHistoricReferrals.map(ref => (
+                <div key={ref.id} className="flex items-center justify-between p-3 bg-white rounded-xl border-2 border-purple-200">
+                  <div className="flex-1">
+                    <p className="font-semibold text-slate-900">{ref.nombre_completo}</p>
+                    <p className="text-xs text-slate-600">Última temporada: {ref.temporada}</p>
                   </div>
-                ))}
-              </div>
+                  <Button
+                    size="sm"
+                    onClick={() => handleRenovarReferido(ref)}
+                    className="bg-purple-600 hover:bg-purple-700"
+                  >
+                    ✅ Renovar por él/ella
+                  </Button>
+                </div>
+              ))}
+            </div>
 
-              <Alert className="bg-purple-100 border-purple-300">
-                <AlertDescription className="text-purple-800 text-sm">
-                  💡 Al renovarlos, seguirán sumando a tu programa de referidos cuando paguen
-                </AlertDescription>
-              </Alert>
-            </CardContent>
-          </Card>
-        );
-      })()}
+            <Alert className="bg-purple-100 border-purple-300">
+              <AlertDescription className="text-purple-800 text-sm">
+                💡 Al renovarlos, seguirán sumando a tu programa de referidos cuando paguen
+              </AlertDescription>
+            </Alert>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Botón para hacerse socio - PRIMERO para que sea lo más visible */}
       {!showForm && !isRenewal && (
@@ -1268,6 +1282,7 @@ export default function ClubMembership() {
           </CardContent>
         </Card>
       )}
-    </div>
+      </div>
+    </>
   );
 }
