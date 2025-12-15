@@ -5,7 +5,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
-import { Gift, Shirt, Ticket, Hotel, Save, ChevronDown, ChevronUp, Sparkles, Trophy, Plus, Trash2 } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Gift, Shirt, Ticket, Hotel, Save, ChevronDown, ChevronUp, Sparkles, Trophy, Plus, Trash2, CheckCircle2 } from "lucide-react";
 
 const DEFAULT_PRIZES = [
   { nombre: "Cena para dos", descripcion: "Cena en restaurante local", emoji: "🍽️" },
@@ -18,6 +19,7 @@ const DEFAULT_PRIZES = [
 export default function ReferralConfigCard({ seasonConfig, onUpdate, isUpdating }) {
   const [expanded, setExpanded] = useState(false);
   const [lastSeasonId, setLastSeasonId] = useState(null);
+  const [showSuccessDialog, setShowSuccessDialog] = useState(false);
   
   const buildConfigFromSeason = (sc) => ({
     programa_referidos_activo: sc?.programa_referidos_activo === true,
@@ -78,6 +80,7 @@ export default function ReferralConfigCard({ seasonConfig, onUpdate, isUpdating 
 
   const handleSave = () => {
     onUpdate(localConfig);
+    setShowSuccessDialog(true);
   };
 
   const hasChanges = JSON.stringify(localConfig) !== JSON.stringify(buildConfigFromSeason(seasonConfig));
@@ -324,6 +327,26 @@ export default function ReferralConfigCard({ seasonConfig, onUpdate, isUpdating 
           )}
         </CardContent>
       )}
+
+      {/* Dialog de éxito */}
+      <Dialog open={showSuccessDialog} onOpenChange={setShowSuccessDialog}>
+        <DialogContent className="max-w-sm text-center">
+          <DialogHeader>
+            <DialogTitle className="text-center flex flex-col items-center gap-2">
+              <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mb-2">
+                <CheckCircle2 className="w-8 h-8 text-green-600" />
+              </div>
+              ¡Configuración Guardada!
+            </DialogTitle>
+            <DialogDescription className="text-center">
+              Los cambios se aplicarán inmediatamente al programa de referidos
+            </DialogDescription>
+          </DialogHeader>
+          <Button onClick={() => setShowSuccessDialog(false)} className="w-full bg-green-600 hover:bg-green-700 mt-4">
+            Entendido
+          </Button>
+        </DialogContent>
+      </Dialog>
     </Card>
   );
 }
