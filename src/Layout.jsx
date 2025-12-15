@@ -498,6 +498,13 @@ function RestrictedAccessScreen({ user, restriction }) {
 }
 
 export default function Layout({ children, currentPageName }) {
+  console.log('🏗️ [LAYOUT] Layout montado con:', { 
+    currentPageName, 
+    pathname: window.location.pathname,
+    childrenType: typeof children,
+    childrenExists: !!children 
+  });
+  
   const location = useLocation();
   const navigate = useNavigate();
   const currentSeason = getCurrentSeason();
