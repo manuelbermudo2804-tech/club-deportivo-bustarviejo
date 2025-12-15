@@ -243,9 +243,12 @@ export default function ParentDashboard() {
   // Los jugadores ya están filtrados arriba
   const myPlayers = players;
 
+  console.log('🎯 [ParentDashboard] myPlayers calculado:', myPlayers.length, myPlayers.map(p => p.nombre));
+
   useEffect(() => {
     if (user && myPlayers.length > 0) {
       const sports = [...new Set(myPlayers.map(p => p.deporte))];
+      console.log('⚽ [ParentDashboard] Sports detectados:', sports);
       setMyPlayersSports(sports);
     }
   }, [user?.email, myPlayers.length]);
@@ -550,6 +553,13 @@ export default function ParentDashboard() {
 
 
   // Mostrar pantalla de nueva temporada si no hay jugadores activos (solo después de cargar usuario y jugadores)
+  console.log('🔍 [ParentDashboard] Verificando NewSeasonWelcome:', { 
+    hasUser: !!user, 
+    playersLoading, 
+    myPlayersLength: myPlayers.length, 
+    hasActiveSeason: !!activeSeason 
+  });
+  
   if (user && !playersLoading && myPlayers.length === 0 && activeSeason) {
     console.log('📋 [ParentDashboard] Mostrando NewSeasonWelcome (sin jugadores)');
     return <NewSeasonWelcome seasonName={activeSeason.temporada} />;
