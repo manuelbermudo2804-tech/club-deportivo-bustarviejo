@@ -362,7 +362,7 @@ export default function ParentDashboard() {
           if (cuota.fecha_vencimiento) {
             const now = new Date();
             const vencimiento = new Date(cuota.fecha_vencimiento);
-            if (now > vencimiento) overduePaymentsCount++;
+            if (now >= vencimiento) overduePaymentsCount++;
           }
         } else if (payment.estado === "Pendiente" && !payment.justificante_url) {
           // Solo contar como "sin justificante" si NO tiene justificante subido
@@ -371,7 +371,7 @@ export default function ParentDashboard() {
           if (cuota.fecha_vencimiento) {
             const now = new Date();
             const vencimiento = new Date(cuota.fecha_vencimiento);
-            if (now > vencimiento) overduePaymentsCount++;
+            if (now >= vencimiento) overduePaymentsCount++;
           }
         } else if (payment.estado === "En revisión") {
           pagosEnRevision++;
@@ -400,7 +400,7 @@ export default function ParentDashboard() {
             else if (mes === "Septiembre") deadlineDate = new Date(year1, 8, 15);
             else if (mes === "Diciembre") deadlineDate = new Date(year1, 11, 15);
             
-            if (deadlineDate && now > deadlineDate) {
+            if (deadlineDate && now >= deadlineDate) {
               overduePaymentsCount++;
             }
           } else if (payment.estado === "Pendiente" && !payment.justificante_url) {
@@ -414,7 +414,7 @@ export default function ParentDashboard() {
             else if (mes === "Septiembre") deadlineDate = new Date(year1, 8, 15);
             else if (mes === "Diciembre") deadlineDate = new Date(year1, 11, 15);
             
-            if (deadlineDate && now > deadlineDate) {
+            if (deadlineDate && now >= deadlineDate) {
               overduePaymentsCount++;
             }
           } else if (payment.estado === "En revisión") {
