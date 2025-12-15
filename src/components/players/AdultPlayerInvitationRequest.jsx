@@ -134,8 +134,8 @@ export default function AdultPlayerInvitationRequest({ playerAge, playerData, pa
   if (submitted) {
     return (
       <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-        <CombinedSuccessAnimation show={true} message="¡Solicitud Enviada!" withConfetti={true} />
-        <div className="bg-white rounded-2xl p-6 max-w-md w-full shadow-2xl text-center space-y-4 z-[101]">
+        <div className="bg-white rounded-2xl p-6 max-w-md w-full shadow-2xl text-center space-y-4 relative z-[101]">
+          <CombinedSuccessAnimation show={true} message="¡Solicitud Enviada!" withConfetti={true} />
           <div className="text-6xl">📧</div>
           <h2 className="text-2xl font-bold text-green-700">¡Solicitud Enviada!</h2>
           <p className="text-slate-600">
