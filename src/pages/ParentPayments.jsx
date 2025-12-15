@@ -578,6 +578,7 @@ Email: cdbustarviejo@gmail.com
                   cantidad = cuotaPlan?.cantidad || 0;
                 } else {
                   const cuotas = getCuotasFromConfig(player.deporte, categoryConfigs);
+                  // Usar hasPagoUnico del scope externo
                   cantidad = hasPagoUnico 
                     ? cuotas.total 
                     : getImportePorMesFromConfig(player.deporte, mes, categoryConfigs);
@@ -591,6 +592,7 @@ Email: cdbustarviejo@gmail.com
                   temporada: currentSeason,
                   estado: "Pendiente",
                   cantidad: cantidad,
+                  // Usar hasPagoUnico del scope externo
                   tipo_pago: hasPagoUnico ? "Único" : "Tres meses",
                   isVirtual: true,
                   customPlan: playerCustomPlan ? true : false
