@@ -1106,6 +1106,7 @@ export default function Layout({ children, currentPageName }) {
 
       // Mostrar loading mientras se carga el usuario (spinner simple, sin logo)
       if (isLoading && !isPublicPage) {
+        console.log('⏳ [LAYOUT] Mostrando loading screen');
         return (
           <div className="min-h-screen bg-gradient-to-br from-orange-600 via-orange-700 to-green-700 flex items-center justify-center">
             <div className="text-center">
@@ -1115,6 +1116,8 @@ export default function Layout({ children, currentPageName }) {
           </div>
         );
       }
+
+      console.log('🎨 [LAYOUT] Pasó loading, isLoading:', isLoading, 'isPublicPage:', isPublicPage, 'user:', user?.email);
 
       // Mostrar pantalla de bienvenida DESPUÉS del loading (cuando ya hay usuario)
       // TEMPORALMENTE DESACTIVADO
@@ -1144,6 +1147,8 @@ export default function Layout({ children, currentPageName }) {
 
   const isIOS = typeof navigator !== 'undefined' && /iPad|iPhone|iPod/.test(navigator.userAgent);
     const isAndroid = typeof navigator !== 'undefined' && /android/i.test(navigator.userAgent);
+
+    console.log('✅ [LAYOUT] Renderizando contenido principal con children');
 
     return (
             <>
