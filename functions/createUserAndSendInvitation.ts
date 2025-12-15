@@ -25,34 +25,9 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
-    console.log('📝 Creating/verifying user:', email);
+    console.log('📧 Preparing invitation email for:', email);
 
-    // 1. Crear usuario en el sistema usando service role
-    try {
-      // Verificar si el usuario ya existe
-      const existingUsers = await base44.asServiceRole.entities.User.filter({ email: email.toLowerCase() });
-      console.log('🔍 Existing users found:', existingUsers.length);
-      
-      if (existingUsers.length === 0) {
-        console.log('✨ Creating new user...');
-        // Crear nuevo usuario
-        await base44.asServiceRole.entities.User.create({
-          email: email.toLowerCase(),
-          full_name: full_name,
-          role: 'user',
-          acceso_activo: true,
-          onboarding_completado: false
-        });
-        console.log('✅ User created successfully');
-      } else {
-        console.log('ℹ️ User already exists, skipping creation');
-      }
-    } catch (error) {
-      console.error('❌ Error creating user:', error);
-      return Response.json({ error: 'Failed to create user', details: error.message }, { status: 500 });
-    }
-
-    // 2. Enviar invitación por email usando Core.SendEmail
+    // Enviar invitación por email usando Core.SendEmail
     console.log('📧 Preparing to send email, type:', invitationType);
     
     try {
@@ -83,11 +58,11 @@ Deno.serve(async (req) => {
       });
 
       console.log('✅ Email sent successfully');
-      return Response.json({ success: true, message: 'User created and invitation sent' });
+      return Response.json({ success: true, message: 'Invitation sent successfully' });
     } catch (error) {
       console.error('❌ Error sending email:', error);
       console.error('Error stack:', error.stack);
-      return Response.json({ error: 'User created but failed to send email', details: error.message, stack: error.stack }, { status: 500 });
+      return Response.json({ error: 'Failed to send invitation email', details: error.message, stack: error.stack }, { status: 500 });
     }
   } catch (error) {
     console.error('Error in createUserAndSendInvitation:', error);
