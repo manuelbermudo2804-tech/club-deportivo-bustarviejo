@@ -104,7 +104,8 @@ export default function ParentCoordinatorChat() {
       return await base44.entities.CoordinatorMessage.filter({ conversacion_id: conversation.id }, 'created_date');
     },
     enabled: !!conversation?.id,
-    refetchInterval: 3000,
+    refetchInterval: 2000, // Más rápido: cada 2 segundos
+    refetchOnWindowFocus: true,
   });
 
   // Polling para estado "escribiendo"
@@ -306,11 +307,16 @@ export default function ParentCoordinatorChat() {
 
       return newMessage;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['parentCoordinatorMessages', conversation.id] });
+    onSuccess: async () => {
       setMessageText("");
       setAttachments([]);
-      toast.success("Mensaje enviado al coordinador");
+      // Refetch INMEDIATO sin esperar
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ['parentCoordinatorMessages'] }),
+        queryClient.invalidateQueries({ queryKey: ['coordinatorConversations'] }),
+        queryClient.refetchQueries({ queryKey: ['parentCoordinatorMessages'] }),
+      ]);
+      toast.success("Mensaje enviado");
     },
     onError: (error) => {
       // No mostrar toast de error aquí - ya se mostró en el filtro

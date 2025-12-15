@@ -93,7 +93,8 @@ export default function ParentCoachChat() {
         msg.destinatario_email === user.email
       );
     },
-    refetchInterval: 3000,
+    refetchInterval: 2000, // Más rápido: cada 2 segundos
+    refetchOnWindowFocus: true,
     enabled: !!selectedCategory && !!user,
   });
 
@@ -142,12 +143,13 @@ export default function ParentCoachChat() {
           });
         }
         
-        // 3. Invalidar queries INMEDIATAMENTE
+        // 3. Invalidar queries GLOBALES para actualizar el dashboard
         if (unreadCoachMessages.length > 0 || notifications.length > 0) {
           await Promise.all([
             queryClient.invalidateQueries({ queryKey: ['appNotifications'] }),
-            queryClient.invalidateQueries({ queryKey: ['coachGroupMessages'] }),
-            queryClient.refetchQueries({ queryKey: ['appNotifications'] })
+            queryClient.invalidateQueries({ queryKey: ['chatMessages'] }),
+            queryClient.refetchQueries({ queryKey: ['appNotifications'] }),
+            queryClient.refetchQueries({ queryKey: ['chatMessages'] }),
           ]);
         }
       } catch (error) {
@@ -202,9 +204,14 @@ export default function ParentCoachChat() {
         });
       }
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['coachGroupMessages'] });
+    onSuccess: async () => {
       setMessageText("");
+      // Refetch INMEDIATO sin esperar
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ['coachGroupMessages'] }),
+        queryClient.invalidateQueries({ queryKey: ['chatMessages'] }),
+        queryClient.refetchQueries({ queryKey: ['coachGroupMessages'] }),
+      ]);
       toast.success("Mensaje enviado");
     },
   });
@@ -236,9 +243,7 @@ export default function ParentCoachChat() {
 
   const handleSend = () => {
     if (!messageText.trim()) return;
-    const msgToSend = messageText;
-    setMessageText("");
-    sendMessageMutation.mutate(msgToSend);
+    sendMessageMutation.mutate(messageText);
   };
 
   const togglePlayAudio = (audioUrl) => {
