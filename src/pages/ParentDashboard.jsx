@@ -378,8 +378,7 @@ export default function ParentDashboard() {
     } else {
       // Sistema estándar
       const hasPagoUnico = playerPayments.some(p => 
-        (p.tipo_pago === "Único" || p.tipo_pago === "único") &&
-        (p.estado === "Pagado" || p.estado === "En revisión")
+        p.tipo_pago === "Único" || p.tipo_pago === "único"
       );
 
       if (!hasPagoUnico) {
