@@ -734,22 +734,8 @@ export default function Layout({ children, currentPageName }) {
           }
         }
 
-        // Polling periódico para actualizar menú dinámicamente
-        if (currentUser.role !== "admin") {
-          const checkInterval = setInterval(async () => {
-            try {
-              const adminConvs = await base44.entities.AdminConversation.filter({ 
-                padre_email: currentUser.email,
-                resuelta: false
-              });
-              setHasActiveAdminConversation(adminConvs.length > 0);
-            } catch (error) {
-              console.log('Error checking admin conversation:', error);
-            }
-          }, 10000); // Verificar cada 10 segundos
-
-          return () => clearInterval(checkInterval);
-        }
+        // Polling ELIMINADO - causaba rate limit 429
+        // El estado de conversaciones se actualiza cuando el usuario navega o recarga
 
           if (currentUser.acceso_activo === false && currentUser.role !== "admin") {
           setShowSpecialScreen("restricted");

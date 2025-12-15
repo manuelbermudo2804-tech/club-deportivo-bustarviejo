@@ -831,13 +831,16 @@ Email: cdbustarviejo@gmail.com
 
   const handleRenew = (player, newCategory) => {
     // Preparar datos del jugador para renovación con flujo de pago
+    const currentYear = new Date().getFullYear();
+    const defaultSeason = `${currentYear}/${currentYear + 1}`;
+    
     const playerDataForRenewal = {
       ...player,
       deporte: newCategory || player.deporte,
       tipo_inscripcion: "Renovación",
       estado_renovacion: "renovado",
       activo: true,
-      temporada_renovacion: seasonConfig?.temporada || new Date().getFullYear() + "/" + (new Date().getFullYear() + 1),
+      temporada_renovacion: seasonConfig?.temporada || defaultSeason,
       _isRenewal: true, // Flag para identificar que es renovación
       _descuentoCalculado: player.descuento_aplicado || 0
     };
@@ -849,10 +852,13 @@ Email: cdbustarviejo@gmail.com
 
   const handleMarkNotRenewing = async (player) => {
     try {
+      const currentYear = new Date().getFullYear();
+      const defaultSeason = `${currentYear}/${currentYear + 1}`;
+      
       await base44.entities.Player.update(player.id, {
         estado_renovacion: "no_renueva",
         fecha_renovacion: new Date().toISOString(),
-        temporada_renovacion: seasonConfig?.temporada || new Date().getFullYear() + "/" + (new Date().getFullYear() + 1)
+        temporada_renovacion: seasonConfig?.temporada || defaultSeason
       });
       
       queryClient.invalidateQueries({ queryKey: ['myPlayers'] });
