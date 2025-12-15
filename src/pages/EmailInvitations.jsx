@@ -148,6 +148,14 @@ export default function EmailInvitations() {
           clicada: false
         });
 
+        // Enviar email usando Resend
+        const emailContent = generateEmailBody(email, token);
+        await base44.functions.invoke('sendEmail', {
+          to: email,
+          subject: asunto,
+          html: emailContent
+        });
+
         // Crear registro en EmailInvitation para historial
         await base44.entities.EmailInvitation.create({
           email_destinatario: email,
@@ -162,9 +170,7 @@ export default function EmailInvitations() {
           clicada: false
         });
 
-        // IMPORTANTE: Base44 solo permite enviar emails a usuarios YA registrados
-        // Para nuevos usuarios, necesitas copiar el enlace y enviarlo manualmente
-        console.log(`✅ Invitación generada para: ${email} con token: ${token}`);
+        console.log(`✅ Email enviado a: ${email}`);
 
         // Marcar solicitud como enviada
         await base44.entities.InvitationRequest.update(request.id, {
@@ -200,9 +206,9 @@ export default function EmailInvitations() {
     queryClient.invalidateQueries({ queryKey: ['emailHistory'] });
 
     if (errors === 0) {
-      toast.success(`✅ ${sent} invitaciones generadas - copia los enlaces y envíalos manualmente`);
+      toast.success(`✅ ${sent} emails enviados correctamente`);
     } else {
-      toast.warning(`Generados: ${sent}, Errores: ${errors}`);
+      toast.warning(`Enviados: ${sent}, Errores: ${errors}`);
     }
   };
 
@@ -437,6 +443,14 @@ ${mensajePersonalizado ? `
           clicada: false
         });
 
+        // Enviar email usando Resend
+        const emailContent = generateEmailBody(email, token);
+        await base44.functions.invoke('sendEmail', {
+          to: email,
+          subject: asunto,
+          html: emailContent
+        });
+
         // Crear registro en EmailInvitation para historial
         await base44.entities.EmailInvitation.create({
           email_destinatario: email,
@@ -449,11 +463,7 @@ ${mensajePersonalizado ? `
           clicada: false
         });
 
-        // IMPORTANTE: Base44 solo permite enviar emails a usuarios YA registrados en la app
-        // Para invitaciones a nuevos usuarios, NO se puede usar SendEmail directamente
-        // En su lugar, el usuario debe usar un servicio externo de email (Gmail, etc)
-        // Aquí solo registramos la invitación generada
-        console.log(`✅ Invitación generada para: ${email} con token: ${token}`);
+        console.log(`✅ Email enviado a: ${email}`);
         
         sent++;
         setSentCount(sent);
@@ -480,10 +490,10 @@ ${mensajePersonalizado ? `
     setIsSending(false);
 
     if (errors === 0) {
-      toast.success(`✅ ${sent} invitaciones generadas - revisa el historial para copiar los enlaces`);
+      toast.success(`✅ ${sent} emails enviados correctamente`);
       setEmails([]);
     } else {
-      toast.warning(`Generados: ${sent}, Errores: ${errors}`);
+      toast.warning(`Enviados: ${sent}, Errores: ${errors}`);
     }
     
     // Refrescar historial
@@ -758,14 +768,13 @@ ${mensajePersonalizado ? `
             )}
           </Button>
           
-          <Card className="border-2 border-yellow-300 bg-yellow-50">
+          <Card className="border-2 border-green-300 bg-green-50">
             <CardContent className="p-4">
-              <p className="text-sm text-yellow-900 font-medium mb-2">
-                ⚠️ <strong>Importante:</strong> Los emails NO se envían automáticamente
+              <p className="text-sm text-green-900 font-medium mb-2">
+                ✅ <strong>Emails automáticos:</strong> Los emails se envían directamente a los destinatarios
               </p>
-              <p className="text-xs text-yellow-800">
-                Base44 solo permite enviar emails a usuarios ya registrados. Para invitar a nuevos usuarios, 
-                <strong> debes copiar el enlace de validación generado y enviarlo tú mismo</strong> por WhatsApp, Gmail, etc.
+              <p className="text-xs text-green-800">
+                Las invitaciones se envían automáticamente usando Resend. Los usuarios recibirán un enlace único para registrarse.
               </p>
             </CardContent>
           </Card>
@@ -818,10 +827,10 @@ ${mensajePersonalizado ? `
           </h3>
           <ul className="text-sm text-blue-800 space-y-1">
             <li>• 🔐 Se genera un enlace único de validación por cada email (válido 30 días)</li>
-            <li>• 📋 Los enlaces se guardan en el historial - cópialos y envíalos manualmente</li>
-            <li>• 💬 Puedes enviarlos por WhatsApp, Gmail, SMS, etc.</li>
+            <li>• 📧 Los emails se envían automáticamente con el diseño del club</li>
             <li>• ✅ El usuario hace clic en el enlace para validar y registrarse en la app</li>
             <li>• 📊 El historial te muestra quién abrió el enlace y quién hizo clic</li>
+            <li>• 🔗 Puedes copiar el enlace del historial para reenviarlo manualmente si es necesario</li>
           </ul>
         </CardContent>
       </Card>
