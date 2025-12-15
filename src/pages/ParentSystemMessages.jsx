@@ -62,8 +62,8 @@ export default function ParentSystemMessages() {
     const markAsRead = async () => {
       if (!user) return;
       
-      console.log(`🔍 [DEBUG ${user.email}] Conversaciones encontradas:`, conversations.length);
-      console.log(`🔍 [DEBUG ${user.email}] Mensajes totales:`, allMessages.length);
+      console.log(`🔍 [ParentSystemMessages] Conversaciones:`, conversations.length);
+      console.log(`🔍 [ParentSystemMessages] Mensajes:`, allMessages.length);
       
       // 1. Marcar MENSAJES como leídos
       if (allMessages.length > 0) {
@@ -71,7 +71,7 @@ export default function ParentSystemMessages() {
           m.remitente_tipo === 'staff' && !m.leido
         );
         
-        console.log(`🔍 [DEBUG ${user.email}] Mensajes sin leer:`, unreadMessages.length);
+        console.log(`🔍 [ParentSystemMessages] Mensajes sin leer:`, unreadMessages.length);
         
         for (const msg of unreadMessages) {
           await base44.entities.PrivateMessage.update(msg.id, { leido: true });
@@ -79,7 +79,6 @@ export default function ParentSystemMessages() {
         
         // Actualizar contador de no leídos en conversaciones
         for (const conv of conversations) {
-          console.log(`🔍 [DEBUG ${user.email}] Conv ${conv.id} - no_leidos_familia:`, conv.no_leidos_familia);
           if (conv.no_leidos_familia > 0) {
             await base44.entities.PrivateConversation.update(conv.id, {
               no_leidos_familia: 0
@@ -88,7 +87,7 @@ export default function ParentSystemMessages() {
         }
       }
 
-      // 2. MARCAR NOTIFICACIONES COMO VISTAS - SE EJECUTA SIEMPRE (incluso si no hay mensajes)
+      // 2. MARCAR NOTIFICACIONES COMO VISTAS
       try {
         const allNotifications = await base44.entities.AppNotification.list();
         const notificationsToMark = allNotifications.filter(n => 
@@ -97,23 +96,21 @@ export default function ParentSystemMessages() {
           n.vista === false
         );
 
-        console.log(`🔔 [ParentSystemMessages] Encontradas ${notificationsToMark.length} notificaciones sin ver`);
+        console.log(`🔔 [ParentSystemMessages] Notificaciones sin ver:`, notificationsToMark.length);
 
         for (const notif of notificationsToMark) {
           await base44.entities.AppNotification.update(notif.id, {
             vista: true,
             fecha_vista: new Date().toISOString()
           });
-          console.log(`✅ Notificación marcada como vista: ${notif.titulo}`);
         }
 
-        // 3. INVALIDAR queries
+        // 3. INVALIDAR queries GLOBALES para actualizar INMEDIATAMENTE el dashboard
         if (notificationsToMark.length > 0 || allMessages.some(m => !m.leido)) {
           await Promise.all([
-            queryClient.invalidateQueries({ queryKey: ['parentPrivateMessages'] }),
-            queryClient.invalidateQueries({ queryKey: ['parentPrivateConversations'] }),
+            queryClient.invalidateQueries({ queryKey: ['privateConversationsParent'] }),
             queryClient.invalidateQueries({ queryKey: ['appNotifications'] }),
-            queryClient.refetchQueries({ queryKey: ['appNotifications'] })
+            queryClient.refetchQueries({ queryKey: ['privateConversationsParent'] }),
           ]);
         }
       } catch (error) {
@@ -124,39 +121,7 @@ export default function ParentSystemMessages() {
     markAsRead();
   }, [allMessages.length, user, conversations.length, queryClient]);
 
-  // 🆕 POLLING ADICIONAL: Verificar notificaciones cada 3 segundos mientras la página está abierta
-  useEffect(() => {
-    if (!user) return;
 
-    const interval = setInterval(async () => {
-      try {
-        const allNotifications = await base44.entities.AppNotification.list();
-        const notificationsToMark = allNotifications.filter(n => 
-          n.usuario_email === user.email &&
-          n.enlace === "ParentSystemMessages" &&
-          n.vista === false
-        );
-
-        if (notificationsToMark.length > 0) {
-          console.log(`🔔 [POLLING] Encontradas ${notificationsToMark.length} notificaciones nuevas, marcando...`);
-          
-          for (const notif of notificationsToMark) {
-            await base44.entities.AppNotification.update(notif.id, {
-              vista: true,
-              fecha_vista: new Date().toISOString()
-            });
-          }
-
-          await queryClient.invalidateQueries({ queryKey: ['appNotifications'] });
-          await queryClient.refetchQueries({ queryKey: ['appNotifications'] });
-        }
-      } catch (error) {
-        console.error("Error in notification polling:", error);
-      }
-    }, 3000);
-
-    return () => clearInterval(interval);
-  }, [user, queryClient]);
 
   useEffect(() => {
     if (messagesEndRef.current) {
