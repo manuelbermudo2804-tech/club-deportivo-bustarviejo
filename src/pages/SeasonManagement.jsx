@@ -165,7 +165,11 @@ export default function SeasonManagement() {
 
   // Funciones de toggle para características
   const toggleFeature = (feature, value) => {
-    if (!activeSeason) return;
+    if (!activeSeason || !activeSeason.id) {
+      console.error('No hay temporada activa', activeSeason);
+      toast.error('No hay temporada activa');
+      return;
+    }
     updateSeasonMutation.mutate({ 
       id: activeSeason.id, 
       data: { [feature]: value } 
@@ -1146,6 +1150,7 @@ export default function SeasonManagement() {
               <Switch
                 checked={activeSeason?.permitir_renovaciones || false}
                 onCheckedChange={(checked) => toggleFeature('permitir_renovaciones', checked)}
+                disabled={!activeSeason}
               />
             </div>
 
@@ -1161,6 +1166,7 @@ export default function SeasonManagement() {
               <Switch
                 checked={activeSeason?.bizum_activo || false}
                 onCheckedChange={(checked) => toggleFeature('bizum_activo', checked)}
+                disabled={!activeSeason}
               />
             </div>
 
@@ -1195,6 +1201,7 @@ export default function SeasonManagement() {
               <Switch
                 checked={activeSeason?.tienda_ropa_abierta || false}
                 onCheckedChange={(checked) => toggleFeature('tienda_ropa_abierta', checked)}
+                disabled={!activeSeason}
               />
             </div>
 
@@ -1210,6 +1217,7 @@ export default function SeasonManagement() {
               <Switch
                 checked={activeSeason?.loteria_navidad_abierta || false}
                 onCheckedChange={(checked) => toggleFeature('loteria_navidad_abierta', checked)}
+                disabled={!activeSeason}
               />
             </div>
 
@@ -1230,6 +1238,7 @@ export default function SeasonManagement() {
                 <Switch
                   checked={activeSeason?.loteria_requiere_pago_adelantado || false}
                   onCheckedChange={(checked) => toggleFeature('loteria_requiere_pago_adelantado', checked)}
+                  disabled={!activeSeason}
                 />
               </div>
             )}
@@ -1302,6 +1311,7 @@ export default function SeasonManagement() {
               <Switch
                 checked={activeSeason?.mostrar_patrocinadores || false}
                 onCheckedChange={(checked) => toggleFeature('mostrar_patrocinadores', checked)}
+                disabled={!activeSeason}
               />
             </div>
 
@@ -1317,6 +1327,7 @@ export default function SeasonManagement() {
               <Switch
                 checked={activeSeason?.notificaciones_admin_email || false}
                 onCheckedChange={(checked) => toggleFeature('notificaciones_admin_email', checked)}
+                disabled={!activeSeason}
               />
             </div>
           </CardContent>
