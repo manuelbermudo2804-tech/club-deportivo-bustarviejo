@@ -392,7 +392,7 @@ export default function Home() {
             vencimiento = new Date(year, 11, 15); // 15 de diciembre
           }
           
-          if (vencimiento && now > vencimiento) {
+          if (vencimiento && now >= vencimiento) {
             overduePayments++;
           }
         }
