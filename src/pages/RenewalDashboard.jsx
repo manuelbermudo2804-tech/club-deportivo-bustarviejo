@@ -16,12 +16,15 @@ import {
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
+import { CheckmarkAnimation } from "../components/animations/SuccessAnimation";
 
 export default function RenewalDashboard() {
   const [activeTab, setActiveTab] = useState("overview");
   const [searchTerm, setSearchTerm] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [selectedFamilies, setSelectedFamilies] = useState([]);
+  const [showSuccess, setShowSuccess] = useState(false);
+  const [successMessage, setSuccessMessage] = useState("");
   const queryClient = useQueryClient();
 
   const { data: seasonConfig } = useQuery({
@@ -145,7 +148,8 @@ CD Bustarviejo`
       }
     },
     onSuccess: (_, familias) => {
-      toast.success(`✅ Recordatorios enviados a ${familias.length} familia(s)`);
+      setSuccessMessage(`✅ Recordatorios enviados a ${familias.length} familia(s)`);
+      setShowSuccess(true);
       setSelectedFamilies([]);
     },
   });
@@ -225,7 +229,13 @@ CD Bustarviejo`
   };
 
   return (
-    <div className="p-6 lg:p-8 space-y-6">
+    <>
+      <CheckmarkAnimation 
+        show={showSuccess} 
+        onComplete={() => setShowSuccess(false)}
+        message={successMessage}
+      />
+      <div className="p-6 lg:p-8 space-y-6">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-slate-900 mb-2">🔄 Centro de Renovaciones</h1>
@@ -727,5 +737,6 @@ CD Bustarviejo`
         </TabsContent>
       </Tabs>
     </div>
+    </>
   );
 }
