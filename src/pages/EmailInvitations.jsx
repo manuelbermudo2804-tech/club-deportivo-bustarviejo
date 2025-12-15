@@ -162,13 +162,9 @@ export default function EmailInvitations() {
           clicada: false
         });
 
-        // Enviar email con token
-        await base44.integrations.Core.SendEmail({
-          from_name: "CD Bustarviejo",
-          to: email,
-          subject: asunto,
-          body: generateEmailBody(email, token)
-        });
+        // IMPORTANTE: Base44 solo permite enviar emails a usuarios YA registrados
+        // Para nuevos usuarios, necesitas copiar el enlace y enviarlo manualmente
+        console.log(`✅ Invitación generada para: ${email} con token: ${token}`);
 
         // Marcar solicitud como enviada
         await base44.entities.InvitationRequest.update(request.id, {
@@ -204,9 +200,9 @@ export default function EmailInvitations() {
     queryClient.invalidateQueries({ queryKey: ['emailHistory'] });
 
     if (errors === 0) {
-      toast.success(`✅ ${sent} invitaciones enviadas automáticamente`);
+      toast.success(`✅ ${sent} invitaciones generadas - copia los enlaces y envíalos manualmente`);
     } else {
-      toast.warning(`Enviados: ${sent}, Errores: ${errors}`);
+      toast.warning(`Generados: ${sent}, Errores: ${errors}`);
     }
   };
 
@@ -453,13 +449,11 @@ ${mensajePersonalizado ? `
           clicada: false
         });
 
-        // Enviamos el email con el token
-        await base44.integrations.Core.SendEmail({
-          from_name: "CD Bustarviejo",
-          to: email,
-          subject: asunto,
-          body: generateEmailBody(email, token)
-        });
+        // IMPORTANTE: Base44 solo permite enviar emails a usuarios YA registrados en la app
+        // Para invitaciones a nuevos usuarios, NO se puede usar SendEmail directamente
+        // En su lugar, el usuario debe usar un servicio externo de email (Gmail, etc)
+        // Aquí solo registramos la invitación generada
+        console.log(`✅ Invitación generada para: ${email} con token: ${token}`);
         
         sent++;
         setSentCount(sent);
@@ -486,10 +480,10 @@ ${mensajePersonalizado ? `
     setIsSending(false);
 
     if (errors === 0) {
-      toast.success(`✅ ${sent} invitaciones enviadas correctamente`);
+      toast.success(`✅ ${sent} invitaciones generadas - revisa el historial para copiar los enlaces`);
       setEmails([]);
     } else {
-      toast.warning(`Enviados: ${sent}, Errores: ${errors}`);
+      toast.warning(`Generados: ${sent}, Errores: ${errors}`);
     }
     
     // Refrescar historial
@@ -745,7 +739,7 @@ ${mensajePersonalizado ? `
             </CardContent>
           </Card>
 
-          {/* Botón enviar */}
+          {/* Botón generar invitaciones */}
           <Button
             onClick={sendInvitations}
             disabled={isSending || emails.length === 0}
@@ -754,15 +748,27 @@ ${mensajePersonalizado ? `
             {isSending ? (
               <>
                 <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                Enviando... ({sentCount}/{emails.length})
+                Generando... ({sentCount}/{emails.length})
               </>
             ) : (
               <>
                 <Send className="w-5 h-5 mr-2" />
-                Enviar {emails.length} Invitación{emails.length !== 1 ? 'es' : ''}
+                Generar {emails.length} Invitación{emails.length !== 1 ? 'es' : ''}
               </>
             )}
           </Button>
+          
+          <Card className="border-2 border-yellow-300 bg-yellow-50">
+            <CardContent className="p-4">
+              <p className="text-sm text-yellow-900 font-medium mb-2">
+                ⚠️ <strong>Importante:</strong> Los emails NO se envían automáticamente
+              </p>
+              <p className="text-xs text-yellow-800">
+                Base44 solo permite enviar emails a usuarios ya registrados. Para invitar a nuevos usuarios, 
+                <strong> debes copiar el enlace de validación generado y enviarlo tú mismo</strong> por WhatsApp, Gmail, etc.
+              </p>
+            </CardContent>
+          </Card>
 
           {/* Estado del envío */}
           {(sentCount > 0 || errorCount > 0) && !isSending && (
@@ -808,14 +814,14 @@ ${mensajePersonalizado ? `
         <CardContent className="p-4">
           <h3 className="font-bold text-blue-900 mb-2 flex items-center gap-2">
             <Users className="w-4 h-4" />
-            Invitaciones Seguras con Token
+            Cómo Funciona
           </h3>
           <ul className="text-sm text-blue-800 space-y-1">
-            <li>• 🔒 Cada email contiene un enlace único y seguro válido por 30 días</li>
-            <li>• Los usuarios deben validar su invitación antes de acceder a la app</li>
-            <li>• Pueden registrarse usando el mismo email al que les enviaste la invitación</li>
-            <li>• Puedes pegar una lista de emails separados por comas o saltos de línea</li>
-            <li>• Si añades un mensaje personalizado, aparecerá destacado en el email</li>
+            <li>• 🔐 Se genera un enlace único de validación por cada email (válido 30 días)</li>
+            <li>• 📋 Los enlaces se guardan en el historial - cópialos y envíalos manualmente</li>
+            <li>• 💬 Puedes enviarlos por WhatsApp, Gmail, SMS, etc.</li>
+            <li>• ✅ El usuario hace clic en el enlace para validar y registrarse en la app</li>
+            <li>• 📊 El historial te muestra quién abrió el enlace y quién hizo clic</li>
           </ul>
         </CardContent>
       </Card>
@@ -971,7 +977,7 @@ ${mensajePersonalizado ? `
                     <div key={inv.id} className="p-4 hover:bg-slate-50 transition-colors">
                       <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
                         <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 mb-1">
+                          <div className="flex items-center gap-2 mb-2">
                             <span className="font-medium text-slate-900 truncate">
                               {inv.email_destinatario}
                             </span>
@@ -995,9 +1001,29 @@ ${mensajePersonalizado ? `
                                                               </Badge>
                                                             )}
                           </div>
-                          <p className="text-sm text-slate-600 truncate">
+                          <p className="text-sm text-slate-600 truncate mb-2">
                             📧 {inv.asunto}
                           </p>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="border-green-300 text-green-700 hover:bg-green-50"
+                            onClick={async () => {
+                              // Buscar el token de AdminInvitation
+                              const allInvitations = await base44.entities.AdminInvitation.list();
+                              const invitation = allInvitations.find(i => i.email_destino === inv.email_destinatario);
+                              if (invitation) {
+                                const url = `${VALIDATION_URL}?token=${invitation.token}`;
+                                await navigator.clipboard.writeText(url);
+                                toast.success("🔗 Enlace copiado - envíalo por WhatsApp o email");
+                              } else {
+                                toast.error("No se encontró el enlace de invitación");
+                              }
+                            }}
+                          >
+                            <Mail className="w-3 h-3 mr-1" />
+                            Copiar enlace de invitación
+                          </Button>
                           {inv.error_mensaje && (
                             <p className="text-xs text-red-600 mt-1">
                               ⚠️ {inv.error_mensaje}
