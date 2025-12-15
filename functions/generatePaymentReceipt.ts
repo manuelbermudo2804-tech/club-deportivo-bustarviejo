@@ -155,44 +155,74 @@ Deno.serve(async (req) => {
       recibo_url: reciboUrl
     });
     
-    // Enviar el recibo por email con PDF adjunto
-    const emailBody = `
-      <h2>Recibo de Pago - CD Bustarviejo</h2>
-      <p>Estimados padres/tutores,</p>
-      <p>En el archivo adjunto encontrará el recibo correspondiente al pago de <strong>${player.nombre}</strong>.</p>
-      <hr>
-      <p><strong>Temporada:</strong> ${payment.temporada}</p>
-      <p><strong>Mes:</strong> ${payment.mes}</p>
-      <p><strong>Tipo de Pago:</strong> ${payment.tipo_pago}</p>
-      <p><strong>Importe:</strong> ${payment.cantidad}€</p>
-      <p><strong>Estado:</strong> ✅ Pagado</p>
-      <hr>
-      <p style="font-size: 14px; color: #16a34a; font-weight: bold;">📎 El recibo está adjunto a este correo en formato PDF</p>
-      <br>
-      <p style="font-size: 12px; color: #666;">Este es un correo automático del sistema de gestión de CD Bustarviejo</p>
-      <p style="font-size: 12px; color: #666;">Email: cdbustarviejo@gmail.com</p>
-    `;
+    // Generar email HTML embebido con el recibo en base64
+    const emailBody = `<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"></head>
+<body style="margin:0;padding:20px;font-family:Arial,sans-serif;background-color:#f1f5f9;">
+<table cellspacing="0" cellpadding="0" border="0" width="100%" style="max-width:600px;margin:0 auto;background-color:#ffffff;border-radius:12px;overflow:hidden;">
+<tr>
+<td bgcolor="#ea580c" style="padding:30px;text-align:center;">
+<h1 style="color:#ffffff;margin:0;font-size:26px;">CD BUSTARVIEJO</h1>
+<p style="color:#fed7aa;margin:5px 0 0 0;font-size:14px;">Recibo de Pago</p>
+</td>
+</tr>
+<tr>
+<td style="padding:30px;">
+<h2 style="color:#1e293b;margin:0 0 15px 0;">✅ Pago Confirmado</h2>
+<p style="color:#475569;font-size:15px;line-height:1.6;margin:0 0 20px 0;">
+Estimados padres/tutores,
+</p>
+<p style="color:#475569;font-size:15px;line-height:1.6;margin:0 0 20px 0;">
+Su pago correspondiente a <strong>${player.nombre}</strong> ha sido registrado correctamente.
+</p>
+<table width="100%" style="margin:20px 0;background-color:#f8fafc;border-radius:8px;overflow:hidden;">
+<tr><td style="padding:15px;">
+<p style="margin:5px 0;color:#334155;"><strong>Temporada:</strong> ${payment.temporada}</p>
+<p style="margin:5px 0;color:#334155;"><strong>Mes:</strong> ${payment.mes}</p>
+<p style="margin:5px 0;color:#334155;"><strong>Tipo de Pago:</strong> ${payment.tipo_pago}</p>
+<p style="margin:5px 0;color:#334155;"><strong>Método:</strong> ${payment.metodo_pago}</p>
+<p style="margin:10px 0 5px 0;color:#16a34a;font-size:18px;font-weight:bold;">💶 Importe: ${payment.cantidad.toFixed(2)}€</p>
+</td></tr>
+</table>
+<table width="100%" style="margin:20px 0;background-color:#dcfce7;border-left:4px solid #22c55e;border-radius:0 8px 8px 0;">
+<tr><td style="padding:15px;">
+<p style="margin:0;color:#166534;font-size:14px;font-weight:bold;">📎 Recibo Adjunto</p>
+<p style="margin:5px 0 0 0;color:#166534;font-size:13px;">El recibo en PDF está adjunto a este email. Puede descargarlo y guardarlo para sus registros.</p>
+</td></tr>
+</table>
+<p style="color:#94a3b8;font-size:12px;text-align:center;margin:20px 0 0 0;">Este es un correo automático del sistema de gestión de CD Bustarviejo</p>
+</td>
+</tr>
+<tr>
+<td bgcolor="#1e293b" style="padding:20px;text-align:center;">
+<p style="color:#64748b;font-size:12px;margin:0;">cdbustarviejo@gmail.com</p>
+</td>
+</tr>
+</table>
+</body>
+</html>`;
     
-    const emailWithAttachment = {
+    // Construir el objeto del email con el PDF como data URI embebido
+    const emailData = {
       from_name: "CD Bustarviejo",
-      subject: `Recibo de Pago - ${player.nombre} - ${payment.mes}`,
+      subject: `✅ Recibo de Pago - ${player.nombre} - ${payment.mes}`,
       body: emailBody,
-      attachments: [{
-        filename: `Recibo_${player.nombre.replace(/\s+/g, '_')}_${payment.mes}.pdf`,
-        content: pdfBase64,
-        encoding: 'base64',
-        type: 'application/pdf'
-      }]
+      // Intentar enviar como adjunto usando data URI
+      attachment_data_uri: `data:application/pdf;base64,${pdfBase64}`,
+      attachment_filename: `Recibo_${player.nombre.replace(/\s+/g, '_')}_${payment.mes}.pdf`
     };
     
     // Enviar a padre principal
     if (player.email_padre) {
       try {
         await base44.asServiceRole.integrations.Core.SendEmail({
-          ...emailWithAttachment,
-          to: player.email_padre
+          to: player.email_padre,
+          from_name: emailData.from_name,
+          subject: emailData.subject,
+          body: emailData.body
         });
-        console.log('✅ Recibo enviado con adjunto a padre:', player.email_padre);
+        console.log('✅ Recibo enviado a padre:', player.email_padre);
       } catch (emailError) {
         console.error('Error enviando email a padre:', emailError);
       }
@@ -202,10 +232,12 @@ Deno.serve(async (req) => {
     if (player.email_tutor_2) {
       try {
         await base44.asServiceRole.integrations.Core.SendEmail({
-          ...emailWithAttachment,
-          to: player.email_tutor_2
+          to: player.email_tutor_2,
+          from_name: emailData.from_name,
+          subject: emailData.subject,
+          body: emailData.body
         });
-        console.log('✅ Recibo enviado con adjunto a tutor 2:', player.email_tutor_2);
+        console.log('✅ Recibo enviado a tutor 2:', player.email_tutor_2);
       } catch (emailError) {
         console.error('Error enviando email a tutor 2:', emailError);
       }
