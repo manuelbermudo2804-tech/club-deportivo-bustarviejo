@@ -202,6 +202,13 @@ export default function ParentDashboard() {
     enabled: !!user && players.length > 0,
   });
 
+  const { data: customPaymentPlans = [] } = useQuery({
+    queryKey: ['customPaymentPlans'],
+    queryFn: () => base44.entities.CustomPaymentPlan.list(),
+    initialData: [],
+    enabled: !!user && players.length > 0,
+  });
+
   // Surveys - solo si hay jugadores
   const { data: allSurveys = [] } = useQuery({
     queryKey: ['surveys'],
@@ -307,57 +314,88 @@ export default function ParentDashboard() {
     return count;
   }, 0);
 
-  // Filtrar pagos relevantes - si un jugador tiene pago único, ignorar Sept/Dic
-  // NO contar pagos ya reconciliados (macheados en banco)
-  const relevantPayments = payments.filter(payment => {
-    // Excluir pagos reconciliados
-    if (payment.reconciliado_banco === true) return false;
+  // Calcular pagos considerando planes personalizados
+  const getCurrentSeason = () => {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = now.getMonth() + 1;
+    return month >= 6 ? `${year}/${year + 1}` : `${year - 1}/${year}`;
+  };
+
+  const currentSeason = getCurrentSeason();
+  const normalizeSeason = (season) => season?.replace(/-/g, '/') || currentSeason;
+
+  let pagosSinJustificante = 0;
+  let pagosEnRevision = 0;
+  let overduePaymentsCount = 0;
+
+  myPlayers.forEach(player => {
+    const playerPayments = payments.filter(p => 
+      p.jugador_id === player.id && 
+      normalizeSeason(p.temporada) === normalizeSeason(currentSeason) &&
+      p.reconciliado_banco !== true
+    );
     
-    const player = myPlayers.find(p => p.id === payment.jugador_id);
-    if (!player) return false;
-    
-    // Buscar si este jugador tiene un pago único
-    const playerPayments = payments.filter(p => p.jugador_id === player.id);
-    const hasPagoUnico = playerPayments.some(p => p.tipo_pago === "Único" || p.tipo_pago === "único");
-    
-    // Si tiene pago único, solo contar el pago de Junio
-    if (hasPagoUnico && payment.mes !== "Junio") {
-      return false;
+    // Verificar si tiene plan personalizado
+    const customPlan = customPaymentPlans.find(p => 
+      p.jugador_id === player.id && 
+      p.activo === true &&
+      normalizeSeason(p.temporada) === normalizeSeason(currentSeason)
+    );
+
+    if (customPlan) {
+      // Con plan personalizado
+      customPlan.cuotas_personalizadas.forEach(cuota => {
+        const payment = playerPayments.find(p => p.mes === cuota.mes);
+        
+        if (!payment) {
+          pagosSinJustificante++;
+          // Verificar vencimiento
+          if (cuota.fecha_vencimiento) {
+            const now = new Date();
+            const vencimiento = new Date(cuota.fecha_vencimiento);
+            if (now > vencimiento) overduePaymentsCount++;
+          }
+        } else if (payment.estado === "Pendiente") {
+          pagosSinJustificante++;
+        } else if (payment.estado === "En revisión") {
+          pagosEnRevision++;
+        }
+      });
+    } else {
+      // Sistema estándar
+      const hasPagoUnico = playerPayments.some(p => 
+        (p.tipo_pago === "Único" || p.tipo_pago === "único") &&
+        (p.estado === "Pagado" || p.estado === "En revisión")
+      );
+
+      if (!hasPagoUnico) {
+        ["Junio", "Septiembre", "Diciembre"].forEach(mes => {
+          const payment = playerPayments.find(p => p.mes === mes);
+          
+          if (!payment || payment.estado === "Pendiente") {
+            pagosSinJustificante++;
+            
+            // Verificar vencimiento
+            const now = new Date();
+            const [year1] = currentSeason.split('/').map(y => parseInt(y));
+            let deadlineDate;
+            if (mes === "Junio") deadlineDate = new Date(year1, 5, 30);
+            else if (mes === "Septiembre") deadlineDate = new Date(year1, 8, 15);
+            else if (mes === "Diciembre") deadlineDate = new Date(year1, 11, 15);
+            
+            if (deadlineDate && now > deadlineDate) {
+              overduePaymentsCount++;
+            }
+          } else if (payment.estado === "En revisión") {
+            pagosEnRevision++;
+          }
+        });
+      }
     }
-    
-    return true;
   });
 
-  // Separar pagos sin justificante vs en revisión (solo pagos relevantes)
-  const pagosSinJustificante = relevantPayments.filter(p => p.estado === "Pendiente").length;
-  const pagosEnRevision = relevantPayments.filter(p => p.estado === "En revisión").length;
   const pendingPayments = pagosSinJustificante + pagosEnRevision;
-
-  // Calcular pagos vencidos usando fechas exactas (solo pagos relevantes)
-  const overduePayments = relevantPayments.filter(p => {
-    if (p.estado !== "Pendiente") return false;
-    
-    const now = new Date();
-    now.setHours(0, 0, 0, 0); // Normalizar a medianoche
-    
-    // Obtener el año de la temporada (ej: "2024-2025" -> usar 2024 para Junio, 2025 para Sep/Dic)
-    const [year1, year2] = p.temporada ? p.temporada.split('/').map(y => parseInt(y)) : [now.getFullYear(), now.getFullYear() + 1];
-    
-    // Determinar fecha límite según el mes
-    let deadlineDate;
-    if (p.mes === "Junio") {
-      deadlineDate = new Date(year1, 5, 30); // 30 de Junio del primer año
-    } else if (p.mes === "Septiembre") {
-      deadlineDate = new Date(year1, 8, 15); // 15 de Septiembre del primer año
-    } else if (p.mes === "Diciembre") {
-      deadlineDate = new Date(year1, 11, 15); // 15 de Diciembre del primer año
-    } else {
-      return false;
-    }
-    
-    deadlineDate.setHours(23, 59, 59, 999); // Fin del día
-    return now > deadlineDate;
-  }).length;
 
 
 
@@ -622,7 +660,7 @@ export default function ParentDashboard() {
           pendingSurveys={activeSurveys.length}
           pendingSignatures={pendingFederationSignatures}
           upcomingEvents={0}
-          overduePayments={overduePayments}
+          overduePayments={overduePaymentsCount}
           newGalleryPhotos={0}
           unreadPrivateMessages={unreadPrivateMessages}
           unreadCoordinatorMessages={0}
