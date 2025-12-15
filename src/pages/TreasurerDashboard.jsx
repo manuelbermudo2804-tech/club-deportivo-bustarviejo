@@ -360,8 +360,8 @@ export default function TreasurerDashboard() {
     const loteriaTemporadaActual = lotteryOrders.filter(o =>
       selectedSeason === "all" || normalizeTemporada(o.temporada) === normalizeTemporada(selectedSeason)
     );
-    const loteriaPagada = loteriaTemporadaActual.filter(o => o.pagado).reduce((sum, o) => sum + (o.precio_total || 0), 0);
-    const loteriaPendiente = loteriaTemporadaActual.filter(o => !o.pagado).reduce((sum, o) => sum + (o.precio_total || 0), 0);
+    const loteriaPagada = loteriaTemporadaActual.filter(o => o.pagado).reduce((sum, o) => sum + (o.total || 0), 0);
+    const loteriaPendiente = loteriaTemporadaActual.filter(o => !o.pagado).reduce((sum, o) => sum + (o.total || 0), 0);
 
     // Patrocinios - SOLO contar activos CON pago confirmado (monto > 0)
     const patrociniosActivos = sponsors.filter(s => s.estado === "Activo" && (s.monto || 0) > 0);
@@ -679,7 +679,7 @@ export default function TreasurerDashboard() {
         id: o.id,
         tipo: 'loteria',
         concepto: `Lotería - ${o.jugador_nombre}`,
-        cantidad: o.precio_total,
+        cantidad: o.total,
         fecha: o.created_date,
         estado: 'completado'
       });
