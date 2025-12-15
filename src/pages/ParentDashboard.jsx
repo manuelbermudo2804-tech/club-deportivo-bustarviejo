@@ -114,7 +114,7 @@ export default function ParentDashboard() {
   const { data: allPlayers = [], isLoading: playersLoading } = useQuery({
     queryKey: ['players'],
     queryFn: () => base44.entities.Player.list(),
-    staleTime: 60000,
+    staleTime: 300000, // 5 minutos
     enabled: !!user,
   });
 
@@ -126,10 +126,7 @@ export default function ParentDashboard() {
   const { data: allPayments = [] } = useQuery({
     queryKey: ['payments'],
     queryFn: () => base44.entities.Payment.list('-created_date', 100),
-    staleTime: 0, // Sin cache
-    gcTime: 0,
-    refetchOnWindowFocus: true,
-    refetchOnMount: true,
+    staleTime: 60000, // 1 minuto
     enabled: !!user && players.length > 0,
   });
 
@@ -141,7 +138,7 @@ export default function ParentDashboard() {
   const { data: allCallups = [] } = useQuery({
     queryKey: ['callups'],
     queryFn: () => base44.entities.Convocatoria.list('-created_date', 50),
-    staleTime: 60000,
+    staleTime: 300000, // 5 minutos
     enabled: !!user && players.length > 0,
   });
 
@@ -151,7 +148,7 @@ export default function ParentDashboard() {
   const { data: seasonConfigs = [] } = useQuery({
     queryKey: ['seasonConfigs'],
     queryFn: () => base44.entities.SeasonConfig.list(),
-    staleTime: 300000,
+    staleTime: 600000, // 10 minutos
     enabled: !!user,
   });
 
@@ -204,10 +201,7 @@ export default function ParentDashboard() {
   const { data: customPaymentPlans = [] } = useQuery({
     queryKey: ['customPaymentPlans'],
     queryFn: () => base44.entities.CustomPaymentPlan.list(),
-    initialData: [],
-    staleTime: 0,
-    refetchOnWindowFocus: true,
-    refetchOnMount: true,
+    staleTime: 300000, // 5 minutos
     enabled: !!user && players.length > 0,
   });
 
@@ -215,7 +209,7 @@ export default function ParentDashboard() {
   const { data: allSurveys = [] } = useQuery({
     queryKey: ['surveys'],
     queryFn: () => base44.entities.Survey.list('-created_date', 10),
-    staleTime: 300000,
+    staleTime: 600000, // 10 minutos
     enabled: !!user && players.length > 0,
   });
 
@@ -225,7 +219,7 @@ export default function ParentDashboard() {
       const allResp = await base44.entities.SurveyResponse.list();
       return allResp.filter(r => r.respondente_email === user?.email);
     },
-    staleTime: 300000,
+    staleTime: 600000, // 10 minutos
     enabled: !!user && allSurveys.length > 0,
   });
 
@@ -233,7 +227,7 @@ export default function ParentDashboard() {
   const { data: allDocuments = [] } = useQuery({
     queryKey: ['documents'],
     queryFn: () => base44.entities.Document.list('-created_date', 20),
-    staleTime: 300000,
+    staleTime: 600000, // 10 minutos
     enabled: !!user && players.length > 0,
   });
 
