@@ -139,13 +139,11 @@ Deno.serve(async (req) => {
     currentY += 4;
     doc.text('Este recibo ha sido generado automáticamente', 105, currentY, { align: 'center' });
     
-    // Convertir el PDF a blob
+    // Convertir el PDF a base64 para enviarlo como adjunto
+    const pdfBase64 = doc.output('datauristring').split(',')[1];
+    
+    // También subir a almacenamiento para guardar la URL
     const pdfBlob = doc.output('blob');
-    
-    // Subir el PDF a almacenamiento privado
-    const formData = new FormData();
-    formData.append('file', pdfBlob, `recibo_${payment.id}.pdf`);
-    
     const uploadResponse = await base44.asServiceRole.integrations.Core.UploadFile({
       file: pdfBlob
     });
@@ -157,11 +155,11 @@ Deno.serve(async (req) => {
       recibo_url: reciboUrl
     });
     
-    // Enviar el recibo por email a los padres
+    // Enviar el recibo por email con PDF adjunto
     const emailBody = `
       <h2>Recibo de Pago - CD Bustarviejo</h2>
       <p>Estimados padres/tutores,</p>
-      <p>Adjunto encontrará el recibo correspondiente al pago de <strong>${player.nombre}</strong>.</p>
+      <p>En el archivo adjunto encontrará el recibo correspondiente al pago de <strong>${player.nombre}</strong>.</p>
       <hr>
       <p><strong>Temporada:</strong> ${payment.temporada}</p>
       <p><strong>Mes:</strong> ${payment.mes}</p>
@@ -169,22 +167,32 @@ Deno.serve(async (req) => {
       <p><strong>Importe:</strong> ${payment.cantidad}€</p>
       <p><strong>Estado:</strong> ✅ Pagado</p>
       <hr>
-      <p><a href="${reciboUrl}" target="_blank" style="background: #16a34a; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block;">📄 Descargar Recibo</a></p>
+      <p style="font-size: 14px; color: #16a34a; font-weight: bold;">📎 El recibo está adjunto a este correo en formato PDF</p>
       <br>
       <p style="font-size: 12px; color: #666;">Este es un correo automático del sistema de gestión de CD Bustarviejo</p>
       <p style="font-size: 12px; color: #666;">Email: cdbustarviejo@gmail.com</p>
     `;
     
+    const emailWithAttachment = {
+      from_name: "CD Bustarviejo",
+      subject: `Recibo de Pago - ${player.nombre} - ${payment.mes}`,
+      body: emailBody,
+      attachments: [{
+        filename: `Recibo_${player.nombre.replace(/\s+/g, '_')}_${payment.mes}.pdf`,
+        content: pdfBase64,
+        encoding: 'base64',
+        type: 'application/pdf'
+      }]
+    };
+    
     // Enviar a padre principal
     if (player.email_padre) {
       try {
         await base44.asServiceRole.integrations.Core.SendEmail({
-          from_name: "CD Bustarviejo",
-          to: player.email_padre,
-          subject: `Recibo de Pago - ${player.nombre} - ${payment.mes}`,
-          body: emailBody
+          ...emailWithAttachment,
+          to: player.email_padre
         });
-        console.log('✅ Recibo enviado a padre:', player.email_padre);
+        console.log('✅ Recibo enviado con adjunto a padre:', player.email_padre);
       } catch (emailError) {
         console.error('Error enviando email a padre:', emailError);
       }
@@ -194,12 +202,10 @@ Deno.serve(async (req) => {
     if (player.email_tutor_2) {
       try {
         await base44.asServiceRole.integrations.Core.SendEmail({
-          from_name: "CD Bustarviejo",
-          to: player.email_tutor_2,
-          subject: `Recibo de Pago - ${player.nombre} - ${payment.mes}`,
-          body: emailBody
+          ...emailWithAttachment,
+          to: player.email_tutor_2
         });
-        console.log('✅ Recibo enviado a tutor 2:', player.email_tutor_2);
+        console.log('✅ Recibo enviado con adjunto a tutor 2:', player.email_tutor_2);
       } catch (emailError) {
         console.error('Error enviando email a tutor 2:', emailError);
       }
