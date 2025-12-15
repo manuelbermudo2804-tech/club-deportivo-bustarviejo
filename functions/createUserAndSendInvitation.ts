@@ -51,10 +51,11 @@ Deno.serve(async (req) => {
 
       console.log('📨 Sending email to:', email);
       
-      await base44.integrations.Core.SendEmail({
+      // Usar la función sendEmail que usa Resend
+      await base44.asServiceRole.functions.invoke('sendEmail', {
         to: email,
         subject: emailSubject,
-        body: emailBody
+        html: emailBody
       });
 
       console.log('✅ Email sent successfully');
