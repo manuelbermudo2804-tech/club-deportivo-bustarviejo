@@ -97,14 +97,16 @@ export default function ParentDashboard() {
   useEffect(() => {
     const fetchUser = async () => {
       try {
+        console.log('🔍 [ParentDashboard] Iniciando carga de usuario...');
         const currentUser = await base44.auth.me();
+        console.log('✅ [ParentDashboard] Usuario cargado:', currentUser.email);
         setUser(currentUser);
         // Mostrar onboarding si no lo ha completado
         if (!currentUser.onboarding_completado) {
           setShowOnboarding(true);
         }
       } catch (error) {
-        console.error("Error fetching user:", error);
+        console.error("❌ [ParentDashboard] Error fetching user:", error);
       }
     };
     fetchUser();
@@ -113,7 +115,12 @@ export default function ParentDashboard() {
   // CARGAR SOLO DATOS ESENCIALES - El resto se carga bajo demanda en cada página
   const { data: allPlayers = [], isLoading: playersLoading } = useQuery({
     queryKey: ['players'],
-    queryFn: () => base44.entities.Player.list(),
+    queryFn: async () => {
+      console.log('🔍 [ParentDashboard] Cargando jugadores...');
+      const players = await base44.entities.Player.list();
+      console.log('✅ [ParentDashboard] Jugadores cargados:', players.length);
+      return players;
+    },
     staleTime: 300000, // 5 minutos
     enabled: !!user,
   });
@@ -122,6 +129,8 @@ export default function ParentDashboard() {
   const players = allPlayers.filter(p => 
     (p.email_padre === user?.email || p.email_tutor_2 === user?.email) && p.activo === true
   );
+  
+  console.log('👥 [ParentDashboard] Mis jugadores filtrados:', players.length, players.map(p => p.nombre));
 
   const { data: allPayments = [] } = useQuery({
     queryKey: ['payments'],
@@ -542,24 +551,28 @@ export default function ParentDashboard() {
 
   // Mostrar pantalla de nueva temporada si no hay jugadores activos (solo después de cargar usuario y jugadores)
   if (user && !playersLoading && myPlayers.length === 0 && activeSeason) {
+    console.log('📋 [ParentDashboard] Mostrando NewSeasonWelcome (sin jugadores)');
     return <NewSeasonWelcome seasonName={activeSeason.temporada} />;
   }
 
-  // Mostrar loading solo si no hay usuario todavía
-  if (!user) {
+  // Mostrar loading solo si no hay usuario todavía O si está cargando jugadores
+  if (!user || playersLoading) {
+    console.log('⏳ [ParentDashboard] Mostrando loading...', { hasUser: !!user, playersLoading });
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-black">
         <div className="px-4 lg:px-8 py-6">
           <div className="flex items-center justify-center min-h-[200px]">
             <div className="text-center">
               <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-orange-600 border-r-transparent mb-3"></div>
-              <p className="text-white text-sm">Cargando...</p>
+              <p className="text-white text-sm">Cargando dashboard...</p>
             </div>
           </div>
         </div>
       </div>
     );
   }
+
+  console.log('🎨 [ParentDashboard] Renderizando dashboard principal');
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-black">
