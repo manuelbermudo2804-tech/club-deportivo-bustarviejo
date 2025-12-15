@@ -53,12 +53,15 @@ export default function InscriptionPaymentFlow({
 
   const handleContinue = () => {
     const paymentsToCreate = [];
+    const currentYear = new Date().getFullYear();
+    const defaultSeason = `${currentYear}/${currentYear + 1}`;
+    const seasonToUse = seasonConfig?.temporada || defaultSeason;
 
     if (tipoPago === "Único") {
       paymentsToCreate.push({
         tipo_pago: "Único",
         mes: "Junio",
-        temporada: seasonConfig.temporada,
+        temporada: seasonToUse,
         cantidad: importeTotal,
         estado: "Pendiente",
         metodo_pago: "Transferencia",
@@ -69,7 +72,7 @@ export default function InscriptionPaymentFlow({
         {
           tipo_pago: "Tres meses",
           mes: "Junio",
-          temporada: seasonConfig.temporada,
+          temporada: seasonToUse,
           cantidad: importeInscripcion,
           estado: "Pendiente",
           metodo_pago: "Transferencia",
@@ -78,7 +81,7 @@ export default function InscriptionPaymentFlow({
         {
           tipo_pago: "Tres meses",
           mes: "Septiembre",
-          temporada: seasonConfig.temporada,
+          temporada: seasonToUse,
           cantidad: cuotas.segunda,
           estado: "Pendiente",
           metodo_pago: "Transferencia"
@@ -86,7 +89,7 @@ export default function InscriptionPaymentFlow({
         {
           tipo_pago: "Tres meses",
           mes: "Diciembre",
-          temporada: seasonConfig.temporada,
+          temporada: seasonToUse,
           cantidad: cuotas.tercera,
           estado: "Pendiente",
           metodo_pago: "Transferencia"
@@ -122,7 +125,7 @@ export default function InscriptionPaymentFlow({
           <div className="space-y-1 text-sm text-green-800">
             <p><strong>Nombre:</strong> {playerData.nombre}</p>
             <p><strong>Categoría:</strong> {playerData.deporte}</p>
-            <p><strong>Temporada:</strong> {seasonConfig.temporada}</p>
+            <p><strong>Temporada:</strong> {seasonConfig?.temporada || `${new Date().getFullYear()}/${new Date().getFullYear() + 1}`}</p>
           </div>
         </div>
 

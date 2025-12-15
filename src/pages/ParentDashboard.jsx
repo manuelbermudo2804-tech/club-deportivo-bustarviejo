@@ -161,9 +161,8 @@ export default function ParentDashboard() {
       const allConvs = await base44.entities.PrivateConversation.list('-ultimo_mensaje_fecha', 30);
       return allConvs.filter(c => c.participante_familia_email === user?.email);
     },
-    staleTime: 5000,
-    refetchInterval: 5000,
-    refetchOnWindowFocus: true,
+    staleTime: 60000,
+    refetchOnWindowFocus: false,
     enabled: !!user,
   });
 
@@ -173,9 +172,8 @@ export default function ParentDashboard() {
       const allConvs = await base44.entities.CoordinatorConversation.list();
       return allConvs.filter(c => c.padre_email === user?.email);
     },
-    staleTime: 5000,
-    refetchInterval: 5000,
-    refetchOnWindowFocus: true,
+    staleTime: 60000,
+    refetchOnWindowFocus: false,
     enabled: !!user,
   });
 
@@ -185,9 +183,8 @@ export default function ParentDashboard() {
       const allConvs = await base44.entities.AdminConversation.list();
       return allConvs.filter(c => c.padre_email === user?.email && !c.resuelta);
     },
-    staleTime: 5000,
-    refetchInterval: 5000,
-    refetchOnWindowFocus: true,
+    staleTime: 60000,
+    refetchOnWindowFocus: false,
     enabled: !!user,
   });
 
@@ -199,9 +196,8 @@ export default function ParentDashboard() {
       const allMsgs = await base44.entities.ChatMessage.list('-created_date', 50);
       return allMsgs.filter(m => sports.includes(m.deporte) || m.grupo_id === "Coordinación Deportiva");
     },
-    staleTime: 5000,
-    refetchInterval: 5000,
-    refetchOnWindowFocus: true,
+    staleTime: 60000,
+    refetchOnWindowFocus: false,
     enabled: !!user && players.length > 0,
   });
 
