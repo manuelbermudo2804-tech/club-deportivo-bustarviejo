@@ -172,6 +172,13 @@ export default function ParentPayments() {
     refetchOnWindowFocus: false,
   });
 
+  const { data: customPlans = [] } = useQuery({
+    queryKey: ['customPaymentPlans'],
+    queryFn: () => base44.entities.CustomPaymentPlan.list(),
+    staleTime: 300000,
+    refetchOnWindowFocus: false,
+  });
+
   const createPaymentMutation = useMutation({
     mutationFn: async (paymentData) => {
       const payment = await base44.entities.Payment.create(paymentData);
