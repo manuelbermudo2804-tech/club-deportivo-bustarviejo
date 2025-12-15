@@ -634,10 +634,10 @@ Por solo *25€/año* seguirás apoyando a nuestros jóvenes deportistas.
     const matchesType = typeFilter === "all" || m.tipo_inscripcion === typeFilter;
     
     // Filtro externos/padres
-    const isExternal = isExternalMember(m);
+    const isPadre = parentEmails.has(m.email?.toLowerCase());
     const matchesMemberType = memberTypeFilter === "all" || 
-      (memberTypeFilter === "externos" && isExternal) ||
-      (memberTypeFilter === "padres" && !isExternal);
+      (memberTypeFilter === "externos" && !isPadre) ||
+      (memberTypeFilter === "padres" && isPadre);
     
     return matchesSearch && matchesStatus && matchesSeason && matchesType && matchesMemberType;
   });
