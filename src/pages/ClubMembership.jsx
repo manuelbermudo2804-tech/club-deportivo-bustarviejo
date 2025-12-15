@@ -11,7 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { Loader2, Upload, AlertCircle, CheckCircle2, Users, CreditCard, Download, Heart, Star, PartyPopper, Sparkles, UserPlus, Trophy, Gift, Share2, MessageCircle } from "lucide-react";
 import ReferralProgramCard from "../components/referrals/ReferralProgramCard";
 import { toast } from "sonner";
-import PWAInstallPrompt from "../components/pwa/PWAInstallPrompt";
+import InvitationPWAGuide from "../components/pwa/InvitationPWAGuide";
 
 const CUOTA_SOCIO = 25;
 
@@ -623,7 +623,7 @@ export default function ClubMembership() {
 
   return (
     <>
-      <PWAInstallPrompt />
+      <InvitationPWAGuide />
       <div className="p-4 lg:p-6 max-w-4xl mx-auto space-y-6">
         {showSuccess && (
         <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 backdrop-blur-sm" onClick={() => setShowSuccess(false)}>
