@@ -356,12 +356,12 @@ export default function TreasurerDashboard() {
     const ropaPagada = ropaTemporadaActual.filter(o => o.pagado).reduce((sum, o) => sum + (o.precio_total || 0), 0);
     const ropaPendiente = ropaTemporadaActual.filter(o => !o.pagado).reduce((sum, o) => sum + (o.precio_total || 0), 0);
 
-    // Lotería (solo temporada actual)
+    // Lotería (solo temporada actual) - Beneficio del club: 2€ por décimo
     const loteriaTemporadaActual = lotteryOrders.filter(o =>
       selectedSeason === "all" || normalizeTemporada(o.temporada) === normalizeTemporada(selectedSeason)
     );
-    const loteriaPagada = loteriaTemporadaActual.filter(o => o.pagado).reduce((sum, o) => sum + (o.total || 0), 0);
-    const loteriaPendiente = loteriaTemporadaActual.filter(o => !o.pagado).reduce((sum, o) => sum + (o.total || 0), 0);
+    const loteriaPagada = loteriaTemporadaActual.filter(o => o.pagado).reduce((sum, o) => sum + ((o.numero_decimos || 0) * 2), 0);
+    const loteriaPendiente = loteriaTemporadaActual.filter(o => !o.pagado).reduce((sum, o) => sum + ((o.numero_decimos || 0) * 2), 0);
 
     // Patrocinios - SOLO contar activos CON pago confirmado (monto > 0)
     const patrociniosActivos = sponsors.filter(s => s.estado === "Activo" && (s.monto || 0) > 0);
@@ -673,13 +673,13 @@ export default function TreasurerDashboard() {
       });
     });
 
-    // Lotería pagada
+    // Lotería pagada - Beneficio del club: 2€ por décimo
     lotteryOrders.filter(o => o.pagado).slice(0, 5).forEach(o => {
       transactions.push({
         id: o.id,
         tipo: 'loteria',
-        concepto: `Lotería - ${o.jugador_nombre}`,
-        cantidad: o.total,
+        concepto: `Lotería - ${o.jugador_nombre} (${o.numero_decimos} décimos)`,
+        cantidad: (o.numero_decimos || 0) * 2,
         fecha: o.created_date,
         estado: 'completado'
       });
