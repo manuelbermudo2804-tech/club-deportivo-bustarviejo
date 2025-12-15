@@ -203,27 +203,6 @@ export default function ClubMembership() {
     enabled: !!user?.email,
   });
 
-  // Detectar referidos históricos (que no renovaron)
-  const { data: myHistoricReferrals = [] } = useQuery({
-    queryKey: ['myHistoricReferrals', user?.email, seasonConfig?.temporada],
-    queryFn: async () => {
-      if (!user || !seasonConfig?.temporada || myPlayers.length === 0) return [];
-      
-      const historicRefs = allMemberships.filter(m => {
-        if (m.temporada === seasonConfig.temporada) return false;
-        if (m.referido_por_email !== user.email) return false;
-        const hasRenewed = allMemberships.some(current => 
-          current.temporada === seasonConfig.temporada &&
-          (current.email?.toLowerCase() === m.email?.toLowerCase() || current.dni === m.dni)
-        );
-        return !hasRenewed;
-      });
-      
-      return historicRefs;
-    },
-    enabled: !!user?.email && !!seasonConfig?.temporada && myPlayers.length > 0,
-  });
-
   const { data: allMemberships = [] } = useQuery({
     queryKey: ['allMemberships'],
     queryFn: async () => {
@@ -283,6 +262,27 @@ export default function ClubMembership() {
       }
     },
     enabled: !!user?.email,
+  });
+
+  // Detectar referidos históricos (que no renovaron) - DESPUÉS de myPlayers
+  const { data: myHistoricReferrals = [] } = useQuery({
+    queryKey: ['myHistoricReferrals', user?.email, seasonConfig?.temporada],
+    queryFn: async () => {
+      if (!user || !seasonConfig?.temporada || myPlayers.length === 0) return [];
+      
+      const historicRefs = allMemberships.filter(m => {
+        if (m.temporada === seasonConfig.temporada) return false;
+        if (m.referido_por_email !== user.email) return false;
+        const hasRenewed = allMemberships.some(current => 
+          current.temporada === seasonConfig.temporada &&
+          (current.email?.toLowerCase() === m.email?.toLowerCase() || current.dni === m.dni)
+        );
+        return !hasRenewed;
+      });
+      
+      return historicRefs;
+    },
+    enabled: !!user?.email && !!seasonConfig?.temporada && myPlayers.length > 0,
   });
 
   // Determinar si es un usuario externo (sin autenticación o sin hijos en el club)
