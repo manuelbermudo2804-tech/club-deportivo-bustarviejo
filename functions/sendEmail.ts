@@ -39,8 +39,18 @@ Deno.serve(async (req) => {
     const data = await response.json();
 
     if (!response.ok) {
-      console.error('Resend error:', data);
-      return Response.json({ error: 'Failed to send email', details: data }, { status: response.status });
+      console.error('Resend error response:', {
+        status: response.status,
+        statusText: response.statusText,
+        data: data,
+        headers: Object.fromEntries(response.headers.entries())
+      });
+      return Response.json({ 
+        error: 'Failed to send email', 
+        details: data,
+        status: response.status,
+        resendError: data.message || data.error || 'Unknown error'
+      }, { status: response.status });
     }
 
     return Response.json({ success: true, id: data.id });
