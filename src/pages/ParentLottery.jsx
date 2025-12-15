@@ -281,27 +281,38 @@ export default function ParentLottery() {
           </Alert>
         )}
 
-        {loteriaAbierta && maxDecimos && (
+        {loteriaAbierta && (
           <Alert className="bg-gradient-to-r from-green-700 to-green-800 border-green-500 border-4 shadow-2xl">
-            <Clover className="h-6 w-6 text-yellow-300 animate-bounce" />
+            <Gift className="h-6 w-6 text-yellow-300 animate-bounce" />
             <AlertDescription className="text-white text-lg">
               <div className="flex items-center justify-between">
                 <div>
-                  <strong>📊 Disponibilidad:</strong>
+                  <strong>📊 Décimos Vendidos:</strong>
                   <br />
-                  <span className="text-2xl font-bold text-yellow-300">{decimosDisponibles}</span> décimos disponibles de {maxDecimos}
+                  {maxDecimos ? (
+                    <>
+                      <span className="text-2xl font-bold text-yellow-300">{decimosDisponibles}</span> disponibles de {maxDecimos}
+                    </>
+                  ) : (
+                    <span className="text-2xl font-bold text-yellow-300">{totalDecimosVendidos}</span>
+                  )}
                 </div>
                 <div className="text-right">
                   <div className="text-3xl font-black text-yellow-300">{totalDecimosVendidos}</div>
                   <div className="text-xs text-green-200">vendidos</div>
                 </div>
               </div>
-              <div className="mt-2 bg-white/20 rounded-full h-3 overflow-hidden">
-                <div 
-                  className="bg-yellow-300 h-full transition-all duration-500"
-                  style={{ width: `${(totalDecimosVendidos / maxDecimos) * 100}%` }}
-                />
-              </div>
+              {maxDecimos && (
+                <div className="mt-2 bg-white/20 rounded-full h-3 overflow-hidden">
+                  <div 
+                    className="bg-yellow-300 h-full transition-all duration-500"
+                    style={{ width: `${(totalDecimosVendidos / maxDecimos) * 100}%` }}
+                  />
+                </div>
+              )}
+              {!maxDecimos && (
+                <p className="text-xs text-green-200 mt-2">Sin límite configurado</p>
+              )}
             </AlertDescription>
           </Alert>
         )}
