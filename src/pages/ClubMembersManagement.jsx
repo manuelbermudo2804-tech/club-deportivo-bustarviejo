@@ -134,24 +134,151 @@ export default function ClubMembersManagement() {
         console.log('[ClubMembersManagement] Enviando confirmación de pago a:', memberEmail);
         
         try {
+          const CLUB_LOGO_URL = "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6911b8e453ca3ac01fb134d6/e3f0a8e26_logo_cd_bustarviejo_mediano.jpg";
+          
           await base44.functions.invoke('sendEmail', {
             to: memberEmail,
-            subject: "🎉 ¡Confirmación de Pago - Ya eres Socio del CD Bustarviejo!",
-            html: `Estimado/a ${memberName},
+            subject: "🎉 ¡Ya eres Socio del CD Bustarviejo! - Tu Carnet Digital",
+            html: `
+              <!DOCTYPE html>
+              <html>
+              <head>
+                <meta charset="utf-8">
+                <style>
+                  body { font-family: Arial, sans-serif; margin: 0; padding: 0; background: #f1f5f9; }
+                  .container { max-width: 600px; margin: 0 auto; background: white; }
+                  .header { background: linear-gradient(135deg, #ea580c, #22c55e); padding: 30px; text-align: center; }
+                  .header h1 { color: white; margin: 0; font-size: 28px; }
+                  .content { padding: 30px; }
+                  .carnet { 
+                    background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+                    border-radius: 20px;
+                    padding: 25px;
+                    margin: 20px 0;
+                    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+                    border: 3px solid #ea580c;
+                  }
+                  .carnet-header { 
+                    display: flex; 
+                    align-items: center; 
+                    justify-content: space-between;
+                    border-bottom: 2px solid #ea580c;
+                    padding-bottom: 15px;
+                    margin-bottom: 20px;
+                  }
+                  .carnet-logo { 
+                    width: 80px; 
+                    height: 80px; 
+                    border-radius: 12px;
+                    object-fit: cover;
+                    border: 3px solid #ea580c;
+                  }
+                  .carnet-title { 
+                    color: white; 
+                    font-size: 20px; 
+                    font-weight: bold;
+                    text-align: center;
+                    flex: 1;
+                    margin: 0 15px;
+                  }
+                  .carnet-data { color: white; }
+                  .carnet-data p { margin: 10px 0; font-size: 15px; }
+                  .carnet-data strong { color: #fb923c; }
+                  .carnet-footer { 
+                    text-align: center; 
+                    margin-top: 20px; 
+                    padding-top: 15px;
+                    border-top: 2px solid #ea580c;
+                  }
+                  .carnet-number { 
+                    background: linear-gradient(135deg, #ea580c, #f97316);
+                    color: white;
+                    padding: 8px 20px;
+                    border-radius: 10px;
+                    font-weight: bold;
+                    font-size: 18px;
+                    display: inline-block;
+                    margin: 10px 0;
+                  }
+                  .footer { background: #1e293b; color: white; padding: 20px; text-align: center; }
+                  .footer a { color: #fb923c; text-decoration: none; }
+                  .emoji { font-size: 40px; }
+                </style>
+              </head>
+              <body>
+                <div class="container">
+                  <div class="header">
+                    <h1>🎉 ¡BIENVENIDO AL CLUB!</h1>
+                  </div>
+                  
+                  <div class="content">
+                    <p style="font-size: 18px; color: #334155;">Estimado/a <strong>${memberName}</strong>,</p>
+                    
+                    <p style="font-size: 16px; color: #64748b; line-height: 1.6;">
+                      ¡Gracias por tu apoyo al CD Bustarviejo! Hemos confirmado tu pago y nos complace darte la bienvenida como <strong style="color: #ea580c;">socio oficial</strong> para la temporada <strong>${seasonConfig?.temporada || "actual"}</strong>.
+                    </p>
+                    
+                    <div style="text-align: center; margin: 20px 0;">
+                      <div class="emoji">⚽</div>
+                    </div>
 
-¡Gracias por tu apoyo al CD Bustarviejo! 
+                    <div class="carnet">
+                      <div class="carnet-header">
+                        <img src="${CLUB_LOGO_URL}" alt="CD Bustarviejo" class="carnet-logo" />
+                        <div class="carnet-title">
+                          CARNET DE SOCIO<br/>
+                          <span style="font-size: 16px; color: #22c55e;">CD BUSTARVIEJO</span>
+                        </div>
+                      </div>
+                      
+                      <div class="carnet-data">
+                        <p><strong>NOMBRE:</strong> ${memberName}</p>
+                        <p><strong>Nº SOCIO:</strong> ${member.numero_socio || 'En proceso'}</p>
+                        <p><strong>TEMPORADA:</strong> ${seasonConfig?.temporada || new Date().getFullYear()}</p>
+                        <p><strong>DNI:</strong> ${member.dni || 'N/A'}</p>
+                      </div>
+                      
+                      <div class="carnet-footer">
+                        <div class="carnet-number">
+                          ✅ SOCIO VERIFICADO
+                        </div>
+                        <p style="color: #22c55e; font-size: 12px; margin-top: 10px;">
+                          CUOTA PAGADA • ${CUOTA_SOCIO}€
+                        </p>
+                      </div>
+                    </div>
 
-Hemos recibido y confirmado tu pago de la cuota de socio para la temporada ${seasonConfig?.temporada || "actual"}.
+                    <div style="background: linear-gradient(135deg, #22c55e, #16a34a); color: white; padding: 20px; border-radius: 15px; margin: 25px 0;">
+                      <h3 style="margin: 0 0 10px 0; font-size: 18px;">💚 ¡Gracias por formar parte de nuestra familia!</h3>
+                      <p style="margin: 5px 0; font-size: 14px;">Tu contribución es fundamental para el desarrollo de más de 200 jóvenes deportistas de Bustarviejo.</p>
+                      <p style="margin: 5px 0; font-size: 14px;">Juntos hacemos grande al CD Bustarviejo ⚽🏀</p>
+                    </div>
 
-🎉 ¡YA ERES OFICIALMENTE SOCIO DEL CLUB!
+                    <div style="background: #f0fdf4; border-left: 4px solid #22c55e; padding: 15px; margin: 20px 0;">
+                      <p style="margin: 0; font-size: 14px; color: #166534;">
+                        <strong>📲 Guarda este email</strong> como comprobante de tu membresía. Puedes presentarlo cuando lo necesites.
+                      </p>
+                    </div>
 
-Tu contribución es fundamental para el desarrollo de nuestros jóvenes deportistas.
-
-Un cordial saludo,
-CD Bustarviejo`
+                    <p style="font-size: 14px; color: #64748b; margin-top: 20px;">
+                      Atentamente,<br/>
+                      <strong style="color: #ea580c;">CD Bustarviejo</strong><br/>
+                      <span style="font-size: 12px;">Tu club de siempre 💚</span>
+                    </p>
+                  </div>
+                  
+                  <div class="footer">
+                    <p style="margin: 5px 0; font-size: 14px;">📧 <a href="mailto:cdbustarviejo@gmail.com">cdbustarviejo@gmail.com</a></p>
+                    <p style="margin: 5px 0; font-size: 14px;">📧 <a href="mailto:C.D.BUSTARVIEJO@HOTMAIL.ES">C.D.BUSTARVIEJO@HOTMAIL.ES</a></p>
+                    <p style="margin-top: 15px; font-size: 12px; color: #94a3b8;">© ${new Date().getFullYear()} CD Bustarviejo - Todos los derechos reservados</p>
+                  </div>
+                </div>
+              </body>
+              </html>
+            `
           });
           console.log('[ClubMembersManagement] ✅ Email de confirmación enviado');
-          toast.success("📧 Email de confirmación enviado al socio");
+          toast.success("📧 Email con carnet digital enviado al socio");
         } catch (error) {
           console.error("[ClubMembersManagement] ❌ Error enviando email:", error);
           toast.error("No se pudo enviar el email de confirmación");
