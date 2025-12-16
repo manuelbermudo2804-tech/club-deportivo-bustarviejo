@@ -761,6 +761,7 @@ export default function CoachChatWindow({ selectedCategory, user, allPlayers }) 
                     userEmail={user.email}
                     userName={user.full_name}
                     onVote={(msgId, optionIdx) => votePollMutation.mutate({ messageId: msgId, optionIndex: optionIdx })}
+                    isCreator={msg.remitente_email === user.email}
                   />
                 )}
 

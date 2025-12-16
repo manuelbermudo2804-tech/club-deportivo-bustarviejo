@@ -513,6 +513,7 @@ export default function ParentCoachChat() {
                             userEmail={user.email}
                             userName={user.full_name}
                             onVote={(msgId, optionIdx) => votePollMutation.mutate({ messageId: msgId, optionIndex: optionIdx })}
+                            isCreator={msg.remitente_email === user.email}
                           />
                           <p className="text-xs text-slate-500 mt-1 px-2">
                             {format(new Date(msg.created_date), "HH:mm", { locale: es })}

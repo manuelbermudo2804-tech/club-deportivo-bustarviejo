@@ -1,7 +1,10 @@
-import React from "react";
-import { CheckCircle2 } from "lucide-react";
+import React, { useState } from "react";
+import { CheckCircle2, Users } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
-export default function PollMessage({ encuesta, messageId, userEmail, userName, onVote }) {
+export default function PollMessage({ encuesta, messageId, userEmail, userName, onVote, isCreator }) {
+  const [showVotersDialog, setShowVotersDialog] = useState(false);
+  const [selectedOption, setSelectedOption] = useState(null);
   if (!encuesta) return null;
 
   const hasVoted = encuesta.votos?.some(v => v.usuario_email === userEmail);
@@ -15,6 +18,10 @@ export default function PollMessage({ encuesta, messageId, userEmail, userName, 
   const getPercentage = (index) => {
     if (totalVotes === 0) return 0;
     return Math.round((getVotesForOption(index) / totalVotes) * 100);
+  };
+
+  const getVotersForOption = (index) => {
+    return encuesta.votos?.filter(v => v.opcion_index === index) || [];
   };
 
   const myVote = encuesta.votos?.find(v => v.usuario_email === userEmail);
@@ -72,6 +79,19 @@ export default function PollMessage({ encuesta, messageId, userEmail, userName, 
                     <span className={`text-xs bg-white px-2 py-0.5 rounded-full ${isMyVote ? 'text-green-600 border border-green-200' : 'text-slate-500 border'}`}>
                       {votes}
                     </span>
+                    {isCreator && votes > 0 && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelectedOption(index);
+                          setShowVotersDialog(true);
+                        }}
+                        className="text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-full p-1 transition-colors"
+                        title="Ver quién votó"
+                      >
+                        <Users className="w-4 h-4" />
+                      </button>
+                    )}
                   </div>
                 )}
               </div>
@@ -91,6 +111,42 @@ export default function PollMessage({ encuesta, messageId, userEmail, userName, 
           </p>
         )}
       </div>
+
+      {/* Diálogo para ver votantes */}
+      <Dialog open={showVotersDialog} onOpenChange={setShowVotersDialog}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Users className="w-5 h-5 text-blue-600" />
+              Votaron: {encuesta.opciones[selectedOption]}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-2 max-h-[400px] overflow-y-auto">
+            {selectedOption !== null && getVotersForOption(selectedOption).length === 0 ? (
+              <p className="text-center text-slate-500 py-4">Nadie ha votado esta opción aún</p>
+            ) : (
+              getVotersForOption(selectedOption).map((voter, idx) => (
+                <div key={idx} className="bg-slate-50 rounded-lg p-3 border flex items-center gap-2">
+                  <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-sm font-bold text-blue-700">
+                    {voter.usuario_nombre?.charAt(0).toUpperCase()}
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-sm font-medium text-slate-900">{voter.usuario_nombre}</p>
+                    <p className="text-xs text-slate-500">
+                      {new Date(voter.fecha).toLocaleString('es-ES', { 
+                        day: 'numeric', 
+                        month: 'short', 
+                        hour: '2-digit', 
+                        minute: '2-digit' 
+                      })}
+                    </p>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

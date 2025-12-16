@@ -628,6 +628,7 @@ export default function StaffChat() {
                             userEmail={user.email}
                             userName={user.full_name}
                             onVote={(msgId, optionIdx) => votePollMutation.mutate({ messageId: msgId, optionIndex: optionIdx })}
+                            isCreator={msg.autor_email === user.email}
                           />
                         )}
 
