@@ -14,7 +14,7 @@ import { toast } from "sonner";
 
 const CLUB_LOGO_URL = "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6911b8e453ca3ac01fb134d6/e3f0a8e26_logo_cd_bustarviejo_mediano.jpg";
 const DEFAULT_APP_URL = 'https://app.cdbustarviejo.com';
-const VALIDATION_URL = 'https://app.cdbustarviejo.com';
+const VALIDATION_URL = 'https://app.cdbustarviejo.com/ValidateAdminInvitation';
 
 // Genera un token UUID único
 const generateToken = () => {
@@ -306,7 +306,7 @@ export default function EmailInvitations() {
 
   const generateEmailBody = (destinatarioEmail, token) => {
     // URL de validación con token seguro
-    const validationUrl = `${VALIDATION_URL}?invitation_token=${token}&type=admin`;
+    const validationUrl = `${VALIDATION_URL}?invitation_token=${token}`;
     
     return `<!DOCTYPE html>
 <html>
@@ -1034,7 +1034,7 @@ ${mensajePersonalizado ? `
                               const allInvitations = await base44.entities.AdminInvitation.list();
                               const invitation = allInvitations.find(i => i.email_destino === inv.email_destinatario);
                               if (invitation) {
-                                const url = `${VALIDATION_URL}?invitation_token=${invitation.token}&type=admin`;
+                                const url = `${VALIDATION_URL}?invitation_token=${invitation.token}`;
                                 await navigator.clipboard.writeText(url);
                                 toast.success("🔗 Enlace copiado - envíalo por WhatsApp o email");
                               } else {

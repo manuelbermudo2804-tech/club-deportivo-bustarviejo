@@ -78,6 +78,7 @@ import CoachProfiles from './pages/CoachProfiles';
 import FamilyChats from './pages/FamilyChats';
 import RenewalDashboard from './pages/RenewalDashboard';
 import CustomPaymentPlans from './pages/CustomPaymentPlans';
+import ValidateAdminInvitation from './pages/ValidateAdminInvitation';
 import __Layout from './Layout.jsx';
 
 
@@ -162,6 +163,7 @@ export const PAGES = {
     "FamilyChats": FamilyChats,
     "RenewalDashboard": RenewalDashboard,
     "CustomPaymentPlans": CustomPaymentPlans,
+    "ValidateAdminInvitation": ValidateAdminInvitation,
 }
 
 export const pagesConfig = {
