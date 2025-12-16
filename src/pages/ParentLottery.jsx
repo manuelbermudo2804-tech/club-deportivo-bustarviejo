@@ -96,28 +96,108 @@ export default function ParentLottery() {
     mutationFn: async (orderData) => {
       const order = await base44.entities.LotteryOrder.create(orderData);
       
-      // Notificar al admin si las notificaciones están activas
-      if (seasonConfig?.notificaciones_admin_email) {
-        try {
-          await base44.integrations.Core.SendEmail({
-            from_name: "CD Bustarviejo - Lotería",
-            to: "cdbustarviejo@gmail.com",
-            subject: `🍀 Nuevo Pedido de Lotería - ${orderData.jugador_nombre}`,
-            body: `
-              <h2>Nuevo Pedido de Lotería de Navidad</h2>
-              <p><strong>Solicitante:</strong> ${orderData.jugador_nombre}</p>
-              <p><strong>Categoría:</strong> ${orderData.jugador_categoria}</p>
-              <p><strong>Email:</strong> ${orderData.email_padre}</p>
-              <p><strong>Décimos:</strong> ${orderData.numero_decimos}</p>
-              <p><strong>Total:</strong> ${orderData.total}€</p>
-              ${orderData.justificante_url ? `<p><strong>Justificante:</strong> <a href="${orderData.justificante_url}">Ver</a></p>` : '<p><strong>Pago:</strong> Pendiente (al entrenador)</p>'}
-              <hr>
-              <p style="font-size: 12px; color: #666;">Registrado el ${new Date().toLocaleString('es-ES')}</p>
-            `
+      console.log('✅ Pedido de lotería creado, enviando emails...', { orderData });
+      
+      try {
+        // Email al admin - SIEMPRE enviar
+        await base44.functions.invoke('sendEmail', {
+          to: "cdbustarviejo@gmail.com",
+          subject: `🍀 Nuevo Pedido de Lotería - ${orderData.jugador_nombre}`,
+          html: `
+            <h2>Nuevo Pedido de Lotería de Navidad</h2>
+            <p><strong>Solicitante:</strong> ${orderData.jugador_nombre}</p>
+            <p><strong>Categoría:</strong> ${orderData.jugador_categoria}</p>
+            <p><strong>Email:</strong> ${orderData.email_padre}</p>
+            <p><strong>Décimos:</strong> ${orderData.numero_decimos}</p>
+            <p><strong>Total:</strong> ${orderData.total}€</p>
+            ${orderData.justificante_url ? `<p><strong>Justificante:</strong> <a href="${orderData.justificante_url}">Ver</a></p>` : '<p><strong>Pago:</strong> Pendiente (al entrenador)</p>'}
+            <hr>
+            <p style="font-size: 12px; color: #666;">Registrado el ${new Date().toLocaleString('es-ES')}</p>
+          `
+        });
+        console.log('✅ Email al admin enviado');
+
+        // Email de confirmación a las familias
+        const player = orderData.jugador_id !== user.id ? players.find(p => p.id === orderData.jugador_id) : null;
+        
+        const confirmBody = `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+            <div style="background: linear-gradient(135deg, #16a34a, #15803d); padding: 20px; text-align: center; border-radius: 10px 10px 0 0;">
+              <h1 style="color: white; margin: 0;">🍀 Pedido de Lotería Recibido 🎄</h1>
+            </div>
+            <div style="background: #fff; padding: 30px; border: 1px solid #e5e7eb;">
+              <p style="font-size: 16px;">Estimados padres/tutores,</p>
+              <p>Confirmamos que hemos recibido correctamente tu pedido de lotería para <strong>${orderData.jugador_nombre}</strong>.</p>
+              
+              <div style="background: #fef3c7; border: 2px solid #f59e0b; border-radius: 10px; padding: 20px; margin: 20px 0; text-align: center;">
+                <p style="font-size: 32px; font-weight: bold; color: #92400e; margin: 10px 0;">
+                  Número: ${NUMERO_LOTERIA}
+                </p>
+                <p style="font-size: 14px; color: #78350f;">Sorteo: 22 de Diciembre</p>
+              </div>
+
+              <div style="background: #f0fdf4; border: 2px solid #22c55e; border-radius: 10px; padding: 20px; margin: 20px 0;">
+                <h3 style="color: #166534; margin-top: 0;">📦 Detalles del Pedido:</h3>
+                <p style="font-size: 18px; color: #15803d;"><strong>🎟️ Décimos solicitados:</strong> ${orderData.numero_decimos}</p>
+                <p style="font-size: 18px; font-weight: bold; color: #166534;">💰 Total: ${orderData.total}€</p>
+              </div>
+              
+              ${orderData.justificante_url ? `
+                <div style="background: #dbeafe; border-left: 4px solid #3b82f6; padding: 15px; margin: 20px 0;">
+                  <p style="margin: 0; font-size: 14px; color: #1e40af;"><strong>✅ Pago registrado:</strong></p>
+                  <p style="margin: 5px 0 0 0; font-size: 14px; color: #1e3a8a;">Hemos recibido tu justificante de pago. El club lo revisará y te avisará cuando tu pedido esté listo para recoger.</p>
+                </div>
+              ` : `
+                <div style="background: #fef3c7; border-left: 4px solid #f59e0b; padding: 15px; margin: 20px 0;">
+                  <p style="margin: 0; font-size: 14px; color: #92400e;"><strong>👨‍🏫 Entrega y Pago:</strong></p>
+                  <p style="margin: 5px 0 0 0; font-size: 14px; color: #78350f;">Tu entrenador te entregará los décimos y le pagarás directamente (${orderData.total}€).</p>
+                </div>
+              `}
+
+              <div style="background: #f0fdf4; border-left: 4px solid #22c55e; padding: 15px; margin: 20px 0;">
+                <p style="margin: 0; font-size: 14px; color: #166534;"><strong>📍 Información de recogida:</strong></p>
+                <p style="margin: 5px 0 0 0; font-size: 14px; color: #15803d;">El club te avisará cuando los décimos estén listos para recoger.</p>
+              </div>
+              
+              <div style="background: #f3f4f6; border-radius: 8px; padding: 12px; margin: 20px 0;">
+                <p style="font-size: 12px; color: #6b7280; margin: 0;"><strong>Estado:</strong> Solicitado</p>
+              </div>
+
+              <div style="background: #fef3c7; border-radius: 8px; padding: 15px; margin: 20px 0; text-align: center;">
+                <p style="font-size: 16px; font-weight: bold; color: #92400e; margin: 0;">🍀 ¡Mucha suerte en el sorteo! 🎄</p>
+              </div>
+            </div>
+            <div style="background: #1e293b; color: white; padding: 15px; text-align: center; border-radius: 0 0 10px 10px;">
+              <p style="margin: 0; font-size: 12px;">CD Bustarviejo - Lotería de Navidad ${new Date().getFullYear()}</p>
+              <p style="margin: 5px 0 0 0; font-size: 11px; color: #94a3b8;">📧 cdbustarviejo@gmail.com</p>
+            </div>
+          </div>
+        `;
+        
+        // Enviar email al padre
+        if (orderData.email_padre) {
+          await base44.functions.invoke('sendEmail', {
+            to: orderData.email_padre,
+            subject: "🍀 Pedido de Lotería Recibido - CD Bustarviejo",
+            html: confirmBody
           });
-        } catch (error) {
-          console.error("Error sending lottery order notification:", error);
+          console.log('✅ Email enviado a:', orderData.email_padre);
         }
+        
+        // Enviar email al segundo tutor si existe
+        if (player?.email_tutor_2) {
+          await base44.functions.invoke('sendEmail', {
+            to: player.email_tutor_2,
+            subject: "🍀 Pedido de Lotería Recibido - CD Bustarviejo",
+            html: confirmBody
+          });
+          console.log('✅ Email enviado a:', player.email_tutor_2);
+        }
+
+        toast.success("📧 Emails de confirmación enviados");
+      } catch (error) {
+        console.error("❌ Error sending lottery order emails:", error);
+        toast.error("Error al enviar emails de confirmación");
       }
       
       return order;
@@ -131,7 +211,7 @@ export default function ParentLottery() {
       setNotas("");
       setMetodoPago("Transferencia");
       setJustificanteUrl("");
-      toast.success("✅ ¡Pedido registrado! Tu entrenador te entregará los décimos");
+      toast.success("✅ ¡Pedido registrado! Recibirás un email de confirmación");
     },
   });
 
