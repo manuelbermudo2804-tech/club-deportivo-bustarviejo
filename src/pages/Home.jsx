@@ -810,37 +810,42 @@ export default function Home() {
     } else if (isTreasurer) {
       // 💰 TESORERO: Ordenado por prioridad de uso diario
       
-      // 1. COMUNICACIÓN - Accesos rápidos a chats
+      // 1. COMUNICACIÓN - Accesos rápidos a chats (solo si tiene hijos, sino solo asistente)
       items.push(
         {
           title: "🤖 Asistente Virtual",
           icon: MessageCircle,
           url: createPageUrl("Chatbot"),
           gradient: "from-indigo-600 to-purple-700",
-        },
-        {
-          title: "🔔 Mensajes del Club",
-          icon: Bell,
-          url: createPageUrl("ParentSystemMessages"),
-          gradient: "from-purple-600 to-purple-700",
-          badge: stats.unreadPrivateMessages,
-          badgeLabel: "sin leer"
-        },
-        {
-          title: "💬 Chat Coordinador",
-          icon: MessageCircle,
-          url: createPageUrl("ParentCoordinatorChat"),
-          gradient: "from-blue-600 to-blue-700",
-          badge: stats.unreadCoordinatorMessages,
-          badgeLabel: "sin leer"
-        },
-        {
-          title: "⚽ Chat Entrenador",
-          icon: MessageCircle,
-          url: createPageUrl("ParentCoachChat"),
-          gradient: "from-green-600 to-green-700",
         }
       );
+
+      if (hasPlayers) {
+        items.push(
+          {
+            title: "🔔 Mensajes del Club",
+            icon: Bell,
+            url: createPageUrl("ParentSystemMessages"),
+            gradient: "from-purple-600 to-purple-700",
+            badge: stats.unreadPrivateMessages,
+            badgeLabel: "sin leer"
+          },
+          {
+            title: "💬 Chat Coordinador",
+            icon: MessageCircle,
+            url: createPageUrl("ParentCoordinatorChat"),
+            gradient: "from-blue-600 to-blue-700",
+            badge: stats.unreadCoordinatorMessages,
+            badgeLabel: "sin leer"
+          },
+          {
+            title: "⚽ Chat Entrenador",
+            icon: MessageCircle,
+            url: createPageUrl("ParentCoachChat"),
+            gradient: "from-green-600 to-green-700",
+          }
+        );
+      }
 
       // 2. FINANZAS - Lo más importante para el tesorero
       items.push(
