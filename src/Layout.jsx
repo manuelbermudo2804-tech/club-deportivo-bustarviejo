@@ -519,9 +519,19 @@ export default function Layout({ children, currentPageName }) {
 
   const [pendingCallupsCount, setPendingCallupsCount] = useState(0);
   const [pendingSignaturesCount, setPendingSignaturesCount] = useState(0);
-  const [pendingCallupResponses, setPendingCallupResponses] = useState(0); // Para entrenadores: respuestas sin confirmar
+  const [pendingCallupResponses, setPendingCallupResponses] = useState(0);
   const [unreadAnnouncementsCount, setUnreadAnnouncementsCount] = useState(0);
   const [hasActiveAdminConversation, setHasActiveAdminConversation] = useState(false);
+  
+  // Badges para admin
+  const [unresolvedAdminChats, setUnresolvedAdminChats] = useState(0);
+  const [paymentsInReview, setPaymentsInReview] = useState(0);
+  const [playersNeedingReview, setPlayersNeedingReview] = useState(0);
+  const [pendingSignaturesAdmin, setPendingSignaturesAdmin] = useState(0);
+  const [pendingInvitations, setPendingInvitations] = useState(0);
+  const [pendingClothingOrders, setPendingClothingOrders] = useState(0);
+  const [pendingLotteryOrders, setPendingLotteryOrders] = useState(0);
+  const [pendingMemberRequests, setPendingMemberRequests] = useState(0);
 
   const [showSpecialScreen, setShowSpecialScreen] = useState(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -836,8 +846,54 @@ export default function Layout({ children, currentPageName }) {
           }
         }
 
-        // Polling ELIMINADO - causaba rate limit 429
-        // El estado de conversaciones se actualiza cuando el usuario navega o recarga
+        // Cargar badges de notificación para admin
+        if (currentUser.role === "admin") {
+          try {
+            // Conversaciones críticas sin resolver
+            const adminChats = await base44.entities.AdminConversation.filter({ resuelta: false });
+            setUnresolvedAdminChats(adminChats.length);
+
+            // Pagos en revisión
+            const payments = await base44.entities.Payment.filter({ estado: "En revisión" });
+            setPaymentsInReview(payments.length);
+
+            // Jugadores requiriendo revisión de categoría
+            const players = await base44.entities.Player.filter({ categoria_requiere_revision: true });
+            setPlayersNeedingReview(players.length);
+
+            // Firmas pendientes (jugadores con enlaces pero sin completar)
+            const allPlayers = await base44.entities.Player.list();
+            const needSignatures = allPlayers.filter(p => 
+              (p.enlace_firma_jugador && !p.firma_jugador_completada) ||
+              (p.enlace_firma_tutor && !p.firma_tutor_completada)
+            );
+            setPendingSignaturesAdmin(needSignatures.length);
+
+            // Solicitudes de invitación pendientes
+            const invitations = await base44.entities.InvitationRequest.filter({ estado: "Pendiente" });
+            setPendingInvitations(invitations.length);
+
+            // Pedidos de ropa pendientes (Pendiente o En revisión)
+            const clothingOrders = await base44.entities.ClothingOrder.list();
+            const pendingClothing = clothingOrders.filter(o => 
+              o.estado === "Pendiente" || o.estado === "En revisión"
+            );
+            setPendingClothingOrders(pendingClothing.length);
+
+            // Pedidos de lotería pendientes
+            const lotteryOrders = await base44.entities.LotteryOrder.filter({ 
+              estado: "Solicitado",
+              pagado: false
+            });
+            setPendingLotteryOrders(lotteryOrders.length);
+
+            // Solicitudes de socio pendientes
+            const members = await base44.entities.ClubMember.filter({ estado_pago: "Pendiente" });
+            setPendingMemberRequests(members.length);
+          } catch (error) {
+            console.log('Error loading admin badges:', error);
+          }
+        }
 
           if (currentUser.acceso_activo === false && currentUser.role !== "admin") {
           setShowSpecialScreen("restricted");
@@ -902,18 +958,18 @@ export default function Layout({ children, currentPageName }) {
     // 📊 INICIO Y FINANZAS
     { title: "🏠 Inicio", url: createPageUrl("Home"), icon: Home },
     { title: "🤖 Asistente Virtual", url: createPageUrl("Chatbot"), icon: MessageCircle },
-    { title: "🛡️ Conversaciones Críticas", url: createPageUrl("AdminChat"), icon: ShieldAlert },
+    { title: "🛡️ Conversaciones Críticas", url: createPageUrl("AdminChat"), icon: ShieldAlert, badge: unresolvedAdminChats > 0 ? unresolvedAdminChats : null, urgentBadge: unresolvedAdminChats > 0 },
     { title: "📊 Panel Financiero", url: createPageUrl("TreasurerDashboard"), icon: CreditCard },
-    { title: "💳 Pagos", url: createPageUrl("Payments"), icon: CreditCard },
+    { title: "💳 Pagos", url: createPageUrl("Payments"), icon: CreditCard, badge: paymentsInReview > 0 ? paymentsInReview : null },
     { title: "🔔 Recordatorios Simples", url: createPageUrl("PaymentReminders"), icon: Bell },
     { title: "📁 Histórico", url: createPageUrl("PaymentHistory"), icon: Archive },
 
     // 👥 GESTIÓN DE PERSONAS
-    { title: "👥 Jugadores", url: createPageUrl("Players"), icon: Users },
+    { title: "👥 Jugadores", url: createPageUrl("Players"), icon: Users, badge: playersNeedingReview > 0 ? playersNeedingReview : null },
     { title: "🔄 Dashboard Renovaciones", url: createPageUrl("RenewalDashboard"), icon: RefreshCw },
     { title: "🏃 Entrenadores", url: createPageUrl("CoachProfiles"), icon: Users },
-    { title: "🖊️ Firmas Federación", url: createPageUrl("FederationSignaturesAdmin"), icon: FileSignature },
-    { title: "📧 Solicitudes Invitación", url: createPageUrl("InvitationRequests"), icon: Mail },
+    { title: "🖊️ Firmas Federación", url: createPageUrl("FederationSignaturesAdmin"), icon: FileSignature, badge: pendingSignaturesAdmin > 0 ? pendingSignaturesAdmin : null, urgentBadge: pendingSignaturesAdmin > 0 },
+    { title: "📧 Solicitudes Invitación", url: createPageUrl("InvitationRequests"), icon: Mail, badge: pendingInvitations > 0 ? pendingInvitations : null },
     { title: "👤 Usuarios", url: createPageUrl("UserManagement"), icon: Users },
 
     // ⚽ DEPORTIVO
@@ -929,9 +985,9 @@ export default function Layout({ children, currentPageName }) {
     { title: "📋 Encuestas", url: createPageUrl("Surveys"), icon: FileText },
 
     // 🛍️ PEDIDOS Y EXTRAS
-    { title: "🛍️ Pedidos Ropa", url: createPageUrl("ClothingOrders"), icon: ShoppingBag },
-    ...(loteriaVisible ? [{ title: "🍀 Lotería Navidad", url: createPageUrl("LotteryManagement"), icon: Clover }] : []),
-    { title: "🎫 Gestión Socios", url: createPageUrl("ClubMembersManagement"), icon: Users },
+    { title: "🛍️ Pedidos Ropa", url: createPageUrl("ClothingOrders"), icon: ShoppingBag, badge: pendingClothingOrders > 0 ? pendingClothingOrders : null },
+    ...(loteriaVisible ? [{ title: "🍀 Lotería Navidad", url: createPageUrl("LotteryManagement"), icon: Clover, badge: pendingLotteryOrders > 0 ? pendingLotteryOrders : null }] : []),
+    { title: "🎫 Gestión Socios", url: createPageUrl("ClubMembersManagement"), icon: Users, badge: pendingMemberRequests > 0 ? pendingMemberRequests : null },
             { title: "💰 Patrocinios", url: createPageUrl("Sponsorships"), icon: CreditCard },
             { title: "🎁 Trae un Socio Amigo", url: createPageUrl("ReferralManagement"), icon: Gift },
         { title: "⚽👧 Fútbol Femenino", url: createPageUrl("FemeninoInterests"), icon: Users },
