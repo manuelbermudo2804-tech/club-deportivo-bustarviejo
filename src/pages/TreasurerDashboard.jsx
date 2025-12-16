@@ -998,26 +998,24 @@ export default function TreasurerDashboard() {
             </Card>
           </Link>
 
-          {!hasPlayers && (
-            <Link to={createPageUrl("ParentLottery")} className="block">
-              <Card className="border-2 border-yellow-400 hover:border-yellow-600 transition-all cursor-pointer group hover:shadow-xl">
-                <CardContent className="pt-6 pb-6">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-4">
-                      <div className="w-14 h-14 bg-yellow-100 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform">
-                        <Clover className="w-8 h-8 text-yellow-600" />
-                      </div>
-                      <div>
-                        <h3 className="font-bold text-slate-900 text-lg">Mi Lotería</h3>
-                        <p className="text-sm text-slate-600">Pedir décimos para ti</p>
-                      </div>
+          <Link to={createPageUrl("ParentLottery")} className="block">
+            <Card className="border-2 border-yellow-400 hover:border-yellow-600 transition-all cursor-pointer group hover:shadow-xl">
+              <CardContent className="pt-6 pb-6">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-4">
+                    <div className="w-14 h-14 bg-yellow-100 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform">
+                      <Clover className="w-8 h-8 text-yellow-600" />
                     </div>
-                    <ArrowUpRight className="w-6 h-6 text-yellow-600 opacity-0 group-hover:opacity-100 transition-opacity" />
+                    <div>
+                      <h3 className="font-bold text-slate-900 text-lg">Mi Lotería</h3>
+                      <p className="text-sm text-slate-600">Pedir décimos para ti</p>
+                    </div>
                   </div>
-                </CardContent>
-              </Card>
-            </Link>
-          )}
+                  <ArrowUpRight className="w-6 h-6 text-yellow-600 opacity-0 group-hover:opacity-100 transition-opacity" />
+                </div>
+              </CardContent>
+            </Card>
+          </Link>
         </div>
       )}
 
