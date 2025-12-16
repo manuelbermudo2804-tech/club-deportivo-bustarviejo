@@ -121,6 +121,32 @@ export default function AdultPlayerInvitationRequest({ playerAge, playerData, pa
         estado: "pendiente"
       });
 
+      // Notificar al admin por email
+      await base44.integrations.Core.SendEmail({
+        to: "manuelbermudo2804@gmail.com",
+        subject: `📧 Solicitud de Invitación: Jugador +18`,
+        body: `
+          <h2>📧 Nueva Solicitud de Invitación para Jugador Mayor de Edad</h2>
+          
+          <p><strong>Solicitado por:</strong> ${parentName || "Padre/Familiar"} (${parentEmail})</p>
+          
+          <hr style="margin: 20px 0;">
+          
+          <h3>Datos del Jugador:</h3>
+          <ul>
+            <li><strong>Nombre:</strong> ${formData.nombre_jugador}</li>
+            <li><strong>Email:</strong> ${formData.email_jugador}</li>
+            <li><strong>Teléfono:</strong> ${formData.telefono_jugador || "No especificado"}</li>
+            <li><strong>Fecha de nacimiento:</strong> ${formData.fecha_nacimiento || "No especificada"}</li>
+            <li><strong>Categoría deseada:</strong> ${formData.categoria_deseada || "No especificada"}</li>
+          </ul>
+          
+          <p style="margin-top: 20px; padding: 15px; background-color: #fef3c7; border-left: 4px solid #f59e0b;">
+            ⚠️ <strong>Acción requerida:</strong> Invita a este usuario desde la Dashboard de Base44 usando el email: <strong>${formData.email_jugador}</strong>
+          </p>
+        `
+      });
+
       setSubmitted(true);
       toast.success("✅ Solicitud enviada correctamente");
     } catch (error) {

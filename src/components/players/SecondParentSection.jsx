@@ -99,7 +99,7 @@ export default function SecondParentSection({
     }
   };
 
-  // Enviar invitación al segundo progenitor
+  // Solicitar invitación al segundo progenitor (notifica al admin)
   const sendInvitation = async () => {
     if (!currentPlayer.email_tutor_2?.trim()) {
       toast.error("Introduce el email del segundo progenitor");
@@ -107,7 +107,7 @@ export default function SecondParentSection({
     }
 
     if (!currentPlayer.id) {
-      toast.info("La invitación se enviará automáticamente al guardar el jugador");
+      toast.info("La solicitud se enviará automáticamente al guardar el jugador");
       return;
     }
 
@@ -116,9 +116,9 @@ export default function SecondParentSection({
     try {
       const token = generateUUID();
       const expirationDate = new Date();
-      expirationDate.setDate(expirationDate.getDate() + 30); // 30 días de validez
+      expirationDate.setDate(expirationDate.getDate() + 30);
 
-      // Crear registro de invitación
+      // Crear registro de invitación (para tracking)
       const invitation = await base44.entities.SecondParentInvitation.create({
         token: token,
         email_destino: currentPlayer.email_tutor_2.trim().toLowerCase(),
@@ -132,26 +132,36 @@ export default function SecondParentSection({
         fecha_expiracion: expirationDate.toISOString()
       });
 
-      const validationUrl = `${APP_URL}?invitation_token=${token}&type=second_parent`;
-
-      // Crear usuario y enviar invitación usando la nueva función backend
-      await base44.functions.invoke('createUserAndSendInvitation', {
-        email: currentPlayer.email_tutor_2.trim().toLowerCase(),
-        full_name: currentPlayer.nombre_tutor_2 || "Segundo Progenitor",
-        invitationType: 'second_parent',
-        invitationData: {
-          token,
-          validationUrl,
-          invitedByName: currentUser?.full_name || "Un familiar",
-          playerName: currentPlayer.nombre
-        }
+      // Notificar al admin por email
+      const adminEmail = await base44.integrations.Core.SendEmail({
+        to: "manuelbermudo2804@gmail.com",
+        subject: `📧 Solicitud de Invitación: Segundo Progenitor`,
+        body: `
+          <h2>📧 Nuevo Segundo Progenitor Solicitado</h2>
+          
+          <p><strong>Jugador:</strong> ${currentPlayer.nombre}</p>
+          <p><strong>Solicitado por:</strong> ${currentUser?.full_name} (${currentUser?.email})</p>
+          
+          <hr style="margin: 20px 0;">
+          
+          <h3>Datos del Segundo Progenitor:</h3>
+          <ul>
+            <li><strong>Nombre:</strong> ${currentPlayer.nombre_tutor_2 || "No especificado"}</li>
+            <li><strong>Email:</strong> ${currentPlayer.email_tutor_2}</li>
+            <li><strong>Teléfono:</strong> ${currentPlayer.telefono_tutor_2 || "No especificado"}</li>
+          </ul>
+          
+          <p style="margin-top: 20px; padding: 15px; background-color: #fef3c7; border-left: 4px solid #f59e0b;">
+            ⚠️ <strong>Acción requerida:</strong> Invita a este usuario desde la Dashboard de Base44 usando el email: <strong>${currentPlayer.email_tutor_2}</strong>
+          </p>
+        `
       });
 
       setPendingInvitation(invitation);
-      toast.success("✅ Usuario creado e invitación enviada correctamente");
+      toast.success("✅ Solicitud enviada al administrador");
     } catch (err) {
-      console.error("Error sending invitation:", err);
-      toast.error("Error al enviar la invitación");
+      console.error("Error enviando solicitud:", err);
+      toast.error("Error al enviar la solicitud");
     } finally {
       setIsSendingInvitation(false);
     }
@@ -312,9 +322,9 @@ Para completar tu registro, haz clic en el botón:
             <Alert className="bg-blue-50 border-blue-200">
               <Info className="h-4 w-4 text-blue-600" />
               <AlertDescription className="text-blue-800 text-sm">
-                <strong>👥 Acceso compartido:</strong> El segundo progenitor recibirá una invitación para completar su registro y tendrá <strong>acceso completo</strong> a la app con su propia cuenta.
+                <strong>👥 Acceso compartido:</strong> Al solicitar la invitación, el administrador recibirá un email con los datos del segundo progenitor para enviarlo desde Base44.
                 <p className="mt-2 text-xs">
-                  ✅ Verá exactamente lo mismo que el primer progenitor: puede hacer pagos, confirmar convocatorias, chatear con entrenadores, ver calendario, documentos, etc.
+                  ✅ Una vez invitado, tendrá acceso completo: pagos, convocatorias, chat con entrenadores, calendario, documentos, etc.
                 </p>
               </AlertDescription>
             </Alert>
@@ -400,7 +410,7 @@ Para completar tu registro, haz clic en el botón:
                     <div className="flex items-center gap-2 text-yellow-700">
                       <Clock className="w-5 h-5" />
                       <span className="text-sm font-medium">
-                        Invitación enviada el {new Date(pendingInvitation.fecha_envio).toLocaleDateString('es-ES')} - Pendiente de validación
+                        Solicitud enviada el {new Date(pendingInvitation.fecha_envio).toLocaleDateString('es-ES')} - Pendiente de invitación por el admin
                       </span>
                     </div>
                     <Button
@@ -428,7 +438,7 @@ Para completar tu registro, haz clic en el botón:
                       <span className="text-sm">
                         {hasCompleteSecondParent 
                           ? "El segundo progenitor ya está registrado"
-                          : "Envía una invitación para que complete su registro"}
+                          : "Solicitar que el admin envíe invitación"}
                       </span>
                     </div>
                     {!hasCompleteSecondParent && (
@@ -441,7 +451,7 @@ Para completar tu registro, haz clic en el botón:
                         {isSendingInvitation ? (
                           <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Enviando...</>
                         ) : (
-                          <><Send className="w-4 h-4 mr-2" />Enviar Invitación</>
+                          <><Send className="w-4 h-4 mr-2" />Solicitar Invitación</>
                         )}
                       </Button>
                     )}
