@@ -89,12 +89,16 @@ export default function Payments() {
       return configs.find(c => c.activa === true);
     },
   });
-  
-  // Filtros avanzados - iniciar con "all" para mostrar TODOS los pagos por defecto
-  const [temporadaFilter, setTemporadaFilter] = useState("all");
 
-  // NO auto-filtrar por temporada activa - empezar mostrando TODOS los pagos
-  // El usuario puede filtrar manualmente si lo desea
+  // Inicializar filtro de temporada con la temporada activa cuando se carga
+  useEffect(() => {
+    if (activeSeasonConfig?.temporada && temporadaFilter === "all") {
+      setTemporadaFilter(activeSeasonConfig.temporada);
+    }
+  }, [activeSeasonConfig]);
+  
+  // Filtros avanzados - iniciar con temporada activa para evitar mostrar miles de cuotas
+  const [temporadaFilter, setTemporadaFilter] = useState(activeSeasonConfig?.temporada || getCurrentSeason());
   const [categoriaFilter, setCategoriaFilter] = useState("all");
   const [estadoFilter, setEstadoFilter] = useState("all");
   const [showOverdueOnly, setShowOverdueOnly] = useState(false);
