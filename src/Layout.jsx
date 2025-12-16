@@ -1065,7 +1065,7 @@ export default function Layout({ children, currentPageName }) {
     // 📅 CALENDARIO E INFO
     { title: "📅 Calendario y Horarios", url: createPageUrl("CalendarAndSchedules"), icon: Calendar },
     { title: "🎉 Eventos Club", url: createPageUrl("ParentEventRSVP"), icon: Calendar },
-    { title: "📢 Anuncios", url: createPageUrl("Announcements"), icon: Megaphone },
+    { title: "📢 Anuncios", url: createPageUrl("Announcements"), icon: Megaphone, badge: unreadAnnouncementsCount > 0 ? unreadAnnouncementsCount : null },
 
     // 👨‍👩‍👧 SECCIÓN FAMILIA (si tiene hijos)
     ...(hasPlayers ? [{ title: "👨‍👩‍👧 Mis Hijos", url: createPageUrl("ParentPlayers"), icon: Users }] : []),
@@ -1078,7 +1078,7 @@ export default function Layout({ children, currentPageName }) {
 
     // 🎫 SOCIO
     { title: "🎫 Hacerse Socio", url: createPageUrl("ClubMembership"), icon: Users },
-    ];
+  ];
 
   const coordinatorNavigationItems = [
     // 🏠 INICIO
