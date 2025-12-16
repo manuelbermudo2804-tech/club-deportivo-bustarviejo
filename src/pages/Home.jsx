@@ -527,8 +527,8 @@ export default function Home() {
         } else if (conv.participante_staff_email === user.email) {
           // Staff asignado directamente
           unreadPrivateMessages += (conv.no_leidos_staff || 0);
-        } else if (isAdmin || isCoordinator) {
-          // Admin y Coordinador ven TODAS las conversaciones con mensajes no leídos
+        } else if (isAdmin || isCoordinator || isTreasurer) {
+          // Admin, Coordinador y Tesorero ven TODAS las conversaciones con mensajes no leídos
           unreadPrivateMessages += (conv.no_leidos_staff || 0);
         }
       });
@@ -558,7 +558,7 @@ export default function Home() {
     let unreadCoordinatorMessages = 0;
     if (user && coordinatorConversations) {
       coordinatorConversations.forEach(conv => {
-        if (isCoordinator || isAdmin) {
+        if (isCoordinator || isAdmin || isTreasurer) {
           unreadCoordinatorMessages += (conv.no_leidos_coordinador || 0);
         } else if (conv.padre_email === user.email) {
           unreadCoordinatorMessages += (conv.no_leidos_padre || 0);
@@ -586,7 +586,7 @@ export default function Home() {
       recentSurveyResponses, pendingEventConfirmations, pendingCallupResponses, unreadCoordinatorMessages,
       unreadAdminMessages, hasActiveAdminChat, overduePayments
     };
-  }, [players, payments, messages, callups, user, hasPlayers, isAdmin, allUsers, clothingOrders, lotteryOrders, clubMembers, surveyResponses, events, privateConversations, adminConversations, isCoordinator, isTreasurer, isCoach]);
+  }, [players, payments, messages, callups, user, hasPlayers, isAdmin, allUsers, clothingOrders, lotteryOrders, clubMembers, surveyResponses, events, privateConversations, adminConversations, isCoordinator, isTreasurer, isCoach, coordinatorConversations]);
 
   const handleMatchAppClick = useMemo(() => () => {
     const userAgent = navigator.userAgent || navigator.vendor || window.opera;
