@@ -51,8 +51,20 @@ export default function PaymentApprovalNotifier({ isAdmin }) {
       
       if (!player) return;
 
-      const emails = [player.email_padre];
-      if (player.email_tutor_2) emails.push(player.email_tutor_2);
+      // Obtener emails únicos y válidos
+      const emails = [];
+      if (player.email_padre?.trim()) emails.push(player.email_padre.trim().toLowerCase());
+      if (player.email_tutor_2?.trim() && !emails.includes(player.email_tutor_2.trim().toLowerCase())) {
+        emails.push(player.email_tutor_2.trim().toLowerCase());
+      }
+      
+      if (emails.length === 0) {
+        console.warn("No hay emails válidos para el jugador:", player.nombre);
+        return;
+      }
+      
+      console.log(`📧 Enviando notificación de pago a: ${emails.join(', ')}`);
+
 
       // Crear notificación en la app para cada email
       for (const email of emails) {

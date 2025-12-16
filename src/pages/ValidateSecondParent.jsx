@@ -209,8 +209,8 @@ Ahora puedes acceder a la aplicación del club con tu cuenta y ver toda la infor
             <AlertCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
             <h2 className="text-xl font-bold text-slate-900 mb-2">Invitación no válida</h2>
             <p className="text-slate-600 mb-6">{error}</p>
-            <Button onClick={() => window.location.href = "/"} variant="outline">
-              Ir al inicio
+            <Button onClick={async () => await base44.auth.redirectToLogin(window.location.origin)} variant="outline">
+              Iniciar Sesión
             </Button>
           </CardContent>
         </Card>
@@ -234,10 +234,13 @@ Ahora puedes acceder a la aplicación del club con tu cuenta y ver toda la infor
               Recibirás un email de confirmación con los detalles.
             </p>
             <Button 
-              onClick={() => window.location.href = "/"} 
+              onClick={async () => {
+                // Autenticar al usuario antes de redirigir
+                await base44.auth.redirectToLogin(window.location.origin);
+              }} 
               className="bg-orange-600 hover:bg-orange-700"
             >
-              Acceder a la App →
+              Iniciar Sesión →
             </Button>
           </CardContent>
         </Card>
