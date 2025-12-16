@@ -112,26 +112,25 @@ export default function RenewalDashboard() {
       for (const familia of familias) {
         const jugadoresNombres = familia.jugadores.map(j => j.nombre).join(", ");
         
-        await base44.integrations.Core.SendEmail({
-          from_name: "CD Bustarviejo - Renovaciones",
+        await base44.functions.invoke('sendEmail', {
           to: familia.email,
           subject: `⏰ Recordatorio: Renovación pendiente - Temporada ${seasonConfig?.temporada}`,
-          body: `Estimada familia ${familia.nombre},
+          html: `Estimada familia ${familia.nombre},<br><br>
 
-Les recordamos que tienen jugadores pendientes de renovar para la temporada ${seasonConfig?.temporada}:
+Les recordamos que tienen jugadores pendientes de renovar para la temporada ${seasonConfig?.temporada}:<br><br>
 
-${familia.jugadores.map(j => `• ${j.nombre} (${j.deporte})`).join('\n')}
+${familia.jugadores.map(j => `• ${j.nombre} (${j.deporte})<br>`).join('')}
+<br>
+${seasonConfig?.fecha_limite_renovaciones ? `📅 Fecha límite: ${format(new Date(seasonConfig.fecha_limite_renovaciones), "d 'de' MMMM 'de' yyyy", { locale: es })}<br><br>` : ''}
 
-${seasonConfig?.fecha_limite_renovaciones ? `📅 Fecha límite: ${format(new Date(seasonConfig.fecha_limite_renovaciones), "d 'de' MMMM 'de' yyyy", { locale: es })}` : ''}
+Para renovar:<br>
+1. Accede a la aplicación del club<br>
+2. Ve a "Mis Jugadores"<br>
+3. Haz clic en "Renovar Jugador"<br><br>
 
-Para renovar:
-1. Accede a la aplicación del club
-2. Ve a "Mis Jugadores"
-3. Haz clic en "Renovar Jugador"
+Si tienen dudas o problemas, no duden en contactarnos.<br><br>
 
-Si tienen dudas o problemas, no duden en contactarnos.
-
-Un saludo,
+Un saludo,<br>
 CD Bustarviejo`
         });
 
