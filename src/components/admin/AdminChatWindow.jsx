@@ -6,7 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Send, X, FileText, Download, CheckCircle, AlertTriangle, Shield, Paperclip, Edit, MessageCircle } from "lucide-react";
+import { Send, X, FileText, Download, CheckCircle, AlertTriangle, Shield, Paperclip, Edit, MessageCircle, Smile } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { toast } from "sonner";
@@ -21,7 +21,10 @@ export default function AdminChatWindow({ conversation, user, onClose, onMarkRes
   const [resolutionNotes, setResolutionNotes] = useState("");
   const [showImagePreview, setShowImagePreview] = useState(null);
   const [showContextDialog, setShowContextDialog] = useState(false);
+  const [showReactions, setShowReactions] = useState(null);
   const messagesEndRef = useRef(null);
+
+  const REACTIONS = ["👍", "❤️", "😊", "👏", "🎉"];
   const fileInputRef = useRef(null);
   const queryClient = useQueryClient();
 
@@ -124,20 +127,36 @@ export default function AdminChatWindow({ conversation, user, onClose, onMarkRes
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['adminMessages'] });
       queryClient.invalidateQueries({ queryKey: ['adminConversations'] });
-      setMessageText("");
-      setAttachments([]);
       toast.success("Mensaje enviado");
     },
   });
 
   const handleSend = () => {
     if (!messageText.trim() && attachments.length === 0) return;
-    sendMessageMutation.mutate({ mensaje: messageText, adjuntos: attachments });
+    
+    // Guardar antes de limpiar
+    const textToSend = messageText;
+    const attachToSend = [...attachments];
+    
+    // Limpiar inmediatamente
+    setMessageText("");
+    setAttachments([]);
+    
+    sendMessageMutation.mutate({ mensaje: textToSend, adjuntos: attachToSend });
   };
 
   const handleSendInternalNote = () => {
     if (!messageText.trim()) return;
-    sendMessageMutation.mutate({ mensaje: messageText, adjuntos: attachments, es_nota_interna: true });
+    
+    // Guardar antes de limpiar
+    const textToSend = messageText;
+    const attachToSend = [...attachments];
+    
+    // Limpiar inmediatamente
+    setMessageText("");
+    setAttachments([]);
+    
+    sendMessageMutation.mutate({ mensaje: textToSend, adjuntos: attachToSend, es_nota_interna: true });
   };
 
   const handleResolve = () => {
@@ -353,9 +372,48 @@ export default function AdminChatWindow({ conversation, user, onClose, onMarkRes
                   </div>
                 )}
 
-                <p className="text-xs opacity-60 mt-1">
-                  {format(new Date(msg.created_date), "HH:mm", { locale: es })}
-                </p>
+                {msg.reacciones?.length > 0 && (
+                  <div className="flex gap-1 mt-2 flex-wrap">
+                    {msg.reacciones.map((r, idx) => (
+                      <span key={idx} className="text-base" title={r.nombre}>
+                        {r.emoji}
+                      </span>
+                    ))}
+                  </div>
+                )}
+
+                <div className="flex items-center justify-between mt-1">
+                  <p className="text-xs opacity-60">
+                    {format(new Date(msg.created_date), "HH:mm", { locale: es })}
+                  </p>
+                  {!isInternalNote && (
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="opacity-50 hover:opacity-100 h-6 w-6 p-0"
+                      onClick={() => setShowReactions(msg.id)}
+                    >
+                      <Smile className="w-3 h-3" />
+                    </Button>
+                  )}
+                </div>
+
+                {showReactions === msg.id && (
+                  <div className="absolute bottom-full mb-2 right-0 bg-white rounded-lg shadow-xl p-2 flex gap-2 z-10 border">
+                    {REACTIONS.map(emoji => (
+                      <button
+                        key={emoji}
+                        onClick={() => addReaction(msg.id, emoji)}
+                        className="text-2xl hover:scale-125 transition-transform"
+                      >
+                        {emoji}
+                      </button>
+                    ))}
+                    <button onClick={() => setShowReactions(null)} className="ml-2 text-slate-400 hover:text-slate-600">
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
           );
