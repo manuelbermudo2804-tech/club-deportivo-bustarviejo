@@ -24,10 +24,13 @@ export default function ParentCoachChat() {
   const [showSearch, setShowSearch] = useState(false);
   const [showImagePreview, setShowImagePreview] = useState(null);
   const [playingAudio, setPlayingAudio] = useState(null);
+  const [showReactions, setShowReactions] = useState(null);
   const [categoryCoach, setCategoryCoach] = useState(null);
   const messagesEndRef = useRef(null);
   const audioRef = useRef(null);
   const queryClient = useQueryClient();
+
+  const REACTIONS = ["👍", "❤️", "😊", "👏", "🎉", "⚽"];
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -54,31 +57,12 @@ export default function ParentCoachChat() {
     fetchUser();
   }, []);
 
-  // Obtener entrenador de la categoría seleccionada
+  // Obtener entrenador de la categoría seleccionada - DESACTIVADO porque los padres no tienen permiso para listar User
+  // El perfil del entrenador ya no se muestra para padres normales
   useEffect(() => {
-    const fetchCategoryCoach = async () => {
-      if (!selectedCategory) return;
-      try {
-        console.log('🔍 Buscando entrenador para categoría:', selectedCategory);
-        const users = await base44.entities.User.list();
-        console.log('👥 Total usuarios:', users.length);
-        console.log('🏃 Entrenadores:', users.filter(u => u.es_entrenador).map(u => ({ 
-          nombre: u.full_name, 
-          categorias: u.categorias_entrena 
-        })));
-        
-        const coach = users.find(u => 
-          u.es_entrenador === true && 
-          u.categorias_entrena?.includes(selectedCategory)
-        );
-        
-        console.log('✅ Entrenador encontrado:', coach ? coach.full_name : 'NINGUNO');
-        setCategoryCoach(coach || null);
-      } catch (error) {
-        console.error("Error fetching coach:", error);
-      }
-    };
-    fetchCategoryCoach();
+    if (selectedCategory) {
+      setCategoryCoach(null); // Limpiar el coach ya que no podemos obtenerlo
+    }
   }, [selectedCategory]);
 
   const { data: messages = [] } = useQuery({
@@ -421,13 +405,13 @@ export default function ParentCoachChat() {
                           isMine ? 'bg-slate-700 text-white' : 
                           isCoach ? 'bg-green-600 text-white' : 
                           'bg-white text-slate-900 border'
-                        } rounded-2xl p-3 shadow-sm`}>
-                          <div className="flex items-center gap-2 mb-1">
-                            <p className="text-xs font-semibold opacity-70">
-                              {isCoach ? '🏃 ' : ''}{msg.remitente_nombre}
-                            </p>
-                            {isCoach && <Badge className="text-xs bg-green-500 px-1 py-0">Entrenador</Badge>}
-                          </div>
+                        } rounded-2xl p-3 shadow-sm relative`}>
+                         <div className="flex items-center gap-2 mb-1">
+                           <p className="text-xs font-semibold opacity-70">
+                             {isCoach ? '🏃 ' : ''}{msg.remitente_nombre}
+                           </p>
+                           {isCoach && <Badge className="text-xs bg-green-500 px-1 py-0">Entrenador</Badge>}
+                         </div>
 
                           {msg.mensaje && <p className="text-sm whitespace-pre-wrap">{msg.mensaje}</p>}
 
