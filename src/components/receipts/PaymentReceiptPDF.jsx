@@ -220,12 +220,11 @@ CD Bustarviejo
 cdbustarviejo@gmail.com
     `;
 
-    // Enviar email con enlace al PDF
-    await base44.integrations.Core.SendEmail({
-      from_name: "CD Bustarviejo",
+    // Enviar email con enlace al PDF usando función personalizada
+    await base44.functions.invoke('sendEmail', {
       to: email,
       subject: `✅ Recibo de Pago - ${data.numeroRecibo} - CD Bustarviejo`,
-      body: emailBody + `\n\n📄 Descarga tu recibo: ${file_url}`
+      html: emailBody.replace(/\n/g, '<br>') + `<br><br>📄 <a href="${file_url}" target="_blank">Descarga tu recibo aquí</a>`
     });
 
     console.log('✅ [PaymentReceipt] Recibo enviado correctamente a:', email);
