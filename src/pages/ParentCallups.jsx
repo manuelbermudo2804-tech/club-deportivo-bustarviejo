@@ -25,6 +25,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { CombinedSuccessAnimation } from "../components/animations/SuccessAnimation";
 
 import WeatherWidget from "../components/callups/WeatherWidget";
 import CallupCountdown from "../components/callups/CallupCountdown";
@@ -41,6 +42,7 @@ export default function ParentCallups() {
     confirmacion: "asistire",
     comentario: ""
   });
+  const [showSuccess, setShowSuccess] = useState(false);
 
   const queryClient = useQueryClient();
   
@@ -78,6 +80,7 @@ export default function ParentCallups() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['convocatorias'] });
       setShowConfirmDialog(false);
+      setShowSuccess(true);
       setSelectedCallup(null);
       setSelectedPlayer(null);
       setConfirmationData({ confirmacion: "asistire", comentario: "" });
@@ -163,11 +166,19 @@ export default function ParentCallups() {
   }
 
   return (
-    <div className="p-6 lg:p-8 space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold text-slate-900">🏆 Convocatorias</h1>
-        <p className="text-slate-600 mt-1">Confirma la asistencia de tus jugadores</p>
-      </div>
+    <>
+      <CombinedSuccessAnimation 
+        show={showSuccess} 
+        onComplete={() => setShowSuccess(false)}
+        message="¡Confirmación Enviada!"
+        withConfetti={true}
+      />
+
+      <div className="p-6 lg:p-8 space-y-6">
+        <div>
+          <h1 className="text-3xl font-bold text-slate-900">🏆 Convocatorias</h1>
+          <p className="text-slate-600 mt-1">Confirma la asistencia de tus jugadores</p>
+        </div>
 
       {upcomingCallups.length > 0 ? (
         <div className="space-y-6">
@@ -381,6 +392,7 @@ export default function ParentCallups() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
+      </div>
+    </>
   );
 }
