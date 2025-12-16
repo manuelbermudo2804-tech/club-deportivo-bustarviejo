@@ -43,10 +43,9 @@ export default function PollMessage({ encuesta, messageId, userEmail, userName, 
           const isMyVote = myVote?.opcion_index === index;
           
           return (
-            <button
+            <div
               key={index}
               onClick={() => !hasVoted && !isClosed && onVote(messageId, index)}
-              disabled={hasVoted || isClosed}
               className={`w-full text-left p-4 rounded-xl border-2 transition-all relative overflow-hidden ${
                 isMyVote 
                   ? 'bg-green-50 border-green-500 shadow-md' 
@@ -81,12 +80,15 @@ export default function PollMessage({ encuesta, messageId, userEmail, userName, 
                     </span>
                     {isCreator && votes > 0 && (
                       <button
+                        type="button"
                         onClick={(e) => {
+                          e.preventDefault();
                           e.stopPropagation();
                           setSelectedOption(index);
                           setShowVotersDialog(true);
                         }}
-                        className="text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-full p-1 transition-colors"
+                        onMouseDown={(e) => e.stopPropagation()}
+                        className="text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-full p-1.5 transition-colors z-20"
                         title="Ver quién votó"
                       >
                         <Users className="w-4 h-4" />
@@ -95,7 +97,7 @@ export default function PollMessage({ encuesta, messageId, userEmail, userName, 
                   </div>
                 )}
               </div>
-            </button>
+            </div>
           );
         })}
       </div>
