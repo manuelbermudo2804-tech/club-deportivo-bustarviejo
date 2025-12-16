@@ -588,15 +588,45 @@ export default function Layout({ children, currentPageName }) {
 
   useEffect(() => {
     const fetchUser = async () => {
-                      console.log('🔐 [LAYOUT DEBUG] Iniciando fetchUser...');
-                      try {
-                      // Fix para PWA: detectar si estamos en standalone mode
-                      const isStandalone = window.matchMedia('(display-mode: standalone)').matches || 
-                                   window.navigator.standalone === true;
-                      console.log('📱 [LAYOUT] Modo standalone (PWA):', isStandalone);
+                        console.log('🔐 [LAYOUT DEBUG] Iniciando fetchUser...');
+                        try {
+                        // Fix para PWA: detectar si estamos en standalone mode
+                        const isStandalone = window.matchMedia('(display-mode: standalone)').matches || 
+                                     window.navigator.standalone === true;
+                        console.log('📱 [LAYOUT] Modo standalone (PWA):', isStandalone);
 
-                      // Si es página pública, verificar si hay usuario autenticado sin forzar login
-                      if (isPublicPage) {
+                        // Procesar token de invitación si existe
+                        const urlParams = new URLSearchParams(window.location.search);
+                        const invitationToken = urlParams.get('invitation_token');
+                        const invitationType = urlParams.get('type');
+
+                        if (invitationToken && invitationType) {
+                          try {
+                            const isAuth = await base44.auth.isAuthenticated();
+                            if (isAuth) {
+                              // Usuario ya logueado, procesar token
+                              console.log('✅ Procesando token de invitación...');
+                              const entityName = invitationType === 'second_parent' ? 'SecondParentInvitation' : 'AdminInvitation';
+                              const invitations = await base44.entities[entityName].filter({ token: invitationToken });
+
+                              if (invitations.length > 0 && invitations[0].estado === 'pendiente') {
+                                await base44.entities[entityName].update(invitations[0].id, {
+                                  estado: 'aceptada',
+                                  fecha_aceptacion: new Date().toISOString()
+                                });
+                                console.log('✅ Invitación aceptada');
+                              }
+
+                              // Limpiar URL
+                              window.history.replaceState({}, '', window.location.pathname);
+                            }
+                          } catch (err) {
+                            console.log('Error procesando token:', err);
+                          }
+                        }
+
+                        // Si es página pública, verificar si hay usuario autenticado sin forzar login
+                        if (isPublicPage) {
           try {
             const isAuthenticated = await base44.auth.isAuthenticated();
             if (!isAuthenticated) {
