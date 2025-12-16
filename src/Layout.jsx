@@ -603,23 +603,29 @@ export default function Layout({ children, currentPageName }) {
                         if (invitationToken && invitationType) {
                           try {
                             const isAuth = await base44.auth.isAuthenticated();
-                            if (isAuth) {
-                              // Usuario ya logueado, procesar token
-                              console.log('✅ Procesando token de invitación...');
-                              const entityName = invitationType === 'second_parent' ? 'SecondParentInvitation' : 'AdminInvitation';
-                              const invitations = await base44.entities[entityName].filter({ token: invitationToken });
-
-                              if (invitations.length > 0 && invitations[0].estado === 'pendiente') {
-                                await base44.entities[entityName].update(invitations[0].id, {
-                                  estado: 'aceptada',
-                                  fecha_aceptacion: new Date().toISOString()
-                                });
-                                console.log('✅ Invitación aceptada');
-                              }
-
-                              // Limpiar URL
-                              window.history.replaceState({}, '', window.location.pathname);
+                            if (!isAuth) {
+                              // Usuario NO logueado - redirigir a login con nextUrl para volver aquí
+                              console.log('🔐 Usuario no logueado - redirigiendo a login con token preservado');
+                              const currentUrl = window.location.href;
+                              base44.auth.redirectToLogin(currentUrl);
+                              return;
                             }
+
+                            // Usuario ya logueado, procesar token
+                            console.log('✅ Procesando token de invitación...');
+                            const entityName = invitationType === 'second_parent' ? 'SecondParentInvitation' : 'AdminInvitation';
+                            const invitations = await base44.entities[entityName].filter({ token: invitationToken });
+
+                            if (invitations.length > 0 && invitations[0].estado === 'pendiente') {
+                              await base44.entities[entityName].update(invitations[0].id, {
+                                estado: 'aceptada',
+                                fecha_aceptacion: new Date().toISOString()
+                              });
+                              console.log('✅ Invitación aceptada');
+                            }
+
+                            // Limpiar URL
+                            window.history.replaceState({}, '', window.location.pathname);
                           } catch (err) {
                             console.log('Error procesando token:', err);
                           }
