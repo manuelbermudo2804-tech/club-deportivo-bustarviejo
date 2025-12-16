@@ -1054,6 +1054,13 @@ export default function Layout({ children, currentPageName }) {
     // 🏠 INICIO
     { title: "🏠 Inicio", url: createPageUrl("Home"), icon: Home },
 
+    // 💬 COMUNICACIÓN
+    { title: "🤖 Asistente Virtual", url: createPageUrl("Chatbot"), icon: MessageCircle },
+    ...(hasPlayers ? [
+      { title: "💬 Chat Coordinador", url: createPageUrl("ParentCoordinatorChat"), icon: MessageCircle },
+      { title: "⚽ Chat Entrenador", url: createPageUrl("ParentCoachChat"), icon: MessageCircle }
+    ] : []),
+
     // 💰 FINANZAS (trabajo principal)
     { title: "📊 Panel Financiero", url: createPageUrl("TreasurerDashboard"), icon: CreditCard },
     { title: "💳 Pagos", url: createPageUrl("Payments"), icon: CreditCard },
@@ -1061,7 +1068,7 @@ export default function Layout({ children, currentPageName }) {
     { title: "📁 Histórico Pagos", url: createPageUrl("PaymentHistory"), icon: Archive },
     { title: "🛍️ Pedidos Ropa", url: createPageUrl("ClothingOrders"), icon: ShoppingBag },
     ...(loteriaVisible ? [{ title: "🍀 Gestión Lotería", url: createPageUrl("LotteryManagement"), icon: Clover }] : []),
-    ...(loteriaVisible ? [{ title: "🍀 Mi Lotería", url: createPageUrl("ParentLottery"), icon: Clover }] : []),
+    ...(loteriaVisible && hasPlayers ? [{ title: "🍀 Mi Lotería", url: createPageUrl("ParentLottery"), icon: Clover }] : []),
 
     // 📅 CALENDARIO E INFO
     { title: "📅 Calendario y Horarios", url: createPageUrl("CalendarAndSchedules"), icon: Calendar },
