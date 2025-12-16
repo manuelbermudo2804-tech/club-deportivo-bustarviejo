@@ -57,7 +57,6 @@ import PublicClubMembership from './pages/PublicClubMembership';
 import TacticsBoard from './pages/TacticsBoard';
 import ExerciseLibrary from './pages/ExerciseLibrary';
 import PlayerDashboard from './pages/PlayerDashboard';
-import EmailInvitations from './pages/EmailInvitations';
 import ExtraPayments from './pages/ExtraPayments';
 import ParentExtraPayments from './pages/ParentExtraPayments';
 import JoinFemenino from './pages/JoinFemenino';
@@ -78,7 +77,6 @@ import CoachProfiles from './pages/CoachProfiles';
 import FamilyChats from './pages/FamilyChats';
 import RenewalDashboard from './pages/RenewalDashboard';
 import CustomPaymentPlans from './pages/CustomPaymentPlans';
-import ValidateAdminInvitation from './pages/ValidateAdminInvitation';
 import __Layout from './Layout.jsx';
 
 
@@ -142,7 +140,6 @@ export const PAGES = {
     "TacticsBoard": TacticsBoard,
     "ExerciseLibrary": ExerciseLibrary,
     "PlayerDashboard": PlayerDashboard,
-    "EmailInvitations": EmailInvitations,
     "ExtraPayments": ExtraPayments,
     "ParentExtraPayments": ParentExtraPayments,
     "JoinFemenino": JoinFemenino,
@@ -163,7 +160,6 @@ export const PAGES = {
     "FamilyChats": FamilyChats,
     "RenewalDashboard": RenewalDashboard,
     "CustomPaymentPlans": CustomPaymentPlans,
-    "ValidateAdminInvitation": ValidateAdminInvitation,
 }
 
 export const pagesConfig = {
