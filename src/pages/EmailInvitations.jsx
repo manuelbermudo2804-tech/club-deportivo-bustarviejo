@@ -129,8 +129,8 @@ export default function EmailInvitations() {
 
       try {
         // Usar sistema nativo de Base44 para invitar usuarios
-        await base44.asServiceRole.auth.inviteUser(email.trim().toLowerCase(), {
-          role: 'user',
+        await base44.functions.invoke('inviteUser', {
+          email: email.trim().toLowerCase(),
           full_name: request.nombre_jugador || email.split('@')[0]
         });
 
@@ -399,8 +399,8 @@ ${mensajePersonalizado ? `
     for (const email of emails) {
       try {
         // Usar sistema nativo de Base44 para invitar usuarios
-        await base44.asServiceRole.auth.inviteUser(email.trim().toLowerCase(), {
-          role: 'user'
+        await base44.functions.invoke('inviteUser', {
+          email: email.trim().toLowerCase()
         });
 
         // Crear registro en EmailInvitation para historial
