@@ -31,7 +31,7 @@ export default function LotteryManagement() {
     const checkAdmin = async () => {
       const currentUser = await base44.auth.me();
       setUser(currentUser);
-      const hasAccess = currentUser.role === "admin" || currentUser.es_entrenador === true || currentUser.es_coordinador === true;
+      const hasAccess = currentUser.role === "admin" || currentUser.es_tesorero === true || currentUser.es_entrenador === true || currentUser.es_coordinador === true;
       setIsAdmin(hasAccess);
     };
     checkAdmin();
@@ -61,8 +61,8 @@ export default function LotteryManagement() {
   const orders = React.useMemo(() => {
     if (!user) return [];
     
-    // Admin ve todo
-    if (user.role === "admin") return allOrders;
+    // Admin y Tesorero ven todo
+    if (user.role === "admin" || user.es_tesorero === true) return allOrders;
     
     // Entrenadores/coordinadores solo ven sus categorías
     const myCategories = user.categorias_entrena || [];
@@ -378,20 +378,20 @@ export default function LotteryManagement() {
           <div>
           <h1 className="text-xl lg:text-3xl font-bold text-slate-900">🍀 Gestión Lotería</h1>
           <p className="text-xs lg:text-sm text-slate-600 mt-1">Número: {NUMERO_LOTERIA}</p>
-          {user?.role !== "admin" && (
+          {user?.role !== "admin" && !user?.es_tesorero && (
             <Badge className="mt-2 bg-blue-600">
               🎓 {user?.categorias_entrena?.length || 0} categoría{user?.categorias_entrena?.length > 1 ? 's' : ''}
             </Badge>
           )}
         </div>
         <div className="flex gap-2">
-          {user?.role === "admin" && (
+          {(user?.role === "admin" || user?.es_tesorero) && (
             <Button onClick={exportPDF} size="sm" variant="outline">
               <FileDown className="w-4 h-4 mr-2" />
               PDF Completo
             </Button>
           )}
-          {user?.role === "admin" && (
+          {(user?.role === "admin" || user?.es_tesorero) && (
             <Button
               onClick={() => toggleLotteryMutation.mutate()}
               disabled={toggleLotteryMutation.isPending}
@@ -455,7 +455,7 @@ export default function LotteryManagement() {
             </CardContent>
           </Card>
 
-          {user?.role === "admin" && (
+          {(user?.role === "admin" || user?.es_tesorero) && (
             <Card className="border-none shadow-lg bg-gradient-to-br from-green-50 to-green-100">
               <CardContent className="pt-6">
                 <div className="flex justify-between items-center">
@@ -580,7 +580,7 @@ export default function LotteryManagement() {
                           <p className="text-xs text-slate-600">{order.total}€</p>
                         </div>
                         
-                        {user?.role === "admin" ? (
+                        {(user?.role === "admin" || user?.es_tesorero) ? (
                           <div className="flex gap-2">
                             {order.pagado ? (
                               <Button
