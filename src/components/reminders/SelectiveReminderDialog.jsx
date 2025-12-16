@@ -3,7 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
-import { Send, Loader2 } from "lucide-react";
+import { Send, Loader2, Bell } from "lucide-react";
 
 export default function SelectiveReminderDialog({ 
   open, 
