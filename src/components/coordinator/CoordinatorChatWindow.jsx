@@ -530,25 +530,32 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['coordinatorMessages', conversation.id] });
       queryClient.invalidateQueries({ queryKey: ['coordinatorConversations'] });
-      setMessageText("");
-      setAttachments([]);
     },
   });
 
   const handleSend = () => {
     if (editingMessage) {
-      // Editar mensaje existente
+      const textToSend = messageText;
+      setMessageText("");
+      setEditingMessage(null);
       editMessageMutation.mutate({
         id: editingMessage.id,
-        mensaje: messageText
+        mensaje: textToSend
       });
     } else {
-      // Enviar nuevo mensaje
       if (!messageText.trim() && attachments.length === 0) return;
       
+      // Guardar antes de limpiar
+      const textToSend = messageText;
+      const attachToSend = [...attachments];
+      
+      // Limpiar inmediatamente
+      setMessageText("");
+      setAttachments([]);
+      
       const messageData = { 
-        mensaje: messageText, 
-        archivos_adjuntos: attachments 
+        mensaje: textToSend, 
+        archivos_adjuntos: attachToSend 
       };
       
       if (replyingTo) {
@@ -574,8 +581,6 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['coordinatorMessages'] });
-      setEditingMessage(null);
-      setMessageText("");
       toast.success("Mensaje editado");
     },
   });
