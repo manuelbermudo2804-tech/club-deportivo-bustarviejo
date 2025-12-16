@@ -1093,11 +1093,19 @@ export default function Home() {
       // 5. EXTRAS (menos prioritario)
       if (loteriaVisible) {
         items.push({
-          title: "🍀 Lotería",
+          title: "🍀 Gestión Lotería",
           icon: Clover,
           url: createPageUrl("LotteryManagement"),
           gradient: "from-green-600 to-green-700",
         });
+        if (!hasPlayers) {
+          items.push({
+            title: "🍀 Mi Lotería",
+            icon: Clover,
+            url: createPageUrl("ParentLottery"),
+            gradient: "from-red-600 to-green-700",
+          });
+        }
       }
     }
 
