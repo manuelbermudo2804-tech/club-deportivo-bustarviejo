@@ -121,10 +121,8 @@ export default function AdultPlayerInvitationRequest({ playerAge, playerData, pa
         estado: "pendiente"
       });
 
-      // Ya no enviamos email - solo se registra en la BD para que aparezca en admin
-
-      setSubmitted(true);
-      toast.success("✅ Solicitud enviada correctamente");
+      toast.success("✅ Solicitud enviada. El administrador la revisará y enviará la invitación a " + formData.nombre_jugador);
+      onCancel(); // Cerrar todo el componente
     } catch (error) {
       console.error("Error creando solicitud:", error);
       toast.error("Error al enviar la solicitud");
@@ -132,27 +130,6 @@ export default function AdultPlayerInvitationRequest({ playerAge, playerData, pa
       setIsSubmitting(false);
     }
   };
-
-  if (submitted) {
-    return (
-      <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4" onClick={onCancel}>
-        <div className="bg-white rounded-2xl p-6 max-w-md w-full shadow-2xl text-center space-y-4 relative z-[101]" onClick={(e) => e.stopPropagation()}>
-          <CombinedSuccessAnimation show={true} message="¡Solicitud Enviada!" withConfetti={true} />
-          <div className="text-6xl">📧</div>
-          <h2 className="text-2xl font-bold text-green-700">¡Solicitud Enviada!</h2>
-          <p className="text-slate-600">
-            Hemos recibido tu solicitud para enviar una invitación a <strong>{formData.nombre_jugador}</strong>.
-          </p>
-          <p className="text-sm text-slate-500">
-            El administrador del club revisará la solicitud y enviará la invitación al email <strong>{formData.email_jugador}</strong>.
-          </p>
-          <Button onClick={onCancel} className="w-full bg-green-600 hover:bg-green-700">
-            Cerrar
-          </Button>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <Alert className="mb-6 bg-red-50 border-2 border-red-300">
