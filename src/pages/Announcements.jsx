@@ -257,11 +257,10 @@ Ubicación: Bustarviejo, Madrid
       for (const email of recipients) {
         try {
           console.log('📤 [Announcements] Enviando anuncio a:', email);
-          await base44.integrations.Core.SendEmail({
-            from_name: "CD Bustarviejo",
+          await base44.functions.invoke('sendEmail', {
             to: email,
             subject: subject,
-            body: body
+            html: body
           });
           console.log('✅ [Announcements] Email enviado a:', email);
           successCount++;

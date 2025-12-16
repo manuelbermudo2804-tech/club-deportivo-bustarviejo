@@ -204,11 +204,10 @@ export default function ClothingOrders() {
           "Entregado": `🎉 Pedido entregado para ${order.jugador_nombre}. ¡Gracias por su confianza!`
         };
         
-        await base44.integrations.Core.SendEmail({
-          from_name: "CD Bustarviejo",
+        await base44.functions.invoke('sendEmail', {
           to: order.email_padre,
           subject: `Estado de Pedido - ${order.jugador_nombre}`,
-          body: statusMessages[newStatus] || `Estado actualizado a: ${newStatus}`
+          html: statusMessages[newStatus] || `Estado actualizado a: ${newStatus}`
         });
       }
       
@@ -229,11 +228,10 @@ export default function ClothingOrders() {
     // Notificar al admin si las notificaciones están activas
     if (seasonConfig?.notificaciones_admin_email) {
       try {
-        await base44.integrations.Core.SendEmail({
-          from_name: "CD Bustarviejo - Pedidos Ropa",
+        await base44.functions.invoke('sendEmail', {
           to: "cdbustarviejo@gmail.com",
           subject: `👕 Nuevo Pedido de Ropa - ${orderData.jugador_nombre}`,
-          body: `
+          html: `
             <h2>Nuevo Pedido de Equipación</h2>
             <p><strong>Jugador:</strong> ${orderData.jugador_nombre}</p>
             <p><strong>Categoría:</strong> ${orderData.jugador_categoria}</p>
@@ -402,11 +400,10 @@ export default function ClothingOrders() {
           
           // 2. Enviar email a cada familia
           const emailPromises = Array.from(uniqueEmails).map(email => 
-            base44.integrations.Core.SendEmail({
-              from_name: "CD Bustarviejo",
+            base44.functions.invoke('sendEmail', {
               to: email,
               subject: "🛍️ ¡Tienda de Equipación ABIERTA! - CD Bustarviejo",
-              body: `
+              html: `
                 <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
                   <h1 style="color: #ea580c; text-align: center;">🛍️ ¡La Tienda de Equipación ya está ABIERTA!</h1>
                   <p>Estimadas familias,</p>

@@ -128,10 +128,10 @@ export default function Players() {
       
       // Enviar email de notificación al club
       try {
-        await base44.integrations.Core.SendEmail({
+        await base44.functions.invoke('sendEmail', {
           to: "cdbustarviejo@gmail.com",
           subject: `Nueva Inscripción de Jugador - ${playerData.nombre}`,
-          body: `
+          html: `
             <h2>Nueva Inscripción Recibida</h2>
             <p><strong>Tipo:</strong> ${playerData.tipo_inscripcion}</p>
             <p><strong>Jugador:</strong> ${playerData.nombre}</p>
@@ -194,11 +194,10 @@ export default function Players() {
           if (newEnlaceJugador) enlacesInfo.push("Firma del Jugador");
           if (newEnlaceTutor) enlacesInfo.push("Firma del Padre/Tutor");
           
-          await base44.integrations.Core.SendEmail({
-            from_name: "CD Bustarviejo - Federación",
+          await base44.functions.invoke('sendEmail', {
             to: playerData.email_padre,
             subject: `🖊️ Enlaces de Firma Disponibles - ${playerData.nombre}`,
-            body: `
+            html: `
               <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
                 <div style="background: linear-gradient(135deg, #f59e0b, #ea580c); padding: 20px; text-align: center; border-radius: 10px 10px 0 0;">
                   <h1 style="color: white; margin: 0;">🖊️ Firma Digital Requerida</h1>

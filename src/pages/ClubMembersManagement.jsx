@@ -134,11 +134,10 @@ export default function ClubMembersManagement() {
         console.log('[ClubMembersManagement] Enviando confirmación de pago a:', memberEmail);
         
         try {
-          await base44.integrations.Core.SendEmail({
-            from_name: "CD Bustarviejo",
+          await base44.functions.invoke('sendEmail', {
             to: memberEmail,
             subject: "🎉 ¡Confirmación de Pago - Ya eres Socio del CD Bustarviejo!",
-            body: `Estimado/a ${memberName},
+            html: `Estimado/a ${memberName},
 
 ¡Gracias por tu apoyo al CD Bustarviejo! 
 
@@ -352,11 +351,10 @@ CD Bustarviejo`;
     }
     setSendingEmailTo(member.id);
     try {
-      await base44.integrations.Core.SendEmail({
-        from_name: "CD Bustarviejo",
+      await base44.functions.invoke('sendEmail', {
         to: member.email,
         subject: `💚 ¡Renueva tu carnet de socio! - CD Bustarviejo`,
-        body: `Estimado/a ${member.nombre_completo},
+        html: `Estimado/a ${member.nombre_completo},
 
 ¡Te echamos de menos en el CD Bustarviejo! 💚
 
@@ -391,11 +389,10 @@ cdbustarviejo@gmail.com`
 
     for (const member of membersWithEmail) {
       try {
-        await base44.integrations.Core.SendEmail({
-          from_name: "CD Bustarviejo",
+        await base44.functions.invoke('sendEmail', {
           to: member.email,
           subject: `💚 ¡Renueva tu carnet de socio! - CD Bustarviejo`,
-          body: `Estimado/a ${member.nombre_completo},
+          html: `Estimado/a ${member.nombre_completo},
 
 ¡Te echamos de menos! 💚
 
@@ -424,11 +421,10 @@ CD Bustarviejo`
       for (const member of uniqueMembers) {
         if (!member.email) continue;
         try {
-          await base44.integrations.Core.SendEmail({
-            from_name: "CD Bustarviejo",
+          await base44.functions.invoke('sendEmail', {
             to: member.email,
             subject: "💚 ¡Te echamos de menos! Renueva tu carnet de socio",
-            body: `Estimado/a ${member.nombre_completo},
+            html: `Estimado/a ${member.nombre_completo},
 
 Queremos agradecerte tu apoyo como socio del CD Bustarviejo.
 
@@ -1202,24 +1198,23 @@ Por solo *25€/año* seguirás apoyando a nuestros jóvenes deportistas.
                           for (const member of historicMembers) {
                             if (!member.email) continue;
                             try {
-                              await base44.integrations.Core.SendEmail({
-                                from_name: "CD Bustarviejo",
+                              await base44.functions.invoke('sendEmail', {
                                 to: member.email,
                                 subject: "💚 ¡Te echamos de menos! - Renueva tu carnet de socio",
-                                body: `Estimado/a ${member.nombre_completo},
+                                html: `Estimado/a ${member.nombre_completo},
 
-¡Esperamos que todo vaya bien! 💚
+                              ¡Esperamos que todo vaya bien! 💚
 
-Fuiste socio del CD Bustarviejo en la temporada ${member.temporada}.
+                              Fuiste socio del CD Bustarviejo en la temporada ${member.temporada}.
 
-🎉 TE INVITAMOS A RENOVAR para la temporada ${seasonConfig?.temporada}
+                              🎉 TE INVITAMOS A RENOVAR para la temporada ${seasonConfig?.temporada}
 
-Por solo 25€/año seguirás apoyando a nuestros jóvenes deportistas.
+                              Por solo 25€/año seguirás apoyando a nuestros jóvenes deportistas.
 
-¡Esperamos verte de nuevo!
+                              ¡Esperamos verte de nuevo!
 
-CD Bustarviejo
-cdbustarviejo@gmail.com`
+                              CD Bustarviejo
+                              cdbustarviejo@gmail.com`
                               });
                               sent++;
                             } catch (e) {
@@ -1325,11 +1320,10 @@ cdbustarviejo@gmail.com`
                         for (const member of noRenovados) {
                           if (!member.email) continue;
                           try {
-                            await base44.integrations.Core.SendEmail({
-                              from_name: "CD Bustarviejo",
+                            await base44.functions.invoke('sendEmail', {
                               to: member.email,
                               subject: "💚 ¡Te echamos de menos! - Renueva tu carnet de socio",
-                              body: `Estimado/a ${member.nombre_completo},
+                              html: `Estimado/a ${member.nombre_completo},
 
 ¡Esperamos que todo vaya bien! 💚
 
