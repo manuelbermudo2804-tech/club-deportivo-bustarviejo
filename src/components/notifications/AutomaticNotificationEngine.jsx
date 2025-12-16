@@ -284,10 +284,10 @@ export default function AutomaticNotificationEngine({ user }) {
           });
 
           // Email automático
-          await base44.integrations.Core.SendEmail({
+          await base44.functions.invoke('sendEmail', {
             to: user.email,
             subject: `📄 Documento pendiente de firma - ${document.titulo}`,
-            body: `
+            html: `
               <h2>Documento pendiente de firma</h2>
               <p>Tienes un nuevo documento que requiere tu firma:</p>
               <div style="background: #fef3c7; border-left: 4px solid #f59e0b; padding: 16px; margin: 16px 0;">
