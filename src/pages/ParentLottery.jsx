@@ -26,6 +26,7 @@ export default function ParentLottery() {
   const [user, setUser] = useState(null);
   const [isCoach, setIsCoach] = useState(false);
   const [hasPlayers, setHasPlayers] = useState(false);
+  const [isStaff, setIsStaff] = useState(false);
 
   const queryClient = useQueryClient();
 
@@ -34,7 +35,9 @@ export default function ParentLottery() {
       const currentUser = await base44.auth.me();
       setUser(currentUser);
       const coachCheck = currentUser.es_entrenador === true || currentUser.es_coordinador === true;
+      const staffCheck = currentUser.es_tesorero === true || coachCheck;
       setIsCoach(coachCheck);
+      setIsStaff(staffCheck);
       
       // Verificar si tiene hijos jugadores reales
       const allPlayers = await base44.entities.Player.list();
@@ -242,17 +245,12 @@ export default function ParentLottery() {
     
     const total = numDecimos * precioDecimo;
 
-    // Si es entrenador sin hijos, usar categoría directamente
-    if (isCoach && !hasPlayers) {
-      if (!selectedCategory) {
-        toast.error("Selecciona una categoría");
-        return;
-      }
-
+    // Si es staff (entrenador/coordinador/tesorero) sin hijos, pedido a nombre propio
+    if (isStaff && !hasPlayers) {
       createOrderMutation.mutate({
         jugador_id: user.id,
-        jugador_nombre: `Entrenador: ${user.full_name}`,
-        jugador_categoria: selectedCategory,
+        jugador_nombre: user.full_name,
+        jugador_categoria: "Staff del Club",
         email_padre: user.email,
         telefono: user.telefono || "",
         numero_decimos: numDecimos,
@@ -478,33 +476,16 @@ export default function ParentLottery() {
             </CardHeader>
             <CardContent className="pt-6">
               <form onSubmit={handleSubmit} className="space-y-6">
-                {isCoach && !hasPlayers ? (
-                  <div className="space-y-2">
-                    <Label className="text-lg font-bold text-slate-900">🎓 Categoría</Label>
-                    <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-                      <SelectTrigger className="border-2 border-red-300 h-12 text-lg">
-                        <SelectValue placeholder="Selecciona tu categoría" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {(user?.categorias_entrena && user.categorias_entrena.length > 0 ? user.categorias_entrena : [
-                          "Fútbol Pre-Benjamín (Mixto)",
-                          "Fútbol Benjamín (Mixto)",
-                          "Fútbol Alevín (Mixto)",
-                          "Fútbol Infantil (Mixto)",
-                          "Fútbol Cadete",
-                          "Fútbol Juvenil",
-                          "Fútbol Aficionado",
-                          "Fútbol Femenino",
-                          "Baloncesto (Mixto)"
-                        ]).map(cat => (
-                          <SelectItem key={cat} value={cat}>
-                            {cat}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <p className="text-sm text-slate-600 bg-blue-50 p-3 rounded-lg border border-blue-200">
-                      ℹ️ Como entrenador/coordinador, tu pedido se asociará a esta categoría
+                {isStaff && !hasPlayers ? (
+                  <div className="bg-gradient-to-r from-blue-50 to-purple-50 p-4 rounded-xl border-2 border-blue-300">
+                    <p className="text-blue-900 font-bold text-lg mb-2">
+                      👔 Pedido Personal - Staff del Club
+                    </p>
+                    <p className="text-blue-800 text-sm">
+                      Tu pedido se registrará a nombre de: <strong>{user?.full_name}</strong>
+                    </p>
+                    <p className="text-xs text-blue-700 mt-2">
+                      📧 Email de confirmación: {user?.email}
                     </p>
                   </div>
                 ) : (

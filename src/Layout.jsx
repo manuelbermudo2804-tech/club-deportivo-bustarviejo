@@ -1093,9 +1093,12 @@ export default function Layout({ children, currentPageName }) {
     // 🎫 SOCIO
     { title: "🎫 Hacerse Socio", url: createPageUrl("ClubMembership"), icon: Users },
 
+    // 🍀 LOTERÍA (si está visible)
+    ...(loteriaVisible ? [{ title: "🍀 Mi Lotería", url: createPageUrl("ParentLottery"), icon: Clover }] : []),
+
     // ⚙️ PREFERENCIAS
     { title: "⚙️ Preferencias Notif.", url: createPageUrl("NotificationPreferences"), icon: Settings },
-  ];
+    ];
 
   const coordinatorNavigationItems = [
     // 🏠 INICIO
