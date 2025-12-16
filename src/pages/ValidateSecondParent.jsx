@@ -54,9 +54,9 @@ export default function ValidateSecondParent() {
       
       // Verificar estado
       if (inv.estado === "aceptada") {
-        // Ya fue aceptada - redirigir al login directamente
-        console.log('ℹ️ Invitación ya aceptada, redirigiendo al login');
-        window.location.href = `https://auth.base44.com/login?app_id=6911b8e453ca3ac01fb134d6&email=${encodeURIComponent(inv.email_destino)}`;
+        // Ya fue aceptada - redirigir a la app
+        console.log('ℹ️ Invitación ya aceptada, redirigiendo a la app');
+        window.location.href = 'https://app.cdbustarviejo.com';
         return;
       }
       
@@ -137,10 +137,10 @@ export default function ValidateSecondParent() {
         });
       }
 
-      console.log('✅ Registro completado, redirigiendo al login...');
+      console.log('✅ Registro completado, redirigiendo a la app...');
       
-      // Redirigir directamente al login de Base44 con el email
-      window.location.href = `https://auth.base44.com/login?app_id=6911b8e453ca3ac01fb134d6&email=${encodeURIComponent(invitation.email_destino)}`;
+      // Redirigir a la app - Base44 manejará la autenticación
+      window.location.href = 'https://app.cdbustarviejo.com';
     } catch (err) {
       console.error("Error completing registration:", err);
       toast.error("Error al completar el registro");
@@ -214,11 +214,11 @@ Ahora puedes acceder a la aplicación del club con tu cuenta y ver toda la infor
             <p className="text-slate-600 mb-6">{error}</p>
             <Button 
               onClick={() => {
-                window.location.href = 'https://auth.base44.com/login?app_id=6911b8e453ca3ac01fb134d6';
+                window.location.href = 'https://app.cdbustarviejo.com';
               }} 
               variant="outline"
             >
-              Iniciar Sesión
+              Ir a la App
             </Button>
           </CardContent>
         </Card>

@@ -41,9 +41,9 @@ export default function ValidateAdminInvitation() {
       
       // Verificar estado
       if (inv.estado === "aceptada") {
-        // Ya fue aceptada - redirigir al login directamente
-        console.log('ℹ️ Invitación ya aceptada, redirigiendo al login');
-        window.location.href = `https://auth.base44.com/login?app_id=6911b8e453ca3ac01fb134d6&email=${encodeURIComponent(inv.email_destino)}`;
+        // Ya fue aceptada - redirigir a la app
+        console.log('ℹ️ Invitación ya aceptada, redirigiendo a la app');
+        window.location.href = 'https://app.cdbustarviejo.com';
         return;
       }
       
@@ -69,10 +69,10 @@ export default function ValidateAdminInvitation() {
         fecha_clic: new Date().toISOString()
       });
 
-      console.log('✅ Invitación validada, redirigiendo al login...');
+      console.log('✅ Invitación validada, redirigiendo a la app...');
       
-      // Redirigir directamente al login de Base44
-      window.location.href = `https://auth.base44.com/login?app_id=6911b8e453ca3ac01fb134d6&email=${encodeURIComponent(inv.email_destino)}`;
+      // Redirigir a la app - Base44 manejará la autenticación
+      window.location.href = 'https://app.cdbustarviejo.com';
     } catch (err) {
       console.error("Error validating token:", err);
       setError("Error al validar la invitación");
@@ -108,11 +108,11 @@ export default function ValidateAdminInvitation() {
               </p>
               <Button 
                 onClick={() => {
-                  window.location.href = 'https://auth.base44.com/login?app_id=6911b8e453ca3ac01fb134d6';
+                  window.location.href = 'https://app.cdbustarviejo.com';
                 }} 
                 variant="outline"
               >
-                Iniciar Sesión
+                Ir a la App
               </Button>
             </div>
           </CardContent>
@@ -127,7 +127,7 @@ export default function ValidateAdminInvitation() {
       <Card className="w-full max-w-md">
         <CardContent className="py-12 text-center">
           <Loader2 className="w-12 h-12 animate-spin text-orange-600 mx-auto mb-4" />
-          <p className="text-slate-600">Redirigiendo al login...</p>
+          <p className="text-slate-600">Redirigiendo a la app...</p>
         </CardContent>
       </Card>
     </div>
