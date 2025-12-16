@@ -17,7 +17,6 @@ export default function ValidateSecondParent() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isComplete, setIsComplete] = useState(false);
   
   const [formData, setFormData] = useState({
     nombre_completo: "",
@@ -41,6 +40,7 @@ export default function ValidateSecondParent() {
 
   const validateToken = async (tokenValue) => {
     try {
+      console.log('🔍 Validando token:', tokenValue);
       const invitations = await base44.asServiceRole.entities.SecondParentInvitation.filter({ token: tokenValue });
       
       if (invitations.length === 0) {
@@ -50,11 +50,13 @@ export default function ValidateSecondParent() {
       }
 
       const inv = invitations[0];
+      console.log('✅ Invitación encontrada:', inv.email_destino);
       
       // Verificar estado
       if (inv.estado === "aceptada") {
-        setError("Esta invitación ya ha sido utilizada");
-        setLoading(false);
+        // Ya fue aceptada - redirigir al login directamente
+        console.log('ℹ️ Invitación ya aceptada, redirigiendo al login');
+        window.location.href = `https://auth.base44.com/login?app_id=6911b8e453ca3ac01fb134d6&email=${encodeURIComponent(inv.email_destino)}`;
         return;
       }
       
@@ -135,12 +137,13 @@ export default function ValidateSecondParent() {
         });
       }
 
-      setIsComplete(true);
-      toast.success("¡Registro completado correctamente!");
+      console.log('✅ Registro completado, redirigiendo al login...');
+      
+      // Redirigir directamente al login de Base44 con el email
+      window.location.href = `https://auth.base44.com/login?app_id=6911b8e453ca3ac01fb134d6&email=${encodeURIComponent(invitation.email_destino)}`;
     } catch (err) {
       console.error("Error completing registration:", err);
       toast.error("Error al completar el registro");
-    } finally {
       setIsSubmitting(false);
     }
   };
@@ -209,7 +212,12 @@ Ahora puedes acceder a la aplicación del club con tu cuenta y ver toda la infor
             <AlertCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
             <h2 className="text-xl font-bold text-slate-900 mb-2">Invitación no válida</h2>
             <p className="text-slate-600 mb-6">{error}</p>
-            <Button onClick={() => base44.auth.redirectToLogin()} variant="outline">
+            <Button 
+              onClick={() => {
+                window.location.href = 'https://auth.base44.com/login?app_id=6911b8e453ca3ac01fb134d6';
+              }} 
+              variant="outline"
+            >
               Iniciar Sesión
             </Button>
           </CardContent>
@@ -218,36 +226,7 @@ Ahora puedes acceder a la aplicación del club con tu cuenta y ver toda la infor
     );
   }
 
-  if (isComplete) {
-    return (
-      <>
-        <InvitationPWAGuide />
-        <div className="min-h-screen bg-gradient-to-br from-green-600 via-green-700 to-orange-600 flex items-center justify-center p-4">
-          <Card className="w-full max-w-md">
-          <CardContent className="py-12 text-center">
-            <CheckCircle2 className="w-20 h-20 text-green-500 mx-auto mb-4" />
-            <h2 className="text-2xl font-bold text-slate-900 mb-2">¡Registro Completado!</h2>
-            <p className="text-slate-600 mb-6">
-              Tu registro como segundo progenitor de <strong>{invitation.jugador_nombre}</strong> se ha completado correctamente.
-            </p>
-            <p className="text-sm text-slate-500 mb-6">
-              Recibirás un email de confirmación con los detalles.
-            </p>
-            <Button 
-              onClick={() => {
-                // Redirigir al login sin nextUrl para evitar loops
-                base44.auth.redirectToLogin();
-              }} 
-              className="bg-orange-600 hover:bg-orange-700"
-            >
-              Iniciar Sesión →
-            </Button>
-          </CardContent>
-        </Card>
-        </div>
-      </>
-    );
-  }
+
 
   return (
     <>
