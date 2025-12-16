@@ -27,27 +27,11 @@ Deno.serve(async (req) => {
 
     console.log('📧 Preparing invitation email for:', email);
 
-    // PASO 1: Crear el usuario en Base44 PRIMERO
-    console.log('👤 Creating user in Base44 with service role...');
-    try {
-      // Verificar si el usuario ya existe
-      const existingUsers = await base44.asServiceRole.entities.User.filter({ email: email.toLowerCase() });
-      
-      if (existingUsers.length === 0) {
-        // Usuario no existe, crearlo directamente
-        console.log('📝 User does not exist, creating with temporary password...');
-        const tempPassword = Math.random().toString(36).slice(-12) + 'Aa1!'; // Contraseña temporal segura
-        await base44.asServiceRole.auth.createUser(email.toLowerCase(), tempPassword, full_name);
-        console.log('✅ User created successfully in Base44');
-      } else {
-        console.log('ℹ️ User already exists in Base44, skipping creation');
-      }
-    } catch (userError) {
-      console.error('⚠️ Error creating/checking user:', userError);
-      // Continuar aunque falle - el email se enviará de todos modos
-    }
+    // NOTA: NO creamos el usuario aquí - Base44 lo creará automáticamente cuando el usuario
+    // haga clic en el enlace de invitación y complete el registro.
+    // Esto es por diseño de seguridad de Base44.
 
-    // PASO 2: Enviar invitación por email
+    // Enviar invitación por email
     console.log('📧 Preparing to send email, type:', invitationType);
     
     try {
