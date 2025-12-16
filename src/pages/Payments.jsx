@@ -260,10 +260,10 @@ export default function Payments() {
 
       try {
         console.log('📧 [Payments] Enviando notificación de justificante a admin');
-        await base44.integrations.Core.SendEmail({
+        await base44.functions.invoke('sendEmail', {
           to: "cdbustarviejo@gmail.com",
           subject: `Justificante de Pago Recibido - ${payment.jugador_nombre}`,
-          body: `
+          html: `
             <h2>Nuevo Justificante de Pago Subido</h2>
             <p><strong>Jugador:</strong> ${payment.jugador_nombre}</p>
             <p><strong>Tipo de Pago:</strong> ${payment.tipo_pago}</p>
