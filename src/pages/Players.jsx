@@ -128,6 +128,7 @@ export default function Players() {
       
       // Enviar email de notificación al club
       try {
+        // Email al admin
         await base44.functions.invoke('sendEmail', {
           to: "cdbustarviejo@gmail.com",
           subject: `Nueva Inscripción de Jugador - ${playerData.nombre}`,
@@ -155,6 +156,35 @@ export default function Players() {
             <p style="font-size: 12px; color: #666;">Inscripción registrada el ${new Date().toLocaleString('es-ES')}</p>
           `
         });
+        
+        // Email de confirmación a los padres
+        const emailPadres = [playerData.email_padre];
+        if (playerData.email_tutor_2) emailPadres.push(playerData.email_tutor_2);
+        
+        for (const emailPadre of emailPadres) {
+          await base44.functions.invoke('sendEmail', {
+            to: emailPadre,
+            subject: "Inscripción Recibida - CD Bustarviejo",
+            html: `
+              <h2>Inscripción Recibida - CD Bustarviejo</h2>
+              <p>Estimados padres/tutores,</p>
+              <p>Confirmamos que hemos recibido correctamente la inscripción de <strong>${playerData.nombre}</strong>.</p>
+              <hr>
+              <h3>DATOS DE LA INSCRIPCIÓN</h3>
+              <p><strong>Tipo:</strong> ${playerData.tipo_inscripcion}</p>
+              <p><strong>Jugador:</strong> ${playerData.nombre}</p>
+              <p><strong>Deporte/Categoría:</strong> ${playerData.deporte}</p>
+              <p><strong>Fecha de Nacimiento:</strong> ${new Date(playerData.fecha_nacimiento).toLocaleDateString('es-ES')}</p>
+              <hr>
+              <p>En breve procesaremos la información y podrán acceder a todos los servicios del club a través de la aplicación.</p>
+              <br>
+              <p>Atentamente,</p>
+              <p><strong>CD Bustarviejo</strong><br>Equipo de Administración</p>
+              <hr>
+              <p style="font-size: 12px; color: #666;">Datos de contacto:<br>Email: cdbustarviejo@gmail.com</p>
+            `
+          });
+        }
       } catch (error) {
         console.error("Error sending email notification:", error);
       }
