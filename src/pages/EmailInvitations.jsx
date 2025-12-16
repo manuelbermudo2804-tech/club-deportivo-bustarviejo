@@ -13,8 +13,8 @@ import { Mail, Send, Plus, X, Loader2, CheckCircle2, AlertCircle, Users, Trash2,
 import { toast } from "sonner";
 
 const CLUB_LOGO_URL = "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6911b8e453ca3ac01fb134d6/e3f0a8e26_logo_cd_bustarviejo_mediano.jpg";
-const DEFAULT_APP_URL = "https://app.cdbustarviejo.com";
-const VALIDATION_URL = "https://app.cdbustarviejo.com/ValidateAdminInvitation";
+const DEFAULT_APP_URL = window.location.origin;
+const VALIDATION_URL = `${window.location.origin}/ValidateAdminInvitation`;
 
 // Genera un token UUID único
 const generateToken = () => {
