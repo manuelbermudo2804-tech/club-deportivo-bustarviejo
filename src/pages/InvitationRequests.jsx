@@ -78,9 +78,41 @@ export default function InvitationRequests() {
       <Alert className="mb-6 bg-blue-50 border-blue-200">
         <AlertCircle className="h-4 w-4 text-blue-600" />
         <AlertDescription className="text-blue-800 text-sm">
-          <strong>📌 Cómo enviar invitaciones:</strong> Accede a la <a href="https://app.base44.com/apps" target="_blank" className="underline font-bold">Dashboard de Base44</a> → Tu app → Team → Invite User → introduce el email y envía la invitación. Una vez enviada, marca la solicitud como "Procesada" aquí.
+          <strong>📌 Cómo enviar invitaciones:</strong> Haz clic en "Abrir Invitaciones" → introduce los emails (puedes pegar múltiples separados por punto y coma) → envía. Luego marca como "Procesada" aquí.
         </AlertDescription>
       </Alert>
+
+      {totalPending > 0 && (
+        <div className="mb-6 flex gap-3">
+          <a 
+            href="https://app.base44.com/apps/6911b8e453ca3ac01fb134d6/team" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="flex-1"
+          >
+            <Button className="w-full bg-blue-600 hover:bg-blue-700 h-12">
+              <ExternalLink className="w-5 h-5 mr-2" />
+              Abrir Invitaciones en Base44
+            </Button>
+          </a>
+          <Button
+            onClick={() => {
+              const allPendingEmails = [
+                ...secondParentInvitations.filter(i => i.estado === "pendiente").map(i => i.email_destino),
+                ...adultPlayerRequests.filter(i => i.estado === "pendiente").map(i => i.email_jugador)
+              ];
+              const emailString = allPendingEmails.join('; ');
+              copyToClipboard(emailString);
+              toast.success(`${allPendingEmails.length} emails copiados`);
+            }}
+            className="bg-green-600 hover:bg-green-700 h-12"
+            disabled={totalPending === 0}
+          >
+            <Copy className="w-5 h-5 mr-2" />
+            Copiar Todos los Emails ({totalPending})
+          </Button>
+        </div>
+      )}
 
       <div className="mb-4 flex gap-2">
         <Button 
@@ -197,17 +229,14 @@ export default function InvitationRequests() {
                   </div>
 
                   <div className="flex gap-2 pt-2">
-                    <a 
-                      href="https://app.base44.com/apps" 
-                      target="_blank" 
-                      rel="noopener noreferrer"
+                    <Button
+                      onClick={() => copyToClipboard(inv.email_destino)}
+                      variant="outline"
                       className="flex-1"
                     >
-                      <Button className="w-full bg-blue-600 hover:bg-blue-700">
-                        <ExternalLink className="w-4 h-4 mr-2" />
-                        Abrir Base44 Dashboard
-                      </Button>
-                    </a>
+                      <Copy className="w-4 h-4 mr-2" />
+                      Copiar Email
+                    </Button>
                     {inv.estado === "pendiente" && (
                       <Button
                         onClick={() => markAsProcessedMutation.mutate({ id: inv.id, type: 'second_parent', estado: 'procesada' })}
@@ -305,17 +334,14 @@ export default function InvitationRequests() {
                   </div>
 
                   <div className="flex gap-2 pt-2">
-                    <a 
-                      href="https://app.base44.com/apps" 
-                      target="_blank" 
-                      rel="noopener noreferrer"
+                    <Button
+                      onClick={() => copyToClipboard(req.email_jugador)}
+                      variant="outline"
                       className="flex-1"
                     >
-                      <Button className="w-full bg-blue-600 hover:bg-blue-700">
-                        <ExternalLink className="w-4 h-4 mr-2" />
-                        Abrir Base44 Dashboard
-                      </Button>
-                    </a>
+                      <Copy className="w-4 h-4 mr-2" />
+                      Copiar Email
+                    </Button>
                     {req.estado === "pendiente" && (
                       <Button
                         onClick={() => markAsProcessedMutation.mutate({ id: req.id, type: 'adult_player', estado: 'procesada' })}

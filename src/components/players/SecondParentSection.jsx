@@ -132,30 +132,7 @@ export default function SecondParentSection({
         fecha_expiracion: expirationDate.toISOString()
       });
 
-      // Notificar al admin por email
-      const adminEmail = await base44.integrations.Core.SendEmail({
-        to: "manuelbermudo2804@gmail.com",
-        subject: `📧 Solicitud de Invitación: Segundo Progenitor`,
-        body: `
-          <h2>📧 Nuevo Segundo Progenitor Solicitado</h2>
-          
-          <p><strong>Jugador:</strong> ${currentPlayer.nombre}</p>
-          <p><strong>Solicitado por:</strong> ${currentUser?.full_name} (${currentUser?.email})</p>
-          
-          <hr style="margin: 20px 0;">
-          
-          <h3>Datos del Segundo Progenitor:</h3>
-          <ul>
-            <li><strong>Nombre:</strong> ${currentPlayer.nombre_tutor_2 || "No especificado"}</li>
-            <li><strong>Email:</strong> ${currentPlayer.email_tutor_2}</li>
-            <li><strong>Teléfono:</strong> ${currentPlayer.telefono_tutor_2 || "No especificado"}</li>
-          </ul>
-          
-          <p style="margin-top: 20px; padding: 15px; background-color: #fef3c7; border-left: 4px solid #f59e0b;">
-            ⚠️ <strong>Acción requerida:</strong> Invita a este usuario desde la Dashboard de Base44 usando el email: <strong>${currentPlayer.email_tutor_2}</strong>
-          </p>
-        `
-      });
+      // Ya no enviamos email - solo se registra en la BD para que aparezca en admin
 
       setPendingInvitation(invitation);
       toast.success("✅ Solicitud enviada al administrador");
