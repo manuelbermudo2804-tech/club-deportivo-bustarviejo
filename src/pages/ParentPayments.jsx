@@ -193,11 +193,10 @@ export default function ParentPayments() {
       try {
         if (seasonConfig?.notificaciones_admin_email) {
           console.log('📧 [ParentPayments] Enviando notificación de pago a admin');
-          await base44.integrations.Core.SendEmail({
-            from_name: "CD Bustarviejo - Sistema de Pagos",
+          await base44.functions.invoke('sendEmail', {
             to: "cdbustarviejo@gmail.com",
             subject: `Nuevo Pago Registrado - ${paymentData.jugador_nombre}`,
-          body: `
+          html: `
             <h2>Nuevo Pago Registrado</h2>
             <p><strong>Jugador:</strong> ${paymentData.jugador_nombre}</p>
             <p><strong>Email Padre:</strong> ${player?.email_padre || 'N/A'}</p>
@@ -218,46 +217,42 @@ export default function ParentPayments() {
         }
         
         // Send confirmation to parents
-        const confirmBody = `Estimados padres/tutores,
-
-Confirmamos que hemos recibido el registro de pago para ${paymentData.jugador_nombre}.
-
-DETALLES DEL PAGO
-Periodo: ${paymentData.mes}
-Temporada: ${paymentData.temporada}
-Cantidad: ${paymentData.cantidad} euros
-Estado: ${paymentData.justificante_url ? 'En revision' : 'Pendiente de justificante'}
-
-${paymentData.justificante_url ? 'Estamos revisando tu justificante y actualizaremos el estado pronto.' : 'Recuerda subir el justificante de pago para que podamos verificarlo.'}
-
-Atentamente,
-
-CD Bustarviejo
-
-Datos de contacto:
-Email: cdbustarviejo@gmail.com
+        const confirmBody = `<h2>Pago Registrado - CD Bustarviejo</h2>
+        <p>Estimados padres/tutores,</p>
+        <p>Confirmamos que hemos recibido el registro de pago para <strong>${paymentData.jugador_nombre}</strong>.</p>
+        
+        <div style="background: #f0f9ff; border-left: 4px solid #3b82f6; padding: 16px; margin: 16px 0;">
+          <p><strong>DETALLES DEL PAGO</strong></p>
+          <p>📅 <strong>Periodo:</strong> ${paymentData.mes}</p>
+          <p>📚 <strong>Temporada:</strong> ${paymentData.temporada}</p>
+          <p>💰 <strong>Cantidad:</strong> ${paymentData.cantidad} euros</p>
+          <p>📊 <strong>Estado:</strong> ${paymentData.justificante_url ? 'En revisión 🟠' : 'Pendiente de justificante 🔴'}</p>
+        </div>
+        
+        <p>${paymentData.justificante_url ? 'Estamos revisando tu justificante y actualizaremos el estado pronto.' : 'Recuerda subir el justificante de pago para que podamos verificarlo.'}</p>
+        
+        <p style="margin-top: 24px;">Atentamente,<br><strong>CD Bustarviejo</strong></p>
+        <p style="color: #64748b; font-size: 14px; margin-top: 16px;">Contacto: cdbustarviejo@gmail.com</p>
         `;
         
         console.log('📧 [ParentPayments] Enviando confirmación a padres:', { padre: player?.email_padre, tutor2: player?.email_tutor_2 });
         
         if (player?.email_padre) {
           console.log('📤 [ParentPayments] Enviando a padre:', player.email_padre);
-          await base44.integrations.Core.SendEmail({
-            from_name: "CD Bustarviejo",
+          await base44.functions.invoke('sendEmail', {
             to: player.email_padre,
             subject: "Pago Registrado - CD Bustarviejo",
-            body: confirmBody
+            html: confirmBody
           });
           console.log('✅ [ParentPayments] Email enviado a padre');
         }
         
         if (player?.email_tutor_2) {
           console.log('📤 [ParentPayments] Enviando a tutor 2:', player.email_tutor_2);
-          await base44.integrations.Core.SendEmail({
-            from_name: "CD Bustarviejo",
+          await base44.functions.invoke('sendEmail', {
             to: player.email_tutor_2,
             subject: "Pago Registrado - CD Bustarviejo",
-            body: confirmBody
+            html: confirmBody
           });
           console.log('✅ [ParentPayments] Email enviado a tutor 2');
         }
@@ -306,11 +301,10 @@ Email: cdbustarviejo@gmail.com
       try {
         if (seasonConfig?.notificaciones_admin_email) {
           console.log('📧 [ParentPayments] Enviando notificación de justificante a admin');
-          await base44.integrations.Core.SendEmail({
-            from_name: "CD Bustarviejo - Sistema de Pagos",
+          await base44.functions.invoke('sendEmail', {
             to: "cdbustarviejo@gmail.com",
             subject: `Justificante de Pago Recibido - ${payment.jugador_nombre}`,
-          body: `
+          html: `
             <h2>Nuevo Justificante de Pago Subido</h2>
             <p><strong>Jugador:</strong> ${payment.jugador_nombre}</p>
             <p><strong>Tipo de Pago:</strong> ${payment.tipo_pago}</p>
@@ -330,46 +324,42 @@ Email: cdbustarviejo@gmail.com
         }
         
         // Send confirmation to parents
-        const confirmBody = `Estimados padres/tutores,
-
-Hemos recibido el justificante de pago para ${payment.jugador_nombre}.
-
-DETALLES DEL PAGO
-Periodo: ${payment.mes}
-Temporada: ${payment.temporada}
-Cantidad: ${payment.cantidad} euros
-Estado: En revision
-
-Estamos verificando tu justificante y actualizaremos el estado pronto.
-
-Atentamente,
-
-CD Bustarviejo
-
-Datos de contacto:
-Email: cdbustarviejo@gmail.com
+        const confirmBody = `<h2>Justificante Recibido - CD Bustarviejo</h2>
+        <p>Estimados padres/tutores,</p>
+        <p>Hemos recibido el justificante de pago para <strong>${payment.jugador_nombre}</strong>.</p>
+        
+        <div style="background: #f0f9ff; border-left: 4px solid #3b82f6; padding: 16px; margin: 16px 0;">
+          <p><strong>DETALLES DEL PAGO</strong></p>
+          <p>📅 <strong>Periodo:</strong> ${payment.mes}</p>
+          <p>📚 <strong>Temporada:</strong> ${payment.temporada}</p>
+          <p>💰 <strong>Cantidad:</strong> ${payment.cantidad} euros</p>
+          <p>📊 <strong>Estado:</strong> En revisión 🟠</p>
+        </div>
+        
+        <p>Estamos verificando tu justificante y actualizaremos el estado pronto.</p>
+        
+        <p style="margin-top: 24px;">Atentamente,<br><strong>CD Bustarviejo</strong></p>
+        <p style="color: #64748b; font-size: 14px; margin-top: 16px;">Contacto: cdbustarviejo@gmail.com</p>
         `;
         
         console.log('📧 [ParentPayments] Enviando confirmación de justificante a padres:', { padre: player?.email_padre, tutor2: player?.email_tutor_2 });
         
         if (player?.email_padre) {
           console.log('📤 [ParentPayments] Enviando a padre:', player.email_padre);
-          await base44.integrations.Core.SendEmail({
-            from_name: "CD Bustarviejo",
+          await base44.functions.invoke('sendEmail', {
             to: player.email_padre,
             subject: "Justificante Recibido - CD Bustarviejo",
-            body: confirmBody
+            html: confirmBody
           });
           console.log('✅ [ParentPayments] Email enviado a padre');
         }
         
         if (player?.email_tutor_2) {
           console.log('📤 [ParentPayments] Enviando a tutor 2:', player.email_tutor_2);
-          await base44.integrations.Core.SendEmail({
-            from_name: "CD Bustarviejo",
+          await base44.functions.invoke('sendEmail', {
             to: player.email_tutor_2,
             subject: "Justificante Recibido - CD Bustarviejo",
-            body: confirmBody
+            html: confirmBody
           });
           console.log('✅ [ParentPayments] Email enviado a tutor 2');
         }
