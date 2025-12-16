@@ -197,11 +197,10 @@ export default function ClothingOrderForm({ players, onSubmit, onCancel, isSubmi
       if (orderData.mochila) productsHTML += `<p>✅ <strong>Mochila con botero (escudo vinilo):</strong> ${PRECIOS.mochila}€</p>`;
 
       // Send to club
-      await base44.integrations.Core.SendEmail({
-        from_name: "CD Bustarviejo - Sistema de Pedidos",
+      await base44.functions.invoke('sendEmail', {
         to: "cdbustarviejo@gmail.com",
         subject: `Nuevo Pedido de Equipación - ${orderData.jugador_nombre}`,
-        body: `<h2>Nuevo Pedido de Equipación</h2><p><strong>Jugador:</strong> ${orderData.jugador_nombre}</p><p><strong>Categoría:</strong> ${orderData.jugador_categoria}</p><p><strong>Email:</strong> ${orderData.email_padre}</p><p><strong>Teléfono:</strong> ${orderData.telefono}</p><hr><h3>Productos:</h3>${productsHTML}<hr><p><strong>Total:</strong> ${orderData.precio_total}€</p><p><strong>Método de Pago:</strong> ${orderData.metodo_pago}</p><p><strong>Concepto:</strong> ${orderData.concepto_pago}</p><p><strong>Fecha Pago:</strong> ${orderData.fecha_pago}</p><p><strong>Justificante:</strong> <a href="${orderData.justificante_url}" target="_blank">Ver Justificante</a></p>${orderData.notas ? `<p><strong>Notas:</strong> ${orderData.notas}</p>` : ''}<hr><p><strong>Temporada:</strong> ${orderData.temporada}</p>`
+        html: `<h2>Nuevo Pedido de Equipación</h2><p><strong>Jugador:</strong> ${orderData.jugador_nombre}</p><p><strong>Categoría:</strong> ${orderData.jugador_categoria}</p><p><strong>Email:</strong> ${orderData.email_padre}</p><p><strong>Teléfono:</strong> ${orderData.telefono}</p><hr><h3>Productos:</h3>${productsHTML}<hr><p><strong>Total:</strong> ${orderData.precio_total}€</p><p><strong>Método de Pago:</strong> ${orderData.metodo_pago}</p><p><strong>Concepto:</strong> ${orderData.concepto_pago}</p><p><strong>Fecha Pago:</strong> ${orderData.fecha_pago}</p><p><strong>Justificante:</strong> <a href="${orderData.justificante_url}" target="_blank">Ver Justificante</a></p>${orderData.notas ? `<p><strong>Notas:</strong> ${orderData.notas}</p>` : ''}<hr><p><strong>Temporada:</strong> ${orderData.temporada}</p>`
       });
       
       // Get player to send confirmation to both parents
@@ -234,20 +233,18 @@ Email: cdbustarviejo@gmail.com
       `;
       
       if (player?.email_padre) {
-        await base44.integrations.Core.SendEmail({
-          from_name: "CD Bustarviejo",
+        await base44.functions.invoke('sendEmail', {
           to: player.email_padre,
           subject: "Pedido de Equipación Recibido - CD Bustarviejo",
-          body: confirmBody
+          html: confirmBody.replace(/\n/g, '<br>')
         });
       }
       
       if (player?.email_tutor_2) {
-        await base44.integrations.Core.SendEmail({
-          from_name: "CD Bustarviejo",
+        await base44.functions.invoke('sendEmail', {
           to: player.email_tutor_2,
           subject: "Pedido de Equipación Recibido - CD Bustarviejo",
-          body: confirmBody
+          html: confirmBody.replace(/\n/g, '<br>')
         });
       }
     } catch (error) {
