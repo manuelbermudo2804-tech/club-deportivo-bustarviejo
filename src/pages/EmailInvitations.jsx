@@ -128,52 +128,22 @@ export default function EmailInvitations() {
       }
 
       try {
-        // Generar token único
-        const token = generateToken();
-        const expirationDate = new Date();
-        expirationDate.setDate(expirationDate.getDate() + 30);
-
-        // Crear registro de invitación con token
-        await base44.entities.AdminInvitation.create({
-          token: token,
-          email_destino: email,
-          nombre_destino: request.nombre_jugador,
-          estado: "pendiente",
-          fecha_envio: new Date().toISOString(),
-          fecha_expiracion: expirationDate.toISOString(),
-          enviado_por_email: user.email,
-          enviado_por_nombre: user.full_name,
-          mensaje_personalizado: `Invitación solicitada por ${request.solicitado_por_nombre}`,
-          abierta: false,
-          clicada: false
-        });
-
-        const validationUrl = `${VALIDATION_URL}?invitation_token=${token}`;
-
-        // Crear usuario y enviar invitación
-        await base44.functions.invoke('createUserAndSendInvitation', {
-          email: email.trim().toLowerCase(),
-          full_name: request.nombre_jugador || email.split('@')[0],
-          invitationType: 'admin_invitation',
-          invitationData: {
-            token,
-            validationUrl,
-            message: `Invitación solicitada por ${request.solicitado_por_nombre}`
-          }
+        // Usar sistema nativo de Base44 para invitar usuarios
+        await base44.asServiceRole.auth.inviteUser(email.trim().toLowerCase(), {
+          role: 'user',
+          full_name: request.nombre_jugador || email.split('@')[0]
         });
 
         // Crear registro en EmailInvitation para historial
         await base44.entities.EmailInvitation.create({
           email_destinatario: email,
           nombre_destinatario: request.nombre_jugador,
-          asunto: asunto,
+          asunto: "Invitación CD Bustarviejo (Base44)",
           estado: "enviada",
           enviado_por: user.email,
           enviado_por_nombre: user.full_name,
           solicitud_id: request.id,
-          mensaje_personalizado: `Invitación solicitada por ${request.solicitado_por_nombre}`,
-          abierta: false,
-          clicada: false
+          mensaje_personalizado: `Invitación solicitada por ${request.solicitado_por_nombre}`
         });
 
         console.log(`✅ Email enviado a: ${email}`);
@@ -191,14 +161,12 @@ export default function EmailInvitations() {
         await base44.entities.EmailInvitation.create({
           email_destinatario: email,
           nombre_destinatario: request.nombre_jugador,
-          asunto: asunto,
+          asunto: "Invitación CD Bustarviejo (Base44)",
           estado: "error",
           error_mensaje: error.message || "Error desconocido",
           enviado_por: user.email,
           enviado_por_nombre: user.full_name,
-          solicitud_id: request.id,
-          abierta: false,
-          clicada: false
+          solicitud_id: request.id
         });
 
         errors++;
@@ -430,49 +398,18 @@ ${mensajePersonalizado ? `
 
     for (const email of emails) {
       try {
-        // Generar token único
-        const token = generateToken();
-        const expirationDate = new Date();
-        expirationDate.setDate(expirationDate.getDate() + 30);
-
-        // Crear registro de invitación con token
-        await base44.entities.AdminInvitation.create({
-          token: token,
-          email_destino: email,
-          estado: "pendiente",
-          fecha_envio: new Date().toISOString(),
-          fecha_expiracion: expirationDate.toISOString(),
-          enviado_por_email: user.email,
-          enviado_por_nombre: user.full_name,
-          mensaje_personalizado: mensajePersonalizado || null,
-          abierta: false,
-          clicada: false
-        });
-
-        const validationUrl = `${VALIDATION_URL}?invitation_token=${token}`;
-
-        // Crear usuario y enviar invitación
-        await base44.functions.invoke('createUserAndSendInvitation', {
-          email: email.trim().toLowerCase(),
-          full_name: email.split('@')[0],
-          invitationType: 'admin_invitation',
-          invitationData: {
-            token,
-            validationUrl,
-            message: mensajePersonalizado || null
-          }
+        // Usar sistema nativo de Base44 para invitar usuarios
+        await base44.asServiceRole.auth.inviteUser(email.trim().toLowerCase(), {
+          role: 'user'
         });
 
         // Crear registro en EmailInvitation para historial
         await base44.entities.EmailInvitation.create({
           email_destinatario: email,
-          asunto: asunto,
+          asunto: "Invitación CD Bustarviejo (Base44)",
           estado: "enviada",
           enviado_por: user.email,
-          enviado_por_nombre: user.full_name,
-          mensaje_personalizado: mensajePersonalizado || null,
-          abierta: false,
-          clicada: false
+          enviado_por_nombre: user.full_name
         });
 
         console.log(`✅ Email enviado a: ${email}`);
@@ -485,13 +422,11 @@ ${mensajePersonalizado ? `
         // Guardar error en historial
         await base44.entities.EmailInvitation.create({
           email_destinatario: email,
-          asunto: asunto,
+          asunto: "Invitación CD Bustarviejo (Base44)",
           estado: "error",
           error_mensaje: error.message || "Error desconocido",
           enviado_por: user.email,
-          enviado_por_nombre: user.full_name,
-          abierta: false,
-          clicada: false
+          enviado_por_nombre: user.full_name
         });
         
         errors++;
@@ -780,13 +715,13 @@ ${mensajePersonalizado ? `
             )}
           </Button>
           
-          <Card className="border-2 border-green-300 bg-green-50">
+          <Card className="border-2 border-blue-300 bg-blue-50">
             <CardContent className="p-4">
-              <p className="text-sm text-green-900 font-medium mb-2">
-                ✅ <strong>Emails automáticos:</strong> Los emails se envían directamente a los destinatarios
+              <p className="text-sm text-blue-900 font-medium mb-2">
+                ✅ <strong>Sistema Base44:</strong> Los emails se envían automáticamente por Base44
               </p>
-              <p className="text-xs text-green-800">
-                Las invitaciones se envían automáticamente usando Resend. Los usuarios recibirán un enlace único para registrarse.
+              <p className="text-xs text-blue-800">
+                Las invitaciones usan el sistema nativo de Base44. Los usuarios recibirán un email de invitación oficial y podrán registrarse directamente.
               </p>
             </CardContent>
           </Card>
@@ -838,11 +773,11 @@ ${mensajePersonalizado ? `
             Cómo Funciona
           </h3>
           <ul className="text-sm text-blue-800 space-y-1">
-            <li>• 🔐 Se genera un enlace único de validación por cada email (válido 30 días)</li>
-            <li>• 📧 Los emails se envían automáticamente con el diseño del club</li>
-            <li>• ✅ El usuario hace clic en el enlace para validar y registrarse en la app</li>
-            <li>• 📊 El historial te muestra quién abrió el enlace y quién hizo clic</li>
-            <li>• 🔗 Puedes copiar el enlace del historial para reenviarlo manualmente si es necesario</li>
+            <li>• 🔐 Base44 genera invitaciones seguras automáticamente</li>
+            <li>• 📧 Los emails se envían desde Base44 con diseño oficial</li>
+            <li>• ✅ El usuario hace clic en el enlace y se registra directamente</li>
+            <li>• 📊 El historial muestra las invitaciones enviadas</li>
+            <li>• ⚠️ Los usuarios recibirán el email de Base44, no desde el dominio del club</li>
           </ul>
         </CardContent>
       </Card>
@@ -1028,22 +963,11 @@ ${mensajePersonalizado ? `
                           <Button
                             size="sm"
                             variant="outline"
-                            className="border-green-300 text-green-700 hover:bg-green-50"
-                            onClick={async () => {
-                              // Buscar el token de AdminInvitation
-                              const allInvitations = await base44.entities.AdminInvitation.list();
-                              const invitation = allInvitations.find(i => i.email_destino === inv.email_destinatario);
-                              if (invitation) {
-                                const url = `${VALIDATION_URL}?invitation_token=${invitation.token}`;
-                                await navigator.clipboard.writeText(url);
-                                toast.success("🔗 Enlace copiado - envíalo por WhatsApp o email");
-                              } else {
-                                toast.error("No se encontró el enlace de invitación");
-                              }
-                            }}
+                            className="border-blue-300 text-blue-700 hover:bg-blue-50"
+                            disabled
                           >
                             <Mail className="w-3 h-3 mr-1" />
-                            Copiar enlace de invitación
+                            Sistema Base44
                           </Button>
                           {inv.error_mensaje && (
                             <p className="text-xs text-red-600 mt-1">
