@@ -1060,7 +1060,7 @@ export default function Layout({ children, currentPageName }) {
     // 💰 FINANZAS (trabajo principal)
     { title: "📊 Panel Financiero", url: createPageUrl("TreasurerDashboard"), icon: CreditCard },
     { title: "💳 Pagos", url: createPageUrl("Payments"), icon: CreditCard },
-    { title: "🔔 Recordatorios", url: createPageUrl("Reminders"), icon: Bell },
+    { title: "🔔 Recordatorios Simples", url: createPageUrl("PaymentReminders"), icon: Bell },
     { title: "📁 Histórico Pagos", url: createPageUrl("PaymentHistory"), icon: Archive },
 
     // 👥 GESTIÓN
