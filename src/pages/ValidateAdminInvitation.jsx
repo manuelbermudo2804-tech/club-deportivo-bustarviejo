@@ -80,9 +80,9 @@ export default function ValidateAdminInvitation() {
     }
   };
 
-  const handleContinue = async () => {
-    // Redirigir al login para autenticar al usuario
-    await base44.auth.redirectToLogin(window.location.origin);
+  const handleContinue = () => {
+    // Redirigir al login sin nextUrl para evitar loops
+    base44.auth.redirectToLogin();
   };
 
   if (loading) {
@@ -111,7 +111,7 @@ export default function ValidateAdminInvitation() {
               <p className="text-sm text-slate-500">
                 Contacta con el club: cdbustarviejo@gmail.com
               </p>
-              <Button onClick={async () => await base44.auth.redirectToLogin(window.location.origin)} variant="outline">
+              <Button onClick={() => base44.auth.redirectToLogin()} variant="outline">
                 Iniciar Sesión
               </Button>
             </div>
