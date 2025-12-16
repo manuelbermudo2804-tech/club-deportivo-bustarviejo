@@ -513,65 +513,62 @@ export default function CategoryManagement() {
 
       {/* Alerta de duplicados */}
       {categories.length > 9 && (
-        <Alert className="bg-red-50 border-red-300">
-          <AlertTriangle className="w-4 h-4 text-red-600" />
-          <AlertDescription className="text-red-800 ml-2">
-            <strong>⚠️ ¡{categories.length} categorías detectadas (debería haber solo 9)!</strong>
-            <p className="text-sm mt-2">Hay {categories.length - 9} categorías duplicadas. Esto causa problemas en los pagos.</p>
-            <div className="mt-3">
-              <Button
-                size="sm"
-                onClick={async (e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  
-                  if (!confirm(`¿ELIMINAR ${categories.length - 9} CATEGORÍAS DUPLICADAS?\n\nSolo se conservará 1 categoría de cada tipo (la más reciente).\n\nEsta acción es IRREVERSIBLE.`)) return;
-                  
-                  try {
-                    toast.loading("Eliminando duplicados...");
+        <Card className="border-2 border-red-300 bg-red-50">
+          <CardContent className="pt-6">
+            <div className="flex items-start gap-4">
+              <AlertTriangle className="w-8 h-8 text-red-600 flex-shrink-0" />
+              <div className="flex-1">
+                <h3 className="font-bold text-red-900 text-lg mb-2">
+                  ⚠️ {categories.length} categorías detectadas (debería haber solo 9)
+                </h3>
+                <p className="text-sm text-red-800 mb-4">
+                  Hay <strong>{categories.length - 9} categorías duplicadas</strong>. Esto causa que aparezcan cientos de cuotas virtuales en los pagos.
+                </p>
+                <Button
+                  onClick={async () => {
+                    if (!confirm(`¿ELIMINAR ${categories.length - 9} CATEGORÍAS DUPLICADAS?\n\nSolo se conservará 1 categoría de cada tipo (la más reciente).\n\nEsta acción es IRREVERSIBLE.`)) return;
                     
-                    // Agrupar por nombre
-                    const grouped = {};
-                    categories.forEach(cat => {
-                      if (!grouped[cat.nombre]) {
-                        grouped[cat.nombre] = [];
-                      }
-                      grouped[cat.nombre].push(cat);
-                    });
-                    
-                    let deleted = 0;
-                    // Para cada grupo, mantener solo la más reciente
-                    for (const [nombre, cats] of Object.entries(grouped)) {
-                      if (cats.length > 1) {
-                        // Ordenar por fecha de creación (más reciente primero)
-                        const sorted = cats.sort((a, b) => 
-                          new Date(b.created_date || 0) - new Date(a.created_date || 0)
-                        );
-                        
-                        // Eliminar todos excepto el primero
-                        for (let i = 1; i < sorted.length; i++) {
-                          console.log('🗑️ Eliminando duplicado:', sorted[i].nombre, sorted[i].id);
-                          await base44.entities.CategoryConfig.delete(sorted[i].id);
-                          deleted++;
+                    try {
+                      toast.loading("Eliminando duplicados...", { id: 'deleting' });
+                      
+                      // Agrupar por nombre
+                      const grouped = {};
+                      categories.forEach(cat => {
+                        if (!grouped[cat.nombre]) grouped[cat.nombre] = [];
+                        grouped[cat.nombre].push(cat);
+                      });
+                      
+                      let deleted = 0;
+                      for (const [nombre, cats] of Object.entries(grouped)) {
+                        if (cats.length > 1) {
+                          const sorted = cats.sort((a, b) => 
+                            new Date(b.created_date || 0) - new Date(a.created_date || 0)
+                          );
+                          
+                          for (let i = 1; i < sorted.length; i++) {
+                            console.log('🗑️ Eliminando:', sorted[i].nombre, sorted[i].id);
+                            await base44.entities.CategoryConfig.delete(sorted[i].id);
+                            deleted++;
+                          }
                         }
                       }
+                      
+                      await queryClient.invalidateQueries({ queryKey: ['categoryConfigs'] });
+                      toast.success(`✅ ${deleted} categorías eliminadas`, { id: 'deleting' });
+                    } catch (error) {
+                      console.error("Error:", error);
+                      toast.error("Error: " + error.message, { id: 'deleting' });
                     }
-                    
-                    queryClient.invalidateQueries({ queryKey: ['categoryConfigs'] });
-                    toast.success(`✅ ${deleted} categorías duplicadas eliminadas`);
-                  } catch (error) {
-                    console.error("Error:", error);
-                    toast.error("Error: " + error.message);
-                  }
-                }}
-                className="bg-red-600 hover:bg-red-700"
-              >
-                <Trash2 className="w-4 h-4 mr-2" />
-                Eliminar {categories.length - 9} Duplicados
-              </Button>
+                  }}
+                  className="bg-red-600 hover:bg-red-700"
+                >
+                  <Trash2 className="w-4 h-4 mr-2" />
+                  Eliminar {categories.length - 9} Duplicados
+                </Button>
+              </div>
             </div>
-          </AlertDescription>
-        </Alert>
+          </CardContent>
+        </Card>
       )}
 
       {/* Tabla de categorías */}

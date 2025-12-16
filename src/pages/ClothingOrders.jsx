@@ -143,7 +143,124 @@ export default function ClothingOrders() {
 
   const createOrderMutation = useMutation({
     mutationFn: (orderData) => base44.entities.ClothingOrder.create(orderData),
-    onSuccess: (_, variables) => {
+    onSuccess: async (createdOrder, variables) => {
+      // Construir detalle de productos con precios dinámicos
+      const getPrice = (productId, defaultPrice) => {
+        const producto = seasonConfig?.productos_ropa?.find(p => p.id === productId);
+        return (producto && producto.activo !== false) ? producto.precio : defaultPrice;
+      };
+
+      let productosDetalle = '';
+      if (variables.chaqueta_partidos) {
+        productosDetalle += `✅ <strong>Chaqueta de Partidos</strong> - Talla: ${variables.chaqueta_talla} - ${getPrice('chaqueta_partidos', 35)}€<br/>`;
+      }
+      if (variables.pack_entrenamiento) {
+        productosDetalle += `✅ <strong>Pack de Entrenamiento</strong> - ${getPrice('pack_entrenamiento', 41)}€<br/>`;
+        productosDetalle += `&nbsp;&nbsp;&nbsp;&nbsp;• Camiseta: ${variables.pack_camiseta_talla}<br/>`;
+        productosDetalle += `&nbsp;&nbsp;&nbsp;&nbsp;• Pantalón: ${variables.pack_pantalon_talla}<br/>`;
+        productosDetalle += `&nbsp;&nbsp;&nbsp;&nbsp;• Sudadera: ${variables.pack_sudadera_talla}<br/>`;
+      }
+      if (variables.camiseta_individual) {
+        productosDetalle += `✅ <strong>Camiseta Individual</strong> (FUERA DEL PACK) - Talla: ${variables.camiseta_individual_talla} - ${getPrice('camiseta_individual', 10)}€<br/>`;
+      }
+      if (variables.pantalon_individual) {
+        productosDetalle += `✅ <strong>Pantalón Individual</strong> (FUERA DEL PACK) - Talla: ${variables.pantalon_individual_talla} - ${getPrice('pantalon_individual', 17)}€<br/>`;
+      }
+      if (variables.sudadera_individual) {
+        productosDetalle += `✅ <strong>Sudadera Individual</strong> (FUERA DEL PACK) - Talla: ${variables.sudadera_individual_talla} - ${getPrice('sudadera_individual', 18)}€<br/>`;
+      }
+      if (variables.chubasquero) {
+        productosDetalle += `✅ <strong>Chubasquero con escudo bordado</strong> - Talla: ${variables.chubasquero_talla} - ${getPrice('chubasquero', 20)}€<br/>`;
+      }
+      if (variables.anorak) {
+        productosDetalle += `✅ <strong>Anorak</strong> - Talla: ${variables.anorak_talla} - ${getPrice('anorak', 40)}€<br/>`;
+      }
+      if (variables.mochila) {
+        productosDetalle += `✅ <strong>Mochila con botero</strong> (escudo vinilo) - ${getPrice('mochila', 22)}€<br/>`;
+      }
+
+      try {
+        // Email al admin
+        if (seasonConfig?.notificaciones_admin_email) {
+          await base44.functions.invoke('sendEmail', {
+            to: "cdbustarviejo@gmail.com",
+            subject: `👕 Nuevo Pedido de Ropa - ${variables.jugador_nombre}`,
+            html: `
+              <h2>Nuevo Pedido de Equipación</h2>
+              <p><strong>Jugador:</strong> ${variables.jugador_nombre}</p>
+              <p><strong>Categoría:</strong> ${variables.jugador_categoria}</p>
+              <p><strong>Email:</strong> ${variables.email_padre}</p>
+              <p><strong>Teléfono:</strong> ${variables.telefono}</p>
+              <hr>
+              <h3>Productos:</h3>
+              ${productosDetalle}
+              <hr>
+              <p><strong>Total:</strong> ${variables.precio_total}€</p>
+              ${variables.credito_aplicado > 0 ? `<p><strong>Crédito aplicado:</strong> -${variables.credito_aplicado}€</p><p><strong>Total a pagar:</strong> ${variables.precio_final}€</p>` : ''}
+              <p><strong>Método de pago:</strong> ${variables.metodo_pago}</p>
+              ${variables.justificante_url ? `<p><strong>Justificante:</strong> <a href="${variables.justificante_url}">Ver</a></p>` : ''}
+              ${variables.notas ? `<p><strong>Notas:</strong> ${variables.notas}</p>` : ''}
+              <hr>
+              <p style="font-size: 12px; color: #666;">Registrado el ${new Date().toLocaleString('es-ES')}</p>
+            `
+          });
+        }
+
+        // Email de confirmación a los padres
+        const player = allPlayers.find(p => p.id === variables.jugador_id);
+        const confirmBody = `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+            <div style="background: linear-gradient(135deg, #ea580c, #f97316); padding: 20px; text-align: center; border-radius: 10px 10px 0 0;">
+              <h1 style="color: white; margin: 0;">🛍️ Pedido de Equipación Recibido</h1>
+            </div>
+            <div style="background: #fff; padding: 30px; border: 1px solid #e5e7eb;">
+              <p style="font-size: 16px;">Estimados padres/tutores,</p>
+              <p>Confirmamos que hemos recibido correctamente su pedido de equipación para <strong>${variables.jugador_nombre}</strong>.</p>
+              
+              <div style="background: #fef3c7; border: 2px solid #f59e0b; border-radius: 10px; padding: 20px; margin: 20px 0;">
+                <h3 style="color: #92400e; margin-top: 0;">📦 Productos Solicitados:</h3>
+                ${productosDetalle}
+                <hr style="margin: 15px 0; border: none; border-top: 1px solid #f59e0b;">
+                <p style="font-size: 18px; font-weight: bold; color: #92400e; margin-bottom: 5px;">💰 Total: ${variables.precio_total}€</p>
+                ${variables.credito_aplicado > 0 ? `<p style="font-size: 14px; color: #7c2d12;">🎁 Crédito aplicado: -${variables.credito_aplicado}€</p><p style="font-size: 16px; font-weight: bold; color: #16a34a;">Total a pagar: ${variables.precio_final}€</p>` : ''}
+              </div>
+              
+              <div style="background: #f0fdf4; border-left: 4px solid #22c55e; padding: 15px; margin: 20px 0;">
+                <p style="margin: 0; font-size: 14px; color: #166534;"><strong>📍 Información de entrega:</strong></p>
+                <p style="margin: 5px 0 0 0; font-size: 14px; color: #15803d;">Los pedidos se entregarán en las instalaciones del club durante la <strong>primera semana de Septiembre</strong>.</p>
+              </div>
+              
+              <div style="background: #f3f4f6; border-radius: 8px; padding: 12px; margin: 20px 0;">
+                <p style="font-size: 12px; color: #6b7280; margin: 0;"><strong>Estado:</strong> En revisión</p>
+                <p style="font-size: 12px; color: #6b7280; margin: 5px 0 0 0;">Recibirás una confirmación cuando el pedido sea procesado por el club.</p>
+              </div>
+            </div>
+            <div style="background: #1e293b; color: white; padding: 15px; text-align: center; border-radius: 0 0 10px 10px;">
+              <p style="margin: 0; font-size: 12px;">CD Bustarviejo - Temporada ${variables.temporada}</p>
+              <p style="margin: 5px 0 0 0; font-size: 11px; color: #94a3b8;">📧 cdbustarviejo@gmail.com</p>
+            </div>
+          </div>
+        `;
+        
+        if (player?.email_padre) {
+          await base44.functions.invoke('sendEmail', {
+            to: player.email_padre,
+            subject: "Pedido de Equipación Recibido - CD Bustarviejo",
+            html: confirmBody
+          });
+        }
+        
+        if (player?.email_tutor_2) {
+          await base44.functions.invoke('sendEmail', {
+            to: player.email_tutor_2,
+            subject: "Pedido de Equipación Recibido - CD Bustarviejo",
+            html: confirmBody
+          });
+        }
+      } catch (error) {
+        console.error("Error sending clothing order emails:", error);
+      }
+
       queryClient.invalidateQueries({ queryKey: ['myClothingOrders'] });
       queryClient.invalidateQueries({ queryKey: ['allPlayersForClothing'] });
       queryClient.invalidateQueries({ queryKey: ['currentUser'] });
@@ -225,29 +342,7 @@ export default function ClothingOrders() {
       estado: orderData.justificante_url ? "En revisión" : "Pendiente"
     };
     
-    // Notificar al admin si las notificaciones están activas
-    if (seasonConfig?.notificaciones_admin_email) {
-      try {
-        await base44.functions.invoke('sendEmail', {
-          to: "cdbustarviejo@gmail.com",
-          subject: `👕 Nuevo Pedido de Ropa - ${orderData.jugador_nombre}`,
-          html: `
-            <h2>Nuevo Pedido de Equipación</h2>
-            <p><strong>Jugador:</strong> ${orderData.jugador_nombre}</p>
-            <p><strong>Categoría:</strong> ${orderData.jugador_categoria}</p>
-            <p><strong>Email:</strong> ${orderData.email_padre}</p>
-            <p><strong>Total:</strong> ${orderData.precio_total}€</p>
-            <p><strong>Método de pago:</strong> ${orderData.metodo_pago || 'No especificado'}</p>
-            ${orderData.justificante_url ? `<p><strong>Justificante:</strong> <a href="${orderData.justificante_url}">Ver</a></p>` : ''}
-            <hr>
-            <p style="font-size: 12px; color: #666;">Registrado el ${new Date().toLocaleString('es-ES')}</p>
-          `
-        });
-      } catch (error) {
-        console.error("Error sending clothing order notification:", error);
-      }
-    }
-    
+    // Enviar emails DESPUÉS de crear el pedido (en onSuccess de la mutación)
     createOrderMutation.mutate(dataToSubmit);
   };
 
