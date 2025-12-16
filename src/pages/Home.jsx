@@ -851,12 +851,20 @@ export default function Home() {
       );
 
       if (loteriaVisible) {
-        items.push({
-          title: "🍀 Gestión Lotería",
-          icon: Clover,
-          url: createPageUrl("LotteryManagement"),
-          gradient: "from-green-600 to-green-700",
-        });
+        items.push(
+          {
+            title: "🍀 Gestión Lotería",
+            icon: Clover,
+            url: createPageUrl("LotteryManagement"),
+            gradient: "from-green-600 to-green-700",
+          },
+          {
+            title: "🍀 Mi Lotería",
+            icon: Clover,
+            url: createPageUrl("ParentLottery"),
+            gradient: "from-red-600 to-green-700",
+          }
+        );
       }
 
       // 3. CONSULTA
@@ -1098,14 +1106,12 @@ export default function Home() {
           url: createPageUrl("LotteryManagement"),
           gradient: "from-green-600 to-green-700",
         });
-        if (!hasPlayers) {
-          items.push({
-            title: "🍀 Mi Lotería",
-            icon: Clover,
-            url: createPageUrl("ParentLottery"),
-            gradient: "from-red-600 to-green-700",
-          });
-        }
+        items.push({
+          title: "🍀 Mi Lotería",
+          icon: Clover,
+          url: createPageUrl("ParentLottery"),
+          gradient: "from-red-600 to-green-700",
+        });
       }
     }
 
