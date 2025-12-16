@@ -50,20 +50,19 @@ export default function AutomaticRenewalClosure() {
             }
 
             // Notificar al admin
-            await base44.integrations.Core.SendEmail({
-              from_name: "CD Bustarviejo - Sistema de Renovaciones",
+            await base44.functions.invoke('sendEmail', {
               to: "cdbustarviejo@gmail.com",
               subject: `🔒 Cierre Automático de Renovaciones - ${pendientes.length} jugadores no renovados`,
-              body: `
-Se ha alcanzado la fecha límite de renovaciones (${fechaLimite.toLocaleDateString('es-ES')}).
+              html: `
+Se ha alcanzado la fecha límite de renovaciones (${fechaLimite.toLocaleDateString('es-ES')}).<br><br>
 
-El sistema ha procesado automáticamente ${pendientes.length} jugador(es) que no renovaron:
+El sistema ha procesado automáticamente ${pendientes.length} jugador(es) que no renovaron:<br><br>
 
-${pendientes.map(p => `• ${p.nombre} (${p.deporte}) - Familia: ${p.email_padre}`).join('\n')}
+${pendientes.map(p => `• ${p.nombre} (${p.deporte}) - Familia: ${p.email_padre}<br>`).join('')}
+<br>
+Estos jugadores han sido marcados como "no_renueva" y desactivados.<br><br>
 
-Estos jugadores han sido marcados como "no_renueva" y desactivados.
-
-Puedes reactivarlos manualmente desde el Dashboard de Renovaciones si alguna familia contacta.
+Puedes reactivarlos manualmente desde el Dashboard de Renovaciones si alguna familia contacta.<br><br>
 
 Temporada: ${activeConfig.temporada}
               `

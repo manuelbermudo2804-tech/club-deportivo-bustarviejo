@@ -348,11 +348,10 @@ export default function ParentPlayers() {
             const CLUB_LOGO_URL = "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6911b8e453ca3ac01fb134d6/e3f0a8e26_logo_cd_bustarviejo_mediano.jpg";
             const validationUrl = `https://club-gestion-bustarviejo-1fb134d6.base44.app/ValidateSecondParent?token=${token}`;
             
-            await base44.integrations.Core.SendEmail({
-              from_name: "CD Bustarviejo",
+            await base44.functions.invoke('sendEmail', {
               to: email2,
               subject: `👨‍👩‍👧 ${user?.full_name || "Un familiar"} te ha añadido como segundo progenitor - CD Bustarviejo`,
-              body: `<!DOCTYPE html>
+              html: `<!DOCTYPE html>
 <html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
 <body style="margin:0;padding:20px;font-family:Arial,Helvetica,sans-serif;background-color:#f1f5f9;">
 <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="max-width:600px;margin:0 auto;background-color:#ffffff;border-radius:12px;overflow:hidden;border:1px solid #e2e8f0;">
@@ -518,27 +517,26 @@ Hola <strong>${dataWithParentEmail.nombre_tutor_2 || "Estimado/a"}</strong>,
               
               // Notificar al referidor por email
               if (referrer.email) {
-                await base44.integrations.Core.SendEmail({
-                  from_name: "CD Bustarviejo",
+                await base44.functions.invoke('sendEmail', {
                   to: referrer.email,
                   subject: "⚽👧 ¡BONUS FÚTBOL FEMENINO! Has ganado premios extra",
-                  body: `¡Enhorabuena ${referrer.full_name}!
+                  html: `¡Enhorabuena ${referrer.full_name}!<br><br>
 
-🎉 El socio que trajiste (${myMembership.nombre_completo}) ha inscrito una jugadora en el FÚTBOL FEMENINO: ${playerData.nombre}
+🎉 El socio que trajiste (${myMembership.nombre_completo}) ha inscrito una jugadora en el FÚTBOL FEMENINO: ${playerData.nombre}<br><br>
 
-Por apoyar el crecimiento del fútbol femenino, ¡has ganado un BONUS EXTRA!
+Por apoyar el crecimiento del fútbol femenino, ¡has ganado un BONUS EXTRA!<br><br>
 
-🎁 BONUS ESPECIAL:
-• +${bonusCredito}€ de crédito en ropa (EXTRA)
-• +${bonusSorteos} participaciones en sorteos (EXTRA)
+🎁 BONUS ESPECIAL:<br>
+• +${bonusCredito}€ de crédito en ropa (EXTRA)<br>
+• +${bonusSorteos} participaciones en sorteos (EXTRA)<br><br>
 
-💰 Tu saldo actualizado:
-• Crédito en ropa: ${newCredit}€
-• Participaciones en sorteos: ${newRaffles}
+💰 Tu saldo actualizado:<br>
+• Crédito en ropa: ${newCredit}€<br>
+• Participaciones en sorteos: ${newRaffles}<br><br>
 
-¡Gracias por ayudar a crecer el fútbol femenino en Bustarviejo! ⚽💪
+¡Gracias por ayudar a crecer el fútbol femenino en Bustarviejo! ⚽💪<br><br>
 
-Un abrazo,
+Un abrazo,<br>
 CD Bustarviejo`
                 });
               }
@@ -552,11 +550,10 @@ CD Bustarviejo`
       try {
         if (seasonConfig?.notificaciones_admin_email) {
           console.log('📧 [ParentPlayers] Enviando notificación de inscripción a admin');
-          await base44.integrations.Core.SendEmail({
-          from_name: "CD Bustarviejo - Sistema de Inscripciones",
+          await base44.functions.invoke('sendEmail', {
           to: "cdbustarviejo@gmail.com",
           subject: `Nueva Inscripción de Jugador - ${playerData.nombre}`,
-          body: `
+          html: `
             <h2>Nueva Inscripción Recibida</h2>
             <p><strong>Tipo:</strong> ${playerData.tipo_inscripcion}</p>
             <p><strong>Jugador:</strong> ${playerData.nombre}</p>
@@ -585,43 +582,41 @@ CD Bustarviejo`
         try {
           console.log('📧 [ParentPlayers] Enviando confirmación de inscripción a padres:', { padre: playerData.email_padre, tutor2: playerData.email_tutor_2 });
           
-          const emailBody = `Estimados padres/tutores,
+          const emailBody = `Estimados padres/tutores,<br><br>
 
-Confirmamos que hemos recibido correctamente la inscripcion de ${playerData.nombre}.
+Confirmamos que hemos recibido correctamente la inscripcion de ${playerData.nombre}.<br><br>
 
-DATOS DE LA INSCRIPCION
-Tipo: ${playerData.tipo_inscripcion}
-Jugador: ${playerData.nombre}
-Deporte/Categoria: ${playerData.deporte}
-Fecha de Nacimiento: ${new Date(playerData.fecha_nacimiento).toLocaleDateString('es-ES')}
+DATOS DE LA INSCRIPCION<br>
+Tipo: ${playerData.tipo_inscripcion}<br>
+Jugador: ${playerData.nombre}<br>
+Deporte/Categoria: ${playerData.deporte}<br>
+Fecha de Nacimiento: ${new Date(playerData.fecha_nacimiento).toLocaleDateString('es-ES')}<br><br>
 
-En breve procesaremos la informacion y podran acceder a todos los servicios del club a traves de la aplicacion.
+En breve procesaremos la informacion y podran acceder a todos los servicios del club a traves de la aplicacion.<br><br>
 
-Atentamente,
+Atentamente,<br><br>
 
-CD Bustarviejo
-Equipo de Administracion
+CD Bustarviejo<br>
+Equipo de Administracion<br><br>
 
-Datos de contacto:
+Datos de contacto:<br>
 Email: cdbustarviejo@gmail.com
           `;
           
           console.log('📤 [ParentPlayers] Enviando a padre:', playerData.email_padre);
-          await base44.integrations.Core.SendEmail({
-            from_name: "CD Bustarviejo",
+          await base44.functions.invoke('sendEmail', {
             to: playerData.email_padre,
             subject: "Inscripción Recibida - CD Bustarviejo",
-            body: emailBody
+            html: emailBody
           });
           console.log('✅ [ParentPlayers] Email enviado a padre');
           
           if (playerData.email_tutor_2) {
             console.log('📤 [ParentPlayers] Enviando a tutor 2:', playerData.email_tutor_2);
-            await base44.integrations.Core.SendEmail({
-              from_name: "CD Bustarviejo",
+            await base44.functions.invoke('sendEmail', {
               to: playerData.email_tutor_2,
               subject: "Inscripción Recibida - CD Bustarviejo",
-              body: emailBody
+              html: emailBody
             });
             console.log('✅ [ParentPlayers] Email enviado a tutor 2');
           }
