@@ -583,16 +583,6 @@ export default function CategoryManagement() {
               Cuotas por Categoría - Temporada {activeSeason?.temporada || "Actual"}
             </CardTitle>
           </CardHeader>
-
-      {/* Tabla de categorías */}
-      {categories.length > 0 ? (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Euro className="w-5 h-5 text-green-600" />
-              Cuotas por Categoría - Temporada {activeSeason?.temporada || "Actual"}
-            </CardTitle>
-          </CardHeader>
           <CardContent>
             <div className="overflow-x-auto">
               <table className="w-full border-collapse">
