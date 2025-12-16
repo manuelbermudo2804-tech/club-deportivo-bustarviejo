@@ -85,7 +85,7 @@ export default function InvitationRequests() {
       {totalPending > 0 && (
         <div className="mb-6 flex gap-3">
           <a 
-            href="https://app.base44.com/apps/6911b8e453ca3ac01fb134d6/team" 
+            href="https://app.base44.com/apps/6911b8e453ca3ac01fb134d6/share" 
             target="_blank" 
             rel="noopener noreferrer"
             className="flex-1"
