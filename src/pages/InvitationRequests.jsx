@@ -75,43 +75,39 @@ export default function InvitationRequests() {
         )}
       </div>
 
-      <Alert className="mb-6 bg-blue-50 border-blue-200">
-        <AlertCircle className="h-4 w-4 text-blue-600" />
-        <AlertDescription className="text-blue-800 text-sm">
-          <strong>📌 Cómo enviar invitaciones:</strong> Haz clic en "Abrir Invitaciones" → introduce los emails (puedes pegar múltiples separados por punto y coma) → envía. Luego marca como "Procesada" aquí.
-        </AlertDescription>
-      </Alert>
-
       {totalPending > 0 && (
-        <div className="mb-6 flex gap-3">
-          <a 
-            href="https://app.base44.com/apps/6911b8e453ca3ac01fb134d6/share" 
-            target="_blank" 
-            rel="noopener noreferrer"
-            className="flex-1"
-          >
-            <Button className="w-full bg-blue-600 hover:bg-blue-700 h-12">
-              <ExternalLink className="w-5 h-5 mr-2" />
-              Abrir Invitaciones en Base44
-            </Button>
-          </a>
-          <Button
-            onClick={() => {
-              const allPendingEmails = [
-                ...secondParentInvitations.filter(i => i.estado === "pendiente").map(i => i.email_destino),
-                ...adultPlayerRequests.filter(i => i.estado === "pendiente").map(i => i.email_jugador)
-              ];
-              const emailString = allPendingEmails.join('; ');
-              copyToClipboard(emailString);
-              toast.success(`${allPendingEmails.length} emails copiados`);
-            }}
-            className="bg-green-600 hover:bg-green-700 h-12"
-            disabled={totalPending === 0}
-          >
-            <Copy className="w-5 h-5 mr-2" />
-            Copiar Todos los Emails ({totalPending})
-          </Button>
-        </div>
+        <Card className="mb-6 bg-gradient-to-r from-orange-50 to-red-50 border-2 border-orange-300">
+          <CardContent className="pt-6">
+            <div className="flex items-start gap-4">
+              <div className="w-12 h-12 rounded-full bg-orange-600 flex items-center justify-center flex-shrink-0">
+                <Mail className="w-6 h-6 text-white" />
+              </div>
+              <div className="flex-1">
+                <h3 className="font-bold text-orange-900 text-lg mb-2">
+                  📧 {totalPending} Solicitud{totalPending > 1 ? 'es' : ''} Pendiente{totalPending > 1 ? 's' : ''} de Procesar
+                </h3>
+                <p className="text-sm text-orange-800 mb-3">
+                  Copia los emails y envía las invitaciones desde <strong>Base44 → Compartir App</strong>. Luego marca como procesadas aquí.
+                </p>
+                <Button
+                  onClick={() => {
+                    const allPendingEmails = [
+                      ...secondParentInvitations.filter(i => i.estado === "pendiente").map(i => i.email_destino),
+                      ...adultPlayerRequests.filter(i => i.estado === "pendiente").map(i => i.email_jugador)
+                    ];
+                    const emailString = allPendingEmails.join('; ');
+                    copyToClipboard(emailString);
+                    toast.success(`${allPendingEmails.length} emails copiados - ahora ve a Base44 → Compartir App para enviar invitaciones`);
+                  }}
+                  className="bg-green-600 hover:bg-green-700"
+                >
+                  <Copy className="w-4 h-4 mr-2" />
+                  Copiar Todos los Emails ({totalPending})
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       )}
 
       <div className="mb-4 flex gap-2">
