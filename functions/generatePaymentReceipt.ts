@@ -155,7 +155,7 @@ Deno.serve(async (req) => {
       recibo_url: reciboUrl
     });
     
-    // Enviar el recibo por email con PDF adjunto
+    // Enviar el recibo por email con PDF adjunto usando función personalizada
     const emailBody = `
       <h2>Recibo de Pago - CD Bustarviejo</h2>
       <p>Estimados padres/tutores,</p>
@@ -174,9 +174,8 @@ Deno.serve(async (req) => {
     `;
     
     const emailWithAttachment = {
-      from_name: "CD Bustarviejo",
       subject: `Recibo de Pago - ${player.nombre} - ${payment.mes}`,
-      body: emailBody,
+      html: emailBody,
       attachments: [{
         filename: `Recibo_${player.nombre.replace(/\s+/g, '_')}_${payment.mes}.pdf`,
         content: pdfBase64,
@@ -185,10 +184,10 @@ Deno.serve(async (req) => {
       }]
     };
     
-    // Enviar a padre principal
+    // Enviar a padre principal usando función personalizada
     if (player.email_padre) {
       try {
-        await base44.asServiceRole.integrations.Core.SendEmail({
+        await base44.asServiceRole.functions.invoke('sendEmail', {
           ...emailWithAttachment,
           to: player.email_padre
         });
@@ -201,7 +200,7 @@ Deno.serve(async (req) => {
     // Enviar a segundo tutor si existe
     if (player.email_tutor_2) {
       try {
-        await base44.asServiceRole.integrations.Core.SendEmail({
+        await base44.asServiceRole.functions.invoke('sendEmail', {
           ...emailWithAttachment,
           to: player.email_tutor_2
         });
