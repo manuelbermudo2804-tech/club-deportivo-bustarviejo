@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { CheckCircle2, AlertCircle, Loader2, Users, Shield, Mail } from "lucide-react";
+import { CheckCircle2, AlertCircle, Loader2, Users, Shield } from "lucide-react";
 import { toast } from "sonner";
 import InvitationPWAGuide from "../components/pwa/InvitationPWAGuide";
 
@@ -41,42 +41,28 @@ export default function ValidateSecondParent() {
   const validateToken = async (tokenValue) => {
     try {
       console.log('🔍 Validando token:', tokenValue);
-      const invitations = await base44.asServiceRole.entities.SecondParentInvitation.filter({ token: tokenValue });
       
-      if (invitations.length === 0) {
-        setError("Token de invitación no válido o no encontrado");
+      const result = await base44.functions.invoke('validateInvitationToken', {
+        token: tokenValue,
+        invitationType: 'second_parent'
+      });
+      
+      if (!result.data.valid) {
+        setError(result.data.error || 'Token no válido');
         setLoading(false);
         return;
       }
-
-      const inv = invitations[0];
-      console.log('✅ Invitación encontrada:', inv.email_destino);
       
-      // Verificar estado
-      if (inv.estado === "aceptada") {
-        // Ya fue aceptada - redirigir a la app
-        console.log('ℹ️ Invitación ya aceptada, redirigiendo a la app');
+      if (result.data.alreadyAccepted) {
+        console.log('ℹ️ Ya aceptada, redirigiendo...');
         window.location.href = 'https://app.cdbustarviejo.com';
         return;
       }
       
-      if (inv.estado === "expirada" || inv.estado === "cancelada") {
-        setError("Esta invitación ha expirado o fue cancelada");
-        setLoading(false);
-        return;
-      }
-
-      // Verificar expiración
-      if (inv.fecha_expiracion && new Date(inv.fecha_expiracion) < new Date()) {
-        await base44.asServiceRole.entities.SecondParentInvitation.update(inv.id, { estado: "expirada" });
-        setError("Esta invitación ha expirado. Por favor, solicita una nueva invitación.");
-        setLoading(false);
-        return;
-      }
-
-      setInvitation(inv);
+      console.log('✅ Token válido');
+      setInvitation(result.data.invitation);
       setFormData({
-        nombre_completo: inv.nombre_destino || "",
+        nombre_completo: result.data.invitation.nombre_destino || "",
         telefono: "",
         dni: ""
       });
@@ -104,91 +90,23 @@ export default function ValidateSecondParent() {
     setIsSubmitting(true);
 
     try {
-      // 1. Actualizar la invitación como aceptada
-      await base44.asServiceRole.entities.SecondParentInvitation.update(invitation.id, {
-        estado: "aceptada",
-        fecha_aceptacion: new Date().toISOString(),
-        datos_completados: formData
+      const result = await base44.functions.invoke('completeSecondParentRegistration', {
+        token,
+        formData
       });
 
-      // 2. Actualizar el jugador con los datos del segundo progenitor
-      const player = await base44.asServiceRole.entities.Player.filter({ id: invitation.jugador_id });
-      if (player.length > 0) {
-        await base44.asServiceRole.entities.Player.update(invitation.jugador_id, {
-          nombre_tutor_2: formData.nombre_completo,
-          telefono_tutor_2: formData.telefono,
-          // El email ya está guardado
-        });
+      if (result.data.success) {
+        console.log('✅ Registro completado');
+        window.location.href = 'https://app.cdbustarviejo.com';
+      } else {
+        toast.error(result.data.error || 'Error al completar el registro');
+        setIsSubmitting(false);
       }
-
-      // 3. Enviar email de confirmación al segundo progenitor
-      await base44.functions.invoke('sendEmail', {
-        to: invitation.email_destino,
-        subject: "✅ Registro completado - CD Bustarviejo",
-        html: generateConfirmationEmail(formData.nombre_completo, invitation.jugador_nombre)
-      });
-
-      // 4. Notificar al primer progenitor
-      if (invitation.invitado_por_email) {
-        await base44.functions.invoke('sendEmail', {
-          to: invitation.invitado_por_email,
-          subject: `${formData.nombre_completo} ha completado su registro`,
-          html: `<p>Hola ${invitation.invitado_por_nombre || ''},</p><p>${formData.nombre_completo} ha completado su registro como segundo progenitor de ${invitation.jugador_nombre}.</p><p>Ahora puede acceder a la aplicación del club con su propia cuenta.</p><p>Saludos,<br>CD Bustarviejo</p>`
-        });
-      }
-
-      console.log('✅ Registro completado, redirigiendo a la app...');
-      
-      // Redirigir a la app - Base44 manejará la autenticación
-      window.location.href = 'https://app.cdbustarviejo.com';
     } catch (err) {
-      console.error("Error completing registration:", err);
+      console.error("Error:", err);
       toast.error("Error al completar el registro");
       setIsSubmitting(false);
     }
-  };
-
-  const generateConfirmationEmail = (nombre, jugadorNombre) => {
-    return `<!DOCTYPE html>
-<html>
-<head><meta charset="utf-8"></head>
-<body style="margin:0;padding:20px;font-family:Arial,sans-serif;background-color:#f1f5f9;">
-<table cellspacing="0" cellpadding="0" border="0" width="100%" style="max-width:600px;margin:0 auto;background-color:#ffffff;border-radius:12px;overflow:hidden;">
-<tr>
-<td bgcolor="#ea580c" style="padding:30px;text-align:center;">
-<img src="${CLUB_LOGO_URL}" alt="CD Bustarviejo" width="80" height="80" style="width:80px;height:80px;border-radius:12px;border:3px solid #ffffff;">
-<h1 style="color:#ffffff;margin:15px 0 5px 0;font-size:26px;">CD BUSTARVIEJO</h1>
-</td>
-</tr>
-<tr>
-<td style="padding:30px;">
-<h2 style="color:#16a34a;text-align:center;">✅ ¡Registro Completado!</h2>
-<p style="color:#475569;font-size:15px;line-height:1.6;">
-Hola <strong>${nombre}</strong>,
-</p>
-<p style="color:#475569;font-size:15px;line-height:1.6;">
-Tu registro como segundo progenitor de <strong>${jugadorNombre}</strong> se ha completado correctamente.
-</p>
-<p style="color:#475569;font-size:15px;line-height:1.6;">
-Ahora puedes acceder a la aplicación del club con tu cuenta y ver toda la información de tu hijo/a: convocatorias, pagos, calendario, chat del equipo, etc.
-</p>
-<table align="center" style="margin:25px auto;">
-<tr>
-<td bgcolor="#ea580c" style="border-radius:8px;">
-<a href="https://app.cdbustarviejo.com" style="display:inline-block;color:#ffffff;text-decoration:none;padding:14px 35px;font-weight:bold;">ACCEDER A LA APP →</a>
-</td>
-</tr>
-</table>
-</td>
-</tr>
-<tr>
-<td bgcolor="#1e293b" style="padding:20px;text-align:center;">
-<p style="color:#64748b;font-size:12px;margin:0;">cdbustarviejo@gmail.com</p>
-</td>
-</tr>
-</table>
-</body>
-</html>`;
   };
 
   if (loading) {
@@ -213,9 +131,7 @@ Ahora puedes acceder a la aplicación del club con tu cuenta y ver toda la infor
             <h2 className="text-xl font-bold text-slate-900 mb-2">Invitación no válida</h2>
             <p className="text-slate-600 mb-6">{error}</p>
             <Button 
-              onClick={() => {
-                window.location.href = 'https://app.cdbustarviejo.com';
-              }} 
+              onClick={() => window.location.href = 'https://app.cdbustarviejo.com'} 
               variant="outline"
             >
               Ir a la App
@@ -225,8 +141,6 @@ Ahora puedes acceder a la aplicación del club con tu cuenta y ver toda la infor
       </div>
     );
   }
-
-
 
   return (
     <>
@@ -246,7 +160,7 @@ Ahora puedes acceder a la aplicación del club con tu cuenta y ver toda la infor
           <Alert className="mb-6 bg-blue-50 border-blue-200">
             <Users className="h-4 w-4 text-blue-600" />
             <AlertDescription className="text-blue-800 text-sm">
-              <strong>{invitation.invitado_por_nombre || "Un familiar"}</strong> te ha invitado a unirte a la app del club como segundo progenitor de <strong>{invitation.jugador_nombre}</strong>.
+              <strong>{invitation.invitado_por_nombre || "Un familiar"}</strong> te ha invitado como segundo progenitor de <strong>{invitation.jugador_nombre}</strong>.
             </AlertDescription>
           </Alert>
 
@@ -259,7 +173,7 @@ Ahora puedes acceder a la aplicación del club con tu cuenta y ver toda la infor
                 disabled
                 className="bg-slate-100"
               />
-              <p className="text-xs text-slate-500">Este será tu email de acceso a la app</p>
+              <p className="text-xs text-slate-500">Este será tu email de acceso</p>
             </div>
 
             <div className="space-y-2">
@@ -298,10 +212,7 @@ Ahora puedes acceder a la aplicación del club con tu cuenta y ver toda la infor
             <Alert className="bg-green-50 border-green-200">
               <Shield className="h-4 w-4 text-green-600" />
               <AlertDescription className="text-green-800 text-sm">
-                <strong>✅ Acceso completo:</strong> Al completar este registro tendrás acceso total a la app con tu propia cuenta.
-                <p className="mt-2 text-xs">
-                  Verás exactamente lo mismo que el primer progenitor y podrás: hacer pagos, confirmar convocatorias, chatear con entrenadores, ver calendario, documentos, galería, etc.
-                </p>
+                <strong>✅ Acceso completo:</strong> Tendrás acceso total a la app con tu propia cuenta.
               </AlertDescription>
             </Alert>
 
@@ -311,7 +222,7 @@ Ahora puedes acceder a la aplicación del club con tu cuenta y ver toda la infor
               className="w-full bg-orange-600 hover:bg-orange-700 py-6 text-lg font-bold"
             >
               {isSubmitting ? (
-                <><Loader2 className="w-5 h-5 mr-2 animate-spin" />Completando registro...</>
+                <><Loader2 className="w-5 h-5 mr-2 animate-spin" />Completando...</>
               ) : (
                 <>✅ Completar Registro</>
               )}
@@ -319,7 +230,7 @@ Ahora puedes acceder a la aplicación del club con tu cuenta y ver toda la infor
           </form>
 
           <p className="text-xs text-slate-500 text-center mt-4">
-            Si tienes problemas, contacta con: cdbustarviejo@gmail.com
+            Contacto: cdbustarviejo@gmail.com
           </p>
         </CardContent>
       </Card>
