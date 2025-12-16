@@ -8,7 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Loader2, Mail, Pin, Clock, AlertCircle, Sparkles } from "lucide-react";
+import { Loader2, Mail, Pin, Clock, AlertCircle, Sparkles, Bell } from "lucide-react";
 
 export default function AnnouncementForm({ announcement, onSubmit, onCancel, isSubmitting }) {
   const [currentAnnouncement, setCurrentAnnouncement] = useState(announcement || {
