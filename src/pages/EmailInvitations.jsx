@@ -148,7 +148,7 @@ export default function EmailInvitations() {
           clicada: false
         });
 
-        const validationUrl = `${VALIDATION_URL}?invitation_token=${token}&type=admin`;
+        const validationUrl = `${VALIDATION_URL}?invitation_token=${token}`;
 
         // Crear usuario y enviar invitación
         await base44.functions.invoke('createUserAndSendInvitation', {
@@ -449,7 +449,7 @@ ${mensajePersonalizado ? `
           clicada: false
         });
 
-        const validationUrl = `${VALIDATION_URL}?invitation_token=${token}&type=admin`;
+        const validationUrl = `${VALIDATION_URL}?invitation_token=${token}`;
 
         // Crear usuario y enviar invitación
         await base44.functions.invoke('createUserAndSendInvitation', {
