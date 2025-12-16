@@ -984,33 +984,39 @@ export default function Payments() {
 
                       console.log(`[DEBUG PAGOS] Jugador: ${player.nombre}, Pagos reales encontrados:`, allRealPayments.length, allRealPayments.map(p => ({mes: p.mes, estado: p.estado})));
 
-                      // SIEMPRE crear pagos virtuales para meses que faltan (incluso con temporadaFilter="all")
-                      let displayPayments = allMonths.map(mes => {
-                        // Buscar si existe un pago real para este mes
-                        const existingPayment = allRealPayments.find(p => p.mes === mes);
-                        if (existingPayment) {
-                          console.log(`[DEBUG PAGOS] ${player.nombre} - Mes ${mes}: Pago REAL encontrado con estado ${existingPayment.estado}`);
-                          return existingPayment;
-                        }
-                        // Crear un pago virtual pendiente con cantidad correcta
-                        const cuotas = getCuotasPorCategoriaSync(player.deporte);
-                        const cantidad = hasPagoUnico 
-                          ? cuotas.total 
-                          : getImportePorMes(player.deporte, mes);
-                        
-                        console.log(`[DEBUG PAGOS] ${player.nombre} - Mes ${mes}: Creando pago VIRTUAL`);
-                        return {
-                          id: `virtual-${player.id}-${mes}`,
-                          jugador_id: player.id,
-                          jugador_nombre: player.nombre,
-                          mes: mes,
-                          temporada: temporadaFilter === "all" ? getCurrentSeason() : temporadaFilter,
-                          estado: "Pendiente",
-                          cantidad: cantidad,
-                          tipo_pago: hasPagoUnico ? "Único" : "Tres meses",
-                          isVirtual: true
-                        };
-                      });
+                      // SOLO crear pagos virtuales si hay filtro de temporada específico (NO si es "all")
+                      let displayPayments;
+                      if (temporadaFilter === "all") {
+                        // Si el filtro es "all", SOLO mostrar los pagos reales que existen en BD
+                        displayPayments = allRealPayments;
+                      } else {
+                        // Si hay filtro de temporada, crear virtuales para meses que faltan
+                        displayPayments = allMonths.map(mes => {
+                          const existingPayment = allRealPayments.find(p => p.mes === mes);
+                          if (existingPayment) {
+                            console.log(`[DEBUG PAGOS] ${player.nombre} - Mes ${mes}: Pago REAL encontrado con estado ${existingPayment.estado}`);
+                            return existingPayment;
+                          }
+                          // Crear un pago virtual pendiente con cantidad correcta
+                          const cuotas = getCuotasPorCategoriaSync(player.deporte);
+                          const cantidad = hasPagoUnico 
+                            ? cuotas.total 
+                            : getImportePorMes(player.deporte, mes);
+                          
+                          console.log(`[DEBUG PAGOS] ${player.nombre} - Mes ${mes}: Creando pago VIRTUAL`);
+                          return {
+                            id: `virtual-${player.id}-${mes}`,
+                            jugador_id: player.id,
+                            jugador_nombre: player.nombre,
+                            mes: mes,
+                            temporada: temporadaFilter,
+                            estado: "Pendiente",
+                            cantidad: cantidad,
+                            tipo_pago: hasPagoUnico ? "Único" : "Tres meses",
+                            isVirtual: true
+                          };
+                        });
+                      }
 
                       // Si hay filtro de estado activo, filtrar displayPayments también
                       if (estadoFilter !== "all") {
