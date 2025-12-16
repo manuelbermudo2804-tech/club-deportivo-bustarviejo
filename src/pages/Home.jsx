@@ -951,6 +951,48 @@ export default function Home() {
             icon: ShoppingBag,
             url: createPageUrl("ClothingOrders"),
             gradient: "from-teal-600 to-teal-700",
+          }
+        );
+        if (stats.pendingSignatures > 0) {
+          items.push({
+            title: "🖊️ Firmas Hijos",
+            icon: FileSignature,
+            url: createPageUrl("FederationSignatures"),
+            gradient: "from-yellow-600 to-orange-600",
+            badge: stats.pendingSignatures,
+            badgeLabel: "pendientes"
+          });
+        }
+      }
+
+      // 6. SECCIÓN FAMILIA (si tiene hijos) - Al final
+      if (hasPlayers) {
+        items.push(
+          {
+            title: "👨‍👩‍👧 Mis Hijos",
+            icon: Users,
+            url: createPageUrl("ParentPlayers"),
+            gradient: "from-indigo-600 to-indigo-700",
+          },
+          {
+            title: "💳 Pagos Mis Hijos",
+            icon: CreditCard,
+            url: createPageUrl("ParentPayments"),
+            gradient: "from-blue-600 to-blue-700",
+          },
+          {
+            title: "🏆 Convocatorias Hijos",
+            icon: ClipboardCheck,
+            url: createPageUrl("ParentCallups"),
+            gradient: "from-green-600 to-green-700",
+            badge: stats.pendingCallups,
+            badgeLabel: "pendientes"
+          },
+          {
+            title: "🛍️ Pedidos Ropa Hijos",
+            icon: ShoppingBag,
+            url: createPageUrl("ClothingOrders"),
+            gradient: "from-teal-600 to-teal-700",
           },
           {
             title: "💬 Chat Familia",
