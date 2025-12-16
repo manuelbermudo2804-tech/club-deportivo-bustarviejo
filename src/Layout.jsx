@@ -912,6 +912,7 @@ export default function Layout({ children, currentPageName }) {
     { title: "🔄 Dashboard Renovaciones", url: createPageUrl("RenewalDashboard"), icon: RefreshCw },
     { title: "🏃 Entrenadores", url: createPageUrl("CoachProfiles"), icon: Users },
     { title: "🖊️ Firmas Federación", url: createPageUrl("FederationSignaturesAdmin"), icon: FileSignature },
+    { title: "📧 Solicitudes Invitación", url: createPageUrl("InvitationRequests"), icon: Mail },
     { title: "👤 Usuarios", url: createPageUrl("UserManagement"), icon: Users },
 
     // ⚽ DEPORTIVO
