@@ -100,6 +100,11 @@ export default function ParentDashboard() {
         console.log('🔍 [ParentDashboard] Iniciando carga de usuario...');
         const currentUser = await base44.auth.me();
         console.log('✅ [ParentDashboard] Usuario cargado:', currentUser.email);
+        console.log('🔐 [SEGURIDAD] Usuario en ParentDashboard:', {
+          email: currentUser.email,
+          nombre: currentUser.full_name,
+          role: currentUser.role
+        });
         setUser(currentUser);
         // Mostrar onboarding si no lo ha completado
         if (!currentUser.onboarding_completado) {
@@ -107,6 +112,8 @@ export default function ParentDashboard() {
         }
       } catch (error) {
         console.error("❌ [ParentDashboard] Error fetching user:", error);
+        // Si falla auth, forzar logout y redirección
+        base44.auth.logout('https://app.cdbustarviejo.com');
       }
     };
     fetchUser();
@@ -131,6 +138,12 @@ export default function ParentDashboard() {
   );
   
   console.log('👥 [ParentDashboard] Mis jugadores filtrados:', players.length, players.map(p => p.nombre));
+  console.log('🔐 [SEGURIDAD] Filtrando jugadores para email:', user?.email);
+  console.log('🔐 [SEGURIDAD] Jugadores encontrados:', players.map(p => ({
+    nombre: p.nombre,
+    email_padre: p.email_padre,
+    email_tutor_2: p.email_tutor_2
+  })));
 
   const { data: allPayments = [] } = useQuery({
     queryKey: ['payments'],
