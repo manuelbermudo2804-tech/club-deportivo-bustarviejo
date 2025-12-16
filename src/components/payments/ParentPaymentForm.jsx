@@ -430,7 +430,33 @@ export default function ParentPaymentForm({ players, payments = [], onSubmit, on
                   </SelectTrigger>
                   <SelectContent>
                                 {players
-                                  .filter(p => p.activo !== false)
+                                  .filter(p => {
+                                    // Solo jugadores activos
+                                    if (p.activo === false) return false;
+                                    
+                                    // Verificar si ya completó todos los pagos de la temporada
+                                    const temporadaActiva = seasonConfig?.temporada || currentPayment.temporada;
+                                    const jugadorPayments = payments.filter(pago => 
+                                      pago.jugador_id === p.id && 
+                                      pago.temporada === temporadaActiva
+                                    );
+                                    
+                                    // Si tiene pago único pagado, ya está completo
+                                    const tienePagoUnicoPagado = jugadorPayments.some(pago => 
+                                      pago.tipo_pago === "Único" && pago.estado === "Pagado"
+                                    );
+                                    if (tienePagoUnicoPagado) return false;
+                                    
+                                    // Si tiene los 3 meses pagados, ya está completo
+                                    const mesesPagados = jugadorPayments
+                                      .filter(pago => pago.tipo_pago === "Tres meses" && pago.estado === "Pagado")
+                                      .map(pago => pago.mes);
+                                    const todosMesesPagados = ["Junio", "Septiembre", "Diciembre"].every(m => mesesPagados.includes(m));
+                                    if (todosMesesPagados) return false;
+                                    
+                                    // Mostrar el jugador si aún le faltan pagos
+                                    return true;
+                                  })
                                   .map(player => (
                                     <SelectItem key={player.id} value={player.id}>
                                       {player.nombre} - {player.deporte}
