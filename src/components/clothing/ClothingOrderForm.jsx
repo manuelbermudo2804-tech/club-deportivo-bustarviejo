@@ -206,37 +206,76 @@ export default function ClothingOrderForm({ players, onSubmit, onCancel, isSubmi
       // Get player to send confirmation to both parents
       const player = players.find(p => p.id === orderData.jugador_id);
       
+      // Construir lista detallada de productos con tallas
+      let productosDetalle = '';
+      if (orderData.chaqueta_partidos) {
+        productosDetalle += `✅ <strong>Chaqueta de Partidos</strong> - Talla: ${orderData.chaqueta_talla} - ${PRECIOS.chaqueta_partidos}€<br/>`;
+      }
+      if (orderData.pack_entrenamiento) {
+        productosDetalle += `✅ <strong>Pack de Entrenamiento</strong> - ${PRECIOS.pack_entrenamiento}€<br/>`;
+        productosDetalle += `&nbsp;&nbsp;&nbsp;&nbsp;• Camiseta: ${orderData.pack_camiseta_talla}<br/>`;
+        productosDetalle += `&nbsp;&nbsp;&nbsp;&nbsp;• Pantalón: ${orderData.pack_pantalon_talla}<br/>`;
+        productosDetalle += `&nbsp;&nbsp;&nbsp;&nbsp;• Sudadera: ${orderData.pack_sudadera_talla}<br/>`;
+      }
+      if (orderData.camiseta_individual) {
+        productosDetalle += `✅ <strong>Camiseta Individual</strong> (FUERA DEL PACK) - Talla: ${orderData.camiseta_individual_talla} - ${PRECIOS.camiseta_individual}€<br/>`;
+      }
+      if (orderData.pantalon_individual) {
+        productosDetalle += `✅ <strong>Pantalón Individual</strong> (FUERA DEL PACK) - Talla: ${orderData.pantalon_individual_talla} - ${PRECIOS.pantalon_individual}€<br/>`;
+      }
+      if (orderData.sudadera_individual) {
+        productosDetalle += `✅ <strong>Sudadera Individual</strong> (FUERA DEL PACK) - Talla: ${orderData.sudadera_individual_talla} - ${PRECIOS.sudadera_individual}€<br/>`;
+      }
+      if (orderData.chubasquero) {
+        productosDetalle += `✅ <strong>Chubasquero con escudo bordado</strong> - Talla: ${orderData.chubasquero_talla} - ${PRECIOS.chubasquero}€<br/>`;
+      }
+      if (orderData.anorak) {
+        productosDetalle += `✅ <strong>Anorak</strong> - Talla: ${orderData.anorak_talla} - ${PRECIOS.anorak}€<br/>`;
+      }
+      if (orderData.mochila) {
+        productosDetalle += `✅ <strong>Mochila con botero</strong> (escudo vinilo) - ${PRECIOS.mochila}€<br/>`;
+      }
+
       // Send confirmation to parents
       const confirmBody = `
-Estimados padres/tutores,
-
-Confirmamos que hemos recibido su pedido de equipación para ${orderData.jugador_nombre}.
-
-════════════════════════════════════════
-🛍️ DETALLES DEL PEDIDO
-════════════════════════════════════════
-Jugador: ${orderData.jugador_nombre}
-Categoría: ${orderData.jugador_categoria}
-Total: ${orderData.precio_total}€
-Estado: En revisión
-
-Los pedidos se entregarán en las instalaciones del club durante la primera semana de Septiembre.
-
-Atentamente,
-
-CD Bustarviejo
-
-════════════════════════════════════════
-Datos de contacto:
-════════════════════════════════════════
-Email: cdbustarviejo@gmail.com
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          <div style="background: linear-gradient(135deg, #ea580c, #f97316); padding: 20px; text-align: center; border-radius: 10px 10px 0 0;">
+            <h1 style="color: white; margin: 0;">🛍️ Pedido de Equipación Recibido</h1>
+          </div>
+          <div style="background: #fff; padding: 30px; border: 1px solid #e5e7eb;">
+            <p style="font-size: 16px;">Estimados padres/tutores,</p>
+            <p>Confirmamos que hemos recibido correctamente su pedido de equipación para <strong>${orderData.jugador_nombre}</strong>.</p>
+            
+            <div style="background: #fef3c7; border: 2px solid #f59e0b; border-radius: 10px; padding: 20px; margin: 20px 0;">
+              <h3 style="color: #92400e; margin-top: 0;">📦 Productos Solicitados:</h3>
+              ${productosDetalle}
+              <hr style="margin: 15px 0; border: none; border-top: 1px solid #f59e0b;">
+              <p style="font-size: 18px; font-weight: bold; color: #92400e; margin-bottom: 5px;">💰 Total: ${orderData.precio_total}€</p>
+              ${creditToUse > 0 ? `<p style="font-size: 14px; color: #7c2d12;">🎁 Crédito aplicado: -${creditToUse}€</p><p style="font-size: 16px; font-weight: bold; color: #16a34a;">Total a pagar: ${orderData.precio_total - creditToUse}€</p>` : ''}
+            </div>
+            
+            <div style="background: #f0fdf4; border-left: 4px solid #22c55e; padding: 15px; margin: 20px 0;">
+              <p style="margin: 0; font-size: 14px; color: #166534;"><strong>📍 Información de entrega:</strong></p>
+              <p style="margin: 5px 0 0 0; font-size: 14px; color: #15803d;">Los pedidos se entregarán en las instalaciones del club durante la <strong>primera semana de Septiembre</strong>.</p>
+            </div>
+            
+            <div style="background: #f3f4f6; border-radius: 8px; padding: 12px; margin: 20px 0;">
+              <p style="font-size: 12px; color: #6b7280; margin: 0;"><strong>Estado:</strong> En revisión</p>
+              <p style="font-size: 12px; color: #6b7280; margin: 5px 0 0 0;">Recibirás una confirmación cuando el pedido sea procesado por el club.</p>
+            </div>
+          </div>
+          <div style="background: #1e293b; color: white; padding: 15px; text-align: center; border-radius: 0 0 10px 10px;">
+            <p style="margin: 0; font-size: 12px;">CD Bustarviejo - Temporada ${orderData.temporada}</p>
+            <p style="margin: 5px 0 0 0; font-size: 11px; color: #94a3b8;">📧 cdbustarviejo@gmail.com</p>
+          </div>
+        </div>
       `;
       
       if (player?.email_padre) {
         await base44.functions.invoke('sendEmail', {
           to: player.email_padre,
           subject: "Pedido de Equipación Recibido - CD Bustarviejo",
-          html: confirmBody.replace(/\n/g, '<br>')
+          html: confirmBody
         });
       }
       
@@ -244,7 +283,7 @@ Email: cdbustarviejo@gmail.com
         await base44.functions.invoke('sendEmail', {
           to: player.email_tutor_2,
           subject: "Pedido de Equipación Recibido - CD Bustarviejo",
-          html: confirmBody.replace(/\n/g, '<br>')
+          html: confirmBody
         });
       }
     } catch (error) {
