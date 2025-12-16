@@ -106,6 +106,13 @@ export default function ParentEventRSVP() {
     e.fecha >= today &&
     (e.destinatario_categoria === "Todos" || myPlayersSports.includes(e.destinatario_categoria) || e.deporte === "Todos" || myPlayersSports.includes(e.deporte))
   );
+  
+  // TODOS los eventos publicados (con o sin RSVP) - incluye eventos informativos
+  const allPublishedEvents = events.filter(e => 
+    e.publicado && 
+    e.fecha >= today &&
+    (e.destinatario_categoria === "Todos" || myPlayersSports.includes(e.destinatario_categoria) || e.deporte === "Todos" || myPlayersSports.includes(e.deporte))
+  );
 
   const handleOpenRSVP = (event) => {
     const myConfirmation = event.confirmaciones?.find(c => c.usuario_email === user?.email);
@@ -159,7 +166,7 @@ export default function ParentEventRSVP() {
         <p className="text-slate-600 mt-1">Confirma tu asistencia a los eventos</p>
       </div>
 
-      {eventsWithRSVP.length === 0 ? (
+      {allPublishedEvents.length === 0 ? (
         <Card>
           <CardContent className="pt-6 text-center py-12">
             <Calendar className="w-12 h-12 text-slate-400 mx-auto mb-3" />
@@ -168,7 +175,7 @@ export default function ParentEventRSVP() {
         </Card>
       ) : (
         <div className="grid gap-4">
-          {eventsWithRSVP.map(event => {
+          {allPublishedEvents.map(event => {
             const myConfirmation = getMyConfirmation(event);
             const stats = getEventStats(event);
             const confirmationStatus = myConfirmation?.confirmacion || "pendiente";
