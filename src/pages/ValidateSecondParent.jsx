@@ -120,20 +120,18 @@ export default function ValidateSecondParent() {
       }
 
       // 3. Enviar email de confirmación al segundo progenitor
-      await base44.integrations.Core.SendEmail({
-        from_name: "CD Bustarviejo",
+      await base44.functions.invoke('sendEmail', {
         to: invitation.email_destino,
         subject: "✅ Registro completado - CD Bustarviejo",
-        body: generateConfirmationEmail(formData.nombre_completo, invitation.jugador_nombre)
+        html: generateConfirmationEmail(formData.nombre_completo, invitation.jugador_nombre)
       });
 
       // 4. Notificar al primer progenitor
       if (invitation.invitado_por_email) {
-        await base44.integrations.Core.SendEmail({
-          from_name: "CD Bustarviejo",
+        await base44.functions.invoke('sendEmail', {
           to: invitation.invitado_por_email,
           subject: `${formData.nombre_completo} ha completado su registro`,
-          body: `Hola ${invitation.invitado_por_nombre || ''},\n\n${formData.nombre_completo} ha completado su registro como segundo progenitor de ${invitation.jugador_nombre}.\n\nAhora puede acceder a la aplicación del club con su propia cuenta.\n\nSaludos,\nCD Bustarviejo`
+          html: `<p>Hola ${invitation.invitado_por_nombre || ''},</p><p>${formData.nombre_completo} ha completado su registro como segundo progenitor de ${invitation.jugador_nombre}.</p><p>Ahora puede acceder a la aplicación del club con su propia cuenta.</p><p>Saludos,<br>CD Bustarviejo</p>`
         });
       }
 
@@ -174,7 +172,7 @@ Ahora puedes acceder a la aplicación del club con tu cuenta y ver toda la infor
 <table align="center" style="margin:25px auto;">
 <tr>
 <td bgcolor="#ea580c" style="border-radius:8px;">
-<a href="https://club-gestion-bustarviejo-1fb134d6.base44.app" style="display:inline-block;color:#ffffff;text-decoration:none;padding:14px 35px;font-weight:bold;">ACCEDER A LA APP →</a>
+<a href="https://app.cdbustarviejo.com" style="display:inline-block;color:#ffffff;text-decoration:none;padding:14px 35px;font-weight:bold;">ACCEDER A LA APP →</a>
 </td>
 </tr>
 </table>

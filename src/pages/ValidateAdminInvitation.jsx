@@ -6,7 +6,7 @@ import { CheckCircle2, AlertCircle, Loader2 } from "lucide-react";
 import InvitationPWAGuide from "../components/pwa/InvitationPWAGuide";
 
 const CLUB_LOGO_URL = "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6911b8e453ca3ac01fb134d6/e3f0a8e26_logo_cd_bustarviejo_mediano.jpg";
-const APP_URL = "https://club-gestion-bustarviejo-1fb134d6.base44.app";
+const APP_URL = "https://app.cdbustarviejo.com";
 
 export default function ValidateAdminInvitation() {
   const [loading, setLoading] = useState(true);
