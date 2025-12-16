@@ -10,7 +10,7 @@ import { Users, AlertCircle, ChevronDown, ChevronUp, Mail, Clock, Send, Loader2,
 import { toast } from "sonner";
 
 const CLUB_LOGO_URL = "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6911b8e453ca3ac01fb134d6/e3f0a8e26_logo_cd_bustarviejo_mediano.jpg";
-const APP_URL = "https://club-gestion-bustarviejo-1fb134d6.base44.app";
+const APP_URL = "https://app.cdbustarviejo.com";
 
 // Generar UUID v4
 const generateUUID = () => {

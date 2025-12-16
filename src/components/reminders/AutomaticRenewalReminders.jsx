@@ -77,7 +77,7 @@ export default function AutomaticRenewalReminders() {
                   </ol>
 
                   <div style="text-align: center; margin: 30px 0;">
-                    <a href="https://club-gestion-bustarviejo-1fb134d6.base44.app" style="background: #ea580c; color: white; padding: 15px 30px; text-decoration: none; border-radius: 10px; font-weight: bold; display: inline-block;">
+                    <a href="https://app.cdbustarviejo.com" style="background: #ea580c; color: white; padding: 15px 30px; text-decoration: none; border-radius: 10px; font-weight: bold; display: inline-block;">
                       Renovar Ahora →
                     </a>
                   </div>
