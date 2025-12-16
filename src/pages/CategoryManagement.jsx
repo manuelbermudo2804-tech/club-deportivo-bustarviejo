@@ -39,6 +39,8 @@ export default function CategoryManagement() {
   const [editingCategory, setEditingCategory] = useState(null);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [categoryToDelete, setCategoryToDelete] = useState(null);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [processingStep, setProcessingStep] = useState("");
 
   // Estado del formulario
   const [formData, setFormData] = useState({
@@ -508,6 +510,75 @@ export default function CategoryManagement() {
           </CardContent>
         </Card>
       )}
+
+      {/* Alerta de duplicados */}
+      {(() => {
+        const duplicates = categories.filter((c, i, arr) => 
+          arr.findIndex(x => x.nombre === c.nombre) !== i
+        );
+        if (duplicates.length > 0) {
+          return (
+            <Alert className="bg-red-50 border-red-300">
+              <AlertTriangle className="w-4 h-4 text-red-600" />
+              <AlertDescription className="text-red-800 ml-2">
+                <strong>⚠️ ¡{categories.length} categorías duplicadas detectadas!</strong>
+                <p className="text-sm mt-2">Hay múltiples registros con el mismo nombre. Esto es un error.</p>
+                <Button
+                  size="sm"
+                  onClick={async () => {
+                    if (!confirm(`¿ELIMINAR ${categories.length - 9} CATEGORÍAS DUPLICADAS?\n\nSolo se conservará 1 categoría de cada tipo (la más reciente).\n\nEsta acción es IRREVERSIBLE.`)) return;
+                    
+                    try {
+                      setIsProcessing(true);
+                      setProcessingStep("Eliminando duplicados...");
+                      
+                      // Agrupar por nombre
+                      const grouped = {};
+                      categories.forEach(cat => {
+                        if (!grouped[cat.nombre]) {
+                          grouped[cat.nombre] = [];
+                        }
+                        grouped[cat.nombre].push(cat);
+                      });
+                      
+                      let deleted = 0;
+                      // Para cada grupo, mantener solo la más reciente (último created_date)
+                      for (const [nombre, cats] of Object.entries(grouped)) {
+                        if (cats.length > 1) {
+                          // Ordenar por fecha de creación (más reciente primero)
+                          const sorted = cats.sort((a, b) => 
+                            new Date(b.created_date || 0) - new Date(a.created_date || 0)
+                          );
+                          
+                          // Eliminar todos excepto el primero (más reciente)
+                          for (let i = 1; i < sorted.length; i++) {
+                            await base44.entities.CategoryConfig.delete(sorted[i].id);
+                            deleted++;
+                          }
+                        }
+                      }
+                      
+                      queryClient.invalidateQueries({ queryKey: ['categoryConfigs'] });
+                      toast.success(`✅ ${deleted} categorías duplicadas eliminadas`);
+                    } catch (error) {
+                      console.error("Error:", error);
+                      toast.error("Error al eliminar duplicados");
+                    } finally {
+                      setIsProcessing(false);
+                      setProcessingStep("");
+                    }
+                  }}
+                  className="bg-red-600 hover:bg-red-700 mt-3"
+                >
+                  <Trash2 className="w-4 h-4 mr-2" />
+                  Eliminar {categories.length - 9} Duplicados
+                </Button>
+              </AlertDescription>
+            </Alert>
+          );
+        }
+        return null;
+      })()}
 
       {/* Tabla de categorías */}
       {categories.length > 0 ? (
