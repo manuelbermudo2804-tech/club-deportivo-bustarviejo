@@ -810,7 +810,39 @@ export default function Home() {
     } else if (isTreasurer) {
       // 💰 TESORERO: Ordenado por prioridad de uso diario
       
-      // 1. FINANZAS - Lo más importante para el tesorero
+      // 1. COMUNICACIÓN - Accesos rápidos a chats
+      items.push(
+        {
+          title: "🤖 Asistente Virtual",
+          icon: MessageCircle,
+          url: createPageUrl("Chatbot"),
+          gradient: "from-indigo-600 to-purple-700",
+        },
+        {
+          title: "🔔 Mensajes del Club",
+          icon: Bell,
+          url: createPageUrl("ParentSystemMessages"),
+          gradient: "from-purple-600 to-purple-700",
+          badge: stats.unreadPrivateMessages,
+          badgeLabel: "sin leer"
+        },
+        {
+          title: "💬 Chat Coordinador",
+          icon: MessageCircle,
+          url: createPageUrl("ParentCoordinatorChat"),
+          gradient: "from-blue-600 to-blue-700",
+          badge: stats.unreadCoordinatorMessages,
+          badgeLabel: "sin leer"
+        },
+        {
+          title: "⚽ Chat Entrenador",
+          icon: MessageCircle,
+          url: createPageUrl("ParentCoachChat"),
+          gradient: "from-green-600 to-green-700",
+        }
+      );
+
+      // 2. FINANZAS - Lo más importante para el tesorero
       items.push(
         {
           title: "📊 Panel Financiero",
@@ -834,7 +866,7 @@ export default function Home() {
         }
       );
 
-      // 2. GESTIÓN DE COBROS
+      // 3. GESTIÓN DE COBROS
       items.push(
         {
           title: "🛍️ Pedidos Ropa",
@@ -867,7 +899,7 @@ export default function Home() {
         );
       }
 
-      // 3. CONSULTA
+      // 4. CONSULTA
       items.push(
         {
           title: "👥 Jugadores",
@@ -878,36 +910,14 @@ export default function Home() {
           badgeLabel: "activos"
         },
         {
-          title: "🖊️ Firmas Federación",
-          icon: FileSignature,
-          url: createPageUrl("FederationSignaturesAdmin"),
-          gradient: "from-yellow-600 to-orange-600",
-        },
-        {
           title: "📁 Histórico Pagos",
           icon: Archive,
           url: createPageUrl("PaymentHistory"),
           gradient: "from-slate-600 to-slate-700",
-        },
-        {
-          title: "💰 Patrocinios",
-          icon: CreditCard,
-          url: createPageUrl("Sponsorships"),
-          gradient: "from-amber-600 to-amber-700",
         }
       );
 
-      // 4. CONFIGURACIÓN
-      items.push(
-        {
-          title: "⚙️ Temporadas",
-          icon: Settings,
-          url: createPageUrl("SeasonManagement"),
-          gradient: "from-slate-600 to-slate-700",
-        }
-      );
-
-      // 5. INFO GENERAL (menos prioritario para tesorero)
+      // 5. INFO GENERAL
       items.push(
         {
           title: "📅 Calendario",
@@ -916,10 +926,28 @@ export default function Home() {
           gradient: "from-purple-600 to-purple-700",
         },
         {
+          title: "🎉 Eventos Club",
+          icon: Calendar,
+          url: createPageUrl("ParentEventRSVP"),
+          gradient: "from-indigo-600 to-indigo-700",
+        },
+        {
           title: "📢 Anuncios",
           icon: Megaphone,
           url: createPageUrl("Announcements"),
           gradient: "from-pink-600 to-pink-700",
+        },
+        {
+          title: "🖼️ Galería",
+          icon: Image,
+          url: createPageUrl("Gallery"),
+          gradient: "from-indigo-600 to-indigo-700",
+        },
+        {
+          title: "📋 Encuestas",
+          icon: FileText,
+          url: createPageUrl("Surveys"),
+          gradient: "from-purple-600 to-purple-700",
         }
       );
 
@@ -1210,8 +1238,8 @@ export default function Home() {
       <div className="px-4 lg:px-8 py-6 space-y-4 lg:space-y-6">
         <SocialLinks />
 
-        {/* Accesos rápidos a chats - Solo para Coordinadores y Entrenadores */}
-        {(isCoordinator || (isCoach && user?.es_entrenador)) && (
+        {/* Accesos rápidos a chats - Para Coordinadores, Entrenadores y Tesorero */}
+        {(isCoordinator || isTreasurer || (isCoach && user?.es_entrenador)) && (
           <div className="bg-slate-800/50 backdrop-blur-sm rounded-2xl p-4 border border-slate-700">
             <p className="text-white text-sm font-semibold mb-3 flex items-center gap-2">
               <MessageCircle className="w-4 h-4" />
