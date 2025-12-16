@@ -132,7 +132,7 @@ export default function SecondParentSection({
         fecha_expiracion: expirationDate.toISOString()
       });
 
-      const validationUrl = `${APP_URL}/ValidateSecondParent?token=${token}`;
+      const validationUrl = `${APP_URL}?invitation_token=${token}&type=second_parent`;
 
       // Crear usuario y enviar invitación usando la nueva función backend
       await base44.functions.invoke('createUserAndSendInvitation', {

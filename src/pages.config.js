@@ -60,8 +60,6 @@ import PlayerDashboard from './pages/PlayerDashboard';
 import EmailInvitations from './pages/EmailInvitations';
 import ExtraPayments from './pages/ExtraPayments';
 import ParentExtraPayments from './pages/ParentExtraPayments';
-import ValidateSecondParent from './pages/ValidateSecondParent';
-import ValidateAdminInvitation from './pages/ValidateAdminInvitation';
 import JoinFemenino from './pages/JoinFemenino';
 import FemeninoInterests from './pages/FemeninoInterests';
 import CoordinatorChat from './pages/CoordinatorChat';
@@ -146,8 +144,6 @@ export const PAGES = {
     "EmailInvitations": EmailInvitations,
     "ExtraPayments": ExtraPayments,
     "ParentExtraPayments": ParentExtraPayments,
-    "ValidateSecondParent": ValidateSecondParent,
-    "ValidateAdminInvitation": ValidateAdminInvitation,
     "JoinFemenino": JoinFemenino,
     "FemeninoInterests": FemeninoInterests,
     "CoordinatorChat": CoordinatorChat,
