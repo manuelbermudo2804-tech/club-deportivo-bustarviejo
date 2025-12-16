@@ -673,9 +673,9 @@ export default function Home() {
           gradient: "from-emerald-600 to-emerald-700",
         },
         {
-          title: "🔔 Recordatorios",
+          title: "🔔 Recordatorios Simples",
           icon: Bell,
-          url: createPageUrl("Reminders"),
+          url: createPageUrl("PaymentReminders"),
           gradient: "from-red-600 to-orange-700",
         },
         {
@@ -823,13 +823,13 @@ export default function Home() {
           icon: CreditCard,
           url: createPageUrl("Payments"),
           gradient: "from-green-600 to-green-700",
-          badge: stats.pendingPayments + stats.reviewPayments,
-          badgeLabel: "pendientes"
+          badge: stats.reviewPayments,
+          badgeLabel: "en revisión"
         },
         {
-          title: "🔔 Recordatorios",
+          title: "🔔 Recordatorios Simples",
           icon: Bell,
-          url: createPageUrl("Reminders"),
+          url: createPageUrl("PaymentReminders"),
           gradient: "from-red-600 to-orange-700",
         }
       );
