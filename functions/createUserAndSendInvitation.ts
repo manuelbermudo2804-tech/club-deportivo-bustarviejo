@@ -34,10 +34,11 @@ Deno.serve(async (req) => {
       const existingUsers = await base44.asServiceRole.entities.User.filter({ email: email.toLowerCase() });
       
       if (existingUsers.length === 0) {
-        // Usuario no existe, invitarlo
-        console.log('📝 User does not exist, inviting...');
-        await base44.asServiceRole.auth.inviteUser(email.toLowerCase(), full_name);
-        console.log('✅ User invited successfully via Base44');
+        // Usuario no existe, crearlo directamente
+        console.log('📝 User does not exist, creating with temporary password...');
+        const tempPassword = Math.random().toString(36).slice(-12) + 'Aa1!'; // Contraseña temporal segura
+        await base44.asServiceRole.auth.createUser(email.toLowerCase(), tempPassword, full_name);
+        console.log('✅ User created successfully in Base44');
       } else {
         console.log('ℹ️ User already exists in Base44, skipping creation');
       }
