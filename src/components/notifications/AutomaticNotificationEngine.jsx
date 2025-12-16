@@ -104,10 +104,10 @@ export default function AutomaticNotificationEngine({ user }) {
               });
 
               // Email automático
-              await base44.integrations.Core.SendEmail({
+              await base44.functions.invoke('sendEmail', {
                 to: user.email,
                 subject: `⏰ Convocatoria pendiente - ${confirmation.jugador_nombre}`,
-                body: `
+                html: `
                   <h2>Convocatoria sin confirmar</h2>
                   <p>Tu hijo/a <strong>${confirmation.jugador_nombre}</strong> tiene una convocatoria pendiente de confirmar:</p>
                   <ul>
