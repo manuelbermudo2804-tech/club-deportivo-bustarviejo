@@ -487,24 +487,33 @@ export default function CoachChatWindow({ selectedCategory, user, allPlayers }) 
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['coachGroupMessages'] });
       queryClient.invalidateQueries({ queryKey: ['photoGalleries'] });
-      setMessageText("");
-      setAttachments([]);
       setReplyingTo(null);
     },
   });
 
   const handleSend = () => {
     if (editingMessage) {
+      const textToSend = messageText;
+      setMessageText("");
+      setEditingMessage(null);
       editMessageMutation.mutate({
         id: editingMessage.id,
-        mensaje: messageText
+        mensaje: textToSend
       });
     } else {
       if (!messageText.trim() && attachments.length === 0) return;
       
+      // Guardar antes de limpiar
+      const textToSend = messageText;
+      const attachToSend = [...attachments];
+      
+      // Limpiar inmediatamente
+      setMessageText("");
+      setAttachments([]);
+      
       const messageData = { 
-        mensaje: messageText, 
-        archivos_adjuntos: attachments 
+        mensaje: textToSend, 
+        archivos_adjuntos: attachToSend 
       };
       
       if (replyingTo) {
@@ -529,8 +538,6 @@ export default function CoachChatWindow({ selectedCategory, user, allPlayers }) 
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['coachGroupMessages'] });
-      setEditingMessage(null);
-      setMessageText("");
       toast.success("Mensaje editado");
     },
   });

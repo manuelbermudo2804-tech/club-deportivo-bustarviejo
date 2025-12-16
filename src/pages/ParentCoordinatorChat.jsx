@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Send, Paperclip, X, FileText, Download, MessageCircle, Info, Check, CheckCheck, Folder, Image as ImageIcon, Camera, AlertTriangle } from "lucide-react";
+import { Send, Paperclip, X, FileText, Download, MessageCircle, Info, Check, CheckCheck, Folder, Image as ImageIcon, Camera, AlertTriangle, Smile } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { toast } from "sonner";
@@ -28,7 +28,10 @@ export default function ParentCoordinatorChat() {
   const [reportReason, setReportReason] = useState("");
   const [showTermsDialog, setShowTermsDialog] = useState(false);
   const [termsAccepted, setTermsAccepted] = useState(false);
+  const [showReactions, setShowReactions] = useState(null);
   const messagesEndRef = useRef(null);
+
+  const REACTIONS = ["👍", "❤️", "😊", "👏", "🎉"];
   const fileInputRef = useRef(null);
   const cameraInputRef = useRef(null);
   const typingTimeoutRef = useRef(null);
@@ -308,8 +311,6 @@ export default function ParentCoordinatorChat() {
       return newMessage;
     },
     onSuccess: async () => {
-      setMessageText("");
-      setAttachments([]);
       // Refetch INMEDIATO sin esperar
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ['parentCoordinatorMessages'] }),
@@ -337,7 +338,42 @@ export default function ParentCoordinatorChat() {
     }
     
     if (!messageText.trim() && attachments.length === 0) return;
-    sendMessageMutation.mutate({ mensaje: messageText, archivos_adjuntos: attachments });
+    
+    // Guardar antes de limpiar
+    const textToSend = messageText;
+    const attachToSend = [...attachments];
+    
+    // Limpiar inmediatamente
+    setMessageText("");
+    setAttachments([]);
+    
+    sendMessageMutation.mutate({ mensaje: textToSend, archivos_adjuntos: attachToSend });
+  };
+
+  const addReaction = async (messageId, emoji) => {
+    const message = messages.find(m => m.id === messageId);
+    const existingReactions = message.reacciones || [];
+    
+    const alreadyReacted = existingReactions.find(r => r.user_email === user.email && r.emoji === emoji);
+    
+    let newReactions;
+    if (alreadyReacted) {
+      newReactions = existingReactions.filter(r => !(r.user_email === user.email && r.emoji === emoji));
+    } else {
+      newReactions = [...existingReactions, {
+        user_email: user.email,
+        user_nombre: user.full_name,
+        emoji: emoji,
+        fecha: new Date().toISOString()
+      }];
+    }
+
+    await base44.entities.CoordinatorMessage.update(messageId, {
+      reacciones: newReactions
+    });
+
+    queryClient.invalidateQueries({ queryKey: ['parentCoordinatorMessages'] });
+    setShowReactions(null);
   };
 
   const reportConversationMutation = useMutation({

@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { Send, MessageCircle, Users, Search, X, FileText, Download, Image as ImageIcon, Play, Pause } from "lucide-react";
+import { Send, MessageCircle, Users, Search, X, FileText, Download, Image as ImageIcon, Play, Pause, Smile } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { toast } from "sonner";
@@ -241,9 +241,37 @@ export default function ParentCoachChat() {
     },
   });
 
+  const addReaction = async (messageId, emoji) => {
+    const message = messages.find(m => m.id === messageId);
+    const existingReactions = message.reacciones || [];
+    
+    const alreadyReacted = existingReactions.find(r => r.user_email === user.email && r.emoji === emoji);
+    
+    let newReactions;
+    if (alreadyReacted) {
+      newReactions = existingReactions.filter(r => !(r.user_email === user.email && r.emoji === emoji));
+    } else {
+      newReactions = [...existingReactions, {
+        user_email: user.email,
+        user_nombre: user.full_name,
+        emoji: emoji,
+        fecha: new Date().toISOString()
+      }];
+    }
+
+    await base44.entities.ChatMessage.update(messageId, {
+      reacciones: newReactions
+    });
+
+    queryClient.invalidateQueries({ queryKey: ['coachGroupMessages'] });
+    setShowReactions(null);
+  };
+
   const handleSend = () => {
     if (!messageText.trim()) return;
-    sendMessageMutation.mutate(messageText);
+    const textToSend = messageText;
+    setMessageText(""); // Limpiar inmediatamente
+    sendMessageMutation.mutate(textToSend);
   };
 
   const togglePlayAudio = (audioUrl) => {
@@ -444,9 +472,46 @@ export default function ParentCoachChat() {
                             </div>
                           )}
 
-                          <p className="text-xs opacity-60 mt-1">
-                            {format(new Date(msg.created_date), "HH:mm", { locale: es })}
-                          </p>
+                          {msg.reacciones?.length > 0 && (
+                            <div className="flex gap-1 mt-2 flex-wrap">
+                              {msg.reacciones.map((r, idx) => (
+                                <span key={idx} className="text-base" title={r.user_nombre}>
+                                  {r.emoji}
+                                </span>
+                              ))}
+                            </div>
+                          )}
+
+                          <div className="flex items-center justify-between mt-1">
+                            <p className="text-xs opacity-60">
+                              {format(new Date(msg.created_date), "HH:mm", { locale: es })}
+                            </p>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              className="opacity-50 hover:opacity-100 h-6 w-6 p-0"
+                              onClick={() => setShowReactions(msg.id)}
+                            >
+                              <Smile className="w-3 h-3" />
+                            </Button>
+                          </div>
+
+                          {showReactions === msg.id && (
+                            <div className="absolute bottom-full mb-2 right-0 bg-white rounded-lg shadow-xl p-2 flex gap-2 z-10 border">
+                              {REACTIONS.map(emoji => (
+                                <button
+                                  key={emoji}
+                                  onClick={() => addReaction(msg.id, emoji)}
+                                  className="text-2xl hover:scale-125 transition-transform"
+                                >
+                                  {emoji}
+                                </button>
+                              ))}
+                              <button onClick={() => setShowReactions(null)} className="ml-2 text-slate-400 hover:text-slate-600">
+                                <X className="w-4 h-4" />
+                              </button>
+                            </div>
+                          )}
                         </div>
                       )}
 

@@ -7,7 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Send, X, FileText, Download, MessageCircle, Users, Search, Folder, Check, CheckCheck } from "lucide-react";
+import { Send, X, FileText, Download, MessageCircle, Users, Search, Folder, Check, CheckCheck, Smile } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { toast } from "sonner";
@@ -49,8 +49,11 @@ export default function StaffChat() {
   const [filterPerson, setFilterPerson] = useState("all");
   const [filterDate, setFilterDate] = useState("all");
   const [showImagePreview, setShowImagePreview] = useState(null);
+  const [showReactions, setShowReactions] = useState(null);
   const messagesEndRef = useRef(null);
   const fileInputRef = useRef(null);
+
+  const REACTIONS = ["👍", "❤️", "😊", "👏", "🎉"];
   const cameraInputRef = useRef(null);
   const typingTimeoutRef = useRef(null);
   const queryClient = useQueryClient();
@@ -307,8 +310,6 @@ export default function StaffChat() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['staffMessages'] });
-      setMessageText("");
-      setAttachments([]);
       setReplyingTo(null);
     },
   });
@@ -323,8 +324,6 @@ export default function StaffChat() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['staffMessages'] });
-      setEditingMessage(null);
-      setMessageText("");
       toast.success("Mensaje editado");
     },
   });
@@ -341,6 +340,32 @@ export default function StaffChat() {
       toast.success("Mensaje eliminado");
     },
   });
+
+  const addReaction = async (messageId, emoji) => {
+    const message = messages.find(m => m.id === messageId);
+    const existingReactions = message.reacciones || [];
+    
+    const alreadyReacted = existingReactions.find(r => r.email === user.email && r.emoji === emoji);
+    
+    let newReactions;
+    if (alreadyReacted) {
+      newReactions = existingReactions.filter(r => !(r.email === user.email && r.emoji === emoji));
+    } else {
+      newReactions = [...existingReactions, {
+        email: user.email,
+        nombre: user.full_name,
+        emoji: emoji,
+        fecha: new Date().toISOString()
+      }];
+    }
+
+    await base44.entities.StaffMessage.update(messageId, {
+      reacciones: newReactions
+    });
+
+    queryClient.invalidateQueries({ queryKey: ['staffMessages'] });
+    setShowReactions(null);
+  };
 
   const votePollMutation = useMutation({
     mutationFn: async ({ messageId, optionIndex }) => {
@@ -369,16 +394,27 @@ export default function StaffChat() {
 
   const handleSend = () => {
     if (editingMessage) {
+      const textToSend = messageText;
+      setMessageText("");
+      setEditingMessage(null);
       editMessageMutation.mutate({
         id: editingMessage.id,
-        mensaje: messageText
+        mensaje: textToSend
       });
     } else {
       if (!messageText.trim() && attachments.length === 0) return;
       
+      // Guardar antes de limpiar
+      const textToSend = messageText;
+      const attachToSend = [...attachments];
+      
+      // Limpiar inmediatamente
+      setMessageText("");
+      setAttachments([]);
+      
       const messageData = { 
-        mensaje: messageText, 
-        adjuntos: attachments 
+        mensaje: textToSend, 
+        adjuntos: attachToSend 
       };
       
       if (replyingTo) {
@@ -629,20 +665,55 @@ export default function StaffChat() {
                           </div>
                         )}
 
+                        {msg.reacciones?.length > 0 && (
+                          <div className="flex gap-1 mt-2 flex-wrap">
+                            {msg.reacciones.map((r, idx) => (
+                              <span key={idx} className="text-base" title={r.nombre}>
+                                {r.emoji}
+                              </span>
+                            ))}
+                          </div>
+                        )}
+
                         <div className="flex items-center justify-between mt-1">
                           <p className="text-[10px] sm:text-xs opacity-60">
                             {format(new Date(msg.created_date), "HH:mm", { locale: es })}
                           </p>
-                          {isMine && (
-                            <div className="flex items-center gap-1">
-                              {msg.leido_por?.length > 1 ? (
+                          <div className="flex items-center gap-1">
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              className="opacity-50 hover:opacity-100 h-6 w-6 p-0"
+                              onClick={() => setShowReactions(msg.id)}
+                            >
+                              <Smile className="w-3 h-3" />
+                            </Button>
+                            {isMine && (
+                              msg.leido_por?.length > 1 ? (
                                 <CheckCheck className="w-4 h-4 text-purple-300" />
                               ) : (
                                 <Check className="w-4 h-4 opacity-50" />
-                              )}
-                            </div>
-                          )}
+                              )
+                            )}
+                          </div>
                         </div>
+
+                        {showReactions === msg.id && (
+                          <div className="absolute bottom-full mb-2 right-0 bg-white rounded-lg shadow-xl p-2 flex gap-2 z-10 border">
+                            {REACTIONS.map(emoji => (
+                              <button
+                                key={emoji}
+                                onClick={() => addReaction(msg.id, emoji)}
+                                className="text-2xl hover:scale-125 transition-transform"
+                              >
+                                {emoji}
+                              </button>
+                            ))}
+                            <button onClick={() => setShowReactions(null)} className="ml-2 text-slate-400 hover:text-slate-600">
+                              <X className="w-4 h-4" />
+                            </button>
+                          </div>
+                        )}
                       </div>
                     </div>
                   </React.Fragment>
