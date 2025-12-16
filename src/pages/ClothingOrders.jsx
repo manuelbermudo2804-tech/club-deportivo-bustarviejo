@@ -131,7 +131,8 @@ export default function ClothingOrders() {
     },
     enabled: !!user?.email,
     initialData: [],
-    staleTime: 30000, // 30 segundos
+    refetchInterval: 2000, // Refrescar cada 2 segundos
+    staleTime: 0, // Siempre considerar datos obsoletos
   });
 
   // Verificar si el usuario tiene pedidos pendientes realizados anteriormente
