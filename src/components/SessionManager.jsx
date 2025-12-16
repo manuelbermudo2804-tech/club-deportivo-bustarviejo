@@ -1,7 +1,10 @@
 import { useEffect } from "react";
 import { base44 } from "@/api/base44Client";
+import { useQueryClient } from "@tanstack/react-query";
 
 export default function SessionManager() {
+  const queryClient = useQueryClient();
+
   useEffect(() => {
     // SEGURIDAD: Validar que el usuario actual coincide con el token de autenticación
     const validateSession = async () => {
@@ -14,13 +17,17 @@ export default function SessionManager() {
         
         if (storedEmail && storedEmail !== currentUser.email) {
           // El email cambió - hay un problema de sesión
-          console.error('⚠️ [SessionManager] CONFLICTO DE SESIÓN DETECTADO');
+          console.error('⚠️⚠️⚠️ [SessionManager] CONFLICTO DE SESIÓN DETECTADO ⚠️⚠️⚠️');
           console.error('Email almacenado:', storedEmail);
           console.error('Email actual:', currentUser.email);
           
-          // Limpiar TODO y forzar logout
+          // LIMPIAR TODO INMEDIATAMENTE
+          queryClient.clear();
           sessionStorage.clear();
           localStorage.clear();
+          
+          // Forzar logout y redirección
+          alert(`⚠️ CONFLICTO DE SESIÓN DETECTADO\n\nSesión anterior: ${storedEmail}\nSesión actual: ${currentUser.email}\n\nSe cerrará la sesión por seguridad.`);
           window.location.href = 'https://app.cdbustarviejo.com';
           return;
         }
@@ -32,13 +39,19 @@ export default function SessionManager() {
       } catch (error) {
         console.error('❌ [SessionManager] Error validando sesión:', error);
         // Si falla auth, limpiar y redirigir
+        queryClient.clear();
         sessionStorage.clear();
         base44.auth.logout('https://app.cdbustarviejo.com');
       }
     };
 
     validateSession();
-  }, []);
+    
+    // Validar cada 30 segundos
+    const interval = setInterval(validateSession, 30000);
+    
+    return () => clearInterval(interval);
+  }, [queryClient]);
 
   return null;
 }

@@ -121,9 +121,9 @@ export default function ParentDashboard() {
 
   // CARGAR SOLO DATOS ESENCIALES - El resto se carga bajo demanda en cada página
   const { data: allPlayers = [], isLoading: playersLoading } = useQuery({
-    queryKey: ['players'],
+    queryKey: ['players', user?.email],
     queryFn: async () => {
-      console.log('🔍 [ParentDashboard] Cargando jugadores...');
+      console.log('🔍 [ParentDashboard] Cargando jugadores para:', user?.email);
       const players = await base44.entities.Player.list();
       console.log('✅ [ParentDashboard] Jugadores cargados:', players.length);
       return players;
@@ -146,7 +146,7 @@ export default function ParentDashboard() {
   })));
 
   const { data: allPayments = [] } = useQuery({
-    queryKey: ['payments'],
+    queryKey: ['payments', user?.email],
     queryFn: () => base44.entities.Payment.list('-created_date', 100),
     staleTime: 60000, // 1 minuto
     enabled: !!user && players.length > 0,
@@ -158,7 +158,7 @@ export default function ParentDashboard() {
   );
 
   const { data: allCallups = [] } = useQuery({
-    queryKey: ['callups'],
+    queryKey: ['callups', user?.email],
     queryFn: () => base44.entities.Convocatoria.list('-created_date', 50),
     staleTime: 300000, // 5 minutos
     enabled: !!user && players.length > 0,
@@ -168,7 +168,7 @@ export default function ParentDashboard() {
   const callups = allCallups.filter(c => c.publicada && c.fecha_partido >= today && !c.cerrada);
 
   const { data: seasonConfigs = [] } = useQuery({
-    queryKey: ['seasonConfigs'],
+    queryKey: ['seasonConfigs', user?.email],
     queryFn: () => base44.entities.SeasonConfig.list(),
     staleTime: 600000, // 10 minutos
     enabled: !!user,
@@ -225,7 +225,7 @@ export default function ParentDashboard() {
   });
 
   const { data: customPaymentPlans = [] } = useQuery({
-    queryKey: ['customPaymentPlans'],
+    queryKey: ['customPaymentPlans', user?.email],
     queryFn: () => base44.entities.CustomPaymentPlan.list(),
     staleTime: 300000, // 5 minutos
     enabled: !!user && players.length > 0,
@@ -233,7 +233,7 @@ export default function ParentDashboard() {
 
   // Surveys - solo si hay jugadores
   const { data: allSurveys = [] } = useQuery({
-    queryKey: ['surveys'],
+    queryKey: ['surveys', user?.email],
     queryFn: () => base44.entities.Survey.list('-created_date', 10),
     staleTime: 600000, // 10 minutos
     enabled: !!user && players.length > 0,
@@ -251,7 +251,7 @@ export default function ParentDashboard() {
 
   // Documents - solo si hay jugadores
   const { data: allDocuments = [] } = useQuery({
-    queryKey: ['documents'],
+    queryKey: ['documents', user?.email],
     queryFn: () => base44.entities.Document.list('-created_date', 20),
     staleTime: 600000, // 10 minutos
     enabled: !!user && players.length > 0,
