@@ -9,7 +9,6 @@ const CLUB_LOGO_URL = "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/objec
 export default function ValidateSecondParent() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [success, setSuccess] = useState(false);
 
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
@@ -21,30 +20,44 @@ export default function ValidateSecondParent() {
       return;
     }
     
-    processInvitation(token);
+    processToken(token);
   }, []);
 
-  const processInvitation = async (token) => {
+  const processToken = async (token) => {
     try {
-      console.log('🔍 Procesando invitación...');
+      const invitations = await base44.entities.SecondParentInvitation.filter({ token });
       
-      // Llamar a la función que valida y acepta la invitación
-      const result = await base44.functions.invoke('acceptSecondParentInvitation', { token });
-      
-      if (result.data.error) {
-        setError(result.data.error);
+      if (invitations.length === 0) {
+        setError('Invitación no encontrada');
         setLoading(false);
         return;
       }
       
-      console.log('✅ Invitación aceptada');
-      setSuccess(true);
-      setLoading(false);
+      const inv = invitations[0];
       
-      // Redirigir después de 2 segundos
-      setTimeout(() => {
-        window.location.href = 'https://app.cdbustarviejo.com';
-      }, 2000);
+      if (inv.estado === 'expirada' || inv.estado === 'cancelada') {
+        setError('Esta invitación ha expirado o fue cancelada');
+        setLoading(false);
+        return;
+      }
+      
+      if (inv.fecha_expiracion && new Date(inv.fecha_expiracion) < new Date()) {
+        setError('Esta invitación ha expirado');
+        setLoading(false);
+        return;
+      }
+      
+      // Marcar como aceptada si aún no lo está
+      if (inv.estado === 'pendiente') {
+        await base44.entities.SecondParentInvitation.update(inv.id, {
+          estado: 'aceptada',
+          fecha_aceptacion: new Date().toISOString()
+        });
+      }
+      
+      // Redirigir al login de Base44
+      console.log('✅ Redirigiendo al login...');
+      window.location.href = 'https://app.cdbustarviejo.com';
       
     } catch (err) {
       console.error("Error:", err);
@@ -53,53 +66,30 @@ export default function ValidateSecondParent() {
     }
   };
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-orange-600 via-orange-700 to-green-700 flex items-center justify-center p-4">
-        <Card className="w-full max-w-md">
-          <CardContent className="py-12 text-center">
-            <img src={CLUB_LOGO_URL} alt="CD Bustarviejo" className="w-20 h-20 mx-auto mb-4 rounded-xl shadow-lg" />
-            <Loader2 className="w-12 h-12 animate-spin text-orange-600 mx-auto mb-4" />
-            <p className="text-slate-600 font-medium">Validando invitación...</p>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-orange-600 via-orange-700 to-green-700 flex items-center justify-center p-4">
-        <Card className="w-full max-w-md">
-          <CardContent className="py-12 text-center">
-            <img src={CLUB_LOGO_URL} alt="CD Bustarviejo" className="w-20 h-20 mx-auto mb-4 rounded-xl shadow-lg" />
-            <AlertCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
-            <h2 className="text-xl font-bold text-slate-900 mb-2">Invitación no válida</h2>
-            <p className="text-slate-600 mb-6">{error}</p>
-            <Button onClick={() => window.location.href = 'https://app.cdbustarviejo.com'}>
-              Ir a la App
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
-  if (success) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-green-600 via-green-700 to-green-800 flex items-center justify-center p-4">
-        <Card className="w-full max-w-md border-2 border-green-400">
-          <CardContent className="py-12 text-center">
-            <img src={CLUB_LOGO_URL} alt="CD Bustarviejo" className="w-20 h-20 mx-auto mb-4 rounded-xl shadow-lg" />
-            <CheckCircle2 className="w-16 h-16 text-green-600 mx-auto mb-4" />
-            <h2 className="text-2xl font-bold text-slate-900 mb-2">✅ ¡Listo!</h2>
-            <p className="text-slate-600 mb-4">Invitación aceptada correctamente</p>
-            <p className="text-sm text-slate-500">Redirigiendo a la app...</p>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
-  return null;
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-orange-600 via-orange-700 to-green-700 flex items-center justify-center p-4">
+      <Card className="w-full max-w-md">
+        <CardContent className="py-12 text-center">
+          <img src={CLUB_LOGO_URL} alt="CD Bustarviejo" className="w-20 h-20 mx-auto mb-4 rounded-xl shadow-lg" />
+          
+          {error ? (
+            <>
+              <AlertCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
+              <h2 className="text-xl font-bold text-slate-900 mb-2">Invitación no válida</h2>
+              <p className="text-slate-600 mb-6">{error}</p>
+              <Button onClick={() => window.location.href = 'https://app.cdbustarviejo.com'}>
+                Ir a la App
+              </Button>
+            </>
+          ) : (
+            <>
+              <Loader2 className="w-12 h-12 animate-spin text-orange-600 mx-auto mb-4" />
+              <p className="text-slate-900 font-bold text-lg mb-2">Validando invitación...</p>
+              <p className="text-slate-600 text-sm">Te redirigiremos en un momento</p>
+            </>
+          )}
+        </CardContent>
+      </Card>
+    </div>
+  );
 }
