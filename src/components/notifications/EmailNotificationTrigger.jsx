@@ -63,10 +63,10 @@ export default function EmailNotificationTrigger({ user }) {
           if (!email) continue;
 
           try {
-            await base44.integrations.Core.SendEmail({
+            await base44.functions.invoke('sendEmail', {
               to: email,
               subject: `🏆 Nueva convocatoria: ${latestCallup.titulo}`,
-              body: `
+              html: `
                 <h2>🏆 Nueva Convocatoria - ${latestCallup.categoria}</h2>
                 <p>Tu hijo/a <strong>${player.nombre}</strong> ha sido convocado para:</p>
                 <div style="background: #f0f9ff; border-left: 4px solid #3b82f6; padding: 16px; margin: 16px 0;">
@@ -127,10 +127,10 @@ export default function EmailNotificationTrigger({ user }) {
           if (!email) continue;
 
           try {
-            await base44.integrations.Core.SendEmail({
+            await base44.functions.invoke('sendEmail', {
               to: email,
               subject: `✅ Pago confirmado - ${player.nombre}`,
-              body: `
+              html: `
                 <h2>✅ Pago Confirmado</h2>
                 <p>Hemos confirmado el pago de <strong>${player.nombre}</strong>:</p>
                 <div style="background: #f0fdf4; border-left: 4px solid #22c55e; padding: 16px; margin: 16px 0;">

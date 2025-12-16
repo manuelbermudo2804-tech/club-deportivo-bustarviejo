@@ -68,10 +68,10 @@ export default function PaymentApprovalNotifier({ isAdmin }) {
         });
 
         // Enviar email de confirmación
-        await base44.integrations.Core.SendEmail({
+        await base44.functions.invoke('sendEmail', {
           to: email,
           subject: `✅ Pago Aprobado - ${payment.jugador_nombre}`,
-          body: `
+          html: `
             <h2 style="color: #16a34a;">✅ Pago Aprobado</h2>
             <p>Hola,</p>
             <p>El pago de <strong>${payment.cantidad}€</strong> correspondiente a <strong>${payment.jugador_nombre}</strong> (${payment.mes}) ha sido <strong>aprobado por el club</strong>.</p>

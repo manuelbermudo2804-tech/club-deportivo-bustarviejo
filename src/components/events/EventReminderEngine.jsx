@@ -47,10 +47,10 @@ export default function EventReminderEngine() {
           for (const attendee of confirmedAttendees) {
             if (!attendee.recordatorio_enviado) {
               try {
-                await base44.integrations.Core.SendEmail({
+                await base44.functions.invoke('sendEmail', {
                   to: attendee.usuario_email,
                   subject: `🔔 Recordatorio: ${event.titulo}`,
-                  body: `
+                  html: `
                     <h2>Recordatorio de Evento</h2>
                     <p>Hola <strong>${attendee.usuario_nombre}</strong>,</p>
                     <p>Te recordamos que confirmaste asistencia al siguiente evento:</p>
@@ -74,10 +74,10 @@ export default function EventReminderEngine() {
           // Enviar recordatorio a pendientes
           for (const attendee of pendingAttendees) {
             try {
-              await base44.integrations.Core.SendEmail({
+              await base44.functions.invoke('sendEmail', {
                 to: attendee.usuario_email,
                 subject: `⏰ No olvides confirmar: ${event.titulo}`,
-                body: `
+                html: `
                   <h2>Confirma tu asistencia</h2>
                   <p>Hola <strong>${attendee.usuario_nombre}</strong>,</p>
                   <p>Tienes una invitación pendiente para el siguiente evento:</p>

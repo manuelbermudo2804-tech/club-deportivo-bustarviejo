@@ -142,11 +142,10 @@ async function sendFamilyReminders(document, families) {
 
   for (const family of families) {
     try {
-      await base44.integrations.Core.SendEmail({
-        from_name: "CD Bustarviejo",
+      await base44.functions.invoke('sendEmail', {
         to: family.email,
         subject: `🔔 Recordatorio: Documento pendiente de firma - ${document.titulo}`,
-        body: `
+        html: `
           <h2>Recordatorio de Documento Pendiente</h2>
           <p>Este es un recordatorio de que tienes un documento pendiente de firma:</p>
           
@@ -303,11 +302,10 @@ async function sendAdminAlert({ document, adminUsers, tipo, mensaje, stats }) {
 
   for (const admin of admins) {
     try {
-      await base44.integrations.Core.SendEmail({
-        from_name: "CD Bustarviejo Sistema",
+      await base44.functions.invoke('sendEmail', {
         to: admin.email,
         subject: `🔔 Alerta Admin: ${tipo === "deadline" ? "Fecha límite próxima" : "Alto % pendiente"} - ${document.titulo}`,
-        body: emailBody
+        html: emailBody
       });
     } catch (error) {
       console.error(`Error sending admin alert to ${admin.email}:`, error);

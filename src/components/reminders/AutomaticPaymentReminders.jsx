@@ -274,19 +274,17 @@ export default function AutomaticPaymentReminders({ user }) {
             });
             
             // Enviar email
-            await base44.integrations.Core.SendEmail({
-              from_name: "CD Bustarviejo - Recordatorio Automático",
+            await base44.functions.invoke('sendEmail', {
               to: family.email,
               subject: `Recordatorio de Pago ${mesRecordatorio} - CD Bustarviejo`,
-              body: mensaje
+              html: mensaje.replace(/\n/g, '<br>')
             });
             
             if (family.email_tutor_2) {
-              await base44.integrations.Core.SendEmail({
-                from_name: "CD Bustarviejo - Recordatorio Automático",
+              await base44.functions.invoke('sendEmail', {
                 to: family.email_tutor_2,
                 subject: `Recordatorio de Pago ${mesRecordatorio} - CD Bustarviejo`,
-                body: mensaje
+                html: mensaje.replace(/\n/g, '<br>')
               });
             }
             

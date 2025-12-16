@@ -48,11 +48,10 @@ export default function AutomaticRenewalReminders() {
 
           const nombresJugadores = jugadoresInactivos.map(p => p.nombre).join(", ");
 
-          await base44.integrations.Core.SendEmail({
-            from_name: "CD Bustarviejo",
+          await base44.functions.invoke('sendEmail', {
             to: padre.email,
             subject: `⏰ Recordatorio: Renovación de Jugadores - ${diasRestantes} días restantes`,
-            body: `
+            html: `
               <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
                 <div style="background: linear-gradient(135deg, #ea580c, #f59e0b); padding: 30px; text-align: center;">
                   <h1 style="color: white; margin: 0; font-size: 24px;">⏰ Recordatorio de Renovación</h1>

@@ -59,11 +59,10 @@ export default function RenewalNotificationEngine() {
           
           const urgencia = diasRestantes <= 3 ? "🚨 URGENTE" : diasRestantes <= 7 ? "⚠️ IMPORTANTE" : "📅 RECORDATORIO";
           
-          await base44.integrations.Core.SendEmail({
-            from_name: "CD Bustarviejo - Renovaciones",
+          await base44.functions.invoke('sendEmail', {
             to: familia.email,
             subject: `${urgencia}: ${diasRestantes} día(s) para renovar - Temporada ${activeConfig.temporada}`,
-            body: `<!DOCTYPE html>
+            html: `<!DOCTYPE html>
 <html><head><meta charset="utf-8"></head>
 <body style="margin:0;padding:20px;font-family:Arial,sans-serif;background:#f1f5f9;">
 <div style="max-width:600px;margin:0 auto;background:#fff;border-radius:12px;overflow:hidden;border:2px solid ${diasRestantes <= 3 ? '#dc2626' : diasRestantes <= 7 ? '#ea580c' : '#2563eb'};">

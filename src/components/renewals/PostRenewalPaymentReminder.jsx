@@ -74,11 +74,10 @@ export default function PostRenewalPaymentReminder() {
 
           const totalPendiente = familia.cuotasPendientes.reduce((sum, p) => sum + (p.cantidad || 0), 0);
 
-          await base44.integrations.Core.SendEmail({
-            from_name: "CD Bustarviejo",
+          await base44.functions.invoke('sendEmail', {
             to: familia.email,
             subject: `📌 Recordatorio: Cuotas pendientes de pago - Temporada ${activeConfig.temporada}`,
-            body: `Hola,
+            html: `Hola,
 
 Queremos recordarte que has completado la renovación de tus jugadores, ¡genial! 🎉
 
