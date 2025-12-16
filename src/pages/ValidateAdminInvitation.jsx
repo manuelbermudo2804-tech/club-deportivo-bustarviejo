@@ -29,7 +29,7 @@ export default function ValidateAdminInvitation() {
 
   const validateToken = async (tokenValue) => {
     try {
-      const invitations = await base44.entities.AdminInvitation.filter({ token: tokenValue });
+      const invitations = await base44.asServiceRole.entities.AdminInvitation.filter({ token: tokenValue });
       
       if (invitations.length === 0) {
         setError("Enlace de invitación no válido o no encontrado");
@@ -56,14 +56,14 @@ export default function ValidateAdminInvitation() {
 
       // Verificar expiración
       if (inv.fecha_expiracion && new Date(inv.fecha_expiracion) < new Date()) {
-        await base44.entities.AdminInvitation.update(inv.id, { estado: "expirada" });
+        await base44.asServiceRole.entities.AdminInvitation.update(inv.id, { estado: "expirada" });
         setError("Esta invitación ha expirado. Por favor, contacta con el club para solicitar una nueva.");
         setLoading(false);
         return;
       }
 
       // Marcar como aceptada y registrar clic
-      await base44.entities.AdminInvitation.update(inv.id, {
+      await base44.asServiceRole.entities.AdminInvitation.update(inv.id, {
         estado: "aceptada",
         fecha_aceptacion: new Date().toISOString(),
         clicada: true,

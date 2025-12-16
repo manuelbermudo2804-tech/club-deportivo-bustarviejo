@@ -41,7 +41,7 @@ export default function ValidateSecondParent() {
 
   const validateToken = async (tokenValue) => {
     try {
-      const invitations = await base44.entities.SecondParentInvitation.filter({ token: tokenValue });
+      const invitations = await base44.asServiceRole.entities.SecondParentInvitation.filter({ token: tokenValue });
       
       if (invitations.length === 0) {
         setError("Token de invitación no válido o no encontrado");
@@ -66,7 +66,7 @@ export default function ValidateSecondParent() {
 
       // Verificar expiración
       if (inv.fecha_expiracion && new Date(inv.fecha_expiracion) < new Date()) {
-        await base44.entities.SecondParentInvitation.update(inv.id, { estado: "expirada" });
+        await base44.asServiceRole.entities.SecondParentInvitation.update(inv.id, { estado: "expirada" });
         setError("Esta invitación ha expirado. Por favor, solicita una nueva invitación.");
         setLoading(false);
         return;
@@ -103,16 +103,16 @@ export default function ValidateSecondParent() {
 
     try {
       // 1. Actualizar la invitación como aceptada
-      await base44.entities.SecondParentInvitation.update(invitation.id, {
+      await base44.asServiceRole.entities.SecondParentInvitation.update(invitation.id, {
         estado: "aceptada",
         fecha_aceptacion: new Date().toISOString(),
         datos_completados: formData
       });
 
       // 2. Actualizar el jugador con los datos del segundo progenitor
-      const player = await base44.entities.Player.filter({ id: invitation.jugador_id });
+      const player = await base44.asServiceRole.entities.Player.filter({ id: invitation.jugador_id });
       if (player.length > 0) {
-        await base44.entities.Player.update(invitation.jugador_id, {
+        await base44.asServiceRole.entities.Player.update(invitation.jugador_id, {
           nombre_tutor_2: formData.nombre_completo,
           telefono_tutor_2: formData.telefono,
           // El email ya está guardado
