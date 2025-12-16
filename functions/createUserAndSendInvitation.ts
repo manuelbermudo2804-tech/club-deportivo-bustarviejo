@@ -27,7 +27,26 @@ Deno.serve(async (req) => {
 
     console.log('📧 Preparing invitation email for:', email);
 
-    // Enviar invitación por email usando Core.SendEmail
+    // PASO 1: Crear el usuario en Base44 PRIMERO
+    console.log('👤 Creating user in Base44 with service role...');
+    try {
+      // Verificar si el usuario ya existe
+      const existingUsers = await base44.asServiceRole.entities.User.filter({ email: email.toLowerCase() });
+      
+      if (existingUsers.length === 0) {
+        // Usuario no existe, invitarlo
+        console.log('📝 User does not exist, inviting...');
+        await base44.asServiceRole.auth.inviteUser(email.toLowerCase(), full_name);
+        console.log('✅ User invited successfully via Base44');
+      } else {
+        console.log('ℹ️ User already exists in Base44, skipping creation');
+      }
+    } catch (userError) {
+      console.error('⚠️ Error creating/checking user:', userError);
+      // Continuar aunque falle - el email se enviará de todos modos
+    }
+
+    // PASO 2: Enviar invitación por email
     console.log('📧 Preparing to send email, type:', invitationType);
     
     try {
