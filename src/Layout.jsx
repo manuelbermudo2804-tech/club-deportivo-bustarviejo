@@ -580,8 +580,10 @@ export default function Layout({ children, currentPageName }) {
     fetchSeasonConfig();
   }, [seasonConfigLoaded]);
 
-  // Detectar si estamos en página pública (ClubMembership)
-  const isPublicPage = location.pathname.includes('ClubMembership');
+  // Detectar si estamos en página pública (ClubMembership, ValidateSecondParent, ValidateAdminInvitation)
+  const isPublicPage = location.pathname.includes('ClubMembership') || 
+                       location.pathname.includes('ValidateSecondParent') ||
+                       location.pathname.includes('ValidateAdminInvitation');
   const [authChecked, setAuthChecked] = useState(false);
 
   useEffect(() => {
