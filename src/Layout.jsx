@@ -26,6 +26,7 @@ import AutomaticRenewalReminders from "./components/reminders/AutomaticRenewalRe
 import AutomaticRenewalClosure from "./components/renewals/AutomaticRenewalClosure";
 import RenewalNotificationEngine from "./components/renewals/RenewalNotificationEngine";
 import PostRenewalPaymentReminder from "./components/renewals/PostRenewalPaymentReminder";
+import PaymentApprovalNotifier from "./components/payments/PaymentApprovalNotifier";
 
 // ToastContainer eliminado - causaba spam de notificaciones
 import EventReminderEngine from "./components/events/EventReminderEngine";
@@ -1450,6 +1451,7 @@ export default function Layout({ children, currentPageName }) {
 
               <SessionManager />
               <NotificationBadge />
+              <PaymentApprovalNotifier isAdmin={isAdmin} />
               <AutomaticRenewalReminders />
               <AutomaticRenewalClosure />
               <RenewalNotificationEngine />
