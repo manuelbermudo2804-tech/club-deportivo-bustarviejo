@@ -144,6 +144,8 @@ export default function ClothingOrders() {
   const createOrderMutation = useMutation({
     mutationFn: (orderData) => base44.entities.ClothingOrder.create(orderData),
     onSuccess: async (createdOrder, variables) => {
+      console.log('✅ Pedido creado, enviando emails...', { variables });
+      
       // Construir detalle de productos con precios dinámicos
       const getPrice = (productId, defaultPrice) => {
         const producto = seasonConfig?.productos_ropa?.find(p => p.id === productId);
@@ -180,33 +182,32 @@ export default function ClothingOrders() {
       }
 
       try {
-        // Email al admin
-        if (seasonConfig?.notificaciones_admin_email) {
-          await base44.functions.invoke('sendEmail', {
-            to: "cdbustarviejo@gmail.com",
-            subject: `👕 Nuevo Pedido de Ropa - ${variables.jugador_nombre}`,
-            html: `
-              <h2>Nuevo Pedido de Equipación</h2>
-              <p><strong>Jugador:</strong> ${variables.jugador_nombre}</p>
-              <p><strong>Categoría:</strong> ${variables.jugador_categoria}</p>
-              <p><strong>Email:</strong> ${variables.email_padre}</p>
-              <p><strong>Teléfono:</strong> ${variables.telefono}</p>
-              <hr>
-              <h3>Productos:</h3>
-              ${productosDetalle}
-              <hr>
-              <p><strong>Total:</strong> ${variables.precio_total}€</p>
-              ${variables.credito_aplicado > 0 ? `<p><strong>Crédito aplicado:</strong> -${variables.credito_aplicado}€</p><p><strong>Total a pagar:</strong> ${variables.precio_final}€</p>` : ''}
-              <p><strong>Método de pago:</strong> ${variables.metodo_pago}</p>
-              ${variables.justificante_url ? `<p><strong>Justificante:</strong> <a href="${variables.justificante_url}">Ver</a></p>` : ''}
-              ${variables.notas ? `<p><strong>Notas:</strong> ${variables.notas}</p>` : ''}
-              <hr>
-              <p style="font-size: 12px; color: #666;">Registrado el ${new Date().toLocaleString('es-ES')}</p>
-            `
-          });
-        }
+        // Email al admin - SIEMPRE enviar
+        await base44.functions.invoke('sendEmail', {
+          to: "cdbustarviejo@gmail.com",
+          subject: `👕 Nuevo Pedido de Ropa - ${variables.jugador_nombre}`,
+          html: `
+            <h2>Nuevo Pedido de Equipación</h2>
+            <p><strong>Jugador:</strong> ${variables.jugador_nombre}</p>
+            <p><strong>Categoría:</strong> ${variables.jugador_categoria}</p>
+            <p><strong>Email:</strong> ${variables.email_padre}</p>
+            <p><strong>Teléfono:</strong> ${variables.telefono}</p>
+            <hr>
+            <h3>Productos:</h3>
+            ${productosDetalle}
+            <hr>
+            <p><strong>Total:</strong> ${variables.precio_total}€</p>
+            ${variables.credito_aplicado > 0 ? `<p><strong>Crédito aplicado:</strong> -${variables.credito_aplicado}€</p><p><strong>Total a pagar:</strong> ${variables.precio_final}€</p>` : ''}
+            <p><strong>Método de pago:</strong> ${variables.metodo_pago}</p>
+            ${variables.justificante_url ? `<p><strong>Justificante:</strong> <a href="${variables.justificante_url}">Ver</a></p>` : ''}
+            ${variables.notas ? `<p><strong>Notas:</strong> ${variables.notas}</p>` : ''}
+            <hr>
+            <p style="font-size: 12px; color: #666;">Registrado el ${new Date().toLocaleString('es-ES')}</p>
+          `
+        });
+        console.log('✅ Email al admin enviado');
 
-        // Email de confirmación a los padres
+        // Email de confirmación a los padres - SIEMPRE enviar a ambos
         const player = allPlayers.find(p => p.id === variables.jugador_id);
         const confirmBody = `
           <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
@@ -226,8 +227,8 @@ export default function ClothingOrders() {
               </div>
               
               <div style="background: #f0fdf4; border-left: 4px solid #22c55e; padding: 15px; margin: 20px 0;">
-                <p style="margin: 0; font-size: 14px; color: #166534;"><strong>📍 Información de entrega:</strong></p>
-                <p style="margin: 5px 0 0 0; font-size: 14px; color: #15803d;">Los pedidos se entregarán en las instalaciones del club durante la <strong>primera semana de Septiembre</strong>.</p>
+                <p style="margin: 0; font-size: 14px; color: #166534;"><strong>📍 Información de recogida:</strong></p>
+                <p style="margin: 5px 0 0 0; font-size: 14px; color: #15803d;">El club te avisará cuando tu pedido esté listo para recoger en las instalaciones.</p>
               </div>
               
               <div style="background: #f3f4f6; border-radius: 8px; padding: 12px; margin: 20px 0;">
@@ -248,6 +249,7 @@ export default function ClothingOrders() {
             subject: "Pedido de Equipación Recibido - CD Bustarviejo",
             html: confirmBody
           });
+          console.log('✅ Email enviado a:', player.email_padre);
         }
         
         if (player?.email_tutor_2) {
@@ -256,9 +258,13 @@ export default function ClothingOrders() {
             subject: "Pedido de Equipación Recibido - CD Bustarviejo",
             html: confirmBody
           });
+          console.log('✅ Email enviado a:', player.email_tutor_2);
         }
+        
+        toast.success("📧 Emails de confirmación enviados");
       } catch (error) {
-        console.error("Error sending clothing order emails:", error);
+        console.error("❌ Error sending clothing order emails:", error);
+        toast.error("Error al enviar emails de confirmación");
       }
 
       queryClient.invalidateQueries({ queryKey: ['myClothingOrders'] });

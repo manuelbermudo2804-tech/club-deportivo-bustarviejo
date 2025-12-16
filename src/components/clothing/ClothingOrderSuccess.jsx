@@ -43,10 +43,20 @@ export default function ClothingOrderSuccess({ isOpen, onClose, orderDetails }) 
 
           <div className="bg-blue-50 border-2 border-blue-200 rounded-lg p-4">
             <p className="text-sm text-blue-900">
-              📦 <strong>Recogida en Septiembre</strong>
+              📦 <strong>Información de Recogida</strong>
               <br />
               <span className="text-xs text-blue-700">
-                Podrás recoger tu pedido en las instalaciones del club durante la primera semana de Septiembre
+                El club te avisará cuando tu pedido esté listo para recoger en las instalaciones
+              </span>
+            </p>
+          </div>
+
+          <div className="bg-green-50 border-2 border-green-200 rounded-lg p-4">
+            <p className="text-sm text-green-900">
+              📧 <strong>Confirmación Enviada</strong>
+              <br />
+              <span className="text-xs text-green-700">
+                Hemos enviado un email con el detalle completo de tu pedido
               </span>
             </p>
           </div>
