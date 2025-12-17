@@ -3,11 +3,9 @@ import { base44 } from "@/api/base44Client";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { MessageCircle, Settings, Bot, Moon, Clock } from "lucide-react";
+import { MessageCircle, Settings } from "lucide-react";
 import CoachChatWindow from "../components/coach/CoachChatWindow";
 import CoachAwayMode from "../components/coach/CoachAwayMode";
-import CoachChatbotConfig from "../components/coach/CoachChatbotConfig";
 
 export default function CoachParentChat({ embedded = false }) {
   const [user, setUser] = useState(null);
@@ -74,7 +72,7 @@ export default function CoachParentChat({ embedded = false }) {
       <>
         {/* Modal de configuración */}
         <Dialog open={showSettings} onOpenChange={setShowSettings}>
-          <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2">
                 <Settings className="w-5 h-5" />
@@ -82,34 +80,9 @@ export default function CoachParentChat({ embedded = false }) {
               </DialogTitle>
             </DialogHeader>
             
-            <Tabs defaultValue="ausente" className="w-full">
-              <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="ausente" className="flex items-center gap-2">
-                  <Moon className="w-4 h-4" />
-                  Modo Ausente y Horario
-                </TabsTrigger>
-                <TabsTrigger value="chatbot" className="flex items-center gap-2">
-                  <Bot className="w-4 h-4" />
-                  Chatbot IA
-                </TabsTrigger>
-              </TabsList>
-
-              <TabsContent value="ausente" className="mt-4">
-                <CoachAwayMode user={user} />
-              </TabsContent>
-
-              <TabsContent value="chatbot" className="space-y-4">
-                {categories.map(cat => {
-                  if (cat === "Todas las categorías") return null;
-                  return (
-                    <div key={cat} className="space-y-2">
-                      <h3 className="text-lg font-semibold text-slate-900">{cat}</h3>
-                      <CoachChatbotConfig categoria={cat} entrenadorEmail={user?.email} />
-                    </div>
-                  );
-                })}
-              </TabsContent>
-            </Tabs>
+            <div className="mt-4">
+              <CoachAwayMode user={user} />
+            </div>
           </DialogContent>
         </Dialog>
 
