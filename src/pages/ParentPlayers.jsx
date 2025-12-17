@@ -189,13 +189,14 @@ export default function ParentPlayers() {
 
       if (esMayorDe18 && dataWithParentEmail.email_padre === user?.email) {
         // El usuario está registrando a sí mismo como jugador +18
-        // Actualizar automáticamente su perfil de usuario
+        // Actualizar automáticamente su perfil de usuario Y su nombre
         try {
           await base44.auth.updateMe({
             es_jugador: true,
-            player_id: newPlayer.id
+            player_id: newPlayer.id,
+            full_name: playerData.nombre // ACTUALIZAR EL NOMBRE DEL USUARIO AL NOMBRE DEL JUGADOR
           });
-          console.log('✅ Usuario actualizado automáticamente como Jugador +18');
+          console.log('✅ Usuario actualizado automáticamente como Jugador +18 con nombre:', playerData.nombre);
 
           // FORZAR RECARGA COMPLETA DE LA PÁGINA para que el Layout detecte el cambio
           setTimeout(() => {
