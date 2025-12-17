@@ -9,8 +9,6 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 
 import SocialLinks from "../components/SocialLinks";
-import NewSeasonWelcome from "../components/NewSeasonWelcome";
-import ParentOnboarding from "@/components/onboarding/ParentOnboarding";
 import AlertCenter from "../components/dashboard/AlertCenter";
 import ContactCard from "../components/ContactCard";
 import { usePageTutorial } from "../components/tutorials/useTutorial";
@@ -89,10 +87,6 @@ export default function ParentDashboard() {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
   const [myPlayersSports, setMyPlayersSports] = useState([]);
-  const [showOnboarding, setShowOnboarding] = useState(false);
-  
-  // Tutorial interactivo para primera visita
-  usePageTutorial("parent_dashboard");
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -106,10 +100,6 @@ export default function ParentDashboard() {
           role: currentUser.role
         });
         setUser(currentUser);
-        // Mostrar onboarding si no lo ha completado
-        if (!currentUser.onboarding_completado) {
-          setShowOnboarding(true);
-        }
       } catch (error) {
         console.error("❌ [ParentDashboard] Error fetching user:", error);
         // Si falla auth, forzar logout y redirección
@@ -572,18 +562,7 @@ export default function ParentDashboard() {
 
 
 
-  // Mostrar pantalla de nueva temporada si no hay jugadores activos (solo después de cargar usuario y jugadores)
-  console.log('🔍 [ParentDashboard] Verificando NewSeasonWelcome:', { 
-    hasUser: !!user, 
-    playersLoading, 
-    myPlayersLength: myPlayers.length, 
-    hasActiveSeason: !!activeSeason 
-  });
-  
-  if (user && !playersLoading && myPlayers.length === 0 && activeSeason) {
-    console.log('📋 [ParentDashboard] Mostrando NewSeasonWelcome (sin jugadores)');
-    return <NewSeasonWelcome seasonName={activeSeason.temporada} />;
-  }
+
 
   // Mostrar loading solo si no hay usuario todavía O si está cargando jugadores
   if (!user || playersLoading) {
@@ -606,12 +585,6 @@ export default function ParentDashboard() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-black">
-      {/* Onboarding Tutorial */}
-      <ParentOnboarding 
-        open={showOnboarding} 
-        onComplete={() => setShowOnboarding(false)} 
-      />
-
       <div className="px-4 lg:px-8 py-6 space-y-4 lg:space-y-6">
         <SocialLinks />
 
