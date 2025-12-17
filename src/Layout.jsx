@@ -809,6 +809,20 @@ export default function Layout({ children, currentPageName }) {
                     resultado_hasPlayers: tienehijos
                   });
                   setHasPlayers(tienehijos);
+                } else if (playerDetected) {
+                  // Si es un jugador +18, redirigir a PlayerDashboard
+                  setHasPlayers(false); // Jugadores no tienen "hijos" en el contexto familiar
+                  
+                  const hasInitialRedirect = sessionStorage.getItem('initialRedirectDone');
+                  if (!hasInitialRedirect) {
+                    console.log('🔄 [LAYOUT] Primera carga JUGADOR +18 - redirigiendo a PlayerDashboard');
+                    sessionStorage.setItem('initialRedirectDone', 'true');
+                    if (window.location.pathname !== '/PlayerDashboard') {
+                      console.log('🔄 [LAYOUT] Redirigiendo jugador a PlayerDashboard');
+                      window.location.href = createPageUrl('PlayerDashboard');
+                      return;
+                    }
+                  }
                 } else {
                   // Para padres normales, verificar en la base de datos
                   const allPlayers = await base44.entities.Player.list();
