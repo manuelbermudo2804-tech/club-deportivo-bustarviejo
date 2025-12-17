@@ -1,23 +1,27 @@
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { 
   Trophy, CreditCard, Star, Award, MessageCircle, Calendar, 
   User, CheckCircle2, Clock, AlertCircle, ChevronRight,
-  MapPin, Users, Megaphone, Image, FileText, Heart, Bell, Sparkles, ShieldAlert, Clover
+  MapPin, Users, Megaphone, Image, FileText, Heart, Bell, Sparkles, ShieldAlert, Clover, Edit
 } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
+import { toast } from "sonner";
 import AchievementsBadges from "../components/dashboard/AchievementsBadges";
 import AlertCenter from "../components/dashboard/AlertCenter";
+import PlayerForm from "../components/players/PlayerForm";
 
 export default function PlayerDashboard() {
   const [user, setUser] = useState(null);
+  const [showEditProfile, setShowEditProfile] = useState(false);
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -80,6 +84,23 @@ export default function PlayerDashboard() {
     initialData: [],
   });
 
+  // Horarios de entrenamiento
+  const { data: schedules } = useQuery({
+    queryKey: ['playerSchedules', player?.deporte],
+    queryFn: async () => {
+      const allSchedules = await base44.entities.TrainingSchedule.list();
+      return allSchedules.filter(s => 
+        s.activo && 
+        s.categoria === player?.deporte
+      ).sort((a, b) => {
+        const dias = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes"];
+        return dias.indexOf(a.dia_semana) - dias.indexOf(b.dia_semana);
+      });
+    },
+    enabled: !!player?.deporte,
+    initialData: [],
+  });
+
   // Configuración de temporada
   const { data: seasonConfig } = useQuery({
     queryKey: ['seasonConfig'],
@@ -136,9 +157,9 @@ export default function PlayerDashboard() {
 
   // Calcular estadísticas de pagos
   const paymentStats = {
-    pagados: payments.filter(p => p.estado === "Pagado").length,
-    pendientes: payments.filter(p => p.estado === "Pendiente").length,
-    enRevision: payments.filter(p => p.estado === "En revisión").length,
+    pagados: (payments || []).filter(p => p.estado === "Pagado").length,
+    pendientes: (payments || []).filter(p => p.estado === "Pendiente").length,
+    enRevision: (payments || []).filter(p => p.estado === "En revisión").length,
   };
 
   // Calcular próxima convocatoria pendiente
@@ -177,117 +198,128 @@ export default function PlayerDashboard() {
   return (
     <div className="p-4 lg:p-6 space-y-4 lg:space-y-6">
       {/* Header con foto y datos del jugador */}
-      <div className="bg-gradient-to-r from-orange-600 to-green-600 rounded-2xl p-6 text-white shadow-xl">
-        <div className="flex items-center gap-4">
+      <div className="bg-gradient-to-r from-orange-600 to-green-600 rounded-2xl p-4 lg:p-6 text-white shadow-xl">
+        <div className="flex items-start gap-3 lg:gap-4 mb-4">
           {player.foto_url ? (
             <img 
               src={player.foto_url} 
               alt={player.nombre}
-              className="w-20 h-20 rounded-full object-cover border-4 border-white shadow-lg"
+              className="w-16 h-16 lg:w-20 lg:h-20 rounded-full object-cover border-4 border-white shadow-lg flex-shrink-0"
             />
           ) : (
-            <div className="w-20 h-20 rounded-full bg-white/20 flex items-center justify-center">
-              <User className="w-10 h-10 text-white" />
+            <div className="w-16 h-16 lg:w-20 lg:h-20 rounded-full bg-white/20 flex items-center justify-center flex-shrink-0">
+              <User className="w-8 h-8 lg:w-10 lg:h-10 text-white" />
             </div>
           )}
-          <div className="flex-1">
-            <h1 className="text-2xl lg:text-3xl font-bold">¡Hola, {player.nombre.split(' ')[0]}!</h1>
-            <p className="text-white/80 mt-1">{player.deporte}</p>
-            <div className="flex items-center gap-2 mt-2">
-              <Badge className="bg-white/20 text-white border-white/30">
+          <div className="flex-1 min-w-0">
+            <h1 className="text-xl lg:text-3xl font-bold truncate">¡Hola, {player.nombre.split(' ')[0]}!</h1>
+            <p className="text-white/80 text-sm lg:text-base">{player.deporte}</p>
+            <div className="flex items-center gap-2 mt-2 flex-wrap">
+              <Badge className="bg-white/20 text-white border-white/30 text-xs">
                 {player.posicion || "Sin posición"}
               </Badge>
               {player.lesionado && (
-                <Badge className="bg-red-500 text-white">🤕 Lesionado</Badge>
+                <Badge className="bg-red-500 text-white text-xs">🤕 Lesionado</Badge>
               )}
               {player.sancionado && (
-                <Badge className="bg-yellow-500 text-white">⚠️ Sancionado</Badge>
+                <Badge className="bg-yellow-500 text-white text-xs">⚠️ Sancionado</Badge>
               )}
             </div>
           </div>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setShowEditProfile(true)}
+            className="text-white hover:bg-white/20 flex-shrink-0"
+          >
+            <User className="w-4 h-4" />
+          </Button>
         </div>
+
+        {/* Horarios de Entrenamiento */}
+        {schedules && schedules.length > 0 && (
+          <div className="bg-white/10 rounded-xl p-3 backdrop-blur-sm">
+            <p className="text-xs text-white/70 mb-2 font-semibold">📅 Horarios de Entrenamiento</p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+              {schedules.map((schedule, idx) => (
+                <div key={idx} className="bg-white/10 rounded-lg p-2">
+                  <p className="text-sm font-bold">{schedule.dia_semana}</p>
+                  <p className="text-xs text-white/80">
+                    <Clock className="w-3 h-3 inline mr-1" />
+                    {schedule.hora_inicio} - {schedule.hora_fin}
+                  </p>
+                  {schedule.ubicacion && (
+                    <p className="text-xs text-white/70 truncate">
+                      <MapPin className="w-3 h-3 inline mr-1" />
+                      {schedule.ubicacion}
+                    </p>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
 
-      {/* Pestañas de Mensajería */}
-      <Card className="border-none shadow-lg overflow-hidden">
-        <CardHeader className="bg-gradient-to-r from-purple-600 to-indigo-600 text-white pb-3">
-          <CardTitle className="flex items-center gap-2 text-lg">
-            <MessageCircle className="w-5 h-5" />
-            💬 Mensajes
-          </CardTitle>
-          <p className="text-xs text-purple-100 mt-1">Chats con el club</p>
-        </CardHeader>
-        <CardContent className="p-0">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 divide-y sm:divide-y-0 sm:divide-x">
-            <Link to={createPageUrl("Chatbot")} className="group">
-              <div className="p-4 hover:bg-indigo-50 transition-colors flex items-center gap-3">
-                <div className="w-10 h-10 bg-indigo-100 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform">
-                  <Sparkles className="w-5 h-5 text-indigo-600" />
-                </div>
-                <div className="flex-1">
-                  <p className="font-semibold text-slate-900 text-sm">🤖 Asistente</p>
-                  <p className="text-xs text-slate-500">Consulta IA</p>
-                </div>
-                <ChevronRight className="w-4 h-4 text-slate-400 group-hover:text-indigo-600" />
+      {/* Pestañas de Mensajería - Compactas */}
+      <div className="grid grid-cols-2 lg:grid-cols-5 gap-2">
+        <Link to={createPageUrl("Chatbot")} className="group">
+          <Card className="border-none shadow-md hover:shadow-lg transition-all">
+            <CardContent className="p-3 text-center">
+              <div className="w-10 h-10 bg-indigo-100 rounded-full flex items-center justify-center mx-auto mb-2 group-hover:scale-110 transition-transform">
+                <Sparkles className="w-5 h-5 text-indigo-600" />
               </div>
-            </Link>
+              <p className="font-semibold text-slate-900 text-xs">Asistente</p>
+            </CardContent>
+          </Card>
+        </Link>
 
-            <Link to={createPageUrl("ParentCoordinatorChat")} className="group">
-              <div className="p-4 hover:bg-cyan-50 transition-colors flex items-center gap-3">
-                <div className="w-10 h-10 bg-cyan-100 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform">
-                  <MessageCircle className="w-5 h-5 text-cyan-600" />
-                </div>
-                <div className="flex-1">
-                  <p className="font-semibold text-slate-900 text-sm">💬 Coordinador</p>
-                  <p className="text-xs text-slate-500">Escribe al equipo</p>
-                </div>
-                <ChevronRight className="w-4 h-4 text-slate-400 group-hover:text-cyan-600" />
+        <Link to={createPageUrl("ParentCoordinatorChat")} className="group">
+          <Card className="border-none shadow-md hover:shadow-lg transition-all">
+            <CardContent className="p-3 text-center">
+              <div className="w-10 h-10 bg-cyan-100 rounded-full flex items-center justify-center mx-auto mb-2 group-hover:scale-110 transition-transform">
+                <MessageCircle className="w-5 h-5 text-cyan-600" />
               </div>
-            </Link>
+              <p className="font-semibold text-slate-900 text-xs">Coordinador</p>
+            </CardContent>
+          </Card>
+        </Link>
 
-            <Link to={createPageUrl("ParentCoachChat")} className="group">
-              <div className="p-4 hover:bg-green-50 transition-colors flex items-center gap-3">
-                <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform">
-                  <Users className="w-5 h-5 text-green-600" />
-                </div>
-                <div className="flex-1">
-                  <p className="font-semibold text-slate-900 text-sm">⚽ Entrenador</p>
-                  <p className="text-xs text-slate-500">Chat del equipo</p>
-                </div>
-                <ChevronRight className="w-4 h-4 text-slate-400 group-hover:text-green-600" />
+        <Link to={createPageUrl("ParentCoachChat")} className="group">
+          <Card className="border-none shadow-md hover:shadow-lg transition-all">
+            <CardContent className="p-3 text-center">
+              <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-2 group-hover:scale-110 transition-transform">
+                <Users className="w-5 h-5 text-green-600" />
               </div>
-            </Link>
+              <p className="font-semibold text-slate-900 text-xs">Entrenador</p>
+            </CardContent>
+          </Card>
+        </Link>
 
-            <Link to={createPageUrl("ParentSystemMessages")} className="group">
-              <div className="p-4 hover:bg-orange-50 transition-colors flex items-center gap-3">
-                <div className="w-10 h-10 bg-orange-100 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform">
-                  <Bell className="w-5 h-5 text-orange-600" />
-                </div>
-                <div className="flex-1">
-                  <p className="font-semibold text-slate-900 text-sm">🔔 Mensajes Club</p>
-                  <p className="text-xs text-slate-500">Avisos y pagos</p>
-                </div>
-                <ChevronRight className="w-4 h-4 text-slate-400 group-hover:text-orange-600" />
+        <Link to={createPageUrl("ParentSystemMessages")} className="group">
+          <Card className="border-none shadow-md hover:shadow-lg transition-all">
+            <CardContent className="p-3 text-center">
+              <div className="w-10 h-10 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-2 group-hover:scale-110 transition-transform">
+                <Bell className="w-5 h-5 text-orange-600" />
               </div>
-            </Link>
+              <p className="font-semibold text-slate-900 text-xs">Mensajes Club</p>
+            </CardContent>
+          </Card>
+        </Link>
 
-            {adminConversation && (
-              <Link to={createPageUrl("ParentAdminChat")} className="group">
-                <div className="p-4 hover:bg-red-50 transition-colors flex items-center gap-3">
-                  <div className="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform">
-                    <ShieldAlert className="w-5 h-5 text-red-600 animate-pulse" />
-                  </div>
-                  <div className="flex-1">
-                    <p className="font-semibold text-slate-900 text-sm">🛡️ Administrador</p>
-                    <p className="text-xs text-slate-500">Chat activo</p>
-                  </div>
-                  <ChevronRight className="w-4 h-4 text-slate-400 group-hover:text-red-600" />
+        {adminConversation && (
+          <Link to={createPageUrl("ParentAdminChat")} className="group">
+            <Card className="border-none shadow-md hover:shadow-lg transition-all border-2 border-red-300">
+              <CardContent className="p-3 text-center">
+                <div className="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-2 group-hover:scale-110 transition-transform">
+                  <ShieldAlert className="w-5 h-5 text-red-600 animate-pulse" />
                 </div>
-              </Link>
-            )}
-          </div>
-        </CardContent>
-      </Card>
+                <p className="font-semibold text-slate-900 text-xs">Admin</p>
+              </CardContent>
+            </Card>
+          </Link>
+        )}
+      </div>
 
       {/* Centro de Alertas */}
       <AlertCenter 
@@ -622,6 +654,33 @@ export default function PlayerDashboard() {
           </div>
         </Link>
       </div>
+
+      {/* Dialog Editar Perfil */}
+      <Dialog open={showEditProfile} onOpenChange={setShowEditProfile}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Edit className="w-5 h-5 text-orange-600" />
+              Editar Mi Perfil
+            </DialogTitle>
+          </DialogHeader>
+          <PlayerForm
+            player={player}
+            onSubmit={async (data) => {
+              try {
+                await base44.entities.Player.update(player.id, data);
+                toast.success("✅ Perfil actualizado correctamente");
+                setShowEditProfile(false);
+                window.location.reload();
+              } catch (error) {
+                toast.error("Error al actualizar el perfil");
+              }
+            }}
+            onCancel={() => setShowEditProfile(false)}
+            isPlayerSelfEdit={true}
+          />
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
