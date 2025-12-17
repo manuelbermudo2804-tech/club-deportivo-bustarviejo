@@ -107,7 +107,7 @@ export default function ParentCoordinatorChat() {
       return await base44.entities.CoordinatorMessage.filter({ conversacion_id: conversation.id }, 'created_date');
     },
     enabled: !!conversation?.id,
-    refetchInterval: 2000, // Más rápido: cada 2 segundos
+    refetchInterval: 1000, // Más rápido: cada 1 segundo para instantaneidad
     refetchOnWindowFocus: true,
   });
 

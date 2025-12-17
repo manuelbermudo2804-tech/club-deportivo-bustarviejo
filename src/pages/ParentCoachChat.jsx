@@ -77,7 +77,7 @@ export default function ParentCoachChat() {
         msg.destinatario_email === user.email
       );
     },
-    refetchInterval: 2000, // Más rápido: cada 2 segundos
+    refetchInterval: 1000, // Más rápido: cada 1 segundo para instantaneidad
     refetchOnWindowFocus: true,
     enabled: !!selectedCategory && !!user,
   });
@@ -154,10 +154,42 @@ export default function ParentCoachChat() {
     }
   }, [messages]);
 
+  const { data: chatbotConfig } = useQuery({
+    queryKey: ['chatbotConfig', selectedCategory],
+    queryFn: async () => {
+      if (!selectedCategory) return null;
+      const all = await base44.entities.ChatbotConfig.list();
+      const config = all.find(c => c.categoria === selectedCategory);
+      return config;
+    },
+    enabled: !!selectedCategory,
+  });
+
+  const { data: coachSettings } = useQuery({
+    queryKey: ['coachSettings', selectedCategory],
+    queryFn: async () => {
+      if (!selectedCategory) return null;
+      const allUsers = await base44.entities.User.list();
+      const coach = allUsers.find(u => 
+        (u.es_entrenador === true || u.role === "admin") &&
+        (u.role === "admin" || u.categorias_entrena?.includes(selectedCategory))
+      );
+      if (!coach) return null;
+      
+      const settings = await base44.entities.CoachSettings.filter({ entrenador_email: coach.email });
+      return { ...settings[0], coach };
+    },
+    enabled: !!selectedCategory,
+  });
+
+  const DIAS_SEMANA = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"];
+
   const sendMessageMutation = useMutation({
     mutationFn: async (mensaje) => {
       const grupo_id = selectedCategory.toLowerCase().replace(/\s+/g, '_');
-      await base44.entities.ChatMessage.create({
+      
+      // 1. CREAR MENSAJE DEL PADRE
+      const newMessage = await base44.entities.ChatMessage.create({
         grupo_id,
         deporte: selectedCategory,
         tipo: "padre_a_grupo",
@@ -169,7 +201,7 @@ export default function ParentCoachChat() {
         leido: false
       });
 
-      // Notificar al entrenador de esta categoría
+      // 2. NOTIFICAR AL ENTRENADOR
       const allUsers = await base44.entities.User.list();
       const coaches = allUsers.filter(u => 
         (u.es_entrenador === true || u.role === "admin") &&
@@ -187,16 +219,110 @@ export default function ParentCoachChat() {
           vista: false
         });
       }
+
+      // 3. VERIFICAR SI DEBE ENVIAR RESPUESTA AUTOMÁTICA (MODO AUSENTE O FUERA DE HORARIO)
+      const settings = coachSettings;
+      const config = chatbotConfig;
+
+      if (settings?.modo_ausente && settings?.mensaje_ausente) {
+        // MODO AUSENTE ACTIVO
+        await base44.entities.ChatMessage.create({
+          grupo_id,
+          deporte: selectedCategory,
+          tipo: "entrenador_a_grupo",
+          remitente_email: "sistema@entrenador",
+          remitente_nombre: "🤖 Entrenador (automático)",
+          mensaje: settings.mensaje_ausente,
+          archivos_adjuntos: [],
+          prioridad: "Normal",
+          leido: false
+        });
+      } else if (settings?.horario_laboral_activo && settings?.mensaje_fuera_horario) {
+        // VERIFICAR HORARIO LABORAL
+        const now = new Date();
+        const dayName = DIAS_SEMANA[now.getDay() === 0 ? 6 : now.getDay() - 1];
+        const currentTime = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+        
+        const isWorkingDay = settings.dias_laborales?.includes(dayName);
+        const isWithinHours = currentTime >= settings.horario_inicio && currentTime <= settings.horario_fin;
+        
+        if (!isWorkingDay || !isWithinHours) {
+          // FUERA DE HORARIO
+          await base44.entities.ChatMessage.create({
+            grupo_id,
+            deporte: selectedCategory,
+            tipo: "entrenador_a_grupo",
+            remitente_email: "sistema@entrenador",
+            remitente_nombre: "🤖 Entrenador (automático)",
+            mensaje: settings.mensaje_fuera_horario,
+            archivos_adjuntos: [],
+            prioridad: "Normal",
+            leido: false
+          });
+        }
+      } else if (config?.chatbot_activo && (!config?.solo_fuera_horario || settings?.modo_ausente)) {
+        // CHATBOT ACTIVO - Responder con IA
+        try {
+          const faqsContext = config.faqs_personalizadas?.map(f => 
+            `P: ${f.pregunta}\nR: ${f.respuesta}`
+          ).join('\n\n') || '';
+
+          const prompt = `Eres el asistente del entrenador del ${selectedCategory}. Un padre/madre te escribió:
+
+"${mensaje}"
+
+FAQs del entrenador:
+${faqsContext}
+
+Responde de forma breve, amable y profesional. Si la pregunta requiere atención del entrenador, escala el mensaje indicando "ESCALAR". Caso contrario, responde directamente.
+
+Responde SOLO con tu mensaje, sin prefijos ni explicaciones.`;
+
+          const response = await base44.integrations.Core.InvokeLLM({
+            prompt: prompt,
+            add_context_from_internet: false
+          });
+
+          const respuestaBot = typeof response === 'string' ? response : response.response;
+          
+          if (!respuestaBot.includes('ESCALAR')) {
+            // Bot puede responder - enviar mensaje automático
+            await base44.entities.ChatMessage.create({
+              grupo_id,
+              deporte: selectedCategory,
+              tipo: "entrenador_a_grupo",
+              remitente_email: "chatbot@entrenador",
+              remitente_nombre: config.modo_transparente ? "🤖 Asistente del Entrenador" : user.full_name,
+              mensaje: respuestaBot,
+              archivos_adjuntos: [],
+              prioridad: "Normal",
+              leido: false
+            });
+
+            // Log del chatbot
+            await base44.entities.ChatbotLog.create({
+              categoria: selectedCategory,
+              entrenador_email: config.entrenador_email,
+              padre_email: user.email,
+              padre_nombre: user.full_name,
+              mensaje_padre: mensaje,
+              respuesta_bot: respuestaBot,
+              escalado: false,
+              satisfactorio: true,
+              tipo_consulta: "General"
+            });
+          }
+        } catch (error) {
+          console.error('Error chatbot:', error);
+        }
+      }
     },
     onSuccess: async () => {
-      setMessageText("");
       // Refetch INMEDIATO sin esperar
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ['coachGroupMessages'] }),
-        queryClient.invalidateQueries({ queryKey: ['chatMessages'] }),
         queryClient.refetchQueries({ queryKey: ['coachGroupMessages'] }),
       ]);
-      toast.success("Mensaje enviado");
     },
   });
 

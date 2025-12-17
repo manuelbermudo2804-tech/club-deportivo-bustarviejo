@@ -77,7 +77,8 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
       if (!conversation?.id) return [];
       return await base44.entities.CoordinatorMessage.filter({ conversacion_id: conversation.id }, 'created_date');
     },
-    refetchInterval: 3000,
+    refetchInterval: 1000, // Más rápido: cada 1 segundo para instantaneidad
+    refetchOnWindowFocus: true,
     enabled: !!conversation?.id,
   });
 
@@ -526,10 +527,15 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
       }
 
       return newMessage;
+      return newMessage;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['coordinatorMessages', conversation.id] });
-      queryClient.invalidateQueries({ queryKey: ['coordinatorConversations'] });
+    onSuccess: async () => {
+      // Refetch INMEDIATO sin esperar
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ['coordinatorMessages', conversation.id] }),
+        queryClient.invalidateQueries({ queryKey: ['coordinatorConversations'] }),
+        queryClient.refetchQueries({ queryKey: ['coordinatorMessages', conversation.id] }),
+      ]);
     },
   });
 

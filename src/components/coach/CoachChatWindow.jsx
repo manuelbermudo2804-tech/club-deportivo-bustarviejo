@@ -68,7 +68,8 @@ export default function CoachChatWindow({ selectedCategory, user, allPlayers }) 
       const grupo_id = selectedCategory.toLowerCase().replace(/\s+/g, '_');
       return await base44.entities.ChatMessage.filter({ grupo_id }, 'created_date');
     },
-    refetchInterval: 3000,
+    refetchInterval: 1000, // Más rápido: cada 1 segundo para instantaneidad
+    refetchOnWindowFocus: true,
     enabled: !!selectedCategory,
   });
 
@@ -399,11 +400,21 @@ export default function CoachChatWindow({ selectedCategory, user, allPlayers }) 
     }
   };
 
+  const { data: chatbotConfig } = useQuery({
+    queryKey: ['chatbotConfig', selectedCategory, user?.email],
+    queryFn: async () => {
+      if (!selectedCategory) return null;
+      const all = await base44.entities.ChatbotConfig.list();
+      return all.find(c => c.categoria === selectedCategory && c.entrenador_email === user.email);
+    },
+    enabled: !!selectedCategory && !!user,
+  });
+
   const sendMessageMutation = useMutation({
     mutationFn: async (data) => {
       const grupo_id = selectedCategory.toLowerCase().replace(/\s+/g, '_');
       
-      await base44.entities.ChatMessage.create({
+      const newMessage = await base44.entities.ChatMessage.create({
         grupo_id,
         deporte: selectedCategory,
         tipo: "entrenador_a_grupo",
@@ -483,10 +494,15 @@ export default function CoachChatWindow({ selectedCategory, user, allPlayers }) 
           vista: false
         });
       }
+      return newMessage;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['coachGroupMessages'] });
-      queryClient.invalidateQueries({ queryKey: ['photoGalleries'] });
+    onSuccess: async () => {
+      // Refetch INMEDIATO sin esperar
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ['coachGroupMessages'] }),
+        queryClient.invalidateQueries({ queryKey: ['photoGalleries'] }),
+        queryClient.refetchQueries({ queryKey: ['coachGroupMessages'] }),
+      ]);
       setReplyingTo(null);
     },
   });
