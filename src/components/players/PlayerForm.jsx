@@ -449,7 +449,8 @@ export default function PlayerForm({ player, onSubmit, onCancel, isSubmitting, i
       if (!firstErrorField) firstErrorField = 'dni_jugador';
     }
 
-    if (!isMayorDeEdad) {
+    // Validaciones de tutor solo si NO es auto-registro +18
+    if (!isMayorDeEdad && !isAdultPlayerSelfRegistration) {
       if (!currentPlayer.nombre_tutor_legal?.trim()) {
         errors.nombre_tutor_legal = "El nombre del padre/madre/tutor es obligatorio";
         if (!firstErrorField) firstErrorField = 'nombre_tutor_legal';
@@ -501,12 +502,14 @@ export default function PlayerForm({ player, onSubmit, onCancel, isSubmitting, i
       if (!firstErrorField) firstErrorField = 'dni-upload';
     }
 
-    if (!requiresDNI && !currentPlayer.dni_jugador_url && !currentPlayer.libro_familia_url) {
+    // Libro de familia solo si NO es auto-registro +18
+    if (!requiresDNI && !isAdultPlayerSelfRegistration && !currentPlayer.dni_jugador_url && !currentPlayer.libro_familia_url) {
       errors.libro_familia_url = "El Libro de Familia escaneado es OBLIGATORIO (menor de 14 sin DNI)";
       if (!firstErrorField) firstErrorField = 'libro-upload';
     }
 
-    if (!isMayorDeEdad && !currentPlayer.dni_tutor_legal_url) {
+    // DNI tutor solo si NO es auto-registro +18
+    if (!isMayorDeEdad && !isAdultPlayerSelfRegistration && !currentPlayer.dni_tutor_legal_url) {
       errors.dni_tutor_legal_url = "El DNI del tutor legal escaneado es OBLIGATORIO";
       if (!firstErrorField) firstErrorField = 'dni-tutor-upload';
     }
@@ -939,8 +942,8 @@ export default function PlayerForm({ player, onSubmit, onCancel, isSubmitting, i
                   {fieldErrors.dni_jugador_url && <p className="text-xs text-red-600 font-medium bg-red-100 p-2 rounded">⚠️ {fieldErrors.dni_jugador_url}</p>}
                 </div>
 
-                {/* Libro de Familia (para menores sin DNI) */}
-                {!requiresDNI && (
+                {/* Libro de Familia (solo menores sin DNI y NO auto-registro +18) */}
+                {!requiresDNI && !isAdultPlayerSelfRegistration && (
                   <>
                     <div className={`space-y-2 md:col-span-2 ${fieldErrors.libro_familia_url ? 'animate-pulse' : ''}`}>
                       <Label className={fieldErrors.libro_familia_url ? "text-red-600 font-bold" : ""}>
@@ -972,8 +975,8 @@ export default function PlayerForm({ player, onSubmit, onCancel, isSubmitting, i
               </div>
             </div>
 
-            {/* DATOS DEL TUTOR LEGAL (solo si menor de edad) */}
-            {!isMayorDeEdad && (
+            {/* DATOS DEL TUTOR LEGAL (solo si menor de edad Y NO es auto-registro +18) */}
+            {!isMayorDeEdad && !isAdultPlayerSelfRegistration && (
               <div className="space-y-4 border-2 border-green-200 rounded-lg p-6 bg-green-50">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
@@ -1258,8 +1261,8 @@ export default function PlayerForm({ player, onSubmit, onCancel, isSubmitting, i
               </div>
             </div>
 
-            {/* SEGUNDO PROGENITOR (solo si menor de edad) */}
-            {!isMayorDeEdad && (
+            {/* SEGUNDO PROGENITOR (solo si menor de edad Y NO es auto-registro +18) */}
+            {!isMayorDeEdad && !isAdultPlayerSelfRegistration && (
               <SecondParentSection
                 currentPlayer={currentPlayer}
                 setCurrentPlayer={setCurrentPlayer}
@@ -1274,8 +1277,8 @@ export default function PlayerForm({ player, onSubmit, onCancel, isSubmitting, i
               <ul className="list-disc list-inside text-sm text-green-800 space-y-1">
                 <li>Seguro de accidentes deportivos</li>
                 <li>Ficha federativa</li>
-                {!isMayorDeEdad && <li>Cuota de socio del padre/madre/tutor legal</li>}
-                {isMayorDeEdad && <li>Cuota de socio del jugador</li>}
+                {!isMayorDeEdad && !isAdultPlayerSelfRegistration && <li>Cuota de socio del padre/madre/tutor legal</li>}
+                {(isMayorDeEdad || isAdultPlayerSelfRegistration) && <li>Tu cuota de socio</li>}
                 {siblingDiscount.hasDiscount && <li className="font-bold">Descuento de {siblingDiscount.amount}€ por hermano menor</li>}
               </ul>
             </div>
@@ -1553,8 +1556,7 @@ export default function PlayerForm({ player, onSubmit, onCancel, isSubmitting, i
                       <Label htmlFor="si" className="cursor-pointer">
                         <span className="font-bold text-green-800">✅ SÍ AUTORIZO</span>
                         <p className="text-xs text-slate-600 mt-1">
-                          Autorizo la captación, reproducción y publicación de imágenes y vídeos de mi hijo/a (o propias si soy mayor de edad) 
-                          en los medios indicados.
+                          Autorizo la captación, reproducción y publicación de {isAdultPlayerSelfRegistration ? "mis imágenes y vídeos" : "imágenes y vídeos de mi hijo/a"} en los medios indicados.
                         </p>
                       </Label>
                     </div>
