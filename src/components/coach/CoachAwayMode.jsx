@@ -73,6 +73,7 @@ export default function CoachAwayMode({ user }) {
 
   const handleSaveAll = () => {
     saveMutation.mutate({
+      categorias_entrena: user?.categorias_entrena || [],
       modo_ausente: modoAusente,
       mensaje_ausente: mensajeAusente,
       horario_laboral_activo: horarioActivo,

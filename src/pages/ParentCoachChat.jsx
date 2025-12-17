@@ -170,11 +170,16 @@ export default function ParentCoachChat() {
     queryFn: async () => {
       if (!selectedCategory) return null;
       
-      // Obtener todos los settings (los padres NO tienen permiso para listar User)
+      // Obtener todos los settings
       const allSettings = await base44.entities.CoachSettings.list();
-      // Buscar settings de cualquier entrenador que entrene esta categoría
-      // (esto funciona porque CoachSettings es público para lectura)
-      const relevantSettings = allSettings.find(s => s.entrenador_email);
+      
+      // Buscar el setting del entrenador que entrena ESTA categoría específica
+      const relevantSettings = allSettings.find(s => 
+        s.categorias_entrena?.includes(selectedCategory)
+      );
+      
+      console.log('🔍 Buscando settings para categoría:', selectedCategory);
+      console.log('📋 Settings encontrados:', relevantSettings);
       
       return relevantSettings || null;
     },
@@ -219,14 +224,22 @@ export default function ParentCoachChat() {
         });
       }
 
-      // 3. OBTENER CONFIGURACIÓN ACTUALIZADA DEL ENTRENADOR
+      // 3. OBTENER CONFIGURACIÓN DEL ENTRENADOR DE ESTA CATEGORÍA
       const allCoachSettings = await base44.entities.CoachSettings.list();
-      const settings = allCoachSettings[0]; // Obtener la configuración más reciente
+      const settings = allCoachSettings.find(s => 
+        s.categorias_entrena?.includes(selectedCategory)
+      );
+      
+      console.log('🔍 Buscando settings para categoría:', selectedCategory);
+      console.log('📋 Settings encontrados:', settings);
+      
       const config = chatbotConfig;
 
       // 4. VERIFICAR MODO AUSENTE (prioridad máxima)
       if (settings?.modo_ausente === true && settings?.mensaje_ausente) {
-        console.log('✅ Modo ausente activo - enviando respuesta automática');
+        console.log('✅ MODO AUSENTE ACTIVO - enviando respuesta automática');
+        console.log('📧 Mensaje ausente:', settings.mensaje_ausente);
+        
         await base44.entities.ChatMessage.create({
           grupo_id,
           deporte: selectedCategory,
@@ -238,6 +251,8 @@ export default function ParentCoachChat() {
           prioridad: "Normal",
           leido: false
         });
+        
+        console.log('✅ Respuesta automática (modo ausente) enviada');
       } else if (settings?.horario_laboral_activo === true && settings?.horario_inicio && settings?.horario_fin && settings?.dias_laborales?.length > 0) {
         // 5. VERIFICAR HORARIO LABORAL
         const now = new Date();
@@ -259,7 +274,9 @@ export default function ParentCoachChat() {
         
         if (!isWorkingDay || !isWithinHours) {
           // FUERA DE HORARIO - enviar mensaje automático
-          console.log('⏰ Fuera de horario - enviando mensaje automático');
+          console.log('⏰ FUERA DE HORARIO - enviando mensaje automático');
+          console.log('📧 Mensaje fuera horario:', settings.mensaje_fuera_horario);
+          
           await base44.entities.ChatMessage.create({
             grupo_id,
             deporte: selectedCategory,
@@ -271,6 +288,8 @@ export default function ParentCoachChat() {
             prioridad: "Normal",
             leido: false
           });
+          
+          console.log('✅ Respuesta automática (fuera horario) enviada');
         }
       } else if (config?.chatbot_activo && (!config?.solo_fuera_horario || settings?.modo_ausente)) {
         // CHATBOT ACTIVO - Responder con IA
