@@ -22,14 +22,17 @@ import PlayerForm from "../components/players/PlayerForm";
 export default function PlayerDashboard() {
   const [user, setUser] = useState(null);
   const [showEditProfile, setShowEditProfile] = useState(false);
+  const [showCreateProfile, setShowCreateProfile] = useState(false);
+  const queryClient = useQueryClient();
 
   useEffect(() => {
     const fetchUser = async () => {
       try {
         const currentUser = await base44.auth.me();
         setUser(currentUser);
+        console.log('👤 [PlayerDashboard] Usuario cargado:', currentUser.email);
       } catch (error) {
-        console.error("Error fetching user:", error);
+        console.error("❌ [PlayerDashboard] Error fetching user:", error);
         base44.auth.redirectToLogin();
       }
     };
@@ -190,16 +193,61 @@ export default function PlayerDashboard() {
   if (!player) {
     return (
       <div className="p-6">
-        <Card className="border-none shadow-lg bg-orange-50">
-          <CardContent className="p-8 text-center">
-            <User className="w-16 h-16 text-orange-300 mx-auto mb-4" />
-            <h2 className="text-xl font-bold text-slate-900 mb-2">Perfil no encontrado</h2>
-            <p className="text-slate-600 mb-4">
-              No se encontró tu ficha de jugador vinculada. Contacta con el administrador del club.
-            </p>
-            <Button onClick={() => window.location.href = createPageUrl('Home')}>
-              Volver al inicio
-            </Button>
+        <Card className="border-none shadow-lg">
+          <CardContent className="p-8">
+            <div className="text-center mb-6">
+              <User className="w-16 h-16 text-orange-600 mx-auto mb-4" />
+              <h2 className="text-2xl font-bold text-slate-900 mb-2">Completa tu Perfil de Jugador</h2>
+              <p className="text-slate-600">
+                Para acceder al panel de jugador, necesitas completar tu ficha de registro.
+              </p>
+            </div>
+            {showCreateProfile ? (
+              <PlayerForm
+                player={null}
+                onSubmit={async (playerData) => {
+                  try {
+                    console.log('📝 [PlayerDashboard] Creando perfil de jugador...');
+                    const newPlayer = await base44.entities.Player.create({
+                      ...playerData,
+                      es_mayor_edad: true,
+                      email_jugador: user.email,
+                      email_padre: user.email,
+                      acceso_jugador_autorizado: true,
+                      activo: true,
+                      tipo_inscripcion: "Nueva Inscripción"
+                    });
+                    
+                    await base44.auth.updateMe({ player_id: newPlayer.id });
+                    
+                    toast.success("✅ Perfil creado correctamente");
+                    queryClient.invalidateQueries({ queryKey: ['myPlayerProfile'] });
+                    window.location.reload();
+                  } catch (error) {
+                    console.error('❌ Error creating player profile:', error);
+                    toast.error("Error al crear el perfil");
+                  }
+                }}
+                onCancel={() => setShowCreateProfile(false)}
+                isPlayerSelfEdit={true}
+              />
+            ) : (
+              <div className="text-center space-y-4">
+                <Button 
+                  onClick={() => setShowCreateProfile(true)}
+                  className="bg-orange-600 hover:bg-orange-700"
+                  size="lg"
+                >
+                  Crear Mi Perfil
+                </Button>
+                <Button 
+                  variant="outline"
+                  onClick={() => window.location.href = createPageUrl('Home')}
+                >
+                  Volver al inicio
+                </Button>
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>
