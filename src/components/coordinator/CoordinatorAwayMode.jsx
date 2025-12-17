@@ -47,18 +47,32 @@ export default function CoordinatorAwayMode({ user }) {
 
   const saveSettingsMutation = useMutation({
     mutationFn: async (data) => {
+      console.log('💾 [COORDINATOR CONFIG] Iniciando guardado...');
+      console.log('👤 [COORDINATOR CONFIG] Usuario:', user?.email);
+      console.log('📋 [COORDINATOR CONFIG] Datos a guardar:', data);
+      console.log('📋 [COORDINATOR CONFIG] Settings existentes:', settings);
+      
       const dataToSave = {
         coordinador_email: user.email,
         ...data
       };
       
+      console.log('💾 [COORDINATOR CONFIG] DataToSave completo:', dataToSave);
+      
       if (settings?.id) {
-        await base44.entities.CoordinatorSettings.update(settings.id, dataToSave);
+        console.log('🔄 [COORDINATOR CONFIG] Actualizando settings existentes, ID:', settings.id);
+        const result = await base44.entities.CoordinatorSettings.update(settings.id, dataToSave);
+        console.log('✅ [COORDINATOR CONFIG] Update completado:', result);
+        return result;
       } else {
-        await base44.entities.CoordinatorSettings.create(dataToSave);
+        console.log('➕ [COORDINATOR CONFIG] Creando nuevos settings');
+        const result = await base44.entities.CoordinatorSettings.create(dataToSave);
+        console.log('✅ [COORDINATOR CONFIG] Create completado:', result);
+        return result;
       }
     },
     onSuccess: () => {
+      console.log('✅ [COORDINATOR CONFIG] onSuccess ejecutado');
       queryClient.invalidateQueries({ queryKey: ['coordinatorSettings', user?.email] });
       toast.success("✅ Configuración guardada correctamente", {
         duration: 3000,
@@ -70,6 +84,18 @@ export default function CoordinatorAwayMode({ user }) {
         }
       });
     },
+    onError: (error) => {
+      console.error('❌ [COORDINATOR CONFIG] Error guardando:', error);
+      toast.error("Error guardando configuración: " + error.message, {
+        duration: 4000,
+        style: {
+          background: '#dc2626',
+          color: 'white',
+          fontSize: '14px',
+          fontWeight: 'bold'
+        }
+      });
+    }
   });
 
   const toggleDia = (dia) => {
@@ -81,6 +107,17 @@ export default function CoordinatorAwayMode({ user }) {
   };
 
   const handleSave = () => {
+    console.log('🚀 [COORDINATOR CONFIG] handleSave llamado');
+    console.log('📊 [COORDINATOR CONFIG] Estado actual:', {
+      modoAusente,
+      mensajeAusente,
+      horarioActivo,
+      horarioInicio,
+      horarioFin,
+      diasLaborales,
+      mensajeFueraHorario
+    });
+    
     saveSettingsMutation.mutate({
       modo_ausente: modoAusente,
       mensaje_ausente: mensajeAusente,
