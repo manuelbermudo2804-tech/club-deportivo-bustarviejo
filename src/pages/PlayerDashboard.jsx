@@ -73,17 +73,6 @@ export default function PlayerDashboard() {
     initialData: [],
   });
 
-  // Evaluaciones del jugador
-  const { data: evaluations } = useQuery({
-    queryKey: ['playerEvaluations', player?.id],
-    queryFn: async () => {
-      const allEvals = await base44.entities.PlayerEvaluation.list('-fecha_evaluacion');
-      return allEvals.filter(e => e.jugador_id === player?.id && e.visible_para_padres).slice(0, 3);
-    },
-    enabled: !!player?.id,
-    initialData: [],
-  });
-
   // Asistencias para logros
   const { data: attendances } = useQuery({
     queryKey: ['playerAttendances'],
@@ -269,6 +258,19 @@ export default function PlayerDashboard() {
               </div>
             </Link>
 
+            <Link to={createPageUrl("ParentSystemMessages")} className="group">
+              <div className="p-4 hover:bg-orange-50 transition-colors flex items-center gap-3">
+                <div className="w-10 h-10 bg-orange-100 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform">
+                  <Bell className="w-5 h-5 text-orange-600" />
+                </div>
+                <div className="flex-1">
+                  <p className="font-semibold text-slate-900 text-sm">🔔 Mensajes Club</p>
+                  <p className="text-xs text-slate-500">Avisos y pagos</p>
+                </div>
+                <ChevronRight className="w-4 h-4 text-slate-400 group-hover:text-orange-600" />
+              </div>
+            </Link>
+
             {adminConversation && (
               <Link to={createPageUrl("ParentAdminChat")} className="group">
                 <div className="p-4 hover:bg-red-50 transition-colors flex items-center gap-3">
@@ -440,62 +442,6 @@ export default function PlayerDashboard() {
           </CardContent>
         </Card>
 
-        {/* Últimas Evaluaciones */}
-        <Card className="border-none shadow-lg">
-          <CardHeader className="pb-2">
-            <CardTitle className="flex items-center gap-2 text-lg">
-              <Star className="w-5 h-5 text-yellow-500" />
-              Evaluaciones del Entrenador
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            {evaluations.length === 0 ? (
-              <div className="text-center py-6 text-slate-500">
-                <Star className="w-10 h-10 mx-auto mb-2 text-slate-300" />
-                <p>No hay evaluaciones disponibles</p>
-              </div>
-            ) : (
-              evaluations.map(evaluation => (
-                <div key={evaluation.id} className="p-3 bg-yellow-50 rounded-xl border border-yellow-200">
-                  <div className="flex items-center justify-between mb-2">
-                    <p className="text-sm text-slate-600">
-                      {format(new Date(evaluation.fecha_evaluacion), "d MMM yyyy", { locale: es })}
-                    </p>
-                    <p className="text-xs text-slate-500">Por: {evaluation.entrenador_nombre}</p>
-                  </div>
-                  <div className="grid grid-cols-5 gap-2 text-center text-xs">
-                    <div>
-                      <p className="font-bold text-lg text-blue-600">{evaluation.tecnica}</p>
-                      <p className="text-slate-500">Técnica</p>
-                    </div>
-                    <div>
-                      <p className="font-bold text-lg text-green-600">{evaluation.tactica}</p>
-                      <p className="text-slate-500">Táctica</p>
-                    </div>
-                    <div>
-                      <p className="font-bold text-lg text-orange-600">{evaluation.fisica}</p>
-                      <p className="text-slate-500">Física</p>
-                    </div>
-                    <div>
-                      <p className="font-bold text-lg text-purple-600">{evaluation.actitud}</p>
-                      <p className="text-slate-500">Actitud</p>
-                    </div>
-                    <div>
-                      <p className="font-bold text-lg text-pink-600">{evaluation.trabajo_equipo}</p>
-                      <p className="text-slate-500">Equipo</p>
-                    </div>
-                  </div>
-                  {evaluation.observaciones && (
-                    <p className="text-sm text-slate-700 mt-2 pt-2 border-t border-yellow-200">
-                      💬 {evaluation.observaciones}
-                    </p>
-                  )}
-                </div>
-              ))
-            )}
-          </CardContent>
-        </Card>
-
         {/* Anuncios del Equipo */}
         <Card className="border-none shadow-lg">
           <CardHeader className="pb-2">
@@ -556,7 +502,7 @@ export default function PlayerDashboard() {
           <AchievementsBadges 
             player={player} 
             attendances={attendances}
-            evaluations={evaluations}
+            evaluations={[]}
           />
         </CardContent>
       </Card>
