@@ -210,6 +210,7 @@ export default function CoachEvaluationReports() {
   const [selectedPlayer, setSelectedPlayer] = useState(null);
   const [sendingReport, setSendingReport] = useState(false);
   const [showSendDialog, setShowSendDialog] = useState(false);
+  const [selectedPlayerForReport, setSelectedPlayerForReport] = useState(null);
   const [sendMethod, setSendMethod] = useState("email");
 
   useEffect(() => {
@@ -549,166 +550,115 @@ CD Bustarviejo
         )}
       </div>
 
-      {/* Filtros */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">Filtros</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
-            <div>
-              <label className="text-xs text-slate-600 mb-1 block">Categoría</label>
-              <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-                <SelectTrigger className="h-9">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todas las categorías</SelectItem>
-                  {categories.map(cat => (
-                    <SelectItem key={cat} value={cat}>{cat}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <label className="text-xs text-slate-600 mb-1 block">Desde</label>
-              <input
-                type="date"
-                value={dateFrom}
-                onChange={(e) => setDateFrom(e.target.value)}
-                className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm"
-              />
-            </div>
-            <div>
-              <label className="text-xs text-slate-600 mb-1 block">Hasta</label>
-              <input
-                type="date"
-                value={dateTo}
-                onChange={(e) => setDateTo(e.target.value)}
-                className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm"
-              />
-            </div>
-            <div>
-              <label className="text-xs text-slate-600 mb-1 block">Buscar Jugador</label>
-              <div className="relative">
-                <Search className="absolute left-2 top-2 w-4 h-4 text-slate-400" />
-                <Input
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  placeholder="Buscar..."
-                  className="pl-8 h-9"
-                />
-              </div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Estadísticas generales */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      {categories.length === 0 ? (
         <Card>
-          <CardContent className="pt-6">
-            <div className="text-center">
-              <div className="text-3xl font-bold text-orange-600">{allEvaluations.length}</div>
-              <div className="text-sm text-slate-600">Evaluaciones totales</div>
-            </div>
+          <CardContent className="py-12 text-center">
+            <AlertCircle className="w-12 h-12 text-slate-400 mx-auto mb-4" />
+            <p className="text-slate-500">No hay categorías disponibles</p>
           </CardContent>
         </Card>
-        <Card>
-          <CardContent className="pt-6">
-            <div className="text-center">
-              <div className="text-3xl font-bold text-green-600">{playersWithStats.length}</div>
-              <div className="text-sm text-slate-600">Jugadores evaluados</div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="pt-6">
-            <div className="text-center">
-              <div className="text-3xl font-bold text-blue-600">
-                {allEvaluations.length > 0 
-                  ? (allEvaluations.reduce((sum, ev) => sum + ev.actitud, 0) / allEvaluations.length).toFixed(1)
-                  : '0'}
-              </div>
-              <div className="text-sm text-slate-600">Promedio general actitud</div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+      ) : (
+        <Tabs value={selectedCategory || categories[0]} onValueChange={setSelectedCategory} className="space-y-4">
+          <TabsList className="flex-wrap h-auto">
+            {categories.map(cat => {
+              const categoryPlayers = evaluationsByCategory[cat] ? Object.keys(evaluationsByCategory[cat]).length : 0;
+              return (
+                <TabsTrigger key={cat} value={cat} className="flex-1 min-w-[120px]">
+                  {cat.replace('Fútbol ', '').replace(' (Mixto)', '')}
+                  {categoryPlayers > 0 && (
+                    <Badge className="ml-2 bg-orange-600">{categoryPlayers}</Badge>
+                  )}
+                </TabsTrigger>
+              );
+            })}
+          </TabsList>
 
-      <Tabs defaultValue="por_jugador" className="space-y-4">
-        <TabsList>
-          <TabsTrigger value="por_jugador">Por Jugador</TabsTrigger>
-          <TabsTrigger value="detalle">Detalle Cronológico</TabsTrigger>
-        </TabsList>
+          {categories.map(categoria => {
+            const categoryData = evaluationsByCategory[categoria] || {};
+            const playersInCategory = Object.values(categoryData).sort((a, b) => 
+              parseFloat(b.promedioActitud) - parseFloat(a.promedioActitud)
+            );
 
-        <TabsContent value="por_jugador" className="space-y-4">
-          {playersWithStats.length === 0 ? (
-            <Card>
-              <CardContent className="py-12 text-center">
-                <p className="text-slate-500">No hay evaluaciones disponibles</p>
-              </CardContent>
-            </Card>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {playersWithStats.map(stats => (
-                <Card key={stats.jugador.id} className="hover:shadow-lg transition-shadow">
-                  <CardHeader className="pb-3">
-                    <div className="flex items-center gap-3">
-                      {stats.jugador.foto_url ? (
-                        <img src={stats.jugador.foto_url} className="w-12 h-12 rounded-full object-cover" alt="" />
-                      ) : (
-                        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center text-white font-bold">
-                          {stats.jugador.nombre.charAt(0)}
-                        </div>
-                      )}
-                      <div className="flex-1">
-                        <CardTitle className="text-sm">{stats.jugador.nombre}</CardTitle>
-                        <p className="text-xs text-slate-500">{stats.categoria}</p>
-                      </div>
+            return (
+              <TabsContent key={categoria} value={categoria} className="space-y-4">
+                {playersInCategory.length === 0 ? (
+                  <Card>
+                    <CardContent className="py-12 text-center">
+                      <p className="text-slate-500">No hay evaluaciones en esta categoría</p>
+                    </CardContent>
+                  </Card>
+                ) : (
+                  <>
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                      <Card className="bg-gradient-to-br from-orange-50 to-orange-100">
+                        <CardContent className="pt-4 text-center">
+                          <p className="text-xs text-orange-800 mb-1">Jugadores Evaluados</p>
+                          <p className="text-3xl font-bold text-orange-600">{playersInCategory.length}</p>
+                        </CardContent>
+                      </Card>
+                      <Card className="bg-gradient-to-br from-green-50 to-green-100">
+                        <CardContent className="pt-4 text-center">
+                          <p className="text-xs text-green-800 mb-1">Promedio Categoría</p>
+                          <div className="flex items-center justify-center gap-1">
+                            <Star className="w-5 h-5 text-yellow-500 fill-yellow-500" />
+                            <p className="text-3xl font-bold text-green-600">
+                              {(playersInCategory.reduce((sum, p) => sum + parseFloat(p.promedioActitud), 0) / playersInCategory.length).toFixed(1)}
+                            </p>
+                          </div>
+                        </CardContent>
+                      </Card>
+                      <Card className="bg-gradient-to-br from-blue-50 to-blue-100">
+                        <CardContent className="pt-4 text-center">
+                          <p className="text-xs text-blue-800 mb-1">Total Evaluaciones</p>
+                          <p className="text-3xl font-bold text-blue-600">
+                            {playersInCategory.reduce((sum, p) => sum + p.totalSesiones, 0)}
+                          </p>
+                        </CardContent>
+                      </Card>
                     </div>
-                  </CardHeader>
-                  <CardContent className="space-y-3">
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs text-slate-600">Sesiones:</span>
-                      <Badge variant="outline">{stats.totalSesiones}</Badge>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs text-slate-600">Actitud promedio:</span>
-                      <div className="flex items-center gap-1">
-                        <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
-                        <span className="font-bold text-orange-600">{stats.promedioActitud}/5</span>
-                      </div>
-                    </div>
-                    <Button
-                      onClick={() => handleOpenSendDialog(stats)}
-                      disabled={sendingReport === stats.jugador.id}
-                      className="w-full bg-orange-600 hover:bg-orange-700 mt-3"
-                      size="sm"
-                    >
-                      {sendingReport === stats.jugador.id ? (
-                        <>
-                          <Mail className="w-4 h-4 mr-2 animate-pulse" />
-                          Enviando...
-                        </>
-                      ) : (
-                        <>
-                          <Send className="w-4 h-4 mr-2" />
-                          Enviar Reporte a Padres
-                        </>
-                      )}
-                    </Button>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          )}
-        </TabsContent>
 
-        <TabsContent value="detalle" className="space-y-4">
-          <ChronologicalDetail evaluations={allEvaluations} />
-        </TabsContent>
-      </Tabs>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                      {playersInCategory.map(playerData => (
+                        <Card 
+                          key={playerData.jugador.id} 
+                          className="hover:shadow-lg transition-all cursor-pointer hover:border-orange-400"
+                          onClick={() => setSelectedPlayer(playerData.jugador.id)}
+                        >
+                          <CardHeader className="pb-3">
+                            <div className="flex items-center gap-3">
+                              {playerData.jugador.foto_url ? (
+                                <img src={playerData.jugador.foto_url} className="w-12 h-12 rounded-full object-cover" alt="" />
+                              ) : (
+                                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center text-white font-bold">
+                                  {playerData.jugador.nombre.charAt(0)}
+                                </div>
+                              )}
+                              <div className="flex-1">
+                                <CardTitle className="text-sm">{playerData.jugador.nombre}</CardTitle>
+                                <p className="text-xs text-slate-500">{playerData.totalSesiones} sesiones</p>
+                              </div>
+                            </div>
+                          </CardHeader>
+                          <CardContent className="space-y-3">
+                            <div className="flex items-center justify-between p-3 bg-orange-50 rounded-lg">
+                              <span className="text-sm font-medium text-slate-700">Actitud promedio:</span>
+                              <div className="flex items-center gap-1">
+                                <Star className="w-5 h-5 text-yellow-500 fill-yellow-500" />
+                                <span className="text-xl font-bold text-orange-600">{playerData.promedioActitud}/5</span>
+                              </div>
+                            </div>
+                            <p className="text-xs text-center text-slate-500">Click para ver evolución completa →</p>
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
+                  </>
+                )}
+              </TabsContent>
+            );
+          })}
+        </Tabs>
+      )}
     </div>
   );
 }
