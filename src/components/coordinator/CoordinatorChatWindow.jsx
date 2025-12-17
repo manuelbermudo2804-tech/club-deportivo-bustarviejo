@@ -474,18 +474,20 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
         archivada: false
       });
 
-      // Crear notificación para el destinatario
-      const recipientEmail = isCoordinator ? conversation.padre_email : conversation.coordinador_email;
-      if (recipientEmail) {
-        await base44.entities.AppNotification.create({
-          usuario_email: recipientEmail,
-          titulo: isCoordinator ? `💬 Nuevo mensaje del Coordinador` : `💬 Mensaje de ${user.full_name}`,
-          mensaje: data.mensaje.substring(0, 100) + (data.mensaje.length > 100 ? '...' : ''),
-          tipo: "importante",
-          icono: "💬",
-          enlace: isCoordinator ? "ParentCoordinatorChat" : "CoordinatorChat",
-          vista: false
-        });
+      // Crear notificación SOLO si el padre escribe (NO si el coordinador escribe)
+      if (!isCoordinator) {
+        const recipientEmail = conversation.coordinador_email;
+        if (recipientEmail) {
+          await base44.entities.AppNotification.create({
+            usuario_email: recipientEmail,
+            titulo: `💬 Mensaje de ${user.full_name}`,
+            mensaje: data.mensaje.substring(0, 100) + (data.mensaje.length > 100 ? '...' : ''),
+            tipo: "importante",
+            icono: "💬",
+            enlace: "CoordinatorChat",
+            vista: false
+          });
+        }
       }
 
       // ENVIAR RESPUESTA AUTOMÁTICA (modo ausente o fuera de horario)

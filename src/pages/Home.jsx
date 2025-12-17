@@ -1277,8 +1277,8 @@ export default function Home() {
                 </Link>
               )}
 
-              {/* CHAT COORDINADOR - Solo si tiene hijos O es coordinador/coach */}
-              {hasPlayers && (
+              {/* CHAT COORDINADOR - Solo si tiene hijos (NO para coordinadores/entrenadores) */}
+              {hasPlayers && !isCoordinator && !isCoach && (
                 <Link to={createPageUrl("ParentCoordinatorChat")} className="relative">
                   <div className="bg-gradient-to-br from-cyan-600 to-cyan-700 rounded-xl p-3 text-white hover:scale-105 transition-all shadow-lg h-full flex flex-col justify-center">
                     {stats.unreadCoordinatorMessages > 0 && (
@@ -1292,8 +1292,8 @@ export default function Home() {
                 </Link>
               )}
 
-              {/* CHAT ENTRENADOR - Solo si tiene hijos */}
-              {hasPlayers && (
+              {/* CHAT ENTRENADOR - Solo si tiene hijos (NO para coordinadores/entrenadores) */}
+              {hasPlayers && !isCoordinator && !isCoach && (
                 <Link to={createPageUrl("ParentCoachChat")} className="relative">
                   <div className="bg-gradient-to-br from-green-600 to-green-700 rounded-xl p-3 text-white hover:scale-105 transition-all shadow-lg h-full flex flex-col justify-center">
                     <p className="text-sm font-bold text-center">⚽ Entrenador</p>
