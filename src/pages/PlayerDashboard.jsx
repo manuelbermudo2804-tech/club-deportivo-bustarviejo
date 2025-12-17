@@ -9,11 +9,12 @@ import { createPageUrl } from "@/utils";
 import { 
   Trophy, CreditCard, Star, Award, MessageCircle, Calendar, 
   User, CheckCircle2, Clock, AlertCircle, ChevronRight,
-  MapPin, Users, Megaphone, Image, FileText, Heart, Bell, Sparkles
+  MapPin, Users, Megaphone, Image, FileText, Heart, Bell, Sparkles, ShieldAlert, Clover
 } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import AchievementsBadges from "../components/dashboard/AchievementsBadges";
+import AlertCenter from "../components/dashboard/AlertCenter";
 
 export default function PlayerDashboard() {
   const [user, setUser] = useState(null);
@@ -88,6 +89,29 @@ export default function PlayerDashboard() {
     queryKey: ['playerAttendances'],
     queryFn: () => base44.entities.Attendance.list('-fecha'),
     initialData: [],
+  });
+
+  // Configuración de temporada
+  const { data: seasonConfig } = useQuery({
+    queryKey: ['seasonConfig'],
+    queryFn: async () => {
+      const configs = await base44.entities.SeasonConfig.list();
+      return configs.find(c => c.activa === true);
+    },
+    initialData: null,
+  });
+
+  // Conversación con admin (si existe)
+  const { data: adminConversation } = useQuery({
+    queryKey: ['playerAdminConversation', user?.email],
+    queryFn: async () => {
+      const convs = await base44.entities.AdminConversation.filter({ 
+        padre_email: user?.email,
+        resuelta: false
+      });
+      return convs[0] || null;
+    },
+    enabled: !!user?.email,
   });
 
   // Mensajes sin leer
@@ -194,6 +218,81 @@ export default function PlayerDashboard() {
           </div>
         </div>
       </div>
+
+      {/* Pestañas de Mensajería */}
+      <Card className="border-none shadow-lg overflow-hidden">
+        <CardHeader className="bg-gradient-to-r from-purple-600 to-indigo-600 text-white pb-3">
+          <CardTitle className="flex items-center gap-2 text-lg">
+            <MessageCircle className="w-5 h-5" />
+            💬 Mensajes
+          </CardTitle>
+          <p className="text-xs text-purple-100 mt-1">Chats con el club</p>
+        </CardHeader>
+        <CardContent className="p-0">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 divide-y sm:divide-y-0 sm:divide-x">
+            <Link to={createPageUrl("Chatbot")} className="group">
+              <div className="p-4 hover:bg-indigo-50 transition-colors flex items-center gap-3">
+                <div className="w-10 h-10 bg-indigo-100 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform">
+                  <Sparkles className="w-5 h-5 text-indigo-600" />
+                </div>
+                <div className="flex-1">
+                  <p className="font-semibold text-slate-900 text-sm">🤖 Asistente</p>
+                  <p className="text-xs text-slate-500">Consulta IA</p>
+                </div>
+                <ChevronRight className="w-4 h-4 text-slate-400 group-hover:text-indigo-600" />
+              </div>
+            </Link>
+
+            <Link to={createPageUrl("ParentCoordinatorChat")} className="group">
+              <div className="p-4 hover:bg-cyan-50 transition-colors flex items-center gap-3">
+                <div className="w-10 h-10 bg-cyan-100 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform">
+                  <MessageCircle className="w-5 h-5 text-cyan-600" />
+                </div>
+                <div className="flex-1">
+                  <p className="font-semibold text-slate-900 text-sm">💬 Coordinador</p>
+                  <p className="text-xs text-slate-500">Escribe al equipo</p>
+                </div>
+                <ChevronRight className="w-4 h-4 text-slate-400 group-hover:text-cyan-600" />
+              </div>
+            </Link>
+
+            <Link to={createPageUrl("ParentCoachChat")} className="group">
+              <div className="p-4 hover:bg-green-50 transition-colors flex items-center gap-3">
+                <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform">
+                  <Users className="w-5 h-5 text-green-600" />
+                </div>
+                <div className="flex-1">
+                  <p className="font-semibold text-slate-900 text-sm">⚽ Entrenador</p>
+                  <p className="text-xs text-slate-500">Chat del equipo</p>
+                </div>
+                <ChevronRight className="w-4 h-4 text-slate-400 group-hover:text-green-600" />
+              </div>
+            </Link>
+
+            {adminConversation && (
+              <Link to={createPageUrl("ParentAdminChat")} className="group">
+                <div className="p-4 hover:bg-red-50 transition-colors flex items-center gap-3">
+                  <div className="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform">
+                    <ShieldAlert className="w-5 h-5 text-red-600 animate-pulse" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="font-semibold text-slate-900 text-sm">🛡️ Administrador</p>
+                    <p className="text-xs text-slate-500">Chat activo</p>
+                  </div>
+                  <ChevronRight className="w-4 h-4 text-slate-400 group-hover:text-red-600" />
+                </div>
+              </Link>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Centro de Alertas */}
+      <AlertCenter 
+        user={user}
+        players={player ? [player] : []}
+        isPlayer={true}
+      />
 
       {/* Alertas urgentes */}
       {pendingCallups.length > 0 && (
@@ -551,11 +650,28 @@ export default function PlayerDashboard() {
           </div>
         </Link>
 
+        {seasonConfig?.loteria_navidad_abierta && (
+          <Link to={createPageUrl("ParentLottery")} className="group">
+            <div className="relative bg-gradient-to-br from-green-600 to-green-700 rounded-2xl overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 active:scale-95">
+              <div className="p-6 flex flex-col items-center justify-center min-h-[140px]">
+                <Clover className="w-12 h-12 text-white mb-3" />
+                <h3 className="text-white font-bold text-center text-base">🍀 Lotería Navidad</h3>
+                <Badge className="mt-2 bg-yellow-400 text-green-900">
+                  Compra décimos
+                </Badge>
+              </div>
+            </div>
+          </Link>
+        )}
+
         <Link to={createPageUrl("ClubMembership")} className="group">
           <div className="relative bg-gradient-to-br from-rose-500 to-rose-600 rounded-2xl overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 active:scale-95">
             <div className="p-6 flex flex-col items-center justify-center min-h-[140px]">
               <Heart className="w-12 h-12 text-white mb-3" />
               <h3 className="text-white font-bold text-center text-base">🎫 Hacerse Socio</h3>
+              <Badge className="mt-2 bg-white text-rose-600 text-xs">
+                Solo 25€/temporada
+              </Badge>
             </div>
           </div>
         </Link>
