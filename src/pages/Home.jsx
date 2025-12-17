@@ -554,13 +554,15 @@ export default function Home() {
       });
     }
 
-    // Calcular mensajes coordinador no leídos
+    // Calcular mensajes coordinador no leídos - SOLO mensajes QUE RECIBEN (no los que envían)
     let unreadCoordinatorMessages = 0;
     if (user && coordinatorConversations) {
       coordinatorConversations.forEach(conv => {
-        if (isCoordinator || isAdmin || isTreasurer) {
+        if (isCoordinator || isAdmin) {
+          // Coordinador/Admin: solo contar mensajes DE FAMILIAS (no_leidos_coordinador)
           unreadCoordinatorMessages += (conv.no_leidos_coordinador || 0);
         } else if (conv.padre_email === user.email) {
+          // Familia: solo contar mensajes DEL COORDINADOR (no_leidos_padre)
           unreadCoordinatorMessages += (conv.no_leidos_padre || 0);
         }
       });
@@ -626,8 +628,8 @@ export default function Home() {
           icon: CreditCard,
           url: createPageUrl("Payments"),
           gradient: "from-green-600 to-green-700",
-          badge: stats.pendingPayments + stats.reviewPayments,
-          badgeLabel: "pendientes"
+          badge: stats.reviewPayments, // Solo mostrar pagos EN REVISIÓN (no pendientes sin justificante)
+          badgeLabel: "en revisión"
         },
 
         {
@@ -810,7 +812,7 @@ export default function Home() {
     } else if (isTreasurer) {
       // 💰 TESORERO: Ordenado por prioridad de uso diario
       
-      // 1. COMUNICACIÓN - Accesos rápidos a chats (solo si tiene hijos, sino solo asistente)
+      // 1. COMUNICACIÓN - Solo asistente IA (o chats familiares si tiene hijos)
       items.push(
         {
           title: "🤖 Asistente Virtual",
@@ -834,7 +836,7 @@ export default function Home() {
             title: "💬 Chat Coordinador",
             icon: MessageCircle,
             url: createPageUrl("ParentCoordinatorChat"),
-            gradient: "from-blue-600 to-blue-700",
+            gradient: "from-cyan-600 to-cyan-700",
             badge: stats.unreadCoordinatorMessages,
             badgeLabel: "sin leer"
           },
