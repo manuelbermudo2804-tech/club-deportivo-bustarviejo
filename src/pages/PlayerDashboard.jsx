@@ -218,7 +218,7 @@ export default function PlayerDashboard() {
           <p className="text-xs text-purple-100 mt-1">Chats con el club</p>
         </CardHeader>
         <CardContent className="p-0">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 divide-y sm:divide-y-0 sm:divide-x">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 divide-y sm:divide-y-0 sm:divide-x">
             <Link to={createPageUrl("Chatbot")} className="group">
               <div className="p-4 hover:bg-indigo-50 transition-colors flex items-center gap-3">
                 <div className="w-10 h-10 bg-indigo-100 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform">
