@@ -801,6 +801,7 @@ export default function Layout({ children, currentPageName }) {
                     resultado_hasPlayers: tienehijos
                   });
                   setHasPlayers(tienehijos);
+                  setIsLoading(false);
                 } else if (playerDetected) {
                   // Si es un jugador +18, redirigir a PlayerDashboard
                   setHasPlayers(false); // Jugadores no tienen "hijos" en el contexto familiar
