@@ -916,18 +916,31 @@ Email: cdbustarviejo@gmail.com
           <h1 className="text-2xl lg:text-3xl font-bold text-slate-900">Mis Jugadores</h1>
           <p className="text-slate-600 mt-1 text-sm lg:text-base">Gestiona la información de tus jugadores</p>
         </div>
-        <Button
-          onClick={() => {
-            setEditingPlayer(null);
-            setSuggestedCategory(null);
-            setIsAdultPlayerSelfRegistration(false);
-            setShowForm(!showForm);
-          }}
-          className="bg-orange-600 hover:bg-orange-700 shadow-lg w-full md:w-auto"
-        >
-          <Plus className="w-4 h-4 lg:w-5 lg:h-5 mr-2" />
-          <span className="text-sm lg:text-base">Registrar Jugador</span>
-        </Button>
+        <div className="flex flex-col md:flex-row gap-2 w-full md:w-auto">
+          <Button
+            onClick={() => {
+              setEditingPlayer(null);
+              setSuggestedCategory(null);
+              setIsAdultPlayerSelfRegistration(false);
+              setShowForm(!showForm);
+            }}
+            className="bg-orange-600 hover:bg-orange-700 shadow-lg"
+          >
+            <Plus className="w-4 h-4 lg:w-5 lg:h-5 mr-2" />
+            <span className="text-sm lg:text-base">Registrar Jugador</span>
+          </Button>
+          <Button
+            onClick={() => {
+              setIsAdultPlayerSelfRegistration(true);
+              setEditingPlayer(null);
+              setSuggestedCategory(null);
+              setShowForm(true);
+            }}
+            className="bg-green-600 hover:bg-green-700 shadow-lg"
+          >
+            <span className="text-sm lg:text-base">👤 Soy Jugador +18</span>
+          </Button>
+        </div>
       </div>
 
       <Alert className="bg-blue-50 border-blue-200">
