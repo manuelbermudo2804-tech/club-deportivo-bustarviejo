@@ -4,7 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Settings, BarChart3, Bot } from "lucide-react";
-import CoachChatbotConfig from "../components/coach/CoachChatbotConfig";
+import CoachAwayMode from "../components/coach/CoachAwayMode";
 
 export default function CoachChatSettings() {
   const [user, setUser] = useState(null);
@@ -57,11 +57,11 @@ export default function CoachChatSettings() {
         <p className="text-slate-600 mt-1">Chatbot IA y estadísticas de moderación</p>
       </div>
 
-      <Tabs defaultValue="chatbot" className="w-full">
+      <Tabs defaultValue="config" className="w-full">
         <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="chatbot" className="flex items-center gap-2">
-            <Bot className="w-4 h-4" />
-            Chatbot IA
+          <TabsTrigger value="config" className="flex items-center gap-2">
+            <Settings className="w-4 h-4" />
+            Configuración
           </TabsTrigger>
           <TabsTrigger value="stats" className="flex items-center gap-2">
             <BarChart3 className="w-4 h-4" />
@@ -69,20 +69,8 @@ export default function CoachChatSettings() {
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="chatbot" className="space-y-4">
-          {categories.map(categoria => (
-            <div key={categoria} className="space-y-2">
-              <h3 className="text-lg font-semibold text-slate-900">{categoria}</h3>
-              <CoachChatbotConfig categoria={categoria} entrenadorEmail={user?.email} />
-            </div>
-          ))}
-          {categories.length === 0 && (
-            <Card>
-              <CardContent className="p-6 text-center text-slate-500">
-                No tienes categorías asignadas
-              </CardContent>
-            </Card>
-          )}
+        <TabsContent value="config" className="space-y-4">
+          <CoachAwayMode user={user} />
         </TabsContent>
 
         <TabsContent value="stats">
