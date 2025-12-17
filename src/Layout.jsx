@@ -1530,7 +1530,7 @@ export default function Layout({ children, currentPageName }) {
               <div className="text-white">
                 <h1 className="font-bold text-base leading-tight">CD Bustarviejo</h1>
                 <p className="text-xs text-orange-100 truncate max-w-[140px]" title={user?.email}>
-                  {isAdmin ? "Admin" : isCoordinator ? "Coordinador" : isTreasurer ? "Tesorero" : isCoach ? "Entrenador" : isPlayer ? (playerName || "Jugador") : user?.full_name || "Familia"}
+                  {isAdmin ? "Admin" : isCoordinator ? "Coordinador" : isTreasurer ? "Tesorero" : isCoach ? "Entrenador" : isPlayer ? (playerName || "Jugador") : user?.email?.split('@')[0] || "Familia"}
                 </p>
               </div>
             </div>
@@ -1701,7 +1701,7 @@ export default function Layout({ children, currentPageName }) {
 
             {user && (
               <div className="text-center text-xs text-white mb-4">
-                <p className="font-medium">{isPlayer && playerName ? playerName : user.full_name}</p>
+                <p className="font-medium">{isPlayer && playerName ? playerName : user.email?.split('@')[0]}</p>
                 <p className="text-green-400 text-xs">{user.email}</p>
                 {isPlayer && (
                   <Badge className="mt-2 bg-orange-600 text-white text-xs">
