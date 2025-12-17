@@ -544,7 +544,6 @@ export default function Layout({ children, currentPageName }) {
   const [isRedirecting, setIsRedirecting] = useState(false);
   const [sponsorBannerVisible, setSponsorBannerVisible] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const [showWelcomeScreen, setShowWelcomeScreen] = useState(true);
   const [showInstallInstructions, setShowInstallInstructions] = useState(false);
   const [showTypeSelector, setShowTypeSelector] = useState(false);
   const [showMandatoryPWA, setShowMandatoryPWA] = useState(false);
@@ -734,8 +733,6 @@ export default function Layout({ children, currentPageName }) {
         }
 
         setUser(currentUser);
-        setIsLoading(false);
-        console.log('✅ [LAYOUT DEBUG] isLoading = false, debería mostrar contenido');
         setIsAdmin(currentUser.role === "admin");
         setIsCoach(currentUser.es_entrenador === true && !currentUser.es_coordinador);
         setIsCoordinator(currentUser.es_coordinador === true);
@@ -843,10 +840,13 @@ export default function Layout({ children, currentPageName }) {
                   setHasPlayers(myPlayers.length > 0);
 
                   // Si es usuario nuevo sin tipo de panel definido, mostrar selector
-                  if (!currentUser.tipo_panel && !currentUser.es_jugador) {
-                    setShowTypeSelector(true);
-                    return;
-                  }
+                            if (!currentUser.tipo_panel && !currentUser.es_jugador) {
+                              setShowTypeSelector(true);
+                              setIsLoading(false);
+                              return;
+                            }
+
+                            setIsLoading(false);
 
                   // REDIRECCIÓN AUTOMÁTICA AL DASHBOARD PRINCIPAL (primera carga)
                   const hasInitialRedirect = sessionStorage.getItem('initialRedirectDone');
@@ -1293,25 +1293,7 @@ export default function Layout({ children, currentPageName }) {
 
       console.log('🎨 [LAYOUT] Pasó loading, isLoading:', isLoading, 'isPublicPage:', isPublicPage, 'user:', user?.email);
 
-      // Selector de tipo de panel (primera vez)
-      if (showTypeSelector && user) {
-        return (
-          <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center p-6">
-            <RegistrationTypeSelector
-              onSelectFamily={async () => {
-                await base44.auth.updateMe({ tipo_panel: 'familia' });
-                setShowTypeSelector(false);
-                setShowMandatoryPWA(true);
-              }}
-              onSelectAdultPlayer={async () => {
-                await base44.auth.updateMe({ tipo_panel: 'jugador_adulto' });
-                setShowTypeSelector(false);
-                setShowMandatoryPWA(true);
-              }}
-            />
-          </div>
-        );
-      }
+
 
       // Tutorial PWA obligatorio después del selector
       if (showMandatoryPWA && !isAppInstalled) {
