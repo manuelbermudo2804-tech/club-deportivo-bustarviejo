@@ -46,7 +46,15 @@ export default function CoachChatbotConfig({ categoria, entrenadorEmail }) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['chatbotConfig'] });
-      toast.success('Configuración guardada');
+      toast.success('✅ Configuración guardada correctamente', {
+        duration: 3000,
+        style: {
+          background: '#16a34a',
+          color: 'white',
+          fontSize: '14px',
+          fontWeight: 'bold'
+        }
+      });
     }
   });
 
@@ -243,9 +251,22 @@ export default function CoachChatbotConfig({ categoria, entrenadorEmail }) {
                 ))}
 
                 {faqs.length > 0 && (
-                  <Button onClick={() => handleSave({ ...config, faqs_personalizadas: faqs })} className="w-full">
-                    <Save className="w-4 h-4 mr-2" />
-                    Guardar FAQs
+                  <Button 
+                    onClick={() => handleSave({ ...config, faqs_personalizadas: faqs })} 
+                    disabled={saveMutation.isPending}
+                    className="w-full transition-all hover:scale-105 active:scale-95"
+                  >
+                    {saveMutation.isPending ? (
+                      <>
+                        <div className="w-4 h-4 mr-2 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                        Guardando...
+                      </>
+                    ) : (
+                      <>
+                        <Save className="w-4 h-4 mr-2" />
+                        Guardar FAQs
+                      </>
+                    )}
                   </Button>
                 )}
               </div>

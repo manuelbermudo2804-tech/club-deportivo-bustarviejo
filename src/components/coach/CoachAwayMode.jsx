@@ -56,7 +56,15 @@ export default function CoachAwayMode({ user }) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['coachSettings'] });
-      toast.success("Configuración guardada");
+      toast.success("✅ Configuración guardada correctamente", {
+        duration: 3000,
+        style: {
+          background: '#16a34a',
+          color: 'white',
+          fontSize: '14px',
+          fontWeight: 'bold'
+        }
+      });
     }
   });
 
@@ -186,9 +194,22 @@ export default function CoachAwayMode({ user }) {
         </CardContent>
       </Card>
 
-      <Button onClick={handleSaveAll} className="w-full bg-green-600 hover:bg-green-700">
-        <Save className="w-4 h-4 mr-2" />
-        💾 Guardar Configuración
+      <Button 
+        onClick={handleSaveAll} 
+        disabled={saveMutation.isPending}
+        className="w-full bg-green-600 hover:bg-green-700 transition-all hover:scale-105 active:scale-95"
+      >
+        {saveMutation.isPending ? (
+          <>
+            <div className="w-4 h-4 mr-2 border-2 border-white border-t-transparent rounded-full animate-spin" />
+            Guardando...
+          </>
+        ) : (
+          <>
+            <Save className="w-4 h-4 mr-2" />
+            💾 Guardar Configuración
+          </>
+        )}
       </Button>
     </div>
   );

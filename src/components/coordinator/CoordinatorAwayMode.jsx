@@ -58,7 +58,15 @@ export default function CoordinatorAwayMode({ user }) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['coordinatorSettings'] });
-      toast.success("⚙️ Configuración guardada");
+      toast.success("✅ Configuración guardada correctamente", {
+        duration: 3000,
+        style: {
+          background: '#0891b2',
+          color: 'white',
+          fontSize: '14px',
+          fontWeight: 'bold'
+        }
+      });
     },
   });
 
@@ -195,8 +203,21 @@ export default function CoordinatorAwayMode({ user }) {
         </CardContent>
       </Card>
 
-      <Button onClick={handleSave} className="w-full bg-cyan-600 hover:bg-cyan-700">
-        💾 Guardar Configuración
+      <Button 
+        onClick={handleSave} 
+        disabled={saveSettingsMutation.isPending}
+        className="w-full bg-cyan-600 hover:bg-cyan-700 transition-all hover:scale-105 active:scale-95"
+      >
+        {saveSettingsMutation.isPending ? (
+          <>
+            <div className="w-4 h-4 mr-2 border-2 border-white border-t-transparent rounded-full animate-spin" />
+            Guardando...
+          </>
+        ) : (
+          <>
+            💾 Guardar Configuración
+          </>
+        )}
       </Button>
     </div>
   );
