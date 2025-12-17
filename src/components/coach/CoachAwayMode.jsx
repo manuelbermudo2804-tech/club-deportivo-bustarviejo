@@ -120,27 +120,6 @@ export default function CoachAwayMode({ user }) {
     }
   };
 
-  const handleSaveAll = () => {
-    console.log('🚀 [COACH CONFIG] handleSaveAll llamado');
-    console.log('📊 [COACH CONFIG] Estado actual:', {
-      modoAusente,
-      mensajeAusente,
-      horarioActivo,
-      categorias_entrena: user?.categorias_entrena
-    });
-    
-    saveMutation.mutate({
-      categorias_entrena: user?.categorias_entrena || [],
-      modo_ausente: modoAusente,
-      mensaje_ausente: mensajeAusente,
-      horario_laboral_activo: horarioActivo,
-      horario_inicio: horarioInicio,
-      horario_fin: horarioFin,
-      dias_laborales: diasLaborales,
-      mensaje_fuera_horario: mensajeFueraHorario
-    });
-  };
-
   return (
     <>
       {/* Modal de éxito */}
