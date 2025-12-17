@@ -8,13 +8,15 @@ import { Switch } from "@/components/ui/switch";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { Moon, Clock, Calendar } from "lucide-react";
+import { Moon, Clock, Calendar, CheckCircle } from "lucide-react";
 
 const DIAS_SEMANA = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"];
 
 export default function CoordinatorAwayMode({ user }) {
   const queryClient = useQueryClient();
+  const [showSuccess, setShowSuccess] = useState(false);
 
   const { data: settings } = useQuery({
     queryKey: ['coordinatorSettings', user?.email],
@@ -74,6 +76,8 @@ export default function CoordinatorAwayMode({ user }) {
     onSuccess: () => {
       console.log('✅ [COORDINATOR CONFIG] onSuccess ejecutado');
       queryClient.invalidateQueries({ queryKey: ['coordinatorSettings', user?.email] });
+      setShowSuccess(true);
+      setTimeout(() => setShowSuccess(false), 2000);
       toast.success("✅ Configuración guardada correctamente", {
         duration: 3000,
         style: {
@@ -130,6 +134,22 @@ export default function CoordinatorAwayMode({ user }) {
   };
 
   return (
+    <>
+      {/* Modal de éxito */}
+      <Dialog open={showSuccess} onOpenChange={setShowSuccess}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center justify-center gap-2 text-green-600">
+              <CheckCircle className="w-8 h-8" />
+              ¡Configuración Guardada!
+            </DialogTitle>
+          </DialogHeader>
+          <div className="text-center py-4">
+            <p className="text-slate-700 text-lg">✅ Tu configuración se ha guardado correctamente</p>
+          </div>
+        </DialogContent>
+      </Dialog>
+
     <div className="space-y-4">
       <Card className="border-purple-200 bg-purple-50">
         <CardHeader>
@@ -259,5 +279,6 @@ export default function CoordinatorAwayMode({ user }) {
         )}
       </Button>
     </div>
+    </>
   );
 }
