@@ -133,13 +133,9 @@ export default function UserManagement() {
 
     const updateData = {
       es_jugador: isSettingAsPlayer,
-      player_id: isSettingAsPlayer ? selectedPlayerId : null
+      tipo_panel: isSettingAsPlayer ? 'jugador_adulto' : null,
+      player_id: isSettingAsPlayer && selectedPlayerId ? selectedPlayerId : null
     };
-
-    if (isSettingAsPlayer && !selectedPlayerId) {
-      toast.error("Por favor, selecciona un jugador para vincular.");
-      return;
-    }
 
     updateUserMutation.mutate({
       userId: selectedUser.id,
@@ -1146,10 +1142,10 @@ CD Bustarviejo`);
           <div className="space-y-4 py-4">
             {!selectedUser?.es_jugador && (
               <div className="space-y-2">
-                <Label htmlFor="player-select">Vincular a Ficha de Jugador *</Label>
+                <Label htmlFor="player-select">Vincular a Ficha de Jugador (opcional)</Label>
                 <Select value={selectedPlayerId} onValueChange={setSelectedPlayerId}>
                   <SelectTrigger id="player-select">
-                    <SelectValue placeholder="Selecciona el jugador..." />
+                    <SelectValue placeholder="Ninguna (el jugador creará su ficha después)" />
                   </SelectTrigger>
                   <SelectContent>
                     {players
@@ -1163,7 +1159,7 @@ CD Bustarviejo`);
                   </SelectContent>
                 </Select>
                 <p className="text-xs text-purple-600">
-                  Solo se muestran jugadores mayores de 18 años.
+                  💡 Puedes activar el acceso sin vincular. El jugador verá su panel y podrá crear su ficha después.
                 </p>
               </div>
             )}
@@ -1209,7 +1205,7 @@ CD Bustarviejo`);
             </Button>
             <Button
               onClick={handleConfirmPlayer}
-              disabled={updateUserMutation.isPending || (!selectedUser?.es_jugador && !selectedPlayerId)}
+              disabled={updateUserMutation.isPending}
               className={selectedUser?.es_jugador ? "bg-red-600 hover:bg-red-700" : "bg-purple-600 hover:bg-purple-700"}
             >
               {updateUserMutation.isPending ? (
