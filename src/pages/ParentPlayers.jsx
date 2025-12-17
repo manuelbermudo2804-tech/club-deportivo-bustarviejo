@@ -197,12 +197,9 @@ export default function ParentPlayers() {
           });
           console.log('✅ Usuario actualizado automáticamente como Jugador +18');
 
-          // Mostrar toast informativo
+          // FORZAR RECARGA COMPLETA DE LA PÁGINA para que el Layout detecte el cambio
           setTimeout(() => {
-            toast.info(
-              "🎉 ¡Acceso de Jugador +18 activado! Tu panel cambiará automáticamente para mostrarte tus convocatorias, pagos y chat de equipo directamente.",
-              { duration: 8000 }
-            );
+            window.location.reload();
           }, 2000);
         } catch (error) {
           console.error('Error actualizando usuario como jugador +18:', error);
