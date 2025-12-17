@@ -190,6 +190,9 @@ export default function ParentCoachChat() {
 
   const sendMessageMutation = useMutation({
     mutationFn: async (mensaje) => {
+      console.log('🚀 [PADRE] Enviando mensaje:', mensaje);
+      console.log('📂 [PADRE] Categoría seleccionada:', selectedCategory);
+      
       const grupo_id = selectedCategory.toLowerCase().replace(/\s+/g, '_');
       
       // 1. CREAR MENSAJE DEL PADRE
@@ -204,6 +207,8 @@ export default function ParentCoachChat() {
         prioridad: "Normal",
         leido: false
       });
+      
+      console.log('✅ [PADRE] Mensaje del padre creado:', newMessage.id);
 
       // 2. NOTIFICAR AL ENTRENADOR
       const allUsers = await base44.entities.User.list();
@@ -211,6 +216,8 @@ export default function ParentCoachChat() {
         (u.es_entrenador === true || u.role === "admin") &&
         (u.role === "admin" || u.categorias_entrena?.includes(selectedCategory))
       );
+      
+      console.log('👨‍🏫 [PADRE] Entrenadores encontrados:', coaches.length);
       
       for (const coach of coaches) {
         await base44.entities.AppNotification.create({
@@ -224,21 +231,31 @@ export default function ParentCoachChat() {
         });
       }
 
-      // 3. OBTENER CONFIGURACIÓN DEL ENTRENADOR DE ESTA CATEGORÍA
+      // 3. BUSCAR CONFIGURACIÓN DEL ENTRENADOR
       const allCoachSettings = await base44.entities.CoachSettings.list();
+      
+      console.log('📋 [PADRE] Total CoachSettings en BD:', allCoachSettings.length);
+      console.log('📋 [PADRE] Todos los settings:', JSON.stringify(allCoachSettings, null, 2));
+      
       const settings = allCoachSettings.find(s => 
         s.categorias_entrena?.includes(selectedCategory)
       );
       
-      console.log('🔍 Buscando settings para categoría:', selectedCategory);
-      console.log('📋 Settings encontrados:', settings);
+      console.log('🔍 [PADRE] Settings para categoría:', selectedCategory);
+      console.log('📋 [PADRE] Settings encontrados:', settings ? 'SÍ' : 'NO');
+      if (settings) {
+        console.log('📋 [PADRE] Detalles settings:', {
+          modo_ausente: settings.modo_ausente,
+          mensaje_ausente: settings.mensaje_ausente,
+          horario_laboral_activo: settings.horario_laboral_activo,
+          categorias_entrena: settings.categorias_entrena
+        });
+      }
       
-      const config = chatbotConfig;
-
       // 4. VERIFICAR MODO AUSENTE (prioridad máxima)
       if (settings?.modo_ausente === true && settings?.mensaje_ausente) {
-        console.log('✅ MODO AUSENTE ACTIVO - enviando respuesta automática');
-        console.log('📧 Mensaje ausente:', settings.mensaje_ausente);
+        console.log('🤖 [PADRE] ✅ MODO AUSENTE ACTIVO - enviando respuesta automática');
+        console.log('📧 [PADRE] Mensaje:', settings.mensaje_ausente);
         
         await base44.entities.ChatMessage.create({
           grupo_id,
@@ -252,7 +269,7 @@ export default function ParentCoachChat() {
           leido: false
         });
         
-        console.log('✅ Respuesta automática (modo ausente) enviada');
+        console.log('✅ [PADRE] Respuesta automática enviada correctamente');
       } else if (settings?.horario_laboral_activo === true && settings?.horario_inicio && settings?.horario_fin && settings?.dias_laborales?.length > 0) {
         // 5. VERIFICAR HORARIO LABORAL
         const now = new Date();
@@ -262,7 +279,7 @@ export default function ParentCoachChat() {
         const isWorkingDay = settings.dias_laborales.includes(dayName);
         const isWithinHours = currentTime >= settings.horario_inicio && currentTime <= settings.horario_fin;
         
-        console.log('🕐 Verificación horario:', {
+        console.log('🕐 [PADRE] Verificación horario:', {
           dayName,
           currentTime,
           horario_inicio: settings.horario_inicio,
@@ -273,9 +290,7 @@ export default function ParentCoachChat() {
         });
         
         if (!isWorkingDay || !isWithinHours) {
-          // FUERA DE HORARIO - enviar mensaje automático
-          console.log('⏰ FUERA DE HORARIO - enviando mensaje automático');
-          console.log('📧 Mensaje fuera horario:', settings.mensaje_fuera_horario);
+          console.log('⏰ [PADRE] FUERA DE HORARIO - enviando mensaje automático');
           
           await base44.entities.ChatMessage.create({
             grupo_id,
@@ -289,63 +304,11 @@ export default function ParentCoachChat() {
             leido: false
           });
           
-          console.log('✅ Respuesta automática (fuera horario) enviada');
+          console.log('✅ [PADRE] Respuesta automática (fuera horario) enviada');
         }
-      } else if (config?.chatbot_activo && (!config?.solo_fuera_horario || settings?.modo_ausente)) {
-        // CHATBOT ACTIVO - Responder con IA
-        try {
-          const faqsContext = config.faqs_personalizadas?.map(f => 
-            `P: ${f.pregunta}\nR: ${f.respuesta}`
-          ).join('\n\n') || '';
-
-          const prompt = `Eres el asistente del entrenador del ${selectedCategory}. Un padre/madre te escribió:
-
-"${mensaje}"
-
-FAQs del entrenador:
-${faqsContext}
-
-Responde de forma breve, amable y profesional. Si la pregunta requiere atención del entrenador, escala el mensaje indicando "ESCALAR". Caso contrario, responde directamente.
-
-Responde SOLO con tu mensaje, sin prefijos ni explicaciones.`;
-
-          const response = await base44.integrations.Core.InvokeLLM({
-            prompt: prompt,
-            add_context_from_internet: false
-          });
-
-          const respuestaBot = typeof response === 'string' ? response : response.response;
-          
-          if (!respuestaBot.includes('ESCALAR')) {
-            // Bot puede responder - enviar mensaje automático
-            await base44.entities.ChatMessage.create({
-              grupo_id,
-              deporte: selectedCategory,
-              tipo: "entrenador_a_grupo",
-              remitente_email: "chatbot@entrenador",
-              remitente_nombre: config.modo_transparente ? "🤖 Asistente del Entrenador" : user.full_name,
-              mensaje: respuestaBot,
-              archivos_adjuntos: [],
-              prioridad: "Normal",
-              leido: false
-            });
-
-            // Log del chatbot
-            await base44.entities.ChatbotLog.create({
-              categoria: selectedCategory,
-              entrenador_email: config.entrenador_email,
-              padre_email: user.email,
-              padre_nombre: user.full_name,
-              mensaje_padre: mensaje,
-              respuesta_bot: respuestaBot,
-              escalado: false,
-              satisfactorio: true,
-              tipo_consulta: "General"
-            });
-          }
-        } catch (error) {
-          console.error('Error chatbot:', error);
-        }
+      } else {
+        console.log('⚠️ [PADRE] NO SE ENVIARÁ respuesta automática');
+        console.log('⚠️ [PADRE] Razón: modo_ausente=', settings?.modo_ausente, 'horario_activo=', settings?.horario_laboral_activo);
       }
     },
     onSuccess: async () => {
