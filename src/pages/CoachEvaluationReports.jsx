@@ -2,322 +2,220 @@ import React, { useState, useEffect, useMemo } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
-import { Calendar, User, Star, Search, AlertCircle, Send, Mail, MessageCircle, ChevronDown, ChevronUp, ChevronLeft, ChevronRight } from "lucide-react";
-import { format, startOfMonth, endOfMonth, isWithinInterval, parseISO } from "date-fns";
+import { Calendar, Star, AlertCircle, Send, Mail, MessageCircle, ArrowLeft, TrendingUp, TrendingDown, Minus } from "lucide-react";
+import { format, parseISO } from "date-fns";
 import { es } from "date-fns/locale";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import ExportButton from "../components/ExportButton";
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
 
-// Componente para el detalle cronológico con agrupación por mes y paginación
-function ChronologicalDetail({ evaluations }) {
-  const [currentMonth, setCurrentMonth] = useState(() => {
-    // Empezar con el mes más reciente que tenga evaluaciones
-    if (evaluations.length > 0) {
-      const sortedEvals = [...evaluations].sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
-      return startOfMonth(parseISO(sortedEvals[0].fecha));
+// Vista de detalle de un jugador individual
+function PlayerDetailView({ player, evaluations, onBack, onSendReport, sendingReport }) {
+  // Calcular estadísticas del jugador
+  const stats = useMemo(() => {
+    const sortedEvals = [...evaluations].sort((a, b) => new Date(a.fecha) - new Date(b.fecha));
+    
+    const actitudSum = evaluations.reduce((sum, ev) => sum + (ev.actitud || 0), 0);
+    const promedioActitud = evaluations.length > 0 ? (actitudSum / evaluations.length).toFixed(1) : 0;
+    
+    // Detectar tendencia (últimos 3 vs primeros 3)
+    let tendencia = "estable";
+    if (sortedEvals.length >= 6) {
+      const primeros3 = sortedEvals.slice(0, 3).reduce((sum, ev) => sum + (ev.actitud || 0), 0) / 3;
+      const ultimos3 = sortedEvals.slice(-3).reduce((sum, ev) => sum + (ev.actitud || 0), 0) / 3;
+      if (ultimos3 > primeros3 + 0.5) tendencia = "mejorando";
+      else if (ultimos3 < primeros3 - 0.5) tendencia = "bajando";
     }
-    return startOfMonth(new Date());
-  });
-  const [expandedDates, setExpandedDates] = useState({});
-  const [playerFilter, setPlayerFilter] = useState("all");
-
-  // Obtener todos los meses disponibles
-  const availableMonths = useMemo(() => {
-    const months = new Set();
-    evaluations.forEach(ev => {
-      const monthStart = startOfMonth(parseISO(ev.fecha));
-      months.add(monthStart.toISOString());
-    });
-    return Array.from(months)
-      .map(m => new Date(m))
-      .sort((a, b) => b - a); // Más reciente primero
+    
+    return {
+      totalSesiones: evaluations.length,
+      promedioActitud,
+      tendencia,
+      primeraEvaluacion: sortedEvals[0]?.fecha,
+      ultimaEvaluacion: sortedEvals[sortedEvals.length - 1]?.fecha
+    };
   }, [evaluations]);
 
-  // Filtrar evaluaciones del mes actual
-  const monthEvaluations = useMemo(() => {
-    const monthEnd = endOfMonth(currentMonth);
-    return evaluations
-      .filter(ev => {
-        const evalDate = parseISO(ev.fecha);
-        const inMonth = isWithinInterval(evalDate, { start: currentMonth, end: monthEnd });
-        const matchesPlayer = playerFilter === "all" || ev.jugador_id === playerFilter;
-        return inMonth && matchesPlayer;
-      })
-      .sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
-  }, [evaluations, currentMonth, playerFilter]);
-
-  // Agrupar por fecha
-  const groupedByDate = useMemo(() => {
-    const groups = {};
-    monthEvaluations.forEach(ev => {
-      if (!groups[ev.fecha]) {
-        groups[ev.fecha] = [];
-      }
-      groups[ev.fecha].push(ev);
-    });
-    return groups;
-  }, [monthEvaluations]);
-
-  const sortedDates = Object.keys(groupedByDate).sort((a, b) => new Date(b) - new Date(a));
-
-  // Jugadores únicos para filtro
-  const uniquePlayers = useMemo(() => {
-    const players = {};
-    evaluations.forEach(ev => {
-      if (!players[ev.jugador_id]) {
-        players[ev.jugador_id] = ev.jugador;
-      }
-    });
-    return Object.values(players).sort((a, b) => a.nombre.localeCompare(b.nombre));
+  // Datos para el gráfico de evolución
+  const chartData = useMemo(() => {
+    return [...evaluations]
+      .sort((a, b) => new Date(a.fecha) - new Date(b.fecha))
+      .map(ev => ({
+        fecha: format(parseISO(ev.fecha), "dd/MM", { locale: es }),
+        fechaCompleta: format(parseISO(ev.fecha), "dd MMM yyyy", { locale: es }),
+        actitud: ev.actitud || 0
+      }));
   }, [evaluations]);
-
-  const toggleDate = (date) => {
-    setExpandedDates(prev => ({
-      ...prev,
-      [date]: !prev[date]
-    }));
-  };
-
-  const goToPreviousMonth = () => {
-    const currentIndex = availableMonths.findIndex(m => m.getTime() === currentMonth.getTime());
-    if (currentIndex < availableMonths.length - 1) {
-      setCurrentMonth(availableMonths[currentIndex + 1]);
-      setExpandedDates({});
-    }
-  };
-
-  const goToNextMonth = () => {
-    const currentIndex = availableMonths.findIndex(m => m.getTime() === currentMonth.getTime());
-    if (currentIndex > 0) {
-      setCurrentMonth(availableMonths[currentIndex - 1]);
-      setExpandedDates({});
-    }
-  };
-
-  const currentIndex = availableMonths.findIndex(m => m.getTime() === currentMonth.getTime());
-  const hasPrevious = currentIndex < availableMonths.length - 1;
-  const hasNext = currentIndex > 0;
-
-  if (evaluations.length === 0) {
-    return (
-      <Card>
-        <CardContent className="py-12 text-center">
-          <p className="text-slate-500">No hay evaluaciones disponibles</p>
-        </CardContent>
-      </Card>
-    );
-  }
 
   return (
     <div className="space-y-4">
-      {/* Navegación de mes y filtro de jugador */}
-      <Card>
-        <CardContent className="py-4">
-          <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-            <div className="flex items-center gap-2">
-              <Button
-                variant="outline"
-                size="icon"
-                onClick={goToPreviousMonth}
-                disabled={!hasPrevious}
-              >
-                <ChevronLeft className="w-4 h-4" />
-              </Button>
-              <div className="min-w-[180px] text-center">
-                <h3 className="text-lg font-bold text-slate-900 capitalize">
-                  {format(currentMonth, "MMMM yyyy", { locale: es })}
-                </h3>
-                <p className="text-xs text-slate-500">
-                  {monthEvaluations.length} evaluaciones
-                </p>
-              </div>
-              <Button
-                variant="outline"
-                size="icon"
-                onClick={goToNextMonth}
-                disabled={!hasNext}
-              >
-                <ChevronRight className="w-4 h-4" />
-              </Button>
-            </div>
+      <Button onClick={onBack} variant="outline" size="sm">
+        <ArrowLeft className="w-4 h-4 mr-2" />
+        Volver a la categoría
+      </Button>
 
-            <div className="flex items-center gap-2">
-              <label className="text-sm text-slate-600">Filtrar jugador:</label>
-              <Select value={playerFilter} onValueChange={setPlayerFilter}>
-                <SelectTrigger className="w-[200px]">
-                  <SelectValue placeholder="Todos los jugadores" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todos los jugadores</SelectItem>
-                  {uniquePlayers.map(player => (
-                    <SelectItem key={player.id} value={player.id}>
-                      {player.nombre}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+      <Card className="border-2 border-orange-300">
+        <CardHeader className="bg-gradient-to-r from-orange-50 to-orange-100">
+          <div className="flex items-center gap-4">
+            {player.foto_url ? (
+              <img src={player.foto_url} className="w-16 h-16 rounded-full object-cover border-4 border-white shadow-lg" alt="" />
+            ) : (
+              <div className="w-16 h-16 rounded-full bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center text-white text-2xl font-bold border-4 border-white shadow-lg">
+                {player.nombre.charAt(0)}
+              </div>
+            )}
+            <div className="flex-1">
+              <CardTitle className="text-2xl">{player.nombre}</CardTitle>
+              <p className="text-slate-600">{player.deporte}</p>
             </div>
+            <Button 
+              onClick={() => onSendReport(stats, evaluations)} 
+              disabled={sendingReport}
+              className="bg-orange-600 hover:bg-orange-700"
+            >
+              <Send className="w-4 h-4 mr-2" />
+              Enviar Reporte
+            </Button>
           </div>
+        </CardHeader>
+      </Card>
+
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <Card>
+          <CardContent className="pt-4 text-center">
+            <p className="text-xs text-slate-600 mb-1">Total Sesiones</p>
+            <p className="text-3xl font-bold text-orange-600">{stats.totalSesiones}</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="pt-4 text-center">
+            <p className="text-xs text-slate-600 mb-1">Actitud Promedio</p>
+            <div className="flex items-center justify-center gap-1">
+              <Star className="w-5 h-5 text-yellow-500 fill-yellow-500" />
+              <p className="text-3xl font-bold text-yellow-600">{stats.promedioActitud}</p>
+              <span className="text-slate-400">/5</span>
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="pt-4 text-center">
+            <p className="text-xs text-slate-600 mb-1">Tendencia</p>
+            <div className="flex items-center justify-center gap-2">
+              {stats.tendencia === "mejorando" ? (
+                <>
+                  <TrendingUp className="w-6 h-6 text-green-600" />
+                  <p className="text-lg font-bold text-green-600">Mejorando</p>
+                </>
+              ) : stats.tendencia === "bajando" ? (
+                <>
+                  <TrendingDown className="w-6 h-6 text-red-600" />
+                  <p className="text-lg font-bold text-red-600">Bajando</p>
+                </>
+              ) : (
+                <>
+                  <Minus className="w-6 h-6 text-slate-600" />
+                  <p className="text-lg font-bold text-slate-600">Estable</p>
+                </>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="pt-4 text-center">
+            <p className="text-xs text-slate-600 mb-1">Periodo</p>
+            <p className="text-xs font-medium text-slate-900">
+              {stats.primeraEvaluacion && format(parseISO(stats.primeraEvaluacion), "dd MMM", { locale: es })}
+            </p>
+            <p className="text-xs text-slate-400">→</p>
+            <p className="text-xs font-medium text-slate-900">
+              {stats.ultimaEvaluacion && format(parseISO(stats.ultimaEvaluacion), "dd MMM", { locale: es })}
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg">📈 Evolución de Actitud</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <ResponsiveContainer width="100%" height={300}>
+            <LineChart data={chartData}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="fecha" />
+              <YAxis domain={[0, 5]} />
+              <Tooltip 
+                formatter={(value) => [`${value}/5`, "Actitud"]}
+                labelFormatter={(label, payload) => payload[0]?.payload.fechaCompleta || label}
+              />
+              <Legend />
+              <Line 
+                type="monotone" 
+                dataKey="actitud" 
+                stroke="#ea580c" 
+                strokeWidth={3}
+                dot={{ fill: '#ea580c', r: 5 }}
+                activeDot={{ r: 8 }}
+                name="Actitud"
+              />
+            </LineChart>
+          </ResponsiveContainer>
         </CardContent>
       </Card>
 
-      {/* Lista agrupada por fecha */}
-      {sortedDates.length === 0 ? (
-        <Card>
-          <CardContent className="py-8 text-center">
-            <p className="text-slate-500">No hay evaluaciones en este mes</p>
-          </CardContent>
-        </Card>
-      ) : (
-        <div className="space-y-2">
-          {sortedDates.map(date => {
-            const dateEvals = groupedByDate[date];
-            const isExpanded = expandedDates[date];
-            const avgActitud = (dateEvals.reduce((sum, ev) => sum + (ev.actitud || 0), 0) / dateEvals.length).toFixed(1);
-
-            return (
-              <Card key={date} className="overflow-hidden">
-                <button
-                  onClick={() => toggleDate(date)}
-                  className="w-full p-4 flex items-center justify-between hover:bg-slate-50 transition-colors"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-lg bg-orange-100 flex items-center justify-center">
-                      <Calendar className="w-5 h-5 text-orange-600" />
-                    </div>
-                    <div className="text-left">
-                      <p className="font-semibold text-slate-900">
-                        {format(parseISO(date), "EEEE, d 'de' MMMM", { locale: es })}
-                      </p>
-                      <p className="text-xs text-slate-500">
-                        {dateEvals.length} jugadores evaluados • Actitud media: {avgActitud}/5
-                      </p>
-                    </div>
-                  </div>
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg">📋 Historial de Evaluaciones</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-2">
+            {[...evaluations].sort((a, b) => new Date(b.fecha) - new Date(a.fecha)).map((ev, idx) => (
+              <div key={idx} className="p-3 bg-slate-50 rounded-lg border">
+                <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-2">
-                    <Badge className="bg-orange-100 text-orange-700">
-                      {dateEvals.length}
-                    </Badge>
-                    {isExpanded ? (
-                      <ChevronUp className="w-5 h-5 text-slate-400" />
-                    ) : (
-                      <ChevronDown className="w-5 h-5 text-slate-400" />
-                    )}
+                    <Calendar className="w-4 h-4 text-slate-400" />
+                    <span className="text-sm font-medium text-slate-900">
+                      {format(parseISO(ev.fecha), "EEEE, d 'de' MMMM yyyy", { locale: es })}
+                    </span>
                   </div>
-                </button>
-
-                {isExpanded && (
-                  <div className="border-t bg-slate-50">
-                    <div className="divide-y">
-                      {dateEvals.map((ev, idx) => (
-                        <div key={idx} className="p-3 flex items-center justify-between hover:bg-white transition-colors">
-                          <div className="flex items-center gap-3">
-                            {ev.jugador.foto_url ? (
-                              <img src={ev.jugador.foto_url} className="w-9 h-9 rounded-full object-cover" alt="" />
-                            ) : (
-                              <div className="w-9 h-9 rounded-full bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center text-white text-xs font-bold">
-                                {ev.jugador.nombre.charAt(0)}
-                              </div>
-                            )}
-                            <div>
-                              <p className="text-sm font-medium text-slate-900">{ev.jugador.nombre}</p>
-                              <p className="text-xs text-slate-500">{ev.categoria}</p>
-                            </div>
-                          </div>
-                          <div className="flex items-center gap-4">
-                            <div className="text-right hidden md:block">
-                              <p className="text-xs text-slate-500">Entrenador</p>
-                              <p className="text-xs font-medium">{ev.entrenador_nombre}</p>
-                            </div>
-                            <div className="inline-flex items-center gap-1 bg-orange-100 px-2 py-1 rounded">
-                              <Star className="w-4 h-4 text-orange-500 fill-orange-500" />
-                              <span className="text-sm font-bold text-orange-600">{ev.actitud}/5</span>
-                            </div>
-                            {ev.observaciones && (
-                              <div className="max-w-[200px] hidden lg:block">
-                                <p className="text-xs text-slate-600 truncate" title={ev.observaciones}>
-                                  {ev.observaciones}
-                                </p>
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
+                  <div className="flex items-center gap-1">
+                    <Star className="w-4 h-4 text-orange-500 fill-orange-500" />
+                    <span className="font-bold text-orange-600">{ev.actitud}/5</span>
                   </div>
+                </div>
+                <p className="text-xs text-slate-600 mb-1">👨‍🏫 {ev.entrenador_nombre}</p>
+                {ev.observaciones && (
+                  <p className="text-sm text-slate-700 mt-2 bg-white p-2 rounded border-l-4 border-orange-400">
+                    💬 {ev.observaciones}
+                  </p>
                 )}
-              </Card>
-            );
-          })}
-        </div>
-      )}
-
-      {/* Indicador de navegación rápida */}
-      {availableMonths.length > 1 && (
-        <div className="flex justify-center">
-          <div className="flex gap-1">
-            {availableMonths.slice(0, 6).map((month, idx) => (
-              <button
-                key={month.toISOString()}
-                onClick={() => {
-                  setCurrentMonth(month);
-                  setExpandedDates({});
-                }}
-                className={`px-3 py-1 text-xs rounded-full transition-colors ${
-                  month.getTime() === currentMonth.getTime()
-                    ? 'bg-orange-600 text-white'
-                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                }`}
-              >
-                {format(month, "MMM", { locale: es })}
-              </button>
+              </div>
             ))}
-            {availableMonths.length > 6 && (
-              <span className="px-2 text-xs text-slate-400 flex items-center">
-                +{availableMonths.length - 6} más
-              </span>
-            )}
           </div>
-        </div>
-      )}
+        </CardContent>
+      </Card>
     </div>
   );
 }
 
 export default function CoachEvaluationReports() {
   const [user, setUser] = useState(null);
-  const [selectedCategory, setSelectedCategory] = useState("all");
-  const [selectedPlayer, setSelectedPlayer] = useState("all");
-  const [searchTerm, setSearchTerm] = useState("");
-  const [dateFrom, setDateFrom] = useState("");
-  const [dateTo, setDateTo] = useState("");
-  const [sendingReport, setSendingReport] = useState(null);
+  const [selectedCategory, setSelectedCategory] = useState(null);
+  const [selectedPlayer, setSelectedPlayer] = useState(null);
+  const [sendingReport, setSendingReport] = useState(false);
   const [showSendDialog, setShowSendDialog] = useState(false);
-  const [selectedPlayerForReport, setSelectedPlayerForReport] = useState(null);
   const [sendMethod, setSendMethod] = useState("email");
-  const [reportDateFrom, setReportDateFrom] = useState("");
-  const [reportDateTo, setReportDateTo] = useState("");
 
   useEffect(() => {
     const fetchUser = async () => {
       const currentUser = await base44.auth.me();
       setUser(currentUser);
-      
-      // Si es entrenador (no coordinador ni admin), pre-seleccionar su primera categoría
-      if (currentUser.es_entrenador && !currentUser.es_coordinador && currentUser.role !== "admin") {
-        const categories = currentUser.categorias_entrena || [];
-        if (categories.length === 1) {
-          setSelectedCategory(categories[0]);
-        }
-      }
     };
     fetchUser();
   }, []);
@@ -335,105 +233,77 @@ export default function CoachEvaluationReports() {
   });
 
   // Filtrar categorías según el rol del usuario
-    const allCategories = [...new Set(players.map(p => p.deporte).filter(Boolean))];
-    // Admin y coordinador ven todas las categorías
-    // Entrenadores (no coordinadores) solo ven sus categorías asignadas
-    const categories = (user?.role === "admin" || user?.es_coordinador) 
-      ? allCategories 
-      : (user?.categorias_entrena || []);
+  const allCategories = [...new Set(players.map(p => p.deporte).filter(Boolean))].sort();
+  const categories = (user?.role === "admin" || user?.es_coordinador) 
+    ? allCategories 
+    : (user?.categorias_entrena || []);
 
-  // Filtrar asistencias según rol y permisos
+  // Filtrar asistencias según rol
   const filteredAttendances = attendances.filter(att => {
-    // Admin y coordinador: ven TODAS las categorías (sin restricción)
-    // Entrenadores (no coordinadores): SOLO ven sus categorías asignadas
     if (user?.role !== "admin" && !user?.es_coordinador) {
-      // Si es entrenador pero no coordinador, filtrar por sus categorías
       const coachCategories = user?.categorias_entrena || [];
       if (!coachCategories.includes(att.categoria)) return false;
     }
-    
-    if (selectedCategory !== "all" && att.categoria !== selectedCategory) return false;
-    if (dateFrom && att.fecha < dateFrom) return false;
-    if (dateTo && att.fecha > dateTo) return false;
     return true;
   });
 
-  // Extraer todas las evaluaciones individuales
-  const allEvaluations = [];
-  
-  console.log('Total attendances:', attendances.length);
-  console.log('Filtered attendances:', filteredAttendances.length);
-  
-  filteredAttendances.forEach(attendance => {
-    console.log('Processing attendance:', attendance.fecha, attendance.categoria, attendance.asistencias?.length);
+  // Agrupar evaluaciones por categoría y jugador
+  const evaluationsByCategory = useMemo(() => {
+    const categoryMap = {};
     
-    attendance.asistencias?.forEach(asistencia => {
-      console.log('Asistencia:', asistencia.jugador_nombre, 'estado:', asistencia.estado, 'actitud:', asistencia.actitud, 'observaciones:', asistencia.observaciones);
-      
-      // Incluir TODAS las asistencias con estado presente o tardanza
-      if (asistencia.estado === 'presente' || asistencia.estado === 'tardanza') {
-        const player = players.find(p => p.id === asistencia.jugador_id);
-        if (player) {
-          if (selectedPlayer !== "all" && asistencia.jugador_id !== selectedPlayer) return;
-          if (searchTerm && !player.nombre.toLowerCase().includes(searchTerm.toLowerCase())) return;
-
-          allEvaluations.push({
-            ...asistencia,
-            fecha: attendance.fecha,
-            categoria: attendance.categoria,
-            entrenador_nombre: attendance.entrenador_nombre,
-            jugador: player
-          });
-        }
+    filteredAttendances.forEach(attendance => {
+      const categoria = attendance.categoria;
+      if (!categoryMap[categoria]) {
+        categoryMap[categoria] = {};
       }
+      
+      attendance.asistencias?.forEach(asistencia => {
+        if (asistencia.estado === 'presente' || asistencia.estado === 'tardanza') {
+          const player = players.find(p => p.id === asistencia.jugador_id);
+          if (player) {
+            if (!categoryMap[categoria][asistencia.jugador_id]) {
+              categoryMap[categoria][asistencia.jugador_id] = {
+                jugador: player,
+                evaluaciones: []
+              };
+            }
+            
+            categoryMap[categoria][asistencia.jugador_id].evaluaciones.push({
+              ...asistencia,
+              fecha: attendance.fecha,
+              categoria: attendance.categoria,
+              entrenador_nombre: attendance.entrenador_nombre
+            });
+          }
+        }
+      });
     });
-  });
-  
-  console.log('Total evaluations found:', allEvaluations.length);
+    
+    // Calcular estadísticas para cada jugador
+    Object.keys(categoryMap).forEach(categoria => {
+      Object.keys(categoryMap[categoria]).forEach(jugadorId => {
+        const playerData = categoryMap[categoria][jugadorId];
+        const actitudSum = playerData.evaluaciones.reduce((sum, ev) => sum + (ev.actitud || 0), 0);
+        playerData.totalSesiones = playerData.evaluaciones.length;
+        playerData.promedioActitud = (actitudSum / playerData.totalSesiones).toFixed(1);
+      });
+    });
+    
+    return categoryMap;
+  }, [filteredAttendances, players]);
 
-  // Estadísticas por jugador
-  const playerStats = {};
-  allEvaluations.forEach(ev => {
-    if (!playerStats[ev.jugador_id]) {
-      playerStats[ev.jugador_id] = {
-        jugador: ev.jugador,
-        categoria: ev.categoria,
-        totalSesiones: 0,
-        promedioActitud: 0,
-        evaluaciones: []
-      };
-    }
-    playerStats[ev.jugador_id].totalSesiones++;
-    playerStats[ev.jugador_id].evaluaciones.push(ev);
-  });
+  const handleSendReport = (stats, evaluations) => {
+    setSelectedPlayerForReport({ stats, evaluations });
+    setShowSendDialog(true);
+  };
 
-  // Calcular promedios
-  Object.keys(playerStats).forEach(playerId => {
-    const stats = playerStats[playerId];
-    const actitudSum = stats.evaluaciones.reduce((sum, ev) => sum + (ev.actitud || 0), 0);
-    stats.promedioActitud = (actitudSum / stats.totalSesiones).toFixed(1);
-  });
-
-  const playersWithStats = Object.values(playerStats).sort((a, b) => 
-    b.totalSesiones - a.totalSesiones
-  );
-
-  // Datos para exportar
-  const exportData = allEvaluations.map(ev => ({
-    Fecha: format(new Date(ev.fecha), 'dd/MM/yyyy'),
-    Jugador: ev.jugador.nombre,
-    Categoria: ev.categoria,
-    Entrenador: ev.entrenador_nombre,
-    Actitud: `${ev.actitud}/5`,
-    Observaciones: ev.observaciones || '-'
-  }));
-
-  const sendPlayerReport = async (stats, method) => {
-    setSendingReport(stats.jugador.id);
+  const sendPlayerReport = async () => {
+    setSendingReport(true);
+    const { stats, evaluations } = selectedPlayerForReport;
     
     try {
       const player = stats.jugador;
-      const evaluaciones = stats.evaluaciones.sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
+      const evaluaciones = evaluations.sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
       
       const reportHTML = `
         <h2 style="color: #ea580c;">Reporte de Asistencia y Evaluación</h2>
@@ -554,50 +424,9 @@ CD Bustarviejo
       console.error("Error sending report:", error);
       toast.error("Error al enviar el reporte");
     } finally {
-      setSendingReport(null);
+      setSendingReport(false);
       setShowSendDialog(false);
       setSelectedPlayerForReport(null);
-    }
-  };
-
-  const handleOpenSendDialog = (stats) => {
-    setSelectedPlayerForReport(stats);
-    setShowSendDialog(true);
-    setSendMethod("email");
-    
-    // Establecer periodo por defecto: últimos 30 días
-    const today = new Date();
-    const thirtyDaysAgo = new Date(today);
-    thirtyDaysAgo.setDate(today.getDate() - 30);
-    
-    setReportDateTo(today.toISOString().split('T')[0]);
-    setReportDateFrom(thirtyDaysAgo.toISOString().split('T')[0]);
-  };
-
-  const handleConfirmSend = () => {
-    if (selectedPlayerForReport) {
-      // Filtrar evaluaciones por el periodo seleccionado
-      const filteredEvaluations = selectedPlayerForReport.evaluaciones.filter(ev => 
-        ev.fecha >= reportDateFrom && ev.fecha <= reportDateTo
-      );
-      
-      if (filteredEvaluations.length === 0) {
-        toast.error("No hay evaluaciones en el periodo seleccionado");
-        return;
-      }
-      
-      // Calcular estadísticas para el periodo filtrado
-      const actitudSum = filteredEvaluations.reduce((sum, ev) => sum + (ev.actitud || 0), 0);
-      const promedioActitud = (actitudSum / filteredEvaluations.length).toFixed(1);
-      
-      const filteredStats = {
-        ...selectedPlayerForReport,
-        evaluaciones: filteredEvaluations,
-        totalSesiones: filteredEvaluations.length,
-        promedioActitud: promedioActitud
-      };
-      
-      sendPlayerReport(filteredStats, sendMethod);
     }
   };
 
