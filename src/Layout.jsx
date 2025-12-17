@@ -1287,13 +1287,10 @@ export default function Layout({ children, currentPageName }) {
             <RegistrationTypeSelector
               onSelectFamily={async () => {
                 await base44.auth.updateMe({ tipo_panel: 'familia' });
-                setShowTypeSelector(false);
-                setShowMandatoryPWA(true);
+                window.location.reload();
               }}
               onSelectAdultPlayer={async () => {
                 await base44.auth.updateMe({ tipo_panel: 'jugador_adulto', es_jugador: true });
-                setShowTypeSelector(false);
-                // Redirigir directamente a PlayerDashboard
                 window.location.href = createPageUrl('PlayerDashboard');
               }}
             />
