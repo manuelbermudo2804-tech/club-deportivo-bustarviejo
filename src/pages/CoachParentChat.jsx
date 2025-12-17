@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
+import { useQuery } from "@tanstack/react-query";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Badge } from "@/components/ui/badge";
 import { MessageCircle, Settings } from "lucide-react";
 import CoachChatWindow from "../components/coach/CoachChatWindow";
 import CoachAwayMode from "../components/coach/CoachAwayMode";
@@ -12,6 +14,7 @@ export default function CoachParentChat({ embedded = false }) {
   const [allPlayers, setAllPlayers] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [showSettings, setShowSettings] = useState(false);
+  const [unreadByCategory, setUnreadByCategory] = useState({});
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -36,6 +39,30 @@ export default function CoachParentChat({ embedded = false }) {
     };
     fetchPlayers();
   }, []);
+
+  // Contar mensajes no leídos por categoría
+  const { data: messages = [] } = useQuery({
+    queryKey: ['coachMessages'],
+    queryFn: () => base44.entities.CoachMessage.list(),
+    refetchInterval: 3000,
+  });
+
+  useEffect(() => {
+    if (!messages || !user) return;
+
+    const unreadCounts = {};
+    
+    messages.forEach(msg => {
+      if (msg.autor === "padre" && !msg.leido_entrenador) {
+        const cat = msg.grupo_categoria || msg.categoria;
+        if (cat) {
+          unreadCounts[cat] = (unreadCounts[cat] || 0) + 1;
+        }
+      }
+    });
+
+    setUnreadByCategory(unreadCounts);
+  }, [messages, user]);
 
   if (!user) {
     return (
@@ -118,13 +145,15 @@ export default function CoachParentChat({ embedded = false }) {
                 [p.email_padre, p.email_tutor_2].filter(Boolean)
               )).size;
 
+              const unreadCount = unreadByCategory[cat] || 0;
+
               return (
                 <Button
                   key={cat}
                   variant={selectedCategory === cat ? "secondary" : "ghost"}
                   size="sm"
                   onClick={() => setSelectedCategory(cat)}
-                  className={`whitespace-nowrap text-xs px-2 py-1 h-7 ${
+                  className={`whitespace-nowrap text-xs px-2 py-1 h-7 relative ${
                     selectedCategory === cat 
                       ? 'bg-white text-green-700 hover:bg-white/90' 
                       : 'text-white hover:bg-white/20'
@@ -132,6 +161,11 @@ export default function CoachParentChat({ embedded = false }) {
                 >
                   {cat === "Todas las categorías" ? "📋 Todas" : cat.replace('Fútbol ', '').replace(' (Mixto)', '')}
                   <span className="ml-1.5 text-xs opacity-70">({parentCount})</span>
+                  {unreadCount > 0 && (
+                    <Badge className="ml-2 bg-red-500 text-white text-[10px] px-1.5 py-0 h-4 animate-pulse">
+                      {unreadCount}
+                    </Badge>
+                  )}
                 </Button>
               );
             })}
@@ -210,13 +244,15 @@ export default function CoachParentChat({ embedded = false }) {
               [p.email_padre, p.email_tutor_2].filter(Boolean)
             )).size;
 
+            const unreadCount = unreadByCategory[cat] || 0;
+
             return (
               <Button
                 key={cat}
                 variant={selectedCategory === cat ? "secondary" : "ghost"}
                 size="sm"
                 onClick={() => setSelectedCategory(cat)}
-                className={`whitespace-nowrap text-xs px-2 py-1 h-7 ${
+                className={`whitespace-nowrap text-xs px-2 py-1 h-7 relative ${
                   selectedCategory === cat 
                     ? 'bg-white text-green-700 hover:bg-white/90' 
                     : 'text-white hover:bg-white/20'
@@ -224,6 +260,11 @@ export default function CoachParentChat({ embedded = false }) {
               >
                 {cat === "Todas las categorías" ? "📋 Todas" : cat.replace('Fútbol ', '').replace(' (Mixto)', '')}
                 <span className="ml-1.5 text-xs opacity-70">({parentCount})</span>
+                {unreadCount > 0 && (
+                  <Badge className="ml-2 bg-red-500 text-white text-[10px] px-1.5 py-0 h-4 animate-pulse">
+                    {unreadCount}
+                  </Badge>
+                )}
               </Button>
             );
           })}
