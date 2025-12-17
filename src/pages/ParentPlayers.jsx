@@ -27,6 +27,7 @@ export default function ParentPlayers() {
   const [pendingPlayerData, setPendingPlayerData] = useState(null);
   const [showInscriptionSuccess, setShowInscriptionSuccess] = useState(false);
   const [inscriptionSuccessData, setInscriptionSuccessData] = useState(null);
+  const [isAdultPlayerSelfRegistration, setIsAdultPlayerSelfRegistration] = useState(false);
   
   const queryClient = useQueryClient();
   
@@ -919,6 +920,7 @@ Email: cdbustarviejo@gmail.com
           onClick={() => {
             setEditingPlayer(null);
             setSuggestedCategory(null);
+            setIsAdultPlayerSelfRegistration(false);
             setShowForm(!showForm);
           }}
           className="bg-orange-600 hover:bg-orange-700 shadow-lg w-full md:w-auto"
@@ -991,6 +993,24 @@ Email: cdbustarviejo@gmail.com
       <AnimatePresence>
         {showForm && (
           <div className="mb-6">
+            {/* Banner para auto-registro de jugador +18 */}
+            {isAdultPlayerSelfRegistration && (
+              <div className="mb-4 bg-gradient-to-r from-green-50 to-green-100 border-2 border-green-400 rounded-xl p-4">
+                <p className="text-sm font-bold text-green-900 mb-2">
+                  👤 Auto-registro como Jugador Mayor de 18 años
+                </p>
+                <p className="text-xs text-green-800 mb-3 leading-relaxed">
+                  Estás registrándote <strong>a ti mismo</strong> como jugador del club. 
+                  Completa tus datos personales. Al finalizar, tu panel se convertirá automáticamente en <strong>"Panel Jugador"</strong>.
+                </p>
+                <div className="bg-white rounded-lg p-3 border border-green-200">
+                  <p className="text-xs text-green-700">
+                    ℹ️ <strong>Importante:</strong> Los campos de "tutor legal" no son necesarios ya que eres mayor de edad. 
+                    Introduce tu propio email y teléfono en los campos principales.
+                  </p>
+                </div>
+              </div>
+            )}
             {suggestedCategory && (
               <div className="mb-4 bg-gradient-to-r from-purple-50 to-purple-100 border-2 border-purple-400 rounded-xl p-4 animate-pulse">
                 <p className="text-sm font-bold text-purple-900 mb-2">
@@ -1019,10 +1039,12 @@ Email: cdbustarviejo@gmail.com
                 setShowForm(false);
                 setEditingPlayer(null);
                 setSuggestedCategory(null);
+                setIsAdultPlayerSelfRegistration(false);
               }}
               isSubmitting={createPlayerMutation.isPending || updatePlayerMutation.isPending}
               isParent={true}
               parentEmail={user?.email}
+              isAdultPlayerSelfRegistration={isAdultPlayerSelfRegistration}
             />
           </div>
         )}
@@ -1086,10 +1108,46 @@ Email: cdbustarviejo@gmail.com
           ))}
         </div>
       ) : players.length === 0 ? (
-        <div className="text-center py-12 bg-white rounded-xl shadow-lg">
-          <div className="text-4xl lg:text-6xl mb-4">⚽🏀</div>
-          <p className="text-slate-500 text-base lg:text-lg mb-2">No tienes jugadores registrados</p>
-          <p className="text-slate-400 text-xs lg:text-sm">Haz clic en "Registrar Jugador" para añadir a tu hijo/a</p>
+        <div className="space-y-4">
+          <div className="text-center py-12 bg-white rounded-xl shadow-lg">
+            <div className="text-4xl lg:text-6xl mb-4">⚽🏀</div>
+            <p className="text-slate-500 text-base lg:text-lg mb-2">No tienes jugadores registrados</p>
+            <p className="text-slate-400 text-xs lg:text-sm">Haz clic en "Registrar Jugador" para añadir a tu hijo/a</p>
+          </div>
+
+          {/* Auto-registro para jugadores +18 */}
+          <div className="bg-gradient-to-r from-green-50 to-green-100 border-2 border-green-300 rounded-xl p-6 shadow-lg">
+            <div className="text-center mb-4">
+              <div className="text-5xl mb-3">👤⚽</div>
+              <h3 className="text-xl font-bold text-green-900 mb-2">¿Eres un jugador mayor de 18 años?</h3>
+              <p className="text-sm text-green-800 mb-4 leading-relaxed">
+                Si eres <strong>mayor de edad</strong> y quieres inscribirte directamente como jugador en el club, 
+                puedes hacerlo desde aquí sin necesidad de solicitudes ni invitaciones.
+              </p>
+            </div>
+            
+            <div className="bg-white rounded-lg p-4 mb-4 space-y-2 border border-green-200">
+              <p className="text-sm font-bold text-green-900">✅ Al registrarte como jugador +18:</p>
+              <ul className="text-xs text-green-800 space-y-1 list-disc list-inside">
+                <li>Te inscribes directamente en el club</li>
+                <li>Tu panel cambiará a <strong>"Panel Jugador"</strong></li>
+                <li>Verás tus convocatorias, pagos y chat de equipo</li>
+                <li>Te representas a ti mismo (sin tutores legales)</li>
+              </ul>
+            </div>
+
+            <Button 
+              onClick={() => {
+                setIsAdultPlayerSelfRegistration(true);
+                setEditingPlayer(null);
+                setSuggestedCategory(null);
+                setShowForm(true);
+              }}
+              className="w-full bg-green-600 hover:bg-green-700 text-lg font-bold py-6"
+            >
+              👤 Sí, quiero registrarme como jugador +18
+            </Button>
+          </div>
         </div>
       ) : (
         <>
