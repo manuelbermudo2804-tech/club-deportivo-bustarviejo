@@ -210,18 +210,17 @@ export default function ParentCoachChat() {
       
       console.log('✅ [PADRE] Mensaje del padre creado:', newMessage.id);
 
-      // 2. NOTIFICAR AL ENTRENADOR
-      const allUsers = await base44.entities.User.list();
-      const coaches = allUsers.filter(u => 
-        (u.es_entrenador === true || u.role === "admin") &&
-        (u.role === "admin" || u.categorias_entrena?.includes(selectedCategory))
+      // 2. BUSCAR ENTRENADORES DE ESTA CATEGORÍA (usando CoachSettings)
+      const allCoachSettings = await base44.entities.CoachSettings.list();
+      const coachesForCategory = allCoachSettings.filter(s => 
+        s.categorias_entrena?.includes(selectedCategory)
       );
       
-      console.log('👨‍🏫 [PADRE] Entrenadores encontrados:', coaches.length);
+      console.log('👨‍🏫 [PADRE] Entrenadores para', selectedCategory, ':', coachesForCategory.length);
       
-      for (const coach of coaches) {
+      for (const coachSetting of coachesForCategory) {
         await base44.entities.AppNotification.create({
-          usuario_email: coach.email,
+          usuario_email: coachSetting.entrenador_email,
           titulo: `⚽ Nuevo mensaje en ${selectedCategory}`,
           mensaje: `${user.full_name}: ${mensaje.substring(0, 100)}${mensaje.length > 100 ? '...' : ''}`,
           tipo: "importante",
@@ -231,8 +230,7 @@ export default function ParentCoachChat() {
         });
       }
 
-      // 3. BUSCAR CONFIGURACIÓN DEL ENTRENADOR
-      const allCoachSettings = await base44.entities.CoachSettings.list();
+      // 3. YA TENEMOS allCoachSettings de arriba, reutilizar
       
       console.log('📋 [PADRE] Total CoachSettings en BD:', allCoachSettings.length);
       console.log('📋 [PADRE] Todos los settings:', JSON.stringify(allCoachSettings, null, 2));
