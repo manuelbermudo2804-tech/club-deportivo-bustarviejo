@@ -446,11 +446,11 @@ export default function AlertCenter({
       alerts.push({
         id: "invitations",
         icon: Mail,
-        title: "📧 Invitaciones Solicitadas",
-        description: `${pendingInvitations} solicitud${pendingInvitations > 1 ? 'es' : ''} de invitación pendiente${pendingInvitations > 1 ? 's' : ''}`,
-        url: createPageUrl("EmailInvitations"),
+        title: "📧 Solicitudes de Invitación",
+        description: `${pendingInvitations} solicitud${pendingInvitations > 1 ? 'es' : ''} pendiente${pendingInvitations > 1 ? 's' : ''}`,
+        url: createPageUrl("InvitationRequests"),
         color: "bg-cyan-600",
-        priority: 11
+        priority: 3
       });
     }
   }
