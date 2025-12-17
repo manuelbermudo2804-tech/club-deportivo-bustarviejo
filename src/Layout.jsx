@@ -798,17 +798,18 @@ export default function Layout({ children, currentPageName }) {
                   setIsLoading(false);
                 } else if (playerDetected) {
                   // Si es un jugador +18, redirigir a PlayerDashboard
-                  setHasPlayers(false); // Jugadores no tienen "hijos" en el contexto familiar
-                  
+                  console.log('⚽ [LAYOUT] Usuario detectado como JUGADOR +18');
+                  setHasPlayers(false);
+                  setIsLoading(false);
+
                   const hasInitialRedirect = sessionStorage.getItem('initialRedirectDone');
-                  if (!hasInitialRedirect) {
+                  const currentPath = window.location.pathname.toLowerCase();
+
+                  if (!hasInitialRedirect && currentPath !== '/playerdashboard') {
                     console.log('🔄 [LAYOUT] Primera carga JUGADOR +18 - redirigiendo a PlayerDashboard');
                     sessionStorage.setItem('initialRedirectDone', 'true');
-                    if (window.location.pathname !== '/PlayerDashboard') {
-                      console.log('🔄 [LAYOUT] Redirigiendo jugador a PlayerDashboard');
-                      window.location.href = createPageUrl('PlayerDashboard');
-                      return;
-                    }
+                    window.location.href = createPageUrl('PlayerDashboard');
+                    return;
                   }
                 } else {
                   // Para padres normales, verificar en la base de datos
@@ -817,29 +818,28 @@ export default function Layout({ children, currentPageName }) {
                     p.email_padre === currentUser.email || 
                     p.email_tutor_2 === currentUser.email
                   );
-                  console.log('Padre normal - jugadores encontrados:', myPlayers.length);
+                  console.log('👨‍👩‍👧 [LAYOUT] Padre normal - jugadores encontrados:', myPlayers.length);
                   setHasPlayers(myPlayers.length > 0);
 
                   // Si es usuario nuevo sin tipo de panel definido Y es padre normal (sin jugadores ni roles), mostrar selector
-                            if (!currentUser.tipo_panel && !currentUser.es_jugador && myPlayers.length === 0) {
-                              setShowTypeSelector(true);
-                              setIsLoading(false);
-                              return;
-                            }
+                  if (!currentUser.tipo_panel && !currentUser.es_jugador && myPlayers.length === 0) {
+                    console.log('❓ [LAYOUT] Usuario sin tipo_panel - mostrando selector');
+                    setShowTypeSelector(true);
+                    setIsLoading(false);
+                    return;
+                  }
 
-                            setIsLoading(false);
+                  setIsLoading(false);
 
                   // REDIRECCIÓN AUTOMÁTICA AL DASHBOARD PRINCIPAL (primera carga)
                   const hasInitialRedirect = sessionStorage.getItem('initialRedirectDone');
-                  if (!hasInitialRedirect) {
-                    console.log('🔄 [LAYOUT] Primera carga detectada - redirigiendo a dashboard principal');
+                  const currentPath = window.location.pathname.toLowerCase();
+
+                  if (!hasInitialRedirect && currentPath !== '/parentdashboard') {
+                    console.log('🔄 [LAYOUT] Primera carga PADRE - redirigiendo a ParentDashboard');
                     sessionStorage.setItem('initialRedirectDone', 'true');
-                    // Redirigir a ParentDashboard si no está ya ahí
-                    if (window.location.pathname !== '/ParentDashboard') {
-                      console.log('🔄 [LAYOUT] Redirigiendo padre a ParentDashboard');
-                      window.location.href = createPageUrl('ParentDashboard');
-                      return;
-                    }
+                    window.location.href = createPageUrl('ParentDashboard');
+                    return;
                   }
                 }
 
