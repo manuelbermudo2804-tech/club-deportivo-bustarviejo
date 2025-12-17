@@ -12,19 +12,16 @@ import { format, parseISO } from "date-fns";
 import { es } from "date-fns/locale";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { toast } from "sonner";
-import ExportButton from "../components/ExportButton";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
 
 // Vista de detalle de un jugador individual
 function PlayerDetailView({ player, evaluations, onBack, onSendReport, sendingReport }) {
-  // Calcular estadísticas del jugador
   const stats = useMemo(() => {
     const sortedEvals = [...evaluations].sort((a, b) => new Date(a.fecha) - new Date(b.fecha));
     
     const actitudSum = evaluations.reduce((sum, ev) => sum + (ev.actitud || 0), 0);
     const promedioActitud = evaluations.length > 0 ? (actitudSum / evaluations.length).toFixed(1) : 0;
     
-    // Detectar tendencia (últimos 3 vs primeros 3)
     let tendencia = "estable";
     if (sortedEvals.length >= 6) {
       const primeros3 = sortedEvals.slice(0, 3).reduce((sum, ev) => sum + (ev.actitud || 0), 0) / 3;
@@ -34,15 +31,15 @@ function PlayerDetailView({ player, evaluations, onBack, onSendReport, sendingRe
     }
     
     return {
+      jugador: player,
       totalSesiones: evaluations.length,
       promedioActitud,
       tendencia,
       primeraEvaluacion: sortedEvals[0]?.fecha,
       ultimaEvaluacion: sortedEvals[sortedEvals.length - 1]?.fecha
     };
-  }, [evaluations]);
+  }, [evaluations, player]);
 
-  // Datos para el gráfico de evolución
   const chartData = useMemo(() => {
     return [...evaluations]
       .sort((a, b) => new Date(a.fecha) - new Date(b.fecha))
@@ -62,7 +59,7 @@ function PlayerDetailView({ player, evaluations, onBack, onSendReport, sendingRe
 
       <Card className="border-2 border-orange-300">
         <CardHeader className="bg-gradient-to-r from-orange-50 to-orange-100">
-          <div className="flex items-center gap-4">
+          <div className="flex flex-col md:flex-row items-start md:items-center gap-4">
             {player.foto_url ? (
               <img src={player.foto_url} className="w-16 h-16 rounded-full object-cover border-4 border-white shadow-lg" alt="" />
             ) : (
@@ -77,7 +74,7 @@ function PlayerDetailView({ player, evaluations, onBack, onSendReport, sendingRe
             <Button 
               onClick={() => onSendReport(stats, evaluations)} 
               disabled={sendingReport}
-              className="bg-orange-600 hover:bg-orange-700"
+              className="bg-orange-600 hover:bg-orange-700 w-full md:w-auto"
             >
               <Send className="w-4 h-4 mr-2" />
               Enviar Reporte
@@ -233,13 +230,11 @@ export default function CoachEvaluationReports() {
     initialData: [],
   });
 
-  // Filtrar categorías según el rol del usuario
   const allCategories = [...new Set(players.map(p => p.deporte).filter(Boolean))].sort();
   const categories = (user?.role === "admin" || user?.es_coordinador) 
     ? allCategories 
     : (user?.categorias_entrena || []);
 
-  // Filtrar asistencias según rol
   const filteredAttendances = attendances.filter(att => {
     if (user?.role !== "admin" && !user?.es_coordinador) {
       const coachCategories = user?.categorias_entrena || [];
@@ -248,7 +243,6 @@ export default function CoachEvaluationReports() {
     return true;
   });
 
-  // Agrupar evaluaciones por categoría y jugador
   const evaluationsByCategory = useMemo(() => {
     const categoryMap = {};
     
@@ -280,7 +274,6 @@ export default function CoachEvaluationReports() {
       });
     });
     
-    // Calcular estadísticas para cada jugador
     Object.keys(categoryMap).forEach(categoria => {
       Object.keys(categoryMap[categoria]).forEach(jugadorId => {
         const playerData = categoryMap[categoria][jugadorId];
@@ -308,7 +301,7 @@ export default function CoachEvaluationReports() {
       
       const reportHTML = `
         <h2 style="color: #ea580c;">Reporte de Asistencia y Evaluación</h2>
-        <h3>${player.nombre} - ${stats.categoria}</h3>
+        <h3>${player.nombre} - ${player.deporte}</h3>
         
         <div style="background: #f8fafc; padding: 20px; border-radius: 8px; margin: 20px 0;">
           <h4 style="color: #64748b; margin-top: 0;">📊 Resumen General</h4>
@@ -342,7 +335,7 @@ REPORTE DE ASISTENCIA Y EVALUACION
 ====================================
 
 Jugador: ${player.nombre}
-Categoria: ${stats.categoria}
+Categoria: ${player.deporte}
 Periodo: ${format(new Date(evaluaciones[evaluaciones.length - 1].fecha), 'dd/MM/yyyy')} - ${format(new Date(evaluaciones[0].fecha), 'dd/MM/yyyy')}
 
 ====================================
@@ -364,7 +357,7 @@ Atentamente,
 CD Bustarviejo
       `.trim();
       
-      if (method === 'email' || method === 'both') {
+      if (sendMethod === 'email' || sendMethod === 'both') {
         if (player.email_padre) {
           await base44.integrations.Core.SendEmail({
             from_name: "CD Bustarviejo - Evaluaciones",
@@ -384,8 +377,7 @@ CD Bustarviejo
         }
       }
 
-      if (method === 'chat' || method === 'both') {
-        // Enviar mensaje individual al padre principal
+      if (sendMethod === 'chat' || sendMethod === 'both') {
         if (player.email_padre) {
           await base44.entities.ChatMessage.create({
             remitente_email: user.email,
@@ -395,14 +387,13 @@ CD Bustarviejo
             mensaje: reportText,
             prioridad: "Normal",
             tipo: "admin_a_grupo",
-            deporte: stats.categoria,
-            grupo_id: stats.categoria,
+            deporte: player.deporte,
+            grupo_id: player.deporte,
             leido: false,
             archivos_adjuntos: []
           });
         }
         
-        // Enviar mensaje individual al tutor 2 si existe
         if (player.email_tutor_2) {
           await base44.entities.ChatMessage.create({
             remitente_email: user.email,
@@ -412,8 +403,8 @@ CD Bustarviejo
             mensaje: reportText,
             prioridad: "Normal",
             tipo: "admin_a_grupo",
-            deporte: stats.categoria,
-            grupo_id: stats.categoria,
+            deporte: player.deporte,
+            grupo_id: player.deporte,
             leido: false,
             archivos_adjuntos: []
           });
@@ -445,38 +436,31 @@ CD Bustarviejo
     );
   }
 
+  if (selectedPlayer) {
+    const playerData = evaluationsByCategory[selectedCategory]?.[selectedPlayer];
+    if (!playerData) return null;
+    
+    return (
+      <div className="p-4 lg:p-6">
+        <PlayerDetailView
+          player={playerData.jugador}
+          evaluations={playerData.evaluaciones}
+          onBack={() => setSelectedPlayer(null)}
+          onSendReport={(stats, evals) => handleSendReport(stats, evals)}
+          sendingReport={sendingReport}
+        />
+      </div>
+    );
+  }
+
   return (
     <div className="p-4 lg:p-6 space-y-6">
       <Dialog open={showSendDialog} onOpenChange={setShowSendDialog}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Enviar Reporte - {selectedPlayerForReport?.jugador.nombre}</DialogTitle>
+            <DialogTitle>Enviar Reporte - {selectedPlayerForReport?.stats.jugador.nombre}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 pt-4">
-            <div className="space-y-3">
-              <Label className="text-sm font-medium">Periodo del Reporte</Label>
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="text-xs text-slate-600 mb-1 block">Desde</label>
-                  <input
-                    type="date"
-                    value={reportDateFrom}
-                    onChange={(e) => setReportDateFrom(e.target.value)}
-                    className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm"
-                  />
-                </div>
-                <div>
-                  <label className="text-xs text-slate-600 mb-1 block">Hasta</label>
-                  <input
-                    type="date"
-                    value={reportDateTo}
-                    onChange={(e) => setReportDateTo(e.target.value)}
-                    className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm"
-                  />
-                </div>
-              </div>
-            </div>
-
             <div className="space-y-3">
               <Label className="text-sm font-medium">¿Cómo deseas enviar el reporte?</Label>
               <RadioGroup value={sendMethod} onValueChange={setSendMethod}>
@@ -522,7 +506,7 @@ CD Bustarviejo
                 Cancelar
               </Button>
               <Button
-                onClick={handleConfirmSend}
+                onClick={sendPlayerReport}
                 disabled={sendingReport}
                 className="flex-1 bg-orange-600 hover:bg-orange-700"
               >
@@ -535,19 +519,13 @@ CD Bustarviejo
 
       <div className="flex items-start justify-between">
         <div>
-          <h1 className="text-2xl lg:text-3xl font-bold text-slate-900">📊 Evaluaciones de Entrenadores</h1>
+          <h1 className="text-2xl lg:text-3xl font-bold text-slate-900">📊 Evaluaciones por Categorías</h1>
           <p className="text-slate-600 mt-1">
             {user?.role === "admin" || user?.es_coordinador
-              ? "Historial completo de actitud evaluada por los entrenadores" 
-              : "Historial de tus evaluaciones de actitud"}
+              ? "Selecciona una categoría para ver los jugadores evaluados" 
+              : "Tus categorías y jugadores evaluados"}
           </p>
         </div>
-        {allEvaluations.length > 0 && (
-          <ExportButton 
-            data={exportData} 
-            filename="evaluaciones_entrenadores"
-          />
-        )}
       </div>
 
       {categories.length === 0 ? (
