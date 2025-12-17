@@ -1525,7 +1525,7 @@ export default function Layout({ children, currentPageName }) {
               <div className="text-white">
                 <h1 className="font-bold text-base leading-tight">CD Bustarviejo</h1>
                 <p className="text-xs text-orange-100 truncate max-w-[140px]" title={user?.email}>
-                  {user?.full_name || (isAdmin ? "Admin" : isCoordinator ? "Coordinador" : isTreasurer ? "Tesorero" : isCoach ? "Entrenador" : isPlayer ? "Jugador" : "Familia")}
+                  {isAdmin ? "Admin" : isCoordinator ? "Coordinador" : isTreasurer ? "Tesorero" : isCoach ? "Entrenador" : isPlayer ? "Jugador" : user?.full_name || "Familia"}
                 </p>
               </div>
             </div>
@@ -1698,6 +1698,11 @@ export default function Layout({ children, currentPageName }) {
               <div className="text-center text-xs text-white mb-4">
                 <p className="font-medium">{user.full_name}</p>
                 <p className="text-green-400 text-xs">{user.email}</p>
+                {isPlayer && (
+                  <Badge className="mt-2 bg-orange-600 text-white text-xs">
+                    ⚽ Jugador
+                  </Badge>
+                )}
                 {isCoordinator && (
                   <Badge className="mt-2 bg-cyan-600 text-white text-xs">
                     🎓 Coordinador Deportivo
