@@ -544,6 +544,8 @@ export default function Layout({ children, currentPageName }) {
   const [isLoading, setIsLoading] = useState(true);
   const [showWelcomeScreen, setShowWelcomeScreen] = useState(true);
   const [showInstallInstructions, setShowInstallInstructions] = useState(false);
+  const [showTypeSelector, setShowTypeSelector] = useState(false);
+  const [showMandatoryPWA, setShowMandatoryPWA] = useState(false);
       const [isAppInstalled, setIsAppInstalled] = useState(false);
       const [installDismissed, setInstallDismissed] = useState(() => {
         if (typeof window !== 'undefined') {
@@ -837,6 +839,12 @@ export default function Layout({ children, currentPageName }) {
                   );
                   console.log('Padre normal - jugadores encontrados:', myPlayers.length);
                   setHasPlayers(myPlayers.length > 0);
+
+                  // Si es usuario nuevo sin tipo de panel definido, mostrar selector
+                  if (!currentUser.tipo_panel && !currentUser.es_jugador) {
+                    setShowTypeSelector(true);
+                    return;
+                  }
 
                   // REDIRECCIÓN AUTOMÁTICA AL DASHBOARD PRINCIPAL (primera carga)
                   const hasInitialRedirect = sessionStorage.getItem('initialRedirectDone');
@@ -1283,11 +1291,86 @@ export default function Layout({ children, currentPageName }) {
 
       console.log('🎨 [LAYOUT] Pasó loading, isLoading:', isLoading, 'isPublicPage:', isPublicPage, 'user:', user?.email);
 
-      // Mostrar pantalla de bienvenida DESPUÉS del loading (cuando ya hay usuario)
-      // TEMPORALMENTE DESACTIVADO
-      // if (showWelcomeScreen && !isPublicPage && user) {
-      //   return <WelcomeScreen onComplete={() => setShowWelcomeScreen(false)} />;
-      // }
+      // Selector de tipo de panel (primera vez)
+      if (showTypeSelector && user) {
+        return (
+          <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center p-6">
+            <RegistrationTypeSelector
+              onSelectFamily={async () => {
+                await base44.auth.updateMe({ tipo_panel: 'familia' });
+                setShowTypeSelector(false);
+                setShowMandatoryPWA(true);
+              }}
+              onSelectAdultPlayer={async () => {
+                await base44.auth.updateMe({ tipo_panel: 'jugador_adulto' });
+                setShowTypeSelector(false);
+                setShowMandatoryPWA(true);
+              }}
+            />
+          </div>
+        );
+      }
+
+      // Tutorial PWA obligatorio después del selector
+      if (showMandatoryPWA && !isAppInstalled) {
+        return (
+          <Dialog open={true} onOpenChange={() => {}}>
+            <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto" hideClose={true}>
+              <div className="text-center space-y-4">
+                <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                  <Smartphone className="w-8 h-8 text-green-600" />
+                </div>
+                <h2 className="text-2xl font-bold text-green-700">📲 Instala la App del Club</h2>
+                <p className="text-slate-600 text-sm">Para continuar, necesitas instalar la aplicación en tu dispositivo</p>
+
+                {isIOS ? (
+                  <div className="bg-slate-50 rounded-2xl p-4 space-y-3 text-left">
+                    <div className="flex items-center gap-2 mb-2">
+                      <img src="https://upload.wikimedia.org/wikipedia/commons/f/fa/Apple_logo_black.svg" alt="Apple" className="w-6 h-6" />
+                      <p className="font-bold text-slate-900">iPhone / iPad</p>
+                    </div>
+                    <div className="space-y-2">
+                      <p className="text-sm text-slate-700"><span className="font-bold">1.</span> Abre esta web en Safari</p>
+                      <p className="text-sm text-slate-700"><span className="font-bold">2.</span> Pulsa el botón Compartir ↑</p>
+                      <p className="text-sm text-slate-700"><span className="font-bold">3.</span> Pulsa "Añadir a pantalla de inicio"</p>
+                      <p className="text-sm text-slate-700"><span className="font-bold">4.</span> Pulsa "Añadir"</p>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="bg-slate-50 rounded-2xl p-4 space-y-3 text-left">
+                    <div className="flex items-center gap-2 mb-2">
+                      <img src="https://upload.wikimedia.org/wikipedia/commons/d/d7/Android_robot.svg" alt="Android" className="w-6 h-6" />
+                      <p className="font-bold text-slate-900">Android</p>
+                    </div>
+                    <div className="space-y-2">
+                      <p className="text-sm text-slate-700"><span className="font-bold">1.</span> Abre esta web en Chrome</p>
+                      <p className="text-sm text-slate-700"><span className="font-bold">2.</span> Pulsa el menú (⋮)</p>
+                      <p className="text-sm text-slate-700"><span className="font-bold">3.</span> Pulsa "Instalar aplicación"</p>
+                      <p className="text-sm text-slate-700"><span className="font-bold">4.</span> Confirma pulsando "Instalar"</p>
+                    </div>
+                  </div>
+                )}
+
+                <Button 
+                  onClick={async () => {
+                    setIsAppInstalled(true);
+                    localStorage.setItem('pwaInstalled', 'true');
+                    await base44.auth.updateMe({
+                      app_instalada: true,
+                      fecha_instalacion_app: new Date().toISOString()
+                    });
+                    setShowMandatoryPWA(false);
+                    window.location.reload();
+                  }} 
+                  className="w-full bg-green-600 hover:bg-green-700 py-4 text-lg font-bold"
+                >
+                  ✅ Ya la tengo instalada
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
+        );
+      }
 
   // Render onboarding based on role
   const renderOnboarding = () => {
