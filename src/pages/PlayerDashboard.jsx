@@ -176,12 +176,12 @@ export default function PlayerDashboard() {
     return myConfirm?.confirmacion === "pendiente";
   });
 
-  if (loadingPlayer) {
+  if (!user || loadingPlayer) {
     return (
       <div className="p-6 flex items-center justify-center min-h-[60vh]">
         <div className="text-center">
           <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-orange-600 border-r-transparent mb-4"></div>
-          <p className="text-slate-500">Cargando tu perfil...</p>
+          <p className="text-slate-500">Cargando...</p>
         </div>
       </div>
     );
@@ -194,9 +194,12 @@ export default function PlayerDashboard() {
           <CardContent className="p-8 text-center">
             <User className="w-16 h-16 text-orange-300 mx-auto mb-4" />
             <h2 className="text-xl font-bold text-slate-900 mb-2">Perfil no encontrado</h2>
-            <p className="text-slate-600">
+            <p className="text-slate-600 mb-4">
               No se encontró tu ficha de jugador vinculada. Contacta con el administrador del club.
             </p>
+            <Button onClick={() => window.location.href = createPageUrl('Home')}>
+              Volver al inicio
+            </Button>
           </CardContent>
         </Card>
       </div>
