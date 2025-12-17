@@ -1280,11 +1280,15 @@ export default function Layout({ children, currentPageName }) {
           <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center p-6">
             <RegistrationTypeSelector
               onSelectFamily={async () => {
+                console.log('👨‍👩‍👧 [LAYOUT] Seleccionado panel FAMILIA');
                 await base44.auth.updateMe({ tipo_panel: 'familia' });
-                window.location.reload();
+                sessionStorage.setItem('initialRedirectDone', 'true');
+                window.location.href = createPageUrl('ParentDashboard');
               }}
               onSelectAdultPlayer={async () => {
+                console.log('⚽ [LAYOUT] Seleccionado panel JUGADOR +18');
                 await base44.auth.updateMe({ tipo_panel: 'jugador_adulto', es_jugador: true });
+                sessionStorage.setItem('initialRedirectDone', 'true');
                 window.location.href = createPageUrl('PlayerDashboard');
               }}
             />
