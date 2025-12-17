@@ -1401,6 +1401,94 @@ export default function Layout({ children, currentPageName }) {
             <>
               {renderOnboarding()}
 
+              {/* Selector de tipo de panel OBLIGATORIO */}
+              {showTypeSelector && user && (
+                <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center p-6">
+                  <RegistrationTypeSelector
+                    onSelectFamily={async () => {
+                      await base44.auth.updateMe({ tipo_panel: 'familia' });
+                      setShowTypeSelector(false);
+                      setShowMandatoryPWA(true);
+                    }}
+                    onSelectAdultPlayer={async () => {
+                      await base44.auth.updateMe({ tipo_panel: 'jugador_adulto' });
+                      setShowTypeSelector(false);
+                      setShowMandatoryPWA(true);
+                    }}
+                  />
+                </div>
+              )}
+
+              {/* Tutorial PWA OBLIGATORIO */}
+              {showMandatoryPWA && !isAppInstalled && (
+                <div className="fixed inset-0 z-[200] bg-black/95 flex items-center justify-center p-4">
+                  <div className="bg-white rounded-3xl p-6 max-w-md w-full shadow-2xl max-h-[90vh] overflow-y-auto">
+                    <div className="text-center mb-4">
+                      <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                        <Smartphone className="w-8 h-8 text-green-600" />
+                      </div>
+                      <h2 className="text-2xl font-bold text-green-700">📲 Instala la App</h2>
+                      <p className="text-slate-600 mt-1 text-sm">Para continuar, necesitas instalar la aplicación</p>
+                    </div>
+
+                    <div className="bg-green-50 border-2 border-green-300 rounded-xl p-3 mb-4">
+                      <p className="text-green-800 text-sm text-center font-medium">
+                        ✨ <strong>Recibirás notificaciones de:</strong>
+                      </p>
+                      <ul className="text-green-700 text-xs mt-2 space-y-1 text-center">
+                        <li>✅ Convocatorias de partidos</li>
+                        <li>✅ Pagos y recordatorios</li>
+                        <li>✅ Mensajes de entrenadores</li>
+                      </ul>
+                    </div>
+
+                    {isIOS ? (
+                      <div className="bg-slate-50 rounded-2xl p-4 space-y-3 text-left">
+                        <div className="flex items-center gap-2 mb-2">
+                          <img src="https://upload.wikimedia.org/wikipedia/commons/f/fa/Apple_logo_black.svg" alt="Apple" className="w-6 h-6" />
+                          <p className="font-bold text-slate-900">iPhone / iPad</p>
+                        </div>
+                        <div className="space-y-2">
+                          <p className="text-sm text-slate-700"><span className="font-bold">1.</span> Abre en Safari</p>
+                          <p className="text-sm text-slate-700"><span className="font-bold">2.</span> Pulsa Compartir ↑</p>
+                          <p className="text-sm text-slate-700"><span className="font-bold">3.</span> "Añadir a pantalla de inicio"</p>
+                          <p className="text-sm text-slate-700"><span className="font-bold">4.</span> Pulsa "Añadir"</p>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="bg-slate-50 rounded-2xl p-4 space-y-3 text-left">
+                        <div className="flex items-center gap-2 mb-2">
+                          <img src="https://upload.wikimedia.org/wikipedia/commons/d/d7/Android_robot.svg" alt="Android" className="w-6 h-6" />
+                          <p className="font-bold text-slate-900">Android</p>
+                        </div>
+                        <div className="space-y-2">
+                          <p className="text-sm text-slate-700"><span className="font-bold">1.</span> Abre en Chrome</p>
+                          <p className="text-sm text-slate-700"><span className="font-bold">2.</span> Menú (⋮)</p>
+                          <p className="text-sm text-slate-700"><span className="font-bold">3.</span> "Instalar aplicación"</p>
+                          <p className="text-sm text-slate-700"><span className="font-bold">4.</span> Confirma "Instalar"</p>
+                        </div>
+                      </div>
+                    )}
+
+                    <Button 
+                      onClick={async () => {
+                        setIsAppInstalled(true);
+                        localStorage.setItem('pwaInstalled', 'true');
+                        await base44.auth.updateMe({
+                          app_instalada: true,
+                          fecha_instalacion_app: new Date().toISOString()
+                        });
+                        setShowMandatoryPWA(false);
+                        window.location.reload();
+                      }} 
+                      className="w-full bg-green-600 hover:bg-green-700 py-4 text-lg font-bold mt-4"
+                    >
+                      ✅ Ya está instalada
+                    </Button>
+                  </div>
+                </div>
+              )}
+
               {/* Modal de instrucciones de instalación */}
               {showInstallInstructions && (
                 <div className="fixed inset-0 z-[200] bg-black/80 flex items-center justify-center p-4" onClick={() => setShowInstallInstructions(false)}>

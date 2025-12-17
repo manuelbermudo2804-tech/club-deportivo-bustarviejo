@@ -16,7 +16,7 @@ import { CheckmarkAnimation } from "../components/animations/SuccessAnimation";
 import { usePageTutorial } from "../components/tutorials/useTutorial";
 import InscriptionPaymentFlow from "../components/inscriptions/InscriptionPaymentFlow";
 import InscriptionSuccessScreen from "../components/inscriptions/InscriptionSuccessScreen";
-import RegistrationTypeSelector from "../components/players/RegistrationTypeSelector";
+
 
 export default function ParentPlayers() {
   const [showForm, setShowForm] = useState(false);
@@ -29,7 +29,6 @@ export default function ParentPlayers() {
   const [showInscriptionSuccess, setShowInscriptionSuccess] = useState(false);
   const [inscriptionSuccessData, setInscriptionSuccessData] = useState(null);
   const [isAdultPlayerSelfRegistration, setIsAdultPlayerSelfRegistration] = useState(false);
-  const [showRegistrationTypeSelector, setShowRegistrationTypeSelector] = useState(false);
   
   const queryClient = useQueryClient();
   
@@ -1108,28 +1107,27 @@ Email: cdbustarviejo@gmail.com
             <PlayerCardSkeleton key={i} />
           ))}
         </div>
-      ) : players.length === 0 ? (
-        <>
-          {!showRegistrationTypeSelector && !showForm ? (
-            <RegistrationTypeSelector
-              onSelectFamily={() => {
-                setShowRegistrationTypeSelector(true);
-                setIsAdultPlayerSelfRegistration(false);
-                setEditingPlayer(null);
-                setSuggestedCategory(null);
-                setShowForm(true);
-              }}
-              onSelectAdultPlayer={() => {
-                setShowRegistrationTypeSelector(true);
-                setIsAdultPlayerSelfRegistration(true);
-                setEditingPlayer(null);
-                setSuggestedCategory(null);
-                setShowForm(true);
-              }}
-            />
-          ) : null}
-        </>
-      ) : (
+      ) : players.length === 0 && !showForm ? (
+        <div className="text-center py-12">
+          <div className="w-24 h-24 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <Plus className="w-12 h-12 text-orange-600" />
+          </div>
+          <h2 className="text-2xl font-bold text-slate-900 mb-2">No hay jugadores registrados</h2>
+          <p className="text-slate-600 mb-6">Empieza registrando tu primer jugador</p>
+          <Button
+            onClick={() => {
+              setEditingPlayer(null);
+              setSuggestedCategory(null);
+              setIsAdultPlayerSelfRegistration(false);
+              setShowForm(true);
+            }}
+            className="bg-orange-600 hover:bg-orange-700 shadow-lg"
+          >
+            <Plus className="w-5 h-5 mr-2" />
+            Registrar Primer Jugador
+          </Button>
+        </div>
+      ) : players.length > 0 ? (
         <>
           {/* Jugadores de Fútbol */}
           {futbolPlayers.length > 0 && (
