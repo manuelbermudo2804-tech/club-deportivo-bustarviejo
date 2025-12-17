@@ -80,7 +80,7 @@ const suggestCategoryByAge = (birthDate) => {
   return "Fútbol Aficionado";
 };
 
-export default function PlayerForm({ player, onSubmit, onCancel, isSubmitting, isParent = false, allPlayers = [] }) {
+export default function PlayerForm({ player, onSubmit, onCancel, isSubmitting, isParent = false, allPlayers = [], isAdultPlayerSelfRegistration = false }) {
   const formRef = useRef(null);
   
   const [currentPlayer, setCurrentPlayer] = useState(() => {
@@ -281,12 +281,23 @@ export default function PlayerForm({ player, onSubmit, onCancel, isSubmitting, i
 
   useEffect(() => {
     const fetchUser = async () => {
-      if (isParent) {
+      if (isParent || isAdultPlayerSelfRegistration) {
         try {
           const user = await base44.auth.me();
           setCurrentUser(user);
           if (!player) {
-            setCurrentPlayer(prev => ({ ...prev, email_padre: user.email }));
+            // Para auto-registro de +18, pre-llenar con el email del usuario
+            if (isAdultPlayerSelfRegistration) {
+              setCurrentPlayer(prev => ({ 
+                ...prev, 
+                email_padre: user.email,
+                email_jugador: user.email,
+                nombre_tutor_legal: user.full_name || "",
+                es_mayor_edad: true
+              }));
+            } else {
+              setCurrentPlayer(prev => ({ ...prev, email_padre: user.email }));
+            }
           }
         } catch (error) {
           console.error("Error fetching user:", error);
@@ -294,7 +305,7 @@ export default function PlayerForm({ player, onSubmit, onCancel, isSubmitting, i
       }
     };
     fetchUser();
-  }, [isParent, player]);
+  }, [isParent, isAdultPlayerSelfRegistration, player]);
 
   const handlePreviousPlayerSelect = (playerId) => {
     const selectedPlayer = allPlayers.find(p => p.id === playerId);
@@ -606,8 +617,8 @@ export default function PlayerForm({ player, onSubmit, onCancel, isSubmitting, i
             </Alert>
           )}
 
-          {/* BLOQUEO: Padres no pueden inscribir mayores de 18 - Solo mostrar si fecha está completa */}
-          {isMayorDeEdad && isParent && currentPlayer.fecha_nacimiento && currentPlayer.fecha_nacimiento.length === 10 && (
+          {/* BLOQUEO: Padres no pueden inscribir mayores de 18 - Solo si NO es auto-registro */}
+          {isMayorDeEdad && isParent && !isAdultPlayerSelfRegistration && currentPlayer.fecha_nacimiento && currentPlayer.fecha_nacimiento.length === 10 && (
             <AdultPlayerInvitationRequest 
               playerAge={playerAge}
               playerData={currentPlayer}
@@ -617,12 +628,12 @@ export default function PlayerForm({ player, onSubmit, onCancel, isSubmitting, i
             />
           )}
 
-          {/* Info para jugadores +18 que se inscriben ellos mismos */}
-          {isMayorDeEdad && !isParent && (
+          {/* Info para jugadores +18 que se auto-registran */}
+          {isMayorDeEdad && isAdultPlayerSelfRegistration && (
             <Alert className="mb-6 bg-purple-50 border-purple-200">
               <AlertCircle className="h-4 w-4 text-purple-600" />
               <AlertDescription className="text-purple-800">
-                <strong>👤 Jugador mayor de edad:</strong> Al ser mayor de 18 años, te representas a ti mismo y la cuota de socio está incluida en tu inscripción.
+                <strong>👤 Auto-registro como Jugador Mayor de Edad:</strong> Al ser mayor de 18 años, te representas a ti mismo. Introduce tus datos personales para completar la inscripción.
 
                 <div className="mt-3 p-3 bg-amber-100 rounded-lg border border-amber-300">
                   <p className="font-bold text-amber-900 mb-1">⚠️ Sin descuento de hermanos</p>
@@ -1139,17 +1150,19 @@ export default function PlayerForm({ player, onSubmit, onCancel, isSubmitting, i
               </div>
             )}
 
-            {/* DATOS DEL JUGADOR MAYOR DE EDAD - Solo si NO es padre (el padre no puede inscribir +18) */}
-            {isMayorDeEdad && !isParent && (
+            {/* DATOS DEL JUGADOR MAYOR DE EDAD - Solo para auto-registro */}
+            {isMayorDeEdad && isAdultPlayerSelfRegistration && (
               <div className="space-y-4 border-2 border-purple-200 rounded-lg p-6 bg-purple-50">
                 <div className="flex items-center gap-2">
                   <Users className="w-6 h-6 text-purple-600" />
-                  <h3 className="text-lg font-bold text-purple-900">Datos de Contacto del Jugador</h3>
+                  <h3 className="text-lg font-bold text-purple-900">Tus Datos de Contacto</h3>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2">
-                    <Label htmlFor="email_padre">Correo Electrónico *</Label>
+                    <Label htmlFor="email_padre" className={fieldErrors.email_padre ? "text-red-600 font-bold" : ""}>
+                      Tu Correo Electrónico * {fieldErrors.email_padre && <span className="text-red-500 text-xs ml-1">⚠️ Obligatorio</span>}
+                    </Label>
                     <ValidatedInput 
                       id="email_padre" 
                       validationType="email"
@@ -1157,12 +1170,21 @@ export default function PlayerForm({ player, onSubmit, onCancel, isSubmitting, i
                       type="email" 
                       autoComplete="email"
                       value={currentPlayer.email_padre} 
-                      onChange={(e) => setCurrentPlayer({...currentPlayer, email_padre: e.target.value})}
+                      onChange={(e) => {
+                        setCurrentPlayer({...currentPlayer, email_padre: e.target.value, email_jugador: e.target.value});
+                        if (fieldErrors.email_padre) setFieldErrors(prev => ({...prev, email_padre: null}));
+                      }}
                       required 
+                      disabled={true}
+                      className={`bg-slate-100 ${fieldErrors.email_padre ? "border-2 border-red-500" : ""}`}
                     />
+                    <p className="text-xs text-purple-600">Este es tu email de acceso actual</p>
+                    {fieldErrors.email_padre && <p className="text-xs text-red-600 font-medium">{fieldErrors.email_padre}</p>}
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="telefono">Teléfono *</Label>
+                    <Label htmlFor="telefono" className={fieldErrors.telefono ? "text-red-600 font-bold" : ""}>
+                      Tu Teléfono * {fieldErrors.telefono && <span className="text-red-500 text-xs ml-1">⚠️ Obligatorio</span>}
+                    </Label>
                     <ValidatedInput 
                       id="telefono" 
                       validationType="telefono"
@@ -1170,10 +1192,15 @@ export default function PlayerForm({ player, onSubmit, onCancel, isSubmitting, i
                       type="tel" 
                       autoComplete="tel"
                       value={currentPlayer.telefono} 
-                      onChange={(e) => setCurrentPlayer({...currentPlayer, telefono: e.target.value})}
+                      onChange={(e) => {
+                        setCurrentPlayer({...currentPlayer, telefono: e.target.value});
+                        if (fieldErrors.telefono) setFieldErrors(prev => ({...prev, telefono: null}));
+                      }}
                       required 
                       placeholder="600123456"
+                      className={fieldErrors.telefono ? "border-2 border-red-500 bg-red-50" : ""}
                     />
+                    {fieldErrors.telefono && <p className="text-xs text-red-600 font-medium">{fieldErrors.telefono}</p>}
                   </div>
                 </div>
               </div>
@@ -1555,10 +1582,10 @@ export default function PlayerForm({ player, onSubmit, onCancel, isSubmitting, i
                 disabled={
                   isSubmitting || 
                   (!player && (!currentPlayer.acepta_politica_privacidad || !currentPlayer.autorizacion_fotografia || !currentPlayer.foto_url)) ||
-                  (isMayorDeEdad && isParent && currentPlayer.fecha_nacimiento?.length === 10) // Bloquear si es padre intentando inscribir +18
+                  (isMayorDeEdad && isParent && !isAdultPlayerSelfRegistration && currentPlayer.fecha_nacimiento?.length === 10) // Bloquear solo si es padre normal
                 }
               >
-                {isSubmitting ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Guardando...</> : (player ? "Actualizar" : "Registrar")}
+                {isSubmitting ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Guardando...</> : (player ? "Actualizar" : isAdultPlayerSelfRegistration ? "Completar Mi Registro" : "Registrar")}
               </Button>
             </div>
           </form>
