@@ -43,16 +43,33 @@ export default function PlayerDashboard() {
   const { data: player, isLoading: loadingPlayer } = useQuery({
     queryKey: ['myPlayerProfile', user?.player_id, user?.email],
     queryFn: async () => {
+      console.log('🔍 [PlayerDashboard] Buscando jugador para:', user?.email);
+      
       if (user?.player_id) {
         const players = await base44.entities.Player.list();
-        return players.find(p => p.id === user.player_id);
+        const found = players.find(p => p.id === user.player_id);
+        console.log('✅ [PlayerDashboard] Jugador encontrado por player_id:', found?.nombre);
+        return found;
       }
-      // Si no tiene player_id, buscar por email (email_padre o email_jugador)
+      
+      // Buscar por email en múltiples campos
       const players = await base44.entities.Player.list();
-      return players.find(p => 
-        (p.email_padre === user?.email || p.email_jugador === user?.email) && 
-        (p.es_mayor_edad === true || p.acceso_jugador_autorizado === true)
+      const found = players.find(p => 
+        (p.email_padre === user?.email || 
+         p.email_tutor_2 === user?.email ||
+         p.email_jugador === user?.email) && 
+        p.activo === true
       );
+      
+      console.log('🔍 [PlayerDashboard] Jugador encontrado por email:', found?.nombre);
+      
+      // Si lo encontramos, actualizar el user con el player_id para futuras cargas
+      if (found && !user.player_id) {
+        console.log('🔗 [PlayerDashboard] Vinculando player_id al usuario');
+        await base44.auth.updateMe({ player_id: found.id });
+      }
+      
+      return found;
     },
     enabled: !!user,
     retry: 2,
