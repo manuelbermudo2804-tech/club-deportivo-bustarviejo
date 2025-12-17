@@ -16,8 +16,6 @@ import ThemeToggle from "./components/ThemeToggle";
 import NotificationCenter from "./components/NotificationCenter";
 import LanguageSelector from "./components/LanguageSelector";
 import AppNotificationListener from "./components/push/AppNotificationListener";
-import WelcomeScreen from "./components/WelcomeScreen.jsx";
-import { TutorialProvider } from "./components/tutorials/TutorialProvider";
 import RegistrationTypeSelector from "./components/players/RegistrationTypeSelector";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import NotificationManager from "./components/notifications/NotificationManager";
@@ -33,11 +31,6 @@ import PaymentApprovalNotifier from "./components/payments/PaymentApprovalNotifi
 // ToastContainer eliminado - causaba spam de notificaciones
 import EventReminderEngine from "./components/events/EventReminderEngine";
 import DocumentReminderEngine from "./components/documents/DocumentReminderEngine";
-import ParentOnboarding from "@/components/onboarding/ParentOnboarding";
-import AdminOnboarding from "@/components/onboarding/AdminOnboarding";
-import CoachOnboarding from "@/components/onboarding/CoachOnboarding";
-import CoordinatorOnboarding from "@/components/onboarding/CoordinatorOnboarding";
-import TreasurerOnboarding from "@/components/onboarding/TreasurerOnboarding";
 import SponsorBanner from "./components/sponsors/SponsorBanner";
 import PWAInstallPrompt from "./components/pwa/PWAInstallPrompt";
 
@@ -540,8 +533,6 @@ export default function Layout({ children, currentPageName }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [currentLang, setCurrentLang] = useState('es');
   const [loteriaVisible, setLoteriaVisible] = useState(false);
-  const [showOnboarding, setShowOnboarding] = useState(false);
-  const [isRedirecting, setIsRedirecting] = useState(false);
   const [sponsorBannerVisible, setSponsorBannerVisible] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [showInstallInstructions, setShowInstallInstructions] = useState(false);
@@ -796,11 +787,6 @@ export default function Layout({ children, currentPageName }) {
           es_tesorero_RAW: currentUser.es_tesorero,
           role_RAW: currentUser.role
         });
-
-        // Check if user needs onboarding
-        if (!currentUser.onboarding_completado) {
-          setShowOnboarding(true);
-        }
 
         // Para admin/entrenadores/coordinadores/tesoreros, SOLO usar el campo manual (no verificar BD)
                 if (currentUser.role === "admin" || currentUser.es_entrenador || currentUser.es_coordinador || currentUser.es_tesorero) {
@@ -1304,9 +1290,10 @@ export default function Layout({ children, currentPageName }) {
                 setShowMandatoryPWA(true);
               }}
               onSelectAdultPlayer={async () => {
-                await base44.auth.updateMe({ tipo_panel: 'jugador_adulto' });
+                await base44.auth.updateMe({ tipo_panel: 'jugador_adulto', es_jugador: true });
                 setShowTypeSelector(false);
-                setShowMandatoryPWA(true);
+                // Redirigir directamente a PlayerDashboard
+                window.location.href = createPageUrl('PlayerDashboard');
               }}
             />
           </div>
@@ -1374,26 +1361,6 @@ export default function Layout({ children, currentPageName }) {
         );
       }
 
-  // Render onboarding based on role
-  const renderOnboarding = () => {
-    if (!showOnboarding) return null;
-
-    const handleOnboardingComplete = () => setShowOnboarding(false);
-
-    if (isAdmin) {
-      return <AdminOnboarding open={showOnboarding} onComplete={handleOnboardingComplete} />;
-    } else if (isCoordinator) {
-      return <CoordinatorOnboarding open={showOnboarding} onComplete={handleOnboardingComplete} />;
-    } else if (isTreasurer) {
-      return <TreasurerOnboarding open={showOnboarding} onComplete={handleOnboardingComplete} />;
-    } else if (isCoach) {
-      return <CoachOnboarding open={showOnboarding} onComplete={handleOnboardingComplete} />;
-    } else {
-      return <ParentOnboarding open={showOnboarding} onComplete={handleOnboardingComplete} />;
-    }
-    return null;
-  };
-
   const isIOS = typeof navigator !== 'undefined' && /iPad|iPhone|iPod/.test(navigator.userAgent);
     const isAndroid = typeof navigator !== 'undefined' && /android/i.test(navigator.userAgent);
 
@@ -1401,8 +1368,6 @@ export default function Layout({ children, currentPageName }) {
 
     return (
             <>
-              {renderOnboarding()}
-
               {/* Tutorial PWA OBLIGATORIO después de seleccionar tipo */}
               {!showTypeSelector && showMandatoryPWA && !isAppInstalled && (
                 <div className="fixed inset-0 z-[200] bg-black/95 flex items-center justify-center p-4">
