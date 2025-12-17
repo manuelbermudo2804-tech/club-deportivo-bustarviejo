@@ -1293,7 +1293,25 @@ export default function Layout({ children, currentPageName }) {
 
       console.log('🎨 [LAYOUT] Pasó loading, isLoading:', isLoading, 'isPublicPage:', isPublicPage, 'user:', user?.email);
 
-
+      // Selector de tipo de panel OBLIGATORIO (primera pantalla)
+      if (showTypeSelector && user) {
+        return (
+          <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center p-6">
+            <RegistrationTypeSelector
+              onSelectFamily={async () => {
+                await base44.auth.updateMe({ tipo_panel: 'familia' });
+                setShowTypeSelector(false);
+                setShowMandatoryPWA(true);
+              }}
+              onSelectAdultPlayer={async () => {
+                await base44.auth.updateMe({ tipo_panel: 'jugador_adulto' });
+                setShowTypeSelector(false);
+                setShowMandatoryPWA(true);
+              }}
+            />
+          </div>
+        );
+      }
 
       // Tutorial PWA obligatorio después del selector
       if (showMandatoryPWA && !isAppInstalled) {
@@ -1385,26 +1403,8 @@ export default function Layout({ children, currentPageName }) {
             <>
               {renderOnboarding()}
 
-              {/* Selector de tipo de panel OBLIGATORIO */}
-              {showTypeSelector && user && (
-                <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center p-6">
-                  <RegistrationTypeSelector
-                    onSelectFamily={async () => {
-                      await base44.auth.updateMe({ tipo_panel: 'familia' });
-                      setShowTypeSelector(false);
-                      setShowMandatoryPWA(true);
-                    }}
-                    onSelectAdultPlayer={async () => {
-                      await base44.auth.updateMe({ tipo_panel: 'jugador_adulto' });
-                      setShowTypeSelector(false);
-                      setShowMandatoryPWA(true);
-                    }}
-                  />
-                </div>
-              )}
-
-              {/* Tutorial PWA OBLIGATORIO */}
-              {showMandatoryPWA && !isAppInstalled && (
+              {/* Tutorial PWA OBLIGATORIO después de seleccionar tipo */}
+              {!showTypeSelector && showMandatoryPWA && !isAppInstalled && (
                 <div className="fixed inset-0 z-[200] bg-black/95 flex items-center justify-center p-4">
                   <div className="bg-white rounded-3xl p-6 max-w-md w-full shadow-2xl max-h-[90vh] overflow-y-auto">
                     <div className="text-center mb-4">
