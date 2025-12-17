@@ -825,8 +825,8 @@ export default function Layout({ children, currentPageName }) {
                   console.log('Padre normal - jugadores encontrados:', myPlayers.length);
                   setHasPlayers(myPlayers.length > 0);
 
-                  // Si es usuario nuevo sin tipo de panel definido, mostrar selector
-                            if (!currentUser.tipo_panel && !currentUser.es_jugador) {
+                  // Si es usuario nuevo sin tipo de panel definido Y es padre normal (sin jugadores ni roles), mostrar selector
+                            if (!currentUser.tipo_panel && !currentUser.es_jugador && myPlayers.length === 0) {
                               setShowTypeSelector(true);
                               setIsLoading(false);
                               return;
