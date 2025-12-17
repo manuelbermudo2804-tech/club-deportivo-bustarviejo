@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Moon, Clock, Save, CheckCircle } from "lucide-react";
 import { toast } from "sonner";
+import { Checkbox } from "@/components/ui/checkbox";
 
 const DIAS_SEMANA = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"];
 
@@ -119,6 +120,27 @@ export default function CoachAwayMode({ user }) {
     }
   };
 
+  const handleSaveAll = () => {
+    console.log('🚀 [COACH CONFIG] handleSaveAll llamado');
+    console.log('📊 [COACH CONFIG] Estado actual:', {
+      modoAusente,
+      mensajeAusente,
+      horarioActivo,
+      categorias_entrena: user?.categorias_entrena
+    });
+    
+    saveMutation.mutate({
+      categorias_entrena: user?.categorias_entrena || [],
+      modo_ausente: modoAusente,
+      mensaje_ausente: mensajeAusente,
+      horario_laboral_activo: horarioActivo,
+      horario_inicio: horarioInicio,
+      horario_fin: horarioFin,
+      dias_laborales: diasLaborales,
+      mensaje_fuera_horario: mensajeFueraHorario
+    });
+  };
+
   return (
     <>
       {/* Modal de éxito */}
@@ -209,19 +231,17 @@ export default function CoachAwayMode({ user }) {
 
               <div>
                 <Label>Días laborales</Label>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mt-2">
+                <div className="grid grid-cols-2 gap-2 mt-2">
                   {DIAS_SEMANA.map(dia => (
-                    <button
-                      key={dia}
-                      onClick={() => toggleDia(dia)}
-                      className={`p-2 rounded-lg text-xs font-medium transition-all ${
-                        diasLaborales.includes(dia)
-                          ? 'bg-blue-600 text-white'
-                          : 'bg-white border text-slate-600 hover:bg-slate-50'
-                      }`}
-                    >
-                      {dia.substring(0, 3)}
-                    </button>
+                    <div key={dia} className="flex items-center gap-2">
+                      <Checkbox
+                        checked={diasLaborales.includes(dia)}
+                        onCheckedChange={() => toggleDia(dia)}
+                      />
+                      <Label className="text-xs cursor-pointer" onClick={() => toggleDia(dia)}>
+                        {dia}
+                      </Label>
+                    </div>
                   ))}
                 </div>
               </div>

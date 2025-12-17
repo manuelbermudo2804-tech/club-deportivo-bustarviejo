@@ -508,7 +508,7 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
             mensaje: data.mensaje.substring(0, 100) + (data.mensaje.length > 100 ? '...' : ''),
             tipo: "importante",
             icono: "💬",
-            enlace: "CoordinatorChat",
+            enlace: "FamilyChats",
             vista: false
           });
         }
