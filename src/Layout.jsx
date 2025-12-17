@@ -18,6 +18,8 @@ import LanguageSelector from "./components/LanguageSelector";
 import AppNotificationListener from "./components/push/AppNotificationListener";
 import WelcomeScreen from "./components/WelcomeScreen.jsx";
 import { TutorialProvider } from "./components/tutorials/TutorialProvider";
+import RegistrationTypeSelector from "./components/players/RegistrationTypeSelector";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 import NotificationManager from "./components/notifications/NotificationManager";
 import AutomaticNotificationEngine from "./components/notifications/AutomaticNotificationEngine";
 import EmailNotificationTrigger from "./components/notifications/EmailNotificationTrigger";
