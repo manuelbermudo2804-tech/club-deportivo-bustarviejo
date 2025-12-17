@@ -6,7 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Moon, Clock, Save } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Moon, Clock, Save, CheckCircle } from "lucide-react";
 import { toast } from "sonner";
 
 const DIAS_SEMANA = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"];
@@ -19,6 +20,7 @@ export default function CoachAwayMode({ user }) {
   const [horarioFin, setHorarioFin] = useState("21:00");
   const [diasLaborales, setDiasLaborales] = useState(["Lunes", "Martes", "Miércoles", "Jueves", "Viernes"]);
   const [mensajeFueraHorario, setMensajeFueraHorario] = useState("");
+  const [showSuccess, setShowSuccess] = useState(false);
 
   const queryClient = useQueryClient();
 
@@ -69,6 +71,8 @@ export default function CoachAwayMode({ user }) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['coachSettings', user?.email] });
+      setShowSuccess(true);
+      setTimeout(() => setShowSuccess(false), 2000);
       toast.success("✅ Configuración guardada correctamente", {
         duration: 3000,
         style: {
@@ -116,6 +120,22 @@ export default function CoachAwayMode({ user }) {
   };
 
   return (
+    <>
+      {/* Modal de éxito */}
+      <Dialog open={showSuccess} onOpenChange={setShowSuccess}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center justify-center gap-2 text-green-600">
+              <CheckCircle className="w-8 h-8" />
+              ¡Configuración Guardada!
+            </DialogTitle>
+            <DialogDescription className="text-center py-4">
+              <p className="text-slate-700 text-lg">✅ Tu configuración se ha guardado correctamente</p>
+            </DialogDescription>
+          </DialogHeader>
+        </DialogContent>
+      </Dialog>
+
     <div className="space-y-4">
       {/* Modo Ausente */}
       <Card className="bg-purple-50 border-purple-200">
@@ -239,5 +259,6 @@ export default function CoachAwayMode({ user }) {
         )}
       </Button>
     </div>
+    </>
   );
 }
