@@ -71,7 +71,10 @@ export default function PlayerDashboard() {
     queryKey: ['playerPayments', player?.id],
     queryFn: async () => {
       const allPayments = await base44.entities.Payment.list('-created_date');
-      return allPayments.filter(p => p.jugador_id === player?.id);
+      return allPayments.filter(p => 
+        p.jugador_id === player?.id && 
+        p.is_deleted !== true
+      );
     },
     enabled: !!player?.id,
     initialData: [],
