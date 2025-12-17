@@ -79,21 +79,25 @@ export default function ParentCoordinatorChat() {
         setTermsAccepted(true);
       }
 
-      // Marcar notificaciones como vistas inmediatamente
+      // Marcar notificaciones de ambos enlaces como vistas
       const notifications = await base44.entities.AppNotification.filter({ 
         usuario_email: currentUser.email,
-        enlace: "ParentCoordinatorChat",
         vista: false
       });
       
-      for (const notif of notifications) {
+      // Filtrar las que son de coordinador
+      const coordNotifs = notifications.filter(n => 
+        n.enlace === "ParentCoordinatorChat" || n.enlace === "FamilyChats"
+      );
+      
+      for (const notif of coordNotifs) {
         await base44.entities.AppNotification.update(notif.id, {
           vista: true,
           fecha_vista: new Date().toISOString()
         });
       }
       
-      if (notifications.length > 0) {
+      if (coordNotifs.length > 0) {
         queryClient.invalidateQueries({ queryKey: ['appNotifications'] });
       }
     };
