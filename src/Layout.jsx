@@ -960,7 +960,7 @@ export default function Layout({ children, currentPageName }) {
     { title: "🤖 Asistente Virtual", url: createPageUrl("Chatbot"), icon: MessageCircle },
     { title: "🛡️ Conversaciones Críticas", url: createPageUrl("AdminChat"), icon: ShieldAlert, badge: unresolvedAdminChats > 0 ? unresolvedAdminChats : null, urgentBadge: unresolvedAdminChats > 0 },
     { title: "📊 Panel Financiero", url: createPageUrl("TreasurerDashboard"), icon: CreditCard },
-    { title: "💳 Pagos", url: createPageUrl("Payments"), icon: CreditCard, badge: paymentsInReview > 0 ? paymentsInReview : null },
+    { title: "💳 Pagos", url: createPageUrl("Payments"), icon: CreditCard },
     { title: "🔔 Recordatorios Simples", url: createPageUrl("PaymentReminders"), icon: Bell },
     { title: "📁 Histórico", url: createPageUrl("PaymentHistory"), icon: Archive },
 
