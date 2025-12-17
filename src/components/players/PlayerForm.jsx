@@ -92,10 +92,12 @@ export default function PlayerForm({ player, onSubmit, onCancel, isSubmitting, i
       tipo_inscripcion: "Nueva Inscripción",
       fecha_nacimiento: "",
       es_mayor_edad: false,
+      tipo_documento: "DNI",
       dni_jugador: "",
       dni_jugador_url: "",
       libro_familia_url: "",
       nombre_tutor_legal: "",
+      tipo_documento_tutor: "DNI",
       dni_tutor_legal: "",
       dni_tutor_legal_url: "",
       enlace_firma_jugador: "",
@@ -894,53 +896,74 @@ export default function PlayerForm({ player, onSubmit, onCancel, isSubmitting, i
                 <h3 className="text-lg font-bold text-blue-900">Documentación del Jugador</h3>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* DNI del Jugador */}
+              <div className="space-y-6">
+                {/* Selector DNI o Pasaporte */}
                 <div className="space-y-2">
-                  <Label htmlFor="dni_jugador" className={fieldErrors.dni_jugador ? "text-red-600 font-bold" : ""}>
-                    DNI del Jugador {requiresDNI ? "*" : "(opcional si menor de 14)"} {fieldErrors.dni_jugador && <span className="text-red-500 text-xs ml-1">⚠️</span>}
-                  </Label>
-                  <ValidatedInput 
-                        id="dni_jugador" 
-                        validationType="dni"
-                        name="dni"
-                        autoComplete="off"
-                        value={currentPlayer.dni_jugador || ""} 
-                        onChange={(e) => {
-                          setCurrentPlayer({...currentPlayer, dni_jugador: e.target.value});
-                          if (fieldErrors.dni_jugador) setFieldErrors(prev => ({...prev, dni_jugador: null}));
-                        }}
-                        placeholder="12345678A" 
-                        required={requiresDNI} 
-                        className={fieldErrors.dni_jugador ? "border-2 border-red-500 bg-red-50" : ""}
-                      />
-                  {fieldErrors.dni_jugador && <p className="text-xs text-red-600 font-medium">{fieldErrors.dni_jugador}</p>}
+                  <Label>Tipo de Documento *</Label>
+                  <Select 
+                    value={currentPlayer.tipo_documento || "DNI"} 
+                    onValueChange={(value) => setCurrentPlayer({...currentPlayer, tipo_documento: value})}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Seleccionar..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="DNI">🪪 DNI</SelectItem>
+                      <SelectItem value="Pasaporte">🛂 Pasaporte</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
 
-                <div className={`space-y-2 ${fieldErrors.dni_jugador_url ? 'animate-pulse' : ''}`}>
-                  <Label className={fieldErrors.dni_jugador_url ? "text-red-600 font-bold" : ""}>
-                    Subir DNI Jugador (escaneado) {requiresDNI ? "*" : ""} {fieldErrors.dni_jugador_url && <span className="text-red-500 text-xs ml-1">⚠️ OBLIGATORIO</span>}
-                  </Label>
-                  <div className="flex items-center gap-2">
-                    <input type="file" accept="image/*,application/pdf" onChange={handleDNIUpload} className="hidden" id="dni-upload" />
-                    <Button 
-                      type="button" 
-                      variant={fieldErrors.dni_jugador_url ? "destructive" : "outline"}
-                      onClick={() => document.getElementById('dni-upload').click()} 
-                      disabled={uploadingDNI} 
-                      className={`flex-1 ${fieldErrors.dni_jugador_url ? 'border-2 border-red-500' : ''}`}
-                    >
-                      {uploadingDNI ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Upload className="w-4 h-4 mr-2" />}
-                      {currentPlayer.dni_jugador_url ? "✓ Cambiar DNI" : "Subir DNI"}
-                    </Button>
-                    {currentPlayer.dni_jugador_url && (
-                      <a href={currentPlayer.dni_jugador_url} target="_blank" rel="noopener noreferrer">
-                        <Button type="button" variant="ghost" size="icon"><Download className="w-4 h-4" /></Button>
-                      </a>
-                    )}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Número DNI/Pasaporte */}
+                  <div className="space-y-2">
+                    <Label htmlFor="dni_jugador" className={fieldErrors.dni_jugador ? "text-red-600 font-bold" : ""}>
+                      {currentPlayer.tipo_documento === "Pasaporte" ? "Pasaporte del Jugador" : "DNI del Jugador"} {requiresDNI ? "*" : "(opcional si menor de 14)"} {fieldErrors.dni_jugador && <span className="text-red-500 text-xs ml-1">⚠️</span>}
+                    </Label>
+                    <ValidatedInput 
+                      id="dni_jugador" 
+                      validationType={currentPlayer.tipo_documento === "Pasaporte" ? "none" : "dni"}
+                      name="dni"
+                      autoComplete="off"
+                      value={currentPlayer.dni_jugador || ""} 
+                      onChange={(e) => {
+                        setCurrentPlayer({...currentPlayer, dni_jugador: e.target.value});
+                        if (fieldErrors.dni_jugador) setFieldErrors(prev => ({...prev, dni_jugador: null}));
+                      }}
+                      placeholder={currentPlayer.tipo_documento === "Pasaporte" ? "ABC123456" : "12345678A"} 
+                      required={requiresDNI} 
+                      className={fieldErrors.dni_jugador ? "border-2 border-red-500 bg-red-50" : ""}
+                    />
+                    {fieldErrors.dni_jugador && <p className="text-xs text-red-600 font-medium">{fieldErrors.dni_jugador}</p>}
                   </div>
-                  {fieldErrors.dni_jugador_url && <p className="text-xs text-red-600 font-medium bg-red-100 p-2 rounded">⚠️ {fieldErrors.dni_jugador_url}</p>}
+
+                  {/* Upload DNI/Pasaporte */}
+                  <div className={`space-y-2 ${fieldErrors.dni_jugador_url ? 'animate-pulse' : ''}`}>
+                    <Label className={fieldErrors.dni_jugador_url ? "text-red-600 font-bold" : ""}>
+                      Subir {currentPlayer.tipo_documento === "Pasaporte" ? "Pasaporte" : "DNI"} Jugador (escaneado) {requiresDNI ? "*" : ""} {fieldErrors.dni_jugador_url && <span className="text-red-500 text-xs ml-1">⚠️ OBLIGATORIO</span>}
+                    </Label>
+                    <div className="flex items-center gap-2">
+                      <input type="file" accept="image/*,application/pdf" onChange={handleDNIUpload} className="hidden" id="dni-upload" />
+                      <Button 
+                        type="button" 
+                        variant={fieldErrors.dni_jugador_url ? "destructive" : "outline"}
+                        onClick={() => document.getElementById('dni-upload').click()} 
+                        disabled={uploadingDNI} 
+                        className={`flex-1 ${fieldErrors.dni_jugador_url ? 'border-2 border-red-500' : ''}`}
+                      >
+                        {uploadingDNI ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Upload className="w-4 h-4 mr-2" />}
+                        {currentPlayer.dni_jugador_url ? `✓ Cambiar ${currentPlayer.tipo_documento}` : `Subir ${currentPlayer.tipo_documento}`}
+                      </Button>
+                      {currentPlayer.dni_jugador_url && (
+                        <a href={currentPlayer.dni_jugador_url} target="_blank" rel="noopener noreferrer">
+                          <Button type="button" variant="ghost" size="icon"><Download className="w-4 h-4" /></Button>
+                        </a>
+                      )}
+                    </div>
+                    {fieldErrors.dni_jugador_url && <p className="text-xs text-red-600 font-medium bg-red-100 p-2 rounded">⚠️ {fieldErrors.dni_jugador_url}</p>}
+                  </div>
                 </div>
+              </div>
 
                 {/* Libro de Familia (solo menores sin DNI y NO auto-registro +18) */}
                 {!requiresDNI && !isAdultPlayerSelfRegistration && (
@@ -1034,77 +1057,97 @@ export default function PlayerForm({ player, onSubmit, onCancel, isSubmitting, i
                   </div>
                 )}
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <div className="space-y-2 md:col-span-2">
-                        <Label htmlFor="nombre_tutor_legal" className={fieldErrors.nombre_tutor_legal ? "text-red-600 font-bold" : ""}>
-                          Nombre y Apellidos del Padre/Madre/Tutor Legal * {fieldErrors.nombre_tutor_legal && <span className="text-red-500 text-xs ml-1">⚠️ Obligatorio</span>}
-                        </Label>
-                        <Input 
-                          id="nombre_tutor_legal" 
-                          name="parent-name"
-                          autoComplete="name"
-                          value={currentPlayer.nombre_tutor_legal || ""} 
-                          onChange={(e) => {
-                            setCurrentPlayer({...currentPlayer, nombre_tutor_legal: e.target.value});
-                            if (fieldErrors.nombre_tutor_legal) setFieldErrors(prev => ({...prev, nombre_tutor_legal: null}));
-                          }}
-                          onBlur={(e) => {
-                            if (e.target.value !== (currentPlayer.nombre_tutor_legal || "")) {
-                              setCurrentPlayer({...currentPlayer, nombre_tutor_legal: e.target.value});
-                            }
-                          }}
-                          placeholder="Ej: María García López" 
-                          required 
-                          className={fieldErrors.nombre_tutor_legal ? "border-2 border-red-500 bg-red-50" : ""}
-                        />
-                        {fieldErrors.nombre_tutor_legal && <p className="text-xs text-red-600 font-medium">{fieldErrors.nombre_tutor_legal}</p>}
-                      </div>
-
+                <div className="space-y-6">
+                      {/* Selector DNI o Pasaporte del Tutor */}
                       <div className="space-y-2">
-                        <Label htmlFor="dni_tutor_legal" className={fieldErrors.dni_tutor_legal ? "text-red-600 font-bold" : ""}>
-                          DNI del Tutor Legal * {fieldErrors.dni_tutor_legal && <span className="text-red-500 text-xs ml-1">⚠️ Obligatorio</span>}
-                        </Label>
-                        <ValidatedInput 
-                          id="dni_tutor_legal" 
-                          validationType="dni"
-                          name="parent-dni"
-                          autoComplete="off"
-                          value={currentPlayer.dni_tutor_legal || ""} 
-                          onChange={(e) => {
-                            setCurrentPlayer({...currentPlayer, dni_tutor_legal: e.target.value});
-                            if (fieldErrors.dni_tutor_legal) setFieldErrors(prev => ({...prev, dni_tutor_legal: null}));
-                          }}
-                          placeholder="12345678A" 
-                          required 
-                          className={fieldErrors.dni_tutor_legal ? "border-2 border-red-500 bg-red-50" : ""}
-                        />
-                        {fieldErrors.dni_tutor_legal && <p className="text-xs text-red-600 font-medium">{fieldErrors.dni_tutor_legal}</p>}
+                        <Label>Tipo de Documento del Tutor *</Label>
+                        <Select 
+                          value={currentPlayer.tipo_documento_tutor || "DNI"} 
+                          onValueChange={(value) => setCurrentPlayer({...currentPlayer, tipo_documento_tutor: value})}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Seleccionar..." />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="DNI">🪪 DNI</SelectItem>
+                            <SelectItem value="Pasaporte">🛂 Pasaporte</SelectItem>
+                          </SelectContent>
+                        </Select>
                       </div>
 
-                      <div className={`space-y-2 ${fieldErrors.dni_tutor_legal_url ? 'animate-pulse' : ''}`}>
-                        <Label className={fieldErrors.dni_tutor_legal_url ? "text-red-600 font-bold" : ""}>
-                          Subir DNI Tutor (escaneado) * {fieldErrors.dni_tutor_legal_url && <span className="text-red-500 text-xs ml-1">⚠️ OBLIGATORIO</span>}
-                        </Label>
-                        <div className="flex items-center gap-2">
-                          <input type="file" accept="image/*,application/pdf" onChange={handleDNITutorUpload} className="hidden" id="dni-tutor-upload" />
-                          <Button 
-                            type="button" 
-                            variant={fieldErrors.dni_tutor_legal_url ? "destructive" : "outline"}
-                            onClick={() => document.getElementById('dni-tutor-upload').click()} 
-                            disabled={uploadingDNITutor} 
-                            className={`flex-1 ${fieldErrors.dni_tutor_legal_url ? 'border-2 border-red-500' : ''}`}
-                          >
-                            {uploadingDNITutor ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Upload className="w-4 h-4 mr-2" />}
-                            {currentPlayer.dni_tutor_legal_url ? "✓ Cambiar DNI" : "Subir DNI Tutor"}
-                          </Button>
-                          {currentPlayer.dni_tutor_legal_url && (
-                            <a href={currentPlayer.dni_tutor_legal_url} target="_blank" rel="noopener noreferrer">
-                              <Button type="button" variant="ghost" size="icon"><Download className="w-4 h-4" /></Button>
-                            </a>
-                          )}
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="space-y-2 md:col-span-2">
+                          <Label htmlFor="nombre_tutor_legal" className={fieldErrors.nombre_tutor_legal ? "text-red-600 font-bold" : ""}>
+                            Nombre y Apellidos del Padre/Madre/Tutor Legal * {fieldErrors.nombre_tutor_legal && <span className="text-red-500 text-xs ml-1">⚠️ Obligatorio</span>}
+                          </Label>
+                          <Input 
+                            id="nombre_tutor_legal" 
+                            name="parent-name"
+                            autoComplete="name"
+                            value={currentPlayer.nombre_tutor_legal || ""} 
+                            onChange={(e) => {
+                              setCurrentPlayer({...currentPlayer, nombre_tutor_legal: e.target.value});
+                              if (fieldErrors.nombre_tutor_legal) setFieldErrors(prev => ({...prev, nombre_tutor_legal: null}));
+                            }}
+                            onBlur={(e) => {
+                              if (e.target.value !== (currentPlayer.nombre_tutor_legal || "")) {
+                                setCurrentPlayer({...currentPlayer, nombre_tutor_legal: e.target.value});
+                              }
+                            }}
+                            placeholder="Ej: María García López" 
+                            required 
+                            className={fieldErrors.nombre_tutor_legal ? "border-2 border-red-500 bg-red-50" : ""}
+                          />
+                          {fieldErrors.nombre_tutor_legal && <p className="text-xs text-red-600 font-medium">{fieldErrors.nombre_tutor_legal}</p>}
                         </div>
-                        {fieldErrors.dni_tutor_legal_url && <p className="text-xs text-red-600 font-medium bg-red-100 p-2 rounded">⚠️ {fieldErrors.dni_tutor_legal_url}</p>}
+
+                        <div className="space-y-2">
+                          <Label htmlFor="dni_tutor_legal" className={fieldErrors.dni_tutor_legal ? "text-red-600 font-bold" : ""}>
+                            {currentPlayer.tipo_documento_tutor === "Pasaporte" ? "Pasaporte del Tutor" : "DNI del Tutor Legal"} * {fieldErrors.dni_tutor_legal && <span className="text-red-500 text-xs ml-1">⚠️ Obligatorio</span>}
+                          </Label>
+                          <ValidatedInput 
+                            id="dni_tutor_legal" 
+                            validationType={currentPlayer.tipo_documento_tutor === "Pasaporte" ? "none" : "dni"}
+                            name="parent-dni"
+                            autoComplete="off"
+                            value={currentPlayer.dni_tutor_legal || ""} 
+                            onChange={(e) => {
+                              setCurrentPlayer({...currentPlayer, dni_tutor_legal: e.target.value});
+                              if (fieldErrors.dni_tutor_legal) setFieldErrors(prev => ({...prev, dni_tutor_legal: null}));
+                            }}
+                            placeholder={currentPlayer.tipo_documento_tutor === "Pasaporte" ? "ABC123456" : "12345678A"} 
+                            required 
+                            className={fieldErrors.dni_tutor_legal ? "border-2 border-red-500 bg-red-50" : ""}
+                          />
+                          {fieldErrors.dni_tutor_legal && <p className="text-xs text-red-600 font-medium">{fieldErrors.dni_tutor_legal}</p>}
+                        </div>
+
+                        <div className={`space-y-2 ${fieldErrors.dni_tutor_legal_url ? 'animate-pulse' : ''}`}>
+                          <Label className={fieldErrors.dni_tutor_legal_url ? "text-red-600 font-bold" : ""}>
+                            Subir {currentPlayer.tipo_documento_tutor === "Pasaporte" ? "Pasaporte" : "DNI"} Tutor (escaneado) * {fieldErrors.dni_tutor_legal_url && <span className="text-red-500 text-xs ml-1">⚠️ OBLIGATORIO</span>}
+                          </Label>
+                          <div className="flex items-center gap-2">
+                            <input type="file" accept="image/*,application/pdf" onChange={handleDNITutorUpload} className="hidden" id="dni-tutor-upload" />
+                            <Button 
+                              type="button" 
+                              variant={fieldErrors.dni_tutor_legal_url ? "destructive" : "outline"}
+                              onClick={() => document.getElementById('dni-tutor-upload').click()} 
+                              disabled={uploadingDNITutor} 
+                              className={`flex-1 ${fieldErrors.dni_tutor_legal_url ? 'border-2 border-red-500' : ''}`}
+                            >
+                              {uploadingDNITutor ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Upload className="w-4 h-4 mr-2" />}
+                              {currentPlayer.dni_tutor_legal_url ? `✓ Cambiar ${currentPlayer.tipo_documento_tutor}` : `Subir ${currentPlayer.tipo_documento_tutor} Tutor`}
+                            </Button>
+                            {currentPlayer.dni_tutor_legal_url && (
+                              <a href={currentPlayer.dni_tutor_legal_url} target="_blank" rel="noopener noreferrer">
+                                <Button type="button" variant="ghost" size="icon"><Download className="w-4 h-4" /></Button>
+                              </a>
+                            )}
+                          </div>
+                          {fieldErrors.dni_tutor_legal_url && <p className="text-xs text-red-600 font-medium bg-red-100 p-2 rounded">⚠️ {fieldErrors.dni_tutor_legal_url}</p>}
+                        </div>
                       </div>
+                    </div>
 
                       <div className="space-y-2">
                         <Label htmlFor="email_padre" className={fieldErrors.email_padre ? "text-red-600 font-bold" : ""}>
@@ -1277,8 +1320,8 @@ export default function PlayerForm({ player, onSubmit, onCancel, isSubmitting, i
               <ul className="list-disc list-inside text-sm text-green-800 space-y-1">
                 <li>Seguro de accidentes deportivos</li>
                 <li>Ficha federativa</li>
-                {!isMayorDeEdad && !isAdultPlayerSelfRegistration && <li>Cuota de socio del padre/madre/tutor legal</li>}
-                {(isMayorDeEdad || isAdultPlayerSelfRegistration) && <li>Tu cuota de socio</li>}
+                {!isAdultPlayerSelfRegistration && !isMayorDeEdad && <li>Cuota de socio del padre/madre/tutor legal</li>}
+                {isAdultPlayerSelfRegistration && <li>Tu cuota de socio</li>}
                 {siblingDiscount.hasDiscount && <li className="font-bold">Descuento de {siblingDiscount.amount}€ por hermano menor</li>}
               </ul>
             </div>
@@ -1556,7 +1599,10 @@ export default function PlayerForm({ player, onSubmit, onCancel, isSubmitting, i
                       <Label htmlFor="si" className="cursor-pointer">
                         <span className="font-bold text-green-800">✅ SÍ AUTORIZO</span>
                         <p className="text-xs text-slate-600 mt-1">
-                          Autorizo la captación, reproducción y publicación de {isAdultPlayerSelfRegistration ? "mis imágenes y vídeos" : "imágenes y vídeos de mi hijo/a"} en los medios indicados.
+                          {isAdultPlayerSelfRegistration 
+                            ? "Autorizo la captación, reproducción y publicación de mis imágenes y vídeos en los medios indicados." 
+                            : "Autorizo la captación, reproducción y publicación de imágenes y vídeos de mi hijo/a en los medios indicados."
+                          }
                         </p>
                       </Label>
                     </div>
