@@ -1127,7 +1127,7 @@ Email: cdbustarviejo@gmail.com
             Registrar Primer Jugador
           </Button>
         </div>
-      ) : players.length > 0 ? (
+      ) : (
         <>
           {/* Jugadores de Fútbol */}
           {futbolPlayers.length > 0 && (
