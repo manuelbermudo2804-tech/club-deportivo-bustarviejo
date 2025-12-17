@@ -154,24 +154,7 @@ export default function ParentCoachChat() {
     }
   }, [messages]);
 
-  const { data: chatbotConfig } = useQuery({
-    queryKey: ['chatbotConfig', selectedCategory],
-    queryFn: async () => {
-      if (!selectedCategory) return null;
-      const all = await base44.entities.ChatbotConfig.list();
-      
-      // Buscar config específico para esta categoría
-      let config = all.find(c => c.categoria === selectedCategory);
-      
-      // Si no hay config específico, buscar por entrenador
-      if (!config && coachSettings) {
-        config = all.find(c => c.entrenador_email === coachSettings.entrenador_email);
-      }
-      
-      return config;
-    },
-    enabled: !!selectedCategory,
-  });
+
 
   const { data: coachSettings } = useQuery({
     queryKey: ['coachSettings', selectedCategory],
@@ -258,7 +241,7 @@ export default function ParentCoachChat() {
         });
       }
       
-      // 4. VERIFICAR MODO AUSENTE (prioridad máxima) - DESACTIVA TODO
+      // 4. VERIFICAR MODO AUSENTE (prioridad máxima)
       if (settings?.modo_ausente === true && settings?.mensaje_ausente) {
         console.log('🤖 [PADRE] ✅ MODO AUSENTE ACTIVO - enviando respuesta automática');
         console.log('📧 [PADRE] Mensaje:', settings.mensaje_ausente);
@@ -275,11 +258,11 @@ export default function ParentCoachChat() {
           leido: false
         });
 
-        console.log('✅ [PADRE] Respuesta automática enviada - NO chatbot (ausente)');
-        return; // TERMINAR aquí, no chatbot cuando ausente
+        console.log('✅ [PADRE] Respuesta automática enviada correctamente');
+        return; // TERMINAR aquí cuando está ausente
       }
 
-      // 5. VERIFICAR HORARIO LABORAL (segunda prioridad)
+      // 5. VERIFICAR HORARIO LABORAL (solo si NO está ausente)
       if (settings?.horario_laboral_activo === true && settings?.horario_inicio && settings?.horario_fin && settings?.dias_laborales?.length > 0) {
         const now = new Date();
         const dayName = DIAS_SEMANA[now.getDay() === 0 ? 6 : now.getDay() - 1];
@@ -314,71 +297,7 @@ export default function ParentCoachChat() {
           });
 
           console.log('✅ [PADRE] Respuesta automática (fuera horario) enviada');
-          // NO return aquí, continuar al chatbot
         }
-      }
-
-      // 6. CHATBOT (tercera prioridad - funciona siempre excepto si modo ausente)
-      const chatbotConfigData = await base44.entities.ChatbotConfig.list();
-      let chatbotConfig = chatbotConfigData.find(c => c.categoria === selectedCategory);
-
-      if (!chatbotConfig && settings) {
-        chatbotConfig = chatbotConfigData.find(c => c.entrenador_email === settings.entrenador_email);
-      }
-
-      if (chatbotConfig?.activo === true && chatbotConfig?.instrucciones) {
-        console.log('🤖 [PADRE] Intentando respuesta del chatbot...');
-
-        try {
-          const recentMessages = await base44.entities.ChatMessage.filter(
-            { grupo_id },
-            '-created_date',
-            10
-          );
-
-          const historial = recentMessages.reverse().map(m => 
-            `${m.remitente_nombre}: ${m.mensaje}`
-          ).join('\n');
-
-          const promptChatbot = `
-      Contexto: Eres un asistente virtual del entrenador de ${selectedCategory}.
-
-      Instrucciones del entrenador:
-      ${chatbotConfig.instrucciones}
-
-      Historial de chat reciente:
-      ${historial}
-
-      Último mensaje del padre:
-      ${user.full_name}: ${mensaje}
-
-      Responde de forma útil, breve y amigable. Si no sabes la respuesta o es algo que requiere al entrenador, indícalo claramente.
-          `.trim();
-
-          const chatbotResponse = await base44.functions.invoke('chatbotResponse', {
-            prompt: promptChatbot
-          });
-
-          if (chatbotResponse?.data?.response) {
-            await base44.entities.ChatMessage.create({
-              grupo_id,
-              deporte: selectedCategory,
-              tipo: "entrenador_a_grupo",
-              remitente_email: "chatbot@entrenador",
-              remitente_nombre: "🤖 Asistente Virtual",
-              mensaje: chatbotResponse.data.response,
-              archivos_adjuntos: [],
-              prioridad: "Normal",
-              leido: false
-            });
-
-            console.log('✅ [PADRE] Respuesta del chatbot enviada');
-          }
-        } catch (error) {
-          console.error('❌ [PADRE] Error en chatbot:', error);
-        }
-      } else {
-        console.log('⚠️ [PADRE] Chatbot no activo o sin configuración');
       }
     },
     onSuccess: async () => {
