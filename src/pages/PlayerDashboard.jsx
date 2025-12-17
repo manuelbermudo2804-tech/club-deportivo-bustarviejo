@@ -30,6 +30,7 @@ export default function PlayerDashboard() {
         setUser(currentUser);
       } catch (error) {
         console.error("Error fetching user:", error);
+        base44.auth.redirectToLogin();
       }
     };
     fetchUser();
@@ -37,17 +38,21 @@ export default function PlayerDashboard() {
 
   // Obtener ficha del jugador vinculada
   const { data: player, isLoading: loadingPlayer } = useQuery({
-    queryKey: ['myPlayerProfile', user?.player_id],
+    queryKey: ['myPlayerProfile', user?.player_id, user?.email],
     queryFn: async () => {
       if (user?.player_id) {
         const players = await base44.entities.Player.list();
         return players.find(p => p.id === user.player_id);
       }
-      // Si no tiene player_id, buscar por email
+      // Si no tiene player_id, buscar por email (email_padre o email_jugador)
       const players = await base44.entities.Player.list();
-      return players.find(p => p.email_padre === user?.email && p.es_mayor_edad);
+      return players.find(p => 
+        (p.email_padre === user?.email || p.email_jugador === user?.email) && 
+        (p.es_mayor_edad === true || p.acceso_jugador_autorizado === true)
+      );
     },
     enabled: !!user,
+    retry: 2,
   });
 
   // Convocatorias del jugador
