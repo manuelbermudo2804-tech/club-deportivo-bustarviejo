@@ -963,10 +963,10 @@ export default function PlayerForm({ player, onSubmit, onCancel, isSubmitting, i
                     {fieldErrors.dni_jugador_url && <p className="text-xs text-red-600 font-medium bg-red-100 p-2 rounded">⚠️ {fieldErrors.dni_jugador_url}</p>}
                   </div>
                 </div>
-              </div>
+            </div>
 
-                {/* Libro de Familia (solo menores sin DNI y NO auto-registro +18) */}
-                {!requiresDNI && !isAdultPlayerSelfRegistration && (
+            {/* Libro de Familia (solo menores sin DNI y NO auto-registro +18) */}
+            {!requiresDNI && !isAdultPlayerSelfRegistration && (
                   <>
                     <div className={`space-y-2 md:col-span-2 ${fieldErrors.libro_familia_url ? 'animate-pulse' : ''}`}>
                       <Label className={fieldErrors.libro_familia_url ? "text-red-600 font-bold" : ""}>
@@ -993,10 +993,8 @@ export default function PlayerForm({ player, onSubmit, onCancel, isSubmitting, i
                       <p className="text-xs text-blue-700">Si el jugador es menor de 14 años y no tiene DNI, sube el libro de familia</p>
                       {fieldErrors.libro_familia_url && <p className="text-xs text-red-600 font-medium bg-red-100 p-2 rounded">⚠️ {fieldErrors.libro_familia_url}</p>}
                     </div>
-                  </>
-                )}
-              </div>
-            </div>
+              </>
+            )}
 
             {/* DATOS DEL TUTOR LEGAL (solo si menor de edad Y NO es auto-registro +18) */}
             {!isMayorDeEdad && !isAdultPlayerSelfRegistration && (
@@ -1147,8 +1145,9 @@ export default function PlayerForm({ player, onSubmit, onCancel, isSubmitting, i
                           {fieldErrors.dni_tutor_legal_url && <p className="text-xs text-red-600 font-medium bg-red-100 p-2 rounded">⚠️ {fieldErrors.dni_tutor_legal_url}</p>}
                         </div>
                       </div>
-                    </div>
+                      </div>
 
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <div className="space-y-2">
                         <Label htmlFor="email_padre" className={fieldErrors.email_padre ? "text-red-600 font-bold" : ""}>
                           Correo Electrónico Tutor * {fieldErrors.email_padre && <span className="text-red-500 text-xs ml-1">⚠️ Obligatorio</span>}
@@ -1193,6 +1192,7 @@ export default function PlayerForm({ player, onSubmit, onCancel, isSubmitting, i
                         {fieldErrors.telefono && <p className="text-xs text-red-600 font-medium">{fieldErrors.telefono}</p>}
                       </div>
                     </div>
+                </div>
               </div>
             )}
 
