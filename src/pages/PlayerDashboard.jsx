@@ -40,39 +40,52 @@ export default function PlayerDashboard() {
   }, []);
 
   // Obtener ficha del jugador vinculada
-  const { data: player, isLoading: loadingPlayer } = useQuery({
+  const { data: player, isLoading: loadingPlayer, error: playerError } = useQuery({
     queryKey: ['myPlayerProfile', user?.player_id, user?.email],
     queryFn: async () => {
-      console.log('🔍 [PlayerDashboard] Buscando jugador para:', user?.email);
+      console.log('🔍 [PlayerDashboard] Buscando jugador para:', user?.email, 'player_id:', user?.player_id);
       
-      if (user?.player_id) {
+      try {
         const players = await base44.entities.Player.list();
-        const found = players.find(p => p.id === user.player_id);
-        console.log('✅ [PlayerDashboard] Jugador encontrado por player_id:', found?.nombre);
-        return found;
+        console.log('📋 [PlayerDashboard] Total de jugadores en BD:', players.length);
+        
+        let found = null;
+        
+        if (user?.player_id) {
+          found = players.find(p => p.id === user.player_id);
+          console.log('🔍 [PlayerDashboard] Búsqueda por player_id:', found ? `✅ ${found.nombre}` : '❌ No encontrado');
+        }
+        
+        if (!found) {
+          // Buscar por email en múltiples campos
+          found = players.find(p => 
+            (p.email_padre === user?.email || 
+             p.email_tutor_2 === user?.email ||
+             p.email_jugador === user?.email) && 
+            p.activo === true
+          );
+          console.log('🔍 [PlayerDashboard] Búsqueda por email:', found ? `✅ ${found.nombre}` : '❌ No encontrado');
+          
+          // Si lo encontramos, actualizar el user con el player_id para futuras cargas
+          if (found && !user.player_id) {
+            console.log('🔗 [PlayerDashboard] Vinculando player_id al usuario');
+            await base44.auth.updateMe({ player_id: found.id });
+          }
+        }
+        
+        if (!found) {
+          console.log('❌ [PlayerDashboard] No se encontró jugador para:', user?.email);
+        }
+        
+        return found || null;
+      } catch (error) {
+        console.error('❌ [PlayerDashboard] Error buscando jugador:', error);
+        return null;
       }
-      
-      // Buscar por email en múltiples campos
-      const players = await base44.entities.Player.list();
-      const found = players.find(p => 
-        (p.email_padre === user?.email || 
-         p.email_tutor_2 === user?.email ||
-         p.email_jugador === user?.email) && 
-        p.activo === true
-      );
-      
-      console.log('🔍 [PlayerDashboard] Jugador encontrado por email:', found?.nombre);
-      
-      // Si lo encontramos, actualizar el user con el player_id para futuras cargas
-      if (found && !user.player_id) {
-        console.log('🔗 [PlayerDashboard] Vinculando player_id al usuario');
-        await base44.auth.updateMe({ player_id: found.id });
-      }
-      
-      return found;
     },
     enabled: !!user,
-    retry: 2,
+    retry: 1,
+    staleTime: 30000, // 30 segundos
   });
 
   // Convocatorias del jugador
