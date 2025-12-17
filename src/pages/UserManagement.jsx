@@ -881,6 +881,35 @@ export default function UserManagement() {
                       </div>
                     </div>
 
+                    {/* BOTONES PARA USUARIOS ELIMINADOS */}
+                    {isDeleted && (
+                      <div className="bg-slate-100 rounded-xl p-3 border-2 border-slate-400 mt-3">
+                        <p className="text-xs font-bold text-slate-700 uppercase tracking-wide mb-2">🗑️ Usuario Eliminado</p>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => updateUserMutation.mutate({
+                              userId: user.id,
+                              userData: {
+                                eliminado: false,
+                                acceso_activo: true,
+                                fecha_eliminacion: null,
+                                motivo_eliminacion: null
+                              }
+                            })}
+                            className="text-green-600 border-green-300 hover:bg-green-50"
+                          >
+                            <CheckCircle2 className="w-4 h-4 mr-2" />
+                            ✅ Restaurar Usuario
+                          </Button>
+                          <div className="text-xs text-slate-600 flex items-center">
+                            Eliminado el {user.fecha_eliminacion ? new Date(user.fecha_eliminacion).toLocaleDateString('es-ES') : 'N/A'}
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
                     {/* BOTONES ESPECIALES PARA USUARIOS INACTIVOS */}
                     {isInactiveParent && !isDeleted && (
                       <div className="bg-red-50 rounded-xl p-3 border-2 border-red-300 mt-3">
@@ -942,6 +971,26 @@ CD Bustarviejo`);
                           >
                             <Trash2 className="w-4 h-4 mr-2" />
                             🗑️ Eliminar
+                          </Button>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Botón de reactivación rápida para usuarios restringidos */}
+                    {!isDeleted && hasRestriction && (
+                      <div className="bg-green-50 rounded-xl p-3 border-2 border-green-300 mt-3">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="text-sm font-bold text-green-900">✅ Reactivar Acceso</p>
+                            <p className="text-xs text-green-700">Este usuario tiene el acceso restringido</p>
+                          </div>
+                          <Button
+                            size="sm"
+                            onClick={() => activarAccesoMutation.mutate(user.id)}
+                            className="bg-green-600 hover:bg-green-700"
+                          >
+                            <CheckCircle2 className="w-4 h-4 mr-2" />
+                            Reactivar
                           </Button>
                         </div>
                       </div>
