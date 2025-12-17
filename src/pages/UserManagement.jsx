@@ -1186,8 +1186,10 @@ CD Bustarviejo`);
                 ℹ️ Importante:
               </p>
               <p className="text-sm text-blue-800">
-                El email del usuario debe coincidir con el email del jugador en su ficha.
                 Al activar este acceso, el usuario verá el <strong>Panel Jugador</strong> en lugar del Panel Familia.
+              </p>
+              <p className="text-sm text-blue-800 mt-2">
+                💡 <strong>Si no tiene ficha aún:</strong> El jugador podrá acceder a su panel y crear su propia ficha de inscripción desde allí.
               </p>
             </div>
           </div>
