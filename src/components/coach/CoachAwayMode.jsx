@@ -45,17 +45,27 @@ export default function CoachAwayMode({ user }) {
 
   const saveMutation = useMutation({
     mutationFn: async (data) => {
+      console.log('💾 [COACH CONFIG] Iniciando guardado...');
+      console.log('👤 [COACH CONFIG] Usuario:', user.email);
+      console.log('📋 [COACH CONFIG] Datos a guardar:', data);
+      
       const dataToSave = {
         entrenador_email: user.email,
         entrenador_nombre: user.full_name,
         ...data
       };
       
+      console.log('💾 [COACH CONFIG] DataToSave completo:', dataToSave);
+      
       if (settings?.id) {
+        console.log('🔄 [COACH CONFIG] Actualizando settings existentes, ID:', settings.id);
         await base44.entities.CoachSettings.update(settings.id, dataToSave);
       } else {
+        console.log('➕ [COACH CONFIG] Creando nuevos settings');
         await base44.entities.CoachSettings.create(dataToSave);
       }
+      
+      console.log('✅ [COACH CONFIG] Guardado completado');
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['coachSettings', user?.email] });
@@ -68,10 +78,23 @@ export default function CoachAwayMode({ user }) {
           fontWeight: 'bold'
         }
       });
+      console.log('✅ [COACH CONFIG] Success callback ejecutado');
+    },
+    onError: (error) => {
+      console.error('❌ [COACH CONFIG] Error guardando:', error);
+      toast.error("Error guardando configuración: " + error.message);
     }
   });
 
   const handleSaveAll = () => {
+    console.log('🚀 [COACH CONFIG] handleSaveAll llamado');
+    console.log('📊 [COACH CONFIG] Estado actual:', {
+      modoAusente,
+      mensajeAusente,
+      horarioActivo,
+      categorias_entrena: user?.categorias_entrena
+    });
+    
     saveMutation.mutate({
       categorias_entrena: user?.categorias_entrena || [],
       modo_ausente: modoAusente,
