@@ -723,9 +723,18 @@ export default function Layout({ children, currentPageName }) {
         setIsCoordinator(currentUser.es_coordinador === true);
         setIsTreasurer(currentUser.es_tesorero === true);
 
-        // DETECCIÓN AUTOMÁTICA DE JUGADOR +18 AUTORIZADO
-        // Si el usuario no tiene es_jugador=true, verificar si hay un jugador +18 vinculado a su email
-        let playerDetected = currentUser.es_jugador === true;
+        // DETECCIÓN DE JUGADOR +18
+        // 1. Si el usuario tiene tipo_panel = 'jugador_adulto' O es_jugador = true, ES JUGADOR (aunque no tenga ficha aún)
+        // 2. Si no tiene esos campos, buscar si hay una ficha de Player vinculada
+        let playerDetected = currentUser.tipo_panel === 'jugador_adulto' || currentUser.es_jugador === true;
+
+        console.log('🔍 [LAYOUT] Verificación inicial jugador:', {
+          email: currentUser.email,
+          tipo_panel: currentUser.tipo_panel,
+          es_jugador: currentUser.es_jugador,
+          playerDetected
+        });
+
         if (!playerDetected && currentUser.role !== "admin" && !currentUser.es_entrenador && !currentUser.es_coordinador && !currentUser.es_tesorero) {
           try {
             const allPlayers = await base44.entities.Player.list();
@@ -750,23 +759,39 @@ export default function Layout({ children, currentPageName }) {
               const edad = calcularEdad(linkedPlayer.fecha_nacimiento);
               const esMayorDe18 = edad >= 18 || linkedPlayer.es_mayor_edad === true;
 
-              if (esMayorDe18 && !currentUser.es_jugador) {
+              if (esMayorDe18) {
                 console.log('🎯 [LAYOUT] Detectado jugador +18 autorizado:', linkedPlayer.nombre);
                 // Actualizar automáticamente el usuario como jugador
                 await base44.auth.updateMe({
                   es_jugador: true,
-                  player_id: linkedPlayer.id
+                  player_id: linkedPlayer.id,
+                  tipo_panel: 'jugador_adulto'
                 });
                 playerDetected = true;
                 setPlayerName(linkedPlayer.nombre);
                 console.log('✅ [LAYOUT] Usuario actualizado como Jugador +18 automáticamente');
-              } else if (esMayorDe18 && currentUser.es_jugador) {
-                // Ya está marcado como jugador, solo guardar el nombre
-                setPlayerName(linkedPlayer.nombre);
               }
             }
           } catch (error) {
             console.error('Error detectando jugador +18:', error);
+          }
+        } else if (playerDetected) {
+          // Si ya está marcado como jugador, intentar cargar el nombre si existe ficha
+          try {
+            const allPlayers = await base44.entities.Player.list();
+            const linkedPlayer = allPlayers.find(p => 
+              p.email_jugador === currentUser.email && 
+              p.acceso_jugador_autorizado === true &&
+              p.activo === true
+            );
+            if (linkedPlayer) {
+              setPlayerName(linkedPlayer.nombre);
+              console.log('✅ [LAYOUT] Nombre de jugador cargado:', linkedPlayer.nombre);
+            } else {
+              console.log('⚠️ [LAYOUT] Jugador sin ficha de Player vinculada (normal en primera carga)');
+            }
+          } catch (error) {
+            console.log('⚠️ [LAYOUT] Error al cargar nombre de jugador:', error);
           }
         }
 
