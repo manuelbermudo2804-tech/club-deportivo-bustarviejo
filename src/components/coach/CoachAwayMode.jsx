@@ -45,17 +45,20 @@ export default function CoachAwayMode({ user }) {
 
   const saveMutation = useMutation({
     mutationFn: async (data) => {
-      if (settings) {
-        return await base44.entities.CoachSettings.update(settings.id, data);
-      }
-      return await base44.entities.CoachSettings.create({
+      const dataToSave = {
         entrenador_email: user.email,
         entrenador_nombre: user.full_name,
         ...data
-      });
+      };
+      
+      if (settings?.id) {
+        await base44.entities.CoachSettings.update(settings.id, dataToSave);
+      } else {
+        await base44.entities.CoachSettings.create(dataToSave);
+      }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['coachSettings'] });
+      queryClient.invalidateQueries({ queryKey: ['coachSettings', user?.email] });
       toast.success("✅ Configuración guardada correctamente", {
         duration: 3000,
         style: {

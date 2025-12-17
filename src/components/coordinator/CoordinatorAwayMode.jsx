@@ -47,17 +47,19 @@ export default function CoordinatorAwayMode({ user }) {
 
   const saveSettingsMutation = useMutation({
     mutationFn: async (data) => {
+      const dataToSave = {
+        coordinador_email: user.email,
+        ...data
+      };
+      
       if (settings?.id) {
-        await base44.entities.CoordinatorSettings.update(settings.id, data);
+        await base44.entities.CoordinatorSettings.update(settings.id, dataToSave);
       } else {
-        await base44.entities.CoordinatorSettings.create({
-          coordinador_email: user.email,
-          ...data
-        });
+        await base44.entities.CoordinatorSettings.create(dataToSave);
       }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['coordinatorSettings'] });
+      queryClient.invalidateQueries({ queryKey: ['coordinatorSettings', user?.email] });
       toast.success("✅ Configuración guardada correctamente", {
         duration: 3000,
         style: {

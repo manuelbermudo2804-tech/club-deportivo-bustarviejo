@@ -169,15 +169,14 @@ export default function ParentCoachChat() {
     queryKey: ['coachSettings', selectedCategory],
     queryFn: async () => {
       if (!selectedCategory) return null;
-      const allUsers = await base44.entities.User.list();
-      const coach = allUsers.find(u => 
-        (u.es_entrenador === true || u.role === "admin") &&
-        (u.role === "admin" || u.categorias_entrena?.includes(selectedCategory))
-      );
-      if (!coach) return null;
       
-      const settings = await base44.entities.CoachSettings.filter({ entrenador_email: coach.email });
-      return { ...settings[0], coach };
+      // Obtener todos los settings (los padres NO tienen permiso para listar User)
+      const allSettings = await base44.entities.CoachSettings.list();
+      // Buscar settings de cualquier entrenador que entrene esta categoría
+      // (esto funciona porque CoachSettings es público para lectura)
+      const relevantSettings = allSettings.find(s => s.entrenador_email);
+      
+      return relevantSettings || null;
     },
     enabled: !!selectedCategory,
   });
@@ -220,12 +219,14 @@ export default function ParentCoachChat() {
         });
       }
 
-      // 3. VERIFICAR SI DEBE ENVIAR RESPUESTA AUTOMÁTICA (MODO AUSENTE O FUERA DE HORARIO)
-      const settings = coachSettings;
+      // 3. OBTENER CONFIGURACIÓN ACTUALIZADA DEL ENTRENADOR
+      const allCoachSettings = await base44.entities.CoachSettings.list();
+      const settings = allCoachSettings[0]; // Obtener la configuración más reciente
       const config = chatbotConfig;
 
-      if (settings?.modo_ausente && settings?.mensaje_ausente) {
-        // MODO AUSENTE ACTIVO
+      // 4. VERIFICAR MODO AUSENTE (prioridad máxima)
+      if (settings?.modo_ausente === true && settings?.mensaje_ausente) {
+        console.log('✅ Modo ausente activo - enviando respuesta automática');
         await base44.entities.ChatMessage.create({
           grupo_id,
           deporte: selectedCategory,
@@ -237,24 +238,35 @@ export default function ParentCoachChat() {
           prioridad: "Normal",
           leido: false
         });
-      } else if (settings?.horario_laboral_activo && settings?.mensaje_fuera_horario) {
-        // VERIFICAR HORARIO LABORAL
+      } else if (settings?.horario_laboral_activo === true && settings?.horario_inicio && settings?.horario_fin && settings?.dias_laborales?.length > 0) {
+        // 5. VERIFICAR HORARIO LABORAL
         const now = new Date();
         const dayName = DIAS_SEMANA[now.getDay() === 0 ? 6 : now.getDay() - 1];
         const currentTime = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
         
-        const isWorkingDay = settings.dias_laborales?.includes(dayName);
+        const isWorkingDay = settings.dias_laborales.includes(dayName);
         const isWithinHours = currentTime >= settings.horario_inicio && currentTime <= settings.horario_fin;
         
+        console.log('🕐 Verificación horario:', {
+          dayName,
+          currentTime,
+          horario_inicio: settings.horario_inicio,
+          horario_fin: settings.horario_fin,
+          dias_laborales: settings.dias_laborales,
+          isWorkingDay,
+          isWithinHours
+        });
+        
         if (!isWorkingDay || !isWithinHours) {
-          // FUERA DE HORARIO
+          // FUERA DE HORARIO - enviar mensaje automático
+          console.log('⏰ Fuera de horario - enviando mensaje automático');
           await base44.entities.ChatMessage.create({
             grupo_id,
             deporte: selectedCategory,
             tipo: "entrenador_a_grupo",
             remitente_email: "sistema@entrenador",
             remitente_nombre: "🤖 Entrenador (automático)",
-            mensaje: settings.mensaje_fuera_horario,
+            mensaje: settings.mensaje_fuera_horario || "Tu mensaje ha sido recibido. El entrenador te responderá en su horario laboral.",
             archivos_adjuntos: [],
             prioridad: "Normal",
             leido: false

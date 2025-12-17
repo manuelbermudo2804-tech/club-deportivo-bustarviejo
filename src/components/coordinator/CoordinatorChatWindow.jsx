@@ -422,25 +422,49 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
 
   const sendMessageMutation = useMutation({
     mutationFn: async (data) => {
-      // ENVIAR RESPUESTA AUTOMÁTICA SI MODO AUSENTE ESTÁ ACTIVO
+      const DIAS_SEMANA = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"];
+      
+      // OBTENER SETTINGS ACTUALIZADOS
+      const allSettings = await base44.entities.CoordinatorSettings.list();
+      const currentSettings = allSettings.find(s => s.coordinador_email);
+      
+      console.log('📋 Settings del coordinador:', currentSettings);
+      
+      // ENVIAR RESPUESTA AUTOMÁTICA SI MODO AUSENTE ESTÁ ACTIVO (prioridad máxima)
       const shouldSendAutoReply = !isCoordinator && 
-        coordinatorSettings?.modo_ausente && 
-        coordinatorSettings?.mensaje_ausente &&
+        currentSettings?.modo_ausente === true && 
+        currentSettings?.mensaje_ausente &&
         !conversation.auto_reply_sent_recently;
 
-      // VERIFICAR HORARIO LABORAL
-      const isOutsideWorkingHours = !isCoordinator && 
-        coordinatorSettings?.horario_laboral_activo && 
-        (() => {
-          const now = new Date();
-          const dayName = DIAS_SEMANA[now.getDay() === 0 ? 6 : now.getDay() - 1];
-          const currentTime = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
-          
-          const isWorkingDay = coordinatorSettings.dias_laborales?.includes(dayName);
-          const isWithinHours = currentTime >= coordinatorSettings.horario_inicio && currentTime <= coordinatorSettings.horario_fin;
-          
-          return !isWorkingDay || !isWithinHours;
-        })();
+      // VERIFICAR HORARIO LABORAL (solo si modo ausente NO está activo)
+      let isOutsideWorkingHours = false;
+      if (!isCoordinator && 
+          !currentSettings?.modo_ausente &&
+          currentSettings?.horario_laboral_activo === true && 
+          currentSettings?.horario_inicio && 
+          currentSettings?.horario_fin &&
+          currentSettings?.dias_laborales?.length > 0) {
+        
+        const now = new Date();
+        const dayName = DIAS_SEMANA[now.getDay() === 0 ? 6 : now.getDay() - 1];
+        const currentTime = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+        
+        const isWorkingDay = currentSettings.dias_laborales.includes(dayName);
+        const isWithinHours = currentTime >= currentSettings.horario_inicio && currentTime <= currentSettings.horario_fin;
+        
+        isOutsideWorkingHours = !isWorkingDay || !isWithinHours;
+        
+        console.log('🕐 Verificación horario:', {
+          dayName,
+          currentTime,
+          horario_inicio: currentSettings.horario_inicio,
+          horario_fin: currentSettings.horario_fin,
+          dias_laborales: currentSettings.dias_laborales,
+          isWorkingDay,
+          isWithinHours,
+          isOutsideWorkingHours
+        });
+      }
 
       const newMessage = await base44.entities.CoordinatorMessage.create({
         conversacion_id: conversation.id,
@@ -490,14 +514,16 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
         }
       }
 
-      // ENVIAR RESPUESTA AUTOMÁTICA (modo ausente o fuera de horario)
+      // ENVIAR RESPUESTA AUTOMÁTICA
       if (shouldSendAutoReply) {
+        console.log('🤖 Enviando respuesta automática - MODO AUSENTE');
         await base44.entities.CoordinatorMessage.create({
           conversacion_id: conversation.id,
           autor: "coordinador",
           autor_email: "sistema@coordinador",
           autor_nombre: "🤖 Coordinador (automático)",
-          mensaje: coordinatorSettings.mensaje_ausente,
+          mensaje: currentSettings.mensaje_ausente,
+          archivos_adjuntos: [],
           leido_coordinador: true,
           leido_padre: false,
           fecha_leido_coordinador: new Date().toISOString()
@@ -505,30 +531,35 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
 
         await base44.entities.CoordinatorConversation.update(conversation.id, {
           auto_reply_sent_recently: true,
-          ultimo_mensaje: coordinatorSettings.mensaje_ausente,
+          ultimo_mensaje: currentSettings.mensaje_ausente,
           ultimo_mensaje_fecha: new Date().toISOString(),
           ultimo_mensaje_autor: "coordinador"
         });
 
         setTimeout(async () => {
-          await base44.entities.CoordinatorConversation.update(conversation.id, {
-            auto_reply_sent_recently: false
-          });
+          try {
+            await base44.entities.CoordinatorConversation.update(conversation.id, {
+              auto_reply_sent_recently: false
+            });
+          } catch (err) {
+            console.log('Error resetting auto_reply flag:', err);
+          }
         }, 3600000); // 1 hora
-      } else if (isOutsideWorkingHours) {
+      } else if (isOutsideWorkingHours && currentSettings?.mensaje_fuera_horario) {
+        console.log('⏰ Enviando mensaje fuera de horario');
         await base44.entities.CoordinatorMessage.create({
           conversacion_id: conversation.id,
           autor: "coordinador",
           autor_email: "sistema@coordinador",
           autor_nombre: "🤖 Coordinador (automático)",
-          mensaje: coordinatorSettings.mensaje_fuera_horario,
+          mensaje: currentSettings.mensaje_fuera_horario,
+          archivos_adjuntos: [],
           leido_coordinador: true,
           leido_padre: false,
           fecha_leido_coordinador: new Date().toISOString()
         });
       }
 
-      return newMessage;
       return newMessage;
     },
     onSuccess: async () => {
