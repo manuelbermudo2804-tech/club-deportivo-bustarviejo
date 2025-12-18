@@ -649,6 +649,7 @@ export default function PlayerDashboard() {
         </div>
 
         <ContactCard />
+      </div>
 
       {/* Dialog Editar Perfil - Sin flujo de pago */}
       <Dialog open={showEditProfile} onOpenChange={setShowEditProfile}>
