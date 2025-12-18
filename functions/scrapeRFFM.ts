@@ -46,40 +46,75 @@ Deno.serve(async (req) => {
     const clasificacion = [];
     const resultados = [];
 
-    // Intentar extraer tabla de clasificación (ajustar selectores según HTML real)
-    $('table.clasificacion tr, table.table tr, .tabla-clasificacion tr').each((i, elem) => {
-      const $row = $(elem);
-      const cells = $row.find('td');
+    // Buscar TODAS las tablas y encontrar la de clasificación
+    let tablaEncontrada = false;
+    
+    $('table').each((tableIndex, table) => {
+      const $table = $(table);
+      const rows = $table.find('tr');
       
-      if (cells.length >= 4) {
-        const equipo = cells.eq(1).text().trim();
-        const puntos = cells.eq(cells.length - 1).text().trim();
+      // Verificar si esta tabla tiene estructura de clasificación
+      rows.each((i, row) => {
+        const $row = $(row);
+        const cells = $row.find('td');
         
-        if (equipo && puntos && !isNaN(puntos)) {
-          clasificacion.push({
-            posicion: i,
-            equipo,
-            puntos: parseInt(puntos),
-            partidos_jugados: cells.eq(2)?.text().trim(),
-            ganados: cells.eq(3)?.text().trim(),
-            empatados: cells.eq(4)?.text().trim(),
-            perdidos: cells.eq(5)?.text().trim(),
-            goles_favor: cells.eq(6)?.text().trim(),
-            goles_contra: cells.eq(7)?.text().trim()
-          });
+        // Buscar filas con datos de equipos (típicamente 8-10 columnas)
+        if (cells.length >= 8 && cells.length <= 12) {
+          let equipo = '';
+          let puntos = '';
+          let posicion = i;
+          
+          // Intentar diferentes estructuras
+          // Opción 1: Segunda columna es el equipo
+          equipo = cells.eq(1).text().trim();
+          puntos = cells.eq(cells.length - 1).text().trim();
+          
+          // Si no encuentra, probar tercera columna
+          if (!equipo || equipo.length < 2) {
+            equipo = cells.eq(2).text().trim();
+          }
+          
+          // Validar que puntos sea número
+          const puntosNum = parseInt(puntos);
+          
+          if (equipo && equipo.length > 2 && !isNaN(puntosNum) && puntosNum >= 0) {
+            tablaEncontrada = true;
+            clasificacion.push({
+              posicion: posicion,
+              equipo: equipo,
+              puntos: puntosNum,
+              partidos_jugados: cells.eq(2)?.text().trim() || cells.eq(3)?.text().trim(),
+              ganados: cells.eq(3)?.text().trim() || cells.eq(4)?.text().trim(),
+              empatados: cells.eq(4)?.text().trim() || cells.eq(5)?.text().trim(),
+              perdidos: cells.eq(5)?.text().trim() || cells.eq(6)?.text().trim(),
+              goles_favor: cells.eq(6)?.text().trim() || cells.eq(7)?.text().trim(),
+              goles_contra: cells.eq(7)?.text().trim() || cells.eq(8)?.text().trim()
+            });
+          }
         }
+      });
+      
+      // Si encontramos la tabla, no seguir buscando
+      if (tablaEncontrada) {
+        return false;
       }
     });
 
-    // Extraer resultados de jornada actual
-    $('.resultado, .partido, .match').each((i, elem) => {
-      const $partido = $(elem);
-      const local = $partido.find('.equipo-local, .local').text().trim();
-      const visitante = $partido.find('.equipo-visitante, .visitante').text().trim();
-      const resultado = $partido.find('.resultado, .score').text().trim();
-      
-      if (local && visitante) {
-        resultados.push({ local, visitante, resultado });
+    // Extraer resultados de jornada (buscar en divs, secciones, etc)
+    $('div, section, article').each((i, elem) => {
+      const text = $(elem).text();
+      // Buscar patrones de resultado tipo "3 - 1", "2-0", etc
+      const matchResultado = text.match(/(\d+)\s*-\s*(\d+)/);
+      if (matchResultado) {
+        const localText = $(elem).find(':first-child').text().trim();
+        const visitanteText = $(elem).find(':last-child').text().trim();
+        if (localText && visitanteText && localText !== visitanteText) {
+          resultados.push({ 
+            local: localText, 
+            visitante: visitanteText, 
+            resultado: matchResultado[0] 
+          });
+        }
       }
     });
 
