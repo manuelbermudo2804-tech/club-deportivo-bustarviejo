@@ -45,6 +45,7 @@ export default function InscriptionPaymentFlow({
   onContinue
 }) {
   const [tipoPago, setTipoPago] = useState("Único");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const cuotas = getCuotasFromConfig(playerData.deporte, categoryConfigs);
 
@@ -52,6 +53,14 @@ export default function InscriptionPaymentFlow({
   const importeInscripcion = cuotas ? cuotas.inscripcion - descuentoHermano : 0;
 
   const handleContinue = () => {
+    // Prevenir doble-click
+    if (isSubmitting) {
+      console.log('⚠️ [InscriptionPaymentFlow] Ya está procesando - ignorando');
+      return;
+    }
+    
+    setIsSubmitting(true);
+    
     const paymentsToCreate = [];
     const currentYear = new Date().getFullYear();
     const defaultSeason = `${currentYear}/${currentYear + 1}`;
@@ -269,10 +278,20 @@ export default function InscriptionPaymentFlow({
 
         <Button
           onClick={handleContinue}
+          disabled={isSubmitting}
           className="w-full bg-green-600 hover:bg-green-700 text-white font-bold h-14 text-lg"
         >
-          <CheckCircle2 className="w-5 h-5 mr-2" />
-          Continuar y Generar Cuotas
+          {isSubmitting ? (
+            <>
+              <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+              Procesando...
+            </>
+          ) : (
+            <>
+              <CheckCircle2 className="w-5 h-5 mr-2" />
+              Continuar y Generar Cuotas
+            </>
+          )}
         </Button>
       </CardContent>
     </Card>

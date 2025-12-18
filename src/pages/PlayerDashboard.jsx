@@ -298,6 +298,8 @@ export default function PlayerDashboard() {
   }
 
   // Flujo de pago para nueva inscripción de jugador +18
+  const [isCreatingProfile, setIsCreatingProfile] = useState(false);
+
   if (showPaymentFlow && pendingPlayerData) {
     return (
       <div className="fixed inset-0 z-[100] bg-black/60 flex items-center justify-center p-4 overflow-y-auto">
@@ -308,6 +310,13 @@ export default function PlayerDashboard() {
             categoryConfigs={categoryConfigs}
             descuentoHermano={0}
             onContinue={async (paymentsData) => {
+              // Prevenir doble-submit
+              if (isCreatingProfile) {
+                console.log('⚠️ [PlayerDashboard] Creación ya en proceso - ignorando');
+                return;
+              }
+              
+              setIsCreatingProfile(true);
               try {
                 console.log('📝 [PlayerDashboard] Creando perfil de jugador con pagos...');
                 const newPlayer = await base44.entities.Player.create(pendingPlayerData);
@@ -337,6 +346,7 @@ export default function PlayerDashboard() {
               } catch (error) {
                 console.error('❌ Error creating player profile:', error);
                 toast.error("Error al crear el perfil");
+                setIsCreatingProfile(false);
               }
             }}
           />
