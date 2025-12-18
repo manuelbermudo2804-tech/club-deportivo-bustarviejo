@@ -10,7 +10,7 @@ import { createPageUrl } from "@/utils";
 import { 
   Trophy, CreditCard, Star, Award, MessageCircle, Calendar, 
   User, CheckCircle2, Clock, AlertCircle, ChevronRight,
-  MapPin, Users, Megaphone, Image, FileText, Heart, Bell, Sparkles, ShieldAlert, Clover, Edit
+  MapPin, Users, Megaphone, Image, FileText, Heart, Bell, Sparkles, ShieldAlert, Clover, Edit, FileSignature, ShoppingBag
 } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
