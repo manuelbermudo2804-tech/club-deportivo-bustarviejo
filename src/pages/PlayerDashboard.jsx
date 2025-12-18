@@ -374,28 +374,30 @@ export default function PlayerDashboard() {
               </p>
             </div>
             {showCreateProfile && !showPaymentFlow ? (
-              <PlayerForm
-                player={null}
-                onSubmit={(playerData) => {
-                  // Guardar datos y mostrar flujo de pago
-                  setPendingPlayerData({
-                    ...playerData,
-                    es_mayor_edad: true,
-                    email_jugador: user.email,
-                    email_padre: user.email,
-                    acceso_jugador_autorizado: true,
-                    activo: true,
-                    tipo_inscripcion: "Nueva Inscripción",
-                    tiene_descuento_hermano: false,
-                    descuento_aplicado: 0,
-                    _descuentoCalculado: 0
-                  });
-                  setShowCreateProfile(false);
-                  setShowPaymentFlow(true);
-                }}
-                onCancel={() => setShowCreateProfile(false)}
-                isAdultPlayerSelfRegistration={true}
-              />
+              <div className="max-w-5xl mx-auto">
+                <PlayerForm
+                  player={null}
+                  onSubmit={(playerData) => {
+                    // Guardar datos y mostrar flujo de pago
+                    setPendingPlayerData({
+                      ...playerData,
+                      es_mayor_edad: true,
+                      email_jugador: user.email,
+                      email_padre: user.email,
+                      acceso_jugador_autorizado: true,
+                      activo: true,
+                      tipo_inscripcion: "Nueva Inscripción",
+                      tiene_descuento_hermano: false,
+                      descuento_aplicado: 0,
+                      _descuentoCalculado: 0
+                    });
+                    setShowCreateProfile(false);
+                    setShowPaymentFlow(true);
+                  }}
+                  onCancel={() => setShowCreateProfile(false)}
+                  isAdultPlayerSelfRegistration={true}
+                />
+              </div>
             ) : (
               <div className="text-center space-y-4">
                 <Button 
@@ -904,9 +906,9 @@ export default function PlayerDashboard() {
         <ContactCard />
       </div>
 
-      {/* Dialog Editar Perfil - Sin flujo de pago */}
+      {/* Dialog Editar Perfil - Modal amplio para móvil */}
       <Dialog open={showEditProfile} onOpenChange={setShowEditProfile}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="w-[95vw] max-w-5xl max-h-[90vh] overflow-y-auto p-3 lg:p-6">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Edit className="w-5 h-5 text-orange-600" />
