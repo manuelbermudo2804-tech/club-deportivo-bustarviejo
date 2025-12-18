@@ -362,6 +362,36 @@ export default function PlayerDashboard() {
   }
 
   if (!player) {
+    if (showCreateProfile && !showPaymentFlow) {
+      return (
+        <div className="p-2 lg:p-6">
+          <div className="max-w-5xl mx-auto">
+            <PlayerForm
+              player={null}
+              onSubmit={(playerData) => {
+                setPendingPlayerData({
+                  ...playerData,
+                  es_mayor_edad: true,
+                  email_jugador: user.email,
+                  email_padre: user.email,
+                  acceso_jugador_autorizado: true,
+                  activo: true,
+                  tipo_inscripcion: "Nueva Inscripción",
+                  tiene_descuento_hermano: false,
+                  descuento_aplicado: 0,
+                  _descuentoCalculado: 0
+                });
+                setShowCreateProfile(false);
+                setShowPaymentFlow(true);
+              }}
+              onCancel={() => setShowCreateProfile(false)}
+              isAdultPlayerSelfRegistration={true}
+            />
+          </div>
+        </div>
+      );
+    }
+
     return (
       <div className="p-6">
         <Card className="border-none shadow-lg">
@@ -373,48 +403,21 @@ export default function PlayerDashboard() {
                 Para acceder al panel de jugador, necesitas completar tu ficha de registro.
               </p>
             </div>
-            {showCreateProfile && !showPaymentFlow ? (
-              <div className="max-w-5xl mx-auto">
-                <PlayerForm
-                  player={null}
-                  onSubmit={(playerData) => {
-                    // Guardar datos y mostrar flujo de pago
-                    setPendingPlayerData({
-                      ...playerData,
-                      es_mayor_edad: true,
-                      email_jugador: user.email,
-                      email_padre: user.email,
-                      acceso_jugador_autorizado: true,
-                      activo: true,
-                      tipo_inscripcion: "Nueva Inscripción",
-                      tiene_descuento_hermano: false,
-                      descuento_aplicado: 0,
-                      _descuentoCalculado: 0
-                    });
-                    setShowCreateProfile(false);
-                    setShowPaymentFlow(true);
-                  }}
-                  onCancel={() => setShowCreateProfile(false)}
-                  isAdultPlayerSelfRegistration={true}
-                />
-              </div>
-            ) : (
-              <div className="text-center space-y-4">
-                <Button 
-                  onClick={() => setShowCreateProfile(true)}
-                  className="bg-orange-600 hover:bg-orange-700"
-                  size="lg"
-                >
-                  Crear Mi Perfil
-                </Button>
-                <Button 
-                  variant="outline"
-                  onClick={() => window.location.href = createPageUrl('Home')}
-                >
-                  Volver al inicio
-                </Button>
-              </div>
-            )}
+            <div className="text-center space-y-4">
+              <Button 
+                onClick={() => setShowCreateProfile(true)}
+                className="bg-orange-600 hover:bg-orange-700"
+                size="lg"
+              >
+                Crear Mi Perfil
+              </Button>
+              <Button 
+                variant="outline"
+                onClick={() => window.location.href = createPageUrl('Home')}
+              >
+                Volver al inicio
+              </Button>
+            </div>
           </CardContent>
         </Card>
       </div>
