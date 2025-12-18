@@ -6,7 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Send, Paperclip, X, FileText, Download, Mic, Play, Pause, Smile, Check, CheckCheck, MapPin, Reply, Edit, Trash2, Users, Image as ImageIcon, Camera } from "lucide-react";
+import { Send, Paperclip, X, FileText, Download, Mic, Play, Pause, Smile, Check, CheckCheck, MapPin, Reply, Edit, Trash2, Users, Image as ImageIcon, Camera, Dumbbell } from "lucide-react";
 import ChatInputActions from "../chat/ChatInputActions";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
@@ -14,6 +14,7 @@ import { toast } from "sonner";
 import PollMessage from "../chat/PollMessage";
 import LocationMessage from "../chat/LocationMessage";
 import EscalateToCoordinatorButton from "./EscalateToCoordinatorButton";
+import ExerciseShareDialog from "../exercises/ExerciseShareDialog";
 
 const REACTIONS = ["👍", "❤️", "✅", "👏", "🎉"];
 const DIAS_SEMANA = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"];
@@ -37,6 +38,7 @@ export default function CoachChatWindow({ selectedCategory, user, allPlayers }) 
   const [locationName, setLocationName] = useState("");
   const [locationAddress, setLocationAddress] = useState("");
   const [showParticipants, setShowParticipants] = useState(false);
+  const [showExerciseShare, setShowExerciseShare] = useState(false);
   
   const messagesEndRef = useRef(null);
   const audioRef = useRef(null);
@@ -596,6 +598,12 @@ export default function CoachChatWindow({ selectedCategory, user, allPlayers }) 
     },
   });
 
+  const { data: allExercises = [] } = useQuery({
+    queryKey: ['exercises'],
+    queryFn: () => base44.entities.Exercise.list(),
+    initialData: [],
+  });
+
   const categoryPlayers = selectedCategory === "Todas las categorías" 
     ? allPlayers.filter(p => p.activo === true)
     : allPlayers.filter(p => p.deporte === selectedCategory && p.activo === true);
@@ -911,6 +919,16 @@ export default function CoachChatWindow({ selectedCategory, user, allPlayers }) 
             disabled={uploading} 
           />
           
+          <Button
+            size="icon"
+            variant="outline"
+            onClick={() => setShowExerciseShare(true)}
+            className="h-11 w-11 bg-orange-50 hover:bg-orange-100 border-orange-200 flex-shrink-0"
+            title="Compartir ejercicio"
+          >
+            <Dumbbell className="w-5 h-5 text-orange-600" />
+          </Button>
+
           <ChatInputActions
             onFileClick={() => fileInputRef.current?.click()}
             onCameraClick={() => cameraInputRef.current?.click()}
@@ -1078,6 +1096,27 @@ export default function CoachChatWindow({ selectedCategory, user, allPlayers }) 
           </div>
         </div>
       )}
+
+      {/* Exercise Share Dialog */}
+      <Dialog open={showExerciseShare} onOpenChange={setShowExerciseShare}>
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Dumbbell className="w-5 h-5 text-orange-600" />
+              Compartir Ejercicio
+            </DialogTitle>
+          </DialogHeader>
+          <ExerciseShareDialog
+            exercises={allExercises}
+            selectedCategory={selectedCategory}
+            user={user}
+            onClose={() => {
+              setShowExerciseShare(false);
+              queryClient.invalidateQueries({ queryKey: ['coachGroupMessages'] });
+            }}
+          />
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
