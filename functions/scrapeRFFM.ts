@@ -42,81 +42,77 @@ Deno.serve(async (req) => {
     const html = await response.text();
     const $ = cheerio.load(html);
 
+    console.log('📄 HTML length:', html.length);
+    console.log('🔍 Tables found:', $('table').length);
+
     // Extraer clasificación
     const clasificacion = [];
     const resultados = [];
 
-    // Buscar TODAS las tablas y encontrar la de clasificación
-    let tablaEncontrada = false;
-    
+    // Estrategia: buscar TODAS las tablas y analizar estructura
     $('table').each((tableIndex, table) => {
       const $table = $(table);
       const rows = $table.find('tr');
       
-      // Verificar si esta tabla tiene estructura de clasificación
-      rows.each((i, row) => {
+      console.log(`  Table ${tableIndex}: ${rows.length} rows`);
+      
+      rows.each((rowIndex, row) => {
         const $row = $(row);
         const cells = $row.find('td');
         
-        // Buscar filas con datos de equipos (típicamente 8-10 columnas)
-        if (cells.length >= 8 && cells.length <= 12) {
-          let equipo = '';
-          let puntos = '';
-          let posicion = i;
+        // Saltar headers
+        if (cells.length === 0) return;
+        
+        // Intentar extraer datos de cada fila
+        // Estructura típica RFFM: [pos, escudo/equipo, PJ, G, E, P, GF, GC, Pts]
+        if (cells.length >= 7) {
+          const allText = [];
+          cells.each((i, cell) => {
+            allText.push($(cell).text().trim());
+          });
           
-          // Intentar diferentes estructuras
-          // Opción 1: Segunda columna es el equipo
-          equipo = cells.eq(1).text().trim();
-          puntos = cells.eq(cells.length - 1).text().trim();
+          // Buscar el nombre del equipo (texto más largo que no sea número)
+          let equipoIndex = -1;
+          let equipoText = '';
           
-          // Si no encuentra, probar tercera columna
-          if (!equipo || equipo.length < 2) {
-            equipo = cells.eq(2).text().trim();
+          for (let i = 0; i < Math.min(4, allText.length); i++) {
+            const text = allText[i];
+            // El equipo suele estar en posición 1 o 2, y no es un número
+            if (text.length > 3 && isNaN(parseInt(text))) {
+              equipoIndex = i;
+              equipoText = text;
+              break;
+            }
           }
           
-          // Validar que puntos sea número
-          const puntosNum = parseInt(puntos);
+          // Buscar los puntos (última columna, debe ser número)
+          const ultimaCol = allText[allText.length - 1];
+          const puntosNum = parseInt(ultimaCol);
           
-          if (equipo && equipo.length > 2 && !isNaN(puntosNum) && puntosNum >= 0) {
-            tablaEncontrada = true;
+          // Validar que encontramos equipo y puntos válidos
+          if (equipoText && !isNaN(puntosNum) && puntosNum >= 0 && puntosNum <= 100) {
+            // Intentar extraer posición (primera columna)
+            const posText = allText[0];
+            const posNum = parseInt(posText);
+            
             clasificacion.push({
-              posicion: posicion,
-              equipo: equipo,
+              posicion: !isNaN(posNum) ? posNum : rowIndex,
+              equipo: equipoText,
               puntos: puntosNum,
-              partidos_jugados: cells.eq(2)?.text().trim() || cells.eq(3)?.text().trim(),
-              ganados: cells.eq(3)?.text().trim() || cells.eq(4)?.text().trim(),
-              empatados: cells.eq(4)?.text().trim() || cells.eq(5)?.text().trim(),
-              perdidos: cells.eq(5)?.text().trim() || cells.eq(6)?.text().trim(),
-              goles_favor: cells.eq(6)?.text().trim() || cells.eq(7)?.text().trim(),
-              goles_contra: cells.eq(7)?.text().trim() || cells.eq(8)?.text().trim()
+              partidos_jugados: allText[equipoIndex + 1] || '',
+              ganados: allText[equipoIndex + 2] || '',
+              empatados: allText[equipoIndex + 3] || '',
+              perdidos: allText[equipoIndex + 4] || '',
+              goles_favor: allText[equipoIndex + 5] || '',
+              goles_contra: allText[equipoIndex + 6] || '',
+              _debug: allText
             });
           }
         }
       });
-      
-      // Si encontramos la tabla, no seguir buscando
-      if (tablaEncontrada) {
-        return false;
-      }
     });
-
-    // Extraer resultados de jornada (buscar en divs, secciones, etc)
-    $('div, section, article').each((i, elem) => {
-      const text = $(elem).text();
-      // Buscar patrones de resultado tipo "3 - 1", "2-0", etc
-      const matchResultado = text.match(/(\d+)\s*-\s*(\d+)/);
-      if (matchResultado) {
-        const localText = $(elem).find(':first-child').text().trim();
-        const visitanteText = $(elem).find(':last-child').text().trim();
-        if (localText && visitanteText && localText !== visitanteText) {
-          resultados.push({ 
-            local: localText, 
-            visitante: visitanteText, 
-            resultado: matchResultado[0] 
-          });
-        }
-      }
-    });
+    
+    console.log('✅ Equipos extraídos:', clasificacion.length);
 
     const data = {
       success: true,
