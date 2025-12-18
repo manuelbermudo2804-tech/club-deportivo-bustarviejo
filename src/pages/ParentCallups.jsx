@@ -79,6 +79,9 @@ export default function ParentCallups() {
     mutationFn: ({ id, callupData }) => base44.entities.Convocatoria.update(id, callupData),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['convocatorias'] });
+      queryClient.invalidateQueries({ queryKey: ['announcementsAlerts'] });
+      queryClient.invalidateQueries({ queryKey: ['eventsAlerts'] });
+      queryClient.invalidateQueries({ queryKey: ['surveysAlerts'] });
       setShowConfirmDialog(false);
       setShowSuccess(true);
       setSelectedCallup(null);
@@ -293,11 +296,10 @@ export default function ParentCallups() {
                             </div>
                             <Button
                               onClick={() => handleOpenConfirm(callup, player.playerData)}
-                              variant={player.confirmacion === "pendiente" ? "default" : "outline"}
+                              variant="outline"
                               size="sm"
-                              className={player.confirmacion === "pendiente" ? "bg-orange-600 hover:bg-orange-700" : ""}
                             >
-                              {player.confirmacion === "pendiente" ? "Confirmar" : "Cambiar"}
+                              {player.confirmacion === "pendiente" ? "✅ Confirmar Asistencia" : "✏️ Modificar"}
                             </Button>
                           </div>
                         );
