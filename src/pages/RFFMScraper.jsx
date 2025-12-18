@@ -268,14 +268,22 @@ export default function RFFMScraper() {
                 />
               </div>
             </div>
+            {(!testConfig.competicion_id?.trim() || !testConfig.grupo_id?.trim()) && (
+              <div className="text-sm text-orange-600 font-medium">
+                ⚠️ Faltan campos: {!testConfig.competicion_id?.trim() && 'Competición ID'} {!testConfig.grupo_id?.trim() && 'Grupo ID'}
+              </div>
+            )}
             <Button
-              onClick={() => testScrapeMutation.mutate(testConfig)}
+              onClick={() => {
+                console.log('Test Config:', testConfig);
+                testScrapeMutation.mutate(testConfig);
+              }}
               disabled={
                 testScrapeMutation.isPending || 
                 !testConfig.competicion_id?.trim() || 
                 !testConfig.grupo_id?.trim()
               }
-              className="w-full md:w-auto bg-orange-600 hover:bg-orange-700"
+              className="w-full md:w-auto bg-orange-600 hover:bg-orange-700 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <Search className="w-4 h-4 mr-2" />
               {testScrapeMutation.isPending ? 'Extrayendo...' : 'Probar Scraping'}
