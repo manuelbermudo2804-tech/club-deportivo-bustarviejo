@@ -201,12 +201,8 @@ export default function ParentCoachChat() {
 
   const sendMessageMutation = useMutation({
     mutationFn: async (mensaje) => {
-      console.log('🚀 [PADRE] Enviando mensaje:', mensaje);
-      console.log('📂 [PADRE] Categoría seleccionada:', selectedCategory);
-      
       const grupo_id = selectedCategory.toLowerCase().replace(/\s+/g, '_');
       
-      // 1. CREAR MENSAJE DEL PADRE
       const newMessage = await base44.entities.ChatMessage.create({
         grupo_id,
         deporte: selectedCategory,
@@ -218,16 +214,11 @@ export default function ParentCoachChat() {
         prioridad: "Normal",
         leido: false
       });
-      
-      console.log('✅ [PADRE] Mensaje del padre creado:', newMessage.id);
 
-      // 2. BUSCAR ENTRENADORES DE ESTA CATEGORÍA (usando CoachSettings)
       const allCoachSettings = await base44.entities.CoachSettings.list();
       const coachesForCategory = allCoachSettings.filter(s => 
         s.categorias_entrena?.includes(selectedCategory)
       );
-      
-      console.log('👨‍🏫 [PADRE] Entrenadores para', selectedCategory, ':', coachesForCategory.length);
       
       for (const coachSetting of coachesForCategory) {
         await base44.entities.AppNotification.create({
@@ -241,31 +232,11 @@ export default function ParentCoachChat() {
         });
       }
 
-      // 3. YA TENEMOS allCoachSettings de arriba, reutilizar
-      
-      console.log('📋 [PADRE] Total CoachSettings en BD:', allCoachSettings.length);
-      console.log('📋 [PADRE] Todos los settings:', JSON.stringify(allCoachSettings, null, 2));
-      
       const settings = allCoachSettings.find(s => 
         s.categorias_entrena?.includes(selectedCategory)
       );
       
-      console.log('🔍 [PADRE] Settings para categoría:', selectedCategory);
-      console.log('📋 [PADRE] Settings encontrados:', settings ? 'SÍ' : 'NO');
-      if (settings) {
-        console.log('📋 [PADRE] Detalles settings:', {
-          modo_ausente: settings.modo_ausente,
-          mensaje_ausente: settings.mensaje_ausente,
-          horario_laboral_activo: settings.horario_laboral_activo,
-          categorias_entrena: settings.categorias_entrena
-        });
-      }
-      
-      // 4. VERIFICAR MODO AUSENTE (prioridad máxima)
       if (settings?.modo_ausente === true && settings?.mensaje_ausente) {
-        console.log('🤖 [PADRE] ✅ MODO AUSENTE ACTIVO - enviando respuesta automática');
-        console.log('📧 [PADRE] Mensaje:', settings.mensaje_ausente);
-
         await base44.entities.ChatMessage.create({
           grupo_id,
           deporte: selectedCategory,
@@ -277,12 +248,9 @@ export default function ParentCoachChat() {
           prioridad: "Normal",
           leido: false
         });
-
-        console.log('✅ [PADRE] Respuesta automática enviada correctamente');
-        return; // TERMINAR aquí cuando está ausente
+        return;
       }
 
-      // 5. VERIFICAR HORARIO LABORAL (solo si NO está ausente)
       if (settings?.horario_laboral_activo === true && settings?.horario_inicio && settings?.horario_fin && settings?.dias_laborales?.length > 0) {
         const now = new Date();
         const dayName = DIAS_SEMANA[now.getDay() === 0 ? 6 : now.getDay() - 1];
@@ -291,19 +259,7 @@ export default function ParentCoachChat() {
         const isWorkingDay = settings.dias_laborales.includes(dayName);
         const isWithinHours = currentTime >= settings.horario_inicio && currentTime <= settings.horario_fin;
 
-        console.log('🕐 [PADRE] Verificación horario:', {
-          dayName,
-          currentTime,
-          horario_inicio: settings.horario_inicio,
-          horario_fin: settings.horario_fin,
-          dias_laborales: settings.dias_laborales,
-          isWorkingDay,
-          isWithinHours
-        });
-
         if (!isWorkingDay || !isWithinHours) {
-          console.log('⏰ [PADRE] FUERA DE HORARIO - enviando mensaje automático');
-
           await base44.entities.ChatMessage.create({
             grupo_id,
             deporte: selectedCategory,
@@ -315,15 +271,38 @@ export default function ParentCoachChat() {
             prioridad: "Normal",
             leido: false
           });
-
-          console.log('✅ [PADRE] Respuesta automática (fuera horario) enviada');
         }
       }
     },
+    onMutate: async (newMensaje) => {
+      await queryClient.cancelQueries({ queryKey: ['coachGroupMessages'] });
+      
+      const previousMessages = queryClient.getQueryData(['coachGroupMessages', selectedCategory, user?.email]);
+      
+      const optimisticMessage = {
+        id: 'temp-' + Date.now(),
+        grupo_id: selectedCategory.toLowerCase().replace(/\s+/g, '_'),
+        tipo: "padre_a_grupo",
+        remitente_email: user.email,
+        remitente_nombre: user.full_name,
+        mensaje: newMensaje,
+        created_date: new Date().toISOString(),
+        leido: false,
+        archivos_adjuntos: []
+      };
+      
+      queryClient.setQueryData(['coachGroupMessages', selectedCategory, user?.email], old => [...(old || []), optimisticMessage]);
+      
+      return { previousMessages };
+    },
+    onError: (err, newMensaje, context) => {
+      queryClient.setQueryData(['coachGroupMessages', selectedCategory, user?.email], context.previousMessages);
+      toast.error("Error al enviar mensaje");
+    },
     onSuccess: async () => {
-      // Refetch INMEDIATO sin esperar
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ['coachGroupMessages'] }),
+        queryClient.invalidateQueries({ queryKey: ['allCoachGroupMessages'] }),
         queryClient.refetchQueries({ queryKey: ['coachGroupMessages'] }),
       ]);
     },

@@ -421,14 +421,41 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
   const allSharedFiles = messages.flatMap(m => m.archivos_adjuntos || []);
 
   const sendMessageMutation = useMutation({
+    onMutate: async (data) => {
+      await queryClient.cancelQueries({ queryKey: ['coordinatorMessages'] });
+      
+      const previousMessages = queryClient.getQueryData(['coordinatorMessages', conversation?.id]);
+      
+      const optimisticMessage = {
+        id: 'temp-' + Date.now(),
+        conversacion_id: conversation.id,
+        autor: isCoordinator ? "coordinador" : "padre",
+        autor_email: user.email,
+        autor_nombre: user.full_name || (isCoordinator ? "Coordinador" : "Padre"),
+        mensaje: data.mensaje,
+        created_date: new Date().toISOString(),
+        leido_coordinador: isCoordinator,
+        leido_padre: !isCoordinator,
+        archivos_adjuntos: data.archivos_adjuntos || [],
+        encuesta: data.encuesta,
+        ubicacion: data.ubicacion,
+        audio_url: data.audio_url,
+        audio_duracion: data.audio_duracion
+      };
+      
+      queryClient.setQueryData(['coordinatorMessages', conversation?.id], old => [...(old || []), optimisticMessage]);
+      
+      return { previousMessages };
+    },
+    onError: (err, data, context) => {
+      queryClient.setQueryData(['coordinatorMessages', conversation?.id], context.previousMessages);
+      toast.error("Error al enviar mensaje");
+    },
     mutationFn: async (data) => {
       const DIAS_SEMANA = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"];
       
-      // OBTENER SETTINGS ACTUALIZADOS
       const allSettings = await base44.entities.CoordinatorSettings.list();
       const currentSettings = allSettings.find(s => s.coordinador_email);
-      
-      console.log('📋 Settings del coordinador:', currentSettings);
       
       // ENVIAR RESPUESTA AUTOMÁTICA SI MODO AUSENTE ESTÁ ACTIVO (prioridad máxima)
       const shouldSendAutoReply = !isCoordinator && 
