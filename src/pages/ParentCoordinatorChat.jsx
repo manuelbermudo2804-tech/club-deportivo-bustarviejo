@@ -225,10 +225,35 @@ export default function ParentCoordinatorChat() {
   const allSharedFiles = messages.flatMap(m => m.adjuntos || []);
 
   const sendMessageMutation = useMutation({
-    mutationFn: async (data) => {
-      console.log('🚀 [PADRE COORDINADOR] Enviando mensaje:', data.mensaje);
+    onMutate: async (data) => {
+      await queryClient.cancelQueries({ queryKey: ['parentCoordinatorMessages'] });
       
-      // FILTRO DE PALABRAS OFENSIVAS/AGRESIVAS
+      const previousMessages = queryClient.getQueryData(['parentCoordinatorMessages', conversation?.id]);
+      
+      const optimisticMessage = {
+        id: 'temp-' + Date.now(),
+        conversacion_id: conversation.id,
+        autor: "padre",
+        autor_email: user.email,
+        autor_nombre: user.full_name,
+        mensaje: data.mensaje,
+        created_date: new Date().toISOString(),
+        leido_coordinador: false,
+        leido_padre: true,
+        archivos_adjuntos: data.archivos_adjuntos || []
+      };
+      
+      queryClient.setQueryData(['parentCoordinatorMessages', conversation?.id], old => [...(old || []), optimisticMessage]);
+      
+      return { previousMessages };
+    },
+    onError: (err, data, context) => {
+      if (!err.message?.includes("lenguaje inapropiado")) {
+        queryClient.setQueryData(['parentCoordinatorMessages', conversation?.id], context.previousMessages);
+        toast.error("Error al enviar mensaje");
+      }
+    },
+    mutationFn: async (data) => {
       const palabrasProhibidas = [
         "idiota", "estupido", "estúpido", "imbecil", "imbécil", "tonto", 
         "basura", "mierda", "maldito", "puto", "puta", "joder", "coño",
@@ -241,7 +266,6 @@ export default function ParentCoordinatorChat() {
       if (palabraEncontrada) {
         toast.error("🚫 Tu mensaje contiene lenguaje inapropiado y no puede ser enviado. Por favor, reformúlalo de forma respetuosa.");
         
-        // Registrar intento bloqueado
         const currentSeason = (() => {
           const now = new Date();
           const year = now.getFullYear();
@@ -263,7 +287,6 @@ export default function ParentCoordinatorChat() {
         throw new Error("Mensaje bloqueado por lenguaje inapropiado");
       }
 
-      // DETECTAR PALABRAS URGENTES
       const palabrasUrgentes = ["urgente", "grave", "lesión", "lesion", "accidente", "hospital", "ambulancia", "emergencia"];
       const palabraUrgente = palabrasUrgentes.find(p => mensajeLower.includes(p));
       
@@ -393,16 +416,11 @@ export default function ParentCoordinatorChat() {
       return newMessage;
     },
     onSuccess: async () => {
-      // Refetch INMEDIATO sin esperar
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ['parentCoordinatorMessages'] }),
         queryClient.invalidateQueries({ queryKey: ['coordinatorConversations'] }),
         queryClient.refetchQueries({ queryKey: ['parentCoordinatorMessages'] }),
       ]);
-      toast.success("Mensaje enviado");
-    },
-    onError: (error) => {
-      // No mostrar toast de error aquí - ya se mostró en el filtro
     }
   });
 

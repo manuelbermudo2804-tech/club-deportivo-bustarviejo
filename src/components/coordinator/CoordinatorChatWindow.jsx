@@ -456,14 +456,11 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
       
       const allSettings = await base44.entities.CoordinatorSettings.list();
       const currentSettings = allSettings.find(s => s.coordinador_email);
-      
-      // ENVIAR RESPUESTA AUTOMÁTICA SI MODO AUSENTE ESTÁ ACTIVO (prioridad máxima)
       const shouldSendAutoReply = !isCoordinator && 
         currentSettings?.modo_ausente === true && 
         currentSettings?.mensaje_ausente &&
         !conversation.auto_reply_sent_recently;
 
-      // VERIFICAR HORARIO LABORAL (solo si modo ausente NO está activo)
       let isOutsideWorkingHours = false;
       if (!isCoordinator && 
           !currentSettings?.modo_ausente &&
@@ -480,17 +477,6 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
         const isWithinHours = currentTime >= currentSettings.horario_inicio && currentTime <= currentSettings.horario_fin;
         
         isOutsideWorkingHours = !isWorkingDay || !isWithinHours;
-        
-        console.log('🕐 Verificación horario:', {
-          dayName,
-          currentTime,
-          horario_inicio: currentSettings.horario_inicio,
-          horario_fin: currentSettings.horario_fin,
-          dias_laborales: currentSettings.dias_laborales,
-          isWorkingDay,
-          isWithinHours,
-          isOutsideWorkingHours
-        });
       }
 
       const newMessage = await base44.entities.CoordinatorMessage.create({
@@ -541,9 +527,7 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
         }
       }
 
-      // ENVIAR RESPUESTA AUTOMÁTICA
       if (shouldSendAutoReply) {
-        console.log('🤖 Enviando respuesta automática - MODO AUSENTE');
         await base44.entities.CoordinatorMessage.create({
           conversacion_id: conversation.id,
           autor: "coordinador",
@@ -568,12 +552,9 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
             await base44.entities.CoordinatorConversation.update(conversation.id, {
               auto_reply_sent_recently: false
             });
-          } catch (err) {
-            console.log('Error resetting auto_reply flag:', err);
-          }
-        }, 3600000); // 1 hora
+          } catch (err) {}
+        }, 3600000);
       } else if (isOutsideWorkingHours && currentSettings?.mensaje_fuera_horario) {
-        console.log('⏰ Enviando mensaje fuera de horario');
         await base44.entities.CoordinatorMessage.create({
           conversacion_id: conversation.id,
           autor: "coordinador",
