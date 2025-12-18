@@ -44,17 +44,27 @@ Deno.serve(async (req) => {
 
     console.log('📄 HTML length:', html.length);
     console.log('🔍 Tables found:', $('table').length);
+    console.log('🔍 All elements with data:', $('[data-id], .clasificacion, .tabla-clasificacion, #clasificacion').length);
 
     // Extraer clasificación
     const clasificacion = [];
     const resultados = [];
 
-    // Estrategia mejorada: buscar TODAS las filas con td
+    // Imprimir primeras 2000 caracteres para debug
+    console.log('HTML PREVIEW:', html.substring(0, 2000));
+
+    // Estrategia 1: Buscar tabla por clase o id común
+    const tablaClasificacion = $('.tabla-clasificacion, .clasificacion, table.table, .table-responsive table').first();
+    if (tablaClasificacion.length > 0) {
+      console.log('✅ Tabla clasificación encontrada por clase');
+    }
+
+    // Estrategia 2: buscar TODAS las filas con td en TODAS las tablas
     $('table').each((tableIndex, table) => {
       const $table = $(table);
       const rows = $table.find('tr');
       
-      console.log(`📊 Table ${tableIndex}: ${rows.length} rows`);
+      console.log(`📊 Table ${tableIndex}: ${rows.length} rows, classes: ${$table.attr('class') || 'none'}`);
       
       rows.each((rowIndex, row) => {
         const $row = $(row);
@@ -62,53 +72,63 @@ Deno.serve(async (req) => {
         
         if (cells.length === 0) return;
         
-        // Extraer TODO el texto de cada celda
+        // Extraer TODO el contenido de cada celda (texto + HTML)
         const allText = [];
+        const allHtml = [];
         cells.each((i, cell) => {
-          const text = $(cell).text().trim().replace(/\s+/g, ' ');
+          const $cell = $(cell);
+          const text = $cell.text().trim().replace(/\s+/g, ' ');
+          const html = $cell.html();
           allText.push(text);
+          allHtml.push(html);
         });
         
-        console.log(`  Row ${rowIndex}: [${allText.join(' | ')}]`);
+        console.log(`  Row ${rowIndex} (${cells.length} cells): [${allText.join(' | ')}]`);
         
-        // Detectar si es fila de clasificación (debe tener al menos 7 celdas)
-        if (allText.length >= 7) {
+        // Debe tener al menos 5 columnas para ser clasificación
+        if (allText.length >= 5) {
           // Buscar nombre del equipo (texto largo, no número puro)
           let equipoText = '';
           let equipoIndex = -1;
           
-          // El equipo suele estar en columnas 1-3
-          for (let i = 0; i < Math.min(5, allText.length); i++) {
+          // Recorrer todas las columnas buscando el nombre del equipo
+          for (let i = 0; i < allText.length; i++) {
             const text = allText[i];
-            // Debe tener al menos 4 caracteres y contener letras
-            if (text.length >= 4 && /[a-zA-Z]/.test(text) && isNaN(parseInt(text))) {
+            // El equipo debe: tener letras, más de 3 chars, no ser solo número
+            if (text.length > 3 && /[a-zA-ZáéíóúÁÉÍÓÚñÑ]/.test(text) && !/^\d+$/.test(text)) {
               equipoText = text;
               equipoIndex = i;
               break;
             }
           }
           
-          // Buscar puntos (número en últimas 3 columnas)
+          // Buscar puntos (número en las últimas 4 columnas)
           let puntos = null;
-          for (let i = allText.length - 1; i >= Math.max(0, allText.length - 3); i--) {
-            const num = parseInt(allText[i]);
-            if (!isNaN(num) && num >= 0 && num <= 150) {
+          let puntosIndex = -1;
+          for (let i = allText.length - 1; i >= Math.max(0, allText.length - 4); i--) {
+            const text = allText[i].replace(/\s/g, '');
+            const num = parseInt(text);
+            if (!isNaN(num) && num >= 0 && num <= 200) {
               puntos = num;
+              puntosIndex = i;
               break;
             }
           }
           
           // Si encontramos equipo Y puntos, es una fila válida
           if (equipoText && puntos !== null) {
-            // Extraer posición (primera columna numérica)
-            let posicion = rowIndex;
-            const primerNum = parseInt(allText[0]);
+            // Extraer posición
+            let posicion = clasificacion.length + 1;
+            const primerTexto = allText[0].replace(/[^\d]/g, '');
+            const primerNum = parseInt(primerTexto);
             if (!isNaN(primerNum) && primerNum > 0 && primerNum < 50) {
               posicion = primerNum;
             }
             
-            // Intentar extraer estadísticas (después del equipo)
-            const stats = allText.slice(equipoIndex + 1);
+            // Extraer estadísticas entre equipo y puntos
+            const statsStart = equipoIndex + 1;
+            const statsEnd = puntosIndex;
+            const stats = allText.slice(statsStart, statsEnd);
             
             clasificacion.push({
               posicion,
@@ -120,10 +140,11 @@ Deno.serve(async (req) => {
               perdidos: stats[3] || '',
               goles_favor: stats[4] || '',
               goles_contra: stats[5] || '',
-              _raw_data: allText
+              _raw_data: allText,
+              _table_index: tableIndex
             });
             
-            console.log(`  ✅ Equipo detectado: ${equipoText} - ${puntos} pts`);
+            console.log(`  ✅ EQUIPO: ${equipoText} - ${puntos} pts (pos: ${posicion})`);
           }
         }
       });
