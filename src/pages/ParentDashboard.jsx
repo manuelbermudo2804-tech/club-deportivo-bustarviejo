@@ -350,6 +350,10 @@ export default function ParentDashboard() {
       normalizeSeason(p.temporada) === normalizeSeason(currentSeason)
     );
     
+    console.log(`💳 [PAGOS DEBUG] Jugador: ${player.nombre}`);
+    console.log(`  - Temporada actual: ${currentSeason}`);
+    console.log(`  - Pagos encontrados:`, playerPayments.map(p => ({ mes: p.mes, estado: p.estado, temporada: p.temporada })));
+    
     // Verificar si tiene plan personalizado
     const customPlan = customPaymentPlans.find(p => 
       p.jugador_id === player.id && 
@@ -403,24 +407,39 @@ export default function ParentDashboard() {
           
           const isOverdue = deadlineDate && now >= deadlineDate;
 
+          console.log(`  📅 Mes: ${mes}`);
+          console.log(`    - Fecha límite: ${deadlineDate?.toISOString()}`);
+          console.log(`    - Hoy: ${now.toISOString()}`);
+          console.log(`    - ¿Vencido?: ${isOverdue}`);
+          console.log(`    - Pago existe?: ${!!payment}`);
+          if (payment) console.log(`    - Estado pago: ${payment.estado}`);
+
           if (!payment) {
             if (isOverdue) {
+              console.log(`    ✅ CONTANDO como VENCIDO (no existe pago)`);
               overduePaymentsCount++;
             } else {
+              console.log(`    ✅ CONTANDO como PENDIENTE NO VENCIDO (no existe pago)`);
               pagosPendientesNoVencidos++;
             }
           } else if (payment.estado === "Pendiente") {
             if (isOverdue) {
+              console.log(`    ✅ CONTANDO como VENCIDO (estado Pendiente)`);
               overduePaymentsCount++;
             } else {
+              console.log(`    ✅ CONTANDO como PENDIENTE NO VENCIDO (estado Pendiente)`);
               pagosPendientesNoVencidos++;
             }
           } else if (payment.estado === "En revisión") {
             if (isOverdue) {
+              console.log(`    ✅ CONTANDO como VENCIDO (estado En revisión)`);
               overduePaymentsCount++;
             } else {
+              console.log(`    ✅ CONTANDO como EN REVISIÓN NO VENCIDO`);
               pagosEnRevisionNoVencidos++;
             }
+          } else {
+            console.log(`    ℹ️ NO se cuenta (estado: ${payment.estado})`);
           }
         });
       }
@@ -429,7 +448,11 @@ export default function ParentDashboard() {
 
   const pendingPayments = pagosPendientesNoVencidos + pagosEnRevisionNoVencidos + overduePaymentsCount;
 
-
+  console.log('📊 [PAGOS RESUMEN]');
+  console.log(`  - Vencidos (rojos): ${overduePaymentsCount}`);
+  console.log(`  - Pendientes NO vencidos (amarillos): ${pagosPendientesNoVencidos}`);
+  console.log(`  - En revisión NO vencidos (azules): ${pagosEnRevisionNoVencidos}`);
+  console.log(`  - TOTAL: ${pendingPayments}`);
 
   // Menú base que siempre se muestra (sin depender de datos cargados)
   const baseMenuItems = [
