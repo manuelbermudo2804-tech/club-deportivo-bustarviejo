@@ -1038,8 +1038,9 @@ export default function Layout({ children, currentPageName }) {
             { title: "🎁 Trae un Socio Amigo", url: createPageUrl("ReferralManagement"), icon: Gift },
         { title: "⚽👧 Fútbol Femenino", url: createPageUrl("FemeninoInterests"), icon: Users },
 
-            // 🎉 CONTENIDO
-    { title: "🎉 Gestión Eventos", url: createPageUrl("EventManagement"), icon: Calendar },
+                // 🎉 CONTENIDO
+        { title: "🎉 Gestión Eventos", url: createPageUrl("EventManagement"), icon: Calendar },
+        { title: "🔍 Scraper RFFM", url: createPageUrl("RFFMScraper"), icon: Download },
     { title: "🖼️ Galería", url: createPageUrl("Gallery"), icon: Image },
 
     // ⚙️ CONFIGURACIÓN
