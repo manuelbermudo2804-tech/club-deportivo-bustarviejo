@@ -18,11 +18,17 @@ import { toast } from "sonner";
 import AchievementsBadges from "../components/dashboard/AchievementsBadges";
 import AlertCenter from "../components/dashboard/AlertCenter";
 import PlayerForm from "../components/players/PlayerForm";
+import InscriptionPaymentFlow from "../components/inscriptions/InscriptionPaymentFlow";
+import InscriptionSuccessScreen from "../components/inscriptions/InscriptionSuccessScreen";
 
 export default function PlayerDashboard() {
   const [user, setUser] = useState(null);
   const [showEditProfile, setShowEditProfile] = useState(false);
   const [showCreateProfile, setShowCreateProfile] = useState(false);
+  const [showPaymentFlow, setShowPaymentFlow] = useState(false);
+  const [pendingPlayerData, setPendingPlayerData] = useState(null);
+  const [showInscriptionSuccess, setShowInscriptionSuccess] = useState(false);
+  const [inscriptionSuccessData, setInscriptionSuccessData] = useState(null);
   const queryClient = useQueryClient();
 
   useEffect(() => {
@@ -152,6 +158,13 @@ export default function PlayerDashboard() {
     initialData: null,
   });
 
+  // Configuración de categorías
+  const { data: categoryConfigs = [] } = useQuery({
+    queryKey: ['categoryConfigs'],
+    queryFn: () => base44.entities.CategoryConfig.list(),
+    staleTime: 300000,
+  });
+
   // Conversación con admin (si existe)
   const { data: adminConversation } = useQuery({
     queryKey: ['playerAdminConversation', user?.email],
@@ -220,6 +233,70 @@ export default function PlayerDashboard() {
     );
   }
 
+  // Flujo de pago para nueva inscripción de jugador +18
+  if (showPaymentFlow && pendingPlayerData) {
+    return (
+      <div className="fixed inset-0 z-[100] bg-black/60 flex items-center justify-center p-4 overflow-y-auto">
+        <div className="max-w-2xl w-full my-8">
+          <InscriptionPaymentFlow
+            playerData={pendingPlayerData}
+            seasonConfig={seasonConfig}
+            categoryConfigs={categoryConfigs}
+            descuentoHermano={0}
+            onContinue={async (paymentsData) => {
+              try {
+                console.log('📝 [PlayerDashboard] Creando perfil de jugador con pagos...');
+                const newPlayer = await base44.entities.Player.create(pendingPlayerData);
+                
+                // Crear pagos
+                if (paymentsData?.payments) {
+                  for (const payment of paymentsData.payments) {
+                    await base44.entities.Payment.create({
+                      ...payment,
+                      jugador_id: newPlayer.id,
+                      jugador_nombre: newPlayer.nombre
+                    });
+                  }
+                }
+                
+                await base44.auth.updateMe({ player_id: newPlayer.id });
+                
+                // Mostrar pantalla de éxito
+                setInscriptionSuccessData({
+                  player: newPlayer,
+                  tipoPago: paymentsData.tipoPago,
+                  cuotasGeneradas: paymentsData.payments,
+                  descuentoHermano: 0
+                });
+                setShowPaymentFlow(false);
+                setShowInscriptionSuccess(true);
+              } catch (error) {
+                console.error('❌ Error creating player profile:', error);
+                toast.error("Error al crear el perfil");
+              }
+            }}
+          />
+        </div>
+      </div>
+    );
+  }
+
+  // Pantalla de éxito inscripción
+  if (showInscriptionSuccess && inscriptionSuccessData) {
+    return (
+      <InscriptionSuccessScreen
+        player={inscriptionSuccessData.player}
+        tipoPago={inscriptionSuccessData.tipoPago}
+        cuotasGeneradas={inscriptionSuccessData.cuotasGeneradas}
+        descuentoHermano={0}
+        onClose={() => {
+          setShowInscriptionSuccess(false);
+          window.location.reload();
+        }}
+      />
+    );
+  }
+
   if (!player) {
     return (
       <div className="p-6">
@@ -232,31 +309,25 @@ export default function PlayerDashboard() {
                 Para acceder al panel de jugador, necesitas completar tu ficha de registro.
               </p>
             </div>
-            {showCreateProfile ? (
+            {showCreateProfile && !showPaymentFlow ? (
               <PlayerForm
                 player={null}
-                onSubmit={async (playerData) => {
-                  try {
-                    console.log('📝 [PlayerDashboard] Creando perfil de jugador...');
-                    const newPlayer = await base44.entities.Player.create({
-                      ...playerData,
-                      es_mayor_edad: true,
-                      email_jugador: user.email,
-                      email_padre: user.email,
-                      acceso_jugador_autorizado: true,
-                      activo: true,
-                      tipo_inscripcion: "Nueva Inscripción"
-                    });
-                    
-                    await base44.auth.updateMe({ player_id: newPlayer.id });
-                    
-                    toast.success("✅ Perfil creado correctamente");
-                    queryClient.invalidateQueries({ queryKey: ['myPlayerProfile'] });
-                    window.location.reload();
-                  } catch (error) {
-                    console.error('❌ Error creating player profile:', error);
-                    toast.error("Error al crear el perfil");
-                  }
+                onSubmit={(playerData) => {
+                  // Guardar datos y mostrar flujo de pago
+                  setPendingPlayerData({
+                    ...playerData,
+                    es_mayor_edad: true,
+                    email_jugador: user.email,
+                    email_padre: user.email,
+                    acceso_jugador_autorizado: true,
+                    activo: true,
+                    tipo_inscripcion: "Nueva Inscripción",
+                    tiene_descuento_hermano: false,
+                    descuento_aplicado: 0,
+                    _descuentoCalculado: 0
+                  });
+                  setShowCreateProfile(false);
+                  setShowPaymentFlow(true);
                 }}
                 onCancel={() => setShowCreateProfile(false)}
                 isAdultPlayerSelfRegistration={true}
@@ -744,7 +815,7 @@ export default function PlayerDashboard() {
         </Link>
       </div>
 
-      {/* Dialog Editar Perfil */}
+      {/* Dialog Editar Perfil - Sin flujo de pago */}
       <Dialog open={showEditProfile} onOpenChange={setShowEditProfile}>
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
@@ -760,7 +831,7 @@ export default function PlayerDashboard() {
                 await base44.entities.Player.update(player.id, data);
                 toast.success("✅ Perfil actualizado correctamente");
                 setShowEditProfile(false);
-                window.location.reload();
+                queryClient.invalidateQueries({ queryKey: ['myPlayerProfile'] });
               } catch (error) {
                 toast.error("Error al actualizar el perfil");
               }
