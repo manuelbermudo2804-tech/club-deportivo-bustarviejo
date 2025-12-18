@@ -340,8 +340,8 @@ export default function ParentDashboard() {
   const currentSeason = getCurrentSeason();
   const normalizeSeason = (season) => season?.replace(/-/g, '/') || currentSeason;
 
-  let pagosSinJustificante = 0;
-  let pagosEnRevision = 0;
+  let pagosPendientesNoVencidos = 0;
+  let pagosEnRevisionNoVencidos = 0;
   let overduePaymentsCount = 0;
 
   myPlayers.forEach(player => {
@@ -361,28 +361,28 @@ export default function ParentDashboard() {
       // Con plan personalizado
       customPlan.cuotas_personalizadas.forEach(cuota => {
         const payment = playerPayments.find(p => p.mes === cuota.mes);
+        const now = new Date();
+        const isOverdue = cuota.fecha_vencimiento && now >= new Date(cuota.fecha_vencimiento);
 
         if (!payment) {
-          pagosSinJustificante++;
-          // Verificar vencimiento
-          if (cuota.fecha_vencimiento) {
-            const now = new Date();
-            const vencimiento = new Date(cuota.fecha_vencimiento);
-            if (now >= vencimiento) overduePaymentsCount++;
+          if (isOverdue) {
+            overduePaymentsCount++;
+          } else {
+            pagosPendientesNoVencidos++;
           }
-        } else if (payment.estado === "Pendiente" && !payment.justificante_url) {
-          // Solo contar como "sin justificante" si NO tiene justificante subido
-          pagosSinJustificante++;
-          // Verificar vencimiento solo si NO tiene justificante
-          if (cuota.fecha_vencimiento) {
-            const now = new Date();
-            const vencimiento = new Date(cuota.fecha_vencimiento);
-            if (now >= vencimiento) overduePaymentsCount++;
+        } else if (payment.estado === "Pendiente") {
+          if (isOverdue) {
+            overduePaymentsCount++;
+          } else {
+            pagosPendientesNoVencidos++;
           }
         } else if (payment.estado === "En revisión") {
-          pagosEnRevision++;
+          if (isOverdue) {
+            overduePaymentsCount++;
+          } else {
+            pagosEnRevisionNoVencidos++;
+          }
         }
-        // Si está "Pagado" o reconciliado → NO contar como pendiente
       });
     } else {
       // Sistema estándar
@@ -393,49 +393,41 @@ export default function ParentDashboard() {
       if (!hasPagoUnico) {
         ["Junio", "Septiembre", "Diciembre"].forEach(mes => {
           const payment = playerPayments.find(p => p.mes === mes);
+          
+          const now = new Date();
+          const [year1] = currentSeason.split('/').map(y => parseInt(y));
+          let deadlineDate;
+          if (mes === "Junio") deadlineDate = new Date(year1, 5, 30);
+          else if (mes === "Septiembre") deadlineDate = new Date(year1, 8, 15);
+          else if (mes === "Diciembre") deadlineDate = new Date(year1, 11, 15);
+          
+          const isOverdue = deadlineDate && now >= deadlineDate;
 
-          // SOLO contar como pendiente si:
-          // 1. No existe el pago, O
-          // 2. Existe pero está en estado "Pendiente" Y NO tiene justificante
-          // 3. Existe y está en estado "En revisión"
-          // NO contar si está "Pagado" (aunque no esté reconciliado)
           if (!payment) {
-            pagosSinJustificante++;
-            // Verificar vencimiento
-            const now = new Date();
-            const [year1] = currentSeason.split('/').map(y => parseInt(y));
-            let deadlineDate;
-            if (mes === "Junio") deadlineDate = new Date(year1, 5, 30);
-            else if (mes === "Septiembre") deadlineDate = new Date(year1, 8, 15);
-            else if (mes === "Diciembre") deadlineDate = new Date(year1, 11, 15);
-
-            if (deadlineDate && now >= deadlineDate) {
+            if (isOverdue) {
               overduePaymentsCount++;
+            } else {
+              pagosPendientesNoVencidos++;
             }
-          } else if (payment.estado === "Pendiente" && !payment.justificante_url) {
-            // Solo si NO tiene justificante subido
-            pagosSinJustificante++;
-            // Verificar vencimiento solo si NO tiene justificante
-            const now = new Date();
-            const [year1] = currentSeason.split('/').map(y => parseInt(y));
-            let deadlineDate;
-            if (mes === "Junio") deadlineDate = new Date(year1, 5, 30);
-            else if (mes === "Septiembre") deadlineDate = new Date(year1, 8, 15);
-            else if (mes === "Diciembre") deadlineDate = new Date(year1, 11, 15);
-
-            if (deadlineDate && now >= deadlineDate) {
+          } else if (payment.estado === "Pendiente") {
+            if (isOverdue) {
               overduePaymentsCount++;
+            } else {
+              pagosPendientesNoVencidos++;
             }
           } else if (payment.estado === "En revisión") {
-            pagosEnRevision++;
+            if (isOverdue) {
+              overduePaymentsCount++;
+            } else {
+              pagosEnRevisionNoVencidos++;
+            }
           }
-          // Si payment.estado === "Pagado" → NO contar (aunque no esté reconciliado)
         });
       }
     }
   });
 
-  const pendingPayments = pagosSinJustificante + pagosEnRevision;
+  const pendingPayments = pagosPendientesNoVencidos + pagosEnRevisionNoVencidos + overduePaymentsCount;
 
 
 
@@ -689,8 +681,8 @@ export default function ParentDashboard() {
               return firma && !firma.firmado && !firma.confirmado_firma_externa;
             });
           }).length : 0}
-          pendingPayments={pagosSinJustificante}
-          paymentsInReview={pagosEnRevision}
+          pendingPayments={pagosPendientesNoVencidos}
+          paymentsInReview={pagosEnRevisionNoVencidos}
           pendingSurveys={activeSurveys.length}
           pendingSignatures={pendingFederationSignatures}
           upcomingEvents={0}
@@ -800,11 +792,13 @@ export default function ParentDashboard() {
               <div className="text-2xl lg:text-4xl font-bold text-red-500 mb-1">
                 {pendingPayments}
               </div>
-              <div className="text-slate-400 text-[10px] lg:text-sm">Pagos Pendientes</div>
+              <div className="text-slate-400 text-[10px] lg:text-sm">Pagos Totales</div>
               <div className="text-slate-500 text-[8px] lg:text-[10px] mt-1">
-                {pagosSinJustificante > 0 && `${pagosSinJustificante} sin justif.`}
-                {pagosSinJustificante > 0 && pagosEnRevision > 0 && ' • '}
-                {pagosEnRevision > 0 && `${pagosEnRevision} en revisión`}
+                {overduePaymentsCount > 0 && `${overduePaymentsCount} vencidos`}
+                {overduePaymentsCount > 0 && (pagosPendientesNoVencidos > 0 || pagosEnRevisionNoVencidos > 0) && ' • '}
+                {pagosPendientesNoVencidos > 0 && `${pagosPendientesNoVencidos} pendientes`}
+                {pagosPendientesNoVencidos > 0 && pagosEnRevisionNoVencidos > 0 && ' • '}
+                {pagosEnRevisionNoVencidos > 0 && `${pagosEnRevisionNoVencidos} en revisión`}
               </div>
             </div>
             <div className="text-center">
