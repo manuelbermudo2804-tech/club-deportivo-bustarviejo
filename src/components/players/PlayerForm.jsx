@@ -993,8 +993,8 @@ export default function PlayerForm({ player, onSubmit, onCancel, isSubmitting, i
               </div>
             </div>
 
-            {/* DATOS DEL TUTOR LEGAL - NUNCA mostrar si isAdultPlayerSelfRegistration */}
-            {!isAdultPlayerSelfRegistration && !isMayorDeEdad && (
+            {/* DATOS DEL TUTOR LEGAL - SOLO si NO es auto-registro de +18 */}
+            {!isAdultPlayerSelfRegistration && (
               <div className="space-y-4 border-2 border-green-200 rounded-lg p-6 bg-green-50">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
@@ -1186,8 +1186,8 @@ export default function PlayerForm({ player, onSubmit, onCancel, isSubmitting, i
               </div>
             )}
 
-            {/* DATOS DEL JUGADOR MAYOR DE EDAD - Solo para auto-registro */}
-            {isMayorDeEdad && isAdultPlayerSelfRegistration && (
+            {/* DATOS DEL JUGADOR MAYOR DE EDAD - SOLO si es auto-registro de +18 */}
+            {isAdultPlayerSelfRegistration && (
               <div className="space-y-4 border-2 border-purple-200 rounded-lg p-6 bg-purple-50">
                 <div className="flex items-center gap-2">
                   <Users className="w-6 h-6 text-purple-600" />
@@ -1294,8 +1294,8 @@ export default function PlayerForm({ player, onSubmit, onCancel, isSubmitting, i
               </div>
             </div>
 
-            {/* SEGUNDO PROGENITOR - NUNCA mostrar si isAdultPlayerSelfRegistration */}
-            {!isAdultPlayerSelfRegistration && !isMayorDeEdad && (
+            {/* SEGUNDO PROGENITOR - SOLO si NO es auto-registro de +18 */}
+            {!isAdultPlayerSelfRegistration && (
               <SecondParentSection
                 currentPlayer={currentPlayer}
                 setCurrentPlayer={setCurrentPlayer}
