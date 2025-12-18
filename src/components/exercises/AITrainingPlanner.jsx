@@ -208,19 +208,43 @@ También incluye:
                   <SelectValue placeholder="Selecciona..." />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="Resistencia - Capacidad Aeróbica">💨 Resistencia - Capacidad</SelectItem>
-                  <SelectItem value="Resistencia - Potencia Aeróbica">⚡ Resistencia - Potencia</SelectItem>
-                  <SelectItem value="Técnica Individual">🎯 Técnica Individual</SelectItem>
-                  <SelectItem value="Táctica Colectiva">🧠 Táctica Colectiva</SelectItem>
-                  <SelectItem value="Posesión y Rondos">⚽ Posesión y Rondos</SelectItem>
-                  <SelectItem value="Transiciones">🔄 Transiciones</SelectItem>
-                  <SelectItem value="Finalización">🥅 Finalización</SelectItem>
-                  <SelectItem value="Pressing y Recuperación">⚡ Pressing y Recuperación</SelectItem>
-                  <SelectItem value="Velocidad y Explosividad">🚀 Velocidad y Explosividad</SelectItem>
-                  <SelectItem value="Fuerza">💪 Fuerza</SelectItem>
-                  <SelectItem value="Coordinación">🤸 Coordinación</SelectItem>
-                  <SelectItem value="Partido Reducido">⚽ Juegos Reducidos</SelectItem>
-                  <SelectItem value="Recuperación Activa">🧘 Recuperación Activa</SelectItem>
+                  {sport === "Fútbol" ? (
+                    <>
+                      <SelectItem value="Resistencia - Capacidad Aeróbica">💨 Resistencia - Capacidad</SelectItem>
+                      <SelectItem value="Resistencia - Potencia Aeróbica">⚡ Resistencia - Potencia</SelectItem>
+                      <SelectItem value="Técnica Individual">🎯 Técnica Individual</SelectItem>
+                      <SelectItem value="Táctica Colectiva">🧠 Táctica Colectiva</SelectItem>
+                      <SelectItem value="Posesión y Rondos">⚽ Posesión y Rondos</SelectItem>
+                      <SelectItem value="Transiciones">🔄 Transiciones</SelectItem>
+                      <SelectItem value="Finalización">🥅 Finalización</SelectItem>
+                      <SelectItem value="Pressing y Recuperación">⚡ Pressing y Recuperación</SelectItem>
+                      <SelectItem value="Velocidad y Explosividad">🚀 Velocidad y Explosividad</SelectItem>
+                      <SelectItem value="Fuerza">💪 Fuerza</SelectItem>
+                      <SelectItem value="Coordinación">🤸 Coordinación</SelectItem>
+                      <SelectItem value="Partido Reducido">⚽ Juegos Reducidos</SelectItem>
+                      <SelectItem value="Recuperación Activa">🧘 Recuperación Activa</SelectItem>
+                    </>
+                  ) : (
+                    <>
+                      <SelectItem value="Resistencia - Capacidad Aeróbica">💨 Resistencia - Capacidad</SelectItem>
+                      <SelectItem value="Resistencia - Potencia Aeróbica">⚡ Resistencia - Potencia</SelectItem>
+                      <SelectItem value="Técnica Individual">🎯 Técnica Individual</SelectItem>
+                      <SelectItem value="Táctica Colectiva">🧠 Táctica Colectiva</SelectItem>
+                      <SelectItem value="Tiro y Anotación">🏀 Tiro y Anotación</SelectItem>
+                      <SelectItem value="Pases y Recepción">🤝 Pases y Recepción</SelectItem>
+                      <SelectItem value="Bote y Manejo">⛹️ Bote y Manejo</SelectItem>
+                      <SelectItem value="Bloqueos Directos">🔄 Bloqueos Directos (Pick & Roll)</SelectItem>
+                      <SelectItem value="Contraataque">⚡ Contraataque</SelectItem>
+                      <SelectItem value="Rebote y Posicionamiento">📊 Rebote y Posicionamiento</SelectItem>
+                      <SelectItem value="Defensa Individual">🛡️ Defensa Individual</SelectItem>
+                      <SelectItem value="Defensa en Zona">🛡️ Defensa en Zona</SelectItem>
+                      <SelectItem value="Velocidad y Explosividad">🚀 Velocidad y Explosividad</SelectItem>
+                      <SelectItem value="Fuerza">💪 Fuerza</SelectItem>
+                      <SelectItem value="Coordinación">🤸 Coordinación</SelectItem>
+                      <SelectItem value="Juego 5 contra 5">🏀 Juego 5 contra 5</SelectItem>
+                      <SelectItem value="Recuperación Activa">🧘 Recuperación Activa</SelectItem>
+                    </>
+                  )}
                 </SelectContent>
               </Select>
             </div>
