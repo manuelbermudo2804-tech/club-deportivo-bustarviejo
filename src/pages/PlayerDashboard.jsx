@@ -210,6 +210,43 @@ export default function PlayerDashboard() {
     initialData: [],
   });
 
+  // Compañeros de equipo
+  const { data: teammates = [] } = useQuery({
+    queryKey: ['teammates', player?.deporte],
+    queryFn: async () => {
+      const allPlayers = await base44.entities.Player.list();
+      return allPlayers.filter(p => 
+        p.deporte === player?.deporte && 
+        p.activo === true &&
+        p.id !== player?.id
+      ).slice(0, 12);
+    },
+    enabled: !!player?.deporte,
+    initialData: [],
+  });
+
+  // Pedidos de ropa del jugador
+  const { data: clothingOrders = [] } = useQuery({
+    queryKey: ['playerClothingOrders', player?.id],
+    queryFn: async () => {
+      const orders = await base44.entities.ClothingOrder.list('-created_date');
+      return orders.filter(o => o.jugador_id === player?.id);
+    },
+    enabled: !!player?.id,
+    initialData: [],
+  });
+
+  // Evaluaciones del jugador
+  const { data: evaluations = [] } = useQuery({
+    queryKey: ['playerEvaluations', player?.id],
+    queryFn: async () => {
+      const evals = await base44.entities.PlayerEvaluation.list('-fecha_evaluacion');
+      return evals.filter(e => e.jugador_id === player?.id);
+    },
+    enabled: !!player?.id,
+    initialData: [],
+  });
+
   // Calcular estadísticas de pagos
   const paymentStats = {
     pagados: (payments || []).filter(p => p.estado === "Pagado").length,
@@ -222,6 +259,32 @@ export default function PlayerDashboard() {
     const myConfirm = c.jugadores_convocados?.find(j => j.jugador_id === player?.id);
     return myConfirm?.confirmacion === "pendiente";
   });
+
+  // Calcular firmas pendientes
+  const calcularEdad = (fechaNac) => {
+    if (!fechaNac) return null;
+    const hoy = new Date();
+    const nacimiento = new Date(fechaNac);
+    let edad = hoy.getFullYear() - nacimiento.getFullYear();
+    const m = hoy.getMonth() - nacimiento.getMonth();
+    if (m < 0 || (m === 0 && hoy.getDate() < nacimiento.getDate())) edad--;
+    return edad;
+  };
+
+  let pendingSignatures = 0;
+  if (player?.enlace_firma_jugador && !player?.firma_jugador_completada) pendingSignatures++;
+  const esMayorDeEdad = calcularEdad(player?.fecha_nacimiento) >= 18;
+  if (player?.enlace_firma_tutor && !player?.firma_tutor_completada && !esMayorDeEdad) pendingSignatures++;
+
+  // Próximo partido (convocatoria más cercana)
+  const nextMatch = callups.length > 0 ? callups[0] : null;
+
+  // Calcular racha de asistencias
+  const myAttendances = attendances.filter(a => 
+    a.categoria === player?.deporte &&
+    a.asistencias?.some(asist => asist.jugador_id === player?.id && asist.estado === "presente")
+  );
+  const attendanceStreak = myAttendances.slice(0, 10).length; // Últimas 10 asistencias
 
   if (!user || loadingPlayer) {
     return (
@@ -474,6 +537,140 @@ export default function PlayerDashboard() {
           </CardContent>
         </Card>
 
+        {/* Logros e Insignias - Movido arriba */}
+        <Card className="border-2 border-purple-300 bg-gradient-to-r from-purple-50 to-pink-50 shadow-lg">
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="w-12 h-12 bg-gradient-to-br from-purple-600 to-pink-600 rounded-full flex items-center justify-center flex-shrink-0">
+                <Award className="w-6 h-6 text-white" />
+              </div>
+              <div className="flex-1">
+                <h3 className="font-bold text-purple-900">🏆 Mis Logros</h3>
+                <p className="text-xs text-purple-700">
+                  {attendanceStreak > 0 ? `🔥 Racha: ${attendanceStreak} asistencias` : 'Sigue entrenando'}
+                </p>
+              </div>
+            </div>
+            <AchievementsBadges 
+              player={player} 
+              attendances={attendances}
+              evaluations={evaluations}
+            />
+          </CardContent>
+        </Card>
+
+        {/* Countdown al próximo partido */}
+        {nextMatch && (
+          <Card className="border-2 border-yellow-300 bg-gradient-to-r from-yellow-50 to-orange-50 shadow-lg">
+            <CardContent className="p-4">
+              <div className="flex items-start gap-3">
+                <div className="w-12 h-12 bg-gradient-to-br from-yellow-600 to-orange-600 rounded-full flex items-center justify-center flex-shrink-0">
+                  <Trophy className="w-6 h-6 text-white" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="font-bold text-yellow-900 mb-1">⏰ Próximo Partido</h3>
+                  <p className="text-sm font-bold text-slate-900">{nextMatch.titulo}</p>
+                  <p className="text-xs text-slate-600">vs {nextMatch.rival} • {nextMatch.local_visitante}</p>
+                  <div className="flex items-center gap-2 mt-2 text-xs text-slate-500">
+                    <Calendar className="w-3 h-3" />
+                    {format(new Date(nextMatch.fecha_partido), "EEEE d MMM", { locale: es })} • {nextMatch.hora_partido}
+                  </div>
+                  {nextMatch.ubicacion && (
+                    <div className="flex items-center gap-1 mt-1 text-xs text-slate-500">
+                      <MapPin className="w-3 h-3" />
+                      {nextMatch.ubicacion}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Mi Equipo - Compañeros */}
+        {teammates.length > 0 && (
+          <Card className="border-2 border-blue-300 bg-gradient-to-r from-blue-50 to-cyan-50 shadow-lg">
+            <CardContent className="p-4">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="w-12 h-12 bg-gradient-to-br from-blue-600 to-cyan-600 rounded-full flex items-center justify-center flex-shrink-0">
+                  <Users className="w-6 h-6 text-white" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="font-bold text-blue-900">👥 Mi Equipo</h3>
+                  <p className="text-xs text-blue-700">{teammates.length} compañeros en {player.deporte}</p>
+                </div>
+              </div>
+              <div className="grid grid-cols-4 lg:grid-cols-6 gap-2">
+                {teammates.slice(0, 12).map(teammate => (
+                  <div key={teammate.id} className="text-center">
+                    {teammate.foto_url ? (
+                      <img 
+                        src={teammate.foto_url} 
+                        alt={teammate.nombre}
+                        className="w-12 h-12 lg:w-14 lg:h-14 rounded-full object-cover border-2 border-blue-400 mx-auto mb-1"
+                      />
+                    ) : (
+                      <div className="w-12 h-12 lg:w-14 lg:h-14 rounded-full bg-blue-200 flex items-center justify-center mx-auto mb-1">
+                        <User className="w-6 h-6 text-blue-600" />
+                      </div>
+                    )}
+                    <p className="text-[8px] lg:text-[10px] text-slate-700 font-medium truncate">
+                      {teammate.nombre.split(' ')[0]}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Alertas Importantes */}
+        {(pendingSignatures > 0 || pendingCallups.length > 0) && (
+          <div className="space-y-2">
+            {pendingSignatures > 0 && (
+              <Link to={createPageUrl("FederationSignatures")}>
+                <Card className="border-2 border-red-300 bg-red-50 shadow-lg hover:scale-105 transition-all">
+                  <CardContent className="p-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center">
+                        <FileSignature className="w-6 h-6 text-red-600 animate-pulse" />
+                      </div>
+                      <div className="flex-1">
+                        <h3 className="font-bold text-red-900">¡Firmas Pendientes!</h3>
+                        <p className="text-sm text-red-700">{pendingSignatures} firma{pendingSignatures > 1 ? 's' : ''} de federación pendiente{pendingSignatures > 1 ? 's' : ''}</p>
+                      </div>
+                      <Button size="sm" className="bg-red-600 hover:bg-red-700">
+                        Firmar
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              </Link>
+            )}
+
+            {pendingCallups.length > 0 && (
+              <Link to={createPageUrl("ParentCallups")}>
+                <Card className="border-2 border-yellow-300 bg-yellow-50 shadow-lg hover:scale-105 transition-all">
+                  <CardContent className="p-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-12 h-12 bg-yellow-100 rounded-full flex items-center justify-center">
+                        <Bell className="w-6 h-6 text-yellow-600 animate-pulse" />
+                      </div>
+                      <div className="flex-1">
+                        <h3 className="font-bold text-yellow-900">¡Convocatorias Pendientes!</h3>
+                        <p className="text-sm text-yellow-700">{pendingCallups.length} confirmación{pendingCallups.length > 1 ? 'es' : ''} pendiente{pendingCallups.length > 1 ? 's' : ''}</p>
+                      </div>
+                      <Button size="sm" className="bg-yellow-600 hover:bg-yellow-700">
+                        Confirmar
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              </Link>
+            )}
+          </div>
+        )}
+
         {/* Centro de Alertas */}
         <AlertCenter 
           user={user}
@@ -518,12 +715,32 @@ export default function PlayerDashboard() {
 
         {/* Grid de botones principales */}
         <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6 stagger-animation">
+          <Link to={createPageUrl("FederationSignatures")} className="group">
+            <div className="relative bg-slate-800 rounded-3xl overflow-hidden shadow-elegant-xl card-hover-glow transition-all duration-300 active:scale-95 border-2 border-slate-700 hover:border-orange-500 btn-hover-shine">
+              <div className="absolute inset-0 bg-gradient-to-br from-slate-700/50 to-black/80 opacity-60"></div>
+              <div className="absolute bottom-0 right-0 w-32 h-32 bg-gradient-to-tl from-yellow-600 to-orange-600 opacity-30 blur-2xl transition-opacity duration-300 group-hover:opacity-50"></div>
+              <div className="relative z-10 p-4 lg:p-8 flex flex-col items-center justify-center min-h-[140px] lg:min-h-[200px]">
+                <div className="w-12 h-12 lg:w-20 lg:h-20 rounded-2xl bg-gradient-to-br from-yellow-600 to-orange-600 flex items-center justify-center mb-3 lg:mb-4 shadow-2xl icon-hover-bounce">
+                  <FileSignature className="w-6 h-6 lg:w-10 lg:h-10 text-white" />
+                </div>
+                <h3 className="text-white font-bold text-center text-sm lg:text-lg mb-2">🖊️ Firmas Federación</h3>
+                {pendingSignatures > 0 && (
+                  <div className="bg-white/20 backdrop-blur-sm px-2 py-1 rounded-full badge-pulse">
+                    <p className="text-white text-[10px] lg:text-xs font-semibold">
+                      {pendingSignatures} pendientes
+                    </p>
+                  </div>
+                )}
+              </div>
+            </div>
+          </Link>
+
           <Link to={createPageUrl("ParentCallups")} className="group">
             <div className="relative bg-slate-800 rounded-3xl overflow-hidden shadow-elegant-xl card-hover-glow transition-all duration-300 active:scale-95 border-2 border-slate-700 hover:border-orange-500 btn-hover-shine">
               <div className="absolute inset-0 bg-gradient-to-br from-slate-700/50 to-black/80 opacity-60"></div>
-              <div className="absolute bottom-0 right-0 w-32 h-32 bg-gradient-to-tl from-yellow-600 to-yellow-700 opacity-30 blur-2xl transition-opacity duration-300 group-hover:opacity-50"></div>
+              <div className="absolute bottom-0 right-0 w-32 h-32 bg-gradient-to-tl from-blue-600 to-blue-700 opacity-30 blur-2xl transition-opacity duration-300 group-hover:opacity-50"></div>
               <div className="relative z-10 p-4 lg:p-8 flex flex-col items-center justify-center min-h-[140px] lg:min-h-[200px]">
-                <div className="w-12 h-12 lg:w-20 lg:h-20 rounded-2xl bg-gradient-to-br from-yellow-600 to-yellow-700 flex items-center justify-center mb-3 lg:mb-4 shadow-2xl icon-hover-bounce">
+                <div className="w-12 h-12 lg:w-20 lg:h-20 rounded-2xl bg-gradient-to-br from-blue-600 to-blue-700 flex items-center justify-center mb-3 lg:mb-4 shadow-2xl icon-hover-bounce">
                   <Bell className="w-6 h-6 lg:w-10 lg:h-10 text-white" />
                 </div>
                 <h3 className="text-white font-bold text-center text-sm lg:text-lg mb-2">🏆 Convocatorias</h3>
@@ -613,12 +830,32 @@ export default function PlayerDashboard() {
           <Link to={createPageUrl("Surveys")} className="group">
             <div className="relative bg-slate-800 rounded-3xl overflow-hidden shadow-elegant-xl card-hover-glow transition-all duration-300 active:scale-95 border-2 border-slate-700 hover:border-orange-500 btn-hover-shine">
               <div className="absolute inset-0 bg-gradient-to-br from-slate-700/50 to-black/80 opacity-60"></div>
-              <div className="absolute bottom-0 right-0 w-32 h-32 bg-gradient-to-tl from-purple-600 to-purple-700 opacity-30 blur-2xl transition-opacity duration-300 group-hover:opacity-50"></div>
+              <div className="absolute bottom-0 right-0 w-32 h-32 bg-gradient-to-tl from-violet-600 to-violet-700 opacity-30 blur-2xl transition-opacity duration-300 group-hover:opacity-50"></div>
               <div className="relative z-10 p-4 lg:p-8 flex flex-col items-center justify-center min-h-[140px] lg:min-h-[200px]">
-                <div className="w-12 h-12 lg:w-20 lg:h-20 rounded-2xl bg-gradient-to-br from-purple-600 to-purple-700 flex items-center justify-center mb-3 lg:mb-4 shadow-2xl icon-hover-bounce">
+                <div className="w-12 h-12 lg:w-20 lg:h-20 rounded-2xl bg-gradient-to-br from-violet-600 to-violet-700 flex items-center justify-center mb-3 lg:mb-4 shadow-2xl icon-hover-bounce">
                   <FileText className="w-6 h-6 lg:w-10 lg:h-10 text-white" />
                 </div>
                 <h3 className="text-white font-bold text-center text-sm lg:text-lg mb-2">📋 Encuestas</h3>
+              </div>
+            </div>
+          </Link>
+
+          <Link to={createPageUrl("ClothingOrders")} className="group">
+            <div className="relative bg-slate-800 rounded-3xl overflow-hidden shadow-elegant-xl card-hover-glow transition-all duration-300 active:scale-95 border-2 border-slate-700 hover:border-orange-500 btn-hover-shine">
+              <div className="absolute inset-0 bg-gradient-to-br from-slate-700/50 to-black/80 opacity-60"></div>
+              <div className="absolute bottom-0 right-0 w-32 h-32 bg-gradient-to-tl from-red-600 to-red-700 opacity-30 blur-2xl transition-opacity duration-300 group-hover:opacity-50"></div>
+              <div className="relative z-10 p-4 lg:p-8 flex flex-col items-center justify-center min-h-[140px] lg:min-h-[200px]">
+                <div className="w-12 h-12 lg:w-20 lg:h-20 rounded-2xl bg-gradient-to-br from-red-600 to-red-700 flex items-center justify-center mb-3 lg:mb-4 shadow-2xl icon-hover-bounce">
+                  <ShoppingBag className="w-6 h-6 lg:w-10 lg:h-10 text-white" />
+                </div>
+                <h3 className="text-white font-bold text-center text-sm lg:text-lg mb-2">🛍️ Pedidos Ropa</h3>
+                {clothingOrders.filter(o => o.estado !== "Entregado").length > 0 && (
+                  <div className="bg-white/20 backdrop-blur-sm px-2 py-1 rounded-full">
+                    <p className="text-white text-[10px] lg:text-xs font-semibold">
+                      {clothingOrders.filter(o => o.estado !== "Entregado").length} activos
+                    </p>
+                  </div>
+                )}
               </div>
             </div>
           </Link>
@@ -626,7 +863,7 @@ export default function PlayerDashboard() {
 
         {/* Stats footer */}
         <div className="bg-slate-800 rounded-3xl p-4 lg:p-6 shadow-2xl border-2 border-slate-700">
-          <div className="grid grid-cols-3 gap-4 lg:gap-6">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
             <div className="text-center">
               <div className="text-2xl lg:text-4xl font-bold text-green-500 mb-1">
                 {paymentStats.pagados}
@@ -644,6 +881,12 @@ export default function PlayerDashboard() {
                 {pendingCallups.length}
               </div>
               <div className="text-slate-400 text-[10px] lg:text-sm">Convocatorias</div>
+            </div>
+            <div className="text-center">
+              <div className="text-2xl lg:text-4xl font-bold text-purple-500 mb-1">
+                {attendanceStreak}
+              </div>
+              <div className="text-slate-400 text-[10px] lg:text-sm">🔥 Racha</div>
             </div>
           </div>
         </div>
