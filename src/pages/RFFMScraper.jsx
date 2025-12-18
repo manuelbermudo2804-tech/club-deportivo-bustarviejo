@@ -236,6 +236,28 @@ export default function RFFMScraper() {
             <CardTitle>🧪 Prueba Rápida (sin guardar)</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
+            <div className="space-y-3">
+              <Label>📋 Pega la URL completa de RFFM (se extraerán los datos automáticamente)</Label>
+              <Input
+                placeholder="https://www.rffm.es/competicion/clasificaciones?temporada=20&tipojuego=1&competicion=..."
+                onPaste={(e) => {
+                  const url = e.clipboardData.getData('text');
+                  try {
+                    const urlObj = new URL(url);
+                    const params = new URLSearchParams(urlObj.search);
+                    setTestConfig({
+                      temporada: params.get('temporada') || '20',
+                      tipo_juego: params.get('tipojuego') || '1',
+                      competicion_id: params.get('competicion') || '',
+                      grupo_id: params.get('grupo') || ''
+                    });
+                  } catch (err) {
+                    console.log('Error parsing URL:', err);
+                  }
+                }}
+              />
+            </div>
+
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               <div>
                 <Label>Temporada</Label>
