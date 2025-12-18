@@ -128,9 +128,17 @@ export default function NotificationCenter() {
 
   const urgentMessages = unreadMessagesRecent.filter(m => m.prioridad === "Urgente");
 
-  // App notifications - últimas 30 días
+  // App notifications - últimas 30 días, pero eliminar vistas después de 3 días
   const recentAppNotifications = (allNotifications || []).filter(n => {
     const daysAgo = Math.floor((new Date() - new Date(n.created_date)) / (1000 * 60 * 60 * 24));
+    
+    // Si fue vista, solo mostrar si tiene menos de 3 días desde que se vio
+    if (n.vista && n.fecha_vista) {
+      const daysSinceViewed = Math.floor((new Date() - new Date(n.fecha_vista)) / (1000 * 60 * 60 * 24));
+      return daysSinceViewed <= 3;
+    }
+    
+    // Si no fue vista, mostrar si tiene menos de 30 días
     return daysAgo <= 30;
   });
 
