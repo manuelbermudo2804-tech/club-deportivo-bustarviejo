@@ -18,6 +18,7 @@ export default function AIExerciseGenerator({ onExerciseGenerated, onCancel }) {
     jugadores: "",
     materiales: "",
     intensidad: "Media",
+    ubicacion: "campo",
     descripcionExtra: ""
   });
 
@@ -30,13 +31,33 @@ export default function AIExerciseGenerator({ onExerciseGenerated, onCancel }) {
     setIsGenerating(true);
 
     try {
+      let ubicacionContext = "";
+      if (formData.ubicacion === "casa") {
+        ubicacionContext = `
+UBICACIÓN: EJERCICIO PARA HACER EN CASA/HABITACIÓN
+- SIN materiales deportivos o solo con objetos caseros básicos (silla, toalla, botella de agua)
+- Espacio limitado (habitación pequeña, pasillo)
+- Ejercicio INDIVIDUAL que el jugador puede hacer solo
+- Enfocado en condición física general, coordinación, fuerza corporal
+- Sin necesidad de balón ni equipamiento deportivo`;
+      } else if (formData.ubicacion === "calle") {
+        ubicacionContext = `
+UBICACIÓN: EJERCICIO PARA HACER EN LA CALLE/PARQUE
+- Materiales mínimos (puede usar balón personal si tiene, pero no obligatorio)
+- Espacio abierto pero sin campo deportivo
+- Ejercicio INDIVIDUAL o en pareja/familia
+- Puede usar bancos, escaleras, muros del parque
+- Enfocado en resistencia, velocidad, saltos, agilidad`;
+      }
+
       const prompt = `Crea un ejercicio de entrenamiento físico para ${formData.deporte} con las siguientes características:
 
 OBJETIVO PRINCIPAL: ${formData.objetivo}
+${ubicacionContext}
 ${formData.edades ? `EDADES: ${formData.edades}` : ""}
 ${formData.duracion ? `DURACIÓN: ${formData.duracion} minutos` : ""}
-${formData.jugadores ? `NÚMERO DE JUGADORES: ${formData.jugadores}` : ""}
-${formData.materiales ? `MATERIALES DISPONIBLES: ${formData.materiales}` : ""}
+${formData.jugadores ? `NÚMERO DE JUGADORES: ${formData.jugadores}` : formData.ubicacion === "casa" || formData.ubicacion === "calle" ? "NÚMERO DE JUGADORES: 1 (individual)" : ""}
+${formData.materiales ? `MATERIALES DISPONIBLES: ${formData.materiales}` : formData.ubicacion === "casa" ? "MATERIALES: Ninguno o mínimos (silla, toalla, botella)" : formData.ubicacion === "calle" ? "MATERIALES: Mínimos (opcionalmente balón)" : ""}
 INTENSIDAD DESEADA: ${formData.intensidad}
 ${formData.descripcionExtra ? `NOTAS ADICIONALES: ${formData.descripcionExtra}` : ""}
 
@@ -114,17 +135,33 @@ IMPORTANTE:
       </div>
 
       <div className="space-y-3">
-        <div>
-          <Label htmlFor="deporte">Deporte</Label>
-          <Select value={formData.deporte} onValueChange={(v) => setFormData({...formData, deporte: v})}>
-            <SelectTrigger id="deporte">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="Fútbol">⚽ Fútbol</SelectItem>
-              <SelectItem value="Baloncesto">🏀 Baloncesto</SelectItem>
-            </SelectContent>
-          </Select>
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <Label htmlFor="deporte">Deporte</Label>
+            <Select value={formData.deporte} onValueChange={(v) => setFormData({...formData, deporte: v})}>
+              <SelectTrigger id="deporte">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="Fútbol">⚽ Fútbol</SelectItem>
+                <SelectItem value="Baloncesto">🏀 Baloncesto</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div>
+            <Label htmlFor="ubicacion">Dónde se hará</Label>
+            <Select value={formData.ubicacion} onValueChange={(v) => setFormData({...formData, ubicacion: v})}>
+              <SelectTrigger id="ubicacion">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="campo">⚽ En el campo/cancha</SelectItem>
+                <SelectItem value="casa">🏠 En casa (individual)</SelectItem>
+                <SelectItem value="calle">🏃 En la calle/parque</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
         </div>
 
         <div>
@@ -161,12 +198,15 @@ IMPORTANTE:
 
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <Label htmlFor="jugadores">Nº Jugadores</Label>
+            <Label htmlFor="jugadores">
+              Nº Jugadores {(formData.ubicacion === "casa" || formData.ubicacion === "calle") && "(opcional)"}
+            </Label>
             <Input
               id="jugadores"
-              placeholder="Ej: 8-12"
+              placeholder={formData.ubicacion === "casa" || formData.ubicacion === "calle" ? "Individual por defecto" : "Ej: 8-12"}
               value={formData.jugadores}
               onChange={(e) => setFormData({...formData, jugadores: e.target.value})}
+              disabled={formData.ubicacion === "casa"}
             />
           </div>
           <div>
@@ -186,10 +226,16 @@ IMPORTANTE:
         </div>
 
         <div>
-          <Label htmlFor="materiales">Materiales disponibles</Label>
+          <Label htmlFor="materiales">
+            Materiales disponibles {formData.ubicacion === "casa" && "(opcional - sin materiales por defecto)"}
+          </Label>
           <Input
             id="materiales"
-            placeholder="Ej: Conos, vallas, balones, aros..."
+            placeholder={
+              formData.ubicacion === "casa" ? "Ej: Silla, toalla, botella..." :
+              formData.ubicacion === "calle" ? "Ej: Balón, cuerda..." :
+              "Ej: Conos, vallas, balones, aros..."
+            }
             value={formData.materiales}
             onChange={(e) => setFormData({...formData, materiales: e.target.value})}
           />
