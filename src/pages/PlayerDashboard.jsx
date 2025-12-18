@@ -673,7 +673,7 @@ export default function PlayerDashboard() {
           </div>
         )}
 
-        {/* Centro de Alertas */}
+        {/* Centro de Alertas - Ahora visible para jugadores */}
         <AlertCenter 
           pendingCallups={pendingCallups.length}
           pendingSignatures={pendingSignatures}
