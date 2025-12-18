@@ -236,7 +236,7 @@ export default function RFFMScraper() {
             <CardTitle>🧪 Prueba Rápida (sin guardar)</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="grid grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               <div>
                 <Label>Temporada</Label>
                 <Input
@@ -271,7 +271,7 @@ export default function RFFMScraper() {
             <Button
               onClick={() => testScrapeMutation.mutate(testConfig)}
               disabled={testScrapeMutation.isPending || !testConfig.competicion_id || !testConfig.grupo_id}
-              className="bg-orange-600 hover:bg-orange-700"
+              className="w-full md:w-auto bg-orange-600 hover:bg-orange-700"
             >
               <Search className="w-4 h-4 mr-2" />
               {testScrapeMutation.isPending ? 'Extrayendo...' : 'Probar Scraping'}
