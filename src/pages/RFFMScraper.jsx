@@ -148,7 +148,7 @@ export default function RFFMScraper() {
               <CardTitle>➕ Añadir Nueva Liga</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <Label>Nombre de la Liga *</Label>
                   <Input
