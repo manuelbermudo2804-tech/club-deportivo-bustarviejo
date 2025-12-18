@@ -15,6 +15,7 @@ import { toast } from "sonner";
 import ExerciseCard from "../components/exercises/ExerciseCard";
 import ExerciseForm from "../components/exercises/ExerciseForm";
 import AITrainingPlanner from "../components/exercises/AITrainingPlanner";
+import AIExerciseGenerator from "../components/exercises/AIExerciseGenerator";
 
 export default function ExerciseLibrary() {
   const [user, setUser] = useState(null);
@@ -28,6 +29,7 @@ export default function ExerciseLibrary() {
   const [showForm, setShowForm] = useState(false);
   const [editingExercise, setEditingExercise] = useState(null);
   const [showAIPlanner, setShowAIPlanner] = useState(false);
+  const [showAIGenerator, setShowAIGenerator] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
 
   const queryClient = useQueryClient();
@@ -146,7 +148,7 @@ export default function ExerciseLibrary() {
             {stats.total} ejercicios disponibles • {stats.futbol} fútbol • {stats.baloncesto} baloncesto
           </p>
         </div>
-        <div className="flex gap-2 w-full md:w-auto">
+        <div className="flex gap-2 w-full md:w-auto flex-wrap">
           <Button
             onClick={() => setShowAIPlanner(true)}
             className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 flex-1 md:flex-none"
@@ -155,13 +157,22 @@ export default function ExerciseLibrary() {
             Planificar con IA
           </Button>
           {isCoachOrAdmin && (
-            <Button
-              onClick={() => { setEditingExercise(null); setShowForm(true); }}
-              className="bg-orange-600 hover:bg-orange-700 flex-1 md:flex-none"
-            >
-              <Plus className="w-4 h-4 mr-2" />
-              Nuevo
-            </Button>
+            <>
+              <Button
+                onClick={() => setShowAIGenerator(true)}
+                className="bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-700 hover:to-blue-700 flex-1 md:flex-none"
+              >
+                <Sparkles className="w-4 h-4 mr-2" />
+                🤖 Crear con IA
+              </Button>
+              <Button
+                onClick={() => { setEditingExercise(null); setShowForm(true); }}
+                className="bg-orange-600 hover:bg-orange-700 flex-1 md:flex-none"
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Nuevo
+              </Button>
+            </>
           )}
         </div>
       </div>
@@ -435,6 +446,25 @@ export default function ExerciseLibrary() {
           <AITrainingPlanner
             exercises={exercises}
             onClose={() => setShowAIPlanner(false)}
+          />
+        </DialogContent>
+      </Dialog>
+
+      {/* AI Exercise Generator Dialog */}
+      <Dialog open={showAIGenerator} onOpenChange={setShowAIGenerator}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Sparkles className="w-5 h-5 text-cyan-600" />
+              Crear Ejercicio con IA
+            </DialogTitle>
+          </DialogHeader>
+          <AIExerciseGenerator
+            onExerciseGenerated={(exerciseData) => {
+              createMutation.mutate(exerciseData);
+              setShowAIGenerator(false);
+            }}
+            onCancel={() => setShowAIGenerator(false)}
           />
         </DialogContent>
       </Dialog>
