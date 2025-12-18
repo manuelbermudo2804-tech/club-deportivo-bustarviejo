@@ -259,7 +259,7 @@ export default function PlayerDashboard() {
                   }
                 }}
                 onCancel={() => setShowCreateProfile(false)}
-                isPlayerSelfEdit={true}
+                isAdultPlayerSelfRegistration={true}
               />
             ) : (
               <div className="text-center space-y-4">
@@ -766,7 +766,7 @@ export default function PlayerDashboard() {
               }
             }}
             onCancel={() => setShowEditProfile(false)}
-            isPlayerSelfEdit={true}
+            isAdultPlayerSelfRegistration={true}
           />
         </DialogContent>
       </Dialog>
