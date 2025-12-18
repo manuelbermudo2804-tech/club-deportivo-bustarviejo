@@ -675,9 +675,17 @@ export default function PlayerDashboard() {
 
         {/* Centro de Alertas */}
         <AlertCenter 
-          user={user}
-          players={player ? [player] : []}
-          isPlayer={true}
+          pendingCallups={pendingCallups.length}
+          pendingSignatures={pendingSignatures}
+          pendingPayments={payments.filter(p => p.estado === "Pendiente").length}
+          paymentsInReview={payments.filter(p => p.estado === "En revisión").length}
+          unreadCoordinatorMessages={0}
+          unreadCoachMessages={0}
+          unreadPrivateMessages={0}
+          hasActiveAdminChat={!!adminConversation}
+          isParent={true}
+          userEmail={user?.email}
+          userSports={player?.deporte ? [player.deporte] : []}
         />
 
         {/* Banner Hazte Socio */}
