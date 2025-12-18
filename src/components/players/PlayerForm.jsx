@@ -993,8 +993,8 @@ export default function PlayerForm({ player, onSubmit, onCancel, isSubmitting, i
               </div>
             </div>
 
-            {/* DATOS DEL TUTOR LEGAL (solo si menor de edad Y NO es auto-registro +18) */}
-            {!isMayorDeEdad && !isAdultPlayerSelfRegistration && (
+            {/* DATOS DEL TUTOR LEGAL - NUNCA mostrar si isAdultPlayerSelfRegistration */}
+            {!isAdultPlayerSelfRegistration && !isMayorDeEdad && (
               <div className="space-y-4 border-2 border-green-200 rounded-lg p-6 bg-green-50">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
@@ -1294,8 +1294,8 @@ export default function PlayerForm({ player, onSubmit, onCancel, isSubmitting, i
               </div>
             </div>
 
-            {/* SEGUNDO PROGENITOR (solo si menor de edad Y NO es auto-registro +18) */}
-            {!isMayorDeEdad && !isAdultPlayerSelfRegistration && (
+            {/* SEGUNDO PROGENITOR - NUNCA mostrar si isAdultPlayerSelfRegistration */}
+            {!isAdultPlayerSelfRegistration && !isMayorDeEdad && (
               <SecondParentSection
                 currentPlayer={currentPlayer}
                 setCurrentPlayer={setCurrentPlayer}
@@ -1304,17 +1304,18 @@ export default function PlayerForm({ player, onSubmit, onCancel, isSubmitting, i
               />
             )}
 
-            {/* INFO INCLUIDA */}
-            <div className="bg-green-50 border-2 border-green-200 rounded-lg p-4">
-              <h4 className="font-bold text-green-900 mb-2">✅ La inscripción incluye:</h4>
-              <ul className="list-disc list-inside text-sm text-green-800 space-y-1">
-                <li>Seguro de accidentes deportivos</li>
-                <li>Ficha federativa</li>
-                {!isMayorDeEdad && !isAdultPlayerSelfRegistration && <li>Cuota de socio del padre/madre/tutor legal</li>}
-                {(isMayorDeEdad || isAdultPlayerSelfRegistration) && <li>Tu cuota de socio</li>}
-                {siblingDiscount.hasDiscount && <li className="font-bold">Descuento de {siblingDiscount.amount}€ por hermano menor</li>}
-              </ul>
-            </div>
+            {/* INFO INCLUIDA - NUNCA mostrar info de tutor si es auto-registro */}
+            {!isAdultPlayerSelfRegistration && (
+              <div className="bg-green-50 border-2 border-green-200 rounded-lg p-4">
+                <h4 className="font-bold text-green-900 mb-2">✅ La inscripción incluye:</h4>
+                <ul className="list-disc list-inside text-sm text-green-800 space-y-1">
+                  <li>Seguro de accidentes deportivos</li>
+                  <li>Ficha federativa</li>
+                  {!isMayorDeEdad && <li>Cuota de socio del padre/madre/tutor legal</li>}
+                  {siblingDiscount.hasDiscount && <li className="font-bold">Descuento de {siblingDiscount.amount}€ por hermano menor</li>}
+                </ul>
+              </div>
+            )}
 
             {/* INFO FIRMAS FEDERACIÓN */}
             <div className="bg-yellow-50 border-2 border-yellow-300 rounded-lg p-4">
