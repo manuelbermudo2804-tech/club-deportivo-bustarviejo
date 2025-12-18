@@ -270,7 +270,11 @@ export default function RFFMScraper() {
             </div>
             <Button
               onClick={() => testScrapeMutation.mutate(testConfig)}
-              disabled={testScrapeMutation.isPending || !testConfig.competicion_id || !testConfig.grupo_id}
+              disabled={
+                testScrapeMutation.isPending || 
+                !testConfig.competicion_id?.trim() || 
+                !testConfig.grupo_id?.trim()
+              }
               className="w-full md:w-auto bg-orange-600 hover:bg-orange-700"
             >
               <Search className="w-4 h-4 mr-2" />
