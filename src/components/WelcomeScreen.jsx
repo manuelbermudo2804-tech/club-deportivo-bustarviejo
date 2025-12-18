@@ -17,7 +17,7 @@ export default function WelcomeScreen({ onEnter }) {
   };
 
   const stats = [
-    { icon: Users, label: "+150", sublabel: "Jugadores" },
+    { icon: Users, label: "9 Categorías", sublabel: "De Fútbol y Basket" },
     { icon: Trophy, label: "Desde 1989", sublabel: "De Historia" },
     { icon: Heart, label: "Una Gran", sublabel: "Familia" }
   ];
