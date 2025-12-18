@@ -77,10 +77,30 @@ export default function ParentCoachChat() {
         msg.destinatario_email === user.email
       );
     },
-    refetchInterval: 1000, // Más rápido: cada 1 segundo para instantaneidad
+    refetchInterval: 1000,
     refetchOnWindowFocus: true,
     enabled: !!selectedCategory && !!user,
   });
+
+  // Obtener todos los mensajes para contar sin leer por categoría
+  const { data: allChatMessages = [] } = useQuery({
+    queryKey: ['allCoachGroupMessages'],
+    queryFn: () => base44.entities.ChatMessage.list(),
+    refetchInterval: 2000,
+    enabled: !!user,
+  });
+
+  const getUnreadCountByCategory = (categoria) => {
+    if (!user) return 0;
+    const grupo_id = categoria.toLowerCase().replace(/\s+/g, '_');
+    
+    return allChatMessages.filter(m => 
+      m.grupo_id === grupo_id &&
+      m.tipo === "entrenador_a_grupo" &&
+      (!m.destinatario_email || m.destinatario_email === user.email) &&
+      (!m.leido_por || !m.leido_por.some(lp => lp.email === user.email))
+    ).length;
+  };
 
   // Marcar notificaciones Y MENSAJES como leídos inmediatamente al abrir el chat
   useEffect(() => {
@@ -443,17 +463,25 @@ export default function ParentCoachChat() {
         <CardContent className="p-0 flex-1 flex flex-col overflow-hidden min-h-0">
           {categories.length > 1 && (
             <div className="flex gap-1.5 p-1.5 bg-slate-50 border-b overflow-x-auto flex-shrink-0">
-              {categories.map(cat => (
-                <Button
-                  key={cat}
-                  variant={selectedCategory === cat ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setSelectedCategory(cat)}
-                  className="whitespace-nowrap text-xs px-2 py-1 h-7"
-                >
-                  {cat.replace('Fútbol ', '').replace(' (Mixto)', '')}
-                </Button>
-              ))}
+              {categories.map(cat => {
+                const unreadCount = getUnreadCountByCategory(cat);
+                return (
+                  <Button
+                    key={cat}
+                    variant={selectedCategory === cat ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setSelectedCategory(cat)}
+                    className="whitespace-nowrap text-xs px-2 py-1 h-7 relative"
+                  >
+                    {cat.replace('Fútbol ', '').replace(' (Mixto)', '')}
+                    {unreadCount > 0 && (
+                      <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-bold rounded-full w-4 h-4 flex items-center justify-center animate-pulse">
+                        {unreadCount}
+                      </span>
+                    )}
+                  </Button>
+                );
+              })}
             </div>
           )}
 
