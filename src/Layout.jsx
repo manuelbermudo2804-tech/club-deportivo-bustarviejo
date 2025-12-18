@@ -846,8 +846,8 @@ export default function Layout({ children, currentPageName }) {
                   console.log('👨‍👩‍👧 [LAYOUT] Padre normal - jugadores encontrados:', myPlayers.length);
                   setHasPlayers(myPlayers.length > 0);
 
-                  // Si es usuario nuevo sin tipo de panel definido Y es padre normal (sin jugadores ni roles), mostrar selector
-                  if (!currentUser.tipo_panel && !currentUser.es_jugador && myPlayers.length === 0) {
+                  // Si es usuario nuevo sin tipo de panel definido, mostrar selector SIEMPRE
+                  if (!currentUser.tipo_panel && !currentUser.es_jugador) {
                     console.log('❓ [LAYOUT] Usuario sin tipo_panel - mostrando selector');
                     setShowTypeSelector(true);
                     setIsLoading(false);
@@ -857,14 +857,17 @@ export default function Layout({ children, currentPageName }) {
                   setIsLoading(false);
 
                   // REDIRECCIÓN AUTOMÁTICA AL DASHBOARD PRINCIPAL (primera carga)
-                  const hasInitialRedirect = sessionStorage.getItem('initialRedirectDone');
-                  const currentPath = window.location.pathname.toLowerCase();
+                  // Solo si ya tiene tipo_panel definido
+                  if (currentUser.tipo_panel === 'familia') {
+                    const hasInitialRedirect = sessionStorage.getItem('initialRedirectDone');
+                    const currentPath = window.location.pathname.toLowerCase();
 
-                  if (!hasInitialRedirect && currentPath !== '/parentdashboard') {
-                    console.log('🔄 [LAYOUT] Primera carga PADRE - redirigiendo a ParentDashboard');
-                    sessionStorage.setItem('initialRedirectDone', 'true');
-                    window.location.href = createPageUrl('ParentDashboard');
-                    return;
+                    if (!hasInitialRedirect && currentPath !== '/parentdashboard') {
+                      console.log('🔄 [LAYOUT] Primera carga PADRE - redirigiendo a ParentDashboard');
+                      sessionStorage.setItem('initialRedirectDone', 'true');
+                      window.location.href = createPageUrl('ParentDashboard');
+                      return;
+                    }
                   }
                 }
 
