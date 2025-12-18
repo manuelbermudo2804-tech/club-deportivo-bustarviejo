@@ -13,6 +13,7 @@ import { es } from "date-fns/locale";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
+import PlayerAttendanceCard from "../components/attendance/PlayerAttendanceCard";
 
 // Vista de detalle de un jugador individual
 function PlayerDetailView({ player, evaluations, onBack, onSendReport, sendingReport }) {
@@ -614,41 +615,24 @@ CD Bustarviejo
 
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                       {playersInCategory.map(playerData => (
-                        <Card 
-                          key={playerData.jugador.id} 
-                          className="hover:shadow-lg transition-all cursor-pointer hover:border-orange-400"
-                          onClick={() => {
+                        <PlayerAttendanceCard
+                          key={playerData.jugador.id}
+                          player={playerData.jugador}
+                          evaluations={playerData.evaluaciones}
+                          onViewDetails={() => {
                             console.log('Click en jugador:', playerData.jugador.nombre, playerData.jugador.id);
                             setSelectedCategory(categoria);
                             setSelectedPlayer(playerData.jugador.id);
                           }}
-                        >
-                          <CardHeader className="pb-3">
-                            <div className="flex items-center gap-3">
-                              {playerData.jugador.foto_url ? (
-                                <img src={playerData.jugador.foto_url} className="w-12 h-12 rounded-full object-cover" alt="" />
-                              ) : (
-                                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center text-white font-bold">
-                                  {playerData.jugador.nombre.charAt(0)}
-                                </div>
-                              )}
-                              <div className="flex-1">
-                                <CardTitle className="text-sm">{playerData.jugador.nombre}</CardTitle>
-                                <p className="text-xs text-slate-500">{playerData.totalSesiones} sesiones</p>
-                              </div>
-                            </div>
-                          </CardHeader>
-                          <CardContent className="space-y-3">
-                            <div className="flex items-center justify-between p-3 bg-orange-50 rounded-lg">
-                              <span className="text-sm font-medium text-slate-700">Actitud promedio:</span>
-                              <div className="flex items-center gap-1">
-                                <Star className="w-5 h-5 text-yellow-500 fill-yellow-500" />
-                                <span className="text-xl font-bold text-orange-600">{playerData.promedioActitud}/5</span>
-                              </div>
-                            </div>
-                            <p className="text-xs text-center text-slate-500">Click para ver evolución completa →</p>
-                          </CardContent>
-                        </Card>
+                          onSendReport={() => {
+                            const stats = {
+                              jugador: playerData.jugador,
+                              totalSesiones: playerData.totalSesiones,
+                              promedioActitud: playerData.promedioActitud
+                            };
+                            handleSendReport(stats, playerData.evaluaciones);
+                          }}
+                        />
                       ))}
                     </div>
                   </>

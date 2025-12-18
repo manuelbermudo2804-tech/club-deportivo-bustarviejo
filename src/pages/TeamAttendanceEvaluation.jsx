@@ -12,6 +12,7 @@ import { es } from "date-fns/locale";
 import IndividualReportDialog from "../components/coach/IndividualReportDialog";
 import BulkReportDialog from "../components/coach/BulkReportDialog";
 import { usePageTutorial } from "../components/tutorials/useTutorial";
+import AttendanceStatsChart from "../components/attendance/AttendanceStatsChart";
 
 export default function TeamAttendanceEvaluation() {
   usePageTutorial("coach_attendance");
@@ -588,6 +589,14 @@ Email: cdbustarviejo@gmail.com
             </div>
           </CardContent>
         </Card>
+      )}
+
+      {/* Gráfico de estadísticas */}
+      {attendances.filter(a => a.categoria === selectedCategory).length > 0 && (
+        <AttendanceStatsChart
+          attendances={attendances.filter(a => a.categoria === selectedCategory)}
+          categoryPlayers={categoryPlayers}
+        />
       )}
 
       <Card className="border shadow-md">

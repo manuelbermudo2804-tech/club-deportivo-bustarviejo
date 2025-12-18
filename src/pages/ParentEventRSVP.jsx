@@ -11,6 +11,7 @@ import { Calendar, MapPin, Clock, Users, CheckCircle2, XCircle, HelpCircle, Info
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { toast } from "sonner";
+import EventCapacityBar from "../components/events/EventCapacityBar";
 import {
   Dialog,
   DialogContent,
@@ -244,17 +245,8 @@ export default function ParentEventRSVP() {
                     </div>
                   )}
 
-                  <div className="border-t pt-3 flex items-center justify-between">
-                    <div className="flex items-center gap-2 text-sm text-slate-600">
-                      <Users className="w-4 h-4" />
-                      {stats.asistire} asistirán
-                      {stats.totalAcompanantes > 0 && ` (+ ${stats.totalAcompanantes} acompañantes)`}
-                    </div>
-                    {event.capacidad_maxima && (
-                      <div className="text-sm text-slate-600">
-                        {stats.total}/{event.capacidad_maxima} plazas
-                      </div>
-                    )}
+                  <div className="border-t pt-3">
+                    <EventCapacityBar event={event} stats={stats} />
                   </div>
 
                   {myConfirmation?.comentario && (

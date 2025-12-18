@@ -20,6 +20,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 import EventForm from "../components/calendar/EventForm";
 import CalendarSyncButton from "../components/calendar/CalendarSyncButton";
+import EventCapacityBar from "../components/events/EventCapacityBar";
 
 export default function EventManagement() {
   const [user, setUser] = useState(null);
@@ -792,7 +793,9 @@ export default function EventManagement() {
                       </div>
 
                       {event.requiere_confirmacion && (
-                        <div className="border-t pt-3">
+                        <div className="border-t pt-3 space-y-4">
+                          <EventCapacityBar event={event} stats={stats} />
+                          
                           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-center">
                             <div>
                               <div className="text-2xl font-bold text-green-600">{stats.asistire}</div>
@@ -820,11 +823,7 @@ export default function EventManagement() {
                               <div className="text-xs text-slate-600">Pendientes</div>
                             </div>
                           </div>
-                          {stats.totalAcompanantes > 0 && (
-                            <div className="text-sm text-slate-600 text-center mt-2">
-                              + {stats.totalAcompanantes} acompañantes
-                            </div>
-                          )}
+                          
                           <div className="flex gap-2 mt-3">
                            <Button
                              size="sm"
