@@ -30,6 +30,7 @@ export default function PlayerDashboard() {
   const [pendingPlayerData, setPendingPlayerData] = useState(null);
   const [showInscriptionSuccess, setShowInscriptionSuccess] = useState(false);
   const [inscriptionSuccessData, setInscriptionSuccessData] = useState(null);
+  const [isCreatingProfile, setIsCreatingProfile] = useState(false);
   const queryClient = useQueryClient();
 
   useEffect(() => {
@@ -296,9 +297,6 @@ export default function PlayerDashboard() {
       </div>
     );
   }
-
-  // Flujo de pago para nueva inscripción de jugador +18
-  const [isCreatingProfile, setIsCreatingProfile] = useState(false);
 
   if (showPaymentFlow && pendingPlayerData) {
     return (
