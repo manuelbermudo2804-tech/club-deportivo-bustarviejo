@@ -597,6 +597,12 @@ export default function Layout({ children, currentPageName }) {
                                      window.navigator.standalone === true;
                         console.log('📱 [LAYOUT] Modo standalone (PWA):', isStandalone);
 
+                        // Verificar si es primera vez del usuario (mostrar WelcomeScreen)
+                        const hasSeenWelcome = localStorage.getItem('hasSeenWelcome');
+                        if (!hasSeenWelcome && !isPublicPage) {
+                          setShowWelcome(true);
+                        }
+
                         // Procesar token de invitación si existe
                         const urlParams = new URLSearchParams(window.location.search);
                         const invitationToken = urlParams.get('invitation_token');
