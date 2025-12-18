@@ -248,11 +248,53 @@ export default function PlayerDashboard() {
     initialData: [],
   });
 
-  // Calcular estadísticas de pagos
+  // Calcular estadísticas de pagos con separación de vencidos
+  const getCurrentSeason = () => {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = now.getMonth() + 1;
+    return month >= 6 ? `${year}/${year + 1}` : `${year - 1}/${year}`;
+  };
+  
+  const currentSeason = getCurrentSeason();
+  const now = new Date();
+  
+  let pagosPendientesNoVencidos = 0;
+  let pagosEnRevisionNoVencidos = 0;
+  let overduePaymentsCount = 0;
+  
+  (payments || []).forEach(payment => {
+    if (payment.estado === "Pagado") return; // Ignorar pagados
+    
+    // Calcular fecha límite según mes
+    const [year1] = currentSeason.split('/').map(y => parseInt(y));
+    let deadlineDate;
+    if (payment.mes === "Junio") deadlineDate = new Date(year1, 5, 30);
+    else if (payment.mes === "Septiembre") deadlineDate = new Date(year1, 8, 15);
+    else if (payment.mes === "Diciembre") deadlineDate = new Date(year1, 11, 15);
+    
+    const isOverdue = deadlineDate && now >= deadlineDate;
+    
+    if (payment.estado === "Pendiente") {
+      if (isOverdue) {
+        overduePaymentsCount++;
+      } else {
+        pagosPendientesNoVencidos++;
+      }
+    } else if (payment.estado === "En revisión") {
+      if (isOverdue) {
+        overduePaymentsCount++;
+      } else {
+        pagosEnRevisionNoVencidos++;
+      }
+    }
+  });
+  
   const paymentStats = {
     pagados: (payments || []).filter(p => p.estado === "Pagado").length,
-    pendientes: (payments || []).filter(p => p.estado === "Pendiente").length,
-    enRevision: (payments || []).filter(p => p.estado === "En revisión").length,
+    pendientes: pagosPendientesNoVencidos,
+    enRevision: pagosEnRevisionNoVencidos,
+    vencidos: overduePaymentsCount
   };
 
   // Calcular próxima convocatoria pendiente
@@ -690,8 +732,9 @@ export default function PlayerDashboard() {
         <AlertCenter 
           pendingCallups={pendingCallups.length}
           pendingSignatures={pendingSignatures}
-          pendingPayments={payments.filter(p => p.estado === "Pendiente").length}
-          paymentsInReview={payments.filter(p => p.estado === "En revisión").length}
+          pendingPayments={pagosPendientesNoVencidos}
+          paymentsInReview={pagosEnRevisionNoVencidos}
+          overduePayments={overduePaymentsCount}
           unreadCoordinatorMessages={0}
           unreadCoachMessages={0}
           unreadPrivateMessages={0}
@@ -895,9 +938,16 @@ export default function PlayerDashboard() {
             </div>
             <div className="text-center">
               <div className="text-2xl lg:text-4xl font-bold text-red-500 mb-1">
-                {paymentStats.pendientes}
+                {paymentStats.pendientes + paymentStats.enRevision + paymentStats.vencidos}
               </div>
-              <div className="text-slate-400 text-[10px] lg:text-sm">Pendientes</div>
+              <div className="text-slate-400 text-[10px] lg:text-sm">Pagos Total</div>
+              <div className="text-slate-500 text-[8px] lg:text-[10px] mt-1">
+                {paymentStats.vencidos > 0 && `${paymentStats.vencidos} vencidos`}
+                {paymentStats.vencidos > 0 && (paymentStats.pendientes > 0 || paymentStats.enRevision > 0) && ' • '}
+                {paymentStats.pendientes > 0 && `${paymentStats.pendientes} pendientes`}
+                {paymentStats.pendientes > 0 && paymentStats.enRevision > 0 && ' • '}
+                {paymentStats.enRevision > 0 && `${paymentStats.enRevision} revisión`}
+              </div>
             </div>
             <div className="text-center">
               <div className="text-2xl lg:text-4xl font-bold text-yellow-500 mb-1">
