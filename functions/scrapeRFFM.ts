@@ -49,70 +49,87 @@ Deno.serve(async (req) => {
     const clasificacion = [];
     const resultados = [];
 
-    // Estrategia: buscar TODAS las tablas y analizar estructura
+    // Estrategia mejorada: buscar TODAS las filas con td
     $('table').each((tableIndex, table) => {
       const $table = $(table);
       const rows = $table.find('tr');
       
-      console.log(`  Table ${tableIndex}: ${rows.length} rows`);
+      console.log(`📊 Table ${tableIndex}: ${rows.length} rows`);
       
       rows.each((rowIndex, row) => {
         const $row = $(row);
         const cells = $row.find('td');
         
-        // Saltar headers
         if (cells.length === 0) return;
         
-        // Intentar extraer datos de cada fila
-        // Estructura típica RFFM: [pos, escudo/equipo, PJ, G, E, P, GF, GC, Pts]
-        if (cells.length >= 7) {
-          const allText = [];
-          cells.each((i, cell) => {
-            allText.push($(cell).text().trim());
-          });
-          
-          // Buscar el nombre del equipo (texto más largo que no sea número)
-          let equipoIndex = -1;
+        // Extraer TODO el texto de cada celda
+        const allText = [];
+        cells.each((i, cell) => {
+          const text = $(cell).text().trim().replace(/\s+/g, ' ');
+          allText.push(text);
+        });
+        
+        console.log(`  Row ${rowIndex}: [${allText.join(' | ')}]`);
+        
+        // Detectar si es fila de clasificación (debe tener al menos 7 celdas)
+        if (allText.length >= 7) {
+          // Buscar nombre del equipo (texto largo, no número puro)
           let equipoText = '';
+          let equipoIndex = -1;
           
-          for (let i = 0; i < Math.min(4, allText.length); i++) {
+          // El equipo suele estar en columnas 1-3
+          for (let i = 0; i < Math.min(5, allText.length); i++) {
             const text = allText[i];
-            // El equipo suele estar en posición 1 o 2, y no es un número
-            if (text.length > 3 && isNaN(parseInt(text))) {
-              equipoIndex = i;
+            // Debe tener al menos 4 caracteres y contener letras
+            if (text.length >= 4 && /[a-zA-Z]/.test(text) && isNaN(parseInt(text))) {
               equipoText = text;
+              equipoIndex = i;
               break;
             }
           }
           
-          // Buscar los puntos (última columna, debe ser número)
-          const ultimaCol = allText[allText.length - 1];
-          const puntosNum = parseInt(ultimaCol);
+          // Buscar puntos (número en últimas 3 columnas)
+          let puntos = null;
+          for (let i = allText.length - 1; i >= Math.max(0, allText.length - 3); i--) {
+            const num = parseInt(allText[i]);
+            if (!isNaN(num) && num >= 0 && num <= 150) {
+              puntos = num;
+              break;
+            }
+          }
           
-          // Validar que encontramos equipo y puntos válidos
-          if (equipoText && !isNaN(puntosNum) && puntosNum >= 0 && puntosNum <= 100) {
-            // Intentar extraer posición (primera columna)
-            const posText = allText[0];
-            const posNum = parseInt(posText);
+          // Si encontramos equipo Y puntos, es una fila válida
+          if (equipoText && puntos !== null) {
+            // Extraer posición (primera columna numérica)
+            let posicion = rowIndex;
+            const primerNum = parseInt(allText[0]);
+            if (!isNaN(primerNum) && primerNum > 0 && primerNum < 50) {
+              posicion = primerNum;
+            }
+            
+            // Intentar extraer estadísticas (después del equipo)
+            const stats = allText.slice(equipoIndex + 1);
             
             clasificacion.push({
-              posicion: !isNaN(posNum) ? posNum : rowIndex,
+              posicion,
               equipo: equipoText,
-              puntos: puntosNum,
-              partidos_jugados: allText[equipoIndex + 1] || '',
-              ganados: allText[equipoIndex + 2] || '',
-              empatados: allText[equipoIndex + 3] || '',
-              perdidos: allText[equipoIndex + 4] || '',
-              goles_favor: allText[equipoIndex + 5] || '',
-              goles_contra: allText[equipoIndex + 6] || '',
-              _debug: allText
+              puntos,
+              partidos_jugados: stats[0] || '',
+              ganados: stats[1] || '',
+              empatados: stats[2] || '',
+              perdidos: stats[3] || '',
+              goles_favor: stats[4] || '',
+              goles_contra: stats[5] || '',
+              _raw_data: allText
             });
+            
+            console.log(`  ✅ Equipo detectado: ${equipoText} - ${puntos} pts`);
           }
         }
       });
     });
     
-    console.log('✅ Equipos extraídos:', clasificacion.length);
+    console.log(`✅ Total equipos extraídos: ${clasificacion.length}`);
 
     const data = {
       success: true,
