@@ -439,9 +439,11 @@ export default function PlayerDashboard() {
             <div className="flex-1 min-w-0">
               <h1 className="text-xl lg:text-3xl font-bold">¡Hola, {player.nombre.split(' ')[0]}!</h1>
               <p className="text-white/90 text-sm lg:text-base">{player.deporte}</p>
-              <Badge className="bg-white/20 text-white border-white/30 text-xs mt-2">
-                {player.posicion || "Sin asignar"}
-              </Badge>
+              {player.posicion && player.posicion !== "Sin asignar" && (
+                <Badge className="bg-white/20 text-white border-white/30 text-xs mt-2">
+                  {player.posicion}
+                </Badge>
+              )}
             </div>
             <Button
               variant="ghost"
