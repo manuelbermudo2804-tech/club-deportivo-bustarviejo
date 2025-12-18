@@ -457,13 +457,24 @@ export default function AlertCenter({
 
   // Alertas para padres
   if (isParent && !isAdmin && !isCoach) {
-    // Separar alertas: pagos sin justificante vs pagos en revisión
+    // Alertas de pagos mejoradas
+    if (overduePayments > 0) {
+      alerts.push({
+        id: "overdue",
+        icon: AlertTriangle,
+        title: "⚠️ Pagos Vencidos",
+        description: `${overduePayments} pago${overduePayments > 1 ? 's' : ''} vencido${overduePayments > 1 ? 's' : ''} - fecha límite superada`,
+        url: createPageUrl("ParentPayments"),
+        color: "bg-red-600",
+        priority: 1
+      });
+    }
     if (pendingPayments > 0) {
       alerts.push({
         id: "payments-pending",
         icon: CreditCard,
-        title: "💳 Justificantes por enviar",
-        description: `${pendingPayments} pago${pendingPayments > 1 ? 's' : ''} sin justificante`,
+        title: "💳 Pagos Pendientes",
+        description: `${pendingPayments} pago${pendingPayments > 1 ? 's' : ''} por realizar`,
         url: createPageUrl("ParentPayments"),
         color: "bg-yellow-500",
         priority: 3
@@ -473,22 +484,11 @@ export default function AlertCenter({
       alerts.push({
         id: "payments-review",
         icon: CreditCard,
-        title: "📋 Justificantes pendientes de revisión",
-        description: `${paymentsInReview} pago${paymentsInReview > 1 ? 's' : ''} en revisión por el administrador`,
+        title: "📋 Pagos en Revisión",
+        description: `${paymentsInReview} pago${paymentsInReview > 1 ? 's' : ''} esperando validación del administrador`,
         url: createPageUrl("ParentPayments"),
         color: "bg-blue-500",
         priority: 5
-      });
-    }
-    if (overduePayments > 0) {
-      alerts.push({
-        id: "overdue",
-        icon: AlertTriangle,
-        title: "⚠️ Pagos vencidos",
-        description: `${overduePayments} pago${overduePayments > 1 ? 's' : ''} vencido${overduePayments > 1 ? 's' : ''}`,
-        url: createPageUrl("ParentPayments"),
-        color: "bg-red-600",
-        priority: 1
       });
     }
     // Galería eliminada del centro de alertas - no es urgente
