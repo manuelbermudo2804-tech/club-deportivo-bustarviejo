@@ -17,6 +17,7 @@ import NotificationCenter from "./components/NotificationCenter";
 import LanguageSelector from "./components/LanguageSelector";
 import AppNotificationListener from "./components/push/AppNotificationListener";
 import RegistrationTypeSelector from "./components/players/RegistrationTypeSelector";
+import WelcomeScreen from "./components/WelcomeScreen";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import NotificationManager from "./components/notifications/NotificationManager";
 import AutomaticNotificationEngine from "./components/notifications/AutomaticNotificationEngine";
@@ -539,6 +540,7 @@ export default function Layout({ children, currentPageName }) {
   const [showTypeSelector, setShowTypeSelector] = useState(false);
   const [isAppInstalled, setIsAppInstalled] = useState(false);
   const [showMandatoryPWA, setShowMandatoryPWA] = useState(false);
+  const [showWelcome, setShowWelcome] = useState(false);
 
       // Detectar si la app está instalada - solo por localStorage (marcado manual)
                   useEffect(() => {
@@ -1389,6 +1391,18 @@ export default function Layout({ children, currentPageName }) {
     const isAndroid = typeof navigator !== 'undefined' && /android/i.test(navigator.userAgent);
 
     console.log('✅ [LAYOUT] Renderizando contenido principal con children');
+
+    // Mostrar WelcomeScreen si es primera vez
+    if (showWelcome) {
+      return (
+        <WelcomeScreen 
+          onEnter={() => {
+            setShowWelcome(false);
+            localStorage.setItem('hasSeenWelcome', 'true');
+          }} 
+        />
+      );
+    }
 
     return (
             <>
