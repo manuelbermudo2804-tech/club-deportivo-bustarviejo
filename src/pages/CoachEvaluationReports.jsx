@@ -437,8 +437,25 @@ CD Bustarviejo
   }
 
   if (selectedPlayer) {
-    const playerData = evaluationsByCategory[selectedCategory]?.[selectedPlayer];
-    if (!playerData) return null;
+    const currentCategory = selectedCategory || categories[0];
+    const playerData = evaluationsByCategory[currentCategory]?.[selectedPlayer];
+    
+    if (!playerData) {
+      console.error('No se encontró playerData para:', { selectedPlayer, currentCategory });
+      return (
+        <div className="p-4 lg:p-6">
+          <Button onClick={() => setSelectedPlayer(null)} variant="outline" size="sm">
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Volver
+          </Button>
+          <Card className="mt-4">
+            <CardContent className="py-12 text-center">
+              <p className="text-slate-500">No se encontraron datos del jugador</p>
+            </CardContent>
+          </Card>
+        </div>
+      );
+    }
     
     return (
       <div className="p-4 lg:p-6">
@@ -600,7 +617,11 @@ CD Bustarviejo
                         <Card 
                           key={playerData.jugador.id} 
                           className="hover:shadow-lg transition-all cursor-pointer hover:border-orange-400"
-                          onClick={() => setSelectedPlayer(playerData.jugador.id)}
+                          onClick={() => {
+                            console.log('Click en jugador:', playerData.jugador.nombre, playerData.jugador.id);
+                            setSelectedCategory(categoria);
+                            setSelectedPlayer(playerData.jugador.id);
+                          }}
                         >
                           <CardHeader className="pb-3">
                             <div className="flex items-center gap-3">
