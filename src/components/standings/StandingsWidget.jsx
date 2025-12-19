@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Trophy, TrendingUp, Eye } from "lucide-react";
+import { Trophy, TrendingUp, Eye, TrendingDown, Minus, Calendar } from "lucide-react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 
@@ -25,6 +25,21 @@ export default function StandingsWidget({ userEmail }) {
   const { data: standings } = useQuery({
     queryKey: ['clasificaciones-widget'],
     queryFn: () => base44.entities.Clasificacion.list('-jornada'),
+    initialData: [],
+    enabled: players.length > 0
+  });
+
+  const { data: events } = useQuery({
+    queryKey: ['events-for-standings'],
+    queryFn: async () => {
+      const allEvents = await base44.entities.Event.list('-fecha');
+      const today = new Date().toISOString().split('T')[0];
+      return allEvents.filter(e => 
+        e.tipo === "Partido" && 
+        e.fecha >= today && 
+        e.publicado === true
+      );
+    },
     initialData: [],
     enabled: players.length > 0
   });
@@ -67,7 +82,50 @@ export default function StandingsWidget({ userEmail }) {
       team.nombre_equipo.toLowerCase().includes('bustar')
     );
 
-    return bustarTeam ? { ...bustarTeam, jornada: latest.jornada, totalTeams: latest.data.length } : null;
+    if (!bustarTeam) return null;
+
+    // Calcular evolución de posición (últimas jornadas)
+    const allJornadas = Object.values(byJornada)
+      .sort((a, b) => a.jornada - b.jornada)
+      .slice(-4); // Últimas 4 jornadas
+    
+    const evolution = allJornadas.map(j => {
+      const team = j.data.find(t => 
+        t.nombre_equipo.toLowerCase().includes('bustarviejo') || 
+        t.nombre_equipo.toLowerCase().includes('bustar')
+      );
+      return team ? team.posicion : null;
+    }).filter(p => p !== null);
+
+    // Buscar próximo partido de esta categoría
+    const nextMatch = events.find(e => 
+      e.destinatario_categoria === categoria && e.rival
+    );
+
+    let nextRival = null;
+    if (nextMatch && nextMatch.rival) {
+      const rivalTeam = latest.data.find(t => 
+        t.nombre_equipo.toLowerCase().includes(nextMatch.rival.toLowerCase())
+      );
+      if (rivalTeam) {
+        nextRival = {
+          nombre: rivalTeam.nombre_equipo,
+          posicion: rivalTeam.posicion,
+          puntos: rivalTeam.puntos,
+          fecha: nextMatch.fecha,
+          hora: nextMatch.hora,
+          local: nextMatch.local_visitante === "Local"
+        };
+      }
+    }
+
+    return { 
+      ...bustarTeam, 
+      jornada: latest.jornada, 
+      totalTeams: latest.data.length,
+      evolution,
+      nextRival
+    };
   }).filter(Boolean);
 
   if (latestStandings.length === 0) return null;
@@ -97,23 +155,81 @@ export default function StandingsWidget({ userEmail }) {
               team.posicion > team.totalTeams - 3 ? "text-red-600" :
               "text-slate-700";
 
+            // Calcular tendencia de evolución
+            let trendIcon = null;
+            let trendColor = "";
+            if (team.evolution && team.evolution.length >= 2) {
+              const last = team.evolution[team.evolution.length - 1];
+              const prev = team.evolution[team.evolution.length - 2];
+              if (last < prev) {
+                trendIcon = <TrendingUp className="w-4 h-4" />;
+                trendColor = "text-green-600";
+              } else if (last > prev) {
+                trendIcon = <TrendingDown className="w-4 h-4" />;
+                trendColor = "text-red-600";
+              } else {
+                trendIcon = <Minus className="w-4 h-4" />;
+                trendColor = "text-slate-500";
+              }
+            }
+
             return (
-              <div key={idx} className="flex items-center justify-between bg-white rounded-lg p-3 border border-slate-200 hover:border-orange-400 transition-colors">
-                <div className="flex items-center gap-3">
-                  <div className={`text-2xl font-bold ${positionClass}`}>
-                    {team.posicion}º
+              <div key={idx} className="bg-white rounded-lg p-3 border border-slate-200 hover:border-orange-400 transition-colors space-y-2">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className={`text-2xl font-bold ${positionClass} flex items-center gap-1`}>
+                      {team.posicion}º
+                      {trendIcon && (
+                        <span className={trendColor}>
+                          {trendIcon}
+                        </span>
+                      )}
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold text-slate-900">{categoryShort}</p>
+                      <p className="text-xs text-slate-500">Jornada {team.jornada}</p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-sm font-semibold text-slate-900">{categoryShort}</p>
-                    <p className="text-xs text-slate-500">Jornada {team.jornada}</p>
+                  <div className="text-right">
+                    <div className="text-lg font-bold text-orange-600">{team.puntos} pts</div>
+                    {team.partidos_jugados && (
+                      <p className="text-xs text-slate-500">{team.partidos_jugados} PJ</p>
+                    )}
                   </div>
                 </div>
-                <div className="text-right">
-                  <div className="text-lg font-bold text-orange-600">{team.puntos} pts</div>
-                  {team.partidos_jugados && (
-                    <p className="text-xs text-slate-500">{team.partidos_jugados} PJ</p>
-                  )}
-                </div>
+
+                {/* Próximo rival */}
+                {team.nextRival && (
+                  <div className="bg-blue-50 rounded-lg p-2 border border-blue-200">
+                    <div className="flex items-center gap-2">
+                      <Calendar className="w-3 h-3 text-blue-600" />
+                      <div className="flex-1">
+                        <p className="text-xs text-blue-900 font-medium">
+                          {team.nextRival.local ? "🏠" : "✈️"} vs {team.nextRival.nombre.split(' ').slice(-2).join(' ')}
+                        </p>
+                        <p className="text-[10px] text-blue-700">
+                          {team.nextRival.posicion}º • {team.nextRival.puntos} pts
+                        </p>
+                      </div>
+                      <div className="text-xs text-blue-600 font-bold">
+                        {new Date(team.nextRival.fecha).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Evolución visual mini */}
+                {team.evolution && team.evolution.length >= 2 && (
+                  <div className="flex items-center gap-1">
+                    {team.evolution.map((pos, i) => {
+                      const size = i === team.evolution.length - 1 ? "w-3 h-3" : "w-2 h-2";
+                      const color = pos <= 3 ? "bg-green-500" : pos > team.totalTeams - 3 ? "bg-red-500" : "bg-slate-400";
+                      return (
+                        <div key={i} className={`${size} ${color} rounded-full transition-all`} title={`J${team.jornada - team.evolution.length + i + 1}: ${pos}º`}></div>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
             );
           })}
