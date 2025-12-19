@@ -49,14 +49,25 @@ export default function RFFMScraper() {
 
   const testScrapeMutation = useMutation({
     mutationFn: async (config) => {
+      console.log('🚀 Enviando request a scrapeRFFM con:', config);
       const response = await base44.functions.invoke('scrapeRFFM', {
         ...config,
         test_mode: true
       });
+      console.log('📦 Respuesta recibida:', response);
       return response.data;
     },
     onSuccess: (data) => {
+      console.log('✅ Scraping exitoso:', data);
       setScrapingResult(data);
+    },
+    onError: (error) => {
+      console.error('❌ Error en scraping:', error);
+      setScrapingResult({
+        error: error.message,
+        clasificacion: [],
+        url: testConfig ? `https://www.rffm.es/competicion/clasificaciones?temporada=${testConfig.temporada}&tipojuego=${testConfig.tipo_juego}&competicion=${testConfig.competicion_id}&grupo=${testConfig.grupo_id}` : ''
+      });
     }
   });
 
@@ -405,9 +416,19 @@ export default function RFFMScraper() {
                 </a>
               </div>
 
+              {scrapingResult.error && (
+                <Alert className="border-red-500 bg-red-50">
+                  <AlertCircle className="h-4 w-4 text-red-600" />
+                  <AlertDescription className="text-red-800">
+                    <strong>Error:</strong> {scrapingResult.error}
+                  </AlertDescription>
+                </Alert>
+              )}
+
               {scrapingResult.clasificacion?.length > 0 && (
                 <div>
-                  <h3 className="font-bold mb-2">📊 Clasificación:</h3>
+                  <h3 className="font-bold mb-2">📊 Clasificación extraída ({scrapingResult.clasificacion.length} equipos):</h3>
+                  <Badge className="mb-2 bg-green-500">Método: {scrapingResult.method || 'desconocido'}</Badge>
                   <div className="bg-slate-50 rounded-lg p-4 max-h-96 overflow-y-auto">
                     <table className="w-full text-sm">
                       <thead>
@@ -433,12 +454,14 @@ export default function RFFMScraper() {
                 </div>
               )}
 
-              {scrapingResult.clasificacion?.length === 0 && (
+              {!scrapingResult.error && scrapingResult.clasificacion?.length === 0 && (
                 <Alert>
                   <AlertCircle className="h-4 w-4" />
                   <AlertDescription>
-                    No se pudo extraer la clasificación. La estructura HTML puede haber cambiado.
-                    <br/>HTML recibido: {scrapingResult.html_length} caracteres
+                    No se encontraron equipos. Verifica los parámetros.
+                    {scrapingResult.html_length && (
+                      <><br/>HTML recibido: {scrapingResult.html_length} caracteres</>
+                    )}
                   </AlertDescription>
                 </Alert>
               )}
