@@ -73,6 +73,16 @@ export default function Clasificaciones() {
     checkAdmin();
   }, []);
 
+  // Auto-abrir clasificación más reciente al cambiar pestaña
+  React.useEffect(() => {
+    if (!activeTab || showUploadForm || reviewData) return;
+    
+    const latestForCategory = standingsByCategory[activeTab]?.[0];
+    if (latestForCategory) {
+      setSelectedView(latestForCategory);
+    }
+  }, [activeTab, showUploadForm, reviewData]);
+
   const { data: standings } = useQuery({
     queryKey: ['clasificaciones'],
     queryFn: () => base44.entities.Clasificacion.list('-jornada'),
