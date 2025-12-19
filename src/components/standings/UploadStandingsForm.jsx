@@ -11,6 +11,7 @@ export default function UploadStandingsForm({ onDataExtracted, onCancel, presele
   const [temporada, setTemporada] = useState(prefillData?.temporada || "2024/2025");
   const [categoria, setCategoria] = useState(preselectedCategory || prefillData?.categoria || "");
   const [imageFile, setImageFile] = useState(null);
+  const [imageUrl, setImageUrl] = useState("");
   const [imagePreview, setImagePreview] = useState(null);
   const [isProcessing, setIsProcessing] = useState(false);
 
@@ -52,16 +53,27 @@ export default function UploadStandingsForm({ onDataExtracted, onCancel, presele
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!imageFile || !categoria) {
-      toast.error("Por favor completa todos los campos");
+    if ((!imageFile && !imageUrl) || !categoria) {
+      toast.error("Por favor sube una imagen o pega una URL");
+      return;
+    }
+
+    if (imageFile && imageUrl) {
+      toast.error("Usa solo una opción: subir imagen o pegar URL");
       return;
     }
 
     setIsProcessing(true);
 
     try {
-      // 1. Subir imagen
-      const { file_url } = await base44.integrations.Core.UploadFile({ file: imageFile });
+      // 1. Obtener URL de la imagen
+      let file_url;
+      if (imageUrl) {
+        file_url = imageUrl;
+      } else {
+        const upload = await base44.integrations.Core.UploadFile({ file: imageFile });
+        file_url = upload.file_url;
+      }
 
       // 2. Extraer datos usando InvokeLLM con visión
       const result = await base44.integrations.Core.InvokeLLM({
@@ -202,34 +214,66 @@ export default function UploadStandingsForm({ onDataExtracted, onCancel, presele
 
           <div>
             <Label>Imagen de Clasificación</Label>
-            <div 
-              className="mt-2 border-2 border-dashed border-slate-300 rounded-xl p-6 text-center hover:border-orange-500 transition-colors"
-              onPaste={handlePaste}
-              tabIndex={0}
-            >
-              <input
-                type="file"
-                accept="image/*"
-                onChange={handleImageChange}
-                className="hidden"
-                id="image-upload"
-              />
-              <label htmlFor="image-upload" className="cursor-pointer">
-                {imagePreview ? (
-                  <div className="space-y-2">
-                    <img src={imagePreview} alt="Preview" className="max-h-48 mx-auto rounded-lg" />
-                    <p className="text-sm text-slate-600">Clic para cambiar imagen</p>
-                  </div>
-                ) : (
-                  <div>
-                    <ImageIcon className="w-12 h-12 text-slate-400 mx-auto mb-2" />
-                    <p className="text-slate-600 font-medium">Clic para subir imagen o Ctrl+V para pegar</p>
-                    <p className="text-xs text-slate-500 mt-1">
-                      📋 Puedes pegar una imagen directamente desde el portapapeles
-                    </p>
-                  </div>
-                )}
-              </label>
+            <div className="space-y-3">
+              {/* Opción 1: Pegar URL */}
+              <div>
+                <Input
+                  value={imageUrl}
+                  onChange={(e) => {
+                    setImageUrl(e.target.value);
+                    if (e.target.value) {
+                      setImageFile(null);
+                      setImagePreview(e.target.value);
+                    }
+                  }}
+                  placeholder="🔗 Pega aquí la URL de la imagen"
+                  className="text-sm"
+                />
+              </div>
+
+              <div className="flex items-center gap-2">
+                <div className="flex-1 border-t border-slate-300"></div>
+                <span className="text-xs text-slate-500">O</span>
+                <div className="flex-1 border-t border-slate-300"></div>
+              </div>
+
+              {/* Opción 2: Subir archivo */}
+              <div 
+                className="border-2 border-dashed border-slate-300 rounded-xl p-6 text-center hover:border-orange-500 transition-colors"
+                onPaste={handlePaste}
+                tabIndex={0}
+              >
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageChange}
+                  className="hidden"
+                  id="image-upload"
+                />
+                <label htmlFor="image-upload" className="cursor-pointer">
+                  {imagePreview && !imageUrl ? (
+                    <div className="space-y-2">
+                      <img src={imagePreview} alt="Preview" className="max-h-48 mx-auto rounded-lg" />
+                      <p className="text-sm text-slate-600">Clic para cambiar imagen</p>
+                    </div>
+                  ) : (
+                    <div>
+                      <ImageIcon className="w-12 h-12 text-slate-400 mx-auto mb-2" />
+                      <p className="text-slate-600 font-medium">Clic para subir imagen o Ctrl+V para pegar</p>
+                      <p className="text-xs text-slate-500 mt-1">
+                        📋 Puedes pegar una imagen directamente desde el portapapeles
+                      </p>
+                    </div>
+                  )}
+                </label>
+              </div>
+
+              {/* Preview de URL */}
+              {imageUrl && (
+                <div className="mt-2">
+                  <img src={imageUrl} alt="Preview URL" className="max-h-48 mx-auto rounded-lg border-2 border-green-500" />
+                </div>
+              )}
             </div>
           </div>
 
@@ -251,7 +295,7 @@ export default function UploadStandingsForm({ onDataExtracted, onCancel, presele
             </Button>
             <Button
               type="submit"
-              disabled={!imageFile || isProcessing}
+              disabled={(!imageFile && !imageUrl) || isProcessing}
               className="bg-orange-600 hover:bg-orange-700"
             >
               {isProcessing ? (
