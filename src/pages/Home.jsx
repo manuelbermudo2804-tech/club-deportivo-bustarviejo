@@ -151,6 +151,17 @@ export default function Home() {
     enabled: !!user,
   });
 
+  const { data: matchObservations = [] } = useQuery({
+    queryKey: ['matchObservations'],
+    queryFn: () => base44.entities.MatchObservation.list(),
+    initialData: [],
+    staleTime: 60000,
+    gcTime: 600000,
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
+    enabled: !!user && (isCoach || isCoordinator),
+  });
+
   const { data: attendances } = useQuery({
     queryKey: ['attendances'],
     queryFn: () => base44.entities.Attendance.list(),
@@ -581,14 +592,33 @@ export default function Home() {
       }
     }
 
+    // Calcular partidos pendientes de observación (para entrenadores/coordinadores)
+    let pendingMatchObservations = 0;
+    if ((isCoach || isCoordinator) && user && callups && matchObservations) {
+      const myCallups = callups.filter(c => 
+        c.entrenador_email === user.email &&
+        c.publicada === true &&
+        new Date(c.fecha_partido) <= new Date()
+      );
+
+      pendingMatchObservations = myCallups.filter(callup => {
+        const hasObservation = matchObservations.some(obs =>
+          obs.categoria === callup.categoria &&
+          obs.rival === callup.rival &&
+          obs.fecha_partido === callup.fecha_partido
+        );
+        return !hasObservation;
+      }).length;
+    }
+
     return { 
       activePlayers, pendingPayments, reviewPayments, paidPayments, unreadMessages, unreadPrivateMessages,
       pendingCallups, pendingSignatures, adminPendingSignatures, pendingPlayerAccess,
       pendingClothingOrders, pendingLotteryOrders, pendingMemberRequests, 
       recentSurveyResponses, pendingEventConfirmations, pendingCallupResponses, unreadCoordinatorMessages,
-      unreadAdminMessages, hasActiveAdminChat, overduePayments
+      unreadAdminMessages, hasActiveAdminChat, overduePayments, pendingMatchObservations
     };
-  }, [players, payments, messages, callups, user, hasPlayers, isAdmin, allUsers, clothingOrders, lotteryOrders, clubMembers, surveyResponses, events, privateConversations, adminConversations, isCoordinator, isTreasurer, isCoach, coordinatorConversations]);
+  }, [players, payments, messages, callups, user, hasPlayers, isAdmin, allUsers, clothingOrders, lotteryOrders, clubMembers, surveyResponses, events, privateConversations, adminConversations, isCoordinator, isTreasurer, isCoach, coordinatorConversations, matchObservations]);
 
   const handleMatchAppClick = useMemo(() => () => {
     const userAgent = navigator.userAgent || navigator.vendor || window.opera;
@@ -1357,6 +1387,7 @@ export default function Home() {
             unreadCoordinatorMessages={stats.unreadCoordinatorMessages}
             unreadAdminMessages={stats.unreadAdminMessages}
             hasActiveAdminChat={stats.hasActiveAdminChat}
+            pendingMatchObservations={stats.pendingMatchObservations}
             isAdmin={isAdmin}
             isCoach={isCoach || isCoordinator}
             isParent={hasPlayers}
