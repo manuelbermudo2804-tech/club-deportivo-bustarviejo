@@ -272,11 +272,9 @@ Sé directo, práctico y enfocado en acciones concretas que el entrenador pueda 
             const analysis = aiAnalysis[cat.id];
             const analyzing = isAnalyzing[cat.id];
 
-            // Partidos pasados sin observación
-            const today = new Date().toISOString().split('T')[0];
-            const pastCallups = callups.filter(c => 
+            // Partidos sin observación (pasados O futuros próximos)
+            const pendingCallups = callups.filter(c => 
               c.categoria === cat.fullName && 
-              c.fecha_partido < today &&
               c.publicada &&
               !matchObservations.some(obs => 
                 obs.rival === c.rival && 
@@ -290,7 +288,7 @@ Sé directo, práctico y enfocado en acciones concretas que el entrenador pueda 
                 {latestStanding ? (
                   <>
                     {/* PARTIDO PENDIENTE DE REGISTRAR - FORZADO */}
-                    {pastCallups.length > 0 && (
+                    {pendingCallups.length > 0 && (
                       <Card className="border-4 border-red-500 bg-gradient-to-r from-red-50 to-orange-50 animate-pulse">
                         <CardHeader>
                           <CardTitle className="text-red-700 flex items-center gap-2">
@@ -300,11 +298,11 @@ Sé directo, práctico y enfocado en acciones concretas que el entrenador pueda 
                         </CardHeader>
                         <CardContent>
                           <div className="bg-white rounded-lg p-4 mb-4">
-                            <p className="font-bold text-slate-900 mb-2">🆚 {pastCallups[0].titulo}</p>
+                            <p className="font-bold text-slate-900 mb-2">🆚 {pendingCallups[0].titulo}</p>
                             <div className="text-sm text-slate-600 space-y-1">
-                              <p>📅 {format(new Date(pastCallups[0].fecha_partido), "d 'de' MMMM", { locale: es })}</p>
-                              <p>⏰ {pastCallups[0].hora_partido}</p>
-                              <p>📍 {pastCallups[0].ubicacion}</p>
+                              <p>📅 {format(new Date(pendingCallups[0].fecha_partido), "d 'de' MMMM", { locale: es })}</p>
+                              <p>⏰ {pendingCallups[0].hora_partido}</p>
+                              <p>📍 {pendingCallups[0].ubicacion}</p>
                             </div>
                           </div>
 
@@ -321,11 +319,11 @@ Sé directo, práctico y enfocado en acciones concretas que el entrenador pueda 
                       </Card>
                     )}
 
-                    {showObservationForm && pastCallups.length > 0 && (
+                    {showObservationForm && pendingCallups.length > 0 && (
                       <QuickMatchObservationForm
-                        categoria={pastCallups[0].categoria}
-                        rival={pastCallups[0].rival}
-                        fechaPartido={pastCallups[0].fecha_partido}
+                        categoria={pendingCallups[0].categoria}
+                        rival={pendingCallups[0].rival}
+                        fechaPartido={pendingCallups[0].fecha_partido}
                         jornada={latestStanding.jornada}
                         onSave={(data) => saveObservationMutation.mutate(data)}
                         onCancel={() => setShowObservationForm(false)}
@@ -369,7 +367,7 @@ Sé directo, práctico y enfocado en acciones concretas que el entrenador pueda 
                       </CardHeader>
                     </Card>
 
-                    {matchObservations.filter(o => o.categoria === cat.fullName).length > 0 && !showObservationForm && pastCallups.length === 0 && (
+                    {matchObservations.filter(o => o.categoria === cat.fullName).length > 0 && !showObservationForm && pendingCallups.length === 0 && (
                       <Card className="bg-green-50 border-2 border-green-300">
                         <CardContent className="p-3 text-center">
                           <p className="text-sm text-green-700">
