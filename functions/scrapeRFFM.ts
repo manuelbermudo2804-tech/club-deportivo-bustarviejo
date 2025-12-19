@@ -21,12 +21,25 @@ Deno.serve(async (req) => {
     const url = `https://www.rffm.es/competicion/clasificaciones?temporada=${temporada}&tipojuego=${tipo_juego}&competicion=${competicion_id}&grupo=${grupo_id}`;
     
     // 🎯 ESTRATEGIA 1: Probar múltiples endpoints de API
-    const apiUrls = [
+    // Primero intentar Next.js data endpoints (patrón descubierto por el usuario)
+    const buildIds = ['pvY0PCDJfksSJVbXZTPng', 'latest', 'build'];
+    const apiUrls = [];
+
+    // Next.js data URLs
+    for (const buildId of buildIds) {
+      apiUrls.push(
+        `https://www.rffm.es/_next/data/${buildId}/competicion/clasificaciones.json?temporada=${temporada}&tipojuego=${tipo_juego}&competicion=${competicion_id}&grupo=${grupo_id}`,
+        `https://www.rffm.es/_next/data/${buildId}/clasificaciones.json?temporada=${temporada}&tipojuego=${tipo_juego}&competicion=${competicion_id}&grupo=${grupo_id}`
+      );
+    }
+
+    // APIs REST tradicionales
+    apiUrls.push(
       `https://www.rffm.es/api/competicion/clasificacion?temporada=${temporada}&tipojuego=${tipo_juego}&competicion=${competicion_id}&grupo=${grupo_id}`,
       `https://www.rffm.es/api/clasificacion?temporada=${temporada}&tipo_juego=${tipo_juego}&competicion=${competicion_id}&grupo=${grupo_id}`,
       `https://competiciones.rffm.es/api/clasificacion/${grupo_id}`,
-      `https://www.rffm.es/competicion/api/clasificacion/${grupo_id}`,
-    ];
+      `https://www.rffm.es/competicion/api/clasificacion/${grupo_id}`
+    );
 
     for (const apiUrl of apiUrls) {
       try {
@@ -46,7 +59,12 @@ Deno.serve(async (req) => {
           // Intentar extraer datos con diferentes estructuras
           let clasificacion = [];
 
-          if (Array.isArray(jsonData)) {
+          // Next.js structure: pageProps.clasificacion
+          if (jsonData.pageProps?.clasificacion) {
+            clasificacion = jsonData.pageProps.clasificacion;
+          } else if (jsonData.pageProps?.data?.clasificacion) {
+            clasificacion = jsonData.pageProps.data.clasificacion;
+          } else if (Array.isArray(jsonData)) {
             clasificacion = jsonData;
           } else if (jsonData.clasificacion) {
             clasificacion = jsonData.clasificacion;
