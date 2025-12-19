@@ -3,7 +3,7 @@ import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { Users, CreditCard, ShoppingBag, Calendar, Megaphone, Image, Clock, MessageCircle, Bell, Settings, ClipboardCheck, CheckCircle2, Star, TrendingUp, Smartphone, Trophy, FileText, Clover, BookOpen, Archive, BarChart3, FileSignature, Heart, BellRing, Sparkles } from "lucide-react";
+import { Users, CreditCard, ShoppingBag, Calendar, Megaphone, Image, Clock, MessageCircle, Bell, Settings, ClipboardCheck, CheckCircle2, Star, TrendingUp, FileText, Clover, BookOpen, Archive, BarChart3, FileSignature, Heart, BellRing, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 // toast removido para evitar spam
 
@@ -641,30 +641,7 @@ export default function Home() {
     };
   }, [players, payments, messages, callups, user, hasPlayers, isAdmin, allUsers, clothingOrders, lotteryOrders, clubMembers, surveyResponses, events, privateConversations, adminConversations, isCoordinator, isTreasurer, isCoach, coordinatorConversations, matchObservations]);
 
-  const handleMatchAppClick = useMemo(() => () => {
-    const userAgent = navigator.userAgent || navigator.vendor || window.opera;
-    const isIOS = /iPad|iPhone|iPod/.test(userAgent) && !window.MSStream;
-    const isAndroid = /android/i.test(userAgent);
-    
-    if (isIOS || isAndroid) {
-      const deepLink = "matchapp://";
-      const storeUrl = isIOS 
-        ? "https://apps.apple.com/app/matchapp"
-        : "https://play.google.com/store/apps/details?id=com.matchapp";
-      
-      const iframe = document.createElement('iframe');
-      iframe.style.display = 'none';
-      iframe.src = deepLink;
-      document.body.appendChild(iframe);
-      
-      setTimeout(() => {
-        document.body.removeChild(iframe);
-        window.location.href = storeUrl;
-      }, 1000);
-    } else {
-      window.open("https://www.matchapp.com", "_blank");
-    }
-  }, []);
+
 
   const menuItems = useMemo(() => {
     const items = [];
@@ -1463,21 +1440,7 @@ export default function Home() {
           </Link>
         )}
 
-        <button
-          onClick={handleMatchAppClick}
-          className="w-full bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 rounded-2xl p-3 lg:p-4 shadow-xl transition-all hover:scale-105 active:scale-95 border-2 border-green-500"
-        >
-          <div className="flex items-center justify-center gap-2 lg:gap-3">
-            <div className="bg-white/20 backdrop-blur-sm rounded-xl p-2 lg:p-3">
-              <Trophy className="w-5 h-5 lg:w-6 lg:h-6 text-white" />
-            </div>
-            <div className="text-left flex-1">
-              <p className="text-white font-bold text-sm lg:text-lg">⚽ Sigue a tus equipos en vivo</p>
-              <p className="text-green-100 text-xs lg:text-sm">Descarga MatchApp para ver resultados y clasificaciones</p>
-            </div>
-            <Smartphone className="w-6 h-6 lg:w-8 lg:h-8 text-white" />
-          </div>
-        </button>
+
 
         <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3 lg:gap-6 stagger-animation">
           {menuItems.map((item, index) => (
