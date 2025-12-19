@@ -272,7 +272,7 @@ export default function UploadStandingsForm({ onDataExtracted, onCancel, presele
             </Button>
             <Button
               type="submit"
-              disabled={(!imageFile && !imageUrl) || isProcessing}
+              disabled={(!imageFile && !imageUrl) || isProcessing || !categoria}
               className="bg-orange-600 hover:bg-orange-700"
             >
               {isProcessing ? (
