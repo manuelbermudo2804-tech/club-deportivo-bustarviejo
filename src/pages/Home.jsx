@@ -347,11 +347,20 @@ export default function Home() {
     if (isAdmin || isTreasurer) {
       // Admin y Tesorero ven TODOS los pagos del club
       // NO contar pagos ya reconciliados como pendientes
-      pendingPayments = payments?.filter(p => 
+      const allPendingPayments = payments?.filter(p => 
         p.estado === "Pendiente" && 
         p.is_deleted !== true && 
         p.reconciliado_banco !== true
-      ).length || 0;
+      ) || [];
+      
+      console.log('💳 [Home DEBUG] Pagos pendientes encontrados:', allPendingPayments.length, allPendingPayments.map(p => ({
+        jugador: p.jugador_nombre,
+        mes: p.mes,
+        temporada: p.temporada,
+        cantidad: p.cantidad
+      })));
+      
+      pendingPayments = allPendingPayments.length;
       reviewPayments = payments?.filter(p => 
         p.estado === "En revisión" && 
         p.is_deleted !== true && 
