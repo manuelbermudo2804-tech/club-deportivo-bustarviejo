@@ -8,12 +8,24 @@ import { Upload, Image as ImageIcon } from "lucide-react";
 import { toast } from "sonner";
 
 export default function UploadStandingsForm({ onDataExtracted, onCancel, preselectedCategory, prefillData }) {
-  const [temporada, setTemporada] = useState(prefillData?.temporada || "2024/2025");
+  const [temporada, setTemporada] = useState(prefillData?.temporada || "2025/2026");
   const [categoria, setCategoria] = useState(preselectedCategory || prefillData?.categoria || "");
   const [imageFile, setImageFile] = useState(null);
-  const [imageUrl, setImageUrl] = useState("");
+  const [imageUrl, setImageUrl] = useState(() => {
+    if (preselectedCategory) {
+      return localStorage.getItem(`standings_url_${preselectedCategory}`) || "";
+    }
+    return "";
+  });
   const [imagePreview, setImagePreview] = useState(null);
   const [isProcessing, setIsProcessing] = useState(false);
+
+  // Guardar URL cuando cambie
+  React.useEffect(() => {
+    if (imageUrl && preselectedCategory) {
+      localStorage.setItem(`standings_url_${preselectedCategory}`, imageUrl);
+    }
+  }, [imageUrl, preselectedCategory]);
 
   const processFile = (file) => {
     setImageFile(file);
@@ -168,7 +180,7 @@ export default function UploadStandingsForm({ onDataExtracted, onCancel, presele
               <Input
                 value={temporada}
                 onChange={(e) => setTemporada(e.target.value)}
-                placeholder="2024/2025"
+                placeholder="2025/2026"
                 required
                 disabled={!!prefillData}
                 className={prefillData ? "bg-slate-100" : ""}
@@ -240,13 +252,6 @@ export default function UploadStandingsForm({ onDataExtracted, onCancel, presele
                 )}
               </label>
             </div>
-          </div>
-
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-            <p className="text-sm text-blue-800">
-              <strong>💡 Consejos:</strong> Asegúrate de que la imagen sea nítida, solo contenga la tabla de clasificación, 
-              y los números sean legibles.
-            </p>
           </div>
 
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
