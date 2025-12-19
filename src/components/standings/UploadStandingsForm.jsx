@@ -15,15 +15,36 @@ export default function UploadStandingsForm({ onDataExtracted, onCancel, presele
   const [imagePreview, setImagePreview] = useState(null);
   const [isProcessing, setIsProcessing] = useState(false);
 
+  const processFile = (file) => {
+    setImageFile(file);
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setImagePreview(reader.result);
+    };
+    reader.readAsDataURL(file);
+  };
+
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     if (file) {
-      setImageFile(file);
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setImagePreview(reader.result);
-      };
-      reader.readAsDataURL(file);
+      processFile(file);
+    }
+  };
+
+  const handlePaste = (e) => {
+    const items = e.clipboardData?.items;
+    if (!items) return;
+
+    for (let i = 0; i < items.length; i++) {
+      if (items[i].type.indexOf('image') !== -1) {
+        e.preventDefault();
+        const file = items[i].getAsFile();
+        if (file) {
+          processFile(file);
+          toast.success("✅ Imagen pegada desde el portapapeles");
+        }
+        break;
+      }
     }
   };
 
@@ -185,7 +206,11 @@ export default function UploadStandingsForm({ onDataExtracted, onCancel, presele
 
           <div>
             <Label>Imagen de Clasificación</Label>
-            <div className="mt-2 border-2 border-dashed border-slate-300 rounded-xl p-6 text-center hover:border-orange-500 transition-colors">
+            <div 
+              className="mt-2 border-2 border-dashed border-slate-300 rounded-xl p-6 text-center hover:border-orange-500 transition-colors"
+              onPaste={handlePaste}
+              tabIndex={0}
+            >
               <input
                 type="file"
                 accept="image/*"
@@ -202,9 +227,9 @@ export default function UploadStandingsForm({ onDataExtracted, onCancel, presele
                 ) : (
                   <div>
                     <ImageIcon className="w-12 h-12 text-slate-400 mx-auto mb-2" />
-                    <p className="text-slate-600 font-medium">Clic para subir imagen</p>
+                    <p className="text-slate-600 font-medium">Clic para subir imagen o Ctrl+V para pegar</p>
                     <p className="text-xs text-slate-500 mt-1">
-                      Foto o captura de la clasificación
+                      📋 Puedes pegar una imagen directamente desde el portapapeles
                     </p>
                   </div>
                 )}
