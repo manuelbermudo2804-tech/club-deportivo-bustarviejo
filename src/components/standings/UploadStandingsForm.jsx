@@ -10,6 +10,7 @@ import { toast } from "sonner";
 export default function UploadStandingsForm({ onDataExtracted, onCancel, preselectedCategory, prefillData }) {
   const [temporada, setTemporada] = useState(prefillData?.temporada || "2025/2026");
   const [categoria, setCategoria] = useState(preselectedCategory || prefillData?.categoria || "");
+  const [jornada, setJornada] = useState(prefillData?.jornada || "");
   const [imageFile, setImageFile] = useState(null);
   const [imageUrl, setImageUrl] = useState(() => {
     if (preselectedCategory) {
@@ -65,6 +66,11 @@ export default function UploadStandingsForm({ onDataExtracted, onCancel, presele
 
     if (!categoria) {
       toast.error("Selecciona una categoría");
+      return;
+    }
+
+    if (!jornada) {
+      toast.error("Indica la jornada");
       return;
     }
 
@@ -146,6 +152,7 @@ export default function UploadStandingsForm({ onDataExtracted, onCancel, presele
       onDataExtracted({
         temporada,
         categoria,
+        jornada: parseInt(jornada),
         standings: sortedStandings
       });
 
@@ -169,7 +176,7 @@ export default function UploadStandingsForm({ onDataExtracted, onCancel, presele
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
               <Label>Temporada</Label>
               <Input
@@ -187,6 +194,18 @@ export default function UploadStandingsForm({ onDataExtracted, onCancel, presele
                 value={categoria}
                 onChange={(e) => setCategoria(e.target.value)}
                 placeholder="Fútbol Juvenil"
+                required
+                disabled={!!prefillData}
+                className={prefillData ? "bg-slate-100" : ""}
+              />
+            </div>
+            <div>
+              <Label>Jornada</Label>
+              <Input
+                type="number"
+                value={jornada}
+                onChange={(e) => setJornada(e.target.value)}
+                placeholder="1"
                 required
                 disabled={!!prefillData}
                 className={prefillData ? "bg-slate-100" : ""}
@@ -267,7 +286,7 @@ export default function UploadStandingsForm({ onDataExtracted, onCancel, presele
             </Button>
             <Button
               type="submit"
-              disabled={isProcessing || !categoria || !imageFile}
+              disabled={isProcessing || !categoria || !jornada || !imageFile}
               className="bg-orange-600 hover:bg-orange-700"
             >
               {isProcessing ? (
