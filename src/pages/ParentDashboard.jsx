@@ -15,6 +15,7 @@ import { usePageTutorial } from "../components/tutorials/useTutorial";
 import DashboardCardSkeleton from "../components/skeletons/DashboardCardSkeleton";
 import RenewalStatusWidget from "../components/renewals/RenewalStatusWidget";
 import StandingsWidget from "../components/standings/StandingsWidget";
+import NextMatchWidget from "../components/dashboard/NextMatchWidget";
 
 
 // Componente para compartir Fútbol Femenino (sin referidos)
@@ -45,40 +46,19 @@ function FemeninoShareBanner() {
   };
 
   return (
-    <div className="bg-gradient-to-r from-pink-500 via-fuchsia-500 to-purple-600 rounded-2xl p-4 shadow-xl border-2 border-pink-400 relative overflow-hidden">
-      <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16"></div>
-      <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/10 rounded-full -ml-12 -mb-12"></div>
-      
-      <div className="relative z-10">
-        <div className="flex items-start gap-3 mb-3">
-          <div className="bg-white/20 backdrop-blur-sm rounded-xl p-2 flex-shrink-0">
-            <span className="text-2xl">⚽👧</span>
-          </div>
-          <div className="flex-1">
-            <p className="text-white font-bold text-base lg:text-lg">
-              ¡Ayúdanos a crecer el Fútbol Femenino!
-            </p>
-            <p className="text-pink-100 text-xs mt-1">
-              Comparte con amigas, vecinas, familiares... <strong>¡Buscamos jugadoras!</strong>
-            </p>
-          </div>
+    <div className="bg-gradient-to-r from-pink-500 via-fuchsia-500 to-purple-600 rounded-xl p-3 shadow-lg border border-pink-400">
+      <div className="flex items-center justify-between gap-2">
+        <div className="flex items-center gap-2 flex-1">
+          <span className="text-lg">⚽👧</span>
+          <p className="text-white font-bold text-sm">Comparte Fútbol Femenino</p>
         </div>
-        
-        <div className="flex gap-2">
-          <button
-            onClick={shareWhatsApp}
-            className="flex-1 bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-4 rounded-xl shadow-lg transition-all hover:scale-105 active:scale-95 flex items-center justify-center gap-2"
-          >
-            <Share2 className="w-5 h-5" />
-            <span className="text-sm">Enviar por WhatsApp</span>
-          </button>
-          <button
-            onClick={copyLink}
-            className="bg-white/20 hover:bg-white/30 text-white font-bold py-3 px-4 rounded-xl transition-all"
-          >
-            📋
-          </button>
-        </div>
+        <button
+          onClick={shareWhatsApp}
+          className="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-3 rounded-lg transition-all hover:scale-105 active:scale-95 flex items-center gap-1 flex-shrink-0"
+        >
+          <Share2 className="w-4 h-4" />
+          <span className="text-xs hidden sm:inline">WhatsApp</span>
+        </button>
       </div>
     </div>
   );
@@ -684,8 +664,13 @@ export default function ParentDashboard() {
           />
         )}
 
-        {/* Widget de Clasificaciones */}
-        {!playersLoading && <StandingsWidget userEmail={user?.email} />}
+        {/* NUEVO: Grid 2 columnas - Clasificaciones + Próximo Partido */}
+        {!playersLoading && myPlayers.length > 0 && (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <StandingsWidget userEmail={user?.email} />
+            <NextMatchWidget myPlayers={myPlayers} />
+          </div>
+        )}
 
         {/* ÚNICO CENTRO DE ALERTAS CONSOLIDADO - Todo en un solo banner */}
         {playersLoading ? (
@@ -730,20 +715,15 @@ export default function ParentDashboard() {
 
 
 
-        {/* HAZTE SOCIO BANNER */}
+        {/* HAZTE SOCIO BANNER - COMPACTO */}
         <Link to={createPageUrl("ClubMembership")}>
-          <div className="bg-gradient-to-r from-pink-500 via-purple-500 to-orange-500 rounded-2xl p-4 shadow-xl transition-all hover:scale-105 active:scale-95 border-2 border-pink-400">
-            <div className="flex items-center gap-3">
-              <div className="bg-white/20 backdrop-blur-sm rounded-xl p-3">
-                <Heart className="w-7 h-7 text-white" />
+          <div className="bg-gradient-to-r from-pink-500 via-purple-500 to-orange-500 rounded-xl p-3 shadow-lg transition-all hover:scale-105 active:scale-95 border border-pink-400">
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2">
+                <Heart className="w-5 h-5 text-white flex-shrink-0" />
+                <p className="text-white font-bold text-sm">❤️ Hazte Socio • 25€/temporada</p>
               </div>
-              <div className="text-left flex-1">
-                <p className="text-white font-bold text-lg">🎉 ¡Hazte Socio!</p>
-                <p className="text-pink-100 text-xs">Invita a familiares y amigos • Solo 25€/temporada</p>
-              </div>
-              <div className="bg-white/20 backdrop-blur-sm rounded-full px-3 py-1">
-                <span className="text-white text-sm font-bold">→</span>
-              </div>
+              <span className="text-white text-lg">→</span>
             </div>
           </div>
         </Link>
@@ -753,18 +733,16 @@ export default function ParentDashboard() {
           <FemeninoShareBanner />
         )}
 
-        {/* LOTERIA NAVIDAD */}
+        {/* LOTERIA NAVIDAD - COMPACTO */}
         {loteriaVisible && (
           <Link to={createPageUrl("ParentLottery")}>
-            <div className="bg-gradient-to-r from-green-600 to-green-700 rounded-2xl p-4 shadow-xl transition-all hover:scale-105 active:scale-95 border-2 border-green-500">
-              <div className="flex items-center gap-3">
-                <div className="bg-white/20 backdrop-blur-sm rounded-xl p-2">
-                  <Clover className="w-6 h-6 text-white" />
+            <div className="bg-gradient-to-r from-green-600 to-green-700 rounded-xl p-3 shadow-lg transition-all hover:scale-105 active:scale-95 border border-green-500">
+              <div className="flex items-center justify-between gap-2">
+                <div className="flex items-center gap-2">
+                  <Clover className="w-5 h-5 text-white flex-shrink-0" />
+                  <p className="text-white font-bold text-sm">🍀 Lotería Navidad • 28720</p>
                 </div>
-                <div className="text-left flex-1">
-                  <p className="text-white font-bold text-base">🍀 Lotería de Navidad</p>
-                  <p className="text-green-100 text-xs">Compra décimos del club 🎄</p>
-                </div>
+                <span className="text-white text-lg">→</span>
               </div>
             </div>
           </Link>
