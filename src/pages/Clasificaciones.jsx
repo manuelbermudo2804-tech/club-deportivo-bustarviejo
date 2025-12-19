@@ -77,8 +77,30 @@ export default function Clasificaciones() {
     initialData: [],
   });
 
+  // Generar categorías dinámicamente desde las clasificaciones guardadas
+  const dynamicCategories = React.useMemo(() => {
+    const uniqueCategories = [...new Set(standings.map(s => s.categoria))];
+    
+    return uniqueCategories.map((catName, idx) => {
+      // Buscar si existe en CATEGORIES fijas
+      const staticCat = CATEGORIES.find(c => c.fullName === catName);
+      
+      if (staticCat) {
+        return staticCat;
+      }
+      
+      // Categoría nueva, crear dinámicamente
+      const shortName = catName.replace("Fútbol ", "").replace(" (Mixto)", "");
+      return {
+        id: `cat_${idx}`,
+        name: shortName,
+        fullName: catName
+      };
+    });
+  }, [standings]);
+
   // Agrupar clasificaciones por categoría
-  const standingsByCategory = CATEGORIES.reduce((acc, cat) => {
+  const standingsByCategory = dynamicCategories.reduce((acc, cat) => {
     const categoryStandings = standings.filter(s => s.categoria === cat.fullName);
     
     // Agrupar por temporada/jornada dentro de cada categoría
@@ -196,8 +218,8 @@ export default function Clasificaciones() {
 
   // Filtrar categorías según permisos de usuario
   const visibleCategories = isAdmin 
-    ? CATEGORIES 
-    : CATEGORIES.filter(cat => userCategories.includes(cat.fullName));
+    ? dynamicCategories 
+    : dynamicCategories.filter(cat => userCategories.includes(cat.fullName));
 
   if (isLoadingUser) {
     return (
