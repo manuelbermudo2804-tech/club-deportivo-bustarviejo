@@ -73,6 +73,33 @@ export default function Clasificaciones() {
     checkAdmin();
   }, []);
 
+  // Agrupar clasificaciones por categoría
+  const standingsByCategory = CATEGORIES.reduce((acc, cat) => {
+    const categoryStandings = standings.filter(s => s.categoria === cat.fullName);
+    
+    // Agrupar por temporada/jornada dentro de cada categoría
+    const grouped = categoryStandings.reduce((groupAcc, standing) => {
+      const key = `${standing.temporada}|${standing.jornada}`;
+      if (!groupAcc[key]) {
+        groupAcc[key] = {
+          temporada: standing.temporada,
+          categoria: standing.categoria,
+          jornada: standing.jornada,
+          fecha_actualizacion: standing.fecha_actualizacion,
+          data: []
+        };
+      }
+      groupAcc[key].data.push(standing);
+      return groupAcc;
+    }, {});
+
+    acc[cat.id] = Object.values(grouped).sort((a, b) => 
+      new Date(b.fecha_actualizacion) - new Date(a.fecha_actualizacion)
+    );
+    
+    return acc;
+  }, {});
+
   // Auto-abrir clasificación más reciente al cambiar pestaña
   React.useEffect(() => {
     if (!activeTab || showUploadForm || reviewData) return;
@@ -81,7 +108,7 @@ export default function Clasificaciones() {
     if (latestForCategory) {
       setSelectedView(latestForCategory);
     }
-  }, [activeTab, showUploadForm, reviewData, standingsByCategory]);
+  }, [activeTab, showUploadForm, reviewData]);
 
   const { data: standings } = useQuery({
     queryKey: ['clasificaciones'],
@@ -168,33 +195,6 @@ export default function Clasificaciones() {
       setReviewData({ ...prefillData, isPrefilled: true });
     }
   };
-
-  // Agrupar clasificaciones por categoría
-  const standingsByCategory = CATEGORIES.reduce((acc, cat) => {
-    const categoryStandings = standings.filter(s => s.categoria === cat.fullName);
-    
-    // Agrupar por temporada/jornada dentro de cada categoría
-    const grouped = categoryStandings.reduce((groupAcc, standing) => {
-      const key = `${standing.temporada}|${standing.jornada}`;
-      if (!groupAcc[key]) {
-        groupAcc[key] = {
-          temporada: standing.temporada,
-          categoria: standing.categoria,
-          jornada: standing.jornada,
-          fecha_actualizacion: standing.fecha_actualizacion,
-          data: []
-        };
-      }
-      groupAcc[key].data.push(standing);
-      return groupAcc;
-    }, {});
-
-    acc[cat.id] = Object.values(grouped).sort((a, b) => 
-      new Date(b.fecha_actualizacion) - new Date(a.fecha_actualizacion)
-    );
-    
-    return acc;
-  }, {});
 
   // Filtrar categorías según permisos de usuario
   const visibleCategories = isAdmin 
