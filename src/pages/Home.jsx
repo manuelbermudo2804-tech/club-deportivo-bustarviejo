@@ -595,11 +595,32 @@ export default function Home() {
     // Calcular partidos pendientes de observación (para entrenadores/coordinadores)
     let pendingMatchObservations = 0;
     if ((isCoach || isCoordinator) && user && callups && matchObservations) {
-      const myCallups = callups.filter(c => 
-        c.entrenador_email === user.email &&
-        c.publicada === true &&
-        new Date(c.fecha_partido) <= new Date()
-      );
+      const now = new Date();
+      
+      const myCallups = callups.filter(c => {
+        if (c.entrenador_email !== user.email || !c.publicada) return false;
+        
+        // Calcular hora estimada de finalización del partido
+        const matchDate = new Date(c.fecha_partido);
+        if (matchDate > now) return false; // Partido no ha empezado aún
+        
+        // Si tiene hora_partido, calcular fin estimado (2h + 15min)
+        if (c.hora_partido) {
+          const [hours, minutes] = c.hora_partido.split(':').map(Number);
+          const matchStart = new Date(matchDate);
+          matchStart.setHours(hours, minutes, 0, 0);
+          
+          // Duración partido (2h) + margen (15min) = 135 minutos
+          const matchEnd = new Date(matchStart.getTime() + 135 * 60000);
+          
+          return now >= matchEnd;
+        }
+        
+        // Si no tiene hora, esperar al día siguiente
+        const nextDay = new Date(matchDate);
+        nextDay.setDate(nextDay.getDate() + 1);
+        return now >= nextDay;
+      });
 
       pendingMatchObservations = myCallups.filter(callup => {
         const hasObservation = matchObservations.some(obs =>
