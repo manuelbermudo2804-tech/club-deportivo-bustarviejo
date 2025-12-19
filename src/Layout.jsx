@@ -34,6 +34,7 @@ import EventReminderEngine from "./components/events/EventReminderEngine";
 import DocumentReminderEngine from "./components/documents/DocumentReminderEngine";
 import SponsorBanner from "./components/sponsors/SponsorBanner";
 import PWAInstallPrompt from "./components/pwa/PWAInstallPrompt";
+import CallupEventSync from "./components/callups/CallupEventSync";
 
 
 const CLUB_LOGO_URL = `https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6911b8e453ca3ac01fb134d6/e3f0a8e26_logo_cd_bustarviejo_mediano.jpg?t=${Date.now()}`;
@@ -1617,6 +1618,7 @@ export default function Layout({ children, currentPageName }) {
               <AutomaticRenewalClosure />
               <RenewalNotificationEngine />
               <PostRenewalPaymentReminder />
+              <CallupEventSync />
               {/* Componentes temporalmente desactivados para debug */}
 
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
