@@ -80,6 +80,7 @@ import CustomPaymentPlans from './pages/CustomPaymentPlans';
 import InvitationRequests from './pages/InvitationRequests';
 import FamilyGuide from './pages/FamilyGuide';
 import Clasificaciones from './pages/Clasificaciones';
+import CoachStandingsAnalysis from './pages/CoachStandingsAnalysis';
 import __Layout from './Layout.jsx';
 
 
@@ -166,6 +167,7 @@ export const PAGES = {
     "InvitationRequests": InvitationRequests,
     "FamilyGuide": FamilyGuide,
     "Clasificaciones": Clasificaciones,
+    "CoachStandingsAnalysis": CoachStandingsAnalysis,
 }
 
 export const pagesConfig = {
