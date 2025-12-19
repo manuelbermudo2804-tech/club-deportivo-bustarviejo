@@ -81,9 +81,10 @@ Deno.serve(async (req) => {
     const html = await response.text();
     const $ = cheerio.load(html);
     const clasificacion = [];
+    const debugLogs = [];
 
-    console.log('📄 HTML recibido:', html.length, 'chars');
-    console.log('🔍 Tablas encontradas:', $('table').length);
+    debugLogs.push(`📄 HTML recibido: ${html.length} chars`);
+    debugLogs.push(`🔍 Tablas encontradas: ${$('table').length}`);
 
     // Buscar TODAS las filas con al menos 5 celdas
     let allRows = [];
@@ -96,12 +97,12 @@ Deno.serve(async (req) => {
             rowData.push($(cell).text().trim());
           });
           allRows.push({ tableIdx: tIdx, rowIdx: rIdx, data: rowData });
-          console.log(`Fila ${allRows.length}: [${rowData.join(' | ')}]`);
+          debugLogs.push(`Fila ${allRows.length}: [${rowData.join(' | ')}]`);
         }
       });
     });
 
-    console.log(`📊 Total filas con 5+ celdas: ${allRows.length}`);
+    debugLogs.push(`📊 Total filas con 5+ celdas: ${allRows.length}`);
 
     // Analizar cada fila
     allRows.forEach(({ data }, idx) => {
@@ -146,9 +147,11 @@ Deno.serve(async (req) => {
           perdidos: data[equipoIdx + 4] || ''
         });
         
-        console.log(`✅ Equipo ${clasificacion.length}: ${equipo} - ${puntos} pts`);
+        debugLogs.push(`✅ Equipo ${clasificacion.length}: ${equipo} - ${puntos} pts`);
       }
     });
+
+    debugLogs.push(`🏁 Total equipos extraídos: ${clasificacion.length}`);
 
     return Response.json({
       success: clasificacion.length > 0,
@@ -157,6 +160,7 @@ Deno.serve(async (req) => {
       clasificacion,
       resultados: [],
       html_length: html.length,
+      debug_logs: debugLogs,
       timestamp: new Date().toISOString()
     });
 

@@ -399,13 +399,23 @@ export default function RFFMScraper() {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="flex items-center gap-4 text-sm">
+              <div className="flex items-center gap-4 text-sm flex-wrap">
                 <Badge className="bg-blue-500">
                   {scrapingResult.clasificacion?.length || 0} equipos
                 </Badge>
                 <Badge className="bg-purple-500">
                   {scrapingResult.resultados?.length || 0} resultados
                 </Badge>
+                {scrapingResult.method && (
+                  <Badge className="bg-slate-600">
+                    Método: {scrapingResult.method}
+                  </Badge>
+                )}
+                {scrapingResult.html_length && (
+                  <Badge variant="outline">
+                    HTML: {scrapingResult.html_length} chars
+                  </Badge>
+                )}
                 <a 
                   href={scrapingResult.url} 
                   target="_blank" 
@@ -415,6 +425,19 @@ export default function RFFMScraper() {
                   Ver en RFFM
                 </a>
               </div>
+
+              {scrapingResult.debug_logs && scrapingResult.debug_logs.length > 0 && (
+                <details className="mt-4">
+                  <summary className="cursor-pointer text-sm font-medium text-slate-700 hover:text-slate-900">
+                    🔍 Ver logs de debug ({scrapingResult.debug_logs.length} líneas)
+                  </summary>
+                  <div className="mt-2 bg-slate-900 text-green-400 p-4 rounded-lg max-h-96 overflow-y-auto text-xs font-mono">
+                    {scrapingResult.debug_logs.map((log, i) => (
+                      <div key={i}>{log}</div>
+                    ))}
+                  </div>
+                </details>
+              )}
 
               {scrapingResult.error && (
                 <Alert className="border-red-500 bg-red-50">
