@@ -54,6 +54,7 @@ export default function AlertCenter({
   unreadPrivateMessages = 0,
   unreadAdminMessages = 0,
   hasActiveAdminChat = false,
+  pendingMatchObservations = 0,
   isAdmin = false,
   isCoach = false,
   isParent = true,
@@ -273,6 +274,17 @@ export default function AlertCenter({
         description: `${pendingCallupResponses} jugador${pendingCallupResponses > 1 ? 'es' : ''} sin confirmar`,
         url: createPageUrl("CoachCallups"),
         color: "bg-red-500",
+        priority: 1
+      });
+    }
+    if (pendingMatchObservations > 0) {
+      alerts.push({
+        id: "match-observations",
+        icon: BarChart3,
+        title: "📊 Partidos sin registrar",
+        description: `${pendingMatchObservations} partido${pendingMatchObservations > 1 ? 's' : ''} pendiente${pendingMatchObservations > 1 ? 's' : ''} de observación`,
+        url: createPageUrl("CoachStandingsAnalysis"),
+        color: "bg-red-600",
         priority: 1
       });
     }
