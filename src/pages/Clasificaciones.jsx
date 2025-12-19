@@ -73,6 +73,12 @@ export default function Clasificaciones() {
     checkAdmin();
   }, []);
 
+  const { data: standings } = useQuery({
+    queryKey: ['clasificaciones'],
+    queryFn: () => base44.entities.Clasificacion.list('-jornada'),
+    initialData: [],
+  });
+
   // Agrupar clasificaciones por categoría
   const standingsByCategory = CATEGORIES.reduce((acc, cat) => {
     const categoryStandings = standings.filter(s => s.categoria === cat.fullName);
@@ -109,12 +115,6 @@ export default function Clasificaciones() {
       setSelectedView(latestForCategory);
     }
   }, [activeTab, showUploadForm, reviewData]);
-
-  const { data: standings } = useQuery({
-    queryKey: ['clasificaciones'],
-    queryFn: () => base44.entities.Clasificacion.list('-jornada'),
-    initialData: [],
-  });
 
   const saveStandingsMutation = useMutation({
     mutationFn: async (data) => {
