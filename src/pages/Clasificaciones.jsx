@@ -2,13 +2,27 @@ import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
-import { Upload, BarChart3, Eye, Trash2 } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Upload, BarChart3, Eye, Trash2, Plus } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 
 import UploadStandingsForm from "../components/standings/UploadStandingsForm";
 import ReviewStandingsTable from "../components/standings/ReviewStandingsTable";
 import StandingsDisplay from "../components/standings/StandingsDisplay";
+
+const CATEGORIES = [
+  { id: "prebenjamin", name: "Pre-Benjamín", fullName: "Fútbol Pre-Benjamín (Mixto)" },
+  { id: "benjamin", name: "Benjamín", fullName: "Fútbol Benjamín (Mixto)" },
+  { id: "alevin", name: "Alevín", fullName: "Fútbol Alevín (Mixto)" },
+  { id: "infantil", name: "Infantil", fullName: "Fútbol Infantil (Mixto)" },
+  { id: "cadete", name: "Cadete", fullName: "Fútbol Cadete" },
+  { id: "juvenil", name: "Juvenil", fullName: "Fútbol Juvenil" },
+  { id: "aficionado", name: "Aficionado", fullName: "Fútbol Aficionado" },
+  { id: "femenino", name: "Femenino", fullName: "Fútbol Femenino" },
+  { id: "baloncesto", name: "Baloncesto", fullName: "Baloncesto (Mixto)" }
+];
 
 export default function Clasificaciones() {
   const [isAdmin, setIsAdmin] = useState(false);
@@ -85,6 +99,7 @@ export default function Clasificaciones() {
       queryClient.invalidateQueries({ queryKey: ['clasificaciones'] });
       setReviewData(null);
       setShowUploadForm(false);
+      setSelectedCategory(null);
       toast.success("✅ Clasificación guardada correctamente");
     },
     onError: (error) => {
@@ -113,6 +128,11 @@ export default function Clasificaciones() {
 
   const handleConfirmStandings = (data) => {
     saveStandingsMutation.mutate(data);
+  };
+
+  const handleNewUpload = (categoryFullName) => {
+    setSelectedCategory(categoryFullName);
+    setShowUploadForm(true);
   };
 
   // Agrupar clasificaciones por categoría
@@ -149,104 +169,152 @@ export default function Clasificaciones() {
 
   return (
     <div className="p-6 space-y-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold text-slate-900 flex items-center gap-2">
-            <BarChart3 className="w-8 h-8 text-orange-600" />
-            Clasificaciones
-          </h1>
-          <p className="text-slate-600 mt-1">Gestión de clasificaciones por equipos</p>
-        </div>
-        {isAdmin && (
-          <Button
-            onClick={() => {
-              setShowUploadForm(!showUploadForm);
-              setReviewData(null);
-            }}
-            className="bg-orange-600 hover:bg-orange-700"
-          >
-            <Upload className="w-5 h-5 mr-2" />
-            Subir Clasificación
-          </Button>
-        )}
+      <div>
+        <h1 className="text-3xl font-bold text-slate-900 flex items-center gap-2">
+          <BarChart3 className="w-8 h-8 text-orange-600" />
+          Clasificaciones
+        </h1>
+        <p className="text-slate-600 mt-1">Gestión de clasificaciones por equipos</p>
       </div>
 
-      {showUploadForm && isAdmin && (
+      {showUploadForm && (
         <UploadStandingsForm
           onDataExtracted={(data) => {
             setReviewData(data);
             setShowUploadForm(false);
           }}
-          onCancel={() => setShowUploadForm(false)}
+          onCancel={() => {
+            setShowUploadForm(false);
+            setSelectedCategory(null);
+          }}
+          preselectedCategory={selectedCategory}
         />
       )}
 
-      {reviewData && isAdmin && (
+      {reviewData && (
         <ReviewStandingsTable
           data={reviewData}
           onConfirm={handleConfirmStandings}
-          onCancel={() => setReviewData(null)}
+          onCancel={() => {
+            setReviewData(null);
+            setSelectedCategory(null);
+          }}
           isSubmitting={saveStandingsMutation.isPending}
         />
       )}
 
       {!showUploadForm && !reviewData && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {standingsList.length === 0 ? (
-            <div className="col-span-full text-center py-12 bg-white rounded-xl shadow-lg">
-              <BarChart3 className="w-16 h-16 text-slate-300 mx-auto mb-4" />
-              <p className="text-slate-500 text-lg">No hay clasificaciones disponibles</p>
-              {isAdmin && (
-                <p className="text-slate-400 text-sm mt-2">
-                  Sube la primera imagen de clasificación para empezar
-                </p>
-              )}
-            </div>
-          ) : (
-            standingsList.map((group, idx) => (
-              <Card key={idx} className="hover:shadow-xl transition-shadow">
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-lg flex items-center justify-between">
-                    <span>{group.categoria}</span>
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <TabsList className="grid grid-cols-3 md:grid-cols-5 lg:grid-cols-9 gap-2 h-auto bg-white p-2 rounded-xl shadow-sm mb-6">
+            {visibleCategories.map((cat) => (
+              <TabsTrigger
+                key={cat.id}
+                value={cat.id}
+                className="data-[state=active]:bg-orange-600 data-[state=active]:text-white rounded-lg py-3"
+              >
+                <div className="flex flex-col items-center gap-1">
+                  <span className="font-semibold text-sm">{cat.name}</span>
+                  {standingsByCategory[cat.id]?.length > 0 && (
+                    <Badge className="bg-green-500 text-white text-xs">
+                      {standingsByCategory[cat.id].length}
+                    </Badge>
+                  )}
+                </div>
+              </TabsTrigger>
+            ))}
+          </TabsList>
+
+          {visibleCategories.map((cat) => (
+            <TabsContent key={cat.id} value={cat.id} className="space-y-6">
+              {/* Header con botón de subir */}
+              <Card className="border-2 border-orange-500 bg-gradient-to-r from-orange-50 to-orange-100">
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h2 className="text-2xl font-bold text-orange-700">{cat.name}</h2>
+                      <p className="text-slate-600 mt-1">
+                        {standingsByCategory[cat.id]?.length || 0} clasificaciones guardadas
+                      </p>
+                    </div>
                     {isAdmin && (
                       <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => {
-                          if (confirm("¿Eliminar esta clasificación?")) {
-                            deleteStandingsMutation.mutate({
-                              temporada: group.temporada,
-                              categoria: group.categoria,
-                              jornada: group.jornada
-                            });
-                          }
-                        }}
-                        className="text-red-500 hover:text-red-700"
+                        onClick={() => handleNewUpload(cat.fullName)}
+                        className="bg-orange-600 hover:bg-orange-700"
                       >
-                        <Trash2 className="w-4 h-4" />
+                        <Plus className="w-4 h-4 mr-2" />
+                        Subir Nueva
                       </Button>
                     )}
-                  </CardTitle>
-                  <div className="text-xs text-slate-500 space-y-1">
-                    <p>Temporada: {group.temporada}</p>
-                    <p>Jornada: {group.jornada}</p>
-                    <p>Actualizado: {new Date(group.fecha_actualizacion).toLocaleDateString('es-ES')}</p>
                   </div>
-                </CardHeader>
-                <CardContent>
-                  <Button
-                    onClick={() => setSelectedView(group)}
-                    variant="outline"
-                    className="w-full"
-                  >
-                    <Eye className="w-4 h-4 mr-2" />
-                    Ver Clasificación
-                  </Button>
                 </CardContent>
               </Card>
-            ))
-          )}
-        </div>
+
+              {/* Lista de clasificaciones */}
+              {standingsByCategory[cat.id]?.length > 0 ? (
+                <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                  {standingsByCategory[cat.id].map((group, index) => (
+                    <Card key={index} className="hover:shadow-lg transition-shadow">
+                      <CardHeader>
+                        <CardTitle className="flex items-center justify-between">
+                          <span className="text-lg">Jornada {group.jornada}</span>
+                          {isAdmin && (
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => {
+                                if (confirm("¿Eliminar esta clasificación?")) {
+                                  deleteStandingsMutation.mutate({
+                                    temporada: group.temporada,
+                                    categoria: group.categoria,
+                                    jornada: group.jornada
+                                  });
+                                }
+                              }}
+                              className="text-red-500 hover:text-red-700"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          )}
+                        </CardTitle>
+                        <div className="text-sm text-slate-600 space-y-1">
+                          <p>Temporada: {group.temporada}</p>
+                          <p className="text-xs">Actualizado: {new Date(group.fecha_actualizacion).toLocaleDateString('es-ES')}</p>
+                        </div>
+                      </CardHeader>
+                      <CardContent>
+                        <Button
+                          onClick={() => setSelectedView(group)}
+                          className="w-full bg-green-600 hover:bg-green-700"
+                        >
+                          <Eye className="w-4 h-4 mr-2" />
+                          Ver Clasificación
+                        </Button>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              ) : (
+                <Card className="border-2 border-dashed border-slate-300">
+                  <CardContent className="p-12 text-center">
+                    <p className="text-slate-500 text-lg mb-4">
+                      No hay clasificaciones para {cat.name} todavía
+                    </p>
+                    {isAdmin && (
+                      <Button
+                        onClick={() => handleNewUpload(cat.fullName)}
+                        variant="outline"
+                        className="border-orange-500 text-orange-600 hover:bg-orange-50"
+                      >
+                        <Plus className="w-4 h-4 mr-2" />
+                        Subir Primera Clasificación
+                      </Button>
+                    )}
+                  </CardContent>
+                </Card>
+              )}
+            </TabsContent>
+          ))}
+        </Tabs>
       )}
 
       {selectedView && (
