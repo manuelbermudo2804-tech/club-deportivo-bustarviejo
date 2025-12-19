@@ -14,8 +14,7 @@ import ContactCard from "../components/ContactCard";
 import { usePageTutorial } from "../components/tutorials/useTutorial";
 import DashboardCardSkeleton from "../components/skeletons/DashboardCardSkeleton";
 import RenewalStatusWidget from "../components/renewals/RenewalStatusWidget";
-import StandingsWidget from "../components/standings/StandingsWidget";
-import NextMatchWidget from "../components/dashboard/NextMatchWidget";
+import ClassificationsAndMatchesBanner from "../components/dashboard/ClassificationsAndMatchesBanner";
 
 
 // Componente para compartir Fútbol Femenino (sin referidos)
@@ -664,12 +663,9 @@ export default function ParentDashboard() {
           />
         )}
 
-        {/* NUEVO: Grid 2 columnas - Clasificaciones + Próximo Partido */}
+        {/* Banner dividido: Clasificaciones (izq) + Próximo Partido (der) */}
         {!playersLoading && myPlayers.length > 0 && (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            <StandingsWidget userEmail={user?.email} />
-            <NextMatchWidget myPlayers={myPlayers} />
-          </div>
+          <ClassificationsAndMatchesBanner userEmail={user?.email} myPlayers={myPlayers} />
         )}
 
         {/* ÚNICO CENTRO DE ALERTAS CONSOLIDADO - Todo en un solo banner */}
