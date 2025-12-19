@@ -188,7 +188,7 @@ export default function ReviewStandingsTable({ data, onConfirm, onCancel, isSubm
           >
             {isSubmitting ? (
               <>
-                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                <div className="w-4 h-4 mr-2 animate-spin rounded-full border-2 border-white border-t-transparent inline-block" />
                 Guardando...
               </>
             ) : (

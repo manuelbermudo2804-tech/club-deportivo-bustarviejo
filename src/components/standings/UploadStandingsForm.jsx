@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Upload, Loader2, Image as ImageIcon } from "lucide-react";
+import { Upload, Image as ImageIcon } from "lucide-react";
 import { toast } from "sonner";
 
 export default function UploadStandingsForm({ onDataExtracted, onCancel }) {
@@ -210,7 +210,7 @@ Lee TODOS los equipos de la tabla, desde el primero hasta el último.`,
             >
               {isProcessing ? (
                 <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  <div className="w-4 h-4 mr-2 animate-spin rounded-full border-2 border-white border-t-transparent inline-block" />
                   Procesando imagen...
                 </>
               ) : (
