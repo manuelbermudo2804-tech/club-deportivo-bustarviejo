@@ -215,14 +215,14 @@ export default function UploadStandingsForm({ onDataExtracted, onCancel, presele
               />
             </div>
             <div>
-              <Label>Jornada {prefillData && <span className="text-orange-600 font-bold">(Nueva)</span>}</Label>
+              <Label>Jornada <span className="text-slate-500 text-xs">(auto-calculada)</span></Label>
               <Input
                 type="number"
                 value={jornada}
                 onChange={(e) => setJornada(e.target.value)}
-                placeholder="15"
+                placeholder="Se calcula automáticamente"
                 required
-                className={prefillData ? "border-orange-500 border-2" : ""}
+                className="bg-green-50 border-green-300"
               />
             </div>
           </div>
