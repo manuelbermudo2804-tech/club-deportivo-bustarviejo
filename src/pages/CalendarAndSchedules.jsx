@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Plus, Calendar as CalendarIcon, Bell, Grid, List, ChevronLeft, ChevronRight, Clock, MapPin, Trash2, ExternalLink, Info, Zap } from "lucide-react";
+import { Plus, Calendar as CalendarIcon, Bell, Grid, List, ChevronLeft, ChevronRight, Clock, MapPin, Trash2, ExternalLink, Info } from "lucide-react";
 import { AnimatePresence } from "framer-motion";
 import CalendarSyncButton from "../components/calendar/CalendarSyncButton";
 import { toast } from "sonner";
@@ -18,7 +18,6 @@ import CalendarExport from "../components/calendar/CalendarExport";
 import AgendaView from "../components/calendar/AgendaView";
 import TrainingScheduleForm from "../components/training/TrainingScheduleForm";
 import ContactCard from "../components/ContactCard";
-import QuickMatchObservationForm from "../components/coach/QuickMatchObservationForm";
 
 const DIAS_ORDEN = {
   "Lunes": 1,
@@ -52,8 +51,6 @@ export default function CalendarAndSchedules() {
   // Training schedule form state
   const [showScheduleForm, setShowScheduleForm] = useState(false);
   const [editingSchedule, setEditingSchedule] = useState(null);
-  const [showMatchObservationForm, setShowMatchObservationForm] = useState(false);
-  const [selectedCallupForObservation, setSelectedCallupForObservation] = useState(null);
   
   const queryClient = useQueryClient();
 
@@ -103,29 +100,6 @@ export default function CalendarAndSchedules() {
     queryKey: ['trainingSchedules'],
     queryFn: () => base44.entities.TrainingSchedule.list(),
     initialData: [],
-  });
-
-  const { data: clasificaciones = [] } = useQuery({
-    queryKey: ['clasificaciones'],
-    queryFn: () => base44.entities.Clasificacion.list('-jornada'),
-    initialData: [],
-  });
-
-  const { data: matchObservations = [] } = useQuery({
-    queryKey: ['matchObservations'],
-    queryFn: () => base44.entities.MatchObservation.list(),
-    initialData: [],
-  });
-
-  const saveObservationMutation = useMutation({
-    mutationFn: (data) => base44.entities.MatchObservation.create(data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['matchObservations'] });
-      setShowMatchObservationForm(false);
-      setSelectedCallupForObservation(null);
-      toast.success("✅ Observación post-partido guardada");
-    },
-    onError: () => toast.error("Error al guardar observación"),
   });
 
   // Get my players for filtering
@@ -599,79 +573,31 @@ export default function CalendarAndSchedules() {
                 )}
               </div>
 
-              {/* Formulario de observación post-partido */}
-              {showMatchObservationForm && selectedCallupForObservation && (
-                <QuickMatchObservationForm
-                  categoria={selectedCallupForObservation.categoria}
-                  rival={selectedCallupForObservation.rival}
-                  fechaPartido={selectedCallupForObservation.fecha_partido}
-                  jornada={(() => {
-                    const catClasif = clasificaciones.filter(c => c.categoria === selectedCallupForObservation.categoria);
-                    return catClasif.length > 0 ? catClasif[0].jornada : "";
-                  })()}
-                  onSave={(data) => saveObservationMutation.mutate(data)}
-                  onCancel={() => {
-                    setShowMatchObservationForm(false);
-                    setSelectedCallupForObservation(null);
-                  }}
-                  entrenadorEmail={user?.email}
-                  entrenadorNombre={user?.full_name}
-                />
-              )}
-
-              {pastItems.length > 0 && (userRole === "coach" || userRole === "admin" || user?.es_coordinador) && (
+              {pastItems.length > 0 && (
                 <div className="space-y-3 pt-4 border-t border-slate-200">
-                  <h2 className="text-lg font-bold text-slate-700 flex items-center gap-2">
+                  <h2 className="text-lg font-bold text-slate-500 flex items-center gap-2">
                     <CalendarIcon className="w-5 h-5" />
-                    Partidos Pasados ({pastItems.filter(i => i.type === 'callup').length})
+                    Pasados ({pastItems.length})
                   </h2>
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 opacity-60">
                     <AnimatePresence>
-                      {pastItems.filter(i => i.type === 'callup').slice(0, 6).map((item) => {
-                        const alreadyRegistered = matchObservations.some(obs => 
-                          obs.rival === item.rival && 
-                          obs.fecha_partido === item.fecha_partido &&
-                          obs.categoria === item.categoria
-                        );
-
-                        return (
-                          <Card key={`past-callup-${item.id}`} className="bg-slate-50 border-slate-300">
+                      {pastItems.slice(0, 4).map((item) =>
+                        item.type === 'event' ? (
+                          <EventCard key={`past-event-${item.id}`} event={item} isAdmin={false} />
+                        ) : (
+                          <Card key={`past-callup-${item.id}`} className="bg-slate-50 border-slate-200">
                             <CardContent className="p-4">
                               <div className="flex items-start justify-between mb-2">
-                                <Badge className="bg-blue-600 text-white">Partido</Badge>
+                                <Badge variant="outline">Partido</Badge>
                                 <span className="text-xs text-slate-600">
                                   {format(new Date(item.date), "d MMM yyyy", { locale: es })}
                                 </span>
                               </div>
-                              <h3 className="font-bold text-slate-900 mb-2">{item.titulo}</h3>
-                              <div className="space-y-1 text-sm text-slate-700 mb-3">
-                                <p>⚽ {item.categoria}</p>
-                                {item.rival && <p>🆚 {item.rival}</p>}
-                                {item.ubicacion && <p>📍 {item.ubicacion}</p>}
-                              </div>
-                              
-                              {alreadyRegistered ? (
-                                <Badge className="bg-green-500 text-white w-full justify-center">
-                                  ✅ Partido Registrado
-                                </Badge>
-                              ) : (
-                                <Button
-                                  onClick={() => {
-                                    setSelectedCallupForObservation(item);
-                                    setShowMatchObservationForm(true);
-                                    window.scrollTo({ top: 0, behavior: 'smooth' });
-                                  }}
-                                  className="w-full bg-orange-600 hover:bg-orange-700"
-                                  size="sm"
-                                >
-                                  <Zap className="w-4 h-4 mr-2" />
-                                  Registrar Partido
-                                </Button>
-                              )}
+                              <h3 className="font-bold text-slate-700 mb-2">{item.titulo}</h3>
                             </CardContent>
                           </Card>
-                        );
-                      })}
+                        )
+                      )}
                     </AnimatePresence>
                   </div>
                 </div>

@@ -71,6 +71,12 @@ export default function CoachStandingsAnalysis() {
     enabled: !!user,
   });
 
+  const { data: callups = [] } = useQuery({
+    queryKey: ['convocatorias'],
+    queryFn: () => base44.entities.Convocatoria.list('-fecha_partido'),
+    enabled: !!user,
+  });
+
   const saveObservationMutation = useMutation({
     mutationFn: (data) => base44.entities.MatchObservation.create(data),
     onSuccess: () => {
@@ -266,57 +272,60 @@ Sé directo, práctico y enfocado en acciones concretas que el entrenador pueda 
             const analysis = aiAnalysis[cat.id];
             const analyzing = isAnalyzing[cat.id];
 
+            // Partidos pasados sin observación
+            const today = new Date().toISOString().split('T')[0];
+            const pastCallups = callups.filter(c => 
+              c.categoria === cat.fullName && 
+              c.fecha_partido < today &&
+              c.publicada &&
+              !matchObservations.some(obs => 
+                obs.rival === c.rival && 
+                obs.fecha_partido === c.fecha_partido &&
+                obs.categoria === c.categoria
+              )
+            ).slice(0, 1); // Solo el más reciente
+
             return (
               <TabsContent key={cat.id} value={cat.id} className="space-y-4">
                 {latestStanding ? (
                   <>
-                    <Card className="border-2 border-orange-500">
-                     <CardHeader>
-                       <CardTitle className="flex items-center justify-between flex-wrap gap-2">
-                         <span>{cat.name} - Jornada {latestStanding.jornada}</span>
-                         <div className="flex gap-2 flex-wrap">
-                           <Button
-                             onClick={() => setShowObservationForm(true)}
-                             variant="outline"
-                             size="sm"
-                             className="border-green-500 text-green-600 hover:bg-green-50"
-                           >
-                             <Zap className="w-4 h-4 mr-2" />
-                             Registrar Partido
-                           </Button>
-                           <Button
-                             onClick={() => setSelectedView(latestStanding)}
-                             variant="outline"
-                             size="sm"
-                           >
-                             Ver Tabla Completa
-                           </Button>
-                           <Button
-                             onClick={() => analyzeWithAI(cat.id)}
-                             disabled={analyzing}
-                             className="bg-purple-600 hover:bg-purple-700"
-                             size="sm"
-                           >
-                             {analyzing ? (
-                               <>
-                                 <div className="w-4 h-4 animate-spin rounded-full border-2 border-white border-t-transparent mr-2" />
-                                 Analizando...
-                               </>
-                             ) : (
-                               <>
-                                 <Sparkles className="w-4 h-4 mr-2" />
-                                 Analizar con IA
-                               </>
-                             )}
-                           </Button>
-                         </div>
-                       </CardTitle>
-                     </CardHeader>
-                    </Card>
+                    {/* PARTIDO PENDIENTE DE REGISTRAR - FORZADO */}
+                    {pastCallups.length > 0 && (
+                      <Card className="border-4 border-red-500 bg-gradient-to-r from-red-50 to-orange-50 animate-pulse">
+                        <CardHeader>
+                          <CardTitle className="text-red-700 flex items-center gap-2">
+                            <AlertTriangle className="w-6 h-6 animate-bounce" />
+                            ⚠️ PARTIDO PENDIENTE DE REGISTRAR
+                          </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="bg-white rounded-lg p-4 mb-4">
+                            <p className="font-bold text-slate-900 mb-2">🆚 {pastCallups[0].titulo}</p>
+                            <div className="text-sm text-slate-600 space-y-1">
+                              <p>📅 {format(new Date(pastCallups[0].fecha_partido), "d 'de' MMMM", { locale: es })}</p>
+                              <p>⏰ {pastCallups[0].hora_partido}</p>
+                              <p>📍 {pastCallups[0].ubicacion}</p>
+                            </div>
+                          </div>
 
-                    {showObservationForm && (
+                          {!showObservationForm && (
+                            <Button
+                              onClick={() => setShowObservationForm(true)}
+                              className="w-full bg-red-600 hover:bg-red-700 text-lg py-6"
+                            >
+                              <Zap className="w-5 h-5 mr-2" />
+                              Registrar Ahora (30 seg)
+                            </Button>
+                          )}
+                        </CardContent>
+                      </Card>
+                    )}
+
+                    {showObservationForm && pastCallups.length > 0 && (
                       <QuickMatchObservationForm
-                        categoria={latestStanding.categoria}
+                        categoria={pastCallups[0].categoria}
+                        rival={pastCallups[0].rival}
+                        fechaPartido={pastCallups[0].fecha_partido}
                         jornada={latestStanding.jornada}
                         onSave={(data) => saveObservationMutation.mutate(data)}
                         onCancel={() => setShowObservationForm(false)}
@@ -325,17 +334,49 @@ Sé directo, práctico y enfocado en acciones concretas que el entrenador pueda 
                       />
                     )}
 
-                    {matchObservations.filter(o => o.categoria === latestStanding.categoria).length > 0 && (
-                     <Card className="bg-green-50 border-2 border-green-300">
-                       <CardHeader>
-                         <CardTitle className="text-sm text-green-700">
-                           ✅ {matchObservations.filter(o => o.categoria === latestStanding.categoria).length} partidos registrados
-                         </CardTitle>
-                       </CardHeader>
-                       <CardContent className="text-xs text-green-600">
-                         Tus observaciones post-partido mejoran el análisis con IA
-                       </CardContent>
-                     </Card>
+                     <Card className="border-2 border-orange-500">
+                      <CardHeader>
+                        <CardTitle className="flex items-center justify-between flex-wrap gap-2">
+                          <span>{cat.name} - Jornada {latestStanding.jornada}</span>
+                          <div className="flex gap-2 flex-wrap">
+                            <Button
+                              onClick={() => setSelectedView(latestStanding)}
+                              variant="outline"
+                              size="sm"
+                            >
+                              Ver Tabla Completa
+                            </Button>
+                            <Button
+                              onClick={() => analyzeWithAI(cat.id)}
+                              disabled={analyzing}
+                              className="bg-purple-600 hover:bg-purple-700"
+                              size="sm"
+                            >
+                              {analyzing ? (
+                                <>
+                                  <div className="w-4 h-4 animate-spin rounded-full border-2 border-white border-t-transparent mr-2" />
+                                  Analizando...
+                                </>
+                              ) : (
+                                <>
+                                  <Sparkles className="w-4 h-4 mr-2" />
+                                  Analizar con IA
+                                </>
+                              )}
+                            </Button>
+                          </div>
+                        </CardTitle>
+                      </CardHeader>
+                    </Card>
+
+                    {matchObservations.filter(o => o.categoria === cat.fullName).length > 0 && !showObservationForm && pastCallups.length === 0 && (
+                      <Card className="bg-green-50 border-2 border-green-300">
+                        <CardContent className="p-3 text-center">
+                          <p className="text-sm text-green-700">
+                            ✅ <strong>{matchObservations.filter(o => o.categoria === cat.fullName).length} partidos registrados</strong> - Análisis con IA optimizado
+                          </p>
+                        </CardContent>
+                      </Card>
                     )}
 
                     {analysis && (
