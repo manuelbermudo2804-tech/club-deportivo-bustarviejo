@@ -43,14 +43,19 @@ export default function UploadStandingsForm({ onDataExtracted, onCancel }) {
 
       // 2. Extraer datos usando InvokeLLM con visión
       const result = await base44.integrations.Core.InvokeLLM({
-        prompt: `Analiza esta imagen de una tabla de clasificación deportiva y extrae TODOS los datos en formato JSON.
+        prompt: `Analiza esta imagen de una tabla de clasificación deportiva y extrae TODOS los datos posibles con MÁXIMA PRECISIÓN.
 
-IMPORTANTE: Lee TODA la tabla completa, todas las filas, sin omitir ningún equipo.
+      CRÍTICO - Lee con MUCHO CUIDADO:
+      1. Lee TODA la tabla completa, desde el primer equipo hasta el último
+      2. Extrae TODOS los campos que aparezcan en las columnas: PJ (partidos jugados), G (ganados), E (empatados), P (perdidos), GF (goles favor), GC (goles contra), Pts (puntos)
+      3. Los números deben ser EXACTOS - verifica cada cifra cuidadosamente
+      4. NO inventes datos - si un campo no está visible, omítelo
+      5. IMPORTANTE: Presta especial atención a la posición y puntos de cada equipo
 
-Devuelve un array de objetos con esta estructura exacta:
-{
-  "standings": [
-    {
+      Devuelve un array de objetos con esta estructura:
+      {
+      "standings": [
+      {
       "posicion": 1,
       "nombre_equipo": "Nombre del Equipo",
       "puntos": 18,
@@ -60,12 +65,11 @@ Devuelve un array de objetos con esta estructura exacta:
       "perdidos": 4,
       "goles_favor": 20,
       "goles_contra": 12
-    }
-  ]
-}
+      }
+      ]
+      }
 
-Si algún campo no está visible en la imagen, omítelo (no pongas null ni 0, simplemente no lo incluyas).
-Lee TODOS los equipos de la tabla, desde el primero hasta el último.`,
+      Lee TODOS los equipos visibles en la tabla, sin omitir ninguno.`,
         file_urls: [file_url],
         response_json_schema: {
           type: "object",
