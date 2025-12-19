@@ -17,9 +17,9 @@ const CATEGORIES = [
   { id: "alevin", name: "Alevín", fullName: "Fútbol Alevín (Mixto)" },
   { id: "infantil", name: "Infantil", fullName: "Fútbol Infantil (Mixto)" },
   { id: "cadete", name: "Cadete", fullName: "Fútbol Cadete" },
+  { id: "femenino", name: "Femenino", fullName: "Fútbol Femenino" },
   { id: "juvenil", name: "Juvenil", fullName: "Fútbol Juvenil" },
-  { id: "aficionado", name: "Aficionado", fullName: "Fútbol Aficionado" },
-  { id: "femenino", name: "Femenino", fullName: "Fútbol Femenino" }
+  { id: "aficionado", name: "Aficionado", fullName: "Fútbol Aficionado" }
 ];
 
 export default function Clasificaciones() {
