@@ -20,7 +20,8 @@ export default function RFFMScraper() {
     temporada: '20',
     tipo_juego: '1',
     competicion_id: '',
-    grupo_id: ''
+    grupo_id: '',
+    api_url_manual: ''
   });
   const [newConfig, setNewConfig] = useState({
     nombre_liga: '',
@@ -145,11 +146,13 @@ export default function RFFMScraper() {
         <Alert>
           <AlertCircle className="h-4 w-4" />
           <AlertDescription>
-            <strong>¿Cómo sacar el ID de una liga?</strong><br/>
-            1. Ve a <a href="https://www.rffm.es/competicion/clasificaciones" target="_blank" className="text-orange-600 underline">RFFM Clasificaciones</a><br/>
-            2. Busca tu liga y entra en la clasificación<br/>
-            3. Copia la URL: <code className="bg-slate-200 px-1 rounded">temporada=20&tipojuego=1&competicion=21434175&grupo=21434176</code><br/>
-            4. Pega los números abajo y prueba
+            <strong>📋 Dos formas de obtener datos:</strong><br/>
+            <strong>Opción 1 - Automática:</strong> Pega la URL de RFFM y extrae los IDs<br/>
+            <strong>Opción 2 - Manual:</strong> Si no funciona, busca la API real:<br/>
+            1. Abre la página de clasificaciones en RFFM<br/>
+            2. F12 → Network → Recarga la página<br/>
+            3. Busca una petición con "clasificaciones.json" o JSON con equipos<br/>
+            4. Copia esa URL completa y pégala en "URL de API Manual" abajo
           </AlertDescription>
         </Alert>
 
@@ -248,7 +251,7 @@ export default function RFFMScraper() {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-3">
-              <Label>📋 Pega la URL completa de RFFM (se extraerán los datos automáticamente)</Label>
+              <Label>📋 Opción 1: Pega la URL de RFFM (automático)</Label>
               <Input
                 placeholder="https://www.rffm.es/competicion/clasificaciones?temporada=20&tipojuego=1&competicion=..."
                 onPaste={(e) => {
@@ -260,13 +263,24 @@ export default function RFFMScraper() {
                       temporada: params.get('temporada') || '20',
                       tipo_juego: params.get('tipojuego') || '1',
                       competicion_id: params.get('competicion') || '',
-                      grupo_id: params.get('grupo') || ''
+                      grupo_id: params.get('grupo') || '',
+                      api_url_manual: ''
                     });
                   } catch (err) {
                     console.log('Error parsing URL:', err);
                   }
                 }}
               />
+            </div>
+
+            <div className="space-y-3 pt-4 border-t">
+              <Label>🔧 Opción 2: URL de API Manual (si encontraste la API real con F12)</Label>
+              <Input
+                placeholder="https://www.rffm.es/_next/data/.../clasificaciones.json?..."
+                value={testConfig.api_url_manual || ''}
+                onChange={(e) => setTestConfig({...testConfig, api_url_manual: e.target.value})}
+              />
+              <p className="text-xs text-slate-600">Si pegaste una URL de API manual, solo pulsa "Probar Scraping" - ignorará los campos de abajo</p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
