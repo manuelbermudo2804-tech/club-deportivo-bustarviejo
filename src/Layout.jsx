@@ -1040,7 +1040,7 @@ export default function Layout({ children, currentPageName }) {
 
                 // 🎉 CONTENIDO
         { title: "🎉 Gestión Eventos", url: createPageUrl("EventManagement"), icon: Calendar },
-        { title: "🔍 Scraper RFFM", url: createPageUrl("RFFMScraper"), icon: Download },
+        { title: "📊 Clasificaciones", url: createPageUrl("Clasificaciones"), icon: BarChart3 },
     { title: "🖼️ Galería", url: createPageUrl("Gallery"), icon: Image },
 
     // ⚙️ CONFIGURACIÓN
