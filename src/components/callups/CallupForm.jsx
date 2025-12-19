@@ -43,6 +43,7 @@ export default function CallupForm({ callup, players, coachName, coachEmail, cat
   const [rivalTeams, setRivalTeams] = useState([]);
   const [isLoadingTeams, setIsLoadingTeams] = useState(false);
   const [useManualInput, setUseManualInput] = useState(false);
+  const [manualLocationEdit, setManualLocationEdit] = useState(false);
 
   // Cargar equipos rivales desde clasificaciones
   useEffect(() => {
@@ -75,12 +76,12 @@ export default function CallupForm({ callup, players, coachName, coachEmail, cat
 
   // Auto-rellenar ubicación cuando es visitante y se selecciona rival
   useEffect(() => {
-    if (currentCallup.local_visitante === "Visitante" && currentCallup.rival && !useManualInput) {
+    if (currentCallup.local_visitante === "Visitante" && currentCallup.rival && !manualLocationEdit) {
       // Si es visitante, intentar buscar el campo del rival
       const searchQuery = encodeURIComponent(`campo ${currentCallup.rival} Madrid`);
       const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${searchQuery}`;
       
-      // Sugerir ubicación
+      // Sugerir ubicación solo si está vacía
       if (!currentCallup.ubicacion || currentCallup.ubicacion === "") {
         setCurrentCallup(prev => ({
           ...prev,
@@ -89,7 +90,7 @@ export default function CallupForm({ callup, players, coachName, coachEmail, cat
         }));
       }
     }
-  }, [currentCallup.local_visitante, currentCallup.rival, useManualInput]);
+  }, [currentCallup.local_visitante, currentCallup.rival, manualLocationEdit]);
 
   // Filtrar jugadores no disponibles (lesionados/sancionados)
   const availablePlayers = players.filter(p => !p.lesionado && !p.sancionado);
@@ -318,6 +319,7 @@ export default function CallupForm({ callup, players, coachName, coachEmail, cat
                   value={currentCallup.local_visitante}
                   onValueChange={(value) => {
                     setCurrentCallup({ ...currentCallup, local_visitante: value });
+                    setManualLocationEdit(false);
                     // Si cambia a Local, limpiar ubicación auto
                     if (value === "Local" && currentCallup.ubicacion?.startsWith("Campo del")) {
                       setCurrentCallup(prev => ({
@@ -352,7 +354,10 @@ export default function CallupForm({ callup, players, coachName, coachEmail, cat
                 <Input
                   placeholder="Campo municipal, pabellón..."
                   value={currentCallup.ubicacion}
-                  onChange={(e) => setCurrentCallup({ ...currentCallup, ubicacion: e.target.value })}
+                  onChange={(e) => {
+                    setCurrentCallup({ ...currentCallup, ubicacion: e.target.value });
+                    setManualLocationEdit(true);
+                  }}
                   required
                 />
               </div>
