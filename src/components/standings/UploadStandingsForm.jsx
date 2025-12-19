@@ -10,7 +10,6 @@ import { toast } from "sonner";
 export default function UploadStandingsForm({ onDataExtracted, onCancel, preselectedCategory, prefillData }) {
   const [temporada, setTemporada] = useState(prefillData?.temporada || "2024/2025");
   const [categoria, setCategoria] = useState(preselectedCategory || prefillData?.categoria || "");
-  const [jornada, setJornada] = useState("");
   const [imageFile, setImageFile] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -53,7 +52,7 @@ export default function UploadStandingsForm({ onDataExtracted, onCancel, presele
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!imageFile || !categoria || !jornada) {
+    if (!imageFile || !categoria) {
       toast.error("Por favor completa todos los campos");
       return;
     }
@@ -131,7 +130,6 @@ export default function UploadStandingsForm({ onDataExtracted, onCancel, presele
       onDataExtracted({
         temporada,
         categoria,
-        jornada: parseInt(jornada),
         standings: sortedStandings
       });
 
@@ -149,7 +147,7 @@ export default function UploadStandingsForm({ onDataExtracted, onCancel, presele
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Upload className="w-5 h-5 text-orange-600" />
-          {prefillData ? `Actualizar Jornada ${jornada}` : 'Subir Clasificación'}
+          Subir Clasificación
         </CardTitle>
         <div className="mt-3 bg-blue-50 border border-blue-200 rounded-lg p-3">
           <p className="text-sm text-blue-800 font-medium mb-2">
@@ -177,7 +175,7 @@ export default function UploadStandingsForm({ onDataExtracted, onCancel, presele
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <Label>Temporada</Label>
               <Input
@@ -198,16 +196,6 @@ export default function UploadStandingsForm({ onDataExtracted, onCancel, presele
                 required
                 disabled={!!prefillData}
                 className={prefillData ? "bg-slate-100" : ""}
-              />
-            </div>
-            <div>
-              <Label>Jornada</Label>
-              <Input
-                type="number"
-                value={jornada}
-                onChange={(e) => setJornada(e.target.value)}
-                placeholder="Número de jornada"
-                required
               />
             </div>
           </div>
