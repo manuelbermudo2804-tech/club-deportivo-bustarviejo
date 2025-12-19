@@ -63,33 +63,21 @@ export default function UploadStandingsForm({ onDataExtracted, onCancel, presele
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    console.log('🔍 handleSubmit - Estado:', { imageFile, imageUrl, categoria });
-
     if (!categoria) {
       toast.error("Selecciona una categoría");
       return;
     }
 
-    if (!imageFile && !imageUrl) {
-      toast.error("Por favor sube una imagen o pega una URL");
-      return;
-    }
-
-    if (imageFile && imageUrl) {
-      toast.error("Usa solo una opción: subir imagen o pegar URL");
+    if (!imageFile) {
+      toast.error("Por favor sube una imagen");
       return;
     }
 
     setIsProcessing(true);
 
     try {
-      let file_url;
-      if (imageUrl) {
-        file_url = imageUrl;
-      } else {
-        const upload = await base44.integrations.Core.UploadFile({ file: imageFile });
-        file_url = upload.file_url;
-      }
+      const upload = await base44.integrations.Core.UploadFile({ file: imageFile });
+      const file_url = upload.file_url;
 
       // 2. Extraer datos usando InvokeLLM con visión
       const result = await base44.integrations.Core.InvokeLLM({
@@ -279,9 +267,8 @@ export default function UploadStandingsForm({ onDataExtracted, onCancel, presele
             </Button>
             <Button
               type="submit"
-              disabled={isProcessing || !categoria || (!imageFile && !imageUrl)}
+              disabled={isProcessing || !categoria || !imageFile}
               className="bg-orange-600 hover:bg-orange-700"
-              onClick={() => console.log('🖱️ Botón clickeado', { imageFile, imageUrl, categoria, isProcessing })}
             >
               {isProcessing ? (
                 <>
