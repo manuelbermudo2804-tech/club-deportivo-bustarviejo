@@ -13,15 +13,13 @@ import ReviewStandingsTable from "../components/standings/ReviewStandingsTable";
 import StandingsDisplay from "../components/standings/StandingsDisplay";
 
 const CATEGORIES = [
-  { id: "prebenjamin", name: "Pre-Benjamín", fullName: "Fútbol Pre-Benjamín (Mixto)" },
   { id: "benjamin", name: "Benjamín", fullName: "Fútbol Benjamín (Mixto)" },
   { id: "alevin", name: "Alevín", fullName: "Fútbol Alevín (Mixto)" },
   { id: "infantil", name: "Infantil", fullName: "Fútbol Infantil (Mixto)" },
   { id: "cadete", name: "Cadete", fullName: "Fútbol Cadete" },
   { id: "juvenil", name: "Juvenil", fullName: "Fútbol Juvenil" },
   { id: "aficionado", name: "Aficionado", fullName: "Fútbol Aficionado" },
-  { id: "femenino", name: "Femenino", fullName: "Fútbol Femenino" },
-  { id: "baloncesto", name: "Baloncesto", fullName: "Baloncesto (Mixto)" }
+  { id: "femenino", name: "Femenino", fullName: "Fútbol Femenino" }
 ];
 
 export default function Clasificaciones() {
