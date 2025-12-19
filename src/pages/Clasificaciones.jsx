@@ -15,6 +15,7 @@ export default function Clasificaciones() {
   const [showUploadForm, setShowUploadForm] = useState(false);
   const [reviewData, setReviewData] = useState(null);
   const [selectedView, setSelectedView] = useState(null);
+  const [userCategories, setUserCategories] = useState([]);
 
   const queryClient = useQueryClient();
 
@@ -22,6 +23,18 @@ export default function Clasificaciones() {
     const checkAdmin = async () => {
       const user = await base44.auth.me();
       setIsAdmin(user.role === "admin");
+
+      // Si no es admin, obtener categorías de sus jugadores
+      if (user.role !== "admin") {
+        const allPlayers = await base44.entities.Player.list();
+        const myPlayers = allPlayers.filter(p => 
+          p.email_padre === user.email || 
+          p.email_tutor_2 === user.email ||
+          (p.email_jugador === user.email && p.acceso_jugador_autorizado)
+        );
+        const categories = [...new Set(myPlayers.map(p => p.deporte).filter(Boolean))];
+        setUserCategories(categories);
+      }
     };
     checkAdmin();
   }, []);
@@ -116,9 +129,17 @@ export default function Clasificaciones() {
     return acc;
   }, {});
 
-  const standingsList = Object.values(groupedStandings).sort((a, b) => 
+  // Filtrar clasificaciones según el usuario
+  let standingsList = Object.values(groupedStandings).sort((a, b) => 
     new Date(b.fecha_actualizacion) - new Date(a.fecha_actualizacion)
   );
+
+  // Si no es admin, filtrar solo categorías de sus jugadores
+  if (!isAdmin && userCategories.length > 0) {
+    standingsList = standingsList.filter(group => 
+      userCategories.includes(group.categoria)
+    );
+  }
 
   return (
     <div className="p-6 space-y-6">

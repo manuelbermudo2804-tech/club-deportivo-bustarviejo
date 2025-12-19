@@ -1203,6 +1203,7 @@ export default function Layout({ children, currentPageName }) {
     // 📅 CALENDARIO Y EVENTOS
     { title: "📅 Calendario y Horarios", url: createPageUrl("CalendarAndSchedules"), icon: Calendar },
     { title: "🎉 Eventos Club", url: createPageUrl("ParentEventRSVP"), icon: Calendar },
+    { title: "📊 Clasificaciones", url: createPageUrl("Clasificaciones"), icon: BarChart3 },
 
     // 📢 INFORMACIÓN
     { title: "📢 Anuncios", url: createPageUrl("Announcements"), icon: Megaphone },
@@ -1237,6 +1238,7 @@ export default function Layout({ children, currentPageName }) {
     // 📅 CALENDARIO E INFO
     { title: "📅 Calendario", url: createPageUrl("CalendarAndSchedules"), icon: Calendar },
     { title: "🎉 Eventos Club", url: createPageUrl("ParentEventRSVP"), icon: Calendar },
+    { title: "📊 Clasificaciones", url: createPageUrl("Clasificaciones"), icon: BarChart3 },
     { title: "📢 Anuncios", url: createPageUrl("Announcements"), icon: Megaphone },
     { title: "🖼️ Galería", url: createPageUrl("Gallery"), icon: Image },
     { title: "📋 Encuestas", url: createPageUrl("Surveys"), icon: FileText },
