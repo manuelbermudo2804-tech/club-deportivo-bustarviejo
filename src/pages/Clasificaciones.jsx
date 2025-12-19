@@ -230,6 +230,26 @@ export default function Clasificaciones() {
     );
   }
 
+  // Si hay una clasificación seleccionada, mostrar solo esa vista
+  if (selectedView) {
+    return (
+      <div className="p-6 space-y-6">
+        <Button
+          onClick={() => setSelectedView(null)}
+          variant="outline"
+          className="mb-4"
+        >
+          ← Volver a clasificaciones
+        </Button>
+        <StandingsDisplay
+          data={selectedView}
+          onClose={() => setSelectedView(null)}
+          fullPage={true}
+        />
+      </div>
+    );
+  }
+
   return (
     <div className="p-6 space-y-6">
       <div>
@@ -394,13 +414,6 @@ export default function Clasificaciones() {
             </TabsContent>
           ))}
         </Tabs>
-      )}
-
-      {selectedView && (
-        <StandingsDisplay
-          data={selectedView}
-          onClose={() => setSelectedView(null)}
-        />
       )}
     </div>
   );
