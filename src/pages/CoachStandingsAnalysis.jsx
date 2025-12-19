@@ -1,12 +1,13 @@
 import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { BarChart3, Sparkles, TrendingUp, TrendingDown, AlertTriangle, CheckCircle2 } from "lucide-react";
+import { BarChart3, Sparkles, TrendingUp, TrendingDown, AlertTriangle, CheckCircle2, Zap } from "lucide-react";
 import StandingsDisplay from "../components/standings/StandingsDisplay";
+import QuickMatchObservationForm from "../components/coach/QuickMatchObservationForm";
 import { toast } from "sonner";
 
 const CATEGORIES = [
@@ -26,6 +27,9 @@ export default function CoachStandingsAnalysis() {
   const [aiAnalysis, setAiAnalysis] = useState({});
   const [isAnalyzing, setIsAnalyzing] = useState({});
   const [selectedView, setSelectedView] = useState(null);
+  const [showObservationForm, setShowObservationForm] = useState(false);
+  
+  const queryClient = useQueryClient();
 
   React.useEffect(() => {
     const loadUser = async () => {
@@ -59,6 +63,22 @@ export default function CoachStandingsAnalysis() {
     queryKey: ['evaluations'],
     queryFn: () => base44.entities.PlayerEvaluation.list(),
     enabled: !!user,
+  });
+
+  const { data: matchObservations = [] } = useQuery({
+    queryKey: ['matchObservations'],
+    queryFn: () => base44.entities.MatchObservation.list('-fecha_partido'),
+    enabled: !!user,
+  });
+
+  const saveObservationMutation = useMutation({
+    mutationFn: (data) => base44.entities.MatchObservation.create(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['matchObservations'] });
+      setShowObservationForm(false);
+      toast.success("✅ Observación guardada");
+    },
+    onError: () => toast.error("Error al guardar"),
   });
 
   // Agrupar clasificaciones por categoría
@@ -110,6 +130,7 @@ export default function CoachStandingsAnalysis() {
     // Preparar contexto para la IA
     const categoryAttendances = attendances.filter(a => a.categoria === latestStanding.categoria);
     const categoryEvaluations = evaluations.filter(e => e.categoria === latestStanding.categoria);
+    const categoryObservations = matchObservations.filter(o => o.categoria === latestStanding.categoria);
 
     const avgAttendance = categoryAttendances.length > 0
       ? (categoryAttendances.reduce((sum, a) => 
@@ -122,6 +143,16 @@ export default function CoachStandingsAnalysis() {
           sum + ((e.tecnica + e.tactica + e.fisica + e.actitud + e.trabajo_equipo) / 5), 0
         ) / categoryEvaluations.length).toFixed(2)
       : 'N/A';
+
+    // Estadísticas de observaciones post-partido
+    const observationsContext = categoryObservations.length > 0
+      ? `\n**Observaciones Post-Partido (últimos ${Math.min(5, categoryObservations.length)} partidos):**
+${categoryObservations.slice(0, 5).map(obs => `
+- ${obs.rival} (${obs.resultado}): Estado físico ${obs.estado_fisico}/5, Solidez defensiva ${obs.solidez_defensiva}/5, Control ${obs.control_partido}/5
+  ${obs.goles_primera_parte !== null ? `Goles: 1ªP ${obs.goles_primera_parte}, 2ªP ${obs.goles_segunda_parte}` : ''}
+  ${obs.ocasiones_claras ? `Ocasiones claras: ${obs.ocasiones_claras}` : ''}
+  ${obs.observaciones ? `Notas: ${obs.observaciones}` : ''}`).join('\n')}`
+      : '';
 
     try {
       const result = await base44.integrations.Core.InvokeLLM({
@@ -138,6 +169,7 @@ export default function CoachStandingsAnalysis() {
 **Datos de Entrenamiento:**
 - Asistencia promedio: ${avgAttendance} jugadores
 - Evaluación promedio: ${avgEvaluation}/5.0
+${observationsContext}
 
 Proporciona un análisis con:
 1. **Puntos Fuertes** (2-3 aspectos concretos)
@@ -239,39 +271,71 @@ Sé directo, práctico y enfocado en acciones concretas que el entrenador pueda 
                 {latestStanding ? (
                   <>
                     <Card className="border-2 border-orange-500">
-                      <CardHeader>
-                        <CardTitle className="flex items-center justify-between">
-                          <span>{cat.name} - Jornada {latestStanding.jornada}</span>
-                          <div className="flex gap-2">
-                            <Button
-                              onClick={() => setSelectedView(latestStanding)}
-                              variant="outline"
-                              size="sm"
-                            >
-                              Ver Tabla Completa
-                            </Button>
-                            <Button
-                              onClick={() => analyzeWithAI(cat.id)}
-                              disabled={analyzing}
-                              className="bg-purple-600 hover:bg-purple-700"
-                              size="sm"
-                            >
-                              {analyzing ? (
-                                <>
-                                  <div className="w-4 h-4 animate-spin rounded-full border-2 border-white border-t-transparent mr-2" />
-                                  Analizando...
-                                </>
-                              ) : (
-                                <>
-                                  <Sparkles className="w-4 h-4 mr-2" />
-                                  Analizar con IA
-                                </>
-                              )}
-                            </Button>
-                          </div>
-                        </CardTitle>
-                      </CardHeader>
+                     <CardHeader>
+                       <CardTitle className="flex items-center justify-between flex-wrap gap-2">
+                         <span>{cat.name} - Jornada {latestStanding.jornada}</span>
+                         <div className="flex gap-2 flex-wrap">
+                           <Button
+                             onClick={() => setShowObservationForm(true)}
+                             variant="outline"
+                             size="sm"
+                             className="border-green-500 text-green-600 hover:bg-green-50"
+                           >
+                             <Zap className="w-4 h-4 mr-2" />
+                             Registrar Partido
+                           </Button>
+                           <Button
+                             onClick={() => setSelectedView(latestStanding)}
+                             variant="outline"
+                             size="sm"
+                           >
+                             Ver Tabla Completa
+                           </Button>
+                           <Button
+                             onClick={() => analyzeWithAI(cat.id)}
+                             disabled={analyzing}
+                             className="bg-purple-600 hover:bg-purple-700"
+                             size="sm"
+                           >
+                             {analyzing ? (
+                               <>
+                                 <div className="w-4 h-4 animate-spin rounded-full border-2 border-white border-t-transparent mr-2" />
+                                 Analizando...
+                               </>
+                             ) : (
+                               <>
+                                 <Sparkles className="w-4 h-4 mr-2" />
+                                 Analizar con IA
+                               </>
+                             )}
+                           </Button>
+                         </div>
+                       </CardTitle>
+                     </CardHeader>
                     </Card>
+
+                    {showObservationForm && (
+                     <QuickMatchObservationForm
+                       categoria={latestStanding.categoria}
+                       onSave={(data) => saveObservationMutation.mutate(data)}
+                       onCancel={() => setShowObservationForm(false)}
+                       entrenadorEmail={user.email}
+                       entrenadorNombre={user.full_name}
+                     />
+                    )}
+
+                    {matchObservations.filter(o => o.categoria === latestStanding.categoria).length > 0 && (
+                     <Card className="bg-green-50 border-2 border-green-300">
+                       <CardHeader>
+                         <CardTitle className="text-sm text-green-700">
+                           ✅ {matchObservations.filter(o => o.categoria === latestStanding.categoria).length} partidos registrados
+                         </CardTitle>
+                       </CardHeader>
+                       <CardContent className="text-xs text-green-600">
+                         Tus observaciones post-partido mejoran el análisis con IA
+                       </CardContent>
+                     </Card>
+                    )}
 
                     {analysis && (
                       <div className="grid md:grid-cols-2 gap-4">
@@ -368,25 +432,29 @@ Sé directo, práctico y enfocado en acciones concretas que el entrenador pueda 
         </Tabs>
       )}
 
-      {/* Datos necesarios para mejorar */}
-      <Card className="bg-blue-50 border-2 border-blue-300 mt-6">
+      {/* Info sobre registro post-partido */}
+      <Card className="bg-gradient-to-r from-green-50 to-green-100 border-2 border-green-300 mt-6">
         <CardHeader>
-          <CardTitle className="text-blue-900">📊 Datos Adicionales Recomendados</CardTitle>
+          <CardTitle className="text-green-900 flex items-center gap-2">
+            <Zap className="w-5 h-5" />
+            🚀 Mejora tu Análisis con IA
+          </CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-sm text-blue-800 mb-3">
-            Para análisis más precisos, necesitaríamos estos datos en <strong>MatchResult</strong>:
+          <p className="text-sm text-green-800 mb-3">
+            <strong>Registra 4 datos en 30 segundos</strong> después de cada partido y obtén análisis mucho más precisos:
           </p>
           <div className="grid md:grid-cols-2 gap-2 text-sm">
-            <Badge variant="outline" className="justify-start">🎯 Tiros a puerta / fuera</Badge>
-            <Badge variant="outline" className="justify-start">⚽ Posesión del balón (%)</Badge>
-            <Badge variant="outline" className="justify-start">🚩 Corners a favor/contra</Badge>
-            <Badge variant="outline" className="justify-start">🟨🟥 Tarjetas amarillas/rojas</Badge>
-            <Badge variant="outline" className="justify-start">⏱️ Goles 1er/2º tiempo</Badge>
-            <Badge variant="outline" className="justify-start">⚡ Faltas cometidas/recibidas</Badge>
-            <Badge variant="outline" className="justify-start">🏠 Performance local vs visitante</Badge>
-            <Badge variant="outline" className="justify-start">📈 Rachas últimos 5 partidos</Badge>
+            <Badge className="bg-green-600 justify-start">⚽ Goles 1ª/2ª parte</Badge>
+            <Badge className="bg-green-600 justify-start">💪 Estado físico equipo (1-5)</Badge>
+            <Badge className="bg-green-600 justify-start">🛡️ Solidez defensiva (1-5)</Badge>
+            <Badge className="bg-green-600 justify-start">🎯 Control del partido (1-5)</Badge>
+            <Badge className="bg-green-600 justify-start">⚡ Ocasiones claras creadas</Badge>
+            <Badge className="bg-green-600 justify-start">📝 Observaciones breves</Badge>
           </div>
+          <p className="text-xs text-green-700 mt-3 italic">
+            💡 La IA detectará patrones: ¿Bajamos en 2ª parte? ¿Problemas físicos? ¿Sólidos defensivamente?
+          </p>
         </CardContent>
       </Card>
     </div>
