@@ -107,23 +107,35 @@ Deno.serve(async (req) => {
 
     debugLogs.push(`🔍 Total textos encontrados: ${allText.length}`);
     
-    // Buscar patrones: Nombre de equipo seguido de números
-    const equipoPattern = /([A-ZÁÉÍÓÚ][a-záéíóúñ\s\.]+(?:[A-ZÁÉÍÓÚ][a-záéíóúñ\s\.]*)*)\s*(\d+)\s*(\d+)\s*(\d+)\s*(\d+)\s*(\d+)/g;
+    // Buscar líneas con patrón: posición, equipo (letras), y varios números
+    const lines = html.split(/[\r\n]+/);
+    debugLogs.push(`🔍 Total líneas HTML: ${lines.length}`);
     
-    let match;
-    let pos = 1;
-    while ((match = equipoPattern.exec(html)) !== null) {
-      clasificacion.push({
-        posicion: pos++,
-        equipo: match[1].trim(),
-        partidos_jugados: match[2],
-        ganados: match[3],
-        empatados: match[4],
-        perdidos: match[5],
-        puntos: parseInt(match[6])
-      });
-      debugLogs.push(`✅ Equipo encontrado: ${match[1].trim()} - ${match[6]} pts`);
-    }
+    lines.forEach((line, idx) => {
+      // Buscar: cualquier texto con letras (equipo) seguido de al menos 3 números
+      const linePattern = /(\d+)?\s*([A-Za-zÁÉÍÓÚáéíóúñÑ\s\.'"\-]+?)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)/;
+      const match = line.match(linePattern);
+      
+      if (match) {
+        const equipo = match[2].trim();
+        // Validar que el equipo tenga al menos 3 letras
+        if (equipo.replace(/[^a-záéíóúñ]/gi, '').length >= 3) {
+          clasificacion.push({
+            posicion: parseInt(match[1]) || clasificacion.length + 1,
+            equipo: equipo,
+            partidos_jugados: match[3],
+            ganados: match[4],
+            empatados: match[5],
+            perdidos: match[6],
+            goles_favor: match[7],
+            goles_contra: match[8],
+            diferencia: match[9],
+            puntos: parseInt(match[10])
+          });
+          debugLogs.push(`✅ Equipo ${clasificacion.length}: ${equipo} - ${match[10]} pts (línea ${idx})`);
+        }
+      }
+    });
 
     debugLogs.push(`🏁 Total equipos extraídos: ${clasificacion.length}`);
 
