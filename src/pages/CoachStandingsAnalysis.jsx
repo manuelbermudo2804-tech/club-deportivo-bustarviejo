@@ -315,13 +315,14 @@ Sé directo, práctico y enfocado en acciones concretas que el entrenador pueda 
                     </Card>
 
                     {showObservationForm && (
-                     <QuickMatchObservationForm
-                       categoria={latestStanding.categoria}
-                       onSave={(data) => saveObservationMutation.mutate(data)}
-                       onCancel={() => setShowObservationForm(false)}
-                       entrenadorEmail={user.email}
-                       entrenadorNombre={user.full_name}
-                     />
+                      <QuickMatchObservationForm
+                        categoria={latestStanding.categoria}
+                        jornada={latestStanding.jornada}
+                        onSave={(data) => saveObservationMutation.mutate(data)}
+                        onCancel={() => setShowObservationForm(false)}
+                        entrenadorEmail={user.email}
+                        entrenadorNombre={user.full_name}
+                      />
                     )}
 
                     {matchObservations.filter(o => o.categoria === latestStanding.categoria).length > 0 && (

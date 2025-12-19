@@ -17,6 +17,9 @@ const RATING_LABELS = {
 
 export default function QuickMatchObservationForm({ 
   categoria, 
+  rival = "",
+  fechaPartido = "",
+  jornada = "",
   onSave, 
   onCancel,
   entrenadorEmail,
@@ -24,8 +27,8 @@ export default function QuickMatchObservationForm({
 }) {
   const [formData, setFormData] = useState({
     categoria: categoria || "",
-    rival: "",
-    fecha_partido: new Date().toISOString().split('T')[0],
+    rival: rival || "",
+    fecha_partido: fechaPartido || new Date().toISOString().split('T')[0],
     resultado: "",
     goles_primera_parte: "",
     goles_segunda_parte: "",
@@ -34,8 +37,8 @@ export default function QuickMatchObservationForm({
     solidez_defensiva: 3,
     control_partido: 3,
     observaciones: "",
-    temporada: "2024/2025",
-    jornada: ""
+    temporada: "2025/2026",
+    jornada: jornada || ""
   });
 
   const handleSubmit = (e) => {
@@ -113,7 +116,8 @@ export default function QuickMatchObservationForm({
                 value={formData.rival}
                 onChange={(e) => setFormData({ ...formData, rival: e.target.value })}
                 placeholder="CD Rival"
-                className="h-9"
+                className="h-9 bg-slate-100"
+                disabled={rival}
                 required
               />
             </div>
@@ -136,7 +140,8 @@ export default function QuickMatchObservationForm({
                 type="date"
                 value={formData.fecha_partido}
                 onChange={(e) => setFormData({ ...formData, fecha_partido: e.target.value })}
-                className="h-9"
+                className="h-9 bg-slate-100"
+                disabled={fechaPartido}
               />
             </div>
             <div>
@@ -146,7 +151,8 @@ export default function QuickMatchObservationForm({
                 value={formData.jornada}
                 onChange={(e) => setFormData({ ...formData, jornada: e.target.value })}
                 placeholder="5"
-                className="h-9"
+                className="h-9 bg-slate-100"
+                disabled={jornada}
               />
             </div>
             <div>
@@ -154,7 +160,8 @@ export default function QuickMatchObservationForm({
               <Input
                 value={formData.temporada}
                 onChange={(e) => setFormData({ ...formData, temporada: e.target.value })}
-                className="h-9"
+                className="h-9 bg-slate-100"
+                disabled
               />
             </div>
           </div>
