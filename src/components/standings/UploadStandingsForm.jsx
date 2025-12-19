@@ -10,70 +10,21 @@ import { toast } from "sonner";
 export default function UploadStandingsForm({ onDataExtracted, onCancel, preselectedCategory, prefillData }) {
   const [temporada, setTemporada] = useState(prefillData?.temporada || "2024/2025");
   const [categoria, setCategoria] = useState(preselectedCategory || prefillData?.categoria || "");
-  const [imageFile, setImageFile] = useState(null);
   const [imageUrl, setImageUrl] = useState("");
-  const [imagePreview, setImagePreview] = useState(null);
   const [isProcessing, setIsProcessing] = useState(false);
-
-
-
-  const processFile = (file) => {
-    setImageFile(file);
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      setImagePreview(reader.result);
-    };
-    reader.readAsDataURL(file);
-  };
-
-  const handleImageChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      processFile(file);
-    }
-  };
-
-  const handlePaste = (e) => {
-    const items = e.clipboardData?.items;
-    if (!items) return;
-
-    for (let i = 0; i < items.length; i++) {
-      if (items[i].type.indexOf('image') !== -1) {
-        e.preventDefault();
-        const file = items[i].getAsFile();
-        if (file) {
-          processFile(file);
-          toast.success("✅ Imagen pegada desde el portapapeles");
-        }
-        break;
-      }
-    }
-  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if ((!imageFile && !imageUrl) || !categoria) {
-      toast.error("Por favor sube una imagen o pega una URL");
-      return;
-    }
-
-    if (imageFile && imageUrl) {
-      toast.error("Usa solo una opción: subir imagen o pegar URL");
+    if (!imageUrl || !categoria) {
+      toast.error("Por favor pega la URL de la imagen");
       return;
     }
 
     setIsProcessing(true);
 
     try {
-      // 1. Obtener URL de la imagen
-      let file_url;
-      if (imageUrl) {
-        file_url = imageUrl;
-      } else {
-        const upload = await base44.integrations.Core.UploadFile({ file: imageFile });
-        file_url = upload.file_url;
-      }
+      const file_url = imageUrl;
 
       // 2. Extraer datos usando InvokeLLM con visión
       const result = await base44.integrations.Core.InvokeLLM({
@@ -161,22 +112,7 @@ export default function UploadStandingsForm({ onDataExtracted, onCancel, presele
           <Upload className="w-5 h-5 text-orange-600" />
           Subir Clasificación
         </CardTitle>
-        <div className="mt-3 bg-blue-50 border border-blue-200 rounded-lg p-3">
-          <p className="text-sm text-blue-800 font-medium mb-2">
-            🔗 <strong>Clasificaciones RFFM:</strong>
-          </p>
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => window.open("https://www.rffm.es/competicion/clasificaciones", "_blank")}
-            className="w-full"
-          >
-            Abrir RFFM
-          </Button>
-          <p className="text-xs text-blue-600 mt-2">
-            💡 Abre RFFM, haz captura, súbela a imgur.com y pega la URL abajo
-          </p>
-        </div>
+
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -206,66 +142,24 @@ export default function UploadStandingsForm({ onDataExtracted, onCancel, presele
           </div>
 
           <div>
-            <Label>Imagen de Clasificación</Label>
-            <div className="space-y-3">
-              {/* Campo para pegar URL */}
+            <Label>URL de la Imagen</Label>
+            <div className="flex gap-2">
               <Input
                 value={imageUrl}
-                onChange={(e) => {
-                  setImageUrl(e.target.value);
-                  if (e.target.value) {
-                    setImageFile(null);
-                    setImagePreview(e.target.value);
-                  }
-                }}
-                placeholder="🔗 Pega aquí la URL de la imagen"
-                className="text-sm"
+                onChange={(e) => setImageUrl(e.target.value)}
+                placeholder="Pega aquí la URL de la imagen"
               />
-
-              <div className="flex items-center gap-2">
-                <div className="flex-1 border-t border-slate-300"></div>
-                <span className="text-xs text-slate-500">O</span>
-                <div className="flex-1 border-t border-slate-300"></div>
-              </div>
-
-              {/* Opción: Subir archivo */}
-              <div 
-                className="border-2 border-dashed border-slate-300 rounded-xl p-6 text-center hover:border-orange-500 transition-colors"
-                onPaste={handlePaste}
-                tabIndex={0}
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => window.open("https://www.rffm.es/competicion/clasificaciones", "_blank")}
               >
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={handleImageChange}
-                  className="hidden"
-                  id="image-upload"
-                />
-                <label htmlFor="image-upload" className="cursor-pointer">
-                  {imagePreview && !imageUrl ? (
-                    <div className="space-y-2">
-                      <img src={imagePreview} alt="Preview" className="max-h-48 mx-auto rounded-lg" />
-                      <p className="text-sm text-slate-600">Clic para cambiar imagen</p>
-                    </div>
-                  ) : (
-                    <div>
-                      <ImageIcon className="w-12 h-12 text-slate-400 mx-auto mb-2" />
-                      <p className="text-slate-600 font-medium">Clic para subir imagen o Ctrl+V para pegar</p>
-                      <p className="text-xs text-slate-500 mt-1">
-                        📋 Puedes pegar una imagen directamente desde el portapapeles
-                      </p>
-                    </div>
-                  )}
-                </label>
-              </div>
-
-              {/* Preview de URL */}
-              {imageUrl && (
-                <div className="mt-2">
-                  <img src={imageUrl} alt="Preview URL" className="max-h-48 mx-auto rounded-lg border-2 border-green-500" />
-                </div>
-              )}
+                Abrir RFFM
+              </Button>
             </div>
+            {imageUrl && (
+              <img src={imageUrl} alt="Preview" className="mt-3 max-h-48 rounded-lg border" />
+            )}
           </div>
 
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
@@ -286,7 +180,7 @@ export default function UploadStandingsForm({ onDataExtracted, onCancel, presele
             </Button>
             <Button
               type="submit"
-              disabled={(!imageFile && !imageUrl) || isProcessing}
+              disabled={!imageUrl || isProcessing}
               className="bg-orange-600 hover:bg-orange-700"
             >
               {isProcessing ? (
