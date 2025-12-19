@@ -274,16 +274,39 @@ Sé directo, práctico y enfocado en acciones concretas que el entrenador pueda 
             const analysis = aiAnalysis[cat.id];
             const analyzing = isAnalyzing[cat.id];
 
-            // Partidos sin observación (pasados O futuros próximos)
-            const pendingCallups = callups.filter(c => 
-              c.categoria === cat.fullName && 
-              c.publicada &&
-              !matchObservations.some(obs => 
+            // Partidos sin observación - solo si ya pasaron 2h 15min desde el inicio
+            const now = new Date();
+            const pendingCallups = callups.filter(c => {
+              if (c.categoria !== cat.fullName || !c.publicada) return false;
+              
+              // Ya tiene observación registrada
+              if (matchObservations.some(obs => 
                 obs.rival === c.rival && 
                 obs.fecha_partido === c.fecha_partido &&
                 obs.categoria === c.categoria
-              )
-            ).slice(0, 1); // Solo el más reciente
+              )) return false;
+              
+              // Calcular hora estimada de finalización del partido
+              const matchDate = new Date(c.fecha_partido);
+              if (matchDate > now) return false; // Partido no ha empezado aún
+              
+              // Si tiene hora_partido, calcular fin estimado (2h + 15min)
+              if (c.hora_partido) {
+                const [hours, minutes] = c.hora_partido.split(':').map(Number);
+                const matchStart = new Date(matchDate);
+                matchStart.setHours(hours, minutes, 0, 0);
+                
+                // Duración partido (2h) + margen (15min) = 135 minutos
+                const matchEnd = new Date(matchStart.getTime() + 135 * 60000);
+                
+                return now >= matchEnd;
+              }
+              
+              // Si no tiene hora, esperar al día siguiente
+              const nextDay = new Date(matchDate);
+              nextDay.setDate(nextDay.getDate() + 1);
+              return now >= nextDay;
+            }).slice(0, 1); // Solo el más reciente
 
             return (
               <TabsContent key={cat.id} value={cat.id} className="space-y-4">
