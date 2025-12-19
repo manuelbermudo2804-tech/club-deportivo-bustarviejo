@@ -104,15 +104,7 @@ export default function Clasificaciones() {
     return acc;
   }, {});
 
-  // Auto-abrir clasificación más reciente al cambiar pestaña
-  React.useEffect(() => {
-    if (!activeTab || showUploadForm || reviewData) return;
-    
-    const latestForCategory = standingsByCategory[activeTab]?.[0];
-    if (latestForCategory) {
-      setSelectedView(latestForCategory);
-    }
-  }, [activeTab, showUploadForm, reviewData]);
+
 
   const saveStandingsMutation = useMutation({
     mutationFn: async (data) => {
