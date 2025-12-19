@@ -63,7 +63,14 @@ export default function UploadStandingsForm({ onDataExtracted, onCancel, presele
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if ((!imageFile && !imageUrl) || !categoria) {
+    console.log('🔍 handleSubmit - Estado:', { imageFile, imageUrl, categoria });
+
+    if (!categoria) {
+      toast.error("Selecciona una categoría");
+      return;
+    }
+
+    if (!imageFile && !imageUrl) {
       toast.error("Por favor sube una imagen o pega una URL");
       return;
     }
@@ -272,8 +279,9 @@ export default function UploadStandingsForm({ onDataExtracted, onCancel, presele
             </Button>
             <Button
               type="submit"
-              disabled={(!imageFile && !imageUrl) || isProcessing || !categoria}
+              disabled={isProcessing || !categoria || (!imageFile && !imageUrl)}
               className="bg-orange-600 hover:bg-orange-700"
+              onClick={() => console.log('🖱️ Botón clickeado', { imageFile, imageUrl, categoria, isProcessing })}
             >
               {isProcessing ? (
                 <>
