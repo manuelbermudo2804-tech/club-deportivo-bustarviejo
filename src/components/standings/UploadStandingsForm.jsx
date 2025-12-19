@@ -211,14 +211,12 @@ export default function UploadStandingsForm({ onDataExtracted, onCancel, presele
               />
             </div>
             <div>
-              <Label>Categoría / Equipo</Label>
+              <Label>Categoría / Equipo <span className="text-slate-500 text-xs">(editable)</span></Label>
               <Input
                 value={categoria}
                 onChange={(e) => setCategoria(e.target.value)}
-                placeholder="Fútbol Juvenil"
+                placeholder="Fútbol Juvenil, Fútbol Cadete, etc."
                 required
-                disabled={!!prefillData}
-                className={prefillData ? "bg-slate-100" : ""}
               />
             </div>
             <div>
