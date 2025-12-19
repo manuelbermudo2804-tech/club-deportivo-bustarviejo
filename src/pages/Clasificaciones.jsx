@@ -12,10 +12,12 @@ import StandingsDisplay from "../components/standings/StandingsDisplay";
 
 export default function Clasificaciones() {
   const [isAdmin, setIsAdmin] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState(null);
   const [showUploadForm, setShowUploadForm] = useState(false);
   const [reviewData, setReviewData] = useState(null);
   const [selectedView, setSelectedView] = useState(null);
   const [userCategories, setUserCategories] = useState([]);
+  const [activeTab, setActiveTab] = useState("prebenjamin");
 
   const queryClient = useQueryClient();
 
@@ -113,33 +115,37 @@ export default function Clasificaciones() {
     saveStandingsMutation.mutate(data);
   };
 
-  // Agrupar clasificaciones por temporada/categoría/jornada
-  const groupedStandings = standings.reduce((acc, standing) => {
-    const key = `${standing.temporada}|${standing.categoria}|${standing.jornada}`;
-    if (!acc[key]) {
-      acc[key] = {
-        temporada: standing.temporada,
-        categoria: standing.categoria,
-        jornada: standing.jornada,
-        fecha_actualizacion: standing.fecha_actualizacion,
-        data: []
-      };
-    }
-    acc[key].data.push(standing);
+  // Agrupar clasificaciones por categoría
+  const standingsByCategory = CATEGORIES.reduce((acc, cat) => {
+    const categoryStandings = standings.filter(s => s.categoria === cat.fullName);
+    
+    // Agrupar por temporada/jornada dentro de cada categoría
+    const grouped = categoryStandings.reduce((groupAcc, standing) => {
+      const key = `${standing.temporada}|${standing.jornada}`;
+      if (!groupAcc[key]) {
+        groupAcc[key] = {
+          temporada: standing.temporada,
+          categoria: standing.categoria,
+          jornada: standing.jornada,
+          fecha_actualizacion: standing.fecha_actualizacion,
+          data: []
+        };
+      }
+      groupAcc[key].data.push(standing);
+      return groupAcc;
+    }, {});
+
+    acc[cat.id] = Object.values(grouped).sort((a, b) => 
+      new Date(b.fecha_actualizacion) - new Date(a.fecha_actualizacion)
+    );
+    
     return acc;
   }, {});
 
-  // Filtrar clasificaciones según el usuario
-  let standingsList = Object.values(groupedStandings).sort((a, b) => 
-    new Date(b.fecha_actualizacion) - new Date(a.fecha_actualizacion)
-  );
-
-  // Si no es admin, filtrar solo categorías de sus jugadores
-  if (!isAdmin && userCategories.length > 0) {
-    standingsList = standingsList.filter(group => 
-      userCategories.includes(group.categoria)
-    );
-  }
+  // Filtrar categorías según permisos de usuario
+  const visibleCategories = isAdmin 
+    ? CATEGORIES 
+    : CATEGORIES.filter(cat => userCategories.includes(cat.fullName));
 
   return (
     <div className="p-6 space-y-6">

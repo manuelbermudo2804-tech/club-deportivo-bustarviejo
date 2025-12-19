@@ -7,9 +7,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Upload, Image as ImageIcon } from "lucide-react";
 import { toast } from "sonner";
 
-export default function UploadStandingsForm({ onDataExtracted, onCancel }) {
+export default function UploadStandingsForm({ onDataExtracted, onCancel, preselectedCategory }) {
   const [temporada, setTemporada] = useState("2024/2025");
-  const [categoria, setCategoria] = useState("");
+  const [categoria, setCategoria] = useState(preselectedCategory || "");
   const [jornada, setJornada] = useState("");
   const [imageFile, setImageFile] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
