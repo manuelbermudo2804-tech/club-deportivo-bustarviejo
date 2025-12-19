@@ -176,16 +176,23 @@ export default function UploadStandingsForm({ onDataExtracted, onCancel, presele
           <p className="text-sm text-blue-800 font-medium mb-2">
             🔗 <strong>Enlace directo a clasificaciones RFFM:</strong>
           </p>
-          <a 
-            href="https://www.rffm.es/competicion/clasificaciones" 
-            target="_blank" 
-            rel="noopener noreferrer"
-            className="text-sm text-blue-600 hover:text-blue-800 underline"
-          >
-            https://www.rffm.es/competicion/clasificaciones
-          </a>
+          <div className="flex gap-2">
+            <Input 
+              value="https://www.rffm.es/competicion/clasificaciones"
+              readOnly
+              className="text-sm bg-white"
+            />
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => window.open("https://www.rffm.es/competicion/clasificaciones", "_blank")}
+            >
+              Abrir
+            </Button>
+          </div>
           <p className="text-xs text-blue-600 mt-2">
-            💡 Abre el enlace, busca tu categoría, haz captura de la tabla y súbela aquí
+            💡 Copia el enlace, busca tu categoría, haz captura de la tabla y súbela aquí
           </p>
         </div>
       </CardHeader>
