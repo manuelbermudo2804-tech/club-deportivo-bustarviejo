@@ -4,6 +4,7 @@ import { Trophy, TrendingUp, TrendingDown } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import StandingsStats from "./StandingsStats";
 import NextMatchStats from "./NextMatchStats";
+import TeamComparison from "./TeamComparison";
 import { createPageUrl } from "@/utils";
 import { useNavigate } from "react-router-dom";
 
@@ -29,6 +30,9 @@ export default function StandingsDisplay({ data, onClose, fullPage = false }) {
 
       {/* Estadísticas calculadas */}
       <StandingsStats data={data} />
+
+      {/* Comparador de equipos */}
+      <TeamComparison standings={sortedData} categoria={data.categoria} />
 
       <div className="overflow-x-auto -mx-2 sm:mx-0">
         <table className="w-full text-xs sm:text-sm min-w-[600px]">
