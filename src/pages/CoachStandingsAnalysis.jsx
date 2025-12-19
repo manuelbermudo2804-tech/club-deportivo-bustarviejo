@@ -9,6 +9,8 @@ import { BarChart3, Sparkles, TrendingUp, TrendingDown, AlertTriangle, CheckCirc
 import StandingsDisplay from "../components/standings/StandingsDisplay";
 import QuickMatchObservationForm from "../components/coach/QuickMatchObservationForm";
 import { toast } from "sonner";
+import { format } from "date-fns";
+import { es } from "date-fns/locale";
 
 const CATEGORIES = [
   { id: "prebenjamin", name: "Pre-Benjamín", fullName: "Fútbol Pre-Benjamín (Mixto)" },
