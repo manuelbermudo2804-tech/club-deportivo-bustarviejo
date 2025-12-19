@@ -14,6 +14,7 @@ import ContactCard from "../components/ContactCard";
 import { usePageTutorial } from "../components/tutorials/useTutorial";
 import DashboardCardSkeleton from "../components/skeletons/DashboardCardSkeleton";
 import RenewalStatusWidget from "../components/renewals/RenewalStatusWidget";
+import StandingsWidget from "../components/standings/StandingsWidget";
 
 
 // Componente para compartir Fútbol Femenino (sin referidos)
@@ -682,6 +683,9 @@ export default function ParentDashboard() {
             seasonConfig={activeSeason}
           />
         )}
+
+        {/* Widget de Clasificaciones */}
+        {!playersLoading && <StandingsWidget userEmail={user?.email} />}
 
         {/* ÚNICO CENTRO DE ALERTAS CONSOLIDADO - Todo en un solo banner */}
         {playersLoading ? (
