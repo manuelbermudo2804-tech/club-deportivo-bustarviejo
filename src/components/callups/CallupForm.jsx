@@ -74,15 +74,21 @@ export default function CallupForm({ callup, players, coachName, coachEmail, cat
     }
   }, [category]);
 
-  // Auto-rellenar ubicación cuando es visitante y se selecciona rival
+  // Auto-rellenar ubicación según Local/Visitante
   useEffect(() => {
-    if (currentCallup.local_visitante === "Visitante" && currentCallup.rival && !manualLocationEdit) {
-      // Si es visitante, intentar buscar el campo del rival
-      const searchQuery = encodeURIComponent(`campo ${currentCallup.rival} Madrid`);
-      const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${searchQuery}`;
-      
-      // Sugerir ubicación solo si está vacía
-      if (!currentCallup.ubicacion || currentCallup.ubicacion === "") {
+    if (!manualLocationEdit) {
+      if (currentCallup.local_visitante === "Local") {
+        // Partido LOCAL - siempre en el mismo sitio
+        setCurrentCallup(prev => ({
+          ...prev,
+          ubicacion: "Campo Municipal CD Bustarviejo",
+          enlace_ubicacion: "https://maps.app.goo.gl/qZKDqVyS6YuH8uZV8"
+        }));
+      } else if (currentCallup.local_visitante === "Visitante" && currentCallup.rival) {
+        // Partido VISITANTE - campo del rival
+        const searchQuery = encodeURIComponent(`campo ${currentCallup.rival} Madrid`);
+        const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${searchQuery}`;
+        
         setCurrentCallup(prev => ({
           ...prev,
           ubicacion: `Campo del ${currentCallup.rival}`,
@@ -338,11 +344,19 @@ export default function CallupForm({ callup, players, coachName, coachEmail, cat
                     <SelectItem value="Visitante">✈️ Visitante</SelectItem>
                   </SelectContent>
                 </Select>
+                {currentCallup.local_visitante === "Local" && (
+                  <Alert className="bg-green-50 border-green-200">
+                    <MapPin className="h-4 w-4 text-green-600" />
+                    <AlertDescription className="text-green-800 text-xs">
+                      🏠 Se ha auto-rellenado el campo local. Puedes editarlo si es necesario.
+                    </AlertDescription>
+                  </Alert>
+                )}
                 {currentCallup.local_visitante === "Visitante" && currentCallup.rival && (
                   <Alert className="bg-blue-50 border-blue-200">
                     <MapPin className="h-4 w-4 text-blue-600" />
                     <AlertDescription className="text-blue-800 text-xs">
-                      💡 Se ha auto-sugerido la ubicación del rival. Puedes editarla si es necesario.
+                      ✈️ Se ha auto-sugerido la ubicación del rival. Puedes editarla si es necesario.
                     </AlertDescription>
                   </Alert>
                 )}
