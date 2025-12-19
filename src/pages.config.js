@@ -79,7 +79,6 @@ import RenewalDashboard from './pages/RenewalDashboard';
 import CustomPaymentPlans from './pages/CustomPaymentPlans';
 import InvitationRequests from './pages/InvitationRequests';
 import FamilyGuide from './pages/FamilyGuide';
-import RFFMScraper from './pages/RFFMScraper';
 import __Layout from './Layout.jsx';
 
 
@@ -165,7 +164,6 @@ export const PAGES = {
     "CustomPaymentPlans": CustomPaymentPlans,
     "InvitationRequests": InvitationRequests,
     "FamilyGuide": FamilyGuide,
-    "RFFMScraper": RFFMScraper,
 }
 
 export const pagesConfig = {
