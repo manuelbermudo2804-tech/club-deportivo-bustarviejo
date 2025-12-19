@@ -260,6 +260,66 @@ export default function RFFMScraper() {
           ))}
         </div>
 
+        {viewingStandings && (
+          <Card className="border-2 border-green-500">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <CheckCircle2 className="w-5 h-5 text-green-600" />
+                Clasificación: {viewingStandings.config.nombre_liga}
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {viewingStandings.data.length > 0 ? (
+                <div className="bg-slate-50 rounded-lg p-4 max-h-96 overflow-y-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b">
+                        <th className="text-left py-2">Pos</th>
+                        <th className="text-left py-2">Equipo</th>
+                        <th className="text-center py-2">PJ</th>
+                        <th className="text-center py-2">G</th>
+                        <th className="text-center py-2">E</th>
+                        <th className="text-center py-2">P</th>
+                        <th className="text-center py-2">GF</th>
+                        <th className="text-center py-2">GC</th>
+                        <th className="text-center py-2 font-bold">Pts</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {viewingStandings.data.map((equipo, i) => (
+                        <tr key={i} className="border-b hover:bg-slate-100">
+                          <td className="py-2">{equipo.posicion}</td>
+                          <td className="py-2 font-medium">{equipo.equipo}</td>
+                          <td className="text-center py-2">{equipo.partidos_jugados}</td>
+                          <td className="text-center py-2">{equipo.ganados}</td>
+                          <td className="text-center py-2">{equipo.empatados}</td>
+                          <td className="text-center py-2">{equipo.perdidos}</td>
+                          <td className="text-center py-2">{equipo.goles_favor}</td>
+                          <td className="text-center py-2">{equipo.goles_contra}</td>
+                          <td className="text-center py-2 font-bold">{equipo.puntos}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              ) : (
+                <Alert>
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertDescription>
+                    Sin datos. Ejecuta tu scraper externo para sincronizar.
+                  </AlertDescription>
+                </Alert>
+              )}
+              <Button
+                onClick={() => setViewingStandings(null)}
+                variant="outline"
+                className="mt-4"
+              >
+                Cerrar
+              </Button>
+            </CardContent>
+          </Card>
+        )}
 
       </div>
     </div>
