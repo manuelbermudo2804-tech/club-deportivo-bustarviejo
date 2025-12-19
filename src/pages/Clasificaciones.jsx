@@ -31,25 +31,43 @@ export default function Clasificaciones() {
   const [reviewData, setReviewData] = useState(null);
   const [selectedView, setSelectedView] = useState(null);
   const [userCategories, setUserCategories] = useState([]);
-  const [activeTab, setActiveTab] = useState("prebenjamin");
+  const [activeTab, setActiveTab] = useState("");
+  const [isLoadingUser, setIsLoadingUser] = useState(true);
 
   const queryClient = useQueryClient();
 
   React.useEffect(() => {
     const checkAdmin = async () => {
-      const user = await base44.auth.me();
-      setIsAdmin(user.role === "admin");
+      try {
+        const user = await base44.auth.me();
+        setIsAdmin(user.role === "admin");
 
-      // Si no es admin, obtener categorías de sus jugadores
-      if (user.role !== "admin") {
-        const allPlayers = await base44.entities.Player.list();
-        const myPlayers = allPlayers.filter(p => 
-          p.email_padre === user.email || 
-          p.email_tutor_2 === user.email ||
-          (p.email_jugador === user.email && p.acceso_jugador_autorizado)
-        );
-        const categories = [...new Set(myPlayers.map(p => p.deporte).filter(Boolean))];
-        setUserCategories(categories);
+        // Si no es admin, obtener categorías de sus jugadores
+        if (user.role !== "admin") {
+          const allPlayers = await base44.entities.Player.list();
+          const myPlayers = allPlayers.filter(p => 
+            p.email_padre === user.email || 
+            p.email_tutor_2 === user.email ||
+            (p.email_jugador === user.email && p.acceso_jugador_autorizado)
+          );
+          const categories = [...new Set(myPlayers.map(p => p.deporte).filter(Boolean))];
+          setUserCategories(categories);
+
+          // Establecer pestaña activa a la primera categoría disponible
+          if (categories.length > 0) {
+            const firstCat = CATEGORIES.find(c => categories.includes(c.fullName));
+            if (firstCat) {
+              setActiveTab(firstCat.id);
+            }
+          }
+        } else {
+          // Para admin, empezar en la primera categoría
+          setActiveTab(CATEGORIES[0].id);
+        }
+      } catch (error) {
+        console.error("Error loading user:", error);
+      } finally {
+        setIsLoadingUser(false);
       }
     };
     checkAdmin();
@@ -173,6 +191,35 @@ export default function Clasificaciones() {
     ? CATEGORIES 
     : CATEGORIES.filter(cat => userCategories.includes(cat.fullName));
 
+  if (isLoadingUser) {
+    return (
+      <div className="p-6 flex items-center justify-center min-h-[400px]">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-600 mx-auto"></div>
+          <p className="text-slate-600 mt-2 text-sm">Cargando clasificaciones...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!isAdmin && visibleCategories.length === 0) {
+    return (
+      <div className="p-6">
+        <Card className="border-2 border-slate-300">
+          <CardContent className="p-12 text-center">
+            <BarChart3 className="w-16 h-16 text-slate-300 mx-auto mb-4" />
+            <h2 className="text-xl font-bold text-slate-700 mb-2">
+              No hay clasificaciones disponibles
+            </h2>
+            <p className="text-slate-500">
+              Aún no tienes jugadores registrados o no hay clasificaciones subidas para tus equipos.
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   return (
     <div className="p-6 space-y-6">
       <div>
@@ -211,7 +258,7 @@ export default function Clasificaciones() {
         />
       )}
 
-      {!showUploadForm && !reviewData && (
+      {!showUploadForm && !reviewData && activeTab && (
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="grid grid-cols-3 md:grid-cols-5 lg:grid-cols-9 gap-2 h-auto bg-white p-2 rounded-xl shadow-sm mb-6">
             {visibleCategories.map((cat) => (
