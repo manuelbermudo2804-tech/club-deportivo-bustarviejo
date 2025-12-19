@@ -82,45 +82,71 @@ Deno.serve(async (req) => {
     const $ = cheerio.load(html);
     const clasificacion = [];
 
-    // Buscar filas con datos
-    $('table tr').each((rowIndex, row) => {
-      const cells = $(row).find('td, th');
-      if (cells.length < 3) return;
-      
-      const allText = [];
-      cells.each((i, cell) => {
-        allText.push($(cell).text().trim().replace(/\s+/g, ' '));
+    console.log('📄 HTML recibido:', html.length, 'chars');
+    console.log('🔍 Tablas encontradas:', $('table').length);
+
+    // Buscar TODAS las filas con al menos 5 celdas
+    let allRows = [];
+    $('table').each((tIdx, table) => {
+      $(table).find('tr').each((rIdx, row) => {
+        const cells = $(row).find('td, th');
+        if (cells.length >= 5) {
+          const rowData = [];
+          cells.each((i, cell) => {
+            rowData.push($(cell).text().trim());
+          });
+          allRows.push({ tableIdx: tIdx, rowIdx: rIdx, data: rowData });
+          console.log(`Fila ${allRows.length}: [${rowData.join(' | ')}]`);
+        }
       });
-      
-      // Buscar equipo
-      let equipo = null;
+    });
+
+    console.log(`📊 Total filas con 5+ celdas: ${allRows.length}`);
+
+    // Analizar cada fila
+    allRows.forEach(({ data }, idx) => {
+      // Buscar columna con nombre de equipo (texto largo con letras)
+      let equipo = '';
       let equipoIdx = -1;
-      for (let i = 0; i < allText.length; i++) {
-        const t = allText[i];
-        if (t.length > 3 && /[a-z]/i.test(t) && !/^\d+$/.test(t)) {
-          equipo = t;
+      
+      for (let i = 0; i < data.length; i++) {
+        const text = data[i].replace(/\s+/g, ' ').trim();
+        // Equipo: > 3 chars, tiene letras, NO es solo números ni símbolos
+        if (text.length > 3 && /[a-záéíóúñA-Z]/.test(text) && !/^[\d\s\.,\-]+$/.test(text)) {
+          equipo = text;
           equipoIdx = i;
           break;
         }
       }
-      
-      // Buscar puntos
+
+      // Buscar puntos (último número válido después del equipo)
       let puntos = null;
-      for (let i = allText.length - 1; i > equipoIdx; i--) {
-        const num = parseInt(allText[i]);
-        if (!isNaN(num) && num >= 0) {
-          puntos = num;
-          break;
+      if (equipoIdx >= 0) {
+        for (let i = data.length - 1; i > equipoIdx; i--) {
+          const cleanNum = data[i].replace(/[^\d]/g, '');
+          const num = parseInt(cleanNum);
+          if (!isNaN(num) && num >= 0 && num <= 150) {
+            puntos = num;
+            break;
+          }
         }
       }
-      
+
       if (equipo && puntos !== null) {
+        const posTexto = data[0].replace(/[^\d]/g, '');
+        const posicion = parseInt(posTexto) || clasificacion.length + 1;
+        
         clasificacion.push({
-          posicion: parseInt(allText[0]) || clasificacion.length + 1,
+          posicion,
           equipo,
           puntos,
-          partidos_jugados: allText[equipoIdx + 1] || ''
+          partidos_jugados: data[equipoIdx + 1] || '',
+          ganados: data[equipoIdx + 2] || '',
+          empatados: data[equipoIdx + 3] || '',
+          perdidos: data[equipoIdx + 4] || ''
         });
+        
+        console.log(`✅ Equipo ${clasificacion.length}: ${equipo} - ${puntos} pts`);
       }
     });
 
