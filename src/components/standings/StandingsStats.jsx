@@ -43,119 +43,90 @@ export default function StandingsStats({ data }) {
   }));
 
   return (
-    <div className="space-y-4 mb-6">
-      {/* Posición CD Bustarviejo */}
+    <div className="space-y-3 mb-4">
+      {/* Posición CD Bustarviejo - Compacto */}
       {bustarviejo && (
         <Card className="border-2 border-orange-500 bg-gradient-to-r from-orange-50 to-orange-100">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-orange-700">
-              <Trophy className="w-5 h-5" />
-              CD Bustarviejo
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <div className="text-center">
-                <p className="text-3xl font-bold text-orange-600">{bustarviejo.posicion}°</p>
-                <p className="text-sm text-slate-600">Posición</p>
+          <CardContent className="p-3">
+            <div className="flex items-center gap-2 mb-2">
+              <Trophy className="w-4 h-4 text-orange-600" />
+              <h3 className="font-bold text-orange-700">CD Bustarviejo</h3>
+            </div>
+            <div className="grid grid-cols-4 gap-2 text-center">
+              <div>
+                <p className="text-xl sm:text-2xl font-bold text-orange-600">{bustarviejo.posicion}°</p>
+                <p className="text-xs text-slate-600">Pos</p>
               </div>
-              <div className="text-center">
-                <p className="text-3xl font-bold text-green-600">{bustarviejo.puntos}</p>
-                <p className="text-sm text-slate-600">Puntos</p>
+              <div>
+                <p className="text-xl sm:text-2xl font-bold text-green-600">{bustarviejo.puntos}</p>
+                <p className="text-xs text-slate-600">Pts</p>
               </div>
               {bustarviejo.goles_favor !== undefined && (
-                <div className="text-center">
-                  <p className="text-3xl font-bold text-blue-600">
+                <div>
+                  <p className="text-xl sm:text-2xl font-bold text-blue-600">
                     {bustarviejo.goles_favor}-{bustarviejo.goles_contra}
                   </p>
-                  <p className="text-sm text-slate-600">Goles (F-C)</p>
+                  <p className="text-xs text-slate-600">Goles</p>
                 </div>
               )}
               {bustarviejo.partidos_jugados && (
-                <div className="text-center">
-                  <p className="text-3xl font-bold text-purple-600">
+                <div>
+                  <p className="text-xl sm:text-2xl font-bold text-purple-600">
                     {Math.round(((bustarviejo.ganados || 0) / bustarviejo.partidos_jugados) * 100)}%
                   </p>
-                  <p className="text-sm text-slate-600">% Victorias</p>
+                  <p className="text-xs text-slate-600">Vict.</p>
                 </div>
               )}
             </div>
-            
-            {bustarviejo.posicion <= 3 && (
-              <div className="mt-3 text-center">
-                <Badge className="bg-yellow-500 text-white">
-                  🏆 Zona de Clasificación
-                </Badge>
-              </div>
-            )}
-            {bustarviejo.posicion > totalTeams - 3 && (
-              <div className="mt-3 text-center">
-                <Badge className="bg-red-500 text-white">
-                  ⚠️ Zona de Descenso
-                </Badge>
-              </div>
-            )}
           </CardContent>
         </Card>
       )}
 
-      {/* Estadísticas de Liga */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm flex items-center gap-2">
-              <Target className="w-4 h-4 text-blue-600" />
-              Mejor Ataque
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="font-bold text-lg">{bestAttack.nombre_equipo}</p>
-            <p className="text-2xl font-bold text-blue-600">{bestAttack.goles_favor || 0}</p>
-            <p className="text-xs text-slate-500">goles a favor</p>
+      {/* Estadísticas de Liga - Muy Compactas */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+        <Card className="border border-green-300">
+          <CardContent className="p-2">
+            <div className="flex items-center gap-1 mb-1">
+              <Target className="w-3 h-3 text-green-600" />
+              <p className="text-[10px] font-semibold text-green-700">Ataque</p>
+            </div>
+            <p className="text-xs font-bold text-green-900 truncate">{bestAttack.nombre_equipo}</p>
+            <p className="text-lg font-bold text-green-600">{bestAttack.goles_favor || 0}</p>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm flex items-center gap-2">
-              <Shield className="w-4 h-4 text-green-600" />
-              Mejor Defensa
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="font-bold text-lg">{bestDefense.nombre_equipo}</p>
-            <p className="text-2xl font-bold text-green-600">{bestDefense.goles_contra || 0}</p>
-            <p className="text-xs text-slate-500">goles en contra</p>
+        <Card className="border border-blue-300">
+          <CardContent className="p-2">
+            <div className="flex items-center gap-1 mb-1">
+              <Shield className="w-3 h-3 text-blue-600" />
+              <p className="text-[10px] font-semibold text-blue-700">Defensa</p>
+            </div>
+            <p className="text-xs font-bold text-blue-900 truncate">{bestDefense.nombre_equipo}</p>
+            <p className="text-lg font-bold text-blue-600">{bestDefense.goles_contra || 0}</p>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm flex items-center gap-2">
-              <Award className="w-4 h-4 text-purple-600" />
-              Más Efectivo
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="font-bold text-lg">{mostEffective.nombre_equipo}</p>
-            <p className="text-2xl font-bold text-purple-600">
+        <Card className="border border-purple-300">
+          <CardContent className="p-2">
+            <div className="flex items-center gap-1 mb-1">
+              <Award className="w-3 h-3 text-purple-600" />
+              <p className="text-[10px] font-semibold text-purple-700">Efectivo</p>
+            </div>
+            <p className="text-xs font-bold text-purple-900 truncate">{mostEffective.nombre_equipo}</p>
+            <p className="text-lg font-bold text-purple-600">
               {Math.round(((mostEffective.ganados || 0) / (mostEffective.partidos_jugados || 1)) * 100)}%
             </p>
-            <p className="text-xs text-slate-500">victorias</p>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm flex items-center gap-2">
-              <TrendingUp className="w-4 h-4 text-orange-600" />
-              Promedio Liga
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="font-bold text-lg">Goles/Equipo</p>
-            <p className="text-2xl font-bold text-orange-600">{avgGoles.toFixed(1)}</p>
-            <p className="text-xs text-slate-500">por equipo</p>
+        <Card className="border border-slate-300">
+          <CardContent className="p-2">
+            <div className="flex items-center gap-1 mb-1">
+              <TrendingUp className="w-3 h-3 text-slate-600" />
+              <p className="text-[10px] font-semibold text-slate-700">Promedio</p>
+            </div>
+            <p className="text-xs font-bold text-slate-900">Goles/Equipo</p>
+            <p className="text-lg font-bold text-slate-600">{avgGoles.toFixed(1)}</p>
           </CardContent>
         </Card>
       </div>
