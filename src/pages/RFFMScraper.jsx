@@ -16,13 +16,6 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 
 export default function RFFMScraper() {
   const [user, setUser] = useState(null);
-  const [testConfig, setTestConfig] = useState({
-    temporada: '20',
-    tipo_juego: '1',
-    competicion_id: '',
-    grupo_id: '',
-    api_url_manual: ''
-  });
   const [newConfig, setNewConfig] = useState({
     nombre_liga: '',
     categoria: '',
@@ -33,8 +26,8 @@ export default function RFFMScraper() {
     activa: true,
     notas: ''
   });
-  const [scrapingResult, setScrapingResult] = useState(null);
   const [showAddForm, setShowAddForm] = useState(false);
+  const [viewingStandings, setViewingStandings] = useState(null);
 
   const queryClient = useQueryClient();
 
@@ -46,31 +39,6 @@ export default function RFFMScraper() {
     queryKey: ['leagueConfigs'],
     queryFn: () => base44.entities.LeagueConfig.list(),
     enabled: !!user
-  });
-
-  // Validar configuración (sin scrapear)
-  const testConfigMutation = useMutation({
-    mutationFn: async (config) => {
-      if (!config.competicion_id || !config.grupo_id) {
-        throw new Error('Faltan competicion_id o grupo_id');
-      }
-      const url = `https://www.rffm.es/competicion/clasificaciones?temporada=${config.temporada}&tipojuego=${config.tipo_juego}&competicion=${config.competicion_id}&grupo=${config.grupo_id}`;
-      return { 
-        ok: true, 
-        url,
-        message: 'Configuración válida. El scraping se hace desde tu servicio externo (Node + Playwright).',
-        clasificacion: []
-      };
-    },
-    onSuccess: (data) => {
-      setScrapingResult(data);
-    },
-    onError: (error) => {
-      setScrapingResult({
-        error: error.message,
-        clasificacion: []
-      });
-    }
   });
 
   const createConfigMutation = useMutation({
@@ -96,21 +64,13 @@ export default function RFFMScraper() {
     onSuccess: () => queryClient.invalidateQueries(['leagueConfigs'])
   });
 
-  // Ver clasificación guardada
   const viewStoredMutation = useMutation({
     mutationFn: async (config) => {
       const standings = await base44.entities.Standing.filter({ league_id: config.id });
-      const url = `https://www.rffm.es/competicion/clasificaciones?temporada=${config.temporada}&tipojuego=${config.tipo_juego}&competicion=${config.competicion_id}&grupo=${config.grupo_id}`;
-      return {
-        ok: true,
-        method: 'stored_data',
-        clasificacion: standings.sort((a, b) => a.posicion - b.posicion),
-        url,
-        message: standings.length > 0 ? 'Datos almacenados en Base44' : 'Sin datos. Ejecuta tu scraper externo para sincronizar.'
-      };
+      return standings.sort((a, b) => a.posicion - b.posicion);
     },
-    onSuccess: (data) => {
-      setScrapingResult(data);
+    onSuccess: (data, config) => {
+      setViewingStandings({ data, config });
     }
   });
 
@@ -281,17 +241,7 @@ export default function RFFMScraper() {
                     className="flex-1 bg-green-600 hover:bg-green-700"
                   >
                     <Eye className="w-3 h-3 mr-1" />
-                    Ver Datos
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => {
-                      const url = `https://www.rffm.es/competicion/clasificaciones?temporada=${config.temporada}&tipojuego=${config.tipo_juego}&competicion=${config.competicion_id}&grupo=${config.grupo_id}`;
-                      window.open(url, '_blank');
-                    }}
-                  >
-                    <ExternalLink className="w-3 h-3" />
+                    Ver Clasificación
                   </Button>
                   <Button
                     size="sm"
