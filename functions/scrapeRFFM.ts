@@ -59,104 +59,51 @@ Deno.serve(async (req) => {
       console.log('✅ Tabla clasificación encontrada por clase');
     }
 
-    // Estrategia 2: buscar TODAS las filas con td/th en TODAS las tablas
-    $('table').each((tableIndex, table) => {
-      const $table = $(table);
-      const rows = $table.find('tr');
+    // Buscar filas con al menos 3 celdas
+    $('table tr').each((rowIndex, row) => {
+      const $row = $(row);
+      const cells = $row.find('td, th');
       
-      console.log(`📊 Table ${tableIndex}: ${rows.length} rows, classes: ${$table.attr('class') || 'none'}`);
+      if (cells.length < 3) return;
       
-      rows.each((rowIndex, row) => {
-        const $row = $(row);
-        // Buscar tanto TD como TH (algunos usan th para las celdas)
-        const cells = $row.find('td, th');
-        
-        if (cells.length === 0) return;
-        
-        // Extraer TODO el contenido de cada celda
-        const allText = [];
-        cells.each((i, cell) => {
-          const $cell = $(cell);
-          const text = $cell.text().trim().replace(/\s+/g, ' ');
-          allText.push(text);
-        });
-        
-        console.log(`  Row ${rowIndex} (${cells.length} cells): [${allText.join(' | ')}]`);
-        
-        // Verificar si parece una fila de clasificación (al menos 4 columnas)
-        if (allText.length >= 4) {
-          // Buscar nombre del equipo - cualquier texto con letras que no sea solo número
-          let equipoText = '';
-          let equipoIndex = -1;
-          
-          for (let i = 0; i < allText.length; i++) {
-            const text = allText[i];
-            // El equipo debe tener letras y más de 2 caracteres
-            const hasLetters = /[a-zA-ZáéíóúÁÉÍÓÚñÑ]/.test(text);
-            const notOnlyNumber = !/^[\d\s.,]+$/.test(text);
-            const longEnough = text.length > 2;
-            
-            if (hasLetters && notOnlyNumber && longEnough) {
-              equipoText = text;
-              equipoIndex = i;
-              break;
-            }
-          }
-          
-          // Buscar puntos - número válido en cualquier parte de la fila
-          let puntos = null;
-          let puntosIndex = -1;
-          
-          // Buscar de derecha a izquierda
-          for (let i = allText.length - 1; i >= 0; i--) {
-            const text = allText[i].replace(/[^\d]/g, '');
-            if (text.length === 0) continue;
-            
-            const num = parseInt(text);
-            if (!isNaN(num) && num >= 0 && num <= 200) {
-              // Verificar que no sea la posición (primera columna pequeña)
-              if (i !== 0 || num > 20) {
-                puntos = num;
-                puntosIndex = i;
-                break;
-              }
-            }
-          }
-          
-          // Si encontramos equipo Y puntos, agregar a clasificación
-          if (equipoText && puntos !== null && equipoIndex < puntosIndex) {
-            // Extraer posición
-            let posicion = clasificacion.length + 1;
-            const primerTexto = allText[0].replace(/[^\d]/g, '');
-            const primerNum = parseInt(primerTexto);
-            if (!isNaN(primerNum) && primerNum > 0 && primerNum <= 30) {
-              posicion = primerNum;
-            }
-            
-            // Extraer estadísticas entre equipo y puntos
-            const statsStart = equipoIndex + 1;
-            const statsEnd = puntosIndex;
-            const stats = allText.slice(statsStart, statsEnd);
-            
-            clasificacion.push({
-              posicion,
-              equipo: equipoText,
-              puntos,
-              partidos_jugados: stats[0] || '',
-              ganados: stats[1] || '',
-              empatados: stats[2] || '',
-              perdidos: stats[3] || '',
-              goles_favor: stats[4] || '',
-              goles_contra: stats[5] || '',
-              _raw_data: allText,
-              _table_index: tableIndex,
-              _row_index: rowIndex
-            });
-            
-            console.log(`  ✅ EQUIPO DETECTADO: ${equipoText} - ${puntos} pts (pos: ${posicion}) en tabla ${tableIndex}`);
-          }
-        }
+      const allText = [];
+      cells.each((i, cell) => {
+        allText.push($(cell).text().trim().replace(/\s+/g, ' '));
       });
+      
+      // Buscar equipo (texto con letras, > 3 chars)
+      let equipo = null;
+      let equipoIdx = -1;
+      for (let i = 0; i < allText.length; i++) {
+        const t = allText[i];
+        if (t.length > 3 && /[a-z]/i.test(t) && !/^\d+$/.test(t)) {
+          equipo = t;
+          equipoIdx = i;
+          break;
+        }
+      }
+      
+      // Buscar número de puntos (último número >= 0)
+      let puntos = null;
+      for (let i = allText.length - 1; i > equipoIdx; i--) {
+        const num = parseInt(allText[i]);
+        if (!isNaN(num) && num >= 0) {
+          puntos = num;
+          break;
+        }
+      }
+      
+      if (equipo && puntos !== null) {
+        const pos = parseInt(allText[0]) || clasificacion.length + 1;
+        clasificacion.push({
+          posicion: pos,
+          equipo,
+          puntos,
+          partidos_jugados: allText[equipoIdx + 1] || '',
+          _raw: allText
+        });
+        console.log(`✅ ${equipo} - ${puntos} pts`);
+      }
     });
     
     console.log(`✅ Total equipos extraídos: ${clasificacion.length}`);
