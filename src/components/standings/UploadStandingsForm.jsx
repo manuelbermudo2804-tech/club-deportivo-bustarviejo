@@ -10,10 +10,33 @@ import { toast } from "sonner";
 export default function UploadStandingsForm({ onDataExtracted, onCancel, preselectedCategory, prefillData }) {
   const [temporada, setTemporada] = useState(prefillData?.temporada || "2024/2025");
   const [categoria, setCategoria] = useState(preselectedCategory || prefillData?.categoria || "");
-  const [jornada, setJornada] = useState(prefillData?.jornada?.toString() || "");
+  const [jornada, setJornada] = useState("");
   const [imageFile, setImageFile] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
   const [isProcessing, setIsProcessing] = useState(false);
+
+  // Auto-calcular jornada basándose en la última guardada
+  React.useEffect(() => {
+    const fetchLastJornada = async () => {
+      if (!categoria) return;
+      
+      try {
+        const allStandings = await base44.entities.Clasificacion.list('-jornada');
+        const categoryStandings = allStandings.filter(s => s.categoria === categoria && s.temporada === temporada);
+        
+        if (categoryStandings.length > 0) {
+          const lastJornada = Math.max(...categoryStandings.map(s => s.jornada));
+          setJornada((lastJornada + 1).toString());
+        } else {
+          setJornada("1");
+        }
+      } catch (error) {
+        setJornada("1");
+      }
+    };
+    
+    fetchLastJornada();
+  }, [categoria, temporada]);
 
   const processFile = (file) => {
     setImageFile(file);
