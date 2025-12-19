@@ -84,72 +84,46 @@ Deno.serve(async (req) => {
     const debugLogs = [];
 
     debugLogs.push(`📄 HTML recibido: ${html.length} chars`);
-    debugLogs.push(`🔍 Tablas encontradas: ${$('table').length}`);
+    
+    // Guardar snippet del HTML para debug
+    const htmlSnippet = html.substring(0, 3000);
+    debugLogs.push(`🔍 HTML Preview: ${htmlSnippet.substring(0, 500)}...`);
 
-    // Buscar TODAS las filas con al menos 5 celdas
-    let allRows = [];
-    $('table').each((tIdx, table) => {
-      $(table).find('tr').each((rIdx, row) => {
-        const cells = $(row).find('td, th');
-        if (cells.length >= 5) {
-          const rowData = [];
-          cells.each((i, cell) => {
-            rowData.push($(cell).text().trim());
-          });
-          allRows.push({ tableIdx: tIdx, rowIdx: rIdx, data: rowData });
-          debugLogs.push(`Fila ${allRows.length}: [${rowData.join(' | ')}]`);
+    // Buscar elementos que contengan "clasificación" o datos de equipos
+    const clasificacionElements = $('.clasificacion, .tabla-clasificacion, [class*="clasif"], [class*="ranking"]');
+    debugLogs.push(`🔍 Elementos clasificación encontrados: ${clasificacionElements.length}`);
+
+    // Buscar todos los textos que puedan ser equipos (divs, spans, p, etc)
+    const allText = [];
+    $('*').each((i, elem) => {
+      const text = $(elem).text().trim();
+      if (text.length > 5 && text.length < 100 && /[a-záéíóú]/i.test(text)) {
+        const children = $(elem).children();
+        if (children.length === 0 || children.length <= 2) {
+          allText.push(text);
         }
+      }
+    });
+
+    debugLogs.push(`🔍 Total textos encontrados: ${allText.length}`);
+    
+    // Buscar patrones: Nombre de equipo seguido de números
+    const equipoPattern = /([A-ZÁÉÍÓÚ][a-záéíóúñ\s\.]+(?:[A-ZÁÉÍÓÚ][a-záéíóúñ\s\.]*)*)\s*(\d+)\s*(\d+)\s*(\d+)\s*(\d+)\s*(\d+)/g;
+    
+    let match;
+    let pos = 1;
+    while ((match = equipoPattern.exec(html)) !== null) {
+      clasificacion.push({
+        posicion: pos++,
+        equipo: match[1].trim(),
+        partidos_jugados: match[2],
+        ganados: match[3],
+        empatados: match[4],
+        perdidos: match[5],
+        puntos: parseInt(match[6])
       });
-    });
-
-    debugLogs.push(`📊 Total filas con 5+ celdas: ${allRows.length}`);
-
-    // Analizar cada fila
-    allRows.forEach(({ data }, idx) => {
-      // Buscar columna con nombre de equipo (texto largo con letras)
-      let equipo = '';
-      let equipoIdx = -1;
-      
-      for (let i = 0; i < data.length; i++) {
-        const text = data[i].replace(/\s+/g, ' ').trim();
-        // Equipo: > 3 chars, tiene letras, NO es solo números ni símbolos
-        if (text.length > 3 && /[a-záéíóúñA-Z]/.test(text) && !/^[\d\s\.,\-]+$/.test(text)) {
-          equipo = text;
-          equipoIdx = i;
-          break;
-        }
-      }
-
-      // Buscar puntos (último número válido después del equipo)
-      let puntos = null;
-      if (equipoIdx >= 0) {
-        for (let i = data.length - 1; i > equipoIdx; i--) {
-          const cleanNum = data[i].replace(/[^\d]/g, '');
-          const num = parseInt(cleanNum);
-          if (!isNaN(num) && num >= 0 && num <= 150) {
-            puntos = num;
-            break;
-          }
-        }
-      }
-
-      if (equipo && puntos !== null) {
-        const posTexto = data[0].replace(/[^\d]/g, '');
-        const posicion = parseInt(posTexto) || clasificacion.length + 1;
-        
-        clasificacion.push({
-          posicion,
-          equipo,
-          puntos,
-          partidos_jugados: data[equipoIdx + 1] || '',
-          ganados: data[equipoIdx + 2] || '',
-          empatados: data[equipoIdx + 3] || '',
-          perdidos: data[equipoIdx + 4] || ''
-        });
-        
-        debugLogs.push(`✅ Equipo ${clasificacion.length}: ${equipo} - ${puntos} pts`);
-      }
-    });
+      debugLogs.push(`✅ Equipo encontrado: ${match[1].trim()} - ${match[6]} pts`);
+    }
 
     debugLogs.push(`🏁 Total equipos extraídos: ${clasificacion.length}`);
 
