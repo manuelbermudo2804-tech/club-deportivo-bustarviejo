@@ -130,9 +130,15 @@ export default function Clasificaciones() {
     saveStandingsMutation.mutate(data);
   };
 
-  const handleNewUpload = (categoryFullName) => {
+  const handleNewUpload = (categoryFullName, prefillData = null) => {
     setSelectedCategory(categoryFullName);
+    setReviewData(null);
     setShowUploadForm(true);
+    
+    // Si hay datos pre-rellenados, pasarlos al formulario
+    if (prefillData) {
+      setReviewData({ ...prefillData, isPrefilled: true });
+    }
   };
 
   // Agrupar clasificaciones por categoría
@@ -186,12 +192,14 @@ export default function Clasificaciones() {
           onCancel={() => {
             setShowUploadForm(false);
             setSelectedCategory(null);
+            setReviewData(null);
           }}
           preselectedCategory={selectedCategory}
+          prefillData={reviewData?.isPrefilled ? reviewData : null}
         />
       )}
 
-      {reviewData && (
+      {reviewData && !reviewData.isPrefilled && (
         <ReviewStandingsTable
           data={reviewData}
           onConfirm={handleConfirmStandings}
@@ -281,7 +289,7 @@ export default function Clasificaciones() {
                           <p className="text-xs">Actualizado: {new Date(group.fecha_actualizacion).toLocaleDateString('es-ES')}</p>
                         </div>
                       </CardHeader>
-                      <CardContent>
+                      <CardContent className="space-y-2">
                         <Button
                           onClick={() => setSelectedView(group)}
                           className="w-full bg-green-600 hover:bg-green-700"
@@ -289,6 +297,20 @@ export default function Clasificaciones() {
                           <Eye className="w-4 h-4 mr-2" />
                           Ver Clasificación
                         </Button>
+                        {isAdmin && index === 0 && (
+                          <Button
+                            onClick={() => handleNewUpload(cat.fullName, {
+                              temporada: group.temporada,
+                              categoria: group.categoria,
+                              jornada: group.jornada + 1
+                            })}
+                            variant="outline"
+                            className="w-full border-orange-500 text-orange-600 hover:bg-orange-50"
+                          >
+                            <Upload className="w-4 h-4 mr-2" />
+                            Actualizar Jornada {group.jornada + 1}
+                          </Button>
+                        )}
                       </CardContent>
                     </Card>
                   ))}

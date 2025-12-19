@@ -7,10 +7,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Upload, Image as ImageIcon } from "lucide-react";
 import { toast } from "sonner";
 
-export default function UploadStandingsForm({ onDataExtracted, onCancel, preselectedCategory }) {
-  const [temporada, setTemporada] = useState("2024/2025");
-  const [categoria, setCategoria] = useState(preselectedCategory || "");
-  const [jornada, setJornada] = useState("");
+export default function UploadStandingsForm({ onDataExtracted, onCancel, preselectedCategory, prefillData }) {
+  const [temporada, setTemporada] = useState(prefillData?.temporada || "2024/2025");
+  const [categoria, setCategoria] = useState(preselectedCategory || prefillData?.categoria || "");
+  const [jornada, setJornada] = useState(prefillData?.jornada?.toString() || "");
   const [imageFile, setImageFile] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -126,8 +126,24 @@ export default function UploadStandingsForm({ onDataExtracted, onCancel, presele
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Upload className="w-5 h-5 text-orange-600" />
-          Subir Clasificación
+          {prefillData ? `Actualizar Jornada ${jornada}` : 'Subir Clasificación'}
         </CardTitle>
+        <div className="mt-3 bg-blue-50 border border-blue-200 rounded-lg p-3">
+          <p className="text-sm text-blue-800 font-medium mb-2">
+            🔗 <strong>Enlace directo a clasificaciones RFFM:</strong>
+          </p>
+          <a 
+            href="https://www.rffm.es/competicion/clasificaciones" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="text-sm text-blue-600 hover:text-blue-800 underline"
+          >
+            https://www.rffm.es/competicion/clasificaciones
+          </a>
+          <p className="text-xs text-blue-600 mt-2">
+            💡 Abre el enlace, busca tu categoría, haz captura de la tabla y súbela aquí
+          </p>
+        </div>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -139,6 +155,8 @@ export default function UploadStandingsForm({ onDataExtracted, onCancel, presele
                 onChange={(e) => setTemporada(e.target.value)}
                 placeholder="2024/2025"
                 required
+                disabled={!!prefillData}
+                className={prefillData ? "bg-slate-100" : ""}
               />
             </div>
             <div>
@@ -148,16 +166,19 @@ export default function UploadStandingsForm({ onDataExtracted, onCancel, presele
                 onChange={(e) => setCategoria(e.target.value)}
                 placeholder="Fútbol Juvenil"
                 required
+                disabled={!!prefillData}
+                className={prefillData ? "bg-slate-100" : ""}
               />
             </div>
             <div>
-              <Label>Jornada</Label>
+              <Label>Jornada {prefillData && <span className="text-orange-600 font-bold">(Nueva)</span>}</Label>
               <Input
                 type="number"
                 value={jornada}
                 onChange={(e) => setJornada(e.target.value)}
                 placeholder="15"
                 required
+                className={prefillData ? "border-orange-500 border-2" : ""}
               />
             </div>
           </div>
