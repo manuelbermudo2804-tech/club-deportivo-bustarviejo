@@ -365,27 +365,32 @@ export default function Clasificaciones() {
                         </div>
                       </CardHeader>
                       <CardContent className="space-y-2">
-                        <Button
-                          onClick={() => setSelectedView(group)}
-                          className="w-full bg-green-600 hover:bg-green-700"
-                        >
-                          <Eye className="w-4 h-4 mr-2" />
-                          Ver Clasificación
-                        </Button>
-                        {isAdmin && index === 0 && (
+                        <div className="flex gap-2">
                           <Button
-                            onClick={() => handleNewUpload(cat.fullName, {
-                              temporada: group.temporada,
-                              categoria: group.categoria,
-                              jornada: group.jornada + 1
-                            })}
-                            variant="outline"
-                            className="w-full border-orange-500 text-orange-600 hover:bg-orange-50"
+                            onClick={() => setSelectedView(group)}
+                            className="flex-1 bg-green-600 hover:bg-green-700"
                           >
-                            <Upload className="w-4 h-4 mr-2" />
-                            Actualizar Jornada {group.jornada + 1}
+                            <Eye className="w-4 h-4 mr-2" />
+                            Ver
                           </Button>
-                        )}
+                          {isAdmin && (
+                            <Button
+                              onClick={() => {
+                                handleNewUpload(cat.fullName, {
+                                  temporada: group.temporada,
+                                  categoria: group.categoria,
+                                  jornada: group.jornada
+                                });
+                              }}
+                              variant="outline"
+                              size="icon"
+                              className="border-orange-500 text-orange-600 hover:bg-orange-50"
+                              title="Editar esta jornada"
+                            >
+                              ✏️
+                            </Button>
+                          )}
+                        </div>
                       </CardContent>
                     </Card>
                   ))}
