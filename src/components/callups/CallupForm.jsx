@@ -40,6 +40,56 @@ export default function CallupForm({ callup, players, coachName, coachEmail, cat
     callup?.jugadores_convocados?.map(j => j.jugador_id) || []
   );
   const [suggestionsEnabled, setSuggestionsEnabled] = useState(userSuggestionsEnabled);
+  const [rivalTeams, setRivalTeams] = useState([]);
+  const [isLoadingTeams, setIsLoadingTeams] = useState(false);
+  const [useManualInput, setUseManualInput] = useState(false);
+
+  // Cargar equipos rivales desde clasificaciones
+  useEffect(() => {
+    const loadTeams = async () => {
+      setIsLoadingTeams(true);
+      try {
+        const { base44 } = await import("@/api/base44Client");
+        const clasificaciones = await base44.entities.Clasificacion.list();
+        
+        // Filtrar por la categoría actual y obtener equipos únicos
+        const teamsInCategory = clasificaciones
+          .filter(c => c.categoria === category)
+          .map(c => c.nombre_equipo)
+          .filter(name => !name.toLowerCase().includes('bustarviejo')); // Excluir nuestro equipo
+        
+        const uniqueTeams = [...new Set(teamsInCategory)].sort();
+        setRivalTeams(uniqueTeams);
+      } catch (error) {
+        console.log("No se pudieron cargar equipos:", error);
+        setRivalTeams([]);
+      } finally {
+        setIsLoadingTeams(false);
+      }
+    };
+    
+    if (category) {
+      loadTeams();
+    }
+  }, [category]);
+
+  // Auto-rellenar ubicación cuando es visitante y se selecciona rival
+  useEffect(() => {
+    if (currentCallup.local_visitante === "Visitante" && currentCallup.rival && !useManualInput) {
+      // Si es visitante, intentar buscar el campo del rival
+      const searchQuery = encodeURIComponent(`campo ${currentCallup.rival} Madrid`);
+      const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${searchQuery}`;
+      
+      // Sugerir ubicación
+      if (!currentCallup.ubicacion || currentCallup.ubicacion === "") {
+        setCurrentCallup(prev => ({
+          ...prev,
+          ubicacion: `Campo del ${currentCallup.rival}`,
+          enlace_ubicacion: mapsUrl
+        }));
+      }
+    }
+  }, [currentCallup.local_visitante, currentCallup.rival, useManualInput]);
 
   // Filtrar jugadores no disponibles (lesionados/sancionados)
   const availablePlayers = players.filter(p => !p.lesionado && !p.sancionado);
@@ -170,11 +220,59 @@ export default function CallupForm({ callup, players, coachName, coachEmail, cat
               {/* Rival */}
               <div className="space-y-2">
                 <Label>Equipo Rival</Label>
-                <Input
-                  placeholder="Nombre del rival"
-                  value={currentCallup.rival || ""}
-                  onChange={(e) => setCurrentCallup({ ...currentCallup, rival: e.target.value })}
-                />
+                {rivalTeams.length > 0 && !useManualInput ? (
+                  <div className="space-y-2">
+                    <Select
+                      value={currentCallup.rival || ""}
+                      onValueChange={(value) => {
+                        if (value === "__manual__") {
+                          setUseManualInput(true);
+                          setCurrentCallup({ ...currentCallup, rival: "" });
+                        } else {
+                          setCurrentCallup({ ...currentCallup, rival: value });
+                        }
+                      }}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecciona rival..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="__manual__">
+                          ✏️ Escribir manualmente
+                        </SelectItem>
+                        {rivalTeams.map(team => (
+                          <SelectItem key={team} value={team}>
+                            ⚽ {team}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    {isLoadingTeams && (
+                      <p className="text-xs text-slate-500">
+                        <Loader2 className="w-3 h-3 inline animate-spin" /> Cargando equipos...
+                      </p>
+                    )}
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    <Input
+                      placeholder="Nombre del rival"
+                      value={currentCallup.rival || ""}
+                      onChange={(e) => setCurrentCallup({ ...currentCallup, rival: e.target.value })}
+                    />
+                    {rivalTeams.length > 0 && (
+                      <Button
+                        type="button"
+                        variant="link"
+                        size="sm"
+                        onClick={() => setUseManualInput(false)}
+                        className="text-xs text-blue-600 p-0 h-auto"
+                      >
+                        Volver a lista de equipos
+                      </Button>
+                    )}
+                  </div>
+                )}
               </div>
 
               {/* Fecha */}
@@ -218,7 +316,17 @@ export default function CallupForm({ callup, players, coachName, coachEmail, cat
                 <Label>Local / Visitante</Label>
                 <Select
                   value={currentCallup.local_visitante}
-                  onValueChange={(value) => setCurrentCallup({ ...currentCallup, local_visitante: value })}
+                  onValueChange={(value) => {
+                    setCurrentCallup({ ...currentCallup, local_visitante: value });
+                    // Si cambia a Local, limpiar ubicación auto
+                    if (value === "Local" && currentCallup.ubicacion?.startsWith("Campo del")) {
+                      setCurrentCallup(prev => ({
+                        ...prev,
+                        ubicacion: "",
+                        enlace_ubicacion: ""
+                      }));
+                    }
+                  }}
                 >
                   <SelectTrigger>
                     <SelectValue />
@@ -228,6 +336,14 @@ export default function CallupForm({ callup, players, coachName, coachEmail, cat
                     <SelectItem value="Visitante">✈️ Visitante</SelectItem>
                   </SelectContent>
                 </Select>
+                {currentCallup.local_visitante === "Visitante" && currentCallup.rival && (
+                  <Alert className="bg-blue-50 border-blue-200">
+                    <MapPin className="h-4 w-4 text-blue-600" />
+                    <AlertDescription className="text-blue-800 text-xs">
+                      💡 Se ha auto-sugerido la ubicación del rival. Puedes editarla si es necesario.
+                    </AlertDescription>
+                  </Alert>
+                )}
               </div>
 
               {/* Ubicación */}
