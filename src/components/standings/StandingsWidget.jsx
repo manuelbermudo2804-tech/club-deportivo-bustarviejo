@@ -131,23 +131,20 @@ export default function StandingsWidget({ userEmail }) {
   if (latestStandings.length === 0) return null;
 
   return (
-    <Card className="border-2 border-orange-500 bg-gradient-to-br from-orange-50 to-white shadow-lg">
-      <CardContent className="p-4">
+    <Card className="border-2 border-orange-500 bg-gradient-to-br from-orange-50 to-white shadow-lg h-full">
+      <CardContent className="p-4 h-full flex flex-col">
         <div className="flex items-center justify-between mb-3">
           <h3 className="font-bold text-slate-900 flex items-center gap-2">
             <Trophy className="w-5 h-5 text-orange-600" />
-            Clasificaciones
+            📊 Clasificaciones
           </h3>
-          <Link to={createPageUrl("Clasificaciones")}>
-            <Badge className="bg-green-500 hover:bg-green-600 cursor-pointer">
-              <Eye className="w-3 h-3 mr-1" />
-              Ver todas
-            </Badge>
-          </Link>
+          {latestStandings.length > 1 && (
+            <Badge className="bg-orange-500">+{latestStandings.length - 1} más</Badge>
+          )}
         </div>
 
-        <div className="space-y-2">
-          {latestStandings.slice(0, 3).map((team, idx) => {
+        <div className="space-y-2 flex-1">
+          {latestStandings.slice(0, 1).map((team, idx) => {
             const categoryShort = team.categoria.split(' ')[1] || team.categoria;
             const positionClass = 
               team.posicion === 1 ? "text-yellow-600" :
@@ -235,13 +232,11 @@ export default function StandingsWidget({ userEmail }) {
           })}
         </div>
 
-        {latestStandings.length > 3 && (
-          <Link to={createPageUrl("Clasificaciones")}>
-            <button className="w-full mt-3 text-sm text-orange-600 hover:text-orange-700 font-medium">
-              Ver más categorías →
-            </button>
-          </Link>
-        )}
+        <Link to={createPageUrl("Clasificaciones")}>
+          <button className="w-full mt-3 text-sm text-orange-600 hover:text-orange-700 font-medium">
+            Ver clasificación completa →
+          </button>
+        </Link>
       </CardContent>
     </Card>
   );

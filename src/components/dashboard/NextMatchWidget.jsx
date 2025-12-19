@@ -61,10 +61,10 @@ export default function NextMatchWidget({ myPlayers = [] }) {
     <>
       <button
         onClick={() => setShowAllMatches(true)}
-        className="w-full text-left"
+        className="w-full text-left h-full"
       >
-        <Card className="border-2 border-green-400 bg-gradient-to-br from-green-50 to-emerald-50 hover:scale-105 transition-all shadow-lg cursor-pointer">
-          <CardContent className="p-4">
+        <Card className="border-2 border-green-400 bg-gradient-to-br from-green-50 to-emerald-50 hover:scale-105 transition-all shadow-lg cursor-pointer h-full">
+          <CardContent className="p-4 h-full flex flex-col">
             <div className="flex items-start justify-between gap-2 mb-2">
               <div className="flex items-center gap-2">
                 <Trophy className="w-5 h-5 text-green-700 flex-shrink-0" />
@@ -87,9 +87,10 @@ export default function NextMatchWidget({ myPlayers = [] }) {
                 {nextMatch.hora_partido}
               </span>
             </div>
+            <div className="flex-1"></div>
             <Button 
               size="sm" 
-              className="w-full bg-green-600 hover:bg-green-700 text-white"
+              className="w-full bg-green-600 hover:bg-green-700 text-white mt-auto"
               onClick={(e) => {
                 e.stopPropagation();
                 openGoogleMaps(nextMatch);
