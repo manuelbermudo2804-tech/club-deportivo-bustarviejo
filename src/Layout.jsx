@@ -519,6 +519,7 @@ export default function Layout({ children, currentPageName }) {
   const [pendingCallupResponses, setPendingCallupResponses] = useState(0);
   const [unreadAnnouncementsCount, setUnreadAnnouncementsCount] = useState(0);
   const [hasActiveAdminConversation, setHasActiveAdminConversation] = useState(false);
+  const [pendingMatchObservations, setPendingMatchObservations] = useState(0);
   
   // Badges para admin
   const [unresolvedAdminChats, setUnresolvedAdminChats] = useState(0);
@@ -892,6 +893,33 @@ export default function Layout({ children, currentPageName }) {
           }
         }
 
+        // Verificar partidos pendientes de observación (para entrenadores/coordinadores)
+        if (currentUser.es_entrenador || currentUser.es_coordinador) {
+          try {
+            const allCallups = await base44.entities.Convocatoria.list();
+            const allObservations = await base44.entities.MatchObservation.list();
+            
+            const myCallups = allCallups.filter(c => 
+              c.entrenador_email === currentUser.email &&
+              c.publicada === true &&
+              new Date(c.fecha_partido) <= new Date()
+            );
+
+            const pendingCount = myCallups.filter(callup => {
+              const hasObservation = allObservations.some(obs =>
+                obs.categoria === callup.categoria &&
+                obs.rival === callup.rival &&
+                obs.fecha_partido === callup.fecha_partido
+              );
+              return !hasObservation;
+            }).length;
+
+            setPendingMatchObservations(pendingCount);
+          } catch (error) {
+            console.log('Error checking pending observations:', error);
+          }
+        }
+
         // Cargar badges de notificación para admin
         if (currentUser.role === "admin") {
           try {
@@ -1063,7 +1091,7 @@ export default function Layout({ children, currentPageName }) {
       { title: "🎓 Plantillas", url: createPageUrl("TeamRosters"), icon: Users },
       { title: "📚 Biblioteca Ejercicios", url: createPageUrl("ExerciseLibrary"), icon: FileText },
       { title: "🎯 Pizarra Táctica", url: createPageUrl("TacticsBoard"), icon: Calendar },
-      { title: "📊 Análisis Clasificaciones", url: createPageUrl("CoachStandingsAnalysis"), icon: BarChart3 },
+      { title: "📊 Análisis Clasificaciones", url: createPageUrl("CoachStandingsAnalysis"), icon: BarChart3, badge: pendingMatchObservations > 0 ? pendingMatchObservations : null, urgentBadge: pendingMatchObservations > 0 },
 
       // 📅 CALENDARIO
       { title: "📅 Calendario y Horarios", url: createPageUrl("CalendarAndSchedules"), icon: Calendar },
@@ -1148,7 +1176,7 @@ export default function Layout({ children, currentPageName }) {
       { title: "🎓 Plantillas", url: createPageUrl("TeamRosters"), icon: Users },
       { title: "📚 Biblioteca Ejercicios", url: createPageUrl("ExerciseLibrary"), icon: FileText },
       { title: "🎯 Pizarra Táctica", url: createPageUrl("TacticsBoard"), icon: Calendar },
-      { title: "📊 Análisis Clasificaciones", url: createPageUrl("CoachStandingsAnalysis"), icon: BarChart3 },
+      { title: "📊 Análisis Clasificaciones", url: createPageUrl("CoachStandingsAnalysis"), icon: BarChart3, badge: pendingMatchObservations > 0 ? pendingMatchObservations : null, urgentBadge: pendingMatchObservations > 0 },
       ...(user?.puede_gestionar_firmas ? [{ title: "🖊️ Firmas Federación", url: createPageUrl("FederationSignaturesAdmin"), icon: FileSignature }] : []),
 
       // 📊 REPORTES
