@@ -59,7 +59,7 @@ Deno.serve(async (req) => {
       console.log('✅ Tabla clasificación encontrada por clase');
     }
 
-    // Estrategia 2: buscar TODAS las filas con td en TODAS las tablas
+    // Estrategia 2: buscar TODAS las filas con td/th en TODAS las tablas
     $('table').each((tableIndex, table) => {
       const $table = $(table);
       const rows = $table.find('tr');
@@ -68,60 +68,68 @@ Deno.serve(async (req) => {
       
       rows.each((rowIndex, row) => {
         const $row = $(row);
-        const cells = $row.find('td');
+        // Buscar tanto TD como TH (algunos usan th para las celdas)
+        const cells = $row.find('td, th');
         
         if (cells.length === 0) return;
         
-        // Extraer TODO el contenido de cada celda (texto + HTML)
+        // Extraer TODO el contenido de cada celda
         const allText = [];
-        const allHtml = [];
         cells.each((i, cell) => {
           const $cell = $(cell);
           const text = $cell.text().trim().replace(/\s+/g, ' ');
-          const html = $cell.html();
           allText.push(text);
-          allHtml.push(html);
         });
         
         console.log(`  Row ${rowIndex} (${cells.length} cells): [${allText.join(' | ')}]`);
         
-        // Debe tener al menos 5 columnas para ser clasificación
-        if (allText.length >= 5) {
-          // Buscar nombre del equipo (texto largo, no número puro)
+        // Verificar si parece una fila de clasificación (al menos 4 columnas)
+        if (allText.length >= 4) {
+          // Buscar nombre del equipo - cualquier texto con letras que no sea solo número
           let equipoText = '';
           let equipoIndex = -1;
           
-          // Recorrer todas las columnas buscando el nombre del equipo
           for (let i = 0; i < allText.length; i++) {
             const text = allText[i];
-            // El equipo debe: tener letras, más de 3 chars, no ser solo número
-            if (text.length > 3 && /[a-zA-ZáéíóúÁÉÍÓÚñÑ]/.test(text) && !/^\d+$/.test(text)) {
+            // El equipo debe tener letras y más de 2 caracteres
+            const hasLetters = /[a-zA-ZáéíóúÁÉÍÓÚñÑ]/.test(text);
+            const notOnlyNumber = !/^[\d\s.,]+$/.test(text);
+            const longEnough = text.length > 2;
+            
+            if (hasLetters && notOnlyNumber && longEnough) {
               equipoText = text;
               equipoIndex = i;
               break;
             }
           }
           
-          // Buscar puntos (número en las últimas 4 columnas)
+          // Buscar puntos - número válido en cualquier parte de la fila
           let puntos = null;
           let puntosIndex = -1;
-          for (let i = allText.length - 1; i >= Math.max(0, allText.length - 4); i--) {
-            const text = allText[i].replace(/\s/g, '');
+          
+          // Buscar de derecha a izquierda
+          for (let i = allText.length - 1; i >= 0; i--) {
+            const text = allText[i].replace(/[^\d]/g, '');
+            if (text.length === 0) continue;
+            
             const num = parseInt(text);
             if (!isNaN(num) && num >= 0 && num <= 200) {
-              puntos = num;
-              puntosIndex = i;
-              break;
+              // Verificar que no sea la posición (primera columna pequeña)
+              if (i !== 0 || num > 20) {
+                puntos = num;
+                puntosIndex = i;
+                break;
+              }
             }
           }
           
-          // Si encontramos equipo Y puntos, es una fila válida
-          if (equipoText && puntos !== null) {
+          // Si encontramos equipo Y puntos, agregar a clasificación
+          if (equipoText && puntos !== null && equipoIndex < puntosIndex) {
             // Extraer posición
             let posicion = clasificacion.length + 1;
             const primerTexto = allText[0].replace(/[^\d]/g, '');
             const primerNum = parseInt(primerTexto);
-            if (!isNaN(primerNum) && primerNum > 0 && primerNum < 50) {
+            if (!isNaN(primerNum) && primerNum > 0 && primerNum <= 30) {
               posicion = primerNum;
             }
             
@@ -141,10 +149,11 @@ Deno.serve(async (req) => {
               goles_favor: stats[4] || '',
               goles_contra: stats[5] || '',
               _raw_data: allText,
-              _table_index: tableIndex
+              _table_index: tableIndex,
+              _row_index: rowIndex
             });
             
-            console.log(`  ✅ EQUIPO: ${equipoText} - ${puntos} pts (pos: ${posicion})`);
+            console.log(`  ✅ EQUIPO DETECTADO: ${equipoText} - ${puntos} pts (pos: ${posicion}) en tabla ${tableIndex}`);
           }
         }
       });
