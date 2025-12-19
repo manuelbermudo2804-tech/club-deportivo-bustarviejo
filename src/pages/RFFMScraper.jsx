@@ -48,26 +48,27 @@ export default function RFFMScraper() {
     enabled: !!user
   });
 
-  const testScrapeMutation = useMutation({
+  // Validar configuración (sin scrapear)
+  const testConfigMutation = useMutation({
     mutationFn: async (config) => {
-      console.log('🚀 Enviando request a scrapeRFFM con:', config);
-      const response = await base44.functions.invoke('scrapeRFFM', {
-        ...config,
-        test_mode: true
-      });
-      console.log('📦 Respuesta recibida:', response);
-      return response.data;
+      if (!config.competicion_id || !config.grupo_id) {
+        throw new Error('Faltan competicion_id o grupo_id');
+      }
+      const url = `https://www.rffm.es/competicion/clasificaciones?temporada=${config.temporada}&tipojuego=${config.tipo_juego}&competicion=${config.competicion_id}&grupo=${config.grupo_id}`;
+      return { 
+        ok: true, 
+        url,
+        message: 'Configuración válida. El scraping se hace desde tu servicio externo (Node + Playwright).',
+        clasificacion: []
+      };
     },
     onSuccess: (data) => {
-      console.log('✅ Scraping exitoso:', data);
       setScrapingResult(data);
     },
     onError: (error) => {
-      console.error('❌ Error en scraping:', error);
       setScrapingResult({
         error: error.message,
-        clasificacion: [],
-        url: testConfig ? `https://www.rffm.es/competicion/clasificaciones?temporada=${testConfig.temporada}&tipojuego=${testConfig.tipo_juego}&competicion=${testConfig.competicion_id}&grupo=${testConfig.grupo_id}` : ''
+        clasificacion: []
       });
     }
   });
@@ -95,23 +96,21 @@ export default function RFFMScraper() {
     onSuccess: () => queryClient.invalidateQueries(['leagueConfigs'])
   });
 
-  const scrapeConfigMutation = useMutation({
+  // Ver clasificación guardada
+  const viewStoredMutation = useMutation({
     mutationFn: async (config) => {
-      const response = await base44.functions.invoke('scrapeRFFM', {
-        temporada: config.temporada,
-        tipo_juego: config.tipo_juego,
-        competicion_id: config.competicion_id,
-        grupo_id: config.grupo_id,
-        test_mode: true
-      });
-      return response.data;
+      const standings = await base44.entities.Standing.filter({ league_id: config.id });
+      const url = `https://www.rffm.es/competicion/clasificaciones?temporada=${config.temporada}&tipojuego=${config.tipo_juego}&competicion=${config.competicion_id}&grupo=${config.grupo_id}`;
+      return {
+        ok: true,
+        method: 'stored_data',
+        clasificacion: standings.sort((a, b) => a.posicion - b.posicion),
+        url,
+        message: standings.length > 0 ? 'Datos almacenados en Base44' : 'Sin datos. Ejecuta tu scraper externo para sincronizar.'
+      };
     },
-    onSuccess: (data, config) => {
+    onSuccess: (data) => {
       setScrapingResult(data);
-      base44.entities.LeagueConfig.update(config.id, {
-        ultima_actualizacion: new Date().toISOString()
-      });
-      queryClient.invalidateQueries(['leagueConfigs']);
     }
   });
 
@@ -143,16 +142,14 @@ export default function RFFMScraper() {
           </Button>
         </div>
 
-        <Alert>
-          <AlertCircle className="h-4 w-4" />
-          <AlertDescription>
-            <strong>📋 Dos formas de obtener datos:</strong><br/>
-            <strong>Opción 1 - Automática:</strong> Pega la URL de RFFM y extrae los IDs<br/>
-            <strong>Opción 2 - Manual:</strong> Si no funciona, busca la API real:<br/>
-            1. Abre la página de clasificaciones en RFFM<br/>
-            2. F12 → Network → Recarga la página<br/>
-            3. Busca una petición con "clasificaciones.json" o JSON con equipos<br/>
-            4. Copia esa URL completa y pégala en "URL de API Manual" abajo
+        <Alert className="border-blue-500 bg-blue-50">
+          <AlertCircle className="h-4 w-4 text-blue-600" />
+          <AlertDescription className="text-blue-900">
+            <strong>🏗️ Arquitectura:</strong><br/>
+            • Esta UI gestiona las ligas y visualiza datos<br/>
+            • El scraping real se hace desde tu <strong>servicio externo</strong> (Node + Playwright)<br/>
+            • Tu scraper llama a <code className="bg-blue-200 px-1 rounded">syncRFFMLeague</code> para guardar datos<br/>
+            • Aquí solo validas configuración y ves datos almacenados
           </AlertDescription>
         </Alert>
 
@@ -247,11 +244,11 @@ export default function RFFMScraper() {
 
         <Card>
           <CardHeader>
-            <CardTitle>🧪 Prueba Rápida (sin guardar)</CardTitle>
+            <CardTitle>✅ Validar Configuración</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-3">
-              <Label>📋 Opción 1: Pega la URL de RFFM (automático)</Label>
+              <Label>📋 Pega la URL de RFFM para extraer los IDs</Label>
               <Input
                 placeholder="https://www.rffm.es/competicion/clasificaciones?temporada=20&tipojuego=1&competicion=..."
                 onPaste={(e) => {
@@ -263,24 +260,13 @@ export default function RFFMScraper() {
                       temporada: params.get('temporada') || '20',
                       tipo_juego: params.get('tipojuego') || '1',
                       competicion_id: params.get('competicion') || '',
-                      grupo_id: params.get('grupo') || '',
-                      api_url_manual: ''
+                      grupo_id: params.get('grupo') || ''
                     });
                   } catch (err) {
                     console.log('Error parsing URL:', err);
                   }
                 }}
               />
-            </div>
-
-            <div className="space-y-3 pt-4 border-t">
-              <Label>🔧 Opción 2: URL de API Manual (si encontraste la API real con F12)</Label>
-              <Input
-                placeholder="https://www.rffm.es/_next/data/.../clasificaciones.json?..."
-                value={testConfig.api_url_manual || ''}
-                onChange={(e) => setTestConfig({...testConfig, api_url_manual: e.target.value})}
-              />
-              <p className="text-xs text-slate-600">Si pegaste una URL de API manual, solo pulsa "Probar Scraping" - ignorará los campos de abajo</p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -321,19 +307,16 @@ export default function RFFMScraper() {
               </div>
             )}
             <Button
-              onClick={() => {
-                console.log('Test Config:', testConfig);
-                testScrapeMutation.mutate(testConfig);
-              }}
+              onClick={() => testConfigMutation.mutate(testConfig)}
               disabled={
-                testScrapeMutation.isPending || 
+                testConfigMutation.isPending || 
                 !testConfig.competicion_id?.trim() || 
                 !testConfig.grupo_id?.trim()
               }
-              className="w-full md:w-auto bg-orange-600 hover:bg-orange-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full md:w-auto bg-blue-600 hover:bg-blue-700"
             >
-              <Search className="w-4 h-4 mr-2" />
-              {testScrapeMutation.isPending ? 'Extrayendo...' : 'Probar Scraping'}
+              <CheckCircle2 className="w-4 h-4 mr-2" />
+              {testConfigMutation.isPending ? 'Validando...' : 'Validar Configuración'}
             </Button>
           </CardContent>
         </Card>
@@ -370,12 +353,12 @@ export default function RFFMScraper() {
                 <div className="flex gap-2">
                   <Button
                     size="sm"
-                    onClick={() => scrapeConfigMutation.mutate(config)}
-                    disabled={scrapeConfigMutation.isPending}
-                    className="flex-1 bg-orange-600 hover:bg-orange-700"
+                    onClick={() => viewStoredMutation.mutate(config)}
+                    disabled={viewStoredMutation.isPending}
+                    className="flex-1 bg-green-600 hover:bg-green-700"
                   >
                     <Eye className="w-3 h-3 mr-1" />
-                    Probar
+                    Ver Datos
                   </Button>
                   <Button
                     size="sm"
@@ -405,11 +388,15 @@ export default function RFFMScraper() {
         </div>
 
         {scrapingResult && (
-          <Card className="border-2 border-green-500">
+          <Card className={`border-2 ${scrapingResult.ok ? 'border-green-500' : 'border-orange-500'}`}>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <CheckCircle2 className="w-5 h-5 text-green-600" />
-                Resultado del Scraping
+                {scrapingResult.ok ? (
+                  <CheckCircle2 className="w-5 h-5 text-green-600" />
+                ) : (
+                  <AlertCircle className="w-5 h-5 text-orange-600" />
+                )}
+                {scrapingResult.method === 'stored_data' ? 'Datos Almacenados' : 'Resultado de Validación'}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -451,6 +438,15 @@ export default function RFFMScraper() {
                     ))}
                   </div>
                 </details>
+              )}
+
+              {scrapingResult.message && (
+                <Alert className={scrapingResult.ok ? 'border-blue-500 bg-blue-50' : 'border-orange-500 bg-orange-50'}>
+                  <AlertCircle className={`h-4 w-4 ${scrapingResult.ok ? 'text-blue-600' : 'text-orange-600'}`} />
+                  <AlertDescription className={scrapingResult.ok ? 'text-blue-800' : 'text-orange-800'}>
+                    {scrapingResult.message}
+                  </AlertDescription>
+                </Alert>
               )}
 
               {scrapingResult.error && (
