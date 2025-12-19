@@ -249,6 +249,13 @@ export default function UploadStandingsForm({ onDataExtracted, onCancel, presele
             </p>
           </div>
 
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+            <p className="text-sm text-blue-800">
+              <strong>💡 Consejos:</strong> Asegúrate de que la imagen sea nítida, solo contenga la tabla de clasificación, 
+              y los números sean legibles.
+            </p>
+          </div>
+
           <div className="flex gap-3">
             <Button
               type="button"
