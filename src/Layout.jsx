@@ -1617,7 +1617,6 @@ export default function Layout({ children, currentPageName }) {
               <AutomaticRenewalClosure />
               <RenewalNotificationEngine />
               <PostRenewalPaymentReminder />
-              {/* Componentes temporalmente desactivados para debug */}
 
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
         
