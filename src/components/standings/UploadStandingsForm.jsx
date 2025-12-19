@@ -163,12 +163,19 @@ export default function UploadStandingsForm({ onDataExtracted, onCancel, presele
         </CardTitle>
         <div className="mt-3 bg-blue-50 border border-blue-200 rounded-lg p-3">
           <p className="text-sm text-blue-800 font-medium mb-2">
-            🔗 <strong>Enlace directo a clasificaciones RFFM:</strong>
+            🔗 <strong>Enlace a RFFM o pega URL de imagen:</strong>
           </p>
           <div className="flex gap-2">
             <Input 
-              value="https://www.rffm.es/competicion/clasificaciones"
-              readOnly
+              value={imageUrl}
+              onChange={(e) => {
+                setImageUrl(e.target.value);
+                if (e.target.value) {
+                  setImageFile(null);
+                  setImagePreview(e.target.value);
+                }
+              }}
+              placeholder="Pega aquí la URL de la imagen"
               className="text-sm bg-white"
             />
             <Button
@@ -177,11 +184,11 @@ export default function UploadStandingsForm({ onDataExtracted, onCancel, presele
               size="sm"
               onClick={() => window.open("https://www.rffm.es/competicion/clasificaciones", "_blank")}
             >
-              Abrir
+              Abrir RFFM
             </Button>
           </div>
           <p className="text-xs text-blue-600 mt-2">
-            💡 Copia el enlace, busca tu categoría, haz captura de la tabla y súbela aquí
+            💡 Abre RFFM, haz captura, súbela a imgur.com y pega aquí la URL
           </p>
         </div>
       </CardHeader>
@@ -215,29 +222,7 @@ export default function UploadStandingsForm({ onDataExtracted, onCancel, presele
           <div>
             <Label>Imagen de Clasificación</Label>
             <div className="space-y-3">
-              {/* Opción 1: Pegar URL */}
-              <div>
-                <Input
-                  value={imageUrl}
-                  onChange={(e) => {
-                    setImageUrl(e.target.value);
-                    if (e.target.value) {
-                      setImageFile(null);
-                      setImagePreview(e.target.value);
-                    }
-                  }}
-                  placeholder="🔗 Pega aquí la URL de la imagen"
-                  className="text-sm"
-                />
-              </div>
-
-              <div className="flex items-center gap-2">
-                <div className="flex-1 border-t border-slate-300"></div>
-                <span className="text-xs text-slate-500">O</span>
-                <div className="flex-1 border-t border-slate-300"></div>
-              </div>
-
-              {/* Opción 2: Subir archivo */}
+              {/* Opción: Subir archivo */}
               <div 
                 className="border-2 border-dashed border-slate-300 rounded-xl p-6 text-center hover:border-orange-500 transition-colors"
                 onPaste={handlePaste}
