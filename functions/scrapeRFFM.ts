@@ -85,57 +85,92 @@ Deno.serve(async (req) => {
 
     debugLogs.push(`📄 HTML recibido: ${html.length} chars`);
     
-    // Guardar snippet del HTML para debug
-    const htmlSnippet = html.substring(0, 3000);
-    debugLogs.push(`🔍 HTML Preview: ${htmlSnippet.substring(0, 500)}...`);
-
-    // Buscar elementos que contengan "clasificación" o datos de equipos
-    const clasificacionElements = $('.clasificacion, .tabla-clasificacion, [class*="clasif"], [class*="ranking"]');
-    debugLogs.push(`🔍 Elementos clasificación encontrados: ${clasificacionElements.length}`);
-
-    // Buscar todos los textos que puedan ser equipos (divs, spans, p, etc)
-    const allText = [];
-    $('*').each((i, elem) => {
-      const text = $(elem).text().trim();
-      if (text.length > 5 && text.length < 100 && /[a-záéíóú]/i.test(text)) {
-        const children = $(elem).children();
-        if (children.length === 0 || children.length <= 2) {
-          allText.push(text);
-        }
-      }
-    });
-
-    debugLogs.push(`🔍 Total textos encontrados: ${allText.length}`);
+    // 🔍 ESTRATEGIA A: Buscar JSON embebido en <script>
+    const scriptTags = $('script');
+    debugLogs.push(`🔍 Tags <script> encontrados: ${scriptTags.length}`);
     
-    // Buscar líneas con patrón: posición, equipo (letras), y varios números
-    const lines = html.split(/[\r\n]+/);
-    debugLogs.push(`🔍 Total líneas HTML: ${lines.length}`);
-    
-    lines.forEach((line, idx) => {
-      // Buscar: cualquier texto con letras (equipo) seguido de al menos 3 números
-      const linePattern = /(\d+)?\s*([A-Za-zÁÉÍÓÚáéíóúñÑ\s\.'"\-]+?)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)/;
-      const match = line.match(linePattern);
-      
-      if (match) {
-        const equipo = match[2].trim();
-        // Validar que el equipo tenga al menos 3 letras
-        if (equipo.replace(/[^a-záéíóúñ]/gi, '').length >= 3) {
-          clasificacion.push({
-            posicion: parseInt(match[1]) || clasificacion.length + 1,
-            equipo: equipo,
-            partidos_jugados: match[3],
-            ganados: match[4],
-            empatados: match[5],
-            perdidos: match[6],
-            goles_favor: match[7],
-            goles_contra: match[8],
-            diferencia: match[9],
-            puntos: parseInt(match[10])
+    scriptTags.each((i, script) => {
+      const content = $(script).html() || '';
+      // Buscar patrones de datos JSON con equipos
+      const jsonMatch = content.match(/clasificacion["\s]*[:=]\s*(\[[\s\S]*?\])/i);
+      if (jsonMatch) {
+        try {
+          const data = JSON.parse(jsonMatch[1]);
+          debugLogs.push(`✨ JSON encontrado en script ${i}: ${data.length} equipos`);
+          data.forEach((e, idx) => {
+            clasificacion.push({
+              posicion: e.posicion || e.pos || idx + 1,
+              equipo: e.nombre || e.equipo || e.team || '',
+              partidos_jugados: e.pj || e.partidos_jugados || '',
+              ganados: e.g || e.ganados || '',
+              empatados: e.e || e.empatados || '',
+              perdidos: e.p || e.perdidos || '',
+              goles_favor: e.gf || '',
+              goles_contra: e.gc || '',
+              puntos: e.pt || e.puntos || e.points || 0
+            });
           });
-          debugLogs.push(`✅ Equipo ${clasificacion.length}: ${equipo} - ${match[10]} pts (línea ${idx})`);
+        } catch (err) {
+          debugLogs.push(`⚠️ Error parseando JSON en script ${i}`);
         }
       }
     });
+
+    if (clasificacion.length > 0) {
+      debugLogs.push(`✅ Datos extraídos de JSON embebido`);
+    } else {
+      debugLogs.push(`⚠️ No se encontró JSON embebido, intentando HTML scraping...`);
+      
+      // 🔍 ESTRATEGIA B: Buscar tablas HTML
+      const tables = $('table');
+      debugLogs.push(`🔍 Tablas HTML encontradas: ${tables.length}`);
+      
+      tables.each((tIdx, table) => {
+        const rows = $(table).find('tbody tr, tr');
+        debugLogs.push(`📊 Tabla ${tIdx}: ${rows.length} filas`);
+        
+        rows.each((rIdx, row) => {
+          const cells = $(row).find('td, th');
+          if (cells.length >= 5) {
+            const cellTexts = [];
+            cells.each((i, cell) => {
+              cellTexts.push($(cell).text().trim());
+            });
+            
+            debugLogs.push(`   Fila ${rIdx}: [${cellTexts.slice(0, 6).join(' | ')}]`);
+            
+            // Buscar columna con nombre de equipo
+            let equipoIdx = -1;
+            let equipo = '';
+            for (let i = 0; i < cellTexts.length; i++) {
+              const text = cellTexts[i];
+              if (text.length > 3 && /[a-záéíóú]/i.test(text) && !/^\d+$/.test(text)) {
+                equipo = text;
+                equipoIdx = i;
+                break;
+              }
+            }
+            
+            if (equipo && equipoIdx >= 0) {
+              const posicion = parseInt(cellTexts[0]) || clasificacion.length + 1;
+              const puntos = parseInt(cellTexts[cellTexts.length - 1]) || 0;
+              
+              clasificacion.push({
+                posicion,
+                equipo,
+                partidos_jugados: cellTexts[equipoIdx + 1] || '',
+                ganados: cellTexts[equipoIdx + 2] || '',
+                empatados: cellTexts[equipoIdx + 3] || '',
+                perdidos: cellTexts[equipoIdx + 4] || '',
+                puntos
+              });
+              
+              debugLogs.push(`   ✅ Equipo: ${equipo} - ${puntos} pts`);
+            }
+          }
+        });
+      });
+    }
 
     debugLogs.push(`🏁 Total equipos extraídos: ${clasificacion.length}`);
 
