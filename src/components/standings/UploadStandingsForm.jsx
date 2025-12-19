@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -21,7 +21,7 @@ export default function UploadStandingsForm({ onDataExtracted, onCancel, presele
   const [isProcessing, setIsProcessing] = useState(false);
 
   // Guardar URL cuando cambie
-  React.useEffect(() => {
+  useEffect(() => {
     if (imageUrl && preselectedCategory) {
       localStorage.setItem(`standings_url_${preselectedCategory}`, imageUrl);
     }
