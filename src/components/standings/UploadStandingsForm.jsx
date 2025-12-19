@@ -10,7 +10,7 @@ import { toast } from "sonner";
 export default function UploadStandingsForm({ onDataExtracted, onCancel, preselectedCategory, prefillData }) {
   const [temporada, setTemporada] = useState(prefillData?.temporada || "2025/2026");
   const [categoria, setCategoria] = useState(preselectedCategory || prefillData?.categoria || "");
-  const [jornada, setJornada] = useState(prefillData?.jornada || "");
+  const [jornada, setJornada] = useState(prefillData?.jornada?.toString() || "");
   const [imageFile, setImageFile] = useState(null);
   const [imageUrl, setImageUrl] = useState(() => {
     if (preselectedCategory) {
