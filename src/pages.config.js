@@ -79,6 +79,7 @@ import RenewalDashboard from './pages/RenewalDashboard';
 import CustomPaymentPlans from './pages/CustomPaymentPlans';
 import InvitationRequests from './pages/InvitationRequests';
 import FamilyGuide from './pages/FamilyGuide';
+import Clasificaciones from './pages/Clasificaciones';
 import __Layout from './Layout.jsx';
 
 
@@ -164,6 +165,7 @@ export const PAGES = {
     "CustomPaymentPlans": CustomPaymentPlans,
     "InvitationRequests": InvitationRequests,
     "FamilyGuide": FamilyGuide,
+    "Clasificaciones": Clasificaciones,
 }
 
 export const pagesConfig = {
