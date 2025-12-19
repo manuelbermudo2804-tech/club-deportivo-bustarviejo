@@ -81,7 +81,7 @@ export default function Clasificaciones() {
     if (latestForCategory) {
       setSelectedView(latestForCategory);
     }
-  }, [activeTab, showUploadForm, reviewData]);
+  }, [activeTab, showUploadForm, reviewData, standingsByCategory]);
 
   const { data: standings } = useQuery({
     queryKey: ['clasificaciones'],
