@@ -830,6 +830,26 @@ export default function Layout({ children, currentPageName }) {
                   });
                   setHasPlayers(tienehijos);
                   setIsLoading(false);
+
+                  // REDIRECCIÓN AUTOMÁTICA AL DASHBOARD ESPECÍFICO (primera carga)
+                  const hasInitialRedirect = sessionStorage.getItem('initialRedirectDone');
+                  const currentPath = window.location.pathname.toLowerCase();
+
+                  // Coordinador → CoordinatorDashboard
+                  if (currentUser.es_coordinador && !hasInitialRedirect && currentPath === '/home') {
+                    console.log('🔄 [LAYOUT] Primera carga COORDINADOR - redirigiendo a CoordinatorDashboard');
+                    sessionStorage.setItem('initialRedirectDone', 'true');
+                    window.location.href = createPageUrl('CoordinatorDashboard');
+                    return;
+                  }
+
+                  // Entrenador (sin ser coordinador) → CoachDashboard
+                  if (currentUser.es_entrenador && !currentUser.es_coordinador && !hasInitialRedirect && currentPath === '/home') {
+                    console.log('🔄 [LAYOUT] Primera carga ENTRENADOR - redirigiendo a CoachDashboard');
+                    sessionStorage.setItem('initialRedirectDone', 'true');
+                    window.location.href = createPageUrl('CoachDashboard');
+                    return;
+                  }
                 } else if (playerDetected) {
                   // Si es un jugador +18, redirigir a PlayerDashboard
                   console.log('⚽ [LAYOUT] Usuario detectado como JUGADOR +18');
