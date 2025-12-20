@@ -202,6 +202,31 @@ export default function CoachDashboard() {
           </CardContent>
         </Card>
 
+        {/* Banner dividido: Clasificación + Próximo Partido */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          {/* Clasificación de mi equipo */}
+          {myCategories.length > 0 && (
+            <Card className="border-2 border-green-300 bg-white shadow-lg">
+              <CardContent className="p-4">
+                <div className="flex items-center gap-3 mb-4">
+                  <Trophy className="w-6 h-6 text-green-600" />
+                  <h3 className="font-bold text-slate-900">🏆 Mi Clasificación</h3>
+                </div>
+                <StandingsWidget categoria={myCategories[0]} compact={true} />
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Próximo Partido */}
+          {myCategories.length > 0 && (
+            <Card className="border-2 border-blue-300 bg-white shadow-lg">
+              <CardContent className="p-4">
+                <NextMatchWidget categoria={myCategories[0]} />
+              </CardContent>
+            </Card>
+          )}
+        </div>
+
         {/* AlertCenter - Alertas del entrenador */}
         <AlertCenter 
           pendingCallups={pendingCallupResponses}
