@@ -81,7 +81,6 @@ import InvitationRequests from './pages/InvitationRequests';
 import FamilyGuide from './pages/FamilyGuide';
 import Clasificaciones from './pages/Clasificaciones';
 import CoachStandingsAnalysis from './pages/CoachStandingsAnalysis';
-import CoordinatorDashboard from './pages/CoordinatorDashboard';
 import __Layout from './Layout.jsx';
 
 
@@ -169,7 +168,6 @@ export const PAGES = {
     "FamilyGuide": FamilyGuide,
     "Clasificaciones": Clasificaciones,
     "CoachStandingsAnalysis": CoachStandingsAnalysis,
-    "CoordinatorDashboard": CoordinatorDashboard,
 }
 
 export const pagesConfig = {
