@@ -57,6 +57,7 @@ export default function TreasurerDashboard() {
   const [selectedSeason, setSelectedSeason] = useState("all");
   const [hasPlayers, setHasPlayers] = useState(false);
   const [loteriaVisible, setLoteriaVisible] = useState(false);
+  const [buttonConfig, setButtonConfig] = useState([]);
   const [showNewBudget, setShowNewBudget] = useState(false);
   const [showTransactionForm, setShowTransactionForm] = useState(false);
   const [showCommunicationAssistant, setShowCommunicationAssistant] = useState(false);
@@ -128,6 +129,7 @@ export default function TreasurerDashboard() {
       try {
         const currentUser = await base44.auth.me();
         setHasPlayers(currentUser.tiene_hijos_jugando === true);
+        setButtonConfig(currentUser.dashboard_buttons_config || []);
       } catch (error) {
         console.error("Error checking players:", error);
       }
@@ -941,6 +943,25 @@ export default function TreasurerDashboard() {
     socio: <Users className="w-4 h-4 text-pink-600" />
   };
 
+  // Definir TODOS los botones disponibles (SIN chats)
+  const availableButtons = [
+    { id: 'financial', label: '📊 Panel Financiero', description: 'Resumen financiero completo', url: createPageUrl('TreasurerDashboard'), icon: TrendingUp, bgColor: 'bg-gradient-to-br from-emerald-600 to-emerald-700' },
+    { id: 'payments', label: '💳 Pagos', description: 'Gestionar cuotas', url: createPageUrl('Payments'), icon: CreditCard, bgColor: 'bg-gradient-to-br from-green-600 to-green-700' },
+    { id: 'clothing', label: '🛍️ Pedidos Ropa', description: 'Gestión de equipación', url: createPageUrl('ClothingOrders'), icon: ShoppingBag, bgColor: 'bg-gradient-to-br from-teal-600 to-teal-700' },
+    { id: 'members', label: '🎫 Socios', description: 'Gestión de socios', url: createPageUrl('ClubMembersManagement'), icon: Heart, bgColor: 'bg-gradient-to-br from-pink-600 to-pink-700' },
+    { id: 'reminders', label: '🔔 Recordatorios', description: 'Enviar avisos de pago', url: createPageUrl('PaymentReminders'), icon: Bell, bgColor: 'bg-gradient-to-br from-red-600 to-orange-700' },
+    { id: 'history', label: '📁 Histórico', description: 'Histórico de pagos', url: createPageUrl('PaymentHistory'), icon: Archive, bgColor: 'bg-gradient-to-br from-slate-600 to-slate-700' },
+    { id: 'lottery', label: '🍀 Lotería', description: 'Gestión lotería', url: createPageUrl('LotteryManagement'), icon: Clover, bgColor: 'bg-gradient-to-br from-green-600 to-green-700' },
+    { id: 'calendar', label: '📅 Calendario', description: 'Horarios y partidos', url: createPageUrl('CalendarAndSchedules'), icon: Calendar, bgColor: 'bg-gradient-to-br from-purple-600 to-purple-700' },
+    { id: 'events', label: '🎉 Eventos', description: 'Eventos del club', url: createPageUrl('ParentEventRSVP'), icon: Calendar, bgColor: 'bg-gradient-to-br from-indigo-600 to-indigo-700' },
+    { id: 'announcements', label: '📢 Anuncios', description: 'Comunicados del club', url: createPageUrl('Announcements'), icon: Megaphone, bgColor: 'bg-gradient-to-br from-pink-600 to-pink-700' },
+    { id: 'gallery', label: '🖼️ Galería', description: 'Fotos y álbumes', url: createPageUrl('Gallery'), icon: Image, bgColor: 'bg-gradient-to-br from-indigo-600 to-indigo-700' },
+    { id: 'surveys', label: '📋 Encuestas', description: 'Participar en encuestas', url: createPageUrl('Surveys'), icon: FileText, bgColor: 'bg-gradient-to-br from-purple-600 to-purple-700' },
+  ].filter(btn => btn.id !== 'lottery' || loteriaVisible);
+
+  // Aplicar configuración del usuario - usar solo los primeros 4 botones por defecto para evitar sobrecarga
+  const displayedButtons = useDashboardButtons(availableButtons, buttonConfig.length > 0 ? buttonConfig : availableButtons.slice(0, 4).map(b => b.id));
+
   return (
     <div className="p-4 lg:p-6 space-y-6">
       {/* Header */}
@@ -976,8 +997,32 @@ export default function TreasurerDashboard() {
         </div>
       </div>
 
+      {/* Botón Personalizar Dashboard */}
+      <div className="flex justify-center">
+        <DashboardButtonConfig
+          availableButtons={availableButtons}
+          currentConfig={buttonConfig}
+          onSave={setButtonConfig}
+        />
+      </div>
+
       {/* Accesos Rápidos - Grid de Botones Grandes */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        {displayedButtons.slice(0, 4).map((button) => (
+          <Link key={button.id} to={button.url} className="block">
+            <Card className="border-2 border-green-400 hover:border-green-600 transition-all cursor-pointer group hover:shadow-xl h-full">
+              <CardContent className="pt-6 pb-6">
+                <div className="text-center">
+                  <div className={`w-14 h-14 ${button.bgColor.replace('bg-gradient-to-br', 'bg-gradient-to-br')} bg-opacity-20 rounded-2xl flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform`}>
+                    <button.icon className="w-8 h-8 text-green-600" />
+                  </div>
+                  <h3 className="font-bold text-slate-900 text-base">{button.label}</h3>
+                  <p className="text-xs text-slate-600">{button.description}</p>
+                </div>
+              </CardContent>
+            </Card>
+          </Link>
+        ))}
         <Link to={createPageUrl("Payments")} className="block">
           <Card className="border-2 border-green-400 hover:border-green-600 transition-all cursor-pointer group hover:shadow-xl h-full">
             <CardContent className="pt-6 pb-6">

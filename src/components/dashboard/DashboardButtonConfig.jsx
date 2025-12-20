@@ -43,9 +43,9 @@ export default function DashboardButtonConfig({
       return;
     }
     
-    // No permitir activar si ya hay 9 visibles
-    if (!button.visible && visibleCount >= 9) {
-      toast.error("Máximo 9 botones visibles");
+    // No permitir activar si ya hay 15 visibles
+    if (!button.visible && visibleCount >= 15) {
+      toast.error("Máximo 15 botones visibles");
       return;
     }
     
@@ -104,7 +104,7 @@ export default function DashboardButtonConfig({
           <div className="space-y-4">
             <div className="bg-orange-50 rounded-lg p-3 border border-orange-200">
               <p className="text-sm text-slate-700">
-                <strong className="text-orange-700">{visibleCount}/9 botones</strong> visibles
+                <strong className="text-orange-700">{visibleCount}/15 botones</strong> visibles
               </p>
               <p className="text-xs text-slate-600 mt-1">
                 Arrastra para reordenar • Click en 👁️ para mostrar/ocultar

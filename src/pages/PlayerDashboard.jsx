@@ -39,6 +39,7 @@ export default function PlayerDashboard() {
       try {
         const currentUser = await base44.auth.me();
         setUser(currentUser);
+        setButtonConfig(currentUser.dashboard_buttons_config || []);
         console.log('👤 [PlayerDashboard] Usuario cargado:', currentUser.email);
       } catch (error) {
         console.error("❌ [PlayerDashboard] Error fetching user:", error);
