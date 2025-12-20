@@ -539,7 +539,7 @@ export default function PlayerDashboard() {
         </div>
 
         {/* Banner de Chats */}
-        <Card className="border-2 border-purple-300 bg-gradient-to-r from-purple-50 to-pink-50 shadow-lg">
+        <Card className="border-2 border-purple-300 bg-gradient-to-r from-purple-50 to-pink-50 shadow-lg overflow-hidden">
           <CardContent className="p-4">
             <div className="flex items-center gap-3 mb-3">
               <div className="w-12 h-12 bg-gradient-to-br from-purple-600 to-pink-600 rounded-full flex items-center justify-center flex-shrink-0">
@@ -547,47 +547,47 @@ export default function PlayerDashboard() {
               </div>
               <div className="flex-1">
                 <h3 className="font-bold text-purple-900">💬 Mensajes</h3>
-                <p className="text-xs text-purple-700">Comunicación</p>
+                <p className="text-xs text-purple-700">Chats con el club</p>
               </div>
             </div>
             
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
-              <Link to={createPageUrl("Chatbot")}>
-                <div className="bg-gradient-to-br from-indigo-600 to-purple-700 rounded-xl p-3 text-white hover:scale-105 transition-all shadow-lg relative">
+              <Link to={createPageUrl("Chatbot")} className="relative flex-1">
+                <div className="bg-gradient-to-br from-indigo-600 to-purple-700 rounded-xl p-3 text-white hover:scale-105 transition-all shadow-lg h-full flex flex-col justify-center">
                   <div className="absolute -top-1 -right-1 w-5 h-5 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full flex items-center justify-center animate-pulse">
                     <Sparkles className="w-3 h-3 text-white" />
                   </div>
-                  <p className="text-sm font-bold text-center">🤖 Asistente</p>
-                  <p className="text-xs text-indigo-100 text-center">Consulta IA</p>
+                  <p className="text-sm font-bold mb-1 text-center">🤖 Asistente</p>
+                  <p className="text-xs text-indigo-100 leading-tight text-center">Consulta IA</p>
                 </div>
               </Link>
 
-              <Link to={createPageUrl("ParentSystemMessages")}>
-                <div className="bg-gradient-to-br from-purple-600 to-purple-700 rounded-xl p-3 text-white hover:scale-105 transition-all shadow-lg">
-                  <p className="text-sm font-bold text-center">🔔 Mensajes</p>
-                  <p className="text-xs text-purple-100 text-center">Del Club</p>
+              <Link to={createPageUrl("ParentSystemMessages")} className="relative flex-1">
+                <div className="bg-gradient-to-br from-purple-600 to-purple-700 rounded-xl p-3 text-white hover:scale-105 transition-all shadow-lg h-full flex flex-col justify-center">
+                  <p className="text-sm font-bold mb-1 text-center">🔔 Mensajes</p>
+                  <p className="text-xs text-purple-100 leading-tight text-center">Del Club</p>
                 </div>
               </Link>
 
-              <Link to={createPageUrl("ParentCoordinatorChat")}>
-                <div className="bg-gradient-to-br from-cyan-600 to-cyan-700 rounded-xl p-3 text-white hover:scale-105 transition-all shadow-lg">
-                  <p className="text-sm font-bold text-center">🏟️ Coordinador</p>
-                  <p className="text-xs text-cyan-100 text-center">Deportivo</p>
+              <Link to={createPageUrl("ParentCoordinatorChat")} className="relative flex-1">
+                <div className="bg-gradient-to-br from-cyan-600 to-cyan-700 rounded-xl p-3 text-white hover:scale-105 transition-all shadow-lg h-full flex flex-col justify-center">
+                  <p className="text-sm font-bold mb-1 text-center">🏟️ Coordinador</p>
+                  <p className="text-xs text-cyan-100 leading-tight text-center">Deportivo</p>
                 </div>
               </Link>
               
-              <Link to={createPageUrl("ParentCoachChat")}>
-                <div className="bg-gradient-to-br from-blue-600 to-blue-700 rounded-xl p-3 text-white hover:scale-105 transition-all shadow-lg">
-                  <p className="text-sm font-bold text-center">⚽ Entrenador</p>
-                  <p className="text-xs text-blue-100 text-center">Mi equipo</p>
+              <Link to={createPageUrl("ParentCoachChat")} className="relative flex-1">
+                <div className="bg-gradient-to-br from-blue-600 to-blue-700 rounded-xl p-3 text-white hover:scale-105 transition-all shadow-lg h-full flex flex-col justify-center">
+                  <p className="text-sm font-bold mb-1 text-center">⚽ Entrenador</p>
+                  <p className="text-xs text-blue-100 leading-tight text-center">Mi equipo</p>
                 </div>
               </Link>
             </div>
 
             {adminConversation && (
-              <Link to={createPageUrl("ParentAdminChat")} className="mt-2">
+              <Link to={createPageUrl("ParentAdminChat")} className="mt-2 block">
                 <div className="bg-gradient-to-br from-red-500 to-red-600 rounded-xl p-3 text-white hover:scale-105 transition-all shadow-lg">
-                  <p className="text-sm font-bold text-center">🛡️ Chat Administrador</p>
+                  <p className="text-sm font-bold text-center">🛡️ Chat Administrador (Activo)</p>
                 </div>
               </Link>
             )}
@@ -595,6 +595,28 @@ export default function PlayerDashboard() {
         </Card>
 
 
+
+        {/* Logros e Insignias - Movido arriba */}
+        <Card className="border-2 border-purple-300 bg-gradient-to-r from-purple-50 to-pink-50 shadow-lg">
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="w-12 h-12 bg-gradient-to-br from-purple-600 to-pink-600 rounded-full flex items-center justify-center flex-shrink-0">
+                <Award className="w-6 h-6 text-white" />
+              </div>
+              <div className="flex-1">
+                <h3 className="font-bold text-purple-900">🏆 Mis Logros</h3>
+                <p className="text-xs text-purple-700">
+                  {attendanceStreak > 0 ? `🔥 Racha: ${attendanceStreak} asistencias` : 'Sigue entrenando'}
+                </p>
+              </div>
+            </div>
+            <AchievementsBadges 
+              player={player} 
+              attendances={attendances}
+              evaluations={evaluations}
+            />
+          </CardContent>
+        </Card>
 
         {/* Countdown al próximo partido */}
         {nextMatch && (
@@ -625,6 +647,43 @@ export default function PlayerDashboard() {
         )}
 
 
+
+        {/* Mi Equipo - Compañeros */}
+        {teammates.length > 0 && (
+          <Card className="border-2 border-blue-300 bg-gradient-to-r from-blue-50 to-cyan-50 shadow-lg">
+            <CardContent className="p-4">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="w-12 h-12 bg-gradient-to-br from-blue-600 to-cyan-600 rounded-full flex items-center justify-center flex-shrink-0">
+                  <Users className="w-6 h-6 text-white" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="font-bold text-blue-900">👥 Mi Equipo</h3>
+                  <p className="text-xs text-blue-700">{teammates.length} compañeros en {player.deporte}</p>
+                </div>
+              </div>
+              <div className="grid grid-cols-4 lg:grid-cols-6 gap-2">
+                {teammates.slice(0, 12).map(teammate => (
+                  <div key={teammate.id} className="text-center">
+                    {teammate.foto_url ? (
+                      <img 
+                        src={teammate.foto_url} 
+                        alt={teammate.nombre}
+                        className="w-12 h-12 lg:w-14 lg:h-14 rounded-full object-cover border-2 border-blue-400 mx-auto mb-1"
+                      />
+                    ) : (
+                      <div className="w-12 h-12 lg:w-14 lg:h-14 rounded-full bg-blue-200 flex items-center justify-center mx-auto mb-1">
+                        <User className="w-6 h-6 text-blue-600" />
+                      </div>
+                    )}
+                    <p className="text-[8px] lg:text-[10px] text-slate-700 font-medium truncate">
+                      {teammate.nombre.split(' ')[0]}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Alertas Importantes */}
         {(pendingSignatures > 0 || pendingCallups.length > 0) && (
@@ -858,31 +917,57 @@ export default function PlayerDashboard() {
           </Link>
         </div>
 
-        {/* Stats compactas */}
-        <div className="grid grid-cols-3 gap-3">
-          <Card className="border-none shadow-lg bg-gradient-to-br from-green-50 to-green-100">
-            <CardContent className="p-3 text-center">
-              <CreditCard className="w-6 h-6 text-green-600 mx-auto mb-1" />
-              <p className="text-2xl font-bold text-green-700">{paymentStats.pagados}</p>
-              <p className="text-[10px] text-green-600">Pagos OK</p>
-            </CardContent>
-          </Card>
+        {/* Centro de Alertas - Ahora visible para jugadores */}
+        <AlertCenter 
+          pendingCallups={pendingCallups.length}
+          pendingSignatures={pendingSignatures}
+          pendingPayments={pagosPendientesNoVencidos}
+          paymentsInReview={pagosEnRevisionNoVencidos}
+          overduePayments={overduePaymentsCount}
+          unreadCoordinatorMessages={0}
+          unreadCoachMessages={0}
+          unreadPrivateMessages={0}
+          hasActiveAdminChat={!!adminConversation}
+          isParent={true}
+          userEmail={user?.email}
+          userSports={player?.deporte ? [player.deporte] : []}
+        />
 
-          <Card className="border-none shadow-lg bg-gradient-to-br from-red-50 to-red-100">
-            <CardContent className="p-3 text-center">
-              <Clock className="w-6 h-6 text-red-600 mx-auto mb-1" />
-              <p className="text-2xl font-bold text-red-700">{paymentStats.pendientes + paymentStats.vencidos}</p>
-              <p className="text-[10px] text-red-600">Pendientes</p>
-            </CardContent>
-          </Card>
-
-          <Card className="border-none shadow-lg bg-gradient-to-br from-yellow-50 to-yellow-100">
-            <CardContent className="p-3 text-center">
-              <Bell className="w-6 h-6 text-yellow-600 mx-auto mb-1" />
-              <p className="text-2xl font-bold text-yellow-700">{pendingCallups.length}</p>
-              <p className="text-[10px] text-yellow-600">Convocatorias</p>
-            </CardContent>
-          </Card>
+        {/* Stats footer */}
+        <div className="bg-slate-800 rounded-3xl p-4 lg:p-6 shadow-2xl border-2 border-slate-700">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
+            <div className="text-center">
+              <div className="text-2xl lg:text-4xl font-bold text-green-500 mb-1">
+                {paymentStats.pagados}
+              </div>
+              <div className="text-slate-400 text-[10px] lg:text-sm">Pagos OK</div>
+            </div>
+            <div className="text-center">
+              <div className="text-2xl lg:text-4xl font-bold text-red-500 mb-1">
+                {paymentStats.pendientes + paymentStats.enRevision + paymentStats.vencidos}
+              </div>
+              <div className="text-slate-400 text-[10px] lg:text-sm">Pagos Total</div>
+              <div className="text-slate-500 text-[8px] lg:text-[10px] mt-1">
+                {paymentStats.vencidos > 0 && `${paymentStats.vencidos} vencidos`}
+                {paymentStats.vencidos > 0 && (paymentStats.pendientes > 0 || paymentStats.enRevision > 0) && ' • '}
+                {paymentStats.pendientes > 0 && `${paymentStats.pendientes} pendientes`}
+                {paymentStats.pendientes > 0 && paymentStats.enRevision > 0 && ' • '}
+                {paymentStats.enRevision > 0 && `${paymentStats.enRevision} revisión`}
+              </div>
+            </div>
+            <div className="text-center">
+              <div className="text-2xl lg:text-4xl font-bold text-yellow-500 mb-1">
+                {pendingCallups.length}
+              </div>
+              <div className="text-slate-400 text-[10px] lg:text-sm">Convocatorias</div>
+            </div>
+            <div className="text-center">
+              <div className="text-2xl lg:text-4xl font-bold text-purple-500 mb-1">
+                {attendanceStreak}
+              </div>
+              <div className="text-slate-400 text-[10px] lg:text-sm">🔥 Racha</div>
+            </div>
+          </div>
         </div>
 
         <ContactCard />
