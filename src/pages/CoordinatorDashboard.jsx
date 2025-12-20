@@ -255,6 +255,135 @@ export default function CoordinatorDashboard() {
           isCoordinator={true}
         />
 
+        {/* GRID DE BOTONES CENTRALES - MENÚ PRINCIPAL */}
+        <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6 stagger-animation">
+          {/* Convocatorias */}
+          <Link to={createPageUrl("CoachCallups")} className="group">
+            <div className="relative bg-slate-800 rounded-3xl overflow-hidden shadow-elegant-xl card-hover-glow transition-all duration-300 active:scale-95 border-2 border-slate-700 hover:border-orange-500">
+              <div className="absolute inset-0 bg-gradient-to-br from-slate-700/50 to-black/80 opacity-60"></div>
+              <div className="absolute bottom-0 right-0 w-32 h-32 bg-gradient-to-tl from-yellow-600 to-yellow-700 opacity-30 blur-2xl transition-opacity duration-300 group-hover:opacity-50"></div>
+              <div className="relative z-10 p-4 lg:p-8 flex flex-col items-center justify-center min-h-[140px] lg:min-h-[200px]">
+                <div className="w-12 h-12 lg:w-20 lg:h-20 rounded-2xl bg-gradient-to-br from-yellow-600 to-yellow-700 flex items-center justify-center mb-3 lg:mb-4 shadow-2xl">
+                  <Bell className="w-6 h-6 lg:w-10 lg:h-10 text-white" />
+                </div>
+                <h3 className="text-white font-bold text-center text-sm lg:text-lg">🎓 Convocatorias</h3>
+              </div>
+            </div>
+          </Link>
+
+          {/* Asistencia y Evaluación */}
+          <Link to={createPageUrl("TeamAttendanceEvaluation")} className="group">
+            <div className="relative bg-slate-800 rounded-3xl overflow-hidden shadow-elegant-xl card-hover-glow transition-all duration-300 active:scale-95 border-2 border-slate-700 hover:border-orange-500">
+              <div className="absolute inset-0 bg-gradient-to-br from-slate-700/50 to-black/80 opacity-60"></div>
+              <div className="absolute bottom-0 right-0 w-32 h-32 bg-gradient-to-tl from-green-600 to-green-700 opacity-30 blur-2xl transition-opacity duration-300 group-hover:opacity-50"></div>
+              <div className="relative z-10 p-4 lg:p-8 flex flex-col items-center justify-center min-h-[140px] lg:min-h-[200px]">
+                <div className="w-12 h-12 lg:w-20 lg:h-20 rounded-2xl bg-gradient-to-br from-green-600 to-green-700 flex items-center justify-center mb-3 lg:mb-4 shadow-2xl">
+                  <Users className="w-6 h-6 lg:w-10 lg:h-10 text-white" />
+                </div>
+                <h3 className="text-white font-bold text-center text-sm lg:text-lg">📋 Asistencia y Evaluación</h3>
+              </div>
+            </div>
+          </Link>
+
+          {/* Plantillas */}
+          <Link to={createPageUrl("TeamRosters")} className="group">
+            <div className="relative bg-slate-800 rounded-3xl overflow-hidden shadow-elegant-xl card-hover-glow transition-all duration-300 active:scale-95 border-2 border-slate-700 hover:border-orange-500">
+              <div className="absolute inset-0 bg-gradient-to-br from-slate-700/50 to-black/80 opacity-60"></div>
+              <div className="absolute bottom-0 right-0 w-32 h-32 bg-gradient-to-tl from-blue-600 to-blue-700 opacity-30 blur-2xl transition-opacity duration-300 group-hover:opacity-50"></div>
+              <div className="relative z-10 p-4 lg:p-8 flex flex-col items-center justify-center min-h-[140px] lg:min-h-[200px]">
+                <div className="w-12 h-12 lg:w-20 lg:h-20 rounded-2xl bg-gradient-to-br from-blue-600 to-blue-700 flex items-center justify-center mb-3 lg:mb-4 shadow-2xl">
+                  <Users className="w-6 h-6 lg:w-10 lg:h-10 text-white" />
+                </div>
+                <h3 className="text-white font-bold text-center text-sm lg:text-lg">🎓 Plantillas</h3>
+              </div>
+            </div>
+          </Link>
+
+          {/* Reportes */}
+          <Link to={createPageUrl("CoachEvaluationReports")} className="group">
+            <div className="relative bg-slate-800 rounded-3xl overflow-hidden shadow-elegant-xl card-hover-glow transition-all duration-300 active:scale-95 border-2 border-slate-700 hover:border-orange-500">
+              <div className="absolute inset-0 bg-gradient-to-br from-slate-700/50 to-black/80 opacity-60"></div>
+              <div className="absolute bottom-0 right-0 w-32 h-32 bg-gradient-to-tl from-purple-600 to-purple-700 opacity-30 blur-2xl transition-opacity duration-300 group-hover:opacity-50"></div>
+              <div className="relative z-10 p-4 lg:p-8 flex flex-col items-center justify-center min-h-[140px] lg:min-h-[200px]">
+                <div className="w-12 h-12 lg:w-20 lg:h-20 rounded-2xl bg-gradient-to-br from-purple-600 to-purple-700 flex items-center justify-center mb-3 lg:mb-4 shadow-2xl">
+                  <FileText className="w-6 h-6 lg:w-10 lg:h-10 text-white" />
+                </div>
+                <h3 className="text-white font-bold text-center text-sm lg:text-lg">📊 Reportes</h3>
+              </div>
+            </div>
+          </Link>
+
+          {/* Pizarra Táctica */}
+          <Link to={createPageUrl("TacticsBoard")} className="group">
+            <div className="relative bg-slate-800 rounded-3xl overflow-hidden shadow-elegant-xl card-hover-glow transition-all duration-300 active:scale-95 border-2 border-slate-700 hover:border-orange-500">
+              <div className="absolute inset-0 bg-gradient-to-br from-slate-700/50 to-black/80 opacity-60"></div>
+              <div className="absolute bottom-0 right-0 w-32 h-32 bg-gradient-to-tl from-slate-600 to-slate-700 opacity-30 blur-2xl transition-opacity duration-300 group-hover:opacity-50"></div>
+              <div className="relative z-10 p-4 lg:p-8 flex flex-col items-center justify-center min-h-[140px] lg:min-h-[200px]">
+                <div className="w-12 h-12 lg:w-20 lg:h-20 rounded-2xl bg-gradient-to-br from-slate-600 to-slate-700 flex items-center justify-center mb-3 lg:mb-4 shadow-2xl">
+                  <Trophy className="w-6 h-6 lg:w-10 lg:h-10 text-white" />
+                </div>
+                <h3 className="text-white font-bold text-center text-sm lg:text-lg">🎯 Pizarra Táctica</h3>
+              </div>
+            </div>
+          </Link>
+
+          {/* Calendario */}
+          <Link to={createPageUrl("CalendarAndSchedules")} className="group">
+            <div className="relative bg-slate-800 rounded-3xl overflow-hidden shadow-elegant-xl card-hover-glow transition-all duration-300 active:scale-95 border-2 border-slate-700 hover:border-orange-500">
+              <div className="absolute inset-0 bg-gradient-to-br from-slate-700/50 to-black/80 opacity-60"></div>
+              <div className="absolute bottom-0 right-0 w-32 h-32 bg-gradient-to-tl from-purple-600 to-purple-700 opacity-30 blur-2xl transition-opacity duration-300 group-hover:opacity-50"></div>
+              <div className="relative z-10 p-4 lg:p-8 flex flex-col items-center justify-center min-h-[140px] lg:min-h-[200px]">
+                <div className="w-12 h-12 lg:w-20 lg:h-20 rounded-2xl bg-gradient-to-br from-purple-600 to-purple-700 flex items-center justify-center mb-3 lg:mb-4 shadow-2xl">
+                  <Calendar className="w-6 h-6 lg:w-10 lg:h-10 text-white" />
+                </div>
+                <h3 className="text-white font-bold text-center text-sm lg:text-lg">📅 Calendario</h3>
+              </div>
+            </div>
+          </Link>
+
+          {/* Anuncios */}
+          <Link to={createPageUrl("Announcements")} className="group">
+            <div className="relative bg-slate-800 rounded-3xl overflow-hidden shadow-elegant-xl card-hover-glow transition-all duration-300 active:scale-95 border-2 border-slate-700 hover:border-orange-500">
+              <div className="absolute inset-0 bg-gradient-to-br from-slate-700/50 to-black/80 opacity-60"></div>
+              <div className="absolute bottom-0 right-0 w-32 h-32 bg-gradient-to-tl from-pink-600 to-pink-700 opacity-30 blur-2xl transition-opacity duration-300 group-hover:opacity-50"></div>
+              <div className="relative z-10 p-4 lg:p-8 flex flex-col items-center justify-center min-h-[140px] lg:min-h-[200px]">
+                <div className="w-12 h-12 lg:w-20 lg:h-20 rounded-2xl bg-gradient-to-br from-pink-600 to-pink-700 flex items-center justify-center mb-3 lg:mb-4 shadow-2xl">
+                  <Megaphone className="w-6 h-6 lg:w-10 lg:h-10 text-white" />
+                </div>
+                <h3 className="text-white font-bold text-center text-sm lg:text-lg">📢 Anuncios</h3>
+              </div>
+            </div>
+          </Link>
+
+          {/* Eventos Club */}
+          <Link to={createPageUrl("ParentEventRSVP")} className="group">
+            <div className="relative bg-slate-800 rounded-3xl overflow-hidden shadow-elegant-xl card-hover-glow transition-all duration-300 active:scale-95 border-2 border-slate-700 hover:border-orange-500">
+              <div className="absolute inset-0 bg-gradient-to-br from-slate-700/50 to-black/80 opacity-60"></div>
+              <div className="absolute bottom-0 right-0 w-32 h-32 bg-gradient-to-tl from-cyan-600 to-cyan-700 opacity-30 blur-2xl transition-opacity duration-300 group-hover:opacity-50"></div>
+              <div className="relative z-10 p-4 lg:p-8 flex flex-col items-center justify-center min-h-[140px] lg:min-h-[200px]">
+                <div className="w-12 h-12 lg:w-20 lg:h-20 rounded-2xl bg-gradient-to-br from-cyan-600 to-cyan-700 flex items-center justify-center mb-3 lg:mb-4 shadow-2xl">
+                  <Calendar className="w-6 h-6 lg:w-10 lg:h-10 text-white" />
+                </div>
+                <h3 className="text-white font-bold text-center text-sm lg:text-lg">🎉 Eventos Club</h3>
+              </div>
+            </div>
+          </Link>
+
+          {/* Galería */}
+          <Link to={createPageUrl("Gallery")} className="group">
+            <div className="relative bg-slate-800 rounded-3xl overflow-hidden shadow-elegant-xl card-hover-glow transition-all duration-300 active:scale-95 border-2 border-slate-700 hover:border-orange-500">
+              <div className="absolute inset-0 bg-gradient-to-br from-slate-700/50 to-black/80 opacity-60"></div>
+              <div className="absolute bottom-0 right-0 w-32 h-32 bg-gradient-to-tl from-indigo-600 to-indigo-700 opacity-30 blur-2xl transition-opacity duration-300 group-hover:opacity-50"></div>
+              <div className="relative z-10 p-4 lg:p-8 flex flex-col items-center justify-center min-h-[140px] lg:min-h-[200px]">
+                <div className="w-12 h-12 lg:w-20 lg:h-20 rounded-2xl bg-gradient-to-br from-indigo-600 to-indigo-700 flex items-center justify-center mb-3 lg:mb-4 shadow-2xl">
+                  <Image className="w-6 h-6 lg:w-10 lg:h-10 text-white" />
+                </div>
+                <h3 className="text-white font-bold text-center text-sm lg:text-lg">🖼️ Galería</h3>
+              </div>
+            </div>
+          </Link>
+        </div>
+
         {/* Banner dividido: Clasificaciones (izq) + Calendario (der) */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           {/* Clasificaciones del Club */}
