@@ -554,14 +554,6 @@ export default function PlayerDashboard() {
         myPlayers={player ? [player] : []} 
       />
 
-
-
-      {/* Banner Clasificaciones y Próximo Partido */}
-      <ClassificationsAndMatchesBanner 
-        userEmail={user?.email} 
-        myPlayers={player ? [player] : []} 
-      />
-
       {/* Botones Principales */}
       <div className="grid grid-cols-2 gap-3">
         <Link to={createPageUrl("CalendarAndSchedules")}>
@@ -633,8 +625,20 @@ export default function PlayerDashboard() {
         />
       )}
 
-        <ContactCard />
-      </div>
+      {/* Banner Hazte Socio */}
+      <Link to={createPageUrl("ClubMembership")}>
+        <div className="bg-gradient-to-r from-pink-500 to-pink-600 rounded-xl p-4 shadow-lg transition-all hover:scale-105">
+          <div className="flex items-center gap-3">
+            <Heart className="w-6 h-6 text-white" />
+            <div className="flex-1">
+              <p className="text-white font-bold text-sm">🎉 ¡Hazte Socio!</p>
+              <p className="text-pink-100 text-xs">Solo 25€/temporada</p>
+            </div>
+          </div>
+        </div>
+      </Link>
+
+      <ContactCard />
 
       {/* Dialog Editar Perfil - Modal amplio para móvil */}
       <Dialog open={showEditProfile} onOpenChange={setShowEditProfile}>
