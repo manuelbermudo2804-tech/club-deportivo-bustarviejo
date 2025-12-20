@@ -51,11 +51,13 @@ export default function CoachStandingsAnalysis() {
 
   // Auto-abrir vista detallada si solo hay una clasificación en la categoría activa
   React.useEffect(() => {
-    if (user && activeTab && standingsByCategory[activeTab]?.length === 1 && !aiAnalysis[activeTab]) {
-      const singleStanding = standingsByCategory[activeTab][0];
-      setSelectedView(singleStanding);
+    if (user && activeTab && !selectedView && !isAnalyzing[activeTab]) {
+      const categoryStandings = standingsByCategory[activeTab];
+      if (categoryStandings?.length === 1 && !aiAnalysis[activeTab]) {
+        setSelectedView(categoryStandings[0]);
+      }
     }
-  }, [user, activeTab, standingsByCategory, aiAnalysis]);
+  }, [user, activeTab, standings.length]);
 
   const { data: standings = [] } = useQuery({
     queryKey: ['clasificaciones'],

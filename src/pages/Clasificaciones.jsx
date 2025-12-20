@@ -73,11 +73,13 @@ export default function Clasificaciones() {
 
   // Auto-abrir vista detallada si solo hay una clasificación para usuarios no admin
   React.useEffect(() => {
-    if (!isAdmin && !isLoadingUser && activeTab && standingsByCategory[activeTab]?.length === 1) {
-      const singleStanding = standingsByCategory[activeTab][0];
-      setSelectedView(singleStanding);
+    if (!isAdmin && !isLoadingUser && activeTab) {
+      const categoryStandings = standingsByCategory[activeTab];
+      if (categoryStandings?.length === 1 && !selectedView) {
+        setSelectedView(categoryStandings[0]);
+      }
     }
-  }, [isAdmin, isLoadingUser, activeTab, standingsByCategory]);
+  }, [isAdmin, isLoadingUser, activeTab, standings.length]);
 
   const { data: standings } = useQuery({
     queryKey: ['clasificaciones'],
