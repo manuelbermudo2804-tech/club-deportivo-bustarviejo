@@ -496,11 +496,6 @@ export default function CoordinatorDashboard() {
             </div>
           </Link>
         </div>
-
-        {/* Banner dividido: Clasificaciones (izq) + Calendario (der) */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          {/* Clasificaciones del Club */}
-          <Card className="border-2 border-green-300 bg-white shadow-lg">
             <CardContent className="p-4">
               <div className="flex items-center gap-3 mb-4">
                 <Trophy className="w-6 h-6 text-green-600" />
