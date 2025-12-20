@@ -226,39 +226,6 @@ Sé directo, práctico y enfocado en acciones concretas que el entrenador pueda 
     ? CATEGORIES.filter(c => user.categorias_entrena.includes(c.fullName))
     : CATEGORIES;
 
-  // Auto-abrir vista detallada si solo hay una clasificación en la categoría activa
-  React.useEffect(() => {
-    if (!user || !activeTab || selectedView || isAnalyzing[activeTab] || aiAnalysis[activeTab] || standings.length === 0) return;
-    
-    const cat = CATEGORIES.find(c => c.id === activeTab);
-    if (!cat) return;
-    
-    const categoryStandings = standings.filter(s => s.categoria === cat.fullName);
-    
-    const grouped = {};
-    categoryStandings.forEach(standing => {
-      const key = `${standing.temporada}|${standing.jornada}`;
-      if (!grouped[key]) {
-        grouped[key] = {
-          temporada: standing.temporada,
-          categoria: standing.categoria,
-          jornada: standing.jornada,
-          fecha_actualizacion: standing.fecha_actualizacion,
-          data: []
-        };
-      }
-      grouped[key].data.push(standing);
-    });
-    
-    const groupedArray = Object.values(grouped).sort((a, b) => 
-      new Date(b.fecha_actualizacion) - new Date(a.fecha_actualizacion)
-    );
-    
-    if (groupedArray.length === 1) {
-      setSelectedView(groupedArray[0]);
-    }
-  }, [user, activeTab, selectedView, standings.length]);
-
   if (!user) {
     return (
       <div className="p-6 flex items-center justify-center min-h-[400px]">
