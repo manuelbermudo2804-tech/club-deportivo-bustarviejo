@@ -476,475 +476,147 @@ export default function PlayerDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-black">
-      <div className="px-4 lg:px-8 py-6 space-y-4 lg:space-y-6">
-        {/* Header con foto y datos del jugador - similar a la imagen */}
-        <div className="bg-gradient-to-r from-orange-600 to-green-600 rounded-2xl p-4 lg:p-6 text-white shadow-xl">
-          <div className="flex items-start gap-3 lg:gap-4 mb-4">
-            {player.foto_url ? (
-              <img 
-                src={player.foto_url} 
-                alt={player.nombre}
-                className="w-16 h-16 lg:w-20 lg:h-20 rounded-full object-cover border-4 border-white shadow-lg flex-shrink-0"
-              />
-            ) : (
-              <div className="w-16 h-16 lg:w-20 lg:h-20 rounded-full bg-white/20 flex items-center justify-center flex-shrink-0">
-                <User className="w-8 h-8 lg:w-10 lg:h-10 text-white" />
-              </div>
-            )}
-            <div className="flex-1 min-w-0">
-              <h1 className="text-xl lg:text-3xl font-bold">¡Hola, {player.nombre.split(' ')[0]}!</h1>
-              <p className="text-white/90 text-sm lg:text-base">{player.deporte}</p>
-              {player.posicion && player.posicion !== "Sin asignar" && (
-                <Badge className="bg-white/20 text-white border-white/30 text-xs mt-2">
-                  {player.posicion}
-                </Badge>
-              )}
-            </div>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setShowEditProfile(true)}
-              className="text-white hover:bg-white/20 flex-shrink-0"
-            >
-              <User className="w-4 h-4" />
-            </Button>
-          </div>
-
-          {/* Horarios de Entrenamiento */}
-          {schedules && schedules.length > 0 && (
-            <div className="bg-white/10 rounded-xl p-3 backdrop-blur-sm">
-              <p className="text-xs text-white/80 mb-2 font-semibold flex items-center gap-2">
-                <Calendar className="w-4 h-4" />
-                Horarios de Entrenamiento
-              </p>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                {schedules.map((schedule, idx) => (
-                  <div key={idx} className="bg-white/10 rounded-lg p-3 backdrop-blur-sm">
-                    <p className="text-sm font-bold">{schedule.dia_semana}</p>
-                    <p className="text-xs text-white/80 flex items-center gap-1">
-                      <Clock className="w-3 h-3" />
-                      {schedule.hora_inicio} - {schedule.hora_fin}
-                    </p>
-                    {schedule.ubicacion && (
-                      <p className="text-xs text-white/70 truncate flex items-center gap-1">
-                        <MapPin className="w-3 h-3" />
-                        {schedule.ubicacion}
-                      </p>
-                    )}
-                  </div>
-                ))}
-              </div>
+    <div className="p-4 lg:p-6 space-y-4">
+      {/* Header compacto */}
+      <div className="bg-gradient-to-r from-orange-600 to-orange-700 rounded-2xl p-4 text-white shadow-xl">
+        <div className="flex items-center gap-3">
+          {player.foto_url ? (
+            <img 
+              src={player.foto_url} 
+              alt={player.nombre}
+              className="w-14 h-14 rounded-full object-cover border-2 border-white shadow-lg flex-shrink-0"
+            />
+          ) : (
+            <div className="w-14 h-14 rounded-full bg-white/20 flex items-center justify-center flex-shrink-0">
+              <User className="w-7 h-7 text-white" />
             </div>
           )}
+          <div className="flex-1 min-w-0">
+            <h1 className="text-xl font-bold truncate">{player.nombre}</h1>
+            <p className="text-white/90 text-sm truncate">{player.deporte}</p>
+          </div>
         </div>
+      </div>
 
-        {/* Banner de Chats */}
-        <Card className="border-2 border-purple-300 bg-gradient-to-r from-purple-50 to-pink-50 shadow-lg overflow-hidden">
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3 mb-3">
-              <div className="w-12 h-12 bg-gradient-to-br from-purple-600 to-pink-600 rounded-full flex items-center justify-center flex-shrink-0">
-                <MessageCircle className="w-6 h-6 text-white" />
-              </div>
-              <div className="flex-1">
-                <h3 className="font-bold text-purple-900">💬 Mensajes</h3>
-                <p className="text-xs text-purple-700">Chats con el club</p>
-              </div>
+      {/* Banner de Chats */}
+      <Card className="border-2 border-purple-300 bg-gradient-to-r from-purple-50 to-pink-50 shadow-lg">
+        <CardContent className="p-4">
+          <div className="flex items-center gap-3 mb-3">
+            <div className="w-10 h-10 bg-gradient-to-br from-purple-600 to-pink-600 rounded-full flex items-center justify-center flex-shrink-0">
+              <MessageCircle className="w-5 h-5 text-white" />
             </div>
+            <div className="flex-1">
+              <h3 className="font-bold text-purple-900">💬 Mensajes</h3>
+              <p className="text-xs text-purple-700">Comunicación</p>
+            </div>
+          </div>
+          
+          <div className="grid grid-cols-2 gap-2">
+            <Link to={createPageUrl("Chatbot")}>
+              <div className="bg-gradient-to-br from-indigo-600 to-purple-700 rounded-xl p-3 text-white hover:scale-105 transition-all shadow-lg h-full flex flex-col justify-center relative">
+                <div className="absolute -top-1 -right-1 w-5 h-5 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full flex items-center justify-center animate-pulse">
+                  <Sparkles className="w-3 h-3 text-white" />
+                </div>
+                <p className="text-sm font-bold text-center mb-1">🤖 Asistente</p>
+                <p className="text-xs text-indigo-100 text-center">Consulta IA</p>
+              </div>
+            </Link>
+
+            <Link to={createPageUrl("ParentCoordinatorChat")}>
+              <div className="bg-gradient-to-br from-cyan-600 to-cyan-700 rounded-xl p-3 text-white hover:scale-105 transition-all shadow-lg h-full flex flex-col justify-center">
+                <p className="text-sm font-bold text-center mb-1">🏟️ Coordinador</p>
+                <p className="text-xs text-cyan-100 text-center">Deportivo</p>
+              </div>
+            </Link>
             
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
-              <Link to={createPageUrl("Chatbot")} className="relative flex-1">
-                <div className="bg-gradient-to-br from-indigo-600 to-purple-700 rounded-xl p-3 text-white hover:scale-105 transition-all shadow-lg h-full flex flex-col justify-center">
-                  <div className="absolute -top-1 -right-1 w-5 h-5 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full flex items-center justify-center animate-pulse">
-                    <Sparkles className="w-3 h-3 text-white" />
-                  </div>
-                  <p className="text-sm font-bold mb-1 text-center">🤖 Asistente</p>
-                  <p className="text-xs text-indigo-100 leading-tight text-center">Consulta IA</p>
-                </div>
-              </Link>
-
-              <Link to={createPageUrl("ParentSystemMessages")} className="relative flex-1">
-                <div className="bg-gradient-to-br from-purple-600 to-purple-700 rounded-xl p-3 text-white hover:scale-105 transition-all shadow-lg h-full flex flex-col justify-center">
-                  <p className="text-sm font-bold mb-1 text-center">🔔 Mensajes</p>
-                  <p className="text-xs text-purple-100 leading-tight text-center">Del Club</p>
-                </div>
-              </Link>
-
-              <Link to={createPageUrl("ParentCoordinatorChat")} className="relative flex-1">
-                <div className="bg-gradient-to-br from-cyan-600 to-cyan-700 rounded-xl p-3 text-white hover:scale-105 transition-all shadow-lg h-full flex flex-col justify-center">
-                  <p className="text-sm font-bold mb-1 text-center">🏟️ Coordinador</p>
-                  <p className="text-xs text-cyan-100 leading-tight text-center">Deportivo</p>
-                </div>
-              </Link>
-              
-              <Link to={createPageUrl("ParentCoachChat")} className="relative flex-1">
-                <div className="bg-gradient-to-br from-blue-600 to-blue-700 rounded-xl p-3 text-white hover:scale-105 transition-all shadow-lg h-full flex flex-col justify-center">
-                  <p className="text-sm font-bold mb-1 text-center">⚽ Entrenador</p>
-                  <p className="text-xs text-blue-100 leading-tight text-center">Mi equipo</p>
-                </div>
-              </Link>
-            </div>
+            <Link to={createPageUrl("ParentCoachChat")}>
+              <div className="bg-gradient-to-br from-blue-600 to-blue-700 rounded-xl p-3 text-white hover:scale-105 transition-all shadow-lg h-full flex flex-col justify-center">
+                <p className="text-sm font-bold text-center mb-1">⚽ Entrenador</p>
+                <p className="text-xs text-blue-100 text-center">Mi equipo</p>
+              </div>
+            </Link>
 
             {adminConversation && (
-              <Link to={createPageUrl("ParentAdminChat")} className="mt-2 block">
-                <div className="bg-gradient-to-br from-red-500 to-red-600 rounded-xl p-3 text-white hover:scale-105 transition-all shadow-lg">
-                  <p className="text-sm font-bold text-center">🛡️ Chat Administrador (Activo)</p>
+              <Link to={createPageUrl("ParentAdminChat")}>
+                <div className="bg-gradient-to-br from-red-500 to-red-600 rounded-xl p-3 text-white hover:scale-105 transition-all shadow-lg h-full flex flex-col justify-center">
+                  <p className="text-sm font-bold text-center mb-1">🛡️ Administrador</p>
+                  <p className="text-xs text-red-100 text-center">Chat activo</p>
                 </div>
-              </Link>
-            )}
-          </CardContent>
-        </Card>
-
-
-
-        {/* Logros e Insignias - Movido arriba */}
-        <Card className="border-2 border-purple-300 bg-gradient-to-r from-purple-50 to-pink-50 shadow-lg">
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3 mb-3">
-              <div className="w-12 h-12 bg-gradient-to-br from-purple-600 to-pink-600 rounded-full flex items-center justify-center flex-shrink-0">
-                <Award className="w-6 h-6 text-white" />
-              </div>
-              <div className="flex-1">
-                <h3 className="font-bold text-purple-900">🏆 Mis Logros</h3>
-                <p className="text-xs text-purple-700">
-                  {attendanceStreak > 0 ? `🔥 Racha: ${attendanceStreak} asistencias` : 'Sigue entrenando'}
-                </p>
-              </div>
-            </div>
-            <AchievementsBadges 
-              player={player} 
-              attendances={attendances}
-              evaluations={evaluations}
-            />
-          </CardContent>
-        </Card>
-
-        {/* Countdown al próximo partido */}
-        {nextMatch && (
-          <Card className="border-2 border-yellow-300 bg-gradient-to-r from-yellow-50 to-orange-50 shadow-lg">
-            <CardContent className="p-4">
-              <div className="flex items-start gap-3">
-                <div className="w-12 h-12 bg-gradient-to-br from-yellow-600 to-orange-600 rounded-full flex items-center justify-center flex-shrink-0">
-                  <Trophy className="w-6 h-6 text-white" />
-                </div>
-                <div className="flex-1">
-                  <h3 className="font-bold text-yellow-900 mb-1">⏰ Próximo Partido</h3>
-                  <p className="text-sm font-bold text-slate-900">{nextMatch.titulo}</p>
-                  <p className="text-xs text-slate-600">vs {nextMatch.rival} • {nextMatch.local_visitante}</p>
-                  <div className="flex items-center gap-2 mt-2 text-xs text-slate-500">
-                    <Calendar className="w-3 h-3" />
-                    {format(new Date(nextMatch.fecha_partido), "EEEE d MMM", { locale: es })} • {nextMatch.hora_partido}
-                  </div>
-                  {nextMatch.ubicacion && (
-                    <div className="flex items-center gap-1 mt-1 text-xs text-slate-500">
-                      <MapPin className="w-3 h-3" />
-                      {nextMatch.ubicacion}
-                    </div>
-                  )}
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
-
-
-        {/* Mi Equipo - Compañeros */}
-        {teammates.length > 0 && (
-          <Card className="border-2 border-blue-300 bg-gradient-to-r from-blue-50 to-cyan-50 shadow-lg">
-            <CardContent className="p-4">
-              <div className="flex items-center gap-3 mb-3">
-                <div className="w-12 h-12 bg-gradient-to-br from-blue-600 to-cyan-600 rounded-full flex items-center justify-center flex-shrink-0">
-                  <Users className="w-6 h-6 text-white" />
-                </div>
-                <div className="flex-1">
-                  <h3 className="font-bold text-blue-900">👥 Mi Equipo</h3>
-                  <p className="text-xs text-blue-700">{teammates.length} compañeros en {player.deporte}</p>
-                </div>
-              </div>
-              <div className="grid grid-cols-4 lg:grid-cols-6 gap-2">
-                {teammates.slice(0, 12).map(teammate => (
-                  <div key={teammate.id} className="text-center">
-                    {teammate.foto_url ? (
-                      <img 
-                        src={teammate.foto_url} 
-                        alt={teammate.nombre}
-                        className="w-12 h-12 lg:w-14 lg:h-14 rounded-full object-cover border-2 border-blue-400 mx-auto mb-1"
-                      />
-                    ) : (
-                      <div className="w-12 h-12 lg:w-14 lg:h-14 rounded-full bg-blue-200 flex items-center justify-center mx-auto mb-1">
-                        <User className="w-6 h-6 text-blue-600" />
-                      </div>
-                    )}
-                    <p className="text-[8px] lg:text-[10px] text-slate-700 font-medium truncate">
-                      {teammate.nombre.split(' ')[0]}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Alertas Importantes */}
-        {(pendingSignatures > 0 || pendingCallups.length > 0) && (
-          <div className="space-y-2">
-            {pendingSignatures > 0 && (
-              <Link to={createPageUrl("FederationSignatures")}>
-                <Card className="border-2 border-red-300 bg-red-50 shadow-lg hover:scale-105 transition-all">
-                  <CardContent className="p-4">
-                    <div className="flex items-center gap-3">
-                      <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center">
-                        <FileSignature className="w-6 h-6 text-red-600 animate-pulse" />
-                      </div>
-                      <div className="flex-1">
-                        <h3 className="font-bold text-red-900">¡Firmas Pendientes!</h3>
-                        <p className="text-sm text-red-700">{pendingSignatures} firma{pendingSignatures > 1 ? 's' : ''} de federación pendiente{pendingSignatures > 1 ? 's' : ''}</p>
-                      </div>
-                      <Button size="sm" className="bg-red-600 hover:bg-red-700">
-                        Firmar
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              </Link>
-            )}
-
-            {pendingCallups.length > 0 && (
-              <Link to={createPageUrl("ParentCallups")}>
-                <Card className="border-2 border-yellow-300 bg-yellow-50 shadow-lg hover:scale-105 transition-all">
-                  <CardContent className="p-4">
-                    <div className="flex items-center gap-3">
-                      <div className="w-12 h-12 bg-yellow-100 rounded-full flex items-center justify-center">
-                        <Bell className="w-6 h-6 text-yellow-600 animate-pulse" />
-                      </div>
-                      <div className="flex-1">
-                        <h3 className="font-bold text-yellow-900">¡Convocatorias Pendientes!</h3>
-                        <p className="text-sm text-yellow-700">{pendingCallups.length} confirmación{pendingCallups.length > 1 ? 'es' : ''} pendiente{pendingCallups.length > 1 ? 's' : ''}</p>
-                      </div>
-                      <Button size="sm" className="bg-yellow-600 hover:bg-yellow-700">
-                        Confirmar
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
               </Link>
             )}
           </div>
-        )}
+        </CardContent>
+      </Card>
+
+      {/* Banner Clasificaciones y Próximo Partido */}
+      <ClassificationsAndMatchesBanner 
+        userEmail={user?.email} 
+        myPlayers={player ? [player] : []} 
+      />
 
 
 
-        {/* Banner Hazte Socio */}
-        <Link to={createPageUrl("ClubMembership")}>
-          <div className="bg-gradient-to-r from-pink-500 via-purple-500 to-orange-500 rounded-2xl p-4 shadow-xl transition-all hover:scale-105 active:scale-95 border-2 border-pink-400">
-            <div className="flex items-center gap-3">
-              <div className="bg-white/20 backdrop-blur-sm rounded-xl p-3">
-                <Heart className="w-7 h-7 text-white" />
-              </div>
-              <div className="text-left flex-1">
-                <p className="text-white font-bold text-lg">🎉 ¡Hazte Socio!</p>
-                <p className="text-pink-100 text-xs">Invita a familiares y amigos • Solo 25€/temporada</p>
-              </div>
-              <div className="bg-white/20 backdrop-blur-sm rounded-full px-3 py-1">
-                <span className="text-white text-sm font-bold">→</span>
-              </div>
-            </div>
+      {/* Banner Clasificaciones y Próximo Partido */}
+      <ClassificationsAndMatchesBanner 
+        userEmail={user?.email} 
+        myPlayers={player ? [player] : []} 
+      />
+
+      {/* Botones Principales */}
+      <div className="grid grid-cols-2 gap-3">
+        <Link to={createPageUrl("CalendarAndSchedules")}>
+          <div className="bg-gradient-to-br from-purple-600 to-purple-700 rounded-xl p-4 text-white hover:scale-105 transition-all shadow-lg h-full flex flex-col justify-center">
+            <p className="text-base font-bold text-center mb-1">📅 Calendario</p>
+            <p className="text-xs text-purple-100 text-center">Partidos y entrenamientos</p>
           </div>
         </Link>
 
-        {/* Lotería si está visible */}
-        {seasonConfig?.loteria_navidad_abierta && (
-          <Link to={createPageUrl("ParentLottery")}>
-            <div className="bg-gradient-to-r from-green-600 to-green-700 rounded-2xl p-4 shadow-xl transition-all hover:scale-105 active:scale-95 border-2 border-green-500">
-              <div className="flex items-center gap-3">
-                <div className="bg-white/20 backdrop-blur-sm rounded-xl p-2">
-                  <Clover className="w-6 h-6 text-white" />
-                </div>
-                <div className="text-left flex-1">
-                  <p className="text-white font-bold text-base">🍀 Lotería de Navidad</p>
-                  <p className="text-green-100 text-xs">Compra décimos del club 🎄</p>
-                </div>
-              </div>
-            </div>
-          </Link>
-        )}
+        <Link to={createPageUrl("ParentEventRSVP")}>
+          <div className="bg-gradient-to-br from-green-600 to-green-700 rounded-xl p-4 text-white hover:scale-105 transition-all shadow-lg h-full flex flex-col justify-center">
+            <p className="text-base font-bold text-center mb-1">🎉 Eventos Club</p>
+            <p className="text-xs text-green-100 text-center">RSVP</p>
+          </div>
+        </Link>
 
-        {/* Grid de botones principales */}
-        <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6 stagger-animation">
-          <Link to={createPageUrl("FederationSignatures")} className="group">
-            <div className="relative bg-slate-800 rounded-3xl overflow-hidden shadow-elegant-xl card-hover-glow transition-all duration-300 active:scale-95 border-2 border-slate-700 hover:border-orange-500 btn-hover-shine">
-              <div className="absolute inset-0 bg-gradient-to-br from-slate-700/50 to-black/80 opacity-60"></div>
-              <div className="absolute bottom-0 right-0 w-32 h-32 bg-gradient-to-tl from-yellow-600 to-orange-600 opacity-30 blur-2xl transition-opacity duration-300 group-hover:opacity-50"></div>
-              <div className="relative z-10 p-4 lg:p-8 flex flex-col items-center justify-center min-h-[140px] lg:min-h-[200px]">
-                <div className="w-12 h-12 lg:w-20 lg:h-20 rounded-2xl bg-gradient-to-br from-yellow-600 to-orange-600 flex items-center justify-center mb-3 lg:mb-4 shadow-2xl icon-hover-bounce">
-                  <FileSignature className="w-6 h-6 lg:w-10 lg:h-10 text-white" />
-                </div>
-                <h3 className="text-white font-bold text-center text-sm lg:text-lg mb-2">🖊️ Firmas Federación</h3>
-                {pendingSignatures > 0 && (
-                  <div className="bg-white/20 backdrop-blur-sm px-2 py-1 rounded-full badge-pulse">
-                    <p className="text-white text-[10px] lg:text-xs font-semibold">
-                      {pendingSignatures} pendientes
-                    </p>
-                  </div>
-                )}
-              </div>
-            </div>
-          </Link>
+        <Link to={createPageUrl("Announcements")}>
+          <div className="bg-gradient-to-br from-orange-600 to-orange-700 rounded-xl p-4 text-white hover:scale-105 transition-all shadow-lg h-full flex flex-col justify-center">
+            <p className="text-base font-bold text-center mb-1">📢 Anuncios</p>
+            <p className="text-xs text-orange-100 text-center">Comunicados</p>
+          </div>
+        </Link>
 
-          <Link to={createPageUrl("ParentCallups")} className="group">
-            <div className="relative bg-slate-800 rounded-3xl overflow-hidden shadow-elegant-xl card-hover-glow transition-all duration-300 active:scale-95 border-2 border-slate-700 hover:border-orange-500 btn-hover-shine">
-              <div className="absolute inset-0 bg-gradient-to-br from-slate-700/50 to-black/80 opacity-60"></div>
-              <div className="absolute bottom-0 right-0 w-32 h-32 bg-gradient-to-tl from-blue-600 to-blue-700 opacity-30 blur-2xl transition-opacity duration-300 group-hover:opacity-50"></div>
-              <div className="relative z-10 p-4 lg:p-8 flex flex-col items-center justify-center min-h-[140px] lg:min-h-[200px]">
-                <div className="w-12 h-12 lg:w-20 lg:h-20 rounded-2xl bg-gradient-to-br from-blue-600 to-blue-700 flex items-center justify-center mb-3 lg:mb-4 shadow-2xl icon-hover-bounce">
-                  <Bell className="w-6 h-6 lg:w-10 lg:h-10 text-white" />
-                </div>
-                <h3 className="text-white font-bold text-center text-sm lg:text-lg mb-2">🏆 Convocatorias</h3>
-                {pendingCallups.length > 0 && (
-                  <div className="bg-white/20 backdrop-blur-sm px-2 py-1 rounded-full badge-pulse">
-                    <p className="text-white text-[10px] lg:text-xs font-semibold">
-                      {pendingCallups.length} pendientes
-                    </p>
-                  </div>
-                )}
-              </div>
-            </div>
-          </Link>
+        <Link to={createPageUrl("Gallery")}>
+          <div className="bg-gradient-to-br from-pink-600 to-pink-700 rounded-xl p-4 text-white hover:scale-105 transition-all shadow-lg h-full flex flex-col justify-center">
+            <p className="text-base font-bold text-center mb-1">🖼️ Galería</p>
+            <p className="text-xs text-pink-100 text-center">Fotos</p>
+          </div>
+        </Link>
 
-          <Link to={createPageUrl("ParentPayments")} className="group">
-            <div className="relative bg-slate-800 rounded-3xl overflow-hidden shadow-elegant-xl card-hover-glow transition-all duration-300 active:scale-95 border-2 border-slate-700 hover:border-orange-500 btn-hover-shine">
-              <div className="absolute inset-0 bg-gradient-to-br from-slate-700/50 to-black/80 opacity-60"></div>
-              <div className="absolute bottom-0 right-0 w-32 h-32 bg-gradient-to-tl from-green-600 to-green-700 opacity-30 blur-2xl transition-opacity duration-300 group-hover:opacity-50"></div>
-              <div className="relative z-10 p-4 lg:p-8 flex flex-col items-center justify-center min-h-[140px] lg:min-h-[200px]">
-                <div className="w-12 h-12 lg:w-20 lg:h-20 rounded-2xl bg-gradient-to-br from-green-600 to-green-700 flex items-center justify-center mb-3 lg:mb-4 shadow-2xl icon-hover-bounce">
-                  <CreditCard className="w-6 h-6 lg:w-10 lg:h-10 text-white" />
-                </div>
-                <h3 className="text-white font-bold text-center text-sm lg:text-lg mb-2">💳 Mis Pagos</h3>
-                {paymentStats.pendientes > 0 && (
-                  <div className="bg-white/20 backdrop-blur-sm px-2 py-1 rounded-full badge-pulse">
-                    <p className="text-white text-[10px] lg:text-xs font-semibold">
-                      {paymentStats.pendientes} pendientes
-                    </p>
-                  </div>
-                )}
-              </div>
-            </div>
-          </Link>
+        <Link to={createPageUrl("Surveys")}>
+          <div className="bg-gradient-to-br from-teal-600 to-teal-700 rounded-xl p-4 text-white hover:scale-105 transition-all shadow-lg h-full flex flex-col justify-center">
+            <p className="text-base font-bold text-center mb-1">📋 Encuestas</p>
+            <p className="text-xs text-teal-100 text-center">Opina</p>
+          </div>
+        </Link>
 
-          <Link to={createPageUrl("CalendarAndSchedules")} className="group">
-            <div className="relative bg-slate-800 rounded-3xl overflow-hidden shadow-elegant-xl card-hover-glow transition-all duration-300 active:scale-95 border-2 border-slate-700 hover:border-orange-500 btn-hover-shine">
-              <div className="absolute inset-0 bg-gradient-to-br from-slate-700/50 to-black/80 opacity-60"></div>
-              <div className="absolute bottom-0 right-0 w-32 h-32 bg-gradient-to-tl from-purple-600 to-purple-700 opacity-30 blur-2xl transition-opacity duration-300 group-hover:opacity-50"></div>
-              <div className="relative z-10 p-4 lg:p-8 flex flex-col items-center justify-center min-h-[140px] lg:min-h-[200px]">
-                <div className="w-12 h-12 lg:w-20 lg:h-20 rounded-2xl bg-gradient-to-br from-purple-600 to-purple-700 flex items-center justify-center mb-3 lg:mb-4 shadow-2xl icon-hover-bounce">
-                  <Calendar className="w-6 h-6 lg:w-10 lg:h-10 text-white" />
-                </div>
-                <h3 className="text-white font-bold text-center text-sm lg:text-lg mb-2">📅 Calendario</h3>
-              </div>
-            </div>
-          </Link>
+        <Link to={createPageUrl("ParentDocuments")}>
+          <div className="bg-gradient-to-br from-slate-600 to-slate-700 rounded-xl p-4 text-white hover:scale-105 transition-all shadow-lg h-full flex flex-col justify-center">
+            <p className="text-base font-bold text-center mb-1">📄 Documentos</p>
+            <p className="text-xs text-slate-100 text-center">Archivos</p>
+          </div>
+        </Link>
+      </div>
 
-          <Link to={createPageUrl("ParentEventRSVP")} className="group">
-            <div className="relative bg-slate-800 rounded-3xl overflow-hidden shadow-elegant-xl card-hover-glow transition-all duration-300 active:scale-95 border-2 border-slate-700 hover:border-orange-500 btn-hover-shine">
-              <div className="absolute inset-0 bg-gradient-to-br from-slate-700/50 to-black/80 opacity-60"></div>
-              <div className="absolute bottom-0 right-0 w-32 h-32 bg-gradient-to-tl from-cyan-600 to-cyan-700 opacity-30 blur-2xl transition-opacity duration-300 group-hover:opacity-50"></div>
-              <div className="relative z-10 p-4 lg:p-8 flex flex-col items-center justify-center min-h-[140px] lg:min-h-[200px]">
-                <div className="w-12 h-12 lg:w-20 lg:h-20 rounded-2xl bg-gradient-to-br from-cyan-600 to-cyan-700 flex items-center justify-center mb-3 lg:mb-4 shadow-2xl icon-hover-bounce">
-                  <Calendar className="w-6 h-6 lg:w-10 lg:h-10 text-white" />
-                </div>
-                <h3 className="text-white font-bold text-center text-sm lg:text-lg mb-2">🎉 Eventos Club</h3>
-              </div>
-            </div>
-          </Link>
-
-          <Link to={createPageUrl("Announcements")} className="group">
-            <div className="relative bg-slate-800 rounded-3xl overflow-hidden shadow-elegant-xl card-hover-glow transition-all duration-300 active:scale-95 border-2 border-slate-700 hover:border-orange-500 btn-hover-shine">
-              <div className="absolute inset-0 bg-gradient-to-br from-slate-700/50 to-black/80 opacity-60"></div>
-              <div className="absolute bottom-0 right-0 w-32 h-32 bg-gradient-to-tl from-pink-600 to-pink-700 opacity-30 blur-2xl transition-opacity duration-300 group-hover:opacity-50"></div>
-              <div className="relative z-10 p-4 lg:p-8 flex flex-col items-center justify-center min-h-[140px] lg:min-h-[200px]">
-                <div className="w-12 h-12 lg:w-20 lg:h-20 rounded-2xl bg-gradient-to-br from-pink-600 to-pink-700 flex items-center justify-center mb-3 lg:mb-4 shadow-2xl icon-hover-bounce">
-                  <Megaphone className="w-6 h-6 lg:w-10 lg:h-10 text-white" />
-                </div>
-                <h3 className="text-white font-bold text-center text-sm lg:text-lg mb-2">📢 Anuncios</h3>
-              </div>
-            </div>
-          </Link>
-
-          <Link to={createPageUrl("Gallery")} className="group">
-            <div className="relative bg-slate-800 rounded-3xl overflow-hidden shadow-elegant-xl card-hover-glow transition-all duration-300 active:scale-95 border-2 border-slate-700 hover:border-orange-500 btn-hover-shine">
-              <div className="absolute inset-0 bg-gradient-to-br from-slate-700/50 to-black/80 opacity-60"></div>
-              <div className="absolute bottom-0 right-0 w-32 h-32 bg-gradient-to-tl from-indigo-600 to-indigo-700 opacity-30 blur-2xl transition-opacity duration-300 group-hover:opacity-50"></div>
-              <div className="relative z-10 p-4 lg:p-8 flex flex-col items-center justify-center min-h-[140px] lg:min-h-[200px]">
-                <div className="w-12 h-12 lg:w-20 lg:h-20 rounded-2xl bg-gradient-to-br from-indigo-600 to-indigo-700 flex items-center justify-center mb-3 lg:mb-4 shadow-2xl icon-hover-bounce">
-                  <Image className="w-6 h-6 lg:w-10 lg:h-10 text-white" />
-                </div>
-                <h3 className="text-white font-bold text-center text-sm lg:text-lg mb-2">🖼️ Galería</h3>
-              </div>
-            </div>
-          </Link>
-
-          <Link to={createPageUrl("Surveys")} className="group">
-            <div className="relative bg-slate-800 rounded-3xl overflow-hidden shadow-elegant-xl card-hover-glow transition-all duration-300 active:scale-95 border-2 border-slate-700 hover:border-orange-500 btn-hover-shine">
-              <div className="absolute inset-0 bg-gradient-to-br from-slate-700/50 to-black/80 opacity-60"></div>
-              <div className="absolute bottom-0 right-0 w-32 h-32 bg-gradient-to-tl from-violet-600 to-violet-700 opacity-30 blur-2xl transition-opacity duration-300 group-hover:opacity-50"></div>
-              <div className="relative z-10 p-4 lg:p-8 flex flex-col items-center justify-center min-h-[140px] lg:min-h-[200px]">
-                <div className="w-12 h-12 lg:w-20 lg:h-20 rounded-2xl bg-gradient-to-br from-violet-600 to-violet-700 flex items-center justify-center mb-3 lg:mb-4 shadow-2xl icon-hover-bounce">
-                  <FileText className="w-6 h-6 lg:w-10 lg:h-10 text-white" />
-                </div>
-                <h3 className="text-white font-bold text-center text-sm lg:text-lg mb-2">📋 Encuestas</h3>
-              </div>
-            </div>
-          </Link>
-
-          <Link to={createPageUrl("Clasificaciones")} className="group">
-            <div className="relative bg-slate-800 rounded-3xl overflow-hidden shadow-elegant-xl card-hover-glow transition-all duration-300 active:scale-95 border-2 border-slate-700 hover:border-orange-500 btn-hover-shine">
-              <div className="absolute inset-0 bg-gradient-to-br from-slate-700/50 to-black/80 opacity-60"></div>
-              <div className="absolute bottom-0 right-0 w-32 h-32 bg-gradient-to-tl from-blue-600 to-cyan-700 opacity-30 blur-2xl transition-opacity duration-300 group-hover:opacity-50"></div>
-              <div className="relative z-10 p-4 lg:p-8 flex flex-col items-center justify-center min-h-[140px] lg:min-h-[200px]">
-                <div className="w-12 h-12 lg:w-20 lg:h-20 rounded-2xl bg-gradient-to-br from-blue-600 to-cyan-700 flex items-center justify-center mb-3 lg:mb-4 shadow-2xl icon-hover-bounce">
-                  <Trophy className="w-6 h-6 lg:w-10 lg:h-10 text-white" />
-                </div>
-                <h3 className="text-white font-bold text-center text-sm lg:text-lg mb-2">📊 Clasificaciones</h3>
-              </div>
-            </div>
-          </Link>
-
-          <Link to={createPageUrl("ParentDocuments")} className="group">
-            <div className="relative bg-slate-800 rounded-3xl overflow-hidden shadow-elegant-xl card-hover-glow transition-all duration-300 active:scale-95 border-2 border-slate-700 hover:border-orange-500 btn-hover-shine">
-              <div className="absolute inset-0 bg-gradient-to-br from-slate-700/50 to-black/80 opacity-60"></div>
-              <div className="absolute bottom-0 right-0 w-32 h-32 bg-gradient-to-tl from-slate-600 to-slate-700 opacity-30 blur-2xl transition-opacity duration-300 group-hover:opacity-50"></div>
-              <div className="relative z-10 p-4 lg:p-8 flex flex-col items-center justify-center min-h-[140px] lg:min-h-[200px]">
-                <div className="w-12 h-12 lg:w-20 lg:h-20 rounded-2xl bg-gradient-to-br from-slate-600 to-slate-700 flex items-center justify-center mb-3 lg:mb-4 shadow-2xl icon-hover-bounce">
-                  <FileText className="w-6 h-6 lg:w-10 lg:h-10 text-white" />
-                </div>
-                <h3 className="text-white font-bold text-center text-sm lg:text-lg mb-2">📄 Documentos</h3>
-              </div>
-            </div>
-          </Link>
-
-          <Link to={createPageUrl("ClothingOrders")} className="group">
-            <div className="relative bg-slate-800 rounded-3xl overflow-hidden shadow-elegant-xl card-hover-glow transition-all duration-300 active:scale-95 border-2 border-slate-700 hover:border-orange-500 btn-hover-shine">
-              <div className="absolute inset-0 bg-gradient-to-br from-slate-700/50 to-black/80 opacity-60"></div>
-              <div className="absolute bottom-0 right-0 w-32 h-32 bg-gradient-to-tl from-red-600 to-red-700 opacity-30 blur-2xl transition-opacity duration-300 group-hover:opacity-50"></div>
-              <div className="relative z-10 p-4 lg:p-8 flex flex-col items-center justify-center min-h-[140px] lg:min-h-[200px]">
-                <div className="w-12 h-12 lg:w-20 lg:h-20 rounded-2xl bg-gradient-to-br from-red-600 to-red-700 flex items-center justify-center mb-3 lg:mb-4 shadow-2xl icon-hover-bounce">
-                  <ShoppingBag className="w-6 h-6 lg:w-10 lg:h-10 text-white" />
-                </div>
-                <h3 className="text-white font-bold text-center text-sm lg:text-lg mb-2">🛍️ Pedidos Ropa</h3>
-                {clothingOrders.filter(o => o.estado !== "Entregado").length > 0 && (
-                  <div className="bg-white/20 backdrop-blur-sm px-2 py-1 rounded-full">
-                    <p className="text-white text-[10px] lg:text-xs font-semibold">
-                      {clothingOrders.filter(o => o.estado !== "Entregado").length} activos
-                    </p>
-                  </div>
-                )}
-              </div>
-            </div>
-          </Link>
-        </div>
-
-        {/* Centro de Alertas - Ahora visible para jugadores */}
+      {/* ¡Todo al día! o Alertas */}
+      {pendingCallups.length === 0 && pendingSignatures === 0 && paymentStats.pendientes === 0 && paymentStats.vencidos === 0 ? (
+        <Card className="border-2 border-green-300 bg-gradient-to-r from-green-50 to-green-100 shadow-lg">
+          <CardContent className="p-6 text-center">
+            <div className="text-5xl mb-2">✅</div>
+            <h3 className="text-xl font-bold text-green-900 mb-1">¡Todo al día!</h3>
+            <p className="text-sm text-green-700">No tienes tareas pendientes</p>
+          </CardContent>
+        </Card>
+      ) : (
         <AlertCenter 
           pendingCallups={pendingCallups.length}
           pendingSignatures={pendingSignatures}
@@ -959,43 +631,7 @@ export default function PlayerDashboard() {
           userEmail={user?.email}
           userSports={player?.deporte ? [player.deporte] : []}
         />
-
-        {/* Stats footer */}
-        <div className="bg-slate-800 rounded-3xl p-4 lg:p-6 shadow-2xl border-2 border-slate-700">
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
-            <div className="text-center">
-              <div className="text-2xl lg:text-4xl font-bold text-green-500 mb-1">
-                {paymentStats.pagados}
-              </div>
-              <div className="text-slate-400 text-[10px] lg:text-sm">Pagos OK</div>
-            </div>
-            <div className="text-center">
-              <div className="text-2xl lg:text-4xl font-bold text-red-500 mb-1">
-                {paymentStats.pendientes + paymentStats.enRevision + paymentStats.vencidos}
-              </div>
-              <div className="text-slate-400 text-[10px] lg:text-sm">Pagos Total</div>
-              <div className="text-slate-500 text-[8px] lg:text-[10px] mt-1">
-                {paymentStats.vencidos > 0 && `${paymentStats.vencidos} vencidos`}
-                {paymentStats.vencidos > 0 && (paymentStats.pendientes > 0 || paymentStats.enRevision > 0) && ' • '}
-                {paymentStats.pendientes > 0 && `${paymentStats.pendientes} pendientes`}
-                {paymentStats.pendientes > 0 && paymentStats.enRevision > 0 && ' • '}
-                {paymentStats.enRevision > 0 && `${paymentStats.enRevision} revisión`}
-              </div>
-            </div>
-            <div className="text-center">
-              <div className="text-2xl lg:text-4xl font-bold text-yellow-500 mb-1">
-                {pendingCallups.length}
-              </div>
-              <div className="text-slate-400 text-[10px] lg:text-sm">Convocatorias</div>
-            </div>
-            <div className="text-center">
-              <div className="text-2xl lg:text-4xl font-bold text-purple-500 mb-1">
-                {attendanceStreak}
-              </div>
-              <div className="text-slate-400 text-[10px] lg:text-sm">🔥 Racha</div>
-            </div>
-          </div>
-        </div>
+      )}
 
         <ContactCard />
       </div>
