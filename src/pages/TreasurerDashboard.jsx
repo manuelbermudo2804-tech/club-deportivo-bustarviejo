@@ -57,7 +57,6 @@ export default function TreasurerDashboard() {
   const [selectedSeason, setSelectedSeason] = useState("all");
   const [hasPlayers, setHasPlayers] = useState(false);
   const [loteriaVisible, setLoteriaVisible] = useState(false);
-  const [buttonConfig, setButtonConfig] = useState([]);
   const [showNewBudget, setShowNewBudget] = useState(false);
   const [showTransactionForm, setShowTransactionForm] = useState(false);
   const [showCommunicationAssistant, setShowCommunicationAssistant] = useState(false);
@@ -129,7 +128,6 @@ export default function TreasurerDashboard() {
       try {
         const currentUser = await base44.auth.me();
         setHasPlayers(currentUser.tiene_hijos_jugando === true);
-        setButtonConfig(currentUser.dashboard_buttons_config || []);
       } catch (error) {
         console.error("Error checking players:", error);
       }
@@ -980,32 +978,8 @@ export default function TreasurerDashboard() {
         </div>
       </div>
 
-      {/* Botón Personalizar Dashboard */}
-      <div className="flex justify-center">
-        <DashboardButtonConfig
-          availableButtons={availableButtons}
-          currentConfig={buttonConfig}
-          onSave={setButtonConfig}
-        />
-      </div>
-
       {/* Accesos Rápidos - Grid de Botones Grandes */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        {displayedButtons.slice(0, 4).map((button) => (
-          <Link key={button.id} to={button.url} className="block">
-            <Card className="border-2 border-green-400 hover:border-green-600 transition-all cursor-pointer group hover:shadow-xl h-full">
-              <CardContent className="pt-6 pb-6">
-                <div className="text-center">
-                  <div className={`w-14 h-14 ${button.bgColor.replace('bg-gradient-to-br', 'bg-gradient-to-br')} bg-opacity-20 rounded-2xl flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform`}>
-                    <button.icon className="w-8 h-8 text-green-600" />
-                  </div>
-                  <h3 className="font-bold text-slate-900 text-base">{button.label}</h3>
-                  <p className="text-xs text-slate-600">{button.description}</p>
-                </div>
-              </CardContent>
-            </Card>
-          </Link>
-        ))}
         <Link to={createPageUrl("Payments")} className="block">
           <Card className="border-2 border-green-400 hover:border-green-600 transition-all cursor-pointer group hover:shadow-xl h-full">
             <CardContent className="pt-6 pb-6">

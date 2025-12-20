@@ -25,13 +25,13 @@ import CoordinatorClassificationsMatchesBanner from "../components/dashboard/Coo
 
 export default function CoordinatorDashboard() {
   const [user, setUser] = useState(null);
-  const [buttonConfig, setButtonConfig] = useState([]);
+  const [myCategories, setMyCategories] = useState([]);
 
   useEffect(() => {
     const fetchUser = async () => {
       const currentUser = await base44.auth.me();
       setUser(currentUser);
-      setButtonConfig(currentUser.dashboard_buttons_config || []);
+      setMyCategories(currentUser.categorias_coordina || []);
     };
     fetchUser();
   }, []);
@@ -259,31 +259,8 @@ export default function CoordinatorDashboard() {
           isCoordinator={true}
         />
 
-        {/* Botón Personalizar Dashboard */}
-        <div className="flex justify-center">
-          <DashboardButtonConfig
-            availableButtons={availableButtons}
-            currentConfig={buttonConfig}
-            onSave={setButtonConfig}
-          />
-        </div>
-
         {/* GRID DE BOTONES CENTRALES - MENÚ PRINCIPAL */}
         <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6 stagger-animation">
-          {displayedButtons.map((button) => (
-            <Link key={button.id} to={button.url} className="group">
-              <div className="relative bg-slate-800 rounded-3xl overflow-hidden shadow-elegant-xl card-hover-glow transition-all duration-300 active:scale-95 border-2 border-slate-700 hover:border-orange-500">
-                <div className="absolute inset-0 bg-gradient-to-br from-slate-700/50 to-black/80 opacity-60"></div>
-                <div className={`absolute bottom-0 right-0 w-32 h-32 bg-gradient-to-tl ${button.bgColor.replace('bg-gradient-to-br', '')} opacity-30 blur-2xl transition-opacity duration-300 group-hover:opacity-50`}></div>
-                <div className="relative z-10 p-4 lg:p-8 flex flex-col items-center justify-center min-h-[140px] lg:min-h-[200px]">
-                  <div className={`w-12 h-12 lg:w-20 lg:h-20 rounded-2xl ${button.bgColor} flex items-center justify-center mb-3 lg:mb-4 shadow-2xl`}>
-                    <button.icon className="w-6 h-6 lg:w-10 lg:h-10 text-white" />
-                  </div>
-                  <h3 className="text-white font-bold text-center text-sm lg:text-lg">{button.label}</h3>
-                </div>
-              </div>
-            </Link>
-          ))}
           {/* Convocatorias */}
           <Link to={createPageUrl("CoachCallups")} className="group">
             <div className="relative bg-slate-800 rounded-3xl overflow-hidden shadow-elegant-xl card-hover-glow transition-all duration-300 active:scale-95 border-2 border-slate-700 hover:border-orange-500">
