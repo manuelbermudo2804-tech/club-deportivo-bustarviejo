@@ -21,6 +21,7 @@ import PlayerForm from "../components/players/PlayerForm";
 import InscriptionPaymentFlow from "../components/inscriptions/InscriptionPaymentFlow";
 import InscriptionSuccessScreen from "../components/inscriptions/InscriptionSuccessScreen";
 import ContactCard from "../components/ContactCard";
+import ClassificationsAndMatchesBanner from "../components/dashboard/ClassificationsAndMatchesBanner";
 
 export default function PlayerDashboard() {
   const [user, setUser] = useState(null);
