@@ -18,11 +18,10 @@ import {
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import StandingsWidget from "../components/standings/StandingsWidget";
-import NextMatchWidget from "../components/dashboard/NextMatchWidget";
 import ContactCard from "../components/ContactCard";
 import AlertCenter from "../components/dashboard/AlertCenter";
 import SocialLinks from "../components/SocialLinks";
+import CoachClassificationsMatchesBanner from "../components/dashboard/CoachClassificationsMatchesBanner";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 
@@ -202,13 +201,8 @@ export default function CoachDashboard() {
           </CardContent>
         </Card>
 
-        {/* Banner: Clasificación + Próximo Partido */}
-        {myCategories.length > 0 && (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            <StandingsWidget categoria={myCategories[0]} compact={true} />
-            <NextMatchWidget categoria={myCategories[0]} />
-          </div>
-        )}
+        {/* Banner Clasificaciones + Partidos - Estilo ParentDashboard */}
+        <CoachClassificationsMatchesBanner myCategories={myCategories} />
 
         {/* AlertCenter - Alertas del entrenador */}
         <AlertCenter 

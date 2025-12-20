@@ -17,12 +17,10 @@ import {
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import StandingsWidget from "../components/standings/StandingsWidget";
 import ContactCard from "../components/ContactCard";
 import AlertCenter from "../components/dashboard/AlertCenter";
 import SocialLinks from "../components/SocialLinks";
-import { format } from "date-fns";
-import { es } from "date-fns/locale";
+import CoordinatorClassificationsMatchesBanner from "../components/dashboard/CoordinatorClassificationsMatchesBanner";
 
 export default function CoordinatorDashboard() {
   const [user, setUser] = useState(null);
@@ -251,38 +249,8 @@ export default function CoordinatorDashboard() {
           </CardContent>
         </Card>
 
-        {/* Banner: Clasificaciones compactas con +X más */}
-        {Object.keys(standingsByCategory).length > 0 && (
-          <Card className="border-2 border-orange-500 bg-gradient-to-br from-orange-50 to-white shadow-lg">
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between mb-3">
-                <h3 className="font-bold text-slate-900 flex items-center gap-2">
-                  <Trophy className="w-5 h-5 text-orange-600" />
-                  📊 Clasificaciones del Club
-                </h3>
-                {Object.keys(standingsByCategory).length > 2 && (
-                  <Badge className="bg-orange-500">+{Object.keys(standingsByCategory).length - 2} más</Badge>
-                )}
-              </div>
-              <div className="space-y-3">
-                {Object.entries(standingsByCategory).slice(0, 2).map(([categoria]) => (
-                  <StandingsWidget 
-                    key={categoria}
-                    categoria={categoria}
-                    compact={true}
-                  />
-                ))}
-              </div>
-              {Object.keys(standingsByCategory).length > 2 && (
-                <Link to={createPageUrl("Clasificaciones")}>
-                  <button className="w-full mt-3 text-sm text-orange-600 hover:text-orange-700 font-medium">
-                    Ver todas las clasificaciones →
-                  </button>
-                </Link>
-              )}
-            </CardContent>
-          </Card>
-        )}
+        {/* Banner Clasificaciones + Partidos - Estilo ParentDashboard */}
+        <CoordinatorClassificationsMatchesBanner />
 
         {/* AlertCenter - Alertas profesionales del coordinador */}
         <AlertCenter 
