@@ -71,39 +71,6 @@ export default function Clasificaciones() {
     checkAdmin();
   }, []);
 
-  // Auto-abrir vista detallada si solo hay una clasificación para usuarios no admin
-  React.useEffect(() => {
-    if (!isAdmin && !isLoadingUser && activeTab && !selectedView && standings.length > 0) {
-      const categoryStandings = standings.filter(s => {
-        const cat = CATEGORIES.find(c => c.id === activeTab);
-        return cat && s.categoria === cat.fullName;
-      });
-      
-      const grouped = categoryStandings.reduce((acc, standing) => {
-        const key = `${standing.temporada}|${standing.jornada}`;
-        if (!acc[key]) {
-          acc[key] = {
-            temporada: standing.temporada,
-            categoria: standing.categoria,
-            jornada: standing.jornada,
-            fecha_actualizacion: standing.fecha_actualizacion,
-            data: []
-          };
-        }
-        acc[key].data.push(standing);
-        return acc;
-      }, {});
-      
-      const groupedArray = Object.values(grouped).sort((a, b) => 
-        new Date(b.fecha_actualizacion) - new Date(a.fecha_actualizacion)
-      );
-      
-      if (groupedArray.length === 1) {
-        setSelectedView(groupedArray[0]);
-      }
-    }
-  }, [isAdmin, isLoadingUser, activeTab, standings, selectedView]);
-
   const { data: standings } = useQuery({
     queryKey: ['clasificaciones'],
     queryFn: () => base44.entities.Clasificacion.list('-jornada'),
@@ -223,6 +190,39 @@ export default function Clasificaciones() {
   const visibleCategories = isAdmin 
     ? CATEGORIES 
     : CATEGORIES.filter(cat => userCategories.includes(cat.fullName));
+
+  // Auto-abrir vista detallada si solo hay una clasificación para usuarios no admin
+  React.useEffect(() => {
+    if (!isAdmin && !isLoadingUser && activeTab && !selectedView && standings.length > 0) {
+      const cat = CATEGORIES.find(c => c.id === activeTab);
+      if (!cat) return;
+      
+      const categoryStandings = standings.filter(s => s.categoria === cat.fullName);
+      
+      const grouped = {};
+      categoryStandings.forEach(standing => {
+        const key = `${standing.temporada}|${standing.jornada}`;
+        if (!grouped[key]) {
+          grouped[key] = {
+            temporada: standing.temporada,
+            categoria: standing.categoria,
+            jornada: standing.jornada,
+            fecha_actualizacion: standing.fecha_actualizacion,
+            data: []
+          };
+        }
+        grouped[key].data.push(standing);
+      });
+      
+      const groupedArray = Object.values(grouped).sort((a, b) => 
+        new Date(b.fecha_actualizacion) - new Date(a.fecha_actualizacion)
+      );
+      
+      if (groupedArray.length === 1) {
+        setSelectedView(groupedArray[0]);
+      }
+    }
+  }, [isAdmin, isLoadingUser, activeTab, selectedView, standings.length]);
 
   if (isLoadingUser) {
     return (
