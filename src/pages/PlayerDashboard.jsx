@@ -7,8 +7,6 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import DashboardButtonConfig from "../components/dashboard/DashboardButtonConfig";
-import { useDashboardButtons } from "../components/dashboard/useDashboardButtons";
 import { 
   Trophy, CreditCard, Star, Award, MessageCircle, Calendar, 
   User, CheckCircle2, Clock, AlertCircle, ChevronRight,
@@ -34,7 +32,6 @@ export default function PlayerDashboard() {
   const [showInscriptionSuccess, setShowInscriptionSuccess] = useState(false);
   const [inscriptionSuccessData, setInscriptionSuccessData] = useState(null);
   const [isCreatingProfile, setIsCreatingProfile] = useState(false);
-  const [buttonConfig, setButtonConfig] = useState([]);
   const queryClient = useQueryClient();
 
   useEffect(() => {
@@ -479,24 +476,6 @@ export default function PlayerDashboard() {
     );
   }
 
-  // Definir TODOS los botones disponibles (SIN chats) - basados en el menú lateral
-  const availableButtons = React.useMemo(() => [
-    // 6 PRINCIPALES por defecto
-    { id: 'callups', label: '🏆 Convocatorias', description: 'Confirmar asistencia', url: createPageUrl('ParentCallups'), icon: ClipboardCheck, bgColor: 'bg-gradient-to-br from-yellow-600 to-yellow-700' },
-    { id: 'signatures', label: '🖊️ Firmas', description: 'Firmas de federación', url: createPageUrl('FederationSignatures'), icon: FileSignature, bgColor: 'bg-gradient-to-br from-yellow-600 to-orange-600' },
-    { id: 'payments', label: '💳 Mis Pagos', description: 'Ver estado de pagos', url: createPageUrl('ParentPayments'), icon: CreditCard, bgColor: 'bg-gradient-to-br from-green-600 to-green-700' },
-    { id: 'calendar', label: '📅 Calendario', description: 'Horarios y partidos', url: createPageUrl('CalendarAndSchedules'), icon: Calendar, bgColor: 'bg-gradient-to-br from-purple-600 to-purple-700' },
-    { id: 'events', label: '🎉 Eventos', description: 'Eventos del club', url: createPageUrl('ParentEventRSVP'), icon: Calendar, bgColor: 'bg-gradient-to-br from-cyan-600 to-cyan-700' },
-    { id: 'standings', label: '📊 Clasificaciones', description: 'Tablas de clasificación', url: createPageUrl('Clasificaciones'), icon: BarChart3, bgColor: 'bg-gradient-to-br from-blue-600 to-cyan-700' },
-    // Resto de opciones
-    { id: 'announcements', label: '📢 Anuncios', description: 'Comunicados', url: createPageUrl('Announcements'), icon: Megaphone, bgColor: 'bg-gradient-to-br from-pink-600 to-pink-700' },
-    { id: 'gallery', label: '🖼️ Galería', description: 'Fotos del club', url: createPageUrl('Gallery'), icon: Image, bgColor: 'bg-gradient-to-br from-indigo-600 to-indigo-700' },
-    { id: 'surveys', label: '📋 Encuestas', description: 'Participar', url: createPageUrl('Surveys'), icon: FileText, bgColor: 'bg-gradient-to-br from-violet-600 to-violet-700' },
-    { id: 'membership', label: '🎫 Hacerse Socio', description: 'Programa de socios', url: createPageUrl('ClubMembership'), icon: Heart, bgColor: 'bg-gradient-to-br from-pink-600 to-pink-700' },
-  ], []);
-
-  const displayedButtons = useDashboardButtons(availableButtons, buttonConfig);
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-black">
       <div className="px-4 lg:px-8 py-6 space-y-4 lg:space-y-6">
@@ -607,32 +586,8 @@ export default function PlayerDashboard() {
           </Link>
         )}
 
-        {/* Botón Personalizar Dashboard */}
-        <div className="flex justify-center">
-          <DashboardButtonConfig
-            availableButtons={availableButtons}
-            currentConfig={buttonConfig}
-            onSave={setButtonConfig}
-          />
-        </div>
-
         {/* Grid de botones principales - mismo estilo que ParentDashboard */}
         <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6 stagger-animation">
-          {displayedButtons.map((button) => (
-            <Link key={button.id} to={button.url} className="group">
-              <div className="relative bg-slate-800 rounded-3xl overflow-hidden shadow-elegant-xl card-hover-glow transition-all duration-300 active:scale-95 border-2 border-slate-700 hover:border-orange-500 btn-hover-shine">
-                <div className="absolute inset-0 bg-gradient-to-br from-slate-700/50 to-black/80 opacity-60"></div>
-                <div className={`absolute bottom-0 right-0 w-32 h-32 bg-gradient-to-tl ${button.bgColor.replace('bg-gradient-to-br', '')} opacity-30 blur-2xl transition-opacity duration-300 group-hover:opacity-50`}></div>
-                <div className={`absolute top-0 left-0 w-24 h-24 ${button.bgColor} opacity-20 blur-xl transition-opacity duration-300 group-hover:opacity-40`}></div>
-                <div className="relative z-10 p-4 lg:p-8 flex flex-col items-center justify-center min-h-[140px] lg:min-h-[200px]">
-                  <div className={`w-12 h-12 lg:w-20 lg:h-20 rounded-2xl ${button.bgColor} flex items-center justify-center mb-3 lg:mb-4 shadow-2xl icon-hover-bounce transition-all duration-300`}>
-                    <button.icon className="w-6 h-6 lg:w-10 lg:h-10 text-white transition-transform duration-300" />
-                  </div>
-                  <h3 className="text-white font-bold text-center text-sm lg:text-lg mb-2">{button.label}</h3>
-                </div>
-              </div>
-            </Link>
-          ))}
           <Link to={createPageUrl("ParentCallups")} className="group">
             <div className="relative bg-slate-800 rounded-3xl overflow-hidden shadow-elegant-xl card-hover-glow transition-all duration-300 active:scale-95 border-2 border-slate-700 hover:border-orange-500 btn-hover-shine">
               <div className="absolute inset-0 bg-gradient-to-br from-slate-700/50 to-black/80 opacity-60"></div>
