@@ -254,39 +254,41 @@ export default function CoordinatorClassificationsMatchesBanner() {
               }
 
               return (
-                <Card key={idx} className="border-2 border-slate-200 hover:border-orange-400 transition-colors">
-                  <CardContent className="p-4">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <div className={`text-3xl font-bold ${posClass} flex items-center gap-1`}>
-                          {team.posicion}º
-                          {trend && <span className={trendCol}>{trend}</span>}
+                <Link key={idx} to={createPageUrl("Clasificaciones")} onClick={() => setShowAllStandings(false)}>
+                  <Card className="border-2 border-slate-200 hover:border-orange-400 transition-colors cursor-pointer hover:shadow-lg">
+                    <CardContent className="p-4">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className={`text-3xl font-bold ${posClass} flex items-center gap-1`}>
+                            {team.posicion}º
+                            {trend && <span className={trendCol}>{trend}</span>}
+                          </div>
+                          <div>
+                            <p className="font-semibold text-slate-900">{categoryShort}</p>
+                            <p className="text-xs text-slate-500">Jornada {team.jornada}</p>
+                          </div>
                         </div>
-                        <div>
-                          <p className="font-semibold text-slate-900">{categoryShort}</p>
-                          <p className="text-xs text-slate-500">Jornada {team.jornada}</p>
+                        <div className="text-right">
+                          <div className="text-2xl font-bold text-orange-600">{team.puntos} pts</div>
+                          {team.partidos_jugados && (
+                            <p className="text-xs text-slate-500">{team.partidos_jugados} PJ</p>
+                          )}
                         </div>
                       </div>
-                      <div className="text-right">
-                        <div className="text-2xl font-bold text-orange-600">{team.puntos} pts</div>
-                        {team.partidos_jugados && (
-                          <p className="text-xs text-slate-500">{team.partidos_jugados} PJ</p>
-                        )}
-                      </div>
-                    </div>
-                    {team.evolution && team.evolution.length >= 2 && (
-                      <div className="flex items-center gap-1 mt-3">
-                        {team.evolution.map((pos, i) => {
-                          const size = i === team.evolution.length - 1 ? "w-3 h-3" : "w-2 h-2";
-                          const color = pos <= 3 ? "bg-green-500" : pos > team.totalTeams - 3 ? "bg-red-500" : "bg-slate-400";
-                          return (
-                            <div key={i} className={`${size} ${color} rounded-full`} title={`J${team.jornada - team.evolution.length + i + 1}: ${pos}º`}></div>
-                          );
-                        })}
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
+                      {team.evolution && team.evolution.length >= 2 && (
+                        <div className="flex items-center gap-1 mt-3">
+                          {team.evolution.map((pos, i) => {
+                            const size = i === team.evolution.length - 1 ? "w-3 h-3" : "w-2 h-2";
+                            const color = pos <= 3 ? "bg-green-500" : pos > team.totalTeams - 3 ? "bg-red-500" : "bg-slate-400";
+                            return (
+                              <div key={i} className={`${size} ${color} rounded-full`} title={`J${team.jornada - team.evolution.length + i + 1}: ${pos}º`}></div>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                </Link>
               );
             })}
           </div>
