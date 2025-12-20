@@ -51,13 +51,36 @@ export default function CoachStandingsAnalysis() {
 
   // Auto-abrir vista detallada si solo hay una clasificación en la categoría activa
   React.useEffect(() => {
-    if (user && activeTab && !selectedView && !isAnalyzing[activeTab]) {
-      const categoryStandings = standingsByCategory[activeTab];
-      if (categoryStandings?.length === 1 && !aiAnalysis[activeTab]) {
-        setSelectedView(categoryStandings[0]);
+    if (user && activeTab && !selectedView && !isAnalyzing[activeTab] && standings.length > 0) {
+      const cat = CATEGORIES.find(c => c.id === activeTab);
+      if (!cat) return;
+      
+      const categoryStandings = standings.filter(s => s.categoria === cat.fullName);
+      
+      const grouped = categoryStandings.reduce((acc, standing) => {
+        const key = `${standing.temporada}|${standing.jornada}`;
+        if (!acc[key]) {
+          acc[key] = {
+            temporada: standing.temporada,
+            categoria: standing.categoria,
+            jornada: standing.jornada,
+            fecha_actualizacion: standing.fecha_actualizacion,
+            data: []
+          };
+        }
+        acc[key].data.push(standing);
+        return acc;
+      }, {});
+      
+      const groupedArray = Object.values(grouped).sort((a, b) => 
+        new Date(b.fecha_actualizacion) - new Date(a.fecha_actualizacion)
+      );
+      
+      if (groupedArray.length === 1 && !aiAnalysis[activeTab]) {
+        setSelectedView(groupedArray[0]);
       }
     }
-  }, [user, activeTab, standings.length]);
+  }, [user, activeTab, standings, selectedView, isAnalyzing, aiAnalysis]);
 
   const { data: standings = [] } = useQuery({
     queryKey: ['clasificaciones'],
