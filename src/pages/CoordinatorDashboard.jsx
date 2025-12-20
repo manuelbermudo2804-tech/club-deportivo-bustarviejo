@@ -181,8 +181,8 @@ export default function CoordinatorDashboard() {
     return byCategory;
   }, [allStandings]);
 
-  // Definir TODOS los botones disponibles (SIN chats)
-  const availableButtons = [
+  // Definir TODOS los botones disponibles (SIN chats) - en useMemo
+  const availableButtons = React.useMemo(() => [
     { id: 'callups', label: '🎓 Convocatorias', description: 'Ver convocatorias', url: createPageUrl('CoachCallups'), icon: Bell, bgColor: 'bg-gradient-to-br from-yellow-600 to-yellow-700' },
     { id: 'attendance', label: '📋 Asistencia', description: 'Asistencia y evaluación', url: createPageUrl('TeamAttendanceEvaluation'), icon: Users, bgColor: 'bg-gradient-to-br from-green-600 to-green-700' },
     { id: 'rosters', label: '🎓 Plantillas', description: 'Gestionar plantillas', url: createPageUrl('TeamRosters'), icon: Users, bgColor: 'bg-gradient-to-br from-blue-600 to-blue-700' },
@@ -192,7 +192,7 @@ export default function CoordinatorDashboard() {
     { id: 'announcements', label: '📢 Anuncios', description: 'Comunicados del club', url: createPageUrl('Announcements'), icon: Megaphone, bgColor: 'bg-gradient-to-br from-pink-600 to-pink-700' },
     { id: 'events', label: '🎉 Eventos', description: 'Eventos del club', url: createPageUrl('ParentEventRSVP'), icon: Calendar, bgColor: 'bg-gradient-to-br from-cyan-600 to-cyan-700' },
     { id: 'gallery', label: '🖼️ Galería', description: 'Fotos y álbumes', url: createPageUrl('Gallery'), icon: Image, bgColor: 'bg-gradient-to-br from-indigo-600 to-indigo-700' },
-  ];
+  ], []);
 
   // Aplicar configuración del usuario
   const displayedButtons = useDashboardButtons(availableButtons, buttonConfig);

@@ -40,6 +40,8 @@ import AIReconciliation from "../components/financial/AIReconciliation";
 import { usePageTutorial } from "../components/tutorials/useTutorial";
 import { createPageUrl } from "@/utils";
 import { Link } from "react-router-dom";
+import DashboardButtonConfig from "../components/dashboard/DashboardButtonConfig";
+import { useDashboardButtons } from "../components/dashboard/useDashboardButtons";
 
 const COLORS = {
   pagado: '#16a34a',
@@ -943,21 +945,24 @@ export default function TreasurerDashboard() {
     socio: <Users className="w-4 h-4 text-pink-600" />
   };
 
-  // Definir TODOS los botones disponibles (SIN chats)
-  const availableButtons = [
-    { id: 'financial', label: '📊 Panel Financiero', description: 'Resumen financiero completo', url: createPageUrl('TreasurerDashboard'), icon: TrendingUp, bgColor: 'bg-gradient-to-br from-emerald-600 to-emerald-700' },
-    { id: 'payments', label: '💳 Pagos', description: 'Gestionar cuotas', url: createPageUrl('Payments'), icon: CreditCard, bgColor: 'bg-gradient-to-br from-green-600 to-green-700' },
-    { id: 'clothing', label: '🛍️ Pedidos Ropa', description: 'Gestión de equipación', url: createPageUrl('ClothingOrders'), icon: ShoppingBag, bgColor: 'bg-gradient-to-br from-teal-600 to-teal-700' },
-    { id: 'members', label: '🎫 Socios', description: 'Gestión de socios', url: createPageUrl('ClubMembersManagement'), icon: Heart, bgColor: 'bg-gradient-to-br from-pink-600 to-pink-700' },
-    { id: 'reminders', label: '🔔 Recordatorios', description: 'Enviar avisos de pago', url: createPageUrl('PaymentReminders'), icon: Bell, bgColor: 'bg-gradient-to-br from-red-600 to-orange-700' },
-    { id: 'history', label: '📁 Histórico', description: 'Histórico de pagos', url: createPageUrl('PaymentHistory'), icon: Archive, bgColor: 'bg-gradient-to-br from-slate-600 to-slate-700' },
-    { id: 'lottery', label: '🍀 Lotería', description: 'Gestión lotería', url: createPageUrl('LotteryManagement'), icon: Clover, bgColor: 'bg-gradient-to-br from-green-600 to-green-700' },
-    { id: 'calendar', label: '📅 Calendario', description: 'Horarios y partidos', url: createPageUrl('CalendarAndSchedules'), icon: Calendar, bgColor: 'bg-gradient-to-br from-purple-600 to-purple-700' },
-    { id: 'events', label: '🎉 Eventos', description: 'Eventos del club', url: createPageUrl('ParentEventRSVP'), icon: Calendar, bgColor: 'bg-gradient-to-br from-indigo-600 to-indigo-700' },
-    { id: 'announcements', label: '📢 Anuncios', description: 'Comunicados del club', url: createPageUrl('Announcements'), icon: Megaphone, bgColor: 'bg-gradient-to-br from-pink-600 to-pink-700' },
-    { id: 'gallery', label: '🖼️ Galería', description: 'Fotos y álbumes', url: createPageUrl('Gallery'), icon: Image, bgColor: 'bg-gradient-to-br from-indigo-600 to-indigo-700' },
-    { id: 'surveys', label: '📋 Encuestas', description: 'Participar en encuestas', url: createPageUrl('Surveys'), icon: FileText, bgColor: 'bg-gradient-to-br from-purple-600 to-purple-700' },
-  ].filter(btn => btn.id !== 'lottery' || loteriaVisible);
+  // Definir TODOS los botones disponibles (SIN chats) - en useMemo
+  const availableButtons = React.useMemo(() => {
+    const buttons = [
+      { id: 'financial', label: '📊 Panel Financiero', description: 'Resumen financiero completo', url: createPageUrl('TreasurerDashboard'), icon: TrendingUp, bgColor: 'bg-gradient-to-br from-emerald-600 to-emerald-700' },
+      { id: 'payments', label: '💳 Pagos', description: 'Gestionar cuotas', url: createPageUrl('Payments'), icon: CreditCard, bgColor: 'bg-gradient-to-br from-green-600 to-green-700' },
+      { id: 'clothing', label: '🛍️ Pedidos Ropa', description: 'Gestión de equipación', url: createPageUrl('ClothingOrders'), icon: ShoppingBag, bgColor: 'bg-gradient-to-br from-teal-600 to-teal-700' },
+      { id: 'members', label: '🎫 Socios', description: 'Gestión de socios', url: createPageUrl('ClubMembersManagement'), icon: Heart, bgColor: 'bg-gradient-to-br from-pink-600 to-pink-700' },
+      { id: 'reminders', label: '🔔 Recordatorios', description: 'Enviar avisos de pago', url: createPageUrl('PaymentReminders'), icon: Bell, bgColor: 'bg-gradient-to-br from-red-600 to-orange-700' },
+      { id: 'history', label: '📁 Histórico', description: 'Histórico de pagos', url: createPageUrl('PaymentHistory'), icon: Archive, bgColor: 'bg-gradient-to-br from-slate-600 to-slate-700' },
+      { id: 'lottery', label: '🍀 Lotería', description: 'Gestión lotería', url: createPageUrl('LotteryManagement'), icon: Clover, bgColor: 'bg-gradient-to-br from-green-600 to-green-700' },
+      { id: 'calendar', label: '📅 Calendario', description: 'Horarios y partidos', url: createPageUrl('CalendarAndSchedules'), icon: Calendar, bgColor: 'bg-gradient-to-br from-purple-600 to-purple-700' },
+      { id: 'events', label: '🎉 Eventos', description: 'Eventos del club', url: createPageUrl('ParentEventRSVP'), icon: Calendar, bgColor: 'bg-gradient-to-br from-indigo-600 to-indigo-700' },
+      { id: 'announcements', label: '📢 Anuncios', description: 'Comunicados del club', url: createPageUrl('Announcements'), icon: Megaphone, bgColor: 'bg-gradient-to-br from-pink-600 to-pink-700' },
+      { id: 'gallery', label: '🖼️ Galería', description: 'Fotos y álbumes', url: createPageUrl('Gallery'), icon: Image, bgColor: 'bg-gradient-to-br from-indigo-600 to-indigo-700' },
+      { id: 'surveys', label: '📋 Encuestas', description: 'Participar en encuestas', url: createPageUrl('Surveys'), icon: FileText, bgColor: 'bg-gradient-to-br from-purple-600 to-purple-700' },
+    ];
+    return buttons.filter(btn => btn.id !== 'lottery' || loteriaVisible);
+  }, [loteriaVisible]);
 
   // Aplicar configuración del usuario - usar solo los primeros 4 botones por defecto para evitar sobrecarga
   const displayedButtons = useDashboardButtons(availableButtons, buttonConfig.length > 0 ? buttonConfig : availableButtons.slice(0, 4).map(b => b.id));

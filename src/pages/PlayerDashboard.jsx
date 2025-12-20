@@ -12,7 +12,7 @@ import { useDashboardButtons } from "../components/dashboard/useDashboardButtons
 import { 
   Trophy, CreditCard, Star, Award, MessageCircle, Calendar, 
   User, CheckCircle2, Clock, AlertCircle, ChevronRight,
-  MapPin, Users, Megaphone, Image, FileText, Heart, Bell, Sparkles, ShieldAlert, Clover, Edit, FileSignature, ShoppingBag
+  MapPin, Users, Megaphone, Image, FileText, Heart, Bell, Sparkles, ShieldAlert, Clover, Edit, FileSignature, ShoppingBag, BarChart3, ClipboardCheck, Settings
 } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
@@ -479,8 +479,8 @@ export default function PlayerDashboard() {
     );
   }
 
-  // Definir botones disponibles (SIN chats)
-  const availableButtons = [
+  // Definir botones disponibles (SIN chats) - en useMemo para evitar recreación
+  const availableButtons = React.useMemo(() => [
     { id: 'callups', label: '🏆 Convocatorias', description: 'Confirmar asistencia', url: createPageUrl('ParentCallups'), icon: Bell, bgColor: 'bg-gradient-to-br from-yellow-600 to-yellow-700' },
     { id: 'signatures', label: '🖊️ Firmas', description: 'Firmas de federación', url: createPageUrl('FederationSignatures'), icon: FileSignature, bgColor: 'bg-gradient-to-br from-yellow-600 to-orange-600' },
     { id: 'payments', label: '💳 Mis Pagos', description: 'Ver estado de pagos', url: createPageUrl('ParentPayments'), icon: CreditCard, bgColor: 'bg-gradient-to-br from-green-600 to-green-700' },
@@ -491,7 +491,7 @@ export default function PlayerDashboard() {
     { id: 'surveys', label: '📋 Encuestas', description: 'Participar', url: createPageUrl('Surveys'), icon: FileText, bgColor: 'bg-gradient-to-br from-violet-600 to-violet-700' },
     { id: 'documents', label: '📄 Documentos', description: 'Mis documentos', url: createPageUrl('ParentDocuments'), icon: FileText, bgColor: 'bg-gradient-to-br from-slate-600 to-slate-700' },
     { id: 'clothing', label: '🛍️ Ropa', description: 'Pedidos de ropa', url: createPageUrl('ClothingOrders'), icon: ShoppingBag, bgColor: 'bg-gradient-to-br from-red-600 to-red-700' },
-  ];
+  ], []);
 
   const displayedButtons = useDashboardButtons(availableButtons, buttonConfig);
 
