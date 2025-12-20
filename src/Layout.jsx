@@ -816,6 +816,45 @@ export default function Layout({ children, currentPageName }) {
           role_RAW: currentUser.role
         });
 
+        // REDIRECCIÓN AUTOMÁTICA PARA COORDINADORES (primera carga)
+        if (currentUser.es_coordinador === true) {
+          const hasInitialRedirect = sessionStorage.getItem('initialRedirectDone');
+          const currentPath = window.location.pathname.toLowerCase();
+
+          if (!hasInitialRedirect && currentPath !== '/coordinatordashboard') {
+            console.log('🔄 [LAYOUT] Primera carga COORDINADOR - redirigiendo a CoordinatorDashboard');
+            sessionStorage.setItem('initialRedirectDone', 'true');
+            window.location.href = createPageUrl('CoordinatorDashboard');
+            return;
+          }
+        }
+
+        // REDIRECCIÓN AUTOMÁTICA PARA ENTRENADORES (primera carga) - SOLO SI NO ES COORDINADOR
+        if (currentUser.es_entrenador === true && !currentUser.es_coordinador) {
+          const hasInitialRedirect = sessionStorage.getItem('initialRedirectDone');
+          const currentPath = window.location.pathname.toLowerCase();
+
+          if (!hasInitialRedirect && currentPath !== '/coachdashboard') {
+            console.log('🔄 [LAYOUT] Primera carga ENTRENADOR - redirigiendo a CoachDashboard');
+            sessionStorage.setItem('initialRedirectDone', 'true');
+            window.location.href = createPageUrl('CoachDashboard');
+            return;
+          }
+        }
+
+        // REDIRECCIÓN AUTOMÁTICA PARA TESOREROS (primera carga) - SOLO SI NO ES ADMIN/COORDINADOR/ENTRENADOR
+        if (currentUser.es_tesorero === true && !currentUser.es_coordinador && !currentUser.es_entrenador && currentUser.role !== "admin") {
+          const hasInitialRedirect = sessionStorage.getItem('initialRedirectDone');
+          const currentPath = window.location.pathname.toLowerCase();
+
+          if (!hasInitialRedirect && currentPath !== '/treasurerdashboard') {
+            console.log('🔄 [LAYOUT] Primera carga TESORERO - redirigiendo a TreasurerDashboard');
+            sessionStorage.setItem('initialRedirectDone', 'true');
+            window.location.href = createPageUrl('TreasurerDashboard');
+            return;
+          }
+        }
+
         // Para admin/entrenadores/coordinadores/tesoreros, SOLO usar el campo manual (no verificar BD)
                 if (currentUser.role === "admin" || currentUser.es_entrenador || currentUser.es_coordinador || currentUser.es_tesorero) {
                   const tienehijos = currentUser.tiene_hijos_jugando === true;
