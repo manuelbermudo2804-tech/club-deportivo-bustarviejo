@@ -8,25 +8,51 @@ import { Upload, Image as ImageIcon } from "lucide-react";
 import { toast } from "sonner";
 
 export default function UploadStandingsForm({ onDataExtracted, onCancel, preselectedCategory, prefillData }) {
-  const [temporada, setTemporada] = useState(prefillData?.temporada || "2025/2026");
-  const [categoria, setCategoria] = useState(preselectedCategory || prefillData?.categoria || "");
-  const [jornada, setJornada] = useState(prefillData?.jornada?.toString() || "");
+  const temporada = "2025/2026"; // Fija
+  const categoria = preselectedCategory || prefillData?.categoria || "";
+  
+  // Calcular jornada automáticamente
+  const [jornadaActual, setJornadaActual] = useState(null);
   const [imageFile, setImageFile] = useState(null);
   const [imageUrl, setImageUrl] = useState(() => {
-    if (preselectedCategory) {
-      return localStorage.getItem(`standings_url_${preselectedCategory}`) || "";
-    }
-    return "";
+    return localStorage.getItem('standings_image_url') || "";
   });
   const [imagePreview, setImagePreview] = useState(null);
   const [isProcessing, setIsProcessing] = useState(false);
 
-  // Guardar URL cuando cambie
+  // Calcular jornada actual automáticamente al cargar
   useEffect(() => {
-    if (imageUrl && preselectedCategory) {
-      localStorage.setItem(`standings_url_${preselectedCategory}`, imageUrl);
+    const calcularJornada = async () => {
+      try {
+        const allStandings = await base44.entities.Clasificacion.list('-jornada');
+        const categoriasStandings = allStandings.filter(s => 
+          s.categoria === categoria && 
+          s.temporada === temporada
+        );
+        
+        if (categoriasStandings.length > 0) {
+          const maxJornada = Math.max(...categoriasStandings.map(s => s.jornada));
+          setJornadaActual(maxJornada + 1);
+        } else {
+          setJornadaActual(1);
+        }
+      } catch (error) {
+        console.error("Error calculando jornada:", error);
+        setJornadaActual(1);
+      }
+    };
+    
+    if (categoria) {
+      calcularJornada();
     }
-  }, [imageUrl, preselectedCategory]);
+  }, [categoria, temporada]);
+
+  // Guardar URL cuando cambie (GLOBAL para todas las categorías)
+  useEffect(() => {
+    if (imageUrl) {
+      localStorage.setItem('standings_image_url', imageUrl);
+    }
+  }, [imageUrl]);
 
   const processFile = (file) => {
     setImageFile(file);
@@ -69,8 +95,8 @@ export default function UploadStandingsForm({ onDataExtracted, onCancel, presele
       return;
     }
 
-    if (!jornada) {
-      toast.error("Indica la jornada");
+    if (jornadaActual === null) {
+      toast.error("Calculando jornada...");
       return;
     }
 
@@ -152,7 +178,7 @@ export default function UploadStandingsForm({ onDataExtracted, onCancel, presele
       onDataExtracted({
         temporada,
         categoria,
-        jornada: parseInt(jornada),
+        jornada: jornadaActual,
         standings: sortedStandings
       });
 
@@ -176,40 +202,16 @@ export default function UploadStandingsForm({ onDataExtracted, onCancel, presele
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div>
-              <Label>Temporada</Label>
-              <Input
-                value={temporada}
-                onChange={(e) => setTemporada(e.target.value)}
-                placeholder="2025/2026"
-                required
-                disabled={!!prefillData}
-                className={prefillData ? "bg-slate-100" : ""}
-              />
-            </div>
-            <div>
-              <Label>Categoría / Equipo</Label>
-              <Input
-                value={categoria}
-                onChange={(e) => setCategoria(e.target.value)}
-                placeholder="Fútbol Juvenil"
-                required
-                disabled={!!prefillData}
-                className={prefillData ? "bg-slate-100" : ""}
-              />
-            </div>
-            <div>
-              <Label>Jornada</Label>
-              <Input
-                type="number"
-                value={jornada}
-                onChange={(e) => setJornada(e.target.value)}
-                placeholder="1"
-                required
-                disabled={!!prefillData}
-                className={prefillData ? "bg-slate-100" : ""}
-              />
+          {/* Info automática de temporada y jornada */}
+          <div className="bg-green-50 border-2 border-green-300 rounded-xl p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-bold text-green-900">{categoria || "Categoría no seleccionada"}</p>
+                <p className="text-xs text-green-700 mt-1">
+                  📅 Temporada: <strong>2025/2026</strong> • 
+                  Jornada: <strong>{jornadaActual !== null ? jornadaActual : '...'}</strong>
+                </p>
+              </div>
             </div>
           </div>
 
@@ -286,8 +288,8 @@ export default function UploadStandingsForm({ onDataExtracted, onCancel, presele
             </Button>
             <Button
               type="submit"
-              disabled={isProcessing || !categoria || !jornada || !imageFile}
-              className="bg-orange-600 hover:bg-orange-700"
+              disabled={isProcessing || !categoria || jornadaActual === null || !imageFile}
+              className="bg-orange-600 hover:bg-orange-700 flex-1"
             >
               {isProcessing ? (
                 <>

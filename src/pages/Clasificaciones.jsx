@@ -312,13 +312,13 @@ export default function Clasificaciones() {
                       </p>
                     </div>
                     {isAdmin && (
-                      <Button
-                        onClick={() => handleNewUpload(cat.fullName)}
-                        className="bg-orange-600 hover:bg-orange-700"
-                      >
-                        <Plus className="w-4 h-4 mr-2" />
-                        Subir Nueva
-                      </Button>
+                     <Button
+                       onClick={() => handleNewUpload(cat.fullName)}
+                       className="bg-orange-600 hover:bg-orange-700"
+                     >
+                       <Upload className="w-4 h-4 mr-2" />
+                       Actualizar Clasificación
+                     </Button>
                     )}
                   </div>
                 </CardContent>
