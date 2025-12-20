@@ -251,221 +251,38 @@ export default function CoordinatorDashboard() {
           </CardContent>
         </Card>
 
-        {/* Banner dividido: Clasificaciones (izq) + Calendario (der) */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          {/* Clasificaciones del Club */}
-          <Card className="border-2 border-green-300 bg-white shadow-lg">
+        {/* Banner: Clasificaciones compactas con +X más */}
+        {Object.keys(standingsByCategory).length > 0 && (
+          <Card className="border-2 border-orange-500 bg-gradient-to-br from-orange-50 to-white shadow-lg">
             <CardContent className="p-4">
-              <div className="flex items-center gap-3 mb-4">
-                <Trophy className="w-6 h-6 text-green-600" />
-                <div>
-                  <h3 className="font-bold text-slate-900">🏆 Clasificaciones</h3>
-                  <p className="text-xs text-slate-600">Top 5 por categoría</p>
-                </div>
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="font-bold text-slate-900 flex items-center gap-2">
+                  <Trophy className="w-5 h-5 text-orange-600" />
+                  📊 Clasificaciones del Club
+                </h3>
+                {Object.keys(standingsByCategory).length > 2 && (
+                  <Badge className="bg-orange-500">+{Object.keys(standingsByCategory).length - 2} más</Badge>
+                )}
               </div>
-
-              {Object.keys(standingsByCategory).length > 0 ? (
-                <div className="space-y-4 max-h-[500px] overflow-y-auto">
-                  {Object.entries(standingsByCategory).map(([categoria, standings]) => (
-                    <div key={categoria}>
-                      <StandingsWidget 
-                        categoria={categoria}
-                        compact={true}
-                      />
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <p className="text-sm text-slate-500 text-center py-8">No hay clasificaciones</p>
+              <div className="space-y-3">
+                {Object.entries(standingsByCategory).slice(0, 2).map(([categoria]) => (
+                  <StandingsWidget 
+                    key={categoria}
+                    categoria={categoria}
+                    compact={true}
+                  />
+                ))}
+              </div>
+              {Object.keys(standingsByCategory).length > 2 && (
+                <Link to={createPageUrl("Clasificaciones")}>
+                  <button className="w-full mt-3 text-sm text-orange-600 hover:text-orange-700 font-medium">
+                    Ver todas las clasificaciones →
+                  </button>
+                </Link>
               )}
             </CardContent>
           </Card>
-
-          {/* Calendario Unificado */}
-          <div className="space-y-4">
-            {/* Próximos Eventos */}
-            <Card className="border-2 border-orange-300 bg-white shadow-lg">
-              <CardContent className="p-4">
-                <div className="flex items-center gap-3 mb-3">
-                  <Calendar className="w-6 h-6 text-orange-600" />
-                  <h3 className="font-bold text-slate-900">📅 Próximos Eventos</h3>
-                </div>
-
-                {upcomingEvents.length > 0 ? (
-                  <div className="space-y-2">
-                    {upcomingEvents.map(event => (
-                      <div key={event.id} className="bg-slate-50 rounded-lg p-3 border border-slate-200">
-                        <div className="flex items-start justify-between gap-2">
-                          <div className="flex-1">
-                            <p className="font-semibold text-slate-900 text-sm">{event.titulo}</p>
-                            <p className="text-xs text-slate-600 mt-1">
-                              📍 {event.destinatario_categoria || "Todos"}
-                            </p>
-                          </div>
-                          <div className="text-right">
-                            <p className="text-xs font-bold text-orange-600">
-                              {format(new Date(event.fecha), "d MMM", { locale: es })}
-                            </p>
-                            {event.hora && (
-                              <p className="text-xs text-slate-500">{event.hora}</p>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="text-sm text-slate-500 text-center py-4">No hay eventos próximos</p>
-                )}
-              </CardContent>
-            </Card>
-
-            {/* Próximas Convocatorias */}
-            <Card className="border-2 border-blue-300 bg-white shadow-lg">
-              <CardContent className="p-4">
-                <div className="flex items-center gap-3 mb-3">
-                  <Users className="w-6 h-6 text-blue-600" />
-                  <h3 className="font-bold text-slate-900">🎓 Convocatorias</h3>
-                </div>
-
-                {upcomingCallups.length > 0 ? (
-                  <div className="space-y-2">
-                    {upcomingCallups.map(callup => (
-                      <div key={callup.id} className="bg-slate-50 rounded-lg p-3 border border-slate-200">
-                        <div className="flex items-start justify-between gap-2">
-                          <div className="flex-1">
-                            <p className="font-semibold text-slate-900 text-sm">{callup.titulo}</p>
-                            <p className="text-xs text-slate-600 mt-1">
-                              📍 {callup.categoria}
-                            </p>
-                          </div>
-                          <div className="text-right">
-                            <p className="text-xs font-bold text-blue-600">
-                              {format(new Date(callup.fecha_partido), "d MMM", { locale: es })}
-                            </p>
-                            {callup.hora_partido && (
-                              <p className="text-xs text-slate-500">{callup.hora_partido}</p>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="text-sm text-slate-500 text-center py-4">No hay convocatorias</p>
-                )}
-              </CardContent>
-            </Card>
-          </div>
-        </div>
-
-        {/* Banner dividido: Clasificaciones (izq) + Calendario (der) */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          {/* Clasificaciones del Club */}
-          <Card className="border-2 border-green-300 bg-white shadow-lg">
-            <CardContent className="p-4">
-              <div className="flex items-center gap-3 mb-4">
-                <Trophy className="w-6 h-6 text-green-600" />
-                <div>
-                  <h3 className="font-bold text-slate-900">🏆 Clasificaciones</h3>
-                  <p className="text-xs text-slate-600">Ligas del club</p>
-                </div>
-              </div>
-
-              {Object.keys(standingsByCategory).length > 0 ? (
-                <div className="space-y-4 max-h-[500px] overflow-y-auto">
-                  {Object.entries(standingsByCategory).map(([categoria, standings]) => (
-                    <div key={categoria}>
-                      <StandingsWidget 
-                        categoria={categoria}
-                        compact={true}
-                      />
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <p className="text-sm text-slate-500 text-center py-8">No hay clasificaciones cargadas</p>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* Próximos Eventos y Convocatorias */}
-          <div className="space-y-4">
-            {/* Próximos Eventos */}
-            <Card className="border-2 border-orange-300 bg-white shadow-lg">
-              <CardContent className="p-4">
-                <div className="flex items-center gap-3 mb-3">
-                  <Calendar className="w-6 h-6 text-orange-600" />
-                  <h3 className="font-bold text-slate-900">📅 Próximos Eventos</h3>
-                </div>
-
-                {upcomingEvents.length > 0 ? (
-                  <div className="space-y-2">
-                    {upcomingEvents.map(event => (
-                      <div key={event.id} className="bg-slate-50 rounded-lg p-3 border border-slate-200">
-                        <div className="flex items-start justify-between gap-2">
-                          <div className="flex-1">
-                            <p className="font-semibold text-slate-900 text-sm">{event.titulo}</p>
-                            <p className="text-xs text-slate-600 mt-1">
-                              📍 {event.destinatario_categoria || "Todos"}
-                            </p>
-                          </div>
-                          <div className="text-right">
-                            <p className="text-xs font-bold text-orange-600">
-                              {format(new Date(event.fecha), "d MMM", { locale: es })}
-                            </p>
-                            {event.hora && (
-                              <p className="text-xs text-slate-500">{event.hora}</p>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="text-sm text-slate-500 text-center py-4">No hay eventos próximos</p>
-                )}
-              </CardContent>
-            </Card>
-
-            {/* Próximas Convocatorias */}
-            <Card className="border-2 border-blue-300 bg-white shadow-lg">
-              <CardContent className="p-4">
-                <div className="flex items-center gap-3 mb-3">
-                  <Users className="w-6 h-6 text-blue-600" />
-                  <h3 className="font-bold text-slate-900">🎓 Convocatorias</h3>
-                </div>
-
-                {upcomingCallups.length > 0 ? (
-                  <div className="space-y-2">
-                    {upcomingCallups.map(callup => (
-                      <div key={callup.id} className="bg-slate-50 rounded-lg p-3 border border-slate-200">
-                        <div className="flex items-start justify-between gap-2">
-                          <div className="flex-1">
-                            <p className="font-semibold text-slate-900 text-sm">{callup.titulo}</p>
-                            <p className="text-xs text-slate-600 mt-1">
-                              📍 {callup.categoria}
-                            </p>
-                          </div>
-                          <div className="text-right">
-                            <p className="text-xs font-bold text-blue-600">
-                              {format(new Date(callup.fecha_partido), "d MMM", { locale: es })}
-                            </p>
-                            {callup.hora_partido && (
-                              <p className="text-xs text-slate-500">{callup.hora_partido}</p>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="text-sm text-slate-500 text-center py-4">No hay convocatorias</p>
-                )}
-              </CardContent>
-            </Card>
-          </div>
-        </div>
+        )}
 
         {/* AlertCenter - Alertas profesionales del coordinador */}
         <AlertCenter 

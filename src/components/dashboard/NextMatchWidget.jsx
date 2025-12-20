@@ -8,23 +8,21 @@ import { Trophy, MapPin, Calendar, Clock, ExternalLink } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 
-export default function NextMatchWidget({ myPlayers = [] }) {
+export default function NextMatchWidget({ categoria }) {
   const [showAllMatches, setShowAllMatches] = useState(false);
 
   const { data: allCallups = [] } = useQuery({
-    queryKey: ['nextMatchCallups'],
+    queryKey: ['nextMatchCallups', categoria],
     queryFn: () => base44.entities.Convocatoria.list('-fecha_partido'),
     staleTime: 60000,
   });
 
   const today = new Date().toISOString().split('T')[0];
   
-  // Filtrar convocatorias relevantes para mis jugadores
+  // Filtrar convocatorias por categoría
   const myCallups = allCallups.filter(c => {
     if (!c.publicada || c.cerrada || c.fecha_partido < today) return false;
-    return c.jugadores_convocados?.some(j => 
-      myPlayers.some(p => p.id === j.jugador_id)
-    );
+    return c.categoria === categoria;
   });
 
   // Ordenar por fecha + hora
